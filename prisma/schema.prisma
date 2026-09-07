@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MANAGEMENT
+  FINANCE
+  SALES
+  PRODUCTION
+  EDITOR
+  CLIENT
+}
+
+enum WorkStatus {
+  BLOCKED
+  TO_RECORD
+  RECORDED
+  EDITING
+  REVIEW
+  APPROVED
+  PUBLISHED
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  role Role @default(PRODUCTION)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  workOrders WorkOrder[] @relation("AssignedOrders")
+  auditLogs AuditLog[]
+}
+
+model Client {
+  id String @id @default(cuid())
+  name String
+  legalName String?
+  email String?
+  phone String?
+  taxId String?
+  active Boolean @default(true)
+  notes String?
+  createdAt DateTime @default(now())
+  projects Project[]
+  proposals Proposal[]
+  invoices Invoice[]
+}
+
+model Project {
+  id String @id @default(cuid())
+  name String
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
+  status String @default("active")
+  driveUrl String?
+  startDate DateTime?
+  dueDate DateTime?
+  workOrders WorkOrder[]
+  timeEntries TimeEntry[]
+  expenses Expense[]
+  createdAt DateTime @default(now())
+}
+
+model WorkOrder {
+  id String @id @default(cuid())
+  title String
+  description String?
+  status WorkStatus @default(TO_RECORD)
+  dueDate DateTime?
+  clientName String?
+  projectId String
+  project Project @relation(fields: [projectId], references: [id])
+  assigneeId String?
+  assignee User? @relation("AssignedOrders", fields: [assigneeId], references: [id])
+  driveUrl String?
+  estimatedHours Float?
+  actualHours Float?
+  approvedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Proposal {
+  id String @id @default(cuid())
+  number String @unique
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
+  status ProposalStatus @default(DRAFT)
+  currency String @default("PYG")
+  subtotal Decimal @db.Decimal(14,2)
+  tax Decimal @db.Decimal(14,2)
+  total Decimal @db.Decimal(14,2)
+  validUntil DateTime?
+  items ProposalItem[]
+  createdAt DateTime @default(now())
+}
+
+model ProposalItem {
+  id String @id @default(cuid())
+  proposalId String
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  description String
+  quantity Decimal @db.Decimal(10,2)
+  unitPrice Decimal @db.Decimal(14,2)
+  total Decimal @db.Decimal(14,2)
+}
+
+model Invoice {
+  id String @id @default(cuid())
+  number String @unique
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
+  amount Decimal @db.Decimal(14,2)
+  dueDate DateTime
+  status PaymentStatus @default(PENDING)
+  payments Payment[]
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id String @id @default(cuid())
+  invoiceId String
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  amount Decimal @db.Decimal(14,2)
+  paidAt DateTime @default(now())
+  method String?
+  notes String?
+}
+
+model TimeEntry {
+  id String @id @default(cuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id])
+  userId String
+  hours Decimal @db.Decimal(8,2)
+  description String?
+  loggedAt DateTime @default(now())
+}
+
+model Expense {
+  id String @id @default(cuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id])
+  amount Decimal @db.Decimal(14,2)
+  description String
+  incurredAt DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  userId String?
+  user User? @relation(fields: [userId], references: [id])
+  action String
+  entity String
+  entityId String
+  before Json?
+  after Json?
+  ip String?
+  createdAt DateTime @default(now())
+  @@index([entity, entityId])
+}
