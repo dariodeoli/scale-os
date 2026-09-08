@@ -13,6 +13,8 @@ for(const [old,path] of Object.entries(legacyRoutes)){assert.equal(sectionPath(s
 assert.equal(parentSection('Mora'),'Pagos');assert.equal(parentSection('Planes'),'Presupuestos');assert.equal(parentSection('Comisiones'),'Equipo');assert.equal(parentSection('Papelera'),'Configuración');
 assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,11);
 assert.equal(legacyDestination('constructor'),undefined);assert.equal(legacyDestination('toString'),undefined);assert.equal(legacyDestination('mora'),'/pagos/mora');
+const nextConfig=readFileSync(new URL('../next.config.mjs',import.meta.url),'utf8');
+for(const [old,target] of Object.entries(legacyRoutes))assert(nextConfig.includes(`source: '/${old}', destination: '${target}'`),'legacy paths also have server-level redirects');
 for(const role of ['owner','admin','management','finance','sales','production','editor','viewer']){
  for(const [label] of sections){if(visibleModule(label,role))assert(childSections(parentSection(label)).filter(child=>visibleModule(child,role)).includes(label),'all previously accessible leaves remain reachable');}
 }
