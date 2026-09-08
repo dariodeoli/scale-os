@@ -6,6 +6,7 @@ import {CatalogWorkspace,MemberActions,RecordEditor,BudgetActions,FinancialDashb
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {WorkspaceGuide,visibleModule,NewCompany} from './workspace-guide';
+import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
 
 import {
   DndContext,
@@ -122,6 +123,9 @@ type AccountTransfer = {
   from_account_name: string;
   to_account_name: string;
   amount: string;
+  received_amount?: string;
+  from_currency?: string;
+  to_currency?: string;
   transferred_on: string;
   reference: string | null;
   created_by_email: string | null;
@@ -137,6 +141,8 @@ type PaymentRecord = {
   received_on: string;
   reference: string | null;
   received_by_email: string | null;
+  reversal_id?: string | null;
+  reversal_reason?: string | null;
 };
 type Invoice = {
   id: string;
@@ -1077,6 +1083,7 @@ function PaymentForm({
   custodians: Member[];
   done: () => void;
 }) {
+  const [requestId]=useState(()=>crypto.randomUUID());
   const form = useForm<PaymentValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
@@ -1093,7 +1100,7 @@ function PaymentForm({
     try {
       await request("/api/agency/payments", {
         method: "POST",
-        body: JSON.stringify(values),
+        body: JSON.stringify({...values,requestId}),
       });
       done();
     } catch (cause) {
@@ -2063,6 +2070,7 @@ export default function Home() {
                           {transfer.created_by_email || "Sistema"}
                           {transfer.reference ? ` · ${transfer.reference}` : ""}
                         </small>
+                        {transfer.to_currency&&<small>Recibido: {new Intl.NumberFormat('es-PY',{style:'currency',currency:transfer.to_currency,maximumFractionDigits:transfer.to_currency==='PYG'?0:2}).format(Number(transfer.received_amount||transfer.amount))}</small>}
                       </div>
                       <strong>
                         {new Intl.NumberFormat("es-PY", {
@@ -2147,7 +2155,7 @@ export default function Home() {
               </div>
               {payments.length ? (
                 <div className="client-list">
-                  {payments.slice(0, 5).map((payment) => (
+                  {payments.map((payment) => (
                     <div className="payment-row" key={payment.id}>
                       <div>
                         <b>
@@ -2159,6 +2167,7 @@ export default function Home() {
                           {payment.received_by_email || "Sin asignar"}
                           {payment.reference ? ` · ${payment.reference}` : ""}
                         </small>
+                        <ReceiptReversal payment={payment} refresh={loadFinance}/>
                       </div>
                       <strong>
                         {new Intl.NumberFormat("es-PY", {
@@ -2174,6 +2183,7 @@ export default function Home() {
                 <p className="empty-copy">Aún no hay cobros registrados.</p>
               )}
             </section>
+            <ReconciliationWorkspace accounts={accounts}/>
           </section>
         )}
         {toast && (
@@ -2271,7 +2281,7 @@ export default function Home() {
       )}
       {modal === "transfer" && (
         <Modal title="Transferir entre cuentas" onClose={close}>
-          <TransferForm
+          <FXTransferForm
             accounts={accounts}
             done={async () => {
               await loadFinance();
