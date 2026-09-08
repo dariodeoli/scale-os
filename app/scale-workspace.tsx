@@ -26,7 +26,7 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -1269,6 +1269,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const pathname=usePathname(),router=useRouter();
+  const lastDataPath=useRef(pathname);
   const requestedSection=sectionLabel(pathname);
   function setActive(label:string){router.push(sectionPath(label));}
   const [toast, setToast] = useState("");
@@ -1313,6 +1314,12 @@ export default function Home() {
     setOrders(orderData.workOrders);
     setSummary(summaryData.summary);
   }
+  useEffect(()=>{
+    if(lastDataPath.current===pathname)return;
+    lastDataPath.current=pathname;
+    // Keep the mounted shell and session. Refresh records quietly after another module may have changed them.
+    if(signedIn)void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron actualizar los datos.'));
+  },[pathname,signedIn]);
   useEffect(()=>{if(signedIn&&toast){notify({tone:'error',message:toast});setToast('');}},[signedIn,toast]);
   useEffect(() => {
     const authError = new URLSearchParams(window.location.search).get("authError");
