@@ -11,6 +11,8 @@ import {DriveLinkNote} from './drive-link';
 import {RemoveRecord} from './archive-controls';
 import {PhotoViewer} from './photo-viewer';
 import {notifyMutation} from './feedback';
+import {teamDirectory,TeamMember,ArchivedProfile} from './team-directory';
+import {TeamAccess} from './team-access';
 
 export async function api<T>(
   path: string,
@@ -37,6 +39,8 @@ export const money = (value: string | number, currency = "PYG") =>
     maximumFractionDigits: currency === "PYG" ? 0 : 2,
   }).format(Number(value));
 const day = (v: string | null) => (v ? v.slice(0, 10) : "—");
+const dialogStack:symbol[]=[];
+let dialogOriginalOverflow="";
 export function Dialog({
   title,
   close,
@@ -47,16 +51,19 @@ export function Dialog({
   children: React.ReactNode;
 }) {
   const panel=useRef<HTMLElement>(null);
+  const dialogId=useRef(Symbol('dialog'));
   useEffect(()=>{
+    if(!dialogStack.length)dialogOriginalOverflow=document.body.style.overflow;
+    dialogStack.push(dialogId.current);
     const previous=document.activeElement as HTMLElement|null;
-    const overflow=document.body.style.overflow;document.body.style.overflow='hidden';
+    document.body.style.overflow='hidden';
     panel.current?.querySelector<HTMLElement>('button,input,textarea')?.focus();
-    const trap=(e:KeyboardEvent)=>{if(e.key!=='Tab')return;const items=Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input,textarea,a[href]')||[]);const first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}};
-    document.addEventListener('keydown',trap);return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',trap);previous?.focus();};
+    const trap=(e:KeyboardEvent)=>{if(e.key!=='Tab'||dialogStack.at(-1)!==dialogId.current)return;const items=Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input,textarea,a[href]')||[]);const first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}};
+    document.addEventListener('keydown',trap);return()=>{const index=dialogStack.indexOf(dialogId.current);if(index>=0)dialogStack.splice(index,1);if(!dialogStack.length)document.body.style.overflow=dialogOriginalOverflow;document.removeEventListener('keydown',trap);previous?.focus();};
   },[]);
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape"&&dialogStack.at(-1)===dialogId.current) close();
     };
     document.addEventListener("keydown", fn);
     return () => document.removeEventListener("keydown", fn);
@@ -228,10 +235,15 @@ const states: Record<string, string> = {
 export function OperationsWorkspace({
   mode,
   role,
+  currentEmail='',
+  organizationName='',
 }: {
   mode: "people" | "commissions";
   role: string;
+  currentEmail?:string;
+  organizationName?:string;
 }) {
+  const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[seedEmail,setSeedEmail]=useState(''),[search,setSearch]=useState('');
   const [people, setPeople] = useState<Person[]>([]),
     [commissions, setCommissions] = useState<Commission[]>([]),
     [accounts, setAccounts] = useState<Account[]>([]),
@@ -252,7 +264,7 @@ export function OperationsWorkspace({
   const allowed = ["owner", "admin", "finance"].includes(role);
   async function load() {
     const [p, c, a, i, x, j] = await Promise.all([
-      api<{ collaborators: Person[] }>("/api/agency/collaborators"),
+      api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>(mode==='people'?"/api/agency/team":"/api/agency/collaborators"),
       api<{ commissions: Commission[] }>("/api/agency/commissions"),
       api<{ accounts: Account[] }>("/api/agency/accounts"),
       api<{ invoices: Invoice[] }>("/api/agency/invoices"),
@@ -260,6 +272,7 @@ export function OperationsWorkspace({
       api<{ roles: JobRole[] }>("/api/agency/job-roles"),
     ]);
     setPeople(p.collaborators);
+    setMembers(p.members||[]);setArchivedProfiles(p.archivedProfiles||[]);
     setCommissions(c.commissions);
     setAccounts(a.accounts);
     setInvoices(i.invoices);
@@ -271,7 +284,7 @@ export function OperationsWorkspace({
       load()
         .catch((e) => setError(message(e)))
         .finally(() => setLoading(false));
-  }, [allowed]);
+  }, [allowed,mode]);
   async function done() {
     await load();
     setEdit(null);
@@ -342,9 +355,11 @@ export function OperationsWorkspace({
       section: 'Remuneración y pagos',
     },
   ];
+  const directory=teamDirectory(people,members,archivedProfiles);
+  const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.job_title||''} ${entry.profile?.email||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
   const personDefaults: Record<string, string> = {
     full_name: person?.full_name || "",
-    email: person?.email || "",
+    email: person?.email || seedEmail,
     job_role_id: person?.job_role_id ? String(person.job_role_id) : "",
     compensation_type: person?.compensation_type || "fixed",
     compensation_amount: person?.compensation_amount || "0",
@@ -363,11 +378,11 @@ export function OperationsWorkspace({
           <div>
             <p className="eyebrow">
               {mode === "people"
-                ? "PERSONAS Y REMUNERACIONES"
+                ? "PERSONAS, ACCESOS Y REMUNERACIONES"
                 : "VENTAS Y RECOMENDACIONES"}
             </p>
             <h2>
-              {mode === "people" ? "Tu equipo" : "Comisiones y referidos"}
+              {mode === "people" ? `Equipo${organizationName?' de '+organizationName:''}` : "Comisiones y referidos"}
             </h2>
           </div>
           <div className="inline-actions">
@@ -375,11 +390,11 @@ export function OperationsWorkspace({
           <button
             className="primary"
             onClick={() =>
-              mode === "people" ? setEdit("new") : setNewCommission(true)
+              mode === "people" ? (setSeedEmail(''),setEdit("new")) : setNewCommission(true)
             }
           >
             <Plus size={16} />
-            {mode === "people" ? "Colaborador" : "Comisión"}
+            {mode === "people" ? "Agregar persona" : "Comisión"}
           </button>
           </div>
         </div>
@@ -389,11 +404,12 @@ export function OperationsWorkspace({
           </p>
         )}
         {notice && <p role="status">{notice}</p>}
+        {mode==='people'&&<label className="team-search">Buscar persona<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Nombre, correo o cargo"/></label>}
         {loading ? (
           <p>Cargando…</p>
         ) : mode === "people" ? (
           <div className="ops-grid">
-            {people.map((p) => (
+            {visiblePeople.map((entry) => {const p=entry.profile;return p?(
               <article className="ops-card ops-person-card" key={p.id}>
                 <div className="ops-person">
                   {p.photo_url ? (
@@ -411,11 +427,8 @@ export function OperationsWorkspace({
                 </div>
                 <p>{p.email || "Sin correo de contacto"}</p>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
-                <p>
-                  {p.access_email
-                    ? "Acceso al panel vinculado"
-                    : "Sin acceso vinculado al panel"}
-                </p>
+                <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} currentEmail={currentEmail} refresh={load}/>
+                {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
                 <div className="inline-actions">
                   <button className="text-button" onClick={() => setEdit(p)}>
                     Ver perfil
@@ -429,10 +442,10 @@ export function OperationsWorkspace({
                   <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
                 </div>
               </article>
-            ))}
-            {!people.length && (
+            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.email[0].toUpperCase()}</span><div><h3>{entry.member!.email}</h3><small>{entry.archivedProfileId?'Perfil en Papelera':'Datos personales por completar'}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Completar perfil</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
+            {!visiblePeople.length && (
               <p className="empty-copy">
-                Agregá el primer colaborador y sus condiciones de pago.
+                {search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}
               </p>
             )}
           </div>
@@ -537,7 +550,7 @@ export function OperationsWorkspace({
       </section>
       {edit && (
         <Dialog
-          title={person ? person.full_name : "Nuevo colaborador"}
+          title={person ? person.full_name : "Persona del equipo"}
           close={() => setEdit(null)}
         >
           <p className="form-note">
@@ -548,6 +561,7 @@ export function OperationsWorkspace({
             const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
             await load();setEdit(result.collaborator);
           }}/>}
+          {person&&<TeamAccess member={directory.find(entry=>entry.profile?.id===person.id)?.member||null} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>}
           <Editor
             columns
             fields={person ? personFields : personFields.filter(f=>!f.section)}

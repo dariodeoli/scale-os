@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {teamDirectory,TeamMember} from '../app/team-directory';
+const member:TeamMember={id:'7',email:'person@example.invalid',role:'editor',active:true,removed_at:null};
+const person={id:'2',email:member.email,user_id:'7'};
+assert.equal(teamDirectory([person],[member],[]).length,1);
+assert.equal(teamDirectory([{...person,user_id:null,email:' Person@Example.invalid '}],[member],[])[0].member?.id,'7');
+assert.equal(teamDirectory([],[member],[])[0].profile,null);
+assert.equal(teamDirectory([person],[{...member,active:false,removed_at:'2026-09-08'}],[])[0].member?.active,false);
+assert.equal(teamDirectory([],[{...member,active:false,removed_at:'2026-09-08'}],[]).length,0);
+assert.equal(teamDirectory([],[member],[person])[0].archivedProfileId,'2');
+const ambiguous=teamDirectory([{...person,user_id:null},{...person,id:'3',user_id:null}],[member],[]);
+assert.equal(ambiguous.length,3);assert.ok(ambiguous[0].ambiguous);assert.equal(ambiguous[0].member,null);
+assert.equal(teamDirectory([{...person,user_id:'99'}],[member],[]).length,2,'do not relink a different identity by email');
+assert.equal(teamDirectory([person],[],[])[0].member,null,'no inference across agencies');
+console.log('PASS: unified profiles/access, case normalization, retired access, archived profiles, ambiguous identities and tenant boundaries');

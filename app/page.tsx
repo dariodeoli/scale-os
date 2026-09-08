@@ -2,7 +2,7 @@
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import './operations.css';
 import './suite.css';
-import {CatalogWorkspace,MemberActions,RecordEditor,BudgetActions,FinancialDashboard,ActivityWorkspace,SettingsWorkspace} from './suite';
+import {CatalogWorkspace,RecordEditor,BudgetActions,FinancialDashboard,ActivityWorkspace,SettingsWorkspace} from './suite';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {WorkspaceGuide,visibleModule,NewCompany} from './workspace-guide';
@@ -62,7 +62,6 @@ const nav = [
   ["Mora", WalletCards],
   ["Métricas", BarChart3],
   ["Equipo", BriefcaseBusiness],
-  ["Colaboradores", Users],
   ["Comisiones", WalletCards],
   ["Pipeline", FolderKanban],
   ["Planes", FileText],
@@ -187,7 +186,6 @@ type ModalKind =
   | "client"
   | "project"
   | "order"
-  | "member"
   | "budget"
   | "account"
   | "invoice"
@@ -592,77 +590,6 @@ function OrderForm({
       {!projects.length && (
         <p className="form-note">Primero creá un proyecto.</p>
       )}
-    </form>
-  );
-}
-const memberSchema = z.object({
-  email: z.string().email("Escribí un email válido."),
-  role: z.enum([
-    "owner",
-    "admin",
-    "management",
-    "finance",
-    "sales",
-    "production",
-    "editor",
-    "viewer",
-  ]),
-});
-type MemberValues = z.infer<typeof memberSchema>;
-function MemberForm({ done, currentRole }: { done: (member: Member, emailSent:boolean) => void; currentRole:string }) {
-  const form = useForm<MemberValues>({
-    resolver: zodResolver(memberSchema),
-    defaultValues: { email: "", role: "production" },
-  });
-  const [error, setError] = useState("");
-  async function submit(values: MemberValues) {
-    try {
-      const data = await request<{ member: Member; emailSent:boolean }>("/api/agency/members", {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
-      done(data.member,data.emailSent);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "No se pudo crear el acceso.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack"
-      noValidate
-      onSubmit={form.handleSubmit(submit)}
-    >
-      <label>
-        Email del integrante
-        <input type="email" {...form.register("email")} autoFocus />
-        {form.formState.errors.email && (
-          <small className="error">{form.formState.errors.email.message}</small>
-        )}
-      </label>
-      <fieldset>
-        <legend>Permiso</legend>
-        <div className="choice-list compact">
-          {assignableRoles.filter(role=>role.id!=='owner'||currentRole==='owner').map((role) => (
-            <button
-              type="button"
-              className={
-                form.watch("role") === role.id ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("role", role.id)}
-              key={role.id}
-            >
-              {role.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      {form.watch('role')==='owner'&&<p className="form-note">Dueño tiene el mismo acceso total que quien creó la agencia, incluidos finanzas, usuarios y permisos. Solo otro dueño puede otorgar este rol.</p>}
-      {error && <p className="error">{error}</p>}
-      <button className="primary" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Enviando…" : "Enviar invitación"}
-      </button>
     </form>
   );
 }
@@ -1364,7 +1291,6 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
   const [productionClientId, setProductionClientId] = useState("");
-  const [members, setMembers] = useState<Member[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -1414,22 +1340,6 @@ export default function Home() {
       .catch(() => setSignedIn(false))
       .finally(() => setLoading(false));
   }, []);
-  useEffect(() => {
-    if (
-      signedIn &&
-      active === "Equipo" &&
-      ["owner", "admin"].includes(user?.role || "")
-    )
-      request<{ members: Member[] }>("/api/agency/members")
-        .then((data) => setMembers(data.members))
-        .catch((cause) =>
-          setToast(
-            cause instanceof Error
-              ? cause.message
-              : "No se pudo cargar el equipo.",
-          ),
-        );
-  }, [active, signedIn, user?.role]);
   useEffect(() => {
     if (signedIn && active === "Mora")
       request<{ clients: ClientPaymentStatus[] }>(
@@ -1668,7 +1578,7 @@ export default function Home() {
           </div>
           <div className="header-actions">
             <WorkspaceGuide navigate={setActive} role={user?.role||'viewer'}/>
-            {["Clientes", "Proyectos", "Equipo", "Presupuestos", "Resumen"].includes(active) && (
+            {["Clientes", "Proyectos", "Presupuestos", "Resumen"].includes(active) && (
               <button
                 className="primary"
                 onClick={() =>
@@ -1677,8 +1587,6 @@ export default function Home() {
                       ? "client"
                       : active === "Proyectos"
                         ? "project"
-                        : active === "Equipo"
-                          ? "member"
                           : active === "Presupuestos"
                             ? "budget"
                             : "order",
@@ -1691,7 +1599,7 @@ export default function Home() {
           </div>
         </header>
         <div className="mobile-nav">{nav.filter(([label])=>visibleModule(label,user?.role||'viewer')).map(([label])=><button key={label} className={active===label?'choice active':'choice'} onClick={()=>setActive(label)}>{label}</button>)}</div>
-        {active==='Colaboradores'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'}/>}
+        {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
         {active==='Pipeline'&&<CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>}
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
@@ -1953,44 +1861,6 @@ export default function Home() {
                 </p>
               )}
             </div>
-          </section>
-        )}
-        {active === "Equipo" && (
-          <section className="panel directory">
-            <div className="panel-heading">
-              <div>
-                <p className="eyebrow">ACCESOS Y PERMISOS</p>
-                <h2>Equipo de {user?.organization_name}</h2>
-              </div>
-              {["owner", "admin"].includes(user?.role || "") && (
-                <button className="primary" onClick={() => setModal("member")}>
-                  <Plus size={16} /> Integrante
-                </button>
-              )}
-            </div>
-            {["owner", "admin"].includes(user?.role || "") ? (
-              <div className="client-list">
-                {members.map((member) => (
-                  <div className="client-row" key={member.id}>
-                    <div className="client-avatar purple">
-                      {member.email[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <b>{member.email}</b>
-                      <small>
-                        {assignableRoles.find((role) => role.id === member.role)
-                          ?.label || "Propietario"}
-                      </small>
-                    </div>
-                    <MemberActions member={member} currentEmail={user?.email||''} role={user?.role||'viewer'} refresh={async()=>setMembers((await request<{members:Member[]}>('/api/agency/members')).members)}/>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="empty-copy">
-                Tu permiso no permite administrar integrantes.
-              </p>
-            )}
           </section>
         )}
         {active === "Presupuestos" && (
@@ -2257,17 +2127,6 @@ export default function Home() {
             projects={projects}
             done={async () => {
               await load();
-              close();
-            }}
-          />
-        </Modal>
-      )}
-      {modal === "member" && (
-        <Modal title="Nuevo integrante" onClose={close}>
-          <MemberForm
-            currentRole={user?.role||''}
-            done={(member,emailSent) => {
-              setMembers((current) => [...current, member]);
               close();
             }}
           />
