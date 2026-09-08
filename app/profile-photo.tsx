@@ -3,6 +3,7 @@ import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
+import {PhotoViewer} from './photo-viewer';
 
 const schema=z.object({photo:z.string().max(700000)});
 
@@ -31,7 +32,8 @@ export function ProfilePhoto({photo,name,save}:{photo:string|null;name:string;sa
     <form className="form-stack" noValidate onSubmit={form.handleSubmit(async values=>{
       setError('');setNotice('');try{await save(values.photo);form.reset(values);setNotice('Foto guardada.');}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}
     })}>
-      {preview?<img src={preview} alt={`Foto de ${name}`} width={72} height={72} style={{borderRadius:'50%',objectFit:'cover'}} referrerPolicy="no-referrer"/>:<span className="avatar" aria-label="Sin foto">{name[0]}</span>}
+      {preview?<PhotoViewer photo={preview} name={name} size={72}/>:<span className="avatar" aria-label="Sin foto">{name[0]}</span>}
+      {form.formState.isDirty&&<p className="form-note" role="status">Vista previa: todavía no guardaste el cambio.</p>}
       <p className="form-note">Solo alojamos fotos de perfil. La imagen se comprime antes de enviarla; el servidor guarda una miniatura sin metadatos. Los documentos y videos permanecen en Drive.</p>
       <label>Elegir foto (JPG, PNG o WebP; hasta 4 MB)<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file)return;

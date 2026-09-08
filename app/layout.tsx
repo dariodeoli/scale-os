@@ -1,6 +1,7 @@
 import './globals.css';
 import './qa-fixes.css';
 import type { Metadata } from 'next';
+import {NotificationCenter} from './notification-center';
 
 export const metadata: Metadata = {
   title: 'Scale OS',
@@ -15,4 +16,4 @@ export const metadata: Metadata = {
     shortcut: 'https://scaleparaguay.com/assets/favicon-32.png',
   },
 };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="es"><body>{children}</body></html>; }
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="es"><body>{children}<NotificationCenter/></body></html>; }

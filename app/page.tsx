@@ -10,6 +10,7 @@ import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-co
 import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
+import {notify,notifyMutation} from './feedback';
 
 import {
   DndContext,
@@ -218,6 +219,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   };
   if (!response.ok)
     throw new Error(data.error || "No se pudo completar la acción.");
+  let payload:unknown;
+  if(typeof init.body==='string'){try{payload=JSON.parse(init.body);}catch{payload=undefined;}}
+  notifyMutation(path,init.method||'GET',payload,data);
   return data;
 }
 function Modal({
@@ -1391,6 +1395,7 @@ export default function Home() {
     setOrders(orderData.workOrders);
     setSummary(summaryData.summary);
   }
+  useEffect(()=>{if(signedIn&&toast){notify({tone:'error',message:toast});setToast('');}},[signedIn,toast]);
   useEffect(() => {
     const authError = new URLSearchParams(window.location.search).get("authError");
     if (authError) {
@@ -2220,11 +2225,6 @@ export default function Home() {
             <ReconciliationWorkspace accounts={accounts}/>
           </section>
         )}
-        {toast && (
-          <button className="toast" onClick={() => setToast("")}>
-            {toast}
-          </button>
-        )}
       </section>
       {modal === "client" && (
         <Modal title="Nuevo cliente" onClose={close}>
@@ -2268,7 +2268,6 @@ export default function Home() {
             currentRole={user?.role||''}
             done={(member,emailSent) => {
               setMembers((current) => [...current, member]);
-              setToast(emailSent?'Acceso creado. El proveedor aceptó el correo de invitación.':'Acceso creado, pero el correo no pudo enviarse. El integrante puede entrar con Google.');
               close();
             }}
           />

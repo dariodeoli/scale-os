@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {mutationFeedback} from '../app/feedback';
+assert.equal(mutationFeedback('/api/agency/clients','GET',null,{}),null);
+assert.equal(mutationFeedback('/api/auth/login','POST',{},{}),null);
+assert.equal(mutationFeedback('/api/agency/collaborators/1','PATCH',{photo_url:'data:image/webp;base64,x'},{} )?.message,'Foto guardada correctamente.');
+assert.equal(mutationFeedback('/api/agency/collaborators/1','PATCH',{photo_url:''},{} )?.message,'Foto quitada del perfil.');
+assert.equal(mutationFeedback('/api/agency/members','POST',{}, {emailSent:false})?.tone,'warning');
+assert.equal(mutationFeedback('/api/agency/collaborators','POST',{}, {access:{emailSent:false}})?.tone,'warning');
+assert.ok(mutationFeedback('/api/agency/members/2','DELETE',{}, {})?.message.includes('Acceso retirado'));
+assert.ok(mutationFeedback('/api/agency/clients/1','DELETE',{}, {})?.message.includes('Papelera'));
+assert.ok(mutationFeedback('/api/agency/payments','POST',{}, {alreadyRecorded:true})?.message.includes('No se duplicó'));
+assert.equal(mutationFeedback('/api/agency/work-orders/3','PATCH',{status:'editing'}, {})?.message,'Tarjeta movida y guardada.');
+assert.equal(mutationFeedback('/api/agency/payouts','POST',{}, {})?.message,'Pago registrado y descontado de la cuenta.');
+console.log('PASS: 11 notification cases: saved photo/removal, invitations, archive, finance, drag movement; reads/auth are quiet');

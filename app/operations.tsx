@@ -9,6 +9,8 @@ import { AmountInput, SelectCustom } from './profile-controls';
 import {ProfilePhoto} from './profile-photo';
 import {DriveLinkNote} from './drive-link';
 import {RemoveRecord} from './archive-controls';
+import {PhotoViewer} from './photo-viewer';
+import {notifyMutation} from './feedback';
 
 export async function api<T>(
   path: string,
@@ -23,6 +25,7 @@ export async function api<T>(
   });
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || "No se pudo completar la operación");
+  notifyMutation(path,body===undefined?'GET':method,body,data);
   return data as T;
 }
 const message = (e: unknown) =>
@@ -394,11 +397,7 @@ export function OperationsWorkspace({
               <article className="ops-card ops-person-card" key={p.id}>
                 <div className="ops-person">
                   {p.photo_url ? (
-                    <img
-                      src={p.photo_url}
-                      alt=""
-                      referrerPolicy="no-referrer"
-                    />
+                    <PhotoViewer photo={p.photo_url} name={p.full_name}/>
                   ) : (
                     <span className="avatar">{p.full_name[0]}</span>
                   )}
