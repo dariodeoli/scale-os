@@ -45,6 +45,7 @@ const nav = [
   ["Proyectos", FolderKanban],
   ["Presupuestos", FileText],
   ["Pagos", WalletCards],
+  ["Mora", WalletCards],
   ["Métricas", BarChart3],
   ["Equipo", BriefcaseBusiness],
 ] as const;
@@ -106,6 +107,15 @@ type Invoice = {
   due_on: string | null;
 };
 type MetricEvent = { name: string; event_date: string; count: number };
+type ClientPaymentStatus = {
+  client_id: string;
+  client_name: string;
+  currency: "PYG" | "USD" | null;
+  outstanding_amount: string;
+  next_due_on: string | null;
+  days_overdue: number;
+  payment_status: "up_to_date" | "due_soon" | "late" | "severe";
+};
 type User = {
   email: string;
   role: string;
@@ -1088,6 +1098,10 @@ export default function Home() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [metrics, setMetrics] = useState<MetricEvent[]>([]);
+  const [paymentStatuses, setPaymentStatuses] = useState<ClientPaymentStatus[]>(
+    [],
+  );
+  const [moraFilter, setMoraFilter] = useState("");
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
     active_projects: 0,
@@ -1133,6 +1147,20 @@ export default function Home() {
           ),
         );
   }, [active, signedIn, user?.role]);
+  useEffect(() => {
+    if (signedIn && active === "Mora")
+      request<{ clients: ClientPaymentStatus[] }>(
+        `/api/agency/client-payment-status${moraFilter ? `?status=${moraFilter}` : ""}`,
+      )
+        .then((data) => setPaymentStatuses(data.clients))
+        .catch((cause) =>
+          setToast(
+            cause instanceof Error
+              ? cause.message
+              : "No se pudo cargar la mora.",
+          ),
+        );
+  }, [active, signedIn, moraFilter]);
   useEffect(() => {
     if (signedIn && active === "Presupuestos")
       request<{ budgets: Budget[] }>("/api/agency/budgets")
@@ -1330,7 +1358,7 @@ export default function Home() {
             <button className="icon-button" aria-label="Buscar">
               <Search size={19} />
             </button>
-            {!['Pagos', 'Métricas'].includes(active) && (
+            {!["Pagos", "Mora", "Métricas"].includes(active) && (
               <button
                 className="primary"
                 onClick={() =>
@@ -1418,25 +1446,98 @@ export default function Home() {
               </div>
               <span>Últimos 12 meses</span>
             </div>
-            {['owner', 'admin'].includes(user?.role || '') ? (
+            {["owner", "admin"].includes(user?.role || "") ? (
               <div className="client-list">
                 {Object.entries(metricTotals).length ? (
                   Object.entries(metricTotals).map(([name, count]) => (
                     <div className="payment-row" key={name}>
                       <div>
-                        <b>{name.replaceAll('_', ' ')}</b>
+                        <b>{name.replaceAll("_", " ")}</b>
                         <small>Eventos registrados</small>
                       </div>
                       <strong>{count}</strong>
                     </div>
                   ))
                 ) : (
-                  <p className="empty-copy">Aún no hay conversiones registradas en este período.</p>
+                  <p className="empty-copy">
+                    Aún no hay conversiones registradas en este período.
+                  </p>
                 )}
               </div>
             ) : (
-              <p className="empty-copy">Tu permiso no permite ver métricas comerciales.</p>
+              <p className="empty-copy">
+                Tu permiso no permite ver métricas comerciales.
+              </p>
             )}
+          </section>
+        )}
+        {active === "Mora" && (
+          <section className="panel directory">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">CRM · COBRANZAS</p>
+                <h2>Estado de pagos</h2>
+              </div>
+              <span>Actualizado hoy</span>
+            </div>
+            <div
+              className="choice-list compact"
+              aria-label="Filtrar estado de cobro"
+            >
+              {[
+                ["", "Todos"],
+                ["up_to_date", "Al día"],
+                ["due_soon", "Por vencer"],
+                ["late", "Mora 1–30"],
+                ["severe", "Mora grave"],
+              ].map(([value, label]) => (
+                <button
+                  type="button"
+                  className={moraFilter === value ? "choice active" : "choice"}
+                  onClick={() => setMoraFilter(value)}
+                  key={value || "all"}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="client-list">
+              {paymentStatuses.length ? (
+                paymentStatuses.map((client, index) => (
+                  <div
+                    className="client-row"
+                    key={`${client.client_id}-${client.currency || "none"}`}
+                  >
+                    <div
+                      className={`client-avatar ${["green", "yellow", "purple", "blue"][index % 4]}`}
+                    >
+                      {client.client_name[0]}
+                    </div>
+                    <div>
+                      <b>{client.client_name}</b>
+                      <small>
+                        {client.payment_status === "up_to_date"
+                          ? "Al día"
+                          : client.payment_status === "due_soon"
+                            ? `Vence ${client.next_due_on || "próximamente"}`
+                            : `${client.days_overdue} días de mora`}
+                      </small>
+                    </div>
+                    <span>
+                      {client.currency
+                        ? new Intl.NumberFormat("es-PY", {
+                            style: "currency",
+                            currency: client.currency,
+                            maximumFractionDigits: 0,
+                          }).format(Number(client.outstanding_amount))
+                        : "Sin saldo pendiente"}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="empty-copy">No hay clientes en esta categoría.</p>
+              )}
+            </div>
           </section>
         )}
         {active === "Clientes" && (
