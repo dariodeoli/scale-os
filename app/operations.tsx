@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { createPortal } from "react-dom";
+import {Dialog,FormActions} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -39,56 +39,7 @@ export const money = (value: string | number, currency = "PYG") =>
     maximumFractionDigits: currency === "PYG" ? 0 : 2,
   }).format(Number(value));
 const day = (v: string | null) => (v ? v.slice(0, 10) : "—");
-const dialogStack:symbol[]=[];
-let dialogOriginalOverflow="";
-export function Dialog({
-  title,
-  close,
-  children,
-}: {
-  title: string;
-  close: () => void;
-  children: React.ReactNode;
-}) {
-  const panel=useRef<HTMLElement>(null);
-  const dialogId=useRef(Symbol('dialog'));
-  useEffect(()=>{
-    if(!dialogStack.length)dialogOriginalOverflow=document.body.style.overflow;
-    dialogStack.push(dialogId.current);
-    const previous=document.activeElement as HTMLElement|null;
-    document.body.style.overflow='hidden';
-    panel.current?.querySelector<HTMLElement>('button,input,textarea')?.focus();
-    const trap=(e:KeyboardEvent)=>{if(e.key!=='Tab'||dialogStack.at(-1)!==dialogId.current)return;const items=Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input,textarea,a[href]')||[]);const first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}};
-    document.addEventListener('keydown',trap);return()=>{const index=dialogStack.indexOf(dialogId.current);if(index>=0)dialogStack.splice(index,1);if(!dialogStack.length)document.body.style.overflow=dialogOriginalOverflow;document.removeEventListener('keydown',trap);previous?.focus();};
-  },[]);
-  useEffect(() => {
-    const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape"&&dialogStack.at(-1)===dialogId.current) close();
-    };
-    document.addEventListener("keydown", fn);
-    return () => document.removeEventListener("keydown", fn);
-  }, [close]);
-  return createPortal(
-    <div className="ops-overlay">
-      <section
-        ref={panel}
-        className="ops-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-      >
-        <div className="panel-heading">
-          <h2>{title}</h2>
-          <button className="icon-button" onClick={close} aria-label="Cerrar">
-            <X size={18} />
-          </button>
-        </div>
-        {children}
-      </section>
-    </div>,
-    document.body,
-  );
-}
+export {Dialog} from './dialog';
 type Choice = { value: string; label: string };
 export type Field = {
   key: string;
@@ -156,9 +107,9 @@ export function Editor({
           {error}
         </p>
       )}
-      <button className="primary ops-wide" disabled={form.formState.isSubmitting}>
+      <FormActions><button className="primary ops-wide" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Guardando…" : label}
-      </button>
+      </button></FormActions>
     </form>
   );
 }

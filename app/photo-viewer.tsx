@@ -1,20 +1,11 @@
 "use client";
-import {useEffect,useId,useRef,useState} from 'react';
+import {useId,useRef,useState} from 'react';
+import {useOverlay} from './dialog';
 import {createPortal} from 'react-dom';
 import {X,ZoomIn,ZoomOut} from 'lucide-react';
 function EnlargedPhoto({photo,name,close}:{photo:string;name:string;close:()=>void}){
  const [zoom,setZoom]=useState(100),panel=useRef<HTMLElement>(null),title=useId();
- useEffect(()=>{
-  const previous=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;document.body.style.overflow='hidden';panel.current?.querySelector<HTMLButtonElement>('button')?.focus();
-  const keyboard=(event:KeyboardEvent)=>{
-   if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();close();}
-   if(event.key==='Tab'){
-    event.stopImmediatePropagation();const buttons=Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input')||[]),first=buttons[0],last=buttons.at(-1);
-    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
-   }
-  };
-  document.addEventListener('keydown',keyboard,true);return()=>{document.removeEventListener('keydown',keyboard,true);document.body.style.overflow=overflow;previous?.focus();};
- },[close]);
+ useOverlay(panel,close);
  return createPortal(<div className="photo-overlay" onClick={event=>{if(event.target===event.currentTarget)close();}}><section className="photo-dialog" ref={panel} role="dialog" aria-modal="true" aria-labelledby={title}>
   <div className="panel-heading"><h2 id={title}>Foto de {name}</h2><button type="button" className="icon-button" onClick={close} aria-label="Cerrar foto ampliada"><X size={20}/></button></div>
   <div className="photo-viewport"><div className="photo-canvas" style={{width:`${zoom}%`,height:`${zoom}%`}}><img src={photo} alt={`Foto ampliada de ${name}`} referrerPolicy="no-referrer"/></div></div>

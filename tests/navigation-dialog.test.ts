@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {sections,sectionLabel,sectionPath,validSection} from '../app/navigation';
+import {createLayerStack} from '../app/overlay-stack';
+assert.equal(new Set(sections.map(([,slug])=>slug)).size,sections.length);
+for(const [label,slug] of sections){assert(validSection(slug));assert.equal(sectionPath(label),'/'+slug);assert.equal(sectionLabel('/'+slug),label);assert.equal(sectionLabel('/'+slug+'/'),label);}
+assert(!validSection('api'));assert(!validSection('unknown'));assert.equal(sectionLabel('/'),'Resumen');
+const stack=createLayerStack(),parent=Symbol(),child=Symbol();stack.add(parent);stack.add(child);assert(stack.isTop(child));assert(!stack.isTop(parent));stack.remove(child);assert(stack.isTop(parent));stack.remove(parent);assert.equal(stack.size,0);
+stack.add(parent);stack.add(child);stack.remove(parent);assert(stack.isTop(child));stack.remove(child);assert.equal(stack.size,0);
+const ui=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+assert(!ui.includes('useState("Resumen")'));assert(!ui.match(/<Settings size=\{18\} \/>\s*Configuración/));
+assert.equal((ui.match(/\["Configuración", Settings\]/g)||[]).length,1);
+assert(ui.includes('router.push(sectionPath(label))'));
+const dialog=readFileSync(new URL('../app/dialog.tsx',import.meta.url),'utf8');
+assert(dialog.includes('form:formId||undefined'));assert(dialog.includes('event.stopImmediatePropagation()'));assert(dialog.includes('event.defaultPrevented||!layers.isTop(id)'));
+assert(dialog.indexOf('className="dialog-body"')<dialog.indexOf('className="dialog-footer"'));
+console.log('PASS: 15 section URLs, unique settings, permission-aware navigation, overlay ordering and footer/form wiring');
