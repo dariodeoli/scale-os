@@ -1477,6 +1477,7 @@ export default function Home() {
     }
   }
   async function logout() {
+    sessionStorage.removeItem("scale_company_selected");
     await request("/api/auth/logout", { method: "POST" }).catch(
       () => undefined,
     );

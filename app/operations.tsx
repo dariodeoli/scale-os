@@ -557,6 +557,7 @@ export function OperationsWorkspace({
           </>
         )}
       </section>
+      {mode === "commissions" && <ReferralDiscounts />}
       <section className="panel">
         <h2>Pagos registrados</h2>
         <p className="form-note">
@@ -757,6 +758,55 @@ export function OperationsWorkspace({
       )}
     </div>
   );
+}
+
+type ReferralDiscount = {
+  id: string; referrer: string; amount: string; currency: string;
+  reason: string; status: string; invoice_number: string; client_name: string;
+};
+function ReferralDiscounts() {
+  const [items, setItems] = useState<ReferralDiscount[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  async function load() {
+    const [discounts, bills] = await Promise.all([
+      api<{ discounts: ReferralDiscount[] }>("/api/agency/referral-discounts"),
+      api<{ invoices: Invoice[] }>("/api/agency/invoices"),
+    ]);
+    setItems(discounts.discounts); setInvoices(bills.invoices);
+  }
+  useEffect(() => { void load().catch(e => setError(message(e))); }, []);
+  return <section className="panel">
+    <div className="panel-heading"><h2>Descuentos por referido</h2>
+      <button className="primary" onClick={() => setOpen(true)}><Plus size={16} /> Nuevo descuento</button>
+    </div>
+    <p className="form-note">Se descuenta del saldo pendiente de la factura. Conservamos el motivo y el historial de reversiones.</p>
+    {error && <p className="error" role="alert">{error}</p>}
+    {!items.length && <p className="empty-copy">Todavía no hay descuentos registrados.</p>}
+    {items.map(item => <article className="payment-row" key={item.id}>
+      <div><b>{item.referrer} · {money(item.amount, item.currency)}</b>
+        <small>{item.invoice_number} · {item.client_name}</small><small>{item.reason}</small>
+        <small>{item.status === "applied" ? "Aplicado" : "Revertido"}</small>
+      </div>
+      {item.status === "applied" && <button className="secondary" disabled={busy !== null} onClick={async () => {
+        setBusy(item.id); setError("");
+        try { await api(`/api/agency/referral-discounts/${item.id}`, {}, "PATCH"); await load(); }
+        catch(e) { setError(message(e)); } finally { setBusy(null); }
+      }}>{busy === item.id ? "Revirtiendo…" : "Revertir descuento"}</button>}
+    </article>)}
+    {open && <Dialog title="Descuento por referido" close={() => setOpen(false)}>
+      <Editor fields={[
+        { key: "invoice_id", label: "Factura", choices: invoices.filter(i => Number(i.total) > Number(i.paid_amount)).map(i => ({ value: i.id, label: `${i.number} · ${i.client_name} · pendiente ${money(Number(i.total)-Number(i.paid_amount), i.currency)}` })) },
+        { key: "referrer", label: "Quién refirió al cliente" },
+        { key: "amount", label: "Descuento en la moneda de la factura", type: "number" },
+        { key: "reason", label: "Motivo o acuerdo", type: "textarea" },
+      ]} defaults={{invoice_id: "", referrer: "", amount: "", reason: ""}} label="Aplicar descuento" save={async values => {
+        await api("/api/agency/referral-discounts", values); await load(); setOpen(false);
+      }} />
+    </Dialog>}
+  </section>;
 }
 
 export function ProjectComments({
