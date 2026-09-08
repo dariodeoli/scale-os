@@ -559,7 +559,6 @@ function OrderForm({
 }
 const memberSchema = z.object({
   email: z.string().email("Escribí un email válido."),
-  password: z.string().min(12, "Usá al menos 12 caracteres."),
   role: z.enum([
     "admin",
     "management",
@@ -574,7 +573,7 @@ type MemberValues = z.infer<typeof memberSchema>;
 function MemberForm({ done }: { done: (member: Member) => void }) {
   const form = useForm<MemberValues>({
     resolver: zodResolver(memberSchema),
-    defaultValues: { email: "", password: "", role: "production" },
+    defaultValues: { email: "", role: "production" },
   });
   const [error, setError] = useState("");
   async function submit(values: MemberValues) {
@@ -603,15 +602,6 @@ function MemberForm({ done }: { done: (member: Member) => void }) {
           <small className="error">{form.formState.errors.email.message}</small>
         )}
       </label>
-      <label>
-        Contraseña inicial
-        <input type="password" {...form.register("password")} />
-        {form.formState.errors.password && (
-          <small className="error">
-            {form.formState.errors.password.message}
-          </small>
-        )}
-      </label>
       <fieldset>
         <legend>Permiso</legend>
         <div className="choice-list compact">
@@ -631,7 +621,7 @@ function MemberForm({ done }: { done: (member: Member) => void }) {
       </fieldset>
       {error && <p className="error">{error}</p>}
       <button className="primary" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Creando…" : "Crear acceso"}
+        {form.formState.isSubmitting ? "Enviando…" : "Enviar invitación"}
       </button>
     </form>
   );
@@ -1363,6 +1353,11 @@ export default function Home() {
     setSummary(summaryData.summary);
   }
   useEffect(() => {
+    const authError = new URLSearchParams(window.location.search).get("authError");
+    if (authError) {
+      setToast(authError);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
     request<{ google: boolean }>("/api/auth/providers")
       .then((data) => setGoogleAvailable(data.google))
       .catch(() => setGoogleAvailable(false));
