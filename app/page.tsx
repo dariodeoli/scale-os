@@ -7,6 +7,8 @@ import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {WorkspaceGuide,visibleModule,NewCompany} from './workspace-guide';
 import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
+import {SelectCustom} from './profile-controls';
+import {filterProductionOrders} from './production-filter';
 
 import {
   DndContext,
@@ -1354,6 +1356,7 @@ export default function Home() {
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
+  const [productionClientId, setProductionClientId] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -1505,6 +1508,7 @@ export default function Home() {
     }
   }
   async function logout() {
+    setProductionClientId("");
     sessionStorage.removeItem("scale_company_selected");
     await request("/api/auth/logout", { method: "POST" }).catch(
       () => undefined,
@@ -1536,6 +1540,8 @@ export default function Home() {
     }
   }
   const close = () => setModal(null);
+  const selectedProductionClient = clients.some(client => String(client.id) === productionClientId) ? productionClientId : "";
+  const productionOrders = filterProductionOrders(orders, projects, selectedProductionClient);
   if (loading) return <div className="loading-page">Cargando Scale OS…</div>;
   if (!signedIn)
     return (
@@ -1722,6 +1728,22 @@ export default function Home() {
                   Ver proyectos →
                 </button>
               </div>
+              <div className="production-filters">
+                <SelectCustom
+                  label="Filtrar por cliente"
+                  value={selectedProductionClient}
+                  choices={[
+                    {value: "", label: "Todos los clientes"},
+                    ...[...clients].sort((a,b) => a.name.localeCompare(b.name, 'es')).map(client => ({value: String(client.id), label: client.name})),
+                  ]}
+                  onChange={setProductionClientId}
+                />
+                <p className="production-filter-summary" role="status" aria-live="polite">
+                  {productionOrders.length} de {orders.length} órdenes
+                </p>
+                {selectedProductionClient && <button className="text-button" onClick={() => setProductionClientId("")}>Ver todos</button>}
+              </div>
+              {selectedProductionClient && productionOrders.length === 0 && <p className="empty-copy">Este cliente todavía no tiene órdenes de producción.</p>}
               <DndContext onDragEnd={onDragEnd}>
                 <div className="kanban">
                   {statuses.map((status) => (
@@ -1730,7 +1752,7 @@ export default function Home() {
                       refresh={load}
                       key={status.id}
                       status={status}
-                      orders={orders.filter(
+                      orders={productionOrders.filter(
                         (order) => order.status === status.id,
                       )}
                     />
