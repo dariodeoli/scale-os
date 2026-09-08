@@ -1,11 +1,15 @@
 "use client";
 import {usePathname,useRouter} from 'next/navigation';
-import {sectionLabel,sectionPath} from './navigation';
+import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
+import Link from 'next/link';
+import {ControlCenter} from './control-center';
+import {WorkspaceSearch} from './workspace-search';
+import './control-center.css';
 import {Dialog,FormActions} from './dialog';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import './operations.css';
 import './suite.css';
-import {CatalogWorkspace,RecordEditor,BudgetActions,FinancialDashboard,ActivityWorkspace,SettingsWorkspace} from './suite';
+import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWorkspace} from './suite';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {WorkspaceGuide,visibleModule,NewCompany} from './workspace-guide';
@@ -61,16 +65,12 @@ const nav = [
   ["Proyectos", FolderKanban],
   ["Presupuestos", FileText],
   ["Pagos", WalletCards],
-  ["Mora", WalletCards],
   ["Métricas", BarChart3],
   ["Equipo", BriefcaseBusiness],
-  ["Comisiones", WalletCards],
   ["Pipeline", FolderKanban],
-  ["Planes", FileText],
   ["Inventario", BriefcaseBusiness],
   ["Actividad", CalendarDays],
   ["Configuración", Settings],
-  ["Papelera", Trash2],
 ] as const;
 type Client = {
   id: string;
@@ -97,6 +97,7 @@ type WorkOrder = {
   status: Status;
   description: string | null;
   drive_url: string | null;
+  due_date?: string | null;
 };
 type Budget = {
   id: string;
@@ -236,7 +237,8 @@ function Modal({
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
 function DraggableOrder({ order,role,refresh }: { order: WorkOrder;role:string;refresh:()=>Promise<void> }) {
-  const draggable = useDraggable({ id: order.id });
+  const canMove=['owner','admin','management','production','editor'].includes(role);
+  const draggable = useDraggable({ id: order.id,disabled:!canMove });
   const style = draggable.transform
     ? {
         transform: `translate3d(${draggable.transform.x}px, ${draggable.transform.y}px, 0)`,
@@ -250,9 +252,8 @@ function DraggableOrder({ order,role,refresh }: { order: WorkOrder;role:string;r
     >
       <div className="card-top">
         <b>{order.title}</b>
-        <button className="icon-button" aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>
+        {canMove&&<button className="icon-button" aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>}
       </div>
-      <RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>
       <p>
         {order.client_name} · {order.project_name}
       </p>
@@ -269,8 +270,9 @@ function DraggableOrder({ order,role,refresh }: { order: WorkOrder;role:string;r
         ) : (
           <span>Sin enlace</span>
         )}
-        <span>{order.description || "Arrastrá para mover"}</span>
+        {order.description&&<span className="order-description">{order.description}</span>}
       </div>
+      {['owner','admin','management','production','editor'].includes(role)&&<details className="card-actions"><summary>Detalles y acciones</summary><RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/></details>}
     </article>
   );
 }
@@ -1273,6 +1275,9 @@ export default function Home() {
   const [modal, setModal] = useState<ModalKind>(null);
   const [user, setUser] = useState<User | null>(null);
   const active=signedIn&&!visibleModule(requestedSection,user?.role||'viewer')?'Sin acceso':requestedSection;
+  const activeParent=parentSection(active);
+  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
+  const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
   useEffect(()=>{setModal(null);setProductionClientId('');},[pathname]);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -1519,7 +1524,7 @@ export default function Home() {
     {},
   );
   return (
-    <main className="shell">
+    <main className="shell control-shell">
       <aside>
         <div className="brand">
           <span className="brand-mark">S</span>
@@ -1528,17 +1533,18 @@ export default function Home() {
             <small>OPERACIONES</small>
           </div>
         </div>
-        <div className="workspace">{user?.organization_name || 'Organización'}</div>
-        <nav>
-          {nav.filter(([label])=>visibleModule(label,user?.role||'viewer')).map(([label, Icon]) => (
-            <button
+        <p className="nav-caption">Espacio de trabajo</p>
+        <nav aria-label="Menú principal">
+          {visibleNav.map(([label, Icon]) => (
+            <Link
               key={label}
-              className={active === label ? "active" : ""}
-              onClick={() => setActive(label)}
+              className={activeParent === label ? "active" : ""}
+              aria-current={activeParent===label?'page':undefined}
+              href={sectionPath(allowedChildren(label)[0])}
             >
               <Icon size={18} />
               {label}
-            </button>
+            </Link>
           ))}
         </nav>
         <div className="sidebar-bottom">
@@ -1553,15 +1559,19 @@ export default function Home() {
         </div>
       </aside>
       <section className="content">
-        <CompanySelector name={user?.organization_name || 'Organización'}/>
+        <div className="workspace-topbar"><CompanySelector name={user?.organization_name || 'Organización'}/><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
+          ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
+          ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
+          ...orders.map(o=>({id:o.id,name:o.title,context:`Orden · ${o.client_name} · ${o.project_name}`,kind:'work-orders' as const})),
+        ]}/></div>
         <header>
           <div>
-            <p className="eyebrow">ORGANIZACIÓN · {user?.organization_slug}</p>
-            <h1>{active}</h1>
+            <p className="eyebrow">{active==='Resumen'?'TU AGENCIA, EN UN VISTAZO':'ESPACIO DE TRABAJO'}</p>
+            <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
           </div>
           <div className="header-actions">
             <WorkspaceGuide navigate={setActive} role={user?.role||'viewer'}/>
-            {["Clientes", "Proyectos", "Presupuestos", "Resumen"].includes(active) && (
+            {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
               <button
                 className="primary"
                 onClick={() =>
@@ -1576,12 +1586,13 @@ export default function Home() {
                   )
                 }
               >
-                <Plus size={18} /> Crear nuevo
+                <Plus size={18} /> {active==='Clientes'?'Nuevo cliente':active==='Proyectos'?'Nuevo proyecto':active==='Presupuestos'?'Nuevo presupuesto':'Nueva orden'}
               </button>
             )}
           </div>
         </header>
-        <div className="mobile-nav">{nav.filter(([label])=>visibleModule(label,user?.role||'viewer')).map(([label])=><button key={label} className={active===label?'choice active':'choice'} onClick={()=>setActive(label)}>{label}</button>)}</div>
+        <div className="mobile-nav" aria-label="Secciones">{visibleNav.map(([label])=><Link key={label} className={activeParent===label?'choice active':'choice'} aria-current={activeParent===label?'page':undefined} href={sectionPath(allowedChildren(label)[0])}>{label}</Link>)}</div>
+        {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
         {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><button className="primary" onClick={()=>setActive('Resumen')}>Ir al resumen</button></section>}
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
@@ -1589,12 +1600,12 @@ export default function Home() {
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
         {active==='Inventario'&&<CatalogWorkspace key="inventory" kind="inventory" role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
-        {active==='Configuración'&&<><SettingsWorkspace/><NewCompany/></>}
+        {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/><NewCompany/></div>}
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
         {active === "Resumen" && (
           <>
-            <FinancialDashboard role={user?.role||'viewer'}/>
-            <section className="metrics">
+            <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive}/>
+            <section className="metrics operational-metrics" aria-label="Métricas operativas">
               <article className="metric gold">
                 <span>Clientes activos</span>
                 <strong>{summary.active_clients}</strong>
@@ -1611,12 +1622,12 @@ export default function Home() {
                 <small>Seguimiento diario</small>
               </article>
               <article className="metric green">
-                <span>Empresa</span>
-                <strong>1</strong>
-                <small>{user?.organization_name}</small>
+                <span>En revisión</span>
+                <strong>{orders.filter(order=>order.status==='review').length}</strong>
+                <small>Piezas para aprobar</small>
               </article>
             </section>
-            <section className="panel">
+            <section className="panel production-panel" id="produccion">
               <div className="panel-heading">
                 <div>
                   <p className="eyebrow">OPERACIÓN DIARIA</p>

@@ -1,15 +1,8 @@
 "use client";
 import {useState} from 'react';
 import {api,Dialog,Editor} from './operations';
-export const visibleModule=(label:string,role:string)=>{
- if(label==='Colaboradores')return false;
- if(label==='Papelera')return ['owner','admin','management','finance','sales','production'].includes(role);
- if(['Actividad','Configuración'].includes(label))return ['owner','admin'].includes(role);
- if(['Pagos','Equipo','Comisiones'].includes(label))return ['owner','admin','finance'].includes(role);
- if(['Pipeline','Planes','Presupuestos','Mora'].includes(label))return ['owner','admin','management','finance','sales'].includes(role);
- if(label==='Métricas')return ['owner','admin'].includes(role);
- return true;
-};
+import {visibleModule} from './workspace-access';
+export {visibleModule} from './workspace-access';
 export function WorkspaceGuide({navigate,role}:{navigate:(module:string)=>void;role:string}){
  const [open,setOpen]=useState(false),[step,setStep]=useState(0);
  const steps=[['Configuración','1. Tu empresa','Completá los datos que aparecerán en los presupuestos.'],['Equipo','2. Accesos','Invitá por correo y asigná permisos.'],['Clientes','3. Clientes','Agregá los contactos y datos de facturación.'],['Proyectos','4. Producción','Creá un proyecto, vinculá Drive y definí las aprobaciones.'],['Presupuestos','5. Primera propuesta','Usá un plan, revisá los ítems y habilitá el enlace público.']];

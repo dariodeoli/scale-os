@@ -14,4 +14,4 @@ assert(ui.includes('router.push(sectionPath(label))'));
 const dialog=readFileSync(new URL('../app/dialog.tsx',import.meta.url),'utf8');
 assert(dialog.includes('form:formId||undefined'));assert(dialog.includes('event.stopImmediatePropagation()'));assert(dialog.includes('event.defaultPrevented||!layers.isTop(id)'));
 assert(dialog.indexOf('className="dialog-body"')<dialog.indexOf('className="dialog-footer"'));
-console.log('PASS: 15 section URLs, unique settings, permission-aware navigation, overlay ordering and footer/form wiring');
+console.log('PASS: 15 section/subsection URLs, unique settings, permission-aware navigation, overlay ordering and footer/form wiring');

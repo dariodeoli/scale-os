@@ -1,0 +1,39 @@
+"use client";
+import {useEffect,useState} from 'react';
+import {AlertCircle,ArrowUpRight,CheckCircle2} from 'lucide-react';
+import {api,money} from './operations';
+import {DueAlert,groupDueAlerts,shortDate} from './control-center-data';
+import {RecordEditor} from './suite';
+type Total={currency:string;total:string};
+type Dashboard={cash:Total[];receivables:Total[];collections:Total[];inventory:Total[];alerts:DueAlert[]};
+type Order={id:string;title:string;status:string;due_date?:string|null;client_name:string;project_name:string};
+
+export function ControlCenter({role,orders,refresh,navigate}:{role:string;orders:Order[];refresh:()=>Promise<void>;navigate:(label:string)=>void}){
+ const allowed=['owner','admin','finance'].includes(role);
+ const [data,setData]=useState<Dashboard|null>(null),[error,setError]=useState('');
+ useEffect(()=>{let live=true;if(allowed){setError('');void api<Dashboard>('/api/agency/dashboard').then(value=>{if(live)setData(value);}).catch(e=>{if(live)setError(e instanceof Error?e.message:'No se pudo cargar el resumen financiero.');});}return()=>{live=false;};},[allowed,orders]);
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const orderAlerts:DueAlert[]=orders.filter(o=>o.due_date&&o.due_date.slice(0,10)<today&&!['approved','published'].includes(o.status)).map(o=>({id:o.id,type:'work_order',name:o.title,due:o.due_date!.slice(0,10),context:`${o.client_name} · ${o.project_name}`}));
+ // The existing financial endpoint returns at most 30 combined alerts. Never claim that capped count is the total.
+ const capped=Boolean(allowed&&data&&data.alerts.length>=30);
+ const alerts=allowed&&data?data.alerts.map(a=>({...a,context:orderAlerts.find(o=>String(o.id)===String(a.id)&&a.type==='work_order')?.context})):orderAlerts;
+ const groups=groupDueAlerts(alerts);
+ return <>
+  {allowed&&<section className="financial-summary" aria-labelledby="financial-title">
+   <div className="section-caption"><h2 id="financial-title">Resumen financiero</h2><button className="text-button" onClick={()=>navigate('Pagos')}>Ver movimientos <ArrowUpRight size={14}/></button></div>
+   {error?<p className="error" role="alert">{error} Los importes no están disponibles.</p>:<div className="financial-strip" aria-busy={!data}>
+    {([['cash','Disponible','Saldo actual en cuentas'],['receivables','Por cobrar','Facturas pendientes'],['collections','Cobrado este mes','Neto de reversiones']] as const).map(([key,label,note])=><article className={`financial-stat ${key==='cash'?'financial-primary':''}`} key={key}>
+     <span>{label}</span><div className="financial-amounts">{!data?<strong className="loading-value">Cargando…</strong>:data[key].length?data[key].map(r=><strong key={r.currency}>{money(r.total,r.currency)}</strong>):<strong className="no-movements">Sin movimientos</strong>}</div><small>{note}</small>
+    </article>)}
+   </div>}
+   {data&&!error&&data.inventory.length>0&&<p className="inventory-summary">Patrimonio en equipos <b>{data.inventory.map(r=>money(r.total,r.currency)).join(' · ')}</b><button className="text-button" onClick={()=>navigate('Inventario')}>Ver inventario</button></p>}
+  </section>}
+  <section className={`due-alert ${alerts.length?'has-overdue':'all-clear'}`} aria-label="Alertas de vencimiento">
+   {alerts.length?<details><summary><AlertCircle size={18}/><strong>Pendientes vencidos <span className="count-badge">{capped?'30+':alerts.length}</span></strong><span className="alert-peek">{groups[0]?.name}{groups[0]?.items.length>1?` ×${groups[0].items.length}`:''} · {shortDate(groups[0]?.due||'')}</span><span className="alert-toggle">Ver detalle</span></summary>
+    <div className="due-details">{capped&&<p className="form-note">Se muestran los primeros 30 vencimientos. Revisá Producción y Cobranza para ver el resto.</p>}
+     {groups.map(group=><details className="due-group" key={group.key}><summary><span>{group.name}{group.items.length>1&&<b> ×{group.items.length}</b>}</span><time dateTime={group.due}>{shortDate(group.due)}</time><small>{group.type==='invoice'?'Factura':'Producción'}</small></summary><ul>{group.items.map(item=><li key={`${item.type}-${item.id}`}><div><b>{item.context||item.name}</b><small>#{item.id} · {shortDate(item.due)}</small></div>{item.type==='work_order'?<RecordEditor kind="work-orders" recordId={String(item.id)} name={item.name} refresh={refresh} role={role}/>:<button className="text-button" onClick={()=>navigate('Mora')}>Ver cobranza →</button>}</li>)}</ul></details>)}
+    </div>
+   </details>:<div className="clear-message"><CheckCircle2 size={17}/><span>{allowed&&!data&&!error?'Consultando vencimientos…':error?'Sin tareas de producción vencidas · cobros no disponibles':'Sin pendientes vencidos'}</span></div>}
+  </section>
+ </>;
+}
