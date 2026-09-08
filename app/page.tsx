@@ -1,4 +1,6 @@
 "use client";
+import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
+import './operations.css';
 
 import {
   DndContext,
@@ -48,6 +50,8 @@ const nav = [
   ["Mora", WalletCards],
   ["Métricas", BarChart3],
   ["Equipo", BriefcaseBusiness],
+  ["Colaboradores", Users],
+  ["Comisiones", WalletCards],
 ] as const;
 type Client = {
   id: string;
@@ -570,7 +574,7 @@ const memberSchema = z.object({
   ]),
 });
 type MemberValues = z.infer<typeof memberSchema>;
-function MemberForm({ done }: { done: (member: Member) => void }) {
+function MemberForm({ done }: { done: (member: Member, emailSent:boolean) => void }) {
   const form = useForm<MemberValues>({
     resolver: zodResolver(memberSchema),
     defaultValues: { email: "", role: "production" },
@@ -578,11 +582,11 @@ function MemberForm({ done }: { done: (member: Member) => void }) {
   const [error, setError] = useState("");
   async function submit(values: MemberValues) {
     try {
-      const data = await request<{ member: Member }>("/api/agency/members", {
+      const data = await request<{ member: Member; emailSent:boolean }>("/api/agency/members", {
         method: "POST",
         body: JSON.stringify(values),
       });
-      done(data.member);
+      done(data.member,data.emailSent);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "No se pudo crear el acceso.",
@@ -1556,7 +1560,7 @@ export default function Home() {
             className="google-login-button"
             disabled={!googleAvailable}
             onClick={() => {
-              window.location.href = `${core}/api/auth/google/start?organization=scale`;
+              window.location.href = 'https://admin.scaleparaguay.com/api/auth/google/start';
             }}
           >
             <span className="google-g">G</span>
@@ -1583,9 +1587,7 @@ export default function Home() {
             <small>OPERACIONES</small>
           </div>
         </div>
-        <div className="workspace">
-          {user?.organization_name || "Organización"} <ChevronDown size={15} />
-        </div>
+        <div className="workspace">{user?.organization_name || 'Organización'}</div>
         <nav>
           {nav.map(([label, Icon]) => (
             <button
@@ -1614,6 +1616,7 @@ export default function Home() {
         </div>
       </aside>
       <section className="content">
+        <CompanySelector name={user?.organization_name || 'Organización'}/>
         <header>
           <div>
             <p className="eyebrow">ORGANIZACIÓN · {user?.organization_slug}</p>
@@ -1623,7 +1626,7 @@ export default function Home() {
             <button className="icon-button" aria-label="Buscar">
               <Search size={19} />
             </button>
-            {!["Pagos", "Mora", "Métricas"].includes(active) && (
+            {!["Pagos", "Mora", "Métricas", "Colaboradores", "Comisiones"].includes(active) && (
               <button
                 className="primary"
                 onClick={() =>
@@ -1645,6 +1648,9 @@ export default function Home() {
             )}
           </div>
         </header>
+        <div className="mobile-nav">{nav.map(([label])=><button key={label} className={active===label?'choice active':'choice'} onClick={()=>setActive(label)}>{label}</button>)}</div>
+        {active==='Colaboradores'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'}/>}
+        {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
         {active === "Resumen" && (
           <>
             <section className="metrics">
@@ -1869,6 +1875,7 @@ export default function Home() {
                     ) : (
                       <span>Sin enlace de Drive</span>
                     )}
+                    <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
                   </article>
                 ))
               ) : (
@@ -2188,8 +2195,9 @@ export default function Home() {
       {modal === "member" && (
         <Modal title="Nuevo integrante" onClose={close}>
           <MemberForm
-            done={(member) => {
+            done={(member,emailSent) => {
               setMembers((current) => [...current, member]);
+              setToast(emailSent?'Acceso creado. El proveedor aceptó el correo de invitación.':'Acceso creado, pero el correo no pudo enviarse. El integrante puede entrar con Google.');
               close();
             }}
           />
