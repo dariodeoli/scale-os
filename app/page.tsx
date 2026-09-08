@@ -94,6 +94,34 @@ type Account = {
   currency: "PYG" | "USD";
   balance: string;
   active: boolean;
+  institution: string | null;
+  account_number: string | null;
+  holder_name: string | null;
+  custodian_user_id: string | null;
+  custodian_email?: string | null;
+};
+type AccountTransfer = {
+  id: string;
+  from_account_id: string;
+  to_account_id: string;
+  from_account_name: string;
+  to_account_name: string;
+  amount: string;
+  transferred_on: string;
+  reference: string | null;
+  created_by_email: string | null;
+};
+type PaymentRecord = {
+  id: string;
+  invoice_number: string;
+  client_name: string;
+  account_name: string;
+  account_type: string;
+  currency: "PYG" | "USD";
+  amount: string;
+  received_on: string;
+  reference: string | null;
+  received_by_email: string | null;
 };
 type Invoice = {
   id: string;
@@ -137,6 +165,7 @@ type ModalKind =
   | "account"
   | "invoice"
   | "payment"
+  | "transfer"
   | null;
 const assignableRoles = [
   { id: "admin", label: "Administrador" },
@@ -766,12 +795,30 @@ const accountSchema = z.object({
   name: z.string().trim().min(2, "Escribí el nombre de la cuenta."),
   accountType: z.enum(["bank", "cash", "digital", "investment"]),
   currency: z.enum(["PYG", "USD"]),
+  institution: z.string().max(100).optional(),
+  accountNumber: z.string().max(80).optional(),
+  holderName: z.string().max(120).optional(),
+  custodianUserId: z.string().optional(),
 });
 type AccountValues = z.infer<typeof accountSchema>;
-function AccountForm({ done }: { done: (account: Account) => void }) {
+function AccountForm({
+  custodians,
+  done,
+}: {
+  custodians: Member[];
+  done: (account: Account) => void;
+}) {
   const form = useForm<AccountValues>({
     resolver: zodResolver(accountSchema),
-    defaultValues: { name: "", accountType: "bank", currency: "PYG" },
+    defaultValues: {
+      name: "",
+      accountType: "bank",
+      currency: "PYG",
+      institution: "",
+      accountNumber: "",
+      holderName: "",
+      custodianUserId: "",
+    },
   });
   const [error, setError] = useState("");
   async function submit(values: AccountValues) {
@@ -823,6 +870,52 @@ function AccountForm({ done }: { done: (account: Account) => void }) {
               key={type.id}
             >
               {type.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <label>
+        Banco, billetera o institución
+        <input
+          {...form.register("institution")}
+          placeholder="Ej. Banco Regional / Efectivo"
+        />
+      </label>
+      <label>
+        Número de cuenta o referencia
+        <input {...form.register("accountNumber")} placeholder="Opcional" />
+      </label>
+      <label>
+        Titular de la cuenta
+        <input
+          {...form.register("holderName")}
+          placeholder="Empresa, socio o familiar"
+        />
+      </label>
+      <fieldset>
+        <legend>Quién custodia este dinero</legend>
+        <div className="choice-list compact">
+          <button
+            type="button"
+            className={
+              !form.watch("custodianUserId") ? "choice active" : "choice"
+            }
+            onClick={() => form.setValue("custodianUserId", "")}
+          >
+            Sin asignar
+          </button>
+          {custodians.map((member) => (
+            <button
+              type="button"
+              className={
+                form.watch("custodianUserId") === member.id
+                  ? "choice active"
+                  : "choice"
+              }
+              onClick={() => form.setValue("custodianUserId", member.id)}
+              key={member.id}
+            >
+              {member.email}
             </button>
           ))}
         </div>
@@ -961,15 +1054,18 @@ const paymentSchema = z.object({
   amount: z.number().positive("El cobro debe ser mayor a cero."),
   receivedOn: z.string().optional(),
   reference: z.string().max(120).optional(),
+  receivedByUserId: z.string().optional(),
 });
 type PaymentValues = z.infer<typeof paymentSchema>;
 function PaymentForm({
   invoices,
   accounts,
+  custodians,
   done,
 }: {
   invoices: Invoice[];
   accounts: Account[];
+  custodians: Member[];
   done: () => void;
 }) {
   const form = useForm<PaymentValues>({
@@ -980,6 +1076,7 @@ function PaymentForm({
       amount: 0,
       receivedOn: new Date().toISOString().slice(0, 10),
       reference: "",
+      receivedByUserId: "",
     },
   });
   const [error, setError] = useState("");
@@ -1027,6 +1124,25 @@ function PaymentForm({
                 {invoice.number} · {invoice.client_name}
               </button>
             ))}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Quién recibió el cobro</legend>
+        <div className="choice-list">
+          {custodians.map((member) => (
+            <button
+              type="button"
+              className={
+                form.watch("receivedByUserId") === member.id
+                  ? "choice active"
+                  : "choice"
+              }
+              onClick={() => form.setValue("receivedByUserId", member.id)}
+              key={member.id}
+            >
+              {member.email}
+            </button>
+          ))}
         </div>
       </fieldset>
       <fieldset>
@@ -1081,6 +1197,127 @@ function PaymentForm({
   );
 }
 
+const transferSchema = z.object({
+  fromAccountId: z.string().min(1, "Elegí la cuenta de origen."),
+  toAccountId: z.string().min(1, "Elegí la cuenta de destino."),
+  amount: z.number().positive("El importe debe ser mayor a cero."),
+  transferredOn: z.string().optional(),
+  reference: z.string().max(120).optional(),
+});
+type TransferValues = z.infer<typeof transferSchema>;
+function TransferForm({
+  accounts,
+  done,
+}: {
+  accounts: Account[];
+  done: () => void;
+}) {
+  const form = useForm<TransferValues>({
+    resolver: zodResolver(transferSchema),
+    defaultValues: {
+      fromAccountId: "",
+      toAccountId: "",
+      amount: 0,
+      transferredOn: new Date().toISOString().slice(0, 10),
+      reference: "",
+    },
+  });
+  const [error, setError] = useState("");
+  async function submit(values: TransferValues) {
+    try {
+      await request("/api/agency/transfers", {
+        method: "POST",
+        body: JSON.stringify(values),
+      });
+      done();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "No se pudo registrar la transferencia.",
+      );
+    }
+  }
+  return (
+    <form
+      className="form-stack"
+      noValidate
+      onSubmit={form.handleSubmit(submit)}
+    >
+      <fieldset>
+        <legend>Sale de</legend>
+        <div className="choice-list">
+          {accounts.map((account) => (
+            <button
+              type="button"
+              className={
+                form.watch("fromAccountId") === account.id
+                  ? "choice active"
+                  : "choice"
+              }
+              onClick={() =>
+                form.setValue("fromAccountId", account.id, {
+                  shouldValidate: true,
+                })
+              }
+              key={account.id}
+            >
+              {account.name} · {account.currency}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Entra a</legend>
+        <div className="choice-list">
+          {accounts.map((account) => (
+            <button
+              type="button"
+              className={
+                form.watch("toAccountId") === account.id
+                  ? "choice active"
+                  : "choice"
+              }
+              onClick={() =>
+                form.setValue("toAccountId", account.id, {
+                  shouldValidate: true,
+                })
+              }
+              key={account.id}
+            >
+              {account.name} · {account.currency}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <label>
+        Importe
+        <input
+          type="number"
+          min="1"
+          step="1000"
+          {...form.register("amount", { valueAsNumber: true })}
+        />
+      </label>
+      <label>
+        Fecha
+        <input type="date" {...form.register("transferredOn")} />
+      </label>
+      <label>
+        Referencia
+        <input
+          {...form.register("reference")}
+          placeholder="Comprobante o motivo"
+        />
+      </label>
+      {error && <p className="error">{error}</p>}
+      <button className="primary" disabled={form.formState.isSubmitting}>
+        {form.formState.isSubmitting ? "Guardando…" : "Registrar transferencia"}
+      </button>
+    </form>
+  );
+}
+
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1097,6 +1334,9 @@ export default function Home() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [transfers, setTransfers] = useState<AccountTransfer[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [custodians, setCustodians] = useState<Member[]>([]);
   const [metrics, setMetrics] = useState<MetricEvent[]>([]);
   const [paymentStatuses, setPaymentStatuses] = useState<ClientPaymentStatus[]>(
     [],
@@ -1174,12 +1414,19 @@ export default function Home() {
         );
   }, [active, signedIn]);
   async function loadFinance() {
-    const [accountData, invoiceData] = await Promise.all([
-      request<{ accounts: Account[] }>("/api/agency/accounts"),
-      request<{ invoices: Invoice[] }>("/api/agency/invoices"),
-    ]);
+    const [accountData, invoiceData, transferData, paymentData, custodianData] =
+      await Promise.all([
+        request<{ accounts: Account[] }>("/api/agency/accounts"),
+        request<{ invoices: Invoice[] }>("/api/agency/invoices"),
+        request<{ transfers: AccountTransfer[] }>("/api/agency/transfers"),
+        request<{ payments: PaymentRecord[] }>("/api/agency/payments"),
+        request<{ members: Member[] }>("/api/agency/custodians"),
+      ]);
     setAccounts(accountData.accounts);
     setInvoices(invoiceData.invoices);
+    setTransfers(transferData.transfers);
+    setPayments(paymentData.payments);
+    setCustodians(custodianData.members);
   }
   useEffect(() => {
     if (signedIn && active === "Pagos")
@@ -1702,12 +1949,20 @@ export default function Home() {
                   <p className="eyebrow">DISPONIBILIDAD</p>
                   <h2>Cuentas</h2>
                 </div>
-                <button
-                  className="text-button"
-                  onClick={() => setModal("account")}
-                >
-                  + Cuenta
-                </button>
+                <div className="inline-actions">
+                  <button
+                    className="text-button"
+                    onClick={() => setModal("account")}
+                  >
+                    + Cuenta
+                  </button>
+                  <button
+                    className="text-button"
+                    onClick={() => setModal("transfer")}
+                  >
+                    Transferir
+                  </button>
+                </div>
               </div>
               {accounts.length ? (
                 <div className="client-list">
@@ -1717,6 +1972,9 @@ export default function Home() {
                         <b>{account.name}</b>
                         <small>
                           {account.account_type} · {account.currency}
+                          {account.custodian_email
+                            ? ` · Custodia: ${account.custodian_email}`
+                            : ""}
                         </small>
                       </div>
                       <strong>
@@ -1732,6 +1990,46 @@ export default function Home() {
               ) : (
                 <p className="empty-copy">
                   Creá la primera cuenta para registrar cobros.
+                </p>
+              )}
+              <div className="panel-heading">
+                <div>
+                  <p className="eyebrow">TRAZABILIDAD</p>
+                  <h3>Transferencias recientes</h3>
+                </div>
+              </div>
+              {transfers.length ? (
+                <div className="client-list">
+                  {transfers.slice(0, 5).map((transfer) => (
+                    <div className="payment-row" key={transfer.id}>
+                      <div>
+                        <b>
+                          {transfer.from_account_name} →{" "}
+                          {transfer.to_account_name}
+                        </b>
+                        <small>
+                          {transfer.transferred_on} ·{" "}
+                          {transfer.created_by_email || "Sistema"}
+                          {transfer.reference ? ` · ${transfer.reference}` : ""}
+                        </small>
+                      </div>
+                      <strong>
+                        {new Intl.NumberFormat("es-PY", {
+                          style: "currency",
+                          currency:
+                            accounts.find(
+                              (account) =>
+                                account.id === transfer.from_account_id,
+                            )?.currency || "PYG",
+                          maximumFractionDigits: 0,
+                        }).format(Number(transfer.amount))}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-copy">
+                  Aún no hay transferencias entre cuentas.
                 </p>
               )}
             </section>
@@ -1789,6 +2087,40 @@ export default function Home() {
                 <p className="empty-copy">
                   Todavía no hay facturas registradas.
                 </p>
+              )}
+              <div className="panel-heading">
+                <div>
+                  <p className="eyebrow">COBROS REGISTRADOS</p>
+                  <h3>Quién cobró y dónde quedó</h3>
+                </div>
+              </div>
+              {payments.length ? (
+                <div className="client-list">
+                  {payments.slice(0, 5).map((payment) => (
+                    <div className="payment-row" key={payment.id}>
+                      <div>
+                        <b>
+                          {payment.client_name} · {payment.invoice_number}
+                        </b>
+                        <small>
+                          {payment.received_on} · {payment.account_name} (
+                          {payment.account_type}) · recibió{" "}
+                          {payment.received_by_email || "Sin asignar"}
+                          {payment.reference ? ` · ${payment.reference}` : ""}
+                        </small>
+                      </div>
+                      <strong>
+                        {new Intl.NumberFormat("es-PY", {
+                          style: "currency",
+                          currency: payment.currency,
+                          maximumFractionDigits: 0,
+                        }).format(Number(payment.amount))}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-copy">Aún no hay cobros registrados.</p>
               )}
             </section>
           </section>
@@ -1859,6 +2191,7 @@ export default function Home() {
       {modal === "account" && (
         <Modal title="Nueva cuenta" onClose={close}>
           <AccountForm
+            custodians={custodians}
             done={(account) => {
               setAccounts((current) => [...current, account]);
               close();
@@ -1881,6 +2214,18 @@ export default function Home() {
         <Modal title="Registrar cobro" onClose={close}>
           <PaymentForm
             invoices={invoices}
+            accounts={accounts}
+            custodians={custodians}
+            done={async () => {
+              await loadFinance();
+              close();
+            }}
+          />
+        </Modal>
+      )}
+      {modal === "transfer" && (
+        <Modal title="Transferir entre cuentas" onClose={close}>
+          <TransferForm
             accounts={accounts}
             done={async () => {
               await loadFinance();
