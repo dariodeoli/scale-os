@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { BarChart3, BriefcaseBusiness, CalendarDays, ChevronDown, FileText, FolderKanban, LayoutDashboard, Link as LinkIcon, LogOut, Plus, Search, Settings, Users, WalletCards, X } from 'lucide-react';
 
-const core = process.env.NEXT_PUBLIC_CORE_API_URL || 'https://admin.scaleparaguay.com';
+const core = '/core-api';
 const statuses = [
   { id: 'blocked', label: 'Bloqueado', tone: 'red' }, { id: 'to_record', label: 'Por grabar', tone: 'yellow' },
   { id: 'recorded', label: 'Grabado', tone: 'teal' }, { id: 'editing', label: 'Editando', tone: 'purple' },
