@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {displayAmount,normalizeAmount} from './app/amount-format';
+assert.equal(displayAmount('4000000','PYG'),'4.000.000');
+assert.equal(normalizeAmount('4.000.000','PYG'),'4000000');
+assert.equal(displayAmount('1250.50','USD'),'1.250,50');
+assert.equal(normalizeAmount('1.250,50','USD'),'1250.50');
+assert.equal(normalizeAmount('1.250,509','USD'),'1250.50');
+assert.equal(normalizeAmount('0,5','USD'),'0.5');
+assert.equal(displayAmount('0.','USD'),'0,');
+assert.equal(normalizeAmount('','USD'),'');
+assert.equal(normalizeAmount('00050','PYG'),'50');
+assert.equal(displayAmount('4000000.00','PYG'),'4.000.000');
+console.log('PASS: PYG grouping, USD cents, input normalization and empty states');

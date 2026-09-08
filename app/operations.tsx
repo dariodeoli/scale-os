@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { X, Plus, MessageSquare, Building2 } from "lucide-react";
+import { AmountInput, SelectCustom } from './profile-controls';
 
 async function api<T>(
   path: string,
@@ -79,9 +80,11 @@ type Choice = { value: string; label: string };
 type Field = {
   key: string;
   label: string;
-  type?: "number" | "date" | "email" | "url" | "textarea";
+  type?: "number" | "date" | "email" | "url" | "textarea" | "money";
   choices?: Choice[];
   optional?: boolean;
+  section?: string;
+  wide?: boolean;
 };
 const currencies = [
   { value: "PYG", label: "Guaraníes" },
@@ -92,11 +95,13 @@ function Editor({
   defaults,
   save,
   label = "Guardar",
+  columns = false,
 }: {
   fields: Field[];
   defaults: Record<string, string>;
   save: (v: Record<string, string>) => Promise<void>;
   label?: string;
+  columns?: boolean;
 }) {
   const shape: Record<string, z.ZodString> = {};
   for (const f of fields) {
@@ -109,9 +114,15 @@ function Editor({
     defaultValues: defaults,
   });
   const [error, setError] = useState("");
+  const renderField = (f: Field) => <div key={f.key} className={f.wide || f.type === 'textarea' ? 'ops-wide' : undefined}>
+    {f.choices ? <SelectCustom label={f.label} choices={f.choices} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label>{f.label}
+      {f.type === 'textarea' ? <textarea {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>}
+    </label>}
+    {form.formState.errors[f.key]&&<small className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
+  </div>;
   return (
     <form
-      className="form-stack"
+      className={columns ? "form-stack ops-form-grid" : "form-stack"}
       noValidate
       onSubmit={form.handleSubmit(async (v) => {
         setError("");
@@ -122,56 +133,16 @@ function Editor({
         }
       })}
     >
-      {fields.map((f) => (
-        <div key={f.key}>
-          {f.choices ? (
-            <fieldset>
-              <legend>{f.label}</legend>
-              <div className="choice-list compact">
-                {f.choices.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    aria-pressed={form.watch(f.key) === c.value}
-                    className={
-                      form.watch(f.key) === c.value ? "choice active" : "choice"
-                    }
-                    onClick={() =>
-                      form.setValue(f.key, c.value, { shouldValidate: true })
-                    }
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-          ) : (
-            <label>
-              {f.label}
-              {f.type === "textarea" ? (
-                <textarea {...form.register(f.key)} />
-              ) : (
-                <input
-                  type={f.type || "text"}
-                  step={f.type === "number" ? "0.01" : undefined}
-                  {...form.register(f.key)}
-                />
-              )}
-            </label>
-          )}
-          {form.formState.errors[f.key] && (
-            <small className="error">
-              {String(form.formState.errors[f.key]?.message)}
-            </small>
-          )}
-        </div>
-      ))}
+      {fields.filter(f=>!f.section).map(renderField)}
+      {Array.from(new Set(fields.map(f=>f.section).filter((s):s is string=>Boolean(s)))).map(section=><details className="ops-profile-section ops-wide" key={section} open={fields.some(f=>f.section===section&&form.formState.errors[f.key])||undefined}>
+        <summary>{section}</summary><div className="ops-form-grid">{fields.filter(f=>f.section===section).map(renderField)}</div>
+      </details>)}
       {error && (
-        <p className="error" role="alert">
+        <p className="error ops-wide" role="alert">
           {error}
         </p>
       )}
-      <button className="primary" disabled={form.formState.isSubmitting}>
+      <button className="primary ops-wide" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Guardando…" : label}
       </button>
     </form>
@@ -183,6 +154,7 @@ type Person = {
   email: string | null;
   photo_url: string | null;
   job_title: string | null;
+  job_role_id: string | null;
   compensation_type: string;
   compensation_amount: string;
   currency: string;
@@ -195,6 +167,7 @@ type Person = {
   user_id: string | null;
   access_email: string | null;
 };
+type JobRole = { id: string; name: string; active: boolean };
 type Commission = {
   id: string;
   beneficiary_name: string;
@@ -257,7 +230,8 @@ export function OperationsWorkspace({
     [accounts, setAccounts] = useState<Account[]>([]),
     [invoices, setInvoices] = useState<Invoice[]>([]),
     [payouts, setPayouts] = useState<Payout[]>([]),
-    [access, setAccess] = useState<Choice[]>([]);
+    [jobs, setJobs] = useState<JobRole[]>([]);
+  const [manageJobs, setManageJobs] = useState(false);
   const [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
@@ -270,22 +244,20 @@ export function OperationsWorkspace({
     [filter, setFilter] = useState("all");
   const allowed = ["owner", "admin", "finance"].includes(role);
   async function load() {
-    const [p, c, a, i, x, m] = await Promise.all([
+    const [p, c, a, i, x, j] = await Promise.all([
       api<{ collaborators: Person[] }>("/api/agency/collaborators"),
       api<{ commissions: Commission[] }>("/api/agency/commissions"),
       api<{ accounts: Account[] }>("/api/agency/accounts"),
       api<{ invoices: Invoice[] }>("/api/agency/invoices"),
       api<{ payouts: Payout[] }>("/api/agency/payouts"),
-      api<{ members: { id: string; email: string }[] }>(
-        "/api/agency/custodians",
-      ),
+      api<{ roles: JobRole[] }>("/api/agency/job-roles"),
     ]);
     setPeople(p.collaborators);
     setCommissions(c.commissions);
     setAccounts(a.accounts);
     setInvoices(i.invoices);
     setPayouts(x.payouts);
-    setAccess(m.members.map((u) => ({ value: u.id, label: u.email })));
+    setJobs(j.roles);
   }
   useEffect(() => {
     if (allowed)
@@ -328,25 +300,27 @@ export function OperationsWorkspace({
       type: "email",
       optional: true,
     },
-    { key: "job_title", label: "Cargo o servicio", optional: true },
+    { key: "job_role_id", label: "Cargo o servicio", optional: true, choices: [{value:'',label:'Sin definir'},...jobs.filter(j=>j.active||String(j.id)===String(person?.job_role_id)).map(j=>({value:String(j.id),label:j.name+(j.active?'':' (archivado)')}))] },
+    {
+      key: "active", label: "Estado", choices: [
+        { value: "true", label: "Activo" }, { value: "false", label: "Inactivo" },
+      ],
+    },
+    { key: "notes", label: "Condiciones y notas", type: "textarea", optional: true },
     {
       key: "photo_url",
       label: "Enlace HTTPS a la foto",
       type: "url",
       optional: true,
+      section: 'Imagen y fechas', wide: true,
     },
-    {
-      key: "user_id",
-      label: "Acceso al panel",
-      optional: true,
-      choices: [empty, ...access],
-    },
-    { key: "compensation_type", label: "Modalidad", choices: types },
-    { key: "compensation_amount", label: "Importe acordado", type: "number" },
-    { key: "currency", label: "Moneda", choices: currencies },
+    { key: "compensation_type", label: "Modalidad", choices: types, section: 'Remuneración y pagos' },
+    { key: "currency", label: "Moneda", choices: currencies, section: 'Remuneración y pagos' },
+    { key: "compensation_amount", label: "Importe acordado", type: "money", section: 'Remuneración y pagos' },
     {
       key: "invoices_company",
       label: "¿Emite factura?",
+      section: 'Remuneración y pagos',
       choices: [
         { value: "true", label: "Sí" },
         { value: "false", label: "No" },
@@ -357,35 +331,22 @@ export function OperationsWorkspace({
       label: "Fecha de ingreso",
       type: "date",
       optional: true,
+      section: 'Imagen y fechas',
     },
-    { key: "ended_on", label: "Fecha de salida", type: "date", optional: true },
+    { key: "ended_on", label: "Fecha de salida", type: "date", optional: true, section: 'Imagen y fechas' },
     {
       key: "payment_day",
       label: "Día de pago (1–31)",
       type: "number",
       optional: true,
-    },
-    {
-      key: "active",
-      label: "Estado",
-      choices: [
-        { value: "true", label: "Activo" },
-        { value: "false", label: "Inactivo" },
-      ],
-    },
-    {
-      key: "notes",
-      label: "Condiciones y notas",
-      type: "textarea",
-      optional: true,
+      section: 'Remuneración y pagos',
     },
   ];
   const personDefaults: Record<string, string> = {
     full_name: person?.full_name || "",
     email: person?.email || "",
-    job_title: person?.job_title || "",
+    job_role_id: person?.job_role_id ? String(person.job_role_id) : "",
     photo_url: person?.photo_url || "",
-    user_id: person?.user_id || "",
     compensation_type: person?.compensation_type || "fixed",
     compensation_amount: person?.compensation_amount || "0",
     currency: person?.currency || "PYG",
@@ -407,9 +368,11 @@ export function OperationsWorkspace({
                 : "VENTAS Y RECOMENDACIONES"}
             </p>
             <h2>
-              {mode === "people" ? "Colaboradores" : "Comisiones y referidos"}
+              {mode === "people" ? "Tu equipo" : "Comisiones y referidos"}
             </h2>
           </div>
+          <div className="inline-actions">
+          {mode==='people'&&['owner','admin'].includes(role)&&<button className="secondary" onClick={()=>setManageJobs(true)}>Gestionar cargos</button>}
           <button
             className="primary"
             onClick={() =>
@@ -419,6 +382,7 @@ export function OperationsWorkspace({
             <Plus size={16} />
             {mode === "people" ? "Colaborador" : "Comisión"}
           </button>
+          </div>
         </div>
         {error && (
           <p className="error" role="alert">
@@ -431,7 +395,7 @@ export function OperationsWorkspace({
         ) : mode === "people" ? (
           <div className="ops-grid">
             {people.map((p) => (
-              <article className="ops-card" key={p.id}>
+              <article className="ops-card ops-person-card" key={p.id}>
                 <div className="ops-person">
                   {p.photo_url ? (
                     <img
@@ -450,23 +414,16 @@ export function OperationsWorkspace({
                     </small>
                   </div>
                 </div>
-                <strong>{money(p.compensation_amount, p.currency)}</strong>
-                <p>
-                  {types.find((t) => t.value === p.compensation_type)?.label} ·{" "}
-                  {p.invoices_company ? "Emite factura" : "No emite factura"}
-                </p>
-                <p>
-                  Ingreso: {day(p.started_on)} · Pago: día{" "}
-                  {p.payment_day || "—"}
-                </p>
+                <p>{p.email || "Sin correo de contacto"}</p>
+                {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
                 <p>
                   {p.access_email
-                    ? `Acceso: ${p.access_email}`
+                    ? "Acceso al panel vinculado"
                     : "Sin acceso vinculado al panel"}
                 </p>
                 <div className="inline-actions">
                   <button className="text-button" onClick={() => setEdit(p)}>
-                    Editar perfil
+                    Ver perfil
                   </button>
                   <button
                     className="text-button"
@@ -584,31 +541,34 @@ export function OperationsWorkspace({
       </section>
       {edit && (
         <Dialog
-          title={person ? "Editar colaborador" : "Nuevo colaborador"}
+          title={person ? person.full_name : "Nuevo colaborador"}
           close={() => setEdit(null)}
         >
           <p className="form-note">
-            Vincular un acceso no envía una invitación. Las invitaciones se
-            administran en Equipo.
+            {['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso automáticamente. Si es nuevo, recibe una invitación con permiso de lectura; los accesos existentes conservan sus permisos.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
+            {person&&' El estado laboral no revoca accesos existentes.'}
           </p>
           <Editor
-            fields={personFields}
+            columns
+            fields={person ? personFields : personFields.filter(f=>!f.section)}
             defaults={personDefaults}
             save={async (v) => {
-              await api(
+              const result = await api<{access?:{status:string;emailSent?:boolean}}>(
                 `/api/agency/collaborators${person ? `/${person.id}` : ""}`,
                 {
                   ...v,
-                  invoices_company: v.invoices_company === "true",
+                  ...(person?{invoices_company: v.invoices_company === "true"}:{}),
                   active: v.active === "true",
                 },
                 person ? "PATCH" : "POST",
               );
               await done();
+              setNotice(result.access?.status==='invited' ? result.access.emailSent ? 'Colaborador guardado. Acceso habilitado e invitación enviada.' : 'Colaborador guardado y acceso habilitado. No se pudo enviar el correo; puede entrar con Google usando el correo registrado.' : result.access?.status==='linked' ? 'Perfil guardado y acceso vinculado.' : result.access?.status==='needs_admin' ? 'Perfil guardado. Administración debe habilitar el acceso.' : 'Perfil guardado.');
             }}
           />
         </Dialog>
       )}
+      {manageJobs&&<JobCatalog jobs={jobs} close={()=>setManageJobs(false)} refresh={load}/>}
       {newCommission && (
         <Dialog
           title="Nueva comisión o referido"
@@ -758,6 +718,23 @@ export function OperationsWorkspace({
       )}
     </div>
   );
+}
+
+function JobCatalog({ jobs, close, refresh }: {jobs:JobRole[];close:()=>void;refresh:()=>Promise<void>}) {
+  const [selected,setSelected]=useState<JobRole|null>(null);
+  const [notice,setNotice]=useState('');
+  return <Dialog title="Cargos y servicios" close={close}>
+    <p className="form-note">Opciones propias de esta empresa. Archivar un cargo lo retira de nuevas asignaciones y conserva los perfiles existentes. Los cargos no otorgan permisos.</p>
+    <div className="ops-job-list">
+      {jobs.map(job=><button type="button" className={selected?.id===job.id?'choice active':'choice'} key={job.id} onClick={()=>setSelected(job)}>{job.name}{!job.active?' · Archivado':''}</button>)}
+    </div>
+    <div className="panel-heading"><h3>{selected?'Editar cargo':'Nuevo cargo'}</h3>{selected&&<button className="text-button" onClick={()=>setSelected(null)}>Agregar otro</button>}</div>
+    {notice&&<p role="status" className="form-note">{notice}</p>}
+    <Editor key={selected?.id||'new'} columns fields={[{key:'name',label:'Nombre del cargo'},...(selected?[{key:'active',label:'Disponible para asignar',choices:[{value:'true',label:'Sí'},{value:'false',label:'Archivado'}]}]:[])]} defaults={{name:selected?.name||'',active:String(selected?.active??true)}} save={async values=>{
+      await api(`/api/agency/job-roles${selected?`/${selected.id}`:''}`,{name:values.name,active:values.active!=='false'},selected?'PATCH':'POST');
+      await refresh();setSelected(null);setNotice('Catálogo actualizado.');
+    }}/>
+  </Dialog>;
 }
 
 type ReferralDiscount = {
