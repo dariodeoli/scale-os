@@ -8,6 +8,7 @@ import { X, Plus, MessageSquare, Building2 } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
 import {ProfilePhoto} from './profile-photo';
 import {DriveLinkNote} from './drive-link';
+import {RemoveRecord} from './archive-controls';
 
 export async function api<T>(
   path: string,
@@ -426,6 +427,7 @@ export function OperationsWorkspace({
                   >
                     Registrar pago
                   </button>
+                  <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
                 </div>
               </article>
             ))}

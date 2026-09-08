@@ -9,6 +9,7 @@ import {WorkspaceGuide,visibleModule,NewCompany} from './workspace-guide';
 import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
 import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
+import {RemoveRecord,TrashWorkspace} from './archive-controls';
 
 import {
   DndContext,
@@ -34,6 +35,7 @@ import {
   Plus,
   Search,
   Settings,
+  Trash2,
   Users,
   WalletCards,
   X,
@@ -66,6 +68,7 @@ const nav = [
   ["Inventario", BriefcaseBusiness],
   ["Actividad", CalendarDays],
   ["Configuración", Settings],
+  ["Papelera", Trash2],
 ] as const;
 type Client = {
   id: string;
@@ -264,7 +267,7 @@ function DraggableOrder({ order,role,refresh }: { order: WorkOrder;role:string;r
         <b>{order.title}</b>
         <button className="icon-button" aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>
       </div>
-      <RecordEditor kind="work-orders" recordId={order.id} refresh={refresh} role={role}/>
+      <RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>
       <p>
         {order.client_name} · {order.project_name}
       </p>
@@ -1690,6 +1693,7 @@ export default function Home() {
         {active==='Inventario'&&<CatalogWorkspace key="inventory" kind="inventory" role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
         {active==='Configuración'&&<><SettingsWorkspace/><NewCompany/></>}
+        {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
         {active === "Resumen" && (
           <>
             <FinancialDashboard role={user?.role||'viewer'}/>
@@ -1894,7 +1898,7 @@ export default function Home() {
                       <small>{client.email || "Sin email registrado"}</small>
                     </div>
                     <span>{client.phone || "Sin teléfono"}</span>
-                    <RecordEditor kind="clients" recordId={client.id} role={user?.role||'viewer'} refresh={load}/>
+                    <RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/>
                   </div>
                 ))
               ) : (
@@ -1935,7 +1939,7 @@ export default function Home() {
                       <span>Sin enlace de Drive</span>
                     )}
                     <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
-                    <RecordEditor kind="projects" recordId={project.id} role={user?.role||'viewer'} refresh={load}/>
+                    <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
                   </article>
                 ))
               ) : (
@@ -2016,6 +2020,7 @@ export default function Home() {
                       IVA incl.
                     </strong>
                     <BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/>
+                    <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/>
                   </article>
                 ))
               ) : (
@@ -2062,6 +2067,7 @@ export default function Home() {
                             ? ` · Custodia: ${account.custodian_email}`
                             : ""}
                         </small>
+                        <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role||'viewer'} done={loadFinance}/>
                       </div>
                       <strong>
                         {new Intl.NumberFormat("es-PY", {

@@ -9,6 +9,7 @@
 .production-filters .ops-select{flex:0 1 320px;min-width:0;max-width:100%}
 .production-filters .ops-select-trigger span{overflow-wrap:anywhere;min-width:0}
 .production-filter-summary{margin:0;padding:12px 0;color:var(--text-muted);font-size:13px}
+.record-remove{color:var(--danger)}
 .work-card .card-meta{align-items:flex-start;flex-wrap:wrap;line-height:1.5}
 .work-card .card-meta>span{flex:1 1 100%;font-family:inherit;font-size:12px;overflow-wrap:anywhere}
 .secondary{padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);font:500 12px Outfit,Arial,sans-serif}
