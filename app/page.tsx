@@ -1321,6 +1321,7 @@ function TransferForm({
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [googleAvailable, setGoogleAvailable] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [active, setActive] = useState("Resumen");
@@ -1362,6 +1363,9 @@ export default function Home() {
     setSummary(summaryData.summary);
   }
   useEffect(() => {
+    request<{ google: boolean }>("/api/auth/providers")
+      .then((data) => setGoogleAvailable(data.google))
+      .catch(() => setGoogleAvailable(false));
     request<{ user: User }>("/api/auth/me")
       .then((data) => {
         setUser(data.user);
@@ -1544,6 +1548,18 @@ export default function Home() {
             <button className="primary login-button">Iniciar sesión</button>
             {toast && <p className="error">{toast}</p>}
           </form>
+          <div className="login-divider"><span>o</span></div>
+          <button
+            type="button"
+            className="google-login-button"
+            disabled={!googleAvailable}
+            onClick={() => {
+              window.location.href = `${core}/api/auth/google/start?organization=scale`;
+            }}
+          >
+            <span className="google-g">G</span>
+            {googleAvailable ? "Continuar con Google" : "Google aún no está configurado"}
+          </button>
         </div>
       </div>
     );
