@@ -1,0 +1,41 @@
+"use client";
+import {useEffect,useState} from 'react';
+import {useForm,useFieldArray} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {DndContext,useDraggable,useDroppable,DragEndEvent,PointerSensor,KeyboardSensor,useSensor,useSensors} from '@dnd-kit/core';
+import {GripVertical,Plus,X} from 'lucide-react';
+import {api,money} from './operations';
+import {SelectCustom,AmountInput} from './profile-controls';
+type Item={description:string;quantity:number;unitPrice:string};
+type Row={id:string;[key:string]:unknown};
+const schema=z.object({title:z.string().min(2),clientId:z.string(),currency:z.enum(['PYG','USD']),tax_rate:z.string(),notes:z.string(),valid_until:z.string(),items:z.array(z.object({description:z.string().min(2),quantity:z.number().positive(),unitPrice:z.string().refine(v=>v!==''&&Number.isFinite(Number(v))&&Number(v)>=0,'Importe inválido')})).min(1).max(100)});
+type Values=z.infer<typeof schema>;
+function normalize(v:unknown):Item[]{return Array.isArray(v)?v.map(x=>{const i=x as Record<string,unknown>;return {description:String(i.description||''),quantity:Number(i.quantity||1),unitPrice:String(i.unitPrice??i.unit_price??'0')};}):[{description:'',quantity:1,unitPrice:'0'}];}
+function ItemShell({id,children}:{id:string;children:React.ReactNode}){const drag=useDraggable({id}),drop=useDroppable({id});return <div className={`quote-item ${drop.isOver?'suite-over':''}`} ref={node=>{drag.setNodeRef(node);drop.setNodeRef(node);}} style={{opacity:drag.isDragging?.5:1}}><button type="button" className="icon-button" aria-label="Reordenar ítem" {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button><div>{children}</div></div>;}
+export function QuoteComposer({mode,record,done}:{mode:'create'|'budget'|'plan';record?:Row|null;done:()=>void|Promise<void>}){
+ const [clients,setClients]=useState<Row[]>([]),[plans,setPlans]=useState<Row[]>([]),[error,setError]=useState('');
+ const form=useForm<Values>({resolver:zodResolver(schema),defaultValues:{title:String(record?.title||record?.name||''),clientId:String(record?.client_id||''),currency:record?.currency==='USD'?'USD':'PYG',tax_rate:String(record?.tax_rate??'.1'),notes:String(record?.notes||''),valid_until:String(record?.valid_until||'').slice(0,10),items:normalize(record?.items)}});
+ const array=useFieldArray({control:form.control,name:'items'}),v=form.watch();
+ const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
+ useEffect(()=>{if(mode!=='plan')void Promise.all([api<{clients:Row[]}>('/api/agency/clients'),api<{records:Row[]}>('/api/agency/plans')]).then(([c,p])=>{setClients(c.clients);setPlans(p.records.filter(x=>x.active!==false));}).catch(e=>setError(e instanceof Error?e.message:'No se pudieron cargar los planes'));},[mode]);
+ const subtotal=v.items.reduce((sum,i)=>sum+(Number(i.quantity)||0)*(Number(i.unitPrice)||0),0),total=subtotal*(1+Number(v.tax_rate));
+ function move(e:DragEndEvent){const from=array.fields.findIndex(f=>f.id===e.active.id),to=array.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0&&from!==to)array.move(from,to);}
+ return <form className="quote-composer" noValidate onSubmit={form.handleSubmit(async values=>{setError('');try{
+  if(mode==='plan')await api(`/api/agency/plans${record?`/${record.id}`:''}`,{name:values.title,currency:values.currency,notes:values.notes,items:values.items},record?'PATCH':'POST');
+  else if(mode==='create'){if(!values.clientId)throw new Error('Elegí un cliente');await api('/api/agency/budgets',{...values,validUntil:values.valid_until});}
+  else await api(`/api/agency/budgets/${record?.id}`,values,'PATCH');
+  await done();
+ }catch(e){setError(e instanceof Error?e.message:'No se pudo guardar');}})}>
+ <div className="quote-layout"><section className="form-stack">
+ <label>{mode==='plan'?'Nombre del plan':'Título del presupuesto'}<input {...form.register('title')}/></label>
+ {mode==='create'&&<SelectCustom label="Cliente" value={v.clientId} choices={clients.map(c=>({value:String(c.id),label:String(c.name)}))} onChange={value=>form.setValue('clientId',value)}/>}
+ {mode!=='plan'&&plans.length>0&&<SelectCustom label="Usar un plan como base (reemplaza los ítems actuales)" value="" choices={plans.map(p=>({value:String(p.id),label:String(p.name)}))} onChange={value=>{const p=plans.find(p=>String(p.id)===value);if(p){array.replace(normalize(p.items));form.setValue('currency',p.currency==='USD'?'USD':'PYG');form.setValue('title',String(p.name));form.setValue('notes',String(p.notes||''));}}}/>}
+ <div className="ops-form-grid"><SelectCustom label="Moneda" value={v.currency} choices={[{value:'PYG',label:'Guaraníes'},{value:'USD',label:'Dólares'}]} onChange={value=>form.setValue('currency',value as 'PYG'|'USD')}/><SelectCustom label="IVA" value={String(Number(v.tax_rate))} choices={[{value:'0',label:'0%'},{value:'0.05',label:'5%'},{value:'0.1',label:'10%'}]} onChange={value=>form.setValue('tax_rate',value)}/></div>
+ <DndContext sensors={sensors} onDragEnd={move}>{array.fields.map((field,index)=><ItemShell key={field.id} id={field.id}><label>Descripción<input {...form.register(`items.${index}.description`)}/></label><div className="ops-form-grid"><label>Cantidad<input type="number" step="0.01" {...form.register(`items.${index}.quantity`,{valueAsNumber:true})}/></label><label>Precio sin IVA<AmountInput value={v.items[index]?.unitPrice||''} currency={v.currency} onChange={value=>form.setValue(`items.${index}.unitPrice`,value)}/></label></div><div className="inline-actions"><button type="button" className="text-button" disabled={index===0} onClick={()=>array.move(index,index-1)}>Subir</button><button type="button" className="text-button" disabled={index===array.fields.length-1} onClick={()=>array.move(index,index+1)}>Bajar</button><button type="button" className="text-button" disabled={array.fields.length===1} onClick={()=>array.remove(index)}><X size={12}/>Quitar</button></div></ItemShell>)}</DndContext>
+ <button type="button" className="secondary" onClick={()=>array.append({description:'',quantity:1,unitPrice:'0'})}><Plus size={14}/>Agregar ítem</button>
+ {mode!=='plan'&&<label>Válido hasta<input type="date" {...form.register('valid_until')}/></label>}<label>Condiciones (opcional)<textarea {...form.register('notes')}/></label>
+ </section><aside className="quote-preview"><p className="eyebrow">VISTA PREVIA</p><h2>{v.title||'Tu propuesta'}</h2>{v.items.map((item,index)=><div className="payment-row" key={index}><span>{item.description||'Descripción'}<small>{item.quantity||0} unidades</small></span><b>{money((Number(item.quantity)||0)*(Number(item.unitPrice)||0),v.currency)}</b></div>)}<p>Subtotal: {money(subtotal,v.currency)}</p><p>IVA: {money(total-subtotal,v.currency)}</p><h3>Total: {money(total,v.currency)}</h3>{v.notes&&<p className="quote-notes">{v.notes}</p>}</aside></div>
+ {Object.keys(form.formState.errors).length>0&&<p role="alert" className="error">Revisá el título y los ítems: descripción, cantidad positiva e importe válido.</p>}{error&&<p role="alert" className="error">{error}</p>}<button className="primary" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting?'Guardando…':'Guardar'}</button>
+ </form>;
+}

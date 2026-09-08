@@ -1,6 +1,11 @@
 "use client";
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import './operations.css';
+import './suite.css';
+import {CatalogWorkspace,MemberActions,RecordEditor,BudgetActions,FinancialDashboard,ActivityWorkspace,SettingsWorkspace} from './suite';
+import {QuoteComposer} from './quote-composer';
+import {PasswordPanel} from './password-panel';
+import {WorkspaceGuide,visibleModule,NewCompany} from './workspace-guide';
 
 import {
   DndContext,
@@ -39,6 +44,7 @@ const statuses = [
   { id: "editing", label: "Editando", tone: "purple" },
   { id: "review", label: "Revisión", tone: "blue" },
   { id: "approved", label: "Aprobado", tone: "green" },
+  { id: "published", label: "Publicado", tone: "green" },
 ] as const;
 type Status = (typeof statuses)[number]["id"];
 const nav = [
@@ -52,6 +58,11 @@ const nav = [
   ["Equipo", BriefcaseBusiness],
   ["Colaboradores", Users],
   ["Comisiones", WalletCards],
+  ["Pipeline", FolderKanban],
+  ["Planes", FileText],
+  ["Inventario", BriefcaseBusiness],
+  ["Actividad", CalendarDays],
+  ["Configuración", Settings],
 ] as const;
 type Client = {
   id: string;
@@ -154,7 +165,7 @@ type User = {
   organization_name: string;
   organization_slug: string;
 };
-type Member = { id: string; email: string; role: string; created_at: string };
+type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
 type Summary = {
   active_clients: number;
   active_projects: number;
@@ -227,7 +238,7 @@ function Modal({
     document.body,
   );
 }
-function DraggableOrder({ order }: { order: WorkOrder }) {
+function DraggableOrder({ order,role,refresh }: { order: WorkOrder;role:string;refresh:()=>Promise<void> }) {
   const draggable = useDraggable({ id: order.id });
   const style = draggable.transform
     ? {
@@ -238,14 +249,13 @@ function DraggableOrder({ order }: { order: WorkOrder }) {
     <article
       ref={draggable.setNodeRef}
       style={style}
-      {...draggable.listeners}
-      {...draggable.attributes}
       className={`work-card ${draggable.isDragging ? "dragging" : ""}`}
     >
       <div className="card-top">
         <b>{order.title}</b>
-        <span>⋮⋮</span>
+        <button className="icon-button" aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>
       </div>
+      <RecordEditor kind="work-orders" recordId={order.id} refresh={refresh} role={role}/>
       <p>
         {order.client_name} · {order.project_name}
       </p>
@@ -270,9 +280,13 @@ function DraggableOrder({ order }: { order: WorkOrder }) {
 function KanbanColumn({
   status,
   orders,
+  role,
+  refresh,
 }: {
   status: (typeof statuses)[number];
   orders: WorkOrder[];
+  role:string;
+  refresh:()=>Promise<void>;
 }) {
   const droppable = useDroppable({ id: `status-${status.id}` });
   return (
@@ -286,7 +300,7 @@ function KanbanColumn({
         <em>{orders.length}</em>
       </div>
       {orders.map((order) => (
-        <DraggableOrder key={order.id} order={order} />
+        <DraggableOrder key={order.id} order={order} role={role} refresh={refresh}/>
       ))}
     </section>
   );
@@ -447,6 +461,7 @@ const orderSchema = z.object({
     "editing",
     "review",
     "approved",
+    "published",
   ]),
   driveUrl: z.string().url("Pegá un enlace válido de Drive.").or(z.literal("")),
   description: z.string().max(500).optional(),
@@ -523,7 +538,7 @@ function OrderForm({
       <fieldset>
         <legend>Estado inicial</legend>
         <div className="choice-list compact">
-          {statuses.map((status) => (
+          {statuses.filter(status=>!['approved','published'].includes(status.id)).map((status) => (
             <button
               type="button"
               className={
@@ -1567,6 +1582,7 @@ export default function Home() {
             <span className="google-g">G</span>
             {googleAvailable ? "Continuar con Google" : "Google aún no está configurado"}
           </button>
+          <PasswordPanel/>
         </div>
       </div>
     );
@@ -1590,7 +1606,7 @@ export default function Home() {
         </div>
         <div className="workspace">{user?.organization_name || 'Organización'}</div>
         <nav>
-          {nav.map(([label, Icon]) => (
+          {nav.filter(([label])=>visibleModule(label,user?.role||'viewer')).map(([label, Icon]) => (
             <button
               key={label}
               className={active === label ? "active" : ""}
@@ -1624,10 +1640,8 @@ export default function Home() {
             <h1>{active}</h1>
           </div>
           <div className="header-actions">
-            <button className="icon-button" aria-label="Buscar">
-              <Search size={19} />
-            </button>
-            {!["Pagos", "Mora", "Métricas", "Colaboradores", "Comisiones"].includes(active) && (
+            <WorkspaceGuide navigate={setActive} role={user?.role||'viewer'}/>
+            {["Clientes", "Proyectos", "Equipo", "Presupuestos", "Resumen"].includes(active) && (
               <button
                 className="primary"
                 onClick={() =>
@@ -1649,11 +1663,17 @@ export default function Home() {
             )}
           </div>
         </header>
-        <div className="mobile-nav">{nav.map(([label])=><button key={label} className={active===label?'choice active':'choice'} onClick={()=>setActive(label)}>{label}</button>)}</div>
+        <div className="mobile-nav">{nav.filter(([label])=>visibleModule(label,user?.role||'viewer')).map(([label])=><button key={label} className={active===label?'choice active':'choice'} onClick={()=>setActive(label)}>{label}</button>)}</div>
         {active==='Colaboradores'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'}/>}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
+        {active==='Pipeline'&&<CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>}
+        {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
+        {active==='Inventario'&&<CatalogWorkspace key="inventory" kind="inventory" role={user?.role||'viewer'}/>}
+        {active==='Actividad'&&<ActivityWorkspace/>}
+        {active==='Configuración'&&<><SettingsWorkspace/><NewCompany/></>}
         {active === "Resumen" && (
           <>
+            <FinancialDashboard role={user?.role||'viewer'}/>
             <section className="metrics">
               <article className="metric gold">
                 <span>Clientes activos</span>
@@ -1693,6 +1713,8 @@ export default function Home() {
                 <div className="kanban">
                   {statuses.map((status) => (
                     <KanbanColumn
+                      role={user?.role||'viewer'}
+                      refresh={load}
                       key={status.id}
                       status={status}
                       orders={orders.filter(
@@ -1837,6 +1859,7 @@ export default function Home() {
                       <small>{client.email || "Sin email registrado"}</small>
                     </div>
                     <span>{client.phone || "Sin teléfono"}</span>
+                    <RecordEditor kind="clients" recordId={client.id} role={user?.role||'viewer'} refresh={load}/>
                   </div>
                 ))
               ) : (
@@ -1877,6 +1900,7 @@ export default function Home() {
                       <span>Sin enlace de Drive</span>
                     )}
                     <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
+                    <RecordEditor kind="projects" recordId={project.id} role={user?.role||'viewer'} refresh={load}/>
                   </article>
                 ))
               ) : (
@@ -1914,7 +1938,7 @@ export default function Home() {
                           ?.label || "Propietario"}
                       </small>
                     </div>
-                    <span>Acceso activo</span>
+                    <MemberActions member={member} currentEmail={user?.email||''} role={user?.role||'viewer'} refresh={async()=>setMembers((await request<{members:Member[]}>('/api/agency/members')).members)}/>
                   </div>
                 ))}
               </div>
@@ -1956,6 +1980,7 @@ export default function Home() {
                       }).format(Number(budget.total))}{" "}
                       IVA incl.
                     </strong>
+                    <BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/>
                   </article>
                 ))
               ) : (
@@ -2206,13 +2231,7 @@ export default function Home() {
       )}
       {modal === "budget" && (
         <Modal title="Nuevo presupuesto" onClose={close}>
-          <BudgetForm
-            clients={clients}
-            done={(budget) => {
-              setBudgets((current) => [budget, ...current]);
-              close();
-            }}
-          />
+          <QuoteComposer mode="create" done={async()=>{setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets);close();}}/>
         </Modal>
       )}
       {modal === "account" && (

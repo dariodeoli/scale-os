@@ -7,7 +7,7 @@ import { z } from "zod";
 import { X, Plus, MessageSquare, Building2 } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
 
-async function api<T>(
+export async function api<T>(
   path: string,
   body?: unknown,
   method = "POST",
@@ -24,14 +24,14 @@ async function api<T>(
 }
 const message = (e: unknown) =>
   e instanceof Error ? e.message : "No se pudo completar la operación";
-const money = (value: string | number, currency = "PYG") =>
+export const money = (value: string | number, currency = "PYG") =>
   new Intl.NumberFormat("es-PY", {
     style: "currency",
     currency,
     maximumFractionDigits: currency === "PYG" ? 0 : 2,
   }).format(Number(value));
 const day = (v: string | null) => (v ? v.slice(0, 10) : "—");
-function Dialog({
+export function Dialog({
   title,
   close,
   children,
@@ -77,10 +77,10 @@ function Dialog({
   );
 }
 type Choice = { value: string; label: string };
-type Field = {
+export type Field = {
   key: string;
   label: string;
-  type?: "number" | "date" | "email" | "url" | "textarea" | "money";
+  type?: "number" | "date" | "email" | "url" | "textarea" | "money" | "password";
   choices?: Choice[];
   optional?: boolean;
   section?: string;
@@ -90,7 +90,7 @@ const currencies = [
   { value: "PYG", label: "Guaraníes" },
   { value: "USD", label: "Dólares" },
 ];
-function Editor({
+export function Editor({
   fields,
   defaults,
   save,
@@ -563,6 +563,7 @@ export function OperationsWorkspace({
                 person ? "PATCH" : "POST",
               );
               await done();
+              if(result.access?.status==='suspended'){setNotice('Perfil guardado. Su acceso sigue suspendido; se administra desde Equipo.');return;}
               setNotice(result.access?.status==='invited' ? result.access.emailSent ? 'Colaborador guardado. Acceso habilitado e invitación enviada.' : 'Colaborador guardado y acceso habilitado. No se pudo enviar el correo; puede entrar con Google usando el correo registrado.' : result.access?.status==='linked' ? 'Perfil guardado y acceso vinculado.' : result.access?.status==='needs_admin' ? 'Perfil guardado. Administración debe habilitar el acceso.' : 'Perfil guardado.');
             }}
           />
