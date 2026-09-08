@@ -1312,6 +1312,7 @@ export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [googleAvailable, setGoogleAvailable] = useState(false);
+  const [authNotice, setAuthNotice] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [active, setActive] = useState("Resumen");
@@ -1355,7 +1356,7 @@ export default function Home() {
   useEffect(() => {
     const authError = new URLSearchParams(window.location.search).get("authError");
     if (authError) {
-      setToast(authError);
+      setAuthNotice(authError);
       window.history.replaceState({}, "", window.location.pathname);
     }
     request<{ google: boolean }>("/api/auth/providers")
@@ -1519,6 +1520,12 @@ export default function Home() {
           <p className="login-copy">
             Clientes, proyectos y operación en un solo lugar.
           </p>
+          {authNotice && (
+            <div className="auth-notice" role="status">
+              <b>Acceso pendiente</b>
+              <p>{authNotice}</p>
+            </div>
+          )}
           <form noValidate onSubmit={login}>
             <label>
               Email
