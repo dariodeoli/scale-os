@@ -1,0 +1,1 @@
+export function DriveLinkNote(){return <p className="form-note">Pegá el enlace de un archivo o carpeta de Drive. Solo guardamos el enlace: no copiamos ni alojamos su contenido. Compartí el acceso con las personas correspondientes desde Google Drive.</p>;}

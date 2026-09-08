@@ -366,10 +366,11 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
     </form>
   );
 }
+const driveLinkSchema=z.string().trim().max(2048).refine(value=>{if(!value)return true;try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password;}catch{return false;}},'Pegá un enlace HTTPS válido de archivo o carpeta.');
 const projectSchema = z.object({
   name: z.string().trim().min(2, "Escribí el nombre del proyecto."),
   clientId: z.string().min(1, "Elegí un cliente."),
-  driveUrl: z.string().url("Pegá un enlace válido de Drive.").or(z.literal("")),
+  driveUrl: driveLinkSchema,
 });
 type ProjectValues = z.infer<typeof projectSchema>;
 function ProjectForm({
@@ -435,7 +436,7 @@ function ProjectForm({
         )}
       </fieldset>
       <label>
-        Carpeta de Google Drive
+        Enlace de archivo o carpeta de Google Drive
         <input
           placeholder="https://drive.google.com/..."
           {...form.register("driveUrl")}
@@ -445,6 +446,7 @@ function ProjectForm({
             {form.formState.errors.driveUrl.message}
           </small>
         )}
+        <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
       </label>
       {error && <p className="error">{error}</p>}
       <button
@@ -469,7 +471,7 @@ const orderSchema = z.object({
     "approved",
     "published",
   ]),
-  driveUrl: z.string().url("Pegá un enlace válido de Drive.").or(z.literal("")),
+  driveUrl: driveLinkSchema,
   description: z.string().max(500).optional(),
 });
 type OrderValues = z.infer<typeof orderSchema>;
@@ -559,11 +561,12 @@ function OrderForm({
         </div>
       </fieldset>
       <label>
-        Enlace de Drive
+        Enlace de archivo o carpeta de Drive
         <input
           placeholder="https://drive.google.com/..."
           {...form.register("driveUrl")}
         />
+        <small>Solo guardamos el enlace, no el archivo. Los permisos se gestionan en Drive.</small>
       </label>
       <label>
         Notas

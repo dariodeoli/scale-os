@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { X, Plus, MessageSquare, Building2 } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
+import {ProfilePhoto} from './profile-photo';
+import {DriveLinkNote} from './drive-link';
 
 export async function api<T>(
   path: string,
@@ -115,7 +117,7 @@ export function Editor({
   });
   const [error, setError] = useState("");
   const renderField = (f: Field) => <div key={f.key} className={f.wide || f.type === 'textarea' ? 'ops-wide' : undefined}>
-    {f.choices ? <SelectCustom label={f.label} choices={f.choices} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label>{f.label}
+    {f.choices ? <SelectCustom label={f.label} choices={f.choices} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label>{f.key==='drive_url'?'Enlace de archivo o carpeta de Drive':f.label}
       {f.type === 'textarea' ? <textarea {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>}
     </label>}
     {form.formState.errors[f.key]&&<small className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
@@ -133,6 +135,7 @@ export function Editor({
         }
       })}
     >
+      {fields.some(f=>f.key==='drive_url')&&<div className="ops-wide"><DriveLinkNote/></div>}
       {fields.filter(f=>!f.section).map(renderField)}
       {Array.from(new Set(fields.map(f=>f.section).filter((s):s is string=>Boolean(s)))).map(section=><details className="ops-profile-section ops-wide" key={section} open={fields.some(f=>f.section===section&&form.formState.errors[f.key])||undefined}>
         <summary>{section}</summary><div className="ops-form-grid">{fields.filter(f=>f.section===section).map(renderField)}</div>
@@ -307,13 +310,6 @@ export function OperationsWorkspace({
       ],
     },
     { key: "notes", label: "Condiciones y notas", type: "textarea", optional: true },
-    {
-      key: "photo_url",
-      label: "Enlace HTTPS a la foto",
-      type: "url",
-      optional: true,
-      section: 'Imagen y fechas', wide: true,
-    },
     { key: "compensation_type", label: "Modalidad", choices: types, section: 'Remuneración y pagos' },
     { key: "currency", label: "Moneda", choices: currencies, section: 'Remuneración y pagos' },
     { key: "compensation_amount", label: "Importe acordado", type: "money", section: 'Remuneración y pagos' },
@@ -346,7 +342,6 @@ export function OperationsWorkspace({
     full_name: person?.full_name || "",
     email: person?.email || "",
     job_role_id: person?.job_role_id ? String(person.job_role_id) : "",
-    photo_url: person?.photo_url || "",
     compensation_type: person?.compensation_type || "fixed",
     compensation_amount: person?.compensation_amount || "0",
     currency: person?.currency || "PYG",
@@ -548,6 +543,10 @@ export function OperationsWorkspace({
             {['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso automáticamente. Si es nuevo, recibe una invitación con permiso de lectura; los accesos existentes conservan sus permisos.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
             {person&&' El estado laboral no revoca accesos existentes.'}
           </p>
+          {person&&<ProfilePhoto key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
+            const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
+            await load();setEdit(result.collaborator);
+          }}/>}
           <Editor
             columns
             fields={person ? personFields : personFields.filter(f=>!f.section)}
