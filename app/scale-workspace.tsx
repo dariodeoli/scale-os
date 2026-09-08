@@ -4,7 +4,10 @@ import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './
 import Link from 'next/link';
 import {ControlCenter} from './control-center';
 import {WorkspaceSearch} from './workspace-search';
+import {WorkspaceBrand} from './workspace-brand';
+import {MobileNavigation} from './mobile-navigation';
 import './control-center.css';
+import './mobile-navigation.css';
 import {Dialog,FormActions} from './dialog';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import './operations.css';
@@ -1530,16 +1533,7 @@ export default function Home() {
     }),
     {},
   );
-  return (
-    <main className="shell control-shell">
-      <aside>
-        <div className="brand">
-          <span className="brand-mark">S</span>
-          <div>
-            scale<span>OS</span>
-            <small>OPERACIONES</small>
-          </div>
-        </div>
+  const sidebarContent=<>
         <p className="nav-caption">Espacio de trabajo</p>
         <nav aria-label="Menú principal">
           {visibleNav.map(([label, Icon]) => (
@@ -1564,9 +1558,15 @@ export default function Home() {
             <LogOut size={16} />
           </button>
         </div>
+      </>;
+  return (
+    <main className="shell control-shell">
+      <aside>
+        <div className="sidebar-brand"><WorkspaceBrand/></div>
+        {sidebarContent}
       </aside>
       <section className="content">
-        <div className="workspace-topbar"><CompanySelector name={user?.organization_name || 'Organización'}/><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
+        <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><CompanySelector name={user?.organization_name || 'Organización'}/><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
           ...orders.map(o=>({id:o.id,name:o.title,context:`Orden · ${o.client_name} · ${o.project_name}`,kind:'work-orders' as const})),
@@ -1598,7 +1598,6 @@ export default function Home() {
             )}
           </div>
         </header>
-        <div className="mobile-nav" aria-label="Secciones">{visibleNav.map(([label])=><Link key={label} className={activeParent===label?'choice active':'choice'} aria-current={activeParent===label?'page':undefined} href={sectionPath(allowedChildren(label)[0])}>{label}</Link>)}</div>
         {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
         {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><button className="primary" onClick={()=>setActive('Resumen')}>Ir al resumen</button></section>}
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
