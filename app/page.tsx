@@ -189,6 +189,7 @@ type ModalKind =
   | "transfer"
   | null;
 const assignableRoles = [
+  { id: "owner", label: "Dueño" },
   { id: "admin", label: "Administrador" },
   { id: "management", label: "Gerencia" },
   { id: "finance", label: "Finanzas" },
@@ -588,6 +589,7 @@ function OrderForm({
 const memberSchema = z.object({
   email: z.string().email("Escribí un email válido."),
   role: z.enum([
+    "owner",
     "admin",
     "management",
     "finance",
@@ -598,7 +600,7 @@ const memberSchema = z.object({
   ]),
 });
 type MemberValues = z.infer<typeof memberSchema>;
-function MemberForm({ done }: { done: (member: Member, emailSent:boolean) => void }) {
+function MemberForm({ done, currentRole }: { done: (member: Member, emailSent:boolean) => void; currentRole:string }) {
   const form = useForm<MemberValues>({
     resolver: zodResolver(memberSchema),
     defaultValues: { email: "", role: "production" },
@@ -633,7 +635,7 @@ function MemberForm({ done }: { done: (member: Member, emailSent:boolean) => voi
       <fieldset>
         <legend>Permiso</legend>
         <div className="choice-list compact">
-          {assignableRoles.map((role) => (
+          {assignableRoles.filter(role=>role.id!=='owner'||currentRole==='owner').map((role) => (
             <button
               type="button"
               className={
@@ -647,6 +649,7 @@ function MemberForm({ done }: { done: (member: Member, emailSent:boolean) => voi
           ))}
         </div>
       </fieldset>
+      {form.watch('role')==='owner'&&<p className="form-note">Dueño tiene el mismo acceso total que quien creó la agencia, incluidos finanzas, usuarios y permisos. Solo otro dueño puede otorgar este rol.</p>}
       {error && <p className="error">{error}</p>}
       <button className="primary" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Enviando…" : "Enviar invitación"}
@@ -1636,7 +1639,7 @@ export default function Home() {
             <div className="avatar">{firstName[0].toUpperCase()}</div>
             <div>
               <b>{firstName}</b>
-              <small>{user?.role}</small>
+              <small>{assignableRoles.find(role=>role.id===user?.role)?.label||user?.role}</small>
             </div>
             <LogOut size={16} />
           </button>
@@ -2234,6 +2237,7 @@ export default function Home() {
       {modal === "member" && (
         <Modal title="Nuevo integrante" onClose={close}>
           <MemberForm
+            currentRole={user?.role||''}
             done={(member,emailSent) => {
               setMembers((current) => [...current, member]);
               setToast(emailSent?'Acceso creado. El proveedor aceptó el correo de invitación.':'Acceso creado, pero el correo no pudo enviarse. El integrante puede entrar con Google.');

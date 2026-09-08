@@ -1,0 +1,12 @@
+/* Grid tracks must shrink inside the mobile finance panels. */
+.client-list{grid-template-columns:minmax(0,1fr)}
+.payment-row{min-width:0;max-width:100%}
+.payment-row small{overflow-wrap:anywhere}
+.kanban{grid-template-columns:repeat(7,minmax(220px,1fr))}
+.work-card{touch-action:pan-y}
+.work-card .icon-button{touch-action:none}
+.work-card .card-meta{align-items:flex-start;flex-wrap:wrap;line-height:1.5}
+.work-card .card-meta>span{flex:1 1 100%;font-family:inherit;font-size:12px;overflow-wrap:anywhere}
+.secondary{padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);font:500 12px Outfit,Arial,sans-serif}
+.secondary:hover:not(:disabled){background:var(--violet-soft);border-color:var(--brand-600)}
+@media(max-width:460px){.panel h2,.ops-card h3{overflow-wrap:anywhere}.finance-grid>.panel{min-width:0}.payment-row{gap:8px}.payment-row>strong{font-size:12px}.header-actions{gap:8px}}
