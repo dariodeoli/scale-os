@@ -57,7 +57,11 @@
   padding: 28px;
   box-shadow: var(--shadow-md);
 }
-.ops-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.ops-form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:14px 16px; }
+.ops-form-grid>div,.ops-form-grid>label,.ops-form-grid>fieldset{min-width:0}
+.ops-form-grid>fieldset{grid-column:1 / -1}
+.ops-form-grid .choice{max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal}
+.ops-form-grid>.form-actions,.ops-form-grid>.dialog-actions,.ops-form-grid>.error,.ops-form-grid>.form-note,.ops-form-grid>label:has(textarea),.ops-form-grid>label:has(input[type=url]){grid-column:1 / -1}
 .ops-wide { grid-column:1 / -1; }
 .ops-profile-section { border:1px solid var(--line); border-radius:var(--radius-sm); }
 .ops-profile-section summary { cursor:pointer; padding:14px 16px; font-size:14px; font-weight:600; }

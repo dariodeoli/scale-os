@@ -1,5 +1,6 @@
 "use client";
 import {currencyChoices} from "./currencies";
+import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
 import { useEffect, useState, useRef } from "react";
 import {Dialog,FormActions} from "./dialog";
@@ -60,7 +61,7 @@ export function Editor({
   defaults,
   save,
   label = "Guardar",
-  columns = false,
+  columns = true,
 }: {
   fields: Field[];
   defaults: Record<string, string>;
@@ -79,7 +80,7 @@ export function Editor({
     defaultValues: defaults,
   });
   const [error, setError] = useState("");
-  const renderField = (f: Field) => <div key={f.key} className={f.wide || f.type === 'textarea' ? 'ops-wide' : undefined}>
+  const renderField = (f: Field) => <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
     {f.choices ? <SelectCustom label={f.label} choices={f.choices} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label>{f.key==='drive_url'?'Enlace de archivo o carpeta de Drive':f.label}
       {f.type === 'textarea' ? <textarea {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>}
     </label>}
@@ -195,6 +196,7 @@ export function OperationsWorkspace({
   currentEmail?:string;
   organizationName?:string;
 }) {
+  const {currency:defaultCurrency}=useCompanyCurrency();
   const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[seedEmail,setSeedEmail]=useState(''),[search,setSearch]=useState('');
   const [people, setPeople] = useState<Person[]>([]),
     [commissions, setCommissions] = useState<Commission[]>([]),
@@ -321,7 +323,7 @@ export function OperationsWorkspace({
     job_role_id: person?.job_role_id ? String(person.job_role_id) : "",
     compensation_type: person?.compensation_type || "fixed",
     compensation_amount: person?.compensation_amount || "0",
-    currency: person?.currency || "PYG",
+    currency: person?.currency || defaultCurrency,
     invoices_company: String(person?.invoices_company || false),
     started_on: person?.started_on?.slice(0, 10) || "",
     ended_on: person?.ended_on?.slice(0, 10) || "",
@@ -625,7 +627,7 @@ export function OperationsWorkspace({
               basis: "fixed",
               amount: "0",
               percentage: "",
-              currency: "PYG",
+              currency: defaultCurrency,
               due_on: "",
               notes: "",
             }}

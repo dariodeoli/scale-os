@@ -10,8 +10,11 @@ import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
 import {ClientLinks} from './client-links';
 import {ProjectPresence} from './presence';
+import {ActorIdentity} from './actor-identity';
+import {RecordAssignees} from './record-assignees';
+import {WorkChecklist} from './work-checklist';
 type Row={id:string;[key:string]:unknown};
-export type WorkItem={id:string;title:string;status:string;project_id:string;due_date?:string|null;assigned_user_id?:string|null;updated_at?:string;client_name?:string;project_name?:string};
+export type WorkItem={id:string;title:string;status:string;project_id:string;due_date?:string|null;assigned_user_id?:string|null;assigned_user_ids?:string[];updated_at?:string;client_name?:string;project_name?:string};
 const s=(r:Row,k:string)=>String(r[k]??'');
 const errorText=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar';
 const states=[{value:'blocked',label:'Bloqueado'},{value:'to_record',label:'Por grabar'},{value:'recorded',label:'Grabado'},{value:'editing',label:'Editando'},{value:'review',label:'Listo para revisión'}];
@@ -20,14 +23,13 @@ const makers=[...managers,'editor'];
 const localDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 function usePeople(){const [people,setPeople]=useState<Row[]>([]);useEffect(()=>{let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive)setPeople(d.people);}).catch(()=>{});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[]);return [{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email')}))];}
 
-export function WorkDetail({id,role,close,refresh}:{id:string;role:string;close:()=>void;refresh:()=>Promise<void>}){
+export function WorkDetail({id,organizationId,role,close,refresh}:{id:string;organizationId:string;role:string;close:()=>void;refresh:()=>Promise<void>}){
  const [data,setData]=useState<{order:Row;comments:Row[];history:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Detalle'),[busy,setBusy]=useState(false);
- const people=usePeople();
  async function load(){setData(await api(`/api/agency/productivity/orders/${id}`));}
  useEffect(()=>{void load().catch(e=>setError(errorText(e)));},[id]);
  async function action(path:string){setBusy(true);try{await api(path,{});await refresh();await load();notify({tone:'success',message:'Acción guardada.'});}catch(e){setError(errorText(e));}finally{setBusy(false);}}
  const order=data?.order,editable=makers.includes(role);
- const fields:Field[]=[{key:'title',label:'Título'},{key:'description',label:'Detalle y checklist',type:'textarea',optional:true},{key:'drive_url',label:'Link de Drive (archivo o carpeta)',optional:true},{key:'due_date',label:'Entrega',type:'date',optional:true},{key:'assigned_user_id',label:'Responsable',choices:people,optional:true},{key:'estimated_hours',label:'Horas estimadas',type:'number',optional:true},{key:'actual_hours',label:'Horas trabajadas',type:'number',optional:true}];
+ const fields:Field[]=[{key:'title',label:'Título'},{key:'description',label:'Descripción y notas',type:'textarea',optional:true},{key:'drive_url',label:'Link de Drive (archivo o carpeta)',optional:true},{key:'due_date',label:'Entrega',type:'date',optional:true},{key:'estimated_hours',label:'Horas estimadas',type:'number',optional:true},{key:'actual_hours',label:'Horas trabajadas',type:'number',optional:true}];
  return <Dialog variant="drawer" title={order?s(order,'title'):'Detalle de la pieza'} close={close}>
   {error&&<p className="error" role="alert">{error}</p>}
   {!order?<p>Cargando pieza…</p>:<>
@@ -36,7 +38,9 @@ export function WorkDetail({id,role,close,refresh}:{id:string;role:string;close:
    <p className="form-note">{states.find(x=>x.value===order.status)?.label||s(order,'status')} · Actualizada {new Date(s(order,'updated_at')).toLocaleString('es-PY')}</p>
    <div className="choice-list">{['Detalle','Comentarios','Historial'].map(t=><button className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)} key={t}>{t}{t==='Comentarios'?` (${data.comments.length})`:''}</button>)}</div>
    {tab==='Detalle'&&<>
+    <RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role={role} refresh={refresh}/>
     {editable?<Editor key={s(order,'updated_at')} fields={fields} defaults={Object.fromEntries(fields.map(f=>[f.key,f.key==='due_date'?s(order,f.key).slice(0,10):s(order,f.key)]))} save={async values=>{await api(`/api/agency/work-orders/${id}`,values,'PATCH');await load();await refresh();}}/>:<p>{s(order,'description')||'Sin descripción'}</p>}
+    <WorkChecklist id={id} organizationId={organizationId} role={role} refresh={refresh}/>
     {s(order,'drive_url')&&<a href={s(order,'drive_url')} target="_blank" rel="noreferrer" className="text-button">Abrir archivo o carpeta en Drive ↗</a>}
     {editable&&<div className="quick-actions"><button className="secondary" disabled={busy||['approved','published','review'].includes(s(order,'status'))} onClick={async()=>{setBusy(true);try{await api(`/api/agency/work-orders/${id}`,{status:'review'},'PATCH');await load();await refresh();}catch(e){setError(errorText(e));}finally{setBusy(false);}}}>Listo para revisión</button><button className="text-button" disabled={busy} onClick={()=>void action(`/api/agency/productivity/orders/${id}/duplicate`)}>Duplicar pieza</button>
      {managers.includes(role)&&order.status==='review'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/approve`)}>Aprobar siguiente nivel</button>}
@@ -44,8 +48,8 @@ export function WorkDetail({id,role,close,refresh}:{id:string;role:string;close:
     </div>}
     {managers.includes(role)&&<ClientReviewControl orderId={id}/>}
    </>}
-   {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente.</p>{editable&&<Editor fields={[{key:'body',label:'Agregar comentario',type:'textarea'}]} defaults={{body:''}} save={async v=>{await api(`/api/agency/productivity/orders/${id}/comments`,v);await load();}}/>}{data.comments.map(c=><article className="activity-line" key={c.id}><b>{s(c,'author_email')}</b><small>{new Date(s(c,'created_at')).toLocaleString('es-PY')}</small><p>{s(c,'body')}</p></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
-   {tab==='Historial'&&<><p>Niveles aprobados: {s(order,'approval_step')||'0'}</p>{data.history.map(h=><article className="activity-line" key={h.id}><b>{s(h,'actor_name')||'Sistema'} · {s(h,'action')==='INSERT'?'Creó la pieza':'Actualizó la pieza'}</b><small>{new Date(s(h,'created_at')).toLocaleString('es-PY')}</small>{h.previous_status!==h.next_status&&<p>{s(h,'previous_status')||'Nueva'} → {s(h,'next_status')}</p>}</article>)}{!data.history.length&&<p>Sin cambios registrados.</p>}</>}
+   {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente.</p>{editable&&<Editor fields={[{key:'body',label:'Agregar comentario',type:'textarea'}]} defaults={{body:''}} save={async v=>{await api(`/api/agency/productivity/orders/${id}/comments`,v);await load();}}/>}{data.comments.map(c=><article className="activity-line" key={c.id}><ActorIdentity name={s(c,'actor_name')||s(c,'author_email')} photoUrl={s(c,'actor_photo_url')} verified={c.actor_verified===true}/><small>{new Date(s(c,'created_at')).toLocaleString('es-PY')}</small><p>{s(c,'body')}</p></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
+   {tab==='Historial'&&<><p>Niveles aprobados: {s(order,'approval_step')||'0'}</p>{data.history.map(h=><article className="activity-line" key={h.id}><ActorIdentity name={s(h,'actor_name')} photoUrl={s(h,'actor_photo_url')} verified={h.actor_verified===true}/><p>{s(h,'action')==='INSERT'?'Creó la pieza':'Actualizó la pieza'}</p><small>{new Date(s(h,'created_at')).toLocaleString('es-PY')}</small>{h.previous_status!==h.next_status&&<p>{s(h,'previous_status')||'Nueva'} → {s(h,'next_status')}</p>}</article>)}{!data.history.length&&<p>Sin cambios registrados.</p>}</>}
   </>}
  </Dialog>;
 }
@@ -69,7 +73,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
 
 export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navigate,initialView}:{initialView?:string;orders:WorkItem[];userId:string;role:string;projects:{id:string;name:string;client_name:string}[];openOrder:(id:string)=>void;refresh:()=>Promise<void>;navigate:(label:string)=>void}){
  const [view,setView]=useState(initialView||'Mi día'),[selected,setSelected]=useState<string[]>([]),[month,setMonth]=useState(localDay().slice(0,7)),[templatesOpen,setTemplatesOpen]=useState(false),[batch,setBatch]=useState(false);
- const today=localDay(),mine=orders.filter(o=>String(o.assigned_user_id)===String(userId)&&!['approved','published'].includes(o.status));
+ const today=localDay(),mine=orders.filter(o=>(String(o.assigned_user_id)===String(userId)||o.assigned_user_ids?.some(id=>String(id)===String(userId)))&&!['approved','published'].includes(o.status));
  const visible=(view==='Mi día'?mine:view==='Calendario'?orders.filter(o=>o.due_date?.slice(0,7)===month):orders).slice().sort((a,b)=>(a.due_date||'9999').localeCompare(b.due_date||'9999'));
  return <section className="panel work-planner"><div className="panel-heading"><h2>{view==='Mi día'?'Trabajo diario':view}</h2>{!initialView&&<div className="choice-list compact">{['Mi día','Calendario','Lista y lotes'].map(v=><button key={v} className={view===v?'choice active':'choice'} onClick={()=>setView(v)}>{v}</button>)}</div>}</div>
   {view==='Mi día'&&<><p className="form-note">{mine.filter(o=>o.due_date&&o.due_date.slice(0,10)<=today).length} entregas para hoy o vencidas · {mine.length} piezas asignadas pendientes</p>{['owner','admin','finance'].includes(role)&&<div className="quick-actions"><button className="text-button" onClick={()=>navigate('Mora')}>Revisar cobros pendientes →</button><button className="text-button" onClick={()=>navigate('Pagos')}>Disponibilidad y efectivo →</button></div>}</>}

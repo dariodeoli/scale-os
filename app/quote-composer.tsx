@@ -1,5 +1,6 @@
 "use client";
 import {currencyCodes,currencyChoices,validCurrency} from "./currencies";
+import {useCompanyCurrency} from './currency-provider';
 import {FormActions} from './dialog';
 import {useEffect,useState} from 'react';
 import {useForm,useFieldArray} from 'react-hook-form';
@@ -18,8 +19,9 @@ type Values=z.infer<typeof schema>;
 function normalize(v:unknown):Item[]{return Array.isArray(v)?v.map(x=>{const i=x as Record<string,unknown>;return {description:String(i.description||''),quantity:Number(i.quantity||1),unitPrice:String(i.unitPrice??i.unit_price??'0')};}):[{description:'',quantity:1,unitPrice:'0'}];}
 function ItemShell({id,children}:{id:string;children:React.ReactNode}){const drag=useDraggable({id}),drop=useDroppable({id});return <div className={`quote-item ${drop.isOver?'suite-over':''}`} ref={node=>{drag.setNodeRef(node);drop.setNodeRef(node);}} style={{opacity:drag.isDragging?.5:1}}><button type="button" className="icon-button" aria-label="Reordenar ítem" {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button><div>{children}</div></div>;}
 export function QuoteComposer({mode,record,done}:{mode:'create'|'budget'|'plan';record?:Row|null;done:()=>void|Promise<void>}){
+ const {currency:defaultCurrency}=useCompanyCurrency();
  const [clients,setClients]=useState<Row[]>([]),[plans,setPlans]=useState<Row[]>([]),[error,setError]=useState('');
- const form=useForm<Values>({resolver:zodResolver(schema),defaultValues:{title:String(record?.title||record?.name||''),clientId:String(record?.client_id||''),currency:validCurrency(record?.currency),tax_rate:String(record?.tax_rate??'.1'),notes:String(record?.notes||''),valid_until:String(record?.valid_until||'').slice(0,10),items:normalize(record?.items),sections:Array.isArray(record?.sections)?record.sections as z.infer<typeof sectionSchema>[]:initialSections()}});
+ const form=useForm<Values>({resolver:zodResolver(schema),defaultValues:{title:String(record?.title||record?.name||''),clientId:String(record?.client_id||''),currency:validCurrency(record?.currency??defaultCurrency),tax_rate:String(record?.tax_rate??'.1'),notes:String(record?.notes||''),valid_until:String(record?.valid_until||'').slice(0,10),items:normalize(record?.items),sections:Array.isArray(record?.sections)?record.sections as z.infer<typeof sectionSchema>[]:initialSections()}});
  const array=useFieldArray({control:form.control,name:'items'}),v=form.watch();
  const sections=useFieldArray({control:form.control,name:'sections'});
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));

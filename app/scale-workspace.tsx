@@ -20,7 +20,12 @@ const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
 const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
+import {BoardPresence,ProjectCardPresence} from './presence';
+import {CompanyCurrencyProvider,useCompanyCurrency} from './currency-provider';
+import {FinancialForecast} from './financial-forecast';
+import {LiveVisitors} from './live-visitors';
 const UsagePanel=dynamic(()=>import('./presence').then(m=>m.UsagePanel));
+const InventoryWorkspace=dynamic(()=>import('./inventory-workspace').then(m=>m.InventoryWorkspace));
 const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 const WorkPlanner=dynamic(()=>import('./productivity-ui').then(m=>m.WorkPlanner));
@@ -30,6 +35,7 @@ import {dataFetch,setDataScope,clearDataCache} from './data-cache';
 import './control-center.css';
 import './production-focus.css';
 import './mobile-navigation.css';
+import './workspace-density.css';
 import {Dialog,FormActions} from './dialog';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import './operations.css';
@@ -118,6 +124,9 @@ type Project = {
 };
 type WorkOrder = {
   assigned_user_id?:string|null;
+  assigned_user_ids?:string[];
+  checklist_total?:number;
+  checklist_completed?:number;
   updated_at?:string;
   client_logo_url?:string|null;
   client_color_key?:string;
@@ -215,6 +224,7 @@ type User = {
   organization_name: string;
   organization_slug: string;
   demo_owner_user_id?:string|null;
+  default_currency?:Currency;
 };
 type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
 type Summary = {
@@ -309,6 +319,8 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
         )}
         {order.description&&<span className="order-description">{order.description}</span>}
       </div>
+      <ProjectCardPresence projectId={String(order.project_id)}/>
+      {!!order.checklist_total&&<small className="card-checklist" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</small>}
       <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}>Ver detalle completo</button>{canMove&&<RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>}</div>
     </article>
   );
@@ -369,7 +381,7 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
   }
   return (
     <form
-      className="form-stack"
+      className="form-stack ops-form-grid"
       noValidate
       onSubmit={form.handleSubmit(submit)}
     >
@@ -432,7 +444,7 @@ function ProjectForm({
   }
   return (
     <form
-      className="form-stack"
+      className="form-stack ops-form-grid"
       noValidate
       onSubmit={form.handleSubmit(submit)}
     >
@@ -540,7 +552,7 @@ function OrderForm({
   }
   return (
     <form
-      className="form-stack"
+      className="form-stack ops-form-grid"
       noValidate
       onSubmit={form.handleSubmit(submit)}
     >
@@ -636,6 +648,7 @@ function BudgetForm({
   clients: Client[];
   done: (budget: Budget) => void;
 }) {
+  const {currency:defaultCurrency}=useCompanyCurrency();
   const form = useForm<BudgetValues>({
     resolver: zodResolver(budgetSchema),
     defaultValues: {
@@ -644,7 +657,7 @@ function BudgetForm({
       description: "",
       quantity: 1,
       unitPrice: 0,
-      currency: "PYG",
+      currency: defaultCurrency,
       validUntil: "",
     },
   });
@@ -675,7 +688,7 @@ function BudgetForm({
   }
   return (
     <form
-      className="form-stack"
+      className="form-stack ops-form-grid"
       noValidate
       onSubmit={form.handleSubmit(submit)}
     >
@@ -791,12 +804,13 @@ function AccountForm({
   custodians: Member[];
   done: (account: Account) => void;
 }) {
+  const {currency:defaultCurrency}=useCompanyCurrency();
   const form = useForm<AccountValues>({
     resolver: zodResolver(accountSchema),
     defaultValues: {
       name: "",
       accountType: "bank",
-      currency: "PYG",
+      currency: defaultCurrency,
       institution: "",
       accountNumber: "",
       holderName: "",
@@ -819,7 +833,7 @@ function AccountForm({
   }
   return (
     <form
-      className="form-stack"
+      className="form-stack ops-form-grid"
       noValidate
       onSubmit={form.handleSubmit(submit)}
     >
@@ -941,9 +955,10 @@ function InvoiceForm({
   clients: Client[];
   done: (invoice: Invoice) => void;
 }) {
+  const {currency:defaultCurrency}=useCompanyCurrency();
   const form = useForm<InvoiceValues>({
     resolver: zodResolver(invoiceSchema),
-    defaultValues: { clientId: "", total: 0, currency: "PYG", dueOn: "" },
+    defaultValues: { clientId: "", total: 0, currency: defaultCurrency, dueOn: "" },
   });
   const [error, setError] = useState("");
   async function submit(values: InvoiceValues) {
@@ -961,7 +976,7 @@ function InvoiceForm({
   }
   return (
     <form
-      className="form-stack"
+      className="form-stack ops-form-grid"
       noValidate
       onSubmit={form.handleSubmit(submit)}
     >
@@ -1081,7 +1096,7 @@ function PaymentForm({
   }
   return (
     <form
-      className="form-stack"
+      className="form-stack ops-form-grid"
       noValidate
       onSubmit={form.handleSubmit(submit)}
     >
@@ -1224,7 +1239,7 @@ function TransferForm({
   }
   return (
     <form
-      className="form-stack"
+      className="form-stack ops-form-grid"
       noValidate
       onSubmit={form.handleSubmit(submit)}
     >
@@ -1616,22 +1631,21 @@ export default function Home() {
         </div>
       </>;
   return (
-    <main className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
+    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
       <DesktopSidebar>
         <div className="sidebar-brand"><WorkspaceBrand/></div>
         {sidebarContent}
       </DesktopSidebar>
       <section className="content">
-        <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><CompanySelector name={user?.organization_name || 'Organización'}/><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
+        <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><div className="workspace-context"><CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>{user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}</div><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
           ...orders.map(o=>({id:o.id,name:o.title,context:`Orden · ${o.client_name} · ${o.project_name}`,kind:'work-orders' as const})),
         ]}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
-        {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
         <header>
           <div>
-            {active!=='Producción'&&<p className="eyebrow">{active==='Resumen'?'TU AGENCIA, EN UN VISTAZO':'ESPACIO DE TRABAJO'}</p>}
+            {active==='Resumen'&&<p className="eyebrow">TU AGENCIA, EN UN VISTAZO</p>}
             <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
           </div>
           <div className="header-actions">
@@ -1664,15 +1678,16 @@ export default function Home() {
         {active==='Actividad'&&user?.role==='owner'&&<UsagePanel/>}
         {active==='Invitaciones'&&(user?.demo_owner_user_id?<section className="panel"><h2>Invitaciones y solicitudes</h2><p>En tu empresa real podés generar enlaces de un uso o enlaces con aprobación. El Demo no crea accesos externos. Probá los permisos desde la barra superior.</p></section>:<InviteLinks role={user?.role||'viewer'}/>)}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
-        {active==='Pipeline'&&<div className="ops-stack"><CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>{['owner','admin'].includes(user?.role||'')&&<GrowthDashboard events={metrics}/>}</div>}
+        {active==='Pipeline'&&<div className="ops-stack"><CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>{user&&<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>} {['owner','admin'].includes(user?.role||'')&&<GrowthDashboard events={metrics}/>}</div>}
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
-        {active==='Inventario'&&<CatalogWorkspace key="inventory" kind="inventory" role={user?.role||'viewer'}/>}
+        {active==='Inventario'&&<InventoryWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
         {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}</div>}
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
         {active === "Resumen" && (
           <>
             <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive}/>
+            {user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
             <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
             <InternalTasks role={user?.role||'viewer'}/>
             <section className="metrics operational-metrics" aria-label="Métricas operativas">
@@ -1720,7 +1735,7 @@ export default function Home() {
             {productionView==="Tablero"&&
             <section className="panel production-panel production-focus" id="produccion">
               {selectedProductionClient && productionOrders.length === 0 && <p className="empty-copy">Este cliente todavía no tiene órdenes de producción.</p>}
-              <DndContext onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
+              <BoardPresence key={String(user?.organization_id)} projectIds={productionOrders.map(order=>String(order.project_id))}><DndContext onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
                 <div className="kanban" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
                   {statuses.map((status) => (
                     <KanbanColumn
@@ -1736,7 +1751,7 @@ export default function Home() {
                   ))}
                 </div>
                 <DragOverlay>{draggedOrderId&&<article className="work-card" style={{width:280,padding:16,boxShadow:"0 12px 30px #0003"}}><strong>{orders.find(o=>String(o.id)===draggedOrderId)?.title}</strong><p>{orders.find(o=>String(o.id)===draggedOrderId)?.client_name}</p></article>}</DragOverlay>
-              </DndContext>
+              </DndContext></BoardPresence>
               <p className="board-note">
                 Arrastrá una orden de una columna a otra para actualizar su
                 estado.
@@ -1814,12 +1829,7 @@ export default function Home() {
         )}
         {active === "Clientes" && (
           <section className="panel directory">
-            <div className="panel-heading">
-              <div>
-                <p className="eyebrow">BASE COMERCIAL</p>
-                <h2>Clientes de {user?.organization_name}</h2>
-              </div>
-            </div>
+            <p className="directory-summary">{clients.length} clientes registrados</p>
             <div className="client-directory-toolbar"><SelectCustom label="Estado del cliente" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/><div className="client-view-toggle" role="group" aria-label="Vista de clientes"><button type="button" aria-pressed={clientView==='list'} onClick={()=>changeClientView('list')}>Lista</button><button type="button" aria-pressed={clientView==='grid'} onClick={()=>changeClientView('grid')}>Cuadrícula</button></div></div>
             <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
               {clients.length ? (
@@ -1845,15 +1855,7 @@ export default function Home() {
         )}
         {active === "Proyectos" && (
           <section className="panel directory">
-            <div className="panel-heading">
-              <div>
-                <p className="eyebrow">OPERACIÓN</p>
-                <h2>Proyectos y enlaces</h2>
-              </div>
-              <button className="primary" onClick={() => setModal("project")}>
-                <Plus size={16} /> Proyecto
-              </button>
-            </div>
+            <p className="directory-summary">{projects.length} proyectos · Carpetas, responsables y piezas</p>
             <div className="project-grid">
               {projects.length ? (
                 projects.map((project) => (
@@ -1886,15 +1888,7 @@ export default function Home() {
         )}
         {active === "Presupuestos" && (
           <section className="panel directory">
-            <div className="panel-heading">
-              <div>
-                <p className="eyebrow">COMERCIAL</p>
-                <h2>Presupuestos</h2>
-              </div>
-              <button className="primary" onClick={() => setModal("budget")}>
-                <Plus size={16} /> Presupuesto
-              </button>
-            </div>
+            <p className="directory-summary">{budgets.length} presupuestos · Propuestas y aprobaciones</p>
             <div className="project-grid">
               {budgets.length ? (
                 budgets.map((budget) => (
@@ -2121,7 +2115,7 @@ export default function Home() {
         <WorkspaceFooter/>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
-      {detail?.kind==='order'&&<WorkDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
+      {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
         <Modal title="Nuevo cliente" onClose={close}>
@@ -2211,6 +2205,6 @@ export default function Home() {
           />
         </Modal>
       )}
-    </main>
+    </main></CompanyCurrencyProvider>
   );
 }

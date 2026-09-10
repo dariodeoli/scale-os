@@ -1,0 +1,12 @@
+.financial-forecast .panel-heading{gap:1rem;flex-wrap:wrap}
+.financial-forecast .panel-heading label{display:flex;gap:.5rem;align-items:center;font-size:.8rem}
+.financial-forecast input{max-width:12rem;min-height:2.75rem}
+.forecast-currencies{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.75rem;margin-block:1rem}
+.forecast-currency{border:1px solid var(--line);border-radius:12px;padding:1rem;min-width:0}
+.forecast-currency>span{font-size:.8rem;color:var(--text-muted)}
+.forecast-currency>strong{display:block;font-size:1.35rem;margin-block:.4rem;overflow-wrap:anywhere}
+.forecast-currency dl{margin:0;font-size:.8rem}
+.forecast-currency dl>div{display:flex;justify-content:space-between;gap:1rem;margin-top:.5rem;flex-wrap:wrap}
+.forecast-currency dd{margin:0;font-variant-numeric:tabular-nums}
+.financial-forecast details{font-size:.8rem;color:var(--text-muted)}
+.financial-forecast summary{cursor:pointer;min-height:2.75rem;align-content:center}

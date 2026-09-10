@@ -1,0 +1,152 @@
+"use client";
+import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {api,Dialog,Editor,type Field,money} from './operations';
+import {FormActions} from './dialog';
+import {currencyChoices} from './currencies';
+import {useCompanyCurrency} from './currency-provider';
+import './inventory-workspace.css';
+
+type Person={id:string;name:string};
+type Category={id:string;name:string;active:boolean};
+export type InventoryItem={id:string;name:string;category:string;category_id:string|null;category_name?:string;serial_number:string|null;value:string;currency:string;status:string;storage_shelf:string;storage_row:string;custodian_user_id:string|null;location_type?:string;current_custodian_name?:string;production_name?:string;project_name?:string;return_user_name?:string;expected_return_at?:string;[key:string]:unknown};
+type ItemReference={id:string;name:string;storage_shelf:string;storage_row:string};
+export type InventoryReservation={id:string;title:string;project_id:string;project_name:string;starts_at:string;ends_at:string;status:'reserved'|'checked_out'|'returned'|'cancelled';created_by_user_id:string;return_user_id:string;return_user_name:string;custodian_user_id:string|null;custodian_name:string|null;responsible_members:Person[];items:ItemReference[];notes:string;version:number};
+type Context={user_id:string;role:string;time_zone:string;can_manage:boolean;can_reserve:boolean;members:Person[];projects:Person[]};
+const errorMessage=(error:unknown)=>error instanceof Error?error.message:'No se pudo completar la operación';
+const statusLabels={reserved:'Reservado',checked_out:'Retirado',returned:'Devuelto',cancelled:'Cancelado'};
+const itemStatuses=[{value:'available',label:'Disponible'},{value:'maintenance',label:'Mantenimiento'},{value:'retired',label:'Dado de baja'}];
+const zone='America/Asuncion';
+const dateTime=(value:string)=>new Intl.DateTimeFormat('es-PY',{timeZone:zone,day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(value));
+export function inventoryLocalTime(value:string|Date){
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(value));
+ const part=(type:string)=>parts.find(p=>p.type===type)!.value;
+ return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
+}
+// Resolve local wall time using the IANA zone; do not assume the browser's zone.
+export function inventoryUtcTime(local:string){
+ if(!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(local))throw new Error('Completá fecha y hora');
+ const base=new Date(local+'Z').getTime();if(!Number.isFinite(base))throw new Error('Fecha inválida');
+ let candidate=base;
+ for(let i=0;i<3;i++)candidate+=base-new Date(inventoryLocalTime(new Date(candidate))+'Z').getTime();
+ if(inventoryLocalTime(new Date(candidate))!==local)throw new Error('Esa hora no existe en la zona de Asunción');
+ return new Date(candidate).toISOString();
+}
+export function inventoryMonthRange(month:string){
+ const [year,m]=month.split('-').map(Number);
+ const next=new Date(Date.UTC(year,m,1)).toISOString().slice(0,7);
+ return {from:inventoryUtcTime(`${month}-01T00:00`),to:inventoryUtcTime(`${next}-01T00:00`)};
+}
+export function inventoryLocation(item:InventoryItem){
+ if(item.location_type==='checked_out')return `Con ${item.current_custodian_name||'custodio registrado'} · ${item.production_name||'Producción'}${item.project_name?` · ${item.project_name}`:''}`;
+ if(item.location_type==='legacy_in_use')return `En uso · ${item.current_custodian_name||'Custodio sin registrar'} · sin reserva vinculada`;
+ return item.storage_shelf?`${item.storage_shelf}${item.storage_row?` · fila ${item.storage_row}`:''}`:'Ubicación sin registrar';
+}
+export function inventoryCanManageReservation(context:Pick<Context,'user_id'|'role'|'can_manage'|'can_reserve'>,row:InventoryReservation){return context.can_manage||context.can_reserve&&String(row.created_by_user_id)===String(context.user_id);}
+export function inventoryCanReturn(context:Pick<Context,'user_id'|'role'|'can_manage'|'can_reserve'>,row:InventoryReservation){return context.can_reserve&&['owner','admin','management','production'].includes(context.role)&&(inventoryCanManageReservation(context,row)||[row.return_user_id,row.custodian_user_id].some(id=>String(id)===String(context.user_id)));}
+
+export function InventoryWorkspace({role}:{role:string}){
+ const allowed=['owner','admin','management','production','finance','editor','viewer'].includes(role);
+ return allowed?<InventoryPanel key={role}/>:null;
+}
+function InventoryPanel(){
+ const [context,setContext]=useState<Context|null>(null),[items,setItems]=useState<InventoryItem[]>([]),[categories,setCategories]=useState<Category[]>([]),[reservations,setReservations]=useState<InventoryReservation[]>([]);
+ const [month,setMonth]=useState(()=>inventoryLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState('');
+ const [error,setError]=useState(''),[notice,setNotice]=useState(''),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
+ const [refreshError,setRefreshError]=useState(''),[lastUpdated,setLastUpdated]=useState<Date|null>(null);
+ const hasData=useRef(false);
+ const [editItem,setEditItem]=useState<InventoryItem|'new'|null>(null),[editReservation,setEditReservation]=useState<InventoryReservation|'new'|null>(null),[editCategory,setEditCategory]=useState<Category|'new'|null>(null);
+ const [action,setAction]=useState<{kind:'checkout'|'return'|'cancel';row:InventoryReservation}|null>(null);
+ const [archive,setArchive]=useState<InventoryItem|null>(null),[busy,setBusy]=useState(false);
+ useEffect(()=>{
+  let active=true,running=false;
+  const {from,to}=inventoryMonthRange(month);
+  async function load(background=false){
+   if(!active||running||background&&document.visibilityState==='hidden')return;
+   running=true;if(!hasData.current)setLoading(true);
+   try{
+    // Wait for every request to settle before permitting another polling cycle.
+    const results=await Promise.allSettled([api<Context>('/api/agency/inventory-context'),api<{records:InventoryItem[]}>('/api/agency/inventory'),api<{categories:Category[]}>('/api/agency/inventory-categories'),api<{reservations:InventoryReservation[]}>(`/api/agency/inventory-reservations?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)]);
+    if(!active)return;
+    const [c,i,cat,r]=results;
+    if(c.status==='rejected')throw c.reason;if(i.status==='rejected')throw i.reason;if(cat.status==='rejected')throw cat.reason;if(r.status==='rejected')throw r.reason;
+    setContext(c.value);setItems(i.value.records);setCategories(cat.value.categories);setReservations(r.value.reservations);
+    hasData.current=true;setLastUpdated(new Date());setError('');setRefreshError('');
+   }catch(error){if(active){if(hasData.current)setRefreshError(errorMessage(error));else setError(errorMessage(error));}}
+   finally{running=false;if(active)setLoading(false);}
+  }
+  void load();
+  const timer=window.setInterval(()=>{void load(true);},30000);
+  const visible=()=>{if(document.visibilityState==='visible')void load(true);};
+  document.addEventListener('visibilitychange',visible);
+  return ()=>{active=false;window.clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
+ },[month,refresh]);
+ function saved(message='Cambios guardados.'){setEditItem(null);setEditReservation(null);setEditCategory(null);setAction(null);setArchive(null);setNotice(message);setRefresh(n=>n+1);}
+ const visible=items.filter(item=>(!categoryFilter||String(item.category_id)===categoryFilter)&&`${item.name} ${item.serial_number||''} ${item.category_name||item.category} ${inventoryLocation(item)}`.toLowerCase().includes(search.toLowerCase()));
+ return <div className="ops-stack inventory-workspace">
+  <section className="panel"><div className="panel-heading"><div><h2>Inventario y reservas</h2><p className="form-note">Ubicación registrada y préstamo de equipos por producción.</p></div><div className="inline-actions">{context?.can_manage?<button className="secondary" onClick={()=>setEditItem('new')}>Agregar equipo</button>:null}{context?.can_reserve?<button className="primary" onClick={()=>setEditReservation('new')}>Reservar equipos</button>:null}</div></div>
+   <div className="inline-actions" aria-label="Vistas de inventario"><button className={view==='equipment'?'secondary':'text-button'} aria-pressed={view==='equipment'} onClick={()=>setView('equipment')}>Equipos</button><button className={view==='reservations'?'secondary':'text-button'} aria-pressed={view==='reservations'} onClick={()=>setView('reservations')}>Calendario y reservas</button></div>
+   <p className="form-note">Ubicación registrada · actualiza cada 30 s mientras esta pestaña esté visible.{lastUpdated?` Última actualización: ${lastUpdated.toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}.`:''}</p>
+   {refreshError?<p role="status" className="inventory-late">No se pudo actualizar: {refreshError}. Se muestra la última información recibida.</p>:null}
+   {notice?<p role="status">{notice}</p>:null}{error?<p className="error" role="alert">{error} <button className="text-button" onClick={()=>setRefresh(n=>n+1)}>Reintentar</button></p>:null}
+   {loading?<p role="status">Cargando inventario…</p>:error?null:view==='equipment'?<>
+    <div className="inventory-form-grid inventory-filters"><label>Buscar equipo o ubicación<input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Memoria, DJI Mic, estante…"/></label><label>Categoría<select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="">Todas</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}{c.active?'':' · archivada'}</option>)}</select></label></div>
+    <div className="inventory-equipment-grid">{visible.map(item=><article className="inventory-equipment" key={item.id}><div className="panel-heading"><h3>{item.name}</h3><span>{({available:'Disponible',in_use:'En uso',maintenance:'Mantenimiento',retired:'Dado de baja'} as Record<string,string>)[item.status]||item.status}</span></div><small>{item.category_name||item.category||'Sin categoría'}{item.serial_number?` · ${item.serial_number}`:''}</small><p className="inventory-location">{inventoryLocation(item)}</p>{item.return_user_name?<p>Devuelve: {item.return_user_name}{item.expected_return_at?` · previsto ${dateTime(item.expected_return_at)}`:''}</p>:null}<small>{money(item.value,item.currency)}</small>{context?.can_manage?<div className="inline-actions"><button className="text-button" onClick={()=>setEditItem(item)}>Editar equipo</button><button className="text-button" onClick={()=>setArchive(item)}>Archivar</button></div>:null}</article>)}</div>
+    {!visible.length?<p className="empty-copy">No hay equipos que coincidan. {items.length?'Probá otra búsqueda.':'Agregá el equipo disponible antes de reservar.'}</p>:null}
+   </>:<><label className="inventory-month">Mes del calendario<input type="month" value={month} min="1900-01" max="9998-12" onChange={e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value);}}/></label><p className="form-note">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p><InventoryCalendar month={month} reservations={reservations}/><div className="inventory-reservation-list">{reservations.map(row=><article key={row.id} className="inventory-reservation"><div className="panel-heading"><h3>{row.title}</h3><span className={`inventory-status inventory-status-${row.status}`}>{statusLabels[row.status]}</span></div><p>{row.project_name} · {dateTime(row.starts_at)} → {dateTime(row.ends_at)}</p><p>{row.items.map(i=>i.name).join(' · ')}</p><p>Responsables: {row.responsible_members.map(p=>p.name).join(', ')}</p><p>Devuelve: {row.return_user_name}{row.status==='checked_out'?` · Custodio: ${row.custodian_name||'Sin registrar'}`:''}</p>{row.status==='checked_out'&&new Date(row.ends_at)<new Date()?<p className="inventory-late">Devolución pendiente desde {dateTime(row.ends_at)}.</p>:null}{context&&(inventoryCanManageReservation(context,row)||row.status==='checked_out'&&inventoryCanReturn(context,row))?<div className="inline-actions">{row.status==='reserved'?<><button className="text-button" onClick={()=>setEditReservation(row)}>Editar reserva</button><button className="secondary" onClick={()=>setAction({kind:'checkout',row})}>Registrar retiro</button><button className="text-button" onClick={()=>setAction({kind:'cancel',row})}>Cancelar reserva</button></>:row.status==='checked_out'?<button className="primary" onClick={()=>setAction({kind:'return',row})}>Registrar devolución</button>:null}</div>:null}</article>)}</div>{!reservations.length?<p className="empty-copy">Sin reservas en este mes. Elegí equipos y fechas para planificar una producción.</p>:null}</>}
+  </section>
+  {context?.can_manage?<section className="panel"><details><summary>Categorías de equipos</summary><p className="form-note">Renombrar actualiza la categoría de sus equipos. Archivar la quita de nuevas selecciones.</p><div className="inventory-categories">{categories.map(c=><button className="secondary" key={c.id} onClick={()=>setEditCategory(c)}>{c.name}{c.active?'':' · archivada'}</button>)}<button className="text-button" onClick={()=>setEditCategory('new')}>Agregar categoría</button></div></details></section>:null}
+  {editItem&&context?.can_manage?<Dialog title={editItem==='new'?'Nuevo equipo':editItem.name} close={()=>setEditItem(null)}><InventoryItemForm item={editItem==='new'?null:editItem} categories={categories} members={context.members} done={()=>saved('Equipo guardado.')}/></Dialog>:null}
+  {editCategory&&context?.can_manage?<Dialog title={editCategory==='new'?'Nueva categoría':'Editar categoría'} close={()=>setEditCategory(null)}><Editor fields={[{key:'name',label:'Nombre de la categoría'},{key:'active',label:'Disponibilidad',choices:[{value:'true',label:'Activa'},{value:'false',label:'Archivada'}]}]} defaults={{name:editCategory==='new'?'':editCategory.name,active:String(editCategory==='new'||editCategory.active)}} save={async values=>{await api(`/api/agency/inventory-categories${editCategory==='new'?'':`/${editCategory.id}`}`,{name:values.name,active:values.active==='true'},editCategory==='new'?'POST':'PATCH');saved('Categoría guardada.');}}/></Dialog>:null}
+  {editReservation&&context?.can_reserve?<Dialog title={editReservation==='new'?'Reservar equipos':'Editar reserva'} close={()=>setEditReservation(null)}><InventoryReservationForm context={context} items={items} record={editReservation==='new'?null:editReservation} done={()=>saved('Reserva guardada. El retiro se registra por separado.')}/></Dialog>:null}
+  {action?<Dialog title={{checkout:'Registrar retiro',return:'Registrar devolución',cancel:'Cancelar reserva'}[action.kind]} close={()=>setAction(null)}><InventoryTransitionForm action={action.kind} record={action.row} done={()=>saved({checkout:'Retiro registrado.',return:'Devolución registrada.',cancel:'Reserva cancelada.'}[action.kind])}/></Dialog>:null}
+  {archive?<Dialog title={`Archivar ${archive.name}`} close={()=>setArchive(null)}><p>El equipo quedará en Papelera. No se puede archivar mientras tenga reservas abiertas.</p><button className="primary" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await api(`/api/agency/inventory/${archive.id}`,{},'DELETE');saved('Equipo archivado. Se puede restaurar desde Papelera.');}catch(error){setError(errorMessage(error));setArchive(null);}finally{setBusy(false);}}}>Archivar equipo</button></Dialog>:null}
+ </div>;
+}
+
+function InventoryItemForm({item,categories,members,done}:{item:InventoryItem|null;categories:Category[];members:Person[];done:()=>void}){
+ const {currency}=useCompanyCurrency();
+ const fields:Field[]=[{key:'name',label:'Nombre del equipo',wide:true},{key:'category_id',label:'Categoría',choices:categories.filter(c=>c.active||String(c.id)===String(item?.category_id)).map(c=>({value:String(c.id),label:c.name}))},{key:'serial_number',label:'Serie o identificador',optional:true},{key:'storage_shelf',label:'Estante o lugar de guardado',optional:true},{key:'storage_row',label:'Fila / posición',optional:true},{key:'value',label:'Valor del equipo',type:'money'},{key:'currency',label:'Moneda',choices:currencyChoices},{key:'status',label:'Estado',choices:item?.status==='in_use'?[{value:'in_use',label:'En uso (registrar devolución)'}]:itemStatuses},{key:'custodian_user_id',label:'Custodio registrado',optional:true,choices:[{value:'',label:'Sin custodio'},...members.map(m=>({value:m.id,label:m.name}))]},{key:'acquired_on',label:'Fecha de adquisición',type:'date',optional:true},{key:'notes',label:'Notas',type:'textarea',optional:true}];
+ const defaults=Object.fromEntries(fields.map(field=>[field.key,item?String(item[field.key]??'').slice(0,field.key==='acquired_on'?10:undefined):({currency,value:'0',status:'available',category_id:String(categories.find(c=>c.active)?.id||'')} as Record<string,string>)[field.key]||'']));
+ return <><p className="form-note">Un registro por unidad reservable. Para un kit, indicá sus componentes en el nombre o las notas. La ubicación es un dato registrado por el equipo.</p><Editor fields={fields} defaults={defaults} save={async values=>{await api(`/api/agency/inventory${item?`/${item.id}`:''}`,values,item?'PATCH':'POST');done();}}/></>;
+}
+
+export function InventoryReservationForm({context,items,record,done}:{context:Context;items:InventoryItem[];record:InventoryReservation|null;done:()=>void}){
+ const [title,setTitle]=useState(record?.title||''),[project,setProject]=useState(String(record?.project_id||'')),[start,setStart]=useState(record?inventoryLocalTime(record.starts_at):''),[end,setEnd]=useState(record?inventoryLocalTime(record.ends_at):'');
+ const [selected,setSelected]=useState<string[]>(record?.items.map(i=>String(i.id))||[]),[responsibles,setResponsibles]=useState<string[]>(record?.responsible_members.map(p=>String(p.id))||(context.role==='production'?[context.user_id]:[])),[returnPerson,setReturnPerson]=useState(String(record?.return_user_id||'')),[notes,setNotes]=useState(record?.notes||''),[search,setSearch]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const toggle=(id:string,list:string[],set:(list:string[])=>void)=>set(list.includes(id)?list.filter(value=>value!==id):[...list,id]);
+ async function submit(event:FormEvent){event.preventDefault();if(busy)return;setError('');setBusy(true);try{
+  if(!selected.length)throw new Error('Elegí al menos un equipo');if(!responsibles.length)throw new Error('Elegí al menos un responsable');if(!responsibles.includes(returnPerson))throw new Error('Elegí quién se encarga de devolver los equipos');
+  const starts=inventoryUtcTime(start),ends=inventoryUtcTime(end);if(ends<=starts)throw new Error('La devolución prevista debe ser posterior al inicio');
+  await api(`/api/agency/inventory-reservations${record?`/${record.id}`:''}`,{title,project_id:project,starts_at:starts,ends_at:ends,inventory_ids:selected,responsible_user_ids:responsibles,return_user_id:returnPerson,notes,...(record?{expected_version:record.version}:{})},record?'PATCH':'POST');done();
+ }catch(error){setError(errorMessage(error));}finally{setBusy(false);}}
+ return <form className="inventory-form-grid" onSubmit={submit}>
+  <label className="inventory-wide">Producción o uso previsto<input value={title} onChange={e=>setTitle(e.target.value)} required minLength={2} maxLength={160} placeholder="Rodaje de contenidos · cliente"/></label>
+  <label className="inventory-wide">Proyecto<select value={project} onChange={e=>setProject(e.target.value)} required><option value="">Elegí un proyecto activo</option>{context.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+  <label>Desde · Asunción<input type="datetime-local" value={start} onChange={e=>setStart(e.target.value)} required/></label><label>Devolución prevista · Asunción<input type="datetime-local" value={end} min={start||undefined} onChange={e=>setEnd(e.target.value)} required/></label>
+  <fieldset className="inventory-wide"><legend>Equipos · {selected.length} seleccionados</legend><label>Buscar equipos<input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Memoria, DJI Mic…"/></label><div className="inventory-options">{items.filter(i=>`${i.name} ${i.category_name||i.category}`.toLowerCase().includes(search.toLowerCase())).map(i=><label className="inventory-check" key={i.id}><input type="checkbox" checked={selected.includes(String(i.id))} disabled={['maintenance','retired'].includes(i.status)&&!selected.includes(String(i.id))} onChange={()=>toggle(String(i.id),selected,setSelected)}/><span>{i.name}<small>{i.status==='in_use'?'Actualmente en uso; el retiro depende de su devolución':i.status==='maintenance'?'En mantenimiento':i.status==='retired'?'Dado de baja':i.category_name||i.category}</small></span></label>)}</div><small>Se verifica que los equipos no tengan otra reserva en el horario elegido.</small></fieldset>
+  <fieldset className="inventory-wide"><legend>Responsables · {responsibles.length}</legend><div className="inventory-options">{context.members.map(p=><label className="inventory-check" key={p.id}><input type="checkbox" checked={responsibles.includes(String(p.id))} onChange={()=>{toggle(String(p.id),responsibles,setResponsibles);if(returnPerson===String(p.id))setReturnPerson('');}}/>{p.name}</label>)}</div></fieldset>
+  <label className="inventory-wide">Responsable de devolución<select value={returnPerson} onChange={e=>setReturnPerson(e.target.value)} required><option value="">Elegí entre los responsables</option>{context.members.filter(p=>responsibles.includes(String(p.id))).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+  <label className="inventory-wide">Notas<textarea value={notes} onChange={e=>setNotes(e.target.value)} maxLength={2000}/></label>
+  <p className="form-note inventory-wide">Reservar no registra el retiro. Al retirar se indica quién lleva físicamente los equipos; al devolver se registra dónde quedan.</p>
+  {error?<p className="error inventory-wide" role="alert">{error}</p>:null}<FormActions><button className="primary" disabled={busy||!context.projects.length}>{busy?'Guardando…':'Guardar reserva'}</button></FormActions>
+ </form>;
+}
+
+export function InventoryTransitionForm({action,record,done}:{action:'checkout'|'return'|'cancel';record:InventoryReservation;done:()=>void}){
+ const [custodian,setCustodian]=useState(''),[locations,setLocations]=useState(record.items.map(i=>({inventory_id:String(i.id),storage_shelf:i.storage_shelf||'',storage_row:i.storage_row||'',status:'available'}))),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ function location(index:number,key:'storage_shelf'|'storage_row'|'status',value:string){setLocations(current=>current.map((row,i)=>i===index?{...row,[key]:value}:row));}
+ return <form className="inventory-form-grid" onSubmit={async event=>{event.preventDefault();if(busy)return;setBusy(true);setError('');try{await api(`/api/agency/inventory-reservations/${record.id}/${action}`,{expected_version:record.version,...(action==='checkout'?{custodian_user_id:custodian}:action==='return'?{locations}:{})});done();}catch(error){setError(errorMessage(error));}finally{setBusy(false);}}}>
+  <p className="inventory-wide">{record.title} · {record.items.map(i=>i.name).join(', ')}</p>
+  {action==='checkout'?<><label className="inventory-wide">Quién lleva los equipos (custodio)<select value={custodian} onChange={e=>setCustodian(e.target.value)} required><option value="">Elegí al custodio real</option>{record.responsible_members.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><p className="form-note inventory-wide">Responsable de devolución: {record.return_user_name}. Confirmá el retiro cuando los equipos se entreguen físicamente, dentro del horario reservado.</p></>:action==='return'?<><p className="form-note inventory-wide">Registrá la devolución completa y revisá dónde queda cada equipo. No se libera ninguno hasta guardar todos.</p>{locations.map((row,index)=><fieldset className="inventory-wide inventory-form-grid" key={row.inventory_id}><legend>{record.items[index].name}</legend><label>Estante o lugar de guardado<input value={row.storage_shelf} maxLength={100} required onChange={e=>location(index,'storage_shelf',e.target.value)}/></label><label>Fila / posición<input value={row.storage_row} maxLength={80} onChange={e=>location(index,'storage_row',e.target.value)}/></label><label>Estado al devolver<select value={row.status} onChange={e=>location(index,'status',e.target.value)}><option value="available">Disponible</option><option value="maintenance">Necesita mantenimiento</option></select></label></fieldset>)}</>:<p className="inventory-wide">Cancelar libera todos los equipos de esta reserva. Solo aplica si todavía no se retiraron.</p>}
+  {error?<p className="error inventory-wide" role="alert">{error}</p>:null}<FormActions><button className="primary" disabled={busy}>{busy?'Guardando…':{checkout:'Confirmar retiro',return:'Confirmar devolución completa',cancel:'Confirmar cancelación'}[action]}</button></FormActions>
+ </form>;
+}
+
+export function InventoryCalendar({month,reservations}:{month:string;reservations:InventoryReservation[]}){
+ const [year,m]=month.split('-').map(Number),days=new Date(Date.UTC(year,m,0)).getUTCDate(),offset=(new Date(Date.UTC(year,m-1,1)).getUTCDay()+6)%7;
+ return <div className="inventory-calendar" aria-label="Calendario mensual de reservas"><div className="inventory-weekdays" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day}>{day}</span>)}</div><div className="inventory-calendar-grid">{Array.from({length:offset},(_,index)=><div className="inventory-calendar-blank" key={`blank-${index}`}/>)}{Array.from({length:days},(_,index)=>{
+  const day=`${month}-${String(index+1).padStart(2,'0')}`,start=inventoryUtcTime(day+'T00:00'),nextDay=new Date(Date.UTC(year,m-1,index+2)).toISOString().slice(0,10),end=inventoryUtcTime(nextDay+'T00:00');
+  const rows=reservations.filter(r=>r.status!=='cancelled'&&r.starts_at<end&&r.ends_at>start);
+  return <div className="inventory-calendar-day" key={day} aria-label={day}><time dateTime={day}>{index+1}</time>{rows.map(r=><div className={`inventory-calendar-event inventory-status-${r.status}`} key={r.id}><b>{r.title}</b><small>{r.items.length} equipo(s) · {statusLabels[r.status]}</small></div>)}</div>;
+ })}</div></div>;
+}

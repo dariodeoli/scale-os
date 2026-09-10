@@ -1,4 +1,13 @@
 .control-shell .desktop-sidebar{position:sticky;flex-shrink:0}
+.control-shell .desktop-sidebar .sidebar-bottom{min-width:0;width:100%}
+.control-shell .desktop-sidebar .profile-footer{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:2px;width:100%;min-width:0;padding-inline:0}
+.control-shell .desktop-sidebar .profile-footer .user{width:100%;max-width:100%;min-width:0;gap:6px;padding:4px!important;overflow:hidden}
+.control-shell .desktop-sidebar .profile-footer .user>div:last-child{min-width:0;flex:1;overflow:hidden}
+.control-shell .desktop-sidebar .profile-footer .user b,.control-shell .desktop-sidebar .profile-footer .user small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.control-shell .desktop-sidebar .profile-footer .avatar{flex:0 0 32px;width:32px;height:32px}
+.control-shell .desktop-sidebar .profile-footer .user img{width:32px;height:32px}
+.control-shell .desktop-sidebar .profile-footer .logout-only{width:32px;min-width:0;height:36px;padding:0;justify-self:center}
+.control-shell .desktop-sidebar .profile-footer .logout-only svg{width:18px;height:18px}
 .sidebar-collapse{display:flex;align-items:center;justify-content:center;align-self:flex-end;width:36px;height:36px;flex-shrink:0;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-muted);margin-bottom:12px}
 .sidebar-collapse:hover{background:var(--violet-soft);color:var(--brand-700)}
 @media(min-width:761px){
@@ -16,8 +25,8 @@
  .desktop-sidebar.is-collapsed .workspace-wordmark,.desktop-sidebar.is-collapsed .nav-caption,.desktop-sidebar.is-collapsed .nav-label,.desktop-sidebar.is-collapsed .user>div:nth-child(2){display:none}
  .control-shell .desktop-sidebar.is-collapsed nav>a{justify-content:center;padding-inline:0;min-height:40px}
  .desktop-sidebar.is-collapsed nav>a svg{flex:none}
- .desktop-sidebar.is-collapsed .profile-footer{display:flex;flex-direction:column;gap:8px}
- .desktop-sidebar.is-collapsed .profile-footer .user{width:100%;justify-content:center;padding:12px 0 0!important}
- .desktop-sidebar.is-collapsed .logout-only{width:44px;min-height:44px}
+ .control-shell .desktop-sidebar.is-collapsed .profile-footer{display:flex;flex-direction:column;gap:4px}
+ .control-shell .desktop-sidebar.is-collapsed .profile-footer .user{width:100%;justify-content:center;padding:4px 0!important}
+ .control-shell .desktop-sidebar.is-collapsed .logout-only{width:36px;min-height:36px}
 }
 @media(max-width:760px){.control-shell .desktop-sidebar{display:none}}

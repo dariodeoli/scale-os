@@ -1,13 +1,43 @@
 "use client";
-import {useEffect,useState} from 'react';
+import {createContext,useContext,useEffect,useState,type ReactNode} from 'react';
 import {Dialog} from './dialog';
 import './presence.css';
 const views=new Map<symbol,string>();
 const currentProject=()=>Array.from(views.values()).at(-1)||null;
-async function request<T>(path:string,body?:unknown):Promise<T>{const res=await fetch('/core-api/api/agency/presence/'+path,{method:body?'POST':'GET',credentials:'include',cache:'no-store',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,keepalive:!!body});const data=await res.json();if(!res.ok)throw new Error(data.error||'No disponible');return data;}
+export type PresentPerson={id:string;name:string;photo_url?:string|null;active?:boolean;project_id?:string};
+const BoardPeople=createContext<PresentPerson[]>([]);
+function useProjectPeople(path:string){
+ const [state,setState]=useState<{path:string;people:PresentPerson[];available:boolean}>({path,people:[],available:true});
+ useEffect(()=>{
+  let alive=true,loading=false,lastAttempt=-Infinity,controller:AbortController|undefined;
+  setState({path,people:[],available:true});if(!path)return;
+  const load=async()=>{
+   if(!alive||loading||document.visibilityState!=='visible'||Date.now()-lastAttempt<30000)return;
+   loading=true;lastAttempt=Date.now();controller=new AbortController();
+   const timeout=setTimeout(()=>controller?.abort(),8000);
+   try{const data=await request<{people:PresentPerson[]}>(path,undefined,controller.signal);if(!Array.isArray(data.people))throw new Error('Presencia inválida');if(alive)setState({path,people:data.people,available:true});}
+   catch{if(alive)setState({path,people:[],available:false});}
+   finally{clearTimeout(timeout);loading=false;}
+  };
+  const visibility=()=>{if(document.visibilityState==='visible')void load();else controller?.abort();};
+  void load();const timer=setInterval(()=>void load(),30000);document.addEventListener('visibilitychange',visibility);
+  return()=>{alive=false;clearInterval(timer);controller?.abort();document.removeEventListener('visibilitychange',visibility);};
+ },[path]);
+ // Never render the previous project's people during the render before effects run.
+ return state.path===path?state:{path,people:[],available:true};
+}
+export function BoardPresence({projectIds,children}:{projectIds:string[];children:ReactNode}){
+ const key=Array.from(new Set(projectIds.filter(Boolean).map(String))).sort().slice(0,100).join(',');
+ const {people}=useProjectPeople(key?'projects?ids='+encodeURIComponent(key):'');
+ return <BoardPeople.Provider value={people}>{children}</BoardPeople.Provider>;
+}
+function PersonPhoto({person}:{person:PresentPerson}){const [broken,setBroken]=useState(false);useEffect(()=>setBroken(false),[person.photo_url]);return person.photo_url&&!broken?<img src={person.photo_url} alt="" loading="lazy" onError={()=>setBroken(true)}/>:<span aria-hidden="true">{person.name.trim().split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase()||'?'}</span>;}
+export function PresenceAvatars({people}:{people:PresentPerson[]}){return <span className="presence-avatars">{people.slice(0,4).map(person=><span className="presence-person" key={person.id} title={`${person.name} · ${person.active?'Activo en este proyecto':'Viendo este proyecto'}`} aria-label={`${person.name} · ${person.active?'Activo en este proyecto':'Viendo este proyecto'}`}><PersonPhoto person={person}/><i data-active={!!person.active}/></span>)}{people.length>4&&<span className="presence-more" title={people.slice(4).map(p=>p.name).join(', ')}>+{people.length-4}</span>}</span>;}
+export function ProjectCardPresence({projectId}:{projectId:string}){const people=useContext(BoardPeople).filter(person=>String(person.project_id)===String(projectId));return people.length?<div className="card-presence"><PresenceAvatars people={people}/><small>Viendo ahora</small></div>:null;}
+async function request<T>(path:string,body?:unknown,signal?:AbortSignal):Promise<T>{const res=await fetch('/core-api/api/agency/presence/'+path,{method:body?'POST':'GET',credentials:'include',cache:'no-store',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,keepalive:!!body,signal});const data=await res.json();if(!res.ok)throw new Error(data.error||'No disponible');return data;}
 export function PresenceTracker(){
  useEffect(()=>{
-  const tab=crypto.randomUUID();let lastInput=Date.now(),sending=false,stopped=false;
+  const tab=crypto.randomUUID();let lastInput=-Infinity,sending=false,stopped=false;
   const touch=()=>{lastInput=Date.now();};
   const pulse=async()=>{if(sending||stopped)return;sending=true;try{await request('heartbeat',{tab_id:tab,project_id:currentProject(),visible:document.visibilityState==='visible',active:document.visibilityState==='visible'&&Date.now()-lastInput<60000});}catch{/* Presence must never interrupt work. */}finally{sending=false;}};
   const events=['pointerdown','keydown','scroll','touchstart'] as const;
@@ -18,9 +48,9 @@ export function PresenceTracker(){
  },[]);return null;
 }
 export function ProjectPresence({projectId}:{projectId:string}){
- const [people,setPeople]=useState<{id:string;name:string}[]>([]),[available,setAvailable]=useState(true);
- useEffect(()=>{const key=Symbol();views.set(key,projectId);window.dispatchEvent(new Event('scale:project-view'));let alive=true;const load=()=>{if(document.visibilityState!=='visible')return;void request<{people:typeof people}>('project?projectId='+encodeURIComponent(projectId)).then(d=>{if(alive){setPeople(d.people);setAvailable(true);}}).catch(()=>{if(alive)setAvailable(false);});};load();const timer=setInterval(load,30000);return()=>{alive=false;clearInterval(timer);views.delete(key);window.dispatchEvent(new Event('scale:project-view'));};},[projectId]);
- return <p className="project-presence"><span className="presence-dot"/>{available?(people.length?`${people.map(p=>p.name).join(', ')} · viendo este proyecto`:'Sin otras vistas recientes de este proyecto'):'Presencia temporalmente no disponible'}<small>Se actualiza cada 30 s</small></p>;
+ const {people,available}=useProjectPeople('project?projectId='+encodeURIComponent(projectId));
+ useEffect(()=>{const key=Symbol();views.set(key,projectId);window.dispatchEvent(new Event('scale:project-view'));return()=>{views.delete(key);window.dispatchEvent(new Event('scale:project-view'));};},[projectId]);
+ return <div className="project-presence">{available&&people.length>0&&<PresenceAvatars people={people}/>}<span>{available?(people.length?`${people.map(p=>p.name).join(', ')} · viendo este proyecto`:'Sin vistas recientes de este proyecto'):'Presencia temporalmente no disponible'}</span><small>Se actualiza cada 30 s · No mide horas trabajadas</small></div>;
 }
 type Person={id:string;name:string;email:string;last_seen_at:string|null;sessions:number;active_seconds:number;online:boolean;active:boolean};
 type Visit={first_seen_at:string;last_seen_at:string;active_seconds:number};
