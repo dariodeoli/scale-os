@@ -5,6 +5,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
 import dynamic from 'next/dynamic';
 import {centeredPhotoArea} from './photo-fit';
+import {validateImageLink} from './image-link';
 import './photo-cropper.css';
 const PhotoCropper=dynamic(()=>import('./photo-cropper').then(m=>m.PhotoCropper));
 
@@ -42,6 +43,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil'}:{photo:str
   const [cropSource,setCropSource]=useState<string|null>(null);
   const [originalSource,setOriginalSource]=useState<string|null>(null);
   const [useLink,setUseLink]=useState(false);
+  const [failedPhoto,setFailedPhoto]=useState('');
   const preview=form.watch('photo');
   const busy=processing||form.formState.isSubmitting;
   const openCrop=()=>{
@@ -51,10 +53,10 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil'}:{photo:str
   };
   return <details className="ops-profile-section"><summary>{label}</summary>
     <form className="form-stack profile-photo-form" noValidate onSubmit={form.handleSubmit(async values=>{
-      setError('');setNotice('');try{await save(values.photo);form.reset(values);setNotice('Foto guardada.');}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}
+      setError('');setNotice('');try{if(values.photo.startsWith('https:'))await validateImageLink(values.photo);await save(values.photo);form.reset(values);setNotice('Foto guardada.');}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}
     })}>
       <div className="profile-photo-summary">
-      {preview?<button type="button" className="editable-photo" aria-label={`Ajustar encuadre de ${name}`} disabled={busy||!preview.startsWith('data:image/')} onClick={openCrop}><img src={preview} referrerPolicy="no-referrer" alt={`Foto de ${name}`}/></button>:<span className="avatar" aria-label="Sin foto">{name[0]}</span>}
+      {preview&&preview!==failedPhoto?<button type="button" className="editable-photo" aria-label={`Ajustar encuadre de ${name}`} disabled={busy||!preview.startsWith('data:image/')} onClick={openCrop}><img src={preview} referrerPolicy="no-referrer" alt={`Foto de ${name}`} onError={()=>setFailedPhoto(preview)}/></button>:<span className="avatar" aria-label="Sin foto">{name[0]}</span>}
       <div className="profile-photo-controls">
       <label className="photo-upload">{processing?'Preparando…':preview?'Cambiar foto':'Elegir foto'}<input aria-label="Elegir foto (JPG, PNG o WebP; hasta 4 MB)" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file)return;
@@ -65,6 +67,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil'}:{photo:str
       </div></div>
       {useLink&&<label>Enlace directo a la imagen<input type="url" value={preview.startsWith('data:')?'':preview} placeholder="https://…/foto.jpg" disabled={busy} onChange={e=>{form.setValue('photo',e.target.value,{shouldDirty:true,shouldValidate:true});setOriginalSource(null);}}/><small>Usá un enlace público de confianza. La imagen se carga desde ese sitio; puede dejar de funcionar si cambia. Para mover o recortar, subí el archivo original.</small></label>}
       {form.formState.errors.photo&&<p role="alert" className="error">{form.formState.errors.photo.message}</p>}
+      {preview&&preview===failedPhoto&&<p role="alert" className="error">Esta imagen no se puede mostrar acá. Algunos enlaces de Instagram bloquean otros sitios o vencen. Subí el archivo o probá otro enlace público.</p>}
       {form.formState.isDirty&&<p className="form-note" role="status">Vista previa: todavía no guardaste el cambio.</p>}
       <p className="form-note">JPG, PNG o WebP · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
       {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}

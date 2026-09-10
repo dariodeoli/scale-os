@@ -13,7 +13,7 @@ export function identityColor(value?:string|null){return clientColors.some(([key
 export function ClientIdentity({name,logo,color,compact=false}:{name:string;logo?:string|null;color?:string|null;compact?:boolean}){
  const [failed,setFailed]=useState('');
  return <span className={`client-identity identity-${identityColor(color)} ${compact?'compact':''}`}>
-  <span className="identity-avatar" aria-hidden="true">{logo&&logo!==failed?<img src={logo} alt="" loading="lazy" width={36} height={36} onError={()=>setFailed(logo)}/>:name.trim().split(/\s+/).slice(0,2).map(n=>n[0]).join('').toUpperCase()}</span>
+  <span className="identity-avatar" aria-hidden="true">{logo&&logo!==failed?<img src={logo} alt="" loading="lazy" referrerPolicy="no-referrer" width={36} height={36} onError={()=>setFailed(logo)}/>:name.trim().split(/\s+/).slice(0,2).map(n=>n[0]).join('').toUpperCase()}</span>
   <span className="identity-name">{name}</span>
  </span>;
 }
