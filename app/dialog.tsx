@@ -30,11 +30,11 @@ export function useOverlay(panel:RefObject<HTMLElement>,close:()=>void){
   return()=>{layers.remove(id);document.removeEventListener('keydown',keyboard);if(!layers.size)document.body.style.overflow=originalOverflow;if(previous?.isConnected)previous.focus();};
  },[panel]);
 }
-export function Dialog({title,close,children}:{title:string;close:()=>void;children:ReactNode}){
+export function Dialog({title,close,children,variant='modal'}:{title:string;close:()=>void;children:ReactNode;variant?:'modal'|'drawer'}){
  const panel=useRef<HTMLElement>(null),heading=useId();
  const [footer,setFooter]=useState<HTMLDivElement|null>(null);
  useOverlay(panel,close);
- return createPortal(<div className="ops-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)close();}}><section className="ops-dialog unified-dialog" ref={panel} role="dialog" aria-modal="true" aria-labelledby={heading} tabIndex={-1}>
+ return createPortal(<div className={`ops-overlay${variant==='drawer'?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget)close();}}><section className="ops-dialog unified-dialog" ref={panel} role="dialog" aria-modal="true" aria-labelledby={heading} tabIndex={-1}>
   <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" onClick={close} aria-label="Cerrar"><X size={18}/></button></div>
   <FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>

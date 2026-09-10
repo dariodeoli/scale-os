@@ -13,13 +13,14 @@ import {PhotoViewer} from './photo-viewer';
 import {notifyMutation} from './feedback';
 import {teamDirectory,TeamMember,ArchivedProfile} from './team-directory';
 import {TeamAccess} from './team-access';
+import {dataFetch} from './data-cache';
 
 export async function api<T>(
   path: string,
   body?: unknown,
   method = "POST",
 ): Promise<T> {
-  const r = await fetch(`/core-api${path}`, {
+  const r = await dataFetch(`/core-api${path}`, {
     credentials: "include",
     method: body === undefined ? "GET" : method,
     headers: body === undefined ? {} : { "Content-Type": "application/json" },

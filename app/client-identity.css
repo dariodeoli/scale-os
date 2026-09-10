@@ -1,0 +1,27 @@
+.identity-violet{--client-accent:var(--brand-600);--client-soft:var(--violet-soft)}
+.identity-blue{--client-accent:var(--info);--client-soft:var(--info-soft)}
+.identity-teal{--client-accent:var(--teal);--client-soft:var(--success-soft)}
+.identity-green{--client-accent:var(--success);--client-soft:var(--success-soft)}
+.identity-gold{--client-accent:var(--warning);--client-soft:var(--warning-soft)}
+.identity-rose{--client-accent:var(--danger);--client-soft:var(--danger-soft)}
+.identity-slate{--client-accent:var(--text-muted);--client-soft:var(--surface-subtle)}
+.client-identity{display:inline-flex!important;align-items:center;gap:9px;min-width:0;color:var(--text)!important;font-size:13px}
+.identity-avatar{display:grid!important;place-items:center;flex:none;width:36px;height:36px;border-radius:9px;border:1px solid var(--client-accent);background:var(--client-soft);color:var(--client-accent)!important;font-weight:700;overflow:hidden}
+.identity-avatar img{width:100%;height:100%;object-fit:contain;background:var(--surface)}
+.identity-name{color:var(--text)!important;overflow-wrap:anywhere;font-weight:600}
+.client-identity.compact .identity-avatar{width:25px;height:25px;font-size:10px}
+.client-identity.compact{font-size:11px}
+.identity-card{border-inline-start:3px solid var(--client-accent)!important}
+.client-appearance{display:grid;gap:14px;margin-block:12px 20px;padding:14px;background:var(--surface-subtle);border-radius:var(--radius-sm)}
+.identity-palette{display:flex;flex-wrap:wrap;gap:8px;border:0;padding:0;min-width:0}
+.identity-palette legend{margin-bottom:8px;font-weight:600}
+.identity-palette label{display:flex;align-items:center;gap:6px;padding:8px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.identity-palette input{width:auto!important}
+.identity-palette label:has(input:checked){border-color:var(--client-accent);background:var(--client-soft)}
+.color-swatch{width:12px;height:12px;border-radius:50%;background:var(--client-accent)}
+.profile-footer{display:flex;align-items:center;gap:8px}
+.profile-footer .user{flex:1;min-width:0;text-align:left}
+.profile-footer .user img{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.profile-footer .logout-only{flex:none;width:40px;height:40px;display:grid;place-items:center;background:transparent;color:var(--text-muted);border:0;border-radius:8px;cursor:pointer}
+.profile-footer .logout-only:hover{background:var(--surface-subtle);color:var(--danger)}
+.profile-footer button:focus-visible{outline:2px solid var(--brand-600);outline-offset:2px}

@@ -4,7 +4,6 @@ import {createPortal} from 'react-dom';
 import {usePathname} from 'next/navigation';
 import {Menu,X} from 'lucide-react';
 import {useOverlay} from './dialog';
-import {WorkspaceBrand} from './workspace-brand';
 
 function MobileDrawer({id,close,children}:{id:string;close:()=>void;children:ReactNode}){
  const panel=useRef<HTMLElement>(null);
@@ -17,7 +16,7 @@ function MobileDrawer({id,close,children}:{id:string;close:()=>void;children:Rea
  useOverlay(panel,close);
  return createPortal(<div className="mobile-sidebar-backdrop" onClick={event=>{if(event.target===event.currentTarget)close();}}>
   <section id={id} className="mobile-sidebar" ref={panel} role="dialog" aria-modal="true" aria-label="Menú de Scale OS" tabIndex={-1}>
-   <div className="mobile-sidebar-heading"><WorkspaceBrand/><button type="button" className="icon-button" onClick={close} aria-label="Cerrar menú"><X size={20}/></button></div>
+   <div className="mobile-sidebar-heading"><strong>Menú principal</strong><button type="button" className="icon-button" onClick={close} aria-label="Cerrar menú"><X size={20}/></button></div>
    <div className="mobile-sidebar-body" onClick={event=>{if((event.target as HTMLElement).closest('a[href]'))close();}}>{children}</div>
   </section>
  </div>,document.body);

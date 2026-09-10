@@ -1,0 +1,9 @@
+.profile-crop-stage{position:relative;width:100%;height:min(50dvh,400px);min-height:220px;background:var(--anthracite);border-radius:var(--radius-sm);overflow:hidden;touch-action:none}
+.profile-crop-stage .reactEasyCrop_Container{outline-offset:-3px}
+.profile-crop-stage .reactEasyCrop_Container:focus-visible{outline:3px solid var(--gold)}
+.crop-zoom{display:block;margin-block:16px;font-size:13px}
+.crop-zoom output{float:right}.crop-zoom input{display:block;width:100%;accent-color:var(--brand-700)}
+.editable-photo{width:80px;height:80px;border:2px solid var(--line-strong);border-radius:50%;padding:0;overflow:hidden;cursor:move;background:var(--surface)}
+.editable-photo img{display:block;width:100%;height:100%;object-fit:cover}
+.photo-viewport{border-radius:50%!important;aspect-ratio:1;max-width:420px;height:auto!important;margin-inline:auto;cursor:grab;touch-action:none;scrollbar-width:none}
+.photo-viewport:active{cursor:grabbing}.photo-canvas img{pointer-events:none;user-select:none;object-fit:cover!important}

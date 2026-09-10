@@ -6,6 +6,15 @@ import {ControlCenter} from './control-center';
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
 import {MobileNavigation} from './mobile-navigation';
+import dynamic from 'next/dynamic';
+import {ClientIdentity,identityColor} from './client-identity';
+const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
+const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
+const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
+const WorkPlanner=dynamic(()=>import('./productivity-ui').then(m=>m.WorkPlanner));
+const WorkHistory=dynamic(()=>import('./work-history').then(m=>m.WorkHistory));
+const InternalTasks=dynamic(()=>import('./work-history').then(m=>m.InternalTasks));
+import {dataFetch,setDataScope,clearDataCache} from './data-cache';
 import './control-center.css';
 import './mobile-navigation.css';
 import {Dialog,FormActions} from './dialog';
@@ -76,6 +85,8 @@ const nav = [
   ["Configuración", Settings],
 ] as const;
 type Client = {
+  logo_url?:string|null;
+  color_key?:string;
   id: string;
   name: string;
   email: string | null;
@@ -92,6 +103,10 @@ type Project = {
   work_order_count: number;
 };
 type WorkOrder = {
+  assigned_user_id?:string|null;
+  updated_at?:string;
+  client_logo_url?:string|null;
+  client_color_key?:string;
   id: string;
   title: string;
   project_id: string;
@@ -177,6 +192,10 @@ type ClientPaymentStatus = {
   payment_status: "up_to_date" | "due_soon" | "late" | "severe";
 };
 type User = {
+  id:string;
+  organization_id:string;
+  full_name?:string|null;
+  photo_url?:string|null;
   email: string;
   role: string;
   organization_name: string;
@@ -210,7 +229,7 @@ const assignableRoles = [
 ] as const;
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${core}${path}`, {
+  const response = await dataFetch(`${core}${path}`, {
     ...init,
     credentials: "include",
     headers: {
@@ -239,7 +258,7 @@ function Modal({
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
-function DraggableOrder({ order,role,refresh }: { order: WorkOrder;role:string;refresh:()=>Promise<void> }) {
+function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;role:string;refresh:()=>Promise<void>;openOrder:(id:string)=>void }) {
   const canMove=['owner','admin','management','production','editor'].includes(role);
   const draggable = useDraggable({ id: order.id,disabled:!canMove });
   const style = draggable.transform
@@ -251,14 +270,14 @@ function DraggableOrder({ order,role,refresh }: { order: WorkOrder;role:string;r
     <article
       ref={draggable.setNodeRef}
       style={style}
-      className={`work-card ${draggable.isDragging ? "dragging" : ""}`}
+      className={`work-card identity-card identity-${identityColor(order.client_color_key)} ${draggable.isDragging ? "dragging" : ""}`}
     >
       <div className="card-top">
-        <b>{order.title}</b>
+        <button className="text-button" onClick={()=>openOrder(order.id)}>{order.title}</button>
         {canMove&&<button className="icon-button" aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>}
       </div>
       <p>
-        {order.client_name} · {order.project_name}
+        <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/> · {order.project_name}
       </p>
       <div className="card-meta">
         {order.drive_url ? (
@@ -284,11 +303,13 @@ function KanbanColumn({
   orders,
   role,
   refresh,
+  openOrder,
 }: {
   status: (typeof statuses)[number];
   orders: WorkOrder[];
   role:string;
   refresh:()=>Promise<void>;
+  openOrder:(id:string)=>void;
 }) {
   const droppable = useDroppable({ id: `status-${status.id}` });
   return (
@@ -302,7 +323,7 @@ function KanbanColumn({
         <em>{orders.length}</em>
       </div>
       {orders.map((order) => (
-        <DraggableOrder key={order.id} order={order} role={role} refresh={refresh}/>
+        <DraggableOrder key={order.id} order={order} role={role} refresh={refresh} openOrder={openOrder}/>
       ))}
     </section>
   );
@@ -372,13 +393,15 @@ type ProjectValues = z.infer<typeof projectSchema>;
 function ProjectForm({
   clients,
   done,
+  initialClientId='',
 }: {
   clients: Client[];
+  initialClientId?:string;
   done: (project: Project) => void;
 }) {
   const form = useForm<ProjectValues>({
     resolver: zodResolver(projectSchema),
-    defaultValues: { name: "", clientId: "", driveUrl: "" },
+    defaultValues: { name: "", clientId: initialClientId, driveUrl: "" },
   });
   const [error, setError] = useState("");
   async function submit(values: ProjectValues) {
@@ -1277,12 +1300,15 @@ export default function Home() {
   function setActive(label:string){router.push(sectionPath(label));}
   const [toast, setToast] = useState("");
   const [modal, setModal] = useState<ModalKind>(null);
+  const [myProfile,setMyProfile]=useState(false);
+  const [detail,setDetail]=useState<{kind:'client'|'order';id:string}|null>(null);
+  const [projectClient,setProjectClient]=useState('');
   const [user, setUser] = useState<User | null>(null);
   const active=signedIn&&!visibleModule(requestedSection,user?.role||'viewer')?'Sin acceso':requestedSection;
   const activeParent=parentSection(active);
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
   const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
-  useEffect(()=>{setModal(null);setProductionClientId('');},[pathname]);
+  useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);setProductionClientId('');},[pathname]);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
@@ -1335,6 +1361,7 @@ export default function Home() {
       .catch(() => setGoogleAvailable(false));
     request<{ user: User }>("/api/auth/me")
       .then((data) => {
+        setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
         setUser(data.user);
         setSignedIn(true);
         return load();
@@ -1418,6 +1445,7 @@ export default function Home() {
         body: JSON.stringify({ email, password }),
       });
       const data = await request<{ user: User }>("/api/auth/me");
+      setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
       setUser(data.user);
       setSignedIn(true);
       await load();
@@ -1428,6 +1456,8 @@ export default function Home() {
     }
   }
   async function logout() {
+    setMyProfile(false);setDetail(null);
+    setDataScope('');
     setProductionClientId("");
     sessionStorage.removeItem("scale_company_selected");
     await request("/api/auth/logout", { method: "POST" }).catch(
@@ -1459,7 +1489,7 @@ export default function Home() {
       );
     }
   }
-  const close = () => setModal(null);
+  const close = () => {setModal(null);setProjectClient('');};
   const selectedProductionClient = clients.some(client => String(client.id) === productionClientId) ? productionClientId : "";
   const productionOrders = filterProductionOrders(orders, projects, selectedProductionClient);
   if (loading) return <div className="loading-page">Cargando Scale OS…</div>;
@@ -1549,14 +1579,14 @@ export default function Home() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <button className="user" onClick={logout}>
-            <div className="avatar">{firstName[0].toUpperCase()}</div>
+          <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}>
+            {user?.photo_url?<img src={user.photo_url} alt="" width={36} height={36}/>:<div className="avatar">{(user?.full_name||firstName)[0].toUpperCase()}</div>}
             <div>
-              <b>{firstName}</b>
+              <b>{user?.full_name||firstName}</b>
               <small>{assignableRoles.find(role=>role.id===user?.role)?.label||user?.role}</small>
             </div>
-            <LogOut size={16} />
           </button>
+          <button className="logout-only" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/></button></div>
         </div>
       </>;
   return (
@@ -1601,6 +1631,7 @@ export default function Home() {
         {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
         {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><button className="primary" onClick={()=>setActive('Resumen')}>Ir al resumen</button></section>}
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
+        {active==='Equipo'&&<WorkHistory role={user?.role||'viewer'}/>}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
         {active==='Pipeline'&&<CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>}
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
@@ -1611,6 +1642,8 @@ export default function Home() {
         {active === "Resumen" && (
           <>
             <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive}/>
+            <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
+            <InternalTasks role={user?.role||'viewer'}/>
             <section className="metrics operational-metrics" aria-label="Métricas operativas">
               <article className="metric gold">
                 <span>Clientes activos</span>
@@ -1666,11 +1699,12 @@ export default function Home() {
                 <div className="kanban">
                   {statuses.map((status) => (
                     <KanbanColumn
+                      openOrder={id=>setDetail({kind:'order',id})}
                       role={user?.role||'viewer'}
                       refresh={load}
                       key={status.id}
                       status={status}
-                      orders={productionOrders.filter(
+                      orders={productionOrders.map(order=>{const project=projects.find(p=>String(p.id)===String(order.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {...order,client_logo_url:client?.logo_url,client_color_key:client?.color_key};}).filter(
                         (order) => order.status === status.id,
                       )}
                     />
@@ -1800,15 +1834,10 @@ export default function Home() {
             </div>
             <div className="client-list">
               {clients.length ? (
-                clients.map((client, index) => (
+                clients.map((client) => (
                   <div className="client-row" key={client.id}>
-                    <div
-                      className={`client-avatar ${["green", "yellow", "purple", "blue"][index % 4]}`}
-                    >
-                      {client.name[0]}
-                    </div>
                     <div>
-                      <b>{client.name}</b>
+                      <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/></button>
                       <small>{client.email || "Sin email registrado"}</small>
                     </div>
                     <span>{client.phone || "Sin teléfono"}</span>
@@ -1837,8 +1866,8 @@ export default function Home() {
             <div className="project-grid">
               {projects.length ? (
                 projects.map((project) => (
-                  <article className="project-card" key={project.id}>
-                    <p className="eyebrow">{project.client_name}</p>
+                  <article className={`project-card identity-card identity-${identityColor(clients.find(c=>String(c.id)===String(project.client_id))?.color_key)}`} key={project.id}>
+                    <ClientIdentity name={project.client_name} logo={clients.find(c=>String(c.id)===String(project.client_id))?.logo_url} color={clients.find(c=>String(c.id)===String(project.client_id))?.color_key}/>
                     <h3>{project.name}</h3>
                     <p>{project.work_order_count} órdenes de trabajo</p>
                     {project.drive_url ? (
@@ -2097,6 +2126,9 @@ export default function Home() {
           </section>
         )}
       </section>
+      {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
+      {detail?.kind==='order'&&<WorkDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
+      {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
         <Modal title="Nuevo cliente" onClose={close}>
           <ClientForm
@@ -2115,6 +2147,7 @@ export default function Home() {
         <Modal title="Nuevo proyecto" onClose={close}>
           <ProjectForm
             clients={clients}
+            initialClientId={projectClient}
             done={async () => {
               await load();
               close();

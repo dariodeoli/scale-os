@@ -13,7 +13,9 @@ export function AmountInput({ value, currency, onChange }: { value: string; curr
 }
 
 export function SelectCustom({ label, value, choices, onChange }: { label: string; value: string; choices: {value: string;label: string}[]; onChange: (value: string)=>void }) {
-  const [open,setOpen]=useState(false);const root=useRef<HTMLDivElement>(null);const trigger=useRef<HTMLButtonElement>(null);const id=useId();
+  const [open,setOpen]=useState(false),[query,setQuery]=useState('');const root=useRef<HTMLDivElement>(null);const trigger=useRef<HTMLButtonElement>(null);const id=useId();
+  const filtered=choices.filter(c=>c.label.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(query.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()));
+  useEffect(()=>{if(!open)setQuery('');},[open]);
   useEffect(()=>{if(!open)return;const close=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node))setOpen(false);};document.addEventListener('pointerdown',close);root.current?.querySelector<HTMLElement>('[aria-selected="true"], [role="option"]')?.focus();return()=>document.removeEventListener('pointerdown',close);},[open]);
   return <div className="ops-select" ref={root} onKeyDown={e=>{
     if(e.key==='Escape'&&open){e.preventDefault();e.stopPropagation();setOpen(false);trigger.current?.focus();}
@@ -24,9 +26,10 @@ export function SelectCustom({ label, value, choices, onChange }: { label: strin
     <button type="button" ref={trigger} className="ops-select-trigger" aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>setOpen(!open)} onKeyDown={e=>{if(!open&&['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();setOpen(true);}}}>
       <span id={`${id}-value`}>{choices.find(c=>String(c.value)===String(value))?.label || 'Seleccionar…'}</span><ChevronDown size={16}/>
     </button>
-    {open&&<div role="listbox" id={id} aria-labelledby={`${id}-label`} className="ops-select-options">
-      {choices.map(c=><button type="button" role="option" aria-selected={String(value)===String(c.value)} key={c.value} onClick={()=>{onChange(String(c.value));setOpen(false);trigger.current?.focus();}}>{c.label}</button>)}
-      {!choices.length&&<p>No hay opciones disponibles.</p>}
+    {open&&<div className="ops-select-options">
+      {choices.length>8&&<input type="search" aria-label={`Buscar ${label.toLowerCase()}`} placeholder="Buscar…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(['Home','End'].includes(e.key))e.stopPropagation();}}/>}
+      <div role="listbox" id={id} aria-labelledby={`${id}-label`}>{filtered.map(c=><button type="button" role="option" aria-selected={String(value)===String(c.value)} key={c.value} onClick={()=>{onChange(String(c.value));setOpen(false);trigger.current?.focus();}}>{c.label}</button>)}</div>
+      {!filtered.length&&<p>No hay opciones disponibles.</p>}
     </div>}
   </div>;
 }

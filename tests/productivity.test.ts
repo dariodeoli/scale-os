@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {dataFetch,setDataScope,clearDataCache} from '../app/data-cache';
+import {test} from 'node:test';
+test('productivity cache and interaction wiring',async()=>{
+const original=globalThis.fetch;let calls=0;
+globalThis.fetch=async()=>new Response(JSON.stringify({request:++calls}),{headers:{'Content-Type':'application/json'}});
+setDataScope('user-a:org-a:owner');
+const path='/core-api/api/agency/clients';
+const [a,b]=await Promise.all([dataFetch(path),dataFetch(path)]);assert.equal(calls,1);assert.deepEqual(await a.json(),await b.json());
+await dataFetch(path);assert.equal(calls,1);
+await dataFetch(path,{method:'POST',body:'{}'});await dataFetch(path);assert.equal(calls,3);
+setDataScope('user-a:org-b:owner');await dataFetch(path);assert.equal(calls,4);
+setDataScope('');await dataFetch(path);await dataFetch(path);assert.equal(calls,6);
+clearDataCache();globalThis.fetch=original;
+const ui=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+assert(ui.includes('aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}'));
+assert(ui.includes('className="logout-only" onClick={logout}'));assert(!ui.includes('className="user" onClick={logout}'));
+const css=readFileSync(new URL('../app/mobile-navigation.css',import.meta.url),'utf8');assert(css.includes('display:none'));assert(css.includes('.topbar-identity'));
+const crop=readFileSync(new URL('../app/photo-cropper.tsx',import.meta.url),'utf8');
+assert(crop.includes('cropShape="round"'));assert(crop.includes('onCropChange={setCrop}'));assert(crop.includes('await save(await cropImage(source,area))'));
+const photos=readFileSync(new URL('../app/profile-photo.tsx',import.meta.url),'utf8');assert(photos.includes('setCropSource(source)'));assert(photos.includes('await save(value)'));
+console.log('PASS: cache deduplication/invalidation/tenant isolation, separate profile/logout controls, crop drag/round/save wiring (visual browser QA still required)');
+});
