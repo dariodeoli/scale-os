@@ -14,6 +14,7 @@ import {ClientIdentity,identityColor} from './client-identity';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
+const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 const WorkPlanner=dynamic(()=>import('./productivity-ui').then(m=>m.WorkPlanner));
@@ -1629,6 +1630,7 @@ export default function Home() {
             <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
           </div>
           <div className="header-actions">
+            {active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||'')&&<ClientRuc refresh={load}/>}
             <WorkspaceGuide navigate={setActive} role={user?.role||'viewer'}/>
             {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen','Tablero de producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
               <button
