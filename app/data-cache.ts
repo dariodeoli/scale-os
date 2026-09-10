@@ -6,7 +6,7 @@ export function clearDataCache(){generation++;entries.clear();pending.clear();}
 export function setDataScope(next:string){if(next!==scope){scope=next;clearDataCache();}}
 export async function dataFetch(url:string,init:RequestInit={}):Promise<Response>{
  const method=(init.method||'GET').toUpperCase();
- const cacheable=method==='GET'&&!!scope&&url.includes('/api/agency/')&&!/\/members|\/team|\/settings|\/activity/.test(url);
+ const cacheable=method==='GET'&&!!scope&&url.includes('/api/agency/')&&!/\/members|\/team|\/settings|\/activity|\/notifications/.test(url);
  if(method!=='GET')clearDataCache();
  if(!cacheable){const response=await fetch(url,init);if(method!=='GET'||response.status===401||response.status===403)clearDataCache();return response;}
  const key=scope+':'+url,now=Date.now(),cached=entries.get(key);

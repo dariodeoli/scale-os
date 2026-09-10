@@ -2,7 +2,7 @@
   "name": "scale-os",
   "private": true,
   "version": "0.1.0",
-  "overrides": { "postcss": "8.5.28" },
+  "overrides": { "postcss": "8.5.28", "@prisma/config": { "deepmerge-ts": "8.0.0", "effect": "3.20.0" } },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

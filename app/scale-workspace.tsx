@@ -8,6 +8,8 @@ import {WorkspaceBrand} from './workspace-brand';
 import {MobileNavigation} from './mobile-navigation';
 import dynamic from 'next/dynamic';
 import {ClientIdentity,identityColor} from './client-identity';
+import {NotificationBell} from './notifications-ui';
+import {WorkspaceFooter} from './workspace-footer';
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
 const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
@@ -73,6 +75,7 @@ const statuses = [
 type Status = (typeof statuses)[number]["id"];
 const nav = [
   ["Resumen", LayoutDashboard],
+  ["Tablero de producción", FolderKanban],
   ["Clientes", Users],
   ["Proyectos", FolderKanban],
   ["Presupuestos", FileText],
@@ -200,6 +203,7 @@ type User = {
   role: string;
   organization_name: string;
   organization_slug: string;
+  demo_owner_user_id?:string|null;
 };
 type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
 type Summary = {
@@ -1315,6 +1319,7 @@ export default function Home() {
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
   const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
   useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);setProductionClientId('');},[pathname]);
+  useEffect(()=>{if(signedIn){const id=new URLSearchParams(window.location.search).get('order');if(id&&/^\d+$/.test(id))setDetail({kind:'order',id});}},[signedIn,pathname]);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
@@ -1558,6 +1563,7 @@ export default function Home() {
             {googleAvailable ? "Continuar con Google" : "Google aún no está configurado"}
           </button>
           <PasswordPanel/>
+          <WorkspaceFooter/>
         </div>
       </div>
     );
@@ -1606,7 +1612,8 @@ export default function Home() {
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
           ...orders.map(o=>({id:o.id,name:o.title,context:`Orden · ${o.client_name} · ${o.project_name}`,kind:'work-orders' as const})),
-        ]}/></div>
+        ]}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
+        {user?.demo_owner_user_id&&<p className="demo-session-note"><b>Demo privado · Sin dinero real.</b> Tus cambios no afectan a otras personas. Al iniciar una nueva sesión, tendrás un Demo nuevo. No se envían correos ni invitaciones desde aquí.</p>}
         <header>
           <div>
             <p className="eyebrow">{active==='Resumen'?'TU AGENCIA, EN UN VISTAZO':'ESPACIO DE TRABAJO'}</p>
@@ -1614,7 +1621,7 @@ export default function Home() {
           </div>
           <div className="header-actions">
             <WorkspaceGuide navigate={setActive} role={user?.role||'viewer'}/>
-            {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
+            {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen','Tablero de producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
               <button
                 className="primary"
                 onClick={() =>
@@ -1672,6 +1679,11 @@ export default function Home() {
                 <small>Piezas para aprobar</small>
               </article>
             </section>
+            <Link className="secondary" href="/produccion">Abrir tablero de producción →</Link>
+          </>
+        )}
+        {active==='Tablero de producción'&&<>
+            <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
             <section className="panel production-panel" id="produccion">
               <div className="panel-heading">
                 <div>
@@ -1722,8 +1734,7 @@ export default function Home() {
                 estado.
               </p>
             </section>
-          </>
-        )}
+          </>}
         {active === "Métricas" && (
           <section className="panel directory">
             <div className="panel-heading">
@@ -2131,6 +2142,7 @@ export default function Home() {
             <ReconciliationWorkspace accounts={accounts}/>
           </section>
         )}
+        <WorkspaceFooter/>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
       {detail?.kind==='order'&&<WorkDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}

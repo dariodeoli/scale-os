@@ -3,6 +3,7 @@ export const feedbackEvent='scale:feedback';
 const record=(value:unknown):Record<string,unknown>=>value&&typeof value==='object'?value as Record<string,unknown>:{};
 export function mutationFeedback(path:string,method:string,body:unknown,data:unknown):Feedback|null{
  if(!path.startsWith('/api/agency/')||!['POST','PATCH','DELETE'].includes(method.toUpperCase()))return null;
+ if(/^\/api\/agency\/notifications\/(read-all|\d+)$/.test(path))return null;
  const input=record(body),result=record(data),access=record(result.access);
  if(result.emailSent===false||access.emailSent===false)return{tone:'warning',message:'Acceso guardado, pero el correo no se pudo enviar. Podés reenviarlo desde Equipo.'};
  if(result.alreadyRecorded||result.alreadyReversed)return{tone:'success',message:'La operación ya estaba registrada. No se duplicó.'};

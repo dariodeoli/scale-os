@@ -1,5 +1,5 @@
 export const sections = [
- ['Resumen','resumen'],['Clientes','clientes'],['Proyectos','proyectos'],
+ ['Resumen','resumen'],['Tablero de producción','produccion'],['Clientes','clientes'],['Proyectos','proyectos'],
  ['Presupuestos','presupuestos'],['Pagos','pagos'],['Mora','pagos/mora'],
  ['Métricas','metricas'],['Equipo','equipo'],['Comisiones','equipo/comisiones'],
  ['Pipeline','pipeline'],['Planes','presupuestos/planes'],['Inventario','inventario'],

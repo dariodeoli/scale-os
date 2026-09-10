@@ -1,0 +1,1 @@
+export function WorkspaceFooter(){return <footer className="workspace-footer"><span>© {new Date().getFullYear()} Scale OS. Todos los derechos reservados. · v1.0.1</span><span>Desarrollado por <a href="https://owncoding.dev/" target="_blank" rel="noopener noreferrer">Owncoding</a></span></footer>;}
