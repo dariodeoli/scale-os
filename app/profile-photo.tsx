@@ -4,30 +4,33 @@ import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
 import dynamic from 'next/dynamic';
+import {centeredPhotoArea} from './photo-fit';
 import './photo-cropper.css';
 const PhotoCropper=dynamic(()=>import('./photo-cropper').then(m=>m.PhotoCropper));
 
 const schema=z.object({photo:z.string().max(700000).refine(value=>{if(!value||value.startsWith('data:image/'))return true;try{const u=new URL(value);return value.length<=2048&&u.protocol==='https:'&&!u.username&&!u.password;}catch{return false;}},'Usá un enlace HTTPS directo a una imagen, sin credenciales.')});
 
-export async function preparePhoto(file:File,forLogo=false):Promise<string>{
+export async function preparePhoto(file:File,forLogo=false,centerCrop=false):Promise<string>{
   if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>4*1024*1024)throw new Error('Elegí una foto JPG, PNG o WebP de hasta 4 MB.');
   const bitmap=await createImageBitmap(file);
   try{
     if(bitmap.width*bitmap.height>40000000)throw new Error('Elegí una foto de menor resolución.');
     // Keep the original pixels locally until the user chooses the crop.
     // Only the final small crop is sent to the server.
-    if(!forLogo)return await new Promise<string>((resolve,reject)=>{
+    if(!forLogo&&!centerCrop)return await new Promise<string>((resolve,reject)=>{
       const reader=new FileReader();
       reader.onload=()=>typeof reader.result==='string'?resolve(reader.result):reject(new Error('No se pudo leer la foto.'));
       reader.onerror=()=>reject(new Error('No se pudo leer la foto.'));
       reader.readAsDataURL(file);
     });
     const canvas=document.createElement('canvas');
-    const ratio=Math.min(1,512/Math.max(bitmap.width,bitmap.height));
-    canvas.width=Math.max(1,Math.round(bitmap.width*ratio));canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+    const area=centerCrop?centeredPhotoArea(bitmap.width,bitmap.height):{x:0,y:0,width:bitmap.width,height:bitmap.height};
+    const ratio=Math.min(1,512/Math.max(area.width,area.height));
+    canvas.width=Math.max(1,Math.round(area.width*ratio));canvas.height=Math.max(1,Math.round(area.height*ratio));
     const context=canvas.getContext('2d');if(!context)throw new Error('No se pudo preparar la foto.');
-    context.drawImage(bitmap,0,0,canvas.width,canvas.height);
-    const result=canvas.toDataURL('image/webp',0.85);
+    context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
+    context.drawImage(bitmap,area.x,area.y,area.width,area.height,0,0,canvas.width,canvas.height);
+    const result=canvas.toDataURL('image/webp',0.92);
     if(result.length>700000)throw new Error('Elegí una foto más pequeña.');
     return result;
   }finally{bitmap.close();}
@@ -55,7 +58,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil'}:{photo:str
       <div className="profile-photo-controls">
       <label className="photo-upload">{processing?'Preparando…':preview?'Cambiar foto':'Elegir foto'}<input aria-label="Elegir foto (JPG, PNG o WebP; hasta 4 MB)" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file)return;
-        setProcessing(true);setError('');setNotice('');try{const isLogo=label==='Logo o foto del cliente';const source=await preparePhoto(file,isLogo);setOriginalSource(source);if(isLogo)form.setValue('photo',source,{shouldDirty:true,shouldValidate:true});else setCropSource(source);}catch(e){setError(e instanceof Error?e.message:'No se pudo leer la foto.');}finally{setProcessing(false);}
+        setProcessing(true);setError('');setNotice('');try{const isLogo=label==='Logo o foto del cliente';const source=await preparePhoto(file,isLogo);setOriginalSource(source);const ready=isLogo?source:await preparePhoto(file,false,true);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);form.reset({photo:ready});setNotice(isLogo?'Logo guardado automáticamente.':'Foto centrada y guardada automáticamente. Podés ajustar el encuadre.');}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{setProcessing(false);}
       }}/></label>
       <button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>
       {preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}>Mover y recortar</button>}
@@ -63,7 +66,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil'}:{photo:str
       {useLink&&<label>Enlace directo a la imagen<input type="url" value={preview.startsWith('data:')?'':preview} placeholder="https://…/foto.jpg" disabled={busy} onChange={e=>{form.setValue('photo',e.target.value,{shouldDirty:true,shouldValidate:true});setOriginalSource(null);}}/><small>Usá un enlace público de confianza. La imagen se carga desde ese sitio; puede dejar de funcionar si cambia. Para mover o recortar, subí el archivo original.</small></label>}
       {form.formState.errors.photo&&<p role="alert" className="error">{form.formState.errors.photo.message}</p>}
       {form.formState.isDirty&&<p className="form-note" role="status">Vista previa: todavía no guardaste el cambio.</p>}
-      <p className="form-note">JPG, PNG o WebP · Hasta 4 MB. Para un mejor zoom, elegí el archivo original.</p>
+      <p className="form-note">JPG, PNG o WebP · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
       {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
       <div className="inline-actions">{form.formState.isDirty&&<button className="primary" disabled={busy}>{busy?'Procesando…':'Guardar foto'}</button>}<button type="button" className="text-button" disabled={busy||!preview} onClick={()=>{form.setValue('photo','',{shouldDirty:true});setOriginalSource(null);setNotice('Guardá para quitar la foto del perfil.');}}>Quitar foto</button></div>
     </form>
