@@ -1,5 +1,5 @@
 "use client";
-import {useState} from 'react';
+import {useState,useRef} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
@@ -21,13 +21,21 @@ const schema=z.object({color_key:z.enum(['violet','blue','teal','green','gold','
 export function ClientAppearance({id,name,logo,color,refresh}:{id:string;name:string;logo?:string|null;color?:string|null;refresh:()=>Promise<void>}){
  const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{color_key:identityColor(color) as z.infer<typeof schema>['color_key']}});
  const [error,setError]=useState('');
+ const [saving,setSaving]=useState(false),pending=useRef(false);
+ async function saveColor(value:typeof clientColors[number][0]){
+  if(pending.current||form.getValues('color_key')===value)return;
+  const previous=form.getValues('color_key');pending.current=true;setSaving(true);setError('');form.setValue('color_key',value);
+  try{const values=schema.parse({color_key:value});await api(`/api/agency/clients/${id}`,values,'PATCH');form.reset(values);notify({tone:'success',message:'Color del cliente guardado.'});try{await refresh();}catch{setError('Color guardado. Actualizá la página para refrescar las otras vistas.');}}
+  catch(e){form.setValue('color_key',previous);setError(e instanceof Error?e.message:'No se pudo guardar.');}
+  finally{pending.current=false;setSaving(false);}
+ }
  return <section className="client-appearance"><ClientIdentity name={name} logo={logo} color={form.watch('color_key')}/>
   <ProfilePhoto label="Logo o foto del cliente" name={name} photo={logo||null} save={async photo=>{await api(`/api/agency/clients/${id}`,{logo_url:photo},'PATCH');await refresh();}}/>
-  <form noValidate className="form-stack" onSubmit={form.handleSubmit(async v=>{setError('');try{await api(`/api/agency/clients/${id}`,v,'PATCH');await refresh();form.reset(v);notify({tone:'success',message:'Color del cliente guardado.'});}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar.');}})}>
-   <fieldset className="identity-palette"><legend>Color identificador</legend>{clientColors.map(([key,label])=><label className={`identity-${key}`} key={key}><input type="radio" value={key} {...form.register('color_key')}/><span className="color-swatch"/><span>{label}</span></label>)}</fieldset>
-   <p className="form-note">Identifica al cliente en sus proyectos y piezas. No cambia el estado de producción.</p>
+  <form noValidate className="form-stack" onSubmit={event=>event.preventDefault()}>
+   <fieldset disabled={saving} className="identity-palette"><legend>Color identificador</legend>{clientColors.map(([key,label])=><label className={`identity-${key}`} key={key}><input type="radio" name="color_key" value={key} checked={form.watch('color_key')===key} onChange={()=>void saveColor(key)}/><span className="color-swatch"/><span>{label}</span></label>)}</fieldset>
+   <p className="form-note">Se guarda al elegir. Identifica al cliente en sus proyectos y piezas; no cambia el estado de producción.</p>
    {error&&<p role="alert" className="error">{error}</p>}
-   <button className="secondary" disabled={form.formState.isSubmitting||!form.formState.isDirty}>{form.formState.isSubmitting?'Guardando…':'Guardar color'}</button>
+   {saving&&<p role="status">Guardando color…</p>}
   </form>
  </section>;
 }
