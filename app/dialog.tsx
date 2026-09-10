@@ -47,5 +47,5 @@ export function FormActions({children}:{children:ReactNode}){
  const [formId,setFormId]=useState('');
  useLayoutEffect(()=>{const form=anchor.current?.closest('form');if(form){if(!form.id)form.id=id;setFormId(form.id);}},[id]);
  const actions=<div className="dialog-actions">{Children.map(children,child=>isValidElement<ButtonHTMLAttributes<HTMLButtonElement>>(child)&&child.type==='button'?cloneElement(child,{form:formId||undefined}):child)}</div>;
- return <><span hidden ref={anchor}/>{footer&&formId?createPortal(actions,footer):actions}</>;
+ return <><span hidden ref={anchor}/>{footer?createPortal(actions,footer):actions}</>;
 }
