@@ -7,5 +7,5 @@ for(const state of clientStatuses)assert.equal(clientState({active:false,lifecyc
 const history=readFileSync('app/work-history.tsx','utf8');
 assert(history.includes("useState('10')"));assert(history.includes('new URLSearchParams({limit,offset:String(offset)})'));assert(history.includes('[who,source,limit,offset]'));assert(!history.includes('Últimos 100'));
 const sidebar=readFileSync('app/desktop-sidebar.tsx','utf8');assert(sidebar.includes('aria-expanded={!collapsed}'));assert(sidebar.includes('localStorage.setItem'));assert(sidebar.includes('Expandir barra lateral'));
-const css=readFileSync('app/desktop-sidebar.css','utf8');assert(css.includes('width:calc(100% - 76px)'));assert(css.includes('@media(max-width:760px)'));
+const css=readFileSync('app/desktop-sidebar.css','utf8');assert(css.includes('width:calc(100% - 60px)'));assert(css.includes('@media(max-width:760px)'));
 console.log('PASS: client state labels/fallbacks, server pagination wiring, persistent accessible sidebar and mobile guard');

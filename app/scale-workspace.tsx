@@ -95,7 +95,6 @@ const nav = [
   ["Equipo", BriefcaseBusiness],
   ["Pipeline", FolderKanban],
   ["Inventario", BriefcaseBusiness],
-  ["Actividad", CalendarDays],
   ["Configuración", Settings],
 ] as const;
 type Client = {
@@ -289,7 +288,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
       className={`work-card identity-card identity-${identityColor(order.client_color_key)} ${draggable.isDragging ? "dragging" : ""}`}
     >
       <div className="card-top">
-        <button className="text-button" onClick={()=>openOrder(order.id)}>{order.title}</button>
+        <button className="text-button order-open" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
         {canMove&&<button className="icon-button" aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>}
       </div>
       <p>
@@ -310,7 +309,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
         )}
         {order.description&&<span className="order-description">{order.description}</span>}
       </div>
-      {['owner','admin','management','production','editor'].includes(role)&&<details className="card-actions"><summary>Detalles y acciones</summary><RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/></details>}
+      <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}>Ver detalle completo</button>{canMove&&<RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>}</div>
     </article>
   );
 }
@@ -1453,7 +1452,7 @@ export default function Home() {
   useEffect(() => {
     if (
       signedIn &&
-      active === "Métricas" &&
+      active === "Pipeline" &&
       ["owner", "admin"].includes(user?.role || "")
     )
       request<{ events: MetricEvent[] }>("/api/metrics")
@@ -1617,7 +1616,7 @@ export default function Home() {
         </div>
       </>;
   return (
-    <main className="shell control-shell">
+    <main className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
       <DesktopSidebar>
         <div className="sidebar-brand"><WorkspaceBrand/></div>
@@ -1632,7 +1631,7 @@ export default function Home() {
         {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
         <header>
           <div>
-            <p className="eyebrow">{active==='Resumen'?'TU AGENCIA, EN UN VISTAZO':'ESPACIO DE TRABAJO'}</p>
+            {active!=='Producción'&&<p className="eyebrow">{active==='Resumen'?'TU AGENCIA, EN UN VISTAZO':'ESPACIO DE TRABAJO'}</p>}
             <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
           </div>
           <div className="header-actions">
@@ -1661,11 +1660,11 @@ export default function Home() {
         {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
         {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><button className="primary" onClick={()=>setActive('Resumen')}>Ir al resumen</button></section>}
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
-        {active==='Equipo'&&<WorkHistory role={user?.role||'viewer'}/>}
-        {active==='Equipo'&&user?.role==='owner'&&<UsagePanel/>}
+        {active==='Historial de trabajo'&&<WorkHistory role={user?.role||'viewer'}/>}
+        {active==='Actividad'&&user?.role==='owner'&&<UsagePanel/>}
         {active==='Invitaciones'&&(user?.demo_owner_user_id?<section className="panel"><h2>Invitaciones y solicitudes</h2><p>En tu empresa real podés generar enlaces de un uso o enlaces con aprobación. El Demo no crea accesos externos. Probá los permisos desde la barra superior.</p></section>:<InviteLinks role={user?.role||'viewer'}/>)}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
-        {active==='Pipeline'&&<CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>}
+        {active==='Pipeline'&&<div className="ops-stack"><CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>{['owner','admin'].includes(user?.role||'')&&<GrowthDashboard events={metrics}/>}</div>}
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
         {active==='Inventario'&&<CatalogWorkspace key="inventory" kind="inventory" role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
@@ -1702,23 +1701,7 @@ export default function Home() {
           </>
         )}
         {active==='Producción'&&<>
-            <div className="production-view-menu"><SelectCustom label="Vista de Producción" value={productionView} choices={[{value:"Tablero",label:"▦ Tablero por etapas"},{value:"Mi día",label:"☷ Trabajo diario"},{value:"Calendario",label:"▦ Calendario"},{value:"Lista y lotes",label:"☷ Lista y lotes"}]} onChange={changeProductionView}/><a href="/produccion">Enlace directo a Producción ↗</a></div>
-            {productionView!=="Tablero"&&<WorkPlanner key={productionView} initialView={productionView} orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>}
-            {productionView==="Tablero"&&
-            <section className="panel production-panel production-focus" id="produccion">
-              <div className="panel-heading">
-                <div>
-                  <p className="eyebrow">OPERACIÓN DIARIA</p>
-                  <h2>Flujo por etapa</h2>
-                </div>
-                <button
-                  className="text-button"
-                  onClick={() => setActive("Proyectos")}
-                >
-                  Ver proyectos →
-                </button>
-              </div>
-              <div className="production-filters">
+            <div className="production-view-menu production-toolbar"><SelectCustom label="Vista de Producción" value={productionView} choices={[{value:"Tablero",label:"Tablero por etapas"},{value:"Mi día",label:"Trabajo diario"},{value:"Calendario",label:"Calendario"},{value:"Lista y lotes",label:"Lista y lotes"}]} onChange={changeProductionView}/>{productionView==="Tablero"&&<div className="production-filters">
                 <SelectCustom
                   label="Filtrar por cliente"
                   value={selectedProductionClient}
@@ -1732,7 +1715,10 @@ export default function Home() {
                   {productionOrders.length} de {orders.length} órdenes
                 </p>
                 {selectedProductionClient && <button className="text-button" onClick={() => setProductionClientId("")}>Ver todos</button>}
-              </div>
+              </div>}<button className="text-button production-project-link" onClick={()=>setActive("Proyectos")}>Ver proyectos →</button></div>
+            {productionView!=="Tablero"&&<WorkPlanner key={productionView} initialView={productionView} orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>}
+            {productionView==="Tablero"&&
+            <section className="panel production-panel production-focus" id="produccion">
               {selectedProductionClient && productionOrders.length === 0 && <p className="empty-copy">Este cliente todavía no tiene órdenes de producción.</p>}
               <DndContext onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
                 <div className="kanban" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
@@ -1757,7 +1743,6 @@ export default function Home() {
               </p>
             </section>}
           </>}
-        {active === "Métricas" && <GrowthDashboard events={metrics}/>}
         {active === "Mora" && (
           <section className="panel directory">
             <div className="panel-heading">
