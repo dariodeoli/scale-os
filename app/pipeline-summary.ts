@@ -1,4 +1,4 @@
-type Opportunity={stage?:unknown;amount?:unknown;currency?:unknown;notes?:unknown};
+type Opportunity={stage?:unknown;amount?:unknown;currency?:unknown;notes?:unknown;[key:string]:unknown};
 export function pipelineSummary(rows:Opportunity[]){
  const open=rows.filter(r=>!['won','lost'].includes(String(r.stage)));
  const amounts:Record<string,number>={};
