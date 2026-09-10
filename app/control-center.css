@@ -4,9 +4,11 @@
 .control-shell>aside{width:208px;flex:none;padding:22px 12px 14px;z-index:40}
 .control-shell>aside .brand{margin:0 10px 28px}.control-shell .nav-caption{margin:0 10px 10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
 .control-shell>aside nav{display:grid;align-content:start;gap:4px}
-.control-shell>aside nav>a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:var(--text-muted);text-decoration:none;font-size:13px;font-weight:500;border-left:3px solid transparent}
+.control-shell>aside nav>a{display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 12px;border-radius:var(--radius-sm);color:var(--text-muted);text-decoration:none;font-size:13px;font-weight:600;line-height:1.4;border-left:3px solid transparent}
+.control-shell>aside nav>a svg{flex:none}
+.control-shell>aside nav>a .nav-label{min-width:0}
 .control-shell>aside nav>a:hover{background:var(--surface-subtle);color:var(--text)}
-.control-shell>aside nav>a.active{background:var(--violet-soft);border-left-color:var(--brand-700);color:var(--brand-700);font-weight:700}
+.control-shell>aside nav>a.active{background:var(--violet-soft);border-left-color:var(--brand-700);color:var(--brand-700)}
 .control-shell>.content{width:calc(100% - 208px);max-width:none;padding:20px 28px 36px;min-width:0}
 .control-shell .workspace-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 .control-shell .workspace-topbar .workspace{width:auto;max-width:52%;margin:0;padding:4px 0;border:0;background:transparent;color:var(--text);justify-content:flex-start;font-size:13px;text-align:left;overflow-wrap:anywhere}
@@ -25,8 +27,8 @@
 .control-shell .finance-grid{gap:var(--control-gap);max-width:none}.control-shell .directory{max-width:none}
 .control-shell .empty-state{padding:36px 20px}.control-shell .empty-copy{padding:10px 0}
 .control-shell .section-tabs{display:flex;gap:22px;margin:0 0 20px;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
-.control-shell .section-tabs>a{padding:9px 2px 12px;border-bottom:2px solid transparent;color:var(--text-muted);font-size:13px;text-decoration:none;font-weight:500}
-.control-shell .section-tabs>a[aria-current=page]{border-bottom-color:var(--brand-700);color:var(--brand-700);font-weight:700}
+.control-shell .section-tabs>a{flex:none;padding:9px 2px 12px;border-bottom:2px solid transparent;color:var(--text-muted);font-size:13px;text-decoration:none;font-weight:600}
+.control-shell .section-tabs>a[aria-current=page]{border-bottom-color:var(--brand-700);color:var(--brand-700)}
 .control-shell .section-tabs>a:hover{color:var(--brand-700)}
 .financial-summary{margin-bottom:12px}.section-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 9px}.section-caption h2{font-size:13px;font-weight:600;color:var(--text-muted);letter-spacing:0}.section-caption .text-button{display:inline-flex;align-items:center;gap:4px}
 .financial-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}

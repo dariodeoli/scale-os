@@ -18,10 +18,10 @@
 .mobile-sidebar-body{display:flex;flex-direction:column;gap:12px;padding:16px 12px;min-height:0;overflow-y:auto;overscroll-behavior:contain;flex:1}
 .mobile-sidebar .nav-caption{margin:0 12px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
 .mobile-sidebar nav{display:grid;gap:4px}
-.mobile-sidebar nav>a{display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-left:3px solid transparent;border-radius:var(--radius-sm);color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:500}
+.mobile-sidebar nav>a{display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-left:3px solid transparent;border-radius:var(--radius-sm);color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:600;line-height:1.4}
 .mobile-sidebar nav>a svg{flex:none}
 .mobile-sidebar nav>a:hover{background:var(--surface-subtle);color:var(--text)}
-.mobile-sidebar nav>a.active{background:var(--violet-soft);border-left-color:var(--brand-700);color:var(--brand-700);font-weight:700}
+.mobile-sidebar nav>a.active{background:var(--violet-soft);border-left-color:var(--brand-700);color:var(--brand-700)}
 .mobile-sidebar .sidebar-bottom{padding-top:12px}
 .mobile-sidebar .user>div:nth-child(2){min-width:0;flex:1;overflow-wrap:anywhere}
 @keyframes mobile-sidebar-enter{from{transform:translateX(-100%)}to{transform:translateX(0)}}
