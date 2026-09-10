@@ -68,6 +68,8 @@
 .ops-select-options { position:absolute; z-index:1; top:100%; left:0; right:0; max-height:210px; overflow-y:auto; border:1px solid var(--line-strong); border-radius:var(--radius-sm); background:var(--surface); box-shadow:var(--shadow-md); padding:4px; }
 .ops-select-options button { display:block; width:100%; text-align:left; padding:10px; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--text); font:inherit; font-size:13px; }
 .ops-select-options button:hover,.ops-select-options button:focus-visible,.ops-select-options button[aria-selected="true"] { background:var(--violet-soft); color:var(--brand-700); }
+.ops-select-options.ops-select-floating{position:fixed;top:auto;right:auto;z-index:90;overscroll-behavior:contain;scroll-padding-block:4px;touch-action:pan-y}
+.ops-select-floating button{min-height:44px}
 .ops-select-trigger:focus-visible,.ops-profile-section summary:focus-visible { outline:2px solid var(--brand-600); outline-offset:2px; }
 .ops-job-list { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; max-height:210px; overflow-y:auto; }
 .ops-person-card { padding:18px; gap:10px; }
