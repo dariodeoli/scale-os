@@ -61,7 +61,7 @@
 .ops-wide { grid-column:1 / -1; }
 .ops-profile-section { border:1px solid var(--line); border-radius:var(--radius-sm); }
 .ops-profile-section summary { cursor:pointer; padding:14px 16px; font-size:14px; font-weight:600; }
-.ops-profile-section > div { padding:4px 16px 16px; }
+.ops-profile-section > div,.ops-profile-section > form { padding:4px 16px 16px; }
 .ops-label { display:block; margin-bottom:7px; font-size:12px; font-weight:500; color:var(--text-muted); }
 .ops-select { position:relative; min-width:0; }
 .ops-select-trigger { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; text-align:left; padding:11px 12px; border:1px solid var(--line-strong); border-radius:var(--radius-sm); background:var(--surface); color:var(--text); font:inherit; font-size:14px; }

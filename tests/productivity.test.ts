@@ -20,5 +20,14 @@ const css=readFileSync(new URL('../app/mobile-navigation.css',import.meta.url),'
 const crop=readFileSync(new URL('../app/photo-cropper.tsx',import.meta.url),'utf8');
 assert(crop.includes('cropShape="round"'));assert(crop.includes('onCropChange={setCrop}'));assert(crop.includes('await save(await cropImage(source,area))'));
 const photos=readFileSync(new URL('../app/profile-photo.tsx',import.meta.url),'utf8');assert(photos.includes('setCropSource(source)'));assert(photos.includes('await save(value)'));
+assert(photos.indexOf('reader.readAsDataURL(file)')<photos.indexOf('512/Math.max'));
+assert(photos.includes('originalSource||preview'));
+const profile=readFileSync(new URL('../app/my-profile.tsx',import.meta.url),'utf8');
+assert(profile.includes('await refresh();close();'));
+const identityCss=readFileSync(new URL('../app/client-identity.css',import.meta.url),'utf8');
+assert(identityCss.includes('.profile-footer .user{display:flex;align-items:center;gap:10px'));
+const photoCss=readFileSync(new URL('../app/photo-cropper.css',import.meta.url),'utf8');
+assert(photoCss.includes('width:min(480px,100%)'));
+assert(ui.includes("window.addEventListener('scale:identity-changed'"));
 console.log('PASS: cache deduplication/invalidation/tenant isolation, separate profile/logout controls, crop drag/round/save wiring (visual browser QA still required)');
 });

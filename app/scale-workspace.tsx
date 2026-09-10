@@ -1304,6 +1304,12 @@ export default function Home() {
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string}|null>(null);
   const [projectClient,setProjectClient]=useState('');
   const [user, setUser] = useState<User | null>(null);
+  useEffect(()=>{
+    let active=true;
+    const refreshIdentity=()=>{void request<{user:User}>('/api/auth/me').then(d=>{if(active)setUser(d.user);}).catch(()=>{});};
+    window.addEventListener('scale:identity-changed',refreshIdentity);
+    return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);};
+  },[]);
   const active=signedIn&&!visibleModule(requestedSection,user?.role||'viewer')?'Sin acceso':requestedSection;
   const activeParent=parentSection(active);
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));

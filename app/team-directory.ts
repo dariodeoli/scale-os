@@ -1,4 +1,4 @@
-export type TeamMember={id:string;email:string;role:string;active:boolean;removed_at:string|null};
+export type TeamMember={id:string;email:string;role:string;active:boolean;removed_at:string|null;full_name?:string|null;photo_url?:string|null};
 export type TeamProfile={id:string;user_id:string|null;email:string|null};
 export type ArchivedProfile=TeamProfile;
 export type TeamEntry<P extends TeamProfile>={key:string;profile:P|null;member:TeamMember|null;archivedProfileId:string|null;ambiguous:boolean};

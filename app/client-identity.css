@@ -19,8 +19,12 @@
 .identity-palette input{width:auto!important}
 .identity-palette label:has(input:checked){border-color:var(--client-accent);background:var(--client-soft)}
 .color-swatch{width:12px;height:12px;border-radius:50%;background:var(--client-accent)}
-.profile-footer{display:flex;align-items:center;gap:8px}
-.profile-footer .user{flex:1;min-width:0;text-align:left}
+.profile-footer{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.profile-footer .user{display:flex;align-items:center;gap:10px;flex:1;min-width:0;margin:0;padding:6px!important;border:0;border-top:0;background:transparent;color:var(--text);text-align:left;cursor:pointer}
+.profile-footer .user>div:last-child{min-width:0}
+.profile-footer .user b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-footer .user .avatar{width:36px;height:36px}
+.profile-footer .user:hover{background:var(--surface-subtle)}
 .profile-footer .user img{width:36px;height:36px;border-radius:50%;object-fit:cover}
 .profile-footer .logout-only{flex:none;width:40px;height:40px;display:grid;place-items:center;background:transparent;color:var(--text-muted);border:0;border-radius:8px;cursor:pointer}
 .profile-footer .logout-only:hover{background:var(--surface-subtle);color:var(--danger)}

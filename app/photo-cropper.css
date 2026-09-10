@@ -1,4 +1,5 @@
-.profile-crop-stage{position:relative;width:100%;height:min(50dvh,400px);min-height:220px;background:var(--anthracite);border-radius:var(--radius-sm);overflow:hidden;touch-action:none}
+.ops-dialog.unified-dialog:has(.profile-crop-stage){width:min(480px,100%)}
+.profile-crop-stage{position:relative;width:100%;height:min(42dvh,320px);min-height:180px;background:var(--anthracite);border-radius:var(--radius-sm);overflow:hidden;touch-action:none}
 .profile-crop-stage .reactEasyCrop_Container{outline-offset:-3px}
 .profile-crop-stage .reactEasyCrop_Container:focus-visible{outline:3px solid var(--gold)}
 .crop-zoom{display:block;margin-block:16px;font-size:13px}
@@ -7,3 +8,12 @@
 .editable-photo img{display:block;width:100%;height:100%;object-fit:cover}
 .photo-viewport{border-radius:50%!important;aspect-ratio:1;max-width:420px;height:auto!important;margin-inline:auto;cursor:grab;touch-action:none;scrollbar-width:none}
 .photo-viewport:active{cursor:grabbing}.photo-canvas img{pointer-events:none;user-select:none;object-fit:cover!important}
+.profile-photo-form{gap:12px;align-content:start}
+.profile-photo-summary{display:flex;align-items:center;gap:14px}
+.profile-photo-summary .editable-photo{width:64px;height:64px;flex:none}
+.profile-photo-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.profile-photo-form p{margin:0;font-size:12px}
+.profile-photo-form .inline-actions{justify-content:flex-start;gap:12px}
+.photo-upload{position:relative;display:inline-flex!important;align-items:center;justify-content:center;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-size:13px!important;color:var(--text)!important}
+.photo-upload:focus-within{outline:2px solid var(--brand-600);outline-offset:2px}
+.photo-upload input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;padding:0;border:0}

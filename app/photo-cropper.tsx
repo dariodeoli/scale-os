@@ -12,8 +12,9 @@ export async function cropImage(source:string,area:Area):Promise<string>{
   if(![area.x,area.y,area.width,area.height].every(Number.isFinite)||area.width<=0||area.height<=0)throw Error('Elegí un encuadre válido.');
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('No se pudo preparar la imagen.');
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   ctx.drawImage(bitmap,area.x,area.y,area.width,area.height,0,0,512,512);
-  return canvas.toDataURL('image/webp',0.85);
+  return canvas.toDataURL('image/webp',0.92);
  }finally{bitmap.close();}
 }
 export function PhotoCropper({source,name,close,save}:{source:string;name:string;close:()=>void;save:(photo:string)=>Promise<void>}){
@@ -21,6 +22,7 @@ export function PhotoCropper({source,name,close,save}:{source:string;name:string
  return <Dialog title={`Ajustar foto de ${name}`} close={()=>{if(!busy)close();}}>
   <p className="form-note">Mové la foto con el mouse, el dedo o las flechas. El círculo muestra cómo se verá tu perfil.</p>
   <div className="profile-crop-stage"><Cropper image={source} crop={crop} zoom={zoom} aspect={1} cropShape="round" showGrid={false} minZoom={1} maxZoom={3} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_,pixels)=>setArea(pixels)} disableAutomaticStylesInjection zoomWithScroll={false} cropperProps={{'aria-label':'Mover encuadre de la foto'}} mediaProps={{onError:()=>setError('No se pudo abrir la foto. Volvé a elegir el archivo.')}}/></div>
+  {area&&Math.min(area.width,area.height)<256&&<p className="form-note" role="status">Este encuadre tiene pocos píxeles. Reducí el zoom o elegí la foto original para mayor nitidez.</p>}
   <label className="crop-zoom">Zoom <output>{Math.round(zoom*100)}%</output><input aria-label="Zoom del encuadre" type="range" min="1" max="3" step="0.01" value={zoom} onChange={e=>setZoom(Number(e.target.value))} disabled={busy}/></label>
   <div className="quick-actions"><button type="button" className="text-button" disabled={busy} onClick={()=>{setCrop({x:0,y:0});setZoom(1);}}>Centrar de nuevo</button></div>
   {error&&<p className="error" role="alert">{error}</p>}
