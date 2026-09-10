@@ -1,16 +1,16 @@
 export const sections = [
- ['Resumen','resumen'],['Tablero de producción','produccion'],['Clientes','clientes'],['Proyectos','proyectos'],
- ['Presupuestos','presupuestos'],['Pagos','pagos'],['Mora','pagos/mora'],
- ['Métricas','metricas'],['Equipo','equipo'],['Comisiones','equipo/comisiones'],
+ ['Resumen','resumen'],['Producción','produccion'],['Clientes','clientes'],['Proyectos','proyectos'],
+ ['Presupuestos','presupuestos'],['Finanzas','pagos'],['Mora','pagos/mora'],
+ ['Métricas','pipeline/metricas'],['Equipo','equipo'],['Invitaciones','equipo/invitaciones'],['Comisiones','equipo/comisiones'],
  ['Pipeline','pipeline'],['Planes','presupuestos/planes'],['Inventario','inventario'],
  ['Actividad','actividad'],['Configuración','configuracion'],['Papelera','configuracion/papelera'],
 ] as const;
-export function sectionPath(label:string){return '/'+(sections.find(([name])=>name===label)?.[1]||'resumen');}
+export function sectionPath(label:string){if(label==='Tablero de producción')label='Producción';if(label==='Pagos')label='Finanzas';return '/'+(sections.find(([name])=>name===label)?.[1]||'resumen');}
 export function sectionLabel(path:string){return sections.find(([,slug])=>'/'+slug===path.replace(/\/$/,''))?.[0]||'Resumen';}
 export function validSection(slug:string){return sections.some(([,value])=>value===slug);}
-export const legacyRoutes:Record<string,string>={mora:'/pagos/mora',planes:'/presupuestos/planes',comisiones:'/equipo/comisiones',papelera:'/configuracion/papelera',colaboradores:'/equipo'};
+export const legacyRoutes:Record<string,string>={metricas:'/pipeline/metricas',mora:'/pagos/mora',planes:'/presupuestos/planes',comisiones:'/equipo/comisiones',papelera:'/configuracion/papelera',colaboradores:'/equipo'};
 export function legacyDestination(slug:string){return Object.prototype.hasOwnProperty.call(legacyRoutes,slug)?legacyRoutes[slug]:undefined;}
-export const sectionGroups:Record<string,readonly string[]>={Pagos:['Pagos','Mora'],Presupuestos:['Presupuestos','Planes'],Equipo:['Equipo','Comisiones'],'Configuración':['Configuración','Papelera']};
+export const sectionGroups:Record<string,readonly string[]>={Finanzas:['Finanzas','Mora'],Pipeline:['Pipeline','Métricas'],Presupuestos:['Presupuestos','Planes'],Equipo:['Equipo','Invitaciones','Comisiones'],'Configuración':['Configuración','Papelera']};
 export function parentSection(label:string){return Object.entries(sectionGroups).find(([,children])=>children.includes(label))?.[0]||label;}
 export function childSections(label:string){return sectionGroups[parentSection(label)]||[label];}
-export const tabLabels:Record<string,string>={Pagos:'Cuentas y movimientos',Mora:'Cobranza y mora',Equipo:'Personas y accesos',Comisiones:'Comisiones y referidos',Planes:'Planes reutilizables','Configuración':'Empresa y ajustes'};
+export const tabLabels:Record<string,string>={Finanzas:'Cuentas y movimientos',Pipeline:'Oportunidades',Métricas:'Visitas y crecimiento',Mora:'Cobranza y mora',Invitaciones:'Invitaciones y solicitudes',Equipo:'Personas y accesos',Comisiones:'Comisiones y referidos',Planes:'Planes reutilizables','Configuración':'Empresa y ajustes'};

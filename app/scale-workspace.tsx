@@ -1,4 +1,5 @@
 "use client";
+import {currencyCodes,currencyLabels,Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
 import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
 import Link from 'next/link';
@@ -13,6 +14,9 @@ import dynamic from 'next/dynamic';
 import {ClientIdentity,identityColor} from './client-identity';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
+const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
+const GrowthDashboard=dynamic(()=>import('./growth-dashboard').then(m=>m.GrowthDashboard));
+const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
 const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
@@ -24,6 +28,7 @@ const WorkHistory=dynamic(()=>import('./work-history').then(m=>m.WorkHistory));
 const InternalTasks=dynamic(()=>import('./work-history').then(m=>m.InternalTasks));
 import {dataFetch,setDataScope,clearDataCache} from './data-cache';
 import './control-center.css';
+import './production-focus.css';
 import './mobile-navigation.css';
 import {Dialog,FormActions} from './dialog';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
@@ -42,6 +47,7 @@ import {notify,notifyMutation} from './feedback';
 import {
   DndContext,
   DragEndEvent,
+  DragOverlay,
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
@@ -81,12 +87,11 @@ const statuses = [
 type Status = (typeof statuses)[number]["id"];
 const nav = [
   ["Resumen", LayoutDashboard],
-  ["Tablero de producción", FolderKanban],
+  ["Producción", FolderKanban],
   ["Clientes", Users],
   ["Proyectos", FolderKanban],
   ["Presupuestos", FileText],
-  ["Pagos", WalletCards],
-  ["Métricas", BarChart3],
+  ["Finanzas", WalletCards],
   ["Equipo", BriefcaseBusiness],
   ["Pipeline", FolderKanban],
   ["Inventario", BriefcaseBusiness],
@@ -132,7 +137,7 @@ type Budget = {
   number: string;
   title: string;
   client_name: string;
-  currency: "PYG" | "USD";
+  currency: Currency;
   status: string;
   subtotal: string;
   total: string;
@@ -143,7 +148,7 @@ type Account = {
   id: string;
   name: string;
   account_type: "bank" | "cash" | "digital" | "investment";
-  currency: "PYG" | "USD";
+  currency: Currency;
   balance: string;
   active: boolean;
   institution: string | null;
@@ -172,7 +177,7 @@ type PaymentRecord = {
   client_name: string;
   account_name: string;
   account_type: string;
-  currency: "PYG" | "USD";
+  currency: Currency;
   amount: string;
   received_on: string;
   reference: string | null;
@@ -186,7 +191,7 @@ type Invoice = {
   client_id: string;
   client_name: string;
   status: string;
-  currency: "PYG" | "USD";
+  currency: Currency;
   total: string;
   paid_amount: string;
   due_on: string | null;
@@ -195,7 +200,7 @@ type MetricEvent = { name: string; event_date: string; count: number };
 type ClientPaymentStatus = {
   client_id: string;
   client_name: string;
-  currency: "PYG" | "USD" | null;
+  currency: Currency | null;
   outstanding_amount: string;
   next_due_on: string | null;
   days_overdue: number;
@@ -621,7 +626,7 @@ const budgetSchema = z.object({
   description: z.string().trim().min(2, "Describí el servicio."),
   quantity: z.number().positive("La cantidad debe ser mayor a cero."),
   unitPrice: z.number().min(0, "El importe no puede ser negativo."),
-  currency: z.enum(["PYG", "USD"]),
+  currency: z.enum(currencyCodes),
   validUntil: z.string().optional(),
 });
 type BudgetValues = z.infer<typeof budgetSchema>;
@@ -742,7 +747,7 @@ function BudgetForm({
       <fieldset>
         <legend>Moneda</legend>
         <div className="choice-list compact">
-          {(["PYG", "USD"] as const).map((currency) => (
+          {currencyCodes.map((currency) => (
             <button
               type="button"
               className={
@@ -751,7 +756,7 @@ function BudgetForm({
               onClick={() => form.setValue("currency", currency)}
               key={currency}
             >
-              {currency === "PYG" ? "Guaraníes" : "Dólares"}
+              {currencyLabels[currency]}
             </button>
           ))}
         </div>
@@ -773,7 +778,7 @@ function BudgetForm({
 const accountSchema = z.object({
   name: z.string().trim().min(2, "Escribí el nombre de la cuenta."),
   accountType: z.enum(["bank", "cash", "digital", "investment"]),
-  currency: z.enum(["PYG", "USD"]),
+  currency: z.enum(currencyCodes),
   institution: z.string().max(100).optional(),
   accountNumber: z.string().max(80).optional(),
   holderName: z.string().max(120).optional(),
@@ -902,7 +907,7 @@ function AccountForm({
       <fieldset>
         <legend>Moneda</legend>
         <div className="choice-list compact">
-          {(["PYG", "USD"] as const).map((currency) => (
+          {currencyCodes.map((currency) => (
             <button
               type="button"
               className={
@@ -926,7 +931,7 @@ function AccountForm({
 const invoiceSchema = z.object({
   clientId: z.string().min(1, "Elegí un cliente."),
   total: z.number().min(0, "El importe no puede ser negativo."),
-  currency: z.enum(["PYG", "USD"]),
+  currency: z.enum(currencyCodes),
   dueOn: z.string().optional(),
 });
 type InvoiceValues = z.infer<typeof invoiceSchema>;
@@ -999,7 +1004,7 @@ function InvoiceForm({
       <fieldset>
         <legend>Moneda</legend>
         <div className="choice-list compact">
-          {(["PYG", "USD"] as const).map((currency) => (
+          {currencyCodes.map((currency) => (
             <button
               type="button"
               className={
@@ -1334,6 +1339,10 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
   const [productionClientId, setProductionClientId] = useState("");
+  const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
+  const [productionView,setProductionView]=useState("Tablero");
+  useEffect(()=>{const read=()=>{const v=new URLSearchParams(window.location.search).get("vista");setProductionView(["Mi día","Calendario","Lista y lotes"].includes(v||"")?v!:"Tablero");};read();window.addEventListener("popstate",read);return()=>window.removeEventListener("popstate",read);},[pathname]);
+  const changeProductionView=(v:string)=>{setProductionView(v);const url=new URL(window.location.href);if(v==="Tablero")url.searchParams.delete("vista");else url.searchParams.set("vista",v);window.history.replaceState(window.history.state,"",url);};
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -1432,7 +1441,7 @@ export default function Home() {
     setCustodians(custodianData.members);
   }
   useEffect(() => {
-    if (signedIn && active === "Pagos")
+    if (signedIn && active === "Finanzas")
       loadFinance().catch((cause) =>
         setToast(
           cause instanceof Error
@@ -1578,13 +1587,7 @@ export default function Home() {
       </div>
     );
   const firstName = user?.email.split("@")[0] || "U";
-  const metricTotals = metrics.reduce<Record<string, number>>(
-    (totals, event) => ({
-      ...totals,
-      [event.name]: (totals[event.name] || 0) + event.count,
-    }),
-    {},
-  );
+
   const sidebarContent=<>
         <p className="nav-caption">Espacio de trabajo</p>
         <nav aria-label="Menú principal">
@@ -1626,7 +1629,7 @@ export default function Home() {
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
           ...orders.map(o=>({id:o.id,name:o.title,context:`Orden · ${o.client_name} · ${o.project_name}`,kind:'work-orders' as const})),
         ]}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
-        {user?.demo_owner_user_id&&<p className="demo-session-note"><b>Demo privado · Sin dinero real.</b> Tus cambios no afectan a otras personas. Al iniciar una nueva sesión, tendrás un Demo nuevo. No se envían correos ni invitaciones desde aquí.</p>}
+        {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
         <header>
           <div>
             <p className="eyebrow">{active==='Resumen'?'TU AGENCIA, EN UN VISTAZO':'ESPACIO DE TRABAJO'}</p>
@@ -1635,7 +1638,7 @@ export default function Home() {
           <div className="header-actions">
             {active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||'')&&<ClientRuc refresh={load}/>}
             <WorkspaceGuide navigate={setActive} role={user?.role||'viewer'}/>
-            {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen','Tablero de producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
+            {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen','Producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
               <button
                 className="primary"
                 onClick={() =>
@@ -1660,12 +1663,13 @@ export default function Home() {
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
         {active==='Equipo'&&<WorkHistory role={user?.role||'viewer'}/>}
         {active==='Equipo'&&user?.role==='owner'&&<UsagePanel/>}
+        {active==='Invitaciones'&&(user?.demo_owner_user_id?<section className="panel"><h2>Invitaciones y solicitudes</h2><p>En tu empresa real podés generar enlaces de un uso o enlaces con aprobación. El Demo no crea accesos externos. Probá los permisos desde la barra superior.</p></section>:<InviteLinks role={user?.role||'viewer'}/>)}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
         {active==='Pipeline'&&<CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>}
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
         {active==='Inventario'&&<CatalogWorkspace key="inventory" kind="inventory" role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
-        {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/><NewCompany/></div>}
+        {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}</div>}
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
         {active === "Resumen" && (
           <>
@@ -1694,16 +1698,18 @@ export default function Home() {
                 <small>Piezas para aprobar</small>
               </article>
             </section>
-            <Link className="secondary" href="/produccion">Abrir tablero de producción →</Link>
+            <Link className="secondary" href="/produccion">Abrir Producción →</Link>
           </>
         )}
-        {active==='Tablero de producción'&&<>
-            <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
-            <section className="panel production-panel" id="produccion">
+        {active==='Producción'&&<>
+            <div className="production-view-menu"><SelectCustom label="Vista de Producción" value={productionView} choices={[{value:"Tablero",label:"▦ Tablero por etapas"},{value:"Mi día",label:"☷ Trabajo diario"},{value:"Calendario",label:"▦ Calendario"},{value:"Lista y lotes",label:"☷ Lista y lotes"}]} onChange={changeProductionView}/><a href="/produccion">Enlace directo a Producción ↗</a></div>
+            {productionView!=="Tablero"&&<WorkPlanner key={productionView} initialView={productionView} orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>}
+            {productionView==="Tablero"&&
+            <section className="panel production-panel production-focus" id="produccion">
               <div className="panel-heading">
                 <div>
                   <p className="eyebrow">OPERACIÓN DIARIA</p>
-                  <h2>Tablero de producción</h2>
+                  <h2>Flujo por etapa</h2>
                 </div>
                 <button
                   className="text-button"
@@ -1728,8 +1734,8 @@ export default function Home() {
                 {selectedProductionClient && <button className="text-button" onClick={() => setProductionClientId("")}>Ver todos</button>}
               </div>
               {selectedProductionClient && productionOrders.length === 0 && <p className="empty-copy">Este cliente todavía no tiene órdenes de producción.</p>}
-              <DndContext onDragEnd={onDragEnd}>
-                <div className="kanban">
+              <DndContext onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
+                <div className="kanban" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
                   {statuses.map((status) => (
                     <KanbanColumn
                       openOrder={id=>setDetail({kind:'order',id})}
@@ -1743,47 +1749,15 @@ export default function Home() {
                     />
                   ))}
                 </div>
+                <DragOverlay>{draggedOrderId&&<article className="work-card" style={{width:280,padding:16,boxShadow:"0 12px 30px #0003"}}><strong>{orders.find(o=>String(o.id)===draggedOrderId)?.title}</strong><p>{orders.find(o=>String(o.id)===draggedOrderId)?.client_name}</p></article>}</DragOverlay>
               </DndContext>
               <p className="board-note">
                 Arrastrá una orden de una columna a otra para actualizar su
                 estado.
               </p>
-            </section>
+            </section>}
           </>}
-        {active === "Métricas" && (
-          <section className="panel directory">
-            <div className="panel-heading">
-              <div>
-                <p className="eyebrow">SITIO PÚBLICO</p>
-                <h2>Conversión de Scale</h2>
-              </div>
-              <span>Últimos 12 meses</span>
-            </div>
-            {["owner", "admin"].includes(user?.role || "") ? (
-              <div className="client-list">
-                {Object.entries(metricTotals).length ? (
-                  Object.entries(metricTotals).map(([name, count]) => (
-                    <div className="payment-row" key={name}>
-                      <div>
-                        <b>{name.replaceAll("_", " ")}</b>
-                        <small>Eventos registrados</small>
-                      </div>
-                      <strong>{count}</strong>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-copy">
-                    Aún no hay conversiones registradas en este período.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="empty-copy">
-                Tu permiso no permite ver métricas comerciales.
-              </p>
-            )}
-          </section>
-        )}
+        {active === "Métricas" && <GrowthDashboard events={metrics}/>}
         {active === "Mora" && (
           <section className="panel directory">
             <div className="panel-heading">
@@ -1969,7 +1943,7 @@ export default function Home() {
             </div>
           </section>
         )}
-        {active === "Pagos" && (
+        {active === "Finanzas" && (
           <section className="finance-grid">
             <section className="panel">
               <div className="panel-heading">

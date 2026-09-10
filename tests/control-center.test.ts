@@ -10,9 +10,9 @@ assert.equal(groups.reduce((n,g)=>n+g.items.length,0),5);assert.equal(JSON.strin
 assert.equal(groupDueAlerts([...records,{...records[1],id:'8',due:'2026-09-06'},{...records[1],id:'9',type:'invoice'}]).length,4,'different date and type are not merged');
 assert.equal(groupDueAlerts([]).length,0);assert.equal(normalizeSearch(' ÓRBITA '),'orbita');assert.equal(shortDate('invalid'),'Sin fecha');assert(shortDate('2026-09-07').startsWith('7'),'date-only retains calendar day');
 for(const [old,path] of Object.entries(legacyRoutes)){assert.equal(sectionPath(sectionLabel(path)),path);assert(!path.startsWith('/'+old+'/'),'no redirect loops');}
-assert.equal(parentSection('Mora'),'Pagos');assert.equal(parentSection('Planes'),'Presupuestos');assert.equal(parentSection('Comisiones'),'Equipo');assert.equal(parentSection('Papelera'),'Configuración');
-assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,12);
-assert.equal(sectionPath('Tablero de producción'),'/produccion');assert.equal(sectionLabel('/produccion'),'Tablero de producción');
+assert.equal(parentSection('Mora'),'Finanzas');assert.equal(parentSection('Planes'),'Presupuestos');assert.equal(parentSection('Comisiones'),'Equipo');assert.equal(parentSection('Papelera'),'Configuración');
+assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,11);
+assert.equal(sectionPath('Tablero de producción'),'/produccion');assert.equal(sectionLabel('/produccion'),'Producción');
 assert.equal(legacyDestination('constructor'),undefined);assert.equal(legacyDestination('toString'),undefined);assert.equal(legacyDestination('mora'),'/pagos/mora');
 const nextConfig=readFileSync(new URL('../next.config.mjs',import.meta.url),'utf8');
 for(const [old,target] of Object.entries(legacyRoutes))assert(nextConfig.includes(`source: '/${old}', destination: '${target}'`),'legacy paths also have server-level redirects');

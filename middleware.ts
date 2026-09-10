@@ -7,6 +7,7 @@ export function middleware(request:NextRequest){
   if(path==='/')return NextResponse.rewrite(new URL('/scale-os.html',request.url));
   if(path==='/scale-os.html')return NextResponse.redirect(new URL('https://sistema.scaleparaguay.com/'),308);
   if(path.startsWith('/brand/'))return NextResponse.next();
+  if(path==='/demo'||path.startsWith('/core-api/')||/^\/(resumen|produccion|clientes|proyectos|presupuestos|pagos|equipo|pipeline|metricas|inventario|actividad|configuracion)(\/|$)/.test(path)){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
   return new NextResponse('Página no encontrada',{status:404,headers:{'X-Robots-Tag':'noindex'}});
  }
  if(path==='/robots.txt')return new NextResponse('User-agent: *\nDisallow: /\n',{headers:{'Content-Type':'text/plain'}});

@@ -1,0 +1,19 @@
+"use client";
+import {useEffect,useState} from 'react';
+import {api,Editor} from './operations';
+import {teamRoleLabels} from './team-directory';
+import {Link2,UserCheck,Copy,X} from 'lucide-react';
+type LinkRow={id:string;role:string;mode:string;expires_at:string;revoked_at:string|null;used_at:string|null};
+type RequestRow={id:string;full_name:string;email:string;role:string;created_at:string};
+export function InviteLinks({role}:{role:string}){
+ const [links,setLinks]=useState<LinkRow[]>([]),[requests,setRequests]=useState<RequestRow[]>([]),[created,setCreated]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[copied,setCopied]=useState(false);
+ async function load(){try{const [a,b]=await Promise.all([api<{links:LinkRow[]}>('/api/agency/invite-links'),api<{requests:RequestRow[]}>('/api/agency/access-requests')]);setLinks(a.links);setRequests(b.requests);setError('');}catch(e){setError(e instanceof Error?e.message:'No se pudo cargar');}}
+ useEffect(()=>{void load();},[]);
+ async function act(path:string,data:unknown,method='POST'){setBusy(true);try{await api(path,data,method);await load();}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar');}finally{setBusy(false);}}
+ return <section className="panel ops-stack"><div><h2><Link2 size={20}/> Invitaciones por enlace</h2><p className="form-note">Elegí el permiso. Los enlaces vencen en 7 días y podés revocarlos. La persona verifica su correo con Google.</p></div>
+ {error&&<p role="alert">{error}</p>}
+ <Editor columns fields={[{key:'role',label:'Permiso del enlace',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))},{key:'mode',label:'Tipo de invitación',choices:[{value:'single',label:'Una persona · un solo uso'},{value:'approval',label:'Varias personas · requiere aprobación'}]}]} defaults={{role:'viewer',mode:'single'}} label="Generar enlace" save={async values=>{const result=await api<{url:string}>('/api/agency/invite-links',values);setCreated(result.url);setCopied(false);await load();}}/>
+ {created&&<div className="ops-stack"><label>Enlace generado (copialo ahora)<input readOnly value={created} onFocus={e=>e.target.select()}/></label><button className="secondary" onClick={async()=>{try{await navigator.clipboard.writeText(created);setCopied(true);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={16}/>{copied?'Copiado':'Copiar enlace'}</button></div>}
+ <div><h3><UserCheck size={18}/> Solicitudes pendientes · {requests.length}</h3><p className="form-note">Todavía no tienen acceso. Al aprobar, podrán ingresar con Google. No se envía un correo automático.</p>{!requests.length&&<p>No hay solicitudes pendientes.</p>}{requests.map(r=><article className="payment-row" key={r.id}><div><strong>{r.full_name}</strong><p>{r.email} · {teamRoleLabels[r.role]}</p></div><div className="actions"><button className="secondary" disabled={busy||(r.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${r.id}`,{action:'approve'},'PATCH')}>Aprobar acceso</button><button className="text-button" disabled={busy} onClick={()=>act(`/api/agency/access-requests/${r.id}`,{action:'reject'},'PATCH')}>Rechazar</button></div></article>)}</div>
+ <details><summary>Enlaces recientes · {links.length}</summary>{links.map(l=><div className="payment-row" key={l.id}><div><strong>{teamRoleLabels[l.role]} · {l.mode==='single'?'Un solo uso':'Con aprobación'}</strong><p>{l.revoked_at?'Revocado':l.used_at?'Utilizado':`Vence ${new Date(l.expires_at).toLocaleDateString('es-PY')}`}</p></div>{!l.revoked_at&&!l.used_at&&<button className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${l.id}`,{},'DELETE')}><X size={16}/>Revocar</button>}</div>)}</details></section>;
+}

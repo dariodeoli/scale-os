@@ -1,4 +1,5 @@
 "use client";
+import {currencyChoices} from "./currencies";
 import {ProjectPresence} from './presence';
 import { useEffect, useState, useRef } from "react";
 import {Dialog,FormActions} from "./dialog";
@@ -53,10 +54,7 @@ export type Field = {
   section?: string;
   wide?: boolean;
 };
-const currencies = [
-  { value: "PYG", label: "Guaraníes" },
-  { value: "USD", label: "Dólares" },
-];
+const currencies = currencyChoices;
 export function Editor({
   fields,
   defaults,

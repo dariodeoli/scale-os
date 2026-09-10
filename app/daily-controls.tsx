@@ -7,7 +7,7 @@ import {z} from 'zod';
 import {api,Dialog,Editor,money} from './operations';
 import {SelectCustom,AmountInput} from './profile-controls';
 import {parseStatementCsv} from './statement-csv';
-type Account={id:string;name:string;currency:'PYG'|'USD';active:boolean};
+type Account={id:string;name:string;currency:string;active:boolean};
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
 const errorText=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar';
