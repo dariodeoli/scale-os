@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {clientState,clientStatuses} from '../app/client-status';
+assert.equal(clientState({active:true}).value,'active');
+assert.equal(clientState({active:false}).value,'inactive');
+for(const state of clientStatuses)assert.equal(clientState({active:false,lifecycle_status:state.value}).label,state.label);
+const history=readFileSync('app/work-history.tsx','utf8');
+assert(history.includes("useState('10')"));assert(history.includes('new URLSearchParams({limit,offset:String(offset)})'));assert(history.includes('[who,source,limit,offset]'));assert(!history.includes('Últimos 100'));
+const sidebar=readFileSync('app/desktop-sidebar.tsx','utf8');assert(sidebar.includes('aria-expanded={!collapsed}'));assert(sidebar.includes('localStorage.setItem'));assert(sidebar.includes('Expandir barra lateral'));
+const css=readFileSync('app/desktop-sidebar.css','utf8');assert(css.includes('width:calc(100% - 76px)'));assert(css.includes('@media(max-width:760px)'));
+console.log('PASS: client state labels/fallbacks, server pagination wiring, persistent accessible sidebar and mobile guard');

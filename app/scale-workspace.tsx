@@ -6,6 +6,9 @@ import {ControlCenter} from './control-center';
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
 import {MobileNavigation} from './mobile-navigation';
+import {DesktopSidebar} from './desktop-sidebar';
+import {clientStatuses,clientState} from './client-status';
+import './client-directory.css';
 import dynamic from 'next/dynamic';
 import {ClientIdentity,identityColor} from './client-identity';
 import {NotificationBell} from './notifications-ui';
@@ -88,6 +91,7 @@ const nav = [
   ["Configuración", Settings],
 ] as const;
 type Client = {
+  lifecycle_status?:string;
   logo_url?:string|null;
   color_key?:string;
   id: string;
@@ -1307,6 +1311,9 @@ export default function Home() {
   const [myProfile,setMyProfile]=useState(false);
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string}|null>(null);
   const [projectClient,setProjectClient]=useState('');
+  const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState('');
+  useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
+  function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
   const [user, setUser] = useState<User | null>(null);
   useEffect(()=>{
     let active=true;
@@ -1583,10 +1590,12 @@ export default function Home() {
               key={label}
               className={activeParent === label ? "active" : ""}
               aria-current={activeParent===label?'page':undefined}
+              title={label}
+              aria-label={label}
               href={sectionPath(allowedChildren(label)[0])}
             >
               <Icon size={18} />
-              {label}
+              <span className="nav-label">{label}</span>
             </Link>
           ))}
         </nav>
@@ -1603,10 +1612,10 @@ export default function Home() {
       </>;
   return (
     <main className="shell control-shell">
-      <aside>
+      <DesktopSidebar>
         <div className="sidebar-brand"><WorkspaceBrand/></div>
         {sidebarContent}
-      </aside>
+      </DesktopSidebar>
       <section className="content">
         <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><CompanySelector name={user?.organization_name || 'Organización'}/><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
@@ -1845,20 +1854,19 @@ export default function Home() {
                 <p className="eyebrow">BASE COMERCIAL</p>
                 <h2>Clientes de {user?.organization_name}</h2>
               </div>
-              <button className="primary" onClick={() => setModal("client")}>
-                <Plus size={16} /> Cliente
-              </button>
             </div>
-            <div className="client-list">
+            <div className="client-directory-toolbar"><SelectCustom label="Estado del cliente" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/><div className="client-view-toggle" role="group" aria-label="Vista de clientes"><button type="button" aria-pressed={clientView==='list'} onClick={()=>changeClientView('list')}>Lista</button><button type="button" aria-pressed={clientView==='grid'} onClick={()=>changeClientView('grid')}>Cuadrícula</button></div></div>
+            <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
               {clients.length ? (
-                clients.map((client) => (
+                clients.filter(client=>!clientStatusFilter||clientState(client).value===clientStatusFilter).map((client) => (
                   <div className="client-row" key={client.id}>
                     <div>
                       <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/></button>
                       <small>{client.email || "Sin email registrado"}</small>
                     </div>
                     <span>{client.phone || "Sin teléfono"}</span>
-                    <RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/>
+                    <span className="client-status" data-status={clientState(client).value}>{clientState(client).label}</span>
+                    <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
                   </div>
                 ))
               ) : (
@@ -1867,6 +1875,7 @@ export default function Home() {
                 </p>
               )}
             </div>
+            {clients.length>0&&clientStatusFilter&&!clients.some(c=>clientState(c).value===clientStatusFilter)&&<p className="empty-copy">No hay clientes con este estado.</p>}
           </section>
         )}
         {active === "Proyectos" && (

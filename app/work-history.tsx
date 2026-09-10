@@ -3,17 +3,22 @@ import {useEffect,useState} from 'react';
 import {api,Editor} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
+import './productivity.css';
+import './work-history.css';
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
 export function WorkHistory({role}:{role:string}){
  const [rows,setRows]=useState<Row[]>([]),[people,setPeople]=useState<Row[]>([]),[who,setWho]=useState(''),[source,setSource]=useState(false),[error,setError]=useState('');
  const managers=['owner','admin','management','production'].includes(role);
+ const [limit,setLimit]=useState('10'),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[loading,setLoading]=useState(true);
  useEffect(()=>{if(!managers)return;let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive)setPeople(d.people);}).catch(()=>{});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[managers]);
- useEffect(()=>{setError('');let alive=true;void api<{records:Row[]}>(source?'/api/agency/productivity/source-events':`/api/agency/productivity/history${who?'?userId='+encodeURIComponent(who):''}`).then(d=>{if(alive)setRows(d.records);}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false;};},[who,source]);
- return <section className="panel"><div className="panel-heading"><h2>Historial de trabajo</h2><button className="text-button" onClick={()=>{setRows([]);setSource(v=>!v);}}>{source?'Ver actividad en Scale OS':'Ver historial importado de Trello'}</button></div>
-  <p className="form-note">{source?'Fuente externa: conserva autor y fecha originales. No otorga accesos ni atribuye estas acciones a cuentas de Scale OS.':managers?'Últimos 100 cambios operativos. No incluye sueldos ni movimientos financieros.':'Tus últimos 100 cambios operativos.'}</p>
-  {!source&&managers&&<SelectCustom label="Persona" value={who} onChange={setWho} choices={[{value:'',label:'Todo el equipo'},...people.map(p=>({value:String(p.id),label:str(p,'full_name')||str(p,'email')}))]}/>}
-  {error&&<p className="error">{error}</p>}{rows.map(r=><article className="activity-line" key={r.id}><b>{str(r,source?'source_author':'actor_name')||'Sistema'}</b><small>{new Date(str(r,source?'occurred_at':'created_at')).toLocaleString('es-PY')}</small><p>{str(r,source?'body':'title')}</p>{!source&&<small>{str(r,'action')==='INSERT'?'Creó':str(r,'action')==='DELETE'?'Eliminó':'Actualizó'}{r.previous_status!==r.next_status?` · ${str(r,'previous_status')} → ${str(r,'next_status')}`:''}</small>}</article>)}{!rows.length&&!error&&<p className="empty-copy">Sin actividad registrada.</p>}
+ useEffect(()=>{setError('');setLoading(true);setRows([]);let alive=true;const query=new URLSearchParams({limit,offset:String(offset)});if(who&&!source)query.set('userId',who);void api<{records:Row[];page:{hasMore:boolean}}>(`/api/agency/productivity/${source?'source-events':'history'}?${query}`).then(d=>{if(alive){setRows(d.records);setHasMore(d.page.hasMore);}}).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setLoading(false);});return()=>{alive=false;};},[who,source,limit,offset]);
+ return <section className="panel work-history"><div className="panel-heading"><h2>Historial de trabajo</h2><button className="text-button" onClick={()=>{setOffset(0);setSource(v=>!v);}}>{source?'Ver actividad en Scale OS':'Ver historial importado de Trello'}</button></div>
+  <p className="form-note">{source?'Fuente externa: conserva autor y fecha originales. No otorga accesos ni atribuye estas acciones a cuentas de Scale OS.':managers?'Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.':'Tus cambios operativos.'}</p>
+  <div className="history-filters">{!source&&managers&&<SelectCustom label="Persona" value={who} onChange={v=>{setWho(v);setOffset(0);}} choices={[{value:'',label:'Todo el equipo'},...people.map(p=>({value:String(p.id),label:str(p,'full_name')||str(p,'email')}))]}/>}
+  <SelectCustom label="Registros por página" value={limit} onChange={v=>{setLimit(v);setOffset(0);}} choices={['10','50','100'].map(value=>({value,label:value}))}/></div>
+  {error&&<p className="error" role="alert">{error}</p>}<div aria-busy={loading}>{loading?<p role="status">Cargando actividad…</p>:rows.map(r=><article className="activity-line" key={r.id}><div className="history-author"><b>{str(r,source?'source_author':'actor_name')||'Sistema'}</b><time>{new Date(str(r,source?'occurred_at':'created_at')).toLocaleString('es-PY')}</time></div><p>{str(r,source?'body':'title')}</p>{!source&&<small>{str(r,'action')==='INSERT'?'Creó':str(r,'action')==='DELETE'?'Eliminó':'Actualizó'}{r.previous_status!==r.next_status?` · ${str(r,'previous_status')} → ${str(r,'next_status')}`:''}</small>}</article>)}{!loading&&!rows.length&&!error&&<p className="empty-copy">Sin actividad registrada.</p>}</div>
+  <div className="history-pagination"><span role="status">{!loading&&rows.length?`${offset+1}–${offset+rows.length}`:''}</span><button className="secondary" disabled={loading||offset===0} onClick={()=>setOffset(Math.max(0,offset-Number(limit)))}>Anterior</button><button className="secondary" disabled={loading||!!error||!hasMore} onClick={()=>setOffset(offset+Number(limit))}>Siguiente</button></div>
  </section>;
 }
 export function InternalTasks({role}:{role:string}){
