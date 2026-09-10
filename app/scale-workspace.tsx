@@ -1973,7 +1973,7 @@ export default function Home() {
                       <div>
                         <b>{account.name}</b>
                         <small>
-                          {{bank:'Cuenta bancaria',cash:'Caja en efectivo',digital:'Billetera digital'}[account.account_type]} · {account.currency}
+                          {{bank:'Cuenta bancaria',cash:'Caja en efectivo',digital:'Billetera digital',investment:'Inversión'}[account.account_type]} · {account.currency}
                           {account.custodian_email
                             ? ` · Custodia: ${account.custodian_email}`
                             : ""}
