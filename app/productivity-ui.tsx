@@ -9,6 +9,7 @@ import {ClientAppearance,ClientIdentity} from './client-identity';
 import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
 import {ClientLinks} from './client-links';
+import {ProjectPresence} from './presence';
 type Row={id:string;[key:string]:unknown};
 export type WorkItem={id:string;title:string;status:string;project_id:string;due_date?:string|null;assigned_user_id?:string|null;updated_at?:string;client_name?:string;project_name?:string};
 const s=(r:Row,k:string)=>String(r[k]??'');
@@ -30,6 +31,7 @@ export function WorkDetail({id,role,close,refresh}:{id:string;role:string;close:
  return <Dialog variant="drawer" title={order?s(order,'title'):'Detalle de la pieza'} close={close}>
   {error&&<p className="error" role="alert">{error}</p>}
   {!order?<p>Cargando pieza…</p>:<>
+   <ProjectPresence projectId={s(order,'project_id')}/>
    <ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/>
    <p className="form-note">{states.find(x=>x.value===order.status)?.label||s(order,'status')} · Actualizada {new Date(s(order,'updated_at')).toLocaleString('es-PY')}</p>
    <div className="choice-list">{['Detalle','Comentarios','Historial'].map(t=><button className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)} key={t}>{t}{t==='Comentarios'?` (${data.comments.length})`:''}</button>)}</div>

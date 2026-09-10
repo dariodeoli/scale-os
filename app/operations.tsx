@@ -1,4 +1,5 @@
 "use client";
+import {ProjectPresence} from './presence';
 import { useEffect, useState, useRef } from "react";
 import {Dialog,FormActions} from "./dialog";
 import { useForm } from "react-hook-form";
@@ -796,6 +797,7 @@ export function ProjectComments({
       </button>
       {open && (
         <Dialog title={`Seguimiento · ${name}`} close={() => setOpen(false)}>
+          <ProjectPresence projectId={projectId}/>
           <div className="ops-comments">
             {comments.map((c) => (
               <article className="ops-comment" key={c.id}>
