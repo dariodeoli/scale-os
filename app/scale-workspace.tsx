@@ -1973,11 +1973,13 @@ export default function Home() {
                       <div>
                         <b>{account.name}</b>
                         <small>
-                          {account.account_type} · {account.currency}
+                          {{bank:'Cuenta bancaria',cash:'Caja en efectivo',wallet:'Billetera'}[account.account_type]||account.account_type} · {account.currency}
                           {account.custodian_email
                             ? ` · Custodia: ${account.custodian_email}`
                             : ""}
                         </small>
+                        {account.account_number&&<small>N.º {account.account_number}</small>}
+                        {account.holder_name&&<small>Titular: {account.holder_name}</small>}
                         <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role||'viewer'} done={loadFinance}/>
                       </div>
                       <strong>
