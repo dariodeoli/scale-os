@@ -4,7 +4,7 @@ import postcss from 'postcss';
 
 // Source-level CSS contracts, not a browser layout or visual verification.
 const read=(file:string)=>readFileSync(new URL('../app/'+file,import.meta.url),'utf8');
-const sheets=Object.fromEntries(['actor-identity.css','workspace-density.css','desktop-sidebar.css','mobile-navigation.css','production-focus.css','work-checklist.css'].map(file=>[file,postcss.parse(read(file))]));
+const sheets=Object.fromEntries(['actor-identity.css','workspace-density.css','desktop-sidebar.css','mobile-navigation.css','production-focus.css','work-checklist.css','project-card.css'].map(file=>[file,postcss.parse(read(file))]));
 
 // Inspect a particular selector's declarations in source order at a viewport.
 // This deliberately does not emulate the full CSS cascade or font metrics.
@@ -25,12 +25,21 @@ function declaration(file:string,selector:string,property:string,width:number){
 }
 
 const workspace=read('scale-workspace.tsx'),operations=read('operations.tsx');
-assert(workspace.includes('<h3>{project.name}</h3>'),'project name is rendered as a card heading');
+assert(workspace.includes("import {ProjectCard} from './project-card'"),'workspace imports the project card being tested');
+assert(workspace.includes('<ProjectCard key={project.id} project={project}'),'directory passes each project into the shared card');
+assert(read('project-card.tsx').includes('<h3>{project.name}</h3>'),'project name is rendered as a card heading');
 assert(operations.includes('<ActorIdentity name={c.actor_name||c.author_email'),'project comments render the shared author identity with email fallback');
 
 for(const width of [320,360,390,768]){
  const at=(file:string,selector:string,property:string)=>declaration(file,selector,property,width);
  assert.equal(at('workspace-density.css','.control-shell .project-card h3','overflow-wrap'),'anywhere',`project identifiers must wrap at ${width}px`);
+ assert.equal(at('project-card.css','.project-entry-title h3','overflow-wrap'),'anywhere',`extracted project headings must wrap at ${width}px`);
+ assert.equal(at('project-card.css','.project-entry','min-width'),'0');
+ assert.equal(at('project-card.css','.project-entry-title','min-width'),'0');
+ assert.equal(at('project-card.css','.project-list>.project-entry','grid-template-columns'),'minmax(0,1fr) auto',`compact list adapts to ${width}px`);
+ assert.equal(at('project-card.css','.project-list .project-entry-assignees','grid-column'),'1/-1');
+ assert.equal(at('project-card.css','.project-list .project-entry-actions','grid-column'),'1/-1');
+ assert.equal(at('project-card.css','.project-entry-actions','flex-wrap'),'wrap');
  // Comments live in a portal outside .control-shell: do not scope to the shell.
  assert.equal(at('actor-identity.css','.actor-identity-name','overflow-wrap'),'anywhere',`comment author names must wrap at ${width}px`);
  assert.equal(at('actor-identity.css','.actor-identity','max-width'),'100%');

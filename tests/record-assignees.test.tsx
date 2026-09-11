@@ -84,6 +84,34 @@ async function run(){
  assert.match(json(),/Sin acceso/);assert.equal(button('Guardar responsables'),undefined);
  await click('Reintentar carga');await loaded(readStart+2);assert.ok(button('Cambiar responsables'));
  act(()=>renderer.unmount());
- console.log('PASS: compact selected-only summary, expand/cancel/collapse, parallel load, versioned save, double-click guard, conflict/reload, visible errors, readonly roles, stale tenant results and refresh failure');
+ // Detail mode has exactly one save and sends both drafts atomically.
+ let detailSave!:(details:Record<string,string>)=>Promise<void>;
+ readStart=requests.length;
+ await mount({...props,updatedAt:'2026-09-11T12:00:00.000Z',children:save=>{detailSave=save;return <div>Details editor</div>;}});
+ await assert.rejects(detailSave({title:'Draft title'}),/Esperá/);
+ await loaded(readStart);change();
+ assert.equal(button('Guardar responsables'),undefined,'detail mode removes separate save');
+ let saving!:Promise<void>;
+ await act(async()=>{saving=detailSave({title:'Draft title'});});
+ assert.match(requests.at(-1)!.url,/work-orders\/42$/);
+ assert.deepEqual(JSON.parse(String(requests.at(-1)!.init.body)),{title:'Draft title',expected_updated_at:'2026-09-11T12:00:00.000Z',assignees:{assigned_user_ids:['1','2'],assigned_user_id:'2',expected_version:'7'}});
+ const rejected=assert.rejects(saving,/No se pudo guardar/);
+ await respond(requests.at(-1)!,{error:'No se pudo guardar'},500);await rejected;
+ assert.deepEqual(renderer.root.findByType(AssigneePicker).props.value.assigned_user_ids,['1','2'],'failed combined save retains assignment draft');
+ await act(async()=>{saving=detailSave({title:'Draft title'});});
+ await respond(requests.at(-1)!,{record:{title:'Draft title'},assignees:updated});await saving;
+ assert.match(json(),/Bruno/);act(()=>renderer.unmount());
+ readStart=requests.length;
+ await mount({...props,updatedAt:'2026-09-11T12:00:00.000Z',refresh:async()=>{throw Error('Refresh unavailable');},children:save=>{detailSave=save;return <div>Details editor</div>;}});
+ await loaded(readStart);change();
+ await act(async()=>{saving=detailSave({title:'Confirmed title'});});
+ await respond(requests.at(-1)!,{record:{title:'Confirmed title'},assignees:updated});await saving;
+ assert.equal(requests.length,readStart+3,'refresh failure never retries a confirmed unified mutation');
+ assert.match(json(),/No se pudo actualizar/,'post-save refresh failure remains visible');
+ openEditor();
+ assert.deepEqual(renderer.root.findByType(AssigneePicker).props.value.assigned_user_ids,['2','1'],'confirmed assignment remains saved despite refresh failure');
+ assert.equal(button('Guardar responsables'),undefined,'detail mode retains a single save action');
+ act(()=>renderer.unmount());
+ console.log('PASS: compact summary, unified atomic payload, retained drafts on failure, loading guard, versioned save, conflict, tenant isolation and refresh failure');
 }
 void run();

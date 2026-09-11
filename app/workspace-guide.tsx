@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {api,Dialog,Editor} from './operations';
 import {founderPricingNote} from './founder-pricing';
+import {CompanySettings} from './company-settings';
 import {sections} from './navigation';
 import {visibleModule} from './workspace-access';
 import {suggestedWorkspaceGuideStep,workspaceGuideScope,workspaceGuideSteps,workspaceGuideStorageKey,type WorkspaceGuideData,type WorkspaceGuideIdentity,type WorkspaceGuideStep} from './workspace-guide-data';
@@ -59,6 +60,7 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
 export function NewCompany(){
  const [open,setOpen]=useState(false);
  return <section className="panel"><h2>Multiempresa</h2>
+  <CompanySettings/>
   <p className="form-note">Cada empresa tendrá sus propios clientes, equipo, proyectos y finanzas. Solo tu usuario tendrá acceso inicial.</p>
   <p className="form-note">Las nuevas empresas incluyen 30 días gratis. Después: US$10 o G. 50.000 al mes por empresa, con 2 días de gracia. Al comenzar el tercer día sin pagar se suspende el uso, sin borrar los datos. No se realiza ningún cobro al crearla.</p>
   <p className="form-note"><strong>Precio de lanzamiento.</strong> {founderPricingNote}</p>

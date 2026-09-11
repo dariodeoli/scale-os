@@ -1,5 +1,6 @@
 "use client";
 import {formatMoney} from './amount-format';
+import {ProjectCard} from './project-card';
 import {currencyCodes,currencyLabels,Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
 import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
@@ -33,8 +34,10 @@ const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 const WorkPlanner=dynamic(()=>import('./productivity-ui').then(m=>m.WorkPlanner));
 const WorkHistory=dynamic(()=>import('./work-history').then(m=>m.WorkHistory));
+const WeeklyReport=dynamic(()=>import('./weekly-report').then(m=>m.WeeklyReport));
 const InternalTasks=dynamic(()=>import('./work-history').then(m=>m.InternalTasks));
 import {dataFetch,setDataScope,clearDataCache} from './data-cache';
+import {prefetchSectionData} from './data-prefetch';
 import './control-center.css';
 import './production-focus.css';
 import './mobile-navigation.css';
@@ -67,7 +70,7 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ViewToggle } from "./view-toggle";
 import { z } from "zod";
@@ -125,6 +128,7 @@ type Client = {
   active: boolean;
 };
 type Project = {
+  assignees?: import('./project-card').ProjectAssignee[];
   id: string;
   name: string;
   client_id: string;
@@ -1372,6 +1376,14 @@ export default function Home() {
   const [subscriptionOpen,setSubscriptionOpen]=useState(false),[subscriptionError,setSubscriptionError]=useState('');
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
+  // Invalidate before child loading effects can read a previous tenant/role cache.
+  useLayoutEffect(()=>{setDataScope(operationalAccess&&user?`${user.id}:${user.organization_id}:${user.role}`:'');},[operationalAccess,user?.id,user?.organization_id,user?.role]);
+  function prefetchSection(label:string){
+    if(!operationalAccess||!user||!visibleModule(label,user.role))return;
+    // Match InventoryWorkspace's read roles; menu visibility alone includes Sales.
+    if(label==='Inventario'&&!['owner','admin','management','production','finance','editor','viewer'].includes(user.role))return;
+    void prefetchSectionData(label,`${user.id}:${user.organization_id}:${user.role}`);
+  }
   useStartupPreference({scope:preferenceScope,ready:preferencesReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
   async function refreshSubscription(){
     const d=await request<{user:User}>('/api/auth/me');
@@ -1727,6 +1739,8 @@ export default function Home() {
               title={label}
               aria-label={label}
               href={sectionPath(allowedChildren(label)[0])}
+              onMouseEnter={()=>prefetchSection(allowedChildren(label)[0])}
+              onFocus={()=>prefetchSection(allowedChildren(label)[0])}
             >
               <Icon size={18} />
               <span className="nav-label">{label}</span>
@@ -1759,8 +1773,8 @@ export default function Home() {
           <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}>Restablecer filtros</button>
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
-        {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>setSubscriptionOpen(true)}/>}
-        {subscriptionOpen&&user&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
+        {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
+        {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
         <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><div className="workspace-context"><CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>{user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}</div><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
@@ -1794,10 +1808,11 @@ export default function Home() {
             )}
           </div>
         </header>
-        {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
+        {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
         {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><button className="primary" onClick={()=>setActive('Resumen')}>Ir al resumen</button></section>}
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
         {active==='Historial de trabajo'&&<WorkHistory role={user?.role||'viewer'}/>}
+        {active==='Resumen semanal'&&user&&<WeeklyReport organizationId={String(user.organization_id)}/>}
         {active==='Actividad'&&user?.role==='owner'&&<UsagePanel/>}
         {active==='Invitaciones'&&(user?.demo_owner_user_id?<section className="panel"><h2>Invitaciones y solicitudes</h2><p>En tu empresa real podés generar enlaces de un uso o enlaces con aprobación. El Demo no crea accesos externos. Probá los permisos desde la barra superior.</p></section>:<InviteLinks role={user?.role||'viewer'}/>)}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
@@ -1805,7 +1820,7 @@ export default function Home() {
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
         {active==='Inventario'&&<InventoryWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
-        {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}</div>}
+        {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}<div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div></div>}
         {active==='Preferencias'&&<section className="panel ops-stack"><h2>Preferencias de este espacio</h2>
           <p className="form-note">Se guardan para vos en {user?.organization_name||'esta empresa'}, en este navegador.</p>
           {preferencesReady?<SelectCustom label="Al entrar a Scale OS" value={startupChoices(user?.role||'').some(choice=>choice.value===preferences.startup)?preferences.startup:'summary'} choices={startupChoices(user?.role||'')} onChange={startup=>updatePreferences({startup:startup as StartupPreference})}/>:<p role="status">Cargando preferencias…</p>}
@@ -1989,24 +2004,10 @@ export default function Home() {
             <div className={projectView==='grid'?'project-grid':'project-list'}>
               {projects.length ? (
                 projects.map((project) => (
-                  <article className={`project-card identity-card identity-${identityColor(clients.find(c=>String(c.id)===String(project.client_id))?.color_key)}`} key={project.id}>
-                    <ClientIdentity name={project.client_name} logo={clients.find(c=>String(c.id)===String(project.client_id))?.logo_url} color={clients.find(c=>String(c.id)===String(project.client_id))?.color_key}/>
-                    <h3>{project.name}</h3>
-                    <p>{project.work_order_count} órdenes de trabajo</p>
-                    {project.drive_url ? (
-                      <a
-                        href={project.drive_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <LinkIcon size={14} /> Abrir Drive
-                      </a>
-                    ) : (
-                      <span>Sin enlace de Drive</span>
-                    )}
+                  <ProjectCard key={project.id} project={project} client={clients.find(c=>String(c.id)===String(project.client_id))}>
                     <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
                     <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
-                  </article>
+                  </ProjectCard>
                 ))
               ) : (
                 <p className="empty-copy">

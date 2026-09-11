@@ -244,9 +244,9 @@ export function OperationsWorkspace({
   async function load() {
     const [p, c, a, i, x, j] = await Promise.all([
       api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>(mode==='people'?"/api/agency/team":"/api/agency/collaborators"),
-      api<{ commissions: Commission[] }>("/api/agency/commissions"),
+      mode==='commissions'?api<{ commissions: Commission[] }>("/api/agency/commissions"):Promise.resolve({commissions:[]}),
       api<{ accounts: Account[] }>("/api/agency/accounts"),
-      api<{ invoices: Invoice[] }>("/api/agency/invoices"),
+      mode==='commissions'?api<{ invoices: Invoice[] }>("/api/agency/invoices"):Promise.resolve({invoices:[]}),
       api<{ payouts: Payout[] }>("/api/agency/payouts"),
       api<{ roles: JobRole[] }>("/api/agency/job-roles"),
     ]);
@@ -859,22 +859,30 @@ export function ProjectComments({
 }
 export function CompanySelector({ name }: { name: string }) {
   const [companies, setCompanies] = useState<
-      { id: string; name: string; role: string }[]
+      { id: string; name: string; role: string;isDemo?:boolean }[]
     >([]),
     [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const [preferred,setPreferred]=useState<string|null>(null);
+  const preferenceLock=useRef(false);
   useEffect(() => {
-    api<{ organizations: typeof companies }>("/api/auth/organizations")
+    let generation=0,alive=true;
+    const load=(initial=false)=>{const version=++generation;void api<{ organizations: typeof companies; defaultOrganizationId?:string|number|null }>("/api/auth/organizations")
       .then((d) => {
+        if(!alive||version!==generation)return;
         setCompanies(d.organizations);
+        setPreferred(d.defaultOrganizationId?String(d.defaultOrganizationId):null);
         if (
-          d.organizations.length > 1 &&
+          initial && d.organizations.length > 1 &&
+          !d.defaultOrganizationId &&
           !sessionStorage.getItem("scale_company_selected")
         )
           setOpen(true);
       })
-      .catch((e) => setError(message(e)));
+      .catch((e) => {if(alive&&version===generation)setError(message(e));});};
+    load(true);const refresh=()=>load();window.addEventListener('scale:default-company-changed',refresh);
+    return()=>{alive=false;generation++;window.removeEventListener('scale:default-company-changed',refresh);};
   }, []);
   return (
     <>
@@ -889,26 +897,36 @@ export function CompanySelector({ name }: { name: string }) {
           </p>
           <div className="ops-stack">
             {companies.map((c) => (
+              <div key={c.id} className="company-choice-row">
               <button
                 className="choice"
                 disabled={busy}
                 key={c.id}
                 onClick={async () => {
+                  if(preferenceLock.current)return;preferenceLock.current=true;
                   setBusy(true);
+                  setError('');
                   try {
                     await api("/api/auth/switch-organization", {
                       organizationId: c.id,
                     });
-                    sessionStorage.setItem("scale_company_selected", "1");
+                    try{sessionStorage.setItem("scale_company_selected", "1");}catch{/* Navigation must still complete. */}
                     window.location.assign("/");
                   } catch (e) {
                     setError(message(e));
                     setBusy(false);
+                    preferenceLock.current=false;
                   }
                 }}
               >
                 {c.name} · {c.role}
               </button>
+              {!c.isDemo&&<button type="button" className="text-button" disabled={busy||preferred===String(c.id)} onClick={async()=>{
+                if(preferenceLock.current)return;preferenceLock.current=true;setBusy(true);setError('');
+                try{await api('/api/auth/default-organization',{organizationId:c.id});setPreferred(String(c.id));window.dispatchEvent(new Event('scale:default-company-changed'));}
+                catch(e){setError(message(e));}finally{preferenceLock.current=false;setBusy(false);}
+              }}>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</button>}
+              </div>
             ))}
           </div>
           {error && <p className="error">{error}</p>}

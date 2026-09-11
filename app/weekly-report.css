@@ -1,0 +1,15 @@
+.weekly-report{display:grid;gap:var(--ui-space-4,16px);min-width:0}
+.weekly-report p{margin:0;line-height:1.5;overflow-wrap:anywhere}
+.weekly-report form{display:grid;gap:var(--ui-space-4,16px)}
+.weekly-report fieldset{min-width:0;border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--ui-space-3,12px);margin:0;display:grid;gap:var(--ui-space-3,12px)}
+.weekly-report legend{font-weight:600;padding-inline:4px}
+.weekly-report label{display:grid;gap:var(--ui-space-2,8px);min-width:0}
+.weekly-report input,.weekly-report select,.weekly-report textarea{box-sizing:border-box;width:100%;min-width:0;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--ui-field-border,var(--line-strong));border-radius:var(--radius-sm);padding:10px;min-height:44px}
+.weekly-report-controls{display:flex;flex-wrap:wrap;gap:var(--ui-space-3,12px);align-items:flex-end}
+.weekly-report-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--ui-space-3,12px)}
+.weekly-report-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--ui-space-3,12px)}
+.weekly-report-person{display:grid;gap:var(--ui-space-3,12px);padding-block:var(--ui-space-4,16px);border-top:1px solid var(--line);min-width:0}
+.weekly-report-table{overflow-x:auto}.weekly-report table{width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums}
+.weekly-report td,.weekly-report th{padding:8px;border-bottom:1px solid var(--line)}
+.weekly-report-notes{white-space:pre-wrap}
+@media(max-width:540px){.weekly-report-counts{grid-template-columns:1fr}.weekly-report input,.weekly-report select,.weekly-report textarea{font-size:16px}}
