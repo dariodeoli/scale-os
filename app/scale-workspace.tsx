@@ -1358,7 +1358,6 @@ export default function Home() {
   const dataLoadSequence=useRef(0);
   const guideProps={userId:user?.id,organizationId:user?.organization_id,role:user?.role||'viewer',demo:!!user?.demo_owner_user_id,data:guideData,navigate:setActive};
   const {key:preferenceScope,ready:preferencesReady,preferences,warning:preferenceWarning,update:updatePreferences}=useWorkspacePreferences(signedIn?String(user?.id||''):'',signedIn?String(user?.organization_id||''):'');
-  const [preferencesDialogScope,setPreferencesDialogScope]=useState('');
   const [productionFiltersDialogScope,setProductionFiltersDialogScope]=useState('');
   const [startupDataScope,setStartupDataScope]=useState('');
   const productionToday=useLocalCalendarDay();
@@ -1582,7 +1581,7 @@ export default function Home() {
   function clearSessionState() {
     dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
     setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
-    setMyProfile(false);setDetail(null);setPreferencesDialogScope('');setProductionFiltersDialogScope('');setStartupDataScope('');
+    setMyProfile(false);setDetail(null);setProductionFiltersDialogScope('');setStartupDataScope('');
     setDataScope('');
     setSignedIn(false);
     setUser(null);
@@ -1706,7 +1705,6 @@ export default function Home() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <button className="text-button" type="button" disabled={!preferencesReady} onClick={()=>setPreferencesDialogScope(preferenceScope)} aria-label="Preferencias de este espacio"><Settings size={16}/> <span className="nav-label">Preferencias</span></button>
           <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}>
             {user?.photo_url?<img src={user.photo_url} alt="" width={36} height={36}/>:<div className="avatar">{(user?.full_name||firstName)[0].toUpperCase()}</div>}
             <div>
@@ -1725,12 +1723,6 @@ export default function Home() {
         {sidebarContent}
       </DesktopSidebar>
       <section className="content">
-        {preferencesDialogScope===preferenceScope&&preferencesDialogScope&&preferencesReady&&<Dialog title="Preferencias de este espacio" close={()=>setPreferencesDialogScope('')}><div className="ops-stack">
-          <p className="form-note">Se guardan para vos en {user?.organization_name||'esta empresa'}, en este navegador.</p>
-          <SelectCustom label="Al entrar a Scale OS" value={startupChoices(user?.role||'').some(choice=>choice.value===preferences.startup)?preferences.startup:'summary'} choices={startupChoices(user?.role||'')} onChange={startup=>updatePreferences({startup:startup as StartupPreference})}/>
-          <p className="form-note">Se aplica en tu próxima entrada al inicio. Los enlaces a secciones, piezas y otros destinos conservan su destino.</p>
-          {preferenceWarning&&<p role="status" className="form-note">{preferenceWarning}</p>}
-        </div></Dialog>}
         {active==='Producción'&&productionView==='Tablero'&&productionFiltersDialogScope===preferenceScope&&productionFiltersDialogScope&&preferencesReady&&<Dialog title="Filtros guardados del tablero" close={()=>setProductionFiltersDialogScope('')}><div className="ops-stack">
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
           <SelectCustom label="Fecha de entrega" value={preferences.production.week?'week':'all'} choices={[{value:'all',label:'Todas las fechas'},{value:'week',label:'Vencen esta semana (hora local)'}]} onChange={value=>updatePreferences({production:{...preferences.production,week:value==='week'}})}/>
@@ -1785,6 +1777,12 @@ export default function Home() {
         {active==='Inventario'&&<InventoryWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
         {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}</div>}
+        {active==='Preferencias'&&<section className="panel ops-stack"><h2>Preferencias de este espacio</h2>
+          <p className="form-note">Se guardan para vos en {user?.organization_name||'esta empresa'}, en este navegador.</p>
+          {preferencesReady?<SelectCustom label="Al entrar a Scale OS" value={startupChoices(user?.role||'').some(choice=>choice.value===preferences.startup)?preferences.startup:'summary'} choices={startupChoices(user?.role||'')} onChange={startup=>updatePreferences({startup:startup as StartupPreference})}/>:<p role="status">Cargando preferencias…</p>}
+          <p className="form-note">Se aplica en tu próxima entrada al inicio. Los enlaces a secciones, piezas y otros destinos conservan su destino.</p>
+          {preferenceWarning&&<p role="status" className="form-note">{preferenceWarning}</p>}
+        </section>}
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
         {active === "Resumen" && (
           <>

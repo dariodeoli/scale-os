@@ -17,7 +17,7 @@ function mock(path:string,exports:unknown){const id=require.resolve(path);requir
 mock('../app/profile-photo',{ProfilePhoto:PhotoStub});
 mock('../app/dialog',{Dialog:DialogStub,FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogPending:()=>{},useDialogClose:()=>React.useContext(CloseContext)});
 const {MyProfile}=require('../app/my-profile') as typeof import('../app/my-profile');
-type Profile={email:string;full_name:string|null;photo_url:string|null;identity_scope:'personal'|'demo'};
+type Profile={email:string;full_name:string|null;photo_url:string|null;identity_scope:'personal'|'demo'|'personal_readonly'};
 type Request={url:string;init:RequestInit;resolve:(value:Response)=>void};
 const requests:Request[]=[];
 globalThis.fetch=(input,init)=>new Promise<Response>(resolve=>requests.push({url:String(input),init:init||{},resolve}));
@@ -40,6 +40,14 @@ async function load(profile=fixture()){await respond(latest(),{profile});}
 async function changeName(value:string){await act(async()=>{await renderer.root.findByProps({name:'full_name'}).props.onChange({target:{name:'full_name',value},type:'change'});});}
 async function startNameSave(){let pending!:Promise<void>;await act(async()=>{pending=renderer.root.findByType('form').props.onSubmit(submitEvent());});return {pending};}
 function close(){act(()=>renderer.unmount());}
+
+test('real identity in a private demo is visible but cannot be changed from the demo',async()=>{
+ await mount();await load(fixture({identity_scope:'personal_readonly'}));
+ assert.match(content(),/perfil está unificado/);assert.match(content(),/empresa real/);
+ assert.equal(renderer.root.findAllByType('form').length,0);
+ assert.equal(renderer.root.findAllByType(PhotoStub).length,0);
+ assert.equal(renderer.root.findAllByType('img').length,1);assert.equal(requests.length,1);close();
+});
 
 test('canonical name/email header, single photo preview, edit sequence and scope',async()=>{
  await mount();assert.match(content(),/Cargando tu perfil/);assert.doesNotMatch(content(),/Nombre obsoleto/);

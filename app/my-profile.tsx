@@ -5,7 +5,7 @@ import {Editor,api} from './operations';
 import {ProfilePhoto} from './profile-photo';
 import {notify} from './feedback';
 import './my-profile.css';
-type Profile={email:string;full_name?:string|null;photo_url?:string|null;identity_scope?:'personal'|'demo'};
+type Profile={email:string;full_name?:string|null;photo_url?:string|null;identity_scope?:'personal'|'demo'|'personal_readonly'};
 export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>void;refresh:()=>Promise<void>}){
  const [current,setCurrent]=useState<Profile|null>(null),[error,setError]=useState(''),[warning,setWarning]=useState(''),[retry,setRetry]=useState(0);
  const [photoSaving,setPhotoSaving]=useState(false);
@@ -34,13 +34,13 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
    <dl className="my-profile-login"><dt>Correo de acceso</dt><dd>{current.email||profile.email}</dd></dl>
    <p className="my-profile-help">Tu correo de acceso no se modifica desde acá.</p>
   </div>
-  <div className="my-profile-photo">
+  {current.identity_scope==='personal_readonly'?<div className="my-profile-photo">{current.photo_url&&<img src={current.photo_url} alt={`Foto de ${name}`} width={96} height={96} style={{borderRadius:'50%',objectFit:'cover'}}/>}<p>Tu perfil está unificado con tus empresas. Para cambiar el nombre o la foto, seleccioná tu empresa real; la demo no modifica tus datos personales.</p></div>:<><div className="my-profile-photo">
    <ProfilePhoto photo={current.photo_url||null} name={name} save={async photo=>{setPhotoSaving(true);try{await save({...(!current.full_name?{full_name:name}:{}),photo_url:photo});}finally{if(mounted.current)setPhotoSaving(false);}}}/>
   </div>
   <div className="my-profile-name">
    <Editor fields={[{key:'full_name',label:'Nombre completo'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
    <p className="my-profile-help">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
-  </div>
+  </div></>}
   <div className="my-profile-scope"><strong>{current.identity_scope==='demo'?'Solo en este demo':'Identidad personal'}</strong><p>{current.identity_scope==='demo'?'Tu nombre y foto en este demo. Los cambios no modifican tu perfil en empresas reales.':'Tu nombre y foto personales se comparten entre tus empresas. El cargo, sueldo y acceso se mantienen separados en cada empresa.'}</p></div>
   {warning&&<p className="my-profile-warning" role="status">{warning}</p>}
   </>}

@@ -119,7 +119,8 @@ test('Home wiring gates startup on current operational data and preserves explic
  assert(!logout.includes('updatePreferences'));assert(logout.includes('clearSessionState()'));
  const cleanup=home.slice(home.indexOf('function clearSessionState()'),home.indexOf('async function logout()'));
  assert(cleanup.includes("setStartupDataScope('')"));assert(!cleanup.includes('updatePreferences'));
- assert(home.includes('preferencesDialogScope===preferenceScope'));
+ assert(home.includes("active==='Preferencias'"));
+ assert(home.includes('preferencesReady?<SelectCustom'));
  assert(home.includes('productionFiltersDialogScope===preferenceScope'));
  assert(home.includes('filterProductionOrders(orders, projects, selectedProductionClient,{...preferences.production'));
  assert(home.includes('userId:String(user?.id||\'\'),today:productionToday'));
