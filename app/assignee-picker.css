@@ -2,11 +2,13 @@
 .assignee-picker legend{padding-inline:4px;font-size:.875rem;font-weight:600}
 .assignee-picker legend span,.assignee-picker .assignee-help{color:var(--text-muted,#746c78);font-size:.8rem;font-weight:400}
 .assignee-picker p{margin:0;overflow-wrap:anywhere}
-.assignee-picker .assignee-selected{list-style:none;padding:0;margin:0;display:grid;gap:6px;min-width:0}
-.assignee-picker .assignee-selected li{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--surface-subtle,#f7f6f8);border-radius:8px;padding:4px 8px;min-width:0}
-.assignee-picker .assignee-selected li>span{flex:1 1 120px;font-size:.8rem;overflow-wrap:anywhere;min-width:0}
+.assignee-picker .assignee-selected{list-style:none;padding:0;margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.assignee-picker .assignee-selected li{display:inline-flex;align-items:center;gap:5px;max-width:100%;background:var(--surface-subtle,#f7f6f8);border:1px solid var(--line,#e8e3ea);border-radius:999px;padding:3px 4px 3px 9px;min-width:0}
+.assignee-picker .assignee-selected li>span{font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:220px}
 .assignee-picker button{font:inherit;font-size:.75rem;border:1px solid var(--line,#e8e3ea);border-radius:6px;background:var(--surface,#fff);padding:6px 9px;min-height:44px;cursor:pointer;white-space:normal}
 .assignee-picker .assignee-primary[aria-pressed=true]{border-color:var(--brand-600,#4d065b);color:var(--brand-600,#4d065b);font-weight:600}
+.assignee-picker .assignee-remove{display:grid;place-items:center;width:28px;min-width:28px;height:28px;min-height:28px;padding:0;border:0;background:transparent;color:var(--text-muted,#746c78);font-size:1.25rem;line-height:1;border-radius:50%}
+.assignee-picker .assignee-remove:hover:not(:disabled),.assignee-picker .assignee-remove:focus-visible{background:var(--danger-soft,#fae8eb);color:var(--danger,#b52f47)}
 .assignee-picker .assignee-search{display:grid;gap:4px;font-size:.8rem;min-width:0}
 .assignee-picker input[type=search]{box-sizing:border-box;min-width:0;width:100%;max-width:100%;min-height:44px}
 .assignee-picker .assignee-options{display:grid;gap:2px;max-height:220px;overflow-y:auto;overscroll-behavior:contain;min-width:0}
