@@ -1423,6 +1423,8 @@ export default function Home() {
   const [paymentStatuses, setPaymentStatuses] = useState<ClientPaymentStatus[]>(
     [],
   );
+  const [invoiceHasMore, setInvoiceHasMore] = useState(false);
+  const [allInvoicesLoaded, setAllInvoicesLoaded] = useState(false);
   const [moraFilter, setMoraFilter] = useState("");
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
@@ -1461,7 +1463,7 @@ export default function Home() {
     const next=user?.subscription?.hasAccess??null;
     if(next===false){
       dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
-      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
+      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
       setModal(null);setDetail(null);setMyProfile(false);setSubscriptionOpen(false);
     }else if(previousBillingAccess.current===false&&next===true){void load().catch(()=>setToast('No se pudieron actualizar los datos. Intentá nuevamente.'));}
     previousBillingAccess.current=next;
@@ -1522,13 +1524,14 @@ export default function Home() {
     const [accountData, invoiceData, transferData, paymentData, custodianData] =
       await Promise.all([
         request<{ accounts: Account[] }>("/api/agency/accounts"),
-        request<{ invoices: Invoice[] }>("/api/agency/invoices"),
+        request<{ invoices: Invoice[]; hasMore?: boolean }>(`/api/agency/invoices${allInvoicesLoaded ? "?limit=all" : ""}`),
         request<{ transfers: AccountTransfer[] }>("/api/agency/transfers"),
         request<{ payments: PaymentRecord[] }>("/api/agency/payments"),
         request<{ members: Member[] }>("/api/agency/custodians"),
       ]);
     setAccounts(accountData.accounts);
     setInvoices(invoiceData.invoices);
+    setInvoiceHasMore(invoiceData.hasMore===true);
     setTransfers(transferData.transfers);
     setPayments(paymentData.payments);
     setCustodians(custodianData.members);
@@ -1543,6 +1546,10 @@ export default function Home() {
         ),
       );
   }, [active, operationalAccess]);
+  async function loadAllInvoices(){
+    const data=await request<{invoices:Invoice[];hasMore?:boolean}>("/api/agency/invoices?limit=all");
+    setInvoices(data.invoices);setInvoiceHasMore(false);setAllInvoicesLoaded(true);
+  }
   useEffect(() => {
     if (
       operationalAccess &&
@@ -1580,7 +1587,7 @@ export default function Home() {
   }
   function clearSessionState() {
     dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
-    setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
+    setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
     setMyProfile(false);setDetail(null);setProductionFiltersDialogScope('');setStartupDataScope('');
     setDataScope('');
     setSignedIn(false);
@@ -2179,6 +2186,7 @@ export default function Home() {
                   Todavía no hay facturas registradas.
                 </p>
               )}
+              {invoiceHasMore&&<div className="inline-actions"><button className="secondary" type="button" onClick={()=>void loadAllInvoices()}>Ver todas las facturas</button></div>}
               <div className="panel-heading">
                 <div>
                   <p className="eyebrow">COBROS REGISTRADOS</p>
