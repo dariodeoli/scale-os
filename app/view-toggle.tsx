@@ -29,7 +29,6 @@ export function ViewToggle({ value, onChange, label }: ViewToggleProps) {
           onClick={() => onChange(optionValue)}
         >
           <Icon aria-hidden="true" size={20} strokeWidth={2.25} />
-          <span className="sr-only">{optionLabel}</span>
         </button>
       ))}
     </div>
