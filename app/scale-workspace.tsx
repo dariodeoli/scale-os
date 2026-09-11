@@ -1947,7 +1947,7 @@ export default function Home() {
         {active === "Clientes" && (
           <section className="panel directory">
             <p className="directory-summary">{clients.length} clientes registrados</p>
-            <div className="client-directory-toolbar"><SelectCustom label="Estado del cliente" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/><div className="client-view-toggle" role="group" aria-label="Vista de clientes"><button type="button" aria-pressed={clientView==='list'} onClick={()=>changeClientView('list')}>Lista</button><button type="button" aria-pressed={clientView==='grid'} onClick={()=>changeClientView('grid')}>Cuadrícula</button></div></div>
+            <div className="client-directory-toolbar"><SelectCustom label="Estado del cliente" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/><div className="client-view-toggle" role="group" aria-label="Vista de clientes"><button type="button" aria-label="Ver clientes en lista" aria-pressed={clientView==='list'} onClick={()=>changeClientView('list')}><List size={18}/><span className="sr-only">Lista</span></button><button type="button" aria-label="Ver clientes en cuadrícula" aria-pressed={clientView==='grid'} onClick={()=>changeClientView('grid')}><Grid2X2 size={18}/><span className="sr-only">Cuadrícula</span></button></div></div>
             <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
               {clients.length ? (
                 clients.filter(client=>!clientStatusFilter||clientState(client).value===clientStatusFilter).map((client) => (
