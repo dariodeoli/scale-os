@@ -1,4 +1,5 @@
 .client-directory-toolbar{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-block:18px}
+.directory-toolbar-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-block:18px}.directory-toolbar-row .directory-summary{margin:0}.directory-toolbar-row .client-view-toggle button{width:46px;justify-content:center;padding:10px}
 .client-directory-toolbar>.ops-select{min-width:180px;flex:1}
 .client-view-toggle{display:flex;gap:4px;align-items:center}
 .client-view-toggle button{min-height:44px;padding:10px 14px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-muted)}
@@ -15,3 +16,5 @@
 .client-directory-grid .client-row>div:first-child{flex:1}
 .client-directory-grid .client-row small{display:block;margin-top:8px}
 .client-directory-grid .client-record-actions{padding-top:12px;border-top:1px solid var(--line)}
+.project-list{display:grid;gap:0}.project-list .project-card{display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(160px,1fr) auto;align-items:center;gap:16px;border-width:0 0 1px;border-radius:0;padding:14px 4px;background:transparent}.project-list .project-card:last-child{border-bottom:0}.project-list .project-card h3,.project-list .project-card>p{margin:0}.project-list .project-card .inline-actions{justify-content:flex-end}
+@media(max-width:700px){.directory-toolbar-row{align-items:flex-start}.project-list .project-card{grid-template-columns:1fr;gap:8px}.project-list .project-card a,.project-list .project-card span{width:max-content}}

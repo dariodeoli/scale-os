@@ -75,8 +75,10 @@ import {
   ChevronDown,
   FileText,
   FolderKanban,
+  Grid2X2,
   LayoutDashboard,
   Link as LinkIcon,
+  List,
   LogOut,
   Plus,
   Search,
@@ -1351,8 +1353,11 @@ export default function Home() {
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string}|null>(null);
   const [projectClient,setProjectClient]=useState('');
   const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState('');
+  const [projectView,setProjectView]=useState('grid');
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
+  useEffect(()=>{try{setProjectView(localStorage.getItem('scale:project-view')==='list'?'list':'grid');}catch{/* Optional UI preference. */}},[]);
   function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
+  function changeProjectView(value:string){setProjectView(value);try{localStorage.setItem('scale:project-view',value);}catch{/* Optional UI preference. */}}
   const [user, setUser] = useState<User | null>(null);
   const [guideData,setGuideData]=useState<WorkspaceGuideData>({scope:null,status:'unknown'});
   const dataLoadSequence=useRef(0);
@@ -1967,8 +1972,8 @@ export default function Home() {
         )}
         {active === "Proyectos" && (
           <section className="panel directory">
-            <p className="directory-summary">{projects.length} proyectos · Carpetas, responsables y piezas</p>
-            <div className="project-grid">
+            <div className="directory-toolbar-row"><p className="directory-summary">{projects.length} proyectos · Carpetas, responsables y piezas</p><div className="client-view-toggle" role="group" aria-label="Vista de proyectos"><button type="button" aria-label="Ver proyectos en lista" aria-pressed={projectView==='list'} onClick={()=>changeProjectView('list')}><List size={18}/><span className="sr-only">Lista</span></button><button type="button" aria-label="Ver proyectos en cuadrícula" aria-pressed={projectView==='grid'} onClick={()=>changeProjectView('grid')}><Grid2X2 size={18}/><span className="sr-only">Cuadrícula</span></button></div></div>
+            <div className={projectView==='grid'?'project-grid':'project-list'}>
               {projects.length ? (
                 projects.map((project) => (
                   <article className={`project-card identity-card identity-${identityColor(clients.find(c=>String(c.id)===String(project.client_id))?.color_key)}`} key={project.id}>
