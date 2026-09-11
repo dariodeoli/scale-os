@@ -62,7 +62,9 @@ test('all eight legacy workspace form footers register their own submitting stat
   assert.equal(footers.length,1,`${name} must have one registered footer`);
   const pending=footers[0].attributes.properties.find((node):node is ts.JsxAttribute=>ts.isJsxAttribute(node)&&node.name.getText(file)==='pending');
   assert(pending?.initializer&&ts.isJsxExpression(pending.initializer));
-  assert.equal(pending.initializer.expression?.getText(file),'form.formState.isSubmitting');
+  assert.equal(pending.initializer.expression?.getText(file),'submission.pending');
+  assert(form.getText(file).includes('useSingleFlightSubmit(form.handleSubmit(submit))'),'lock starts before async validation');
+  assert(form.getText(file).includes('onSubmit={submission.onSubmit}'),'native submission uses the same lock as the footer');
  }
  assert.equal((source.match(/<SaveActions\b/g)||[]).length,8);
  assert(!source.includes('<FormActions>'),'no unregistered legacy footer remains');

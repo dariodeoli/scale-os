@@ -16,6 +16,8 @@ export type SubscriptionState={
  /** Server-authorized owner only; this UI flag is not an authorization boundary. */
  canManage:boolean;
  checkoutReady:boolean;
+ /** Optional during rollout; availability, not proof of payment or permission. */
+ portalReady?:boolean;
 };
 export type SubscriptionPanelProps={
  state:SubscriptionState|null;
@@ -60,8 +62,12 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  const currency=state?.currency??'USD';
  const busy=loading||pending!==null;
- const canCheckout=!!state&&managed(state)&&state.status!=='active'&&state.canManage===true&&state.checkoutReady===true&&!error&&!loading;
- const canPortal=!!state&&['active','grace','suspended'].includes(state.status)&&state.canManage===true&&state.checkoutReady===true&&!error&&!loading;
+ // Older servers omit portalReady. Preserve their existing non-trial portal UI;
+ // a trial needs an explicit true, and an explicit false always takes precedence.
+ const showPortal=!!state&&(state.portalReady===true||state.portalReady===undefined&&['active','grace','suspended'].includes(state.status));
+ const showCheckout=!!state&&state.status!=='active'&&state.portalReady!==true;
+ const canCheckout=!!state&&managed(state)&&showCheckout&&state.canManage===true&&state.checkoutReady===true&&!error&&!loading;
+ const canPortal=!!state&&managed(state)&&showPortal&&state.canManage===true&&state.checkoutReady===true&&!error&&!loading;
  async function refresh(){
   if(!onRefresh||locked.current||loading)return;
   locked.current=true;setPending('refresh');setActionError('');setVerification('');
@@ -113,11 +119,11 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
     </dl>
     {!state.canManage?<p className="subscription-owner-help">Contactá al dueño de esta empresa para gestionar la suscripción.</p>:<>
      {!state.checkoutReady?<p className="subscription-setup" role="status">La configuración de Stripe está pendiente. El pago en línea y el portal todavía no están disponibles. No se realizó ningún cobro desde este panel.</p>:null}
-     {state.status!=='active'?<>
+     {showCheckout?<>
       <label className="subscription-consent"><input type="checkbox" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en Stripe.</span></label>
       <button type="button" className="subscription-primary" disabled={busy||!canCheckout||!accepted} onClick={()=>redirect('checkout')}>{pending==='checkout'?'Abriendo Stripe…':`Continuar en Stripe · ${prices[currency]}/mes por agencia`}</button>
      </>:null}
-     {['active','grace','suspended'].includes(state.status)?<button type="button" className="subscription-secondary" disabled={busy||!canPortal} onClick={()=>redirect('portal')}>{pending==='portal'?'Abriendo portal…':'Gestionar suscripción en Stripe'}</button>:null}
+     {showPortal?<button type="button" className="subscription-secondary" disabled={busy||!canPortal} onClick={()=>redirect('portal')}>{pending==='portal'?'Abriendo portal…':'Gestionar suscripción en Stripe'}</button>:null}
      <p className="subscription-help">Abrir Stripe no confirma un pago. Al volver, actualizá el estado para consultar la confirmación del servidor.</p>
     </>}
    </>:null}

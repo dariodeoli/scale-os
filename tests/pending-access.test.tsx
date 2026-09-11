@@ -32,7 +32,7 @@ async function run(){
   assert.equal(renderer!.root.findByProps({role:'status'}).props['aria-live'],'polite');
   await tick();await respond(2,{error:'La sesión venció'},401);assert(!text().includes('Entrar a Scale OS'),'a failed session check clears stale approval');assert(text().includes('La sesión venció'));
   await tick();await respond(3,state('rejected'));assert(text().includes('Acceso no habilitado'));assert(!text().includes('Entrar a Scale OS'));
-  await tick();await respond(4,state('unavailable'));assert(text().includes('Acceso no habilitado'));
+  await tick();await respond(4,state('unavailable'));assert(text().includes('Acceso no habilitado'));assert(text().includes('Esta solicitud no puede aprobarse'));assert(text().includes('enlace nuevo'));assert(!text().includes('Entrar a Scale OS'));
   await tick();const pending=requests.at(-1)!;await act(async()=>renderer!.unmount());renderer=undefined;
   assert.equal(pending.init?.signal?.aborted,true);assert.equal(timers.size,0);assert.equal(listeners.size,0);assert.equal(deadlines.size,0);
   await respond(requests.length-1,state('approved'));

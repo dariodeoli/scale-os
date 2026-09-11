@@ -136,6 +136,36 @@ async function main(){
   await act(async()=>{abandoned.resolve(new Response(JSON.stringify({url:'https://checkout.stripe.com/c/pay/abandoned'})));await pending;});
   assert.equal(redirects.length,beforeStale,'Unmounted panel never redirects');
 
+  const beforeAvailability=requests.length;
+  for(const portalReady of [false,undefined]){
+   await render({...state,portalReady});
+   assert(findButton('Continuar'));assert(!findButton('Gestionar'));
+  }
+  for(const status of ['active','grace','suspended'] as const){
+   await render({...state,status});assert(findButton('Gestionar'),'Older servers retain their non-trial portal UI');
+   await render({...state,status,portalReady:false});assert(!findButton('Gestionar'),'Explicit false overrides the legacy fallback');
+  }
+  await render({...state,portalReady:true,canManage:false});
+  assert(text().includes('Contactá al dueño'));assert(!findButton('Gestionar'));assert(!findButton('Continuar'));
+  await render({...state,portalReady:true,checkoutReady:false});
+  assert.equal(findButton('Gestionar').props.disabled,true);await click('Gestionar');
+  assert.equal(requests.length,beforeAvailability,'Availability renders and disabled actions never contact Stripe');
+  response=async()=>new Response(JSON.stringify({url:'https://billing.stripe.com/p/session/bound-trial'}));
+  await render({...state,portalReady:true});
+  assert(text().includes('Prueba gratuita'));assert(text().includes('Fin de prueba'));assert(!text().includes('Suscripción activa'));
+  assert.equal(findButton('Gestionar').props.disabled,false);assert(!findButton('Continuar'));
+  assert.equal(renderer!.root.findAllByProps({type:'checkbox'}).length,0,'Linked trials do not offer a duplicate subscription');
+  await click('Gestionar');
+  assert.equal(requests.at(-1)!.url,'/core-api/api/billing/portal');assert.deepEqual(JSON.parse(String(requests.at(-1)!.init!.body)),{});
+  assert.equal(redirects.at(-1),'https://billing.stripe.com/p/session/bound-trial');assert(text().includes('Prueba gratuita'));
+  const slowPortal=deferred<Response>();response=()=>slowPortal.promise;
+  await render({...state,portalReady:true});const beforePortalRedirect=redirects.length;
+  await act(async()=>{pending=findButton('Gestionar').props.onClick();});
+  await act(async()=>{renderer!.update(<SubscriptionPanel state={{...state,portalReady:false}}/>);});
+  await act(async()=>{slowPortal.resolve(new Response(JSON.stringify({url:'https://billing.stripe.com/p/session/stale'})));await pending;});
+  assert.equal(redirects.length,beforePortalRedirect,'Revoked portal availability invalidates a late response');
+  await act(async()=>{renderer!.unmount();renderer=undefined;});
+
   let opened=0;
   await act(async()=>{renderer=create(<SubscriptionNotice state={state} onOpen={()=>opened++}/>);});
   assert(text().includes('30 días de prueba restantes'));await click('Ver suscripción');assert.equal(opened,1);
@@ -154,7 +184,7 @@ async function main(){
   // Contrast of the actual fixed foreground/background pairs used by this panel.
   const luminance=(hex:string)=>{const channels=hex.match(/[a-f\d]{2}/gi)!.map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*channels[0]+.7152*channels[1]+.0722*channels[2];};
   for(const [fg,bg] of [['4d065b','ffffff'],['513b09','fff3cf'],['185640','e2f4ed'],['514957','eee9f0'],['8a1830','fff0f3']]){const a=luminance(fg),b=luminance(bg);assert((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5);}
-  console.log('PASS: fixed signup currency USD/PYG, completed checkout refresh without claiming paid, expired 409 manual retry; six states, owner/viewer, consent, Stripe unavailable, allowlisted redirects, no private reads, concurrency, mobile CSS and contrast');
+  console.log('PASS: linked trial portal, optional availability compatibility, owner/viewer/unlinked guards; fixed signup currency USD/PYG, completed checkout refresh without claiming paid, expired 409 manual retry; six states, consent, Stripe unavailable, allowlisted redirects, no private reads, concurrency, mobile CSS and contrast');
  }finally{if(renderer)await act(async()=>{renderer!.unmount();});globalThis.fetch=originalFetch;if(originalWindow)Object.defineProperty(globalThis,'window',originalWindow);else Reflect.deleteProperty(globalThis,'window');}
 }
 void main().catch(error=>{console.error(error);process.exitCode=1;});

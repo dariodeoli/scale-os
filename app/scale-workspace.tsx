@@ -39,6 +39,7 @@ import './mobile-navigation.css';
 import './workspace-density.css';
 import {Dialog} from './dialog';
 import {SaveActions} from './save-actions';
+import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {completeSave} from './save-completion';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import './operations.css';
@@ -374,6 +375,7 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
     defaultValues: { name: "", email: "", phone: "" },
   });
   const [error, setError] = useState("");
+  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: ClientValues) {
     try {
       const data = await request<{ client: Client }>("/api/agency/clients", {
@@ -389,7 +391,7 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
     <form
       className="form-stack ops-form-grid"
       noValidate
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={submission.onSubmit}
     >
       <label>
         Nombre
@@ -410,8 +412,8 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
         <input {...form.register("phone")} />
       </label>
       {error && <p className="error">{error}</p>}
-      <SaveActions pending={form.formState.isSubmitting}><button className="primary" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Guardando…" : "Crear cliente"}
+      <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
+        {submission.pending ? "Guardando…" : "Crear cliente"}
       </button></SaveActions>
     </form>
   );
@@ -437,6 +439,7 @@ function ProjectForm({
     defaultValues: { name: "", clientId: initialClientId, driveUrl: "" },
   });
   const [error, setError] = useState("");
+  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: ProjectValues) {
     try {
       const data = await request<{ project: Project }>("/api/agency/projects", {
@@ -452,7 +455,7 @@ function ProjectForm({
     <form
       className="form-stack ops-form-grid"
       noValidate
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={submission.onSubmit}
     >
       <label>
         Nombre del proyecto
@@ -501,11 +504,11 @@ function ProjectForm({
         <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
       </label>
       {error && <p className="error">{error}</p>}
-      <SaveActions pending={form.formState.isSubmitting}><button
+      <SaveActions pending={submission.pending}><button
         className="primary"
-        disabled={!clients.length || form.formState.isSubmitting}
+        disabled={!clients.length || submission.pending}
       >
-        {form.formState.isSubmitting ? "Guardando…" : "Crear proyecto"}
+        {submission.pending ? "Guardando…" : "Crear proyecto"}
       </button></SaveActions>
       {!clients.length && <p className="form-note">Primero creá un cliente.</p>}
     </form>
@@ -545,6 +548,7 @@ function OrderForm({
     },
   });
   const [error, setError] = useState("");
+  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: OrderValues) {
     try {
       const data = await request<{ workOrder: WorkOrder }>(
@@ -560,7 +564,7 @@ function OrderForm({
     <form
       className="form-stack ops-form-grid"
       noValidate
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={submission.onSubmit}
     >
       <label>
         Orden de trabajo
@@ -625,11 +629,11 @@ function OrderForm({
         <textarea {...form.register("description")} />
       </label>
       {error && <p className="error">{error}</p>}
-      <SaveActions pending={form.formState.isSubmitting}><button
+      <SaveActions pending={submission.pending}><button
         className="primary"
-        disabled={!projects.length || form.formState.isSubmitting}
+        disabled={!projects.length || submission.pending}
       >
-        {form.formState.isSubmitting ? "Guardando…" : "Crear orden"}
+        {submission.pending ? "Guardando…" : "Crear orden"}
       </button></SaveActions>
       {!projects.length && (
         <p className="form-note">Primero creá un proyecto.</p>
@@ -668,6 +672,7 @@ function BudgetForm({
     },
   });
   const [error, setError] = useState("");
+  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: BudgetValues) {
     try {
       const data = await request<{ budget: Budget }>("/api/agency/budgets", {
@@ -696,7 +701,7 @@ function BudgetForm({
     <form
       className="form-stack ops-form-grid"
       noValidate
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={submission.onSubmit}
     >
       <label>
         Nombre del presupuesto
@@ -784,11 +789,11 @@ function BudgetForm({
         <input type="date" {...form.register("validUntil")} />
       </label>
       {error && <p className="error">{error}</p>}
-      <SaveActions pending={form.formState.isSubmitting}><button
+      <SaveActions pending={submission.pending}><button
         className="primary"
-        disabled={!clients.length || form.formState.isSubmitting}
+        disabled={!clients.length || submission.pending}
       >
-        {form.formState.isSubmitting ? "Creando…" : "Crear presupuesto"}
+        {submission.pending ? "Creando…" : "Crear presupuesto"}
       </button></SaveActions>
     </form>
   );
@@ -824,6 +829,7 @@ function AccountForm({
     },
   });
   const [error, setError] = useState("");
+  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: AccountValues) {
     try {
       const data = await request<{ account: Account }>("/api/agency/accounts", {
@@ -841,7 +847,7 @@ function AccountForm({
     <form
       className="form-stack ops-form-grid"
       noValidate
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={submission.onSubmit}
     >
       <label>
         Nombre de la cuenta
@@ -941,8 +947,8 @@ function AccountForm({
         </div>
       </fieldset>
       {error && <p className="error">{error}</p>}
-      <SaveActions pending={form.formState.isSubmitting}><button className="primary" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Creando…" : "Crear cuenta"}
+      <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
+        {submission.pending ? "Creando…" : "Crear cuenta"}
       </button></SaveActions>
     </form>
   );
@@ -967,6 +973,7 @@ function InvoiceForm({
     defaultValues: { clientId: "", total: 0, currency: defaultCurrency, dueOn: "" },
   });
   const [error, setError] = useState("");
+  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: InvoiceValues) {
     try {
       const data = await request<{ invoice: Invoice }>("/api/agency/invoices", {
@@ -984,7 +991,7 @@ function InvoiceForm({
     <form
       className="form-stack ops-form-grid"
       noValidate
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={submission.onSubmit}
     >
       <fieldset>
         <legend>Cliente</legend>
@@ -1043,11 +1050,11 @@ function InvoiceForm({
         <input type="date" {...form.register("dueOn")} />
       </label>
       {error && <p className="error">{error}</p>}
-      <SaveActions pending={form.formState.isSubmitting}><button
+      <SaveActions pending={submission.pending}><button
         className="primary"
-        disabled={!clients.length || form.formState.isSubmitting}
+        disabled={!clients.length || submission.pending}
       >
-        {form.formState.isSubmitting ? "Creando…" : "Crear factura"}
+        {submission.pending ? "Creando…" : "Crear factura"}
       </button></SaveActions>
     </form>
   );
@@ -1085,6 +1092,7 @@ function PaymentForm({
     },
   });
   const [error, setError] = useState("");
+  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: PaymentValues) {
     try {
       await request("/api/agency/payments", {
@@ -1104,7 +1112,7 @@ function PaymentForm({
     <form
       className="form-stack ops-form-grid"
       noValidate
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={submission.onSubmit}
     >
       <fieldset>
         <legend>Factura</legend>
@@ -1192,11 +1200,11 @@ function PaymentForm({
         />
       </label>
       {error && <p className="error">{error}</p>}
-      <SaveActions pending={form.formState.isSubmitting}><button
+      <SaveActions pending={submission.pending}><button
         className="primary"
-        disabled={!accounts.length || form.formState.isSubmitting}
+        disabled={!accounts.length || submission.pending}
       >
-        {form.formState.isSubmitting ? "Guardando…" : "Registrar cobro"}
+        {submission.pending ? "Guardando…" : "Registrar cobro"}
       </button></SaveActions>
     </form>
   );
@@ -1228,6 +1236,7 @@ function TransferForm({
     },
   });
   const [error, setError] = useState("");
+  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: TransferValues) {
     try {
       await request("/api/agency/transfers", {
@@ -1247,7 +1256,7 @@ function TransferForm({
     <form
       className="form-stack ops-form-grid"
       noValidate
-      onSubmit={form.handleSubmit(submit)}
+      onSubmit={submission.onSubmit}
     >
       <fieldset>
         <legend>Sale de</legend>
@@ -1316,8 +1325,8 @@ function TransferForm({
         />
       </label>
       {error && <p className="error">{error}</p>}
-      <SaveActions pending={form.formState.isSubmitting}><button className="primary" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Guardando…" : "Registrar transferencia"}
+      <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
+        {submission.pending ? "Guardando…" : "Registrar transferencia"}
       </button></SaveActions>
     </form>
   );
