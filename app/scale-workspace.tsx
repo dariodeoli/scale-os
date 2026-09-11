@@ -1,5 +1,6 @@
 "use client";
 import {ProjectCard} from './project-card';
+import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {currencyCodes,currencyLabels,Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
 import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
@@ -137,6 +138,9 @@ type Project = {
   work_order_count: number;
 };
 type WorkOrder = {
+  assignees?:AssignedPerson[];
+  effective_assignees?:AssignedPerson[];
+  assignee_source?:'direct'|'project'|null;
   assigned_user_id?:string|null;
   assigned_user_ids?:string[];
   checklist_total?:number;
@@ -336,6 +340,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
         )}
         {order.description&&<span className="order-description">{order.description}</span>}
       </div>
+      <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
       {!!order.checklist_total&&<small className="card-checklist" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</small>}
       <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}>Ver detalle completo</button>{canMove&&<RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>}</div>

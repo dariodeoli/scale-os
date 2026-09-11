@@ -9,6 +9,15 @@
 - Preferir identidad personal compartida confirmada por servidor; correo solo como alternativa. No emparejar personas por parecido de nombre ni atribuir fotos actuales a autores importados sin identificación fiable. Los registros importados se etiquetan.
 - No modificar el contenido, autor original, fechas ni permisos de los registros al mejorar su presentación. No realizar una solicitud extra por cada avatar.
 
+## Responsables en tarjetas — 11-09-2026
+
+`AssignedPeople` es el contenedor compartido de responsables en las tarjetas de Producción y en Proyectos (lista y cuadrícula). Reutiliza `ActorIdentity`, con avatar decorativo de 24 px, nombre completo y etiqueta Principal cuando la confirma el servidor. Una sola superficie sutil, borde y radio semánticos; separaciones de 4/8 px mediante los tokens `--ui-space-*`. El ajuste de filas permite ver completas las 2–5 personas habituales y también todas las adicionales: sin `+N`, elipsis, altura fija ni desplazamiento interno. Nombres largos se parten sin ensanchar la tarjeta.
+
+- La sección tiene nombre accesible «Responsables asignados» y una lista semántica. No añade botones, escrituras ni peticiones por persona. Foto ausente, inválida o fallida usa las iniciales de `ActorIdentity`; el correo confirmado es alternativa al nombre.
+- Contrato: Proyectos usa `assignees: [{id, full_name, email?, photo_url, is_primary}]`, resuelto por ID y empresa. Producción muestra `effective_assignees` junto con `assignee_source` (`direct`, `project` o null), según la selección explícita del servidor; conserva `assignees` como asignaciones directas y `project_assignees` como contexto, sin mezclarlas ni recalcular herencia en el navegador. Si la fuente es `project`, etiqueta «Responsables del proyecto» y «Principal del proyecto»: no son asignaciones guardadas de la pieza. `[]` confirma que no hay responsables; campo ausente/null, respuesta inválida o error significa «Responsables no disponibles». La carga tiene su propio estado. Nunca usar IDs de filtros o alias de Trello para inventar un nombre, foto o responsable principal.
+- «Responsables» expresa asignación, no presencia. `ProjectCardPresence` conserva su bloque separado «Viendo ahora». No se mezclan sus personas, puntos de actividad ni tiempos con las asignaciones; ninguno de estos bloques mide horas trabajadas o amplía permisos.
+- El CSS compacto se limita a `.assigned-people`; no cambia los autores históricos. Pruebas de componente cubren cinco y más personas, nombres completos, alternativas de foto, estados honestos y separación de presencia. Los contratos CSS verifican ajuste; no sustituyen QA visual/táctil.
+
 ## Primer ingreso y preferencias — 11-09-2026
 
 - La guía muestra instrucciones según capacidades del rol, no solo visibilidad del módulo. El bloque de Primeros pasos es optativo, plegable y descartable; Guía del panel sigue disponible. No abre ventanas ni realiza escrituras de negocio automáticamente.
