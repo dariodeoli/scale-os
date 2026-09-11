@@ -2,12 +2,14 @@
 import {useState} from 'react';
 import {api,Dialog,Editor} from './operations';
 import {founderPricingNote} from './founder-pricing';
+import {sections} from './navigation';
 import {visibleModule} from './workspace-access';
 export {visibleModule} from './workspace-access';
 export function WorkspaceGuide({navigate,role}:{navigate:(module:string)=>void;role:string}){
  const [open,setOpen]=useState(false),[step,setStep]=useState(0);
+ const tools=sections.filter(([label])=>label!=='Métricas'&&visibleModule(label,role));
  const steps=[['Configuración','1. Tu empresa','Completá los datos que aparecerán en los presupuestos.'],['Equipo','2. Accesos','Invitá por correo y asigná permisos.'],['Clientes','3. Clientes','Agregá los contactos y datos de facturación.'],['Proyectos','4. Producción','Creá un proyecto, vinculá Drive y definí las aprobaciones.'],['Presupuestos','5. Primera propuesta','Usá un plan, revisá los ítems y habilitá el enlace público.']];
- return <><button className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{open&&<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}><h3>{steps[step][1]}</h3><p>{steps[step][2]}</p><div className="inline-actions"><button className="secondary" disabled={step===0} onClick={()=>setStep(step-1)}>Anterior</button>{visibleModule(steps[step][0],role)&&<button className="primary" onClick={()=>{navigate(steps[step][0]);setOpen(false);}}>Abrir {steps[step][0]}</button>}<button className="secondary" disabled={step===4} onClick={()=>setStep(step+1)}>Siguiente</button></div><h3>Todas las herramientas</h3><div className="ops-job-list">{['Resumen','Clientes','Proyectos','Presupuestos','Finanzas','Mora','Equipo','Comisiones','Pipeline','Planes','Inventario','Actividad','Papelera','Configuración'].filter(label=>visibleModule(label,role)).map(label=><button className="choice" key={label} onClick={()=>{navigate(label);setOpen(false);}}>{label}</button>)}</div></Dialog>}</>;
+ return <><button className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{open&&<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}><h3>{steps[step][1]}</h3><p>{steps[step][2]}</p><div className="inline-actions"><button className="secondary" disabled={step===0} onClick={()=>setStep(step-1)}>Anterior</button>{visibleModule(steps[step][0],role)&&<button className="primary" onClick={()=>{navigate(steps[step][0]);setOpen(false);}}>Abrir {steps[step][0]}</button>}<button className="secondary" disabled={step===4} onClick={()=>setStep(step+1)}>Siguiente</button></div><h3>Todas las herramientas</h3><div className="ops-job-list">{tools.map(([label])=><button className="choice" key={label} onClick={()=>{navigate(label);setOpen(false);}}>{label}</button>)}</div></Dialog>}</>;
 }
 export function NewCompany(){
  const [open,setOpen]=useState(false);

@@ -1,4 +1,6 @@
 import {NextResponse,type NextRequest} from 'next/server';
+import {sections,legacyRoutes} from './app/navigation';
+const workspaceRoots=new Set([...sections.map(([,slug])=>slug.split('/')[0]),...Object.keys(legacyRoutes)]);
 export function middleware(request:NextRequest){
  const host=(request.headers.get('host')||'').split(':')[0].toLowerCase(),path=request.nextUrl.pathname;
  if(host==='sistema.scaleparaguay.com'){
@@ -8,7 +10,7 @@ export function middleware(request:NextRequest){
   if(path==='/scale-os.html')return NextResponse.redirect(new URL('https://sistema.scaleparaguay.com/'),308);
   if(path==='/registro')return NextResponse.redirect(new URL('https://app.scaleparaguay.com/registro'),307);
   if(path.startsWith('/brand/'))return NextResponse.next();
-  if(path==='/demo'||path.startsWith('/core-api/')||/^\/(resumen|produccion|clientes|proyectos|presupuestos|pagos|equipo|pipeline|metricas|inventario|actividad|configuracion)(\/|$)/.test(path)){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
+  if(path==='/demo'||path.startsWith('/core-api/')||workspaceRoots.has(path.split('/')[1])){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
   return new NextResponse('Página no encontrada',{status:404,headers:{'X-Robots-Tag':'noindex'}});
  }
  if(path==='/robots.txt')return new NextResponse('User-agent: *\nDisallow: /\n',{headers:{'Content-Type':'text/plain'}});

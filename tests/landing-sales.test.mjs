@@ -58,6 +58,16 @@ test('illustration and module copy make no fabricated adoption or live-data clai
  assert.equal(metadata.review,undefined);
 });
 
+test('published reports and rolling demo are discoverable without promising nonexistent history',()=>{
+ assert(text.includes('Informes para decidir con datos'));
+ for(const metric of ['clientes activos, facturación, cobros y ticket promedio','retención','antigüedad','empresas y profesionales'])assert(text.includes(metric));
+ assert(text.includes('Hasta 24 meses por consulta, monedas separadas y datos según los registros disponibles'));
+ assert(text.includes('Solo Dueño, Administración y Finanzas'));
+ assert(text.includes('20 clientes ficticios y 7 meses de historial ilustrativo'));
+ assert(text.includes('fechas relativas al inicio de cada nueva demo'));
+ assert(html.includes('<li>Informes mensuales de clientes y facturación</li>'));
+});
+
 test('contact form and telemetry runtimes are byte-for-byte preserved',()=>{
  // Captured from the pre-redesign source, compared before storing these hashes.
  assert.equal(sha(script),'bd82b9596d0df8d438f9907d405a0a92e9d350be086b6e44e7bdd9cc7a0c7865');
@@ -113,6 +123,13 @@ test('CSS source provides shrinking grids at 320/360/390/768; not rendered visua
  assert(css.includes('animation:none!important;transition:none!important'));
  assert(css.includes(':focus-visible{outline:3px solid'));
  assert(!/body[^}]*overflow(?:-x)?:hidden/.test(css),'do not mask overflow on the body');
+});
+
+test('contact input boundaries remain distinguishable from white and page backgrounds',()=>{
+ const root=postcss.parse(html.match(/<style>([\s\S]*?)<\/style>/)[1]);let border;
+ root.walkRules(rule=>{if(rule.selectors.includes('.contact-form input'))rule.walkDecls('border',decl=>{border=decl.value.match(/#[\da-f]{6}/i)?.[0];});});
+ const light=hex=>{const parts=hex.slice(1).match(/../g).map(c=>parseInt(c,16)/255).map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);return parts[0]*.2126+parts[1]*.7152+parts[2]*.0722;};
+ assert(border);for(const background of ['#ffffff','#fbfafc']){const a=light(border),b=light(background);assert((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=3,background);}
 });
 
 // Execute only with DOM/network doubles; never submit to real contact or telemetry APIs.
