@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect,useId,useRef,useState} from 'react';
+import {founderPricingNote} from './founder-pricing';
 import './subscription-panel.css';
 
 export type SubscriptionState={
@@ -99,9 +100,10 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error}:Subscrip
    <div className={`subscription-status subscription-status--${state.status}`}><h3>{titles[state.status]}</h3><p>{description(state)}</p></div>
    {!state.hasAccess&&state.status!=='suspended'?<p className="subscription-error" role="alert">El servidor informa que el acceso está bloqueado.</p>:null}
    {managed(state)?<>
-    <p>Después de los 30 días gratis: <strong>US$ 10 o Gs. 50.000 por mes, por agencia</strong>. Son precios fijos por moneda, no una conversión.</p>
+    <p>Después de los 30 días gratis: <strong>US$ 10 o Gs. 50.000 por mes, por agencia</strong>. Son precios de lanzamiento por moneda, no una conversión.</p>
+    <p><strong>Beneficio para clientes fundadores.</strong> {founderPricingNote}</p>
     <p>Todos los integrantes y todos los módulos están incluidos. No hay cobro por usuario. Los permisos de cada rol se mantienen: el plan no amplía los accesos de los integrantes.</p>
-    <p className="subscription-fixed-price">Tu moneda de registro es <strong>{state.currency}</strong>: <strong>{prices[state.currency]} por mes, por agencia</strong>. Se mantiene para esta suscripción; no se puede cambiar desde este panel.</p>
+    <p className="subscription-fixed-price">Tu moneda de registro es <strong>{state.currency}</strong>: <strong>{prices[state.currency]} por mes, por agencia</strong>. La moneda se mantiene para esta suscripción; no se puede cambiar desde este panel.</p>
     <p>Hay 2 días de gracia; desde el tercer día se suspende el acceso sin borrar tus datos.</p>
     <dl className="subscription-dates">
      {state.status==='trialing'?<div><dt>Fin de prueba</dt><dd>{dateLabel(state.trialEndsAt)}</dd></div>:null}

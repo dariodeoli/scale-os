@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import postcss from 'postcss';
 import type {SubscriptionState,SubscriptionPanelProps} from '../app/subscription-panel';
+import {founderPricingNote} from '../app/founder-pricing';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 const {SubscriptionPanel,SubscriptionNotice}=require('../app/subscription-panel') as typeof import('../app/subscription-panel');
@@ -37,6 +38,7 @@ async function main(){
   assert.equal(requests.length,0,'Mounting any status, including suspended, must never fetch');
   await render(state);assert(text().includes('30 días de prueba restantes'));assert(text().includes('10/10/2026'));
   assert(text().includes('US$ 10 o Gs. 50.000 por mes, por agencia'));assert(text().includes('no una conversión'));assert(text().includes('2 días de gracia'));
+  assert(text().includes(founderPricingNote));
   assert(text().includes('Todos los integrantes y todos los módulos están incluidos'));
   assert(text().includes('No hay cobro por usuario'));assert(text().includes('Los permisos de cada rol se mantienen'));
   assert(renderer!.root.findByProps({className:'subscription-consent'}).findByType('span').children.join('').includes('sin cobro por usuario'));

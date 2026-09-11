@@ -16,7 +16,7 @@ const demo='https://sistema.scaleparaguay.com/demo';
 test('one monthly plan, two fixed alternatives and explicit trial/grace terms',()=>{
  assert.equal((html.match(/data-plan="single"/g)||[]).length,1);
  assert(text.includes('US$10/mes o G.50.000/mes'));
- assert(text.includes('precios alternativos fijos'));
+ assert(text.includes('precios alternativos de lanzamiento'));
  assert(text.includes('no una conversión'));
  assert(text.includes('30 días desde el alta de tu cuenta'));
  assert(text.includes('la prueba empieza al completar el alta, no al hacer clic'));
@@ -76,8 +76,8 @@ test('semantic anchors, native FAQ and keyboard focus remain available without a
  for(const [,id] of html.matchAll(/href="#([^"]+)"/g))assert(ids.includes(id),'anchor '+id);
  for(const [,id] of html.matchAll(/aria-labelledby="([^"]+)"/g))assert(ids.includes(id),'label '+id);
  assert.equal((html.match(/<h1\b/g)||[]).length,1);
- assert.equal((html.match(/<details>/g)||[]).length,8);
- assert.equal((html.match(/<summary>/g)||[]).length,8);
+ assert.equal((html.match(/<details>/g)||[]).length,9);
+ assert.equal((html.match(/<summary>/g)||[]).length,9);
  assert(html.includes('class="skip" href="#contenido"'));
  assert(!/<script[^>]+src=|type="module"|maximum-scale|user-scalable=no/.test(html));
  for(const img of html.matchAll(/<img\b[^>]*>/g))assert(/\balt="[^"]*"/.test(img[0]));

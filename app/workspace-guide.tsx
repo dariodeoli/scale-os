@@ -1,6 +1,7 @@
 "use client";
 import {useState} from 'react';
 import {api,Dialog,Editor} from './operations';
+import {founderPricingNote} from './founder-pricing';
 import {visibleModule} from './workspace-access';
 export {visibleModule} from './workspace-access';
 export function WorkspaceGuide({navigate,role}:{navigate:(module:string)=>void;role:string}){
@@ -13,6 +14,7 @@ export function NewCompany(){
  return <section className="panel"><h2>Multiempresa</h2>
   <p className="form-note">Cada empresa tendrá sus propios clientes, equipo, proyectos y finanzas. Solo tu usuario tendrá acceso inicial.</p>
   <p className="form-note">Las nuevas empresas incluyen 30 días gratis. Después: US$10 o G. 50.000 al mes por empresa, con 2 días de gracia. Al comenzar el tercer día sin pagar se suspende el uso, sin borrar los datos. No se realiza ningún cobro al crearla.</p>
+  <p className="form-note"><strong>Precio de lanzamiento.</strong> {founderPricingNote}</p>
   <button className="secondary" onClick={()=>setOpen(true)}>Crear otra empresa</button>
   {open&&<Dialog title="Nueva empresa · 30 días gratis" close={()=>setOpen(false)}><Editor fields={[{key:'name',label:'Nombre de la empresa'},{key:'slug',label:'Código único (letras, números y guiones)'},{key:'billingCurrency',label:'Suscripción después de la prueba',choices:[{value:'USD',label:'US$10 al mes'},{value:'PYG',label:'G. 50.000 al mes'}]}]} defaults={{name:'',slug:'',billingCurrency:'USD'}} label="Crear empresa e iniciar prueba" save={async v=>{const d=await api<{organization:{id:string}}>('/api/auth/organizations',v);await api('/api/auth/switch-organization',{organizationId:d.organization.id});window.location.assign('/');}}/></Dialog>}
  </section>;

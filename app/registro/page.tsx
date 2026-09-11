@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {WorkspaceBrand} from '../workspace-brand';
+import {founderPricingNote} from '../founder-pricing';
 import './registration.css';
 
 export default function Registration(){
@@ -16,8 +17,9 @@ export default function Registration(){
    <input type="hidden" name="signup" value="1"/>
    <label>Nombre de tu agencia<input name="company" required minLength={2} maxLength={160} autoComplete="organization" placeholder="Tu agencia"/></label>
    <label>Moneda de la suscripción<select name="currency" defaultValue="USD"><option value="USD">US$10 al mes</option><option value="PYG">G. 50.000 al mes</option></select></label>
+   <p className="registration-terms" id="founder-conditions"><strong>Precio de lanzamiento · Cliente fundador.</strong> {founderPricingNote}</p>
    <p className="registration-terms" id="trial-conditions">30 días gratis desde que se crea la agencia, sin tarjeta. Después, el precio mensual que elijas por empresa. Tendrás 2 días de gracia; al comenzar el tercer día sin pago se suspende el uso, sin borrar los datos. Podrás acceder a la suscripción para pagar y reactivar. Volver a registrarte no reinicia la prueba.</p>
-   <label className="registration-consent"><input name="consent" type="checkbox" value="1" required aria-describedby="trial-conditions"/><span>Acepto estas condiciones de la prueba y suscripción.</span></label>
+   <label className="registration-consent"><input name="consent" type="checkbox" value="1" required aria-describedby="trial-conditions founder-conditions"/><span>Acepto estas condiciones de la prueba y suscripción.</span></label>
    <button className="primary" type="submit">Crear mi agencia con Google</button>
    <small>Google verifica tu correo. No se cobrará nada al iniciar la prueba; el pago recurrente se autoriza por separado al suscribirte.</small>
    {error&&<p role="alert" className="error">{error}</p>}
