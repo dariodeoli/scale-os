@@ -9,6 +9,9 @@
 .demo-tools .demo-error{position:absolute;top:100%;left:0;z-index:31;max-width:280px;background:var(--surface);border:1px solid var(--danger);padding:8px;color:var(--danger)}
 .control-shell>.content>header{margin-bottom:16px}
 .control-shell .directory-summary{margin:0 0 12px;font-size:12px;color:var(--text-muted)}
+/* Project identifiers and author emails can have no natural line breaks.
+   Comments render in a dialog portal, outside the workspace shell. */
+.control-shell .project-card h3,.ops-comment>b{overflow-wrap:anywhere}
 @media(min-width:761px) and (max-width:1180px){.control-shell .workspace-search-trigger span{display:none}.control-shell .workspace-search-trigger{padding:8px}.control-shell .workspace-context>.workspace{max-width:200px}.demo-reset>span{display:none}}
 @media(max-width:760px){
  .control-shell .workspace-topbar{margin:-16px -16px 12px;padding:10px 12px;gap:6px 8px}

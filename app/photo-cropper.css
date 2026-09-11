@@ -17,3 +17,15 @@
 .photo-upload{position:relative;display:inline-flex!important;align-items:center;justify-content:center;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-size:13px!important;color:var(--text)!important}
 .photo-upload:focus-within{outline:2px solid var(--brand-600);outline-offset:2px}
 .photo-upload input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;padding:0;border:0}
+/* Keep the native file input hidden; its label provides the touch target. */
+@media (max-width:540px), (pointer:coarse){
+ .profile-photo-form .text-button,
+ .profile-photo-form .photo-upload,
+ .crop-zoom input,
+ .ops-dialog.unified-dialog:has(.profile-crop-stage) .quick-actions .text-button{min-height:44px;min-width:44px}
+}
+/* The old 180px floor overrode 42dvh on short screens, consuming body space
+   needed by zoom and instructions. Dialog scrolling/footer remain shared. */
+@media (max-height:500px){
+ .profile-crop-stage{height:min(42dvh,180px);min-height:120px}
+}

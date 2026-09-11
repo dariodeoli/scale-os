@@ -1,24 +1,27 @@
-.inventory-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem;align-items:start}
+.inventory-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem;align-items:start;min-width:0;overflow-wrap:anywhere}
 .inventory-form-grid label{display:grid;gap:.4rem;min-width:0;font-size:.85rem}
-.inventory-form-grid input,.inventory-form-grid select,.inventory-form-grid textarea,.inventory-month input{box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:.65rem;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:inherit}
+.inventory-form-grid input,.inventory-form-grid select,.inventory-form-grid textarea,.inventory-month input{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:44px;padding:.65rem;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:inherit}
 .inventory-form-grid textarea{min-height:90px;resize:vertical}
 .inventory-wide{grid-column:1/-1}
 .inventory-form-grid fieldset{border:1px solid var(--line);border-radius:var(--radius-md);padding:.8rem;min-width:0}
-.inventory-form-grid legend{font-weight:600;font-size:.85rem;padding-inline:.3rem}
+.inventory-form-grid legend{font-weight:600;font-size:.85rem;padding-inline:.3rem;max-width:100%}
 .inventory-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem;max-height:260px;overflow:auto;margin-block:.65rem}
 .inventory-form-grid .inventory-check{display:flex;align-items:center;gap:.6rem;min-height:44px;padding:.35rem;border-radius:var(--radius-sm);cursor:pointer}
-.inventory-form-grid .inventory-check input{width:18px;min-height:18px;height:18px;flex-shrink:0;accent-color:var(--brand-700)}
+.inventory-form-grid .inventory-check input{width:18px;min-height:18px;height:18px;padding:0;flex-shrink:0;accent-color:var(--brand-700)}
+.inventory-check>span{min-width:0}
 .inventory-check small{display:block;font-size:.75rem;color:var(--text-muted)}
 .inventory-filters{margin-block:1rem}
 .inventory-equipment-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:.8rem}
-.inventory-equipment,.inventory-reservation{border:1px solid var(--line);border-radius:var(--radius-md);padding:1rem;min-width:0}
+.inventory-equipment,.inventory-reservation{border:1px solid var(--line);border-radius:var(--radius-md);padding:1rem;min-width:0;overflow-wrap:anywhere}
 .inventory-equipment h3,.inventory-reservation h3{margin:0;font-size:1rem}
 .inventory-equipment .panel-heading span{font-size:.75rem;color:var(--text-muted)}
 .inventory-equipment p,.inventory-reservation p{font-size:.85rem;overflow-wrap:anywhere}
 .inventory-location{font-weight:600}
 .inventory-categories{display:flex;flex-wrap:wrap;gap:.5rem}
+.inventory-categories>button{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .inventory-workspace summary{min-height:44px;align-content:center;cursor:pointer}
 .inventory-workspace .panel-heading{flex-wrap:wrap;gap:.6rem}
+.inventory-workspace .panel-heading>*{min-width:0;max-width:100%}
 .inventory-month{display:flex;align-items:center;gap:.6rem;margin-top:1rem}
 .inventory-month input{width:auto}
 .inventory-reservation-list{display:grid;gap:.75rem;margin-top:1rem}
@@ -36,4 +39,6 @@
 .inventory-calendar-event{padding:.3rem;margin-top:.25rem;border-radius:5px;overflow-wrap:anywhere;font-size:.75rem}
 .inventory-calendar-event b,.inventory-calendar-event small{display:block}
 @media(min-width:1100px){.inventory-form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.inventory-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:620px){.inventory-form-grid,.inventory-options{grid-template-columns:minmax(0,1fr)}.inventory-weekdays,.inventory-calendar-blank{display:none}.inventory-calendar-grid{grid-template-columns:minmax(0,1fr)}.inventory-calendar-day{min-height:44px;display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap}.inventory-calendar-event{flex:1;min-width:130px}.inventory-month{flex-wrap:wrap}}
+@media(max-width:620px){.inventory-form-grid,.inventory-options{grid-template-columns:minmax(0,1fr)}}
+/* At 768px the expanded sidebar leaves about 500px for seven day columns. */
+@media(max-width:768px){.inventory-weekdays,.inventory-calendar-blank{display:none}.inventory-calendar-grid{grid-template-columns:minmax(0,1fr)}.inventory-calendar-day{min-height:44px;display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap}.inventory-calendar-event{flex:1 1 130px;min-width:0}.inventory-month{flex-wrap:wrap}}

@@ -1,0 +1,20 @@
+/* Long identities and native controls must not widen the page's grid track. */
+.login-page{grid-template-columns:minmax(0,1fr)}
+.login-page .login-card{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.dialog-body form,.dialog-body .form-stack,.dialog-body fieldset{min-width:0;max-width:100%}
+.dialog-body .form-stack>label{min-width:0}
+.dialog-body .ops-select-trigger>span{min-width:0;overflow-wrap:anywhere}
+.dialog-body .ops-select-trigger>svg{flex:none}
+
+@media(max-width:760px){
+ .login-page{padding:16px;min-height:100dvh}
+ .login-page .login-card{padding:24px 20px}
+ .login-card input,.dialog-body input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=hidden]),
+ .dialog-body textarea,.dialog-body select{
+  min-width:0;max-width:100%;font-size:16px;min-height:44px;
+ }
+ .dialog-heading .icon-button{width:44px;min-height:44px}
+ .dialog-footer .dialog-actions>button{min-height:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere;padding-block:8px}
+ .dialog-body .ops-select-trigger{min-height:44px}
+ .login-card .primary,.login-card .secondary,.login-card .google-login-button{min-height:44px;max-width:100%;white-space:normal}
+}

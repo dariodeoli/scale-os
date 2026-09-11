@@ -38,7 +38,7 @@ async function run(){
   await respond(requests.length-1,state('approved'));
   await act(async()=>{renderer=create(<PendingAccess/>);});await respond(requests.length-1,state('pending'));
   await tick();const stalled=requests.at(-1)!;
-  await act(async()=>{[...deadlines.values()].forEach(fn=>fn());});
+  await act(async()=>{Array.from(deadlines.values()).forEach(fn=>fn());});
   assert.equal(stalled.init?.signal?.aborted,true);assert(text().includes('tardó demasiado'));
   await tick();await respond(requests.length-1,state('pending'));
   await act(async()=>stalled.resolve(new Response(JSON.stringify(state('approved')))));
@@ -48,7 +48,7 @@ async function run(){
   const failed=requests.length-1;assert.equal(requests[failed].url,'/core-api/api/auth/logout');
   await respond(failed,{error:'Sin conexión'},503);assert.equal(redirects.length,0);assert(text().includes('No se pudo cerrar sesión'));assert.equal(logout().props.disabled,false);
   await act(async()=>{void logout().props.onClick();});const stalledLogout=requests.at(-1)!;
-  await act(async()=>{[...deadlines.values()].forEach(fn=>fn());});assert.equal(stalledLogout.init?.signal?.aborted,true);assert.equal(logout().props.disabled,false);assert.equal(redirects.length,0);
+  await act(async()=>{Array.from(deadlines.values()).forEach(fn=>fn());});assert.equal(stalledLogout.init?.signal?.aborted,true);assert.equal(logout().props.disabled,false);assert.equal(redirects.length,0);
   await act(async()=>{void logout().props.onClick();});await respond(requests.length-1,{ok:true});assert.deepEqual(redirects,['/']);
   assert(requests.every(r=>['/core-api/api/invitations/status','/core-api/api/auth/logout'].includes(r.url)),'pending screen never requests private agency data');
  }finally{
