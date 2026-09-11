@@ -99,3 +99,18 @@ test('unmount aborts an outstanding preview',async()=>{
  assert.equal(signal!.aborted,true);
  await act(async()=>resolve(response()));
 });
+
+test('active invitation shows a readable status and expiration without granting access',async()=>{
+ await mount(`?token=${token}`,async()=>response(200,{...valid,mode:'approval',expires_at:'2026-09-20T15:00:00Z',link_status:'active'}));
+ assert(text().includes('Enlace activo'));assert(text().includes('hora local'));
+ assert.equal(renderer!.root.findByType('time').props.dateTime,'2026-09-20T15:00:00.000Z');
+ assert(text().includes('el dueño lo aprobará'));assert.equal(oauth().length,1);
+});
+
+test('expired, revoked and used links show precise server state and never offer Google',async()=>{
+ for(const [reason,label] of [['expired','Enlace vencido'],['revoked','Enlace revocado'],['used','Enlace ya utilizado'],['unexpected','Invitación no disponible']]){
+  await mount(`?token=${token}`,async()=>response(410,{link_status:reason,error:'private error'}));
+  assert.equal(heading(),label);assert.equal(oauth().length,0);assert(!text().includes('private error'));
+  await act(async()=>renderer!.unmount());renderer=undefined;
+ }
+});

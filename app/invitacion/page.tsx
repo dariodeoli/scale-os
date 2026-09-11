@@ -2,8 +2,8 @@
 import {useEffect,useState} from 'react';
 import {teamRoleLabels} from '../team-directory';
 import {WorkspaceFooter} from '../workspace-footer';
-type Preview={organization_name:string;role:string;mode:'single'|'approval'};
-type State={status:'loading'|'missing'|'invalid'|'pending'|'previous-error'|'unavailable'|'connection'}|{status:'ready';info:Preview;token:string};
+type Preview={organization_name:string;role:string;mode:'single'|'approval';expires_at?:string};
+type State={status:'loading'|'missing'|'invalid'|'pending'|'previous-error'|'unavailable'|'connection'|'expired'|'revoked'|'used'}|{status:'ready';info:Preview;token:string};
 function isPreview(value:unknown):value is Preview{
  if(!value||typeof value!=='object')return false;
  const info=value as Partial<Preview>;
@@ -16,6 +16,9 @@ const notices={
  pending:{heading:'Solicitud pendiente de aprobación',message:'Si ya enviaste tu solicitud, un administrador debe aprobarla desde Equipo. Ingresá para consultar su estado actual.'},
  'previous-error':{heading:'Retomá tu invitación',message:'La dirección contiene un aviso de un intento anterior. No confirma el estado actual del enlace. Volvé a abrir la invitación original para verificarla e intentar nuevamente.'},
  unavailable:{heading:'Invitación no disponible',message:'El enlace ya no está disponible: pudo vencer, usarse o ser revocado. Pedí una nueva invitación al equipo.'},
+ expired:{heading:'Enlace vencido',message:'Terminó el plazo para usar esta invitación. Pedí un nuevo enlace al equipo.'},
+ revoked:{heading:'Enlace revocado',message:'El equipo desactivó esta invitación. Contactá al dueño para solicitar un nuevo enlace.'},
+ used:{heading:'Enlace ya utilizado',message:'Esta invitación de un solo uso ya fue utilizada. Si ya tenés acceso, ingresá a tu cuenta; si no, pedí otro enlace al equipo.'},
  connection:{heading:'No pudimos comprobar la invitación',message:'No pudimos obtener una respuesta válida del servicio. Esto no confirma que el enlace haya vencido. Revisá tu conexión e intentá nuevamente.'},
 };
 
@@ -38,7 +41,12 @@ export default function InvitationPage(){
    try{
     const response=await fetch('/core-api/api/invitations/preview?token='+encodeURIComponent(token),{cache:'no-store',signal:controller.signal,referrerPolicy:'no-referrer'});
     if(!active||controller.signal.aborted)return;
-    if(response.status===410){setState({status:'unavailable'});return;}
+    if(response.status===410){
+     const detail=await response.json().catch(()=>null);
+     if(!active||controller.signal.aborted)return;
+     const reason=detail?.link_status;
+     setState({status:reason==='expired'||reason==='revoked'||reason==='used'?reason:'unavailable'});return;
+    }
     if(!response.ok){setState({status:'connection'});return;}
     const info:unknown=await response.json();
     if(!active||controller.signal.aborted)return;
@@ -50,10 +58,14 @@ export default function InvitationPage(){
   return()=>{active=false;clearTimeout(timeout);controller.abort();};
  },[attempt]);
  const notice=state.status==='ready'?null:notices[state.status];
+ const labels:Record<State['status'],string>={ready:'Enlace activo',expired:'Enlace vencido',revoked:'Enlace revocado',used:'Enlace ya utilizado',loading:'Comprobando enlace',connection:'Estado sin verificar',missing:'Falta el enlace',invalid:'Enlace inválido',pending:'Solicitud pendiente',unavailable:'Enlace no disponible','previous-error':'Volvé a comprobar el enlace'};
+ const expiration=state.status==='ready'&&state.info.expires_at?new Date(state.info.expires_at):null;
  return <main className="login-page invite-page"><section className="login-card invite-card" aria-busy={state.status==='loading'}>
   <div className="login-brand"><img src="/brand/icon-192.png" width={56} height={56} alt="Scale OS"/></div>
   <p className="invite-eyebrow">Scale OS · Acceso de equipo</p>
   <h1>{notice?.heading||'Invitación al equipo'}</h1>
+  <p className="invite-link-status" data-state={state.status} role="status" aria-live="polite"><span aria-hidden="true">{state.status==='ready'?'✓':'•'}</span> {labels[state.status]}</p>
+  {expiration&&!Number.isNaN(expiration.getTime())&&<p className="invite-expiration">Vence: <time dateTime={expiration.toISOString()}>{new Intl.DateTimeFormat('es-PY',{dateStyle:'medium',timeStyle:'short'}).format(expiration)}</time> · hora local</p>}
   {state.status==='ready'?<>
    <p className="login-copy">Te invitaron a trabajar en este espacio.</p>
    <div className="invite-summary"><strong>{state.info.organization_name}</strong><span>Permiso asignado: <b>{teamRoleLabels[state.info.role]}</b></span></div>

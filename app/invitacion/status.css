@@ -1,0 +1,4 @@
+.invite-link-status{display:flex;align-items:center;justify-content:center;gap:6px;width:fit-content;max-width:100%;margin:14px auto 8px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface-subtle);color:var(--text);font-size:14px;font-weight:600;text-align:center}
+.invite-link-status[data-state="ready"]{border-color:#138366;background:#e8f6ef;color:#125e42}
+.invite-link-status[data-state="expired"],.invite-link-status[data-state="revoked"],.invite-link-status[data-state="used"]{border-color:#b77524;background:#fff3df;color:#75410b}
+.invite-expiration{margin:8px 0 16px;color:var(--text-muted);font-size:13px;line-height:1.5;text-align:center;overflow-wrap:anywhere}
