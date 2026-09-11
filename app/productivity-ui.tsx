@@ -9,6 +9,7 @@ import {ClientAppearance,ClientIdentity} from './client-identity';
 import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
 import {ClientLinks} from './client-links';
+import {ClientReporting} from './client-reporting';
 import {ProjectPresence} from './presence';
 import {ActorIdentity} from './actor-identity';
 import {RecordAssignees} from './record-assignees';
@@ -62,6 +63,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
   {['owner','admin','management','sales'].includes(role)?<ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} refresh={reload}/>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
   <p>{s(data.client,'email')} · {s(data.client,'phone')}</p><p>{s(data.client,'notes')}</p>
   <ClientLinks id={id} value={data.client.social_links} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>
+  <ClientReporting key={id} id={id} role={role} onSaved={reload}/>
   {managers.includes(role)&&<button className="primary" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button>}
   <div className="choice-list">{['Producción',...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)}>{t}</button>)}</div>
   {tab==='Producción'&&<><h3>Proyectos ({data.projects.length})</h3>{data.projects.map(p=><article className="activity-line" key={p.id}><b>{s(p,'name')}</b>{s(p,'drive_url')&&<a href={s(p,'drive_url')} target="_blank" rel="noreferrer">Carpeta de Drive ↗</a>}</article>)}<h3>Piezas recientes</h3>{data.orders.map(o=><button className="work-list-row" key={o.id} onClick={()=>openOrder(String(o.id))}><b>{s(o,'title')}</b><span>{s(o,'status')}</span></button>)}{!data.projects.length&&<p className="empty-copy">Este cliente aún no tiene proyectos.</p>}</>}

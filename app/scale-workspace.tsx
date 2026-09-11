@@ -16,6 +16,7 @@ import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
 const GrowthDashboard=dynamic(()=>import('./growth-dashboard').then(m=>m.GrowthDashboard));
+const ReportsWorkspace=dynamic(()=>import('./reports-workspace').then(m=>m.ReportsWorkspace));
 const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
 const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
@@ -99,6 +100,7 @@ const nav = [
   ["Proyectos", FolderKanban],
   ["Presupuestos", FileText],
   ["Finanzas", WalletCards],
+  ["Informes", BarChart3],
   ["Equipo", BriefcaseBusiness],
   ["Pipeline", FolderKanban],
   ["Inventario", BriefcaseBusiness],
@@ -1966,6 +1968,7 @@ export default function Home() {
             </div>
           </section>
         )}
+        {active === "Informes" && <ReportsWorkspace key={user?.organization_id} role={user?.role||'viewer'}/>}
         {active === "Finanzas" && (
           <section className="finance-grid">
             <section className="panel">

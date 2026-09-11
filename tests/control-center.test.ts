@@ -11,7 +11,7 @@ assert.equal(groupDueAlerts([...records,{...records[1],id:'8',due:'2026-09-06'},
 assert.equal(groupDueAlerts([]).length,0);assert.equal(normalizeSearch(' ÓRBITA '),'orbita');assert.equal(shortDate('invalid'),'Sin fecha');assert(shortDate('2026-09-07').startsWith('7'),'date-only retains calendar day');
 for(const [old,path] of Object.entries(legacyRoutes)){assert.equal(sectionPath(sectionLabel(path)),path);assert(!path.startsWith('/'+old+'/'),'no redirect loops');}
 assert.equal(parentSection('Mora'),'Finanzas');assert.equal(parentSection('Planes'),'Presupuestos');assert.equal(parentSection('Comisiones'),'Equipo');assert.equal(parentSection('Papelera'),'Configuración');
-assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,10);
+assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,11);
 assert.equal(sectionPath('Tablero de producción'),'/produccion');assert.equal(sectionLabel('/produccion'),'Producción');
 assert.equal(legacyDestination('constructor'),undefined);assert.equal(legacyDestination('toString'),undefined);assert.equal(legacyDestination('mora'),'/pagos/mora');
 const nextConfig=readFileSync(new URL('../next.config.mjs',import.meta.url),'utf8');
@@ -25,4 +25,4 @@ for(const hidden of ['Mora','Planes','Comisiones','Papelera'])assert(!ui.slice(u
 assert(ui.indexOf('<ControlCenter')<ui.indexOf('className="metrics operational-metrics"'));assert(ui.indexOf('className="metrics operational-metrics"')<ui.indexOf('id="produccion"'));
 const css=readFileSync(new URL('../app/control-center.css',import.meta.url),'utf8');assert(!/#[0-9a-f]{3,8}\b/i.test(css),'new stylesheet uses color tokens');
 for(const block of css.split('}')){const [selector,body]=block.split('{');if(/(?:^|[\s,.])(?:\.ops-card|\.financial-stat|\.metric)\s*$/.test(selector))assert(!body?.includes('min-height'),'no fixed minimum card height');}
-console.log('PASS: grouped alerts, calendar dates, search normalization, 10 menu groups, legacy redirects, all 8 role boundaries, dashboard hierarchy and brand tokens');
+console.log('PASS: grouped alerts, calendar dates, search normalization, 11 menu groups, legacy redirects, all 8 role boundaries, dashboard hierarchy and brand tokens');
