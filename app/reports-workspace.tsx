@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {api} from './operations';
+import {downloadReportsCsv} from './reports-csv';
 import './reports-workspace.css';
 
 export type ReportMonth={month:string;isPartial:boolean;clients:{active:number|null;added:number|null;lost:number|null;retentionPercent:number|null;averageTenureDays:number|null;tenureKnown:number;types:{kind:string;count:number}[];plans:{planId:string|number|null;name:string|null;count:number}[]};financial:{currency:string;invoiced:string;collected:string;invoiceCount:number;billedClients:number;averageTicket:string|null;averageRevenuePerClient:string|null}[]};
@@ -37,9 +38,10 @@ export function ReportsWorkspace({role}:{role:string}){return ['owner','admin','
 function ReportsPanel(){
  const [month,setMonth]=useState(currentMonth),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
  const [result,setResult]=useState<{key:string;data:ReportsData}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
+ const [exportError,setExportError]=useState('');
  const queryKey=`${month}:${months}:${retry}`;
  useEffect(()=>{
-  let alive=true;setResult(null);setError('');
+  let alive=true;setResult(null);setError('');setExportError('');
   void api<ReportsData>(`/api/agency/reports?month=${month}&months=${months}`).then(data=>{
    if(!data||data.month!==month||!Array.isArray(data.months))throw Error('La respuesta del reporte no corresponde al mes solicitado.');
    if(alive)setResult({key:queryKey,data});
@@ -72,6 +74,13 @@ function ReportsPanel(){
   </div>
   {error?<div role="alert" className="reports-error"><p>{error}</p><button type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button></div>:!data?<p role="status">Cargando reportes…</p>:<>
    <p className="reports-note">Datos al {reportDate(data.asOf,true)} (hora de Asunción). Histórico confiable desde: {reportDate(data.historySince)}.</p>
+   <div><button type="button" disabled={!rows.length} onClick={()=>{
+    if(!data||!rows.length)return;
+    setExportError('');
+    try{downloadReportsCsv(data,selectedCurrency);}catch{setExportError('No se pudo descargar el CSV. Intentá nuevamente.');}
+   }}>Exportar histórico CSV{selectedCurrency?` · ${selectedCurrency}`:''}</button></div>
+   <p className="reports-note">Exporta los meses cargados de la moneda seleccionada. CSV UTF-8, separado por punto y coma; decimales con punto, sin separador de miles. Celdas vacías: sin datos. Para conservar todos los dígitos, importá los importes como texto en tu planilla.</p>
+   {exportError?<p role="alert">{exportError}</p>:null}
    {partial?<p role="status" className="reports-warning">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</p>:null}
    {!selected?<p>Sin datos para el mes seleccionado.</p>:<>
     <div className="reports-tiles">{tiles.map(tile=><article key={tile.label}><h3>{tile.label}</h3><strong>{tile.value}</strong><p>{tile.change}</p></article>)}</div>

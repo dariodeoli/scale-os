@@ -14,7 +14,11 @@ assert(workspace.includes('aria-label="Abrir mi perfil" onClick={()=>setMyProfil
 assert(workspace.includes('onClick={logout} aria-label="Cerrar sesión"'));
 const fields=read('operations.tsx'),css=read('operations.css');
 assert(fields.includes('columns = true'));
-assert(fields.includes("'description','drive_url','address','notes','legal_name'"));
+// Additional wide fields are intentional; do not couple this contract to array order.
+const wideFields=fields.match(/\[([^\]]+)\]\.includes\(f\.key\)/)?.[1];
+assert(wideFields,'Editor must identify fields that span the form');
+const wideKeys=new Set(Array.from(wideFields.matchAll(/['"]([^'"]+)['"]/g),match=>match[1]));
+for(const key of ['title','description','drive_url','drive_links','address','notes','legal_name'])assert(wideKeys.has(key),`${key} must remain full width`);
 assert(css.includes('repeat(auto-fit,minmax(min(100%,220px),1fr))'));
 assert(css.includes('.ops-form-grid>.dialog-actions'));
 assert(css.includes('@media (max-width:540px)'));

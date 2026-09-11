@@ -47,9 +47,28 @@ test('assignee checkboxes do not inherit text-input padding; labels retain touch
  assert.equal(box.padding,'0','Global inputs have 10px 12px padding, larger than an 18px checkbox');
  assert.equal(box.width,'18px');assert.equal(box.height,'18px');assert.equal(box.flex,'0 0 18px');
  assert.equal(declarations(assignees,'.assignee-picker .assignee-option')['min-height'],'44px');
- assert.equal(declarations(assignees,'.assignee-picker .assignee-selected li')['flex-wrap'],'wrap');
+ // The list wraps whole chips; names inside each compact chip use ellipsis.
+ assert.equal(declarations(assignees,'.assignee-picker .assignee-selected')['flex-wrap'],'wrap');
+ const chip=declarations(assignees,'.assignee-picker .assignee-selected li');
+ assert.equal(chip.display,'inline-flex');assert.equal(chip['min-width'],'0');assert.equal(chip['max-width'],'100%');
+ const name=declarations(assignees,'.assignee-picker .assignee-selected li>span');
+ assert.equal(name['min-width'],'0');assert.equal(name.overflow,'hidden');
+ assert.equal(name['text-overflow'],'ellipsis');assert.equal(name['white-space'],'nowrap');
  assert.equal(declarations(assignees,'.assignee-picker .assignee-option span')['overflow-wrap'],'anywhere');
  assert.equal(declarations(assignees,'.assignee-picker .assignee-options')['overflow-y'],'auto');
+});
+test('chip remove actions stay compact on desktop and reserve 44px on mobile or coarse pointers',()=>{
+ const selector='.assignee-picker .assignee-remove';
+ const desktop=declarations(assignees,selector);
+ assert.equal(desktop.width,'28px');assert.equal(desktop.height,'28px');assert.equal(desktop.flex,'none');
+ const mobile=declarations(assignees,selector,'(max-width:760px), (pointer:coarse)');
+ for(const property of ['width','height','min-width','min-height'])assert.equal(mobile[property],'44px');
+ // Contract geometry only: dialog overlay/body + picker padding/border + chip
+ // padding/border/gaps must still leave space for the name and primary action.
+ for(const width of [320,360,390,540,760]){
+  const available=width-20-32-26-15-10-Number.parseFloat(mobile.width);
+  assert(available>=173,'the fixed remove target must leave room for shrinking chip content');
+ }
 });
 test('actor names already wrap without shrinking the avatar or truncating the name',()=>{
  const actor=declarations(actors,'.actor-identity'),name=declarations(actors,'.actor-identity-name'),avatar=declarations(actors,'.actor-identity-avatar');

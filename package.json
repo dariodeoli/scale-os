@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "overrides": { "postcss": "8.5.28", "@prisma/config": { "deepmerge-ts": "8.0.0", "effect": "3.20.0" } },
   "scripts": {
+    "footer:sync": "tsx build-tools/sync-landing-footer.tsx",
+    "footer:check": "tsx build-tools/sync-landing-footer.tsx --check",
+    "predev": "npm run footer:sync",
+    "prebuild": "npm run footer:sync",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
