@@ -1,4 +1,5 @@
 "use client";
+import {formatMoney} from './amount-format';
 import {currencyCodes,currencyLabels,Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
 import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
@@ -1429,6 +1430,8 @@ export default function Home() {
   );
   const [invoiceHasMore, setInvoiceHasMore] = useState(false);
   const [allInvoicesLoaded, setAllInvoicesLoaded] = useState(false);
+  const [loadingAllInvoices, setLoadingAllInvoices] = useState(false);
+  const invoiceRequestPending = useRef(false);
   const [moraFilter, setMoraFilter] = useState("");
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
@@ -1551,8 +1554,20 @@ export default function Home() {
       );
   }, [active, operationalAccess]);
   async function loadAllInvoices(){
-    const data=await request<{invoices:Invoice[];hasMore?:boolean}>("/api/agency/invoices?limit=all");
-    setInvoices(data.invoices);setInvoiceHasMore(false);setAllInvoicesLoaded(true);
+    if(invoiceRequestPending.current || !operationalAccess)return;
+    invoiceRequestPending.current=true;
+    setLoadingAllInvoices(true);
+    const sequence=dataLoadSequence.current;
+    try{
+      const data=await request<{invoices:Invoice[];hasMore?:boolean}>("/api/agency/invoices?limit=all");
+      if(sequence!==dataLoadSequence.current)return;
+      setInvoices(data.invoices);setInvoiceHasMore(data.hasMore===true);setAllInvoicesLoaded(true);
+    }catch{
+      if(sequence===dataLoadSequence.current)setToast("No se pudieron cargar todas las facturas. Tus datos siguen disponibles; podés reintentar.");
+    }finally{
+      invoiceRequestPending.current=false;
+      setLoadingAllInvoices(false);
+    }
   }
   useEffect(() => {
     if (
@@ -1928,11 +1943,7 @@ export default function Home() {
                     </div>
                     <span>
                       {client.currency
-                        ? new Intl.NumberFormat("es-PY", {
-                            style: "currency",
-                            currency: client.currency,
-                            maximumFractionDigits: 0,
-                          }).format(Number(client.outstanding_amount))
+                        ? formatMoney(client.outstanding_amount, client.currency)
                         : "Sin saldo pendiente"}
                     </span>
                   </div>
@@ -2018,11 +2029,7 @@ export default function Home() {
                       {budget.status === "draft" ? "Borrador" : budget.status}
                     </p>
                     <strong>
-                      {new Intl.NumberFormat("es-PY", {
-                        style: "currency",
-                        currency: budget.currency,
-                        maximumFractionDigits: 0,
-                      }).format(Number(budget.total))}{" "}
+                      {formatMoney(budget.total, budget.currency)}{" "}
                       IVA incl.
                     </strong>
                     <BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/>
@@ -2079,11 +2086,7 @@ export default function Home() {
                         <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role||'viewer'} done={loadFinance}/>
                       </div>
                       <strong>
-                        {new Intl.NumberFormat("es-PY", {
-                          style: "currency",
-                          currency: account.currency,
-                          maximumFractionDigits: 0,
-                        }).format(Number(account.balance))}
+                        {formatMoney(account.balance, account.currency)}
                       </strong>
                     </div>
                   ))}
@@ -2113,18 +2116,14 @@ export default function Home() {
                           {transfer.created_by_email || "Sistema"}
                           {transfer.reference ? ` · ${transfer.reference}` : ""}
                         </small>
-                        {transfer.to_currency&&<small>Recibido: {new Intl.NumberFormat('es-PY',{style:'currency',currency:transfer.to_currency,maximumFractionDigits:transfer.to_currency==='PYG'?0:2}).format(Number(transfer.received_amount||transfer.amount))}</small>}
+                        {transfer.to_currency&&<small>Recibido: {formatMoney(transfer.received_amount||transfer.amount,transfer.to_currency)}</small>}
                       </div>
                       <strong>
-                        {new Intl.NumberFormat("es-PY", {
-                          style: "currency",
-                          currency:
+                        {formatMoney(transfer.amount,
                             accounts.find(
                               (account) =>
                                 account.id === transfer.from_account_id,
-                            )?.currency || "PYG",
-                          maximumFractionDigits: 0,
-                        }).format(Number(transfer.amount))}
+                            )?.currency || "PYG")}
                       </strong>
                     </div>
                   ))}
@@ -2166,21 +2165,14 @@ export default function Home() {
                         </b>
                         <small>
                           {invoice.status} · pendiente{" "}
-                          {new Intl.NumberFormat("es-PY", {
-                            style: "currency",
-                            currency: invoice.currency,
-                            maximumFractionDigits: 0,
-                          }).format(
+                          {formatMoney(
                             Number(invoice.total) - Number(invoice.paid_amount),
+                            invoice.currency,
                           )}
                         </small>
                       </div>
                       <strong>
-                        {new Intl.NumberFormat("es-PY", {
-                          style: "currency",
-                          currency: invoice.currency,
-                          maximumFractionDigits: 0,
-                        }).format(Number(invoice.total))}
+                        {formatMoney(invoice.total, invoice.currency)}
                       </strong>
                     </div>
                   ))}
@@ -2190,7 +2182,7 @@ export default function Home() {
                   Todavía no hay facturas registradas.
                 </p>
               )}
-              {invoiceHasMore&&<div className="inline-actions"><button className="secondary" type="button" onClick={()=>void loadAllInvoices()}>Ver todas las facturas</button></div>}
+              {invoiceHasMore&&<div className="inline-actions"><button className="secondary" type="button" disabled={loadingAllInvoices} aria-busy={loadingAllInvoices} onClick={()=>void loadAllInvoices()}>{loadingAllInvoices ? "Cargando facturas…" : "Ver todas las facturas"}</button></div>}
               <div className="panel-heading">
                 <div>
                   <p className="eyebrow">COBROS REGISTRADOS</p>
@@ -2214,11 +2206,7 @@ export default function Home() {
                         <ReceiptReversal payment={payment} refresh={loadFinance}/>
                       </div>
                       <strong>
-                        {new Intl.NumberFormat("es-PY", {
-                          style: "currency",
-                          currency: payment.currency,
-                          maximumFractionDigits: 0,
-                        }).format(Number(payment.amount))}
+                        {formatMoney(payment.amount, payment.currency)}
                       </strong>
                     </div>
                   ))}

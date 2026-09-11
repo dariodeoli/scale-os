@@ -6,7 +6,7 @@ import './financial-forecast.css';
 
 export type ForecastRow={currency:string;issued_total:string;accepted_uninvoiced_total:string;expected_total:string;invoice_count:number;budget_count:number;undated_budget_count:number};
 export type ForecastData={month:string;time_zone:string;records:ForecastRow[];definition:{issued:string;accepted_uninvoiced:string;exclusions:string}};
-const amount=(value:string,currency:string)=>new Intl.NumberFormat('es-PY',{style:'currency',currency,maximumFractionDigits:currency==='PYG'?0:2}).format(Number(value));
+import {formatMoney as amount} from './amount-format';
 export function currentForecastMonth(now=new Date()) {
  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(now);
  return `${parts.find(p=>p.type==='year')!.value}-${parts.find(p=>p.type==='month')!.value}`;

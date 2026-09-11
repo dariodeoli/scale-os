@@ -12,6 +12,7 @@ import {DndContext,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,
 import {GripVertical,Plus,Target,CheckCircle2,Globe} from 'lucide-react';
 import {pipelineSummary} from './pipeline-summary';
 import './pipeline-summary.css';
+import './plan-preview.css';
 import {api,Dialog,Editor,Field,money} from './operations';
 import {QuoteComposer} from './quote-composer';
 import {completeSave} from './save-completion';
@@ -25,10 +26,31 @@ const stages=[{value:'lead',label:'Nuevo lead'},{value:'contacted',label:'Contac
 const probabilities:Record<string,number>={lead:10,contacted:25,proposal:50,negotiation:75,won:100,lost:0};
 function LeadCard({row,edit,role,refresh}: {row:Row;edit:()=>void;role:string;refresh:()=>Promise<void>}){const drag=useDraggable({id:String(row.id)});return <article className="ops-card" ref={drag.setNodeRef} style={{opacity:drag.isDragging?.4:1}}><div className="panel-heading"><b>{str(row,'name')}</b><button className="icon-button" aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button></div><strong>{money(str(row,'amount'),str(row,'currency'))}</strong><p>Probabilidad: {str(row,'probability')}%</p><button className="text-button" onClick={edit}>Ver oportunidad</button><RemoveRecord kind="leads" id={row.id} name={str(row,'name')} role={role} done={refresh}/></article>;}
 function LeadColumn({stage,rows,edit,role,refresh}:{stage:typeof stages[number];rows:Row[];edit:(r:Row)=>void;role:string;refresh:()=>Promise<void>}){const drop=useDroppable({id:`stage-${stage.value}`});return <section ref={drop.setNodeRef} className={`suite-column ${drop.isOver?'suite-over':''}`}><h3>{stage.label} · {rows.length}</h3>{currencies.filter(c=>rows.some(r=>r.currency===c.value)).map(c=><small key={c.value}>{money(rows.filter(r=>r.currency===c.value).reduce((s,r)=>s+Number(r.amount)*Number(r.probability)/100,0),c.value)} ponderado</small>)}{rows.map(r=><LeadCard key={r.id} row={r} edit={()=>edit(r)} role={role} refresh={refresh}/>)}</section>;}
-function PlanPreview({plan,close}:{plan:Row;close:()=>void}){const items=Array.isArray(plan.items)?plan.items as Record<string,unknown>[]:[];return <Dialog title={`Vista previa · ${str(plan,'name')}`} close={close}><div className="quote-preview"><p className="form-note">Así se verá el plan al usarlo en un presupuesto.</p>{items.map((item,index)=><div className="payment-row" key={index}><span><b>{String(item.description||'Ítem')}</b><small>{Number(item.quantity||0)} unidades</small></span><strong>{money(Number(item.quantity||0)*Number(item.unitPrice??item.unit_price??0),str(plan,'currency'))}</strong></div>)}<div className="panel-heading"><b>Total mensual estimado</b><strong>{money(items.reduce((sum,item)=>sum+Number(item.quantity||0)*Number(item.unitPrice??item.unit_price??0),0),str(plan,'currency'))}</strong></div>{str(plan,'notes')&&<p className="quote-notes">{str(plan,'notes')}</p>}</div></Dialog>;}
+export function PlanPreview({plan}:{plan:Row}){
+ const items=Array.isArray(plan.items)?plan.items as Record<string,unknown>[]:[];
+ const currency=str(plan,'currency');
+ const amount=(value:unknown)=>typeof value==='number'||typeof value==='string'&&value.trim()!==''?Number(value):NaN;
+ const values=items.map(item=>{
+  const quantity=amount(item?.quantity),price=amount(item?.unitPrice??item?.unit_price);
+  return {quantity,price,total:quantity*price,valid:Number.isFinite(quantity)&&quantity>0&&Number.isFinite(price)&&price>=0&&Number.isFinite(quantity*price)};
+ });
+ const total=values.reduce((sum,item)=>sum+item.total,0);
+ const validCurrency=currencies.some(choice=>choice.value===currency);
+ const format=(value:number)=>validCurrency&&Number.isFinite(value)?money(value,currency):'No disponible';
+ const renderItem=(item:Record<string,unknown>,index:number)=><li key={index} className="plan-preview-item">
+  <b>{String(item?.description||'Ítem sin descripción')}</b>
+  <span>Cantidad: {Number.isFinite(values[index].quantity)?values[index].quantity.toLocaleString('es-PY',{maximumFractionDigits:20}):'No disponible'} · Precio unitario: {format(values[index].price)}</span>
+  <strong>Subtotal: {values[index].valid?format(values[index].total):'No disponible'}</strong>
+ </li>;
+ return <section className="plan-preview" aria-label={`Vista previa de ${str(plan,'name')}`}>
+  <div className="plan-preview-total"><span>Total de ítems · sin IVA</span><strong>{items.length&&values.every(item=>item.valid)?format(total):'No disponible'}</strong></div>
+  {items.length?<><ol className="plan-preview-items">{items.slice(0,3).map(renderItem)}</ol>{items.length>3&&<details className="plan-preview-more"><summary>Ver {items.length-3} {items.length===4?'ítem adicional':'ítems adicionales'}</summary><ol className="plan-preview-items" start={4}>{items.slice(3).map((item,index)=>renderItem(item,index+3))}</ol></details>}</>:<p>Este plan todavía no tiene ítems.</p>}
+  {str(plan,'notes')&&<p className="plan-preview-notes">{str(plan,'notes')}</p>}
+ </section>;
+}
 export function CatalogWorkspace({kind,role}:{kind:'leads'|'inventory'|'plans';role:string}){
  const {currency:defaultCurrency}=useCompanyCurrency();
- const [rows,setRows]=useState<Row[]>([]),[members,setMembers]=useState<Row[]>([]),[edit,setEdit]=useState<Row|'new'|null>(null),[preview,setPreview]=useState<Row|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [rows,setRows]=useState<Row[]>([]),[members,setMembers]=useState<Row[]>([]),[edit,setEdit]=useState<Row|'new'|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
  const canEdit=kind==='inventory'?['owner','admin','management','production','finance'].includes(role):['owner','admin','management','finance','sales'].includes(role);
  async function load(){const d=await api<{records:Row[]}>(`/api/agency/${kind}`);setRows(d.records);if(kind==='inventory'){const m=await api<{members:Row[]}>('/api/agency/custodians');setMembers(m.members);}}
@@ -42,10 +64,10 @@ export function CatalogWorkspace({kind,role}:{kind:'leads'|'inventory'|'plans';r
  async function move(e:DragEndEvent){const stage=String(e.over?.id||'').replace('stage-','');if(!canEdit||busy||!stages.some(s=>s.value===stage))return;setBusy(true);try{await api(`/api/agency/leads/${e.active.id}`,{stage,probability:probabilities[stage]},'PATCH');await load();}catch(e){setError(err(e));}finally{setBusy(false);}}
  return <><div className="ops-stack"><section className="panel"><div className="panel-heading"><h2>{{leads:'Oportunidades',inventory:'Inventario y patrimonio',plans:'Planes reutilizables'}[kind]}</h2>{canEdit&&<button className="primary" onClick={()=>setEdit('new')}><Plus size={16}/>Agregar</button>}</div>{error&&<p className="error" role="alert">{error}</p>}
  {kind==='leads'&&<div className="pipeline-overview"><div className="pipeline-overview-counts"><article><span><Target size={16}/>Abiertas</span><strong>{overview.open}</strong></article><article><span><CheckCircle2 size={16}/>Ganadas</span><strong>{overview.won}</strong></article><article><span><Globe size={16}/>Consultas web</span><strong>{overview.web}</strong></article></div><div className="pipeline-overview-values"><span>Valor abierto · sin convertir monedas</span>{Object.entries(overview.amounts).map(([currency,value])=><b key={currency}>{money(value,currency)}</b>)}{!overview.open&&<span>Sin oportunidades abiertas</span>}</div></div>}
- {kind==='leads'?<DndContext sensors={sensors} onDragEnd={move}><div className="suite-board">{stages.map(stage=><LeadColumn key={stage.value} stage={stage} rows={rows.filter(r=>r.stage===stage.value)} edit={setEdit} role={role} refresh={load}/>)}</div></DndContext>:<div className="ops-grid">{rows.map(r=><article className="ops-card" key={r.id}><h3>{str(r,'name')}</h3>{kind==='inventory'?<><p>{str(r,'category')} · {str(r,'status')}</p><strong>{money(str(r,'value'),str(r,'currency'))}</strong><p>Serie: {str(r,'serial_number')||'—'}</p></>:<p>{Array.isArray(r.items)?r.items.length:0} ítems · {str(r,'currency')}{r.active===false?' · Archivado':''}</p>}{kind==='plans'&&<button className="text-button" onClick={()=>setPreview(r)}>Vista previa</button>}{canEdit&&<button className="text-button" onClick={()=>setEdit(r)}>Editar</button>}<RemoveRecord kind={kind} id={r.id} name={str(r,'name')} role={role} done={load}/></article>)}</div>}
+ {kind==='leads'?<DndContext sensors={sensors} onDragEnd={move}><div className="suite-board">{stages.map(stage=><LeadColumn key={stage.value} stage={stage} rows={rows.filter(r=>r.stage===stage.value)} edit={setEdit} role={role} refresh={load}/>)}</div></DndContext>:<div className="ops-grid">{rows.map(r=><article className="ops-card" key={r.id}><h3>{str(r,'name')}</h3>{kind==='inventory'?<><p>{str(r,'category')} · {str(r,'status')}</p><strong>{money(str(r,'value'),str(r,'currency'))}</strong><p>Serie: {str(r,'serial_number')||'—'}</p></>:<p>{Array.isArray(r.items)?r.items.length:0} ítems · {str(r,'currency')}{r.active===false?' · Archivado':''}</p>}{kind==='plans'&&<PlanPreview plan={r}/>} {canEdit&&<button className="text-button" onClick={()=>setEdit(r)}>Editar</button>}<RemoveRecord kind={kind} id={r.id} name={str(r,'name')} role={role} done={load}/></article>)}</div>}
  {!rows.length&&<p className="empty-copy">Todavía no hay registros.</p>}</section>
  {edit&&canEdit&&<Dialog title={row?'Editar registro':'Nuevo registro'} close={()=>setEdit(null)}>{kind==='plans'?<QuoteComposer mode="plan" record={row} done={async()=>{await completeSave(()=>setEdit(null),load);}}/>:<><Editor columns fields={fields} defaults={defaults} save={async values=>{await api(`/api/agency/${kind}${row?`/${row.id}`:''}`,values,row?'PATCH':'POST');await completeSave(()=>setEdit(null),load);}}/>{kind==='leads'&&row&&!row.client_id&&<button className="secondary" disabled={busy} onClick={async()=>{setBusy(true);try{await api(`/api/agency/leads/${row.id}/convert`,{});setEdit(null);await load();}catch(e){setError(err(e));}finally{setBusy(false);}}}>Ganado: convertir a cliente</button>}</>}</Dialog>}
- </div>{preview&&<PlanPreview plan={preview} close={()=>setPreview(null)}/>}</>;
+ </div></>;
 }
 export function MemberActions({member,currentEmail,role,refresh}:{member:{id:string;email:string;role:string;active?:boolean};currentEmail:string;role:string;refresh:()=>Promise<void>}){
  const [open,setOpen]=useState(false),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);

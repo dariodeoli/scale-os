@@ -25,7 +25,7 @@ Se elige un arranque conjunto frente a agrupar solo repositorios, que todavía p
 1. Preparar `scale-os` con este Dockerfile, puerto 3000 y variables del backend. No publicar encima del servicio actual sin completar configuración y pruebas.
 2. Probar imagen, health, login, fotos, guardados y PDF con una base aislada. Confirmar archivos estáticos.
 3. En la ventana de cambio, detener el backend anterior antes de iniciar el nuevo sobre la base real: no ejecutar dos trabajadores de correo/mantenimiento. Mover el alias `admin` al nuevo servicio.
-4. Confirmar health, versión 1.0.4, Google de ida/vuelta, invitaciones de ambos tipos, permisos pendientes, guardados y PDF.
+4. Confirmar health, versión 1.0.5, Google de ida/vuelta, invitaciones de ambos tipos, permisos pendientes, guardados y PDF.
 5. Solo después retirar la aplicación `scale-core-api` de Owncoding Hub. Conservar PostgreSQL, volúmenes necesarios y respaldo. No borrar el repositorio remoto ni archivos locales con cambios sin conservar historia y verificar consumidores.
 
 Ante fallo: detener el nuevo, restaurar servicio/alias anterior con la misma base. No bajar a un backend incompatible con migraciones de identidad; no borrar datos. Nunca ejecutar dos programadores de tareas para compensar un fallo.

@@ -50,6 +50,9 @@ async function run(){
  assert.match(rendered(),/Cargando previsión/);
  await respond(requests[0],fixture);
  assert.equal(renderer!.root.findAllByProps({className:'forecast-currency'}).length,2);
+ assert.match(rendered(),/USD 100,10/);
+ assert.match(rendered(),/USD 120,30/);
+ assert.match(rendered(),/PYG 5\.000/);
  assert.match(rendered(),/sin fecha/);
  assert.match(rendered(),/No se suman monedas distintas/);
  act(()=>renderer.root.findByType('input').props.onChange({target:{value:'2026-10'}}));

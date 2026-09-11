@@ -1,5 +1,16 @@
 # Scale OS — interfaz compartida
 
+## Refinamiento 1.0.5 — 11-09-2026
+
+Preparado, todavía no publicado. AgencyOS se consultó como referencia local de jerarquía, tarjetas y agrupación de formularios; no se copiaron sus datos ni su arquitectura. Los referentes «Fonot», «iStock» y «los de Brasil» necesitan identificación: no se atribuye su diseño a esta entrega.
+
+- Jerarquía común mediante tokens de títulos/valores, radios compartidos, foco visible y superficies compactas. Marca morada conservada. Controles móviles de 44 px; importes sin elipsis; columnas de Producción con altura natural y desplazamiento vertical de página.
+- `formatMoney` en `app/amount-format.ts`: códigos de moneda explícitos, miles con punto, decimales con coma, PYG sin centavos y demás monedas admitidas con dos. Ausencia/valor inválido es «Sin datos», no cero. Los decimales recibidos como texto conservan precisión entera en la presentación. No reemplaza entrada de montos, cálculos contables, cotización ni exportación CSV.
+- Planes reutilizables muestran ítems, cantidades, precio unitario y subtotal en la tarjeta; tres ítems iniciales y expansión para el resto. No requiere abrir el editor ni escribir datos. Total identificado sin IVA; datos incompletos no se presentan como cero.
+- Cargar todas las facturas conserva las 20 iniciales ante error, evita doble solicitud y descarta respuestas de una carga invalidada.
+
+Verificación de integración: 158 resultados automatizados, 5 pruebas de despliegue y compilación de 42 páginas. Son pruebas locales: la política administrativa del navegador impidió también la revisión visual local. No equivalen a capturas móvil/desktop ni a publicación. Corte seguro y condiciones pendientes: `UNIFIED-DEPLOYMENT.md`. Reversión de esta tanda: volver al código `c19cc87`; no cambiar datos ni retirar servicios existentes.
+
 ## Primer ingreso y preferencias — 11-09-2026
 
 - La guía muestra instrucciones según capacidades del rol, no solo visibilidad del módulo. El bloque de Primeros pasos es optativo, plegable y descartable; Guía del panel sigue disponible. No abre ventanas ni realiza escrituras de negocio automáticamente.

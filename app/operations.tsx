@@ -37,12 +37,8 @@ export async function api<T>(
 }
 const message = (e: unknown) =>
   e instanceof Error ? e.message : "No se pudo completar la operación";
-export const money = (value: string | number, currency = "PYG") =>
-  new Intl.NumberFormat("es-PY", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: currency === "PYG" ? 0 : 2,
-  }).format(Number(value));
+export {formatMoney as money} from './amount-format';
+import {formatMoney as money} from './amount-format';
 const day = (v: string | null) => (v ? v.slice(0, 10) : "—");
 export {Dialog} from './dialog';
 type Choice = { value: string; label: string };
