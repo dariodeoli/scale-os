@@ -15,6 +15,7 @@ import dynamic from 'next/dynamic';
 import {ClientIdentity,identityColor} from './client-identity';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
+import {ActorIdentity} from './actor-identity';
 const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
 const GrowthDashboard=dynamic(()=>import('./growth-dashboard').then(m=>m.GrowthDashboard));
 const ReportsWorkspace=dynamic(()=>import('./reports-workspace').then(m=>m.ReportsWorkspace));
@@ -188,6 +189,7 @@ type AccountTransfer = {
   transferred_on: string;
   reference: string | null;
   created_by_email: string | null;
+  actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
 };
 type PaymentRecord = {
   id: string;
@@ -200,6 +202,7 @@ type PaymentRecord = {
   received_on: string;
   reference: string | null;
   received_by_email: string | null;
+  actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
   reversal_id?: string | null;
   reversal_reason?: string | null;
 };
@@ -2113,7 +2116,7 @@ export default function Home() {
                         </b>
                         <small>
                           {transfer.transferred_on} ·{" "}
-                          {transfer.created_by_email || "Sistema"}
+                          <ActorIdentity name={transfer.actor_name||transfer.created_by_email} photoUrl={transfer.actor_photo_url} verified={transfer.actor_verified===true}/>
                           {transfer.reference ? ` · ${transfer.reference}` : ""}
                         </small>
                         {transfer.to_currency&&<small>Recibido: {formatMoney(transfer.received_amount||transfer.amount,transfer.to_currency)}</small>}
@@ -2200,7 +2203,7 @@ export default function Home() {
                         <small>
                           {payment.received_on} · {payment.account_name} (
                           {payment.account_type}) · recibió{" "}
-                          {payment.received_by_email || "Sin asignar"}
+                          <ActorIdentity name={payment.actor_name||payment.received_by_email||'Sin asignar'} photoUrl={payment.actor_photo_url} verified={payment.actor_verified===true}/>
                           {payment.reference ? ` · ${payment.reference}` : ""}
                         </small>
                         <ReceiptReversal payment={payment} refresh={loadFinance}/>

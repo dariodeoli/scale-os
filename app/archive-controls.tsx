@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {api,Dialog} from './operations';
+import {ActorIdentity} from './actor-identity';
 
 const roles:Record<string,string[]>={
  members:['owner','admin'],
@@ -34,12 +35,12 @@ export function RemoveRecord({kind,id,name,role,done}:{kind:string;id:string;nam
  </Dialog>}</>;
 }
 
-type Removed={kind:string;id:string;name:string;removed_at:string};
+type Removed={kind:string;id:string;name:string;removed_at:string;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
  const [records,setRecords]=useState<Removed[]>([]),[error,setError]=useState(''),[loading,setLoading]=useState(true),[busy,setBusy]=useState('');
  async function load(){setRecords((await api<{records:Removed[]}>('/api/agency/trash')).records);}
  useEffect(()=>{void load().catch(e=>setError(errorMessage(e))).finally(()=>setLoading(false));},[]);
  return <section className="panel"><h2>Papelera de esta empresa</h2><p className="form-note">Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva. Los accesos retirados se devuelven con una nueva invitación desde Equipo.</p>
- {error&&<p className="error" role="alert">{error}</p>}{loading?<p>Cargando…</p>:!records.length?<p>No hay registros en la papelera.</p>:<div className="client-list">{records.map(r=><div className="payment-row" key={`${r.kind}-${r.id}`}><div><b>{r.name}</b><small>{labels[r.kind]} · {new Date(r.removed_at).toLocaleDateString('es-PY')}</small></div><button className="secondary" disabled={Boolean(busy)} onClick={async()=>{setBusy(`${r.kind}-${r.id}`);setError('');try{await api(`/api/agency/${r.kind}/${r.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}>{busy===`${r.kind}-${r.id}`?'Restaurando…':'Restaurar'}</button></div>)}</div>}
+ {error&&<p className="error" role="alert">{error}</p>}{loading?<p>Cargando…</p>:!records.length?<p>No hay registros en la papelera.</p>:<div className="client-list">{records.map(r=><div className="payment-row" key={`${r.kind}-${r.id}`}><div><b>{r.name}</b><small>{labels[r.kind]} · Movido a Papelera por</small><ActorIdentity name={r.actor_name} photoUrl={r.actor_photo_url} verified={r.actor_verified===true} timestamp={r.removed_at}/></div><button className="secondary" disabled={Boolean(busy)} onClick={async()=>{setBusy(`${r.kind}-${r.id}`);setError('');try{await api(`/api/agency/${r.kind}/${r.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}>{busy===`${r.kind}-${r.id}`?'Restaurando…':'Restaurar'}</button></div>)}</div>}
  </section>;
 }

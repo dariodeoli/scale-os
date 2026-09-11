@@ -4,7 +4,7 @@ import postcss from 'postcss';
 
 // Source-level CSS contracts, not a browser layout or visual verification.
 const read=(file:string)=>readFileSync(new URL('../app/'+file,import.meta.url),'utf8');
-const sheets=Object.fromEntries(['workspace-density.css','desktop-sidebar.css','mobile-navigation.css','production-focus.css','work-checklist.css'].map(file=>[file,postcss.parse(read(file))]));
+const sheets=Object.fromEntries(['actor-identity.css','workspace-density.css','desktop-sidebar.css','mobile-navigation.css','production-focus.css','work-checklist.css'].map(file=>[file,postcss.parse(read(file))]));
 
 // Inspect a particular selector's declarations in source order at a viewport.
 // This deliberately does not emulate the full CSS cascade or font metrics.
@@ -26,13 +26,14 @@ function declaration(file:string,selector:string,property:string,width:number){
 
 const workspace=read('scale-workspace.tsx'),operations=read('operations.tsx');
 assert(workspace.includes('<h3>{project.name}</h3>'),'project name is rendered as a card heading');
-assert(operations.includes('<b>{c.author_email || "Integrante"}</b>'),'project comments render the author email');
+assert(operations.includes('<ActorIdentity name={c.actor_name||c.author_email'),'project comments render the shared author identity with email fallback');
 
 for(const width of [320,360,390,768]){
  const at=(file:string,selector:string,property:string)=>declaration(file,selector,property,width);
  assert.equal(at('workspace-density.css','.control-shell .project-card h3','overflow-wrap'),'anywhere',`project identifiers must wrap at ${width}px`);
  // Comments live in a portal outside .control-shell: do not scope to the shell.
- assert.equal(at('workspace-density.css','.ops-comment>b','overflow-wrap'),'anywhere',`comment author emails must wrap at ${width}px`);
+ assert.equal(at('actor-identity.css','.actor-identity-name','overflow-wrap'),'anywhere',`comment author names must wrap at ${width}px`);
+ assert.equal(at('actor-identity.css','.actor-identity','max-width'),'100%');
  assert.equal(at('production-focus.css','.control-shell .production-focus .kanban','overflow-x'),'auto');
  assert.equal(at('production-focus.css','.control-shell .production-focus .kanban','height'),'auto');
  assert.equal(at('production-focus.css','.control-shell .production-focus .column','max-height'),'none');
