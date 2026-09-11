@@ -1,0 +1,28 @@
+.plan-comparison{min-width:0;max-width:100%;color:var(--text)}
+.plan-comparison-scroll{width:100%;max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius-md);margin-top:var(--ui-space-3,12px)}
+.plan-comparison-scroll:focus-visible{outline:2px solid var(--brand-600);outline-offset:3px}
+.plan-comparison-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.plan-comparison-table caption{text-align:left;padding:var(--ui-space-3,12px);color:var(--text-muted);font-size:.875rem}
+.plan-comparison-table :is(th,td){padding:var(--ui-space-4,16px);text-align:left;vertical-align:top;white-space:normal;overflow-wrap:anywhere;border-bottom:1px solid var(--line);border-right:1px solid var(--line);background:var(--surface)}
+.plan-comparison-table tr>:first-child{position:sticky;left:0;z-index:1;width:11rem;background:var(--surface-subtle)}
+.plan-comparison-table tr>:last-child{border-right:0}
+.plan-comparison-table tbody tr:last-child>*{border-bottom:0}
+.plan-comparison-table th{font-weight:600}
+.plan-comparison-table h3{font-size:1rem;margin:0 0 var(--ui-space-2,8px);white-space:normal}
+.plan-comparison-table small,.plan-comparison-meta{display:block;font-size:.8125rem;font-weight:400;color:var(--text-muted);margin-top:var(--ui-space-1,4px)}
+.plan-comparison-actions{display:flex;flex-wrap:wrap;gap:var(--ui-space-2,8px);margin-top:var(--ui-space-3,12px)}
+.plan-comparison-total td{background:var(--surface-subtle)}
+.plan-comparison-total td>strong{font-size:1.125rem}
+.plan-comparison-items{list-style:none;padding:0;margin:0}
+.plan-comparison-item{display:grid;gap:var(--ui-space-3,12px);font-size:.875rem;line-height:1.6}
+.plan-comparison-item+.plan-comparison-item{border-top:1px solid var(--line);margin-top:var(--ui-space-4,16px);padding-top:var(--ui-space-4,16px)}
+.plan-comparison-item-price{display:grid;gap:var(--ui-space-1,4px);font-size:.8125rem;color:var(--text-muted)}
+.plan-comparison-description{margin:0;white-space:pre-wrap}
+.plan-comparison-deliverables{margin:0;padding-left:1.1rem;list-style:disc}
+.plan-comparison-deliverables li+li{margin-top:var(--ui-space-2,8px)}
+.plan-comparison-table .plan-comparison-notes{white-space:pre-wrap;font-size:.875rem;line-height:1.5}
+@media(max-width:640px){
+ .plan-comparison-table :is(th,td){padding:var(--ui-space-3,12px)}
+ .plan-comparison-table tr>:first-child{width:8rem}
+ .plan-comparison-actions button{min-height:44px}
+}

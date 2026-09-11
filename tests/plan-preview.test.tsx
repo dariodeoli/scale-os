@@ -12,7 +12,8 @@ const composerPath=require.resolve('../app/quote-composer');
 require.cache[composerPath]={id:composerPath,filename:composerPath,loaded:true,exports:{
  QuoteComposer:({record}:{record:{id:string}})=><output>{record.id}</output>,
 }} as NodeModule;
-const {CatalogWorkspace,PlanPreview}=require('../app/suite') as typeof import('../app/suite');
+const {CatalogWorkspace}=require('../app/suite') as typeof import('../app/suite');
+const {PlanComparison}=require('../app/plan-comparison') as typeof import('../app/plan-comparison');
 const {money}=require('../app/operations') as typeof import('../app/operations');
 const {CompanyCurrencyProvider}=require('../app/currency-provider') as typeof import('../app/currency-provider');
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
@@ -35,17 +36,18 @@ async function run(){
  try{
   for(const role of ['viewer','editor','production','owner','admin','management','finance','sales']){
    await act(async()=>{renderer=create(<CompanyCurrencyProvider organizationId="test" defaultCurrency="PYG"><CatalogWorkspace kind="plans" role={role}/></CompanyCurrencyProvider>);});
-   const preview=renderer!.root.findByProps({className:'plan-preview'});
+   const preview=renderer!.root.findByProps({className:'plan-comparison'});
    assert.match(text(preview),/Videos/);
-   assert.match(text(preview),/Cantidad: 1,5/);
+   assert.match(text(preview),/Cantidad del ítem: 1,5/);
    assert(text(preview).includes(`Precio unitario: ${money(12.25,'USD')}`));
    assert(text(preview).includes(`Subtotal: ${money(24.5,'USD')}`));
-   assert(text(preview).includes(money(45.25,'USD')),'total includes folded items and uses record currency');
-   assert.match(text(preview),/sin IVA/);
+   assert(text(preview).includes(money(45.25,'USD')),'total includes all visible items and uses the unified money formatter');
+   assert.match(text(preview),/sin IVA/i);
    assert.doesNotMatch(text(preview),/mensual|999/);
    assert.equal(preview.findAllByType('li').length,4);
-   assert.equal(preview.findByType('details').props.open,undefined);
-   assert.match(text(preview.findByType('summary')),/Ver 1 ítem adicional/);
+   assert.equal(preview.findAllByType('details').length,0,'replacement comparison keeps every item visible');
+   assert.equal(preview.findAllByType('summary').length,0);
+   assert.match(text(preview),/Revisión/,'fourth item is displayed without expansion');
    assert.match(text(renderer!.root),/Archivado/);
    assert.equal(renderer!.root.findAllByProps({role:'dialog'}).length,0,'preview is inline without opening editor');
    const editable=['owner','admin','management','finance','sales'].includes(role);
@@ -59,20 +61,20 @@ async function run(){
   }
   assert.equal(requests.length,8,'only the existing catalog read per mount');
   for(const currency of ['PYG','USD','EUR','BRL','ARS','MXN']){
-   act(()=>{renderer=create(<PlanPreview plan={{...fixture,currency}}/>);});
+   act(()=>{renderer=create(<PlanComparison plans={[{...fixture,currency}]}/>);});
    assert(text(renderer!.root).includes(money(45.25,currency)));
    act(()=>renderer!.unmount());
   }
   for(const items of [[],undefined,[{description:'Incompleto',quantity:1}],[{description:'Inválido',quantity:'x',unitPrice:5}],[null]]){
-   act(()=>{renderer=create(<PlanPreview plan={{...fixture,items}}/>);});
-   assert.match(text(renderer!.root.findByProps({className:'plan-preview-total'})),/No disponible/);
+   act(()=>{renderer=create(<PlanComparison plans={[{...fixture,items}]}/>);});
+   assert.match(text(renderer!.root.findByProps({className:'plan-comparison-total'})),/No disponible/);
    assert.doesNotMatch(text(renderer!.root),/NaN|Infinity/);
    act(()=>renderer!.unmount());
   }
-  act(()=>{renderer=create(<PlanPreview plan={{...fixture,items:[{description:'Incluido',quantity:1,unitPrice:'0'}]}}/>);});
-  assert(text(renderer!.root.findByProps({className:'plan-preview-total'})).includes(money(0,'USD')),'zero is a valid price');
+  act(()=>{renderer=create(<PlanComparison plans={[{...fixture,items:[{description:'Incluido',quantity:1,unitPrice:'0'}]}]}/>);});
+  assert(text(renderer!.root.findByProps({className:'plan-comparison-total'})).includes(money(0,'USD')),'zero is a valid price');
   act(()=>renderer!.unmount());
-  console.log('PASS: inline plan preview, quantities, unit/subtotal/all-item prices, six currencies, legacy fields, zero/incomplete data, disclosure, archived state, eight roles, existing edit selection and read-only requests. Dialog/composer mocked; no browser or external requests.');
+  console.log('PASS: full comparison retains unified monetary format, quantities, all-item prices, six currencies, legacy fields, zero/incomplete data, archived state, eight roles, edit selection and read-only requests. No hidden items, browser or external requests.');
  }finally{globalThis.fetch=originalFetch;}
 }
 void run();

@@ -1,0 +1,10 @@
+/* Shared assigned people block; independent from live presence and historic authors. */
+.assigned-people{min-width:0;max-width:100%;padding:var(--ui-space-2);border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-subtle);color:var(--text)}
+.assigned-people-label{display:block;margin-bottom:var(--ui-space-1);font-size:11px;font-weight:600;color:var(--text-muted)}
+.assigned-people .assigned-people-list{display:flex;flex-wrap:wrap;gap:var(--ui-space-1) var(--ui-space-2);list-style:none;padding:0;margin:0}
+.assigned-people .assigned-person{display:flex;align-items:center;flex-wrap:wrap;gap:var(--ui-space-1);min-width:0;max-width:100%;margin:0;padding:0}
+.assigned-people .actor-identity{gap:var(--ui-space-1);padding:0;border:0;border-radius:0;background:transparent;font-size:12px}
+.assigned-people .actor-identity-avatar{width:24px;height:24px;flex-basis:24px;font-size:10px}
+.assigned-people .actor-identity-name{white-space:normal;overflow-wrap:anywhere}
+.assigned-people .assigned-person-primary{color:var(--text-muted);font-size:10px;font-weight:500}
+.assigned-people .assigned-people-state{margin:0;font-size:12px;color:var(--text-muted);overflow-wrap:anywhere}

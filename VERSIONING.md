@@ -1,6 +1,6 @@
 # Versión y footer
 
-Próxima versión preparada: **1.0.3** (11-09-2026). No implica publicación.
+Próxima versión preparada: **1.0.10** (11-09-2026). No implica publicación.
 
 `app/app-version.ts` es la única fuente editable de la versión visible del producto. La versión técnica de `package.json` no representa una entrega comercial.
 

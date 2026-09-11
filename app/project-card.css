@@ -2,9 +2,7 @@
 .project-entry-title{min-width:0}.project-entry-title h3{font-size:15px;margin:0 0 8px;overflow-wrap:anywhere}
 .project-entry-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .project-entry small{color:var(--text-muted);font-size:11px}
-.project-entry-assignees{display:flex;gap:8px;flex-wrap:wrap;min-width:0}
-.project-entry-assignees>div{display:flex;align-items:center;gap:6px;max-width:100%}
-.project-entry-assignees .actor-identity-name{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-entry-assignees{min-width:0;max-width:100%}
 .project-entry-actions{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
 .project-entry-actions a{font-size:12px;color:var(--brand-600)}
 .project-grid:has(>.project-entry){grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
