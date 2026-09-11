@@ -1,0 +1,17 @@
+{
+  "name": "scale-core-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "pg": "^8.13.1",
+    "sharp": "^0.35.4",
+    "puppeteer-core": "^25.10.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8"
+  }
+}
