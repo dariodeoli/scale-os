@@ -9,12 +9,12 @@
 .control-shell>aside nav>a .nav-label{min-width:0}
 .control-shell>aside nav>a:hover{background:var(--surface-subtle);color:var(--text)}
 .control-shell>aside nav>a.active{background:var(--violet-soft);border-left-color:var(--brand-700);color:var(--brand-700)}
-.control-shell>.content{width:calc(100% - 208px);max-width:none;padding:20px 28px 36px;min-width:0}
-.control-shell .workspace-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.control-shell>.content{width:calc(100% - 208px);max-width:none;padding:18px 24px 32px;min-width:0}
+.control-shell .workspace-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .control-shell .workspace-topbar .workspace{width:auto;max-width:52%;margin:0;padding:4px 0;border:0;background:transparent;color:var(--text);justify-content:flex-start;font-size:13px;text-align:left;overflow-wrap:anywhere}
 .control-shell .workspace-topbar .workspace svg{flex:none}
 .control-shell .workspace-search-trigger{display:flex;align-items:center;gap:10px;padding:9px 12px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);color:var(--text-muted);font-size:12px;text-align:left}
-.control-shell>.content>header{margin-bottom:20px;align-items:center;gap:12px}
+.control-shell>.content>header{margin-bottom:16px;align-items:center;gap:12px}
 .control-shell>.content>header h1{font-size:28px;letter-spacing:-.04em;line-height:1.15}
 .control-shell .eyebrow{font-size:9px;letter-spacing:.1em;margin-bottom:5px}
 .control-shell .header-actions .primary{min-height:38px;box-shadow:none}.control-shell .header-actions .secondary{border:0;background:transparent;color:var(--text-muted)}
@@ -26,7 +26,7 @@
 .control-shell .project-card{padding:14px;background:var(--surface)}.control-shell .project-grid{gap:12px}
 .control-shell .finance-grid{gap:var(--control-gap);max-width:none}.control-shell .directory{max-width:none}
 .control-shell .empty-state{padding:36px 20px}.control-shell .empty-copy{padding:10px 0}
-.control-shell .section-tabs{display:flex;gap:22px;margin:0 0 20px;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
+.control-shell .section-tabs{display:flex;gap:18px;margin:0 0 16px;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
 .control-shell .section-tabs>a{flex:none;padding:9px 2px 12px;border-bottom:2px solid transparent;color:var(--text-muted);font-size:13px;text-decoration:none;font-weight:600}
 .control-shell .section-tabs>a[aria-current=page]{border-bottom-color:var(--brand-700);color:var(--brand-700)}
 .control-shell .section-tabs>a:hover{color:var(--brand-700)}

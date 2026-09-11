@@ -3,10 +3,10 @@
 :root{
  --ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;
  --ui-space-5:20px;--ui-space-6:24px;
- --ui-control-height:40px;--ui-panel-padding:20px;--ui-card-padding:16px;
+ --ui-control-height:40px;--ui-panel-padding:18px;--ui-card-padding:14px;
  --ui-field-border:#927d9b;--ui-focus:var(--brand-700);
 }
-.control-shell{--control-gap:var(--ui-space-4);--control-padding:var(--ui-panel-padding)}
+.control-shell{--control-gap:var(--ui-space-4);--control-padding:var(--ui-panel-padding);container-type:inline-size}
 :is(.control-shell,.unified-dialog,.photo-dialog){accent-color:var(--brand-700)}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(h2,h3){line-height:1.3;overflow-wrap:anywhere}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(p,label,legend){overflow-wrap:anywhere}
@@ -60,9 +60,10 @@
 :is(.control-shell,.unified-dialog,.photo-dialog) textarea{min-height:96px;resize:vertical}
 :is(.control-shell,.unified-dialog) :is(input,textarea,select):disabled,
 :is(.control-shell,.unified-dialog) .ops-select-trigger:disabled{background:var(--surface-subtle);color:var(--text-muted);cursor:not-allowed}
-:is(.control-shell,.unified-dialog) .form-stack{gap:var(--ui-space-4)}
-:is(.control-shell,.unified-dialog) :is(.form-stack label,.ops-label){font-size:12px;line-height:1.4;font-weight:600;color:var(--text-muted)}
-:is(.control-shell,.unified-dialog) .ops-form-grid{gap:var(--ui-space-4)}
+:is(.control-shell,.unified-dialog) .form-stack{gap:var(--ui-space-3)}
+:is(.control-shell,.unified-dialog) :is(.form-stack label,.ops-label){font-size:12px;line-height:1.35;font-weight:600;color:var(--text-muted)}
+:is(.control-shell,.unified-dialog) .form-stack label{gap:6px}
+:is(.control-shell,.unified-dialog) .ops-form-grid{grid-template-columns:minmax(0,1fr);gap:var(--ui-space-3) var(--ui-space-4)}
 :is(.control-shell,.unified-dialog) .ops-form-grid>div{min-width:0}
 :is(.control-shell,.unified-dialog) :is(.form-note,.field-help){font-size:12px;line-height:1.5;color:var(--text-muted)}
 .field-help{display:block;margin-top:6px}.field-optional{font-size:11px;font-weight:400;color:var(--text-muted)}
@@ -93,6 +94,19 @@
 :is(.control-shell,.unified-dialog) .quote-item>.icon-button{width:var(--ui-control-height);min-height:var(--ui-control-height)}
 .unified-dialog .subscription-panel[data-embedded=true]{padding:0;border:0;border-radius:0;background:transparent}
 
+/* Shared form density. A page or dialog never creates more than three columns:
+   connected fields share a row on wide screens and keep their own row on phones. */
+.dialog-body{container-type:inline-size}
+@container (min-width:560px){
+ :is(.control-shell,.unified-dialog) .ops-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@container (min-width:900px){
+ .control-shell .ops-form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+:is(.control-shell,.unified-dialog) .ops-form-grid>:is(.ops-wide,.form-actions,.dialog-actions,.error,.form-note,label:has(textarea),label:has(input[type=url]),label:has(input[type=file]),fieldset){grid-column:1/-1}
+:is(.control-shell,.unified-dialog) :is(.form-stack,.ops-form-grid) :is(.choice-list,.inline-actions,.dialog-actions){gap:var(--ui-space-2) var(--ui-space-3)}
+:is(.control-shell,.unified-dialog) .ops-profile-section>div,:is(.control-shell,.unified-dialog) .ops-profile-section>form{padding:var(--ui-space-2) var(--ui-space-4) var(--ui-space-4)}
+
 @media(max-width:760px){
  :root{--ui-control-height:44px;--ui-panel-padding:16px;--ui-card-padding:14px}
  :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){font-size:16px}
@@ -102,6 +116,7 @@
  .control-shell :is(.payment-row,.client-row){align-items:flex-start}
  .control-shell .payment-row>strong{max-width:100%;overflow-wrap:anywhere}
  :is(.control-shell,.unified-dialog) .form-stack{row-gap:var(--ui-space-4)}
+ :is(.control-shell,.unified-dialog) .ops-form-grid{grid-template-columns:minmax(0,1fr);row-gap:var(--ui-space-4)}
 }
 @media(prefers-reduced-motion:reduce){
  :is(.control-shell,.unified-dialog,.photo-dialog) *,
