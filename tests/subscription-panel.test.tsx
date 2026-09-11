@@ -36,7 +36,12 @@ async function main(){
    if(status==='suspended')assert(text().includes('datos no se borran'));
   }
   assert.equal(requests.length,0,'Mounting any status, including suspended, must never fetch');
+  await render(state,{embedded:true});
+  assert.equal(renderer!.root.findByType('h2').props.hidden,true);
+  assert.equal(renderer!.root.findByProps({className:'subscription-panel'}).props['data-embedded'],true);
+  assert.equal(renderer!.root.findByProps({className:'subscription-panel'}).props['aria-labelledby'],renderer!.root.findByType('h2').props.id);
   await render(state);assert(text().includes('30 días de prueba restantes'));assert(text().includes('10/10/2026'));
+  assert.equal(renderer!.root.findByType('h2').props.hidden,false);
   assert(text().includes('US$ 10 o Gs. 50.000 por mes, por agencia'));assert(text().includes('no una conversión'));assert(text().includes('2 días de gracia'));
   assert(text().includes(founderPricingNote));
   assert(text().includes('Todos los integrantes y todos los módulos están incluidos'));

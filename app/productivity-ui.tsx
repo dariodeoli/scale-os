@@ -4,6 +4,7 @@ import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {notify} from './feedback';
+import {completeSave} from './save-completion';
 import {ClientReviewControl} from './daily-controls';
 import {ClientAppearance,ClientIdentity} from './client-identity';
 import './productivity.css';
@@ -49,7 +50,7 @@ export function WorkDetail({id,organizationId,role,close,refresh}:{id:string;org
     </div>}
     {managers.includes(role)&&<ClientReviewControl orderId={id}/>}
    </>}
-   {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente.</p>{editable&&<Editor fields={[{key:'body',label:'Agregar comentario',type:'textarea'}]} defaults={{body:''}} save={async v=>{await api(`/api/agency/productivity/orders/${id}/comments`,v);await load();}}/>}{data.comments.map(c=><article className="activity-line" key={c.id}><ActorIdentity name={s(c,'actor_name')||s(c,'author_email')} photoUrl={s(c,'actor_photo_url')} verified={c.actor_verified===true}/><small>{new Date(s(c,'created_at')).toLocaleString('es-PY')}</small><p>{s(c,'body')}</p></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
+   {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente.</p>{editable&&<Editor resetOnSave cancelLabel={false} label="Publicar comentario" fields={[{key:'body',label:'Agregar comentario',type:'textarea'}]} defaults={{body:''}} save={async v=>{await api(`/api/agency/productivity/orders/${id}/comments`,v);await completeSave(()=>{},load);}}/>}{data.comments.map(c=><article className="activity-line" key={c.id}><ActorIdentity name={s(c,'actor_name')||s(c,'author_email')} photoUrl={s(c,'actor_photo_url')} verified={c.actor_verified===true}/><small>{new Date(s(c,'created_at')).toLocaleString('es-PY')}</small><p>{s(c,'body')}</p></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
    {tab==='Historial'&&<><p>Niveles aprobados: {s(order,'approval_step')||'0'}</p>{data.history.map(h=><article className="activity-line" key={h.id}><ActorIdentity name={s(h,'actor_name')} photoUrl={s(h,'actor_photo_url')} verified={h.actor_verified===true}/><p>{s(h,'action')==='INSERT'?'Creó la pieza':'Actualizó la pieza'}</p><small>{new Date(s(h,'created_at')).toLocaleString('es-PY')}</small>{h.previous_status!==h.next_status&&<p>{s(h,'previous_status')||'Nueva'} → {s(h,'next_status')}</p>}</article>)}{!data.history.length&&<p>Sin cambios registrados.</p>}</>}
   </>}
  </Dialog>;

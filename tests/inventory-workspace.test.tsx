@@ -13,10 +13,12 @@ const equipment:InventoryItem[]=[{id:'1',name:'Memoria SD',category:'Memoria',ca
 const record:InventoryReservation={id:'30',title:'Rodaje de prueba',project_id:'20',project_name:'Proyecto de prueba',starts_at:'2026-09-10T12:00:00.000Z',ends_at:'2026-09-10T15:00:00.000Z',status:'reserved',created_by_user_id:'10',return_user_id:'11',return_user_name:'Sonido',custodian_user_id:null,custodian_name:null,responsible_members:context.members,items:equipment.map(i=>({id:i.id,name:i.name,storage_shelf:i.storage_shelf,storage_row:i.storage_row})),notes:'',version:0};
 const writes:{path:string;body:any;method:string}[]=[];let reads=0,fail=false,delay=false;
 const pending:(()=>void)[]=[];
+let delayWrites=false;
+const pendingWrites:(()=>void)[]=[];
 let items=equipment,reservations=[record];
 let categories=[{id:'1',name:'Memoria',active:true},{id:'2',name:'Audio',active:true}];
 const mockApi=async(path:string,body?:unknown,method='POST')=>{
- if(body!==undefined){writes.push({path,body,method});if(fail)throw new Error('Conflicto de reserva');return {reservation:record};}
+ if(body!==undefined){writes.push({path,body,method});if(delayWrites)await new Promise<void>(resolve=>pendingWrites.push(resolve));if(fail)throw new Error('Conflicto de reserva');return {reservation:record};}
  reads++;if(delay)await new Promise<void>(resolve=>pending.push(resolve));if(fail)throw new Error('Sin conexión');
  if(path.endsWith('/inventory-context'))return context;
  if(path.endsWith('/inventory-categories'))return {categories};
@@ -27,9 +29,12 @@ const mockApi=async(path:string,body?:unknown,method='POST')=>{
 // on the inventory contract, reservation drafts, permissions and polling.
 const operationsPath=require.resolve('../app/operations');
 const MockEditor=()=>null;
-require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(n:string,c:string)=>`${c} ${n}`,Dialog:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,Editor:MockEditor}} as NodeModule;
+const CloseContext=React.createContext<(()=>void)|undefined>(undefined);
+const pendingStates:boolean[]=[];
+function MockDialog({children,close,busy=false}:{children:React.ReactNode;close:()=>void;busy?:boolean}){return <CloseContext.Provider value={close}><section role="dialog" aria-busy={busy}>{children}</section></CloseContext.Provider>;}
+require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(n:string,c:string)=>`${c} ${n}`,Dialog:MockDialog,Editor:MockEditor}} as NodeModule;
 const dialogPath=require.resolve('../app/dialog');
-require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>}} as NodeModule;
+require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:(value:boolean)=>{pendingStates.push(value);}}} as NodeModule;
 const {InventoryWorkspace,InventoryReservationForm,InventoryTransitionForm,InventoryCalendar,inventoryUtcTime,inventoryLocalTime,inventoryMonthRange,inventoryLocation,inventoryCanReturn,inventoryCanManageReservation}=require('../app/inventory-workspace') as typeof import('../app/inventory-workspace');
 let renderer:ReactTestRenderer,done=0;
 function text(node:ReactTestInstance|string):string{return typeof node==='string'?node:node.children.map(text).join('');}
@@ -124,6 +129,48 @@ async function run(){
  act(()=>button('Agregar equipo').props.onClick());
  const categoryField=renderer.root.findByType(MockEditor).props.fields.find((f:{key:string})=>f.key==='category_id');
  assert.deepEqual(categoryField.choices.map((c:{value:string})=>c.value),['1','2'],'archived categories excluded from new inventory forms');act(()=>renderer.unmount());assert.equal(intervals.size,0);
+ // Consume the real shared SaveActions. Only dialog hooks/portal are mocked;
+ // pending registration and cancellation wiring must follow each actual form.
+ let closed=0;
+ await act(async()=>{renderer=create(<MockDialog close={()=>{closed++;}}><InventoryReservationForm context={{...context,projects:[]}} items={equipment} record={null} done={()=>{}}/></MockDialog>);});
+ assert.equal(button('Guardar reserva').props.disabled,true);
+ assert.equal(pendingStates.at(-1),false,'missing projects is not an in-flight save');
+ assert.equal(button('Cancelar').props.disabled,false);assert.equal(button('Cancelar').props.type,'button');
+ act(()=>button('Cancelar').props.onClick());assert.equal(closed,1);act(()=>renderer.unmount());
+ for(const kind of ['reservation','checkout','return','cancel'] as const){
+  const form=kind==='reservation'?<InventoryReservationForm context={context} items={equipment} record={record} done={()=>{done++;}}/>:<InventoryTransitionForm action={kind} record={record} done={()=>{done++;}}/>;
+  await act(async()=>{renderer=create(<MockDialog close={()=>{closed++;}}>{form}</MockDialog>);});
+  if(kind==='checkout')change('Quién lleva los equipos (custodio)','11','select');
+  delayWrites=true;const completedBefore:number=done,closedBefore:number=closed,writesBefore:number=writes.length;
+  let saving!:Promise<void>;
+  act(()=>{saving=renderer.root.findByType('form').props.onSubmit({preventDefault(){}});});
+  assert.equal(pendingStates.at(-1),true);assert.equal(button('Guardando…').props.disabled,true);assert.equal(button('Cancelar').props.disabled,true);
+  act(()=>button('Cancelar').props.onClick());assert.equal(closed,closedBefore,'cancel cannot dismiss an in-flight save');
+  await submit();assert.equal(writes.length,writesBefore+1,'busy form does not submit again');
+  fail=true;await act(async()=>{pendingWrites.splice(0).forEach(resolve=>resolve());await saving;});delayWrites=false;fail=false;
+  assert.equal(done,completedBefore);assert.equal(pendingStates.at(-1),false);assert.equal(button('Cancelar').props.disabled,false);
+  assert.match(text(renderer.root.findByProps({role:'dialog'})),/Conflicto de reserva/,'save errors stay inside the dialog');
+  await submit();assert.equal(done,completedBefore+1,'failed save can be retried');
+  act(()=>button('Cancelar').props.onClick());assert.equal(closed,closedBefore+1);act(()=>renderer.unmount());
+ }
+ await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+ act(()=>button('Archivar').props.onClick());
+ let archiving!:Promise<void>;delayWrites=true;
+ act(()=>{archiving=button('Archivar equipo').props.onClick();});
+ assert.equal(renderer.root.findByType(MockDialog).props.busy,true);assert.equal(button('Archivando…').props.disabled,true);
+ assert.equal(button('Cancelar').props.disabled,true);act(()=>renderer.root.findByType(MockDialog).props.close());
+ assert.equal(renderer.root.findAllByType(MockDialog).length,1,'archive cannot close while pending');
+ fail=true;await act(async()=>{pendingWrites.splice(0).forEach(resolve=>resolve());await archiving;});delayWrites=false;fail=false;
+ assert.equal(renderer.root.findByType(MockDialog).props.busy,false);
+ assert.match(text(renderer.root.findByProps({role:'dialog'})),/Conflicto de reserva/);
+ // Background refresh must not clear the archive failure or remove its draft.
+ await act(async()=>{intervals.forEach(callback=>callback());});
+ assert.match(text(renderer.root.findByProps({role:'dialog'})),/Conflicto de reserva/);
+ act(()=>button('Cancelar').props.onClick());assert.equal(renderer.root.findAllByType(MockDialog).length,0);
+ act(()=>button('Archivar').props.onClick());assert.equal(renderer.root.findAllByProps({role:'alert'}).length,0,'reopening has no stale archive error');
+ await act(async()=>{await button('Archivar equipo').props.onClick();});
+ assert.equal(renderer.root.findAllByType(MockDialog).length,0);assert.match(tree(),/Equipo archivado/);
+ assert.equal(writes.at(-1)!.method,'DELETE');act(()=>renderer.unmount());assert.equal(intervals.size,0);
  const css=readFileSync(new URL('../app/inventory-workspace.css',import.meta.url),'utf8');assert.match(css,/repeat\(2,minmax/);assert.match(css,/repeat\(3,minmax/);assert.match(css,/@media\(max-width:620px\)/);
  console.log('PASS: inventory UI category create/rename/archive wiring, multi-equipment/responsible editing, unavailable stock, custodian checkout, complete-return payload and retry, assigned permissions, leap/year/midnight calendar boundaries, recorded location, visible 30-second polling, no overlap/flicker/draft reset and offline staleness. API/Editor mocked; browser layout not visually inspected.');
 }

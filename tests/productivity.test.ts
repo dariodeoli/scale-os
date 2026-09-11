@@ -25,7 +25,8 @@ assert(photos.includes('await preparePhoto(file,false,true)'));assert(photos.inc
 assert(crop.includes('objectFit="cover" restrictPosition'));
 assert(photos.includes('originalSource||preview'));
 const profile=readFileSync(new URL('../app/my-profile.tsx',import.meta.url),'utf8');
-assert(profile.includes('await save({full_name:v.full_name});close();'));
+// personal-profile.test.tsx verifies close-after-persistence and refresh failure behavior.
+assert(profile.includes('await save({full_name:v.full_name},true)'));
 const identityCss=readFileSync(new URL('../app/client-identity.css',import.meta.url),'utf8');
 assert(identityCss.includes('.profile-footer .user{display:flex;align-items:center;gap:10px'));
 const photoCss=readFileSync(new URL('../app/photo-cropper.css',import.meta.url),'utf8');

@@ -2,8 +2,8 @@
 import {currencyChoices} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
-import { useEffect, useState, useRef } from "react";
-import {Dialog,FormActions} from "./dialog";
+import { useEffect, useState, useRef, useId } from "react";
+import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -54,6 +54,7 @@ export type Field = {
   optional?: boolean;
   section?: string;
   wide?: boolean;
+  help?: string;
 };
 const currencies = currencyChoices;
 export function Editor({
@@ -62,12 +63,18 @@ export function Editor({
   save,
   label = "Guardar",
   columns = true,
+  closeOnSave = false,
+  resetOnSave = false,
+  cancelLabel = 'Cancelar',
 }: {
   fields: Field[];
   defaults: Record<string, string>;
   save: (v: Record<string, string>) => Promise<void>;
   label?: string;
   columns?: boolean;
+  closeOnSave?: boolean;
+  resetOnSave?: boolean;
+  cancelLabel?: string | false;
 }) {
   const shape: Record<string, z.ZodString> = {};
   for (const f of fields) {
@@ -80,22 +87,43 @@ export function Editor({
     defaultValues: defaults,
   });
   const [error, setError] = useState("");
-  const renderField = (f: Field) => <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
-    {f.choices ? <SelectCustom label={f.label} choices={f.choices} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label>{f.key==='drive_url'?'Enlace de archivo o carpeta de Drive':f.label}
-      {f.type === 'textarea' ? <textarea {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>}
-    </label>}
-    {form.formState.errors[f.key]&&<small className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
-  </div>;
+  const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
+  const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
+  const pending=form.formState.isSubmitting||savingNow;
+  useDialogPending(pending);
+  useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.();}},[saved,pending,requestClose]);
+  const renderField = (f: Field) => {
+    const id=`${formPrefix}-${f.key}`,invalid=!!form.formState.errors[f.key];
+    const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null].filter(Boolean).join(' ')||undefined;
+    return <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
+      {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
+        {f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>}
+      </label>}
+      {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
+      {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
+    </div>;
+  };
   return (
     <form
       className={columns ? "form-stack ops-form-grid" : "form-stack"}
       noValidate
+      aria-busy={pending}
       onSubmit={form.handleSubmit(async (v) => {
+        if(saving.current)return;
+        saving.current=true;
+        setSavingNow(true);
         setError("");
         try {
           await save(v);
+          if(resetOnSave)form.reset(defaults);
+          // Most existing editors close in their own success callback. Only
+          // simple edit dialogs opt in; multi-action detail drawers stay open.
+          if(closeOnSave)setSaved(true);
         } catch (e) {
           setError(message(e));
+        } finally {
+          saving.current=false;
+          setSavingNow(false);
         }
       })}
     >
@@ -105,12 +133,12 @@ export function Editor({
         <summary>{section}</summary><div className="ops-form-grid">{fields.filter(f=>f.section===section).map(renderField)}</div>
       </details>)}
       {error && (
-        <p className="error ops-wide" role="alert">
+        <p className="error form-error-summary ops-wide" role="alert">
           {error}
         </p>
       )}
-      <FormActions><button className="primary ops-wide" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Guardando…" : label}
+      <FormActions>{requestClose&&cancelLabel&&<button className="secondary" type="button" disabled={pending} onClick={requestClose}>{cancelLabel}</button>}<button type="submit" className="primary ops-wide" disabled={pending}>
+        {pending ? "Guardando…" : label}
       </button></FormActions>
     </form>
   );

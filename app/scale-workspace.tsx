@@ -37,7 +37,9 @@ import './control-center.css';
 import './production-focus.css';
 import './mobile-navigation.css';
 import './workspace-density.css';
-import {Dialog,FormActions} from './dialog';
+import {Dialog} from './dialog';
+import {SaveActions} from './save-actions';
+import {completeSave} from './save-completion';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import './operations.css';
 import './suite.css';
@@ -408,9 +410,9 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
         <input {...form.register("phone")} />
       </label>
       {error && <p className="error">{error}</p>}
-      <FormActions><button className="primary" disabled={form.formState.isSubmitting}>
+      <SaveActions pending={form.formState.isSubmitting}><button className="primary" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Guardando…" : "Crear cliente"}
-      </button></FormActions>
+      </button></SaveActions>
     </form>
   );
 }
@@ -499,12 +501,12 @@ function ProjectForm({
         <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
       </label>
       {error && <p className="error">{error}</p>}
-      <FormActions><button
+      <SaveActions pending={form.formState.isSubmitting}><button
         className="primary"
         disabled={!clients.length || form.formState.isSubmitting}
       >
         {form.formState.isSubmitting ? "Guardando…" : "Crear proyecto"}
-      </button></FormActions>
+      </button></SaveActions>
       {!clients.length && <p className="form-note">Primero creá un cliente.</p>}
     </form>
   );
@@ -623,12 +625,12 @@ function OrderForm({
         <textarea {...form.register("description")} />
       </label>
       {error && <p className="error">{error}</p>}
-      <FormActions><button
+      <SaveActions pending={form.formState.isSubmitting}><button
         className="primary"
         disabled={!projects.length || form.formState.isSubmitting}
       >
         {form.formState.isSubmitting ? "Guardando…" : "Crear orden"}
-      </button></FormActions>
+      </button></SaveActions>
       {!projects.length && (
         <p className="form-note">Primero creá un proyecto.</p>
       )}
@@ -782,12 +784,12 @@ function BudgetForm({
         <input type="date" {...form.register("validUntil")} />
       </label>
       {error && <p className="error">{error}</p>}
-      <FormActions><button
+      <SaveActions pending={form.formState.isSubmitting}><button
         className="primary"
         disabled={!clients.length || form.formState.isSubmitting}
       >
         {form.formState.isSubmitting ? "Creando…" : "Crear presupuesto"}
-      </button></FormActions>
+      </button></SaveActions>
     </form>
   );
 }
@@ -939,9 +941,9 @@ function AccountForm({
         </div>
       </fieldset>
       {error && <p className="error">{error}</p>}
-      <FormActions><button className="primary" disabled={form.formState.isSubmitting}>
+      <SaveActions pending={form.formState.isSubmitting}><button className="primary" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Creando…" : "Crear cuenta"}
-      </button></FormActions>
+      </button></SaveActions>
     </form>
   );
 }
@@ -1041,12 +1043,12 @@ function InvoiceForm({
         <input type="date" {...form.register("dueOn")} />
       </label>
       {error && <p className="error">{error}</p>}
-      <FormActions><button
+      <SaveActions pending={form.formState.isSubmitting}><button
         className="primary"
         disabled={!clients.length || form.formState.isSubmitting}
       >
         {form.formState.isSubmitting ? "Creando…" : "Crear factura"}
-      </button></FormActions>
+      </button></SaveActions>
     </form>
   );
 }
@@ -1190,12 +1192,12 @@ function PaymentForm({
         />
       </label>
       {error && <p className="error">{error}</p>}
-      <FormActions><button
+      <SaveActions pending={form.formState.isSubmitting}><button
         className="primary"
         disabled={!accounts.length || form.formState.isSubmitting}
       >
         {form.formState.isSubmitting ? "Guardando…" : "Registrar cobro"}
-      </button></FormActions>
+      </button></SaveActions>
     </form>
   );
 }
@@ -1314,9 +1316,9 @@ function TransferForm({
         />
       </label>
       {error && <p className="error">{error}</p>}
-      <FormActions><button className="primary" disabled={form.formState.isSubmitting}>
+      <SaveActions pending={form.formState.isSubmitting}><button className="primary" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Guardando…" : "Registrar transferencia"}
-      </button></FormActions>
+      </button></SaveActions>
     </form>
   );
 }
@@ -1683,7 +1685,7 @@ export default function Home() {
       </DesktopSidebar>
       <section className="content">
         {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>setSubscriptionOpen(true)}/>}
-        {subscriptionOpen&&user&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
+        {subscriptionOpen&&user&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
         <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><div className="workspace-context"><CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>{user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}</div><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
@@ -2184,8 +2186,7 @@ export default function Home() {
             clients={clients}
             initialClientId={projectClient}
             done={async () => {
-              await load();
-              close();
+              await completeSave(close,load);
             }}
           />
         </Modal>
@@ -2195,15 +2196,14 @@ export default function Home() {
           <OrderForm
             projects={projects}
             done={async () => {
-              await load();
-              close();
+              await completeSave(close,load);
             }}
           />
         </Modal>
       )}
       {modal === "budget" && (
         <Modal title="Nuevo presupuesto" onClose={close}>
-          <QuoteComposer mode="create" done={async()=>{setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets);close();}}/>
+          <QuoteComposer mode="create" done={()=>completeSave(close,async()=>{setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets);})}/>
         </Modal>
       )}
       {modal === "account" && (
@@ -2235,8 +2235,7 @@ export default function Home() {
             accounts={accounts}
             custodians={custodians}
             done={async () => {
-              await loadFinance();
-              close();
+              await completeSave(close,loadFinance);
             }}
           />
         </Modal>
@@ -2246,8 +2245,7 @@ export default function Home() {
           <FXTransferForm
             accounts={accounts}
             done={async () => {
-              await loadFinance();
-              close();
+              await completeSave(close,loadFinance);
             }}
           />
         </Modal>

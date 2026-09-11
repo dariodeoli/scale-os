@@ -1,6 +1,7 @@
 import './globals.css';
 import './qa-fixes.css';
 import './mobile-forms.css';
+import './ui-system.css';
 import type { Metadata } from 'next';
 import {NotificationCenter} from './notification-center';
 

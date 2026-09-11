@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {api,Dialog,Editor,type Field,money} from './operations';
-import {FormActions} from './dialog';
+import {SaveActions} from './save-actions';
 import {currencyChoices} from './currencies';
 import {useCompanyCurrency} from './currency-provider';
 import './inventory-workspace.css';
@@ -56,7 +56,7 @@ function InventoryPanel(){
  const hasData=useRef(false);
  const [editItem,setEditItem]=useState<InventoryItem|'new'|null>(null),[editReservation,setEditReservation]=useState<InventoryReservation|'new'|null>(null),[editCategory,setEditCategory]=useState<Category|'new'|null>(null);
  const [action,setAction]=useState<{kind:'checkout'|'return'|'cancel';row:InventoryReservation}|null>(null);
- const [archive,setArchive]=useState<InventoryItem|null>(null),[busy,setBusy]=useState(false);
+ const [archive,setArchive]=useState<InventoryItem|null>(null),[busy,setBusy]=useState(false),[archiveError,setArchiveError]=useState('');
  useEffect(()=>{
   let active=true,running=false;
   const {from,to}=inventoryMonthRange(month);
@@ -99,7 +99,7 @@ function InventoryPanel(){
   {editCategory&&context?.can_manage?<Dialog title={editCategory==='new'?'Nueva categoría':'Editar categoría'} close={()=>setEditCategory(null)}><Editor fields={[{key:'name',label:'Nombre de la categoría'},{key:'active',label:'Disponibilidad',choices:[{value:'true',label:'Activa'},{value:'false',label:'Archivada'}]}]} defaults={{name:editCategory==='new'?'':editCategory.name,active:String(editCategory==='new'||editCategory.active)}} save={async values=>{await api(`/api/agency/inventory-categories${editCategory==='new'?'':`/${editCategory.id}`}`,{name:values.name,active:values.active==='true'},editCategory==='new'?'POST':'PATCH');saved('Categoría guardada.');}}/></Dialog>:null}
   {editReservation&&context?.can_reserve?<Dialog title={editReservation==='new'?'Reservar equipos':'Editar reserva'} close={()=>setEditReservation(null)}><InventoryReservationForm context={context} items={items} record={editReservation==='new'?null:editReservation} done={()=>saved('Reserva guardada. El retiro se registra por separado.')}/></Dialog>:null}
   {action?<Dialog title={{checkout:'Registrar retiro',return:'Registrar devolución',cancel:'Cancelar reserva'}[action.kind]} close={()=>setAction(null)}><InventoryTransitionForm action={action.kind} record={action.row} done={()=>saved({checkout:'Retiro registrado.',return:'Devolución registrada.',cancel:'Reserva cancelada.'}[action.kind])}/></Dialog>:null}
-  {archive?<Dialog title={`Archivar ${archive.name}`} close={()=>setArchive(null)}><p>El equipo quedará en Papelera. No se puede archivar mientras tenga reservas abiertas.</p><button className="primary" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await api(`/api/agency/inventory/${archive.id}`,{},'DELETE');saved('Equipo archivado. Se puede restaurar desde Papelera.');}catch(error){setError(errorMessage(error));setArchive(null);}finally{setBusy(false);}}}>Archivar equipo</button></Dialog>:null}
+  {archive?<Dialog title={`Archivar ${archive.name}`} busy={busy} close={()=>{if(!busy){setArchive(null);setArchiveError('');}}}><p>El equipo quedará en Papelera. No se puede archivar mientras tenga reservas abiertas.</p>{archiveError?<p className="error" role="alert">{archiveError}</p>:null}<SaveActions pending={busy}><button type="button" className="primary" disabled={busy} onClick={async()=>{if(busy)return;setBusy(true);setArchiveError('');try{await api(`/api/agency/inventory/${archive.id}`,{},'DELETE');saved('Equipo archivado. Se puede restaurar desde Papelera.');}catch(error){setArchiveError(errorMessage(error));}finally{setBusy(false);}}}>{busy?'Archivando…':'Archivar equipo'}</button></SaveActions></Dialog>:null}
  </div>;
 }
 
@@ -128,7 +128,7 @@ export function InventoryReservationForm({context,items,record,done}:{context:Co
   <label className="inventory-wide">Responsable de devolución<select value={returnPerson} onChange={e=>setReturnPerson(e.target.value)} required><option value="">Elegí entre los responsables</option>{context.members.filter(p=>responsibles.includes(String(p.id))).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
   <label className="inventory-wide">Notas<textarea value={notes} onChange={e=>setNotes(e.target.value)} maxLength={2000}/></label>
   <p className="form-note inventory-wide">Reservar no registra el retiro. Al retirar se indica quién lleva físicamente los equipos; al devolver se registra dónde quedan.</p>
-  {error?<p className="error inventory-wide" role="alert">{error}</p>:null}<FormActions><button className="primary" disabled={busy||!context.projects.length}>{busy?'Guardando…':'Guardar reserva'}</button></FormActions>
+  {error?<p className="error inventory-wide" role="alert">{error}</p>:null}<SaveActions pending={busy}><button className="primary" disabled={busy||!context.projects.length}>{busy?'Guardando…':'Guardar reserva'}</button></SaveActions>
  </form>;
 }
 
@@ -138,7 +138,7 @@ export function InventoryTransitionForm({action,record,done}:{action:'checkout'|
  return <form className="inventory-form-grid" onSubmit={async event=>{event.preventDefault();if(busy)return;setBusy(true);setError('');try{await api(`/api/agency/inventory-reservations/${record.id}/${action}`,{expected_version:record.version,...(action==='checkout'?{custodian_user_id:custodian}:action==='return'?{locations}:{})});done();}catch(error){setError(errorMessage(error));}finally{setBusy(false);}}}>
   <p className="inventory-wide">{record.title} · {record.items.map(i=>i.name).join(', ')}</p>
   {action==='checkout'?<><label className="inventory-wide">Quién lleva los equipos (custodio)<select value={custodian} onChange={e=>setCustodian(e.target.value)} required><option value="">Elegí al custodio real</option>{record.responsible_members.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><p className="form-note inventory-wide">Responsable de devolución: {record.return_user_name}. Confirmá el retiro cuando los equipos se entreguen físicamente, dentro del horario reservado.</p></>:action==='return'?<><p className="form-note inventory-wide">Registrá la devolución completa y revisá dónde queda cada equipo. No se libera ninguno hasta guardar todos.</p>{locations.map((row,index)=><fieldset className="inventory-wide inventory-form-grid" key={row.inventory_id}><legend>{record.items[index].name}</legend><label>Estante o lugar de guardado<input value={row.storage_shelf} maxLength={100} required onChange={e=>location(index,'storage_shelf',e.target.value)}/></label><label>Fila / posición<input value={row.storage_row} maxLength={80} onChange={e=>location(index,'storage_row',e.target.value)}/></label><label>Estado al devolver<select value={row.status} onChange={e=>location(index,'status',e.target.value)}><option value="available">Disponible</option><option value="maintenance">Necesita mantenimiento</option></select></label></fieldset>)}</>:<p className="inventory-wide">Cancelar libera todos los equipos de esta reserva. Solo aplica si todavía no se retiraron.</p>}
-  {error?<p className="error inventory-wide" role="alert">{error}</p>:null}<FormActions><button className="primary" disabled={busy}>{busy?'Guardando…':{checkout:'Confirmar retiro',return:'Confirmar devolución completa',cancel:'Confirmar cancelación'}[action]}</button></FormActions>
+  {error?<p className="error inventory-wide" role="alert">{error}</p>:null}<SaveActions pending={busy}><button className="primary" disabled={busy}>{busy?'Guardando…':{checkout:'Confirmar retiro',return:'Confirmar devolución completa',cancel:'Confirmar cancelación'}[action]}</button></SaveActions>
  </form>;
 }
 

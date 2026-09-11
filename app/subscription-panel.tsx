@@ -22,6 +22,7 @@ export type SubscriptionPanelProps={
  onRefresh?:()=>void|Promise<void>;
  loading?:boolean;
  error?:string|null;
+ embedded?:boolean;
 };
 const prices={USD:'US$ 10',PYG:'Gs. 50.000'} as const;
 const titles={unmanaged:'Sin suscripción gestionada',demo:'Demo · sin cobros',trialing:'Prueba gratuita',active:'Suscripción activa',grace:'Pago pendiente · período de gracia',suspended:'Acceso suspendido'};
@@ -49,7 +50,7 @@ function description(state:SubscriptionState){
 
 // Main owns GET /api/billing/subscription and the suspended workspace gate.
 // Mount with key={organizationId}; never reuse in-flight billing across tenants.
-export function SubscriptionPanel({state,onRefresh,loading=false,error}:SubscriptionPanelProps){
+export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=false}:SubscriptionPanelProps){
  const heading=useId();
  const [accepted,setAccepted]=useState(false),[actionError,setActionError]=useState('');
  const [verification,setVerification]=useState('');
@@ -94,8 +95,8 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error}:Subscrip
   }catch(e){if(mounted.current&&latest.current===snapshot)setActionError(e instanceof Error?e.message:'No se pudo abrir Stripe. Intentá nuevamente.');}
   finally{locked.current=false;if(mounted.current)setPending(null);}
  }
- return <section className="subscription-panel" aria-labelledby={heading} aria-busy={busy}>
-  <h2 id={heading}>Suscripción de Scale OS</h2>
+ return <section className="subscription-panel" data-embedded={embedded||undefined} aria-labelledby={heading} aria-busy={busy}>
+  <h2 id={heading} hidden={embedded}>Suscripción de Scale OS</h2>
   {loading?<p role="status">Cargando suscripción…</p>:error||!state?<p className="subscription-error" role="alert">{error||'No se pudo cargar la suscripción. No se confirmó ningún pago.'}</p>:<>
    <div className={`subscription-status subscription-status--${state.status}`}><h3>{titles[state.status]}</h3><p>{description(state)}</p></div>
    {!state.hasAccess&&state.status!=='suspended'?<p className="subscription-error" role="alert">El servidor informa que el acceso está bloqueado.</p>:null}

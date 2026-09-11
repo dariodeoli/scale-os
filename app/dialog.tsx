@@ -1,5 +1,5 @@
 "use client";
-import {Children,cloneElement,createContext,isValidElement,useContext,useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
+import {Children,cloneElement,createContext,isValidElement,useCallback,useContext,useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import type {ButtonHTMLAttributes,ReactNode,RefObject} from 'react';
 import {createPortal} from 'react-dom';
 import {X} from 'lucide-react';
@@ -8,35 +8,99 @@ import './dialog.css';
 const layers=createLayerStack();
 let originalOverflow='';
 const FooterContext=createContext<HTMLElement|null>(null);
-export function useOverlay(panel:RefObject<HTMLElement>,close:()=>void){
- const closeRef=useRef(close);closeRef.current=close;
+const OverlayContext=createContext<symbol[]>([]);
+type OverlayEntry={id:symbol;panel:RefObject<HTMLElement>;previous:HTMLElement|null;parents:symbol[]};
+const overlays:OverlayEntry[]=[];
+const focusSelector='button,input:not([type="hidden"]),select,textarea,a[href],summary,[tabindex],[contenteditable="true"]';
+function focusable(panel:HTMLElement|null){
+ return Array.from(panel?.querySelectorAll?.<HTMLElement>(focusSelector)||[]).filter(el=>
+  el.tabIndex>=0&&!el.matches(':disabled')&&!el.closest('[hidden],[inert]')&&el.getClientRects().length>0&&el.ownerDocument.defaultView?.getComputedStyle(el).visibility!=='hidden'
+ ).sort((a,b)=>(a.tabIndex||Infinity)-(b.tabIndex||Infinity));
+}
+function focusFirst(panel:HTMLElement|null){
+ const first=focusable(panel)[0];
+ // querySelector fallback also supports useOverlay consumers with minimal host refs.
+ (first||(!panel?.querySelectorAll?panel?.querySelector<HTMLElement>(focusSelector):null)||panel)?.focus();
+}
+type OverlayOptions={busy?:boolean};
+function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false}:OverlayOptions={}){
+ const id=useRef(Symbol('overlay')).current,parents=useContext(OverlayContext);
+ const closeRef=useRef(close),busyRef=useRef(busy);closeRef.current=close;busyRef.current=busy;
+ const requestClose=useCallback(()=>{if(layers.isTop(id)&&!busyRef.current)closeRef.current();},[id]);
  useEffect(()=>{
-  const id=Symbol('overlay'),previous=document.activeElement as HTMLElement|null;
+  const element=panel.current;
+  const entry:OverlayEntry={id,panel,previous:document.activeElement as HTMLElement|null,parents};
   if(!layers.size)originalOverflow=document.body.style.overflow;
-  layers.add(id);document.body.style.overflow='hidden';
-  panel.current?.querySelector<HTMLElement>('button:not(:disabled),input:not(:disabled),[tabindex="0"]')?.focus();
+  // React mounts child effects first: insert a late-registering parent below its children.
+  const childIndex=overlays.findIndex(item=>item.parents.includes(id));
+  if(childIndex>=0)entry.previous=overlays[childIndex].previous;
+  overlays.splice(childIndex<0?overlays.length:childIndex,0,entry);
+  overlays.forEach(item=>layers.remove(item.id));overlays.forEach(item=>layers.add(item.id));
+  document.body.style.overflow='hidden';
+  if(layers.isTop(id))focusFirst(panel.current);
   const keyboard=(event:KeyboardEvent)=>{
    if(event.defaultPrevented||!layers.isTop(id))return;
-   if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();closeRef.current();return;}
+   if(event.key==='Escape'){
+    // Native pickers own Escape while focused; their open state is not exposed by the DOM.
+    if(event.isComposing||event.repeat||(event.target as HTMLElement|null)?.tagName==='SELECT')return;
+    event.preventDefault();event.stopImmediatePropagation();requestClose();return;
+   }
    if(event.key==='Tab'){
-    const items=Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],summary,[tabindex="0"]')||[]).filter(el=>el.getClientRects().length>0);
+    const items=focusable(panel.current);
     const first=items[0],last=items.at(-1);
     if(!first){event.preventDefault();panel.current?.focus();return;}
-    if(event.shiftKey&&(document.activeElement===first||document.activeElement===panel.current)){event.preventDefault();last?.focus();}
+    if(!items.includes(document.activeElement as HTMLElement)){event.preventDefault();(event.shiftKey?last:first)?.focus();}
+    else if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
    }
   };
+  const containFocus=(event:FocusEvent)=>{if(layers.isTop(id)&&panel.current?.contains&&!panel.current.contains(event.target as Node))focusFirst(panel.current);};
   document.addEventListener('keydown',keyboard);
-  return()=>{layers.remove(id);document.removeEventListener('keydown',keyboard);if(!layers.size)document.body.style.overflow=originalOverflow;if(previous?.isConnected)previous.focus();};
- },[panel]);
+  document.addEventListener('focusin',containFocus);
+  return()=>{
+   const wasTop=layers.isTop(id);
+   layers.remove(id);overlays.splice(overlays.indexOf(entry),1);
+   document.removeEventListener('keydown',keyboard);document.removeEventListener('focusin',containFocus);
+   // If a covered parent disappears, retain its external trigger for the surviving child.
+   overlays.forEach(item=>{if(element?.contains?.(item.previous))item.previous=entry.previous;});
+   if(!layers.size)document.body.style.overflow=originalOverflow;
+   if(wasTop){
+    const top=overlays.at(-1);
+    if(entry.previous?.isConnected&&(!top||top.panel.current?.contains?.(entry.previous)))entry.previous.focus();
+    else if(top)focusFirst(top.panel.current);
+   }
+  };
+ },[id,panel,parents,requestClose]);
+ return {id,parents,requestClose};
 }
-export function Dialog({title,close,children,variant='modal'}:{title:string;close:()=>void;children:ReactNode;variant?:'modal'|'drawer'}){
+/** Existing photo/navigation consumers may ignore the returned guarded dismiss callback. */
+export function useOverlay(panel:RefObject<HTMLElement>,close:()=>void,options:OverlayOptions={}){
+ return useOverlayState(panel,close,options).requestClose;
+}
+type DialogControls={requestClose:()=>void;setPending:(id:symbol,pending:boolean)=>void};
+const DialogContext=createContext<DialogControls|null>(null);
+/** Opt-in dismissal; undefined for inline forms rendered outside a Dialog. */
+export function useDialogClose(){return useContext(DialogContext)?.requestClose;}
+/** Each form owns one registration. One idle form cannot unlock another saving form. */
+export function useDialogPending(pending:boolean){
+ const controls=useContext(DialogContext),id=useRef(Symbol('dialog-form')).current;
+ useLayoutEffect(()=>{controls?.setPending(id,pending);return()=>controls?.setPending(id,false);},[controls,id,pending]);
+}
+export function Dialog({title,close,children,variant='modal',busy=false,size='default'}:{title:string;close:()=>void;children:ReactNode;variant?:'modal'|'drawer';busy?:boolean;size?:'default'|'compact'|'wide'}){
  const panel=useRef<HTMLElement>(null),heading=useId();
  const [footer,setFooter]=useState<HTMLDivElement|null>(null);
- useOverlay(panel,close);
- return createPortal(<div className={`ops-overlay${variant==='drawer'?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget)close();}}><section className="ops-dialog unified-dialog" ref={panel} role="dialog" aria-modal="true" aria-labelledby={heading} tabIndex={-1}>
-  <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" onClick={close} aria-label="Cerrar"><X size={18}/></button></div>
-  <FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider>
+ const pendingForms=useRef(new Set<symbol>()),[formBusy,setFormBusy]=useState(false);
+ const blocked=busy||formBusy;
+ const guardedClose=useCallback(()=>{if(!pendingForms.current.size)close();},[close]);
+ // The registry ref releases synchronously in child layout effects, before an Editor's
+ // post-save passive effect requests close; rendering aria-busy must not delay it.
+ const {id,parents,requestClose}=useOverlayState(panel,guardedClose,{busy});
+ const setPending=useCallback((id:symbol,pending:boolean)=>{if(pending)pendingForms.current.add(id);else pendingForms.current.delete(id);setFormBusy(pendingForms.current.size>0);},[]);
+ const controls=useMemo(()=>({requestClose,setPending}),[requestClose,setPending]);
+ const ancestry=useMemo(()=>[...parents,id],[parents,id]);
+ return createPortal(<div className={`ops-overlay${variant==='drawer'?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal="true" aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
+  <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" onClick={requestClose} disabled={blocked} aria-label="Cerrar"><X size={18}/></button></div>
+  <OverlayContext.Provider value={ancestry}><DialogContext.Provider value={controls}><FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider></DialogContext.Provider></OverlayContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>
  </section></div>,document.body);
 }
@@ -46,6 +110,6 @@ export function FormActions({children}:{children:ReactNode}){
  const footer=useContext(FooterContext),anchor=useRef<HTMLSpanElement>(null),id=useId();
  const [formId,setFormId]=useState('');
  useLayoutEffect(()=>{const form=anchor.current?.closest('form');if(form){if(!form.id)form.id=id;setFormId(form.id);}},[id]);
- const actions=<div className="dialog-actions">{Children.map(children,child=>isValidElement<ButtonHTMLAttributes<HTMLButtonElement>>(child)&&child.type==='button'?cloneElement(child,{form:formId||undefined}):child)}</div>;
+ const actions=<div className="dialog-actions">{Children.map(children,child=>isValidElement<ButtonHTMLAttributes<HTMLButtonElement>>(child)&&child.type==='button'&&!child.props.form?cloneElement(child,{form:formId||undefined}):child)}</div>;
  return <><span hidden ref={anchor}/>{footer?createPortal(actions,footer):actions}</>;
 }

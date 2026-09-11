@@ -1,0 +1,110 @@
+/* Scale OS shared UI. Module layouts retain their own grids and permissions.
+   Scope to the workspace and portal dialogs; the sales landing is independent. */
+:root{
+ --ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;
+ --ui-space-5:20px;--ui-space-6:24px;
+ --ui-control-height:40px;--ui-panel-padding:20px;--ui-card-padding:16px;
+ --ui-field-border:#927d9b;--ui-focus:var(--brand-700);
+}
+.control-shell{--control-gap:var(--ui-space-4);--control-padding:var(--ui-panel-padding)}
+:is(.control-shell,.unified-dialog,.photo-dialog){accent-color:var(--brand-700)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(h2,h3){line-height:1.3;overflow-wrap:anywhere}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(p,label,legend){overflow-wrap:anywhere}
+
+/* A page surface, an inset card and a disclosure share one spacing scale. */
+.control-shell .panel{border-radius:var(--radius-md);padding:var(--ui-panel-padding)}
+.control-shell .panel .panel{padding:0;border:0;box-shadow:none}
+.control-shell .production-panel,.control-shell .production-focus{padding:0;border:0;background:transparent}
+.control-shell :is(.ops-card,.project-card,.inventory-equipment,.inventory-reservation,.reports-distribution,.reports-tiles article){padding:var(--ui-card-padding);border-radius:var(--radius-md);background:var(--surface)}
+.control-shell :is(.ops-stack,.finance-grid){gap:var(--ui-space-4)}
+.control-shell :is(.ops-grid,.project-grid,.client-directory-grid,.inventory-equipment-grid,.reports-tiles,.reports-distributions){gap:var(--ui-space-3)}
+.control-shell .panel-heading{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-3);margin-bottom:var(--ui-space-4)}
+.control-shell .panel-heading>*{min-width:0;max-width:100%}
+.control-shell .panel-heading :is(h2,h3){display:flex;align-items:center;gap:var(--ui-space-2)}
+.control-shell .panel-heading h2{font-size:18px}
+.control-shell :is(.panel,.ops-card)>.form-note{margin-top:var(--ui-space-2)}
+.control-shell :is(.panel,.ops-card)>.form-stack{margin-top:var(--ui-space-4)}
+.control-shell .panel+.panel{margin-top:var(--ui-space-4)}
+.control-shell :is(.ops-stack,.finance-grid)>.panel+.panel{margin-top:0}
+.control-shell :is(.client-directory-toolbar,.inventory-filters,.work-history-filters){gap:var(--ui-space-3);margin-block:var(--ui-space-4)}
+.control-shell .section-tabs{gap:var(--ui-space-5);margin-bottom:var(--ui-space-4)}
+.control-shell .section-tabs>a{min-height:var(--ui-control-height);display:inline-flex;align-items:center}
+
+/* Stable geometry: selection, hover and focus never change sizes or weights. */
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,button.secondary,button.choice,a.primary,a.secondary){
+ min-height:var(--ui-control-height);max-width:100%;padding:8px 14px;
+ display:inline-flex;align-items:center;justify-content:center;gap:var(--ui-space-2);
+ border-radius:var(--radius-sm);font:600 13px/1.35 Outfit,Arial,sans-serif;
+ white-space:normal;overflow-wrap:anywhere;text-decoration:none;
+}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary){box-shadow:none}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,button.secondary,button.choice,a.primary):hover{transform:none}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary){border:1px solid var(--line-strong)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,a.secondary){background:var(--surface);color:var(--text)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary.record-remove,button.secondary.danger){color:var(--danger);border-color:var(--danger)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.choice.active{border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{width:var(--ui-control-height);min-height:var(--ui-control-height);flex-shrink:0}
+:is(.control-shell,.unified-dialog,.photo-dialog) button:disabled{cursor:not-allowed;opacity:.55}
+:is(.control-shell,.unified-dialog,.photo-dialog) .text-button{display:inline-flex;align-items:center;gap:6px;line-height:1.4;min-height:32px;text-align:left}
+.control-shell .header-actions :is(.primary,.secondary){min-height:var(--ui-control-height)}
+.control-shell .header-actions .secondary{border:1px solid var(--line-strong);background:var(--surface);color:var(--text-muted)}
+.control-shell .demo-tools>select{min-height:32px;padding:5px 8px;font-size:11px}
+:is(.control-shell,.unified-dialog) :is(.inline-actions,.quick-actions,.client-record-actions){gap:var(--ui-space-2) var(--ui-space-3);align-items:center}
+
+/* Native and custom fields use the same border, height and readable label. */
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){
+ min-width:0;max-width:100%;min-height:var(--ui-control-height);border:1px solid var(--ui-field-border);
+ border-radius:var(--radius-sm);padding:9px 12px;background:var(--surface);color:var(--text);
+ font:400 14px/1.4 Outfit,Arial,sans-serif;
+}
+:is(.control-shell,.unified-dialog,.photo-dialog) textarea{min-height:96px;resize:vertical}
+:is(.control-shell,.unified-dialog) :is(input,textarea,select):disabled,
+:is(.control-shell,.unified-dialog) .ops-select-trigger:disabled{background:var(--surface-subtle);color:var(--text-muted);cursor:not-allowed}
+:is(.control-shell,.unified-dialog) .form-stack{gap:var(--ui-space-4)}
+:is(.control-shell,.unified-dialog) :is(.form-stack label,.ops-label){font-size:12px;line-height:1.4;font-weight:600;color:var(--text-muted)}
+:is(.control-shell,.unified-dialog) .ops-form-grid{gap:var(--ui-space-4)}
+:is(.control-shell,.unified-dialog) .ops-form-grid>div{min-width:0}
+:is(.control-shell,.unified-dialog) :is(.form-note,.field-help){font-size:12px;line-height:1.5;color:var(--text-muted)}
+.field-help{display:block;margin-top:6px}.field-optional{font-size:11px;font-weight:400;color:var(--text-muted)}
+:is(.control-shell,.unified-dialog) .ops-profile-section{border-radius:var(--radius-sm);background:var(--surface)}
+:is(.control-shell,.unified-dialog) .ops-profile-section>summary{min-height:var(--ui-control-height);padding:12px 14px;font-size:13px}
+:is(.control-shell,.unified-dialog) .ops-profile-section[open]>summary{margin-bottom:var(--ui-space-2);border-bottom:1px solid var(--line)}
+:is(.control-shell,.unified-dialog) [aria-invalid=true]{border-color:var(--danger)}
+:is(.control-shell,.unified-dialog) :is(.form-error-summary,.form-status){grid-column:1/-1;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);margin:0;font-size:13px;line-height:1.5}
+:is(.control-shell,.unified-dialog) .form-error-summary{border-color:var(--danger);background:var(--danger-soft);color:var(--text)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :focus-visible{outline:2px solid var(--ui-focus);outline-offset:3px}
+
+/* Lists use dividers, not another full panel around every row. */
+.control-shell :is(.payment-row,.client-list .client-row,.activity-line){padding-block:var(--ui-space-3);gap:var(--ui-space-3)}
+.control-shell :is(.payment-row,.client-row)>div{min-width:0}
+.control-shell .payment-row{flex-wrap:wrap}
+.control-shell :is(.payment-row,.client-row) :is(b,strong,small){overflow-wrap:anywhere}
+.control-shell .payment-row :is(b,small){white-space:normal}
+.control-shell :is(.client-status,.inventory-status){display:inline-flex;align-items:center;min-height:26px;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:600}
+.control-shell :is(.payment-row>strong,.metric strong,.financial-amounts,.reports-tiles article>strong){font-variant-numeric:tabular-nums}
+
+/* A document preview is not the application sidebar, despite using <aside>. */
+:is(.control-shell,.unified-dialog) .quote-preview{position:static;top:auto;width:auto;height:auto;display:block;min-width:0;max-width:100%;margin:0;padding:var(--ui-card-padding);border:1px solid var(--line);border-radius:var(--radius-md)}
+:is(.control-shell,.unified-dialog) .quote-preview>section+section{margin-top:var(--ui-space-3)}
+:is(.control-shell,.unified-dialog) .quote-preview .payment-row{display:flex;flex-wrap:wrap;align-items:flex-start;min-width:0;gap:6px 12px}
+:is(.control-shell,.unified-dialog) .quote-preview .payment-row>span{flex:1 1 140px;min-width:0;overflow-wrap:anywhere}
+:is(.control-shell,.unified-dialog) .quote-preview .payment-row>b{flex:0 0 auto;max-width:100%;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+:is(.control-shell,.unified-dialog) .quote-item{grid-template-columns:var(--ui-control-height) minmax(0,1fr)}
+:is(.control-shell,.unified-dialog) .quote-item>.icon-button{width:var(--ui-control-height);min-height:var(--ui-control-height)}
+.unified-dialog .subscription-panel[data-embedded=true]{padding:0;border:0;border-radius:0;background:transparent}
+
+@media(max-width:760px){
+ :root{--ui-control-height:44px;--ui-panel-padding:16px;--ui-card-padding:14px}
+ :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){font-size:16px}
+ :is(.control-shell,.unified-dialog,.photo-dialog) :is(button.text-button,button.secondary,button.primary,button.choice){min-height:44px}
+ .control-shell .header-actions :is(.primary,.secondary){min-height:44px}
+ .control-shell .panel-heading{gap:var(--ui-space-3)}
+ .control-shell :is(.payment-row,.client-row){align-items:flex-start}
+ .control-shell .payment-row>strong{max-width:100%;overflow-wrap:anywhere}
+ :is(.control-shell,.unified-dialog) .form-stack{row-gap:var(--ui-space-4)}
+}
+@media(prefers-reduced-motion:reduce){
+ :is(.control-shell,.unified-dialog,.photo-dialog) *,
+ :is(.control-shell,.unified-dialog,.photo-dialog) *::before,
+ :is(.control-shell,.unified-dialog,.photo-dialog) *::after{transition:none;animation:none;scroll-behavior:auto}
+}
