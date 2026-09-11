@@ -14,7 +14,7 @@ const repo=path.dirname(fileURLToPath(import.meta.url));
 const bin=path.resolve(process.env.SCALE_TEST_PG_BIN||'/opt/homebrew/opt/postgresql@16/bin');
 const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024});
 const revision=git('rev-parse','HEAD').trim();
-const committed=file=>git('show',`${revision}:${file}`);
+const committed=file=>git('show',`${revision}:./${file}`);
 const schema=committed('schema.sql'),server=committed('server.js');
 const start=server.indexOf('async function init()'),end=server.indexOf("await migration.query('commit')",start);
 assert(start>=0&&end>start,'Cannot identify HEAD migration transaction');

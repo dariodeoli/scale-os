@@ -1,5 +1,5 @@
 {
-  "name": "scale-core-api",
+  "name": "scale-os-backend",
   "private": true,
   "type": "module",
   "scripts": {

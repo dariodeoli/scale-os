@@ -18,7 +18,7 @@ const migrations=[
 
 async function fixture(){
  const pg=new PGlite();
- await pg.exec(execFileSync('git',['show','HEAD:schema.sql'],{cwd:new URL('.',import.meta.url),encoding:'utf8'}));
+ await pg.exec(execFileSync('git',['show','HEAD:./schema.sql'],{cwd:new URL('.',import.meta.url),encoding:'utf8'}));
  for(const file of migrations)await pg.exec(await fs.readFile(new URL('./migrations/'+file,import.meta.url),'utf8'));
  const query=(sql,values)=>pg.query(sql,values),db={query,connect:async()=>({query,release(){}})};
  const org=(await query("select id from organizations where slug='scale'")).rows[0].id;

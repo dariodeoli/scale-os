@@ -10,7 +10,8 @@
     "prebuild": "npm run footer:sync",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node deployment/start.mjs",
+    "test:deployment": "node --test deployment/*.test.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts"

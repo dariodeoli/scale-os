@@ -577,8 +577,8 @@ const server = http.createServer(async (req,res) => {
     send(res,404,{error:'No encontrado'});
   } catch (e) { console.error(JSON.stringify({event:'request_error',status:e.status||500,code:e.code})); send(res,e.status||500,{error:e.status?e.message:'Error interno'}); }
 });
-server.listen(port, () => {
-  console.log(`Scale Core API listening on ${port}`);
+server.listen(port, '127.0.0.1', () => {
+  console.log(`Scale OS backend listening internally on ${port}`);
   init()
     .then(() => { databaseReady = true; startAutomation(db,{apiKey:resendApiKey,from:invitationFrom,appUrl}); server.once('close',startLiveVisitorCleanup(db));server.once('close',startMaintenance(db));console.log('Scale database ready'); })
     .catch((error) => { console.error('Database initialization failed', error); });

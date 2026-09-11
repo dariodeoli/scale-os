@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   // Resolve legacy URLs before rendering: a real Location header, even without JavaScript.
   async redirects() {
     return [
@@ -14,14 +15,15 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      {source:'/review/:path*',destination:'https://admin.scaleparaguay.com/review/:path*'},
-      {source:'/p/:path*',destination:'https://admin.scaleparaguay.com/p/:path*'},
-      {
-        source: '/core-api/:path*',
-        destination: 'https://admin.scaleparaguay.com/:path*',
-      },
-    ];
+    const api='http://127.0.0.1:3001';
+    return {beforeFiles:[
+      // Existing Google callback domain becomes an alias of this same deployment.
+      {source:'/:path*',has:[{type:'host',value:'admin.scaleparaguay.com'}],destination:api+'/:path*'},
+      {source:'/health',destination:api+'/health'},
+      {source:'/review/:path*',destination:api+'/review/:path*'},
+      {source:'/p/:path*',destination:api+'/p/:path*'},
+      {source:'/core-api/:path*',destination:api+'/:path*'},
+    ],afterFiles:[],fallback:[]};
   },
 };
 export default nextConfig;
