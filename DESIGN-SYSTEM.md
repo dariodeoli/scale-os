@@ -26,6 +26,10 @@ La base visual común vive en `app/ui-system.css`, cargada desde el layout raíz
 | Estados | Espera visible, acciones deshabilitadas al enviar, error legible conservando los datos. |
 | Tablas y cifras | Cifras tabulares; monedas separadas. Las tablas anchas tienen su propio desplazamiento horizontal. |
 
+## Selector de vista
+
+Para colecciones que ofrecen cuadrícula y lista se usa ViewToggle: un control segmentado compacto con icono de cuadrícula e icono de lista. No se colocan las palabras “Cuadrícula” o “Lista” dentro del control. Cada botón conserva aria-label, title y aria-pressed; la opción activa usa el color de marca y la preferencia se guarda por persona en su navegador. El patrón usa tokens semánticos y funciona sobre temas claros u oscuros.
+
 ## Tokens
 
 Espaciado: 4, 8, 12, 16, 20 y 24 px (`--ui-space-1` a `--ui-space-6`). Controles de 40 px en escritorio y 44 px en móvil; inputs móviles de 16 px para evitar zoom involuntario. Paneles: padding de 20 px, 16 px en móvil. Tarjetas: 16 px, 14 px en móvil. El tablero y los controles de arrastre mantienen su distribución especializada.

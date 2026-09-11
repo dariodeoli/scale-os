@@ -67,6 +67,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { ViewToggle } from "./view-toggle";
 import { z } from "zod";
 import {
   BarChart3,
@@ -75,10 +76,8 @@ import {
   ChevronDown,
   FileText,
   FolderKanban,
-  Grid2X2,
   LayoutDashboard,
   Link as LinkIcon,
-  List,
   LogOut,
   Plus,
   Search,
@@ -1947,7 +1946,7 @@ export default function Home() {
         {active === "Clientes" && (
           <section className="panel directory">
             <p className="directory-summary">{clients.length} clientes registrados</p>
-            <div className="client-directory-toolbar"><SelectCustom label="Estado del cliente" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/><div className="client-view-toggle" role="group" aria-label="Vista de clientes"><button type="button" aria-label="Ver clientes en lista" aria-pressed={clientView==='list'} onClick={()=>changeClientView('list')}><List size={18}/><span className="sr-only">Lista</span></button><button type="button" aria-label="Ver clientes en cuadrícula" aria-pressed={clientView==='grid'} onClick={()=>changeClientView('grid')}><Grid2X2 size={18}/><span className="sr-only">Cuadrícula</span></button></div></div>
+            <div className="client-directory-toolbar"><SelectCustom label="Estado del cliente" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/><ViewToggle label="Vista de clientes" value={clientView as 'grid'|'list'} onChange={changeClientView}/></div>
             <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
               {clients.length ? (
                 clients.filter(client=>!clientStatusFilter||clientState(client).value===clientStatusFilter).map((client) => (
@@ -1972,7 +1971,7 @@ export default function Home() {
         )}
         {active === "Proyectos" && (
           <section className="panel directory">
-            <div className="directory-toolbar-row"><p className="directory-summary">{projects.length} proyectos · Carpetas, responsables y piezas</p><div className="client-view-toggle" role="group" aria-label="Vista de proyectos"><button type="button" aria-label="Ver proyectos en lista" aria-pressed={projectView==='list'} onClick={()=>changeProjectView('list')}><List size={18}/><span className="sr-only">Lista</span></button><button type="button" aria-label="Ver proyectos en cuadrícula" aria-pressed={projectView==='grid'} onClick={()=>changeProjectView('grid')}><Grid2X2 size={18}/><span className="sr-only">Cuadrícula</span></button></div></div>
+            <div className="directory-toolbar-row"><p className="directory-summary">{projects.length} proyectos · Carpetas, responsables y piezas</p><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>
             <div className={projectView==='grid'?'project-grid':'project-list'}>
               {projects.length ? (
                 projects.map((project) => (

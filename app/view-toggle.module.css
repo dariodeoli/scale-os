@@ -1,0 +1,69 @@
+.toggle {
+  --view-toggle-accent: var(--brand-600);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 52px;
+  padding: 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface-subtle) 92%, var(--text) 8%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent),
+    0 6px 16px color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.toggle button {
+  width: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  background: transparent;
+  color: var(--text-muted);
+  transition: background var(--ease), border-color var(--ease), color var(--ease),
+    box-shadow var(--ease), transform var(--ease);
+}
+
+.toggle button:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+}
+
+.toggle button[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--view-toggle-accent) 78%, var(--line));
+  background: var(--view-toggle-accent);
+  color: var(--surface);
+  box-shadow: 0 7px 15px color-mix(in srgb, var(--view-toggle-accent) 34%, transparent);
+}
+
+.toggle button[aria-pressed='true']:hover {
+  background: var(--brand-700);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 760px) {
+  .toggle {
+    min-height: 48px;
+    border-radius: 18px;
+  }
+
+  .toggle button {
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    border-radius: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle button {
+    transition: none;
+  }
+
+  .toggle button[aria-pressed='true']:hover {
+    transform: none;
+  }
+}
