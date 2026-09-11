@@ -14,18 +14,20 @@ const record:InventoryReservation={id:'30',title:'Rodaje de prueba',project_id:'
 const writes:{path:string;body:any;method:string}[]=[];let reads=0,fail=false,delay=false;
 const pending:(()=>void)[]=[];
 let items=equipment,reservations=[record];
+let categories=[{id:'1',name:'Memoria',active:true},{id:'2',name:'Audio',active:true}];
 const mockApi=async(path:string,body?:unknown,method='POST')=>{
  if(body!==undefined){writes.push({path,body,method});if(fail)throw new Error('Conflicto de reserva');return {reservation:record};}
  reads++;if(delay)await new Promise<void>(resolve=>pending.push(resolve));if(fail)throw new Error('Sin conexión');
  if(path.endsWith('/inventory-context'))return context;
- if(path.endsWith('/inventory-categories'))return {categories:[{id:'1',name:'Memoria',active:true},{id:'2',name:'Audio',active:true}]};
+ if(path.endsWith('/inventory-categories'))return {categories};
  if(path.endsWith('/inventory'))return {records:items};
  return {reservations};
 };
 // Dialog/editor behavior is covered by existing tests. Keep these tests focused
 // on the inventory contract, reservation drafts, permissions and polling.
 const operationsPath=require.resolve('../app/operations');
-require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(n:string,c:string)=>`${c} ${n}`,Dialog:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,Editor:()=>null}} as NodeModule;
+const MockEditor=()=>null;
+require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(n:string,c:string)=>`${c} ${n}`,Dialog:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,Editor:MockEditor}} as NodeModule;
 const dialogPath=require.resolve('../app/dialog');
 require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>}} as NodeModule;
 const {InventoryWorkspace,InventoryReservationForm,InventoryTransitionForm,InventoryCalendar,inventoryUtcTime,inventoryLocalTime,inventoryMonthRange,inventoryLocation,inventoryCanReturn,inventoryCanManageReservation}=require('../app/inventory-workspace') as typeof import('../app/inventory-workspace');
@@ -55,14 +57,39 @@ async function run(){
  check('Memoria SD');check('DJI Mic');check('Sonido');change('Responsable de devolución','11','select');
  await submit();assert.equal(done,1);assert.deepEqual(writes[0].body.inventory_ids,['1','2']);assert.deepEqual(writes[0].body.responsible_user_ids,['10','11']);assert.equal(writes[0].body.return_user_id,'11');assert.equal(writes[0].body.starts_at,'2026-09-10T12:00:00.000Z');
  fail=true;await submit();assert.match(tree(),/Conflicto de reserva/);assert.equal(field('Producción o uso previsto').props.value,'Rodaje de productos');fail=false;
+ check('Sonido');assert.equal(field('Responsable de devolución','select').props.value,'','removing assigned returner clears the assignment');
+ const beforeInvalid=writes.length;await submit();assert.equal(writes.length,beforeInvalid,'invalid responsibility cannot submit');
+ check('Sonido');change('Responsable de devolución','11','select');
  act(()=>renderer.unmount());
+ await act(async()=>{renderer=create(<InventoryReservationForm context={context} items={[equipment[0],{...equipment[1],status:'maintenance'}]} record={record} done={()=>{done++;}}/>);});
+ assert.equal(field('Producción o uso previsto').props.value,record.title);assert.equal(field('Responsable de devolución','select').props.value,'11');
+ check('DJI Mic');
+ const unavailable=renderer.root.findAllByType('label').find(node=>text(node).startsWith('DJI Mic'))!.findByType('input');
+ assert.equal(unavailable.props.disabled,true,'unavailable equipment can be deselected from an old draft but not selected anew');
+ await submit();assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.expected_version,record.version);assert.deepEqual(writes.at(-1)!.body.inventory_ids,['1']);
+ act(()=>renderer.unmount());
+ await act(async()=>{renderer=create(<InventoryTransitionForm action="checkout" record={record} done={()=>{done++;}}/>);});
+ assert.deepEqual(field('Quién lleva los equipos (custodio)','select').findAllByType('option').map(o=>o.props.value),['','10','11']);
+ change('Quién lleva los equipos (custodio)','11','select');await submit();assert.equal(writes.at(-1)!.body.custodian_user_id,'11');assert.equal(writes.at(-1)!.path,'/api/agency/inventory-reservations/30/checkout');act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryTransitionForm action="return" record={{...record,status:'checked_out'}} done={()=>{done++;}}/>);});
  assert.equal(renderer.root.findAllByType('fieldset').length,2);
+ assert.match(tree(),/devolución completa/,'partial return is not represented as supported');
+ const returnFields=renderer.root.findAllByType('fieldset');
+ act(()=>returnFields[0].findAllByType('input')[0].props.onChange({target:{value:'Estante nuevo'}}));
+ act(()=>returnFields[1].findByType('select').props.onChange({target:{value:'maintenance'}}));
  await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-reservations/30/return');assert.equal(writes.at(-1)!.body.locations.length,2);assert.equal(writes.at(-1)!.body.expected_version,0);
+ assert.equal(writes.at(-1)!.body.locations[0].storage_shelf,'Estante nuevo');assert.equal(writes.at(-1)!.body.locations[1].status,'maintenance');
+ fail=true;const beforeDone=done;await submit();assert.equal(done,beforeDone);assert.equal(returnFields[0].findAllByType('input')[0].props.value,'Estante nuevo','failed return retains recorded locations');fail=false;
  act(()=>renderer.unmount());
  // Exclusive end at midnight occupies only the preceding calendar day.
  await act(async()=>{renderer=create(<InventoryCalendar month="2026-09" reservations={[{...record,starts_at:'2026-09-10T23:00:00.000Z',ends_at:'2026-09-11T03:00:00.000Z'}]}/>);});
  assert.match(text(renderer.root.findByProps({'aria-label':'2026-09-10'})),/Rodaje de prueba/);assert.doesNotMatch(text(renderer.root.findByProps({'aria-label':'2026-09-11'})),/Rodaje de prueba/);act(()=>renderer.unmount());
+ const yearBoundary={...record,starts_at:'2033-01-01T01:00:00.000Z',ends_at:'2033-01-01T03:00:00.000Z'};
+ await act(async()=>{renderer=create(<InventoryCalendar month="2032-12" reservations={[yearBoundary,{...yearBoundary,id:'31',status:'cancelled',title:'Cancelada invisible'}]}/>);});
+ assert.match(text(renderer.root.findByProps({'aria-label':'2032-12-31'})),/Rodaje de prueba/);assert.doesNotMatch(tree(),/Cancelada invisible/);act(()=>renderer.unmount());
+ await act(async()=>{renderer=create(<InventoryCalendar month="2033-01" reservations={[yearBoundary]}/>);});assert.doesNotMatch(tree(),/Rodaje de prueba/);act(()=>renderer.unmount());
+ await act(async()=>{renderer=create(<InventoryCalendar month="2032-02" reservations={[{...record,starts_at:'2032-02-29T12:00:00.000Z',ends_at:'2032-03-01T03:00:00.000Z'}]}/>);});
+ assert.match(text(renderer.root.findByProps({'aria-label':'2032-02-29'})),/Rodaje de prueba/);assert.equal(renderer.root.findAllByType('time').length,29);act(()=>renderer.unmount());
  const before=reads;await act(async()=>{renderer=create(<InventoryWorkspace role="sales"/>);});assert.equal(renderer.toJSON(),null);assert.equal(reads,before);act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});
  assert.equal(intervals.size,1);assert.match(tree(),/actualiza cada 30 s/);assert.match(tree(),/Estante A/);assert.doesNotMatch(tree(),/Cargando inventario/);
@@ -83,7 +110,21 @@ async function run(){
  context.user_id='11';reservations=[{...record,status:'checked_out',custodian_user_id:'11',custodian_name:'Sonido'}];
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});act(()=>button('Calendario y reservas').props.onClick());
  assert(button('Registrar devolución'));assert(!button('Editar reserva'));assert(!button('Cancelar reserva'));act(()=>renderer.unmount());
+ // Exercise category editor wiring and subsequent reload without shared Editor
+ // implementation or HTTP. API/database persistence is tested in the API suite.
+ context.role='management';context.can_manage=true;items=equipment;
+ await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+ act(()=>button('Agregar categoría').props.onClick());
+ categories=[...categories,{id:'3',name:'Accesorios nuevos',active:true}];
+ await act(async()=>{await renderer.root.findByType(MockEditor).props.save({name:'Accesorios nuevos',active:'true'});});
+ assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories');assert.equal(writes.at(-1)!.method,'POST');assert.equal(writes.at(-1)!.body.active,true);assert(button('Accesorios nuevos'));
+ act(()=>button('Accesorios nuevos').props.onClick());categories=categories.map(c=>c.id==='3'?{...c,name:'Accesorios archivados',active:false}:c);
+ await act(async()=>{await renderer.root.findByType(MockEditor).props.save({name:'Accesorios archivados',active:'false'});});
+ assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories/3');assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.active,false);assert(button('Accesorios archivados · archivada'));
+ act(()=>button('Agregar equipo').props.onClick());
+ const categoryField=renderer.root.findByType(MockEditor).props.fields.find((f:{key:string})=>f.key==='category_id');
+ assert.deepEqual(categoryField.choices.map((c:{value:string})=>c.value),['1','2'],'archived categories excluded from new inventory forms');act(()=>renderer.unmount());assert.equal(intervals.size,0);
  const css=readFileSync(new URL('../app/inventory-workspace.css',import.meta.url),'utf8');assert.match(css,/repeat\(2,minmax/);assert.match(css,/repeat\(3,minmax/);assert.match(css,/@media\(max-width:620px\)/);
- console.log('PASS: inventory UI multi-equipment/responsible form, IANA dates/month boundaries, explicit return payload, own/assigned return permissions, recorded location, visible 30-second polling, no overlap/flicker/draft reset, offline staleness and responsive layouts. Browser layout not visually inspected.');
+ console.log('PASS: inventory UI category create/rename/archive wiring, multi-equipment/responsible editing, unavailable stock, custodian checkout, complete-return payload and retry, assigned permissions, leap/year/midnight calendar boundaries, recorded location, visible 30-second polling, no overlap/flicker/draft reset and offline staleness. API/Editor mocked; browser layout not visually inspected.');
 }
 void run();

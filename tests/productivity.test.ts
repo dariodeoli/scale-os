@@ -21,7 +21,7 @@ const crop=readFileSync(new URL('../app/photo-cropper.tsx',import.meta.url),'utf
 assert(crop.includes('cropShape="round"'));assert(crop.includes('onCropChange={setCrop}'));assert(crop.includes('await save(await cropImage(source,area))'));
 const photos=readFileSync(new URL('../app/profile-photo.tsx',import.meta.url),'utf8');assert(photos.includes('setCropSource(source)'));assert(photos.includes('await save(value)'));
 assert(photos.indexOf('reader.readAsDataURL(file)')<photos.indexOf('512/Math.max'));
-assert(photos.includes('await preparePhoto(file,false,true)'));assert(photos.includes('await save(ready);form.reset({photo:ready})'));
+assert(photos.includes('await preparePhoto(file,false,true)'));assert(photos.includes('await save(ready);if(!mounted.current)return;form.reset({photo:ready})'));
 assert(crop.includes('objectFit="cover" restrictPosition'));
 assert(photos.includes('originalSource||preview'));
 const profile=readFileSync(new URL('../app/my-profile.tsx',import.meta.url),'utf8');

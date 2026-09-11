@@ -14,6 +14,13 @@ async function main(){
  assert.equal(await preparePhoto(file,false,true),encoded);
  assert.deepEqual(draws.at(-1)!.slice(1),[200,0,800,800,0,0,512,512]);
  await preparePhoto(file,true);assert.deepEqual(draws.at(-1)!.slice(1),[0,0,1200,800,0,0,512,341]);
+ for(const [width,height] of [[800,1200],[100,1000],[1000,100],[80,80]]){
+  Object.defineProperty(globalThis,'createImageBitmap',{configurable:true,value:async()=>({width,height,close(){closed++;}})});
+  await preparePhoto(file,false,true);
+  const size=Math.min(width,height),output=Math.min(size,512);
+  assert.deepEqual(draws.at(-1)!.slice(1),[(width-size)/2,(height-size)/2,size,size,0,0,output,output]);
+ }
+ Object.defineProperty(globalThis,'createImageBitmap',{configurable:true,value:async()=>({width:1200,height:800,close(){closed++;}})});
  await assert.rejects(()=>preparePhoto({...file,type:'application/pdf'} as File),/JPG/);
  await assert.rejects(()=>preparePhoto({...file,size:5*1024*1024} as File),/4 MB/);
  let renderer:ReactTestRenderer;const saves:string[]=[];
