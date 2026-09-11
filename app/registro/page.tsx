@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {WorkspaceBrand} from '../workspace-brand';
 import {founderPricingNote} from '../founder-pricing';
-import {APP_VERSION} from '../app-version';
+import {WorkspaceFooter} from '../workspace-footer';
 import './registration.css';
 
 export default function Registration(){
@@ -26,6 +26,6 @@ export default function Registration(){
    {error&&<p role="alert" className="error">{error}</p>}
   </form>
   <p className="registration-links"><Link href="/">Ya tengo cuenta</Link><a href="https://sistema.scaleparaguay.com/demo">Explorar la demo primero</a></p>
-  <small>© {new Date().getFullYear()} Scale OS. Todos los derechos reservados. · v{APP_VERSION}</small>
+  <WorkspaceFooter/>
  </section></main>;
 }
