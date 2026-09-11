@@ -346,7 +346,7 @@ export function OperationsWorkspace({
   const directory=teamDirectory(people,members,archivedProfiles);
   const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.job_title||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
   const personDefaults: Record<string, string> = {
-    full_name: person?.full_name || "",
+    full_name: person?.full_name || members.find(member=>member.email===seedEmail)?.full_name || "",
     email: person?.email || seedEmail,
     job_role_id: person?.job_role_id ? String(person.job_role_id) : "",
     compensation_type: person?.compensation_type || "fixed",
@@ -430,7 +430,7 @@ export function OperationsWorkspace({
                   <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
                 </div>
               </article>
-            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt="" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}}/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||entry.member!.email}</h3><small>{entry.archivedProfileId?'Perfil en Papelera':'Datos personales por completar'}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Completar perfil</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
+            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt="" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}}/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||entry.member!.email}</h3><small>{entry.archivedProfileId?'Perfil en Papelera':'Sin ficha laboral'}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
             {!visiblePeople.length && (
               <p className="empty-copy">
                 {search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}
@@ -545,6 +545,8 @@ export function OperationsWorkspace({
             {['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso automáticamente. Si es nuevo, recibe una invitación con permiso de lectura; los accesos existentes conservan sus permisos.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
             {person&&' El estado laboral no revoca accesos existentes.'}
           </p>
+          {!person&&seedEmail&&<p className="form-note">El nombre y la foto se toman de su perfil personal. Esta ficha agrega datos laborales, no requiere registrarse de nuevo.</p>}
+          {!person&&members.find(member=>member.email===seedEmail)?.photo_url&&<PhotoViewer photo={members.find(member=>member.email===seedEmail)!.photo_url!} name={personDefaults.full_name}/>}
           {person&&<ProfilePhoto key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
             const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
             await load();setEdit(result.collaborator);
