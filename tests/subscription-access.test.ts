@@ -21,8 +21,8 @@ async function run(){
  }finally{globalThis.fetch=originalFetch;setDataScope('');clearDataCache();if(descriptor)Object.defineProperty(globalThis,'window',descriptor);else Reflect.deleteProperty(globalThis,'window');}
  const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
  assert(workspace.includes('if(user?.subscription?.hasAccess===false)return <main'));
- assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)return load()'));
- assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)await load()'));
+ assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)return load(data.user)'));
+ assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)await load(data.user)'));
  assert(workspace.includes('previousBillingAccess.current===false&&next===true'));
  for(const section of ['Mora','Presupuestos','Finanzas'])assert(workspace.includes(`operationalAccess && active === "${section}"`));
  assert(workspace.includes("document.removeEventListener('visibilitychange',refresh)"));

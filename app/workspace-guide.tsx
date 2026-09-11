@@ -1,15 +1,60 @@
 "use client";
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {api,Dialog,Editor} from './operations';
 import {founderPricingNote} from './founder-pricing';
 import {sections} from './navigation';
 import {visibleModule} from './workspace-access';
+import {suggestedWorkspaceGuideStep,workspaceGuideScope,workspaceGuideSteps,workspaceGuideStorageKey,type WorkspaceGuideData,type WorkspaceGuideIdentity,type WorkspaceGuideStep} from './workspace-guide-data';
 export {visibleModule} from './workspace-access';
-export function WorkspaceGuide({navigate,role}:{navigate:(module:string)=>void;role:string}){
- const [open,setOpen]=useState(false),[step,setStep]=useState(0);
+export {workspaceGuideScope} from './workspace-guide-data';
+export type {WorkspaceGuideData} from './workspace-guide-data';
+
+export type WorkspaceGuideProps = WorkspaceGuideIdentity & {
+ navigate:(module:string)=>void;
+ data?:WorkspaceGuideData;
+ variant?:'button'|'card';
+};
+
+function GuideStep({step,navigate}:{step:WorkspaceGuideStep;navigate:(module:string)=>void}){
+ return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><button type="button" className="text-button" onClick={()=>navigate(step.module)}>Abrir {step.module}</button></article>;
+}
+
+/** The keyed child resets open/dismissed UI synchronously when identity, role or demo changes. */
+export function WorkspaceGuide(props:WorkspaceGuideProps){
+ const key=JSON.stringify([props.userId,props.organizationId,props.role,!!props.demo,props.variant||'button']);
+ return <ScopedWorkspaceGuide key={key} {...props}/>;
+}
+
+function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,data,variant='button'}:WorkspaceGuideProps){
+ const [open,setOpen]=useState(false);
+ const [preference,setPreference]=useState({ready:false,dismissed:false});
+ const identity={role,userId,organizationId,demo};
+ const storageKey=workspaceGuideStorageKey(workspaceGuideScope(identity));
+ useEffect(()=>{
+  if(variant!=='card')return;
+  let dismissed=false;
+  try{dismissed=!!storageKey&&localStorage.getItem(storageKey)==='dismissed';}catch{/* Optional local preference. */}
+  setPreference({ready:true,dismissed});
+ },[storageKey,variant]);
+ const steps=workspaceGuideSteps(identity,data);
+ const suggestion=suggestedWorkspaceGuideStep(steps);
  const tools=sections.filter(([label])=>label!=='Métricas'&&visibleModule(label,role));
- const steps=[['Configuración','1. Tu empresa','Completá los datos que aparecerán en los presupuestos.'],['Equipo','2. Accesos','Invitá por correo y asigná permisos.'],['Clientes','3. Clientes','Agregá los contactos y datos de facturación.'],['Proyectos','4. Producción','Creá un proyecto, vinculá Drive y definí las aprobaciones.'],['Presupuestos','5. Primera propuesta','Usá un plan, revisá los ítems y habilitá el enlace público.']];
- return <><button className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{open&&<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}><h3>{steps[step][1]}</h3><p>{steps[step][2]}</p><div className="inline-actions"><button className="secondary" disabled={step===0} onClick={()=>setStep(step-1)}>Anterior</button>{visibleModule(steps[step][0],role)&&<button className="primary" onClick={()=>{navigate(steps[step][0]);setOpen(false);}}>Abrir {steps[step][0]}</button>}<button className="secondary" disabled={step===4} onClick={()=>setStep(step+1)}>Siguiente</button></div><h3>Todas las herramientas</h3><div className="ops-job-list">{tools.map(([label])=><button className="choice" key={label} onClick={()=>{navigate(label);setOpen(false);}}>{label}</button>)}</div></Dialog>}</>;
+ const go=(module:string)=>{setOpen(false);navigate(module);};
+ const dismiss=()=>{
+  setOpen(false);setPreference({ready:true,dismissed:true});
+  try{if(storageKey)localStorage.setItem(storageKey,'dismissed');}catch{/* Dismissal still works for this mounted session. */}
+ };
+ const demoNote=demo?<p className="form-note">Datos de ejemplo: explorá la demo. Los registros no indican pasos completados.</p>:null;
+ const directory=<details><summary>Todas las herramientas</summary><div className="ops-job-list">{tools.map(([label])=><button type="button" className="choice" key={label} onClick={()=>go(label)}>{label}</button>)}</div></details>;
+ if(variant==='card'){
+  if(!preference.ready||preference.dismissed)return null;
+  return <section className="panel" aria-label="Primeros pasos"><div className="panel-heading"><h2>Primeros pasos</h2><button type="button" className="text-button" onClick={dismiss}>Ocultar primeros pasos</button></div>
+   <p className="form-note">Una guía según tu rol. Podés volver a consultarla desde Guía del panel.</p>{demoNote}
+   <button type="button" className="secondary" aria-expanded={open} onClick={()=>setOpen(value=>!value)}>{open?'Cerrar pasos':'Ver primeros pasos'}</button>
+   {open&&<div className="ops-stack">{suggestion&&<GuideStep step={suggestion} navigate={go}/>}{steps.length>1&&<details><summary>Otros pasos disponibles</summary><div className="ops-stack">{steps.filter(step=>step.module!==suggestion?.module).map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div></details>}{!suggestion&&<p className="form-note">Consultá las herramientas disponibles para tu acceso.</p>}{directory}</div>}
+  </section>;
+ }
+ return <><button type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{open&&<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}</Dialog>}</>;
 }
 export function NewCompany(){
  const [open,setOpen]=useState(false);

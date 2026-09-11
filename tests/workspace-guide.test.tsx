@@ -5,6 +5,7 @@ import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {sections,sectionPath} from '../app/navigation';
 import {visibleModule} from '../app/workspace-access';
 import {founderPricingNote} from '../app/founder-pricing';
+import {workspaceGuideScope,workspaceGuideStorageKey,type WorkspaceGuideIdentity} from '../app/workspace-guide-data';
 
 Object.assign(globalThis,{React});
 // Isolate the shared portal/editor and API; these tests never use a browser or network.
@@ -69,11 +70,116 @@ test('changing role while open immediately removes restricted destinations and o
  act(()=>{renderer=create(<WorkspaceGuide role="owner" navigate={()=>{}}/>);});open();
  assert(button('Abrir Configuración'));
  act(()=>renderer.update(<WorkspaceGuide role="viewer" navigate={()=>{}}/>));
+ assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0,'role change closes the old guide before reopening');
+ open();
  assert(!names().includes('Informes'));assert(!names().includes('Invitaciones'));assert(!button('Abrir Configuración'));
- assert.equal(button('Anterior').props.disabled,true);
- for(let step=0;step<4;step++)act(()=>button('Siguiente').props.onClick());
- assert.equal(button('Siguiente').props.disabled,true);assert(!button('Abrir Presupuestos'));
- act(()=>button('Anterior').props.onClick());assert.equal(button('Siguiente').props.disabled,false);
+ assert(!button('Abrir Presupuestos'));
+ assert(button('Abrir Producción'));assert(button('Abrir Clientes'));assert(button('Abrir Proyectos'));
+ assert(!JSON.stringify(renderer.toJSON()).includes('Invitá'));
+ close();assert.equal(calls.length,0);
+});
+
+test('all eight roles receive actions matching edit capabilities, not just module visibility',()=>{
+ const expected:Record<string,string[]>={
+  owner:['Configuración','Invitaciones','Clientes','Proyectos','Producción','Presupuestos'],
+  admin:['Configuración','Invitaciones','Clientes','Proyectos','Producción','Presupuestos'],
+  management:['Clientes','Proyectos','Producción','Presupuestos'],
+  finance:['Presupuestos','Finanzas','Informes'],sales:['Clientes','Presupuestos','Pipeline'],
+  production:['Proyectos','Producción'],editor:['Producción'],viewer:['Clientes','Proyectos','Producción'],
+ };
+ for(const [role,modules] of Object.entries(expected)){
+  const navigated:string[]=[];
+  act(()=>{renderer=create(<WorkspaceGuide role={role} navigate={module=>navigated.push(module)}/>);});open();
+  const actions=renderer.root.findAllByType('button').map(node=>node.children.join('')).filter(label=>label.startsWith('Abrir '));
+  assert.deepEqual(actions,modules.map(module=>`Abrir ${module}`),role);
+  const content=JSON.stringify(renderer.toJSON());
+  if(!['owner','admin'].includes(role))assert(!content.includes('Invitá'),role);
+  if(['finance','production','editor','viewer'].includes(role))assert(!content.includes('Agregá un cliente'),role);
+  if(['finance','sales','editor','viewer'].includes(role))assert(!content.includes('agregá una orden'),role);
+  act(()=>button(`Abrir ${modules[0]}`).props.onClick());
+  assert.deepEqual(navigated,[modules[0]]);assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0);
+  close();
+ }
+ assert.equal(calls.length,0);
+});
+
+test('card is opt-in, inline, locally discardable and the manual guide remains available',()=>{
+ const originalStorage=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
+ const stored=new Map<string,string>();
+ Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:(key:string)=>stored.get(key)||null,setItem:(key:string,value:string)=>stored.set(key,value)}});
+ const identity={role:'owner',userId:'1',organizationId:'10'};
+ const navigated:string[]=[];
+ const props={...identity,navigate:(module:string)=>navigated.push(module)};
+ try{
+  act(()=>{renderer=create(<WorkspaceGuide {...props} variant="card"/>);});
+  assert(button('Ver primeros pasos'));assert(!button('Abrir Configuración'));
+  assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0);assert.equal(stored.size,0);
+  act(()=>button('Ver primeros pasos').props.onClick());assert(button('Abrir Configuración'));
+  assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0);
+  act(()=>button('Cerrar pasos').props.onClick());assert(!button('Abrir Configuración'));
+  act(()=>button('Ocultar primeros pasos').props.onClick());assert.equal(renderer.toJSON(),null);
+  assert.deepEqual(Array.from(stored),[[workspaceGuideStorageKey(workspaceGuideScope(identity)),'dismissed']]);
+  close();act(()=>{renderer=create(<WorkspaceGuide {...props} variant="card"/>);});assert.equal(renderer.toJSON(),null);close();
+  act(()=>{renderer=create(<WorkspaceGuide {...props}/>);});open();assert(button('Abrir Configuración'));close();
+  assert.deepEqual(navigated,[]);assert.equal(calls.length,0);
+ }finally{
+  if(originalStorage)Object.defineProperty(globalThis,'localStorage',originalStorage);else Reflect.deleteProperty(globalThis,'localStorage');
+ }
+});
+
+test('card dismissal and open state are isolated by user, organization, role and demo',()=>{
+ const originalStorage=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
+ const stored=new Map<string,string>();
+ Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:(key:string)=>stored.get(key)||null,setItem:(key:string,value:string)=>stored.set(key,value)}});
+ const identity={role:'owner',userId:'1',organizationId:'10',demo:false};
+ const navigate=()=>{};
+ try{
+  act(()=>{renderer=create(<WorkspaceGuide {...identity} variant="card" navigate={navigate}/>);});
+  act(()=>button('Ocultar primeros pasos').props.onClick());
+  for(const change of [{userId:'2'},{organizationId:'20'},{role:'viewer'},{demo:true}]){
+   act(()=>renderer.update(<WorkspaceGuide {...identity} {...change} variant="card" navigate={navigate}/>));
+   assert(button('Ver primeros pasos'));assert(!button('Abrir Configuración'));
+   act(()=>button('Ver primeros pasos').props.onClick());
+   act(()=>renderer.update(<WorkspaceGuide {...identity} variant="card" navigate={navigate}/>));assert.equal(renderer.toJSON(),null);
+  }
+  close();assert.equal(stored.size,1,'mounting a new scope must not persist another scope’s dismissal');
+ }finally{
+  if(originalStorage)Object.defineProperty(globalThis,'localStorage',originalStorage);else Reflect.deleteProperty(globalThis,'localStorage');
+ }
+});
+
+test('unavailable storage does not prevent opening, navigating or dismissing',()=>{
+ const originalStorage=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
+ Object.defineProperty(globalThis,'localStorage',{configurable:true,get:()=>{throw Error('Storage denied');}});
+ const navigated:string[]=[];
+ try{
+  act(()=>{renderer=create(<WorkspaceGuide role="viewer" userId="1" organizationId="10" variant="card" navigate={module=>navigated.push(module)}/>);});
+  act(()=>button('Ver primeros pasos').props.onClick());act(()=>button('Abrir Clientes').props.onClick());
+  assert.deepEqual(navigated,['Clientes']);assert(button('Ver primeros pasos'));
+  act(()=>button('Ocultar primeros pasos').props.onClick());assert.equal(renderer.toJSON(),null);close();
+  assert.equal(calls.length,0);
+ }finally{
+  if(originalStorage)Object.defineProperty(globalThis,'localStorage',originalStorage);else Reflect.deleteProperty(globalThis,'localStorage');
+ }
+});
+
+test('guide replaces stale evidence with unknown/error and labels demo examples without completion',()=>{
+ const identity:WorkspaceGuideIdentity={role:'owner',userId:'1',organizationId:'10'};
+ const data={scope:workspaceGuideScope(identity),status:'ready' as const,counts:{clients:1,projects:1,orders:1}};
+ const props={...identity,navigate:()=>{}};
+ const content=()=>JSON.stringify(renderer.toJSON());
+ act(()=>{renderer=create(<WorkspaceGuide {...props} data={data}/>);});open();
+ assert(content().includes('Registros disponibles'));
+ act(()=>renderer.update(<WorkspaceGuide {...props} data={{...data,status:'error'}}/>));
+ assert(content().includes('No se pudieron actualizar'));assert(!content().includes('Registros disponibles'));assert(!content().includes('Sin registros todavía'));
+ act(()=>renderer.update(<WorkspaceGuide {...props} organizationId="20" data={data}/>));open();
+ assert(content().includes('Datos aún no disponibles'));assert(!content().includes('Registros disponibles'));
+ act(()=>renderer.update(<WorkspaceGuide {...props} demo data={data}/>));open();
+ assert(content().includes('Datos de ejemplo:'));assert(content().includes('Datos aún no disponibles'));
+ act(()=>renderer.update(<WorkspaceGuide {...props} demo data={{...data,scope:workspaceGuideScope({...identity,demo:true})}}/>));
+ assert(content().includes('Datos de ejemplo disponibles'));
+ assert(!content().includes('Registros disponibles'));assert(!content().includes('✅'));assert(!content().includes('Completado'));
+ assert(content().includes('La demo no crea invitaciones externas.'));
  close();assert.equal(calls.length,0);
 });
 

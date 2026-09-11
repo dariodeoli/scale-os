@@ -47,10 +47,12 @@ import './suite.css';
 import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWorkspace} from './suite';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
-import {WorkspaceGuide,visibleModule,NewCompany} from './workspace-guide';
+import {WorkspaceGuide,workspaceGuideScope,visibleModule,NewCompany,type WorkspaceGuideData} from './workspace-guide';
 import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
 import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
+import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type StartupPreference} from './workspace-preferences';
+import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
@@ -1352,9 +1354,18 @@ export default function Home() {
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
   function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
   const [user, setUser] = useState<User | null>(null);
+  const [guideData,setGuideData]=useState<WorkspaceGuideData>({scope:null,status:'unknown'});
+  const dataLoadSequence=useRef(0);
+  const guideProps={userId:user?.id,organizationId:user?.organization_id,role:user?.role||'viewer',demo:!!user?.demo_owner_user_id,data:guideData,navigate:setActive};
+  const {key:preferenceScope,ready:preferencesReady,preferences,warning:preferenceWarning,update:updatePreferences}=useWorkspacePreferences(signedIn?String(user?.id||''):'',signedIn?String(user?.organization_id||''):'');
+  const [preferencesDialogScope,setPreferencesDialogScope]=useState('');
+  const [productionFiltersDialogScope,setProductionFiltersDialogScope]=useState('');
+  const [startupDataScope,setStartupDataScope]=useState('');
+  const productionToday=useLocalCalendarDay();
   const [subscriptionOpen,setSubscriptionOpen]=useState(false),[subscriptionError,setSubscriptionError]=useState('');
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
+  useStartupPreference({scope:preferenceScope,ready:preferencesReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
   async function refreshSubscription(){
     const d=await request<{user:User}>('/api/auth/me');
     if(user&&String(d.user.organization_id)!==String(user.organization_id)){window.location.reload();return;}
@@ -1368,7 +1379,7 @@ export default function Home() {
       running=true;controller=new AbortController();const timeout=setTimeout(()=>controller?.abort(),10000);
       try{
         const r=await fetch('/core-api/api/auth/me',{credentials:'include',cache:'no-store',signal:controller.signal});
-        if(r.status===401){if(!disposed){setDataScope('');setSignedIn(false);setUser(null);}return;}
+        if(r.status===401){if(!disposed)clearSessionState();return;}
         if(!r.ok)throw Error('No se pudo comprobar la suscripción. Intentá actualizar.');
         const d=await r.json() as {user:User};if(disposed)return;
         if(String(d.user.organization_id)!==String(user.organization_id)||String(d.user.id)!==String(user.id)){window.location.reload();return;}
@@ -1392,12 +1403,13 @@ export default function Home() {
   const activeParent=parentSection(active);
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
   const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
-  useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);setProductionClientId('');},[pathname]);
+  useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);},[pathname]);
   useEffect(()=>{if(signedIn){const id=new URLSearchParams(window.location.search).get('order');if(id&&/^\d+$/.test(id))setDetail({kind:'order',id});}},[signedIn,pathname]);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
-  const [productionClientId, setProductionClientId] = useState("");
+  const productionClientId=preferences.production.clientId;
+  function setProductionClientId(clientId:string){updatePreferences({production:{...preferences.production,clientId}});}
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
   const [productionView,setProductionView]=useState("Tablero");
   useEffect(()=>{const read=()=>{const v=new URLSearchParams(window.location.search).get("vista");setProductionView(["Mi día","Calendario","Lista y lotes"].includes(v||"")?v!:"Tablero");};read();window.addEventListener("popstate",read);return()=>window.removeEventListener("popstate",read);},[pathname]);
@@ -1418,8 +1430,13 @@ export default function Home() {
     active_projects: 0,
     open_orders: 0,
   });
-  async function load() {
-    if(user?.subscription?.hasAccess===false)return;
+  async function load(identity:User|null=user) {
+    if(!identity||identity.subscription?.hasAccess===false)return;
+    const sequence=++dataLoadSequence.current;
+    const guideScope=workspaceGuideScope({userId:String(identity.id),organizationId:String(identity.organization_id),role:identity.role,demo:!!identity.demo_owner_user_id});
+    setGuideData({scope:guideScope,status:'loading'});
+    const loadedScope=workspacePreferenceKey(String(identity?.id||''),String(identity?.organization_id||''));
+    try{
     const [clientData, projectData, orderData, summaryData] = await Promise.all(
       [
         request<{ clients: Client[] }>("/api/agency/clients"),
@@ -1428,14 +1445,23 @@ export default function Home() {
         request<{ summary: Summary }>("/api/agency/summary"),
       ],
     );
+    if(sequence!==dataLoadSequence.current)return;
     setClients(clientData.clients);
     setProjects(projectData.projects);
     setOrders(orderData.workOrders);
     setSummary(summaryData.summary);
+    setStartupDataScope(loadedScope);
+    setGuideData({scope:guideScope,status:'ready',counts:{clients:clientData.clients.length,projects:projectData.projects.length,orders:orderData.workOrders.length}});
+    }catch(cause){
+      if(sequence!==dataLoadSequence.current)return;
+      setGuideData({scope:guideScope,status:'error'});
+      throw cause;
+    }
   }
   useEffect(()=>{
     const next=user?.subscription?.hasAccess??null;
     if(next===false){
+      dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
       clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
       setModal(null);setDetail(null);setMyProfile(false);setSubscriptionOpen(false);
     }else if(previousBillingAccess.current===false&&next===true){void load().catch(()=>setToast('No se pudieron actualizar los datos. Intentá nuevamente.'));}
@@ -1462,7 +1488,7 @@ export default function Home() {
         setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
         setUser(data.user);
         setSignedIn(true);
-        if(data.user.subscription?.hasAccess!==false)return load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
+        if(data.user.subscription?.hasAccess!==false)return load(data.user).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
       })
       .catch(() => setSignedIn(false))
       .finally(() => setLoading(false));
@@ -1546,23 +1572,27 @@ export default function Home() {
       setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
       setUser(data.user);
       setSignedIn(true);
-      if(data.user.subscription?.hasAccess!==false)await load();
+      if(data.user.subscription?.hasAccess!==false)await load(data.user);
     } catch (cause) {
       setToast(
         cause instanceof Error ? cause.message : "No se pudo iniciar sesión.",
       );
     }
   }
-  async function logout() {
-    setMyProfile(false);setDetail(null);
+  function clearSessionState() {
+    dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
+    setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
+    setMyProfile(false);setDetail(null);setPreferencesDialogScope('');setProductionFiltersDialogScope('');setStartupDataScope('');
     setDataScope('');
-    setProductionClientId("");
+    setSignedIn(false);
+    setUser(null);
+  }
+  async function logout() {
+    clearSessionState();
     sessionStorage.removeItem("scale_company_selected");
     await request("/api/auth/logout", { method: "POST" }).catch(
       () => undefined,
     );
-    setSignedIn(false);
-    setUser(null);
   }
   async function onDragEnd(event: DragEndEvent) {
     const id = String(event.active.id);
@@ -1589,7 +1619,8 @@ export default function Home() {
   }
   const close = () => {setModal(null);setProjectClient('');};
   const selectedProductionClient = clients.some(client => String(client.id) === productionClientId) ? productionClientId : "";
-  const productionOrders = filterProductionOrders(orders, projects, selectedProductionClient);
+  const productionOrders = filterProductionOrders(orders, projects, selectedProductionClient,{...preferences.production,userId:String(user?.id||''),today:productionToday});
+  const hasProductionFilters=!!productionClientId||preferences.production.mine||preferences.production.week;
   if (loading) return <div className="loading-page">Cargando Scale OS…</div>;
   if (!signedIn)
     return (
@@ -1675,6 +1706,7 @@ export default function Home() {
           ))}
         </nav>
         <div className="sidebar-bottom">
+          <button className="text-button" type="button" disabled={!preferencesReady} onClick={()=>setPreferencesDialogScope(preferenceScope)} aria-label="Preferencias de este espacio"><Settings size={16}/> <span className="nav-label">Preferencias</span></button>
           <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}>
             {user?.photo_url?<img src={user.photo_url} alt="" width={36} height={36}/>:<div className="avatar">{(user?.full_name||firstName)[0].toUpperCase()}</div>}
             <div>
@@ -1693,6 +1725,19 @@ export default function Home() {
         {sidebarContent}
       </DesktopSidebar>
       <section className="content">
+        {preferencesDialogScope===preferenceScope&&preferencesDialogScope&&preferencesReady&&<Dialog title="Preferencias de este espacio" close={()=>setPreferencesDialogScope('')}><div className="ops-stack">
+          <p className="form-note">Se guardan para vos en {user?.organization_name||'esta empresa'}, en este navegador.</p>
+          <SelectCustom label="Al entrar a Scale OS" value={startupChoices(user?.role||'').some(choice=>choice.value===preferences.startup)?preferences.startup:'summary'} choices={startupChoices(user?.role||'')} onChange={startup=>updatePreferences({startup:startup as StartupPreference})}/>
+          <p className="form-note">Se aplica en tu próxima entrada al inicio. Los enlaces a secciones, piezas y otros destinos conservan su destino.</p>
+          {preferenceWarning&&<p role="status" className="form-note">{preferenceWarning}</p>}
+        </div></Dialog>}
+        {active==='Producción'&&productionView==='Tablero'&&productionFiltersDialogScope===preferenceScope&&productionFiltersDialogScope&&preferencesReady&&<Dialog title="Filtros guardados del tablero" close={()=>setProductionFiltersDialogScope('')}><div className="ops-stack">
+          <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
+          <SelectCustom label="Fecha de entrega" value={preferences.production.week?'week':'all'} choices={[{value:'all',label:'Todas las fechas'},{value:'week',label:'Vencen esta semana (hora local)'}]} onChange={value=>updatePreferences({production:{...preferences.production,week:value==='week'}})}/>
+          <p className="form-note">De lunes a domingo según el calendario local de tu dispositivo. Incluye todos los estados; las órdenes sin fecha quedan fuera del filtro semanal. Se combina con el cliente elegido y se guarda para vos en esta empresa y navegador.</p>
+          <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}>Restablecer filtros</button>
+          {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
+        </div></Dialog>}
         {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>setSubscriptionOpen(true)}/>}
         {subscriptionOpen&&user&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
         <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><div className="workspace-context"><CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>{user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}</div><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
@@ -1707,7 +1752,7 @@ export default function Home() {
           </div>
           <div className="header-actions">
             {active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||'')&&<ClientRuc refresh={load}/>}
-            <WorkspaceGuide navigate={setActive} role={user?.role||'viewer'}/>
+            <WorkspaceGuide {...guideProps}/>
             {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen','Producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
               <button
                 className="primary"
@@ -1743,6 +1788,7 @@ export default function Home() {
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
         {active === "Resumen" && (
           <>
+            <WorkspaceGuide {...guideProps} variant="card"/>
             <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive}/>
             {user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
             <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
@@ -1782,16 +1828,20 @@ export default function Home() {
                     ...[...clients].sort((a,b) => a.name.localeCompare(b.name, 'es')).map(client => ({value: String(client.id), label: client.name})),
                   ]}
                   onChange={setProductionClientId}
+                  disabled={!preferencesReady}
                 />
+                <button type="button" className="text-button" disabled={!preferencesReady} onClick={()=>setProductionFiltersDialogScope(preferenceScope)}>Filtros{hasProductionFilters?` · ${Number(!!productionClientId)+Number(preferences.production.mine)+Number(preferences.production.week)}`:''}</button>
                 <p className="production-filter-summary" role="status" aria-live="polite">
                   {productionOrders.length} de {orders.length} órdenes
                 </p>
-                {selectedProductionClient && <button className="text-button" onClick={() => setProductionClientId("")}>Ver todos</button>}
+                {hasProductionFilters && <button className="text-button" onClick={() => updatePreferences({production:defaultWorkspacePreferences().production})}>Restablecer filtros</button>}
               </div>}<button className="text-button production-project-link" onClick={()=>setActive("Proyectos")}>Ver proyectos →</button></div>
+            {productionView==='Tablero'&&hasProductionFilters&&<p className="form-note">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
+            {productionView==='Tablero'&&preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
             {productionView!=="Tablero"&&<WorkPlanner key={productionView} initialView={productionView} orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>}
             {productionView==="Tablero"&&
             <section className="panel production-panel production-focus" id="produccion">
-              {selectedProductionClient && productionOrders.length === 0 && <p className="empty-copy">Este cliente todavía no tiene órdenes de producción.</p>}
+              {hasProductionFilters && productionOrders.length === 0 && <p className="empty-copy">No hay órdenes que coincidan con estos filtros.</p>}
               <BoardPresence key={String(user?.organization_id)} projectIds={productionOrders.map(order=>String(order.project_id))}><DndContext onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
                 <div className="kanban" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
                   {statuses.map((status) => (

@@ -1,5 +1,16 @@
 # Scale OS — interfaz compartida
 
+## Primer ingreso y preferencias — 11-09-2026
+
+- La guía muestra instrucciones según capacidades del rol, no solo visibilidad del módulo. El bloque de Primeros pasos es optativo, plegable y descartable; Guía del panel sigue disponible. No abre ventanas ni realiza escrituras de negocio automáticamente.
+- La evidencia de clientes/proyectos/piezas está vinculada a usuario, empresa, rol y demo. Carga, error y ausencia de información no significan cero registros. La demo informa datos de ejemplo; nunca marca una lección como completada por tener registros precargados.
+- Preferencias personales de inicio y filtros del tablero: almacenamiento local versionado por usuario/empresa. No sincroniza dispositivos ni guarda credenciales o datos de órdenes. Si el almacenamiento falla, la interfaz sigue funcionando e informa que el cambio es temporal.
+- El inicio preferido solo puede aplicarse una vez al entrar en la raíz sin parámetros ni fragmentos y con sesión/acceso confirmados. No reemplaza enlaces explícitos, retornos de autenticación o facturación, ni navegación posterior.
+- Filtros combinables por cliente, asignación y semana local de lunes a domingo; reglas relativas, no fechas congeladas. Conserva los estados del tablero y ofrece restablecer. La interfaz deja claro cuándo el cliente guardado ya no existe.
+- Búsqueda: el destino de las órdenes es Producción, coherente con el texto del botón. El icono de marca se sirve desde los archivos locales de la app para no depender de la web de la agencia.
+
+Estos patrones reutilizan contenedores, botones y selectores existentes; no crean permisos ni rutas de servidor nuevas. La revisión visual sigue pendiente del acceso permitido al navegador. Las evidencias de pruebas y publicación se registran por separado en `scale-core-api/RELEASE-CHECKLIST.md`.
+
 ## Alcance del rediseño
 
 La base visual común vive en `app/ui-system.css`, cargada desde el layout raíz. Se aplica al espacio de trabajo y a los diálogos que se montan fuera de él. No cambia la landing, roles, precios ni datos. Las distribuciones específicas de Producción, calendario e informes se conservan.
