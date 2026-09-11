@@ -19,6 +19,12 @@ async function main(){
   await act(async()=>renderer!.update(<ActorIdentity name="Ana Pérez" photoUrl={url} verified/>));assert.equal(images().length,0);
  }
  await act(async()=>renderer!.update(<ActorIdentity name=""/>));assert(JSON.stringify(renderer!.toJSON()).includes('Sistema'));
+ await act(async()=>renderer!.update(<ActorIdentity name="Darío De Oliveira" verified timestamp="2026-09-11T22:50:26Z"/>));
+ assert.equal(renderer!.root.findByType('time').props.dateTime,'2026-09-11T22:50:26.000Z');
+ assert(JSON.stringify(renderer!.toJSON()).includes('Darío De Oliveira'));
+ await act(async()=>renderer!.update(<ActorIdentity name="Autor fuente" imported timestamp="invalid"/>));
+ assert.equal(renderer!.root.findAllByType('time').length,0);
+ assert(JSON.stringify(renderer!.toJSON()).includes('Autor de registro importado'));
  await act(async()=>renderer!.unmount());
  console.log('PASS: verified author photos, imported/unverified initials, failed image fallback, changed image retry, unsafe URLs and accessible name');
 }

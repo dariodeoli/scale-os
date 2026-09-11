@@ -13,6 +13,7 @@ import {ProfilePhoto} from './profile-photo';
 import {DriveLinkNote} from './drive-link';
 import {RemoveRecord} from './archive-controls';
 import {PhotoViewer} from './photo-viewer';
+import {ActorIdentity} from './actor-identity';
 import {notifyMutation} from './feedback';
 import {teamDirectory,TeamMember,ArchivedProfile} from './team-directory';
 import {TeamAccess} from './team-access';
@@ -802,7 +803,7 @@ export function ProjectComments({
 }) {
   const [open, setOpen] = useState(false),
     [comments, setComments] = useState<
-      { id: string; body: string; author_email: string; created_at: string }[]
+      { id: string; body: string; author_email: string; created_at: string; actor_name?:string; actor_photo_url?:string; actor_verified?:boolean }[]
     >([]),
     [error, setError] = useState("");
   async function load() {
@@ -831,8 +832,7 @@ export function ProjectComments({
           <div className="ops-comments">
             {comments.map((c) => (
               <article className="ops-comment" key={c.id}>
-                <b>{c.author_email || "Integrante"}</b>
-                <small>{new Date(c.created_at).toLocaleString("es-PY")}</small>
+                <ActorIdentity name={c.actor_name||c.author_email||'Integrante'} photoUrl={c.actor_photo_url} verified={c.actor_verified===true} timestamp={c.created_at}/>
                 <p>{c.body}</p>
               </article>
             ))}

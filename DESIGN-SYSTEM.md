@@ -1,5 +1,14 @@
 # Scale OS — interfaz compartida
 
+## Identidad de autores — 11-09-2026
+
+`ActorIdentity` es el bloque común para comentarios de proyectos/piezas, actividad, historial, invitaciones, cobros, transferencias y uso del equipo. Muestra foto circular de 32 px, nombre completo sin recortar y fecha opcional debajo. Usa tokens de superficie, línea y texto; el nombre se ajusta al ancho móvil. No es un botón ni indica presencia: no agregar punto verde a un autor histórico.
+
+- `name`, `photoUrl`, `verified`, `timestamp` y `imported` son sus propiedades. `verified` significa atribución confirmada por el servidor, nunca permiso de acceso.
+- Sin foto o ante error de carga: iniciales. Imagen decorativa con nombre visible accesible, sin duplicar su lectura. Fecha válida usa `time` y formato local; una fecha inválida no se inventa.
+- Preferir identidad personal compartida confirmada por servidor; correo solo como alternativa. No emparejar personas por parecido de nombre ni atribuir fotos actuales a autores importados sin identificación fiable. Los registros importados se etiquetan.
+- No modificar el contenido, autor original, fechas ni permisos de los registros al mejorar su presentación. No realizar una solicitud extra por cada avatar.
+
 ## Primer ingreso y preferencias — 11-09-2026
 
 - La guía muestra instrucciones según capacidades del rol, no solo visibilidad del módulo. El bloque de Primeros pasos es optativo, plegable y descartable; Guía del panel sigue disponible. No abre ventanas ni realiza escrituras de negocio automáticamente.

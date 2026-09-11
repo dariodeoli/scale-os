@@ -2,6 +2,7 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
+require.extensions['.css']=()=>{};
 const writes:{path:string;body:unknown;method:string}[]=[];
 const requests=[
  {id:'1',full_name:'Valid',email:'valid@example.invalid',role:'viewer',status:'pending',unavailableReason:null},
