@@ -18,6 +18,8 @@ const originalOperations=require.cache[operationsPath];
 const mockedOperations=new (require('node:module'))(operationsPath);
 mockedOperations.exports={Dialog:DialogStub,Editor:EditorStub,api:async(path:string,body:unknown)=>{calls.push({path,body});return {organization:{id:'42'}};}};
 require.cache[operationsPath]=mockedOperations;
+const companySettingsPath=require.resolve('../app/company-settings');
+require.cache[companySettingsPath]={id:companySettingsPath,filename:companySettingsPath,loaded:true,exports:{CompanySettings:()=>null}} as NodeModule;
 const {WorkspaceGuide,NewCompany}=require('../app/workspace-guide') as typeof import('../app/workspace-guide');
 if(originalOperations)require.cache[operationsPath]=originalOperations;else delete require.cache[operationsPath];
 let renderer:ReactTestRenderer;

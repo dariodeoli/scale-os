@@ -12,6 +12,7 @@ const cases=[
  ['suite','CatalogWorkspace','QuoteComposer','done'],
  ['suite','MemberActions','Editor','save'],
  ['suite','RecordEditor','Editor','save'],
+ ['suite','RecordEditor','RecordAssignees','refresh'],
  ['suite','BudgetActions','QuoteComposer','done'],
  ['team-access','TeamAccess','Editor','save'],
 ] as const;
@@ -31,9 +32,23 @@ for(const [module,name,component,attribute] of cases)test(`${name} ${component}:
   }
   ts.forEachChild(node,visit);
  };
- visit(parent);assert.equal(callbacks.length,1);
- const callbackSource=callbacks[0].getText(file);
- assert(callbackSource.includes('await completeSave('));
+ visit(parent);
+ if(name==='RecordEditor'&&component==='Editor'){
+  assert.equal(callbacks.length,2,'client detail saves directly; project/work detail delegates to the unified save');
+  const delegated=callbacks.filter(ts.isIdentifier);
+  assert.equal(delegated.length,1);
+  assert.equal(delegated[0].text,'save');
+  let enclosing:ts.Node|undefined=delegated[0].parent;
+  while(enclosing&&!ts.isArrowFunction(enclosing))enclosing=enclosing.parent;
+  assert(enclosing&&ts.isArrowFunction(enclosing));
+  assert.equal(enclosing.parameters.length,1);
+  assert.equal(enclosing.parameters[0].name.getText(file),'save','Editor forwards the render-prop save supplied by RecordAssignees');
+ }
+ else assert.equal(callbacks.length,1);
+ const inline=callbacks.filter(node=>ts.isArrowFunction(node));
+ assert.equal(inline.length,1,'exactly one persistence/completion callback per save path');
+ const callbackSource=inline[0].getText(file);
+ assert(callbackSource.includes(attribute==='refresh'?'completeSave(':'await completeSave('));
  let closed=false,refreshes=0,writes=0;
  let persist:()=>Promise<unknown>=async()=>{throw Error('Persist failed');};
  const close=(value:unknown)=>{assert(value===null||value===false);closed=true;};
@@ -56,17 +71,18 @@ for(const [module,name,component,attribute] of cases)test(`${name} ${component}:
   finish();await pending;
   assert.equal(writes,2,'one failed request and one explicit retry; refresh never retries persistence');
  }else{
-  // QuoteComposer calls done only after its own awaited persistence.
+  // QuoteComposer/RecordAssignees call completion only after confirmed persistence.
   await callback(values);assert.equal(writes,0);
  }
  assert.equal(closed,true);assert.equal(refreshes,1);
  assert.equal(notices.length,before+1);assert.equal(notices.at(-1)?.tone,'warning');
 });
 
-test('completion is limited to the six main saves, not inline or secondary actions',()=>{
+test('completion covers main save paths including unified assignments, not secondary actions',()=>{
  const suite=readFileSync(new URL('../app/suite.tsx',import.meta.url),'utf8');
  const access=readFileSync(new URL('../app/team-access.tsx',import.meta.url),'utf8');
  assert.equal((suite.match(/await completeSave\(/g)||[]).length,5);
+ assert.equal((suite.match(/\bcompleteSave\(/g)||[]).length,6,'unified assignment completion is also covered');
  assert.equal((access.match(/await completeSave\(/g)||[]).length,1);
  assert(suite.includes('refresh={async()=>{await refresh();await open();}}'),'appearance partial saves retain their reload behavior');
  for(const source of [suite,access]){

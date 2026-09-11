@@ -1,0 +1,18 @@
+import React from 'react';
+import assert from 'node:assert/strict';
+import {create} from 'react-test-renderer';
+Object.assign(globalThis,{React});
+require.extensions['.css']=()=>{};
+const {ProjectCard}=require('../app/project-card') as typeof import('../app/project-card');
+const project={name:'Proyecto de campaña',client_name:'Cliente',status:'active',work_order_count:4,drive_url:null,assignees:[{id:'1',full_name:'Ana',photo_url:'https://example.invalid/ana.webp',is_primary:true},{id:'2',full_name:'Luis',is_primary:false}]};
+const view=create(<ProjectCard project={project}><button>Editar detalles</button></ProjectCard>);
+const rendered=JSON.stringify(view.toJSON());
+assert.match(rendered,/Ana/);assert.match(rendered,/Luis/);assert.match(rendered,/Principal/);assert.match(rendered,/Activo/);
+assert.equal(view.root.findAllByType('img').length,1,'principal photo and secondary fallback');
+assert.equal(view.root.findByType('article').children.length,4,'list groups title, status, assignees and actions into four cells');
+view.update(<ProjectCard project={{...project,assignees:[]}}><button>Editar detalles</button></ProjectCard>);
+assert.match(JSON.stringify(view.toJSON()),/Sin responsables/);
+view.update(<ProjectCard project={{...project,assignees:undefined}}><button>Editar detalles</button></ProjectCard>);
+assert.match(JSON.stringify(view.toJSON()),/Responsables no disponibles/,'missing data is not reported as no assignments');
+view.unmount();
+console.log('PASS: project row grouping, status, assignment names/photos/principal and missing data');
