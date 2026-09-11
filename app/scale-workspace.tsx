@@ -49,6 +49,7 @@ import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
 import {notify,notifyMutation} from './feedback';
+import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 
 import {
   DndContext,
@@ -215,6 +216,7 @@ type ClientPaymentStatus = {
   payment_status: "up_to_date" | "due_soon" | "late" | "severe";
 };
 type User = {
+  subscription?:SubscriptionState;
   id:string;
   organization_id:string;
   full_name?:string|null;
@@ -1337,6 +1339,36 @@ export default function Home() {
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
   function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
   const [user, setUser] = useState<User | null>(null);
+  const [subscriptionOpen,setSubscriptionOpen]=useState(false),[subscriptionError,setSubscriptionError]=useState('');
+  const previousBillingAccess=useRef<boolean|null>(null);
+  const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
+  async function refreshSubscription(){
+    const d=await request<{user:User}>('/api/auth/me');
+    if(user&&String(d.user.organization_id)!==String(user.organization_id)){window.location.reload();return;}
+    clearDataCache();setUser(d.user);setSubscriptionError('');
+  }
+  useEffect(()=>{
+    if(!signedIn||!user)return;
+    let disposed=false,running=false;let controller:AbortController|null=null;
+    const check=async()=>{
+      if(running||document.visibilityState==='hidden')return;
+      running=true;controller=new AbortController();const timeout=setTimeout(()=>controller?.abort(),10000);
+      try{
+        const r=await fetch('/core-api/api/auth/me',{credentials:'include',cache:'no-store',signal:controller.signal});
+        if(r.status===401){if(!disposed){setDataScope('');setSignedIn(false);setUser(null);}return;}
+        if(!r.ok)throw Error('No se pudo comprobar la suscripción. Intentá actualizar.');
+        const d=await r.json() as {user:User};if(disposed)return;
+        if(String(d.user.organization_id)!==String(user.organization_id)||String(d.user.id)!==String(user.id)){window.location.reload();return;}
+        if(d.user.subscription?.hasAccess===false)clearDataCache();
+        setUser(d.user);setSubscriptionError('');
+      }catch{if(!disposed)setSubscriptionError('No se pudo actualizar el estado de la suscripción.');}
+      finally{clearTimeout(timeout);running=false;}
+    };
+    const refresh=()=>{void check();};
+    const timer=setInterval(refresh,60000);
+    window.addEventListener('scale:billing-refresh',refresh);document.addEventListener('visibilitychange',refresh);
+    return()=>{disposed=true;clearInterval(timer);controller?.abort();window.removeEventListener('scale:billing-refresh',refresh);document.removeEventListener('visibilitychange',refresh);};
+  },[signedIn,user?.id,user?.organization_id]);
   useEffect(()=>{
     let active=true;
     const refreshIdentity=()=>{void request<{user:User}>('/api/auth/me').then(d=>{if(active)setUser(d.user);}).catch(()=>{});};
@@ -1374,6 +1406,7 @@ export default function Home() {
     open_orders: 0,
   });
   async function load() {
+    if(user?.subscription?.hasAccess===false)return;
     const [clientData, projectData, orderData, summaryData] = await Promise.all(
       [
         request<{ clients: Client[] }>("/api/agency/clients"),
@@ -1388,10 +1421,18 @@ export default function Home() {
     setSummary(summaryData.summary);
   }
   useEffect(()=>{
+    const next=user?.subscription?.hasAccess??null;
+    if(next===false){
+      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
+      setModal(null);setDetail(null);setMyProfile(false);setSubscriptionOpen(false);
+    }else if(previousBillingAccess.current===false&&next===true){void load().catch(()=>setToast('No se pudieron actualizar los datos. Intentá nuevamente.'));}
+    previousBillingAccess.current=next;
+  },[user?.subscription?.hasAccess]);
+  useEffect(()=>{
     if(lastDataPath.current===pathname)return;
     lastDataPath.current=pathname;
     // Keep the mounted shell and session. Refresh records quietly after another module may have changed them.
-    if(signedIn)void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron actualizar los datos.'));
+    if(signedIn&&user?.subscription?.hasAccess!==false)void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron actualizar los datos.'));
   },[pathname,signedIn]);
   useEffect(()=>{if(signedIn&&toast){notify({tone:'error',message:toast});setToast('');}},[signedIn,toast]);
   useEffect(() => {
@@ -1408,13 +1449,13 @@ export default function Home() {
         setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
         setUser(data.user);
         setSignedIn(true);
-        return load();
+        if(data.user.subscription?.hasAccess!==false)return load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
       })
       .catch(() => setSignedIn(false))
       .finally(() => setLoading(false));
   }, []);
   useEffect(() => {
-    if (signedIn && active === "Mora")
+    if (operationalAccess && active === "Mora")
       request<{ clients: ClientPaymentStatus[] }>(
         `/api/agency/client-payment-status${moraFilter ? `?status=${moraFilter}` : ""}`,
       )
@@ -1426,9 +1467,9 @@ export default function Home() {
               : "No se pudo cargar la mora.",
           ),
         );
-  }, [active, signedIn, moraFilter]);
+  }, [active, operationalAccess, moraFilter]);
   useEffect(() => {
-    if (signedIn && active === "Presupuestos")
+    if (operationalAccess && active === "Presupuestos")
       request<{ budgets: Budget[] }>("/api/agency/budgets")
         .then((data) => setBudgets(data.budgets))
         .catch((cause) =>
@@ -1438,7 +1479,7 @@ export default function Home() {
               : "No se pudieron cargar los presupuestos.",
           ),
         );
-  }, [active, signedIn]);
+  }, [active, operationalAccess]);
   async function loadFinance() {
     const [accountData, invoiceData, transferData, paymentData, custodianData] =
       await Promise.all([
@@ -1455,7 +1496,7 @@ export default function Home() {
     setCustodians(custodianData.members);
   }
   useEffect(() => {
-    if (signedIn && active === "Finanzas")
+    if (operationalAccess && active === "Finanzas")
       loadFinance().catch((cause) =>
         setToast(
           cause instanceof Error
@@ -1463,10 +1504,10 @@ export default function Home() {
             : "No se pudieron cargar las finanzas.",
         ),
       );
-  }, [active, signedIn]);
+  }, [active, operationalAccess]);
   useEffect(() => {
     if (
-      signedIn &&
+      operationalAccess &&
       active === "Pipeline" &&
       ["owner", "admin"].includes(user?.role || "")
     )
@@ -1479,7 +1520,7 @@ export default function Home() {
               : "No se pudieron cargar las métricas.",
           ),
         );
-  }, [active, signedIn, user?.role]);
+  }, [active, operationalAccess, user?.role]);
   async function login(event: React.FormEvent) {
     event.preventDefault();
     setToast("");
@@ -1492,7 +1533,7 @@ export default function Home() {
       setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
       setUser(data.user);
       setSignedIn(true);
-      await load();
+      if(data.user.subscription?.hasAccess!==false)await load();
     } catch (cause) {
       setToast(
         cause instanceof Error ? cause.message : "No se pudo iniciar sesión.",
@@ -1601,6 +1642,7 @@ export default function Home() {
       </div>
     );
   const firstName = user?.email.split("@")[0] || "U";
+  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 
   const sidebarContent=<>
         <p className="nav-caption">Espacio de trabajo</p>
@@ -1638,6 +1680,8 @@ export default function Home() {
         {sidebarContent}
       </DesktopSidebar>
       <section className="content">
+        {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>setSubscriptionOpen(true)}/>}
+        {subscriptionOpen&&user&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
         <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><div className="workspace-context"><CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>{user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}</div><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),

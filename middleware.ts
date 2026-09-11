@@ -6,6 +6,7 @@ export function middleware(request:NextRequest){
   if(path==='/sitemap.xml')return new NextResponse('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://sistema.scaleparaguay.com/</loc></url></urlset>',{headers:{'Content-Type':'application/xml'}});
   if(path==='/')return NextResponse.rewrite(new URL('/scale-os.html',request.url));
   if(path==='/scale-os.html')return NextResponse.redirect(new URL('https://sistema.scaleparaguay.com/'),308);
+  if(path==='/registro')return NextResponse.redirect(new URL('https://app.scaleparaguay.com/registro'),307);
   if(path.startsWith('/brand/'))return NextResponse.next();
   if(path==='/demo'||path.startsWith('/core-api/')||/^\/(resumen|produccion|clientes|proyectos|presupuestos|pagos|equipo|pipeline|metricas|inventario|actividad|configuracion)(\/|$)/.test(path)){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
   return new NextResponse('Página no encontrada',{status:404,headers:{'X-Robots-Tag':'noindex'}});
