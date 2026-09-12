@@ -17,8 +17,8 @@ export function CommentBody({value}:{value:string}){
  })}</p>;
 }
 
-export function CommentComposer({label='Comentario',save}:{label?:string;save:(body:string)=>Promise<void>}){
- const [body,setBody]=useState(''),[people,setPeople]=useState<CommentPerson[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[active,setActive]=useState(0);
+export function CommentComposer({label='Comentario',save}:{label?:string;save:(body:string,mentionedUserIds:string[])=>Promise<void>}){
+ const [body,setBody]=useState(''),[people,setPeople]=useState<CommentPerson[]>([]),[mentions,setMentions]=useState<Map<string,string>>(new Map()),[busy,setBusy]=useState(false),[error,setError]=useState(''),[active,setActive]=useState(0);
  const textarea=useRef<HTMLTextAreaElement|null>(null),nextCursor=useRef<number|null>(null);
  useEffect(()=>{let alive=true;void api<{people:CommentPerson[]}>('/api/agency/productivity/people').then(data=>{if(alive)setPeople(Array.isArray(data.people)?data.people:[]);}).catch(()=>{if(alive)setPeople([]);});return()=>{alive=false;};},[]);
  useEffect(()=>{if(nextCursor.current===null||!textarea.current)return;textarea.current.setSelectionRange(nextCursor.current,nextCursor.current);nextCursor.current=null;},[body]);
@@ -33,10 +33,10 @@ export function CommentComposer({label='Comentario',save}:{label?:string;save:(b
   const end=textarea.current?.selectionEnd??cursor;
   const name=displayName(person);
   const next=`${body.slice(0,at)}@${name} ${body.slice(end)}`;
-  nextCursor.current=at+name.length+2;setBody(next);setActive(0);
+  nextCursor.current=at+name.length+2;setBody(next);setMentions(previous=>new Map(previous).set(String(person.id),name));setActive(0);
  }
- return <form className="comment-composer" onSubmit={async event=>{event.preventDefault();const content=body.trim();if(!content||busy)return;setBusy(true);setError('');try{await save(content);setBody('');}catch(e){setError(e instanceof Error?e.message:'No se pudo publicar el comentario.');}finally{setBusy(false);}}}>
-  <label>{label}<textarea ref={textarea} value={body} disabled={busy} placeholder="Escribí una actualización. Usá @ para mencionar a alguien." onChange={event=>setBody(event.target.value)} onKeyDown={event=>{
+ return <form className="comment-composer" onSubmit={async event=>{event.preventDefault();const content=body.trim();if(!content||busy)return;setBusy(true);setError('');try{const mentionedUserIds=Array.from(mentions).filter(([,name])=>content.includes('@'+name)).map(([id])=>id);await save(content,mentionedUserIds);setBody('');setMentions(new Map());}catch(e){setError(e instanceof Error?e.message:'No se pudo publicar el comentario.');}finally{setBusy(false);}}}>
+  <label>{label}<textarea ref={textarea} value={body} disabled={busy} placeholder="Escribí una actualización. Usá @ para mencionar a alguien." onChange={event=>{setBody(event.target.value);setMentions(previous=>new Map(Array.from(previous).filter(([,name])=>event.target.value.includes('@'+name))));}} onKeyDown={event=>{
    if(!suggestions.length)return;
    if(event.key==='ArrowDown'){event.preventDefault();setActive(value=>(value+1)%suggestions.length);}
    if(event.key==='ArrowUp'){event.preventDefault();setActive(value=>(value-1+suggestions.length)%suggestions.length);}

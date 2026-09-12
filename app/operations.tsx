@@ -855,8 +855,8 @@ export function ProjectComments({
           {role !== "viewer" && (
             <CommentComposer
               label="Comentario"
-              save={async (body) => {
-                await api(`/api/agency/projects/${projectId}/comments`, {body});
+              save={async (body,mentionedUserIds) => {
+                await api(`/api/agency/projects/${projectId}/comments`, {body,mentioned_user_ids:mentionedUserIds});
                 await load();
               }}
             />
