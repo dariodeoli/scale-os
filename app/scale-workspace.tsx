@@ -393,12 +393,14 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
     defaultValues: { name: "", email: "", phone: "" },
   });
   const [error, setError] = useState("");
+  const [dialCode,setDialCode]=useState('+595');
   const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: ClientValues) {
     try {
+      const digits=values.phone?.replace(/\D/g,'')||'';
       const data = await request<{ client: Client }>("/api/agency/clients", {
         method: "POST",
-        body: JSON.stringify(values),
+        body: JSON.stringify({...values,phone:digits?`${dialCode}${digits}`:''}),
       });
       done(data.client);
     } catch (cause) {
@@ -426,8 +428,9 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
         )}
       </label>
       <label>
-        Teléfono
-        <input {...form.register("phone")} />
+        Teléfono / WhatsApp · Opcional
+        <span className="phone-input"><select aria-label="Código de país" value={dialCode} onChange={event=>setDialCode(event.target.value)}><option value="+595">🇵🇾 +595</option><option value="+55">🇧🇷 +55</option><option value="+54">🇦🇷 +54</option><option value="+1">🇺🇸 +1</option><option value="+34">🇪🇸 +34</option></select><input inputMode="tel" autoComplete="tel-national" placeholder="981 123 456" {...form.register("phone")} /></span>
+        <small className="field-help">Elegí el país; al guardar se conserva el código internacional y se habilita el acceso directo a WhatsApp.</small>
       </label>
       {error && <p className="error">{error}</p>}
       <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
@@ -1779,12 +1782,16 @@ export default function Home() {
           ...orders.map(o=>({id:o.id,name:o.title,context:`Orden · ${o.client_name} · ${o.project_name}`,kind:'work-orders' as const})),
         ]}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
         <header>
-          <div>
+          <div className="page-heading">
             {active==='Resumen'&&<p className="eyebrow">TU AGENCIA, EN UN VISTAZO</p>}
             <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
+            {active==='Proyectos'&&<span className="page-count">{projects.length} proyectos</span>}
+            {active==='Clientes'&&<span className="page-count">{clients.length} clientes</span>}
           </div>
           <div className="header-actions">
-            {active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||'')&&<ClientRuc refresh={load}/>}
+            {active==='Clientes'&&<SelectCustom label="Estado" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/>}
+            {active==='Proyectos'&&<ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/>}
+            {active==='Clientes'&&<ViewToggle label="Vista de clientes" value={clientView as 'grid'|'list'} onChange={changeClientView}/>}
             <WorkspaceGuide {...guideProps}/>
             {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen','Producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
               <button
@@ -1976,8 +1983,6 @@ export default function Home() {
         )}
         {active === "Clientes" && (
           <section className="panel directory">
-            <p className="directory-summary">{clients.length} clientes registrados</p>
-            <div className="client-directory-toolbar"><SelectCustom label="Estado del cliente" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/><ViewToggle label="Vista de clientes" value={clientView as 'grid'|'list'} onChange={changeClientView}/></div>
             <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
               {clients.length ? (
                 clients.filter(client=>!clientStatusFilter||clientState(client).value===clientStatusFilter).map((client) => (
@@ -2002,7 +2007,6 @@ export default function Home() {
         )}
         {active === "Proyectos" && (
           <section className="panel directory">
-            <div className="directory-toolbar-row"><p className="directory-summary">{projects.length} proyectos · Carpetas, responsables y piezas</p><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>
             <div className={projectView==='grid'?'project-grid':'project-list'}>
               {projects.length ? (
                 projects.map((project) => (
@@ -2254,6 +2258,8 @@ export default function Home() {
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
         <Modal title="Nuevo cliente" onClose={close}>
+          <ClientRuc embedded refresh={load} onCreated={close}/>
+          <div className="form-flow-divider" aria-hidden="true"><span>o cargá sus datos manualmente</span></div>
           <ClientForm
             done={(client) => {
               setClients((current) => [client, ...current]);

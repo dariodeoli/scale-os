@@ -41,7 +41,8 @@ function text(node:ReactTestInstance|string):string{return typeof node==='string
 const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label)!;
 const field=(label:string,tag:'input'|'select'|'textarea'='input')=>renderer.root.findAllByType('label').find(node=>node.children.some(c=>c===label))!.findByType(tag);
 const change=(label:string,value:string,tag:'input'|'select'|'textarea'='input')=>act(()=>field(label,tag).props.onChange({target:{value}}));
-const check=(label:string)=>act(()=>renderer.root.findAllByType('label').find(node=>text(node).startsWith(label))!.findByType('input').props.onChange());
+// Identity chips now include avatar initials before the visible person name.
+const check=(label:string)=>act(()=>renderer.root.findAllByType('label').find(node=>text(node).includes(label))!.findByType('input').props.onChange());
 const tree=()=>JSON.stringify(renderer.toJSON());
 const submit=()=>act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){}});});
 async function run(){

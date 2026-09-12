@@ -409,8 +409,7 @@ export function OperationsWorkspace({
                   <div>
                     <h3>{p.full_name}</h3>
                     <small>
-                      {p.job_title || "Sin cargo"} ·{" "}
-                      {p.active ? "Activo" : "Inactivo"}
+                      Cargo: {p.job_title || "Sin definir"} · Estado laboral: {p.active ? "Activo" : "Inactivo"}
                     </small>
                   </div>
                 </div>

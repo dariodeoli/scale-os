@@ -9,6 +9,9 @@
 .photo-viewport{border-radius:50%!important;aspect-ratio:1;max-width:420px;height:auto!important;margin-inline:auto;cursor:grab;touch-action:none;scrollbar-width:none}
 .photo-viewport:active{cursor:grabbing}.photo-canvas img{pointer-events:none;user-select:none;object-fit:cover!important}
 .profile-photo-form{gap:12px;align-content:start}
+.profile-photo-section{padding:14px 16px!important}
+.profile-photo-section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;margin-bottom:12px}
+.profile-photo-section-heading strong{font-size:13px}.profile-photo-section-heading small{font-size:12px;color:var(--text-muted)}
 .profile-photo-summary{display:flex;align-items:center;gap:14px}
 .profile-photo-summary .editable-photo{width:64px;height:64px;flex:none}
 .profile-photo-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}

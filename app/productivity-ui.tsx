@@ -10,7 +10,7 @@ import {ClientReviewControl} from './daily-controls';
 import {ClientAppearance,ClientIdentity} from './client-identity';
 import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
-import {ClientLinks} from './client-links';
+import {ClientLinks,whatsappUrl} from './client-links';
 import {ClientReporting} from './client-reporting';
 import {ProjectPresence} from './presence';
 import {ActorIdentity} from './actor-identity';
@@ -63,8 +63,8 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
  useEffect(()=>{void api<typeof data>(`/api/agency/productivity/clients/${id}`).then(setData).catch(e=>setError(errorText(e)));},[id]);
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error">{error}</p>}{data?<>
   {['owner','admin','management','sales'].includes(role)?<ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} refresh={reload}/>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
-  <p>{s(data.client,'email')} · {s(data.client,'phone')}</p><p>{s(data.client,'notes')}</p>
-  <ClientLinks id={id} value={data.client.social_links} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>
+  <p>{s(data.client,'email')} · {s(data.client,'phone')}</p>{whatsappUrl(s(data.client,'phone'))&&<a className="text-button client-whatsapp" href={whatsappUrl(s(data.client,'phone'))!} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>}<p>{s(data.client,'notes')}</p>
+  <ClientLinks id={id} value={data.client.social_links} phone={s(data.client,'phone')} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>
   <ClientReporting key={id} id={id} role={role} onSaved={reload}/>
   {managers.includes(role)&&<button className="primary" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button>}
   <div className="choice-list">{['Producción',...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)}>{t}</button>)}</div>
