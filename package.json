@@ -13,7 +13,8 @@
     "start": "next start",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test:release-regression": "tsx tests/data-loading-cache.test.ts && tsx tests/mobile-workspace-layout.test.ts && tsx tests/mobile-navigation.test.tsx && node tests/release-regression-audit.test.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
