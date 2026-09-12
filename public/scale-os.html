@@ -20,10 +20,10 @@
 <link rel="icon" href="https://sistema.scaleparaguay.com/brand/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="https://sistema.scaleparaguay.com/brand/apple-touch-icon.png">
 <style>
-:root{--ink:#251c29;--muted:#675e6c;--paper:#fbfafc;--white:#fff;--brand:#4d065b;--accent:#8f1184;--soft:#f2eaf4;--line:#e5dce8;--green:#1d7058;--green-soft:#e5f3ed;--gold:#f5c518;--radius:20px;--shadow:0 24px 70px rgb(49 15 57 / .1)}
+:root{--ink:#201626;--muted:#6d6372;--paper:#faf9fc;--white:#fff;--brand:#4d065b;--brand-deep:#27032f;--accent:#a20e98;--soft:#f2eaf4;--line:#e7dfea;--green:#177960;--green-soft:#e4f5ee;--gold:#f5c518;--radius:22px;--shadow:0 28px 80px rgb(49 15 57 / .12)}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:150px}
-body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Outfit",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
+body{margin:0;background:radial-gradient(circle at 88% 0,#f1e7f4 0,transparent 27rem),var(--paper);color:var(--ink);font:16px/1.65 "Outfit",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
 h1,h2,h3,p,figure{margin:0}h1,h2,h3{line-height:1.12;letter-spacing:-.045em}
 h1{font-size:clamp(42px,6.8vw,84px);font-weight:750;max-width:800px}
 h2{font-size:clamp(30px,3.8vw,48px)}h3{font-size:22px}
@@ -33,7 +33,7 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .wrap{width:100%;max-width:1200px;margin-inline:auto;padding-inline:clamp(16px,3vw,36px)}
 .skip{position:absolute;top:-100px;left:16px;z-index:10;background:var(--white);padding:12px 18px;border:2px solid var(--brand);border-radius:8px}
 .skip:focus{top:10px}
-.site-header{position:sticky;top:0;z-index:5;background:rgb(251 250 252 / .97);border-bottom:1px solid var(--line)}
+.site-header{position:sticky;top:0;z-index:5;background:rgb(250 249 252 / .9);border-bottom:1px solid rgb(231 223 234 / .9);backdrop-filter:blur(16px)}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:84px;padding-block:10px}
 .brand{display:inline-flex;align-items:center;gap:9px;font-size:27px;font-weight:800;letter-spacing:-.06em;text-decoration:none;white-space:nowrap;min-height:44px}
 .brand img{width:36px;height:36px;border-radius:10px;background:var(--brand);flex:none}
@@ -41,22 +41,22 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .nav nav{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .nav nav>a:not(.button){display:inline-flex;align-items:center;min-height:44px;font-size:13px;text-decoration:none}
 .nav nav>a:hover{text-decoration:underline;text-underline-offset:5px}
-.button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;max-width:100%;padding:12px 22px;border:1px solid var(--brand);border-radius:10px;background:var(--brand);color:var(--white);font-size:14px;font-weight:650;text-decoration:none;text-align:center;cursor:pointer;transition:background .18s,transform .18s}
-.button:hover{background:var(--accent);transform:translateY(-2px)}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;max-width:100%;padding:12px 22px;border:1px solid var(--brand);border-radius:12px;background:linear-gradient(135deg,var(--brand),#72077f);box-shadow:0 9px 18px rgb(77 6 91 / .16);color:var(--white);font-size:14px;font-weight:700;text-decoration:none;text-align:center;cursor:pointer;transition:box-shadow .18s,transform .18s}
+.button:hover{box-shadow:0 14px 28px rgb(77 6 91 / .24);transform:translateY(-2px)}
 .button.outline{background:transparent;color:var(--ink);border-color:#cfc1d5}
 .button.outline:hover{background:var(--soft)}
 .eyebrow{display:block;font-size:11px;font-weight:750;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
-.hero{padding-block:70px 32px}
-.hero-top{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:48px;align-items:end}
+.hero{padding-block:52px 32px}.hero-surface{position:relative;overflow:hidden;padding:clamp(30px,5vw,68px);border:1px solid #e1d3e5;border-radius:28px;background:linear-gradient(128deg,#fff 0%,#f9f2fa 70%,#edddf1 100%)}.hero-surface::after{content:'';position:absolute;width:420px;height:420px;right:-230px;top:-275px;border:70px solid rgb(162 14 152 / .08);border-radius:50%;pointer-events:none}
+.hero-top{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:48px;align-items:end}
 .hero h1 span{color:var(--brand)}
 .hero-description{font-size:18px;line-height:1.7;max-width:470px}
 .actions{display:flex;gap:12px;flex-wrap:wrap;margin-block:24px 12px}
 .fine{font-size:12px;line-height:1.7}.hero-price{margin-top:20px;font-size:14px;color:var(--ink)}
 .hero-price strong{color:var(--brand)}
-.hero-labels{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:30px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.hero-labels{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:30px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 .hero-labels span::before{content:'↳';margin-right:8px;color:var(--accent)}
-.preview{margin-top:42px;border:1px solid #d7c9dc;border-radius:18px;background:var(--white);box-shadow:var(--shadow)}
-.preview-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;background:var(--brand);color:white;border-radius:17px 17px 0 0}
+.preview{overflow:hidden;margin-top:22px;border:1px solid #d7c9dc;border-radius:22px;background:var(--white);box-shadow:var(--shadow)}
+.preview-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;background:linear-gradient(110deg,var(--brand),#741079);color:white;border-radius:21px 21px 0 0}
 .preview-bar strong{flex:1;font-size:12px}.demo-tag{font-size:10px;letter-spacing:.06em;color:#f2dff5}
 .dots{display:flex;gap:5px}.dots i{width:6px;height:6px;border-radius:50%;background:#c49dce}
 .preview-content{display:grid;grid-template-columns:150px minmax(0,1fr)}
@@ -78,13 +78,13 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .mini-checklist{list-style:none;padding:10px 0 0;margin:12px 0 0;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}
 .mini-checklist li{padding-block:3px}.mini-checklist li span{margin-right:6px;color:var(--green)}
 .preview-note{padding:13px 16px;font-size:11px;text-align:center;border-top:1px solid var(--line);background:#fcfafd;border-radius:0 0 17px 17px}
-.section{padding-block:66px}.section-intro{max-width:720px;margin-bottom:32px}.section-intro p{margin-top:18px;font-size:17px}
-.feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-.feature{padding:26px;border:1px solid var(--line);border-radius:16px;background:var(--white);min-width:0}
-.feature .number{display:inline-grid;place-items:center;width:38px;height:38px;background:var(--soft);color:var(--brand);border-radius:10px;font-size:12px;font-weight:700;margin-bottom:22px}
+.signal-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin-top:18px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--line)}.signal{padding:19px 22px;background:var(--white)}.signal strong{display:block;font-size:14px}.signal span{display:block;margin-top:3px;font-size:12px;color:var(--muted)}.signal i{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border-radius:7px;background:var(--green-soft);color:var(--green);font-style:normal;font-size:12px}
+.section{padding-block:76px}.section-intro{max-width:760px;margin-bottom:34px}.section-intro p{margin-top:18px;font-size:17px}
+.feature-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}.feature{grid-column:span 4;position:relative;overflow:hidden;padding:27px;border:1px solid var(--line);border-radius:18px;background:var(--white);min-width:0;transition:transform .18s,box-shadow .18s}.feature:hover{box-shadow:0 18px 36px rgb(49 15 57 / .08);transform:translateY(-3px)}.feature:nth-child(1),.feature:nth-child(2){grid-column:span 6}.feature:nth-child(7){grid-column:span 12;display:grid;grid-template-columns:110px minmax(0,1fr);gap:20px;align-items:start;background:linear-gradient(110deg,#fff,#faf1fa)}
+.feature .number{display:inline-grid;place-items:center;width:40px;height:40px;background:var(--soft);color:var(--brand);border-radius:12px;font-size:12px;font-weight:750;margin-bottom:22px}
 .feature h3{font-size:21px;margin-bottom:12px}.feature p{font-size:14px;line-height:1.8}
 .feature .feature-note{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--brand)}
-.flow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;padding:42px;background:var(--soft);border-radius:var(--radius);align-items:center}
+.flow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;padding:clamp(28px,5vw,56px);background:linear-gradient(125deg,#f0e5f3,#faf4fb);border:1px solid #e6d7e9;border-radius:var(--radius);align-items:center}
 .flow p{margin-top:18px}.steps{display:grid;gap:12px;list-style:none;padding:0;margin:0;counter-reset:flow}
 .step{display:flex;gap:16px;align-items:flex-start;padding:18px;background:var(--white);border-radius:12px}
 .step::before{counter-increment:flow;content:'0' counter(flow);color:var(--accent);font-size:12px;font-weight:700;flex:none}
@@ -92,7 +92,7 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .pricing-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:54px;align-items:start}
 .pricing-copy>p{margin-top:18px}.pricing-copy ol{list-style:none;padding:0;margin:30px 0 0}
 .trial-step{padding:16px 0;border-top:1px solid var(--line)}.trial-step strong{display:block;color:var(--brand);font-size:14px}.trial-step p{font-size:13px;margin-top:5px}
-.price-card{position:relative;border:1px solid var(--brand);border-radius:20px;padding:34px;background:linear-gradient(145deg,#4d065b,#32053d);color:white;box-shadow:var(--shadow);min-width:0}
+.price-card{position:relative;overflow:hidden;border:1px solid var(--brand);border-radius:24px;padding:36px;background:linear-gradient(145deg,#570566,#24022d);color:white;box-shadow:var(--shadow);min-width:0}.price-card::before{content:'';position:absolute;width:250px;height:250px;right:-130px;top:-145px;border:42px solid rgb(255 255 255 / .08);border-radius:50%}.price-card>*{position:relative}
 .price-card p{color:#eddaef}.price-card h3{font-size:24px}.plan-label{display:inline-block;padding:5px 10px;margin-bottom:24px;border:1px solid #9662a2;border-radius:999px;font-size:11px}
 .price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:20px}.price strong{font-size:clamp(38px,5vw,58px);line-height:1.05;letter-spacing:-.06em}.price span{font-size:14px;color:#eddaef}
 .price-alternative{margin-top:12px;font-size:22px;font-weight:600;line-height:1.4}.price-alternative small{font-size:14px;font-weight:400}
@@ -106,7 +106,7 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .faq details{border-bottom:1px solid var(--line)}.faq summary{cursor:pointer;min-height:56px;padding:18px 0;font-size:15px;font-weight:650;list-style:none;display:flex;gap:18px;justify-content:space-between;align-items:center}
 .faq summary::-webkit-details-marker{display:none}.faq summary::after{content:'+';font-size:22px;color:var(--accent);flex:none}.faq details[open] summary::after{content:'−'}
 .faq p{font-size:14px;padding-bottom:20px;line-height:1.8}
-.cta{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:32px;align-items:center;background:var(--brand);color:white;border-radius:20px;padding:46px}
+.cta{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:32px;align-items:center;background:linear-gradient(120deg,var(--brand),#7e087e);color:white;border-radius:24px;padding:clamp(28px,5vw,56px)}
 .cta p{color:#eddaef;margin-top:16px}.cta .eyebrow{color:#eddaef;margin-top:0}.cta .actions{justify-content:flex-end}
 .contact-intro>p{margin-top:18px}.contact-intro>a{display:inline-flex;align-items:center;min-height:44px;margin-top:14px;color:var(--brand);font-size:14px}
 .contact-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;min-width:0}
@@ -116,8 +116,8 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .contact-form .consent input{width:20px;height:20px;flex:0 0 20px;margin:3px 0 0;accent-color:var(--brand)}
 .contact-form .trap{position:absolute;left:-10000px}.contact-form [role=status]{min-height:24px;font-size:13px}.contact-form button:disabled{opacity:.65;cursor:wait}
 footer{border-top:1px solid var(--line);padding-block:28px;font-size:12px;color:var(--muted)}.footer-inner{display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;align-items:center}footer a{display:inline-flex;align-items:center;min-height:44px}
-@media(max-width:960px){.hero-top,.pricing-layout,.split{grid-template-columns:minmax(0,1fr);gap:30px}.hero-description{max-width:640px}.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.preview-content{grid-template-columns:minmax(0,1fr)}.preview-menu{display:none}.flow{gap:28px;padding:30px}.nav{flex-wrap:wrap;gap:8px 20px}.nav nav{gap:8px 16px}}
-@media(max-width:640px){.nav{padding-block:10px}.nav nav{width:100%;justify-content:space-between;gap:4px 10px}.nav nav>a:not(.button){font-size:12px}.nav .button{padding:9px 12px;min-height:44px;font-size:12px}.hero{padding-top:42px}.section{padding-block:40px}.hero-top{gap:24px}.hero-description{font-size:16px}.hero .actions>.button{flex:1 1 220px}.columns,.feature-grid,.flow,.cta,.contact-form{grid-template-columns:minmax(0,1fr)}.board{padding:14px}.preview-bar{padding:12px 14px;gap:6px 12px}.preview-bar strong{flex-basis:100%}.dots{display:none}.preview{margin-top:28px}.column{padding:12px}.board-title h3{font-size:18px}.card{padding:14px}.feature{padding:22px}.flow,.cta,.price-card{padding:24px}.cta .actions{justify-content:flex-start}.cta .button{width:100%}.price strong{font-size:46px}.price-alternative{font-size:21px}.split{gap:26px}}
+@media(max-width:960px){.hero-top,.pricing-layout,.split{grid-template-columns:minmax(0,1fr);gap:30px}.hero-description{max-width:640px}.feature{grid-column:span 6}.feature:nth-child(7){grid-column:span 12}.preview-content{grid-template-columns:minmax(0,1fr)}.preview-menu{display:none}.flow{gap:28px;padding:30px}.nav{flex-wrap:wrap;gap:8px 20px}.nav nav{gap:8px 16px}}
+@media(max-width:640px){.nav{padding-block:10px}.nav nav{width:100%;justify-content:space-between;gap:4px 10px}.nav nav>a:not(.button){font-size:12px}.nav .button{padding:9px 12px;min-height:44px;font-size:12px}.hero{padding-top:28px}.hero-surface{padding:28px 22px;border-radius:22px}.section{padding-block:46px}.hero-top{gap:24px}.hero-description{font-size:16px}.hero .actions>.button{flex:1 1 220px}.columns,.flow,.cta,.contact-form{grid-template-columns:minmax(0,1fr)}.feature-grid{grid-template-columns:minmax(0,1fr)}.feature,.feature:nth-child(1),.feature:nth-child(2),.feature:nth-child(7){grid-column:auto;display:block}.signal-strip{grid-template-columns:minmax(0,1fr)}.board{padding:14px}.preview-bar{padding:12px 14px;gap:6px 12px}.preview-bar strong{flex-basis:100%}.dots{display:none}.preview{margin-top:18px}.column{padding:12px}.board-title h3{font-size:18px}.card{padding:14px}.feature{padding:22px}.flow,.cta,.price-card{padding:24px}.cta .actions{justify-content:flex-start}.cta .button{width:100%}.price strong{font-size:46px}.price-alternative{font-size:21px}.split{gap:26px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.button:hover{transform:none}}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Scale OS","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://sistema.scaleparaguay.com/","description":"Sistema de gestión para agencias: producción, clientes, inventario, finanzas y equipo. Prueba de 30 días desde el alta. Plan único de US$10/mes o G.50.000/mes por agencia, precios alternativos de lanzamiento. Tarifa preferencial para clientes fundadores aunque el importe inicial se actualice.","inLanguage":"es"}</script>
@@ -133,6 +133,7 @@ footer{border-top:1px solid var(--line);padding-block:28px;font-size:12px;color:
 <main id="contenido">
 <section class="wrap hero" aria-labelledby="hero-title">
  <p class="eyebrow">El sistema operativo de tu agencia</p>
+ <div class="hero-surface">
  <div class="hero-top">
   <h1 id="hero-title">Tu agencia crea.<br><span>Scale OS ordena.</span></h1>
   <div>
@@ -143,6 +144,7 @@ footer{border-top:1px solid var(--line);padding-block:28px;font-size:12px;color:
   </div>
  </div>
  <div class="hero-labels"><span>Agencias de marketing</span><span>Equipos de contenido</span><span>Productoras audiovisuales</span></div>
+ </div>
  <figure class="preview" aria-labelledby="preview-caption">
   <div class="preview-bar"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><strong>Agencia Horizonte · Producción</strong><span class="demo-tag">VISTA ILUSTRATIVA</span></div>
   <div class="preview-content">
@@ -158,17 +160,22 @@ footer{border-top:1px solid var(--line);padding-block:28px;font-size:12px;color:
   </div>
   <figcaption class="preview-note" id="preview-caption">Representación ilustrativa en HTML con datos ficticios; no es una captura ni actividad en vivo. <a href="https://sistema.scaleparaguay.com/demo">Probá la demo interactiva</a> en una copia aislada, sin registro y sin afectar datos reales. Explorá 20 clientes ficticios y 7 meses de historial ilustrativo, con fechas relativas al inicio de cada nueva demo.</figcaption>
  </figure>
+ <div class="signal-strip" aria-label="Operación de agencia conectada">
+  <div class="signal"><strong><i aria-hidden="true">✓</i>Producción con responsables</strong><span>Fechas, entregas, checklists, comentarios y enlaces con contexto.</span></div>
+  <div class="signal"><strong><i aria-hidden="true">✓</i>Equipo que sabe qué sigue</strong><span>Roles, invitaciones, presencia y notificaciones dentro del panel.</span></div>
+  <div class="signal"><strong><i aria-hidden="true">✓</i>Inventario trazable</strong><span>Reservas, ubicación, responsables y control para cada producción.</span></div>
+ </div>
 </section>
 <section id="funciones" class="wrap section" aria-labelledby="features-title">
- <div class="section-intro"><p class="eyebrow">Una operación conectada</p><h2 id="features-title">De “¿en qué quedó?”<br>a saber cómo sigue.</h2><p>El trabajo creativo necesita contexto. Reuní lo que pasa con cada cliente, cada entrega y cada cobro, sin abrir todas las áreas a todo el equipo.</p></div>
+ <div class="section-intro"><p class="eyebrow">Una operación conectada</p><h2 id="features-title">Menos perseguir información.<br>Más hacer avanzar el trabajo.</h2><p>Scale OS reúne lo que pasa con cada cliente, entrega y cobro, respetando el rol de cada persona. Así la agencia comparte contexto, no planillas sueltas.</p></div>
  <div class="feature-grid">
-  <article class="feature"><span class="number" aria-hidden="true">01</span><h3>Producción que avanza</h3><p>Organizá proyectos y piezas por etapa, fecha y cliente. Sumá múltiples responsables, checklists, comentarios, horas estimadas y enlaces de Drive.</p><p class="feature-note">Tablero, trabajo diario, calendario y listas.</p></article>
-  <article class="feature"><span class="number" aria-hidden="true">02</span><h3>El equipo, con contexto</h3><p>Asigná permisos por rol, revisá el historial de trabajo y consultá la presencia del equipo en los proyectos. Compartir una tarea no amplía los permisos de quien la recibe.</p><p class="feature-note">Personas, accesos e invitaciones.</p></article>
-  <article class="feature"><span class="number" aria-hidden="true">03</span><h3>Cada cliente, en su lugar</h3><p>Conservá datos de contacto, logos, redes y estado del servicio. Conectá su ficha con proyectos, piezas, presupuestos y cobros, según tu permiso.</p><p class="feature-note">La relación comercial y el trabajo juntos.</p></article>
+  <article class="feature"><span class="number" aria-hidden="true">01</span><h3>Producción que avanza</h3><p>Organizá proyectos y piezas por etapa, fecha y cliente. Sumá múltiples responsables, checklists, comentarios, horas estimadas, enlaces de Drive y una fecha visible de entrega.</p><p class="feature-note">Tablero, trabajo diario, calendario y listas.</p></article>
+  <article class="feature"><span class="number" aria-hidden="true">02</span><h3>El equipo, con contexto</h3><p>Asigná permisos por rol, revisá el historial de trabajo y consultá la presencia del equipo en los proyectos. Compartir una tarea no amplía los permisos de quien la recibe.</p><p class="feature-note">Personas, accesos, invitaciones y notificaciones.</p></article>
+  <article class="feature"><span class="number" aria-hidden="true">03</span><h3>Cada cliente, en su lugar</h3><p>Conservá datos de contacto, logo, redes, WhatsApp y estado del servicio. Conectá su ficha con proyectos, piezas, presupuestos y cobros, según tu permiso.</p><p class="feature-note">La relación comercial y el trabajo juntos.</p></article>
   <article class="feature"><span class="number" aria-hidden="true">04</span><h3>Ventas con seguimiento</h3><p>Llevá oportunidades en el pipeline, prepará presupuestos con planes reutilizables y compartí propuestas mediante un enlace público. Seguí el paso de la propuesta a la factura.</p><p class="feature-note">Oportunidades, propuestas y seguimiento.</p></article>
   <article class="feature"><span class="number" aria-hidden="true">05</span><h3>Finanzas sin mezclar monedas</h3><p>Registrá cobros parciales, cuentas, transferencias y saldos pendientes. Trabajá con PYG, USD, EUR, BRL, ARS y MXN, manteniendo separados los importes de cada moneda.</p><p class="feature-note">Registro y control; no mueve dinero por vos.</p></article>
-  <article class="feature"><span class="number" aria-hidden="true">06</span><h3>Equipos listos para producir</h3><p>Organizá el inventario y reservá equipos para una producción. Registrá responsables, retiros, devoluciones y ubicación para saber qué está disponible y qué está en uso.</p><p class="feature-note">Inventario y reservas vinculados al proyecto.</p></article>
-  <article class="feature"><span class="number" aria-hidden="true">07</span><h3>Informes para decidir con datos</h3><p>Compará clientes activos, facturación, cobros y ticket promedio por mes. Conocé los planes más elegidos, la retención, la antigüedad y la proporción de empresas y profesionales entre tus clientes.</p><p class="feature-note">Hasta 24 meses por consulta, monedas separadas y datos según los registros disponibles. Solo Dueño, Administración y Finanzas.</p></article>
+  <article class="feature"><span class="number" aria-hidden="true">06</span><h3>Equipos listos para producir</h3><p>Organizá el inventario, reservá equipos para una producción y registrá responsables, retiros, devoluciones, ubicación y verificaciones para saber qué está disponible y qué está en uso.</p><p class="feature-note">Inventario y reservas vinculados al proyecto.</p></article>
+  <article class="feature"><span class="number" aria-hidden="true">07</span><div><h3>Informes para decidir con datos</h3><p>Compará clientes activos, facturación, cobros y ticket promedio por mes. Conocé los planes más elegidos, la retención, la antigüedad y la proporción de empresas y profesionales entre tus clientes.</p><p class="feature-note">Hasta 24 meses por consulta, monedas separadas y datos según los registros disponibles. Solo Dueño, Administración y Finanzas.</p></div></article>
  </div>
 </section>
 
@@ -235,7 +242,7 @@ footer{border-top:1px solid var(--line);padding-block:28px;font-size:12px;color:
  <form id="contact-form" class="contact-form"><label>Tu nombre<input name="name" required minlength="2" maxlength="100" autocomplete="name"></label><label>Empresa o agencia<input name="company" required minlength="2" maxlength="140" autocomplete="organization"></label><label>Correo<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label>WhatsApp (opcional)<input name="phone" type="tel" maxlength="50" autocomplete="tel"></label><label class="wide">¿Qué necesitás? (opcional)<textarea name="message" rows="4" maxlength="1500"></textarea></label><label class="trap" aria-hidden="true">No completar<input name="website" tabindex="-1" autocomplete="off"></label><label class="wide consent"><input type="checkbox" name="consent" required>Autorizo a Scale Strategy Group a contactarme sobre esta consulta. Puedo solicitar que eliminen mis datos.</label><button class="button wide" type="submit">Enviar consulta</button><p class="wide" role="status" id="contact-status" aria-live="polite"></p><noscript>Activá JavaScript para enviar el formulario o contactanos por WhatsApp.</noscript></form>
 </section>
 </main>
-<footer><div class="wrap footer-inner"><span>© 2026 Scale OS. Todos los derechos reservados. · v1.0.15 · Un producto de Scale Strategy Group</span><a href="#precio">Ver el plan</a><a href="https://scaleparaguay.com/">Conocé Scale Strategy Group ↗</a></div></footer>
+<footer><div class="wrap footer-inner"><span>© 2026 Scale OS. Todos los derechos reservados. · v1.0.16 · Un producto de Scale Strategy Group</span><a href="#precio">Ver el plan</a><a href="https://scaleparaguay.com/">Conocé Scale Strategy Group ↗</a></div></footer>
 <script>
 // Aggregate counters only: no persistent visitor identifier or advertising pixel.
 function recordLanding(name){fetch('https://sistema.scaleparaguay.com/core-api/api/public/telemetry',{method:'POST',credentials:'omit',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({name})}).catch(()=>{});}
