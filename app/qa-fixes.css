@@ -11,7 +11,7 @@
 .production-filters .ops-select{flex:0 1 320px;min-width:0;max-width:100%}
 .production-filters .ops-select-trigger span{overflow-wrap:anywhere;min-width:0}
 .production-filter-summary{margin:0;padding:12px 0;color:var(--text-muted);font-size:13px}
-.record-remove{color:var(--danger)}
+.record-remove{color:var(--danger)}.record-remove:hover:not(:disabled),.record-remove:focus-visible{border-color:var(--danger);background:var(--danger-soft);color:var(--danger)}.record-remove:active:not(:disabled){border-color:var(--danger);background:var(--danger);color:#fff;transform:translateY(1px)}
 .team-search{display:grid;gap:6px;max-width:440px;margin:0 0 20px;color:var(--text-muted);font-size:13px}.team-access{padding:12px 0;border-block:1px solid var(--line);display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}.team-access p{flex-basis:100%;margin:0;font-size:13px}.ops-person-card h3{overflow-wrap:anywhere}
 .feedback-stack{position:fixed;inset:auto max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) auto;z-index:10000;width:min(400px,calc(100vw - 32px));display:grid;gap:10px;pointer-events:none}
 .feedback-toast{display:flex;align-items:flex-start;gap:10px;padding:14px 12px 14px 16px;border:1px solid var(--line-strong);border-left:4px solid var(--success);border-radius:var(--radius-md);background:var(--surface);color:var(--text);box-shadow:var(--shadow-md);pointer-events:auto;animation:feedback-in 160ms ease-out}
