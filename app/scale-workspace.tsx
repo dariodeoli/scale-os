@@ -1724,6 +1724,7 @@ export default function Home() {
             {googleAvailable ? "Continuar con Google" : "Google aún no está configurado"}
           </button>
           <PasswordPanel/>
+          <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>
           <WorkspaceFooter/>
         </div>
       </div>
