@@ -5,6 +5,7 @@ import {dataFetch,hasDataScope} from './data-cache';
 const paths:Record<string,readonly string[]>={
  Pipeline:['/leads'],
  Inventario:['/inventory','/inventory-categories'],
+ Estudio:['/studio-spaces'],
  Equipo:['/accounts','/payouts','/job-roles'],
  'Historial de trabajo':['/productivity/history?limit=10&offset=0'],
  'Configuración':['/exchange-rates'],

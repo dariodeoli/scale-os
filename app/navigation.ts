@@ -2,7 +2,7 @@ export const sections = [
  ['Resumen','resumen'],['Producción','produccion'],['Clientes','clientes'],['Proyectos','proyectos'],
  ['Presupuestos','presupuestos'],['Finanzas','pagos'],['Mora','pagos/mora'],['Informes','informes'],
  ['Métricas','pipeline/metricas'],['Equipo','equipo'],['Invitaciones','equipo/invitaciones'],['Comisiones','equipo/comisiones'],
- ['Pipeline','pipeline'],['Planes','presupuestos/planes'],['Inventario','inventario'],
+ ['Pipeline','pipeline'],['Planes','presupuestos/planes'],['Inventario','inventario'],['Estudio','estudio'],
  ['Resumen semanal','equipo/resumen-semanal'],['Historial de trabajo','equipo/historial'],['Actividad','equipo/actividad'],['Configuración','configuracion'],['Preferencias','configuracion/preferencias'],['Papelera','configuracion/papelera'],
 ] as const;
 export function sectionPath(label:string){if(label==='Tablero de producción')label='Producción';if(label==='Métricas')label='Pipeline';if(label==='Pagos')label='Finanzas';return '/'+(sections.find(([name])=>name===label)?.[1]||'resumen');}
