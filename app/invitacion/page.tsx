@@ -25,6 +25,7 @@ const notices={
 export default function InvitationPage(){
  const [state,setState]=useState<State>({status:'loading'});
  const [attempt,setAttempt]=useState(0);
+ const [passwordOpen,setPasswordOpen]=useState(false),[passwordError,setPasswordError]=useState(''),[passwordNotice,setPasswordNotice]=useState(''),[passwordBusy,setPasswordBusy]=useState(false);
  useEffect(()=>{
   const query=new URLSearchParams(window.location.search),token=query.get('token')||'';
   // Query errors describe an earlier callback, never a fresh preview result.
@@ -60,6 +61,20 @@ export default function InvitationPage(){
  const notice=state.status==='ready'?null:notices[state.status];
  const labels:Record<State['status'],string>={ready:'Enlace activo',expired:'Enlace vencido',revoked:'Enlace revocado',used:'Enlace ya utilizado',loading:'Comprobando enlace',connection:'Estado sin verificar',missing:'Falta el enlace',invalid:'Enlace inválido',pending:'Solicitud pendiente',unavailable:'Enlace no disponible','previous-error':'Volvé a comprobar el enlace'};
  const expiration=state.status==='ready'&&state.info.expires_at?new Date(state.info.expires_at):null;
+ async function registerWithPassword(event:React.FormEvent<HTMLFormElement>){
+  event.preventDefault();if(state.status!=='ready')return;
+  const values=new FormData(event.currentTarget),password=String(values.get('password')||''),confirm=String(values.get('confirm')||'');
+  setPasswordError('');setPasswordNotice('');
+  if(password!==confirm){setPasswordError('Las contraseñas no coinciden.');return;}
+  setPasswordBusy(true);
+  try{
+   const response=await fetch('/core-api/api/auth/password/invitations/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:state.token,email:values.get('email'),password,full_name:values.get('full_name')}),referrerPolicy:'no-referrer'});
+   const data=await response.json().catch(()=>null);
+   if(!response.ok)throw Error(data?.error||'No se pudo crear la cuenta.');
+   setPasswordNotice(data?.message||'Revisá tu correo para verificar tu cuenta.');
+  }catch(cause){setPasswordError(cause instanceof Error?cause.message:'No se pudo crear la cuenta.');}
+  finally{setPasswordBusy(false);}
+ }
  return <main className="login-page invite-page"><section className="login-card invite-card" aria-busy={state.status==='loading'}>
   <div className="login-brand"><img src="/brand/icon-192.png" width={56} height={56} alt="Scale OS"/></div>
   <p className="invite-eyebrow">Scale OS · Acceso de equipo</p>
@@ -71,6 +86,15 @@ export default function InvitationPage(){
    <div className="invite-summary"><strong>{state.info.organization_name}</strong><span>Permiso asignado: <b>{teamRoleLabels[state.info.role]}</b></span></div>
    <p className="login-copy">{state.info.mode==='single'?'Este enlace habilita una sola cuenta.':'Podés solicitar acceso; el dueño lo aprobará antes de habilitarte.'}</p>
    <a className="primary login-button" referrerPolicy="no-referrer" href={'https://admin.scaleparaguay.com/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
+   {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:<form className="invite-password-form" onSubmit={registerWithPassword} noValidate>
+    <label>Nombre y apellido <input name="full_name" maxLength={160} autoComplete="name" placeholder="Cómo te llamamos"/></label>
+    <label>Correo <input name="email" type="email" required autoComplete="email" placeholder="tu@correo.com"/></label>
+    <label>Contraseña <input name="password" type="password" required autoComplete="new-password" placeholder="12+ caracteres"/></label>
+    <label>Repetí tu contraseña <input name="confirm" type="password" required autoComplete="new-password" placeholder="Repetí la contraseña"/></label>
+    <p className="password-hint">12+ caracteres con mayúscula, minúscula, número y símbolo; sin espacios.</p>
+    <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
+    {passwordError&&<p className="error" role="alert">{passwordError}</p>}{passwordNotice&&<p className="success" role="status">{passwordNotice}</p>}
+   </form>}
   </>:<div className="auth-notice" role="status" aria-live="polite">
    <p>{notice?.message}</p>
    {state.status==='connection'&&<button type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}}>Reintentar comprobación</button>}

@@ -12,6 +12,11 @@
 .registration-card .registration-consent{display:flex;gap:10px;align-items:center;min-height:44px;font-size:14px}
 .registration-consent input{width:20px;height:20px;min-height:20px;padding:0;flex:0 0 20px;accent-color:var(--brand-700)}
 .registration-card .primary{min-height:48px;white-space:normal}
+.registration-card .secondary{min-height:48px;white-space:normal}
+.registration-divider{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;color:var(--text-muted);font-size:13px}.registration-divider:before,.registration-divider:after{content:"";height:1px;background:var(--line)}
+.registration-card label small{font-weight:400;color:var(--text-muted)}
+.password-hint{font-size:13px;line-height:1.5;margin:0;color:var(--text-muted)}
+.success{color:#08785d;line-height:1.5}.registration-card .error{margin:0}.registration-card .success{margin:0}
 .registration-card small{color:var(--text-muted);line-height:1.5}
 .registration-links{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between}
 .registration-links a{display:inline-flex;align-items:center;min-height:44px}
