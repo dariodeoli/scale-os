@@ -4,6 +4,7 @@ import {Dialog} from './dialog';
 import {Editor,api} from './operations';
 import {ProfilePhoto} from './profile-photo';
 import {notify} from './feedback';
+import {AccountSecurity} from './account-security';
 import './my-profile.css';
 type Profile={email:string;full_name?:string|null;photo_url?:string|null;identity_scope?:'personal'|'demo'|'personal_readonly'};
 export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>void;refresh:()=>Promise<void>}){
@@ -42,6 +43,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
    <p className="my-profile-help">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
   </div></>}
   {current.identity_scope!=='demo'&&<div className="my-profile-google"><strong>Acceso con Google</strong><p>Podés usar Google para entrar a esta misma cuenta si elegís el mismo correo. Google también puede actualizar tu nombre y foto.</p><a className="secondary" href="/core-api/api/auth/google/start?connect=1">Conectar Google</a></div>}
+  {current.identity_scope!=='demo'&&<AccountSecurity email={current.email||profile.email} onClosed={close}/>}
   <div className="my-profile-scope"><strong>{current.identity_scope==='demo'?'Solo en este demo':'Identidad personal'}</strong><p>{current.identity_scope==='demo'?'Tu nombre y foto en este demo. Los cambios no modifican tu perfil en empresas reales.':'Tu nombre y foto personales se comparten entre tus empresas. El cargo, sueldo y acceso se mantienen separados en cada empresa.'}</p></div>
   {warning&&<p className="my-profile-warning" role="status">{warning}</p>}
   </>}
