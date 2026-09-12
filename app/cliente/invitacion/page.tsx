@@ -1,0 +1,11 @@
+'use client';
+import {FormEvent,useEffect,useState} from 'react';
+import {portalApi} from '../../client-portal-api';
+import '../portal.css';
+type Preview={organizationName:string;clientName:string;expiresAt:string};
+export default function ClientInvitation(){
+ const [token,setToken]=useState(''),[preview,setPreview]=useState<Preview|null>(null),[fullName,setFullName]=useState(''),[password,setPassword]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ useEffect(()=>{const value=new URLSearchParams(window.location.search).get('token')||'';setToken(value);if(!/^[a-f0-9]{64}$/.test(value)){setError('El enlace de invitación es inválido.');return;}void portalApi<Preview>('/invites/preview?token='+encodeURIComponent(value),undefined,'GET').then(setPreview).catch(e=>setError(e instanceof Error?e.message:'No se pudo comprobar el enlace'));},[]);
+ async function submit(event:FormEvent){event.preventDefault();setBusy(true);setError('');try{await portalApi('/invites/accept',{token,fullName,password});window.location.assign('/entregas');}catch(e){setError(e instanceof Error?e.message:'No se pudo activar el acceso');}finally{setBusy(false);}}
+ return <main className="client-portal"><section className="client-portal-card narrow"><p className="portal-status">INVITACIÓN AL PORTAL</p><h1>Acceso a entregables</h1>{preview&&<p>Vas a ver las entregas publicadas de <strong>{preview.clientName}</strong> por <strong>{preview.organizationName}</strong>.</p>}{!preview&&!error&&<p className="portal-muted">Comprobando la invitación…</p>}{preview&&<form onSubmit={submit}><label>Nombre completo<input value={fullName} onChange={event=>setFullName(event.target.value)} autoComplete="name" minLength={2} maxLength={120} required/></label><label>Elegí una contraseña<input type="password" value={password} onChange={event=>setPassword(event.target.value)} autoComplete="new-password" minLength={12} required/></label><small className="portal-muted">La cuenta queda vinculada sólo a este cliente. No otorga acceso al panel interno.</small><button disabled={busy}>{busy?'Activando…':'Activar mi acceso'}</button></form>}{error&&<p className="error" role="alert">{error}</p>}</section></main>;
+}

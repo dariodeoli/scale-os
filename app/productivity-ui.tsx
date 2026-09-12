@@ -7,7 +7,7 @@ import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {notify} from './feedback';
 import {completeSave} from './save-completion';
-import {ClientReviewControl} from './daily-controls';
+import {ClientReviewControl,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
 import {ClientAppearance,ClientIdentity} from './client-identity';
 import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
@@ -53,7 +53,7 @@ export function WorkDetail({id,organizationId,role,close,refresh}:{id:string;org
      {managers.includes(role)&&order.status==='review'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/approve`)} title="Registra una aprobación interna. Al completar los niveles del proyecto, la pieza queda aprobada.">Aprobar siguiente nivel</button>}
      {managers.includes(role)&&order.status==='approved'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/publish`)}>Marcar publicada</button>}
     </div>}
-    {managers.includes(role)&&<ClientReviewControl orderId={id}/>}
+    {managers.includes(role)&&<><ClientReviewControl orderId={id}/><ClientPortalDeliveryControl orderId={id} title={s(order,'title')} assetUrl={s(order,'drive_url')}/></>}
    </div>
    {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente. Usá @ para mencionar a una persona.</p>{editable&&<CommentComposer label="Agregar comentario" save={async (body,mentionedUserIds)=>{await api(`/api/agency/productivity/orders/${id}/comments`,{body,mentioned_user_ids:mentionedUserIds});await completeSave(()=>{},load);}}/>}{data.comments.map(c=><article className="activity-line" key={c.id}><ActorIdentity name={s(c,'actor_name')||s(c,'author_email')} photoUrl={s(c,'actor_photo_url')} verified={c.actor_verified===true} timestamp={s(c,'created_at')}/><CommentBody value={s(c,'body')}/></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
    {tab==='Historial'&&<><p>Niveles aprobados: {s(order,'approval_step')||'0'}</p>{data.history.map(h=><article className="activity-line" key={h.id}><ActorIdentity name={s(h,'actor_name')} photoUrl={s(h,'actor_photo_url')} verified={h.actor_verified===true} timestamp={s(h,'created_at')}/><p>{s(h,'action')==='INSERT'?'Creó la pieza':'Actualizó la pieza'}</p>{h.previous_status!==h.next_status&&<p>{s(h,'previous_status')||'Nueva'} → {s(h,'next_status')}</p>}</article>)}{!data.history.length&&<p>Sin cambios registrados.</p>}</>}
@@ -70,7 +70,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
   <p>{s(data.client,'email')} · {s(data.client,'phone')}</p>{whatsappUrl(s(data.client,'phone'))&&<a className="text-button client-whatsapp" href={whatsappUrl(s(data.client,'phone'))!} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>}<p>{s(data.client,'notes')}</p>
   <ClientLinks id={id} value={data.client.social_links} phone={s(data.client,'phone')} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>
   <ClientReporting key={id} id={id} role={role} onSaved={reload}/>
-  {managers.includes(role)&&<button className="primary" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button>}
+  {managers.includes(role)&&<div className="quick-actions"><button className="primary" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button><ClientPortalAccess clientId={id}/></div>}
   <div className="choice-list">{['Producción',...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)}>{t}</button>)}</div>
   {tab==='Producción'&&<><h3>Proyectos ({data.projects.length})</h3>{data.projects.map(p=><article className="activity-line" key={p.id}><b>{s(p,'name')}</b><DriveLinks value={p.drive_links} legacy={s(p,'drive_url')} compact/></article>)}<h3>Piezas recientes</h3>{data.orders.map(o=><button className="work-list-row" key={o.id} onClick={()=>openOrder(String(o.id))}><b>{s(o,'title')}</b><span>{s(o,'status')}</span></button>)}{!data.projects.length&&<p className="empty-copy">Este cliente aún no tiene proyectos.</p>}</>}
   {tab==='Presupuestos'&&data.budgets?.map(b=><article className="activity-line" key={b.id}><b>{s(b,'number')} · {s(b,'title')}</b><span>{s(b,'status')} · {money(s(b,'total'),s(b,'currency'))}</span></article>)}
