@@ -880,10 +880,13 @@ export function CompanySelector({ name }: { name: string }) {
     const load=(initial=false)=>{const version=++generation;void api<{ organizations: typeof companies; defaultOrganizationId?:string|number|null }>("/api/auth/organizations")
       .then((d) => {
         if(!alive||version!==generation)return;
-        setCompanies(d.organizations);
-        setPreferred(d.defaultOrganizationId?String(d.defaultOrganizationId):null);
+        // A demo is an isolated session opened only from the public landing.
+        // It is never a company the person can browse to from a real workspace.
+        const realCompanies=d.organizations.filter(company=>!company.isDemo);
+        setCompanies(realCompanies);
+        setPreferred(d.defaultOrganizationId&&realCompanies.some(company=>String(company.id)===String(d.defaultOrganizationId))?String(d.defaultOrganizationId):null);
         if (
-          initial && d.organizations.length > 1 &&
+          initial && realCompanies.length > 1 &&
           !d.defaultOrganizationId &&
           !sessionStorage.getItem("scale_company_selected")
         )

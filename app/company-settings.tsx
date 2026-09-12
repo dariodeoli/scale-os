@@ -14,7 +14,7 @@ export function CompanySettings(){
  const [attempt,setAttempt]=useState(0);
  const mounted=useRef(false),locked=useRef(false);
  useEffect(()=>{const refresh=()=>setAttempt(value=>value+1);window.addEventListener('scale:default-company-changed',refresh);return()=>window.removeEventListener('scale:default-company-changed',refresh);},[]);
- useEffect(()=>{mounted.current=true;let active=true;void api<Companies>('/api/auth/organizations').then(value=>{if(active)setData(value);}).catch(e=>{if(active)setError(e instanceof Error?e.message:'No se pudieron cargar tus empresas.');});return()=>{active=false;mounted.current=false;};},[attempt]);
+ useEffect(()=>{mounted.current=true;let active=true;void api<Companies>('/api/auth/organizations').then(value=>{if(!active)return;const organizations=value.organizations.filter(company=>!company.isDemo);const defaultOrganizationId=organizations.some(company=>String(company.id)===String(value.defaultOrganizationId))?value.defaultOrganizationId:null;setData({...value,organizations,defaultOrganizationId});}).catch(e=>{if(active)setError(e instanceof Error?e.message:'No se pudieron cargar tus empresas.');});return()=>{active=false;mounted.current=false;};},[attempt]);
  async function choose(company:Company,asDefault:boolean){
   if(locked.current)return;
   locked.current=true;setBusy(true);setError('');setNotice('');

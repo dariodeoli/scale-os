@@ -50,13 +50,11 @@ async function harness(t:TestContext){
  const assertPreferred=(id:number)=>{
   for(const [index,row] of Array.from(settingsRows().entries())){
    const button=preference(row);
-   if(index===2){assert.equal(button,undefined);continue;}
    assert.equal(button.props['aria-pressed'],index+1===id);
    assert.equal(button.props.disabled,index+1===id);
   }
   for(const [index,row] of Array.from(selectorRows().entries())){
    const button=preference(row);
-   if(index===2){assert.equal(button,undefined);continue;}
    assert.equal(text(button),index+1===id?'Predeterminada':'Usar al iniciar sesión');
    assert.equal(button.props.disabled,index+1===id);
   }
@@ -72,6 +70,7 @@ async function harness(t:TestContext){
 
 test('both real controls synchronize Settings → Selector → Settings using persisted GET results',async t=>{
  const h=await harness(t);h.assertPreferred(1);assert.equal(h.requests.length,2);
+ assert.doesNotMatch(JSON.stringify(h.renderer.toJSON()),/Demo/,'the isolated demo never appears in real-company controls');
  await act(async()=>{h.settingsButton(2).props.onClick();});
  assert.equal(h.stored,2);h.assertPreferred(2);assert.equal(h.requests.length,5);
  await act(async()=>{await h.selectorButton(1).props.onClick();});
