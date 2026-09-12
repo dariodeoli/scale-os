@@ -109,7 +109,9 @@ export function Dialog({title,close,children,variant='modal',busy=false,size='de
 export function FormActions({children}:{children:ReactNode}){
  const footer=useContext(FooterContext),anchor=useRef<HTMLSpanElement>(null),id=useId();
  const [formId,setFormId]=useState('');
- useLayoutEffect(()=>{const form=anchor.current?.closest('form');if(form){if(!form.id)form.id=id;setFormId(form.id);}},[id]);
+ // The footer is mounted after the form. Re-check when it becomes available so
+ // a dialog that closes and reopens immediately never keeps a stale form target.
+ useLayoutEffect(()=>{const form=anchor.current?.closest('form');if(!form){setFormId('');return;}if(!form.id)form.id=id;setFormId(form.id);},[id,footer]);
  const actions=<div className="dialog-actions">{Children.map(children,child=>isValidElement<ButtonHTMLAttributes<HTMLButtonElement>>(child)&&child.type==='button'&&!child.props.form?cloneElement(child,{form:formId||undefined}):child)}</div>;
  return <><span hidden ref={anchor}/>{footer?createPortal(actions,footer):actions}</>;
 }

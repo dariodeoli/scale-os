@@ -123,9 +123,13 @@ async function run(){
  categories=[...categories,{id:'3',name:'Accesorios nuevos',active:true}];
  await act(async()=>{await renderer.root.findByType(MockEditor).props.save({name:'Accesorios nuevos',active:'true'});});
  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories');assert.equal(writes.at(-1)!.method,'POST');assert.equal(writes.at(-1)!.body.active,true);assert(button('Accesorios nuevos'));
+ // The production Editor closes only after releasing its own pending state.
+ // This minimal mock does not implement that behavior, so emulate its close.
+ act(()=>renderer.root.findByType(MockDialog).props.close());
  act(()=>button('Accesorios nuevos').props.onClick());categories=categories.map(c=>c.id==='3'?{...c,name:'Accesorios archivados',active:false}:c);
  await act(async()=>{await renderer.root.findByType(MockEditor).props.save({name:'Accesorios archivados',active:'false'});});
  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories/3');assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.active,false);assert(button('Accesorios archivados · archivada'));
+ act(()=>renderer.root.findByType(MockDialog).props.close());
  act(()=>button('Agregar equipo').props.onClick());
  const categoryField=renderer.root.findByType(MockEditor).props.fields.find((f:{key:string})=>f.key==='category_id');
  assert.deepEqual(categoryField.choices.map((c:{value:string})=>c.value),['1','2'],'archived categories excluded from new inventory forms');act(()=>renderer.unmount());assert.equal(intervals.size,0);
