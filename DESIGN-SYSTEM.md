@@ -88,3 +88,10 @@ Pruebas: comportamiento de diálogos y formularios en entorno aislado, regresion
 Antes de publicar: pruebas completas, compilación sin cambios ajenos WEEM/Dadoo, revisión independiente, commit exacto y salud del despliegue. Si falla navegación, guardado o foco, revertir el código de esta entrega a `daf8e5615e53bf1a0802c2f2baa0ff7a84f4c4f8`; no borrar datos. Esta entrega no necesita migración ni activación de servicios externos.
 
 Verificación local de esta entrega: 94 resultados de pruebas aprobados y compilación de 41 rutas sobre export limpio. Revisión independiente cerró los defectos de ancho/altura y truncado de importes del preview. Se verificaron flujos de guardado/error/reintento, formularios específicos y aislamiento de ventanas con dobles locales. Publicación y salud se confirman por separado; no se acredita una revisión visual ni un monitoreo extendido de 15 minutos.
+# Urgencia de proyectos y piezas
+
+Patrón compartido en `app/urgency.tsx`: 1 Baja, 2 Moderada, 3 Media, 4 Alta, 5 Crítica; `null` representa **Sin definir**, nunca una urgencia implícita. Proyecto y pieza son independientes: no hay herencia, cambio de prioridad ni cambio de aprobaciones. Datos ausentes o inválidos se muestran como **No disponible**.
+
+Creación usa un selector nativo con etiqueta vinculada y ayuda permanente mediante `aria-describedby`, navegación de teclado nativa, texto de 16 px y objetivo mínimo de 44 px. Edición reutiliza las opciones y ayuda en el selector accesible de Editor; el botón principal guarda detalles, urgencia y responsables en una transacción, conservando el borrador ante errores o conflictos. No hay guardado automático. Estado pendiente deshabilitado; errores siguen el contrato existente del formulario.
+
+La etiqueta en tarjetas y detalle muestra número y nombre, sin depender del color. Reutiliza tokens `--text`, `--text-muted`, `--surface`, `--line` y `--ui-space-2`; permite ajuste de línea y no agrega acciones a las tarjetas. Verificación automatizada: `tests/urgency.test.tsx`; servidor: `test-urgency.mjs`. Revisar teclado y lector de pantalla reales antes de la publicación.

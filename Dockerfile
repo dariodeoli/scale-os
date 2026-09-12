@@ -16,7 +16,7 @@ RUN npm run build
 
 FROM node:22-alpine AS runtime
 WORKDIR /app
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont postgresql18-client tini \
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont postgresql18-client curl tini \
     && addgroup --system --gid 1001 scale \
     && adduser --system --uid 1001 --ingroup scale scale
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0 PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser

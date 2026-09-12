@@ -11,6 +11,8 @@ import {useSingleFlightSubmit} from '../app/use-single-flight-submit';
 import {currencyCodes,currencyLabels} from '../app/currencies';
 
 Object.assign(globalThis,{React});
+require.extensions['.css']=()=>{};
+const {UrgencySelect}=require('../app/urgency') as typeof import('../app/urgency');
 let dialogPending=false;
 const dialogId=require.resolve('../app/dialog');
 require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
@@ -34,7 +36,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let done=0;
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
- const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,
+ const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect,
   useCompanyCurrency:()=>({currency:'USD'}),
   useForm:(options:Parameters<typeof useForm>[0])=>useForm({...options,defaultValues:{...options?.defaultValues,...defaults}}),
   request:(path:string,options:{body:string})=>new Promise((resolve,reject)=>{requests.push({path,payload:JSON.parse(options.body),resolve,reject});}),
@@ -43,10 +45,19 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  const Component=new Function(...Object.keys(scope),`${compiled}\nreturn ${name};`)(...Object.values(scope)) as React.ComponentType<Record<string,unknown>>;
  let renderer:ReactTestRenderer;
  await act(async()=>{renderer=create(<Component {...props} done={()=>{done++;}}/>);});
+ if(name==='ProjectForm'||name==='OrderForm'){
+  const urgency=renderer!.root.findByType(UrgencySelect);
+  assert.equal(urgency.props.value,'','new records start unset');
+  await act(async()=>{urgency.findByType('select').props.onChange({target:{value:'4'}});});
+ }
  const submit=()=>renderer!.root.findByType('form').props.onSubmit(event()) as Promise<void>;
  let first:Promise<void>,second:Promise<void>;
  await act(async()=>{first=submit();second=submit();await tick();});
  assert.equal(requests.length,1,'two clicks/Enter submit only one request');
+ if(name==='ProjectForm'||name==='OrderForm'){
+  assert.equal(requests[0].payload.urgency,'4','real selector value survives schema and submission');
+  assert.equal(renderer!.root.findByType(UrgencySelect).findByType('select').props.disabled,true);
+ }
  await act(async()=>{await second!;});
  assert.equal(dialogPending,true,'settling the ignored submit cannot permit dismissal');
  const footer=renderer!.root.findByType(SaveActions);

@@ -1,5 +1,6 @@
 "use client";
 import {formatMoney} from './amount-format';
+import {UrgencySelect,UrgencyBadge} from './urgency';
 import {ProjectCard} from './project-card';
 import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {currencyCodes,currencyLabels,Currency} from "./currencies";
@@ -129,6 +130,7 @@ type Client = {
   active: boolean;
 };
 type Project = {
+  urgency?:number|null;
   assignees?: import('./project-card').ProjectAssignee[];
   id: string;
   name: string;
@@ -139,6 +141,7 @@ type Project = {
   work_order_count: number;
 };
 type WorkOrder = {
+  urgency?:number|null;
   assignees?:AssignedPerson[];
   effective_assignees?:AssignedPerson[];
   assignee_source?:'direct'|'project'|null;
@@ -326,7 +329,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
       <p>
         <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/> · {order.project_name}
       </p>
-      <div className="card-meta">
+      <div className="card-meta"><UrgencyBadge value={order.urgency}/>
         {order.drive_url ? (
           <a
             href={order.drive_url}
@@ -436,6 +439,7 @@ function ClientForm({ done }: { done: (client: Client) => void }) {
 }
 const driveLinkSchema=z.string().trim().max(2048).refine(value=>{if(!value)return true;try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password;}catch{return false;}},'Pegá un enlace HTTPS válido de archivo o carpeta.');
 const projectSchema = z.object({
+  urgency:z.enum(["","1","2","3","4","5"]),
   name: z.string().trim().min(2, "Escribí el nombre del proyecto."),
   clientId: z.string().min(1, "Elegí un cliente."),
   driveUrl: driveLinkSchema,
@@ -452,7 +456,7 @@ function ProjectForm({
 }) {
   const form = useForm<ProjectValues>({
     resolver: zodResolver(projectSchema),
-    defaultValues: { name: "", clientId: initialClientId, driveUrl: "" },
+    defaultValues: { name: "", clientId: initialClientId, driveUrl: "", urgency:"" },
   });
   const [error, setError] = useState("");
   const submission=useSingleFlightSubmit(form.handleSubmit(submit));
@@ -480,6 +484,7 @@ function ProjectForm({
           <small className="error">{form.formState.errors.name.message}</small>
         )}
       </label>
+      <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as ProjectValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
       <fieldset>
         <legend>Cliente</legend>
         <div className="choice-list">
@@ -531,6 +536,7 @@ function ProjectForm({
   );
 }
 const orderSchema = z.object({
+  urgency:z.enum(["","1","2","3","4","5"]),
   title: z.string().trim().min(2, "Escribí qué hay que hacer."),
   projectId: z.string().min(1, "Elegí un proyecto."),
   status: z.enum([
@@ -558,6 +564,7 @@ function OrderForm({
     defaultValues: {
       title: "",
       projectId: "",
+      urgency:"",
       status: "to_record",
       driveUrl: "",
       description: "",
@@ -589,6 +596,7 @@ function OrderForm({
           <small className="error">{form.formState.errors.title.message}</small>
         )}
       </label>
+      <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as OrderValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
       <fieldset>
         <legend>Proyecto</legend>
         <div className="choice-list">

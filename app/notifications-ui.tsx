@@ -1,23 +1,15 @@
 "use client";
 import {ActorIdentity} from './actor-identity';
 import {useEffect,useState} from 'react';
-import {Bell} from 'lucide-react';
+import {NotificationInbox} from './notification-inbox';
 import {api,Editor} from './operations';
 import {Dialog} from './dialog';
 import {notify} from './feedback';
 import './notifications.css';
-type Notice={id:string;title:string;body:string;work_order_id:string|null;read_at:string|null;created_at:string};
-type Inbox={notifications:Notice[];unread:number;next:string|null};
 const error=(e:unknown)=>e instanceof Error?e.message:'No se pudieron cargar los avisos.';
 export function NotificationBell({openOrder}:{openOrder:(id:string)=>void}){
- const [open,setOpen]=useState(false),[prefs,setPrefs]=useState(false),[data,setData]=useState<Inbox>({notifications:[],unread:0,next:null}),[loading,setLoading]=useState(true),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
- useEffect(()=>{let alive=true;async function refresh(){try{const d=await api<Inbox>('/api/agency/notifications');if(alive){setData(d);setMessage('');}}catch(e){if(alive)setMessage(error(e));}finally{if(alive)setLoading(false);}}
-  void refresh();const timer=setInterval(()=>{if(!document.hidden)void refresh();},60000);return()=>{alive=false;clearInterval(timer);};
- },[open]);
- async function read(n?:Notice){setBusy(true);try{await api('/api/agency/notifications/'+(n?.id||'read-all'),{},'PATCH');setData(await api<Inbox>('/api/agency/notifications'));if(n?.work_order_id){setOpen(false);openOrder(String(n.work_order_id));}}catch(e){setMessage(error(e));}finally{setBusy(false);}}
- return <><button className="icon-button notification-trigger" aria-label={`Notificaciones${data.unread?`, ${data.unread} sin leer`:''}`} onClick={()=>setOpen(true)}><Bell size={19}/>{data.unread>0&&<span className="notification-badge">{data.unread>99?'99+':data.unread}</span>}</button>
- {open&&<Dialog title="Notificaciones" close={()=>setOpen(false)} variant="drawer"><div className="notification-actions"><button className="text-button" onClick={()=>setPrefs(true)}>Preferencias</button><button className="text-button" disabled={busy||!data.unread} onClick={()=>void read()}>Marcar todas como leídas</button></div>{message&&<p role="alert">{message}</p>}{loading?<p>Cargando avisos…</p>:!data.notifications.length?<p className="empty-copy">Estás al día. Acá verás asignaciones, comentarios y entregas pendientes. Tus propias acciones no generan avisos.</p>:<div className="notification-list">{data.notifications.map(n=><article key={n.id} className={n.read_at?'notice':'notice unread'}><b>{n.title}</b><p>{n.body}</p><time>{new Date(n.created_at).toLocaleString('es-PY')}</time><button className="text-button" disabled={busy} onClick={()=>void read(n)}>{n.work_order_id?'Ver pieza':n.read_at?'Leída':'Marcar como leída'}</button></article>)}</div>}{data.next&&<button className="secondary" disabled={busy} onClick={async()=>{setBusy(true);try{const d=await api<Inbox>('/api/agency/notifications?before='+data.next);setData(old=>({...d,notifications:[...old.notifications,...d.notifications]}));}catch(e){setMessage(error(e));}finally{setBusy(false);}}}>Ver avisos anteriores</button>}</Dialog>}
- {prefs&&<Preferences close={()=>setPrefs(false)}/>}</>;
+ const [prefs,setPrefs]=useState(false);
+ return <><NotificationInbox openOrder={openOrder} openPreferences={()=>setPrefs(true)}/>{prefs&&<Preferences close={()=>setPrefs(false)}/>}</>;
 }
 function Preferences({close}:{close:()=>void}){
  const [values,setValues]=useState<Record<string,string>|null>(null),[message,setMessage]=useState('');
