@@ -6,6 +6,7 @@ export function middleware(request:NextRequest){
  if(host==='cliente.scaleparaguay.com'){
   if(path==='/robots.txt')return new NextResponse('User-agent: *\nDisallow: /\n',{headers:{'Content-Type':'text/plain'}});
   if(path.startsWith('/brand/')||path.startsWith('/core-api/')){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
+  if(path.startsWith('/cliente/')){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
   const destinations:Record<string,string>={'/':'/cliente/ingresar','/ingresar':'/cliente/ingresar','/invitacion':'/cliente/invitacion','/entregas':'/cliente/entregas'};
   const destination=destinations[path]||(path.match(/^\/entregas\/\d+$/)?'/cliente'+path:null);
   if(destination){const response=NextResponse.rewrite(new URL(destination,request.url));response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
