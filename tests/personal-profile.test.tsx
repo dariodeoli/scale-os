@@ -63,6 +63,7 @@ test('canonical name/email header, single photo preview, edit sequence and scope
  assert.equal(renderer.root.findAllByType(PhotoStub).length,1);
  assert.equal(renderer.root.findAllByType('img').length,1,'the header must not duplicate the photo preview');
  assert.equal(renderer.root.findByProps({className:'my-profile-identity'}).findAllByType('img').length,0);
+ assert.match(content(),/Acceso con Google/);const google=renderer.root.findAllByType('a').find(link=>link.children.includes('Conectar Google'))!;assert.equal(google.props.href,'/core-api/api/auth/google/start?connect=1');
  assert(content().indexOf('my-profile-photo')<content().indexOf('my-profile-name'),'photo controls precede name editing');close();
 });
 

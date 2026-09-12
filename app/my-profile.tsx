@@ -41,6 +41,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
    <Editor fields={[{key:'full_name',label:'Nombre completo'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
    <p className="my-profile-help">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
   </div></>}
+  {current.identity_scope!=='demo'&&<div className="my-profile-google"><strong>Acceso con Google</strong><p>Podés usar Google para entrar a esta misma cuenta si elegís el mismo correo. Google también puede actualizar tu nombre y foto.</p><a className="secondary" href="/core-api/api/auth/google/start?connect=1">Conectar Google</a></div>}
   <div className="my-profile-scope"><strong>{current.identity_scope==='demo'?'Solo en este demo':'Identidad personal'}</strong><p>{current.identity_scope==='demo'?'Tu nombre y foto en este demo. Los cambios no modifican tu perfil en empresas reales.':'Tu nombre y foto personales se comparten entre tus empresas. El cargo, sueldo y acceso se mantienen separados en cada empresa.'}</p></div>
   {warning&&<p className="my-profile-warning" role="status">{warning}</p>}
   </>}

@@ -12,16 +12,16 @@ export default function Registration(){
  return <main className="registration-page"><section className="registration-card">
   <Link href="https://sistema.scaleparaguay.com/" aria-label="Scale OS · Volver al sitio"><WorkspaceBrand/></Link>
   <p className="eyebrow">TU AGENCIA, TU ESPACIO</p>
-  <h1>30 días para trabajar con todo en orden.</h1>
-  <p>Creá una agencia privada con todas las herramientas de Scale OS y todos sus integrantes incluidos, sin cobro por usuario. No es la demo: los clientes y proyectos que cargues serán tuyos.</p>
+  <h1>Probá Scale OS gratis.</h1>
+  <p>Tu agencia, tu equipo y tus datos en un espacio privado. Tenés 30 días sin tarjeta para empezar.</p>
   <form action="https://admin.scaleparaguay.com/api/auth/google/start" method="get">
    <input type="hidden" name="signup" value="1"/>
    <label>Nombre de tu agencia<input name="company" required minLength={2} maxLength={160} autoComplete="organization" placeholder="Tu agencia"/></label>
    <label>Moneda de la suscripción<select name="currency" defaultValue="USD"><option value="USD">US$10 al mes</option><option value="PYG">G. 50.000 al mes</option></select></label>
-   <p className="registration-terms" id="founder-conditions"><strong>Precio de lanzamiento · Cliente fundador.</strong> {founderPricingNote}</p>
-   <p className="registration-terms" id="trial-conditions">30 días gratis desde que se crea la agencia, sin tarjeta. Después, el precio mensual que elijas por empresa. Tendrás 2 días de gracia; al comenzar el tercer día sin pago se suspende el uso, sin borrar los datos. Podrás acceder a la suscripción para pagar y reactivar. Volver a registrarte no reinicia la prueba.</p>
+   <p className="registration-terms" id="founder-conditions"><strong>Precio de lanzamiento por agencia.</strong> US$10 o G. 50.000 al mes, con todos los integrantes incluidos. {founderPricingNote}</p>
+   <details className="registration-details"><summary>Condiciones de la prueba</summary><p id="trial-conditions">Los 30 días empiezan al crear la agencia, sin tarjeta. Después se aplica la moneda elegida. Hay 2 días de gracia; al tercer día sin pago se suspende el uso sin borrar los datos. Volver a registrarte no reinicia la prueba.</p></details>
    <label className="registration-consent"><input name="consent" type="checkbox" value="1" required aria-describedby="trial-conditions founder-conditions"/><span>Acepto estas condiciones de la prueba y suscripción.</span></label>
-   <button className="primary" type="submit">Crear mi agencia con Google</button>
+   <button className="primary" type="submit">Continuar con Google</button>
    <small>Google verifica tu correo. No se cobrará nada al iniciar la prueba; el pago recurrente se autoriza por separado al suscribirte.</small>
    {error&&<p role="alert" className="error">{error}</p>}
   </form>

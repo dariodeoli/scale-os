@@ -20,6 +20,9 @@
 .my-profile-photo .profile-photo-form .inline-actions{flex-wrap:wrap}
 .my-profile-photo .profile-photo-form .text-button{min-height:44px;white-space:normal}
 .my-profile-photo .profile-photo-form input:not([type=file]){box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:44px;font-size:16px}
+.my-profile-editor .my-profile-google{display:grid;gap:8px;padding:14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-subtle)}
+.my-profile-google p{margin:0;color:var(--text-muted);font-size:13px;line-height:1.5}
+.my-profile-google .secondary{justify-self:start;min-height:40px}
 .my-profile-editor .my-profile-load-error,.my-profile-editor .my-profile-warning{padding:12px;border-radius:var(--radius-sm);font-size:13px;line-height:1.5;color:var(--text)}
 .my-profile-editor .my-profile-load-error{display:grid;gap:10px;background:var(--danger-soft)}
 .my-profile-load-error button{justify-self:start;min-height:44px;max-width:100%;white-space:normal}
