@@ -36,6 +36,24 @@ function PersonPhoto({person}:{person:PresentPerson}){const [broken,setBroken]=u
 export function PresenceAvatars({people}:{people:PresentPerson[]}){return <span className="presence-avatars">{people.slice(0,4).map(person=><span className="presence-person" key={person.id} title={`${person.name} · ${person.active?'Activo en este proyecto':'Viendo este proyecto'}`} aria-label={`${person.name} · ${person.active?'Activo en este proyecto':'Viendo este proyecto'}`}><PersonPhoto person={person}/><i data-active={!!person.active}/></span>)}{people.length>4&&<span className="presence-more" title={people.slice(4).map(p=>p.name).join(', ')}>+{people.length-4}</span>}</span>;}
 export function ProjectCardPresence({projectId}:{projectId:string}){const people=useContext(BoardPeople).filter(person=>String(person.project_id)===String(projectId));return people.length?<div className="card-presence"><PresenceAvatars people={people}/><small>Viendo ahora</small></div>:null;}
 async function request<T>(path:string,body?:unknown,signal?:AbortSignal):Promise<T>{const res=await fetch('/core-api/api/agency/presence/'+path,{method:body?'POST':'GET',credentials:'include',cache:'no-store',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,keepalive:!!body,signal});const data=await res.json();if(!res.ok)throw new Error(data.error||'No disponible');return data;}
+type UsagePerson={id:string;name:string;actor_name?:string;actor_photo_url?:string|null;online?:boolean;active?:boolean};
+export function WorkspacePresence({projectIds,role}:{projectIds:string[];role:string}){
+ const key=Array.from(new Set(projectIds.filter(Boolean).map(String))).sort().slice(0,100).join(',');
+ const projects=useProjectPeople(key?'projects?ids='+encodeURIComponent(key):'');
+ const [team,setTeam]=useState<PresentPerson[]|null>(null);
+ // Only the owner endpoint can reveal company-wide online status. Everyone else
+ // sees the same limited, project-scoped presence that is already public in work.
+ useEffect(()=>{
+  if(role!=='owner'){setTeam(null);return;}
+  let alive=true,controller:AbortController|undefined;
+  const load=async()=>{controller=new AbortController();try{const data=await request<{people:UsagePerson[]}>('usage',undefined,controller.signal);if(alive)setTeam((data.people||[]).filter(person=>person.online).map(person=>({id:String(person.id),name:person.actor_name||person.name,photo_url:person.actor_photo_url,active:person.active})));}catch{if(alive)setTeam(null);}};
+  void load();const timer=window.setInterval(load,30000);return()=>{alive=false;controller?.abort();clearInterval(timer);};
+ },[role]);
+ const people=team??projects.people;
+ const exact=team!==null;
+ if(!people.length)return null;
+ return <div className="workspace-presence" title={exact?'Personas conectadas en esta empresa':'Personas viendo proyectos abiertos ahora'} aria-label={exact?'Equipo conectado ahora':'Equipo viendo proyectos ahora'}><span className="presence-dot" aria-hidden="true"/><PresenceAvatars people={people}/><small>{exact?`${people.length} en línea`:`${people.length} viendo`}</small></div>;
+}
 export function PresenceTracker(){
  useEffect(()=>{
   const tab=crypto.randomUUID();let lastInput=-Infinity,sending=false,stopped=false;

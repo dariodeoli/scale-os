@@ -81,9 +81,9 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
   {snapshot?<ul className="work-checklist-items">{snapshot.items.map(item=><li key={item.id} className={item.completed?'is-complete':''}>
    <div className="work-checklist-item">
     <label className="work-checklist-check"><input type="checkbox" checked={item.completed} disabled={!editable||locked} onChange={event=>{void mutate('PATCH',item.id,{completed:event.target.checked});}}/><span>{item.text}</span></label>
+    {item.actor_name?<span className="work-checklist-actor" title={`Agregado por ${item.actor_name}`}>por <ActorIdentity name={item.actor_name} photoUrl={item.actor_photo_url} verified={item.actor_verified===true}/></span>:null}
     {editable?<div className="work-checklist-actions"><button type="button" disabled={locked||!!edit} aria-label={`Editar ítem: ${item.text}`} onClick={()=>{setRemoving(null);setEdit({id:item.id,text:item.text});}}>Editar</button><button type="button" disabled={locked||!!edit} aria-label={`Quitar ítem: ${item.text}`} onClick={()=>setRemoving(item.id)}>Quitar</button></div>:null}
    </div>
-   {item.actor_name?<div className="work-checklist-hint">Agregado por <ActorIdentity name={item.actor_name} photoUrl={item.actor_photo_url} verified={item.actor_verified===true}/></div>:null}
    {edit?.id===item.id?<div className="work-checklist-editor">
     <label htmlFor={`${label}-edit`}>Texto del ítem</label><input id={`${label}-edit`} autoFocus maxLength={500} value={edit.text} disabled={locked} onChange={event=>setEdit({...edit,text:event.target.value})} onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();if(!busy)setEdit(null);}if(event.key==='Enter'){event.preventDefault();if(edit.text.trim())void mutate('PATCH',item.id,{text:edit.text.trim()});}}}/>
     <div className="work-checklist-actions"><button type="button" disabled={locked||!edit.text.trim()} onClick={()=>{void mutate('PATCH',item.id,{text:edit.text.trim()});}}>Guardar ítem</button><button type="button" disabled={busy} onClick={()=>setEdit(null)}>Cancelar edición</button></div>

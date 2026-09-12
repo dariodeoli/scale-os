@@ -18,6 +18,7 @@ import {ClientIdentity,identityColor} from './client-identity';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 import {ActorIdentity} from './actor-identity';
+import {DueDate} from './due-date';
 const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
 const GrowthDashboard=dynamic(()=>import('./growth-dashboard').then(m=>m.GrowthDashboard));
 const ReportsWorkspace=dynamic(()=>import('./reports-workspace').then(m=>m.ReportsWorkspace));
@@ -25,7 +26,7 @@ const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
 const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
-import {BoardPresence,ProjectCardPresence} from './presence';
+import {BoardPresence,ProjectCardPresence,WorkspacePresence} from './presence';
 import {CompanyCurrencyProvider,useCompanyCurrency} from './currency-provider';
 import {FinancialForecast} from './financial-forecast';
 import {LiveVisitors} from './live-visitors';
@@ -343,10 +344,11 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
         )}
         {order.description&&<span className="order-description">{order.description}</span>}
       </div>
+      <DueDate value={order.due_date} compact/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
       {!!order.checklist_total&&<small className="card-checklist" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</small>}
-      <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}>Ver detalle completo</button>{canMove&&<RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>}</div>
+      <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}>Ver más</button>{canMove&&<RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>}</div>
     </article>
   );
 }
@@ -1780,7 +1782,7 @@ export default function Home() {
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
           ...orders.map(o=>({id:o.id,name:o.title,context:`Orden · ${o.client_name} · ${o.project_name}`,kind:'work-orders' as const})),
-        ]}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
+        ]}/><WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
         <header>
           <div className="page-heading">
             {active==='Resumen'&&<p className="eyebrow">TU AGENCIA, EN UN VISTAZO</p>}

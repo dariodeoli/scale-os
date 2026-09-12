@@ -11,9 +11,11 @@ import { X, Plus, MessageSquare, Building2 } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
 import {ProfilePhoto} from './profile-photo';
 import {DriveLinkNote} from './drive-link';
+import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
 import {PhotoViewer} from './photo-viewer';
 import {ActorIdentity} from './actor-identity';
+import {CommentBody,CommentComposer} from './commenting';
 import {notifyMutation} from './feedback';
 import {teamDirectory,TeamMember,ArchivedProfile} from './team-directory';
 import {TeamAccess} from './team-access';
@@ -98,7 +100,9 @@ export function Editor({
     const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null].filter(Boolean).join(' ')||undefined;
     return <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
       {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
-        {f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.key==='drive_links'?'Un enlace por línea…':undefined} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>} 
+        {f.key==='drive_links' ? (
+          <DriveLinksInput value={form.watch(f.key)||''} disabled={pending} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
@@ -115,7 +119,12 @@ export function Editor({
         setSavingNow(true);
         setError("");
         try {
-          await save(v);
+          const values:Record<string,unknown>={...v};
+          if(typeof values.drive_links==='string')values.drive_links=parseDriveLinksText(values.drive_links);
+          // `drive_links` is normalized to structured link objects just before
+          // sending it to the API. Keep the public Editor contract string-based
+          // so every existing form remains simple and type-safe.
+          await save(values as unknown as Record<string, string>);
           if(resetOnSave)form.reset(defaults);
           // Most existing editors close in their own success callback. Only
           // simple edit dialogs opt in; multi-action detail drawers stay open.
@@ -832,7 +841,7 @@ export function ProjectComments({
             {comments.map((c) => (
               <article className="ops-comment" key={c.id}>
                 <ActorIdentity name={c.actor_name||c.author_email||'Integrante'} photoUrl={c.actor_photo_url} verified={c.actor_verified===true} timestamp={c.created_at}/>
-                <p>{c.body}</p>
+                <CommentBody value={c.body}/>
               </article>
             ))}
             {!comments.length && (
@@ -844,13 +853,10 @@ export function ProjectComments({
           </div>
           {error && <p className="error">{error}</p>}
           {role !== "viewer" && (
-            <Editor
-              key={comments.length}
-              fields={[{ key: "body", label: "Comentario", type: "textarea" }]}
-              defaults={{ body: "" }}
-              label="Publicar comentario"
-              save={async (v) => {
-                await api(`/api/agency/projects/${projectId}/comments`, v);
+            <CommentComposer
+              label="Comentario"
+              save={async (body) => {
+                await api(`/api/agency/projects/${projectId}/comments`, {body});
                 await load();
               }}
             />
