@@ -1776,16 +1776,14 @@ export default function Home() {
           <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}>Restablecer filtros</button>
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
-        {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
-        <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><div className="workspace-context"><CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>{user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}</div><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
+        <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><div className="workspace-context"><CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>{user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}<WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>{user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}</div><WorkspaceSearch role={user?.role||'viewer'} refresh={load} navigate={setActive} records={[
           ...clients.map(c=>({id:c.id,name:c.name,context:`Cliente · ${c.email||''}`,kind:'clients' as const})),
           ...projects.map(p=>({id:p.id,name:p.name,context:`Proyecto · ${p.client_name}`,kind:'projects' as const})),
           ...orders.map(o=>({id:o.id,name:o.title,context:`Orden · ${o.client_name} · ${o.project_name}`,kind:'work-orders' as const})),
-        ]}/><WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
+        ]}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
         <header>
           <div className="page-heading">
-            {active==='Resumen'&&<p className="eyebrow">TU AGENCIA, EN UN VISTAZO</p>}
             <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
             {active==='Proyectos'&&<span className="page-count">{projects.length} proyectos</span>}
             {active==='Clientes'&&<span className="page-count">{clients.length} clientes</span>}

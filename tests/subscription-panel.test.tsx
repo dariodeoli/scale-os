@@ -168,17 +168,19 @@ async function main(){
 
   let opened=0;
   await act(async()=>{renderer=create(<SubscriptionNotice state={state} onOpen={()=>opened++}/>);});
-  assert(text().includes('30 días de prueba restantes'));await click('Ver suscripción');assert.equal(opened,1);
+  assert.equal(renderer!.toJSON(),null,'A healthy trial stays out of the workspace header');
+  await act(async()=>{renderer!.update(<SubscriptionNotice state={{...state,daysRemaining:5}} onOpen={()=>opened++}/>);});
+  assert(text().includes('Prueba · faltan 5 días'));await click('Prueba');assert.equal(opened,1);
   for(const status of ['demo','unmanaged'] as const){await act(async()=>{renderer!.update(<SubscriptionNotice state={{...state,status}} onOpen={()=>opened++}/>);});assert.equal(renderer!.toJSON(),null);}
   await act(async()=>{renderer!.update(<SubscriptionNotice state={{...state,status:'active'}} onOpen={()=>opened++}/>);});
-  assert.equal(renderer!.root.findAllByType('p').length,0,'Active state uses a compact management link, not a full banner');
-  await click('Gestionar');assert.equal(opened,2);
-  await act(async()=>{renderer!.update(<SubscriptionNotice state={{...state,status:'active',canManage:false}} onOpen={()=>opened++}/>);});assert(findButton('Ver estado'));
+  assert.equal(renderer!.toJSON(),null,'An active subscription does not use header space');
+  await act(async()=>{renderer!.update(<SubscriptionNotice state={{...state,status:'active',canManage:false}} onOpen={()=>opened++}/>);});assert.equal(renderer!.toJSON(),null);
   await act(async()=>{renderer!.update(<SubscriptionNotice state={{...state,status:'suspended',canManage:false,hasAccess:false}} onOpen={()=>opened++}/>);});
-  assert(text().includes('Contactá al dueño'));assert(text().includes('Acceso suspendido'));
+  assert(text().includes('Acceso suspendido'));await click('Acceso suspendido');assert.equal(opened,2);
   const css=postcss.parse(readFileSync(new URL('../app/subscription-panel.css',import.meta.url),'utf8'));
   const rules=(selector:string)=>{const result:Record<string,string>={};css.walkRules(rule=>{if(rule.selectors.includes(selector))rule.walkDecls(d=>{result[d.prop]=d.value;});});return result;};
-  for(const selector of ['.subscription-panel .subscription-primary','.subscription-panel .subscription-secondary','.subscription-notice .subscription-secondary']){assert.equal(rules(selector)['min-height'],'44px');assert.equal(rules(selector)['min-width'],'44px');assert.equal(rules(selector)['max-width'],'100%');assert.equal(rules(selector)['white-space'],'normal');}
+  for(const selector of ['.subscription-panel .subscription-primary','.subscription-panel .subscription-secondary']){assert.equal(rules(selector)['min-height'],'44px');assert.equal(rules(selector)['min-width'],'44px');assert.equal(rules(selector)['max-width'],'100%');assert.equal(rules(selector)['white-space'],'normal');}
+  assert.equal(rules('.subscription-notice .subscription-secondary')['min-height'],'36px');assert.equal(rules('.subscription-notice .subscription-secondary')['min-width'],'0');assert.equal(rules('.subscription-notice .subscription-secondary')['white-space'],'nowrap');
   for(const width of [320,360,390])assert(width-28>=44,'Touch target fits inside mobile padding');
   assert.equal(rules('.subscription-panel input[type=checkbox]').padding,'0');assert.equal(rules('.subscription-fixed-price')['min-width'],'0');
   // Contrast of the actual fixed foreground/background pairs used by this panel.

@@ -19,8 +19,7 @@
 .subscription-panel .subscription-error{color:#8a1830;background:#fff0f3;padding:12px;border-radius:8px}
 .subscription-panel .subscription-setup,.subscription-panel .subscription-owner-help{background:#fff3cf;color:#513b09;padding:12px;border-radius:8px}
 .subscription-panel .subscription-help{color:#514957;font-size:13px}
-.subscription-notice{position:static;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;width:100%;height:auto}
-.subscription-notice>div{flex:1 1 220px;min-width:0}.subscription-notice>button{flex:0 1 auto}.subscription-notice strong{font-size:14px}.subscription-notice p{margin-top:4px}
-@media(max-width:540px){.subscription-panel,.subscription-notice{padding:14px}.subscription-panel{gap:14px}.subscription-notice>button{width:100%}}
-.subscription-notice.subscription-notice--active{padding:0;border:0;border-radius:0;background:transparent;justify-content:flex-start}
-.subscription-notice.subscription-notice--active>button{width:auto}
+.subscription-notice{position:static;display:inline-flex;align-items:center;flex:none;width:auto;max-width:100%;min-width:0;padding:0;border:0;border-radius:999px;background:transparent}
+.subscription-notice .subscription-secondary{min-width:0;min-height:34px;padding:6px 10px;border-radius:999px;border-color:transparent;background:#fff1f1;color:#9c2632;font-size:11px;line-height:1.25;white-space:nowrap}
+.subscription-notice.subscription-status--grace .subscription-secondary{background:#fff3cf;color:#6a4d08}.subscription-notice.subscription-status--suspended .subscription-secondary{background:#fff0f3;color:#8a1830}
+@media(max-width:540px){.subscription-panel{padding:14px}.subscription-notice .subscription-secondary{min-height:36px;max-width:180px;overflow:hidden;text-overflow:ellipsis}}

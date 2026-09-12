@@ -136,9 +136,13 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
 
 export function SubscriptionNotice({state,onOpen}:{state:SubscriptionState|null;onOpen:()=>void}){
  if(!state||['unmanaged','demo'].includes(state.status))return null;
- if(state.status==='active'&&state.hasAccess)return <section className="subscription-notice subscription-notice--active" aria-label="Estado de la suscripción"><button type="button" className="subscription-secondary" onClick={onOpen}>Suscripción activa · {state.canManage?'Gestionar':'Ver estado'}</button></section>;
- return <section className={`subscription-notice subscription-status--${state.status}`} aria-label="Estado de la suscripción">
-  <div><strong>{titles[state.status]}</strong><p>{description(state)}</p>{!state.canManage?<p>Contactá al dueño de esta empresa.</p>:null}</div>
-  <button type="button" className="subscription-secondary" onClick={onOpen}>Ver suscripción</button>
+ // A healthy trial should not occupy a page-wide banner. It becomes visible in
+ // the compact workspace header only when attention is actually needed.
+ const days=state.daysRemaining===null?null:Math.max(0,Math.floor(state.daysRemaining));
+ if(state.status==='active'&&state.hasAccess)return null;
+ if(state.status==='trialing'&&(days===null||days>5))return null;
+ const label=state.status==='trialing'?`Prueba · ${days===0?'vence hoy':`faltan ${days} ${days===1?'día':'días'}`}`:state.status==='grace'?`Pago pendiente · ${remaining(state)}`:'Acceso suspendido';
+ return <section className={`subscription-notice subscription-notice--compact subscription-status--${state.status}`} aria-label={`Estado de la suscripción: ${label}`}>
+  <button type="button" className="subscription-secondary" onClick={onOpen} title="Ver suscripción">{label}</button>
  </section>;
 }

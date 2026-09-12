@@ -52,7 +52,9 @@ export function WorkspacePresence({projectIds,role}:{projectIds:string[];role:st
  const people=team??projects.people;
  const exact=team!==null;
  if(!people.length)return null;
- return <div className="workspace-presence" title={exact?'Personas conectadas en esta empresa':'Personas viendo proyectos abiertos ahora'} aria-label={exact?'Equipo conectado ahora':'Equipo viendo proyectos ahora'}><span className="presence-dot" aria-hidden="true"/><PresenceAvatars people={people}/><small>{exact?`${people.length} en línea`:`${people.length} viendo`}</small></div>;
+ const names=people.map(person=>person.name).join(', ');
+ const label=exact?`${names} · ${people.length} en línea`:`${names} · viendo proyectos ahora`;
+ return <div className="workspace-presence" title={label} aria-label={label}><span className="presence-dot" aria-hidden="true"/><PresenceAvatars people={people}/><small>{exact?`${people.length} en línea`:`${people.length} viendo`}</small></div>;
 }
 export function PresenceTracker(){
  useEffect(()=>{

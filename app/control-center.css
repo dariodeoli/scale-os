@@ -1,6 +1,6 @@
 /* Scale control center: shared brand tokens, compact rhythm, one surface per job.
    Primary navigation -> page tabs -> content. Alerts group presentation, never records. */
-.control-shell{--control-gap:16px;--control-padding:18px}
+.control-shell{--control-gap:16px;--control-padding:18px;min-height:100dvh}
 .control-shell>aside{width:208px;flex:none;padding:22px 12px 14px;z-index:40}
 .control-shell>aside .brand{margin:0 10px 28px}.control-shell .nav-caption{margin:0 10px 10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
 .control-shell>aside nav{display:grid;align-content:start;gap:4px}
@@ -9,7 +9,8 @@
 .control-shell>aside nav>a .nav-label{min-width:0}
 .control-shell>aside nav>a:hover{background:var(--surface-subtle);color:var(--text)}
 .control-shell>aside nav>a.active{background:var(--violet-soft);border-left-color:var(--brand-700);color:var(--brand-700)}
-.control-shell>.content{width:calc(100% - 208px);max-width:none;padding:18px 24px 32px;min-width:0}
+.control-shell>.content{width:calc(100% - 208px);max-width:none;min-height:100dvh;padding:18px 24px 32px;min-width:0;display:flex;flex-direction:column}
+.control-shell>.content>.workspace-footer{margin-top:auto}
 .control-shell .workspace-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .control-shell .workspace-topbar .workspace{width:auto;max-width:52%;margin:0;padding:4px 0;border:0;background:transparent;color:var(--text);justify-content:flex-start;font-size:13px;text-align:left;overflow-wrap:anywhere}
 .control-shell .workspace-topbar .workspace svg{flex:none}
