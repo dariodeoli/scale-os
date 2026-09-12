@@ -16,6 +16,7 @@ import {ProjectPresence} from './presence';
 import {ActorIdentity} from './actor-identity';
 import {RecordAssignees} from './record-assignees';
 import {WorkChecklist} from './work-checklist';
+import {CommentComposer} from './comment-composer';
 type Row={id:string;[key:string]:unknown};
 export type WorkItem={id:string;title:string;status:string;project_id:string;due_date?:string|null;assigned_user_id?:string|null;assigned_user_ids?:string[];updated_at?:string;client_name?:string;project_name?:string};
 const s=(r:Row,k:string)=>String(r[k]??'');
@@ -51,7 +52,7 @@ export function WorkDetail({id,organizationId,role,close,refresh}:{id:string;org
     </div>}
     {managers.includes(role)&&<ClientReviewControl orderId={id}/>}
    </div>
-   {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente.</p>{editable&&<Editor resetOnSave cancelLabel={false} label="Publicar comentario" fields={[{key:'body',label:'Agregar comentario',type:'textarea'}]} defaults={{body:''}} save={async v=>{await api(`/api/agency/productivity/orders/${id}/comments`,v);await completeSave(()=>{},load);}}/>}{data.comments.map(c=><article className="activity-line" key={c.id}><ActorIdentity name={s(c,'actor_name')||s(c,'author_email')} photoUrl={s(c,'actor_photo_url')} verified={c.actor_verified===true} timestamp={s(c,'created_at')}/><p>{s(c,'body')}</p></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
+   {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente.</p>{editable&&<CommentComposer onSubmit={async value=>{await api(`/api/agency/productivity/orders/${id}/comments`,value);await completeSave(()=>{},load);}}/>}{data.comments.map(c=><article className="activity-line" key={c.id}><ActorIdentity name={s(c,'actor_name')||s(c,'author_email')} photoUrl={s(c,'actor_photo_url')} verified={c.actor_verified===true} timestamp={s(c,'created_at')}/><p>{s(c,'body')}</p></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
    {tab==='Historial'&&<><p>Niveles aprobados: {s(order,'approval_step')||'0'}</p>{data.history.map(h=><article className="activity-line" key={h.id}><ActorIdentity name={s(h,'actor_name')} photoUrl={s(h,'actor_photo_url')} verified={h.actor_verified===true} timestamp={s(h,'created_at')}/><p>{s(h,'action')==='INSERT'?'Creó la pieza':'Actualizó la pieza'}</p>{h.previous_status!==h.next_status&&<p>{s(h,'previous_status')||'Nueva'} → {s(h,'next_status')}</p>}</article>)}{!data.history.length&&<p>Sin cambios registrados.</p>}</>}
   </>}
  </Dialog>;

@@ -14,6 +14,7 @@ import {DriveLinkNote} from './drive-link';
 import {RemoveRecord} from './archive-controls';
 import {PhotoViewer} from './photo-viewer';
 import {ActorIdentity} from './actor-identity';
+import {CommentComposer} from './comment-composer';
 import {notifyMutation} from './feedback';
 import {teamDirectory,TeamMember,ArchivedProfile} from './team-directory';
 import {TeamAccess} from './team-access';
@@ -844,18 +845,7 @@ export function ProjectComments({
             )}
           </div>
           {error && <p className="error">{error}</p>}
-          {role !== "viewer" && (
-            <Editor
-              key={comments.length}
-              fields={[{ key: "body", label: "Comentario", type: "textarea" }]}
-              defaults={{ body: "" }}
-              label="Publicar comentario"
-              save={async (v) => {
-                await api(`/api/agency/projects/${projectId}/comments`, v);
-                await load();
-              }}
-            />
-          )}
+          {role !== "viewer" && <CommentComposer onSubmit={async value=>{await api(`/api/agency/projects/${projectId}/comments`,value);await load();}}/>}
         </Dialog>
       )}
     </>
