@@ -16,6 +16,8 @@ export type SubscriptionState={
  /** Server-authorized owner only; this UI flag is not an authorization boundary. */
  canManage:boolean;
  checkoutReady:boolean;
+ /** Safe, non-secret explanation for why payment is or is not available. */
+ billingReadiness?:'disabled'|'configuration_pending'|'webhook_pending'|'ready';
  /** Optional during rollout; availability, not proof of payment or permission. */
  portalReady?:boolean;
 };
@@ -47,6 +49,14 @@ function description(state:SubscriptionState){
   case 'active':return `Plan mensual de ${prices[state.currency]} por agencia, según el estado informado por el servidor.`;
   case 'grace':return `${remaining(state)} Tenés 2 días de gracia después del vencimiento.`;
   case 'suspended':return 'El acceso se bloquea desde el tercer día de atraso. Tus datos no se borran por esta suspensión.';
+ }
+}
+function readinessMessage(readiness:SubscriptionState['billingReadiness']){
+ switch(readiness){
+  case 'webhook_pending':return 'Las claves y precios están cargados, pero falta comprobar una entrega firmada del webhook de Stripe. El pago en línea sigue desactivado y no se realizó ningún cobro.';
+  case 'configuration_pending':return 'Falta validar la configuración de Stripe (claves, precios u origen seguro). El pago en línea y el portal siguen desactivados; no se realizó ningún cobro.';
+  case 'disabled':return 'El cobro en línea todavía no fue habilitado para esta instalación. La prueba conserva sus fechas y no se realizó ningún cobro.';
+  default:return 'La configuración de Stripe está pendiente. El pago en línea y el portal todavía no están disponibles. No se realizó ningún cobro desde este panel.';
  }
 }
 
@@ -118,7 +128,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
      {['grace','suspended'].includes(state.status)?<div><dt>Suspensión {state.status==='suspended'?'desde':'prevista'}</dt><dd>{dateLabel(state.suspendAt)}</dd></div>:null}
     </dl>
     {!state.canManage?<p className="subscription-owner-help">Contactá al dueño de esta empresa para gestionar la suscripción.</p>:<>
-     {!state.checkoutReady?<p className="subscription-setup" role="status">La configuración de Stripe está pendiente. El pago en línea y el portal todavía no están disponibles. No se realizó ningún cobro desde este panel.</p>:null}
+     {!state.checkoutReady?<p className="subscription-setup" role="status" data-billing-readiness={state.billingReadiness||'unknown'}>{readinessMessage(state.billingReadiness)}</p>:null}
      {showCheckout?<>
       <label className="subscription-consent"><input type="checkbox" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en Stripe.</span></label>
       <button type="button" className="subscription-primary" disabled={busy||!canCheckout||!accepted} onClick={()=>redirect('checkout')}>{pending==='checkout'?'Abriendo Stripe…':`Continuar en Stripe · ${prices[currency]}/mes por agencia`}</button>

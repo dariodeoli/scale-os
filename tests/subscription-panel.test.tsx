@@ -8,7 +8,7 @@ import {founderPricingNote} from '../app/founder-pricing';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 const {SubscriptionPanel,SubscriptionNotice}=require('../app/subscription-panel') as typeof import('../app/subscription-panel');
-const state:SubscriptionState={status:'trialing',hasAccess:true,currency:'USD',amount:10,trialEndsAt:'2026-10-10',dueAt:'2026-10-10',suspendAt:'2026-10-13',daysRemaining:30,canManage:true,checkoutReady:true};
+const state:SubscriptionState={status:'trialing',hasAccess:true,currency:'USD',amount:10,trialEndsAt:'2026-10-10',dueAt:'2026-10-10',suspendAt:'2026-10-13',daysRemaining:30,canManage:true,checkoutReady:true,billingReadiness:'ready'};
 const originalFetch=globalThis.fetch,originalWindow=Object.getOwnPropertyDescriptor(globalThis,'window');
 const redirects:string[]=[],requests:Array<{url:string;init?:RequestInit}>=[];
 Object.defineProperty(globalThis,'window',{configurable:true,value:{location:{assign:(url:string)=>redirects.push(url)}}});
@@ -55,6 +55,9 @@ async function main(){
    assert.equal(renderer!.root.findAllByType('input').length,0);assert(!findButton('Stripe'));
   }
   assert.equal(requests.length,0);
+  await render({...state,checkoutReady:false,billingReadiness:'disabled'});assert(text().includes('cobro en línea todavía no fue habilitado'));assert.equal(renderer!.root.findByProps({className:'subscription-setup'}).props['data-billing-readiness'],'disabled');
+  await render({...state,checkoutReady:false,billingReadiness:'configuration_pending'});assert(text().includes('Falta validar la configuración de Stripe'));
+  await render({...state,checkoutReady:false,billingReadiness:'webhook_pending'});assert(text().includes('falta comprobar una entrega firmada del webhook'));
   await render({...state,checkoutReady:false});assert(text().includes('configuración de Stripe está pendiente'));
   const unavailable=findButton('Continuar en Stripe');assert.equal(unavailable.props.disabled,true);
   await act(async()=>{await unavailable.props.onClick();});assert.equal(requests.length,0);
