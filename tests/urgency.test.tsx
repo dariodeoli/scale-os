@@ -1,0 +1,31 @@
+import React from 'react';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {act,create} from 'react-test-renderer';
+Object.assign(globalThis,{React});
+require.extensions['.css']=()=>{};
+const {UrgencySelect,UrgencyBadge,urgencyField,urgencyHelp}=require('../app/urgency') as typeof import('../app/urgency');
+let selected='';
+const view=create(<UrgencySelect value="" onChange={value=>selected=value}/>);
+const select=view.root.findByType('select');
+assert.equal(select.props.value,'');assert.equal(view.root.findAllByType('option').length,6);
+assert.equal(view.root.findByType('label').props.htmlFor,select.props.id);
+assert.equal(view.root.findByType('small').props.id,select.props['aria-describedby']);
+assert.match(urgencyHelp,/1 Baja/);assert.match(urgencyHelp,/5 Crítica/);assert.match(urgencyHelp,/independiente/);
+act(()=>select.props.onChange({target:{value:'5'}}));assert.equal(selected,'5');
+act(()=>select.props.onChange({target:{value:''}}));assert.equal(selected,'');
+view.update(<UrgencySelect value="3" disabled onChange={()=>{}}/>);assert.equal(view.root.findByType('select').props.disabled,true);
+assert.equal(urgencyField.optional,true);assert.equal(urgencyField.choices?.[0].value,'');
+for(const [value,label] of [[null,'Sin definir'],[undefined,'No disponible'],[0,'No disponible'],[1,'Baja'],[2,'Moderada'],[3,'Media'],[4,'Alta'],[5,'Crítica']]){
+ view.update(<UrgencyBadge value={value}/>);assert.ok(JSON.stringify(view.toJSON()).includes(String(label)));
+}
+view.unmount();
+const read=(path:string)=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const workspace=read('app/scale-workspace.tsx');
+assert.equal((workspace.match(/<UrgencySelect /g)||[]).length,2,'project and piece creation');
+assert.match(workspace,/<UrgencyBadge value=\{order.urgency\}/);
+assert.match(read('app/project-card.tsx'),/<UrgencyBadge value=\{project.urgency\}/);
+assert.equal((read('app/suite.tsx').match(/\[urgencyField,/g)||[]).length,2,'both unified detail forms');
+assert.match(read('app/productivity-ui.tsx'),/fields:Field\[\]=\[urgencyField,/);
+const css=read('app/urgency.css');assert.match(css,/min-height:44px/);assert.match(css,/font-size:16px/);assert.match(css,/:focus-visible/);assert.doesNotMatch(css,/#(?:[0-9a-f]{3}){1,2}\b/i);
+console.log('PASS urgency: native keyboard select, labels/help, unset, disabled, six options, honest badges and all creation/edit/card integrations');

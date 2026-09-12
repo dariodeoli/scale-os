@@ -1,4 +1,5 @@
 "use client";
+import {urgencyField,UrgencyBadge} from './urgency';
 import {useEffect,useState} from 'react';
 import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
@@ -32,11 +33,11 @@ export function WorkDetail({id,organizationId,role,close,refresh}:{id:string;org
  useEffect(()=>{void load().catch(e=>setError(errorText(e)));},[id]);
  async function action(path:string){setBusy(true);try{await api(path,{});await refresh();await load();notify({tone:'success',message:'Acción guardada.'});}catch(e){setError(errorText(e));}finally{setBusy(false);}}
  const order=data?.order,editable=makers.includes(role);
- const fields:Field[]=[{key:'title',label:'Título'},{key:'description',label:'Descripción y notas',type:'textarea',optional:true},{key:'drive_links',label:'Enlaces de archivo o carpeta de Drive',type:'textarea',optional:true,wide:true},{key:'due_date',label:'Entrega',type:'date',optional:true},{key:'estimated_hours',label:'Horas estimadas',type:'number',optional:true},{key:'actual_hours',label:'Horas trabajadas',type:'number',optional:true}];
+ const fields:Field[]=[urgencyField,{key:'title',label:'Título'},{key:'description',label:'Descripción y notas',type:'textarea',optional:true},{key:'drive_links',label:'Enlaces de archivo o carpeta de Drive',type:'textarea',optional:true,wide:true},{key:'due_date',label:'Entrega',type:'date',optional:true},{key:'estimated_hours',label:'Horas estimadas',type:'number',optional:true},{key:'actual_hours',label:'Horas trabajadas',type:'number',optional:true}];
  return <Dialog variant="drawer" title={order?s(order,'title'):'Detalle de la pieza'} close={close}>
   {error&&<p className="error" role="alert">{error}</p>}
   {!order?<p>Cargando pieza…</p>:<>
-   <ProjectPresence projectId={s(order,'project_id')}/>
+   <ProjectPresence projectId={s(order,'project_id')}/><UrgencyBadge value={order.urgency}/>
    <ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/>
    <p className="form-note">{states.find(x=>x.value===order.status)?.label||s(order,'status')} · Actualizada {new Date(s(order,'updated_at')).toLocaleString('es-PY')}</p>
    <div className="choice-list">{['Detalle','Comentarios','Historial'].map(t=><button className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)} key={t}>{t}{t==='Comentarios'?` (${data.comments.length})`:''}</button>)}</div>
