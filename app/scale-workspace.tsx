@@ -32,6 +32,7 @@ import {FinancialForecast} from './financial-forecast';
 import {LiveVisitors} from './live-visitors';
 const UsagePanel=dynamic(()=>import('./presence').then(m=>m.UsagePanel));
 const InventoryWorkspace=dynamic(()=>import('./inventory-workspace').then(m=>m.InventoryWorkspace));
+const StudioWorkspace=dynamic(()=>import('./studio-workspace').then(m=>m.StudioWorkspace));
 const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 const WorkPlanner=dynamic(()=>import('./productivity-ui').then(m=>m.WorkPlanner));
@@ -117,6 +118,7 @@ const nav = [
   ["Equipo", BriefcaseBusiness],
   ["Pipeline", FolderKanban],
   ["Inventario", BriefcaseBusiness],
+  ["Estudio", CalendarDays],
   ["Configuración", Settings],
 ] as const;
 type Client = {
@@ -1399,6 +1401,7 @@ export default function Home() {
     if(!operationalAccess||!user||!visibleModule(label,user.role))return;
     // Match InventoryWorkspace's read roles; menu visibility alone includes Sales.
     if(label==='Inventario'&&!['owner','admin','management','production','finance','editor','viewer'].includes(user.role))return;
+    if(label==='Estudio'&&!['owner','admin','management','production','finance','editor','viewer'].includes(user.role))return;
     void prefetchSectionData(label,`${user.id}:${user.organization_id}:${user.role}`);
   }
   useStartupPreference({scope:preferenceScope,ready:preferencesReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
@@ -1824,6 +1827,7 @@ export default function Home() {
         {active==='Pipeline'&&<div className="ops-stack"><CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>{user&&<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>} {['owner','admin'].includes(user?.role||'')&&<GrowthDashboard events={metrics}/>}</div>}
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
         {active==='Inventario'&&<InventoryWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
+        {active==='Estudio'&&<StudioWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
         {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}<div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div></div>}
         {active==='Preferencias'&&<section className="panel ops-stack"><h2>Preferencias de este espacio</h2>
