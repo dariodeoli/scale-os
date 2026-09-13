@@ -31,3 +31,7 @@
 .secondary{padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);font:500 12px Outfit,Arial,sans-serif}
 .secondary:hover:not(:disabled){background:var(--violet-soft);border-color:var(--brand-600)}
 @media(max-width:460px){.panel h2,.ops-card h3{overflow-wrap:anywhere}.finance-grid>.panel{min-width:0}.payment-row{gap:8px}.payment-row>strong{font-size:12px}.header-actions{gap:8px}}
+
+/* Cross-page interaction polish: visible states and mobile-safe controls. */
+.secondary{min-height:40px;border-color:var(--border-interactive,var(--line-strong));box-shadow:var(--shadow-xs);transition:background var(--ease),border-color var(--ease),transform var(--ease),box-shadow var(--ease)}.secondary:hover:not(:disabled){box-shadow:var(--shadow-xs)}.secondary:active:not(:disabled){transform:translateY(1px)}.secondary:focus-visible{outline:3px solid var(--focus-halo);outline-offset:2px}.feedback-toast{border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay)}.feedback-toast button:hover:not(:disabled),.feedback-toast button:focus-visible{background:var(--surface-sunken,var(--surface-subtle))}.photo-preview-button:focus-visible{outline:3px solid var(--focus-ring,var(--brand-700));outline-offset:3px}.photo-zoom-controls button{min-width:44px;min-height:44px;border-radius:var(--radius-sm)}.photo-dialog{border:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay)}
+@media(max-width:460px){.secondary{min-height:44px}.feedback-toast{padding:12px}.photo-zoom-controls{gap:8px}}

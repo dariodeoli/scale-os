@@ -18,3 +18,6 @@
  .dialog-body .ops-select-trigger{min-height:44px}
  .login-card .primary,.login-card .secondary,.login-card .google-login-button{min-height:44px;max-width:100%;white-space:normal}
 }
+
+/* Mobile form controls remain comfortably tappable without widening their dialogs. */
+@media(max-width:760px){.dialog-body :is(button.icon-button,.text-button,.secondary){min-width:44px;min-height:44px}.dialog-body .form-stack>label{gap:8px}.dialog-body input::placeholder,.dialog-body textarea::placeholder{color:var(--text-subtle,var(--text-muted));opacity:.82}.login-page .login-card{border:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-card)}}

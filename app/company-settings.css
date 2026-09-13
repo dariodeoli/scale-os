@@ -6,3 +6,7 @@
 .company-settings-actions{display:flex;align-items:center;gap:var(--ui-space-2);flex-wrap:wrap}
 .company-settings-actions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--ui-control-height)}
 @media(max-width:640px){.company-settings-row{align-items:flex-start;flex-wrap:wrap}.company-settings-actions{width:100%}.company-settings-actions button{flex:1}}
+
+/* Settings rows become quiet record cards with an unmistakable edit state. */
+.company-settings{gap:var(--ui-space-2,8px)}.company-settings-row{position:relative;min-height:76px;border-color:var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}.company-settings-row:hover{border-color:var(--border-interactive,var(--line-strong));box-shadow:var(--shadow-card)}.company-settings-row:focus-within{border-color:var(--focus-ring,var(--brand-700));box-shadow:0 0 0 3px var(--focus-halo),var(--shadow-card)}.company-settings-name{gap:4px}.company-settings-name strong{font-size:14px;letter-spacing:-.01em}.company-settings-actions button{min-height:40px}.company-settings-actions button:active:not(:disabled){transform:translateY(1px)}
+@media(max-width:640px){.company-settings-row{min-height:0;padding:var(--ui-space-3,12px)}.company-settings-actions button{min-height:44px}}

@@ -3,3 +3,7 @@
 .urgency-field select:focus-visible{outline:2px solid var(--text);outline-offset:2px}
 .urgency-field select:disabled{opacity:.6;cursor:not-allowed}
 .urgency-badge{color:var(--text-muted);white-space:normal;overflow-wrap:anywhere}
+
+/* Urgency selection has enough weight to be discoverable without impersonating a primary action. */
+.urgency-field{padding:var(--ui-space-3,12px);border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-sm);background:var(--surface-sunken,var(--surface-subtle))}.urgency-field select{border-color:var(--border-interactive,var(--line-strong));background:var(--surface-raised,var(--surface));box-shadow:inset 0 1px 0 rgb(255 255 255 / 70%)}.urgency-field select:focus-visible{outline:3px solid var(--focus-halo,var(--violet-soft));border-color:var(--focus-ring,var(--brand-700))}.urgency-badge{display:inline-flex;align-items:center;min-height:24px;padding:3px 7px;border-radius:999px;background:var(--surface-raised,var(--surface));color:var(--text-subtle,var(--text-muted));font-size:11px;font-weight:700}
+@media(max-width:540px){.urgency-field select{min-height:44px}}
