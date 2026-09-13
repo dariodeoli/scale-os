@@ -24,6 +24,7 @@ const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
 const GrowthDashboard=dynamic(()=>import('./growth-dashboard').then(m=>m.GrowthDashboard));
 const ReportsWorkspace=dynamic(()=>import('./reports-workspace').then(m=>m.ReportsWorkspace));
 const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
+const DemoWelcome=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoWelcome));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
 const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
@@ -1394,6 +1395,7 @@ export default function Home() {
   const [startupDataScope,setStartupDataScope]=useState('');
   const productionToday=useLocalCalendarDay();
   const [subscriptionOpen,setSubscriptionOpen]=useState(false),[subscriptionError,setSubscriptionError]=useState('');
+  const [demoWelcome,setDemoWelcome]=useState(false);
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
   // Invalidate before child loading effects can read a previous tenant/role cache.
@@ -1444,6 +1446,11 @@ export default function Home() {
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
   const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
   useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);},[pathname]);
+  useEffect(()=>{
+    if(!user?.demo_owner_user_id||new URLSearchParams(window.location.search).get('demoWelcome')!=='1')return;
+    setDemoWelcome(true);
+    const url=new URL(window.location.href);url.searchParams.delete('demoWelcome');window.history.replaceState(window.history.state,'',url);
+  },[pathname,user?.demo_owner_user_id]);
   useEffect(()=>{if(signedIn){const id=new URLSearchParams(window.location.search).get('order');if(id&&/^\d+$/.test(id))setDetail({kind:'order',id});}},[signedIn,pathname]);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -1764,6 +1771,7 @@ export default function Home() {
         {sidebarContent}
       </DesktopSidebar>
       <section className="content">
+        {demoWelcome&&user?.demo_owner_user_id&&<DemoWelcome close={()=>setDemoWelcome(false)}/>}
         {active==='Producción'&&productionView==='Tablero'&&productionFiltersDialogScope===preferenceScope&&productionFiltersDialogScope&&preferencesReady&&<Dialog title="Filtros guardados del tablero" close={()=>setProductionFiltersDialogScope('')}><div className="ops-stack">
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
           <SelectCustom label="Fecha de entrega" value={preferences.production.week?'week':'all'} choices={[{value:'all',label:'Todas las fechas'},{value:'week',label:'Vencen esta semana (hora local)'}]} onChange={value=>updatePreferences({production:{...preferences.production,week:value==='week'}})}/>

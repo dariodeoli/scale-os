@@ -20,3 +20,7 @@ export function DemoToolbar({role}:{role:string}){
   {info&&<Dialog title="Tu espacio de prueba" close={()=>setInfo(false)}><p>Sin dinero real. Tus cambios no afectan a otras personas.</p><p>Movimientos y documentos ilustrativos, sin validez fiscal. Fechas recientes. Sin correos ni invitaciones externas. Cotización ilustrativa, no tasa de mercado.</p><p>Podés cambiar el permiso para conocer cada experiencia o reiniciar para recuperar los datos iniciales.</p></Dialog>}
  </div>;
 }
+
+export function DemoWelcome({close}:{close:()=>void}){
+ return <Dialog title="Tu Demo está lista" close={close} size="compact"><div className="demo-welcome"><p><strong>20 clientes ficticios, 5 colaboradores y 80 piezas</strong> para explorar proyectos, producción, presupuestos y finanzas.</p><p>Tu Demo es privado, dura hasta 24 horas y no envía correos ni usa dinero real. Cada inicio crea una experiencia nueva.</p><button type="button" className="primary" onClick={close}>Explorar el Demo</button></div></Dialog>;
+}

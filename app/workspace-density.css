@@ -7,6 +7,7 @@
 .demo-badge{background:var(--violet-soft);font-size:11px;font-weight:600}
 .demo-tools>select{width:134px;min-height:32px;padding:5px 8px;font:500 11px Outfit,Arial,sans-serif;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text)}
 .demo-tools .demo-error{position:absolute;top:100%;left:0;z-index:31;max-width:280px;background:var(--surface);border:1px solid var(--danger);padding:8px;color:var(--danger)}
+.demo-welcome{display:grid;gap:14px}.demo-welcome p{margin:0;color:var(--text-muted);line-height:1.55}.demo-welcome strong{color:var(--text)}.demo-welcome .primary{justify-self:start}
 .control-shell>.content>header{margin-bottom:16px}
 .control-shell .page-heading{display:flex;align-items:baseline;gap:var(--ui-space-2);min-width:0;flex-wrap:wrap}
 .control-shell .page-count{color:var(--text-muted);font-size:13px;font-weight:500;white-space:nowrap}

@@ -25,6 +25,7 @@ export function middleware(request:NextRequest){
  // The production fallback is deliberately available on the existing app
  // domain until cliente.scaleparaguay.com is provisioned. It remains private
  // from search engines and uses its own client-only API session.
+ if(host==='app.scaleparaguay.com'&&path==='/demo')return NextResponse.redirect(new URL('https://sistema.scaleparaguay.com/demo'),307);
  if(host==='app.scaleparaguay.com'&&path.startsWith('/cliente/')){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
  if(path.startsWith('/cliente/'))return new NextResponse('Página no encontrada',{status:404,headers:{'X-Robots-Tag':'noindex, nofollow'}});
  if(path==='/robots.txt')return new NextResponse('User-agent: *\nDisallow: /\n',{headers:{'Content-Type':'text/plain'}});
