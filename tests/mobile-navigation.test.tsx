@@ -46,8 +46,10 @@ const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),
 assert(source.includes('<MobileNavigation>{sidebarContent}</MobileNavigation>'));
 assert(!source.includes('className="mobile-nav"'));
 assert.equal((source.match(/visibleNav.map/g)||[]).length,1,'one permission-filtered menu shared on both sizes');
-assert(source.includes('className="topbar-logo"'));
+assert(!source.includes('className="topbar-logo"'),'the content topbar must not duplicate the brand');
+assert(source.includes('<div className="sidebar-brand"><WorkspaceBrand/></div>'),'desktop navigation retains the canonical brand');
+assert(source.includes('<div className="mobile-sidebar-brand"><WorkspaceBrand/></div>'),'mobile navigation retains the canonical brand');
 const css=readFileSync(new URL('../app/mobile-navigation.css',import.meta.url),'utf8');
 assert(css.includes('height:100dvh'));assert(css.includes('prefers-reduced-motion'));assert(css.includes('z-index:40'));assert(css.includes('min-height:44px'));
 assert(!css.match(/#[0-9a-f]{3,8}\b/i));
-console.log('PASS: mobile drawer starts closed; opens/closes by button, Escape, backdrop, link, route and desktop resize; focus/scroll/inert restored; shared permission-filtered menu and topbar logo');
+console.log('PASS: mobile drawer starts closed; opens/closes by button, Escape, backdrop, link, route and desktop resize; focus/scroll/inert restored; shared permission-filtered menu and canonical navigation brand');
