@@ -17,6 +17,7 @@ import dynamic from 'next/dynamic';
 import {ClientIdentity,identityColor} from './client-identity';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
+import {APP_VERSION} from './app-version';
 import {GoogleSignIn} from './google-sign-in';
 import {ActorIdentity} from './actor-identity';
 import {DueDate} from './due-date';
@@ -1780,12 +1781,34 @@ export default function Home() {
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
-        <div className="workspace-topbar"><div className="topbar-identity"><MobileNavigation>{sidebarContent}</MobileNavigation><Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen"><WorkspaceBrand/></Link></div><div className="workspace-context"><CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>{user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}<WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>{user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}</div><WorkspaceSearch navigate={setActive} records={[
-          ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
-          ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
-          ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.effective_assignees||o.assignees||project?.assignees};}),
-        ]}/><NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/></div>
-        <header>
+        <div className="workspace-topbar" role="toolbar" aria-label="Controles del espacio de trabajo">
+          <div className="topbar-primary">
+            <div className="topbar-identity">
+              <MobileNavigation>{sidebarContent}</MobileNavigation>
+              <Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen">
+                <WorkspaceBrand/>
+                <span className="topbar-version" aria-label={`Versión ${APP_VERSION}`}>v{APP_VERSION}</span>
+              </Link>
+            </div>
+            <div className="topbar-company">
+              <CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>
+            </div>
+            <div className="topbar-presence" role="group" aria-label="Personas activas en el espacio">
+              <WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>
+            </div>
+          </div>
+          <div className="topbar-utilities">
+            {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
+            {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
+            <WorkspaceSearch navigate={setActive} records={[
+              ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
+              ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
+              ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.effective_assignees||o.assignees||project?.assignees};}),
+            ]}/>
+            <NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/>
+          </div>
+        </div>
+        <header className="workspace-page-header">
           <div className="page-heading">
             <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
             {active==='Proyectos'&&<span className="page-count">{projects.length} proyectos</span>}
@@ -1793,8 +1816,8 @@ export default function Home() {
           </div>
           <div className="header-actions">
             {active==='Clientes'&&<SelectCustom label="Estado" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/>}
-            {active==='Proyectos'&&<ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/>}
-            {active==='Clientes'&&<ViewToggle label="Vista de clientes" value={clientView as 'grid'|'list'} onChange={changeClientView}/>}
+            {active==='Proyectos'&&<div className="workspace-view-controls"><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>}
+            {active==='Clientes'&&<div className="workspace-view-controls"><ViewToggle label="Vista de clientes" value={clientView as 'grid'|'list'} onChange={changeClientView}/></div>}
             <WorkspaceGuide {...guideProps}/>
             {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen','Producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
               <button
