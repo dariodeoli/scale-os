@@ -10,6 +10,7 @@ RUN npm ci --include=dev
 FROM base AS build
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
+RUN npx prisma generate
 RUN npm run build
 
 FROM node:22-alpine AS runtime
