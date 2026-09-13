@@ -1,7 +1,7 @@
 {
   "name": "scale-os",
   "private": true,
-  "version": "1.0.33",
+  "version": "1.0.34",
   "overrides": {
     "postcss": "8.5.28",
     "@prisma/config": {
