@@ -5,7 +5,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 FROM base AS dependencies
 RUN apk add --no-cache libc6-compat
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 FROM base AS build
 COPY --from=dependencies /app/node_modules ./node_modules
