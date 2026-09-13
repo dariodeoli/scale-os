@@ -17,7 +17,6 @@ import dynamic from 'next/dynamic';
 import {ClientIdentity,identityColor} from './client-identity';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
-import {APP_VERSION} from './app-version';
 import {GoogleSignIn} from './google-sign-in';
 import {ActorIdentity} from './actor-identity';
 import {DueDate} from './due-date';
@@ -1735,6 +1734,7 @@ export default function Home() {
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 
   const sidebarContent=<>
+        <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
         <p className="nav-caption">Espacio de trabajo</p>
         <nav aria-label="Menú principal">
           {visibleNav.map(([label, Icon]) => (
@@ -1785,10 +1785,6 @@ export default function Home() {
           <div className="topbar-primary">
             <div className="topbar-identity">
               <MobileNavigation>{sidebarContent}</MobileNavigation>
-              <Link href={sectionPath('Resumen')} className="topbar-logo" aria-label="Scale OS · Ir al resumen">
-                <WorkspaceBrand/>
-                <span className="topbar-version" aria-label={`Versión ${APP_VERSION}`}>v{APP_VERSION}</span>
-              </Link>
             </div>
             <div className="topbar-company">
               <CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>
