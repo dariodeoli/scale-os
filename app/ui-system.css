@@ -4,7 +4,7 @@
  --ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;
  --ui-space-5:20px;--ui-space-6:24px;
  --ui-control-height:40px;--ui-panel-padding:18px;--ui-card-padding:14px;
- --ui-field-border:#927d9b;--ui-focus:var(--brand-700);
+ --ui-field-border:var(--border-interactive);--ui-focus:var(--brand-700);
 }
 .control-shell{--control-gap:var(--ui-space-4);--control-padding:var(--ui-panel-padding);container-type:inline-size}
 :is(.control-shell,.unified-dialog,.photo-dialog){accent-color:var(--brand-700)}
@@ -123,3 +123,40 @@
  :is(.control-shell,.unified-dialog,.photo-dialog) *::before,
  :is(.control-shell,.unified-dialog,.photo-dialog) *::after{transition:none;animation:none;scroll-behavior:auto}
 }
+
+/* Visual hierarchy shared by operational pages, cards and dialogs. */
+.control-shell .panel{
+ border-color:var(--border-subtle);background:var(--surface-raised);box-shadow:var(--shadow-card);
+}
+.control-shell .panel .panel{box-shadow:none}
+.control-shell :is(.ops-card,.project-card,.inventory-equipment,.inventory-reservation,.reports-distribution,.reports-tiles article){
+ border:1px solid var(--border-subtle);background:var(--surface-raised);box-shadow:var(--shadow-xs);
+ transition:border-color var(--ease),box-shadow var(--ease),background var(--ease);
+}
+.control-shell :is(.ops-card,.project-card,.inventory-equipment,.inventory-reservation,.reports-distribution,.reports-tiles article):hover{
+ border-color:var(--line-strong);box-shadow:var(--shadow-card);
+}
+.control-shell .panel-heading{padding-bottom:var(--ui-space-3);border-bottom:1px solid var(--border-subtle)}
+.control-shell .panel-heading:last-child{margin-bottom:0;padding-bottom:0;border-bottom:0}
+.control-shell :is(.payment-row,.client-list .client-row,.activity-line){border-color:var(--border-subtle)}
+.control-shell :is(.payment-row,.client-row,.activity-line):hover{background:color-mix(in srgb,var(--violet-soft) 38%,transparent)}
+.control-shell :is(.payment-row,.client-row,.activity-line):focus-within{background:var(--violet-soft)}
+
+/* Controls use a quiet default with a clear, stable selection state. */
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary){background:var(--interactive);box-shadow:0 2px 8px color-mix(in srgb,var(--interactive) 18%,transparent)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary):hover:not(:disabled){background:var(--interactive-hover);box-shadow:0 5px 14px color-mix(in srgb,var(--interactive) 22%,transparent)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary){border-color:var(--border-interactive);box-shadow:var(--shadow-xs)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary):hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:var(--shadow-xs)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:inset 0 1px 0 rgb(255 255 255 / 70%)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input,textarea,select,.ops-select-trigger):focus{border-color:var(--focus-ring);box-shadow:0 0 0 3px var(--focus-halo)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :focus-visible{outline:3px solid var(--focus-halo);outline-offset:2px}
+
+/* Dense tables preserve headers, scan lines and keyboard-visible row context. */
+:is(.control-shell,.unified-dialog) :is(.reports-table-scroll,.weekly-report-table,.growth-table,.plan-comparison-wrap){border-color:var(--border-subtle);border-radius:var(--radius-sm)}
+:is(.control-shell,.unified-dialog) table :is(th,td){border-color:var(--border-subtle)}
+:is(.control-shell,.unified-dialog) table th{background:var(--surface-sunken);color:var(--text-subtle);font-size:11px;font-weight:700;letter-spacing:.055em;text-transform:uppercase}
+:is(.control-shell,.unified-dialog) table tbody tr:hover>td{background:color-mix(in srgb,var(--violet-soft) 42%,var(--surface-raised))}
+.control-shell :is(.client-status,.inventory-status){border:1px solid color-mix(in srgb,currentColor 18%,transparent);letter-spacing:.015em}
+.control-shell :is(.form-status,.form-error-summary){box-shadow:inset 3px 0 0 currentColor}

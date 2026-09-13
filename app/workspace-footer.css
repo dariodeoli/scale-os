@@ -1,8 +1,9 @@
-.workspace-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 20px;padding-block:20px;margin-top:28px;border-top:1px solid var(--line);font-size:11px;color:var(--text-muted);line-height:1.6;min-width:0;overflow-wrap:anywhere}
-.workspace-footer a{color:inherit;text-underline-offset:3px}
-.workspace-footer .usage-disclosure{width:100%;font-size:11px;color:inherit;line-height:1.6;margin-block:8px}
+.workspace-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;padding-block:16px 4px;margin-top:24px;border-top:1px solid var(--line);font-size:11px;color:var(--text-muted);line-height:1.55;min-width:0;overflow-wrap:anywhere}
+.workspace-footer a{color:inherit;text-decoration-color:var(--line-strong);text-underline-offset:3px;transition:color var(--ease),text-decoration-color var(--ease)}
+.workspace-footer a:hover{color:var(--brand-700);text-decoration-color:currentColor}
+.workspace-footer .usage-disclosure{width:100%;max-width:88ch;font-size:11px;color:inherit;line-height:1.55;margin:4px 0 0}
 /* Access screens load the same footer styles even without workspace modules. */
-:is(.login-card,.registration-card) .workspace-footer{font-size:12px;color:var(--text-muted);gap:10px;padding-block:20px 0}
+:is(.login-card,.registration-card) .workspace-footer{font-size:12px;color:var(--text-muted);gap:10px;padding-block:20px 0;margin-top:24px}
 :is(.login-card,.registration-card) .workspace-footer>span{flex-basis:100%}
 :is(.login-card,.registration-card) .workspace-footer .usage-disclosure{font-size:12px;margin:0}
 :is(.login-card,.registration-card) .workspace-footer a{display:inline-flex;align-items:center;min-height:44px}

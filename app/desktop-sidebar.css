@@ -1,15 +1,30 @@
-.control-shell .desktop-sidebar{position:sticky;flex-shrink:0}
+/* Persistent desktop navigation: compact, dark, and visually separate from the workspace. */
+.control-shell .desktop-sidebar{position:sticky;top:0;flex-shrink:0;min-height:100dvh;background:var(--anthracite);border-right-color:color-mix(in srgb,var(--surface) 14%,transparent);color:var(--surface)}
+.control-shell .desktop-sidebar .sidebar-brand{color:var(--surface)}
+.control-shell .desktop-sidebar .workspace-wordmark{color:var(--surface)}
+.control-shell .desktop-sidebar .workspace-wordmark>span{color:var(--gold)}
+.control-shell .desktop-sidebar .workspace-brand img{background:var(--brand-700);box-shadow:0 6px 16px color-mix(in srgb,var(--anthracite) 42%,transparent)}
+.control-shell .desktop-sidebar .nav-caption{color:color-mix(in srgb,var(--surface) 54%,transparent)}
+.control-shell .desktop-sidebar nav>a{border-left-color:transparent;color:color-mix(in srgb,var(--surface) 72%,transparent);transition:background var(--ease),border-color var(--ease),color var(--ease)}
+.control-shell .desktop-sidebar nav>a:hover{background:color-mix(in srgb,var(--surface) 9%,transparent);color:var(--surface)}
+.control-shell .desktop-sidebar nav>a:active{background:color-mix(in srgb,var(--surface) 14%,transparent)}
+.control-shell .desktop-sidebar nav>a.active{background:color-mix(in srgb,var(--surface) 13%,transparent);border-left-color:var(--gold);color:var(--surface);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--surface) 10%,transparent)}
+.control-shell .desktop-sidebar nav>a.active svg{color:var(--gold)}
 .control-shell .desktop-sidebar .sidebar-bottom{min-width:0;width:100%}
 .control-shell .desktop-sidebar .profile-footer{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:2px;width:100%;min-width:0;padding-inline:0}
-.control-shell .desktop-sidebar .profile-footer .user{width:100%;max-width:100%;min-width:0;gap:6px;padding:4px!important;overflow:hidden}
+.control-shell .desktop-sidebar .profile-footer .user{width:100%;max-width:100%;min-width:0;gap:6px;padding:8px 4px 4px!important;overflow:hidden;border-top-color:color-mix(in srgb,var(--surface) 14%,transparent)}
 .control-shell .desktop-sidebar .profile-footer .user>div:last-child{min-width:0;flex:1;overflow:hidden}
 .control-shell .desktop-sidebar .profile-footer .user b,.control-shell .desktop-sidebar .profile-footer .user small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.control-shell .desktop-sidebar .profile-footer .avatar{flex:0 0 32px;width:32px;height:32px}
+.control-shell .desktop-sidebar .profile-footer .user b{color:var(--surface)}
+.control-shell .desktop-sidebar .profile-footer .user small{color:color-mix(in srgb,var(--surface) 58%,transparent)}
+.control-shell .desktop-sidebar .profile-footer .avatar{flex:0 0 32px;width:32px;height:32px;background:var(--brand-600);color:var(--surface)}
 .control-shell .desktop-sidebar .profile-footer .user img{width:32px;height:32px}
-.control-shell .desktop-sidebar .profile-footer .logout-only{width:32px;min-width:0;height:36px;padding:0;justify-self:center}
+.control-shell .desktop-sidebar .profile-footer .logout-only{width:32px;min-width:0;height:36px;padding:0;justify-self:center;background:transparent;color:color-mix(in srgb,var(--surface) 72%,transparent)}
+.control-shell .desktop-sidebar .profile-footer .logout-only:hover{background:color-mix(in srgb,var(--surface) 9%,transparent);color:var(--surface)}
 .control-shell .desktop-sidebar .profile-footer .logout-only svg{width:18px;height:18px}
-.sidebar-collapse{display:flex;align-items:center;justify-content:center;align-self:flex-end;width:36px;height:36px;flex-shrink:0;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-muted);margin-bottom:12px}
-.sidebar-collapse:hover{background:var(--violet-soft);color:var(--brand-700)}
+.sidebar-collapse{display:flex;align-items:center;justify-content:center;align-self:flex-end;width:36px;height:36px;flex-shrink:0;border:1px solid color-mix(in srgb,var(--surface) 20%,transparent);border-radius:var(--radius-sm);background:color-mix(in srgb,var(--surface) 7%,transparent);color:color-mix(in srgb,var(--surface) 76%,transparent);margin-bottom:12px;transition:background var(--ease),border-color var(--ease),color var(--ease)}
+.sidebar-collapse:hover{background:color-mix(in srgb,var(--surface) 14%,transparent);border-color:color-mix(in srgb,var(--gold) 72%,transparent);color:var(--gold)}
+.sidebar-collapse:active{background:color-mix(in srgb,var(--surface) 19%,transparent)}
 @media(min-width:761px){
  .control-shell:has(>.desktop-sidebar)>.content{width:calc(100% - 192px);padding-inline:18px}
  .control-shell .desktop-sidebar{width:192px;padding:12px 8px}
