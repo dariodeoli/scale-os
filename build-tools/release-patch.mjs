@@ -17,7 +17,7 @@ const webhook=(name,url)=>fetch(url,{method:process.env.SCALE_DEPLOY_WEBHOOK_MET
 
 if(!existsSync(path.join(apiRoot,'.git')))fail(`No se encontró el repositorio API. Configurá SCALE_API_DIR; se esperaba ${apiRoot}.`);
 const apiWebhook=process.env.SCALE_API_DEPLOY_WEBHOOK,webWebhook=process.env.SCALE_WEB_DEPLOY_WEBHOOK;
-if(!apiWebhook||!webWebhook)fail('Faltan SCALE_API_DEPLOY_WEBHOOK y/o SCALE_WEB_DEPLOY_WEBHOOK. Guardalos fuera de Git (por ejemplo en .release.env local) antes de liberar.');
+if(Boolean(apiWebhook)!==Boolean(webWebhook))fail('Configurá ambos deploy webhooks o ninguno. Con ambos vacíos se usa el webhook GitHub → Coolify ya configurado.');
 assertCleanTracked(root,'frontend');assertCleanTracked(apiRoot,'API');
 const releasePath=path.join(root,'release/version.json'),release=readJson(releasePath),next=bumpPatch(release.version);release.version=next;writeJson(releasePath,release);run('node',['build-tools/sync-release-version.mjs']);
 writeJson(path.join(apiRoot,'release-version.json'),{version:next,application:'Scale OS'});
@@ -25,4 +25,5 @@ for(const filename of ['package.json','package-lock.json']){const target=path.jo
 run('npm',['run','footer:check']);run('npm',['run','test:release-regression']);run('npm',['run','build']);run('npm',['run','test:release'],apiRoot);
 run('git',['add','.gitignore','.release.env.example','release/version.json','app/app-version.ts','app/access-layout.tsx','app/brand-metadata.ts','app/google-sign-in.tsx','app/layout.tsx','app/registro/page.tsx','app/cliente/ingresar/page.tsx','app/scale-workspace.tsx','build-tools/sync-release-version.mjs','build-tools/release-smoke.mjs','build-tools/release-patch.mjs','tests/release-version.test.mjs','package.json','package-lock.json','public/scale-os.html'],root);run('git',['add','release-version.json','package.json','package-lock.json','server.js','test-auth.mjs'],apiRoot);
 run('git',['commit','-m',`chore(release): Scale OS v${next}`],apiRoot);run('git',['push','origin','HEAD:main'],apiRoot);run('git',['commit','-m',`chore(release): Scale OS v${next}`],root);run('git',['push','origin','HEAD:main'],root);
-await webhook('API',apiWebhook);await webhook('frontend',webWebhook);await import('./release-smoke.mjs');
+if(apiWebhook&&webWebhook){await webhook('API',apiWebhook);await webhook('frontend',webWebhook);}else console.log('Deploy solicitado por el webhook GitHub → Coolify configurado en ambos repositorios.');
+await import('./release-smoke.mjs');
