@@ -21,6 +21,7 @@ import {CommentBody,CommentComposer} from './commenting';
 import {ClientRuc} from './client-ruc';
 import {DriveLinks,driveLinksText} from './drive-links';
 import {DueDate} from './due-date';
+import {WorkOrderLinks} from './work-order-links';
 type Row={id:string;[key:string]:unknown};
 export type WorkItem={id:string;title:string;status:string;project_id:string;due_date?:string|null;assigned_user_id?:string|null;assigned_user_ids?:string[];updated_at?:string;client_name?:string;project_name?:string};
 const s=(r:Row,k:string)=>String(r[k]??'');
@@ -48,7 +49,7 @@ export function WorkDetail({id,organizationId,role,close,refresh}:{id:string;org
    <div hidden={tab!=='Detalle'}>
     <div className="work-detail-toolbar">{editable&&!editing?<button className="icon-button" type="button" title="Editar pieza" aria-label="Editar pieza" onClick={()=>setEditing(true)}><Pencil size={16}/></button>:null}</div>
     {editing&&editable?<RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role={role} updatedAt={s(order,'updated_at')} refresh={()=>completeSave(close,refresh)}>{save=><Editor key={s(order,'updated_at')} fields={fields} defaults={Object.fromEntries(fields.map(f=>[f.key,f.key==='due_date'?s(order,f.key).slice(0,10):f.key==='drive_links'?driveLinksText(order.drive_links,s(order,'drive_url')):s(order,f.key)]))} save={save}/>}</RecordAssignees>:<><RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role="viewer" refresh={refresh}/><p className="work-detail-description">{s(order,'description')||'Sin descripción'}</p><DueDate value={s(order,'due_date')}/><DriveLinks value={order.drive_links} legacy={s(order,'drive_url')}/></>}
-    <WorkChecklist id={id} organizationId={organizationId} role={role} refresh={refresh}/>
+    <WorkChecklist id={id} organizationId={organizationId} role={role} refresh={refresh}/><WorkOrderLinks orderId={id} role={role}/>
     {editable&&<div className="quick-actions"><button className="secondary" disabled={busy||['approved','published','review'].includes(s(order,'status'))} onClick={async()=>{setBusy(true);try{await api(`/api/agency/work-orders/${id}`,{status:'review'},'PATCH');await load();await refresh();}catch(e){setError(errorText(e));}finally{setBusy(false);}}}>Listo para revisión</button><button className="text-button" disabled={busy} onClick={()=>void action(`/api/agency/productivity/orders/${id}/duplicate`)}>Duplicar pieza</button>
      {managers.includes(role)&&order.status==='review'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/approve`)} title="Registra una aprobación interna. Al completar los niveles del proyecto, la pieza queda aprobada.">Aprobar siguiente nivel</button>}
      {managers.includes(role)&&order.status==='approved'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/publish`)}>Marcar publicada</button>}
