@@ -1,9 +1,9 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
-import {WorkspaceBrand} from '../workspace-brand';
 import {founderPricingNote} from '../founder-pricing';
-import {WorkspaceFooter} from '../workspace-footer';
+import {AccessLayout} from '../access-layout';
+import {GoogleMark} from '../google-sign-in';
 import './registration.css';
 
 export default function Registration(){
@@ -26,9 +26,7 @@ export default function Registration(){
   }catch(cause){setError(cause instanceof Error?cause.message:'No se pudo crear la cuenta.');}
   finally{setSubmitting(false);}
  }
- return <main className="registration-page"><section className="registration-card">
-  <Link href="https://sistema.scaleparaguay.com/" aria-label="Scale OS · Volver al sitio"><WorkspaceBrand/></Link>
-  <p className="eyebrow">TU AGENCIA, TU ESPACIO</p>
+ return <AccessLayout pageClassName="registration-page" cardClassName="registration-card" eyebrow="TU AGENCIA, TU ESPACIO">
   <h1>Probá Scale OS gratis.</h1>
   <p>Tu agencia, tu equipo y tus datos en un espacio privado. Tenés 30 días sin tarjeta para empezar.</p>
   <form ref={form} action="https://admin.scaleparaguay.com/api/auth/google/start" method="get">
@@ -38,7 +36,7 @@ export default function Registration(){
    <p className="registration-terms" id="founder-conditions"><strong>Precio de lanzamiento por agencia.</strong> US$10 o G. 50.000 al mes, con todos los integrantes incluidos. {founderPricingNote}</p>
    <details className="registration-details"><summary>Condiciones de la prueba</summary><p id="trial-conditions">Los 30 días empiezan al crear la agencia, sin tarjeta. Después se aplica la moneda elegida. Hay 2 días de gracia; al tercer día sin pago se suspende el uso sin borrar los datos. Volver a registrarte no reinicia la prueba.</p></details>
    <label className="registration-consent"><input name="consent" type="checkbox" value="1" required aria-describedby="trial-conditions founder-conditions"/><span>Acepto estas condiciones de la prueba y suscripción.</span></label>
-   <button className="primary" type="submit">Continuar con Google</button>
+   <button className="primary" type="submit"><GoogleMark/> Continuar con Google</button>
    <div className="registration-divider"><span>o</span></div>
    <label>Nombre y apellido <small>Opcional</small><input name="full_name" maxLength={160} autoComplete="name" placeholder="Cómo te llamamos"/></label>
    <label>Correo<input name="email" type="email" autoComplete="email" placeholder="tu@agencia.com"/></label>
@@ -51,6 +49,5 @@ export default function Registration(){
    {notice&&<p role="status" className="success">{notice}</p>}
   </form>
   <p className="registration-links"><Link href="/">Ya tengo cuenta</Link><a href="https://sistema.scaleparaguay.com/demo">Explorar la demo primero</a></p>
-  <WorkspaceFooter/>
- </section></main>;
+ </AccessLayout>;
 }

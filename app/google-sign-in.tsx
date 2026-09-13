@@ -1,0 +1,4 @@
+import type {MouseEventHandler} from 'react';
+
+export function GoogleMark(){return <span className="google-g" aria-hidden="true">G</span>;}
+export function GoogleSignIn({href,onClick,disabled=false,compact=false,label='Continuar con Google',className=''}:{href?:string;onClick?:MouseEventHandler<HTMLButtonElement>;disabled?:boolean;compact?:boolean;label?:string;className?:string}){const classes=[compact?'portal-google-icon':'google-login-button',className].filter(Boolean).join(' '),content=<><GoogleMark/>{compact?<span className="sr-only">{label}</span>:label}</>;if(onClick||disabled)return <button type="button" className={classes} disabled={disabled} onClick={onClick}>{content}</button>;return <a className={classes} href={href} aria-label={compact?label:undefined} title={compact?label:undefined}>{content}</a>;}

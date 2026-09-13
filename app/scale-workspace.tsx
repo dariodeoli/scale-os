@@ -17,6 +17,7 @@ import dynamic from 'next/dynamic';
 import {ClientIdentity,identityColor} from './client-identity';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
+import {GoogleSignIn} from './google-sign-in';
 import {ActorIdentity} from './actor-identity';
 import {DueDate} from './due-date';
 const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
@@ -1715,17 +1716,7 @@ export default function Home() {
             {toast && <p className="error">{toast}</p>}
           </form>
           <div className="login-divider"><span>o</span></div>
-          <button
-            type="button"
-            className="google-login-button"
-            disabled={!googleAvailable}
-            onClick={() => {
-              window.location.href = 'https://admin.scaleparaguay.com/api/auth/google/start';
-            }}
-          >
-            <span className="google-g">G</span>
-            {googleAvailable ? "Continuar con Google" : "Google aún no está configurado"}
-          </button>
+          <GoogleSignIn disabled={!googleAvailable} label={googleAvailable?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='https://admin.scaleparaguay.com/api/auth/google/start';}}/>
           <PasswordPanel/>
           <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>
           <WorkspaceFooter/>
