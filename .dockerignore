@@ -4,3 +4,6 @@ node_modules
 .env.*
 !.env.example
 .git
+
+# Local incremental TypeScript build artifacts
+*.tsbuildinfo
