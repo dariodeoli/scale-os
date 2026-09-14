@@ -2,7 +2,7 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-test-renderer';
-import type {InventoryItem,InventoryReservation} from '../app/inventory-workspace';
+import type {InventoryItem,InventoryReservation,StorageTemplate} from '../app/inventory-workspace';
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
 const intervals=new Map<number,()=>void>();let timerId=0;
 const documentEvents=Object.assign(new EventTarget(),{visibilityState:'visible'});
@@ -17,11 +17,13 @@ let delayWrites=false;
 const pendingWrites:(()=>void)[]=[];
 let items=equipment,reservations=[record];
 let categories=[{id:'1',name:'Memoria',active:true},{id:'2',name:'Audio',active:true}];
+let storageTemplates:StorageTemplate[]=[{id:'storage-a',name:'Estante A',active:true,item_count:1},{id:'storage-b',name:'Estante B',active:true,item_count:0},{id:'storage-old',name:'Depósito anterior',active:false,item_count:2}];
 const mockApi=async(path:string,body?:unknown,method='POST')=>{
- if(body!==undefined){writes.push({path,body,method});if(delayWrites)await new Promise<void>(resolve=>pendingWrites.push(resolve));if(fail)throw new Error('Conflicto de reserva');return {reservation:record};}
+ if(body!==undefined||method==='DELETE'){writes.push({path,body,method});if(delayWrites)await new Promise<void>(resolve=>pendingWrites.push(resolve));if(fail)throw new Error('Conflicto de reserva');if(path==='/api/agency/inventory-storage-templates')return {template:{id:'storage-new',name:(body as {name:string}).name,active:true,item_count:0}};return {reservation:record};}
  reads++;if(delay)await new Promise<void>(resolve=>pending.push(resolve));if(fail)throw new Error('Sin conexión');
  if(path.endsWith('/inventory-context'))return context;
  if(path.endsWith('/inventory-categories'))return {categories};
+ if(path.endsWith('/inventory-storage-templates'))return {templates:storageTemplates};
  if(path.endsWith('/inventory'))return {records:items};
  return {reservations};
 };
@@ -35,13 +37,14 @@ function MockDialog({children,close,busy=false}:{children:React.ReactNode;close:
 require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(n:string,c:string)=>`${c} ${n}`,Dialog:MockDialog,Editor:MockEditor}} as NodeModule;
 const dialogPath=require.resolve('../app/dialog');
 require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:(value:boolean)=>{pendingStates.push(value);}}} as NodeModule;
-const {InventoryWorkspace,InventoryReservationForm,InventoryTransitionForm,InventoryCalendar,inventoryUtcTime,inventoryLocalTime,inventoryMonthRange,inventoryLocation,inventoryCanReturn,inventoryCanManageReservation}=require('../app/inventory-workspace') as typeof import('../app/inventory-workspace');
+const {InventoryWorkspace,InventoryItemForm,InventoryReservationForm,InventoryTransitionForm,InventoryCalendar,inventoryUtcTime,inventoryLocalTime,inventoryMonthRange,inventoryLocation,inventoryCanReturn,inventoryCanManageReservation}=require('../app/inventory-workspace') as typeof import('../app/inventory-workspace');
 let renderer:ReactTestRenderer,done=0;
 function text(node:ReactTestInstance|string):string{return typeof node==='string'?node:node.children.map(text).join('');}
 const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label)!;
 const field=(label:string,tag:'input'|'select'|'textarea'='input')=>renderer.root.findAllByType('label').find(node=>node.children.some(c=>c===label))!.findByType(tag);
 const change=(label:string,value:string,tag:'input'|'select'|'textarea'='input')=>act(()=>field(label,tag).props.onChange({target:{value}}));
-const check=(label:string)=>act(()=>renderer.root.findAllByType('label').find(node=>text(node).startsWith(label))!.findByType('input').props.onChange());
+// Identity chips now include avatar initials before the visible person name.
+const check=(label:string)=>act(()=>renderer.root.findAllByType('label').find(node=>text(node).includes(label))!.findByType('input').props.onChange());
 const tree=()=>JSON.stringify(renderer.toJSON());
 const submit=()=>act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){}});});
 async function run(){
@@ -97,38 +100,53 @@ async function run(){
  assert.match(text(renderer.root.findByProps({'aria-label':'2032-02-29'})),/Rodaje de prueba/);assert.equal(renderer.root.findAllByType('time').length,29);act(()=>renderer.unmount());
  const before=reads;await act(async()=>{renderer=create(<InventoryWorkspace role="sales"/>);});assert.equal(renderer.toJSON(),null);assert.equal(reads,before);act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});
- assert.equal(intervals.size,1);assert.match(tree(),/actualiza cada 30 s/);assert.match(tree(),/Estante A/);assert.doesNotMatch(tree(),/Cargando inventario/);
+ assert.equal(intervals.size,1);assert.match(tree(),/Sincroniza cada 30 s/);assert.match(tree(),/Estante A/);assert.doesNotMatch(tree(),/Cargando inventario/);assert.doesNotMatch(tree(),/Ubicaciones de guardado/,'storage management controls stay hidden outside manager roles');
+ assert.equal(renderer.root.findByProps({className:'inventory-toolbar-meta'}).props.children.length,2,'tabs and synchronization status share the compact metadata row');
+ const tabs=renderer.root.findByProps({role:'group','aria-label':'Vistas de inventario'}).findAllByType('button');assert.equal(tabs.length,2);assert.equal(tabs[0].props['aria-pressed'],true);assert.equal(tabs[1].props['aria-pressed'],false);
+ const viewControl=renderer.root.findByProps({role:'group','aria-label':'Vista de inventario'});let viewButtons=viewControl.findAllByType('button');assert.equal(viewButtons.length,2);assert(viewButtons.every(node=>node.props['aria-label']&&node.props['aria-pressed']!==undefined),'grid/list controls retain accessible labels and selected state');act(()=>viewButtons[1].props.onClick());assert.match(tree(),/inventory-equipment-list/,'list control keeps the dense list view available');viewButtons=viewControl.findAllByType('button');assert.equal(viewButtons[1].props['aria-pressed'],true);act(()=>viewButtons[0].props.onClick());
+ assert.match(text(renderer.root),/2 equipos visibles/);change('Buscar equipo o ubicación','Mic');assert.match(text(renderer.root),/1 equipo visible/,'the compact count tracks the filter');change('Buscar equipo o ubicación','');
  act(()=>button('Reservar equipos').props.onClick());change('Producción o uso previsto','Borrador que debe sobrevivir');check('Memoria SD');
  delay=true;const beforePoll=reads;
  act(()=>intervals.forEach(callback=>callback()));act(()=>intervals.forEach(callback=>callback()));
- assert.equal(reads,beforePoll+4,'a polling cycle waits for all four requests; a second tick cannot overlap');
+ assert.equal(reads,beforePoll+5,'a polling cycle waits for all five requests; a second tick cannot overlap');
  assert.doesNotMatch(tree(),/Cargando inventario/,'background updates retain visible content');
  items=[{...equipment[0],location_type:'checked_out',current_custodian_name:'Otra persona',production_name:'Otra producción'},equipment[1]];
  await act(async()=>{pending.splice(0).forEach(resolve=>resolve());});delay=false;
  assert.match(tree(),/Con Otra persona/);assert.equal(field('Producción o uso previsto').props.value,'Borrador que debe sobrevivir');
  const selected=renderer.root.findAllByType('input').filter(node=>node.props.type==='checkbox'&&node.props.checked);assert(selected.length>=2,'selected equipment and own responsibility persist');
  documentEvents.visibilityState='hidden';const beforeHidden=reads;act(()=>intervals.forEach(callback=>callback()));assert.equal(reads,beforeHidden,'hidden tabs do not poll');
- documentEvents.visibilityState='visible';await act(async()=>{documentEvents.dispatchEvent(new Event('visibilitychange'));});assert.equal(reads,beforeHidden+4);
+ documentEvents.visibilityState='visible';await act(async()=>{documentEvents.dispatchEvent(new Event('visibilitychange'));});assert.equal(reads,beforeHidden+5);
  fail=true;await act(async()=>{intervals.forEach(callback=>callback());});assert.match(tree(),/última información recibida/);assert.match(tree(),/Con Otra persona/);assert.equal(field('Producción o uso previsto').props.value,'Borrador que debe sobrevivir');fail=false;
  act(()=>renderer.unmount());assert.equal(intervals.size,0,'polling stopped on unmount');
  // Assigned returners see Return but cannot edit/cancel another person's booking.
  context.user_id='11';reservations=[{...record,status:'checked_out',custodian_user_id:'11',custodian_name:'Sonido'}];
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});act(()=>button('Calendario y reservas').props.onClick());
  assert(button('Registrar devolución'));assert(!button('Editar reserva'));assert(!button('Cancelar reserva'));act(()=>renderer.unmount());
- // Exercise category editor wiring and subsequent reload without shared Editor
- // implementation or HTTP. API/database persistence is tested in the API suite.
+ // Exercise category and storage-manager wiring without the shared Editor
+ // implementation. API/database persistence is tested in the API suite.
  context.role='management';context.can_manage=true;items=equipment;
  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
  act(()=>button('Agregar categoría').props.onClick());
  categories=[...categories,{id:'3',name:'Accesorios nuevos',active:true}];
  await act(async()=>{await renderer.root.findByType(MockEditor).props.save({name:'Accesorios nuevos',active:'true'});});
  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories');assert.equal(writes.at(-1)!.method,'POST');assert.equal(writes.at(-1)!.body.active,true);assert(button('Accesorios nuevos'));
+ // The production Editor closes only after releasing its own pending state.
+ // This minimal mock does not implement that behavior, so emulate its close.
+ act(()=>renderer.root.findByType(MockDialog).props.close());
  act(()=>button('Accesorios nuevos').props.onClick());categories=categories.map(c=>c.id==='3'?{...c,name:'Accesorios archivados',active:false}:c);
  await act(async()=>{await renderer.root.findByType(MockEditor).props.save({name:'Accesorios archivados',active:'false'});});
  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories/3');assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.active,false);assert(button('Accesorios archivados · archivada'));
- act(()=>button('Agregar equipo').props.onClick());
- const categoryField=renderer.root.findByType(MockEditor).props.fields.find((f:{key:string})=>f.key==='category_id');
- assert.deepEqual(categoryField.choices.map((c:{value:string})=>c.value),['1','2'],'archived categories excluded from new inventory forms');act(()=>renderer.unmount());assert.equal(intervals.size,0);
+ act(()=>renderer.root.findByType(MockDialog).props.close());
+ assert.match(tree(),/Ubicaciones de guardado/);assert.match(tree(),/Estante A/);assert(renderer.root.findAllByType('small').some(node=>text(node)==='1 equipo'));assert(button('Renombrar'));assert(button('Archivar'));
+ const deleteButtons=renderer.root.findAllByType('button').filter(node=>text(node)==='Eliminar');assert.equal(deleteButtons[0].props.disabled,true,'referenced templates cannot be deleted');assert.equal(deleteButtons[1].props.disabled,false,'unreferenced templates stay deletable');
+ act(()=>button('Renombrar').props.onClick());change('Nombre de la ubicación','Estante A principal');const availability=renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevas asignaciones'))!.findByType('input');act(()=>availability.props.onChange({target:{checked:false}}));await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-storage-templates/storage-a');assert.deepEqual(writes.at(-1)!.body,{name:'Estante A principal',active:false});act(()=>renderer.unmount());
+ let itemSaved=0;
+ await act(async()=>{renderer=create(<InventoryItemForm item={null} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage createStorageTemplate={async name=>(await mockApi('/api/agency/inventory-storage-templates',{name},'POST') as {template:StorageTemplate}).template} done={()=>{itemSaved++;}}/>);});
+ assert.deepEqual(field('Ubicación','select').findAllByType('option').map(option=>option.props.value),['','storage-a','storage-b'],'active templates plus custom fallback are selectable');
+ assert.deepEqual(field('Categoría','select').findAllByType('option').map(option=>option.props.value),['1','2'],'archived categories are excluded from new inventory forms');
+ change('Ubicación','storage-a','select');assert.doesNotMatch(tree(),/Ubicación personalizada/);change('Fila / posición','7');
+ change('Crear lugar','Rack C');await act(async()=>{await button('Crear lugar').props.onClick();});assert.equal(field('Ubicación','select').props.value,'storage-new','new place is selected in context');assert.equal(field('Fila / posición').props.value,'7','storage row remains free text when a template changes');
+ change('Ubicación','', 'select');assert(button('Crear lugar'));change('Ubicación personalizada','Depósito temporal');change('Fila / posición','libre');await submit();assert.equal(itemSaved,1);assert.equal(writes.at(-1)!.path,'/api/agency/inventory');assert.deepEqual(writes.at(-1)!.body.storage_template_id,null);assert.equal(writes.at(-1)!.body.storage_shelf,'Depósito temporal');assert.equal(writes.at(-1)!.body.storage_row,'libre');act(()=>renderer.unmount());assert.equal(intervals.size,0);
  // Consume the real shared SaveActions. Only dialog hooks/portal are mocked;
  // pending registration and cancellation wiring must follow each actual form.
  let closed=0;
@@ -171,7 +189,7 @@ async function run(){
  await act(async()=>{await button('Archivar equipo').props.onClick();});
  assert.equal(renderer.root.findAllByType(MockDialog).length,0);assert.match(tree(),/Equipo archivado/);
  assert.equal(writes.at(-1)!.method,'DELETE');act(()=>renderer.unmount());assert.equal(intervals.size,0);
- const css=readFileSync(new URL('../app/inventory-workspace.css',import.meta.url),'utf8');assert.match(css,/repeat\(2,minmax/);assert.match(css,/repeat\(3,minmax/);assert.match(css,/@media\(max-width:620px\)/);
- console.log('PASS: inventory UI category create/rename/archive wiring, multi-equipment/responsible editing, unavailable stock, custodian checkout, complete-return payload and retry, assigned permissions, leap/year/midnight calendar boundaries, recorded location, visible 30-second polling, no overlap/flicker/draft reset and offline staleness. API/Editor mocked; browser layout not visually inspected.');
+ const css=readFileSync(new URL('../app/inventory-workspace.css',import.meta.url),'utf8');assert.match(css,/repeat\(2,minmax/);assert.match(css,/repeat\(3,minmax/);assert.match(css,/@media\(max-width:620px\)/);assert.match(css,/\.inventory-toolbar\{display:grid/);assert.match(css,/\.inventory-toolbar-meta\{grid-column:1\/-1;display:flex/);assert.match(css,/\.inventory-toolbar \.inventory-filters\{grid-template-columns:minmax\(0,1fr\) minmax\(150px,220px\)/);assert.match(css,/\[role=\"group\"\] button\{width:44px;min-width:44px;min-height:44px/);assert.match(css,/\.inventory-storage-field\{display:grid/);
+ console.log('PASS: inventory storage template selection/custom fallback/create/payload and manager permissions/deletion state; compact responsive toolbar, accessible tabs, live count, and 44px view controls; multi-equipment reservation, full returns, polling, and reservation retries stay intact. API/Editor mocked; browser layout not visually inspected.');
 }
 void run();

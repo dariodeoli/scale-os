@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+
+const registration=readFileSync(new URL('../app/registro/page.tsx',import.meta.url),'utf8');
+assert(registration.includes('Empecemos con tu identidad.'),'registration starts with identity selection');
+assert(registration.includes('Configurá tu agencia.'),'agency is collected after email');
+assert(registration.includes('Protegé tu acceso.'),'password is collected in its own final step');
+assert(registration.includes('GoogleSignIn'),'registration uses the shared Google entry component');
+assert(registration.indexOf('GoogleSignIn onClick={continueWithGoogle}')<registration.indexOf('Nombre de tu agencia'),'Google starts before agency fields');
+assert(registration.includes("window.location.assign('https://admin.scaleparaguay.com/api/auth/google/start?signup=1')"),'Google start sends identity-only signup intent');
+assert(!registration.includes("company:company.trim(),currency,consent:'1'"),'Google OAuth start does not receive company or consent metadata');
+assert(registration.includes("params.get('pendingRegistration')"),'Google callback resumes registration at agency step');
+assert(registration.includes("setGoogleTicket(pending);setStep(2)"),'pending Google registration opens step 2');
+assert(registration.includes("'/core-api/api/auth/google/registration/complete'"),'agency details complete through the pending-registration endpoint');
+assert(registration.includes("JSON.stringify({ticket:googleTicket,company:company.trim(),currency,consent:true})"),'completion submits the ticket and required agency fields without an email override');
+assert(registration.includes('PasswordField'),'registration uses the shared revealable password field');
+const demo=readFileSync(new URL('../app/demo/page.tsx',import.meta.url),'utf8');
+assert(demo.includes('/produccion?demoWelcome=1'),'a started demo opens the workspace welcome overlay');
+assert(!demo.includes('Tu Demo es privado, dura hasta 24 horas'),'verbose demo notice is not left on the loading page');
+console.log('PASS: progressive registration and direct Demo entry stay compact and reusable');

@@ -7,8 +7,8 @@
 .dialog-body .ops-select-trigger>svg{flex:none}
 
 @media(max-width:760px){
- .login-page{padding:16px;min-height:100dvh}
- .login-page .login-card{padding:24px 20px}
+ .login-page{padding:16px}
+ .login-page .login-card{max-block-size:calc(100vh - 32px);max-block-size:calc(100dvh - 32px);padding:24px 20px}
  .login-card input,.dialog-body input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=hidden]),
  .dialog-body textarea,.dialog-body select{
   min-width:0;max-width:100%;font-size:16px;min-height:44px;
@@ -18,3 +18,6 @@
  .dialog-body .ops-select-trigger{min-height:44px}
  .login-card .primary,.login-card .secondary,.login-card .google-login-button{min-height:44px;max-width:100%;white-space:normal}
 }
+
+/* Mobile form controls remain comfortably tappable without widening their dialogs. */
+@media(max-width:760px){.dialog-body :is(button.icon-button,.text-button,.secondary){min-width:44px;min-height:44px}.dialog-body .form-stack>label{gap:8px}.dialog-body input::placeholder,.dialog-body textarea::placeholder{color:var(--text-subtle,var(--text-muted));opacity:.82}.login-page .login-card{border:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-card)}}

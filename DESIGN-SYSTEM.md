@@ -48,6 +48,12 @@ La base visual común vive en `app/ui-system.css`, cargada desde el layout raíz
 
 Para colecciones que ofrecen cuadrícula y lista se usa ViewToggle: un control segmentado compacto con icono de cuadrícula e icono de lista. No se colocan las palabras “Cuadrícula” o “Lista” dentro del control. Cada botón conserva aria-label, title y aria-pressed; la opción activa usa el color de marca y la preferencia se guarda por persona en su navegador. El patrón usa tokens semánticos y funciona sobre temas claros u oscuros.
 
+## Identificación de inventario
+
+Cada unidad de inventario recibe un código visual estable `SC-000001`, derivado de su ID numérico inmutable. Se muestra bajo el nombre en tarjetas, en el editor existente y se incluye en búsquedas. La etiqueta usa Code 39, impreso con nombre, categoría, serie/IMEI cuando exista y última ubicación registrada. El botón «Etiqueta» no cambia datos: abre la vista de impresión de una única unidad. No reutilizar códigos archivados ni permitir que una etiqueta sustituya la serie, IMEI, custodio, reserva o verificación física.
+
+En lista se priorizan tres columnas: identidad y estado, ubicación/trazabilidad y acciones. Las tarjetas mantienen los mismos datos, pero agrupan metadatos secundarios para evitar filas dispersas. A 820 px o menos, la lista vuelve a una columna legible sin esconder información.
+
 ## Tokens
 
 Espaciado: 4, 8, 12, 16, 20 y 24 px (`--ui-space-1` a `--ui-space-6`). Controles de 40 px en escritorio y 44 px en móvil; inputs móviles de 16 px para evitar zoom involuntario. Paneles: padding de 20 px, 16 px en móvil. Tarjetas: 16 px, 14 px en móvil. El tablero y los controles de arrastre mantienen su distribución especializada.

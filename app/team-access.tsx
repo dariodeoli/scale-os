@@ -4,12 +4,27 @@ import {api,Dialog,Editor} from './operations';
 import {MemberActions} from './suite';
 import {completeSave} from './save-completion';
 import {TeamMember,teamRoleLabels} from './team-directory';
+import './team-access.css';
+
+type AccessState={label:string;className:string};
+const accessState=(member:TeamMember|null):AccessState=>{
+ if(!member)return {label:'Sin acceso al panel',className:'is-none'};
+ if(member.removed_at)return {label:'Acceso retirado',className:'is-removed'};
+ if(!member.active)return {label:'Acceso suspendido',className:'is-suspended'};
+ return {label:'Acceso habilitado',className:'is-active'};
+};
+
 export function TeamAccess({member,email,role,currentEmail,refresh,ambiguous=false}:{member:TeamMember|null;email:string|null;role:string;currentEmail:string;refresh:()=>Promise<void>;ambiguous?:boolean}){
  const [invite,setInvite]=useState(false);
  const manage=['owner','admin'].includes(role)&&(!ambiguous||Boolean(member));
- const state=member?member.removed_at?'Acceso retirado':member.active?'Acceso habilitado':'Acceso suspendido':'Sin acceso al panel';
- return <div className="team-access"><p><strong>{state}</strong>{member&&<> · {teamRoleLabels[member.role]||member.role}</>}</p>
- {manage&&member&&!member.removed_at?<MemberActions member={member} currentEmail={currentEmail} role={role} refresh={refresh}/>:manage&&email?<button type="button" className="text-button" onClick={()=>setInvite(true)}>{member?.removed_at?'Volver a invitar':'Invitar al panel'}</button>:null}
- {invite&&<Dialog title="Invitar a esta empresa" close={()=>setInvite(false)}><p>Se habilitará el acceso y se enviará una invitación al correo indicado. Los datos del perfil y los pagos se conservan.</p><Editor fields={[{key:'email',label:'Correo del integrante',type:'email'},{key:'role',label:'Permiso de acceso',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))}]} defaults={{email:email||'',role:'viewer'}} label="Habilitar y enviar invitación" save={async values=>{await api('/api/agency/members',values);await completeSave(()=>setInvite(false),refresh);}}/></Dialog>}
- </div>;
+ const state=accessState(member);
+ const canInvite=manage&&Boolean(email)&&(!member||Boolean(member.removed_at));
+ return <section className="team-access" aria-label="Acceso al panel">
+  <header className="team-access-header"><h3>Acceso al panel</h3><span className={`team-access-status ${state.className}`} data-access-state={state.className.slice(3)}>{state.label}</span></header>
+  <div className="team-access-actions">
+   {manage&&member&&!member.removed_at?<MemberActions member={member} currentEmail={currentEmail} role={role} refresh={refresh}/>:null}
+   {canInvite?<button type="button" className="secondary" onClick={()=>setInvite(true)}>{member?.removed_at?'Reinvitar':'Invitar al panel'}</button>:null}
+  </div>
+  {invite&&<Dialog title={member?.removed_at?'Reinvitar al panel':'Invitar al panel'} close={()=>setInvite(false)}><div className="team-access-dialog"><Editor fields={[{key:'email',label:'Correo del integrante',type:'email'},{key:'role',label:'Permiso de acceso',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))}]} defaults={{email:email||'',role:'viewer'}} label="Enviar invitación" save={async values=>{await api('/api/agency/members',values);await completeSave(()=>setInvite(false),refresh);}}/></div></Dialog>}
+ </section>;
 }

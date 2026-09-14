@@ -1,13 +1,20 @@
-.financial-forecast .panel-heading{gap:1rem;flex-wrap:wrap}
-.financial-forecast .panel-heading label{display:flex;gap:.5rem;align-items:center;font-size:.8rem;flex-wrap:wrap;min-width:0;max-width:100%}
-.financial-forecast input{max-width:min(100%,12rem);min-width:0;min-height:2.75rem}
-.forecast-currencies{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.75rem;margin-block:1rem}
-.forecast-currency{border:1px solid var(--line);border-radius:12px;padding:1rem;min-width:0}
-.forecast-currency>span{font-size:.8rem;color:var(--text-muted)}
-.forecast-currency>strong{display:block;font-size:1.35rem;margin-block:.4rem;overflow-wrap:anywhere}
-.forecast-currency dl{margin:0;font-size:.8rem}
-.forecast-currency dl>div{display:flex;justify-content:space-between;gap:1rem;margin-top:.5rem;flex-wrap:wrap}
-.forecast-currency dd{margin:0;font-variant-numeric:tabular-nums}
+.financial-forecast .panel-heading{gap:var(--ui-space-3);flex-wrap:wrap}
+.financial-forecast .panel-heading label{display:flex;align-items:center;gap:var(--ui-space-2);min-width:0;max-width:100%;font-size:.8rem;font-weight:600;color:var(--text-subtle);flex-wrap:wrap}
+.financial-forecast input{max-width:min(100%,12rem);min-width:0;min-height:var(--ui-control-height)}
+.forecast-currencies{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--ui-space-3);margin-block:var(--ui-space-4)}
+.forecast-currency{display:grid;gap:var(--ui-space-2);min-width:0;padding:var(--ui-card-padding);border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--surface-raised);box-shadow:var(--shadow-xs)}
+.forecast-currency>span{font-size:.75rem;font-weight:700;letter-spacing:.055em;text-transform:uppercase;color:var(--text-subtle)}
+.forecast-currency>strong{display:block;margin:0;color:var(--text-strong);font-size:1.5rem;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.forecast-currency dl{display:grid;gap:var(--ui-space-2);margin:var(--ui-space-1) 0 0;font-size:.8rem}
+.forecast-currency dl>div{display:flex;justify-content:space-between;gap:var(--ui-space-3);padding-top:var(--ui-space-2);border-top:1px solid var(--border-subtle);flex-wrap:wrap}
+.forecast-currency dd{margin:0;color:var(--text-strong);font-weight:700;font-variant-numeric:tabular-nums}
+.forecast-currency dt{color:var(--text-subtle)}
 .forecast-currency dt,.forecast-currency dd{min-width:0;max-width:100%;overflow-wrap:anywhere}
-.financial-forecast details{font-size:.8rem;color:var(--text-muted)}
-.financial-forecast summary{cursor:pointer;min-height:2.75rem;align-content:center}
+.financial-forecast details{overflow:hidden;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--surface-sunken);font-size:.8rem;color:var(--text-subtle)}
+.financial-forecast summary{min-height:var(--ui-control-height);padding-inline:var(--ui-space-3);cursor:pointer;align-content:center;font-weight:600;color:var(--text-strong)}
+.financial-forecast details[open] summary{border-bottom:1px solid var(--border-subtle)}
+.financial-forecast details>*:not(summary){margin-inline:var(--ui-space-3)}
+
+/* Financial forecast: compact, tabular amounts with a stable comparison rhythm. */
+.financial-forecast{display:grid;gap:12px}.financial-forecast .panel-heading{margin-bottom:0;padding-bottom:10px;border-bottom:1px solid var(--border-subtle,var(--line))}.financial-forecast .panel-heading label{min-height:38px;padding:0 10px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;background:var(--surface-sunken,var(--surface-subtle))}.financial-forecast input{min-height:34px;border-radius:6px;background:var(--surface-raised,var(--surface))}.forecast-currencies{gap:12px;margin-block:0}.forecast-currency{padding:14px;border-radius:10px;background:linear-gradient(180deg,var(--surface-raised,var(--surface)),var(--surface-subtle,#fbfafc));box-shadow:var(--shadow-xs)}.forecast-currency>strong{font-size:clamp(21px,2vw,26px);letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.forecast-currency dl{gap:0}.forecast-currency dl>div{min-height:32px;align-items:center;padding-block:7px}.financial-forecast details{border-radius:8px;background:var(--surface-sunken,var(--surface-subtle))}.financial-forecast summary{min-height:38px}
+@media(max-width:620px){.financial-forecast .panel-heading label{min-height:44px;width:100%}.financial-forecast input{min-height:38px;flex:1}.financial-forecast summary{min-height:44px}.forecast-currency{padding:13px}}

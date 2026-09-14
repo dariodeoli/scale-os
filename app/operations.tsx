@@ -11,12 +11,13 @@ import { X, Plus, MessageSquare, Building2 } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
 import {ProfilePhoto} from './profile-photo';
 import {DriveLinkNote} from './drive-link';
+import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
 import {PhotoViewer} from './photo-viewer';
 import {ActorIdentity} from './actor-identity';
-import {CommentComposer} from './comment-composer';
+import {CommentBody,CommentComposer} from './commenting';
 import {notifyMutation} from './feedback';
-import {teamDirectory,TeamMember,ArchivedProfile} from './team-directory';
+import {teamDirectory,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
 import {TeamAccess} from './team-access';
 import {dataFetch} from './data-cache';
 
@@ -99,7 +100,9 @@ export function Editor({
     const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null].filter(Boolean).join(' ')||undefined;
     return <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
       {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
-        {f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.key==='drive_links'?'Un enlace por línea…':undefined} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>} 
+        {f.key==='drive_links' ? (
+          <DriveLinksInput value={form.watch(f.key)||''} disabled={pending} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
@@ -116,7 +119,12 @@ export function Editor({
         setSavingNow(true);
         setError("");
         try {
-          await save(v);
+          const values:Record<string,unknown>={...v};
+          if(typeof values.drive_links==='string')values.drive_links=parseDriveLinksText(values.drive_links);
+          // `drive_links` is normalized to structured link objects just before
+          // sending it to the API. Keep the public Editor contract string-based
+          // so every existing form remains simple and type-safe.
+          await save(values as unknown as Record<string, string>);
           if(resetOnSave)form.reset(defaults);
           // Most existing editors close in their own success callback. Only
           // simple edit dialogs opt in; multi-action detail drawers stay open.
@@ -399,7 +407,7 @@ export function OperationsWorkspace({
           <p>Cargando…</p>
         ) : mode === "people" ? (
           <div className="ops-grid">
-            {visiblePeople.map((entry) => {const p=entry.profile;return p?(
+            {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
               <article className="ops-card ops-person-card" key={p.id}>
                 <div className="ops-person">
                   {p.photo_url ? (
@@ -409,13 +417,9 @@ export function OperationsWorkspace({
                   )}
                   <div>
                     <h3>{p.full_name}</h3>
-                    <small>
-                      {p.job_title || "Sin cargo"} ·{" "}
-                      {p.active ? "Activo" : "Inactivo"}
-                    </small>
+                    <small>{p.email || "Sin correo de contacto"} · {accessRole} · {accessState}</small>
                   </div>
                 </div>
-                <p>{p.email || "Sin correo de contacto"}</p>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
                 <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} currentEmail={currentEmail} refresh={load}/>
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
@@ -432,7 +436,7 @@ export function OperationsWorkspace({
                   <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
                 </div>
               </article>
-            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt="" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}}/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||entry.member!.email}</h3><small>{entry.archivedProfileId?'Perfil en Papelera':'Sin ficha laboral'}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
+            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt="" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}}/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||'Integrante sin ficha'}</h3><small>{entry.member!.email} · {accessRole} · {accessState}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
             {!visiblePeople.length && (
               <p className="empty-copy">
                 {search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}
@@ -549,7 +553,7 @@ export function OperationsWorkspace({
           </p>
           {!person&&seedEmail&&<p className="form-note">El nombre y la foto se toman de su perfil personal. Esta ficha agrega datos laborales, no requiere registrarse de nuevo.</p>}
           {!person&&members.find(member=>member.email===seedEmail)?.photo_url&&<PhotoViewer photo={members.find(member=>member.email===seedEmail)!.photo_url!} name={personDefaults.full_name}/>}
-          {person&&<ProfilePhoto key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
+          {person&&<ProfilePhoto compact key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
             const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
             await load();setEdit(result.collaborator);
           }}/>}
@@ -834,7 +838,7 @@ export function ProjectComments({
             {comments.map((c) => (
               <article className="ops-comment" key={c.id}>
                 <ActorIdentity name={c.actor_name||c.author_email||'Integrante'} photoUrl={c.actor_photo_url} verified={c.actor_verified===true} timestamp={c.created_at}/>
-                <p>{c.body}</p>
+                <CommentBody value={c.body}/>
               </article>
             ))}
             {!comments.length && (
@@ -845,7 +849,15 @@ export function ProjectComments({
             )}
           </div>
           {error && <p className="error">{error}</p>}
-          {role !== "viewer" && <CommentComposer onSubmit={async value=>{await api(`/api/agency/projects/${projectId}/comments`,value);await load();}}/>}
+          {role !== "viewer" && (
+            <CommentComposer
+              label="Comentario"
+              save={async (body,mentionedUserIds) => {
+                await api(`/api/agency/projects/${projectId}/comments`, {body,mentioned_user_ids:mentionedUserIds});
+                await load();
+              }}
+            />
+          )}
         </Dialog>
       )}
     </>
@@ -865,10 +877,13 @@ export function CompanySelector({ name }: { name: string }) {
     const load=(initial=false)=>{const version=++generation;void api<{ organizations: typeof companies; defaultOrganizationId?:string|number|null }>("/api/auth/organizations")
       .then((d) => {
         if(!alive||version!==generation)return;
-        setCompanies(d.organizations);
-        setPreferred(d.defaultOrganizationId?String(d.defaultOrganizationId):null);
+        // A demo is an isolated session opened only from the public landing.
+        // It is never a company the person can browse to from a real workspace.
+        const realCompanies=d.organizations.filter(company=>!company.isDemo);
+        setCompanies(realCompanies);
+        setPreferred(d.defaultOrganizationId&&realCompanies.some(company=>String(company.id)===String(d.defaultOrganizationId))?String(d.defaultOrganizationId):null);
         if (
-          initial && d.organizations.length > 1 &&
+          initial && realCompanies.length > 1 &&
           !d.defaultOrganizationId &&
           !sessionStorage.getItem("scale_company_selected")
         )

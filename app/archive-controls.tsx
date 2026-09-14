@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {api,Dialog} from './operations';
 import {ActorIdentity} from './actor-identity';
+import {Trash2} from 'lucide-react';
 
 const roles:Record<string,string[]>={
  members:['owner','admin'],
@@ -21,7 +22,7 @@ export function RemoveRecord({kind,id,name,role,done}:{kind:string;id:string;nam
  const [open,setOpen]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  if(!roles[kind]?.includes(role))return null;
  const access=kind==='members';
- return <><button className="text-button record-remove" onClick={()=>{setError('');setOpen(true);}}>{access?'Quitar acceso':'Eliminar'}</button>
+ return <><button className="icon-button record-remove" type="button" title={access?'Quitar acceso':'Mover a la papelera'} aria-label={`${access?'Quitar acceso':'Mover a la papelera'}: ${name}`} onClick={()=>{setError('');setOpen(true);}}><Trash2 size={16}/></button>
  {open&&<Dialog title={access?'Quitar acceso o invitación':'Mover a la papelera'} close={()=>{if(!busy)setOpen(false);}}>
   <p><strong>{name}</strong></p>
   <p>{access?'Esta persona dejará de entrar a esta empresa, incluso con Google. Sus sesiones se cerrarán. No se borrarán sus comentarios, pagos ni su acceso a otras empresas. Podés invitarla nuevamente desde Equipo.':'Se quitará de las vistas activas. Podés recuperarlo desde Papelera; los pagos, comprobantes y la auditoría se conservan.'}</p>
@@ -31,7 +32,7 @@ export function RemoveRecord({kind,id,name,role,done}:{kind:string;id:string;nam
   {kind==='collaborators'&&<p className="form-note">Esto retira el perfil del colaborador, no su acceso. Para revocar el acceso usá Equipo.</p>}
   {kind==='inventory'&&<p className="form-note">Archivar no equivale a dar de baja un activo: no modifica su valor patrimonial.</p>}
   {error&&<p className="error" role="alert">{error}</p>}
-  <div className="inline-actions"><button className="secondary" disabled={busy} onClick={()=>setOpen(false)}>Cancelar</button><button className="primary" disabled={busy} onClick={async()=>{setBusy(true);try{await api(`/api/agency/${kind}/${id}`,{},'DELETE');await done();setOpen(false);}catch(e){setError(errorMessage(e));}finally{setBusy(false);}}}>{busy?'Procesando…':access?'Confirmar: quitar acceso':'Confirmar: mover a papelera'}</button></div>
+  <div className="inline-actions"><button className="secondary" disabled={busy} onClick={()=>setOpen(false)}>Cancelar</button><button className="secondary danger" disabled={busy} onClick={async()=>{setBusy(true);try{await api(`/api/agency/${kind}/${id}`,{},'DELETE');await done();setOpen(false);}catch(e){setError(errorMessage(e));}finally{setBusy(false);}}}>{busy?'Procesando…':access?'Confirmar: quitar acceso':'Confirmar: mover a papelera'}</button></div>
  </Dialog>}</>;
 }
 

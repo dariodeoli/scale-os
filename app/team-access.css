@@ -1,0 +1,10 @@
+.team-access{display:grid;gap:10px;padding:12px 0 0;border-top:1px solid var(--border-subtle,var(--line))}
+.team-access-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.team-access-header h3{margin:0;color:var(--text);font-size:13px;letter-spacing:-.015em}
+.team-access-status{display:inline-flex;align-items:center;min-height:24px;max-width:60%;padding:3px 8px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-subtle);color:var(--text-muted);font-size:11px;font-weight:700;line-height:1.2;text-align:right}
+.team-access-status.is-active{border-color:#138366;background:#e8f6ef;color:#125e42}.team-access-status.is-suspended{border-color:#b42318;background:#fef0ef;color:#8d1812}.team-access-status.is-removed{border-color:#b77524;background:#fff3df;color:#75410b}
+.team-access-actions{display:flex;flex-wrap:wrap;gap:8px}.team-access-actions button{min-height:44px}.team-access-actions .member-actions{display:flex;flex-wrap:wrap;gap:8px}
+.team-access-dialog{display:grid;gap:14px}.team-access-dialog .ops-form-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:end}.team-access-dialog .dialog-actions{margin:0;justify-content:flex-start}.team-access-dialog .dialog-actions>.primary{min-height:44px}
+.team-access :focus-visible{outline:2px solid var(--brand-700);outline-offset:2px}.team-access button{transition:transform 160ms ease-out,opacity 160ms ease-out}.team-access button:active:not(:disabled){transform:scale(.98)}
+@media(max-width:540px){.team-access-dialog .ops-form-grid{grid-template-columns:1fr}.team-access-actions,.team-access-actions .member-actions{width:100%}.team-access-actions button{flex:1 1 160px}}
+@media(prefers-reduced-motion:reduce){.team-access button{transition:opacity 120ms ease-out}.team-access button:active:not(:disabled){transform:none}}

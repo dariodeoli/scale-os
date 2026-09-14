@@ -45,6 +45,14 @@ test('actual company loader renders settings before a slow/failed rate request a
  }
 });
 
+test('exchange rate editor uses whole PYG values and rejects implausible values before writing',()=>{
+ const source=readFileSync(new URL('../app/suite.tsx',import.meta.url),'utf8');
+ assert(source.includes("const validPygRate=(value:unknown)=>{const rate=Number(value);return Number.isSafeInteger(rate)&&rate>=1000&&rate<=100000;}"));
+ assert(source.includes("{key:'usd_to_pyg',label:'Guaraníes por dólar',type:'money'"));
+ assert(source.includes("Ingresá una cotización entera entre G. 1.000 y G. 100.000 por USD."));
+ assert(source.includes("G. {formatPygRate(r.usd_to_pyg)}/USD"));
+});
+
 test('navigation prefetch requires operational access and visible role, and scope invalidation uses layout phase',()=>{
  const {ast,fn}=component('scale-workspace.tsx','Home');
  const prefetch=fn.body!.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='prefetchSection')!;

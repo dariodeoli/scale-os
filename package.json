@@ -1,19 +1,31 @@
 {
   "name": "scale-os",
   "private": true,
-  "version": "0.1.0",
-  "overrides": { "postcss": "8.5.28", "@prisma/config": { "deepmerge-ts": "8.0.0", "effect": "3.20.0" } },
+  "version": "1.0.44",
+  "overrides": {
+    "postcss": "8.5.28",
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.0",
+      "effect": "3.20.0"
+    }
+  },
   "scripts": {
+    "release:sync": "node build-tools/sync-release-version.mjs",
+    "release:check": "node build-tools/sync-release-version.mjs --check",
+    "release:smoke": "node build-tools/release-smoke.mjs",
+    "release:patch": "node build-tools/release-patch.mjs",
     "footer:sync": "tsx build-tools/sync-landing-footer.tsx",
     "footer:check": "tsx build-tools/sync-landing-footer.tsx --check",
     "predev": "npm run footer:sync",
-    "prebuild": "npm run footer:sync",
+    "prebuild": "npm run release:sync && npm run footer:sync",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test:docker-build-secrets": "node tests/docker-build-secrets.test.mjs",
+    "test:release-regression": "node tests/release-version.test.mjs && tsx tests/data-loading-cache.test.ts && tsx tests/mobile-workspace-layout.test.ts && tsx tests/mobile-navigation.test.tsx && tsx tests/landing-routing.test.ts && node tests/registration-flow.test.mjs && node tests/release-regression-audit.test.mjs && npm run test:docker-build-secrets"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

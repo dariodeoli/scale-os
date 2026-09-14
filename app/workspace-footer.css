@@ -1,8 +1,13 @@
-.workspace-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 20px;padding-block:20px;margin-top:28px;border-top:1px solid var(--line);font-size:11px;color:var(--text-muted);line-height:1.6;min-width:0;overflow-wrap:anywhere}
-.workspace-footer a{color:inherit;text-underline-offset:3px}
-.workspace-footer .usage-disclosure{width:100%;font-size:11px;color:inherit;line-height:1.6;margin-block:8px}
+.workspace-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;padding-block:16px 4px;margin-top:24px;border-top:1px solid var(--line);font-size:11px;color:var(--text-muted);line-height:1.55;min-width:0;overflow-wrap:anywhere}
+.workspace-footer a{color:inherit;text-decoration-color:var(--line-strong);text-underline-offset:3px;transition:color var(--ease),text-decoration-color var(--ease)}
+.workspace-footer a:hover{color:var(--brand-700);text-decoration-color:currentColor}
+.workspace-footer .usage-disclosure{width:100%;max-width:88ch;font-size:11px;color:inherit;line-height:1.55;margin:4px 0 0}
 /* Access screens load the same footer styles even without workspace modules. */
-:is(.login-card,.registration-card) .workspace-footer{font-size:12px;color:var(--text-muted);gap:10px;padding-block:20px 0}
+:is(.login-card,.registration-card) .workspace-footer{font-size:12px;color:var(--text-muted);gap:10px;padding-block:20px 0;margin-top:24px}
 :is(.login-card,.registration-card) .workspace-footer>span{flex-basis:100%}
 :is(.login-card,.registration-card) .workspace-footer .usage-disclosure{font-size:12px;margin:0}
 :is(.login-card,.registration-card) .workspace-footer a{display:inline-flex;align-items:center;min-height:44px}
+
+/* A quiet closing edge keeps the operational canvas focused without losing trust links. */
+.control-shell .workspace-footer{align-items:center;gap:8px 20px;margin-top:32px;padding:14px 0 max(12px,env(safe-area-inset-bottom));border-top-color:var(--border-subtle);font-size:11px}.control-shell .workspace-footer>span:first-child{font-weight:600;color:var(--text-subtle)}.control-shell .workspace-footer .usage-disclosure{order:3;max-width:96ch;margin:0;color:var(--text-muted);font-size:10px;line-height:1.5}.control-shell .workspace-footer a{color:var(--brand-700);font-weight:600;text-decoration-color:color-mix(in srgb,var(--brand-600) 32%,transparent)}.control-shell .workspace-footer a:hover{color:var(--brand-800,var(--brand-700));text-decoration-color:currentColor}
+@media(max-width:760px){.control-shell .workspace-footer{margin-top:24px;padding-bottom:max(16px,env(safe-area-inset-bottom));gap:6px 12px}.control-shell .workspace-footer .usage-disclosure{font-size:10px}}

@@ -1,3 +1,9 @@
 "use client";
-import {useState} from 'react';
-export default function DemoStart(){const [busy,setBusy]=useState(false),[error,setError]=useState('');return <main style={{maxWidth:600,margin:'8vh auto',padding:24}}><img src="/brand/icon-192.png" width={56} height={56} alt="Scale OS"/><h1>Tu agencia de prueba, lista.</h1><p>20 clientes ficticios, 5 colaboradores, 80 piezas, presupuestos y finanzas de ejemplo. Fechas actualizadas al iniciar.</p><p>Tu Demo es privado, dura hasta 24 horas y no envía correos ni usa dinero real. Cada inicio crea una experiencia nueva. Podés probar distintos permisos desde el panel.</p>{error&&<p role="alert">{error}</p>}<button className="primary" disabled={busy} onClick={async()=>{setBusy(true);try{const r=await fetch('/core-api/api/demo/start',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const data=await r.json();if(!r.ok)throw Error(data.error);window.location.assign('/produccion');}catch(e){setError(e instanceof Error?e.message:'No se pudo iniciar');setBusy(false);}}}>{busy?'Preparando tu Demo…':'Entrar al Demo interactivo'}</button><p><a href="https://sistema.scaleparaguay.com/">Volver a Scale OS</a></p></main>;}
+import {useEffect,useRef,useState} from 'react';
+
+export default function DemoStart(){
+ const [error,setError]=useState(''),[busy,setBusy]=useState(true),started=useRef(false);
+ const start=async()=>{setBusy(true);setError('');try{const response=await fetch('/core-api/api/demo/start',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),data=await response.json().catch(()=>null);if(!response.ok)throw Error(data?.error||'No se pudo iniciar el Demo.');window.location.assign('/produccion?demoWelcome=1');}catch(cause){setError(cause instanceof Error?cause.message:'No se pudo iniciar el Demo.');setBusy(false);}};
+ useEffect(()=>{if(!started.current){started.current=true;void start();}},[]);
+ return <main className="demo-start-page" aria-busy={busy}><section className="demo-start-status"><img src="/brand/icon-192.png" width={42} height={42} alt="Scale OS"/><p>{busy?'Preparando tu Demo…':'No pudimos abrir el Demo.'}</p>{error&&<><p role="alert" className="error">{error}</p><button className="primary" type="button" onClick={()=>void start()}>Reintentar</button></>}</section></main>;
+}

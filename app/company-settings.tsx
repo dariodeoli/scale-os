@@ -14,7 +14,7 @@ export function CompanySettings(){
  const [attempt,setAttempt]=useState(0);
  const mounted=useRef(false),locked=useRef(false);
  useEffect(()=>{const refresh=()=>setAttempt(value=>value+1);window.addEventListener('scale:default-company-changed',refresh);return()=>window.removeEventListener('scale:default-company-changed',refresh);},[]);
- useEffect(()=>{mounted.current=true;let active=true;void api<Companies>('/api/auth/organizations').then(value=>{if(active)setData(value);}).catch(e=>{if(active)setError(e instanceof Error?e.message:'No se pudieron cargar tus empresas.');});return()=>{active=false;mounted.current=false;};},[attempt]);
+ useEffect(()=>{mounted.current=true;let active=true;void api<Companies>('/api/auth/organizations').then(value=>{if(!active)return;const organizations=value.organizations.filter(company=>!company.isDemo);const defaultOrganizationId=organizations.some(company=>String(company.id)===String(value.defaultOrganizationId))?value.defaultOrganizationId:null;setData({...value,organizations,defaultOrganizationId});}).catch(e=>{if(active)setError(e instanceof Error?e.message:'No se pudieron cargar tus empresas.');});return()=>{active=false;mounted.current=false;};},[attempt]);
  async function choose(company:Company,asDefault:boolean){
   if(locked.current)return;
   locked.current=true;setBusy(true);setError('');setNotice('');
@@ -29,22 +29,22 @@ export function CompanySettings(){
   finally{locked.current=false;if(mounted.current)setBusy(false);}
  }
  return <div className="company-settings" aria-busy={busy}>
-  <p className="form-note">Tus empresas y accesos. Elegí cuál abrir al iniciar sesión; esto no cambia tus permisos ni mezcla los datos.</p>
-  {!data&&!error&&<p role="status">Cargando tus empresas…</p>}
-  {data?.organizations.length===0&&<p>No hay empresas disponibles para esta cuenta.</p>}
+  <p className="form-note company-settings-intro">Tus empresas y accesos. Elegí cuál abrir al iniciar sesión; esto no cambia tus permisos ni mezcla los datos.</p>
+  {!data&&!error&&<p className="company-settings-feedback" role="status">Cargando tus empresas…</p>}
+  {data?.organizations.length===0&&<p className="company-settings-empty" role="status">No hay empresas disponibles para esta cuenta.</p>}
   {data?.organizations.map(company=>{
    const current=String(company.id)===String(data.currentOrganizationId),preferred=String(company.id)===String(data.defaultOrganizationId);
-   return <article className="company-settings-row" key={company.id}>
-    <Building2 size={22} aria-hidden="true"/>
-    <div className="company-settings-name"><strong>{company.name}</strong><small>{roles[company.role]||company.role}{current?' · Empresa abierta':''}{preferred?' · Predeterminada':''}</small></div>
+   return <article className={`company-settings-row${current?' is-current':''}${preferred?' is-default':''}`} key={company.id}>
+    <span className="company-settings-icon"><Building2 size={20} aria-hidden="true"/></span>
+    <div className="company-settings-name"><strong>{company.name}</strong><div className="company-settings-meta"><span>{roles[company.role]||company.role}</span>{current&&<span className="company-settings-state">Empresa abierta</span>}</div></div>
     <div className="company-settings-actions">
-     {!current&&<button className="secondary" disabled={busy} onClick={()=>void choose(company,false)}>Abrir</button>}
-     {!company.isDemo&&<button className="secondary" disabled={busy||preferred} aria-pressed={preferred} onClick={()=>void choose(company,true)}><Star size={16} aria-hidden="true"/>{preferred?'Predeterminada':'Usar al iniciar'}</button>}
+     {!current&&<button className="secondary company-settings-open" disabled={busy} onClick={()=>void choose(company,false)}>Abrir</button>}
+     {!company.isDemo&&<button className="secondary company-settings-default" disabled={busy||preferred} aria-label={preferred?'Predeterminada':'Usar al iniciar sesión'} aria-pressed={preferred} title={preferred?'Predeterminada':'Usar al iniciar sesión'} onClick={()=>void choose(company,true)}><Star size={17} fill={preferred?'currentColor':'none'} aria-hidden="true"/><span className="company-settings-sr-only">{preferred?'Predeterminada':'Usar al iniciar sesión'}</span></button>}
     </div>
    </article>;
   })}
-  {error&&<p className="error" role="alert">{error}</p>}
+  {error&&<p className="error company-settings-feedback" role="alert">{error}</p>}
   {!data&&error&&<button className="secondary" onClick={()=>{setError('');setAttempt(value=>value+1);}}>Reintentar</button>}
-  {notice&&<p role="status">{notice}</p>}
+  {notice&&<p className="company-settings-feedback" role="status">{notice}</p>}
  </div>;
 }

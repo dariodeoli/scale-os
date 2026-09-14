@@ -15,10 +15,11 @@ require.cache[id]={id,filename:id,loaded:true,exports:{api:async(path:string,bod
  return {organizations:[{id:1,name:'Agencia A',role:'owner'},{id:2,name:'Agencia B',role:'manager'},{id:3,name:'Demo',role:'owner',isDemo:true}],currentOrganizationId:1,defaultOrganizationId:1};
 }}} as NodeModule;
 const {CompanySettings}=require('../app/company-settings') as typeof import('../app/company-settings');
-test('lists accessible companies, excludes demo defaults and waits for server confirmation',async()=>{
+test('lists only real companies and waits for server confirmation',async()=>{
  let r:ReactTestRenderer;
  await act(async()=>{r=create(<CompanySettings/>);});
- assert.equal(r!.root.findAllByType('article').length,3);
+ assert.equal(r!.root.findAllByType('article').length,2);
+ assert.doesNotMatch(JSON.stringify(r!.toJSON()),/Demo/);
  const buttons=()=>r!.root.findAllByType('button');
  assert.equal(buttons().filter(b=>b.props['aria-pressed']!==undefined).length,2);
  assert.equal(buttons().find(b=>b.props['aria-pressed']===true)?.props.disabled,true);

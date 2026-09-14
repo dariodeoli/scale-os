@@ -1,17 +1,18 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {Bell} from 'lucide-react';
+import {Bell,Check,CheckCheck,CircleCheck,ExternalLink,RefreshCw,RotateCcw,Settings2} from 'lucide-react';
 import {useRouter} from 'next/navigation';
 import {api} from './operations';
 import {Dialog} from './dialog';
 import './notifications.css';
 
-type Notice={id:string;title:string;body:string;work_order_id:string|null;project_id?:string|null;read_at:string|null;resolved_at?:string|null;created_at:string};
+type Notice={id:string;kind?:'assignment'|'comment'|'due';title:string;body:string;work_order_id:string|null;project_id?:string|null;read_at:string|null;resolved_at?:string|null;created_at:string};
 type Inbox={notifications:Notice[];unread:number;pendingCount?:number;next:string|null};
 type Filter='all'|'unread'|'unresolved'|'resolved';
 const filters:{value:Filter;label:string}[]=[{value:'all',label:'Todas'},{value:'unread',label:'Sin leer'},{value:'unresolved',label:'Pendientes'},{value:'resolved',label:'Resueltas'}];
 const empty:Inbox={notifications:[],unread:0,next:null};
 const error=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudieron cargar los avisos.';
+const kindLabel=(kind:Notice['kind'])=>({assignment:'Asignación',comment:'Mención o comentario',due:'Entrega pendiente'} as Record<string,string>)[kind||'']||'Aviso';
 function dateLabel(value:string){const date=new Date(value);return Number.isFinite(date.getTime())?date.toLocaleString('es-PY'):'Fecha no disponible';}
 
 export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:string)=>void;openPreferences:()=>void}){
@@ -62,19 +63,17 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
  }
  return <>
   <button type="button" className="icon-button notification-trigger" aria-haspopup="dialog" aria-expanded={open} aria-label={`Notificaciones${!loaded?', estado no disponible':data.unread?`, ${data.unread} sin leer`:''}`} onClick={()=>setOpen(true)}><Bell size={19}/>{loaded&&data.unread>0&&<span className="notification-badge" aria-hidden="true">{data.unread>99?'99+':data.unread}</span>}</button>
-  {open&&<Dialog title="Notificaciones" close={()=>setOpen(false)} variant="drawer" busy={busy}><div className="notification-inbox">
-   <p className="form-note">Avisos para vos en esta empresa. Resolver un aviso no completa la pieza ni el proyecto.</p>
-   <p role="status">{loaded?`${data.unread} sin leer en total${typeof data.pendingCount==='number'?` · ${data.pendingCount} avisos pendientes en total`:''}`:loading?'Consultando notificaciones…':'Estado de notificaciones no disponible.'}</p>
-   <div className="notification-actions"><button type="button" className="text-button" disabled={busy} onClick={openPreferences}>Preferencias</button><button type="button" className="text-button" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')}>Marcar todas como leídas</button><button type="button" className="text-button" disabled={busy||loading} onClick={()=>void load()}>Actualizar</button></div>
+  {open&&<Dialog title="Notificaciones" close={()=>setOpen(false)} size="compact" busy={busy}><div className="notification-inbox">
+   <div className="notification-toolbar"><p role="status">{loaded?`${data.unread} sin leer${typeof data.pendingCount==='number'?` · ${data.pendingCount} pendientes`:''}`:loading?'Consultando notificaciones…':'Estado no disponible.'}</p><div className="notification-actions" aria-label="Acciones de notificaciones"><button type="button" className="icon-button" title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button><button type="button" className="icon-button notification-action-icon is-confirm" title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')}><CheckCheck size={18}/></button><button type="button" className="icon-button" title="Actualizar" aria-label="Actualizar notificaciones" disabled={busy||loading} onClick={()=>void load()}><RefreshCw size={17}/></button></div></div><p className="form-note">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
    <div className="notification-filters" role="group" aria-label="Filtrar notificaciones">{filters.map(option=><button type="button" key={option.value} className={filter===option.value?'choice active':'choice'} aria-pressed={filter===option.value} disabled={busy} onClick={()=>changeFilter(option.value)}>{option.label}</button>)}</div>
    {message&&<p role="alert">{message}</p>}
    <div aria-busy={loading||busy}>{loading?<p role="status">Cargando avisos…</p>:!data.notifications.length?<p className="empty-copy">{message?'No se pudo mostrar la lista. Intentá actualizar.':filter==='all'?'No tenés notificaciones. Acá aparecerán tus avisos de asignaciones, comentarios y entregas.':'No hay notificaciones para este filtro.'}</p>:<div className="notification-list">{data.notifications.map(notice=><article key={notice.id} className={notice.read_at?'notice':'notice unread'}>
-    <h3>{notice.title}</h3><p>{notice.body}</p><time dateTime={Number.isFinite(new Date(notice.created_at).getTime())?notice.created_at:undefined}>{dateLabel(notice.created_at)}</time>
+    <h3>{notice.title}</h3><p className="notification-kind">{kindLabel(notice.kind)}</p><p>{notice.body}</p><time dateTime={Number.isFinite(new Date(notice.created_at).getTime())?notice.created_at:undefined}>{dateLabel(notice.created_at)}</time>
     <p className="notification-state">{notice.read_at?'Leída':'Sin leer'} · {notice.resolved_at?'Resuelta':'Pendiente'}</p>
     <div className="notification-actions">
-     {(notice.work_order_id||notice.project_id)&&<button type="button" className="text-button" disabled={busy} onClick={()=>{if(locked.current)return;if(notice.read_at)visitNotice(notice);else void mutate('read',notice,true);}}>{notice.work_order_id?'Ver pieza':'Ver proyecto'}</button>}
-     {!notice.read_at&&<button type="button" className="text-button" disabled={busy} onClick={()=>void mutate('read',notice)}>Marcar como leída</button>}
-     <button type="button" className="text-button" disabled={busy} onClick={()=>void mutate(notice.resolved_at?'reopen':'resolve',notice)}>{notice.resolved_at?'Reabrir aviso':'Resolver aviso'}</button>
+     {(notice.work_order_id||notice.project_id)&&<button type="button" className="icon-button" title={notice.work_order_id?'Ver pieza':'Ver proyecto'} aria-label={`${notice.work_order_id?'Ver pieza':'Ver proyecto'}: ${notice.title}`} disabled={busy} onClick={()=>{if(locked.current)return;if(notice.read_at)visitNotice(notice);else void mutate('read',notice,true);}}><ExternalLink size={17}/></button>}
+     {!notice.read_at&&<button type="button" className="icon-button notification-action-icon is-confirm" title="Marcar como leída" aria-label={`Marcar como leída: ${notice.title}`} disabled={busy} onClick={()=>void mutate('read',notice)}><Check size={18}/></button>}
+     <button type="button" className={`icon-button notification-action-icon ${notice.resolved_at?'':'is-confirm'}`} title={notice.resolved_at?'Reabrir aviso':'Resolver aviso'} aria-label={`${notice.resolved_at?'Reabrir aviso':'Resolver aviso'}: ${notice.title}`} disabled={busy} onClick={()=>void mutate(notice.resolved_at?'reopen':'resolve',notice)}>{notice.resolved_at?<RotateCcw size={17}/>:<CircleCheck size={18}/>}</button>
     </div>
    </article>)}</div>}</div>
    {data.next&&!loading&&<button type="button" className="secondary" disabled={busy} onClick={()=>void more()}>Ver avisos anteriores</button>}
