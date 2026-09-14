@@ -85,7 +85,8 @@ export default function InvitationPage(){
    <p className="login-copy">Te invitaron a trabajar en este espacio.</p>
    <div className="invite-summary"><strong>{state.info.organization_name}</strong><span>Permiso asignado: <b>{teamRoleLabels[state.info.role]}</b></span></div>
    <p className="login-copy">{state.info.mode==='single'?'Este enlace habilita una sola cuenta.':'Podés solicitar acceso; el dueño lo aprobará antes de habilitarte.'}</p>
-   <a className="primary login-button" referrerPolicy="no-referrer" href={'https://admin.scaleparaguay.com/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
+   <p className="invite-helper">Elegí cómo querés verificar tu correo para continuar.</p>
+   <div className="invite-actions"><a className="primary login-button" referrerPolicy="no-referrer" href={'https://admin.scaleparaguay.com/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
    {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:<form className="invite-password-form" onSubmit={registerWithPassword} noValidate>
     <label>Nombre y apellido <input name="full_name" maxLength={160} autoComplete="name" placeholder="Cómo te llamamos"/></label>
     <label>Correo <input name="email" type="email" required autoComplete="email" placeholder="tu@correo.com"/></label>
@@ -94,7 +95,7 @@ export default function InvitationPage(){
     <p className="password-hint">12+ caracteres con mayúscula, minúscula, número y símbolo; sin espacios.</p>
     <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
     {passwordError&&<p className="error" role="alert">{passwordError}</p>}{passwordNotice&&<p className="success" role="status">{passwordNotice}</p>}
-   </form>}
+   </form>}</div>
   </>:<div className="auth-notice" role="status" aria-live="polite">
    <p>{notice?.message}</p>
    {state.status==='connection'&&<button type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}}>Reintentar comprobación</button>}

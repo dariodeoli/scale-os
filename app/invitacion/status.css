@@ -2,3 +2,14 @@
 .invite-link-status[data-state="ready"]{border-color:#138366;background:#e8f6ef;color:#125e42}
 .invite-link-status[data-state="expired"],.invite-link-status[data-state="revoked"],.invite-link-status[data-state="used"]{border-color:#b77524;background:#fff3df;color:#75410b}
 .invite-expiration{margin:8px 0 16px;color:var(--text-muted);font-size:13px;line-height:1.5;text-align:center;overflow-wrap:anywhere}
+.invite-page .invite-card{gap:14px;padding:clamp(20px,4vw,28px);border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-sm)}
+.invite-page .login-brand{margin-bottom:0}.invite-page .login-brand img{width:48px;height:48px}
+.invite-page .invite-eyebrow{margin-bottom:2px}.invite-page .invite-card h1{margin:0;font-size:clamp(1.35rem,1.2rem + .8vw,1.75rem);line-height:1.12;letter-spacing:-.035em}
+.invite-page .invite-link-status{margin:0 auto;padding:6px 10px;font-size:12px}.invite-page .invite-expiration{margin:-4px 0 2px;font-size:12px}
+.invite-page .login-copy{margin:0;color:var(--text-muted);font-size:14px;line-height:1.5}.invite-page .invite-summary{gap:5px;margin:0;padding:12px;border-color:var(--border-subtle,var(--line));background:var(--surface-subtle);box-shadow:var(--shadow-xs)}
+.invite-page .invite-summary strong{font-size:17px;line-height:1.25}.invite-page .invite-helper{margin:0;color:var(--text-muted);font-size:12px;line-height:1.45}.invite-page .invite-actions{display:grid;gap:8px}
+.invite-page .login-button{display:flex;align-items:center;justify-content:center;min-height:44px;margin:0;transition:transform 160ms ease-out,opacity 160ms ease-out}.invite-page .login-button:active:not(:disabled){transform:scale(.98)}
+.invite-page .invite-password-form{gap:10px;margin:0;padding-top:2px}.invite-page .invite-password-form label{gap:5px;font-size:12px}.invite-page .invite-password-form input{min-height:44px}.invite-page .password-hint{font-size:12px;line-height:1.45}.invite-page .auth-notice{display:grid;gap:12px}.invite-page .auth-notice p{margin:0;line-height:1.5}.invite-page .invite-footer{margin:4px 0 0}
+.invite-page :focus-visible{outline:2px solid var(--brand-700);outline-offset:3px}
+@media (hover:hover) and (pointer:fine){.invite-page .login-button:hover{transform:translateY(-1px)}}
+@media (prefers-reduced-motion:reduce){.invite-page .login-button{transition:opacity 120ms ease-out}.invite-page .login-button:active:not(:disabled),.invite-page .login-button:hover{transform:none}}

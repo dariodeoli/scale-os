@@ -28,9 +28,10 @@ async function run(){
  assert(workspace.includes("document.removeEventListener('visibilitychange',refresh)"));
  assert(workspace.includes("window.removeEventListener('scale:billing-refresh',refresh)"));
  const form=readFileSync(new URL('../app/registro/page.tsx',import.meta.url),'utf8');
- assert(form.includes('action="https://admin.scaleparaguay.com/api/auth/google/start"'));
- for(const input of ['signup','company','currency','consent'])assert(form.includes(`name="${input}"`));
- assert(form.includes('type="checkbox" value="1" required'));assert(form.includes('No se cobrará nada'));
+ assert(form.includes("const params=new URLSearchParams({signup:'1',company:company.trim(),currency,consent:'1'});"));
+ assert(form.includes("window.location.assign(`https://admin.scaleparaguay.com/api/auth/google/start?${params}`);"));
+ assert(form.includes("if(!consent){setError('Aceptá las condiciones de la prueba y suscripción para continuar.');return false;}"));
+ assert(form.includes('checked={consent}'));assert(form.includes('onChange={event=>setConsent(event.target.checked)}'));
  const redirect=middleware(new NextRequest('https://sistema.scaleparaguay.com/registro',{headers:{host:'sistema.scaleparaguay.com'}}));
  assert.equal(redirect.headers.get('location'),'https://app.scaleparaguay.com/registro');
  console.log('PASS: 402 invalidates private cache and signals billing refresh, workspace gating contracts, trial form consent and canonical signup routing. Not visual browser QA.');

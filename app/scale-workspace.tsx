@@ -66,6 +66,11 @@ import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from '
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
+import './settings-slice.css';
+
+export function postLoginDestination(search:string){
+  return new URLSearchParams(search).get('next')==='/superadmin'?'/superadmin':null;
+}
 
 import {
   DndContext,
@@ -1372,6 +1377,10 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const pathname=usePathname(),router=useRouter();
+  function returnToApprovedLoginDestination(){
+    const destination=postLoginDestination(window.location.search);
+    if(destination)router.replace(destination);
+  }
   const lastDataPath=useRef(pathname);
   const requestedSection=sectionLabel(pathname);
   function setActive(label:string){router.push(sectionPath(label));}
@@ -1442,6 +1451,11 @@ export default function Home() {
     return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);};
   },[]);
   const active=signedIn&&!visibleModule(requestedSection,user?.role||'viewer')?'Sin acceso':requestedSection;
+  useEffect(()=>{
+    if(!signedIn||!user)return;
+    const query=new URLSearchParams(window.location.search),billing=query.get('scaleBilling')||query.get('billing');
+    if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true);
+  },[signedIn,user?.id,user?.organization_id]);
   const activeParent=parentSection(active);
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
   const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
@@ -1537,6 +1551,7 @@ export default function Home() {
         setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
         setUser(data.user);
         setSignedIn(true);
+        returnToApprovedLoginDestination();
         if(data.user.subscription?.hasAccess!==false)return load(data.user).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
       })
       .catch(() => setSignedIn(false))
@@ -1626,6 +1641,7 @@ export default function Home() {
       setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
       setUser(data.user);
       setSignedIn(true);
+      returnToApprovedLoginDestination();
       if(data.user.subscription?.hasAccess!==false)await load(data.user);
     } catch (cause) {
       setToast(
@@ -1786,22 +1802,28 @@ export default function Home() {
             <div className="topbar-identity">
               <MobileNavigation>{sidebarContent}</MobileNavigation>
             </div>
-            <div className="topbar-company">
-              <CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>
-            </div>
-            <div className="topbar-presence" role="group" aria-label="Personas activas en el espacio">
-              <WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>
+            <div className="topbar-workspace-context">
+              <div className="topbar-company">
+                <CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>
+              </div>
+              <div className="topbar-presence" role="group" aria-label="Personas activas en el espacio">
+                <WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>
+              </div>
             </div>
           </div>
           <div className="topbar-utilities">
-            {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
-            {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
-            <WorkspaceSearch navigate={setActive} records={[
-              ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
-              ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
-              ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.effective_assignees||o.assignees||project?.assignees};}),
-            ]}/>
-            <NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/>
+            <div className="topbar-status">
+              {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
+              {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
+            </div>
+            <div className="topbar-utility-actions">
+              <WorkspaceSearch navigate={setActive} records={[
+                ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
+                ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
+                ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.effective_assignees||o.assignees||project?.assignees};}),
+              ]}/>
+              <NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/>
+            </div>
           </div>
         </div>
         <header className="workspace-page-header">
@@ -1848,12 +1870,10 @@ export default function Home() {
         {active==='Inventario'&&<InventoryWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Estudio'&&<StudioWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
-        {active==='Configuración'&&<div className="ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}<div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div></div>}
-        {active==='Preferencias'&&<section className="panel ops-stack"><h2>Preferencias de este espacio</h2>
-          <p className="form-note">Se guardan para vos en {user?.organization_name||'esta empresa'}, en este navegador.</p>
-          {preferencesReady?<SelectCustom label="Al entrar a Scale OS" value={startupChoices(user?.role||'').some(choice=>choice.value===preferences.startup)?preferences.startup:'summary'} choices={startupChoices(user?.role||'')} onChange={startup=>updatePreferences({startup:startup as StartupPreference})}/>:<p role="status">Cargando preferencias…</p>}
-          <p className="form-note">Se aplica en tu próxima entrada al inicio. Los enlaces a secciones, piezas y otros destinos conservan su destino.</p>
-          {preferenceWarning&&<p role="status" className="form-note">{preferenceWarning}</p>}
+        {active==='Configuración'&&<div className="settings-page ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}<div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div></div>}
+        {active==='Preferencias'&&<section className="panel settings-card preferences-card" aria-labelledby="workspace-preferences-title"><div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Settings size={18}/></span><div><h2 id="workspace-preferences-title">Preferencias del espacio</h2><p>Se guardan solo para vos en {user?.organization_name||'esta empresa'}, en este navegador.</p></div></div>
+          <div className="preferences-row">{preferencesReady?<SelectCustom label="Al entrar a Scale OS" value={startupChoices(user?.role||'').some(choice=>choice.value===preferences.startup)?preferences.startup:'summary'} choices={startupChoices(user?.role||'')} onChange={startup=>updatePreferences({startup:startup as StartupPreference})}/>:<p role="status">Cargando preferencias…</p>}<p className="form-note">Se aplica en tu próxima entrada al inicio. Los enlaces a secciones, piezas y otros destinos conservan su destino.</p></div>
+          {preferenceWarning&&<p role="status" className="settings-notice">{preferenceWarning}</p>}
         </section>}
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
         {active === "Resumen" && (

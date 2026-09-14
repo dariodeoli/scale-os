@@ -7,8 +7,8 @@
 .dialog-body .ops-select-trigger>svg{flex:none}
 
 @media(max-width:760px){
- .login-page{padding:16px;min-height:100dvh}
- .login-page .login-card{padding:24px 20px}
+ .login-page{padding:16px}
+ .login-page .login-card{max-block-size:calc(100vh - 32px);max-block-size:calc(100dvh - 32px);padding:24px 20px}
  .login-card input,.dialog-body input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=hidden]),
  .dialog-body textarea,.dialog-body select{
   min-width:0;max-width:100%;font-size:16px;min-height:44px;

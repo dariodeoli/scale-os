@@ -10,7 +10,7 @@ import {clientStatuses} from './client-status';
 import {ClientAppearance,ClientIdentity} from './client-identity';
 import {useEffect,useState} from 'react';
 import {DndContext,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,DragEndEvent} from '@dnd-kit/core';
-import {GripVertical,Plus,Target,CheckCircle2,Globe,Pencil} from 'lucide-react';
+import {Building2,ChartNoAxesCombined,GripVertical,Link2Off,Plus,Target,CheckCircle2,Globe,Pencil} from 'lucide-react';
 import {pipelineSummary} from './pipeline-summary';
 import './pipeline-summary.css';
 import {api,Dialog,Editor,Field,money} from './operations';
@@ -19,6 +19,7 @@ import {PlanComparison} from './plan-comparison';
 import {completeSave} from './save-completion';
 import {RemoveRecord} from './archive-controls';
 import {driveLinksText} from './drive-links';
+import './settings-slice.css';
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
 const err=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar';
@@ -74,5 +75,25 @@ export function SettingsWorkspace(){
  const {setCurrency}=useCompanyCurrency();const [settings,setSettings]=useState<Row|null>(null),[rates,setRates]=useState<Row[]>([]),[notice,setNotice]=useState('');
  useEffect(()=>{let active=true;void api<{settings:Row}>('/api/agency/settings').then(s=>{if(active)setSettings(s.settings);}).catch(e=>{if(active)setNotice(err(e));});void api<{records:Row[]}>('/api/agency/exchange-rates').then(r=>{if(active)setRates(r.records);}).catch(e=>{if(active)setNotice(err(e));});return()=>{active=false;};},[]);
  const latestRate=rates[0],rateIsValid=latestRate&&validPygRate(latestRate.usd_to_pyg);
- return <div className="ops-stack"><section className="panel"><h2>Datos de la empresa</h2><p className="form-note">La moneda predeterminada se usa al abrir nuevos formularios. No convierte importes ni cambia registros o formularios ya abiertos.</p>{notice&&<p role="status">{notice}</p>}{settings&&<Editor columns fields={[{key:'name',label:'Nombre de la empresa'},{key:'default_currency',label:'Moneda predeterminada',choices:currencies},{key:'legal_name',label:'Razón social',optional:true},{key:'tax_id',label:'RUC',optional:true},{key:'phone',label:'Teléfono',optional:true},{key:'address',label:'Dirección',optional:true,wide:true}]} defaults={Object.fromEntries(['name','legal_name','tax_id','phone','address','default_currency'].map(k=>[k,str(settings,k)]))} save={async v=>{const result=await api<{default_currency:typeof currencies[number]['value']}>('/api/agency/settings',{...v,onboarding_completed:true},'PATCH');setCurrency(result.default_currency);setSettings({...settings,...v,default_currency:result.default_currency});setNotice('Datos guardados. La moneda predeterminada se aplicará a nuevos formularios.');}}/>}</section><section className="panel"><h2>Cotización USD / PYG</h2><p className="form-note">Valor de referencia por fecha. Solo se admiten guaraníes enteros, por ejemplo G. 6.000 por USD. No modifica saldos ni convierte movimientos anteriores.</p>{latestRate&&!rateIsValid&&<p className="form-error-summary" role="alert">La cotización guardada está fuera de rango. Se preparó G. 6.000 como referencia para que la revises y guardes.</p>}<Editor columns fields={[{key:'rate_date',label:'Fecha',type:'date'},{key:'usd_to_pyg',label:'Guaraníes por dólar',type:'money',help:'Sin decimales. Referencia indicada: G. 6.000/USD.'}]} key={rates.length} defaults={{rate_date:new Date().toISOString().slice(0,10),usd_to_pyg:rateIsValid?str(latestRate!,'usd_to_pyg'):'6000'}} save={async v=>{if(!validPygRate(v.usd_to_pyg))throw Error('Ingresá una cotización entera entre G. 1.000 y G. 100.000 por USD.');await api('/api/agency/exchange-rates',{...v,usd_to_pyg:Number(v.usd_to_pyg)});setRates((await api<{records:Row[]}>('/api/agency/exchange-rates')).records);}}/>{rates.map((r,i)=>validPygRate(r.usd_to_pyg)?<p key={i}>{str(r,'rate_date')} · G. {formatPygRate(r.usd_to_pyg)}/USD</p>:null)}</section><section className="panel"><h2>Integraciones externas</h2><p>Google: acceso por invitación o por el mismo correo desde Mi perfil. Drive: enlaces a carpetas y archivos.</p><p>WhatsApp, Instagram y automatizaciones de mensajes: pendientes de conexión y permisos de Meta. No se envían mensajes desde este panel todavía.</p></section></div>;
+ return <div className="settings-slice ops-stack">
+  <section className="panel settings-card settings-company-card" aria-labelledby="company-settings-title">
+   <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Building2 size={18}/></span><div><h2 id="company-settings-title">Empresa</h2><p>Datos que identifican a esta empresa y valores predeterminados para nuevos formularios.</p></div></div>
+   {notice&&<p className="settings-notice" role="status">{notice}</p>}
+   {settings&&<Editor columns fields={[{key:'name',label:'Nombre de la empresa'},{key:'default_currency',label:'Moneda predeterminada',choices:currencies},{key:'legal_name',label:'Razón social',optional:true,section:'Datos fiscales y contacto'},{key:'tax_id',label:'RUC',optional:true,section:'Datos fiscales y contacto'},{key:'phone',label:'Teléfono',optional:true,section:'Datos fiscales y contacto'},{key:'address',label:'Dirección',optional:true,wide:true,section:'Datos fiscales y contacto'}]} defaults={Object.fromEntries(['name','legal_name','tax_id','phone','address','default_currency'].map(k=>[k,str(settings,k)]))} save={async v=>{const result=await api<{default_currency:typeof currencies[number]['value']}>('/api/agency/settings',{...v,onboarding_completed:true},'PATCH');setCurrency(result.default_currency);setSettings({...settings,...v,default_currency:result.default_currency});setNotice('Datos guardados. La moneda predeterminada se aplicará a nuevos formularios.');}}/>}
+  </section>
+  <section className="panel settings-card" aria-labelledby="exchange-settings-title">
+   <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><ChartNoAxesCombined size={18}/></span><div><h2 id="exchange-settings-title">Cotización USD / PYG</h2><p>Referencia por fecha; no modifica saldos ni convierte movimientos anteriores.</p></div></div>
+   {latestRate&&!rateIsValid&&<p className="form-error-summary" role="alert">La cotización guardada está fuera de rango. Se preparó G. 6.000 como referencia para que la revises y guardes.</p>}
+   <Editor columns fields={[{key:'rate_date',label:'Fecha',type:'date'},{key:'usd_to_pyg',label:'Guaraníes por dólar',type:'money',help:'Solo enteros entre G. 1.000 y G. 100.000. Referencia indicada: G. 6.000/USD.'}]} key={rates.length} defaults={{rate_date:new Date().toISOString().slice(0,10),usd_to_pyg:rateIsValid?str(latestRate!,'usd_to_pyg'):'6000'}} save={async v=>{if(!validPygRate(v.usd_to_pyg))throw Error('Ingresá una cotización entera entre G. 1.000 y G. 100.000 por USD.');await api('/api/agency/exchange-rates',{...v,usd_to_pyg:Number(v.usd_to_pyg)});setRates((await api<{records:Row[]}>('/api/agency/exchange-rates')).records);}}/>
+   {rates.some(r=>validPygRate(r.usd_to_pyg))&&<details className="settings-disclosure"><summary>Ver cotizaciones guardadas</summary><div className="settings-history">{rates.map((r,i)=>validPygRate(r.usd_to_pyg)?<p key={i}>{str(r,'rate_date')}<strong>G. {formatPygRate(r.usd_to_pyg)}/USD</strong></p>:null)}</div></details>}
+  </section>
+  <section className="panel settings-card" aria-labelledby="integration-settings-title">
+   <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Link2Off size={18}/></span><div><h2 id="integration-settings-title">Integraciones</h2><p>Estado actual de los servicios que pueden complementar tu flujo de trabajo.</p></div></div>
+   <div className="settings-integration-list" role="list" aria-label="Estado de integraciones">
+    <article role="listitem"><div><strong>Google y Drive</strong><p>Usá tu correo invitado para entrar y agregá enlaces de Drive en cada registro.</p></div><span className="settings-status">No configurado</span></article>
+    <article role="listitem"><div><strong>WhatsApp, Instagram y Meta</strong><p>Requieren una conexión y permisos de Meta antes de poder usarse.</p></div><span className="settings-status">No configurado</span></article>
+   </div>
+   <details className="settings-disclosure"><summary>Qué está disponible hoy</summary><p>Este panel no conecta cuentas ni envía mensajes. Los enlaces de Drive se gestionan desde los registros que los usan.</p></details>
+  </section>
+ </div>;
 }
