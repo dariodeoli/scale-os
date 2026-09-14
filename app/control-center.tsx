@@ -2,11 +2,10 @@
 import {useEffect,useState} from 'react';
 import {AlertCircle,ArrowUpRight,CheckCircle2} from 'lucide-react';
 import {api,money} from './operations';
-import {DueAlert,groupDueAlerts,shortDate} from './control-center-data';
+import {DueAlert,CommercialDashboard,groupDueAlerts,normalizeCommercialDashboard,shortDate} from './control-center-data';
 import {RecordEditor} from './suite';
 type Total={currency:string;total:string};
 type Dashboard={cash:Total[];receivables:Total[];collections:Total[];inventory:Total[];alerts:DueAlert[]};
-type CommercialDashboard={activeClients:number;activeProspects:number;expectedMonthlyBilling?:Total[]};
 type Order={id:string;title:string;status:string;due_date?:string|null;client_name:string;project_name:string};
 
 export function ControlCenter({role,orders,refresh,navigate}:{role:string;orders:Order[];refresh:()=>Promise<void>;navigate:(label:string)=>void}){
@@ -14,7 +13,7 @@ export function ControlCenter({role,orders,refresh,navigate}:{role:string;orders
  const [data,setData]=useState<Dashboard|null>(null),[error,setError]=useState('');
  const [commercial,setCommercial]=useState<CommercialDashboard|null>(null),[commercialError,setCommercialError]=useState('');
  useEffect(()=>{let live=true;if(allowed){setError('');void api<Dashboard>('/api/agency/dashboard').then(value=>{if(live)setData(value);}).catch(e=>{if(live)setError(e instanceof Error?e.message:'No se pudo cargar el resumen financiero.');});}return()=>{live=false;};},[allowed,orders]);
- useEffect(()=>{let live=true;setCommercial(null);setCommercialError('');if(commercialAllowed)void api<CommercialDashboard>('/api/agency/dashboard/commercial').then(value=>{if(!Number.isInteger(value?.activeClients)||value.activeClients<0||!Number.isInteger(value.activeProspects)||value.activeProspects<0)throw Error('No se pudo validar el resumen comercial.');if(live)setCommercial(value);}).catch(e=>{if(live)setCommercialError(e instanceof Error?e.message:'No se pudo cargar el resumen comercial.');});return()=>{live=false;};},[commercialAllowed,orders]);
+ useEffect(()=>{let live=true;setCommercial(null);setCommercialError('');if(commercialAllowed)void api<unknown>('/api/agency/control-center').then(value=>{const normalized=normalizeCommercialDashboard(value);if(live)setCommercial(normalized);}).catch(e=>{if(live)setCommercialError(e instanceof Error?e.message:'No se pudo cargar el resumen comercial.');});return()=>{live=false;};},[commercialAllowed,orders]);
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const orderAlerts:DueAlert[]=orders.filter(o=>o.due_date&&o.due_date.slice(0,10)<today&&!['approved','published'].includes(o.status)).map(o=>({id:o.id,type:'work_order',name:o.title,due:o.due_date!.slice(0,10),context:`${o.client_name} · ${o.project_name}`}));
  // The existing financial endpoint returns at most 30 combined alerts. Never claim that capped count is the total.

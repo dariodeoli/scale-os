@@ -17,7 +17,8 @@ type DeletionErrorCode=
  |'PASSWORD_REAUTH_UNAVAILABLE'
  |'GOOGLE_REAUTH_UNAVAILABLE'
  |'GOOGLE_REAUTH_NOT_ALLOWED'
- |'GOOGLE_REAUTH_INVALID';
+ |'GOOGLE_REAUTH_INVALID'
+ |'EMAIL_REAUTH_INVALID';
 type MembershipConsequence='organization_soft_delete'|'membership_deactivation'|string;
 type AccountMembership={organizationId:string;name:string;role:string;activeMemberCount:number;activeOwnerCount:number;consequence:MembershipConsequence};
 type AccountBlocker={code:string;organizationId:string;organizationName:string;message:string};
@@ -32,11 +33,12 @@ export type OrganizationDeletionPreview={
  consequences:{organizationWillBeSoftDeleted:boolean;allMemberAccessWillBeDeactivated:boolean;organizationSessionsWillBeRevoked:boolean;tenantDataWillBeRetained:boolean};executable:boolean;
 };
 type DeletionPreview=AccountDeletionPreview|OrganizationDeletionPreview;
-type RecentAuthProof={proof:string;method:'password'|'google';action:DeletionAction;organizationId:string|null;expiresAt:string};
+type RecentAuthProof={proof:string;method:'password'|'google'|'email';action:DeletionAction;organizationId:string|null;expiresAt:string};
 type ResumeState={preview:DeletionPreview;auth:RecentAuthProof};
 type ApiFailure=Error&{code?:DeletionErrorCode;status?:number};
 
 export const DELETION_PREVIEW_STORAGE_KEY='scale:pending-deletion-preview';
+const DELETION_CONFIRMATION='Eliminar';
 const previewRecoveryCodes=new Set<DeletionErrorCode>(['DELETION_PREVIEW_STALE','DELETION_PREVIEW_INVALID','DELETION_SCOPE_MISMATCH']);
 const consequenceLabels:Record<string,string>={
  organization_soft_delete:'La empresa se desactivará porque sos su único miembro activo; sus datos quedarán inaccesibles.',
@@ -60,7 +62,7 @@ function validDeletionPreview(value:unknown):value is DeletionPreview{
   typeof value.consequences.organizationSessionsWillBeRevoked==='boolean'&&typeof value.consequences.tenantDataWillBeRetained==='boolean';
 }
 function validRecentAuthProof(value:unknown):value is RecentAuthProof{
- return isRecord(value)&&typeof value.proof==='string'&&(value.method==='password'||value.method==='google')&&(value.action==='account.delete'||value.action==='organization.delete')&&
+ return isRecord(value)&&typeof value.proof==='string'&&(value.method==='password'||value.method==='google'||value.method==='email')&&(value.action==='account.delete'||value.action==='organization.delete')&&
   (value.organizationId===null||typeof value.organizationId==='string')&&typeof value.expiresAt==='string'&&Number.isFinite(new Date(value.expiresAt).getTime());
 }
 
@@ -134,31 +136,32 @@ function OrganizationConsequences({preview}:{preview:OrganizationDeletionPreview
 
 function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{kind:'account'|'organization';organizationId:string;organizationName:string;resume:ResumeState|null;onSuccess:()=>void|Promise<void>}){
  const action:DeletionAction=kind==='account'?'account.delete':'organization.delete';
- const headingId=useId(),passwordId=useId(),confirmationId=useId();
- const previewFocus=useRef<HTMLDivElement>(null),passwordFocus=useRef<HTMLInputElement>(null),googleFocus=useRef<HTMLButtonElement>(null),confirmationFocus=useRef<HTMLInputElement>(null),refreshFocus=useRef<HTMLButtonElement>(null);
+ const headingId=useId(),passwordId=useId(),emailCodeId=useId(),confirmationId=useId();
+ const previewFocus=useRef<HTMLDivElement>(null),passwordFocus=useRef<HTMLInputElement>(null),emailCodeFocus=useRef<HTMLInputElement>(null),googleFocus=useRef<HTMLButtonElement>(null),confirmationFocus=useRef<HTMLInputElement>(null),refreshFocus=useRef<HTMLButtonElement>(null);
  const focusReauthAfterClear=useRef(false);
  const [preview,setPreview]=useState<DeletionPreview|null>(null),[auth,setAuth]=useState<RecentAuthProof|null>(null);
- const [password,setPassword]=useState(''),[confirmation,setConfirmation]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const [password,setPassword]=useState(''),[emailCode,setEmailCode]=useState(''),[emailRequested,setEmailRequested]=useState(false),[confirmation,setConfirmation]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [busy,setBusy]=useState<'preview'|'auth'|'delete'|''>(''),[googleOnly,setGoogleOnly]=useState(false),[stale,setStale]=useState(false);
+ const [confirmationWait,setConfirmationWait]=useState(0);
  const expectedOrganizationId=kind==='organization'?organizationId:null;
  const matches=(candidate:{action:DeletionAction;organizationId:string|null})=>candidate.action===action&&sameScope(candidate.organizationId,expectedOrganizationId);
 
  useEffect(()=>{
   if(!resume||!matches(resume.preview)||!matches(resume.auth))return;
-  setPreview(resume.preview);setAuth(resume.auth);setGoogleOnly(resume.auth.method==='google');setStale(false);setError('');setNotice(`Identidad confirmada con ${resume.auth.method==='google'?'Google':'contraseña'} ${formatExpiry(resume.auth.expiresAt)}.`);
+  setPreview(resume.preview);acceptRecentAuth(resume.auth);setGoogleOnly(resume.auth.method==='google');setStale(false);setError('');
   requestAnimationFrame(()=>confirmationFocus.current?.focus());
  },[resume,action,organizationId]);
 
  useEffect(()=>{
   if(auth||!focusReauthAfterClear.current||!preview||stale)return;
   focusReauthAfterClear.current=false;
-  requestAnimationFrame(()=>{(googleOnly?googleFocus.current:passwordFocus.current)?.focus();});
- },[auth,googleOnly,preview,stale]);
+  requestAnimationFrame(()=>{(googleOnly?googleFocus.current:emailRequested?emailCodeFocus.current:passwordFocus.current)?.focus();});
+ },[auth,googleOnly,emailRequested,preview,stale]);
 
  useEffect(()=>{
   if(!preview||stale)return;
   const delay=new Date(preview.expiresAt).getTime()-Date.now();
-  const expire=()=>{focusReauthAfterClear.current=false;setStale(true);setAuth(null);setPassword('');setConfirmation('');setError('La vista previa venció. Actualizala antes de continuar.');requestAnimationFrame(()=>refreshFocus.current?.focus());};
+  const expire=()=>{focusReauthAfterClear.current=false;clearRecentAuth();setStale(true);setError('La vista previa venció. Actualizala antes de continuar.');requestAnimationFrame(()=>refreshFocus.current?.focus());};
   if(delay<=0){expire();return;}
   if(delay>2_147_483_647)return;
   const timer=window.setTimeout(expire,delay);
@@ -168,18 +171,27 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
  useEffect(()=>{
   if(!auth)return;
   const delay=new Date(auth.expiresAt).getTime()-Date.now();
-  const expire=()=>{focusReauthAfterClear.current=true;setAuth(null);setConfirmation('');setError('La confirmación de identidad venció. Volvé a confirmar tu identidad.');};
+  const expire=()=>{focusReauthAfterClear.current=true;clearRecentAuth();setError('La confirmación de identidad venció. Volvé a confirmar tu identidad.');};
   if(delay<=0){expire();return;}
   if(delay>2_147_483_647)return;
   const timer=window.setTimeout(expire,delay);
   return()=>window.clearTimeout(timer);
  },[auth]);
 
- function resetForPreview(){focusReauthAfterClear.current=false;setPreview(null);setAuth(null);setPassword('');setConfirmation('');setGoogleOnly(false);setStale(false);setNotice('');}
+ useEffect(()=>{
+  if(!auth||confirmationWait<=0)return;
+  const timer=window.setInterval(()=>setConfirmationWait(seconds=>seconds>1?seconds-1:0),1000);
+  return()=>window.clearInterval(timer);
+ },[auth,confirmationWait]);
+
+ function clearRecentAuth(){setAuth(null);setPassword('');setEmailCode('');setEmailRequested(false);setConfirmation('');setConfirmationWait(0);}
+ function authMethodLabel(method:RecentAuthProof['method']){return method==='google'?'Google':method==='email'?'código enviado a tu correo':'contraseña';}
+ function acceptRecentAuth(result:RecentAuthProof){setAuth(result);setPassword('');setEmailCode('');setEmailRequested(false);setConfirmation('');setConfirmationWait(10);setNotice(`Identidad confirmada con ${authMethodLabel(result.method)} ${formatExpiry(result.expiresAt)}.`);}
+ function resetForPreview(){focusReauthAfterClear.current=false;setPreview(null);clearRecentAuth();setGoogleOnly(false);setStale(false);setNotice('');}
  function handleFailure(cause:unknown){
   const failure=cause as ApiFailure;
-  if(failure.code&&previewRecoveryCodes.has(failure.code)){focusReauthAfterClear.current=false;setStale(true);setAuth(null);setPassword('');setConfirmation('');setError('La vista previa venció o cambió. Actualizala antes de continuar.');requestAnimationFrame(()=>refreshFocus.current?.focus());return;}
-  if(failure.code==='RECENT_AUTH_REQUIRED'||failure.code==='RECENT_AUTH_INVALID'){focusReauthAfterClear.current=true;setAuth(null);setConfirmation('');setError('La confirmación de identidad venció. Volvé a confirmar tu identidad.');return;}
+  if(failure.code&&previewRecoveryCodes.has(failure.code)){focusReauthAfterClear.current=false;clearRecentAuth();setStale(true);setError('La vista previa venció o cambió. Actualizala antes de continuar.');requestAnimationFrame(()=>refreshFocus.current?.focus());return;}
+  if(failure.code==='RECENT_AUTH_REQUIRED'||failure.code==='RECENT_AUTH_INVALID'||failure.code==='EMAIL_REAUTH_INVALID'){focusReauthAfterClear.current=true;clearRecentAuth();setError('La confirmación de identidad venció. Volvé a confirmar tu identidad.');return;}
   setError(failure instanceof Error?failure.message:'No se pudo completar la operación.');
  }
  async function fetchPreview(){
@@ -197,10 +209,10 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
   try{
    const result=await deletionRequest<unknown>('/api/auth/account/recent-auth/password',{previewId:preview.id,password});
    if(!validRecentAuthProof(result)||!matches(result))throw Object.assign(new Error('La confirmación no corresponde a esta operación.'),{code:'DELETION_SCOPE_MISMATCH'});
-   setAuth(result);setPassword('');setNotice(`Identidad confirmada con contraseña ${formatExpiry(result.expiresAt)}.`);requestAnimationFrame(()=>confirmationFocus.current?.focus());
+   acceptRecentAuth(result);requestAnimationFrame(()=>confirmationFocus.current?.focus());
   }catch(cause){
    setPassword('');const failure=cause as ApiFailure;
-   if(failure.code==='PASSWORD_REAUTH_UNAVAILABLE'){setGoogleOnly(true);setError('Esta cuenta usa Google. Confirmá tu identidad con Google para continuar.');}
+   if(failure.code==='PASSWORD_REAUTH_UNAVAILABLE'){clearRecentAuth();setGoogleOnly(true);setError('Esta cuenta usa Google sin contraseña. Confirmá tu identidad con Google o solicitá un código por correo para continuar.');}
    else handleFailure(cause);
   }finally{setBusy('');}
  }
@@ -215,12 +227,29 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
    window.location.assign(`/core-api${startPath}`);
   }catch(cause){handleFailure(cause);}finally{setBusy('');}
  }
+ async function requestEmailCode(){
+  if(!preview||!preview.executable)return;
+  setBusy('auth');setError('');setNotice('');clearRecentAuth();
+  try{
+   await deletionRequest('/api/auth/account/recent-auth/email/request',{previewId:preview.id});
+   setEmailRequested(true);setNotice('Enviamos un código de verificación a tu correo.');requestAnimationFrame(()=>emailCodeFocus.current?.focus());
+  }catch(cause){handleFailure(cause);}finally{setBusy('');}
+ }
+ async function verifyEmailCode(event:React.FormEvent){
+  event.preventDefault();if(!preview||!preview.executable||!emailCode)return;
+  setBusy('auth');setError('');setNotice('');
+  try{
+   const result=await deletionRequest<unknown>('/api/auth/account/recent-auth/email/complete',{previewId:preview.id,code:emailCode});
+   if(!validRecentAuthProof(result)||!matches(result))throw Object.assign(new Error('La confirmación no corresponde a esta operación.'),{code:'DELETION_SCOPE_MISMATCH'});
+   acceptRecentAuth(result);requestAnimationFrame(()=>confirmationFocus.current?.focus());
+  }catch(cause){setEmailCode('');handleFailure(cause);}finally{setBusy('');}
+ }
  async function execute(event:React.FormEvent){
-  event.preventDefault();if(!preview||!auth||!preview.executable||confirmation!==preview.confirmation||!matches(auth))return;
+  event.preventDefault();if(!preview||!auth||confirmationWait>0||!preview.executable||confirmation!==DELETION_CONFIRMATION||!matches(auth))return;
   setBusy('delete');setError('');
   try{
    const path=kind==='account'?'/api/auth/account/deletion':`/api/auth/organizations/${encodeURIComponent(organizationId)}/deletion`;
-   await deletionRequest(path,{previewId:preview.id,recentAuthProof:auth.proof,confirmation});
+   await deletionRequest(path,{previewId:preview.id,recentAuthProof:auth.proof,confirmation:DELETION_CONFIRMATION});
    try{sessionStorage.removeItem(DELETION_PREVIEW_STORAGE_KEY);}catch{/* Best-effort cleanup. */}
    setNotice(kind==='account'?'Tu cuenta fue eliminada y tu acceso se cerró.':'La empresa fue desactivada y sus datos ya no son accesibles.');
    await onSuccess();
@@ -238,13 +267,15 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
     <div className="deletion-step"><span>2</span><div><strong>Confirmá tu identidad</strong><small>La verificación queda vinculada únicamente a esta vista previa.</small></div></div>
     {!auth&&!googleOnly&&<form className="deletion-auth-form" onSubmit={confirmPassword}><label htmlFor={passwordId}>Contraseña actual</label><div className="deletion-inline-field"><input ref={passwordFocus} id={passwordId} type="password" autoComplete="current-password" value={password} disabled={busy==='auth'} onChange={event=>setPassword(event.target.value)} required/><button className="secondary" disabled={busy==='auth'||!password}>{busy==='auth'?'Verificando…':'Verificar contraseña'}</button></div></form>}
     {!auth&&googleOnly&&<button ref={googleFocus} type="button" className="secondary deletion-google" disabled={Boolean(busy)} onClick={()=>void startGoogle()}><KeyRound size={17} aria-hidden="true"/>{busy==='auth'?'Iniciando Google…':'Confirmar con Google'}</button>}
-    {auth&&<p className="deletion-auth-ok" role="status"><KeyRound size={16} aria-hidden="true"/>Identidad confirmada con {auth.method==='google'?'Google':'contraseña'}.</p>}
+    {!auth&&!emailRequested&&<button type="button" className="secondary deletion-email-request" disabled={Boolean(busy)} onClick={()=>void requestEmailCode()}>{busy==='auth'?'Enviando código…':'Recibir código por correo'}</button>}
+    {!auth&&emailRequested&&<form className="deletion-auth-form deletion-email-form" onSubmit={verifyEmailCode}><label htmlFor={emailCodeId}>Código enviado a tu correo</label><div className="deletion-inline-field"><input ref={emailCodeFocus} id={emailCodeId} inputMode="numeric" autoComplete="one-time-code" value={emailCode} disabled={busy==='auth'} onChange={event=>setEmailCode(event.target.value)} required/><button className="secondary" disabled={busy==='auth'||!emailCode}>{busy==='auth'?'Verificando…':'Verificar código'}</button></div><button type="button" className="text-button" disabled={busy==='auth'} onClick={()=>void requestEmailCode()}>Reenviar código</button></form>}
+    {auth&&<><p className="deletion-auth-ok" role="status"><KeyRound size={16} aria-hidden="true"/>Identidad confirmada con {authMethodLabel(auth.method)}.</p>{confirmationWait>0&&<p className="deletion-countdown" role="timer" aria-label={`Cuenta regresiva de seguridad: ${confirmationWait} segundos`}><span aria-hidden="true">Por seguridad, esperá {confirmationWait} s para eliminar.</span><span className="sr-only">Podrás confirmar la eliminación en {confirmationWait} segundos.</span></p>}</>}
     <div className="deletion-step"><span>3</span><div><strong>Escribí la confirmación exacta</strong><small>El botón final solo se habilita cuando el texto coincide.</small></div></div>
     <form className="deletion-confirm-form" onSubmit={execute}>
-     <label htmlFor={confirmationId}>Escribí <strong>{preview.confirmation}</strong></label>
+     <label htmlFor={confirmationId}>Escribí <strong>{DELETION_CONFIRMATION}</strong></label>
      <input ref={confirmationFocus} id={confirmationId} value={confirmation} disabled={!auth||busy==='delete'} aria-describedby={`${confirmationId}-help`} autoComplete="off" onChange={event=>setConfirmation(event.target.value)} required/>
      <small id={`${confirmationId}-help`}>Se respetan mayúsculas, espacios y acentos.</small>
-     <button className="danger deletion-execute" disabled={!auth||busy==='delete'||confirmation!==preview.confirmation}><Trash2 size={17} aria-hidden="true"/>{busy==='delete'?'Eliminando…':title}</button>
+     <button className="danger deletion-execute" disabled={!auth||confirmationWait>0||busy==='delete'||confirmation!==DELETION_CONFIRMATION}><Trash2 size={17} aria-hidden="true"/>{busy==='delete'?'Eliminando…':title}</button>
     </form>
    </>}
   </div>}

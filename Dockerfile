@@ -9,6 +9,9 @@ RUN npm ci --include=dev
 
 FROM base AS build
 COPY --from=dependencies /app/node_modules ./node_modules
+# `.dockerignore` excludes runtime `.env` files from this build context. Coolify
+# injects runtime configuration when the container starts; never add secrets as
+# Docker ARG or ENV values in this stage.
 COPY . .
 RUN npx prisma generate
 RUN npm run build

@@ -24,7 +24,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "test:release-regression": "node tests/release-version.test.mjs && tsx tests/data-loading-cache.test.ts && tsx tests/mobile-workspace-layout.test.ts && tsx tests/mobile-navigation.test.tsx && tsx tests/landing-routing.test.ts && node tests/registration-flow.test.mjs && node tests/release-regression-audit.test.mjs"
+    "test:docker-build-secrets": "node tests/docker-build-secrets.test.mjs",
+    "test:release-regression": "node tests/release-version.test.mjs && tsx tests/data-loading-cache.test.ts && tsx tests/mobile-workspace-layout.test.ts && tsx tests/mobile-navigation.test.tsx && tsx tests/landing-routing.test.ts && node tests/registration-flow.test.mjs && node tests/release-regression-audit.test.mjs && npm run test:docker-build-secrets"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
