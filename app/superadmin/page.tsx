@@ -426,51 +426,59 @@ export default function PlatformAdmin() {
             className="platform-admin-stats"
             aria-label="Resumen de plataforma"
           >
-            <article>
+            <article className="platform-admin-stat-card">
               <span className="platform-admin-stat-icon">
                 <Building2 aria-hidden="true" />
               </span>
-              <small>Agencias activas</small>
-              <strong>
-                {formatPlatformMetric(state.overview.agencies?.active)}{" "}
-                <span>
-                  / {formatPlatformMetric(state.overview.agencies?.total)}
-                </span>
-              </strong>
+              <div className="platform-admin-stat-copy">
+                <small>Agencias activas</small>
+                <strong>
+                  {formatPlatformMetric(state.overview.agencies?.active)}{" "}
+                  <span>
+                    / {formatPlatformMetric(state.overview.agencies?.total)}
+                  </span>
+                </strong>
+              </div>
             </article>
-            <article>
+            <article className="platform-admin-stat-card">
               <span className="platform-admin-stat-icon">
                 <Users aria-hidden="true" />
               </span>
-              <small>Usuarios registrados</small>
-              <strong>
-                {formatPlatformMetric(state.overview.users?.total)}
-              </strong>
+              <div className="platform-admin-stat-copy">
+                <small>Usuarios registrados</small>
+                <strong>
+                  {formatPlatformMetric(state.overview.users?.total)}
+                </strong>
+              </div>
             </article>
-            <article>
+            <article className="platform-admin-stat-card">
               <span className="platform-admin-stat-icon">
                 <Ticket aria-hidden="true" />
               </span>
-              <small>Cupones activos</small>
-              <strong>
-                {formatPlatformMetric(state.overview.coupons?.active)}{" "}
-                <span>
-                  / {formatPlatformMetric(state.overview.coupons?.total)}
-                </span>
-              </strong>
+              <div className="platform-admin-stat-copy">
+                <small>Cupones activos</small>
+                <strong>
+                  {formatPlatformMetric(state.overview.coupons?.active)}{" "}
+                  <span>
+                    / {formatPlatformMetric(state.overview.coupons?.total)}
+                  </span>
+                </strong>
+              </div>
             </article>
-            <article>
+            <article className="platform-admin-stat-card">
               <span className="platform-admin-stat-icon">
                 <CircleCheck aria-hidden="true" />
               </span>
-              <small>Suscripciones</small>
-              <strong className="platform-admin-subscription-summary">
-                {subscriptionSummary(state.overview.subscriptions)}
-              </strong>
+              <div className="platform-admin-stat-copy">
+                <small>Suscripciones</small>
+                <strong className="platform-admin-subscription-summary">
+                  {subscriptionSummary(state.overview.subscriptions)}
+                </strong>
+              </div>
             </article>
           </section>
 
-          <section className="platform-admin-section">
+          <section className="platform-admin-section platform-admin-agencies">
             <div className="platform-admin-section-heading">
               <div>
                 <p className="eyebrow">AGENCIAS</p>
@@ -479,7 +487,7 @@ export default function PlatformAdmin() {
               <small>Gestioná el acceso manual junto a cada registro</small>
             </div>
             <div className="platform-admin-table-wrap">
-              <table>
+              <table className="platform-admin-ledger">
                 <thead>
                   <tr>
                     <th>Agencia</th>
@@ -534,7 +542,7 @@ export default function PlatformAdmin() {
                             </span>
                             <button
                               type="button"
-                              className="text-button"
+                              className="text-button platform-admin-inline-action"
                               disabled={busy}
                               onClick={() => void manageSubscription(agency)}
                             >
@@ -606,7 +614,7 @@ export default function PlatformAdmin() {
                     </dl>
                     <button
                       type="button"
-                      className="text-button"
+                      className="text-button platform-admin-inline-action"
                       disabled={busy}
                       onClick={() => void manageSubscription(agency)}
                     >
@@ -719,7 +727,7 @@ export default function PlatformAdmin() {
           ) : null}
 
           <section className="platform-admin-two-columns">
-            <section className="platform-admin-section">
+            <section className="platform-admin-section platform-admin-users">
               <div className="platform-admin-section-heading">
                 <div>
                   <p className="eyebrow">USUARIOS</p>

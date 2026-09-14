@@ -6,6 +6,10 @@ const page = readFileSync(
   new URL("../app/superadmin/page.tsx", import.meta.url),
   "utf8",
 );
+const styles = readFileSync(
+  new URL("../app/superadmin/platform-admin.css", import.meta.url),
+  "utf8",
+);
 
 test("superadmin sends a 401 to the fixed internal login return path before an error dashboard", () => {
   assert.match(page, /const LOGIN_RETURN_PATH\s*=\s*"\/\?next=\/superadmin";/);
@@ -32,4 +36,20 @@ test("superadmin normalizes absent and invalid dashboard metric values", () => {
   assert.match(page, /const total = formatPlatformMetric\(item\.total, ""\);/);
   assert.match(page, /function subscriptionSummary\(rows: unknown\)/);
   assert.doesNotMatch(page, /\$\{row\.total\} \$\{row\.status\}/);
+});
+
+test("superadmin keeps its operational controls accessible and responsive", () => {
+  assert.match(
+    styles,
+    /\.platform-admin-page :is\(button, a, input, select, textarea\) \{[\s\S]*?min-height: 44px;/,
+  );
+  assert.match(
+    styles,
+    /\.platform-admin-page :is\(button, a, input, select, textarea\):focus-visible \{[\s\S]*?outline: 3px solid/,
+  );
+  assert.match(styles, /\.platform-admin-page \{[\s\S]*?overflow-x: clip;/);
+  assert.match(
+    styles,
+    /@media \(max-width: 760px\) \{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
+  );
 });
