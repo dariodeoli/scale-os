@@ -10,6 +10,8 @@ Module._load=function(request:string,...rest:unknown[]){if(/\.css$/.test(request
 for(const [module,exports] of [
  ['../app/dialog',{Dialog:({children}:{children:React.ReactNode})=><section>{children}</section>}],
  ['../app/suite',{RecordEditor:()=>null}],
+ ['../app/client-identity',{ClientIdentity:({name}:{name:string})=><span>{name}</span>}],
+ ['../app/actor-identity',{ActorIdentity:()=>null}],
 ] as const){const id=require.resolve(module);require.cache[id]={id,filename:id,loaded:true,exports} as NodeModule;}
 const {WorkspaceSearch}=require('../app/workspace-search') as typeof import('../app/workspace-search');
 const {WorkspaceBrand}=require('../app/workspace-brand') as typeof import('../app/workspace-brand');

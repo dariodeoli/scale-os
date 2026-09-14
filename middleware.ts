@@ -1,8 +1,16 @@
 import {NextResponse,type NextRequest} from 'next/server';
 import {sections,legacyRoutes} from './app/navigation';
+import {resolveCoreApiOrigin} from './core-api-origin.mjs';
 const workspaceRoots=new Set([...sections.map(([,slug])=>slug.split('/')[0]),...Object.keys(legacyRoutes)]);
 export function middleware(request:NextRequest){
  const host=(request.headers.get('host')||'').split(':')[0].toLowerCase(),path=request.nextUrl.pathname;
+ if(host==='admin.scaleparaguay.com'&&path==='/'){
+  const url=request.nextUrl.clone();url.pathname='/superadmin';
+  const response=NextResponse.rewrite(url);response.headers.set('X-Robots-Tag','noindex, nofollow');return response;
+ }
+ if((path==='/core-api'||path.startsWith('/core-api/'))&&request.nextUrl.origin===resolveCoreApiOrigin()){
+  return new NextResponse('Core API proxy target cannot be this frontend host',{status:508,headers:{'X-Robots-Tag':'noindex, nofollow'}});
+ }
  if(host==='cliente.scaleparaguay.com'){
   if(path==='/robots.txt')return new NextResponse('User-agent: *\nDisallow: /\n',{headers:{'Content-Type':'text/plain'}});
   if(path.startsWith('/brand/')||path.startsWith('/core-api/')){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}

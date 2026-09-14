@@ -17,7 +17,7 @@ export default function Registration(){
  const validEmail=()=>/^\S+@\S+\.\S+$/.test(email.trim());
  function nextFromEmail(event:FormEvent<HTMLFormElement>){event.preventDefault();clearFeedback();if(!validEmail()){setError('Ingresá un correo válido para continuar.');return;}setStep(2);}
  function validateAgency(){clearFeedback();if(company.trim().length<2){setError('Indicá el nombre de tu agencia para continuar.');return false;}if(!consent){setError('Aceptá las condiciones de la prueba y suscripción para continuar.');return false;}return true;}
- function continueWithGoogle(){clearFeedback();window.location.assign('https://admin.scaleparaguay.com/api/auth/google/start?signup=1');}
+ function continueWithGoogle(){clearFeedback();window.location.assign('/core-api/api/auth/google/start?signup=1');}
  async function completeGoogleRegistration(){
   if(!validateAgency())return;
   setSubmitting(true);

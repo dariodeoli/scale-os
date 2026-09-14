@@ -1788,7 +1788,7 @@ export default function Home() {
             {toast && <p className="error">{toast}</p>}
           </form>
           <div className="login-divider"><span>o</span></div>
-          <GoogleSignIn disabled={!googleAvailable} label={googleAvailable?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='https://admin.scaleparaguay.com/api/auth/google/start';}}/>
+          <GoogleSignIn disabled={!googleAvailable} label={googleAvailable?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
           <PasswordPanel/>
           <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>
           <WorkspaceFooter/>
