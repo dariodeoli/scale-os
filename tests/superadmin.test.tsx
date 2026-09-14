@@ -50,6 +50,6 @@ test("superadmin keeps its operational controls accessible and responsive", () =
   assert.match(styles, /\.platform-admin-page \{[\s\S]*?overflow-x: clip;/);
   assert.match(
     styles,
-    /@media \(max-width: 760px\) \{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
+    /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
   );
 });

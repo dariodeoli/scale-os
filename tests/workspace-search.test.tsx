@@ -4,6 +4,9 @@ import test from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {readFileSync} from 'node:fs';
 Object.assign(globalThis,{React});
+// tsx cannot transform stylesheets with modern syntax: resolve them as empty modules.
+const Module=require('module') as typeof import('module'),loadCss=Module._load;
+Module._load=function(request:string,...rest:unknown[]){if(/\.css$/.test(request))return {};return loadCss.call(this,request,...rest);};
 for(const [module,exports] of [
  ['../app/dialog',{Dialog:({children}:{children:React.ReactNode})=><section>{children}</section>}],
  ['../app/suite',{RecordEditor:()=>null}],
@@ -13,7 +16,7 @@ const {WorkspaceBrand}=require('../app/workspace-brand') as typeof import('../ap
 test('search destinations match their labels and close the search for every record kind',()=>{
  for(const [kind,destination] of [['clients','Clientes'],['projects','Proyectos'],['work-orders','Producción']] as const){
   const destinations:string[]=[];let r!:ReactTestRenderer;
-  act(()=>{r=create(<WorkspaceSearch role="viewer" records={[{id:'1',kind,name:'Órbita',context:'Test'}]} refresh={async()=>{throw Error('No refresh expected');}} navigate={label=>destinations.push(label)}/>);});
+  act(()=>{r=create(<WorkspaceSearch records={[{id:'1',kind,name:'Órbita',context:'Test'}]} navigate={label=>destinations.push(label)}/>);});
   act(()=>r.root.findByProps({'aria-label':'Buscar clientes, proyectos y órdenes'}).props.onClick());
   act(()=>r.root.findByProps({type:'search'}).props.onChange({target:{value:'orbita'}}));
   assert.equal(r.root.findAllByType('article').length,1);
@@ -24,7 +27,7 @@ test('search destinations match their labels and close the search for every reco
 });
 test('search caps rendering and reports the uncropped count',()=>{
  let r!:ReactTestRenderer;
- act(()=>{r=create(<WorkspaceSearch role="owner" records={Array.from({length:35},(_,i)=>({id:String(i),kind:'clients',name:'Cliente '+i,context:''}))} refresh={async()=>{}} navigate={()=>{}}/>);});
+ act(()=>{r=create(<WorkspaceSearch records={Array.from({length:35},(_,i)=>({id:String(i),kind:'clients',name:'Cliente '+i,context:''}))} navigate={()=>{}}/>);});
  act(()=>r.root.findByProps({'aria-label':'Buscar clientes, proyectos y órdenes'}).props.onClick());
  act(()=>r.root.findByProps({type:'search'}).props.onChange({target:{value:'cliente'}}));
  assert.equal(r.root.findAllByType('article').length,30);

@@ -76,7 +76,19 @@
 
 .platform-admin-header .workspace-brand {
   min-width: 116px;
-  filter: brightness(0) invert(1);
+}
+
+.platform-admin-header .workspace-brand img {
+  background: var(--brand-600);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 24%);
+}
+
+.platform-admin-header .workspace-wordmark {
+  color: var(--surface);
+}
+
+.platform-admin-header .workspace-wordmark > span {
+  color: var(--gold);
 }
 
 .platform-admin-title {

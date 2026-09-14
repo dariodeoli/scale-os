@@ -1749,13 +1749,7 @@ export default function Home() {
     return (
       <div className="login-page">
         <div className="login-card">
-          <div className="brand login-brand">
-            <span className="brand-mark">S</span>
-            <div>
-              scale<span>OS</span>
-              <small>OPERACIONES</small>
-            </div>
-          </div>
+          <div className="login-brand"><WorkspaceBrand/></div>
           <p className="eyebrow">PANEL INTERNO</p>
           <h1>Entrá a Scale OS</h1>
           <p className="login-copy">
@@ -1775,6 +1769,7 @@ export default function Home() {
                 onChange={(event) => setEmail(event.target.value)}
                 type="email"
                 placeholder="Tu email"
+                autoComplete="email"
                 required
               />
             </label>
@@ -1785,6 +1780,7 @@ export default function Home() {
                 onChange={(event) => setPassword(event.target.value)}
                 type="password"
                 placeholder="••••••••"
+                autoComplete="current-password"
                 required
               />
             </label>
