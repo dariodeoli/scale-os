@@ -26,7 +26,7 @@ afterEach(async()=>{
  if(originalWindow)Object.defineProperty(globalThis,'window',originalWindow);else Reflect.deleteProperty(globalThis,'window');
 });
 
-test('token takes precedence over stale error and pending on every refresh; OAuth keeps admin host',async()=>{
+test('token takes precedence over stale error and pending on every refresh; OAuth stays same-origin',async()=>{
  let calls=0;
  for(let refresh=0;refresh<2;refresh++){
   await mount(`?token=${token}&error=old-private-error&pending=1`,async(url,options)=>{
@@ -35,7 +35,7 @@ test('token takes precedence over stale error and pending on every refresh; OAut
    return response();
   });
   assert.equal(heading(),'Invitación al equipo');assert(!text().includes('old-private-error'));
-  assert.equal(oauth()[0].props.href,`https://admin.scaleparaguay.com/api/auth/google/start?invite=${token}`);
+  assert.equal(oauth()[0].props.href,`/core-api/api/auth/google/start?invite=${token}`);
   assert.equal(oauth()[0].props.referrerPolicy,'no-referrer');
   await act(async()=>renderer!.unmount());renderer=undefined;
  }

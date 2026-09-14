@@ -58,6 +58,7 @@ export type Field = {
   section?: string;
   wide?: boolean;
   help?: string;
+  integer?: boolean;
 };
 const currencies = currencyChoices;
 export function Editor({
@@ -83,6 +84,7 @@ export function Editor({
   for (const f of fields) {
     let s = z.string();
     if (!f.optional) s = s.min(1, `Completá ${f.label.toLowerCase()}`);
+    if(f.integer)s=s.refine(value=>value===''||/^\d+$/.test(value),'Ingresá un importe entero.');
     shape[f.key] = s;
   }
   const form = useForm<Record<string, string>>({
@@ -102,7 +104,7 @@ export function Editor({
       {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={pending} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? '0.01' : undefined} {...form.register(f.key)}/>}
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} {...form.register(f.key)}/>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
@@ -171,6 +173,8 @@ type Person = {
   notes: string | null;
   user_id: string | null;
   access_email: string | null;
+  monthly_salary_amount: string | null;
+  monthly_salary_currency: 'PYG' | 'USD' | null;
 };
 type JobRole = { id: string; name: string; active: boolean };
 type Commission = {
@@ -223,6 +227,23 @@ const states: Record<string, string> = {
   paid: "Pagada",
   cancelled: "Cancelada",
 };
+type SalaryOverride={amount:string;note:string|null};
+function salaryMonth(now=new Date()) {
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(now);
+ return `${parts.find(part=>part.type==='year')!.value}-${parts.find(part=>part.type==='month')!.value}`;
+}
+function SalaryOverrideEditor({person}:{person:Person}) {
+ const ids={month:useId(),amount:useId(),note:useId()};
+ const [month,setMonth]=useState(()=>salaryMonth()),[amount,setAmount]=useState(''),[note,setNote]=useState(''),[existing,setExisting]=useState<SalaryOverride|null>(null),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[status,setStatus]=useState('');
+ useEffect(()=>{let active=true;setLoading(true);setError('');void api<{override:SalaryOverride|null}>(`/api/agency/collaborators/${person.id}/salary-overrides?month=${encodeURIComponent(month)}`).then(result=>{if(!active)return;setExisting(result.override);setAmount(result.override?.amount||'');setNote(result.override?.note||'');}).catch(error=>active&&setError(message(error))).finally(()=>active&&setLoading(false));return()=>{active=false;};},[person.id,month]);
+ async function save(event:React.FormEvent){event.preventDefault();setError('');setStatus('');if(!/^\d+$/.test(amount)){setError('Ingresá un ajuste entero igual o mayor a cero.');return;}setSaving(true);try{const result=await api<{override:SalaryOverride}>(`/api/agency/collaborators/${person.id}/salary-overrides`,{month,amount,note},'PATCH');setExisting(result.override);setAmount(result.override.amount);setNote(result.override.note||'');setStatus('Ajuste mensual guardado.');}catch(error){setError(message(error));}finally{setSaving(false);}}
+ async function remove(){setError('');setStatus('');setSaving(true);try{await api(`/api/agency/collaborators/${person.id}/salary-overrides?month=${encodeURIComponent(month)}`,{},'DELETE');setExisting(null);setAmount('');setNote('');setStatus('Ajuste mensual eliminado.');}catch(error){setError(message(error));}finally{setSaving(false);}}
+ return <section className="ops-profile-section" aria-labelledby={`${ids.month}-title`}><h3 id={`${ids.month}-title`}>Ajuste mensual de salario</h3><p className="form-note">Reemplaza el salario mensual recurrente solo para el mes elegido. No registra un pago.</p><form className="form-stack" noValidate aria-busy={loading||saving} onSubmit={save}>
+  <label htmlFor={ids.month}>Mes<input id={ids.month} type="month" value={month} min="1900-01" max="9998-12" disabled={saving} onChange={event=>/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)&&setMonth(event.target.value)}/></label>
+  {loading?<p role="status">Cargando ajuste mensual…</p>:<><label htmlFor={ids.amount}>Ajuste mensual ({person.monthly_salary_currency||'PYG'})<input id={ids.amount} type="number" inputMode="numeric" min="0" step="1" value={amount} disabled={saving} aria-invalid={Boolean(error)||undefined} aria-describedby={error?`${ids.amount}-error`:undefined} onChange={event=>setAmount(event.target.value)}/></label><label htmlFor={ids.note}>Nota del ajuste <span className="field-optional">· Opcional</span><textarea id={ids.note} value={note} maxLength={1000} disabled={saving} onChange={event=>setNote(event.target.value)}/></label><div className="inline-actions"><button className="secondary" type="submit" disabled={saving}>{saving?'Guardando…':'Guardar ajuste'}</button>{existing&&<button className="text-button" type="button" disabled={saving} onClick={remove}>Eliminar ajuste</button>}</div></>}
+  {error&&<p id={`${ids.amount}-error`} className="error" role="alert">{error}</p>}{status&&<p role="status">{status}</p>}
+ </form></section>;
+}
 export function OperationsWorkspace({
   mode,
   role,
@@ -328,6 +349,8 @@ export function OperationsWorkspace({
     { key: "compensation_type", label: "Modalidad", choices: types, section: 'Remuneración y pagos' },
     { key: "currency", label: "Moneda", choices: currencies, section: 'Remuneración y pagos' },
     { key: "compensation_amount", label: "Importe acordado", type: "money", section: 'Remuneración y pagos' },
+    { key: "monthly_salary_amount", label: "Salario mensual recurrente", type: "number", optional: true, integer: true, section: 'Planificación salarial', help: 'Opcional. Solo PYG o USD; no reutiliza importes variables, por hora ni por proyecto.' },
+    { key: "monthly_salary_currency", label: "Moneda del salario mensual", choices: [{value:'PYG',label:'PYG'},{value:'USD',label:'USD'}], section: 'Planificación salarial' },
     {
       key: "invoices_company",
       label: "¿Emite factura?",
@@ -361,6 +384,8 @@ export function OperationsWorkspace({
     job_role_id: person?.job_role_id ? String(person.job_role_id) : "",
     compensation_type: person?.compensation_type || "fixed",
     compensation_amount: person?.compensation_amount || "0",
+    monthly_salary_amount: person?.monthly_salary_amount || "",
+    monthly_salary_currency: person?.monthly_salary_currency || "PYG",
     currency: person?.currency || defaultCurrency,
     invoices_company: String(person?.invoices_company || false),
     started_on: person?.started_on?.slice(0, 10) || "",
@@ -560,7 +585,7 @@ export function OperationsWorkspace({
           {person&&<TeamAccess member={directory.find(entry=>entry.profile?.id===person.id)?.member||null} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>}
           <Editor
             columns
-            fields={person ? personFields : personFields.filter(f=>!f.section)}
+            fields={person ? personFields : personFields.filter(f=>!f.section||f.section==='Planificación salarial')}
             defaults={personDefaults}
             save={async (v) => {
               const result = await api<{access?:{status:string;emailSent?:boolean}}>(
@@ -577,6 +602,7 @@ export function OperationsWorkspace({
               setNotice(result.access?.status==='invited' ? result.access.emailSent ? 'Colaborador guardado. Acceso habilitado e invitación enviada.' : 'Colaborador guardado y acceso habilitado. No se pudo enviar el correo; puede entrar con Google usando el correo registrado.' : result.access?.status==='linked' ? 'Perfil guardado y acceso vinculado.' : result.access?.status==='needs_admin' ? 'Perfil guardado. Administración debe habilitar el acceso.' : 'Perfil guardado.');
             }}
           />
+          {person&&<SalaryOverrideEditor key={person.id} person={person}/>}
         </Dialog>
       )}
       {manageJobs&&<JobCatalog jobs={jobs} close={()=>setManageJobs(false)} refresh={load}/>}

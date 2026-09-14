@@ -7,13 +7,15 @@ Object.assign(globalThis,{React});
 for(const [module,exports] of [
  ['../app/dialog',{Dialog:({children}:{children:React.ReactNode})=><section>{children}</section>}],
  ['../app/suite',{RecordEditor:()=>null}],
+ ['../app/client-identity',{ClientIdentity:({name}:{name:string})=><span>{name}</span>}],
+ ['../app/actor-identity',{ActorIdentity:()=>null}],
 ] as const){const id=require.resolve(module);require.cache[id]={id,filename:id,loaded:true,exports} as NodeModule;}
 const {WorkspaceSearch}=require('../app/workspace-search') as typeof import('../app/workspace-search');
 const {WorkspaceBrand}=require('../app/workspace-brand') as typeof import('../app/workspace-brand');
 test('search destinations match their labels and close the search for every record kind',()=>{
  for(const [kind,destination] of [['clients','Clientes'],['projects','Proyectos'],['work-orders','Producción']] as const){
   const destinations:string[]=[];let r!:ReactTestRenderer;
-  act(()=>{r=create(<WorkspaceSearch role="viewer" records={[{id:'1',kind,name:'Órbita',context:'Test'}]} refresh={async()=>{throw Error('No refresh expected');}} navigate={label=>destinations.push(label)}/>);});
+  act(()=>{r=create(<WorkspaceSearch records={[{id:'1',kind,name:'Órbita',context:'Test'}]} navigate={label=>destinations.push(label)}/>);});
   act(()=>r.root.findByProps({'aria-label':'Buscar clientes, proyectos y órdenes'}).props.onClick());
   act(()=>r.root.findByProps({type:'search'}).props.onChange({target:{value:'orbita'}}));
   assert.equal(r.root.findAllByType('article').length,1);
@@ -24,7 +26,7 @@ test('search destinations match their labels and close the search for every reco
 });
 test('search caps rendering and reports the uncropped count',()=>{
  let r!:ReactTestRenderer;
- act(()=>{r=create(<WorkspaceSearch role="owner" records={Array.from({length:35},(_,i)=>({id:String(i),kind:'clients',name:'Cliente '+i,context:''}))} refresh={async()=>{}} navigate={()=>{}}/>);});
+ act(()=>{r=create(<WorkspaceSearch records={Array.from({length:35},(_,i)=>({id:String(i),kind:'clients',name:'Cliente '+i,context:''}))} navigate={()=>{}}/>);});
  act(()=>r.root.findByProps({'aria-label':'Buscar clientes, proyectos y órdenes'}).props.onClick());
  act(()=>r.root.findByProps({type:'search'}).props.onChange({target:{value:'cliente'}}));
  assert.equal(r.root.findAllByType('article').length,30);

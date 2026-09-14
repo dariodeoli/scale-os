@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+import {resolveCoreApiOrigin} from './core-api-origin.mjs';
+
 const nextConfig = {
   output: 'standalone',
   async headers() {
@@ -28,12 +30,13 @@ const nextConfig = {
     ];
   },
   async rewrites() {
+    const coreApiOrigin=resolveCoreApiOrigin();
     return [
-      {source:'/review/:path*',destination:'https://admin.scaleparaguay.com/review/:path*'},
-      {source:'/p/:path*',destination:'https://admin.scaleparaguay.com/p/:path*'},
+      {source:'/review/:path*',destination:coreApiOrigin+'/review/:path*'},
+      {source:'/p/:path*',destination:coreApiOrigin+'/p/:path*'},
       {
         source: '/core-api/:path*',
-        destination: 'https://admin.scaleparaguay.com/:path*',
+        destination: coreApiOrigin+'/:path*',
       },
     ];
   },

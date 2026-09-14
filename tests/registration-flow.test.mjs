@@ -7,7 +7,7 @@ assert(registration.includes('Configurá tu agencia.'),'agency is collected afte
 assert(registration.includes('Protegé tu acceso.'),'password is collected in its own final step');
 assert(registration.includes('GoogleSignIn'),'registration uses the shared Google entry component');
 assert(registration.indexOf('GoogleSignIn onClick={continueWithGoogle}')<registration.indexOf('Nombre de tu agencia'),'Google starts before agency fields');
-assert(registration.includes("window.location.assign('https://admin.scaleparaguay.com/api/auth/google/start?signup=1')"),'Google start sends identity-only signup intent');
+assert(registration.includes("window.location.assign('/core-api/api/auth/google/start?signup=1')"),'Google start sends identity-only signup intent through the same-origin Core API route');
 assert(!registration.includes("company:company.trim(),currency,consent:'1'"),'Google OAuth start does not receive company or consent metadata');
 assert(registration.includes("params.get('pendingRegistration')"),'Google callback resumes registration at agency step');
 assert(registration.includes("setGoogleTicket(pending);setStep(2)"),'pending Google registration opens step 2');

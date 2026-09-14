@@ -28,7 +28,7 @@ async function run(){
  assert(workspace.includes("document.removeEventListener('visibilitychange',refresh)"));
  assert(workspace.includes("window.removeEventListener('scale:billing-refresh',refresh)"));
  const form=readFileSync(new URL('../app/registro/page.tsx',import.meta.url),'utf8');
- assert(form.includes("window.location.assign('https://admin.scaleparaguay.com/api/auth/google/start?signup=1');"));
+ assert(form.includes("window.location.assign('/core-api/api/auth/google/start?signup=1');"));
  assert(form.includes("JSON.stringify({ticket:googleTicket,company:company.trim(),currency,consent:true})"));
  assert(!form.includes("company:company.trim(),currency,consent:'1'"));
  assert(form.includes("if(!consent){setError('Aceptá las condiciones de la prueba y suscripción para continuar.');return false;}"));
