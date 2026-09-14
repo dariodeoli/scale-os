@@ -35,6 +35,13 @@ test('verified client invitation sends its token to the Google start endpoint',a
  await act(async()=>{requests[1].resolve(new Response(JSON.stringify({})));await submit;});assert.equal(destination,'/cliente/entregas');renderer.unmount();
 });
 
+test('client invitation renders public expiry and exact terminal statuses without authorizing onboarding',async()=>{
+ const mountInvitation=async(search:string)=>{requests.length=0;Object.assign(globalThis,{window:{location:{search,assign:()=>{}}}});let focused='';let renderer!:ReactTestRenderer;await act(async()=>{renderer=create(<InvitationPage/>,{createNodeMock:element=>element.props.role==='alert'?{focus(){focused='alert';}}:{}});});return {renderer,focused:()=>focused};};
+ const invalid=await mountInvitation('?token=short');assert.equal(invalid.renderer.root.findByType('h1').props.children,'El enlace de invitación es inválido');assert.equal(requests.length,0);assert.equal(invalid.focused(),'alert');invalid.renderer.unmount();
+ const valid=await mountInvitation(`?token=${token}`);assert.equal(requests.length,1);await respond(requests[0],{organizationName:'Scale',clientName:'Acme',expiresAt:'2026-09-20T12:00:00Z'});assert.equal(valid.renderer.root.findByType('time').props.dateTime,'2026-09-20T12:00:00.000Z');assert.match(content(valid.renderer),/hora local/);assert.equal(valid.renderer.root.findAllByType('a').some(link=>link.props.href?.includes('/auth/google/start')),true);valid.renderer.unmount();
+ for(const [responseStatus,body,heading,state] of [[410,{link_status:'expired',error:'private'},'El enlace venció','expired'],[410,{link_status:'revoked',error:'private'},'El enlace fue revocado','revoked'],[410,{link_status:'used',error:'private'},'El enlace ya fue utilizado','used'],[404,{error:'private'},'Invitación no encontrada','not-found'],[410,{link_status:'unexpected',error:'private'},'Invitación no disponible','unavailable']] as const){const terminal=await mountInvitation(`?token=${token}`);await respond(requests[0],body,responseStatus);assert.equal(terminal.renderer.root.findByType('h1').props.children,heading);assert.equal(terminal.renderer.root.findAllByProps({'data-state':state}).length,1);assert.equal(terminal.renderer.root.findAllByType('a').length,0);assert(!content(terminal.renderer).includes('private'));assert.equal(terminal.focused(),'alert');terminal.renderer.unmount();}
+});
+
 test('delivery details use the audited download endpoint and keep review interactions',async()=>{
  requests.length=0;Object.assign(globalThis,{window:{location:{assign:()=>{}}}});
  let renderer!:ReactTestRenderer;await act(async()=>{renderer=create(<DeliveryPage/>);});

@@ -11,7 +11,7 @@ import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar} from './desktop-sidebar';
-import {clientStatuses,clientState} from './client-status';
+import {clientState} from './client-status';
 import './client-directory.css';
 import dynamic from 'next/dynamic';
 import {ClientIdentity,identityColor} from './client-identity';
@@ -84,6 +84,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ViewToggle } from "./view-toggle";
+import {ClientDirectoryToolbar,filterClientDirectory} from "./client-directory-toolbar";
 import { z } from "zod";
 import {
   BarChart3,
@@ -1399,7 +1400,7 @@ export default function Home() {
   const [myProfile,setMyProfile]=useState(false);
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string}|null>(null);
   const [projectClient,setProjectClient]=useState('');
-  const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState('');
+  const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState(''),[clientSearch,setClientSearch]=useState('');
   const [projectView,setProjectView]=useState('grid');
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
   useEffect(()=>{try{setProjectView(localStorage.getItem('scale:project-view')==='list'?'list':'grid');}catch{/* Optional UI preference. */}},[]);
@@ -1490,6 +1491,7 @@ export default function Home() {
   },[pathname,user?.demo_owner_user_id]);
   useEffect(()=>{if(signedIn){const id=new URLSearchParams(window.location.search).get('order');if(id&&/^\d+$/.test(id))setDetail({kind:'order',id});}},[signedIn,pathname]);
   const [clients, setClients] = useState<Client[]>([]);
+  const displayedClients=filterClientDirectory(clients,clientSearch,clientStatusFilter);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
   const productionClientId=preferences.production.clientId;
@@ -1878,35 +1880,43 @@ export default function Home() {
           </div>
         </div>
         <header className="workspace-page-header">
-          <div className="page-heading">
-            <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
-            {active==='Proyectos'&&<span className="page-count">{projects.length} proyectos</span>}
-            {active==='Clientes'&&<span className="page-count">{clients.length} clientes</span>}
-          </div>
-          <div className="header-actions">
-            {active==='Clientes'&&<SelectCustom label="Estado" value={clientStatusFilter} onChange={setClientStatusFilter} choices={[{value:'',label:'Todos los estados'},...clientStatuses]}/>}
-            {active==='Proyectos'&&<div className="workspace-view-controls"><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>}
-            {active==='Clientes'&&<div className="workspace-view-controls"><ViewToggle label="Vista de clientes" value={clientView as 'grid'|'list'} onChange={changeClientView}/></div>}
-            <WorkspaceGuide {...guideProps}/>
-            {((active==='Clientes'&&['owner','admin','management','sales'].includes(user?.role||''))||(['Proyectos','Resumen','Producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
-              <button
-                className="primary"
-                onClick={() =>
-                  setModal(
-                    active === "Clientes"
-                      ? "client"
-                      : active === "Proyectos"
+          {active==='Clientes' ? <ClientDirectoryToolbar
+            canCreate={['owner','admin','management','sales'].includes(user?.role||'')}
+            onCreate={()=>setModal('client')}
+            onQueryChange={setClientSearch}
+            onStatusChange={setClientStatusFilter}
+            onViewChange={changeClientView}
+            query={clientSearch}
+            resultCount={displayedClients.length}
+            status={clientStatusFilter}
+            totalCount={clients.length}
+            view={clientView as 'grid'|'list'}
+          ><WorkspaceGuide {...guideProps}/></ClientDirectoryToolbar> : <>
+            <div className="page-heading">
+              <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
+              {active==='Proyectos'&&<span className="page-count">{projects.length} proyectos</span>}
+            </div>
+            <div className="header-actions">
+              {active==='Proyectos'&&<div className="workspace-view-controls"><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>}
+              <WorkspaceGuide {...guideProps}/>
+              {((['Proyectos','Resumen','Producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
+                <button
+                  className="primary"
+                  onClick={() =>
+                    setModal(
+                      active === "Proyectos"
                         ? "project"
                           : active === "Presupuestos"
                             ? "budget"
                             : "order",
-                  )
-                }
-              >
-                <Plus size={18} /> {active==='Clientes'?'Nuevo cliente':active==='Proyectos'?'Nuevo proyecto':active==='Presupuestos'?'Nuevo presupuesto':'Nueva orden'}
-              </button>
-            )}
-          </div>
+                    )
+                  }
+                >
+                  <Plus size={18} /> {active==='Proyectos'?'Nuevo proyecto':active==='Presupuestos'?'Nuevo presupuesto':'Nueva orden'}
+                </button>
+              )}
+            </div>
+          </>}
         </header>
         {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
         {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><button className="primary" onClick={()=>setActive('Resumen')}>Ir al resumen</button></section>}
@@ -2078,8 +2088,8 @@ export default function Home() {
         {active === "Clientes" && (
           <section className="panel directory">
             <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
-              {clients.length ? (
-                clients.filter(client=>!clientStatusFilter||clientState(client).value===clientStatusFilter).map((client) => (
+              {displayedClients.length ? (
+                displayedClients.map((client) => (
                   <div className="client-row" key={client.id}>
                     <div>
                       <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/></button>
@@ -2090,13 +2100,17 @@ export default function Home() {
                     <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
                   </div>
                 ))
-              ) : (
+              ) : clients.length===0 ? (
                 <p className="empty-copy">
                   Todavía no hay clientes. Creá el primero para empezar.
                 </p>
+              ) : (
+                <div className="empty-copy">
+                  <p>{clientSearch.trim()?'No hay clientes que coincidan con tu búsqueda y filtros.':'No hay clientes con este estado.'}</p>
+                  <button className="text-button" type="button" onClick={()=>{setClientSearch('');setClientStatusFilter('');}}>Limpiar filtros</button>
+                </div>
               )}
             </div>
-            {clients.length>0&&clientStatusFilter&&!clients.some(c=>clientState(c).value===clientStatusFilter)&&<p className="empty-copy">No hay clientes con este estado.</p>}
           </section>
         )}
         {active === "Proyectos" && (
