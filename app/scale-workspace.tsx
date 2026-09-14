@@ -26,6 +26,7 @@ const ReportsWorkspace=dynamic(()=>import('./reports-workspace').then(m=>m.Repor
 const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const DemoWelcome=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoWelcome));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
+const DeletionDangerZone=dynamic(()=>import('./deletion-danger-zone').then(m=>m.DeletionDangerZone));
 const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
 import {BoardPresence,ProjectCardPresence,WorkspacePresence} from './presence';
@@ -260,6 +261,15 @@ type User = {
   demo_owner_user_id?:string|null;
   default_currency?:Currency;
 };
+export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
+  return user?`${user.id}:${user.organization_id}:${user.role}`:'';
+}
+export function identityScopeChanged(previous:Pick<User,'id'|'organization_id'|'role'>|null,next:Pick<User,'id'|'organization_id'|'role'>){
+  return identityScope(previous)!==identityScope(next);
+}
+export function shouldRollbackOrderMutation(failingVersion:number,latestVersion:number){
+  return failingVersion===latestVersion;
+}
 type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
 type Summary = {
   active_clients: number;
@@ -1396,8 +1406,12 @@ export default function Home() {
   function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
   function changeProjectView(value:string){setProjectView(value);try{localStorage.setItem('scale:project-view',value);}catch{/* Optional UI preference. */}}
   const [user, setUser] = useState<User | null>(null);
+  const userRef=useRef<User|null>(null);
+  const [workspaceScope,setWorkspaceScope]=useState('');
   const [guideData,setGuideData]=useState<WorkspaceGuideData>({scope:null,status:'unknown'});
   const dataLoadSequence=useRef(0);
+  const orderMutationVersions=useRef(new Map<string,number>());
+  const orderMutationQueue=useRef(new Map<string,Promise<void>>());
   const guideProps={userId:user?.id,organizationId:user?.organization_id,role:user?.role||'viewer',demo:!!user?.demo_owner_user_id,data:guideData,navigate:setActive};
   const {key:preferenceScope,ready:preferencesReady,preferences,warning:preferenceWarning,update:updatePreferences}=useWorkspacePreferences(signedIn?String(user?.id||''):'',signedIn?String(user?.organization_id||''):'');
   const [productionFiltersDialogScope,setProductionFiltersDialogScope]=useState('');
@@ -1407,6 +1421,7 @@ export default function Home() {
   const [demoWelcome,setDemoWelcome]=useState(false);
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
+  useEffect(()=>{userRef.current=user;},[user]);
   // Invalidate before child loading effects can read a previous tenant/role cache.
   useLayoutEffect(()=>{setDataScope(operationalAccess&&user?`${user.id}:${user.organization_id}:${user.role}`:'');},[operationalAccess,user?.id,user?.organization_id,user?.role]);
   function prefetchSection(label:string){
@@ -1446,7 +1461,15 @@ export default function Home() {
   },[signedIn,user?.id,user?.organization_id]);
   useEffect(()=>{
     let active=true;
-    const refreshIdentity=()=>{void request<{user:User}>('/api/auth/me').then(d=>{if(active)setUser(d.user);}).catch(()=>{});};
+    const refreshIdentity=()=>{void request<{user:User}>('/api/auth/me').then(d=>{
+      if(!active)return;
+      if(!identityScopeChanged(userRef.current,d.user)){setUser(d.user);return;}
+      const nextScope=identityScope(d.user);
+      clearScopedShellData();
+      clearDataCache();setDataScope(nextScope);setWorkspaceScope(nextScope);
+      userRef.current=d.user;setUser(d.user);
+      if(d.user.subscription?.hasAccess!==false)void load(d.user).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
+    }).catch(()=>{});};
     window.addEventListener('scale:identity-changed',refreshIdentity);
     return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);};
   },[]);
@@ -1548,7 +1571,8 @@ export default function Home() {
       .catch(() => setGoogleAvailable(false));
     request<{ user: User }>("/api/auth/me")
       .then((data) => {
-        setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
+        const scope=identityScope(data.user);
+        setDataScope(scope);setWorkspaceScope(scope);userRef.current=data.user;
         setUser(data.user);
         setSignedIn(true);
         returnToApprovedLoginDestination();
@@ -1638,7 +1662,8 @@ export default function Home() {
         body: JSON.stringify({ email, password }),
       });
       const data = await request<{ user: User }>("/api/auth/me");
-      setDataScope(`${data.user.id}:${data.user.organization_id}:${data.user.role}`);
+      const scope=identityScope(data.user);
+      setDataScope(scope);setWorkspaceScope(scope);userRef.current=data.user;
       setUser(data.user);
       setSignedIn(true);
       returnToApprovedLoginDestination();
@@ -1649,12 +1674,17 @@ export default function Home() {
       );
     }
   }
-  function clearSessionState() {
+  function clearScopedShellData(){
     dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
     setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
-    setMyProfile(false);setDetail(null);setProductionFiltersDialogScope('');setStartupDataScope('');
+    setClientStatusFilter('');setMoraFilter('');setProjectClient('');setProductionFiltersDialogScope('');setStartupDataScope('');setWorkspaceScope('');
+    setMyProfile(false);setDetail(null);setModal(null);setSubscriptionOpen(false);setDemoWelcome(false);
+  }
+  function clearSessionState() {
+    clearScopedShellData();
     setDataScope('');
     setSignedIn(false);
+    userRef.current=null;
     setUser(null);
   }
   async function logout() {
@@ -1664,6 +1694,11 @@ export default function Home() {
       () => undefined,
     );
   }
+  function deletionSignedOut(){
+    clearSessionState();
+    try{sessionStorage.removeItem("scale_company_selected");}catch{/* Optional presentation preference. */}
+    router.replace('/');
+  }
   async function onDragEnd(event: DragEndEvent) {
     const id = String(event.active.id);
     const target = String(event.over?.id || "");
@@ -1671,20 +1706,30 @@ export default function Home() {
     const status = target.replace("status-", "") as Status;
     const current = orders.find((order) => order.id === id);
     if (!current || current.status === status) return;
-    const previous = orders;
+    const mutationVersion=(orderMutationVersions.current.get(id)||0)+1;
+    orderMutationVersions.current.set(id,mutationVersion);
     setOrders((items) =>
       items.map((order) => (order.id === id ? { ...order, status } : order)),
     );
-    try {
+    const previousMutation=orderMutationQueue.current.get(id)||Promise.resolve();
+    const mutation=previousMutation.catch(()=>undefined).then(async()=>{
       await request(`/api/agency/work-orders/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
+    });
+    orderMutationQueue.current.set(id,mutation);
+    try {
+      await mutation;
     } catch (cause) {
-      setOrders(previous);
+      if(shouldRollbackOrderMutation(mutationVersion,orderMutationVersions.current.get(id)||0)){
+        setOrders((items)=>items.map(order=>order.id===id?{...order,status:current.status}:order));
+      }
       setToast(
         cause instanceof Error ? cause.message : "No se pudo mover la orden.",
       );
+    } finally {
+      if(orderMutationQueue.current.get(id)===mutation)orderMutationQueue.current.delete(id);
     }
   }
   const close = () => {setModal(null);setProjectClient('');};
@@ -1817,7 +1862,7 @@ export default function Home() {
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
             </div>
             <div className="topbar-utility-actions">
-              <WorkspaceSearch navigate={setActive} records={[
+              <WorkspaceSearch key={workspaceScope} navigate={setActive} records={[
                 ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
                 ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
                 ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.effective_assignees||o.assignees||project?.assignees};}),
@@ -1870,7 +1915,7 @@ export default function Home() {
         {active==='Inventario'&&<InventoryWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Estudio'&&<StudioWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
-        {active==='Configuración'&&<div className="settings-page ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}<div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div></div>}
+        {active==='Configuración'&&<div className="settings-page ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}<div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div>{user&&!user.demo_owner_user_id&&<DeletionDangerZone key={String(user.organization_id)} organizationId={String(user.organization_id)} organizationName={user.organization_name} onAccountDeleted={deletionSignedOut} onOrganizationDeleted={deletionSignedOut}/>}</div>}
         {active==='Preferencias'&&<section className="panel settings-card preferences-card" aria-labelledby="workspace-preferences-title"><div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Settings size={18}/></span><div><h2 id="workspace-preferences-title">Preferencias del espacio</h2><p>Se guardan solo para vos en {user?.organization_name||'esta empresa'}, en este navegador.</p></div></div>
           <div className="preferences-row">{preferencesReady?<SelectCustom label="Al entrar a Scale OS" value={startupChoices(user?.role||'').some(choice=>choice.value===preferences.startup)?preferences.startup:'summary'} choices={startupChoices(user?.role||'')} onChange={startup=>updatePreferences({startup:startup as StartupPreference})}/>:<p role="status">Cargando preferencias…</p>}<p className="form-note">Se aplica en tu próxima entrada al inicio. Los enlaces a secciones, piezas y otros destinos conservan su destino.</p></div>
           {preferenceWarning&&<p role="status" className="settings-notice">{preferenceWarning}</p>}
