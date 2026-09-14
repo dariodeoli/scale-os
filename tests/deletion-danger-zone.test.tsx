@@ -47,7 +47,7 @@ const organizationPreview=(overrides:Partial<import('../app/deletion-danger-zone
 });
 const proof=(action:'account.delete'|'organization.delete',method:'password'|'google'='password',expiresAt=future)=>({proof:`proof-${action}`,method,action,organizationId:action==='account.delete'?null:'7',expiresAt});
 
-let renderer:ReactTestRenderer|null=null,accountDeleted=0,organizationDeleted=0;
+let renderer:ReactTestRenderer|null=null,accountDeleted=0,organizationDeleted=0,demoExited=0;
 const textOf=(value:unknown):string=>typeof value==='string'||typeof value==='number'?String(value):Array.isArray(value)?value.map(textOf).join(' '):React.isValidElement<{children?:React.ReactNode}>(value)?textOf(value.props.children):value&&typeof value==='object'&&'children' in value?textOf((value as ReactTestInstance).children):'';
 const treeText=()=>textOf(renderer!.root).replace(/\s+/g,' ').trim();
 const buttons=()=>renderer!.root.findAllByType('button');
@@ -56,10 +56,10 @@ const form=(className:string)=>renderer!.root.findByProps({className});
 const input=(type?:string)=>renderer!.root.findAllByType('input').find(item=>type?item.props.type===type:item.props.type!=='password')!;
 const submitEvent=()=>({preventDefault(){}});
 const createNodeMock=(element:React.ReactElement<{autoComplete?:string;className?:string}>)=>({focus(){focused.push(element.props.autoComplete==='current-password'?'password':element.props.className?.includes('deletion-google')?'google':element.props.autoComplete==='off'?'confirmation':'other');}});
-async function mount(){
- requests.length=0;storage.clear();assigned='';replaced='';focused=[];timers=[];timerSequence=0;accountDeleted=0;organizationDeleted=0;
+async function mount({demo=false}:{demo?:boolean}={}){
+ requests.length=0;storage.clear();assigned='';replaced='';focused=[];timers=[];timerSequence=0;accountDeleted=0;organizationDeleted=0;demoExited=0;
  Object.assign(browser.location,{href:'https://app.example/configuracion',search:''});
- await act(async()=>{renderer=create(<DeletionDangerZone organizationId="7" organizationName="Scale Lab" onAccountDeleted={()=>{accountDeleted++;}} onOrganizationDeleted={()=>{organizationDeleted++;}}/>,{createNodeMock});});
+ await act(async()=>{renderer=create(<DeletionDangerZone organizationId="7" organizationName="Scale Lab" demo={demo} onDemoExit={()=>{demoExited++;}} onAccountDeleted={()=>{accountDeleted++;}} onOrganizationDeleted={()=>{organizationDeleted++;}}/>,{createNodeMock});});
 }
 async function respond(request:PendingRequest,data:unknown,status=200){await act(async()=>request.resolve(new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}})));}
 async function previewAccount(value=accountPreview()){button('Revisar eliminación de mi cuenta')!.props.onClick();await respond(requests.at(-1)!,{preview:value});}
@@ -101,8 +101,19 @@ test('account preview renders every server membership, consequence and blocker w
  const content=treeText();
  assert.match(content,/Tu identidad personal será anonimizada/);assert.match(content,/Todas tus sesiones serán cerradas/);assert.match(content,/Los datos de las empresas se conservarán/);
  assert.match(content,/Scale Lab/);assert.match(content,/3 miembros activos/);assert.match(content,/1 dueños activos/);assert.match(content,/Tu acceso se desactivará/);
- assert.match(content,/Solo Studio/);assert.match(content,/La empresa se eliminará de forma lógica/);assert.match(content,/Transferí la propiedad/);
+ assert.match(content,/Solo Studio/);assert.match(content,/La empresa se desactivará porque sos su único miembro activo/);assert.match(content,/Transferí la propiedad/);
  assert.equal(renderer!.root.findAllByProps({className:'deletion-auth-form'}).length,0);assert.equal(button('Eliminar mi cuenta'),undefined);
+});
+
+test('demo simulation replaces deletion controls and delegates exit to the landing/logout flow',async()=>{
+ await mount({demo:true});
+ assert.match(treeText(),/Simulación Demo/);assert.match(treeText(),/El Demo no elimina cuentas ni empresas/);
+ assert.equal(button('Revisar eliminación de mi cuenta'),undefined);assert.equal(button('Revisar eliminación de Scale Lab'),undefined);
+ act(()=>button('Salir y reiniciar simulación')!.props.onClick());
+ assert.equal(demoExited,1);assert.equal(requests.length,0,'The demo exit control delegates cleanup to its workspace owner.');
+ const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ assert.match(workspace,/async function exitDemoSimulation\(\)[\s\S]*?request\("\/api\/auth\/logout", \{ method: "POST" \}\)[\s\S]*?window\.location\.assign\('\/'\)/);
+ assert.match(workspace,/<DeletionDangerZone[\s\S]*?demo=\{!!user\.demo_owner_user_id\|\|user\.organization_slug==='scale-demo-controles-20260908'\}[\s\S]*?onDemoExit=\{exitDemoSimulation\}/);
 });
 
 test('company preview uses server counts/consequences and exact confirmation after password re-auth',async()=>{

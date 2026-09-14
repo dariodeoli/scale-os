@@ -1694,6 +1694,12 @@ export default function Home() {
       () => undefined,
     );
   }
+  async function exitDemoSimulation(){
+    clearSessionState();
+    try{sessionStorage.removeItem("scale_company_selected");}catch{/* Optional presentation preference. */}
+    await request("/api/auth/logout", { method: "POST" }).catch(()=>undefined);
+    window.location.assign('/');
+  }
   function deletionSignedOut(){
     clearSessionState();
     try{sessionStorage.removeItem("scale_company_selected");}catch{/* Optional presentation preference. */}
@@ -1915,7 +1921,7 @@ export default function Home() {
         {active==='Inventario'&&<InventoryWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Estudio'&&<StudioWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Actividad'&&<ActivityWorkspace/>}
-        {active==='Configuración'&&<div className="settings-page ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}<div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div>{user&&!user.demo_owner_user_id&&<DeletionDangerZone key={String(user.organization_id)} organizationId={String(user.organization_id)} organizationName={user.organization_name} onAccountDeleted={deletionSignedOut} onOrganizationDeleted={deletionSignedOut}/>}</div>}
+        {active==='Configuración'&&<div className="settings-page ops-stack"><SettingsWorkspace/>{!user?.demo_owner_user_id&&<NewCompany/>}<div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div>{user&&<DeletionDangerZone key={String(user.organization_id)} organizationId={String(user.organization_id)} organizationName={user.organization_name} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'} onDemoExit={exitDemoSimulation} onAccountDeleted={deletionSignedOut} onOrganizationDeleted={deletionSignedOut}/>}</div>}
         {active==='Preferencias'&&<section className="panel settings-card preferences-card" aria-labelledby="workspace-preferences-title"><div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Settings size={18}/></span><div><h2 id="workspace-preferences-title">Preferencias del espacio</h2><p>Se guardan solo para vos en {user?.organization_name||'esta empresa'}, en este navegador.</p></div></div>
           <div className="preferences-row">{preferencesReady?<SelectCustom label="Al entrar a Scale OS" value={startupChoices(user?.role||'').some(choice=>choice.value===preferences.startup)?preferences.startup:'summary'} choices={startupChoices(user?.role||'')} onChange={startup=>updatePreferences({startup:startup as StartupPreference})}/>:<p role="status">Cargando preferencias…</p>}<p className="form-note">Se aplica en tu próxima entrada al inicio. Los enlaces a secciones, piezas y otros destinos conservan su destino.</p></div>
           {preferenceWarning&&<p role="status" className="settings-notice">{preferenceWarning}</p>}

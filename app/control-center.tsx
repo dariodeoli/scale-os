@@ -6,12 +6,15 @@ import {DueAlert,groupDueAlerts,shortDate} from './control-center-data';
 import {RecordEditor} from './suite';
 type Total={currency:string;total:string};
 type Dashboard={cash:Total[];receivables:Total[];collections:Total[];inventory:Total[];alerts:DueAlert[]};
+type CommercialDashboard={activeClients:number;activeProspects:number;expectedMonthlyBilling?:Total[]};
 type Order={id:string;title:string;status:string;due_date?:string|null;client_name:string;project_name:string};
 
 export function ControlCenter({role,orders,refresh,navigate}:{role:string;orders:Order[];refresh:()=>Promise<void>;navigate:(label:string)=>void}){
- const allowed=['owner','admin','finance'].includes(role);
+ const allowed=['owner','admin','finance'].includes(role),commercialAllowed=['owner','admin','management','sales','finance'].includes(role);
  const [data,setData]=useState<Dashboard|null>(null),[error,setError]=useState('');
+ const [commercial,setCommercial]=useState<CommercialDashboard|null>(null),[commercialError,setCommercialError]=useState('');
  useEffect(()=>{let live=true;if(allowed){setError('');void api<Dashboard>('/api/agency/dashboard').then(value=>{if(live)setData(value);}).catch(e=>{if(live)setError(e instanceof Error?e.message:'No se pudo cargar el resumen financiero.');});}return()=>{live=false;};},[allowed,orders]);
+ useEffect(()=>{let live=true;setCommercial(null);setCommercialError('');if(commercialAllowed)void api<CommercialDashboard>('/api/agency/dashboard/commercial').then(value=>{if(!Number.isInteger(value?.activeClients)||value.activeClients<0||!Number.isInteger(value.activeProspects)||value.activeProspects<0)throw Error('No se pudo validar el resumen comercial.');if(live)setCommercial(value);}).catch(e=>{if(live)setCommercialError(e instanceof Error?e.message:'No se pudo cargar el resumen comercial.');});return()=>{live=false;};},[commercialAllowed,orders]);
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const orderAlerts:DueAlert[]=orders.filter(o=>o.due_date&&o.due_date.slice(0,10)<today&&!['approved','published'].includes(o.status)).map(o=>({id:o.id,type:'work_order',name:o.title,due:o.due_date!.slice(0,10),context:`${o.client_name} · ${o.project_name}`}));
  // The existing financial endpoint returns at most 30 combined alerts. Never claim that capped count is the total.
@@ -19,6 +22,14 @@ export function ControlCenter({role,orders,refresh,navigate}:{role:string;orders
  const alerts=allowed&&data?data.alerts.map(a=>({...a,context:orderAlerts.find(o=>String(o.id)===String(a.id)&&a.type==='work_order')?.context})):orderAlerts;
  const groups=groupDueAlerts(alerts);
  return <>
+  {commercialAllowed&&<section className="financial-summary commercial-summary" aria-labelledby="commercial-title">
+   <div className="section-caption"><h2 id="commercial-title">Resumen comercial</h2><button className="text-button" onClick={()=>navigate('Pipeline')}>Ver pipeline <ArrowUpRight size={14}/></button></div>
+   {commercialError?<p className="error" role="alert">{commercialError} Los indicadores comerciales no están disponibles.</p>:<div className="financial-strip" aria-busy={!commercial}>
+    <article className="financial-stat"><span>Clientes activos</span><div className="financial-amounts"><strong>{!commercial?'Cargando…':commercial.activeClients}</strong></div><small>Con relación comercial activa.</small></article>
+    <article className="financial-stat"><span>Prospectos activos</span><div className="financial-amounts"><strong>{!commercial?'Cargando…':commercial.activeProspects}</strong></div><small>Leads que todavía no están ganados ni perdidos.</small></article>
+    <article className="financial-stat financial-primary"><span>Facturación mensual contratada</span><div className="financial-amounts">{!allowed?<strong className="no-movements">No disponible para tu rol</strong>:!commercial?<strong className="loading-value">Cargando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong className="no-movements">No disponible</strong>:commercial.expectedMonthlyBilling.length?commercial.expectedMonthlyBilling.map(item=><strong key={item.currency}>{money(item.total,item.currency)}</strong>):<strong className="no-movements">Sin contratos activos</strong>}</div><small>Expectativa comercial vigente; no es el forecast ni el efectivo cobrado.</small></article>
+   </div>}
+  </section>}
   {allowed&&<section className="financial-summary" aria-labelledby="financial-title">
    <div className="section-caption"><h2 id="financial-title">Resumen financiero</h2><button className="text-button" onClick={()=>navigate('Pagos')}>Ver movimientos <ArrowUpRight size={14}/></button></div>
    {error?<p className="error" role="alert">{error} Los importes no están disponibles.</p>:<div className="financial-strip" aria-busy={!data}>

@@ -38,9 +38,10 @@ test("workspace header retains visible focus, 44px controls, compact responsive 
   assert.match(density, /\.workspace-topbar :is\(button,a\):focus-visible\{outline:3px/);
   assert.match(density, /topbar-utility-actions>\.workspace-search-trigger\{min-width:min\(244px,30vw\);min-height:44px/);
   assert.match(density, /topbar-utility-actions>\.notification-trigger\{width:44px;min-width:44px;min-height:44px/);
-  assert.match(density, /@media\(max-width:520px\)\{\n \.control-shell \.topbar-presence\{display:none\}/);
+  assert.match(density, /@media\(max-width:520px\)\{[\s\S]*?\.control-shell \.topbar-presence\{display:none\}/);
   assert.match(density, /@media\(prefers-reduced-motion:reduce\)/);
   assert.doesNotMatch(mobileNavigation, /topbar-company[^}]*display:none/);
+  assert.doesNotMatch(mobileNavigation, /\.workspace-topbar/);
 });
 
 test("mobile workspace header keeps the subscription notice visible in the compact status row", () => {

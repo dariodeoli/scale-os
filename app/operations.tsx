@@ -17,7 +17,7 @@ import {PhotoViewer} from './photo-viewer';
 import {ActorIdentity} from './actor-identity';
 import {CommentBody,CommentComposer} from './commenting';
 import {notifyMutation} from './feedback';
-import {teamDirectory,TeamMember,ArchivedProfile} from './team-directory';
+import {teamDirectory,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
 import {TeamAccess} from './team-access';
 import {dataFetch} from './data-cache';
 
@@ -407,7 +407,7 @@ export function OperationsWorkspace({
           <p>Cargando…</p>
         ) : mode === "people" ? (
           <div className="ops-grid">
-            {visiblePeople.map((entry) => {const p=entry.profile;return p?(
+            {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
               <article className="ops-card ops-person-card" key={p.id}>
                 <div className="ops-person">
                   {p.photo_url ? (
@@ -417,12 +417,9 @@ export function OperationsWorkspace({
                   )}
                   <div>
                     <h3>{p.full_name}</h3>
-                    <small>
-                      Cargo: {p.job_title || "Sin definir"} · Estado laboral: {p.active ? "Activo" : "Inactivo"}
-                    </small>
+                    <small>{p.email || "Sin correo de contacto"} · {accessRole} · {accessState}</small>
                   </div>
                 </div>
-                <p>{p.email || "Sin correo de contacto"}</p>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
                 <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} currentEmail={currentEmail} refresh={load}/>
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
@@ -439,7 +436,7 @@ export function OperationsWorkspace({
                   <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
                 </div>
               </article>
-            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt="" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}}/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||entry.member!.email}</h3><small>{entry.archivedProfileId?'Perfil en Papelera':'Sin ficha laboral'}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
+            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt="" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}}/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||'Integrante sin ficha'}</h3><small>{entry.member!.email} · {accessRole} · {accessState}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
             {!visiblePeople.length && (
               <p className="empty-copy">
                 {search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}
@@ -556,7 +553,7 @@ export function OperationsWorkspace({
           </p>
           {!person&&seedEmail&&<p className="form-note">El nombre y la foto se toman de su perfil personal. Esta ficha agrega datos laborales, no requiere registrarse de nuevo.</p>}
           {!person&&members.find(member=>member.email===seedEmail)?.photo_url&&<PhotoViewer photo={members.find(member=>member.email===seedEmail)!.photo_url!} name={personDefaults.full_name}/>}
-          {person&&<ProfilePhoto key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
+          {person&&<ProfilePhoto compact key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
             const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
             await load();setEdit(result.collaborator);
           }}/>}

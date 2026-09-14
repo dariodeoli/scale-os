@@ -39,7 +39,7 @@ type ApiFailure=Error&{code?:DeletionErrorCode;status?:number};
 export const DELETION_PREVIEW_STORAGE_KEY='scale:pending-deletion-preview';
 const previewRecoveryCodes=new Set<DeletionErrorCode>(['DELETION_PREVIEW_STALE','DELETION_PREVIEW_INVALID','DELETION_SCOPE_MISMATCH']);
 const consequenceLabels:Record<string,string>={
- organization_soft_delete:'La empresa se eliminará de forma lógica porque sos su único miembro activo.',
+ organization_soft_delete:'La empresa se desactivará porque sos su único miembro activo; sus datos quedarán inaccesibles.',
  membership_deactivation:'Tu acceso se desactivará; la empresa y sus datos seguirán disponibles para los demás miembros.',
 };
 const roleLabels:Record<string,string>={owner:'Dueño',admin:'Administración',management:'Gerencia',manager:'Gerencia',finance:'Finanzas',sales:'Comercial',editor:'Edición',production:'Producción',viewer:'Lectura'};
@@ -123,7 +123,8 @@ function OrganizationConsequences({preview}:{preview:OrganizationDeletionPreview
   <h4>{preview.organization.name}</h4>
   <p>{preview.organization.activeMemberCount} miembros activos según la vista previa del servidor.</p>
   <ul className="deletion-consequence-list">
-   <li>{consequences.organizationWillBeSoftDeleted?'La empresa será eliminada de forma lógica.':'La empresa no será eliminada de forma lógica.'}</li>
+   <li>{consequences.organizationWillBeSoftDeleted?'La empresa se desactivará; sus datos quedarán inaccesibles.':'La empresa no será desactivada.'}</li>
+
    <li>{consequences.allMemberAccessWillBeDeactivated?'Se desactivará el acceso de todos sus miembros.':'No se desactivará el acceso de todos sus miembros.'}</li>
    <li>{consequences.organizationSessionsWillBeRevoked?'Se cerrarán las sesiones vinculadas a esta empresa.':'No se cerrarán las sesiones vinculadas a esta empresa.'}</li>
    <li>{consequences.tenantDataWillBeRetained?'Los datos de la empresa se conservarán.':'Los datos de la empresa no se conservarán.'}</li>
@@ -221,13 +222,13 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
    const path=kind==='account'?'/api/auth/account/deletion':`/api/auth/organizations/${encodeURIComponent(organizationId)}/deletion`;
    await deletionRequest(path,{previewId:preview.id,recentAuthProof:auth.proof,confirmation});
    try{sessionStorage.removeItem(DELETION_PREVIEW_STORAGE_KEY);}catch{/* Best-effort cleanup. */}
-   setNotice(kind==='account'?'Tu cuenta fue eliminada.':'La empresa fue eliminada.');
+   setNotice(kind==='account'?'Tu cuenta fue eliminada y tu acceso se cerró.':'La empresa fue desactivada y sus datos ya no son accesibles.');
    await onSuccess();
   }catch(cause){handleFailure(cause);}finally{setBusy('');}
  }
  const title=kind==='account'?'Eliminar mi cuenta':'Eliminar esta empresa';
  return <article className="deletion-flow" aria-labelledby={headingId} aria-busy={Boolean(busy)}>
-  <div className="deletion-flow-heading"><span aria-hidden="true">{kind==='account'?<UserRoundX size={20}/>:<Building2 size={20}/>}</span><div><h3 id={headingId}>{title}</h3><p>{kind==='account'?'Elimina tu acceso personal y cierra todas tus sesiones.':'Elimina la empresa abierta y desactiva el acceso de todos sus miembros.'}</p></div></div>
+  <div className="deletion-flow-heading"><span aria-hidden="true">{kind==='account'?<UserRoundX size={20}/>:<Building2 size={20}/>}</span><div><h3 id={headingId}>{title}</h3><p>{kind==='account'?'Esta acción es irreversible: perderás tu acceso personal y se cerrarán todas tus sesiones.':'Esta acción es irreversible: la empresa se desactivará, todos perderán acceso y sus datos quedarán inaccesibles.'}</p></div></div>
   {!preview&&<button type="button" className="secondary deletion-review" disabled={busy==='preview'} onClick={()=>void fetchPreview()}>{busy==='preview'?'Preparando vista previa…':kind==='account'?'Revisar eliminación de mi cuenta':`Revisar eliminación de ${organizationName}`}</button>}
   {preview&&<div className="deletion-progress" ref={previewFocus} tabIndex={-1}>
    <div className="deletion-step"><span>1</span><div><strong>Revisá la vista previa del servidor</strong><small>Válida {formatExpiry(preview.expiresAt)}.</small></div></div>
@@ -252,9 +253,17 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
  </article>;
 }
 
-export function DeletionDangerZone({organizationId,organizationName,onAccountDeleted,onOrganizationDeleted}:{organizationId:string;organizationName:string;onAccountDeleted:()=>void|Promise<void>;onOrganizationDeleted:()=>void|Promise<void>}){
+function DemoExitSimulation({onExit}:{onExit:()=>void|Promise<void>}){
+ return <article className="deletion-flow deletion-demo-simulation" aria-labelledby="demo-exit-title">
+  <div className="deletion-flow-heading"><span aria-hidden="true"><ShieldAlert size={20}/></span><div><h3 id="demo-exit-title">Salir del Demo</h3><p>El Demo no elimina cuentas ni empresas. Salir borra el estado local, cierra la sesión de simulación y vuelve al inicio público.</p></div></div>
+  <button type="button" className="secondary" onClick={()=>void onExit()}>Salir y reiniciar simulación</button>
+ </article>;
+}
+
+export function DeletionDangerZone({organizationId,organizationName,onAccountDeleted,onOrganizationDeleted,demo=false,onDemoExit=async()=>undefined}:{organizationId:string;organizationName:string;onAccountDeleted:()=>void|Promise<void>;onOrganizationDeleted:()=>void|Promise<void>;demo?:boolean;onDemoExit?:()=>void|Promise<void>}){
  const [resume,setResume]=useState<ResumeState|null>(null),[resumeBusy,setResumeBusy]=useState(false),[resumeError,setResumeError]=useState('');
  useEffect(()=>{
+  if(demo)return;
   const query=new URLSearchParams(window.location.search),ticket=query.get('recentAuthTicket'),oauthError=query.get('error');
   if(!ticket&&!oauthError)return;
   cleanOAuthQuery();
@@ -271,14 +280,16 @@ export function DeletionDangerZone({organizationId,organizationName,onAccountDel
    setResume({preview:preview!,auth});
   }).catch(cause=>{if(active)setResumeError(cause instanceof Error?cause.message:'No se pudo completar la verificación con Google.');}).finally(()=>{if(active)setResumeBusy(false);});
   return()=>{active=false;};
- },[organizationId]);
+ },[demo,organizationId]);
  return <section className="panel settings-card deletion-danger-zone" aria-labelledby="deletion-danger-title" aria-busy={resumeBusy}>
-  <div className="settings-card-heading deletion-zone-heading"><span className="settings-card-icon" aria-hidden="true"><ShieldAlert size={18}/></span><div><h2 id="deletion-danger-title">Zona de peligro</h2><p>Estas acciones son permanentes. Scale OS siempre prepara una vista previa del servidor antes de pedir tu identidad y la confirmación final.</p></div></div>
-  {resumeBusy&&<p className="deletion-resume" role="status">Completando la verificación con Google…</p>}
-  {resumeError&&<p className="deletion-error" role="alert">{resumeError}</p>}
-  <div className="deletion-flow-grid">
-   <DeletionFlow kind="organization" organizationId={organizationId} organizationName={organizationName} resume={resume} onSuccess={onOrganizationDeleted}/>
-   <DeletionFlow kind="account" organizationId={organizationId} organizationName={organizationName} resume={resume} onSuccess={onAccountDeleted}/>
-  </div>
+  <div className="settings-card-heading deletion-zone-heading"><span className="settings-card-icon" aria-hidden="true"><ShieldAlert size={18}/></span><div><h2 id="deletion-danger-title">{demo?'Simulación Demo':'Zona de peligro'}</h2><p>{demo?'El Demo solo permite salir o reiniciar la simulación; no genera pruebas ni acciones de eliminación.':'Estas acciones son irreversibles: perderás acceso. Scale OS prepara una vista previa del servidor antes de pedir tu identidad y la confirmación final.'}</p></div></div>
+  {demo?<div className="deletion-flow-grid"><DemoExitSimulation onExit={onDemoExit}/></div>:<>
+   {resumeBusy&&<p className="deletion-resume" role="status">Completando la verificación con Google…</p>}
+   {resumeError&&<p className="deletion-error" role="alert">{resumeError}</p>}
+   <div className="deletion-flow-grid">
+    <DeletionFlow kind="organization" organizationId={organizationId} organizationName={organizationName} resume={resume} onSuccess={onOrganizationDeleted}/>
+    <DeletionFlow kind="account" organizationId={organizationId} organizationName={organizationName} resume={resume} onSuccess={onAccountDeleted}/>
+   </div>
+  </>}
  </section>;
 }

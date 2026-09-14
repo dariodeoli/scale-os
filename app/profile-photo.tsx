@@ -37,7 +37,7 @@ export async function preparePhoto(file:File,forLogo=false,centerCrop=false):Pro
   }finally{bitmap.close();}
 }
 
-export function ProfilePhoto({photo,name,save,label='Foto de perfil'}:{photo:string|null;name:string;save:(value:string)=>Promise<void>;label?:string}){
+export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=false}:{photo:string|null;name:string;save:(value:string)=>Promise<void>;label?:string;compact?:boolean}){
   const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{photo:photo||''}});
   const [processing,setProcessing]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState('');
   const [cropSource,setCropSource]=useState<string|null>(null);
@@ -57,8 +57,8 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil'}:{photo:str
     if(source?.startsWith('data:image/'))setCropSource(source);
     else setError('Elegí el archivo original para ajustar esta foto.');
   };
-  return <section className="ops-profile-section profile-photo-section" aria-label={label}>
-    <div className="profile-photo-section-heading"><strong>{label}</strong><small>Seleccioná la foto para reemplazarla; después podés ajustar el encuadre.</small></div>
+  return <section className={`ops-profile-section profile-photo-section${compact?' is-compact':''}`} aria-label={label}>
+    {!compact&&<div className="profile-photo-section-heading"><strong>{label}</strong><small>Seleccioná la foto para reemplazarla; después podés ajustar el encuadre.</small></div>}
     <form className="form-stack profile-photo-form" noValidate onSubmit={form.handleSubmit(async values=>{
       if(!startSave())return;
       setError('');setNotice('');try{if(values.photo.startsWith('https:'))await validateImageLink(values.photo);if(!mounted.current)return;await save(values.photo);if(!mounted.current)return;form.reset(values);setFailedPhoto('');setNotice('Foto guardada.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
@@ -66,13 +66,13 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil'}:{photo:str
       <div className="profile-photo-summary">
       {preview&&preview!==failedPhoto?<button type="button" className="editable-photo" aria-label={`Cambiar foto de ${name}`} disabled={busy} onClick={()=>fileInput.current?.click()}><img src={preview} referrerPolicy="no-referrer" alt={`Foto de ${name}`} onError={()=>setFailedPhoto(preview)}/></button>:<button type="button" className="avatar editable-photo" aria-label={`Elegir foto de ${name}`} disabled={busy} onClick={()=>fileInput.current?.click()}>{name[0]}</button>}
       <div className="profile-photo-controls">
-      <label className="photo-upload">{processing?'Preparando…':preview?'Cambiar foto':'Elegir foto'}<input ref={fileInput} aria-label="Elegir foto (JPG, PNG o WebP; hasta 4 MB)" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async event=>{
+      <label className="photo-upload">{processing?'Preparando…':compact?'Cambiar foto':preview?'Cambiar foto':'Elegir foto'}<input ref={fileInput} aria-label="Elegir foto (JPG, PNG o WebP; hasta 4 MB)" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file||!startSave())return;
         setError('');setNotice('');try{const isLogo=label==='Logo o foto del cliente';const source=await preparePhoto(file,isLogo);if(!mounted.current)return;const ready=isLogo?source:await preparePhoto(file,false,true);if(!mounted.current)return;setOriginalSource(source);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);if(!mounted.current)return;form.reset({photo:ready});setFailedPhoto('');setNotice(isLogo?'Logo guardado automáticamente.':'Foto centrada y guardada automáticamente. Podés ajustar el encuadre.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
       }}/></label>
-      <button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>
-      {preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}>Mover y recortar</button>}
+      {!compact&&<><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}>Mover y recortar</button>}</>}
       </div></div>
+      {compact&&<details className="profile-photo-progressive"><summary>Más opciones de foto</summary><div><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}>Mover y recortar</button>}</div></details>}
       {useLink&&<label>Enlace directo a la imagen<input type="url" value={preview.startsWith('data:')?'':preview} placeholder="https://…/foto.jpg" disabled={busy} onChange={e=>{form.setValue('photo',e.target.value,{shouldDirty:true,shouldValidate:true});setOriginalSource(null);}}/><small>Usá un enlace público de confianza. La imagen se carga desde ese sitio; puede dejar de funcionar si cambia. Para mover o recortar, subí el archivo original.</small></label>}
       {form.formState.errors.photo&&<p role="alert" className="error">{form.formState.errors.photo.message}</p>}
       {preview&&preview===failedPhoto&&<p role="alert" className="error">Esta imagen no se puede mostrar acá. Algunos enlaces de Instagram bloquean otros sitios o vencen. Subí el archivo o probá otro enlace público.</p>}
