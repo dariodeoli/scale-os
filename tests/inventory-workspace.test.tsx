@@ -105,6 +105,16 @@ async function run(){
   const tabs=renderer.root.findByProps({role:'group','aria-label':'Vistas de inventario'}).findAllByType('button');assert.equal(tabs.length,3);assert.equal(tabs[0].props['aria-pressed'],true);assert.equal(tabs[1].props['aria-pressed'],false);assert.equal(tabs[2].props['aria-pressed'],false);
  const viewControl=renderer.root.findByProps({role:'group','aria-label':'Vista de inventario'});let viewButtons=viewControl.findAllByType('button');assert.equal(viewButtons.length,2);assert(viewButtons.every(node=>node.props['aria-label']&&node.props['aria-pressed']!==undefined),'grid/list controls retain accessible labels and selected state');act(()=>viewButtons[1].props.onClick());assert.match(tree(),/inventory-equipment-list/,'list control keeps the dense list view available');viewButtons=viewControl.findAllByType('button');assert.equal(viewButtons[1].props['aria-pressed'],true);act(()=>viewButtons[0].props.onClick());
  assert.match(text(renderer.root),/2 equipos visibles/);change('Buscar equipo o ubicación','Mic');assert.match(text(renderer.root),/1 equipo visible/,'the compact count tracks the filter');change('Buscar equipo o ubicación','');
+ act(()=>tabs[1].props.onClick());
+ assert.match(tree(),/Estante B/,'every active location appears in the pipeline even when empty');
+ assert.match(tree(),/Depósito anterior/,'an archived location still appears while it holds equipment');
+ assert.match(tree(),/Sin verificación física/);assert.match(tree(),/Sin registro de ingreso a esta ubicación/);
+ assert.match(tree(),/Sin equipos/,'empty location columns render with their count at zero');
+ items=[{...equipment[0],storage_location_id:'storage-a',storage_location_name:'Estante A',storage_shelf:'Estante A',location_changed_at:'2026-09-14T12:00:00.000Z',last_verified_at:'2026-09-15T10:00:00.000Z',last_verifier_name:'Sonido'},equipment[1]];
+ await act(async()=>{intervals.forEach(callback=>callback());});
+ assert.match(tree(),/Control:/);assert.match(tree(),/Aquí desde/);assert.match(tree(),/Sonido/,'cards show who verified last and when');
+ items=equipment;await act(async()=>{intervals.forEach(callback=>callback());});
+ act(()=>tabs[0].props.onClick());
  act(()=>button('Reservar equipos').props.onClick());change('Producción o uso previsto','Borrador que debe sobrevivir');check('Memoria SD');
  delay=true;const beforePoll=reads;
  act(()=>intervals.forEach(callback=>callback()));act(()=>intervals.forEach(callback=>callback()));

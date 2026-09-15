@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
 import {api,Dialog,money} from './operations';
 import {SaveActions} from './save-actions';
 import {ActorAvatar,ActorIdentity,safePhoto} from './actor-identity';
@@ -9,13 +9,14 @@ import {AmountInput} from './profile-controls';
 import {preparePhoto} from './profile-photo';
 import {ViewToggle} from './view-toggle';
 import {InventoryBarcode,inventoryCode,printInventoryLabel} from './inventory-label';
+import {DndContext,DragOverlay,useDraggable,useDroppable,type DragEndEvent} from '@dnd-kit/core';
 import {Archive,BatteryCharging,Camera,CheckCircle2,ClipboardCheck,Eye,HardDrive,Home,Lamp,Laptop,Lightbulb,Mic,Monitor,Package,Pencil,Plus,RefreshCw,Speaker,Tag,Trash2,Video,X,type LucideIcon} from 'lucide-react';
 import './inventory-workspace.css';
 
 type Person={id:string;name:string;photo_url?:string|null};
 type Category={id:string;name:string;active:boolean;icon?:string|null};
 export type StorageTemplate={id:string;name:string;active:boolean;item_count:number};
-export type InventoryItem={id:string;name:string;inventory_code?:string;category:string;category_id:string|null;category_name?:string;category_icon?:string|null;serial_number:string|null;photo_url?:string|null;value:string;currency:string;status:string;storage_shelf:string;storage_row:string;storage_location_id?:string|null;storage_location_name?:string|null;custodian_user_id:string|null;location_type?:string;current_custodian_name?:string;production_name?:string;project_name?:string;return_user_name?:string;expected_return_at?:string;last_verified_at?:string|null;last_verified_by_user_id?:string|null;last_verification_result?:'confirmed'|'difference'|'missing'|null;last_verification_differences?:string;last_verifier_name?:string|null;last_verifier_photo_url?:string|null;[key:string]:unknown};
+export type InventoryItem={id:string;name:string;inventory_code?:string;category:string;category_id:string|null;category_name?:string;category_icon?:string|null;serial_number:string|null;photo_url?:string|null;value:string;currency:string;status:string;storage_shelf:string;storage_row:string;storage_location_id?:string|null;storage_location_name?:string|null;location_changed_at?:string|null;custodian_user_id:string|null;location_type?:string;current_custodian_name?:string;production_name?:string;project_name?:string;return_user_name?:string;expected_return_at?:string;last_verified_at?:string|null;last_verified_by_user_id?:string|null;last_verification_result?:'confirmed'|'difference'|'missing'|null;last_verification_differences?:string;last_verifier_name?:string|null;last_verifier_photo_url?:string|null;[key:string]:unknown};
 type ItemReference={id:string;name:string;inventory_code?:string;storage_shelf:string;storage_row:string};
 type ReservationActors={actor_name?:string;actor_photo_url?:string;actor_verified?:boolean;checkout_actor_name?:string;checkout_actor_photo_url?:string;checkout_actor_verified?:boolean;return_actor_name?:string;return_actor_photo_url?:string;return_actor_verified?:boolean};
 export type InventoryReservation=ReservationActors&{id:string;title:string;project_id:string;project_name:string;starts_at:string;ends_at:string;status:'reserved'|'checked_out'|'returned'|'cancelled';created_by_user_id:string;return_user_id:string;return_user_name:string;custodian_user_id:string|null;custodian_name:string|null;responsible_members:Person[];items:ItemReference[];notes:string;version:number};
@@ -77,25 +78,77 @@ function InventorySummary({items}:{items:InventoryItem[]}){
   </div>;
 }
 
-function InventoryPipeline({items,onDetail}:{items:InventoryItem[];onDetail:(item:InventoryItem)=>void}){
- const checkout=new Map<string,InventoryItem[]>(),legacy:InventoryItem[]=[],storage=new Map<string,InventoryItem[]>();
- for(const item of items){
-  if(item.location_type==='checked_out'){
-   const key=`Con ${item.current_custodian_name||'custodio registrado'}`;
-   if(!checkout.has(key))checkout.set(key,[]);checkout.get(key)!.push(item);
-  }else if(item.location_type==='legacy_in_use')legacy.push(item);
-  else{
-   const key=item.storage_shelf||item.storage_location_name||'Ubicación sin registrar';
-   if(!storage.has(key))storage.set(key,[]);storage.get(key)!.push(item);
+type PipelineColumn={key:string;title:string;readOnly:boolean;locationId:string|null;shelf:string;rows:InventoryItem[]};
+function InventoryPipeline({items,locations,canManage,onDetail,onMoved}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onDetail:(item:InventoryItem)=>void;onMoved:()=>void}){
+ const [dragged,setDragged]=useState<InventoryItem|null>(null);
+ const [moveError,setMoveError]=useState('');
+ const columns=useMemo<PipelineColumn[]>(()=>{
+  const map=new Map<string,PipelineColumn>();
+  const ensure=(key:string,column:Omit<PipelineColumn,'rows'>)=>{let current=map.get(key);if(!current){current={...column,rows:[]};map.set(key,current);}return current;};
+  for(const item of items){
+   if(item.location_type==='checked_out'){
+    const key=`cust-${item.current_custodian_name||'sin-custodio'}`;
+    ensure(key,{key,title:`Con ${item.current_custodian_name||'custodio registrado'}`,readOnly:true,locationId:null,shelf:''}).rows.push(item);
+   }else if(item.location_type==='legacy_in_use'){
+    ensure('legacy-in-use',{key:'legacy-in-use',title:'En uso',readOnly:true,locationId:null,shelf:''}).rows.push(item);
+   }else if(item.storage_location_id){
+    const location=locations.find(candidate=>String(candidate.id)===String(item.storage_location_id));
+    const title=location?.name||item.storage_location_name||'Ubicación';
+    ensure(`loc-${item.storage_location_id}`,{key:`loc-${item.storage_location_id}`,title,readOnly:false,locationId:String(item.storage_location_id),shelf:title}).rows.push(item);
+   }else if(item.storage_shelf){
+    const matching=locations.find(candidate=>candidate.name===item.storage_shelf);
+    if(matching)ensure(`loc-${matching.id}`,{key:`loc-${matching.id}`,title:matching.name,readOnly:false,locationId:String(matching.id),shelf:matching.name}).rows.push(item);
+    else ensure(`shelf-${item.storage_shelf}`,{key:`shelf-${item.storage_shelf}`,title:item.storage_shelf,readOnly:false,locationId:null,shelf:item.storage_shelf}).rows.push(item);
+   }else{
+    ensure('sin-ubicacion',{key:'sin-ubicacion',title:'Sin ubicación',readOnly:false,locationId:null,shelf:''}).rows.push(item);
+   }
   }
+  // Every active location appears even with no equipment; archived ones only when occupied.
+  for(const location of locations.filter(candidate=>candidate.active||candidate.item_count>0))ensure(`loc-${location.id}`,{key:`loc-${location.id}`,title:location.name,readOnly:false,locationId:String(location.id),shelf:location.name});
+  return [...map.values()].sort((a,b)=>{if(a.readOnly!==b.readOnly)return a.readOnly?-1:1;if(a.key==='sin-ubicacion')return 1;if(b.key==='sin-ubicacion')return -1;return a.title.localeCompare(b.title,'es');});
+ },[items,locations]);
+ async function moveItem(itemId:string,target:PipelineColumn){
+  if(target.readOnly)return;
+  const item=items.find(candidate=>String(candidate.id)===itemId);if(!item)return;
+  if(String(item.storage_location_id||'')===String(target.locationId||'')&&(item.storage_shelf||'')===target.shelf)return;
+  setMoveError('');setDragged(null);
+  try{await api(`/api/agency/inventory/${itemId}`,{storage_location_id:target.locationId,storage_shelf:target.shelf},'PATCH');onMoved();}
+  catch(reason){setMoveError(errorMessage(reason));}
  }
- const columns:[string,InventoryItem[]][]=[...checkout.entries()];
- if(legacy.length)columns.push(['En uso',legacy]);
- columns.push(...[...storage.entries()].sort(([a],[b])=>a==='Ubicación sin registrar'?1:b==='Ubicación sin registrar'?-1:a.localeCompare(b,'es')));
+ function onDragEnd(event:DragEndEvent){
+  const id=String(event.active.id),over=String(event.over?.id||'');if(!over)return;
+  const column=columns.find(candidate=>candidate.key===over);if(!column)return;void moveItem(id,column);
+ }
  return <div className="inventory-pipeline">
-  {columns.map(([name,rows])=><section className="inventory-pipeline-column" key={name}><header className="inventory-pipeline-header"><h3>{name}</h3><span>{rows.length}</span></header>{rows.map(item=><button type="button" className="inventory-pipeline-card" key={item.id} onClick={()=>onDetail(item)}><b>{item.name}</b><code className="inventory-code">{itemCode(item)}</code><small><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</small><span className="inventory-status">{({available:'Disponible',in_use:'En uso',maintenance:'Mantenimiento',retired:'Dado de baja'} as Record<string,string>)[item.status]||item.status}</span></button>)}</section>)}
-  {!items.length?<p className="empty-copy">No hay equipos que coincidan.</p>:null}
+  {moveError?<p className="error" role="alert">{moveError}</p>:null}
+  <DndContext onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
+   {columns.map(column=><PipelineColumn key={column.key} column={column} canManage={canManage} onDetail={onDetail}/>)}
+   <DragOverlay>{dragged?<article className="inventory-pipeline-card dragging"><b>{dragged.name}</b><code className="inventory-code">{itemCode(dragged)}</code></article>:null}</DragOverlay>
+  </DndContext>
+  {!items.length?<p className="empty-copy">No hay equipos para mostrar en el pipeline.</p>:null}
  </div>;
+}
+function PipelineColumn({column,canManage,onDetail}:{column:PipelineColumn;canManage:boolean;onDetail:(item:InventoryItem)=>void}){
+ const droppable=useDroppable({id:column.key,disabled:column.readOnly});
+ return <section ref={droppable.setNodeRef} className={`inventory-pipeline-column${droppable.isOver?' drop-over':''}${column.readOnly?' is-readonly':''}`}>
+  <header className="inventory-pipeline-header"><h3>{column.title}</h3><span>{column.rows.length}</span></header>
+  {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail}/>)}
+  {!column.rows.length?<p className="empty-copy">{column.readOnly?'':canManage?'Arrastrá equipos hasta acá':'Sin equipos'}</p>:null}
+ </section>;
+}
+function PipelineCard({item,canManage,onDetail}:{item:InventoryItem;canManage:boolean;onDetail:(item:InventoryItem)=>void}){
+ const disabled=!canManage||item.location_type==='checked_out';
+ const draggable=useDraggable({id:item.id,disabled});
+ const style=draggable.transform?{transform:`translate3d(${draggable.transform.x}px, ${draggable.transform.y}px, 0)`}:undefined;
+ return <article ref={draggable.setNodeRef} style={style} className={`inventory-pipeline-card${draggable.isDragging?' dragging':''}`}>
+  <button type="button" className="inventory-pipeline-open" onClick={()=>onDetail(item)}>
+   {item.photo_url?<img className="inventory-item-photo" src={item.photo_url} alt={`Foto de ${item.name}`}/>:null}
+   <span className="inventory-pipeline-title"><b>{item.name}</b><code className="inventory-code">{itemCode(item)}</code><small><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</small></span>
+  </button>
+  <span className="inventory-pipeline-verified">{item.last_verified_at?<><ActorAvatar name={item.last_verifier_name||'Verificador'} photo={safePhoto(item.last_verifier_photo_url)}/><span>Control: {verificationLabel(item.last_verification_result)} · {dateTime(item.last_verified_at)}{item.last_verifier_name?` · ${item.last_verifier_name}`:''}</span></>:<span>Sin verificación física</span>}</span>
+  <small className="inventory-pipeline-since">{item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación'}</small>
+  <div className="inventory-pipeline-footer"><span className="inventory-status">{({available:'Disponible',in_use:'En uso',maintenance:'Mantenimiento',retired:'Dado de baja'} as Record<string,string>)[item.status]||item.status}</span>{!disabled&&<button type="button" className="icon-button" aria-label={`Mover ${item.name}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>}</div>
+ </article>;
 }
 
 export function InventoryWorkspace({role}:{role:string}){
@@ -153,7 +206,7 @@ function InventoryPanel(){
    {view!=='reservations'?<div className="inventory-toolbar-controls"><div className="inventory-form-grid inventory-filters"><label>Buscar equipo o ubicación<input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Memoria, DJI Mic, estante…"/></label><label>Categoría<select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="">Todas</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}{c.active?'':' · archivada'}</option>)}</select></label></div><div className="inventory-collection-toolbar"><p className="directory-summary" aria-live="polite">{visible.length} equipo{visible.length===1?'':'s'} visibles</p>{view==='equipment'?<ViewToggle label="Vista de inventario" value={equipmentView} onChange={setEquipmentView}/>:null}</div></div>:null}</div>
    {refreshError?<p role="status" className="inventory-late">No se pudo actualizar: {refreshError}. Se muestra la última información recibida.</p>:null}
    {notice?<p role="status">{notice}</p>:null}{error?<p className="error" role="alert">{error} <button className="text-button" onClick={()=>setRefresh(n=>n+1)}><RefreshCw size={14}/>Reintentar</button></p>:null}
-   {loading?<p role="status">Cargando inventario…</p>:error?null:view==='pipeline'?<InventoryPipeline items={visible} onDetail={setDetail}/>:view==='equipment'?<>
+   {loading?<p role="status">Cargando inventario…</p>:error?null:view==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onDetail={setDetail} onMoved={()=>refreshed('Ubicación actualizada.')}/>:view==='equipment'?<>
     <InventorySummary items={items}/>
     <div className={`inventory-equipment-grid ${equipmentView==='list'?'inventory-equipment-list':''}`}>{visible.map(item=>{const selectable=context?.can_reserve&&!['maintenance','retired'].includes(item.status);const chosen=selectedItems.includes(String(item.id)),code=itemCode(item),location=inventoryLocation(item);return <article className="inventory-equipment" key={item.id}><div className="panel-heading"><div className="inventory-item-title">{selectable&&<label className="inventory-item-select"><input type="checkbox" aria-label={`Seleccionar ${item.name} para reservar`} checked={chosen} onChange={()=>setSelectedItems(current=>chosen?current.filter(id=>id!==String(item.id)):[...current,String(item.id)])}/></label>}{item.photo_url?<img className="inventory-item-photo" src={item.photo_url} alt={`Foto de ${item.name}`}/>:null}<div><h3>{item.name}</h3><code className="inventory-code">{code}</code></div></div><span>{({available:'Disponible',in_use:'En uso',maintenance:'Mantenimiento',retired:'Dado de baja'} as Record<string,string>)[item.status]||item.status}</span></div><div className="inventory-item-meta"><small><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}{item.serial_number?` · Serie / IMEI: ${item.serial_number}`:''}</small><span className="inventory-location">{location}</span>{item.last_verified_at?<span>Control: {verificationLabel(item.last_verification_result)} · {dateTime(item.last_verified_at)}{item.last_verifier_name?` · ${item.last_verifier_name}`:''}<span className="inventory-control-avatar"><ActorAvatar name={item.last_verifier_name||'Verificador'} photo={safePhoto(item.last_verifier_photo_url)}/></span></span>:<span>Sin verificación física</span>}{item.return_user_name?<span>Devuelve: {item.return_user_name}{item.expected_return_at?` · previsto ${dateTime(item.expected_return_at)}`:''}</span>:null}<small>{money(item.value,item.currency)}</small></div><div className="inline-actions inventory-item-actions"><button className="icon-button" type="button" title="Detalle y trazabilidad" aria-label={`Detalle y trazabilidad: ${item.name}`} onClick={()=>setDetail(item)}><Eye size={16}/></button><button className="icon-button" type="button" title="Imprimir etiqueta" aria-label={`Imprimir etiqueta: ${item.name}`} onClick={()=>printInventoryLabel({code,name:item.name,category:item.category_name||item.category||'Sin categoría',serial:item.serial_number,location})}><Tag size={16}/></button>{context?.can_manage?<><button className="icon-button positive" type="button" disabled={verifyingId===String(item.id)} title={verifyingId===String(item.id)?'Verificando…':'Marcar verificado'} aria-label={verifyingId===String(item.id)?'Verificando…':'Marcar verificado'} onClick={()=>void quickVerify(item)}><CheckCircle2 size={16}/></button><button className="icon-button positive" type="button" title="Verificar con detalle" aria-label={`Verificar con detalle: ${item.name}`} onClick={()=>setVerification(item)}><ClipboardCheck size={16}/></button><button className="icon-button" type="button" title="Editar equipo" aria-label={`Editar equipo: ${item.name}`} onClick={()=>setEditItem(item)}><Pencil size={16}/></button><button className="icon-button warn" type="button" title="Archivar equipo" aria-label={`Archivar equipo: ${item.name}`} onClick={()=>setArchive(item)}><Archive size={16}/></button></>:null}</div></article>;})}</div>
     {!visible.length?<p className="empty-copy">No hay equipos que coincidan. {items.length?'Probá otra búsqueda.':'Agregá el equipo disponible antes de reservar.'}</p>:null}
