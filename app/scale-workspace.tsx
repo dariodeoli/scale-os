@@ -278,7 +278,6 @@ type User = {
   organization_slug: string;
   demo_owner_user_id?:string|null;
   default_currency?:Currency;
-  platform_admin?:boolean;
   platform_role?:string|null;
 };
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
@@ -1239,12 +1238,6 @@ export default function Home() {
     window.addEventListener('scale:identity-changed',refreshIdentity);
     return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);};
   },[]);
-  useEffect(()=>{
-    if(!signedIn||!user||user.platform_admin)return;
-    let alive=true;
-    fetch('/core-api/api/platform/overview',{credentials:'include'}).then(response=>{if(alive&&response.ok)setUser(current=>current?{...current,platform_admin:true}:current);}).catch(()=>{});
-    return()=>{alive=false;};
-  },[signedIn,user?.id,user?.platform_admin]);
   const active=signedIn&&(!visibleModule(requestedSection,user?.role||'viewer')||requestedSection==='Admin'&&user?.platform_role!=='admin')?'Sin acceso':requestedSection;
   useEffect(()=>{
     if(!signedIn||!user)return;
