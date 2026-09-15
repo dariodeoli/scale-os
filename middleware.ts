@@ -8,6 +8,12 @@ export function middleware(request:NextRequest){
   const url=request.nextUrl.clone();url.pathname='/superadmin';
   const response=NextResponse.rewrite(url);response.headers.set('X-Robots-Tag','noindex, nofollow');return response;
  }
+ // The admin host serves the superadmin panel; keep its /api surface alive by
+ // bridging requests to the canonical API origin (OAuth callbacks, legacy links).
+ if(host==='admin.scaleparaguay.com'&&path.startsWith('/api/')){
+  const response=NextResponse.rewrite(new URL(resolveCoreApiOrigin()+request.nextUrl.pathname+request.nextUrl.search));
+  response.headers.set('X-Robots-Tag','noindex, nofollow');return response;
+ }
  if((path==='/core-api'||path.startsWith('/core-api/'))&&request.nextUrl.origin===resolveCoreApiOrigin()){
   return new NextResponse('Core API proxy target cannot be this frontend host',{status:508,headers:{'X-Robots-Tag':'noindex, nofollow'}});
  }

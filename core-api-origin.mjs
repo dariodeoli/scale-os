@@ -1,4 +1,4 @@
-const defaultCoreApiOrigin='https://admin.scaleparaguay.com';
+const defaultCoreApiOrigin='https://api.scaleparaguay.com';
 
 export function resolveCoreApiOrigin(value=process.env.SCALE_API_ORIGIN||defaultCoreApiOrigin) {
  const url=new URL(value);
