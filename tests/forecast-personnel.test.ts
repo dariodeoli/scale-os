@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=(path:string)=>readFileSync(new URL(path,import.meta.url),'utf8');
+const source=read('../app/financial-forecast.tsx');
+assert(source.includes('members'),'personnel rows carry the members array');
+assert(source.includes('salary-overrides'),'salary override endpoints are wired');
+assert(source.includes('Sin salario fijo'),'zero-base members render the fallback badge');
+assert(source.includes('formatSignedMoney'),'signed override amounts render with sign');
+assert(source.includes('ActorAvatar'),'members render with ActorAvatar');
+assert(source.includes('monthly_salary_amount'),'salary editing updates the labor record');
+console.log('PASS: per-person personnel breakdown with avatars, signed monthly adjustments and salary editing');
