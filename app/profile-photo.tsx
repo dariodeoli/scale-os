@@ -45,6 +45,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
   const [originalSource,setOriginalSource]=useState<string|null>(null);
   const [useLink,setUseLink]=useState(false);
   const [failedPhoto,setFailedPhoto]=useState('');
+  const isLogo=label==='Logo o foto del cliente';
   const mounted=useRef(true),saving=useRef(false),fileInput=useRef<HTMLInputElement|null>(null);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   // State disables controls after rendering; the ref also rejects events arriving
@@ -58,7 +59,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
     if(source?.startsWith('data:image/'))setCropSource(source);
     else setError('Elegí el archivo original para ajustar esta foto.');
   };
-  return <section className={`ops-profile-section profile-photo-section${compact?' is-compact':''}`} aria-label={label}>
+  return <section className={`ops-profile-section profile-photo-section${compact?' is-compact':''}${isLogo?' is-logo':''}`} aria-label={label}>
     {!compact&&<div className="profile-photo-section-heading"><strong>{label}</strong><small>Seleccioná la foto para reemplazarla; después podés ajustar el encuadre.</small></div>}
     <form className="form-stack profile-photo-form" noValidate onSubmit={form.handleSubmit(async values=>{
       if(!startSave())return;
@@ -69,7 +70,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
       <div className="profile-photo-controls">
       <label className="photo-upload">{processing?'Preparando…':compact?'Cambiar foto':preview?'Cambiar foto':'Elegir foto'}<input ref={fileInput} aria-label="Elegir foto (JPG, PNG o WebP; hasta 4 MB)" type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file||!startSave())return;
-        setError('');setNotice('');try{const isLogo=label==='Logo o foto del cliente';const source=await preparePhoto(file,isLogo);if(!mounted.current)return;const ready=isLogo?source:await preparePhoto(file,false,true);if(!mounted.current)return;setOriginalSource(source);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);if(!mounted.current)return;form.reset({photo:ready});setFailedPhoto('');setNotice(isLogo?'Logo guardado automáticamente.':'Foto centrada y guardada automáticamente. Podés ajustar el encuadre.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
+        setError('');setNotice('');try{const source=await preparePhoto(file,isLogo);if(!mounted.current)return;const ready=isLogo?source:await preparePhoto(file,false,true);if(!mounted.current)return;setOriginalSource(source);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);if(!mounted.current)return;form.reset({photo:ready});setFailedPhoto('');setNotice(isLogo?'Logo guardado automáticamente.':'Foto centrada y guardada automáticamente. Podés ajustar el encuadre.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
       }}/></label>
       {!compact&&<><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</button>}</>}
       </div></div>
