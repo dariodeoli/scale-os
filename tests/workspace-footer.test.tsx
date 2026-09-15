@@ -11,7 +11,7 @@ test('workspace and landing render the same release and requested year',()=>{
   const html=renderToStaticMarkup(<WorkspaceFooter variant={variant} year={2030}/>);
   assert.ok(html.includes(`© 2030 Scale OS. Todos los derechos reservados. · v${APP_VERSION}`));
   assert.equal(html.includes('Desarrollado por'),variant==='workspace');
-  assert.equal(html.includes('usage-disclosure'),variant==='workspace');
+  assert.ok(!html.includes('usage-disclosure'),'usage disclosure paragraph is removed from every footer');
   assert.equal(html.includes('href="#precio"'),variant==='landing');
  }
 });

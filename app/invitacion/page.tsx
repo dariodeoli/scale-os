@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {teamRoleLabels} from '../team-directory';
 import {WorkspaceFooter} from '../workspace-footer';
+import {PasswordField} from '../password-field';
 type Preview={organization_name:string;role:string;mode:'single'|'approval';expires_at?:string};
 type State={status:'loading'|'missing'|'invalid'|'pending'|'previous-error'|'unavailable'|'connection'|'expired'|'revoked'|'used'}|{status:'ready';info:Preview;token:string};
 function isPreview(value:unknown):value is Preview{
@@ -25,7 +26,7 @@ const notices={
 export default function InvitationPage(){
  const [state,setState]=useState<State>({status:'loading'});
  const [attempt,setAttempt]=useState(0);
- const [passwordOpen,setPasswordOpen]=useState(false),[passwordError,setPasswordError]=useState(''),[passwordNotice,setPasswordNotice]=useState(''),[passwordBusy,setPasswordBusy]=useState(false);
+ const [passwordOpen,setPasswordOpen]=useState(false),[passwordError,setPasswordError]=useState(''),[passwordNotice,setPasswordNotice]=useState(''),[passwordBusy,setPasswordBusy]=useState(false),[password,setPassword]=useState(''),[confirm,setConfirm]=useState('');
  useEffect(()=>{
   const query=new URLSearchParams(window.location.search),token=query.get('token')||'';
   // Query errors describe an earlier callback, never a fresh preview result.
@@ -90,8 +91,8 @@ export default function InvitationPage(){
    {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:<form className="invite-password-form" onSubmit={registerWithPassword} noValidate>
     <label>Nombre y apellido <input name="full_name" maxLength={160} autoComplete="name" placeholder="Cómo te llamamos"/></label>
     <label>Correo <input name="email" type="email" required autoComplete="email" placeholder="tu@correo.com"/></label>
-    <label>Contraseña <input name="password" type="password" required autoComplete="new-password" placeholder="12+ caracteres"/></label>
-    <label>Repetí tu contraseña <input name="confirm" type="password" required autoComplete="new-password" placeholder="Repetí la contraseña"/></label>
+    <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="12+ caracteres" required/>
+    <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required/>
     <p className="password-hint">12+ caracteres con mayúscula, minúscula, número y símbolo; sin espacios.</p>
     <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
     {passwordError&&<p className="error" role="alert">{passwordError}</p>}{passwordNotice&&<p className="success" role="status">{passwordNotice}</p>}

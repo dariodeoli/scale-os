@@ -10,7 +10,7 @@ export type CommercialAmendment={id:string;effectiveOn:string;activationDate:str
 export type ClientCommercialLifecycleRecord={clientId:string;version:string;archived:boolean;amendments:CommercialAmendment[]};
 type Response={commercial:ClientCommercialLifecycleRecord};
 type Draft={effectiveOn:string;activationDate:string;planName:string;planVersionSnapshot:string;monthlyPrice:string;currency:string;discountType:DiscountType;discountValue:string;discountTerms:string;extrasDeliverables:string};
-const readRoles=['owner','admin','management','sales','finance'],writeRoles=['owner','admin','management','sales'];
+const readRoles=['owner','admin','finance'],writeRoles=['owner','admin'];
 const discounts:Record<DiscountType,string>={none:'Sin descuento',percent:'Porcentaje',fixed:'Importe fijo'};
 const currencies:readonly string[]=currencyChoices.map(currency=>currency.value);
 const validId=(id:string|number)=>/^[1-9]\d{0,18}$/.test(String(id))&&!(typeof id==='number'&&!Number.isSafeInteger(id));

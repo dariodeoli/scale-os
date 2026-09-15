@@ -60,6 +60,7 @@ import './suite.css';
 import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWorkspace} from './suite';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
+import {PasswordField} from './password-field';
 import {WorkspaceGuide,workspaceGuideScope,visibleModule,NewCompany,type WorkspaceGuideData} from './workspace-guide';
 import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
 import {SelectCustom,AmountInput} from './profile-controls';
@@ -272,6 +273,8 @@ type User = {
   organization_slug: string;
   demo_owner_user_id?:string|null;
   default_currency?:Currency;
+  platform_admin?:boolean;
+  platform_role?:string|null;
 };
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
   return user?`${user.id}:${user.organization_id}:${user.role}`:'';
@@ -1231,7 +1234,7 @@ export default function Home() {
     window.addEventListener('scale:identity-changed',refreshIdentity);
     return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);};
   },[]);
-  const active=signedIn&&!visibleModule(requestedSection,user?.role||'viewer')?'Sin acceso':requestedSection;
+  const active=signedIn&&(!visibleModule(requestedSection,user?.role||'viewer')||requestedSection==='Admin'&&!user?.platform_admin)?'Sin acceso':requestedSection;
   useEffect(()=>{
     if(!signedIn||!user)return;
     const query=new URLSearchParams(window.location.search),billing=query.get('scaleBilling')||query.get('billing');
@@ -1626,7 +1629,7 @@ export default function Home() {
         <div className="login-card">
           <div className="login-brand"><WorkspaceBrand/></div>
           <p className="eyebrow">PANEL INTERNO</p>
-          <h1>Entrá a Scale OS</h1>
+          <h1>Qué bueno verte de nuevo.</h1>
           <p className="login-copy">
             Clientes, proyectos y operación en un solo lugar.
           </p>
@@ -1648,23 +1651,21 @@ export default function Home() {
                 required
               />
             </label>
-            <label>
-              Contraseña
-              <input
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                type="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                required
-              />
-            </label>
+            <PasswordField
+              label="Contraseña"
+              name="password"
+              value={password}
+              onChange={setPassword}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              required
+            />
+            <PasswordPanel/>
             <button className="primary login-button">Iniciar sesión</button>
             {toast && <p className="error">{toast}</p>}
           </form>
           <div className="login-divider"><span>o</span></div>
           <GoogleSignIn disabled={!googleAvailable} label={googleAvailable?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
-          <PasswordPanel/>
           <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>
           <WorkspaceFooter/>
         </div>
