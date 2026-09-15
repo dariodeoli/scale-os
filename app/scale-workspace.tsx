@@ -1639,18 +1639,24 @@ export default function Home() {
       <div className="login-page">
         <div className="login-card">
           <ThemeToggle className="login-theme-toggle"/>
-          <div className="login-brand"><WorkspaceBrand/></div>
-          <p className="eyebrow">PANEL INTERNO</p>
-          <h1>Qué bueno verte de nuevo.</h1>
-          <p className="login-copy">
-            Clientes, proyectos y operación en un solo lugar.
-          </p>
+          <div className="login-header">
+            <div className="login-brand"><WorkspaceBrand/></div>
+            <span className="login-badge">30 DÍAS GRATIS</span>
+          </div>
+          <div className="login-intro">
+            <h1>Qué bueno verte de nuevo.</h1>
+            <p className="login-copy">
+              Clientes, proyectos y operación en un solo lugar.
+            </p>
+          </div>
           {authNotice && (
             <div className="auth-notice" role="status">
               <b>Acceso pendiente</b>
               <p>{authNotice}</p>
             </div>
           )}
+          <GoogleSignIn disabled={!googleAvailable} label={googleAvailable?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
+          <div className="login-divider"><span>o ingresá con correo</span></div>
           <form noValidate onSubmit={login}>
             <label>
               Email
@@ -1673,11 +1679,9 @@ export default function Home() {
               required
             />
             <PasswordPanel/>
-            <button className="primary login-button">Iniciar sesión</button>
             {toast && <p className="error">{toast}</p>}
+            <button className="primary login-button">Continuar</button>
           </form>
-          <div className="login-divider"><span>o</span></div>
-          <GoogleSignIn disabled={!googleAvailable} label={googleAvailable?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
           <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>
           <WorkspaceFooter/>
         </div>
@@ -1930,7 +1934,7 @@ export default function Home() {
             </div>
             <div className="kpi-strip" aria-label="Semáforo de mora por antigüedad">
               {moraBuckets.map(bucket => (
-                <article className={`kpi-card ${bucket.key === "early" ? "tone-gold" : bucket.key === "medium" ? "tone-warning" : "tone-danger"}`} key={bucket.key}>
+                <article className={`kpi-card ${bucket.key === "early" ? "tone-blue" : bucket.key === "medium" ? "tone-warning" : "tone-danger"}`} key={bucket.key}>
                   <p className="eyebrow">{bucket.label}</p>
                   <strong>{bucket.clients} cliente{bucket.clients === 1 ? "" : "s"}</strong>
                   <div className="kpi-amounts">

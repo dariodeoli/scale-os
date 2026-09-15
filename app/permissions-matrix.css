@@ -13,7 +13,7 @@
 .permissions-state{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;font-size:13px;font-weight:800}
 .permissions-state.is-default{background:var(--violet-soft);color:var(--brand-700)}
 .permissions-state.is-default:not(:has(+ *)){opacity:1}
-.permissions-state.is-override{background:var(--gold);color:var(--anthracite)}
+.permissions-state.is-override{background:var(--brand-600);color:var(--surface)}
 .permissions-check input:disabled~.permissions-state{opacity:.6}
 .permissions-reset{justify-content:flex-start;margin-top:2px}
 .permissions-matrix .permissions-domain-row th{background:var(--surface-sunken,var(--surface-subtle));color:var(--text-subtle,var(--text-muted));font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-align:left}

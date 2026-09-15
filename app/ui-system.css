@@ -207,3 +207,10 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
    the same start alignment everywhere (toolbars, forms and dialogs). */
 :is(.control-shell,.unified-dialog) .ops-select{display:grid;gap:5px;min-width:0;align-content:center}
 :is(.control-shell,.unified-dialog) .ops-select .ops-label{display:block;font-size:12px;font-weight:650;color:var(--text-muted);line-height:1.35}
+
+/* Inline lookup next to a field: the button queries the provider and the
+   Editor applies returned values into sibling fields. */
+:is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-row{display:flex;align-items:center;gap:8px;min-width:0}
+:is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-row input{flex:1;min-width:0}
+:is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-button{flex:none;white-space:nowrap;margin:0}
+:is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-note{color:var(--success);font-weight:600}

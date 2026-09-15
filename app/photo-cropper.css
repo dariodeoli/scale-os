@@ -1,7 +1,7 @@
 .ops-dialog.unified-dialog:has(.profile-crop-stage){width:min(480px,100%)}
 .profile-crop-stage{position:relative;width:100%;height:min(42dvh,320px);min-height:180px;background:var(--anthracite);border-radius:var(--radius-sm);overflow:hidden;touch-action:none}
 .profile-crop-stage .reactEasyCrop_Container{outline-offset:-3px}
-.profile-crop-stage .reactEasyCrop_Container:focus-visible{outline:3px solid var(--gold)}
+.profile-crop-stage .reactEasyCrop_Container:focus-visible{outline:3px solid var(--focus-halo,var(--brand-600))}
 .crop-zoom{display:block;margin-block:16px;font-size:13px}
 .crop-zoom output{float:right}.crop-zoom input{display:block;width:100%;accent-color:var(--brand-700)}
 .editable-photo{width:80px;height:80px;border:2px solid var(--line-strong);border-radius:50%;padding:0;overflow:hidden;cursor:move;background:var(--surface)}
