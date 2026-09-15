@@ -27,6 +27,6 @@ test('invalid requests explain unavailability and have no approval action; valid
  assert.equal(approvals(3)[0].props.disabled,true,'admin cannot approve owner');
  const text=JSON.stringify(r!.toJSON());assert(text.includes('El enlace fue revocado'));assert(text.includes('El enlace venció'));
  await act(async()=>{await approvals(0)[0].props.onClick();});assert.deepEqual(writes,[{path:'/api/agency/access-requests/1',body:{action:'approve'},method:'PATCH'}]);
- assert(articles[1].findAllByType('button').some(b=>b.props.children==='Rechazar'),'unavailable requests can still be dismissed');
+ assert(articles[1].findAllByType('button').some(b=>String(b.props.children).includes('Rechazar')),'unavailable requests can still be dismissed');
  await act(async()=>r!.unmount());
 });

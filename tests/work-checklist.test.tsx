@@ -24,7 +24,7 @@ globalThis.fetch=async(input,init)=>{
  assert.equal(payload.expected_version,saved.version,'each mutation uses the last fetched revision');
  const id=path.split('/').at(-1);
  if(method==='POST')saved.items.push({id:String(nextId++),text:payload.text,completed:false});
- if(method==='PATCH')saved.items=saved.items.map(item=>item.id===id?{...item,...('text'in payload?{text:payload.text}:{}),...('completed'in payload?{completed:payload.completed}:{})}:item);
+ if(method==='PATCH')saved.items=saved.items.map(item=>item.id===id?{...item,...('text'in payload?{text:payload.text}:{}),...('completed'in payload?(payload.completed?{completed:true,completed_at:'2026-09-14T12:00:00Z',completed_by_name:'Editora QA',completed_by_verified:true}:{completed:false,completed_at:null,completed_by_name:null}):{})}:item);
  if(method==='DELETE')saved.items=saved.items.filter(item=>item.id!==id);
  saved={...saved,version:String(Number(saved.version)+1),total:saved.items.length,completed:saved.items.filter(item=>item.completed).length};
  if(failNetwork){failNetwork=false;throw Error('Conexión interrumpida');}
@@ -51,6 +51,12 @@ assert.equal(requests.at(-1)?.path,'/core-api/api/agency/work-orders/41/checklis
 await act(async()=>renderer.root.findByProps({type:'checkbox'}).props.onChange({target:{checked:true}}));
 assert.equal(saved.items[0].completed,true);assert.equal(renderer.root.findByType('progress').props.value,1);
 assert.match(tree(),/1 de 1|"1"," de ","1"|1," de ",1/);
+assert.match(tree(),/Completado por/,'completed items show the completion actor and timestamp');
+assert.match(tree(),/Editora QA/);
+await act(async()=>renderer.root.findByProps({type:'checkbox'}).props.onChange({target:{checked:false}}));
+assert.equal(saved.items[0].completed_by_name,null);assert.doesNotMatch(tree(),/Completado por/,'unchecking clears the completion attribution');
+await act(async()=>renderer.root.findByProps({type:'checkbox'}).props.onChange({target:{checked:true}}));
+assert.match(tree(),/Completado por/);
 await act(async()=>renderer.root.findByProps({'aria-label':'Editar ítem: Revisar guion'}).props.onClick());
 act(()=>editingInput().props.onChange({target:{value:'Validar guion'}}));
 await click('Guardar ítem');assert.equal(saved.items[0].text,'Validar guion');assert.equal(saved.items[0].completed,true);

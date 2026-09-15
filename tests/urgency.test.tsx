@@ -25,7 +25,7 @@ const workspace=read('app/scale-workspace.tsx');
 assert.equal((workspace.match(/<UrgencySelect /g)||[]).length,2,'project and piece creation');
 assert.match(workspace,/<UrgencyBadge value=\{order.urgency\}/);
 assert.match(read('app/project-card.tsx'),/<UrgencyBadge value=\{project.urgency\}/);
-assert.equal((read('app/suite.tsx').match(/\[urgencyField,/g)||[]).length,2,'both unified detail forms');
+assert.equal((read('app/suite.tsx').match(/urgencyField,/g)||[]).length,2,'both unified detail forms');
 assert.match(read('app/productivity-ui.tsx'),/fields:Field\[\]=\[urgencyField,/);
 const css=read('app/urgency.css');assert.match(css,/min-height:44px/);assert.match(css,/font-size:16px/);assert.match(css,/:focus-visible/);assert.doesNotMatch(css,/#(?:[0-9a-f]{3}){1,2}\b/i);
 console.log('PASS urgency: native keyboard select, labels/help, unset, disabled, six options, honest badges and all creation/edit/card integrations');

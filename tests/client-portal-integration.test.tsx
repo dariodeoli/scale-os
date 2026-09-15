@@ -15,7 +15,7 @@ type Request={url:string;init:RequestInit;resolve:(response:Response)=>void};
 const requests:Request[]=[];
 globalThis.fetch=(input,init={})=>new Promise<Response>(resolve=>requests.push({url:String(input),init,resolve}));
 const token='a'.repeat(64);
-const detail={delivery:{id:42,title:'Identidad visual',summary:'Revisá la pieza final.',asset_name:'Propuesta final.pdf',version:3,project_name:'Lanzamiento',client_name:'Acme'},comments:[{id:1,body:'Todo claro',created_at:'2026-09-13T12:00:00.000Z',author_name:'Ana'}],decision:null};
+const detail={delivery:{id:42,title:'Identidad visual',summary:'Revisá la pieza final.',asset_name:'Propuesta final.pdf',version:3,project_name:'Lanzamiento',client_name:'Acme'},links:[{id:7,label:'Propuesta final',url:'https://drive.google.com/propuesta'}],comments:[{id:1,body:'Todo claro',created_at:'2026-09-13T12:00:00.000Z',author_name:'Ana'}],decision:null};
 
 function respond(request:Request,data:unknown,status=200){return act(async()=>{request.resolve(new Response(JSON.stringify(data),{status}));});}
 function content(renderer:ReactTestRenderer){return JSON.stringify(renderer.toJSON());}
@@ -46,8 +46,32 @@ test('delivery details use the audited download endpoint and keep review interac
  requests.length=0;Object.assign(globalThis,{window:{location:{assign:()=>{}}}});
  let renderer!:ReactTestRenderer;await act(async()=>{renderer=create(<DeliveryPage/>);});
  assert.equal(requests[0].url,'/core-api/api/client-portal/deliveries/42');
- await respond(requests[0],detail);
+ assert.equal(requests[1].url,'/core-api/api/client-portal/deliveries/42/activity');
+ await respond(requests[0],detail);await respond(requests[1],{activity:[]});
  const download=renderer.root.findAllByType('a').find(link=>link.props.href?.endsWith('/download'))!;
  assert.equal(download.props.href,'/core-api/api/client-portal/deliveries/42/download');assert.equal(download.props.target,'_blank');assert.equal(download.props.rel,'noopener noreferrer');assert.equal(download.props.referrerPolicy,'no-referrer');assert.equal(download.props['aria-label'],'Abrir Propuesta final.pdf en una pestaña nueva');
- assert.doesNotMatch(content(renderer),/asset_url/);assert(renderer.root.findAllByType('textarea').length===2);assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Aprobar entrega')));assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Pedir cambios')));assert.match(content(renderer),/Todo claro/);renderer.unmount();
+ assert.doesNotMatch(content(renderer),/asset_url/);assert(renderer.root.findAllByType('textarea').length===2);assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Aprobar entrega')));assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Pedir cambios')));assert.match(content(renderer),/Todo claro/);
+ assert.match(content(renderer),/Todavía no hay actividad registrada/,'empty activity log renders an empty state');
+ const visibleLink=renderer.root.findAllByType('a').find(link=>link.props.href==='https://drive.google.com/propuesta')!;
+ assert.equal(visibleLink.props.target,'_blank');assert.equal(visibleLink.props.referrerPolicy,'no-referrer');assert.match(content(renderer),/Archivos de esta entrega/);renderer.unmount();
+});
+
+test('delivery activity renders chronological entries with kinds and versions',async()=>{
+ requests.length=0;Object.assign(globalThis,{window:{location:{assign:()=>{}}}});
+ let renderer!:ReactTestRenderer;await act(async()=>{renderer=create(<DeliveryPage/>);});
+ await respond(requests[0],detail);
+ await respond(requests[1],{activity:[
+  {kind:'comment',at:'2026-09-12T12:00:00.000Z',version:null,actor_name:'Ana',summary:'Falta el cierre del video'},
+  {kind:'download',at:'2026-09-13T12:00:00.000Z',version:null,actor_name:'Ana',summary:'Descargó el entregable'},
+  {kind:'decision',at:'2026-09-13T13:00:00.000Z',version:3,actor_name:'Ana',summary:'Aprobó la entrega'},
+  {kind:'version',at:'2026-09-13T13:05:00.000Z',version:3,actor_name:null,summary:'Nueva versión publicada'},
+ ]});
+ const text=content(renderer);
+ assert.match(text,/Actividad de la entrega/);
+ assert.match(text,/Comentario/);assert.match(text,/Descarga/);assert.match(text,/Decisión/);assert.match(text,/Nueva versión/);
+ assert.match(text,/versión 3/);assert.match(text,/Aprobó la entrega/);assert.match(text,/Falta el cierre del video/);
+ const textOf=(node:unknown):string=>typeof node==='string'?node:Array.isArray(node)?node.map(textOf).join(''):node&&typeof node==='object'&&'children'in(node as object)?textOf((node as {children:unknown}).children):'';
+ const list=renderer.root.findAllByType('li').map(node=>textOf(node.children));
+ assert.ok(list.findIndex(entry=>entry.includes('Comentario'))<list.findIndex(entry=>entry.includes('Descarga')),'entries render in server order');
+ renderer.unmount();
 });

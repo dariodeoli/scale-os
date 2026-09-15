@@ -17,7 +17,7 @@ async function main(){
  await act(async()=>{renderer=create(<WorkHistory role="admin"/>);});
  assert.equal(renderer!.root.findAllByType('img').length,1);assert(JSON.stringify(renderer!.toJSON()).includes('Ana Personal'));
  name='Ana Actualizada';await act(async()=>{window.dispatchEvent(new Event('scale:identity-changed'));});assert.equal(historyLoads,2);assert(JSON.stringify(renderer!.toJSON()).includes(name));
- await act(async()=>renderer!.root.findAllByType('button').find(b=>b.props.children==='Ver historial importado de Trello')!.props.onClick());
+ await act(async()=>renderer!.root.findAllByType('button').find(b=>String(b.props.children).includes('Ver historial importado de Trello'))!.props.onClick());
  assert.equal(renderer!.root.findAllByType('img').length,0);assert(JSON.stringify(renderer!.toJSON()).includes('AP'));
  await act(async()=>renderer!.unmount());
  console.log('PASS: current author avatar, identity-change reload, imported author initials even with unexpected photo metadata');

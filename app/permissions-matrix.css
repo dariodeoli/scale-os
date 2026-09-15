@@ -1,0 +1,18 @@
+.permissions-matrix{display:grid;gap:12px;min-width:0}
+.permissions-matrix .form-note{display:flex;align-items:center;gap:8px;margin:0}
+.permissions-matrix .permissions-notice{margin:0;padding:10px 12px;border-left:3px solid var(--success);border-radius:var(--radius-sm);background:var(--success-soft);color:var(--success);font-size:12px}
+.permissions-scroll{overflow-x:auto;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-raised,var(--surface))}
+.permissions-matrix table{border-collapse:collapse;min-width:560px}
+.permissions-matrix th,.permissions-matrix td{padding:9px 10px;border-bottom:1px solid var(--border-subtle,var(--line));text-align:center;vertical-align:middle}
+.permissions-matrix thead th{position:sticky;top:0;background:var(--surface-sunken,var(--surface-subtle));font-size:11px;font-weight:700;white-space:nowrap}
+.permissions-matrix tbody th{text-align:left;min-width:220px;font-size:13px}
+.permissions-matrix tbody th b{display:block}
+.permissions-matrix tbody th small{display:block;margin-top:3px;color:var(--text-subtle,var(--text-muted));font-size:11px;line-height:1.4;font-weight:400}
+.permissions-check{display:grid;place-items:center;cursor:pointer}
+.permissions-check input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.permissions-state{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;font-size:13px;font-weight:800}
+.permissions-state.is-default{background:var(--violet-soft);color:var(--brand-700)}
+.permissions-state.is-default:not(:has(+ *)){opacity:1}
+.permissions-state.is-override{background:var(--gold);color:var(--anthracite)}
+.permissions-check input:disabled~.permissions-state{opacity:.6}
+.permissions-reset{justify-content:flex-start;margin-top:2px}

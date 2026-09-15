@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {api} from './operations';
 import {downloadReportsCsv} from './reports-csv';
+import {WeeklyAutomatic} from './weekly-automatic';
 import './reports-workspace.css';
 
 export type ReportMonth={month:string;isPartial:boolean;clients:{active:number|null;added:number|null;lost:number|null;retentionPercent:number|null;averageTenureDays:number|null;tenureKnown:number;types:{kind:string;count:number}[];plans:{planId:string|number|null;name:string|null;count:number}[]};financial:{currency:string;invoiced:string;collected:string;invoiceCount:number;billedClients:number;averageTicket:string|null;averageRevenuePerClient:string|null}[]};
@@ -49,7 +50,7 @@ function Distribution({title,rows,total}:{title:string;rows:{name:string;count:n
 }
 // Main must key this component by authenticated organization ID. Role changes
 // unmount the authorized view; no GET is issued for an unauthorized role.
-export function ReportsWorkspace({role}:{role:string}){return ['owner','admin','finance'].includes(role)?<ReportsPanel key={role}/>:<p>No tenés permiso para consultar reportes.</p>;}
+export function ReportsWorkspace({role}:{role:string}){return ['owner','admin','finance'].includes(role)?<><ReportsPanel key={role}/><WeeklyAutomatic role={role}/></>:<p>No tenés permiso para consultar reportes.</p>;}
 function LiveVisitorsWidget(){
  const [visitors,setVisitors]=useState<number|null>(null),[prior,setPrior]=useState<number|null>(null),[trend,setTrend]=useState<'up'|'down'|null>(null);
  useEffect(()=>{

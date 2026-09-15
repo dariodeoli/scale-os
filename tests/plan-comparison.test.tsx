@@ -76,7 +76,8 @@ test('catalog renders comparison without preview/read amplification and preserve
   assert.equal(root.findAllByProps({className:'plan-comparison-item'}).length,4);
   assert.equal(root.findAllByProps({role:'dialog'}).length,0);
   const buttons=root.findAllByType('button');assert(!buttons.some(button=>text(button)==='Vista previa'));
-  for(const label of ['Agregar','Editar','Eliminar'])assert.equal(buttons.some(button=>text(button)===label),editable,`${role}: ${label}`);
+  for(const label of ['Agregar','Editar'])assert.equal(buttons.some(button=>text(button)===label),editable,`${role}: ${label}`);
+  assert.equal(buttons.some(button=>String(button.props['aria-label']||'').startsWith('Mover a la papelera')),editable,`${role}: papelera`);
   if(editable){act(()=>buttons.find(button=>text(button)==='Editar')!.props.onClick());assert.equal(text(root.findByType('output')),fixture.id);}
   act(()=>renderer.unmount());
  }

@@ -11,7 +11,7 @@ const dialogId=require.resolve('../app/dialog');
 require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{Dialog:({children,close,busy}:{children:React.ReactNode;close:()=>void;busy:boolean})=><section role="dialog"><button disabled={busy} onClick={close}>Cerrar</button>{children}</section>}} as NodeModule;
 const {NotificationBell}=require('../app/notifications-ui') as typeof import('../app/notifications-ui');
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
-const fixtures=()=>[
+const fixtures=():Array<{id:string;title:string;body:string;project_id:string|null;work_order_id:string|null;comment_id?:string|null;read_at:string|null;resolved_at:string|null;created_at:string}>=>[
  {id:'4',title:'Asignación propia de proyecto',body:'Texto largo '+('responsable '.repeat(50)),project_id:'99',work_order_id:null,read_at:null,resolved_at:null,created_at:'2026-09-11T12:00:00Z'},
  {id:'3',title:'Leído pendiente',body:'Pendiente de atender',project_id:null,work_order_id:null,read_at:'now',resolved_at:null,created_at:'invalid'},
  {id:'2',title:'Aviso resuelto',body:'Ya atendido',project_id:null,work_order_id:null,read_at:'now',resolved_at:'now',created_at:'2026-09-11T12:00:00Z'},
@@ -19,7 +19,7 @@ const fixtures=()=>[
 ];
 async function harness(t:TestContext,initialFailure=false){
  let rows=fixtures(),failReads=initialFailure,failWrites=false,delayReads=false,delayWrites=false;
- const deferredReads:(()=>void)[]=[],deferredWrites:(()=>void)[]=[],calls:{path:string;body:any;method:string}[]=[],opened:string[]=[],timers=new Set<()=>void>();destinations=[];
+ const deferredReads:(()=>void)[]=[],deferredWrites:(()=>void)[]=[],calls:{path:string;body:any;method:string}[]=[],opened:string[]=[],anchors:Record<string,string|undefined>={},timers=new Set<()=>void>();destinations=[];
  Object.assign(globalThis,{document:{hidden:false},window:new EventTarget()});
  t.mock.method(globalThis,'setInterval',((callback:()=>void)=>{timers.add(callback);return callback;}) as any);
  t.mock.method(globalThis,'clearInterval',((callback:()=>void)=>{timers.delete(callback);}) as any);
@@ -42,34 +42,34 @@ async function harness(t:TestContext,initialFailure=false){
   return new Response(snapshot);
  });
  let renderer!:ReactTestRenderer;
- await act(async()=>{renderer=create(<NotificationBell openOrder={id=>opened.push(id)}/>);});
- const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label)!;
+ await act(async()=>{renderer=create(<NotificationBell openOrder={(id,anchor)=>{opened.push(id);anchors[id]=anchor;}}/>);});
+ const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label||String(node.props['aria-label']||'').startsWith(label))!;
  const click=async(label:string)=>{const node=button(label);assert(node,label);assert(!node.props.disabled,label);await act(async()=>{node.props.onClick();});};
  const open=async()=>{await act(async()=>{renderer.root.findByProps({className:'icon-button notification-trigger'}).props.onClick();});};
  const copy=()=>text(renderer.root);
  t.after(()=>act(()=>renderer.unmount()));await open();
- return {renderer,button,click,copy,open,rows,calls,opened,timers,deferredReads,deferredWrites,
+ return {renderer,button,click,copy,open,rows,calls,opened,anchors,timers,deferredReads,deferredWrites,
   set failReads(v:boolean){failReads=v;},set failWrites(v:boolean){failWrites=v;},set delayReads(v:boolean){delayReads=v;},set delayWrites(v:boolean){delayWrites=v;}};
 }
 
 test('server filters, global unread/pendingCount, resolve/reopen and global read-all stay distinct',async t=>{
- const h=await harness(t);assert(h.copy().includes('2 sin leer en total · 3 avisos pendientes en total'));
+ const h=await harness(t);assert(h.copy().includes('2 sin leer · 3 pendientes'));
  assert.equal(h.renderer.root.findAllByType('article').length,2);
  await h.click('Resueltas');assert(h.copy().includes('Aviso resuelto'));assert(!h.copy().includes('Asignación propia'));
- assert(h.copy().includes('2 sin leer en total · 3 avisos pendientes en total'));
+ assert(h.copy().includes('2 sin leer · 3 pendientes'));
  await h.click('Pendientes');assert(!h.copy().includes('Aviso resuelto'));
  await h.click('Sin leer');await h.click('Resolver aviso');
- assert.deepEqual(h.calls.find(c=>c.method==='PATCH')?.body,{resolved:true});assert(h.copy().includes('1 sin leer en total · 2 avisos pendientes en total'));
- await h.click('Resueltas');await h.click('Reabrir aviso');assert(h.copy().includes('1 sin leer en total · 3 avisos pendientes en total'));
- await h.click('Marcar todas como leídas');assert(h.copy().includes('0 sin leer en total · 3 avisos pendientes en total'));
+ assert.deepEqual(h.calls.find(c=>c.method==='PATCH')?.body,{resolved:true});assert(h.copy().includes('1 sin leer · 2 pendientes'));
+ await h.click('Resueltas');await h.click('Reabrir aviso');assert(h.copy().includes('1 sin leer · 3 pendientes'));
+ await h.click('Marcar todas las notificaciones como leídas');assert(h.copy().includes('0 sin leer · 3 pendientes'));
  assert.deepEqual(h.calls.filter(c=>c.method==='PATCH').at(-1),{path:'/core-api/api/agency/notifications/read-all',method:'PATCH',body:{}});
- assert(h.copy().includes('Resolver un aviso no completa la pieza ni el proyecto'));
+ assert(h.copy().includes('Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza'));
 });
 test('initial failure stays unknown and retryable; successful empty filtered inbox is distinct',async t=>{
- const h=await harness(t,true);assert(h.copy().includes('Estado de notificaciones no disponible'));assert(h.copy().includes('Sin conexión'));
+ const h=await harness(t,true);assert(h.copy().includes('Estado no disponible'));assert(h.copy().includes('Sin conexión'));
  assert(!/Estás al día|0 sin leer en total|No tenés notificaciones/.test(h.copy()));
- h.failReads=false;await h.click('Actualizar');assert(h.copy().includes('2 sin leer en total'));
- await h.click('Marcar todas como leídas');await h.click('Sin leer');assert(h.copy().includes('No hay notificaciones para este filtro'));
+ h.failReads=false;await h.click('Actualizar');assert(h.copy().includes('2 sin leer · 3 pendientes'));
+ await h.click('Marcar todas las notificaciones como leídas');await h.click('Sin leer');assert(h.copy().includes('No hay notificaciones para este filtro'));
  assert(!h.copy().includes('Tus propias acciones no generan avisos'));
 });
 test('pagination keeps its filter, stale responses cannot replace a newer filter, and unmount clears polling',async t=>{
@@ -84,6 +84,13 @@ test('project and piece destinations mark unread notices only, without resolving
  const h=await harness(t);await h.click('Ver proyecto');assert.deepEqual(destinations,['/proyectos#project-99']);assert.equal(h.rows[0].resolved_at,null);
  assert.deepEqual(h.calls.find(c=>c.method==='PATCH')?.body,{});
  await h.open();await h.click('Sin leer');await h.click('Ver pieza');assert.deepEqual(h.opened,['88']);assert.equal(h.rows[3].resolved_at,null);
+});
+test('mention notifications deep-link to the exact comment on the piece',async t=>{
+ const h=await harness(t);h.rows[3].comment_id='77';
+ await h.open();await h.click('Sin leer');await h.click('Ver pieza');
+ assert.deepEqual(h.opened,['88']);assert.equal(h.anchors['88'],'comment-77','inbox passes the comment anchor when the notice carries comment_id');
+ assert.equal(h.rows[3].resolved_at,null,'deep-link visit never resolves the notice');
+ h.rows[3].comment_id=null;await h.open();await h.click('Todas');await h.click('Ver avisos anteriores');await h.click('Ver pieza');assert.equal(h.anchors['88'],undefined,'notices without comment_id open the piece without an anchor');
 });
 test('polling preserves older pages while open, then resumes after refresh, filter change or closing',async t=>{
  const h=await harness(t);
@@ -111,5 +118,5 @@ test('single-flight mutation retries failures, refresh failure reports saved and
 });
 test('bell styles scope mobile wrapping and 44px actions without truncating notification content',()=>{
  const css=readFileSync(new URL('../app/notifications.css',import.meta.url),'utf8');
- assert(css.includes('.notification-inbox .notification-actions button.text-button'));assert(css.includes('min-height:44px'));assert(css.includes('overflow-wrap:anywhere'));assert(css.includes('white-space:pre-wrap'));assert(css.includes('flex-wrap:wrap'));assert(!/line-clamp|text-overflow:ellipsis/.test(css));
+ assert(css.includes('.notification-inbox button'));assert(css.includes('min-height:44px'));assert(css.includes('overflow-wrap:anywhere'));assert(css.includes('white-space:pre-wrap'));assert(css.includes('flex-wrap:wrap'));assert(!/line-clamp|text-overflow:ellipsis/.test(css));
 });

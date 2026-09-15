@@ -25,18 +25,19 @@ function order(haystack: string, first: string, second: string) {
   assert.ok(haystack.indexOf(first) < haystack.indexOf(second), `${first} must precede ${second}`);
 }
 
-test("workspace header groups presence, status, search, and notifications without changing return handling", () => {
+test("workspace header groups company, presence, status, search, and notifications without changing return handling", () => {
   order(source, 'className="topbar-workspace-context"', 'className="topbar-utilities"');
+  order(source, 'className="topbar-company"', 'className="topbar-presence"');
   order(source, 'className="topbar-status"', 'className="topbar-utility-actions"');
   order(source, '<WorkspaceSearch', '<NotificationBell');
   assert.match(source, /postLoginDestination\(search:string\)/);
   assert.match(source, /scaleBilling'\)\|\|query\.get\('billing/);
 });
 
-test("workspace sidebar owns the company switcher above the signed-in profile", () => {
-  order(source, 'className="sidebar-company"', 'className="profile-footer"');
-  assert.doesNotMatch(source, /className="topbar-company"/);
-  assert.match(mobileNavigation, /sidebar-company[\s\S]*?\.workspace/);
+test("workspace header shows the signed-in company once and the sidebar keeps only the profile", () => {
+  assert.doesNotMatch(source, /className="sidebar-company"/);
+  assert.match(source, /<WorkspacePresence compact/);
+  assert.doesNotMatch(mobileNavigation, /sidebar-company/);
 });
 
 test("workspace header retains visible focus, 40px desktop controls, 44px mobile targets, and reduced motion", () => {

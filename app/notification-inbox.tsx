@@ -6,7 +6,7 @@ import {api} from './operations';
 import {Dialog} from './dialog';
 import './notifications.css';
 
-type Notice={id:string;kind?:'assignment'|'comment'|'due';title:string;body:string;work_order_id:string|null;project_id?:string|null;read_at:string|null;resolved_at?:string|null;created_at:string};
+type Notice={id:string;kind?:'assignment'|'comment'|'due';title:string;body:string;work_order_id:string|null;project_id?:string|null;comment_id?:string|null;read_at:string|null;resolved_at?:string|null;created_at:string};
 type Inbox={notifications:Notice[];unread:number;pendingCount?:number;next:string|null};
 type Filter='all'|'unread'|'unresolved'|'resolved';
 const filters:{value:Filter;label:string}[]=[{value:'all',label:'Todas'},{value:'unread',label:'Sin leer'},{value:'unresolved',label:'Pendientes'},{value:'resolved',label:'Resueltas'}];
@@ -15,7 +15,7 @@ const error=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudiero
 const kindLabel=(kind:Notice['kind'])=>({assignment:'Asignación',comment:'Mención o comentario',due:'Entrega pendiente'} as Record<string,string>)[kind||'']||'Aviso';
 function dateLabel(value:string){const date=new Date(value);return Number.isFinite(date.getTime())?date.toLocaleString('es-PY'):'Fecha no disponible';}
 
-export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:string)=>void;openPreferences:()=>void}){
+export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:string,anchor?:string)=>void;openPreferences:()=>void}){
  const router=useRouter();
  const [open,setOpen]=useState(false),[filter,setFilter]=useState<Filter>('all'),[data,setData]=useState<Inbox>(empty);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
@@ -42,7 +42,7 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
   return()=>{clearInterval(timer);sequence.current++;reading.current=false;};
  },[load,open]);
  function changeFilter(next:Filter){if(locked.current||next===filter)return;setFilter(next);setData(previous=>({...previous,notifications:[],next:null}));setLoading(true);setMessage('');}
- function visitNotice(notice:Notice){setOpen(false);if(notice.work_order_id)openOrder(String(notice.work_order_id));else if(notice.project_id)router.push('/proyectos#project-'+encodeURIComponent(notice.project_id));}
+ function visitNotice(notice:Notice){setOpen(false);if(notice.work_order_id)openOrder(String(notice.work_order_id),notice.comment_id?`comment-${notice.comment_id}`:undefined);else if(notice.project_id)router.push('/proyectos#project-'+encodeURIComponent(notice.project_id));}
  async function mutate(action:'read'|'read-all'|'resolve'|'reopen',notice?:Notice,visit=false){
   if(locked.current)return;locked.current=true;sequence.current++;reading.current=false;setBusy(true);setMessage('');
   try{

@@ -5,7 +5,7 @@ import {clearDataCache} from './data-cache';
 import {ActorIdentity} from './actor-identity';
 import './work-checklist.css';
 
-export type WorkChecklistItem={id:string;text:string;completed:boolean;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
+export type WorkChecklistItem={id:string;text:string;completed:boolean;completed_at?:string|null;completed_by_name?:string|null;completed_by_photo_url?:string|null;completed_by_verified?:boolean;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 export type WorkChecklistSnapshot={version:string;items:WorkChecklistItem[];total:number;completed:number;max_items:number};
 export type WorkChecklistProps={id:string|number;organizationId:string|number;role:string;refresh?:()=>Promise<void>|void};
 const readers=['owner','admin','management','finance','sales','production','editor','viewer'];
@@ -81,6 +81,7 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
   {snapshot?<ul className="work-checklist-items">{snapshot.items.map(item=><li key={item.id} className={item.completed?'is-complete':''}>
    <div className="work-checklist-item">
     <label className="work-checklist-check"><input type="checkbox" checked={item.completed} disabled={!editable||locked} onChange={event=>{void mutate('PATCH',item.id,{completed:event.target.checked});}}/><span>{item.text}</span></label>
+    {item.completed&&item.completed_by_name?<span className="work-checklist-actor" title="Quién completó este ítem">Completado por <ActorIdentity name={item.completed_by_name} photoUrl={item.completed_by_photo_url} verified={item.completed_by_verified===true} timestamp={item.completed_at||undefined}/></span>:null}
     {item.actor_name?<span className="work-checklist-actor" title={`Agregado por ${item.actor_name}`}>por <ActorIdentity name={item.actor_name} photoUrl={item.actor_photo_url} verified={item.actor_verified===true}/></span>:null}
     {editable?<div className="work-checklist-actions"><button type="button" disabled={locked||!!edit} aria-label={`Editar ítem: ${item.text}`} onClick={()=>{setRemoving(null);setEdit({id:item.id,text:item.text});}}>Editar</button><button type="button" disabled={locked||!!edit} aria-label={`Quitar ítem: ${item.text}`} onClick={()=>setRemoving(item.id)}>Quitar</button></div>:null}
    </div>

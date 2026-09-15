@@ -18,7 +18,7 @@ let renderer!:ReactTestRenderer,refreshes=0;
 const refresh=async()=>{refreshes++;};
 const props:RecordAssigneesProps={kind:'work-orders',id:'42',role:'editor',organizationId:'one',refresh};
 const json=()=>JSON.stringify(renderer.toJSON());
-const button=(label:string)=>renderer.root.findAllByType('button').find(node=>node.children.join('')===label)!;
+const button=(label:string)=>renderer.root.findAllByType('button').find(node=>String(node.children).includes(label))!;
 async function mount(p:RecordAssigneesProps=props){await act(async()=>{renderer=create(<RecordAssignees {...p}/>);});}
 async function respond(p:Pending,data:unknown,status=200){await act(async()=>p.resolve(new Response(JSON.stringify(data),{status})));}
 async function loaded(start:number,snapshot=initial){await respond(requests[start],snapshot);await respond(requests[start+1],people);}
