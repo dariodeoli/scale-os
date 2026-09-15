@@ -24,7 +24,7 @@ const text=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'u
 const file=ts.createSourceFile('scale-workspace.tsx',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const names=['ClientForm','ProjectForm','OrderForm','AccountForm','InvoiceForm','PaymentForm'];
 const declarations=file.statements.filter(node=>ts.isVariableStatement(node)&&node.declarationList.declarations.some(d=>/Schema$/.test(d.name.getText(file))||d.name.getText(file)==='statuses'));
-const defaults={name:'Fixture client',email:'fixture@example.invalid',phone:'',clientId:'1',projectId:'2',title:'Fixture production',status:'to_record',driveUrl:'',description:'Fixture service',quantity:1,unitPrice:100,currency:'USD',validUntil:'',accountType:'bank',institution:'Fixture',accountNumber:'',holderName:'',custodianUserId:'',total:100,dueOn:'',invoiceId:'3',accountId:'4',amount:100,receivedOn:'2026-09-10',reference:'',receivedByUserId:'',fromAccountId:'4',toAccountId:'5',transferredOn:'2026-09-10'};
+const defaults={name:'Fixture client',email:'fixture@example.invalid',phone:'',clientId:'1',projectId:'2',title:'Fixture production',status:'to_record',driveUrl:'',description:'Fixture service',quantity:1,unitPrice:100,currency:'USD',validUntil:'',accountType:'bank',institution:'Fixture',accountNumber:'',holderName:'',custodianUserId:'',total:'100',dueOn:'',invoiceId:'3',accountId:'4',amount:'100',receivedOn:'2026-09-10',reference:'',receivedByUserId:'',fromAccountId:'4',toAccountId:'5',transferredOn:'2026-09-10'};
 const props={clients:[{id:'1',name:'Fixture client'}],projects:[{id:'2',name:'Fixture project'}],accounts:[{id:'4',name:'A',currency:'USD'},{id:'5',name:'B',currency:'USD'}],invoices:[{id:'3',status:'pending'}],custodians:[]};
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const event=()=>({preventDefault(){},persist(){}});
@@ -36,8 +36,9 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let done=0;
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
- const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect,
-  useCompanyCurrency:()=>({currency:'USD'}),
+  const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect,
+   AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
+   useCompanyCurrency:()=>({currency:'USD'}),
   useForm:(options:Parameters<typeof useForm>[0])=>useForm({...options,defaultValues:{...options?.defaultValues,...defaults}}),
   request:(path:string,options:{body:string})=>new Promise((resolve,reject)=>{requests.push({path,payload:JSON.parse(options.body),resolve,reject});}),
  };

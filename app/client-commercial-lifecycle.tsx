@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {currencyChoices} from './currencies';
 import {api,money} from './operations';
+import {AmountInput} from './profile-controls';
 import './reports-workspace.css';
 
 type DiscountType='none'|'percent'|'fixed';
@@ -64,7 +65,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
     <label>Cliente desde (opcional)<input type="date" min="1900-01-01" max={today()} value={draft.activationDate} disabled={saving} onChange={event=>update('activationDate',event.target.value)}/></label>
     <label>Nombre del plan<input value={draft.planName} disabled={saving} onChange={event=>update('planName',event.target.value)}/></label>
     <label>Versión contratada<input value={draft.planVersionSnapshot} disabled={saving} onChange={event=>update('planVersionSnapshot',event.target.value)}/></label>
-    <label>Precio mensual contratado<input type="number" min="0" step="0.01" inputMode="decimal" value={draft.monthlyPrice} disabled={saving} onChange={event=>update('monthlyPrice',event.target.value)}/></label>
+    <label>Precio mensual contratado<AmountInput value={draft.monthlyPrice} currency={draft.currency} disabled={saving} onChange={value=>update('monthlyPrice',value)}/></label>
     <label>Moneda<select value={draft.currency} disabled={saving} onChange={event=>update('currency',event.target.value)}>{currencyChoices.map(currency=><option key={currency.value} value={currency.value}>{currency.label}</option>)}</select></label>
     <label>Tipo de descuento<select value={draft.discountType} disabled={saving} onChange={event=>update('discountType',event.target.value as DiscountType)}>{(Object.keys(discounts) as DiscountType[]).map(type=><option key={type} value={type}>{discounts[type]}</option>)}</select></label>
     {draft.discountType!=='none'?<label>Valor del descuento<input type="number" min="0" max={draft.discountType==='percent'?100:undefined} step="0.01" inputMode="decimal" value={draft.discountValue} disabled={saving} onChange={event=>update('discountValue',event.target.value)}/></label>:null}

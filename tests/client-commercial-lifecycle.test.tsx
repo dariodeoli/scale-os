@@ -16,7 +16,7 @@ const record=(id='1',overrides:Partial<ClientCommercialLifecycleRecord>={}):Clie
 const fixture=(id='1',overrides:Partial<ClientCommercialLifecycleRecord>={})=>({commercial:record(id,overrides)});
 async function respond(request:Request,data:unknown,status=200){await act(async()=>{request.resolve(new Response(JSON.stringify(data),{status}));});}
 function inputs(){return renderer.root.findAllByType('input');}
-function setInput(label:string,value:string){const input=inputs().find(item=>item.parent?.props.children?.[0]===label);assert(input,`missing ${label}`);act(()=>input!.props.onChange({target:{value}}));}
+function setInput(label:string,value:string){const input=inputs().find(item=>{let owner=item.parent;while(owner&&typeof owner.type==='function')owner=owner.parent;if(owner?.type==='span'){owner=owner.parent;while(owner&&typeof owner.type==='function')owner=owner.parent;}return owner?.props.children?.[0]===label;});assert(input,`missing ${label}`);act(()=>input!.props.onChange({target:{value}}));}
 async function run(){
  for(const role of ['viewer','editor','production','']){act(()=>{renderer=create(<ClientCommercialLifecycle id="1" role={role}/>);});assert.equal(renderer.toJSON(),null);act(()=>renderer.unmount());}
  for(const id of ['../2','0',Number.MAX_SAFE_INTEGER+1]){act(()=>{renderer=create(<ClientCommercialLifecycle id={id} role="owner"/>);});assert.match(rendered(),/Cliente inválido/);act(()=>renderer.unmount());}

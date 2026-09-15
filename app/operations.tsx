@@ -52,13 +52,16 @@ type Choice = { value: string; label: string };
 export type Field = {
   key: string;
   label: string;
-  type?: "number" | "date" | "email" | "url" | "textarea" | "money" | "password";
+  type?: "number" | "date" | "time" | "email" | "url" | "textarea" | "money" | "password";
   choices?: Choice[];
   optional?: boolean;
   section?: string;
   wide?: boolean;
   help?: string;
   integer?: boolean;
+  currencyKey?: string;
+  currency?: string;
+  currencyFrom?: (values: Record<string, string>) => string;
 };
 const currencies = currencyChoices;
 export function Editor({
@@ -100,11 +103,12 @@ export function Editor({
   const renderField = (f: Field) => {
     const id=`${formPrefix}-${f.key}`,invalid=!!form.formState.errors[f.key];
     const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null].filter(Boolean).join(' ')||undefined;
+    const derivedCurrency=f.currencyFrom?(f.currencyFrom(form.watch() as Record<string,string>)):undefined;
     return <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
       {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={pending} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={form.watch('currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} {...form.register(f.key)}/>}
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} {...form.register(f.key)}/>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
@@ -238,10 +242,10 @@ function SalaryOverrideEditor({person}:{person:Person}) {
  useEffect(()=>{let active=true;setLoading(true);setError('');void api<{override:SalaryOverride|null}>(`/api/agency/collaborators/${person.id}/salary-overrides?month=${encodeURIComponent(month)}`).then(result=>{if(!active)return;setExisting(result.override);setAmount(result.override?.amount||'');setNote(result.override?.note||'');}).catch(error=>active&&setError(message(error))).finally(()=>active&&setLoading(false));return()=>{active=false;};},[person.id,month]);
  async function save(event:React.FormEvent){event.preventDefault();setError('');setStatus('');if(!/^\d+$/.test(amount)){setError('Ingresá un ajuste entero igual o mayor a cero.');return;}setSaving(true);try{const result=await api<{override:SalaryOverride}>(`/api/agency/collaborators/${person.id}/salary-overrides`,{month,amount,note},'PATCH');setExisting(result.override);setAmount(result.override.amount);setNote(result.override.note||'');setStatus('Ajuste mensual guardado.');}catch(error){setError(message(error));}finally{setSaving(false);}}
  async function remove(){setError('');setStatus('');setSaving(true);try{await api(`/api/agency/collaborators/${person.id}/salary-overrides?month=${encodeURIComponent(month)}`,{},'DELETE');setExisting(null);setAmount('');setNote('');setStatus('Ajuste mensual eliminado.');}catch(error){setError(message(error));}finally{setSaving(false);}}
- return <section className="ops-profile-section" aria-labelledby={`${ids.month}-title`}><h3 id={`${ids.month}-title`}>Ajuste mensual de salario</h3><p className="form-note">Reemplaza el salario mensual recurrente solo para el mes elegido. No registra un pago.</p><form className="form-stack" noValidate aria-busy={loading||saving} onSubmit={save}>
+  return <section className="ops-profile-section salary-override" aria-labelledby={`${ids.month}-title`}><h3 id={`${ids.month}-title`}>Ajuste mensual de salario</h3><p className="form-note">Reemplaza el salario mensual recurrente solo para el mes elegido. No registra un pago.</p><form className="form-stack ops-form-grid" noValidate aria-busy={loading||saving} onSubmit={save}>
   <label htmlFor={ids.month}>Mes<input id={ids.month} type="month" value={month} min="1900-01" max="9998-12" disabled={saving} onChange={event=>/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)&&setMonth(event.target.value)}/></label>
-  {loading?<p role="status">Cargando ajuste mensual…</p>:<><label htmlFor={ids.amount}>Ajuste mensual ({person.monthly_salary_currency||'PYG'})<input id={ids.amount} type="number" inputMode="numeric" min="0" step="1" value={amount} disabled={saving} aria-invalid={Boolean(error)||undefined} aria-describedby={error?`${ids.amount}-error`:undefined} onChange={event=>setAmount(event.target.value)}/></label><label htmlFor={ids.note}>Nota del ajuste <span className="field-optional">· Opcional</span><textarea id={ids.note} value={note} maxLength={1000} disabled={saving} onChange={event=>setNote(event.target.value)}/></label><div className="inline-actions"><button className="secondary" type="submit" disabled={saving}>{saving?'Guardando…':'Guardar ajuste'}</button>{existing&&<button className="text-button" type="button" disabled={saving} onClick={remove}>Eliminar ajuste</button>}</div></>}
-  {error&&<p id={`${ids.amount}-error`} className="error" role="alert">{error}</p>}{status&&<p role="status">{status}</p>}
+  {loading?<p role="status" className="ops-wide">Cargando ajuste mensual…</p>:<><label htmlFor={ids.amount}>Ajuste mensual ({person.monthly_salary_currency||'PYG'})<AmountInput id={ids.amount} value={amount} currency={person.monthly_salary_currency||'PYG'} disabled={saving} invalid={Boolean(error)||undefined} describedBy={error?`${ids.amount}-error`:undefined} onChange={setAmount}/></label><label htmlFor={ids.note} className="ops-wide">Nota del ajuste <span className="field-optional">· Opcional</span><textarea id={ids.note} value={note} maxLength={1000} disabled={saving} onChange={event=>setNote(event.target.value)}/></label><div className="inline-actions ops-wide"><button className="secondary" type="submit" disabled={saving}>{saving?'Guardando…':'Guardar ajuste'}</button>{existing&&<button className="text-button" type="button" disabled={saving} onClick={remove}>Eliminar ajuste</button>}</div></>}
+  {error&&<p id={`${ids.amount}-error`} className="error ops-wide" role="alert">{error}</p>}{status&&<p role="status" className="ops-wide">{status}</p>}
  </form></section>;
 }
 export function OperationsWorkspace({
@@ -376,16 +380,15 @@ export function OperationsWorkspace({
       optional: true,
       section: 'Remuneración y pagos',
     },
-    { key: "monthly_salary_amount", label: "Salario mensual recurrente", type: "number", optional: true, integer: true, section: 'Planificación salarial', help: 'Opcional. Solo PYG o USD; no reutiliza importes variables, por hora ni por proyecto.' },
+    { key: "monthly_salary_amount", label: "Salario mensual recurrente", type: "money", optional: true, integer: true, currencyKey: 'monthly_salary_currency', section: 'Planificación salarial', help: 'Opcional. Solo PYG o USD; no reutiliza importes variables, por hora ni por proyecto.' },
     { key: "monthly_salary_currency", label: "Moneda del salario mensual", choices: [{value:'PYG',label:'PYG'},{value:'USD',label:'USD'}], section: 'Planificación salarial' },
     { key: "notes", label: "Condiciones y notas", type: "textarea", optional: true },
   ];
   const directory=teamDirectory(people,members,archivedProfiles);
-  const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.job_title||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
+  const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
   const personDefaults: Record<string, string> = {
     full_name: person?.full_name || members.find(member=>member.email===seedEmail)?.full_name || "",
     email: person?.email || seedEmail,
-    job_role_id: person?.job_role_id ? String(person.job_role_id) : "",
     compensation_type: person?.compensation_type || "fixed",
     compensation_amount: person?.compensation_amount || "0",
     monthly_salary_amount: person?.monthly_salary_amount || "",
@@ -598,11 +601,13 @@ export function OperationsWorkspace({
             {person?' El estado laboral no revoca accesos existentes.':seedEmail?' El nombre y la foto se toman de su perfil personal; esta ficha agrega datos laborales.':''}
           </p>
           {!person&&members.find(member=>member.email===seedEmail)?.photo_url&&<PhotoViewer photo={members.find(member=>member.email===seedEmail)!.photo_url!} name={personDefaults.full_name}/>}
-          {person&&<ProfilePhoto compact key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
-            const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
-            await load();setEdit(result.collaborator);
-          }}/>}
-          {person&&<TeamAccess member={directory.find(entry=>entry.profile?.id===person.id)?.member||null} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>}
+          {person&&<div className="person-identity-panel">
+            <ProfilePhoto compact key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
+              const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
+              await load();setEdit(result.collaborator);
+            }}/>
+            <TeamAccess member={directory.find(entry=>entry.profile?.id===person.id)?.member||null} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>
+          </div>}
           <Editor
             columns
             fields={personFields}
@@ -654,7 +659,7 @@ export function OperationsWorkspace({
               {
                 key: "amount",
                 label: "Importe (para importe fijo)",
-                type: "number",
+                type: "money",
               },
               {
                 key: "percentage",
@@ -747,7 +752,8 @@ export function OperationsWorkspace({
                 label: pay.commission
                   ? "Importe de la comisión (se conserva el aprobado)"
                   : "Importe pagado",
-                type: "number",
+                type: "money",
+                currency: pay.person?.currency || pay.commission?.currency || "PYG",
               },
               { key: "paid_on", label: "Fecha", type: "date" },
               { key: "reference", label: "Comprobante / período / referencia" },
@@ -834,7 +840,7 @@ function ReferralDiscounts() {
       <Editor fields={[
         { key: "invoice_id", label: "Factura", choices: invoices.filter(i => Number(i.total) > Number(i.paid_amount)).map(i => ({ value: i.id, label: `${i.number} · ${i.client_name} · pendiente ${money(Number(i.total)-Number(i.paid_amount), i.currency)}` })) },
         { key: "referrer", label: "Quién refirió al cliente" },
-        { key: "amount", label: "Descuento en la moneda de la factura", type: "number" },
+        { key: "amount", label: "Descuento en la moneda de la factura", type: "money", currencyFrom: values => invoices.find(i => String(i.id) === values.invoice_id)?.currency || "PYG" },
         { key: "reason", label: "Motivo o acuerdo", type: "textarea" },
       ]} defaults={{invoice_id: "", referrer: "", amount: "", reason: ""}} label="Aplicar descuento" save={async values => {
         await api("/api/agency/referral-discounts", values); await load(); setOpen(false);

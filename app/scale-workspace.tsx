@@ -60,7 +60,7 @@ import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {WorkspaceGuide,workspaceGuideScope,visibleModule,NewCompany,type WorkspaceGuideData} from './workspace-guide';
 import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
-import {SelectCustom} from './profile-controls';
+import {SelectCustom,AmountInput} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
 import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type StartupPreference} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
@@ -860,7 +860,7 @@ function AccountForm({
 }
 const invoiceSchema = z.object({
   clientId: z.string().min(1, "Elegí un cliente."),
-  total: z.number().min(0, "El importe no puede ser negativo."),
+  total: z.string().min(1, "Ingresá el importe.").refine(value=>Number.isFinite(Number(value))&&Number(value)>=0, "El importe no puede ser negativo."),
   currency: z.enum(currencyCodes),
   dueOn: z.string().optional(),
 });
@@ -875,7 +875,7 @@ function InvoiceForm({
   const {currency:defaultCurrency}=useCompanyCurrency();
   const form = useForm<InvoiceValues>({
     resolver: zodResolver(invoiceSchema),
-    defaultValues: { clientId: "", total: 0, currency: defaultCurrency, dueOn: "" },
+    defaultValues: { clientId: "", total: "0", currency: defaultCurrency, dueOn: "" },
   });
   const [error, setError] = useState("");
   const submission=useSingleFlightSubmit(form.handleSubmit(submit));
@@ -883,7 +883,7 @@ function InvoiceForm({
     try {
       const data = await request<{ invoice: Invoice }>("/api/agency/invoices", {
         method: "POST",
-        body: JSON.stringify(values),
+        body: JSON.stringify({...values,total:Number(values.total)}),
       });
       done(data.invoice);
     } catch (cause) {
@@ -926,12 +926,7 @@ function InvoiceForm({
       </fieldset>
       <label>
         Total sin IVA
-        <input
-          type="number"
-          min="0"
-          step="1000"
-          {...form.register("total", { valueAsNumber: true })}
-        />
+        <AmountInput value={form.watch('total')||''} currency={form.watch('currency')} invalid={!!form.formState.errors.total} onChange={value=>form.setValue('total',value,{shouldValidate:true,shouldDirty:true})}/>
       </label>
       <fieldset>
         <legend>Moneda</legend>
@@ -967,7 +962,7 @@ function InvoiceForm({
 const paymentSchema = z.object({
   invoiceId: z.string().min(1, "Elegí una factura."),
   accountId: z.string().min(1, "Elegí una cuenta."),
-  amount: z.number().positive("El cobro debe ser mayor a cero."),
+  amount: z.string().min(1, "Ingresá el importe cobrado.").refine(value=>Number.isFinite(Number(value))&&Number(value)>0, "El cobro debe ser mayor a cero."),
   receivedOn: z.string().optional(),
   reference: z.string().max(120).optional(),
   receivedByUserId: z.string().optional(),
@@ -990,7 +985,7 @@ function PaymentForm({
     defaultValues: {
       invoiceId: "",
       accountId: "",
-      amount: 0,
+      amount: "0",
       receivedOn: new Date().toISOString().slice(0, 10),
       reference: "",
       receivedByUserId: "",
@@ -1002,7 +997,7 @@ function PaymentForm({
     try {
       await request("/api/agency/payments", {
         method: "POST",
-        body: JSON.stringify({...values,requestId}),
+        body: JSON.stringify({...values,amount:Number(values.amount),requestId}),
       });
       done();
     } catch (cause) {
@@ -1086,12 +1081,7 @@ function PaymentForm({
       </fieldset>
       <label>
         Importe cobrado
-        <input
-          type="number"
-          min="1"
-          step="1000"
-          {...form.register("amount", { valueAsNumber: true })}
-        />
+        <AmountInput value={form.watch('amount')||''} currency={accounts.find(account=>account.id===form.watch('accountId'))?.currency||'PYG'} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
       </label>
       <label>
         Fecha
