@@ -8,14 +8,14 @@ import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Banknote, Building2, Check, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2, X } from "lucide-react";
+import { Banknote, Building2, Check, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2, X , CircleDollarSign } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
 import {ProfilePhoto} from './profile-photo';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
 import {PhotoViewer} from './photo-viewer';
-import {ActorIdentity} from './actor-identity';
+import {ActorIdentity,actorInitials} from './actor-identity';
 import {PersonContainer} from './person-container';
 import {CommentBody,CommentComposer} from './commenting';
 import {notifyMutation} from './feedback';
@@ -534,10 +534,10 @@ export function OperationsWorkspace({
                     {p.photo_url ? (
                       <PhotoViewer photo={p.photo_url} name={p.full_name}/>
                     ) : (
-                      <span className="avatar">{p.full_name[0]}</span>
+                      <span className="avatar">{actorInitials(p.full_name)}</span>
                     )}
                     <div>
-                      <h3>{p.full_name}</h3>
+                      <h3>{p.full_name}{!p.monthly_salary_amount&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
                       <small>{entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin cargo'}</small>
                     </div>
                   </div>

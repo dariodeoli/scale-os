@@ -49,3 +49,4 @@ html[data-theme="dark"] .loading-orb img{background:var(--anthracite)}
 html[data-theme="dark"] .brand-mark{background:var(--anthracite);color:var(--text)}
 html[data-theme="dark"] .toast{background:var(--surface-raised);color:var(--text)}
 html[data-theme="dark"] .my-profile-name input{box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
+.client-price-missing{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;border-radius:999px;background:var(--warning-soft,var(--surface-subtle));color:var(--warning,#b45309);vertical-align:middle}.client-price-missing svg{width:13px;height:13px}

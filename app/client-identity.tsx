@@ -4,6 +4,7 @@ import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
 import {ProfilePhoto} from './profile-photo';
+import {actorInitials} from './actor-identity';
 import {api} from './operations';
 import {notify} from './feedback';
 import './client-identity.css';
@@ -13,7 +14,7 @@ export function identityColor(value?:string|null){return clientColors.some(([key
 export function ClientIdentity({name,logo,color,compact=false}:{name:string;logo?:string|null;color?:string|null;compact?:boolean}){
  const [failed,setFailed]=useState('');
  return <span className={`client-identity identity-${identityColor(color)} ${compact?'compact':''}`}>
-  <span className="identity-avatar" aria-hidden="true">{logo&&logo!==failed?<img src={logo} alt="" loading="lazy" referrerPolicy="no-referrer" width={36} height={36} onError={()=>setFailed(logo)}/>:name.trim().split(/\s+/).slice(0,2).map(n=>n[0]).join('').toUpperCase()}</span>
+  <span className="identity-avatar" aria-hidden="true">{logo&&logo!==failed?<img src={logo} alt="" loading="lazy" referrerPolicy="no-referrer" width={36} height={36} onError={()=>setFailed(logo)}/>:actorInitials(name)}</span>
   <span className="identity-name">{name}</span>
  </span>;
 }

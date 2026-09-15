@@ -1,7 +1,7 @@
 "use client";
 import {createContext,useContext,useEffect,useState,type ReactNode} from 'react';
 import {Dialog} from './dialog';
-import {ActorIdentity} from './actor-identity';
+import {ActorIdentity,actorInitials} from './actor-identity';
 import './presence.css';
 import {Eye} from 'lucide-react';
 const views=new Map<symbol,string>();
@@ -33,7 +33,7 @@ export function BoardPresence({projectIds,children}:{projectIds:string[];childre
  const {people}=useProjectPeople(key?'projects?ids='+encodeURIComponent(key):'');
  return <BoardPeople.Provider value={people}>{children}</BoardPeople.Provider>;
 }
-function PersonPhoto({person}:{person:PresentPerson}){const [broken,setBroken]=useState(false);useEffect(()=>setBroken(false),[person.photo_url]);return person.photo_url&&!broken?<img src={person.photo_url} alt="" loading="lazy" onError={()=>setBroken(true)}/>:<span aria-hidden="true">{person.name.trim().split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase()||'?'}</span>;}
+function PersonPhoto({person}:{person:PresentPerson}){const [broken,setBroken]=useState(false);useEffect(()=>setBroken(false),[person.photo_url]);return person.photo_url&&!broken?<img src={person.photo_url} alt="" loading="lazy" onError={()=>setBroken(true)}/>:<span aria-hidden="true">{actorInitials(person.name)}</span>;}
 export function PresenceAvatars({people,alwaysGreen=false}:{people:PresentPerson[];alwaysGreen?:boolean}){return <span className="presence-avatars">{people.slice(0,4).map(person=><span className="presence-person" key={person.id} title={`${person.name} · ${person.active?'Activo en este proyecto':'Viendo este proyecto'}`} aria-label={`${person.name} · ${person.active?'Activo en este proyecto':'Viendo este proyecto'}`}><PersonPhoto person={person}/><i data-active={alwaysGreen||!!person.active}/></span>)}{people.length>4&&<span className="presence-more" title={people.slice(4).map(p=>p.name).join(', ')}>+{people.length-4}</span>}</span>;}
 export function ProjectCardPresence({projectId}:{projectId:string}){const people=useContext(BoardPeople).filter(person=>String(person.project_id)===String(projectId));return people.length?<div className="card-presence"><PresenceAvatars people={people}/><small>Viendo ahora</small></div>:null;}
 async function request<T>(path:string,body?:unknown,signal?:AbortSignal):Promise<T>{const res=await fetch('/core-api/api/agency/presence/'+path,{method:body?'POST':'GET',credentials:'include',cache:'no-store',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,keepalive:!!body,signal});const data=await res.json();if(!res.ok)throw new Error(data.error||'No disponible');return data;}

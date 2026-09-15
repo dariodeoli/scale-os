@@ -58,7 +58,7 @@ import {completeSave} from './save-completion';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import './operations.css';
 import './suite.css';
-import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWorkspace} from './suite';
+import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWorkspace,CouponRedeem} from './suite';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
@@ -92,6 +92,7 @@ import { ViewToggle } from "./view-toggle";
 import {ClientDirectoryToolbar,filterClientDirectory} from "./client-directory-toolbar";
 import { z } from "zod";
 import {
+  CircleDollarSign,
   ArrowLeftRight,
   ArrowUpRight,
   BarChart3,
@@ -142,6 +143,7 @@ const nav = [
 ] as const;
 type Client = {
   lifecycle_status?:string;
+  has_recurring_price?:boolean;
   logo_url?:string|null;
   color_key?:string;
   id: string;
@@ -1746,6 +1748,7 @@ export default function Home() {
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
             </div>
             <div className="topbar-utility-actions">
+              <ThemeToggle/>
               <WorkspaceSearch key={workspaceScope} navigate={setActive} records={[
                 ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
                 ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
@@ -1811,6 +1814,7 @@ export default function Home() {
           <div className="settings-column"><SettingsWorkspace/></div>
           <div className="settings-column settings-side-column">
             <div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div>
+            {!user?.demo_owner_user_id&&['owner','admin'].includes(user?.role||'')&&<CouponRedeem role={user?.role||''} onRedeemed={refreshSubscription}/>}
             {!user?.demo_owner_user_id&&<NewCompany/>}
           </div>
           {user&&<div className="settings-danger-wrap"><DeletionDangerZone key={String(user.organization_id)} organizationId={String(user.organization_id)} organizationName={user.organization_name} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'} onDemoExit={exitDemoSimulation} onAccountDeleted={deletionSignedOut} onOrganizationDeleted={deletionSignedOut}/></div>}
@@ -2076,7 +2080,7 @@ export default function Home() {
                       <small>{client.email || "Sin email registrado"}</small>
                     </div>
                     <span>{client.phone || "Sin teléfono"}</span>
-                    <span className="client-status" data-status={clientState(client).value}>{clientState(client).label}</span>
+                    <span className="client-status" data-status={clientState(client).value}>{clientState(client).label}</span>{client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
                     {pay && (
                       pay.payment_status === "up_to_date" ? (
                         <span className="mora-chip mora-clear">Al día</span>
