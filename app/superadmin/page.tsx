@@ -92,7 +92,10 @@ type BootstrapStatus = {
 };
 
 type PlatformError = Error & { status?: unknown };
-const LOGIN_RETURN_PATH = "/?next=/superadmin";
+function loginReturnPath() {
+  if (typeof window !== "undefined" && window.location.hostname === "admin.scaleparaguay.com") return "https://app.scaleparaguay.com/";
+  return "/";
+}
 
 function errorStatus(cause: unknown) {
   const status = (cause as PlatformError)?.status;
@@ -214,7 +217,9 @@ export default function PlatformAdmin() {
       setError("");
       setAccessDenied(false);
       setRedirecting(true);
-      router.replace(LOGIN_RETURN_PATH);
+      const target = loginReturnPath();
+      if (target.startsWith("https://")) window.location.assign(target);
+      else router.replace(target);
       return true;
     }
     if (status === 403) {

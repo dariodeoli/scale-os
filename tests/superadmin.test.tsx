@@ -11,11 +11,12 @@ const styles = readFileSync(
   "utf8",
 );
 
-test("superadmin sends a 401 to the fixed internal login return path before an error dashboard", () => {
-  assert.match(page, /const LOGIN_RETURN_PATH\s*=\s*"\/\?next=\/superadmin";/);
+test("superadmin sends a 401 to the clean app login without the next param before an error dashboard", () => {
+  assert.match(page, /function loginReturnPath\(\)/);
+  assert.doesNotMatch(page, /\?next=\/superadmin/);
   assert.match(
     page,
-    /if \(status === 401\) \{[\s\S]*?setError\(""\);[\s\S]*?router\.replace\(LOGIN_RETURN_PATH\);/,
+    /if \(status === 401\) \{[\s\S]*?setError\(""\);[\s\S]*?window\.location\.assign[\s\S]*?router\.replace/,
   );
   assert.match(
     page,
