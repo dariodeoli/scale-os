@@ -349,12 +349,17 @@ export function OperationsWorkspace({
         { value: "true", label: "Activo" }, { value: "false", label: "Inactivo" },
       ],
     },
-    { key: "notes", label: "Condiciones y notas", type: "textarea", optional: true },
+    {
+      key: "started_on",
+      label: "Fecha de ingreso",
+      type: "date",
+      optional: true,
+      section: 'Fechas',
+    },
+    { key: "ended_on", label: "Fecha de salida", type: "date", optional: true, section: 'Fechas' },
     { key: "compensation_type", label: "Modalidad", choices: types, section: 'Remuneración y pagos' },
-    { key: "currency", label: "Moneda", choices: currencies, section: 'Remuneración y pagos' },
     { key: "compensation_amount", label: "Importe acordado", type: "money", section: 'Remuneración y pagos' },
-    { key: "monthly_salary_amount", label: "Salario mensual recurrente", type: "number", optional: true, integer: true, section: 'Planificación salarial', help: 'Opcional. Solo PYG o USD; no reutiliza importes variables, por hora ni por proyecto.' },
-    { key: "monthly_salary_currency", label: "Moneda del salario mensual", choices: [{value:'PYG',label:'PYG'},{value:'USD',label:'USD'}], section: 'Planificación salarial' },
+    { key: "currency", label: "Moneda", choices: currencies, section: 'Remuneración y pagos' },
     {
       key: "invoices_company",
       label: "¿Emite factura?",
@@ -365,20 +370,15 @@ export function OperationsWorkspace({
       ],
     },
     {
-      key: "started_on",
-      label: "Fecha de ingreso",
-      type: "date",
-      optional: true,
-      section: 'Fechas',
-    },
-    { key: "ended_on", label: "Fecha de salida", type: "date", optional: true, section: 'Fechas' },
-    {
       key: "payment_day",
       label: "Día de pago (1–31)",
       type: "number",
       optional: true,
       section: 'Remuneración y pagos',
     },
+    { key: "monthly_salary_amount", label: "Salario mensual recurrente", type: "number", optional: true, integer: true, section: 'Planificación salarial', help: 'Opcional. Solo PYG o USD; no reutiliza importes variables, por hora ni por proyecto.' },
+    { key: "monthly_salary_currency", label: "Moneda del salario mensual", choices: [{value:'PYG',label:'PYG'},{value:'USD',label:'USD'}], section: 'Planificación salarial' },
+    { key: "notes", label: "Condiciones y notas", type: "textarea", optional: true },
   ];
   const directory=teamDirectory(people,members,archivedProfiles);
   const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.job_title||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
@@ -643,27 +643,6 @@ export function OperationsWorkspace({
                 ],
               },
               {
-                key: "collaborator_id",
-                label: "Vincular colaborador",
-                optional: true,
-                choices: [
-                  empty,
-                  ...people.map((p) => ({ value: p.id, label: p.full_name })),
-                ],
-              },
-              {
-                key: "invoice_id",
-                label: "Factura de referencia",
-                optional: true,
-                choices: [
-                  empty,
-                  ...invoices.map((i) => ({
-                    value: i.id,
-                    label: `${i.number} · ${i.client_name}`,
-                  })),
-                ],
-              },
-              {
                 key: "basis",
                 label: "Cálculo",
                 choices: [
@@ -687,6 +666,27 @@ export function OperationsWorkspace({
                 key: "currency",
                 label: "Moneda (se usa la de la factura si se vincula)",
                 choices: currencies,
+              },
+              {
+                key: "collaborator_id",
+                label: "Vincular colaborador",
+                optional: true,
+                choices: [
+                  empty,
+                  ...people.map((p) => ({ value: p.id, label: p.full_name })),
+                ],
+              },
+              {
+                key: "invoice_id",
+                label: "Factura de referencia",
+                optional: true,
+                choices: [
+                  empty,
+                  ...invoices.map((i) => ({
+                    value: i.id,
+                    label: `${i.number} · ${i.client_name}`,
+                  })),
+                ],
               },
               {
                 key: "due_on",
