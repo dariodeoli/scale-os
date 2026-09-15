@@ -29,6 +29,9 @@
 <link rel="icon" href="/brand/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="/brand/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" sizes="180x180">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400..800&display=swap">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://sistema.scaleparaguay.com/#organization","name":"Scale OS","url":"https://sistema.scaleparaguay.com/","logo":"https://sistema.scaleparaguay.com/brand/icon-512.png","inLanguage":"es-PY"},{"@type":"WebSite","@id":"https://sistema.scaleparaguay.com/#website","url":"https://sistema.scaleparaguay.com/","name":"Scale OS","inLanguage":"es-PY","publisher":{"@id":"https://sistema.scaleparaguay.com/#organization"}},{"@type":"SoftwareApplication","name":"Scale OS","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://sistema.scaleparaguay.com/","image":"https://sistema.scaleparaguay.com/brand/share.png","inLanguage":"es-PY","description":"Sistema de gestión para agencias: producción, clientes, equipo, inventario y finanzas."}]}
 </script>
@@ -46,7 +49,7 @@
  --shadow-deep:0 28px 70px rgb(26 2 31 / 24%);
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:96px}
+html{scroll-behavior:smooth;scroll-padding-top:96px;text-size-adjust:100%}
 body{margin:0;background:linear-gradient(180deg,#f7f1f9 0,var(--paper) 42rem);color:var(--ink);font:16px/1.65 "Outfit",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
 h1,h2,h3,p,figure{margin:0}
 h1,h2,h3{line-height:1.04;letter-spacing:-.045em;text-wrap:balance}
@@ -243,7 +246,7 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .contact-intro>p{margin-top:16px}
 .contact-intro>a{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:20px;padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:var(--white);color:var(--brand);font-size:13px;font-weight:700;text-decoration:none;transition:border-color .18s,transform .18s}
 .contact-intro>a:hover{border-color:#c9a8d1;transform:translateY(-1px)}
-.contact-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;min-width:0;padding:26px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow)}
+.contact-form{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;min-width:0;padding:26px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow)}
 .contact-form label{display:flex;flex-direction:column;gap:7px;min-width:0;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;color:#4b3a50}
 .contact-form input,.contact-form textarea{width:100%;min-width:0;padding:12px 14px;border:1px solid #8b7096;border-radius:10px;background:#fff;color:var(--ink);font-family:inherit;font-size:16px;line-height:1.5;transition:border-color .18s,box-shadow .18s}
 .contact-form input::placeholder,.contact-form textarea::placeholder{color:#a290aa}
@@ -260,6 +263,7 @@ footer{margin-top:30px;padding-block:28px;border-top:1px solid #43204a;backgroun
 footer a{display:inline-flex;align-items:center;min-height:44px;color:#fff;font-weight:650;text-underline-offset:4px;transition:color .18s}
 footer a:hover{color:#f0b9eb}
 @media(max-width:960px){
+ html{scroll-padding-top:132px}
  .hero-top,.pricing-layout,.split{grid-template-columns:minmax(0,1fr);gap:34px}
  .hero-description{max-width:660px}
  .feature{grid-column:span 6}
