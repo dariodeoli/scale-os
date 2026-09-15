@@ -3,25 +3,30 @@ import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react';
 import {createPortal} from 'react-dom';
 import {selectPosition} from './select-position';
 import { ChevronDown } from 'lucide-react';
-import { displayAmount, normalizeAmount } from './amount-format';
+import { caretAfterDigits, displayAmount, normalizeAmount } from './amount-format';
 
 const currencyMarks: Record<string, string> = { PYG: 'Gs', USD: 'US$', EUR: '€', BRL: 'R$', ARS: '$', MXN: 'MX$' };
 const currencyMark = (currency: string) => currencyMarks[currency] || currency;
-export function AmountInput({ value, currency, onChange,disabled=false,id,invalid,describedBy,integerOnly=false }: { value: string; currency: string; onChange: (value: string) => void;disabled?:boolean;id?:string;invalid?:boolean;describedBy?:string;integerOnly?:boolean }) {
-  useEffect(() => { if((currency === 'PYG' || integerOnly) && value.includes('.')) onChange(value.split('.')[0]); }, [currency, value, onChange, integerOnly]);
-  const display = integerOnly ? displayAmount(value.split('.')[0], currency) : displayAmount(value, currency);
+export function AmountInput({ value, currency, onChange,disabled=false,id,invalid,describedBy,integerOnly=false,required=false }: { value: string|number; currency: string; onChange: (value: string) => void;disabled?:boolean;id?:string;invalid?:boolean;describedBy?:string;integerOnly?:boolean;required?:boolean }) {
+  useEffect(() => { if((currency === 'PYG' || integerOnly) && String(value).includes('.')) onChange(String(value).split('.')[0]); }, [currency, value, onChange, integerOnly]);
+  const display = integerOnly ? displayAmount(String(value).split('.')[0], currency) : displayAmount(value, currency);
+  const inputRef = useRef<HTMLInputElement>(null);
   return <span className="amount-field" data-currency={currency}>
     <span className="amount-currency" aria-hidden="true">{currencyMark(currency)}</span>
-    <input id={id} disabled={disabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} type="text" inputMode={currency === 'PYG' || integerOnly ? 'numeric' : 'decimal'} autoComplete="off" value={display} placeholder={currency === 'PYG' ? '1.000.000' : '1.250,50'} onKeyDown={e => {
+    <input ref={inputRef} id={id} disabled={disabled} required={required} aria-invalid={invalid||undefined} aria-describedby={describedBy} type="text" inputMode={currency === 'PYG' || integerOnly ? 'numeric' : 'decimal'} autoComplete="off" value={display} placeholder={currency === 'PYG' ? '1.000.000' : '1.250,50'} onKeyDown={e => {
       if(e.ctrlKey||e.metaKey||e.altKey)return;
       const allowed = currency === 'PYG' || integerOnly ? '0123456789' : '0123456789.,';
       if(e.key.length===1&&!allowed.includes(e.key))e.preventDefault();
     }} onChange={e => {
-      const input=e.target, right=input.value.length-(input.selectionStart ?? input.value.length);
+      const input=e.currentTarget ?? e.target, digitsBeforeCaret=input.value.slice(0,input.selectionStart ?? input.value.length).replace(/\D/g,'').length;
       const normalized = normalizeAmount(input.value,currency);
       onChange(integerOnly ? normalized.split('.')[0] : normalized);
-      const restore=()=>{const caret=Math.max(0,input.value.length-right);input.setSelectionRange?.(caret,caret);};
-      if(typeof requestAnimationFrame==='function')requestAnimationFrame(restore);else restore();
+      if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{
+        const node=inputRef.current;
+        if(!node||document.activeElement!==node)return;
+        const caret=caretAfterDigits(node.value,digitsBeforeCaret);
+        node.setSelectionRange(caret,caret);
+      });
     }} />
   </span>;
 }
