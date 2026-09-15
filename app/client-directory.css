@@ -53,3 +53,9 @@
 .client-directory-create{min-height:44px!important;white-space:nowrap}
 @media(max-width:960px){.control-shell .client-directory-toolbar{grid-template-columns:minmax(0,1fr) minmax(160px,210px) auto auto auto}.client-directory-toolbar-title{grid-column:1/-1}}
 @media(max-width:700px){.control-shell .client-directory-toolbar{grid-template-columns:minmax(0,1fr) auto;align-items:end}.client-directory-search{grid-column:1/-1}.client-directory-toolbar .ops-select{grid-column:1/-1}.client-directory-toolbar-title{align-items:start}.client-directory-toolbar .directory-summary{white-space:normal}.client-directory-toolbar>:is(.secondary,.client-directory-create){width:100%}.client-directory-toolbar>.secondary{grid-column:1/-1}.client-directory-create{grid-column:1/-1;justify-self:stretch}.control-shell .client-directory-toolbar .workspace-view-controls{justify-self:end}}
+
+.mora-toolbar{display:flex;flex-wrap:wrap;gap:var(--ui-space-3);align-items:center;justify-content:space-between;margin-block:var(--ui-space-3)}
+.mora-search{min-width:min(280px,100%)}
+.mora-search input{box-sizing:border-box;width:100%;min-height:var(--ui-control-height);padding-inline:12px;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-sm);background:var(--surface-raised,var(--surface))}
+.client-list .client-row>span.client-row-amount{min-width:max-content;text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media(max-width:620px){.mora-toolbar{gap:var(--ui-space-2)}.mora-search{min-width:100%}.client-list .client-row>span.client-row-amount{min-width:0;text-align:left}}

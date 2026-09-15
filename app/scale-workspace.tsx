@@ -1277,6 +1277,7 @@ export default function Home() {
   const [invoiceHasMore, setInvoiceHasMore] = useState(false);
   const [allInvoicesLoaded, setAllInvoicesLoaded] = useState(false);
   const [moraFilter, setMoraFilter] = useState("");
+  const [moraSearch, setMoraSearch] = useState("");
   const [projectClientFilter, setProjectClientFilter] = useState("");
   const [commercialSummary, setCommercialSummary] = useState<CommercialDashboard | null>(null);
   const [moraReports, setMoraReports] = useState<ReportsData | null>(null);
@@ -1314,7 +1315,7 @@ export default function Home() {
     }
     return rows;
   }, [moraReports, paymentStatuses]);
-  const visibleMoraClients = moraFilter === "no_invoice" ? paymentStatuses.filter(client => !client.has_invoice) : moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses;
+  const visibleMoraClients = (moraFilter === "no_invoice" ? paymentStatuses.filter(client => !client.has_invoice) : moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses).filter(client => !moraSearch || client.client_name.toLowerCase().includes(moraSearch.toLowerCase()));
   const moneyMora = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
   const moneyKpi = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
   const budgetKpis = useMemo(() => {
@@ -1960,27 +1961,35 @@ export default function Home() {
                 )}
               </article>
             </div>
-            <div
-              className="choice-list compact"
-              aria-label="Filtrar estado de cobro"
-            >
-              {[
-                ["", "Todos"],
-                ["up_to_date", "Al día"],
-                ["due_soon", "Por vencer"],
-                ["late", "En mora"],
-                ["severe", "Mora grave"],
-                ["no_invoice", "Sin factura"],
-              ].map(([value, label]) => (
-                <button
-                  type="button"
-                  className={moraFilter === value ? "choice active" : "choice"}
-                  onClick={() => setMoraFilter(value)}
-                  key={value || "all"}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="mora-toolbar">
+              <div className="choice-list compact" aria-label="Filtrar estado de cobro">
+                {[
+                  ["", "Todos"],
+                  ["up_to_date", "Al día"],
+                  ["due_soon", "Por vencer"],
+                  ["late", "En mora"],
+                  ["severe", "Mora grave"],
+                  ["no_invoice", "Sin factura"],
+                ].map(([value, label]) => (
+                  <button
+                    type="button"
+                    className={moraFilter === value ? "choice active" : "choice"}
+                    onClick={() => setMoraFilter(value)}
+                    key={value || "all"}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <label className="mora-search">
+                <span className="sr-only">Buscar cliente en cobranza</span>
+                <input
+                  type="search"
+                  value={moraSearch}
+                  onChange={event => setMoraSearch(event.target.value)}
+                  placeholder="Buscar cliente…"
+                />
+              </label>
             </div>
             <div className="client-list">
               {visibleMoraClients.length ? (
@@ -2007,9 +2016,10 @@ export default function Home() {
                             {client.days_overdue > 30 ? "+30 días" : client.days_overdue > 15 ? "16–30 días" : "1–15 días"}
                           </span>
                         )}
+                        {client.has_invoice ? ` · ${client.invoice_count} factura${client.invoice_count === 1 ? "" : "s"}` : " · Sin facturas"}
                       </small>
                     </div>
-                    <span>
+                    <span className="client-row-amount">
                       {client.currency
                         ? new Intl.NumberFormat("es-PY", {
                             style: "currency",

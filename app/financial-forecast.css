@@ -20,6 +20,9 @@
 @media(max-width:620px){.financial-forecast .panel-heading label{min-height:44px;width:100%}.financial-forecast input{min-height:38px;flex:1}.financial-forecast summary{min-height:44px}.forecast-currency{padding:13px}}
 .forecast-personnel,.planned-expenses{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
 .forecast-personnel h3,.planned-expenses h3{margin:0}
+.forecast-month-tools{display:grid;gap:12px;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
+.forecast-month-tools>section{margin:0;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:linear-gradient(180deg,var(--surface-raised,var(--surface)),var(--surface-subtle,#fbfafc));box-shadow:var(--shadow-xs)}
+@media(min-width:920px){.forecast-month-tools{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
 .forecast-horizon{display:flex;flex-wrap:wrap;gap:var(--ui-space-1)}
 .forecast-horizon button{min-height:38px;padding:0 12px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;background:var(--surface-raised,var(--surface));color:var(--text-strong,var(--text));font-size:.8rem;font-weight:600;cursor:pointer}
 .forecast-horizon button.is-active{background:var(--violet-soft);border-color:var(--brand-600)}
