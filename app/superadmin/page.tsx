@@ -61,11 +61,21 @@ type Coupon = {
   active: boolean;
   max_redemptions: number | null;
 };
+type AuditAction = {
+  id: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  metadata: unknown;
+  created_at: string;
+  actor_email: string | null;
+};
 type State = {
   overview: Overview;
   agencies: Agency[];
   users: Person[];
   coupons: Coupon[];
+  audit: AuditAction[];
 };
 type BootstrapStatus = {
   configured: boolean;
@@ -221,16 +231,18 @@ export default function PlatformAdmin() {
       // The overview is the auth/authorization gate. It prevents parallel responses from rendering a generic error before a 401 or 403 is classified.
       // prettier-ignore
       const overview=await platformApi<Overview>('/api/platform/overview',{credentials:'include',cache:'no-store'});
-      const [agencies, users, coupons] = await Promise.all([
+      const [agencies, users, coupons, audit] = await Promise.all([
         platformApi<{ agencies: Agency[] }>("/api/platform/agencies?limit=50"),
         platformApi<{ users: Person[] }>("/api/platform/users?limit=50"),
         platformApi<{ coupons: Coupon[] }>("/api/platform/coupons?limit=50"),
+        platformApi<{ actions: AuditAction[] }>("/api/platform/audit?limit=50"),
       ]);
       setState({
         overview,
         agencies: agencies.agencies,
         users: users.users,
         coupons: coupons.coupons,
+        audit: audit.actions,
       });
     } catch (cause) {
       if (!handlePlatformError(cause))
@@ -878,6 +890,61 @@ export default function PlatformAdmin() {
                 )}
               </ul>
             </section>
+          </section>
+
+          <section className="platform-admin-section platform-admin-audit">
+            <div className="platform-admin-section-heading">
+              <div>
+                <p className="eyebrow">AUDITORÍA</p>
+                <h2>Actividad de administración global</h2>
+              </div>
+              <small>
+                {formatPlatformMetric(state.audit.length)} acciones recientes
+              </small>
+            </div>
+            <div className="platform-admin-table-wrap">
+              <table className="platform-admin-ledger">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Actor</th>
+                    <th>Acción</th>
+                    <th>Destino</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {state.audit.length ? (
+                    state.audit.map((entry) => (
+                      <tr key={entry.id}>
+                        <td>{platformDate(entry.created_at)}</td>
+                        <td>{entry.actor_email || "Sistema"}</td>
+                        <td>{entry.action}</td>
+                        <td>
+                          {entry.target_type}
+                          {entry.target_id
+                            ? ` #${formatPlatformMetric(entry.target_id)}`
+                            : ""}
+                          {entry.metadata &&
+                          typeof entry.metadata === "object" &&
+                          !Array.isArray(entry.metadata) &&
+                          Object.keys(entry.metadata as object).length ? (
+                            <small>
+                              {JSON.stringify(entry.metadata).slice(0, 160)}
+                            </small>
+                          ) : null}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="platform-admin-empty">
+                        Sin acciones registradas.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
         </>
       ) : null}
