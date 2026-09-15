@@ -88,7 +88,7 @@ afterEach(()=>{renderer?.unmount();renderer=null;});
 test('Settings owns permanent deletion and the legacy recoverable closure action is neutralized',()=>{
  const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
  const security=readFileSync(new URL('../app/account-security.tsx',import.meta.url),'utf8');
- assert.match(workspace,/active==='Configuración'.*<DeletionDangerZone/);
+ assert.match(workspace,/active==='Configuración'[\s\S]*?<DeletionDangerZone/);
  assert.match(workspace,/onAccountDeleted=\{deletionSignedOut\} onOrganizationDeleted=\{deletionSignedOut\}/);
  assert.doesNotMatch(workspace,/deletedOrganizationId|function organizationDeleted/);
  assert.doesNotMatch(security,/\/api\/auth\/account\/closure|requestClosure|CERRAR MI CUENTA/);

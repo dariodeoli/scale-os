@@ -5,7 +5,7 @@ import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {readFileSync} from 'node:fs';
 Object.assign(globalThis,{React});
 // tsx cannot transform stylesheets with modern syntax: resolve them as empty modules.
-const Module=require('module') as typeof import('module'),loadCss=Module._load;
+const Module=require('module') as {_load:(request:string,...rest:unknown[])=>unknown},loadCss=Module._load;
 Module._load=function(request:string,...rest:unknown[]){if(/\.css$/.test(request))return {};return loadCss.call(this,request,...rest);};
 for(const [module,exports] of [
  ['../app/dialog',{Dialog:({children}:{children:React.ReactNode})=><section>{children}</section>}],

@@ -307,9 +307,19 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       ...init.headers,
     },
   });
-  const data = (await response.json().catch(() => ({}))) as T & {
-    error?: string;
-  };
+  let data: T & { error?: string };
+  try {
+    data = (await response.json()) as T & { error?: string };
+  } catch (parseError) {
+    // If response is not JSON, try to get text for error message
+    const text = await response.text().catch(() => "");
+    const errorMsg = text.slice(0, 100) || "Respuesta inválida del servidor";
+    if (!response.ok) {
+      throw new Error(`${errorMsg} (HTTP ${response.status})`);
+    }
+    // If status was ok but JSON parsing failed, return empty object
+    data = {} as T & { error?: string };
+  }
   if (!response.ok)
     throw new Error(data.error || "No se pudo completar la acción.");
   let payload:unknown;
