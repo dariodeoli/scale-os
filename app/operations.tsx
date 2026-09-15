@@ -8,7 +8,7 @@ import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Banknote, Building2, Check, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2, X , CircleDollarSign } from "lucide-react";
+import { Banknote, Building2, Check, MessageSquare, Pencil, Plus, RotateCcw, Star, X , CircleDollarSign } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
 import {ProfilePhoto} from './profile-photo';
 import {DriveLinkNote} from './drive-link';
@@ -184,8 +184,6 @@ type Person = {
   notes: string | null;
   user_id: string | null;
   access_email: string | null;
-  monthly_salary_amount: string | null;
-  monthly_salary_currency: 'PYG' | 'USD' | null;
 };
 type Commission = {
   id: string;
@@ -247,22 +245,9 @@ const states: Record<string, string> = {
   paid: "Pagada",
   cancelled: "Cancelada",
 };
-type SalaryOverride={amount:string;note:string|null};
 function salaryMonth(now=new Date()) {
  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(now);
  return `${parts.find(part=>part.type==='year')!.value}-${parts.find(part=>part.type==='month')!.value}`;
-}
-function SalaryOverrideEditor({person}:{person:Person}) {
- const ids={month:useId(),amount:useId(),note:useId()};
- const [month,setMonth]=useState(()=>salaryMonth()),[amount,setAmount]=useState(''),[note,setNote]=useState(''),[existing,setExisting]=useState<SalaryOverride|null>(null),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[status,setStatus]=useState('');
- useEffect(()=>{let active=true;setLoading(true);setError('');void api<{override:SalaryOverride|null}>(`/api/agency/collaborators/${person.id}/salary-overrides?month=${encodeURIComponent(month)}`).then(result=>{if(!active)return;setExisting(result.override);setAmount(result.override?.amount||'');setNote(result.override?.note||'');}).catch(error=>active&&setError(message(error))).finally(()=>active&&setLoading(false));return()=>{active=false;};},[person.id,month]);
- async function save(event:React.FormEvent){event.preventDefault();setError('');setStatus('');if(!/^\d+$/.test(amount)){setError('Ingresá un ajuste entero igual o mayor a cero.');return;}setSaving(true);try{const result=await api<{override:SalaryOverride}>(`/api/agency/collaborators/${person.id}/salary-overrides`,{month,amount,note},'PATCH');setExisting(result.override);setAmount(result.override.amount);setNote(result.override.note||'');setStatus('Ajuste mensual guardado.');}catch(error){setError(message(error));}finally{setSaving(false);}}
- async function remove(){setError('');setStatus('');setSaving(true);try{await api(`/api/agency/collaborators/${person.id}/salary-overrides?month=${encodeURIComponent(month)}`,{},'DELETE');setExisting(null);setAmount('');setNote('');setStatus('Ajuste mensual eliminado.');}catch(error){setError(message(error));}finally{setSaving(false);}}
-  return <section className="ops-profile-section salary-override" aria-labelledby={`${ids.month}-title`}><h3 id={`${ids.month}-title`}>Ajuste mensual de salario</h3><p className="form-note">Reemplaza el salario mensual recurrente solo para el mes elegido. No registra un pago.</p><form className="form-stack ops-form-grid" noValidate aria-busy={loading||saving} onSubmit={save}>
-  <label htmlFor={ids.month}>Mes<input id={ids.month} type="month" value={month} min="1900-01" max="9998-12" disabled={saving} onChange={event=>/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)&&setMonth(event.target.value)}/></label>
-  {loading?<p role="status" className="ops-wide">Cargando ajuste mensual…</p>:<><label htmlFor={ids.amount}>Ajuste mensual ({person.monthly_salary_currency||'PYG'})<AmountInput id={ids.amount} value={amount} currency={person.monthly_salary_currency||'PYG'} disabled={saving} invalid={Boolean(error)||undefined} describedBy={error?`${ids.amount}-error`:undefined} onChange={setAmount}/></label><label htmlFor={ids.note} className="ops-wide">Nota del ajuste <span className="field-optional">· Opcional</span><textarea id={ids.note} value={note} maxLength={1000} disabled={saving} onChange={event=>setNote(event.target.value)}/></label><div className="inline-actions ops-wide"><button className="secondary" type="submit" disabled={saving}>{saving?'Guardando…':'Guardar ajuste'}</button>{existing&&<button className="text-button danger" type="button" disabled={saving} onClick={remove}><Trash2 size={14}/>Eliminar ajuste</button>}</div></>}
-  {error&&<p id={`${ids.amount}-error`} className="error ops-wide" role="alert">{error}</p>}{status&&<p role="status" className="ops-wide">{status}</p>}
- </form></section>;
 }
 export function OperationsWorkspace({
   mode,
@@ -327,9 +312,9 @@ export function OperationsWorkspace({
     let defined = 0, missing = 0;
     for (const person of people) {
       if (!person.active) continue;
-      const amount = Number(person.monthly_salary_amount);
-      if (person.monthly_salary_amount && person.monthly_salary_currency && Number.isFinite(amount) && amount > 0) {
-        totals.set(person.monthly_salary_currency, (totals.get(person.monthly_salary_currency) || 0) + amount);
+      const amount = Number(person.compensation_amount);
+      if (person.compensation_type === "fixed" && Number.isFinite(amount) && amount > 0) {
+        totals.set(person.currency, (totals.get(person.currency) || 0) + amount);
         defined += 1;
       } else {
         missing += 1;
@@ -442,8 +427,6 @@ export function OperationsWorkspace({
       optional: true,
       section: 'Remuneración y pagos',
     },
-    { key: "monthly_salary_amount", label: "Salario mensual recurrente", type: "money", optional: true, integer: true, currencyKey: 'monthly_salary_currency', section: 'Planificación salarial', help: 'Opcional. Solo PYG o USD; no reutiliza importes variables, por hora ni por proyecto.' },
-    { key: "monthly_salary_currency", label: "Moneda del salario mensual", choices: [{value:'PYG',label:'PYG'},{value:'USD',label:'USD'}], section: 'Planificación salarial' },
     { key: "notes", label: "Condiciones y notas", type: "textarea", optional: true },
   ];
   const directory=teamDirectory(people,members,archivedProfiles);
@@ -454,8 +437,6 @@ export function OperationsWorkspace({
     email: person?.email || seedEmail,
     compensation_type: person?.compensation_type || "fixed",
     compensation_amount: person?.compensation_amount || "0",
-    monthly_salary_amount: person?.monthly_salary_amount || "",
-    monthly_salary_currency: person?.monthly_salary_currency || "PYG",
     currency: person?.currency || defaultCurrency,
     invoices_company: String(person?.invoices_company || false),
     started_on: person?.started_on?.slice(0, 10) || "",
@@ -504,12 +485,12 @@ export function OperationsWorkspace({
           <article className="kpi-card tone-brand">
             <p className="eyebrow">SALARIOS MENSUALES</p>
             {salaryTotals.totals.size?<div className="kpi-amounts">{Array.from(salaryTotals.totals).map(([currency,total])=><span key={currency}>{money(total,currency)}</span>)}</div>:<strong>Sin salarios definidos</strong>}
-            <small>Suma de perfiles activos con salario mensual cargado</small>
+            <small>Suma de perfiles activos con salario fijo mensual</small>
           </article>
           <article className="kpi-card tone-green">
             <p className="eyebrow">PERFILES DE SALARIO</p>
             <strong>{salaryTotals.defined} definidos</strong>
-            <small>{salaryTotals.missing} activos sin salario mensual</small>
+            <small>{salaryTotals.missing} activos sin salario fijo mensual</small>
           </article>
           <article className="kpi-card tone-blue">
             <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
@@ -547,7 +528,7 @@ export function OperationsWorkspace({
                       <span className="avatar">{actorInitials(p.full_name)}</span>
                     )}
                     <div>
-                      <h3>{p.full_name}{!p.monthly_salary_amount&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
+                      <h3>{p.full_name}{!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
                       <small>{p.job_title||(entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin cargo')}</small>
                     </div>
                   </div>
@@ -759,7 +740,6 @@ export function OperationsWorkspace({
               setNotice(result.access?.status==='invited' ? result.access.emailSent ? 'Colaborador guardado. Acceso habilitado e invitación enviada.' : 'Colaborador guardado y acceso habilitado. No se pudo enviar el correo; puede entrar con Google usando el correo registrado.' : result.access?.status==='linked' ? 'Perfil guardado y acceso vinculado.' : result.access?.status==='needs_admin' ? 'Perfil guardado. Administración debe habilitar el acceso.' : 'Perfil guardado.');
             }}
           />
-          {person&&<SalaryOverrideEditor key={person.id} person={person}/>}
         </Dialog>
       )}
       {permissionsOpen&&<PermissionsMatrix role={role} close={()=>setPermissionsOpen(false)}/>}
