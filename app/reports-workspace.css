@@ -24,3 +24,5 @@
 .live-visitors-trend::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--success)}
 .live-visitors-trend.down{color:var(--warning)}
 .live-visitors-trend.down::before{background:var(--warning)}
+
+html[data-theme="dark"] .reports-filters,html[data-theme="dark"] .client-reporting-fields{box-shadow:inset 0 1px rgb(255 255 255 / 6%)}

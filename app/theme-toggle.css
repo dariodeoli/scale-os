@@ -1,0 +1,6 @@
+.theme-toggle{width:36px;min-width:36px;min-height:36px;display:grid;place-items:center;padding:0;border:1px solid var(--line-strong);border-radius:10px;background:transparent;color:var(--text-muted);cursor:pointer;transition:background var(--ease),color var(--ease),border-color var(--ease)}
+.theme-toggle:hover{background:var(--surface-subtle);color:var(--text);border-color:var(--brand-600)}
+.theme-toggle svg{width:18px;height:18px}
+.login-page .login-card{position:relative}
+.login-theme-toggle{position:absolute;top:14px;right:14px;z-index:1;background:var(--surface-subtle);border-color:var(--line)}
+.login-theme-toggle:hover{background:var(--surface)}

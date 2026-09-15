@@ -6,3 +6,5 @@
 /* Presence stays compact, but every state retains a readable structural cue. */
 .project-presence{min-height:44px;border:1px solid var(--border-subtle,var(--line));background:var(--surface-sunken,var(--surface-subtle));box-shadow:inset 0 1px 0 rgb(255 255 255 / 60%)}.presence-dot{width:8px;height:8px;box-shadow:0 0 0 3px color-mix(in srgb,var(--success) 14%,transparent)}.presence-person{box-shadow:0 1px 3px rgb(37 28 41 / 12%)}.presence-person i{box-shadow:0 0 0 2px var(--surface-raised,var(--surface))}.workspace-presence{min-height:34px;border-color:var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}.card-presence{min-height:30px}
 @media(max-width:760px){.project-presence{padding:8px 10px}.workspace-presence{min-height:44px;padding-inline:8px}}
+
+html[data-theme="dark"] .project-presence{box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}

@@ -13,3 +13,6 @@
 .invite-page :focus-visible{outline:2px solid var(--brand-700);outline-offset:3px}
 @media (hover:hover) and (pointer:fine){.invite-page .login-button:hover{transform:translateY(-1px)}}
 @media (prefers-reduced-motion:reduce){.invite-page .login-button{transition:opacity 120ms ease-out}.invite-page .login-button:active:not(:disabled),.invite-page .login-button:hover{transform:none}}
+
+html[data-theme="dark"] .invite-link-status[data-state="ready"]{background:var(--success-soft);color:var(--success)}
+html[data-theme="dark"] .invite-link-status[data-state="expired"],html[data-theme="dark"] .invite-link-status[data-state="revoked"],html[data-theme="dark"] .invite-link-status[data-state="used"]{background:var(--warning-soft);color:var(--warning)}

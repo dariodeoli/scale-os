@@ -10,6 +10,7 @@ import {ControlCenter} from './control-center';
 import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
+import {ThemeToggle} from './theme-toggle';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar} from './desktop-sidebar';
 import {clientState} from './client-status';
@@ -1628,6 +1629,7 @@ export default function Home() {
     return (
       <div className="login-page">
         <div className="login-card">
+          <ThemeToggle className="login-theme-toggle"/>
           <div className="login-brand"><WorkspaceBrand/></div>
           <p className="eyebrow">PANEL INTERNO</p>
           <h1>Qué bueno verte de nuevo.</h1>
@@ -1698,7 +1700,7 @@ export default function Home() {
         </nav>
         <div className="sidebar-bottom">
           <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button>
-          <button className="logout-only" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/></button></div>
+          <button className="logout-only" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/></button><ThemeToggle/></div>
         </div>
       </>;
   return (

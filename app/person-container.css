@@ -8,3 +8,5 @@
 .person-container-name{font-weight:600;color:var(--text,#251c29);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .person-container-secondary{font-size:11px;color:var(--text-muted,#746c78);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .person-container-lg .person-container-name{font-size:15px}
+
+html[data-theme="dark"] .person-container-avatar{background:#8329c9;color:#fff7fc}

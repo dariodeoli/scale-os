@@ -17,3 +17,5 @@
 .deletion-danger-zone :is(button,input):focus-visible{outline:3px solid var(--focus-ring,var(--brand-600));outline-offset:2px}
 @media(max-width:760px){.deletion-flow-grid{grid-template-columns:1fr}.deletion-inline-field{grid-template-columns:1fr}.deletion-inline-field button,.deletion-review,.deletion-google,.deletion-email-request,.deletion-execute{width:100%;justify-self:stretch}}
 @media(prefers-reduced-motion:reduce){.deletion-danger-zone *{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+html[data-theme="dark"] .deletion-execute{color:var(--anthracite)}

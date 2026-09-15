@@ -8,3 +8,7 @@
 .team-access :focus-visible{outline:2px solid var(--brand-700);outline-offset:2px}.team-access button{transition:transform 160ms ease-out,opacity 160ms ease-out}.team-access button:active:not(:disabled){transform:scale(.98)}
 @media(max-width:540px){.team-access-dialog .ops-form-grid{grid-template-columns:1fr}.team-access-actions,.team-access-actions .member-actions{width:100%}.team-access-actions button{flex:1 1 160px}}
 @media(prefers-reduced-motion:reduce){.team-access button{transition:opacity 120ms ease-out}.team-access button:active:not(:disabled){transform:none}}
+
+html[data-theme="dark"] .team-access-status.is-active{background:var(--success-soft);color:var(--success)}
+html[data-theme="dark"] .team-access-status.is-suspended{background:var(--danger-soft);color:var(--danger)}
+html[data-theme="dark"] .team-access-status.is-removed{background:var(--warning-soft);color:var(--warning)}

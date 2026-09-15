@@ -932,3 +932,14 @@
     transform: none;
   }
 }
+
+html[data-theme="dark"] .platform-admin-page{--platform-plum-100:#3a2436;--platform-ink:#f5eff7;--platform-muted:#a99eae;--platform-line:#332a3a;--platform-surface:#1f1923;--platform-surface-muted:#241d29}
+html[data-theme="dark"] .platform-admin-stat-card{box-shadow:0 5px 15px rgb(0 0 0 / 30%)}
+html[data-theme="dark"] .platform-admin-stat-icon{background:var(--violet-soft);color:var(--brand-700)}
+html[data-theme="dark"] .platform-admin-stat-card:nth-child(2) .platform-admin-stat-icon{background:#1d3a34;color:#6fc9bb}
+html[data-theme="dark"] .platform-admin-stat-card:nth-child(3) .platform-admin-stat-icon{background:#3a2c1d;color:#e0a05e}
+html[data-theme="dark"] .platform-admin-stat-card:nth-child(4) .platform-admin-stat-icon{background:#1f2c3d;color:#8fadd4}
+html[data-theme="dark"] .platform-admin-section{box-shadow:0 6px 18px rgb(0 0 0 / 30%)}
+html[data-theme="dark"] .platform-admin-commercial{background:linear-gradient(150deg,var(--surface-subtle),var(--platform-surface) 48%)}
+html[data-theme="dark"] .platform-admin-coupon{border-color:#3a2c22;background:rgb(255 250 246 / 6%)}
+html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--surface-raised)}
