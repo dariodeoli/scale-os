@@ -41,7 +41,6 @@ const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 const WorkPlanner=dynamic(()=>import('./productivity-ui').then(m=>m.WorkPlanner));
 const WorkHistory=dynamic(()=>import('./work-history').then(m=>m.WorkHistory));
-const WeeklyReport=dynamic(()=>import('./weekly-report').then(m=>m.WeeklyReport));
 const InternalTasks=dynamic(()=>import('./work-history').then(m=>m.InternalTasks));
 import {dataFetch,setDataScope,clearDataCache} from './data-cache';
 import {prefetchSectionData} from './data-prefetch';
@@ -1656,9 +1655,6 @@ export default function Home() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-company">
-            <CompanySelector name={companyLabel}/>
-          </div>
           <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}>
             {user?.photo_url?<img src={user.photo_url} alt="" width={36} height={36}/>:<div className="avatar">{(user?.full_name||firstName)[0].toUpperCase()}</div>}
             <div>
@@ -1692,8 +1688,11 @@ export default function Home() {
               <MobileNavigation>{sidebarContent}</MobileNavigation>
             </div>
             <div className="topbar-workspace-context">
+              <div className="topbar-company">
+                <CompanySelector name={companyLabel}/>
+              </div>
               <div className="topbar-presence" role="group" aria-label="Personas activas en el espacio">
-                <WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>
+                <WorkspacePresence compact projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>
               </div>
             </div>
           </div>
@@ -1755,7 +1754,6 @@ export default function Home() {
         {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><button className="primary" onClick={()=>setActive('Resumen')}>Ir al resumen</button></section>}
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
         {active==='Historial de trabajo'&&<WorkHistory role={user?.role||'viewer'}/>}
-        {active==='Resumen semanal'&&user&&<WeeklyReport organizationId={String(user.organization_id)}/>}
         {active==='Actividad'&&user?.role==='owner'&&<UsagePanel/>}
         {active==='Invitaciones'&&(user?.demo_owner_user_id?<section className="panel"><h2>Invitaciones y solicitudes</h2><p>En tu empresa real podés generar enlaces de un uso o enlaces con aprobación. El Demo no crea accesos externos. Probá los permisos desde la barra superior.</p></section>:<InviteLinks role={user?.role||'viewer'}/>)}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}

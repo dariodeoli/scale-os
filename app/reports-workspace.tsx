@@ -90,8 +90,14 @@ function ReportsPanel(){
   }).catch(e=>{if(alive)setError(e instanceof Error?e.message:'No se pudo cargar el reporte.');});
   return()=>{alive=false;};
  },[month,months,retry,queryKey]);
- const data=result?.key===queryKey?result.data:null;
- const rows=data?.months.slice().sort((a,b)=>a.month.localeCompare(b.month))||[];
+  const data=result?.key===queryKey?result.data:null;
+  // Only months with at least one registered figure are shown. The table lists
+  // the newest month first, oldest at the bottom; the chart keeps chronological
+  // order (oldest on the left).
+  const hasMonthData=(row:ReportMonth)=>row.clients.active!==null||row.clients.added!==null||row.clients.lost!==null||row.clients.retentionPercent!==null||row.clients.averageTenureDays!==null||row.financial.some(item=>item.invoiced!==null||item.collected!==null||item.invoiceCount!==null||item.billedClients!==null)||row.clients.types.length>0||row.clients.plans.length>0;
+  const loadedMonths=(data?.months||[]).filter(hasMonthData);
+  const rows=loadedMonths.slice().sort((a,b)=>b.month.localeCompare(a.month));
+  const chartMonths=loadedMonths.slice().sort((a,b)=>a.month.localeCompare(b.month));
  const currencies=Array.from(new Set(rows.flatMap(row=>row.financial.map(item=>item.currency)))).sort();
  const selectedCurrency=currencies.includes(currency)?currency:currencies[0]||'';
  const selected=rows.find(row=>row.month===month),prior=rows.find(row=>row.month===previousMonth(month));
@@ -128,7 +134,7 @@ function ReportsPanel(){
    {partial?<p role="status" className="reports-warning">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</p>:null}
    {!selected?<p>Sin datos para el mes seleccionado.</p>:<>
     <div className="reports-tiles">{tiles.map(tile=><article key={tile.label}><h3>{tile.label}</h3><strong>{tile.value}</strong><p>{tile.change}</p></article>)}</div>
-    <ReportsChart months={rows} currency={selectedCurrency}/>
+     <ReportsChart months={chartMonths} currency={selectedCurrency}/>
     <p className="reports-note">Barras: facturado (violeta) y cobrado (verde) por mes, en la moneda seleccionada. Los meses parciales se atenúan; la escala es relativa al valor máximo cargado, sin mezclar monedas.</p>
     <p>Antigüedad promedio de clientes activos: <strong>{count(selected.clients.averageTenureDays)}{selected.clients.averageTenureDays===null?'':' días'}</strong>. Fechas conocidas: {selected.clients.tenureKnown} de {count(selected.clients.active)} clientes activos. Las fechas desconocidas se excluyen del promedio.</p>
     <p className="reports-note">Bajas de actividad: clientes que dejaron de estar activos por pausa, cancelación o archivo, incluso si se reactivaron durante el mismo mes. No implica una pérdida definitiva.</p>

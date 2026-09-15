@@ -155,7 +155,7 @@
 :is(.control-shell,.unified-dialog,.photo-dialog) :focus-visible{outline:3px solid var(--focus-halo);outline-offset:2px}
 
 /* Dense tables preserve headers, scan lines and keyboard-visible row context. */
-:is(.control-shell,.unified-dialog) :is(.reports-table-scroll,.weekly-report-table,.growth-table,.plan-comparison-wrap){border-color:var(--border-subtle);border-radius:var(--radius-sm)}
+:is(.control-shell,.unified-dialog) :is(.reports-table-scroll,.growth-table,.plan-comparison-wrap){border-color:var(--border-subtle);border-radius:var(--radius-sm)}
 :is(.control-shell,.unified-dialog) table :is(th,td){border-color:var(--border-subtle)}
 :is(.control-shell,.unified-dialog) table th{background:var(--surface-sunken);color:var(--text-subtle);font-size:11px;font-weight:700;letter-spacing:.055em;text-transform:uppercase}
 :is(.control-shell,.unified-dialog) table tbody tr:hover>td{background:color-mix(in srgb,var(--violet-soft) 42%,var(--surface-raised))}
