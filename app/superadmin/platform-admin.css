@@ -954,3 +954,13 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 .platform-admin-status-note{position:fixed;z-index:120;right:24px;bottom:24px;max-width:min(420px,calc(100vw - 48px));padding:13px 16px;border-radius:var(--radius-sm);background:var(--success-soft);color:var(--success);box-shadow:var(--shadow-md);font-size:13px}
 .platform-admin-status-note.error{background:var(--danger-soft);color:var(--danger)}
 @media(max-width:760px){.platform-admin-user-actions{max-width:100%;justify-content:flex-start}.platform-admin-list li{flex-wrap:wrap}}
+
+/* Shared Dialog mounts here without dialog.css on this route: restore overlay */
+.ops-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:color-mix(in srgb,var(--canvas,#1c1b22) 62%,transparent);backdrop-filter:blur(8px);overflow:auto}
+.ops-overlay .ops-dialog.unified-dialog{display:flex;flex-direction:column;width:min(520px,100%);max-width:100%;max-height:calc(100dvh - 40px);overflow:hidden;border:1px solid var(--line-strong,var(--line));border-radius:var(--radius-lg,18px);background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-overlay,var(--shadow-md));color:var(--text)}
+.ops-overlay .dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--line-strong,var(--line))}
+.ops-overlay .dialog-heading h2{margin:0;font-size:1.05rem;color:var(--text)}
+.ops-overlay .dialog-body{padding:20px;overflow:auto}
+.ops-overlay .icon-button{min-width:40px;min-height:40px;border-radius:50%}
+.ops-overlay .inline-actions{display:flex;justify-content:flex-end;margin-top:16px}
+@media(max-width:540px){.ops-overlay{padding:0;align-items:end}.ops-overlay .ops-dialog.unified-dialog{max-height:88dvh;border-radius:20px 20px 0 0}}

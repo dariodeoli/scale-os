@@ -448,6 +448,7 @@ export function OperationsWorkspace({
   const dialogMember = person
     ? directory.find(entry=>entry.profile?.id===person.id)?.member || null
     : members.find(member=>member.email===seedEmail) || null;
+  const accessEditsCargo=Boolean(dialogMember)&&dialogMember!.email!==currentEmail&&!(dialogMember!.role==='owner'&&role!=='owner');
   return (
     <div className="ops-stack">
       <section className="panel">
@@ -719,11 +720,11 @@ export function OperationsWorkspace({
           {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section" aria-label="Acceso al panel">
             <h3>Acceso al panel</h3>
             <p className="form-note"><span className={`team-access-status ${dialogMember.active?'is-active':'is-suspended'}`}>{dialogMember.active?'Acceso habilitado':'Acceso suspendido'}</span></p>
-            <MemberAccessEditor member={dialogMember} currentEmail={currentEmail} role={role} refresh={load}/>
+            <MemberAccessEditor member={dialogMember} person={person} currentEmail={currentEmail} role={role} refresh={load}/>
           </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>:null}
           <Editor
             columns
-            fields={personFields}
+            fields={personFields.filter(field=>!accessEditsCargo||field.key!=='job_title')}
             defaults={personDefaults}
             save={async (v) => {
               const result = await api<{access?:{status:string;emailSent?:boolean}}>(

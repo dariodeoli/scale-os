@@ -41,3 +41,19 @@
 .planned-expenses-form label{display:grid;gap:.35rem;min-width:0;font-size:.8rem}.planned-expenses-form input,.planned-expenses-form select{box-sizing:border-box;width:100%;max-width:none}
 .planned-expenses-form button{min-height:2.75rem}.planned-expenses-note{grid-column:span 2}.planned-expenses-list{display:grid;gap:.5rem;padding:0;margin:1rem 0 0;list-style:none}.planned-expenses-list li{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:.75rem}.planned-expenses-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
 @media(max-width:540px){.planned-expenses-note{grid-column:auto}.planned-expenses-form button{width:100%}}
+.forecast-balance{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
+.forecast-balance h3{margin:0}
+.forecast-balance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin-top:1rem}
+.forecast-balance-card{display:grid;gap:10px;min-width:0;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:linear-gradient(180deg,var(--surface-raised,var(--surface)),var(--surface-subtle,#fbfafc));box-shadow:var(--shadow-xs)}
+.forecast-balance-currency{font-size:.75rem;font-weight:700;letter-spacing:.055em;text-transform:uppercase;color:var(--text-subtle)}
+.forecast-balance-row{display:grid;grid-template-columns:5.5rem minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.8rem}
+.forecast-balance-label{color:var(--text-subtle);font-weight:600}
+.forecast-balance-track{min-width:0;height:14px;border-radius:999px;background:var(--surface-sunken,var(--surface-subtle));overflow:hidden;position:relative}
+.forecast-balance-fill{display:block;height:100%;border-radius:999px;transition:width .35s ease}
+.forecast-balance-fill.income{background:linear-gradient(90deg,var(--green,#1f9d61),color-mix(in srgb,var(--green,#1f9d61) 55%,#ffffff))}
+.forecast-balance-fill.expense{background:linear-gradient(90deg,var(--danger,#c0392b),color-mix(in srgb,var(--danger,#c0392b) 55%,#ffffff))}
+.forecast-balance-fill.positive{background:linear-gradient(90deg,var(--brand-600,#7c3aed),var(--brand-500,#a855f7))}
+.forecast-balance-fill.negative{background:linear-gradient(90deg,var(--danger,#c0392b),color-mix(in srgb,var(--danger,#c0392b) 70%,#000000))}
+.forecast-balance-row strong{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text-strong)}
+.forecast-balance-row strong[data-negative]{color:var(--danger)}
+@media(max-width:540px){.forecast-balance-row{grid-template-columns:1fr auto}.forecast-balance-track{grid-column:1/-1;order:3}}

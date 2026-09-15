@@ -37,7 +37,7 @@ export function PlatformAccessPanel({currentUserId,platformRole}:{currentUserId:
  return <section className="panel platform-access" aria-busy={busy}>
   <div className="panel-heading"><div><p className="eyebrow">SCALE OS</p><h2>Administración global</h2></div><a className="text-button" href="https://admin.scaleparaguay.com/" target="_blank" rel="noreferrer">Panel completo<ArrowUpRight size={14}/></a></div>
   <p className="form-note">{writable?'Gestioná quién administra Scale OS, quién solo puede ver y qué cuentas y agencias se eliminan. Cada cambio queda auditado.':'Solo lectura: podés consultar la administración global, no modificarla.'}</p>
-  {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
+  {error&&<p className="error" role="alert">{error}{busy?null:<button type="button" className="text-button" onClick={()=>void load()}>Reintentar</button>}</p>}{notice&&<p role="status">{notice}</p>}
   <div className="kpi-strip">
    <article className="kpi-card"><span><Users size={14}/>Usuarios</span><strong>{users?users.length:'—'}</strong></article>
    <article className="kpi-card"><span><ShieldCheck size={14}/>Admins globales</span><strong>{users?adminCount:'—'}</strong></article>
