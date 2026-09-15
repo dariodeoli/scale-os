@@ -179,6 +179,7 @@ type WorkOrder = {
   description: string | null;
   drive_url: string | null;
   due_date?: string | null;
+  due_time?: string | null;
 };
 type Budget = {
   id: string;
@@ -385,7 +386,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
         )}
         {order.description&&<span className="order-description">{order.description}</span>}
       </div>
-      <DueDate value={order.due_date} compact/>
+      <DueDate value={order.due_date} time={order.due_time} compact/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
       {!!order.checklist_total&&<small className="card-checklist" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</small>}
