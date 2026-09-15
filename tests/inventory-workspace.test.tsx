@@ -19,11 +19,11 @@ let items=equipment,reservations=[record];
 let categories=[{id:'1',name:'Memoria',active:true},{id:'2',name:'Audio',active:true}];
 let storageTemplates:StorageTemplate[]=[{id:'storage-a',name:'Estante A',active:true,item_count:1},{id:'storage-b',name:'Estante B',active:true,item_count:0},{id:'storage-old',name:'Depósito anterior',active:false,item_count:2}];
 const mockApi=async(path:string,body?:unknown,method='POST')=>{
- if(body!==undefined||method==='DELETE'){writes.push({path,body,method});if(delayWrites)await new Promise<void>(resolve=>pendingWrites.push(resolve));if(fail)throw new Error('Conflicto de reserva');if(path==='/api/agency/inventory-storage-templates')return {template:{id:'storage-new',name:(body as {name:string}).name,active:true,item_count:0}};return {reservation:record};}
+ if(body!==undefined||method==='DELETE'){writes.push({path,body,method});if(delayWrites)await new Promise<void>(resolve=>pendingWrites.push(resolve));if(fail)throw new Error('Conflicto de reserva');if(path==='/api/agency/inventory-locations')return {location:{id:'storage-new',name:(body as {name:string}).name,active:true,item_count:0}};return {reservation:record};}
  reads++;if(delay)await new Promise<void>(resolve=>pending.push(resolve));if(fail)throw new Error('Sin conexión');
  if(path.endsWith('/inventory-context'))return context;
  if(path.endsWith('/inventory-categories'))return {categories};
- if(path.endsWith('/inventory-storage-templates'))return {templates:storageTemplates};
+ if(path.endsWith('/inventory-locations'))return {locations:storageTemplates};
  if(path.endsWith('/inventory'))return {records:items};
  return {reservations};
 };
@@ -139,14 +139,14 @@ async function run(){
  act(()=>renderer.root.findByType(MockDialog).props.close());
  assert.match(tree(),/Ubicaciones de guardado/);assert.match(tree(),/Estante A/);assert(renderer.root.findAllByType('small').some(node=>text(node)==='1 equipo'));assert(button('Renombrar'));assert(button('Archivar'));
  const deleteButtons=renderer.root.findAllByType('button').filter(node=>text(node)==='Eliminar');assert.equal(deleteButtons[0].props.disabled,true,'referenced templates cannot be deleted');assert.equal(deleteButtons[1].props.disabled,false,'unreferenced templates stay deletable');
- act(()=>button('Renombrar').props.onClick());change('Nombre de la ubicación','Estante A principal');const availability=renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevas asignaciones'))!.findByType('input');act(()=>availability.props.onChange({target:{checked:false}}));await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-storage-templates/storage-a');assert.deepEqual(writes.at(-1)!.body,{name:'Estante A principal',active:false});act(()=>renderer.unmount());
+ act(()=>button('Renombrar').props.onClick());change('Nombre de la ubicación','Estante A principal');const availability=renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevas asignaciones'))!.findByType('input');act(()=>availability.props.onChange({target:{checked:false}}));await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-locations/storage-a');assert.deepEqual(writes.at(-1)!.body,{name:'Estante A principal',active:false});act(()=>renderer.unmount());
  let itemSaved=0;
- await act(async()=>{renderer=create(<InventoryItemForm item={null} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage createStorageTemplate={async name=>(await mockApi('/api/agency/inventory-storage-templates',{name},'POST') as {template:StorageTemplate}).template} done={()=>{itemSaved++;}}/>);});
+ await act(async()=>{renderer=create(<InventoryItemForm item={null} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage createStorageTemplate={async name=>(await mockApi('/api/agency/inventory-locations',{name},'POST') as {location:StorageTemplate}).location} done={()=>{itemSaved++;}}/>);});
  assert.deepEqual(field('Ubicación','select').findAllByType('option').map(option=>option.props.value),['','storage-a','storage-b'],'active templates plus custom fallback are selectable');
  assert.deepEqual(field('Categoría','select').findAllByType('option').map(option=>option.props.value),['1','2'],'archived categories are excluded from new inventory forms');
  change('Ubicación','storage-a','select');assert.doesNotMatch(tree(),/Ubicación personalizada/);change('Fila / posición','7');
  change('Crear lugar','Rack C');await act(async()=>{await button('Crear lugar').props.onClick();});assert.equal(field('Ubicación','select').props.value,'storage-new','new place is selected in context');assert.equal(field('Fila / posición').props.value,'7','storage row remains free text when a template changes');
- change('Ubicación','', 'select');assert(button('Crear lugar'));change('Ubicación personalizada','Depósito temporal');change('Fila / posición','libre');await submit();assert.equal(itemSaved,1);assert.equal(writes.at(-1)!.path,'/api/agency/inventory');assert.deepEqual(writes.at(-1)!.body.storage_template_id,null);assert.equal(writes.at(-1)!.body.storage_shelf,'Depósito temporal');assert.equal(writes.at(-1)!.body.storage_row,'libre');act(()=>renderer.unmount());assert.equal(intervals.size,0);
+ change('Ubicación','', 'select');assert(button('Crear lugar'));change('Ubicación personalizada','Depósito temporal');change('Fila / posición','libre');await submit();assert.equal(itemSaved,1);assert.equal(writes.at(-1)!.path,'/api/agency/inventory');assert.deepEqual(writes.at(-1)!.body.storage_location_id,null);assert.equal(writes.at(-1)!.body.storage_shelf,'Depósito temporal');assert.equal(writes.at(-1)!.body.storage_row,'libre');act(()=>renderer.unmount());assert.equal(intervals.size,0);
  // Consume the real shared SaveActions. Only dialog hooks/portal are mocked;
  // pending registration and cancellation wiring must follow each actual form.
  let closed=0;
