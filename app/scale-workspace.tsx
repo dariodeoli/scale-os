@@ -2212,7 +2212,7 @@ export default function Home() {
           </section>
         )}
         {active === "Informes" && <ReportsWorkspace key={user?.organization_id} role={user?.role||'viewer'}/>}
-        {active === "Finanzas" && (
+        {active === "Finanzas" && (<>
           <section className="finance-grid">
             <section className="panel">
               <div className="panel-heading">
@@ -2405,6 +2405,8 @@ export default function Home() {
             </section>
             <ReconciliationWorkspace accounts={accounts}/>
           </section>
+          {user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
+          </>
         )}
         <WorkspaceFooter/>
       </section>

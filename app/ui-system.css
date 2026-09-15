@@ -129,7 +129,7 @@
    The input accepts only numbers and, for non-PYG, decimal separators. */
 :is(.control-shell,.unified-dialog,.photo-dialog) .amount-field{position:relative;display:block;min-width:0;max-width:100%}
 :is(.control-shell,.unified-dialog,.photo-dialog) .amount-field .amount-currency{position:absolute;top:50%;left:12px;z-index:1;transform:translateY(-50%);font-size:12px;font-weight:650;color:var(--text-muted);font-variant-numeric:tabular-nums;pointer-events:none;user-select:none}
-:is(.control-shell,.unified-dialog,.photo-dialog) .amount-field input{padding-left:46px}
+:is(.control-shell,.unified-dialog,.photo-dialog) .amount-field input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]){padding-left:46px}
 
 /* Visual hierarchy shared by operational pages, cards and dialogs. */
 .control-shell .panel{
