@@ -54,6 +54,7 @@ type Person = {
   email: string;
   active_agencies: number;
   platform_admin: boolean;
+  platform_role?: "admin" | "viewer" | null;
 };
 type Coupon = {
   id: number;
@@ -770,7 +771,7 @@ export default function PlatformAdmin() {
                         </small>
                       </span>
                       {person.platform_admin ? (
-                        <StatusBadge tone="success">Admin global</StatusBadge>
+                        <StatusBadge tone="success">{person.platform_role === "viewer" ? "Solo lectura" : "Admin global"}</StatusBadge>
                       ) : (
                         <StatusBadge>Acceso de agencia</StatusBadge>
                       )}

@@ -68,6 +68,7 @@ import {filterProductionOrders} from './production-filter';
 import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type StartupPreference} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
+import {PlatformAccessPanel} from './platform-access-panel';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 import './settings-slice.css';
@@ -1241,7 +1242,7 @@ export default function Home() {
     if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true);
   },[signedIn,user?.id,user?.organization_id]);
   const activeParent=parentSection(active);
-  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
+  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer')||child==='Admin'&&user?.platform_admin===true);
   const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
   useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);},[pathname]);
   useEffect(()=>{
@@ -1811,6 +1812,7 @@ export default function Home() {
           {preferenceWarning&&<p role="status" className="settings-notice">{preferenceWarning}</p>}
         </section>}
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
+        {active==='Admin'&&user?.platform_admin&&<PlatformAccessPanel key={String(user.id)} currentUserId={String(user.id)} platformRole={user.platform_role||null}/>}
         {active === "Resumen" && (
           <>
             <WorkspaceGuide {...guideProps} variant="card"/>

@@ -1,0 +1,13 @@
+.platform-access-list{display:grid;gap:2px}
+.platform-access-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 2px;border-bottom:1px solid var(--line)}
+.platform-access-row:last-child{border-bottom:0}
+.platform-access-person{min-width:0;flex:1}
+.platform-access-person b,.platform-access-person small{display:block}
+.platform-access-person b{overflow:hidden;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.platform-access-person small{margin-top:2px;color:var(--text-muted);font-size:11px;overflow-wrap:anywhere}
+.platform-access-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px}
+.platform-access-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:1px solid var(--line);border-radius:99px;background:var(--surface-subtle);color:var(--text-muted);font-size:11px;font-weight:600;white-space:nowrap}
+.platform-access-badge.admin{color:var(--success);border-color:var(--success-soft)}
+.platform-access-badge.viewer{color:var(--info);border-color:var(--info-soft)}
+.platform-access-confirm input{display:block;margin-top:6px}
+@media(max-width:640px){.platform-access-row{flex-direction:column;align-items:stretch;gap:8px}.platform-access-actions{justify-content:flex-start}}

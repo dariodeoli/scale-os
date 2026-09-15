@@ -53,9 +53,10 @@ test('illustration and module copy make no fabricated adoption or live-data clai
  assert(text.includes('Registro y control; no mueve dinero por vos'));
  assert(!/miles de agencias|empresas confían|ahorrá \d+ horas|garantizado|soporte 24/i.test(text));
  const metadata=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
- assert.equal(metadata.name,'Scale OS');
- assert.equal(metadata.aggregateRating,undefined);
- assert.equal(metadata.review,undefined);
+ const software=Array.isArray(metadata['@graph'])?metadata['@graph'].find(node=>node['@type']==='SoftwareApplication'):metadata;
+ assert.equal(software.name,'Scale OS');
+ assert.equal(software.aggregateRating,undefined);
+ assert.equal(software.review,undefined);
 });
 
 test('published reports and rolling demo are discoverable without promising nonexistent history',()=>{
