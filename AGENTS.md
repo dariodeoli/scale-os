@@ -7,7 +7,6 @@
 
 ## Verificación mínima antes de entregar
 - `npm run test:release-regression` y `npx next build` (el release los corre igual).
-- Tests rotos conocidos pre-existentes, fuera de la cadena de release: `tests/control-center.test.ts` (hex colors en control-center.css) y `tests/plan-comparison.test.tsx` (botón "Eliminar").
 
 ## Diseño
 - No duplicar identidad ni datos en el shell: empresa en el TopBar, usuario autenticado al pie del Sidebar, versión solo en el footer.
