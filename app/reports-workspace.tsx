@@ -56,12 +56,12 @@ function LiveVisitorsWidget(){
  useEffect(()=>{
   let alive=true,timer:ReturnType<typeof setInterval>|null=null;
   const fetch_live=async()=>{
-   try{const resp=await fetch('/core-api/api/public/live-visitors/count',{method:'GET',credentials:'omit',cache:'no-store',headers:{'Accept':'application/json'}});if(resp.ok&&alive){const data=await resp.json();if(typeof data?.active_sessions==='number'){const prev=visitors;setVisitors(data.active_sessions);if(prev!==null&&prev!==data.active_sessions){setPrior(prev);setTrend(data.active_sessions>prev?'up':'down');}else if(prior===null)setPrior(data.active_sessions);}}}catch{}
+   try{const resp=await fetch('/core-api/api/public/live-visitors/count',{method:'GET',credentials:'omit',cache:'no-store',headers:{'Accept':'application/json'}});if(resp.ok&&alive){const data=await resp.json();if(typeof data?.active_sessions==='number'){const value=data.active_sessions;setVisitors(current=>{if(current!==null&&current!==value){setPrior(current);setTrend(value>current?'up':'down');}return value;});setPrior(current=>current===null?value:current);}}}catch{}
   };
   void fetch_live();
   timer=setInterval(fetch_live,30000);
   return()=>{alive=false;if(timer)clearInterval(timer);};
- },[visitors,prior]);
+ },[]);
  const changePercent=prior&&visitors&&prior!==0?Math.round(((visitors-prior)/prior)*100):null;
  return <article className="reports-tiles live-visitors" role="region" aria-label="Visitantes en vivo del landing">
   <article>

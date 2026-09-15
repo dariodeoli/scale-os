@@ -53,7 +53,7 @@ export function CommentComposer({label='Comentario',save}:{label?:string;save:(b
    if(!suggestions.length)return;
    if(event.key==='ArrowDown'){event.preventDefault();setActive(value=>(value+1)%suggestions.length);}
    if(event.key==='ArrowUp'){event.preventDefault();setActive(value=>(value-1+suggestions.length)%suggestions.length);}
-   if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();choose(suggestions[active]);}
+   if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();const person=suggestions[active];if(!person)return;choose(person);}
    if(event.key==='Escape'){event.preventDefault();textarea.current?.setSelectionRange(body.length,body.length);}
   }}/></label>
    {suggestions.length>0&&<div className="mention-menu" role="listbox" aria-label="Personas para mencionar">{suggestions.map((person,index)=><button type="button" role="option" aria-selected={active===index} className={active===index?'active':''} key={person.id} onMouseDown={event=>{event.preventDefault();choose(person);}}><PersonContainer size="sm" name={displayName(person)} photoUrl={person.photo_url} secondary={person.email||undefined} verified/></button>)}</div>}

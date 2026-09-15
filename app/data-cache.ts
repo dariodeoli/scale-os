@@ -17,12 +17,12 @@ export async function dataFetch(url:string,init:RequestInit={}):Promise<Response
   (!init.credentials||init.credentials==='include')&&Array.from(new Headers(init.headers)).length===0&&
   !/\/members|\/team|\/settings|\/activity|\/notifications|\/inventory-context|\/inventory-reservations|\/custodians|\/productivity\/people/.test(url);
  if(method!=='GET')clearDataCache();
- if(!cacheable){const response=await fetch(url,init);subscriptionResponse(response);if(method!=='GET'||response.status===401||response.status===403)clearDataCache();return response;}
+ if(!cacheable){const response=await fetch(url,{...init,signal:init.signal??AbortSignal.timeout(15000)});subscriptionResponse(response);if(method!=='GET'||response.status===401||response.status===403)clearDataCache();return response;}
  const key=scope+':'+url,now=Date.now(),cached=entries.get(key);
  if(cached&&cached.expires>now)return cached.response.clone();
  const inflight=pending.get(key);if(inflight)return (await inflight).clone();
  const version=generation;
- const work=fetch(url,init).then(response=>{
+ const work=fetch(url,{...init,signal:init.signal??AbortSignal.timeout(15000)}).then(response=>{
   subscriptionResponse(response);
   if(response.status===401||response.status===403)clearDataCache();
   if(response.ok&&version===generation){if(entries.size>=80)entries.delete(entries.keys().next().value!);entries.set(key,{expires:Date.now()+15000,response:response.clone()});}

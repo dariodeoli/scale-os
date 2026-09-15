@@ -182,7 +182,7 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
   if(!auth||confirmationWait<=0)return;
   const timer=window.setInterval(()=>setConfirmationWait(seconds=>seconds>1?seconds-1:0),1000);
   return()=>window.clearInterval(timer);
- },[auth,confirmationWait]);
+ },[auth]);
 
  function clearRecentAuth(){setAuth(null);setPassword('');setEmailCode('');setEmailRequested(false);setConfirmation('');setConfirmationWait(0);}
  function authMethodLabel(method:RecentAuthProof['method']){return method==='google'?'Google':method==='email'?'código enviado a tu correo':'contraseña';}
