@@ -1245,14 +1245,14 @@ export default function Home() {
     fetch('/core-api/api/platform/overview',{credentials:'include'}).then(response=>{if(alive&&response.ok)setUser(current=>current?{...current,platform_admin:true}:current);}).catch(()=>{});
     return()=>{alive=false;};
   },[signedIn,user?.id,user?.platform_admin]);
-  const active=signedIn&&(!visibleModule(requestedSection,user?.role||'viewer')||requestedSection==='Admin'&&!user?.platform_admin)?'Sin acceso':requestedSection;
+  const active=signedIn&&(!visibleModule(requestedSection,user?.role||'viewer')||requestedSection==='Admin'&&user?.platform_role!=='admin')?'Sin acceso':requestedSection;
   useEffect(()=>{
     if(!signedIn||!user)return;
     const query=new URLSearchParams(window.location.search),billing=query.get('scaleBilling')||query.get('billing');
     if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true);
   },[signedIn,user?.id,user?.organization_id]);
   const activeParent=parentSection(active);
-  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer')||child==='Admin'&&user?.platform_admin===true);
+  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer')||child==='Admin'&&user?.platform_role==='admin');
   const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
   useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);},[pathname]);
   useEffect(()=>{
@@ -1830,7 +1830,7 @@ export default function Home() {
           {preferenceWarning&&<p role="status" className="settings-notice">{preferenceWarning}</p>}
         </section>}
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
-        {active==='Admin'&&user?.platform_admin&&<PlatformAccessPanel key={String(user.id)} currentUserId={String(user.id)} platformRole={user.platform_role||null}/>}
+        {active==='Admin'&&user?.platform_role==='admin'&&<PlatformAccessPanel key={String(user.id)} currentUserId={String(user.id)} platformRole={user.platform_role||null}/>}
         {active === "Resumen" && (
           <>
             <WorkspaceGuide {...guideProps} variant="card"/>
