@@ -9,10 +9,13 @@ import {
   CircleAlert,
   CircleCheck,
   KeyRound,
+  PauseCircle,
+  PlayCircle,
   RefreshCw,
   ShieldAlert,
   Ticket,
   Users,
+  X,
 } from "lucide-react";
 import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
@@ -659,6 +662,7 @@ export default function PlatformAdmin() {
               disabled={busy}
               onClick={() => setSubscriptionAgency(null)}
             >
+              <X size={14} />
               Cerrar
             </button>
           </div>
@@ -874,10 +878,15 @@ export default function PlatformAdmin() {
                         </StatusBadge>
                         <button
                           type="button"
-                          className="text-button"
+                          className={"text-button " + (item.active ? "warn" : "positive")}
                           disabled={busy}
                           onClick={() => void toggleCoupon(item)}
                         >
+                          {item.active ? (
+                            <PauseCircle size={14} />
+                          ) : (
+                            <PlayCircle size={14} />
+                          )}
                           {item.active ? "Pausar" : "Reactivar"}
                         </button>
                       </span>

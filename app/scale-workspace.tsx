@@ -7,6 +7,7 @@ import {usePathname,useRouter} from 'next/navigation';
 import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
 import Link from 'next/link';
 import {ControlCenter} from './control-center';
+import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
 import {MobileNavigation} from './mobile-navigation';
@@ -19,6 +20,7 @@ import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 import {GoogleSignIn} from './google-sign-in';
 import {ActorIdentity} from './actor-identity';
+import {PersonContainer} from './person-container';
 import {DueDate} from './due-date';
 const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
 const GrowthDashboard=dynamic(()=>import('./growth-dashboard').then(m=>m.GrowthDashboard));
@@ -87,18 +89,23 @@ import { ViewToggle } from "./view-toggle";
 import {ClientDirectoryToolbar,filterClientDirectory} from "./client-directory-toolbar";
 import { z } from "zod";
 import {
+  ArrowLeftRight,
+  ArrowUpRight,
   BarChart3,
   BriefcaseBusiness,
   CalendarDays,
   ChevronDown,
+  Eye,
   FileText,
   FolderKanban,
   LayoutDashboard,
   Link as LinkIcon,
   LogOut,
   Plus,
+  RotateCcw,
   Search,
   Settings,
+  SlidersHorizontal,
   Trash2,
   Users,
   WalletCards,
@@ -382,7 +389,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
       {!!order.checklist_total&&<small className="card-checklist" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</small>}
-      <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}>Ver más</button>{canMove&&<RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>}</div>
+      <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}><Eye size={14}/>Ver más</button>{canMove&&<RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>}</div>
     </article>
   );
 }
@@ -588,6 +595,8 @@ const orderSchema = z.object({
   ]),
   driveUrl: driveLinkSchema,
   description: z.string().max(500).optional(),
+  work_type: z.enum(["", "video", "reedicion", "foto", "produccion", "entregable"]),
+  due_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida").or(z.literal("")),
 });
 type OrderValues = z.infer<typeof orderSchema>;
 function OrderForm({
@@ -606,6 +615,8 @@ function OrderForm({
       status: "to_record",
       driveUrl: "",
       description: "",
+      work_type: "",
+      due_time: "",
     },
   });
   const [error, setError] = useState("");
@@ -678,6 +689,23 @@ function OrderForm({
           ))}
         </div>
       </fieldset>
+      <label>
+        Tipo de trabajo
+        <select {...form.register("work_type")}>
+          <option value="">Sin clasificar</option>
+          <option value="video">Video</option>
+          <option value="reedicion">Reedición</option>
+          <option value="foto">Foto</option>
+          <option value="produccion">Producción</option>
+          <option value="entregable">Entregable</option>
+        </select>
+        <small>Se usa para los conteos automáticos del resumen semanal.</small>
+      </label>
+      <label>
+        Hora de entrega
+        <input type="time" {...form.register("due_time")} />
+        <small>Opcional, junto con la fecha de entrega.</small>
+      </label>
       <label>
         Enlace de archivo o carpeta de Drive
         <input
@@ -1123,7 +1151,7 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [modal, setModal] = useState<ModalKind>(null);
   const [myProfile,setMyProfile]=useState(false);
-  const [detail,setDetail]=useState<{kind:'client'|'order';id:string}|null>(null);
+  const [detail,setDetail]=useState<{kind:'client'|'order';id:string;anchor?:string}|null>(null);
   const [projectClient,setProjectClient]=useState('');
   const [clientMode,setClientMode]=useState(true);
   const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState(''),[clientSearch,setClientSearch]=useState('');
@@ -1240,6 +1268,7 @@ export default function Home() {
   const [allInvoicesLoaded, setAllInvoicesLoaded] = useState(false);
   const [moraFilter, setMoraFilter] = useState("");
   const [projectClientFilter, setProjectClientFilter] = useState("");
+  const [commercialSummary, setCommercialSummary] = useState<CommercialDashboard | null>(null);
   const [moraReports, setMoraReports] = useState<ReportsData | null>(null);
   const [moraReportsError, setMoraReportsError] = useState(false);
   const moraBuckets = useMemo(() => {
@@ -1322,6 +1351,15 @@ export default function Home() {
     }).length;
     return { active, paused, activeProjects, deliveries };
   }, [clients, projects, orders]);
+  const cobrosKpis = useMemo(() => {
+    let alDia = 0, porVencer = 0, enMora = 0;
+    for (const client of paymentStatuses) {
+      if (client.payment_status === "up_to_date") alDia += 1;
+      else if (client.payment_status === "due_soon") porVencer += 1;
+      else if (client.payment_status === "late" || client.payment_status === "severe") enMora += 1;
+    }
+    return { alDia, porVencer, enMora };
+  }, [paymentStatuses]);
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
     active_projects: 0,
@@ -1396,7 +1434,7 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
   useEffect(() => {
-    if (operationalAccess && active === "Mora") {
+    if (operationalAccess && (active === "Mora" || active === "Clientes")) {
       request<{ clients: ClientPaymentStatus[] }>("/api/agency/client-payment-status")
         .then((data) => setPaymentStatuses(data.clients))
         .catch((cause) =>
@@ -1406,12 +1444,20 @@ export default function Home() {
               : "No se pudo cargar la mora.",
           ),
         );
-      if (["owner", "admin", "finance"].includes(user?.role || "")) {
+      if (active === "Mora" && ["owner", "admin", "finance"].includes(user?.role || "")) {
         setMoraReportsError(false);
         request<ReportsData>(`/api/agency/reports?month=${localMonth()}&months=2`)
           .then((data) => setMoraReports(data))
           .catch(() => setMoraReportsError(true));
       }
+    }
+  }, [active, operationalAccess, user?.role]);
+  useEffect(() => {
+    if (operationalAccess && active === "Clientes" && ["owner", "admin", "management", "sales", "finance"].includes(user?.role || "")) {
+      setCommercialSummary(null);
+      request<unknown>("/api/agency/control-center")
+        .then((value) => setCommercialSummary(normalizeCommercialDashboard(value)))
+        .catch(() => setCommercialSummary(null));
     }
   }, [active, operationalAccess, user?.role]);
   useEffect(() => {
@@ -1645,13 +1691,7 @@ export default function Home() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}>
-            {user?.photo_url?<img src={user.photo_url} alt="" width={36} height={36}/>:<div className="avatar">{(user?.full_name||firstName)[0].toUpperCase()}</div>}
-            <div>
-              <b>{user?.full_name||firstName}</b>
-              <small>{assignableRoles.find(role=>role.id===user?.role)?.label||user?.role}</small>
-            </div>
-          </button>
+          <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button>
           <button className="logout-only" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/></button></div>
         </div>
       </>;
@@ -1668,7 +1708,7 @@ export default function Home() {
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
           <SelectCustom label="Fecha de entrega" value={preferences.production.week?'week':'all'} choices={[{value:'all',label:'Todas las fechas'},{value:'week',label:'Vencen esta semana (hora local)'}]} onChange={value=>updatePreferences({production:{...preferences.production,week:value==='week'}})}/>
           <p className="form-note">De lunes a domingo según el calendario local de tu dispositivo. Incluye todos los estados; las órdenes sin fecha quedan fuera del filtro semanal. Se combina con el cliente elegido y se guarda para vos en esta empresa y navegador.</p>
-          <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}>Restablecer filtros</button>
+          <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
@@ -1697,7 +1737,7 @@ export default function Home() {
                 ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
                 ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.effective_assignees||o.assignees||project?.assignees};}),
               ]}/>
-              <NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={id=>setDetail({kind:'order',id})}/>
+              <NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={(id,anchor)=>setDetail({kind:'order',id,...(anchor?{anchor}:{})})}/>
             </div>
           </div>
         </div>
@@ -1775,7 +1815,7 @@ export default function Home() {
                   <p className="eyebrow">PRODUCCIÓN</p>
                   <h2>Piezas por etapa</h2>
                 </div>
-                <button className="text-button" onClick={() => setActive("Producción")}>Abrir Producción →</button>
+                <button className="text-button" onClick={() => setActive("Producción")}>Abrir Producción<ArrowUpRight size={14}/></button>
               </div>
               <div className="stage-strip">
                 {statuses.map(status => (
@@ -1826,12 +1866,12 @@ export default function Home() {
                   onChange={setProductionClientId}
                   disabled={!preferencesReady}
                 />
-                <button type="button" className="text-button" disabled={!preferencesReady} onClick={()=>setProductionFiltersDialogScope(preferenceScope)}>Filtros{hasProductionFilters?` · ${Number(!!productionClientId)+Number(preferences.production.mine)+Number(preferences.production.week)}`:''}</button>
+                <button type="button" className="text-button" disabled={!preferencesReady} onClick={()=>setProductionFiltersDialogScope(preferenceScope)}><SlidersHorizontal size={14}/>Filtros{hasProductionFilters?` · ${Number(!!productionClientId)+Number(preferences.production.mine)+Number(preferences.production.week)}`:''}</button>
                 <p className="production-filter-summary" role="status" aria-live="polite">
                   {productionOrders.length} de {orders.length} órdenes
                 </p>
-                {hasProductionFilters && <button className="text-button" onClick={() => updatePreferences({production:defaultWorkspacePreferences().production})}>Restablecer filtros</button>}
-              </div>}<button className="text-button production-project-link" onClick={()=>setActive("Proyectos")}>Ver proyectos →</button></div>
+                {hasProductionFilters && <button className="text-button" onClick={() => updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>}
+              </div>}<button className="text-button production-project-link" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button></div>
             {productionView==='Tablero'&&hasProductionFilters&&<p className="form-note">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
             {productionView==='Tablero'&&preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
             {productionView!=="Tablero"&&<WorkPlanner key={productionView} initialView={productionView} orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>}
@@ -1978,15 +2018,31 @@ export default function Home() {
                 <strong>{directoryKpis.active}</strong>
                 <small>Con servicio en curso</small>
               </article>
-              <article className="kpi-card tone-warning">
-                <p className="eyebrow">EN PAUSA</p>
-                <strong>{directoryKpis.paused}</strong>
-                <small>Sin servicio activo</small>
-              </article>
               <article className="kpi-card tone-brand">
-                <p className="eyebrow">PROYECTOS ACTIVOS</p>
-                <strong>{directoryKpis.activeProjects}</strong>
-                <small>En toda la agencia</small>
+                <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
+                {["owner", "admin", "finance"].includes(user?.role || "") ? (
+                  commercialSummary === null ? (
+                    <strong>Calculando…</strong>
+                  ) : commercialSummary.expectedMonthlyBilling === undefined ? (
+                    <strong>No disponible</strong>
+                  ) : commercialSummary.expectedMonthlyBilling.length ? (
+                    <div className="kpi-amounts">
+                      {commercialSummary.expectedMonthlyBilling.map(item => (
+                        <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <strong>Sin contratos activos</strong>
+                  )
+                ) : (
+                  <strong>—</strong>
+                )}
+                <small>Expectativa comercial vigente por moneda</small>
+              </article>
+              <article className="kpi-card tone-warning">
+                <p className="eyebrow">COBROS AL DÍA</p>
+                <strong>{cobrosKpis.alDia}</strong>
+                <small>{cobrosKpis.enMora} en mora · {cobrosKpis.porVencer} por vencer</small>
               </article>
               <article className="kpi-card tone-blue">
                 <p className="eyebrow">ENTREGAS ESTA SEMANA</p>
@@ -1996,7 +2052,7 @@ export default function Home() {
             </div>
             <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
               {displayedClients.length ? (
-                displayedClients.map((client) => (
+                displayedClients.map((client) => {const pay=paymentStatuses.find(ps=>String(ps.client_id)===String(client.id));return (
                   <div className="client-row" key={client.id}>
                     <div>
                       <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/></button>
@@ -2004,9 +2060,18 @@ export default function Home() {
                     </div>
                     <span>{client.phone || "Sin teléfono"}</span>
                     <span className="client-status" data-status={clientState(client).value}>{clientState(client).label}</span>
+                    {pay && (
+                      pay.payment_status === "up_to_date" ? (
+                        <span className="mora-chip mora-clear">Al día</span>
+                      ) : pay.payment_status === "due_soon" ? (
+                        <span className="mora-chip mora-early">Vence {pay.next_due_on || "próximamente"}</span>
+                      ) : (
+                        <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
+                      )
+                    )}
                     <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
                   </div>
-                ))
+                );})
               ) : clients.length===0 ? (
                 <p className="empty-copy">
                   Todavía no hay clientes. Creá el primero para empezar.
@@ -2014,7 +2079,7 @@ export default function Home() {
               ) : (
                 <div className="empty-copy">
                   <p>{clientSearch.trim()?'No hay clientes que coincidan con tu búsqueda y filtros.':'No hay clientes con este estado.'}</p>
-                  <button className="text-button" type="button" onClick={()=>{setClientSearch('');setClientStatusFilter('');}}>Limpiar filtros</button>
+                  <button className="text-button" type="button" onClick={()=>{setClientSearch('');setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>
                 </div>
               )}
             </div>
@@ -2149,12 +2214,14 @@ export default function Home() {
                     className="text-button"
                     onClick={() => setModal("account")}
                   >
+                    <Plus size={14} />
                     + Cuenta
                   </button>
                   <button
                     className="text-button"
                     onClick={() => setModal("transfer")}
                   >
+                    <ArrowLeftRight size={14} />
                     Transferir
                   </button>
                 </div>
@@ -2243,6 +2310,7 @@ export default function Home() {
                     className="text-button"
                     onClick={() => setModal("invoice")}
                   >
+                    <Plus size={14} />
                     + Factura
                   </button>
                   <button
@@ -2330,7 +2398,7 @@ export default function Home() {
         <WorkspaceFooter/>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
-      {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
+      {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
         <Modal title="Nuevo cliente" onClose={close}>

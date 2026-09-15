@@ -4,6 +4,7 @@ import Cropper,{type Area} from 'react-easy-crop';
 import {Dialog,FormActions} from './dialog';
 import 'react-easy-crop/react-easy-crop.css';
 import './photo-cropper.css';
+import {Focus} from 'lucide-react';
 
 export async function cropImage(source:string,area:Area):Promise<string>{
  if(!source.startsWith('data:image/'))throw Error('Volvé a elegir el archivo original para ajustar el encuadre.');
@@ -24,7 +25,7 @@ export function PhotoCropper({source,name,close,save}:{source:string;name:string
   <div className="profile-crop-stage"><Cropper image={source} crop={crop} zoom={zoom} aspect={1} objectFit="cover" restrictPosition cropShape="round" showGrid={false} minZoom={1} maxZoom={3} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_,pixels)=>setArea(pixels)} disableAutomaticStylesInjection zoomWithScroll={false} cropperProps={{'aria-label':'Mover encuadre de la foto'}} mediaProps={{onError:()=>setError('No se pudo abrir la foto. Volvé a elegir el archivo.')}}/></div>
   {area&&Math.min(area.width,area.height)<256&&<p className="form-note" role="status">Este encuadre tiene pocos píxeles. Reducí el zoom o elegí la foto original para mayor nitidez.</p>}
   <label className="crop-zoom">Zoom <output>{Math.round(zoom*100)}%</output><input aria-label="Zoom del encuadre" type="range" min="1" max="3" step="0.01" value={zoom} onChange={e=>setZoom(Number(e.target.value))} disabled={busy}/></label>
-  <div className="quick-actions"><button type="button" className="text-button" disabled={busy} onClick={()=>{setCrop({x:0,y:0});setZoom(1);}}>Centrar de nuevo</button></div>
+  <div className="quick-actions"><button type="button" className="text-button" disabled={busy} onClick={()=>{setCrop({x:0,y:0});setZoom(1);}}><Focus size={14}/>Centrar de nuevo</button></div>
   {error&&<p className="error" role="alert">{error}</p>}
   <FormActions><button type="button" className="secondary" disabled={busy} onClick={close}>Cancelar</button><button type="button" className="primary" disabled={busy||!area} onClick={async()=>{if(!area)return;setBusy(true);setError('');try{await save(await cropImage(source,area));close();}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar.');}finally{setBusy(false);}}}>{busy?'Guardando…':'Guardar foto y encuadre'}</button></FormActions>
  </Dialog>;

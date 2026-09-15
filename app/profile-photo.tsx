@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import {centeredPhotoArea} from './photo-fit';
 import {validateImageLink} from './image-link';
 import './photo-cropper.css';
+import {Crop,Link2,Trash2} from 'lucide-react';
 const PhotoCropper=dynamic(()=>import('./photo-cropper').then(m=>m.PhotoCropper));
 
 const schema=z.object({photo:z.string().max(700000).refine(value=>{if(!value||value.startsWith('data:image/'))return true;try{const u=new URL(value);return value.length<=2048&&u.protocol==='https:'&&!u.username&&!u.password;}catch{return false;}},'Usá un enlace HTTPS directo a una imagen, sin credenciales.')});
@@ -70,16 +71,16 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file||!startSave())return;
         setError('');setNotice('');try{const isLogo=label==='Logo o foto del cliente';const source=await preparePhoto(file,isLogo);if(!mounted.current)return;const ready=isLogo?source:await preparePhoto(file,false,true);if(!mounted.current)return;setOriginalSource(source);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);if(!mounted.current)return;form.reset({photo:ready});setFailedPhoto('');setNotice(isLogo?'Logo guardado automáticamente.':'Foto centrada y guardada automáticamente. Podés ajustar el encuadre.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
       }}/></label>
-      {!compact&&<><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}>Mover y recortar</button>}</>}
+      {!compact&&<><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</button>}</>}
       </div></div>
-      {compact&&<details className="profile-photo-progressive"><summary>Más opciones de foto</summary><div><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}>Mover y recortar</button>}</div></details>}
+      {compact&&<details className="profile-photo-progressive"><summary>Más opciones de foto</summary><div><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</button>}</div></details>}
       {useLink&&<label>Enlace directo a la imagen<input type="url" value={preview.startsWith('data:')?'':preview} placeholder="https://…/foto.jpg" disabled={busy} onChange={e=>{form.setValue('photo',e.target.value,{shouldDirty:true,shouldValidate:true});setOriginalSource(null);}}/><small>Usá un enlace público de confianza. La imagen se carga desde ese sitio; puede dejar de funcionar si cambia. Para mover o recortar, subí el archivo original.</small></label>}
       {form.formState.errors.photo&&<p role="alert" className="error">{form.formState.errors.photo.message}</p>}
       {preview&&preview===failedPhoto&&<p role="alert" className="error">Esta imagen no se puede mostrar acá. Algunos enlaces de Instagram bloquean otros sitios o vencen. Subí el archivo o probá otro enlace público.</p>}
       {form.formState.isDirty&&<p className="form-note" role="status">Vista previa: todavía no guardaste el cambio.</p>}
       <p className="form-note">JPG, PNG o WebP · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
       {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
-      <div className="inline-actions">{form.formState.isDirty&&<button className="primary" disabled={busy}>{busy?'Procesando…':'Guardar foto'}</button>}<button type="button" className="text-button" disabled={busy||!preview} onClick={()=>{form.setValue('photo','',{shouldDirty:true});setOriginalSource(null);setNotice('Guardá para quitar la foto del perfil.');}}>Quitar foto</button></div>
+      <div className="inline-actions">{form.formState.isDirty&&<button className="primary" disabled={busy}>{busy?'Procesando…':'Guardar foto'}</button>}<button type="button" className="text-button danger" disabled={busy||!preview} onClick={()=>{form.setValue('photo','',{shouldDirty:true});setOriginalSource(null);setNotice('Guardá para quitar la foto del perfil.');}}><Trash2 size={14}/>Quitar foto</button></div>
     </form>
     {cropSource&&<PhotoCropper source={cropSource} name={name} close={()=>setCropSource(null)} save={async value=>{if(!startSave())throw Error('Hay otra foto guardándose. Esperá a que termine.');try{await save(value);if(!mounted.current)return;form.reset({photo:value});setFailedPhoto('');setNotice('Foto y encuadre guardados.');}finally{finishSave();}}}/>}
   </section>;

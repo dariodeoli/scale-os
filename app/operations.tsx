@@ -2,12 +2,13 @@
 import {currencyChoices} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
-import { useEffect, useState, useRef, useId } from "react";
+import { useEffect, useMemo, useState, useRef, useId } from "react";
+import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, Plus, MessageSquare, Building2 } from "lucide-react";
+import { Banknote, Building2, Check, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2, X } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
 import {ProfilePhoto} from './profile-photo';
 import {DriveLinkNote} from './drive-link';
@@ -15,10 +16,12 @@ import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
 import {PhotoViewer} from './photo-viewer';
 import {ActorIdentity} from './actor-identity';
+import {PersonContainer} from './person-container';
 import {CommentBody,CommentComposer} from './commenting';
 import {notifyMutation} from './feedback';
 import {teamDirectory,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
 import {TeamAccess} from './team-access';
+import {PermissionsMatrix} from './permissions-matrix';
 import {dataFetch} from './data-cache';
 
 export async function api<T>(
@@ -165,7 +168,6 @@ type Person = {
   email: string | null;
   photo_url: string | null;
   job_title: string | null;
-  job_role_id: string | null;
   compensation_type: string;
   compensation_amount: string;
   currency: string;
@@ -180,7 +182,6 @@ type Person = {
   monthly_salary_amount: string | null;
   monthly_salary_currency: 'PYG' | 'USD' | null;
 };
-type JobRole = { id: string; name: string; active: boolean };
 type Commission = {
   id: string;
   beneficiary_name: string;
@@ -244,7 +245,7 @@ function SalaryOverrideEditor({person}:{person:Person}) {
  async function remove(){setError('');setStatus('');setSaving(true);try{await api(`/api/agency/collaborators/${person.id}/salary-overrides?month=${encodeURIComponent(month)}`,{},'DELETE');setExisting(null);setAmount('');setNote('');setStatus('Ajuste mensual eliminado.');}catch(error){setError(message(error));}finally{setSaving(false);}}
   return <section className="ops-profile-section salary-override" aria-labelledby={`${ids.month}-title`}><h3 id={`${ids.month}-title`}>Ajuste mensual de salario</h3><p className="form-note">Reemplaza el salario mensual recurrente solo para el mes elegido. No registra un pago.</p><form className="form-stack ops-form-grid" noValidate aria-busy={loading||saving} onSubmit={save}>
   <label htmlFor={ids.month}>Mes<input id={ids.month} type="month" value={month} min="1900-01" max="9998-12" disabled={saving} onChange={event=>/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)&&setMonth(event.target.value)}/></label>
-  {loading?<p role="status" className="ops-wide">Cargando ajuste mensual…</p>:<><label htmlFor={ids.amount}>Ajuste mensual ({person.monthly_salary_currency||'PYG'})<AmountInput id={ids.amount} value={amount} currency={person.monthly_salary_currency||'PYG'} disabled={saving} invalid={Boolean(error)||undefined} describedBy={error?`${ids.amount}-error`:undefined} onChange={setAmount}/></label><label htmlFor={ids.note} className="ops-wide">Nota del ajuste <span className="field-optional">· Opcional</span><textarea id={ids.note} value={note} maxLength={1000} disabled={saving} onChange={event=>setNote(event.target.value)}/></label><div className="inline-actions ops-wide"><button className="secondary" type="submit" disabled={saving}>{saving?'Guardando…':'Guardar ajuste'}</button>{existing&&<button className="text-button" type="button" disabled={saving} onClick={remove}>Eliminar ajuste</button>}</div></>}
+  {loading?<p role="status" className="ops-wide">Cargando ajuste mensual…</p>:<><label htmlFor={ids.amount}>Ajuste mensual ({person.monthly_salary_currency||'PYG'})<AmountInput id={ids.amount} value={amount} currency={person.monthly_salary_currency||'PYG'} disabled={saving} invalid={Boolean(error)||undefined} describedBy={error?`${ids.amount}-error`:undefined} onChange={setAmount}/></label><label htmlFor={ids.note} className="ops-wide">Nota del ajuste <span className="field-optional">· Opcional</span><textarea id={ids.note} value={note} maxLength={1000} disabled={saving} onChange={event=>setNote(event.target.value)}/></label><div className="inline-actions ops-wide"><button className="secondary" type="submit" disabled={saving}>{saving?'Guardando…':'Guardar ajuste'}</button>{existing&&<button className="text-button danger" type="button" disabled={saving} onClick={remove}><Trash2 size={14}/>Eliminar ajuste</button>}</div></>}
   {error&&<p id={`${ids.amount}-error`} className="error ops-wide" role="alert">{error}</p>}{status&&<p role="status" className="ops-wide">{status}</p>}
  </form></section>;
 }
@@ -269,9 +270,8 @@ export function OperationsWorkspace({
     [commissions, setCommissions] = useState<Commission[]>([]),
     [accounts, setAccounts] = useState<Account[]>([]),
     [invoices, setInvoices] = useState<Invoice[]>([]),
-    [payouts, setPayouts] = useState<Payout[]>([]),
-    [jobs, setJobs] = useState<JobRole[]>([]);
-  const [manageJobs, setManageJobs] = useState(false);
+    [payouts, setPayouts] = useState<Payout[]>([]);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
   const [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
@@ -282,15 +282,48 @@ export function OperationsWorkspace({
       commission?: Commission;
     } | null>(null),
     [filter, setFilter] = useState("all");
+  const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
   const allowed = ["owner", "admin", "finance"].includes(role);
+  useEffect(() => {
+    if (!allowed) return;
+    let alive = true;
+    setCommercial(null);
+    void api<unknown>("/api/agency/control-center")
+      .then(value => { if (alive) setCommercial(normalizeCommercialDashboard(value)); })
+      .catch(() => { if (alive) setCommercial(null); });
+    return () => { alive = false; };
+  }, [allowed]);
+  const salaryTotals = useMemo(() => {
+    const totals = new Map<string, number>();
+    let defined = 0, missing = 0;
+    for (const person of people) {
+      if (!person.active) continue;
+      const amount = Number(person.monthly_salary_amount);
+      if (person.monthly_salary_amount && person.monthly_salary_currency && Number.isFinite(amount) && amount > 0) {
+        totals.set(person.monthly_salary_currency, (totals.get(person.monthly_salary_currency) || 0) + amount);
+        defined += 1;
+      } else {
+        missing += 1;
+      }
+    }
+    return { totals, defined, missing };
+  }, [people]);
+  const monthlyGap = useMemo(() => {
+    if (!commercial?.expectedMonthlyBilling) return [];
+    return commercial.expectedMonthlyBilling
+      .filter(item => Number(item.total) > 0)
+      .map(item => {
+        const salary = salaryTotals.totals.get(item.currency) || 0;
+        return { currency: item.currency, gap: Number(item.total) - salary };
+      });
+  }, [commercial, salaryTotals]);
   async function load() {
-    const [p, c, a, i, x, j] = await Promise.all([
+    const [p, c, a, i, x] = await Promise.all([
       api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>(mode==='people'?"/api/agency/team":"/api/agency/collaborators"),
       mode==='commissions'?api<{ commissions: Commission[] }>("/api/agency/commissions"):Promise.resolve({commissions:[]}),
       api<{ accounts: Account[] }>("/api/agency/accounts"),
       mode==='commissions'?api<{ invoices: Invoice[] }>("/api/agency/invoices"):Promise.resolve({invoices:[]}),
       api<{ payouts: Payout[] }>("/api/agency/payouts"),
-      api<{ roles: JobRole[] }>("/api/agency/job-roles"),
     ]);
     setPeople(p.collaborators);
     setMembers(p.members||[]);setArchivedProfiles(p.archivedProfiles||[]);
@@ -298,7 +331,6 @@ export function OperationsWorkspace({
     setAccounts(a.accounts);
     setInvoices(i.invoices);
     setPayouts(x.payouts);
-    setJobs(j.roles);
   }
   useEffect(() => {
     if (allowed)
@@ -347,7 +379,6 @@ export function OperationsWorkspace({
       type: "email",
       optional: true,
     },
-    { key: "job_role_id", label: "Cargo o servicio", optional: true, choices: [{value:'',label:'Sin definir'},...jobs.filter(j=>j.active||String(j.id)===String(person?.job_role_id)).map(j=>({value:String(j.id),label:j.name+(j.active?'':' (archivado)')}))] },
     {
       key: "active", label: "Estado laboral", choices: [
         { value: "true", label: "Activo" }, { value: "false", label: "Inactivo" },
@@ -416,7 +447,7 @@ export function OperationsWorkspace({
             </h2>
           </div>
           <div className="inline-actions">
-          {mode==='people'&&['owner','admin'].includes(role)&&<button className="secondary" onClick={()=>setManageJobs(true)}>Gestionar cargos</button>}
+          {mode==='people'&&['owner','admin'].includes(role)&&<button className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
           <button
             className="primary"
             onClick={() =>
@@ -434,6 +465,28 @@ export function OperationsWorkspace({
           </p>
         )}
         {notice && <p role="status">{notice}</p>}
+        {mode==='people'&&<div className="kpi-strip" aria-label="Salarios y facturación estimada">
+          <article className="kpi-card tone-brand">
+            <p className="eyebrow">SALARIOS MENSUALES</p>
+            {salaryTotals.totals.size?<div className="kpi-amounts">{Array.from(salaryTotals.totals).map(([currency,total])=><span key={currency}>{money(total,currency)}</span>)}</div>:<strong>Sin salarios definidos</strong>}
+            <small>Suma de perfiles activos con salario mensual cargado</small>
+          </article>
+          <article className="kpi-card tone-green">
+            <p className="eyebrow">PERFILES DE SALARIO</p>
+            <strong>{salaryTotals.defined} definidos</strong>
+            <small>{salaryTotals.missing} activos sin salario mensual</small>
+          </article>
+          <article className="kpi-card tone-blue">
+            <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
+            {commercial===null?<strong>Calculando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong>No disponible</strong>:commercial.expectedMonthlyBilling.length?<div className="kpi-amounts">{commercial.expectedMonthlyBilling.map(item=><span key={item.currency}>{money(Number(item.total),item.currency)} / mes</span>)}</div>:<strong>Sin contratos activos</strong>}
+            <small>Expectativa comercial vigente por moneda</small>
+          </article>
+          <article className="kpi-card tone-warning">
+            <p className="eyebrow">RESULTADO MENSUAL</p>
+            {monthlyGap.length?<div className="kpi-amounts">{monthlyGap.map(row=><span key={row.currency}>{money(row.gap,row.currency)}</span>)}</div>:<strong>Sin datos</strong>}
+            <small>Facturación contratada menos salarios, por moneda</small>
+          </article>
+        </div>}
         {mode==='people'&&<div className="team-filters">
           <label className="team-search">
             <span>Buscar persona</span>
@@ -449,7 +502,7 @@ export function OperationsWorkspace({
           <p>Cargando…</p>
         ) : mode === "people" ? (
           <div className="ops-grid">
-            {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';const jobTitle=jobs.find(j=>String(j.id)===String(p?.job_role_id))?.name||p?.job_title;return p?(
+            {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
               <article className="ops-card ops-person-card" key={p.id}>
                 <div className="ops-person-header">
                   <div className="ops-person">
@@ -460,7 +513,7 @@ export function OperationsWorkspace({
                     )}
                     <div>
                       <h3>{p.full_name}</h3>
-                      <small>{jobTitle||'Sin cargo'}</small>
+                      <small>{entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin cargo'}</small>
                     </div>
                   </div>
                 </div>
@@ -474,18 +527,20 @@ export function OperationsWorkspace({
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
                 <div className="ops-card-actions">
                   <button className="text-button" onClick={() => setEdit(p)}>
+                    <Pencil size={14} />
                     Perfil
                   </button>
                   <button
                     className="text-button"
                     onClick={() => setPay({ person: p })}
                   >
+                    <Banknote size={14} />
                     Pagar
                   </button>
                   <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
                 </div>
               </article>
-            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt=""/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||'Integrante sin ficha'}</h3><small>{entry.member!.email} · {accessRole} · {accessState}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
+            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><PersonContainer size="lg" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} secondary={`${entry.member!.email} · ${accessRole} · ${accessState}`} verified/></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button positive" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={14}/>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={14}/>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
             {!visiblePeople.length && (
               <p className="empty-copy">
                 {search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}
@@ -528,9 +583,10 @@ export function OperationsWorkspace({
                     <div className="inline-actions">
                       {c.status === "pending" && (
                         <button
-                          className="text-button"
+                          className="text-button positive"
                           onClick={() => state(c, "approved")}
                         >
+                          <Check size={14} />
                           Aprobar
                         </button>
                       )}
@@ -539,14 +595,16 @@ export function OperationsWorkspace({
                           className="text-button"
                           onClick={() => setPay({ commission: c })}
                         >
+                          <Banknote size={14} />
                           Registrar pago
                         </button>
                       )}
                       {["pending", "approved"].includes(c.status) && (
                         <button
-                          className="text-button"
+                          className="text-button danger"
                           onClick={() => state(c, "cancelled")}
                         >
+                          <X size={14} />
                           Cancelar
                         </button>
                       )}
@@ -630,7 +688,7 @@ export function OperationsWorkspace({
           {person&&<SalaryOverrideEditor key={person.id} person={person}/>}
         </Dialog>
       )}
-      {manageJobs&&<JobCatalog jobs={jobs} close={()=>setManageJobs(false)} refresh={load}/>}
+      {permissionsOpen&&<PermissionsMatrix role={role} close={()=>setPermissionsOpen(false)}/>}
       {newCommission && (
         <Dialog
           title="Nueva comisión o referido"
@@ -783,22 +841,6 @@ export function OperationsWorkspace({
   );
 }
 
-function JobCatalog({ jobs, close, refresh }: {jobs:JobRole[];close:()=>void;refresh:()=>Promise<void>}) {
-  const [selected,setSelected]=useState<JobRole|null>(null);
-  const [notice,setNotice]=useState('');
-  return <Dialog title="Cargos y servicios" close={close}>
-    <p className="form-note">Opciones propias de esta empresa. Archivar un cargo lo retira de nuevas asignaciones y conserva los perfiles existentes. Los cargos no otorgan permisos.</p>
-    <div className="ops-job-list">
-      {jobs.map(job=><button type="button" className={selected?.id===job.id?'choice active':'choice'} key={job.id} onClick={()=>setSelected(job)}>{job.name}{!job.active?' · Archivado':''}</button>)}
-    </div>
-    {selected&&<button className="text-button" onClick={()=>setSelected(null)}>Agregar otro cargo</button>}
-    {notice&&<p role="status" className="form-note">{notice}</p>}
-    <Editor key={selected?.id||'new'} columns fields={[{key:'name',label:'Nombre del cargo'},...(selected?[{key:'active',label:'Disponible para asignar',choices:[{value:'true',label:'Sí'},{value:'false',label:'Archivado'}]}]:[])]} defaults={{name:selected?.name||'',active:String(selected?.active??true)}} save={async values=>{
-      await api(`/api/agency/job-roles${selected?`/${selected.id}`:''}`,{name:values.name,active:values.active!=='false'},selected?'PATCH':'POST');
-      await refresh();setSelected(null);setNotice('Catálogo actualizado.');
-    }}/>
-  </Dialog>;
-}
 
 type ReferralDiscount = {
   id: string; referrer: string; amount: string; currency: string;
@@ -986,7 +1028,7 @@ export function CompanySelector({ name }: { name: string }) {
                 if(preferenceLock.current)return;preferenceLock.current=true;setBusy(true);setError('');
                 try{await api('/api/auth/default-organization',{organizationId:c.id});setPreferred(String(c.id));window.dispatchEvent(new Event('scale:default-company-changed'));}
                 catch(e){setError(message(e));}finally{preferenceLock.current=false;setBusy(false);}
-              }}>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</button>}
+              }}><Star size={14}/>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</button>}
               </div>
             ))}
           </div>

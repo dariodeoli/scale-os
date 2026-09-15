@@ -7,7 +7,7 @@ export function actorInitials(name:string){
  const words=name.trim().split(/\s+/).filter(Boolean);
  return (words.length>1?`${Array.from(words[0])[0]}${Array.from(words[words.length-1])[0]}`:Array.from(words[0]||'?').slice(0,2).join('')).toLocaleUpperCase('es');
 }
-function safePhoto(value?:string|null){
+export function safePhoto(value?:string|null){
  if(!value)return '';
  if(/^data:image\/(?:png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/.test(value))return value;
  try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password?value:'';}catch{return '';}

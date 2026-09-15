@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from 'react';
-import {Building2} from 'lucide-react';
+import {ArrowUpRight,Building2,EyeOff} from 'lucide-react';
 import {api,Dialog,Editor} from './operations';
 import {founderPricingNote} from './founder-pricing';
 import {CompanySettings} from './company-settings';
@@ -18,7 +18,7 @@ export type WorkspaceGuideProps = WorkspaceGuideIdentity & {
 };
 
 function GuideStep({step,navigate}:{step:WorkspaceGuideStep;navigate:(module:string)=>void}){
- return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><button type="button" className="text-button" onClick={()=>navigate(step.module)}>Abrir {step.module}</button></article>;
+ return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><button type="button" className="text-button" onClick={()=>navigate(step.module)}>Abrir {step.module}<ArrowUpRight size={14}/></button></article>;
 }
 
 /** The keyed child resets open/dismissed UI synchronously when identity, role or demo changes. */
@@ -50,7 +50,7 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
  const directory=<details><summary>Todas las herramientas</summary><div className="ops-job-list">{tools.map(([label])=><button type="button" className="choice" key={label} onClick={()=>go(label)}>{label}</button>)}</div></details>;
  if(variant==='card'){
   if(!preference.ready||preference.dismissed)return null;
-  return <section className="panel" aria-label="Primeros pasos"><div className="panel-heading"><h2>Primeros pasos</h2><button type="button" className="text-button" onClick={dismiss}>Ocultar primeros pasos</button></div>
+  return <section className="panel" aria-label="Primeros pasos"><div className="panel-heading"><h2>Primeros pasos</h2><button type="button" className="text-button" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</button></div>
    <p className="form-note">Una guía según tu rol. Podés volver a consultarla desde Guía del panel.</p>{demoNote}
    <button type="button" className="secondary" aria-expanded={open} onClick={()=>setOpen(value=>!value)}>{open?'Cerrar pasos':'Ver primeros pasos'}</button>
    {open&&<div className="ops-stack">{suggestion&&<GuideStep step={suggestion} navigate={go}/>}{steps.length>1&&<details><summary>Otros pasos disponibles</summary><div className="ops-stack">{steps.filter(step=>step.module!==suggestion?.module).map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div></details>}{!suggestion&&<p className="form-note">Consultá las herramientas disponibles para tu acceso.</p>}{directory}</div>}

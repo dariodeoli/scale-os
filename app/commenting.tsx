@@ -2,6 +2,7 @@
 
 import {useEffect,useRef,useState} from 'react';
 import {api} from './operations';
+import {PersonContainer} from './person-container';
 import './commenting.css';
 
 export type CommentPerson={id:string;full_name?:string|null;email?:string|null;photo_url?:string|null};
@@ -55,7 +56,7 @@ export function CommentComposer({label='Comentario',save}:{label?:string;save:(b
    if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();choose(suggestions[active]);}
    if(event.key==='Escape'){event.preventDefault();textarea.current?.setSelectionRange(body.length,body.length);}
   }}/></label>
-  {suggestions.length>0&&<div className="mention-menu" role="listbox" aria-label="Personas para mencionar">{suggestions.map((person,index)=><button type="button" role="option" aria-selected={active===index} className={active===index?'active':''} key={person.id} onMouseDown={event=>{event.preventDefault();choose(person);}}>{person.photo_url?<img src={person.photo_url} alt=""/>:<span>{displayName(person)[0]}</span>}<b>{displayName(person)}</b>{person.email&&<small>{person.email}</small>}</button>)}</div>}
+   {suggestions.length>0&&<div className="mention-menu" role="listbox" aria-label="Personas para mencionar">{suggestions.map((person,index)=><button type="button" role="option" aria-selected={active===index} className={active===index?'active':''} key={person.id} onMouseDown={event=>{event.preventDefault();choose(person);}}><PersonContainer size="sm" name={displayName(person)} photoUrl={person.photo_url} secondary={person.email||undefined} verified/></button>)}</div>}
   <fieldset className="comment-link-fields"><legend>Enlace con nombre</legend><label>Nombre visible<input value={linkLabel} maxLength={120} disabled={busy} onChange={event=>setLinkLabel(event.target.value)} placeholder="Brief aprobado"/></label><label>URL HTTPS<input value={linkUrl} type="url" inputMode="url" disabled={busy} onChange={event=>setLinkUrl(event.target.value)} placeholder="https://…"/></label><button type="button" className="secondary" disabled={busy||!linkLabel.trim()||!linkUrl.trim()} onClick={addLink}>Agregar enlace</button></fieldset>
   <div className="inline-actions"><small className="form-note">Enter agrega la mención elegida · Shift + Enter crea una línea.</small><button className="primary" disabled={busy||!body.trim()}>{busy?'Publicando…':'Publicar comentario'}</button></div>
   {error&&<p role="alert" className="error">{error}</p>}

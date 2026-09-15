@@ -4,7 +4,7 @@
 .assignee-picker p{margin:0;overflow-wrap:anywhere}
 .assignee-picker .assignee-selected{list-style:none;padding:0;margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
 .assignee-picker .assignee-selected li{display:inline-flex;align-items:center;gap:5px;max-width:100%;background:var(--surface-subtle,#f7f6f8);border:1px solid var(--line,#e8e3ea);border-radius:999px;padding:3px 4px 3px 9px;min-width:0}
-.assignee-picker .assignee-selected li>span{font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:220px}
+.assignee-picker .assignee-selected li>.person-container{font-size:.8rem;min-width:0;max-width:280px}
 .assignee-picker button{font:inherit;font-size:.75rem;border:1px solid var(--line,#e8e3ea);border-radius:6px;background:var(--surface,#fff);padding:6px 9px;min-height:44px;cursor:pointer;white-space:normal}
 .assignee-picker .assignee-primary[aria-pressed=true]{border-color:var(--brand-600,#4d065b);color:var(--brand-600,#4d065b);font-weight:600}
 .assignee-picker .assignee-remove{display:grid;place-items:center;flex:none;width:28px;min-width:28px;height:28px;min-height:28px;padding:0;border:0;background:transparent;color:var(--text-muted,#746c78);font-size:1.25rem;line-height:1;border-radius:50%}
@@ -18,7 +18,7 @@
 .assignee-picker .assignee-option{display:flex;align-items:center;gap:10px;padding:6px;min-height:44px;cursor:pointer;border-radius:6px;font-size:.85rem;min-width:0}
 .assignee-picker .assignee-option:hover{background:var(--surface-subtle,#f7f6f8)}
 .assignee-picker .assignee-option input[type=checkbox]{appearance:auto;width:18px;height:18px;min-height:18px;margin:0;padding:0;flex:0 0 18px;accent-color:var(--brand-600,#4d065b)}
-.assignee-picker .assignee-option span{min-width:0;overflow-wrap:anywhere}
+.assignee-picker .assignee-option .person-container{min-width:0}
 .assignee-picker .assignee-option small{display:block;color:var(--text-muted,#746c78);font-size:.75rem}
 .assignee-picker :focus-visible{outline:2px solid var(--brand-600,#4d065b);outline-offset:2px}
 .assignee-picker button:disabled{cursor:default;opacity:.6}

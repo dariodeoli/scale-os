@@ -1,0 +1,10 @@
+.person-container{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}
+.person-container-avatar{display:grid;place-items:center;flex:none;border-radius:50%;background:var(--brand-700,#4d065b);color:var(--surface,#fff);font-weight:600;overflow:hidden}
+.person-container-sm .person-container-avatar{width:24px;height:24px;font-size:10px}
+.person-container-md .person-container-avatar{width:32px;height:32px;font-size:12px}
+.person-container-lg .person-container-avatar{width:48px;height:48px;font-size:18px}
+.person-container-avatar img{width:100%;height:100%;display:block;border-radius:50%;object-fit:cover}
+.person-container-details{display:grid;gap:1px;flex:1;min-width:0;line-height:1.3}
+.person-container-name{font-weight:600;color:var(--text,#251c29);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.person-container-secondary{font-size:11px;color:var(--text-muted,#746c78);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.person-container-lg .person-container-name{font-size:15px}
