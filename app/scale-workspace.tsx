@@ -1849,12 +1849,8 @@ export default function Home() {
             {user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
             <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
             <InternalTasks role={user?.role||'viewer'}/>
+            <div className="metrics-heading"><p className="section-eyebrow">Operación</p><h2>Métricas operativas</h2></div>
             <section className="metrics operational-metrics" aria-label="Métricas operativas">
-              <article className="metric gold">
-                <span>Clientes activos</span>
-                <strong>{summary.active_clients}</strong>
-                <small>Base actual de la agencia</small>
-              </article>
               <article className="metric violet">
                 <span>Proyectos activos</span>
                 <strong>{summary.active_projects}</strong>
