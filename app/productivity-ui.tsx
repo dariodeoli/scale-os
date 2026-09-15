@@ -14,6 +14,7 @@ import {MonthlySchedules} from './notifications-ui';
 import {ClientLinks,whatsappUrl} from './client-links';
 import {ClientReporting} from './client-reporting';
 import {ClientCommercialLifecycle} from './client-commercial-lifecycle';
+import {clientState} from './client-status';
 import {ProjectPresence} from './presence';
 import {ActorIdentity} from './actor-identity';
 import {RecordAssignees} from './record-assignees';
@@ -26,6 +27,29 @@ import {WorkOrderLinks} from './work-order-links';
 type Row={id:string;[key:string]:unknown};
 export type WorkItem={id:string;title:string;status:string;project_id:string;due_date?:string|null;due_time?:string|null;assigned_user_id?:string|null;assigned_user_ids?:string[];updated_at?:string;client_name?:string;project_name?:string};
 const s=(r:Row,k:string)=>String(r[k]??'');
+type ClientSummaryTerms={planName:string;recurringAmount:string|number;currency:string;cadence:string;intervalMonths:number|null;invoiceRequired:boolean};
+type ClientSummary={relationshipStartedOn:string|null;terms:ClientSummaryTerms|null};
+const commercialReadRoles=['owner','admin','management','sales','finance'];
+const commercialFinancialRoles=['owner','admin','finance'];
+function isSummaryTerms(value:unknown):value is ClientSummaryTerms{
+ if(!value||typeof value!=='object')return false;
+ const t=value as Record<string,unknown>;
+ return typeof t.planName==='string'&&(typeof t.recurringAmount==='string'||typeof t.recurringAmount==='number')&&typeof t.currency==='string'&&typeof t.cadence==='string'&&(t.intervalMonths===null||typeof t.intervalMonths==='number')&&typeof t.invoiceRequired==='boolean';
+}
+function cadenceLabel(terms:ClientSummaryTerms|null){
+ if(!terms)return 'Sin datos';
+ if(terms.cadence==='monthly')return 'Mensual';
+ if(terms.cadence==='interval'){const n=Number(terms.intervalMonths)||1;return `Cada ${n} mes${n===1?'':'es'}`;}
+ if(terms.cadence==='once')return 'Única vez';
+ return 'Sin datos';
+}
+function monthsSinceLabel(value:string){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+ const start=new Date(`${value}T12:00:00Z`),now=new Date();
+ if(Number.isNaN(start.getTime())||start>now)return null;
+ const months=(now.getUTCFullYear()-start.getUTCFullYear())*12+now.getUTCMonth()-start.getUTCMonth();
+ return months<=0?'Este mes':`Hace ${months} mes${months===1?'':'es'}`;
+}
 const errorText=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar';
 const states=[{value:'blocked',label:'Bloqueado'},{value:'to_record',label:'Por grabar'},{value:'recorded',label:'Grabado'},{value:'editing',label:'Editando'},{value:'review',label:'Listo para revisión'}];
 const workTypeLabels:Record<string,string>={video:'Video',reedicion:'Reedición',foto:'Foto',produccion:'Producción',entregable:'Entregable'};
@@ -70,20 +94,46 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor}:{id:str
 export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id:string;role:string;close:()=>void;refresh:()=>Promise<void>;createProject:(id:string)=>void;openOrder:(id:string)=>void}){
  const [data,setData]=useState<{client:Row;projects:Row[];orders:Row[];invoices?:Row[];payments?:Row[];budgets?:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Producción');
  const [payStatus,setPayStatus]=useState<{payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}|null>(null);
+ const [summary,setSummary]=useState<ClientSummary|null>(null);
  async function reload(){setData(await api(`/api/agency/productivity/clients/${id}`));await refresh();}
  useEffect(()=>{void api<typeof data>(`/api/agency/productivity/clients/${id}`).then(setData).catch(e=>setError(errorText(e)));},[id]);
  useEffect(()=>{let alive=true;void api<{clients:{client_id:string;payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}[]}>('/api/agency/client-payment-status').then(response=>{if(alive)setPayStatus(response.clients.find(client=>String(client.client_id)===String(id))||null);}).catch(()=>{if(alive)setPayStatus(null);});return()=>{alive=false;};},[id]);
+ useEffect(()=>{
+  if(!commercialReadRoles.includes(role))return;
+  let alive=true;
+  void Promise.all([
+   api<{reporting:{relationshipStartedOn:string|null}|null}>(`/api/agency/clients/${id}/reporting`).then(r=>r?.reporting?.relationshipStartedOn||null).catch(()=>null),
+   commercialFinancialRoles.includes(role)?api<{terms:unknown}|null>(`/api/agency/clients/${id}/commercial-terms`).then(r=>r?.terms||null).catch(()=>null):Promise.resolve(null),
+  ]).then(([relationshipStartedOn,terms])=>{
+   if(!alive)return;
+   setSummary({relationshipStartedOn:typeof relationshipStartedOn==='string'?relationshipStartedOn:null,terms:isSummaryTerms(terms)?terms:null});
+  });
+  return()=>{alive=false;};
+ },[id,role]);
+ const sinceValue=summary?.relationshipStartedOn||(data?String(data.client.created_at||'').slice(0,10):'');
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error">{error}</p>}{data?<>
   {['owner','admin','management','sales'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
-  <p>{s(data.client,'email')} · {s(data.client,'phone')}</p>{payStatus&&<p className="form-note">Cobros: {payStatus.payment_status==='up_to_date'?<span className="mora-chip mora-clear">Al día</span>:payStatus.payment_status==='due_soon'?<span className="mora-chip mora-early">Vence {payStatus.next_due_on||'próximamente'}</span>:<span className={`mora-chip ${payStatus.days_overdue>30?'mora-critical':payStatus.days_overdue>15?'mora-medium':'mora-early'}`}>{payStatus.days_overdue} días de mora</span>}{payStatus.currency&&Number(payStatus.outstanding_amount)>0?` · Pendiente ${money(Number(payStatus.outstanding_amount),payStatus.currency)}`:''}</p>}{whatsappUrl(s(data.client,'phone'))&&<a className="text-button client-whatsapp" href={whatsappUrl(s(data.client,'phone'))!} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>}<p>{s(data.client,'notes')}</p>
-  <ClientReporting key={id} id={id} role={role} onSaved={reload}/>
-  <ClientCommercialLifecycle key={`commercial-${id}`} id={id} role={role} onSaved={reload}/>
-  <ClientLinks id={id} value={data.client.social_links} phone={s(data.client,'phone')} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>
+  <p>{s(data.client,'email')} · {s(data.client,'phone')}</p>{whatsappUrl(s(data.client,'phone'))&&<a className="text-button client-whatsapp" href={whatsappUrl(s(data.client,'phone'))!} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>}<p>{s(data.client,'notes')}</p>
+  {summary&&<section className="client-summary" aria-label="Resumen comercial del cliente">
+   <div className="client-summary-grid">
+    <article><span>Estado del servicio</span><strong>{clientState({lifecycle_status:s(data.client,'lifecycle_status'),active:data.client.active!==false}).label}</strong></article>
+    <article><span>Cobros</span><strong>{payStatus?payStatus.payment_status==='up_to_date'?'Al día':payStatus.payment_status==='due_soon'?`Vence ${payStatus.next_due_on||'próximamente'}`:`${payStatus.days_overdue} días de mora`:'Sin datos'}</strong>{payStatus&&payStatus.currency&&Number(payStatus.outstanding_amount)>0?<small>Pendiente {money(Number(payStatus.outstanding_amount),payStatus.currency)}</small>:null}</article>
+    <article><span>Plan</span><strong title={summary.terms?.planName||undefined}>{summary.terms?.planName||'Sin plan registrado'}</strong></article>
+    <article><span>Pago mensual</span><strong>{summary.terms?money(String(summary.terms.recurringAmount),summary.terms.currency):'Sin datos'}</strong></article>
+    <article><span>Recurrencia</span><strong>{cadenceLabel(summary.terms)}</strong></article>
+    <article><span>Cliente desde</span><strong>{monthsSinceLabel(sinceValue)||'Sin fecha registrada'}</strong>{/^\d{4}-\d{2}-\d{2}$/.test(sinceValue)?<small>{sinceValue}</small>:null}</article>
+    <article><span>Factura</span><strong>{summary.terms?summary.terms.invoiceRequired?'Pide factura':'No pide factura':'Sin datos'}</strong></article>
+    <article><span>RUC</span><strong title={s(data.client,'tax_id')||undefined}>{s(data.client,'tax_id')||'Sin RUC registrado'}</strong>{s(data.client,'legal_name')&&s(data.client,'legal_name')!==s(data.client,'name')?<small>{s(data.client,'legal_name')}</small>:null}</article>
+   </div>
+  </section>}
   {managers.includes(role)&&<div className="quick-actions"><button className="primary" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button><ClientPortalAccess clientId={id}/></div>}
   <div className="choice-list">{['Producción',...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)}>{t}</button>)}</div>
   {tab==='Producción'&&<><h3>Proyectos ({data.projects.length})</h3>{data.projects.map(p=><article className="activity-line" key={p.id}><b>{s(p,'name')}</b><DriveLinks value={p.drive_links} legacy={s(p,'drive_url')} compact/></article>)}<h3>Piezas recientes</h3>{data.orders.map(o=><button className="work-list-row" key={o.id} onClick={()=>openOrder(String(o.id))}><b>{s(o,'title')}</b><span>{s(o,'status')}</span></button>)}{!data.projects.length&&<p className="empty-copy">Este cliente aún no tiene proyectos.</p>}</>}
   {tab==='Presupuestos'&&data.budgets?.map(b=><article className="activity-line" key={b.id}><b>{s(b,'number')} · {s(b,'title')}</b><span>{s(b,'status')} · {money(s(b,'total'),s(b,'currency'))}</span></article>)}
   {tab==='Cobros'&&<><h3>Facturas y pendientes</h3>{data.invoices?.map(i=><article className="activity-line" key={i.id}><b>{s(i,'number')}</b><span>Cobrado {money(s(i,'paid_amount'),s(i,'currency'))} · Pendiente {money(Math.max(0,Number(i.total)-Number(i.paid_amount)),s(i,'currency'))}</span></article>)}<h3>Quién recibió y dónde</h3>{data.payments?.map(p=><article className="activity-line" key={p.id}><b>{money(s(p,'amount'),s(p,'currency'))} · {s(p,'account_name')}</b><ActorIdentity name={s(p,'actor_name')||s(p,'received_by_email')||'Sin persona registrada'} photoUrl={s(p,'actor_photo_url')} verified={p.actor_verified===true}/><small>{s(p,'received_on').slice(0,10)}</small></article>)}</>}
+  <ClientReporting key={id} id={id} role={role} onSaved={reload}/>
+  <ClientCommercialLifecycle key={`commercial-${id}`} id={id} role={role} onSaved={reload}/>
+  <ClientLinks id={id} value={data.client.social_links} phone={s(data.client,'phone')} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>
   <p className="form-note">Historial de hasta 100 registros por categoría. Los movimientos financieros solo aparecen con permiso.</p>
  </>:<p>Cargando cliente…</p>}</Dialog>;
 }
