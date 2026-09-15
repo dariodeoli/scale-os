@@ -56,6 +56,7 @@ for(const [module,name,component,attribute] of cases)test(`${name} ${component}:
  const scope={completeSave,api:async()=>{writes++;return persist();},refresh,load:refresh,
   setEdit:close,setOpen:close,setRecord:close,setInvite:close,
   member:{id:'7'},recordId:'8',kind:'leads',row:{id:'9'},
+  planData:null,canPlan:false,isDate:()=>true,
  };
  const compiled=ts.transpileModule(`const callback=${callbackSource};`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
  const callback=new Function(...Object.keys(scope),`${compiled}\nreturn callback;`)(...Object.values(scope)) as (values:Record<string,string>)=>Promise<void>;

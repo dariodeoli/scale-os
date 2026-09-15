@@ -65,10 +65,29 @@ async function main(){
  await act(async()=>{await submit(r!);});
  assert.equal(published.length,1,'empty reset comment must fail required validation');assert.equal(closes,2);
  await act(async()=>{r!.unmount();});
- insideDialog=false;
- await act(async()=>{r=create(<Editor fields={[{key:'name',label:'Nombre'}]} defaults={{name:'Ajustes'}} save={async()=>{}}/>);});
- assert.equal(buttons(r!).length,1,'inline page settings must not get a dialog cancel button');
- await act(async()=>{r!.unmount();});
- console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out');
+  insideDialog=false;
+  await act(async()=>{r=create(<Editor fields={[{key:'name',label:'Nombre'}]} defaults={{name:'Ajustes'}} save={async()=>{}}/>);});
+  assert.equal(buttons(r!).length,1,'inline page settings must not get a dialog cancel button');
+  await act(async()=>r!.unmount());
+  // Inline lookups query with the current field value and apply returned values.
+  const lookups:string[]=[];const lookupSaved:Record<string,string>[]=[];
+  await act(async()=>{r=create(<Editor fields={[{key:'tax_id',label:'RUC',lookup:{label:'Buscar datos por RUC',run:async value=>{lookups.push(value);return {legal_name:'RAZON S.A.',tax_id:'80012345-6'};}}},{key:'legal_name',label:'Razón social'}]} defaults={{tax_id:'',legal_name:''}} save={async v=>{lookupSaved.push(v);}}/>);});
+  await act(async()=>{r!.root.findAllByType('input')[0].props.onChange({target:{name:'tax_id',value:'80012345'}});});
+  const lookupButton=r!.root.findAllByType('button').find(node=>String(node.props.children).includes('Buscar'))!;
+  await act(async()=>{await lookupButton.props.onClick();});
+  await act(async()=>{});
+  assert.deepEqual(lookups,['80012345'],'the lookup receives the typed value');
+  await act(async()=>{await submit(r!);});
+  assert.equal(lookupSaved.at(-1)!.legal_name,'RAZON S.A.','returned fields land in the form');
+  assert.equal(lookupSaved.at(-1)!.tax_id,'80012345-6','the canonical RUC replaces the typed value');
+  await act(async()=>r!.unmount());
+  await act(async()=>{r=create(<Editor fields={[{key:'tax_id',label:'RUC',lookup:{label:'Buscar datos por RUC',run:async()=>({})}}]} defaults={{tax_id:''}} save={async()=>{}}/>);});
+  const beforeEmpty=lookups.length;
+  await act(async()=>{await r!.root.findAllByType('button').find(node=>String(node.props.children).includes('Buscar'))!.props.onClick();});
+  await act(async()=>{});
+  assert.equal(lookups.length,beforeEmpty,'an empty value never reaches the provider');
+  assert(JSON.stringify(r!.toJSON()).includes('Escribí RUC primero'),'the form explains why nothing was queried');
+  await act(async()=>r!.unmount());
+  console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out, inline lookups that query and apply returned values');
 }
 test('Shared editor validation and complete save/cancel lifecycle',main);

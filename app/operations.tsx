@@ -66,6 +66,7 @@ export type Field = {
   currencyKey?: string;
   currency?: string;
   currencyFrom?: (values: Record<string, string>) => string;
+  lookup?: {label: string; run: (value: string) => Promise<Record<string, string>>};
 };
 const currencies = currencyChoices;
 export function Editor({
@@ -101,21 +102,24 @@ export function Editor({
   const [error, setError] = useState("");
   const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
+  const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,string>>({});
   const pending=form.formState.isSubmitting||savingNow;
   useDialogPending(pending);
   useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.();}},[saved,pending,requestClose]);
+  async function runLookup(f:Field){if(!f.lookup||pending||lookupBusy)return;const value=(form.getValues(f.key)||'').trim();setLookupNotices(current=>({...current,[f.key]:''}));if(!value){setLookupNotices(current=>({...current,[f.key]:`Escribí ${f.label} primero.`}));return;}setLookupBusy(f.key);setError('');try{const found=await f.lookup.run(value);for(const [key,next] of Object.entries(found))form.setValue(key,String(next),{shouldValidate:true,shouldDirty:true});setLookupNotices(current=>({...current,[f.key]:'Datos encontrados. Revisá y guardá.'}));}catch(cause){setLookupNotices(current=>({...current,[f.key]:cause instanceof Error?cause.message:'No se pudo completar la consulta.'}));}finally{setLookupBusy('');}}
   const renderField = (f: Field) => {
     const id=`${formPrefix}-${f.key}`,invalid=!!form.formState.errors[f.key];
-    const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null].filter(Boolean).join(' ')||undefined;
+    const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null,lookupNotices[f.key]?`${id}-lookup`:null].filter(Boolean).join(' ')||undefined;
     const derivedCurrency=f.currencyFrom?(f.currencyFrom(form.watch() as Record<string,string>)):undefined;
     return <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
       {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={pending} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} {...form.register(f.key)}/>}
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={pending||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
+      {lookupNotices[f.key]&&<small id={`${id}-lookup`} className="field-help ops-lookup-note" role="status">{lookupNotices[f.key]}</small>}
     </div>;
   };
   return (
