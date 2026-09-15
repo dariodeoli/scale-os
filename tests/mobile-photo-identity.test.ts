@@ -49,12 +49,14 @@ test('assignee checkboxes do not inherit text-input padding; labels retain touch
  assert.equal(declarations(assignees,'.assignee-picker .assignee-option')['min-height'],'44px');
  // The list wraps whole chips; names inside each compact chip use ellipsis.
  assert.equal(declarations(assignees,'.assignee-picker .assignee-selected')['flex-wrap'],'wrap');
- const chip=declarations(assignees,'.assignee-picker .assignee-selected li');
- assert.equal(chip.display,'inline-flex');assert.equal(chip['min-width'],'0');assert.equal(chip['max-width'],'100%');
- const name=declarations(assignees,'.assignee-picker .assignee-selected li>span');
- assert.equal(name['min-width'],'0');assert.equal(name.overflow,'hidden');
- assert.equal(name['text-overflow'],'ellipsis');assert.equal(name['white-space'],'nowrap');
- assert.equal(declarations(assignees,'.assignee-picker .assignee-option span')['overflow-wrap'],'anywhere');
+  const chip=declarations(assignees,'.assignee-picker .assignee-selected li');
+  assert.equal(chip.display,'inline-flex');assert.equal(chip['min-width'],'0');assert.equal(chip['max-width'],'100%');
+  const name=declarations(assignees,'.assignee-picker .assignee-selected li>.person-container');
+  assert.equal(name['min-width'],'0');assert.equal(name['max-width'],'280px');
+  const personName=declarations(sheet('person-container.css'),'.person-container-name');
+  assert.equal(personName.overflow,'hidden');
+  assert.equal(personName['text-overflow'],'ellipsis');assert.equal(personName['white-space'],'nowrap');
+  assert.equal(declarations(assignees,'.assignee-picker .assignee-option .person-container')['min-width'],'0');
  assert.equal(declarations(assignees,'.assignee-picker .assignee-options')['overflow-y'],'auto');
 });
 test('chip remove actions stay compact on desktop and reserve 44px on mobile or coarse pointers',()=>{

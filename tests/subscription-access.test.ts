@@ -24,7 +24,8 @@ async function run(){
  assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)return load(data.user)'));
  assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)await load(data.user)'));
  assert(workspace.includes('previousBillingAccess.current===false&&next===true'));
- for(const section of ['Mora','Presupuestos','Finanzas'])assert(workspace.includes(`operationalAccess && active === "${section}"`));
+  assert(workspace.includes('operationalAccess && (active === "Mora" || active === "Clientes")'));
+  for(const section of ['Presupuestos','Finanzas'])assert(workspace.includes(`operationalAccess && active === "${section}"`));
  assert(workspace.includes("document.removeEventListener('visibilitychange',refresh)"));
  assert(workspace.includes("window.removeEventListener('scale:billing-refresh',refresh)"));
  const form=readFileSync(new URL('../app/registro/page.tsx',import.meta.url),'utf8');

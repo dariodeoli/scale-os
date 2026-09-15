@@ -23,8 +23,9 @@ require.cache[companySettingsPath]={id:companySettingsPath,filename:companySetti
 const {WorkspaceGuide,NewCompany}=require('../app/workspace-guide') as typeof import('../app/workspace-guide');
 if(originalOperations)require.cache[operationsPath]=originalOperations;else delete require.cache[operationsPath];
 let renderer:ReactTestRenderer;
-const button=(name:string)=>renderer.root.findAllByType('button').find(node=>node.children.join('')===name)!;
-const names=()=>renderer.root.findByProps({className:'ops-job-list'}).findAllByType('button').map(node=>node.children.join(''));
+const label=(node:any)=>node.children.filter((child:unknown)=>typeof child==='string').join('');
+const button=(name:string)=>renderer.root.findAllByType('button').find(node=>label(node)===name)!;
+const names=()=>renderer.root.findByProps({className:'ops-job-list'}).findAllByType('button').map(node=>label(node));
 const open=()=>act(()=>button('Guía del panel').props.onClick());
 const close=()=>act(()=>renderer.unmount());
 
@@ -92,7 +93,7 @@ test('all eight roles receive actions matching edit capabilities, not just modul
  for(const [role,modules] of Object.entries(expected)){
   const navigated:string[]=[];
   act(()=>{renderer=create(<WorkspaceGuide role={role} navigate={module=>navigated.push(module)}/>);});open();
-  const actions=renderer.root.findAllByType('button').map(node=>node.children.join('')).filter(label=>label.startsWith('Abrir '));
+   const actions=renderer.root.findAllByType('button').map(node=>label(node)).filter(text=>text.startsWith('Abrir '));
   assert.deepEqual(actions,modules.map(module=>`Abrir ${module}`),role);
   const content=JSON.stringify(renderer.toJSON());
   if(!['owner','admin'].includes(role))assert(!content.includes('Invitá'),role);

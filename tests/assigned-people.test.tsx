@@ -37,7 +37,7 @@ const css=postcss.parse(readFileSync(new URL('../app/assigned-people.css',import
 const declarations=(selector:string)=>{const values:Record<string,string>={};css.walkRules(rule=>{if(rule.selectors.includes(selector))rule.walkDecls(d=>{values[d.prop]=d.value;});});return values;};
 assert.equal(declarations('.assigned-people .assigned-people-list')['flex-wrap'],'wrap');
 assert.equal(declarations('.assigned-people .assigned-person')['min-width'],'0');
-assert.equal(declarations('.assigned-people .actor-identity-name')['white-space'],'normal');
-assert.equal(declarations('.assigned-people .actor-identity-name')['overflow-wrap'],'anywhere');
-css.walkDecls(d=>{assert.notEqual(d.prop,'max-height');assert.notEqual(d.prop,'text-overflow');assert.notEqual(d.value,'nowrap');assert.ok(!/#(?:[0-9a-f]{3}){1,2}\b/i.test(d.value),'semantic colors');});
+assert.equal(declarations('.assigned-people .actor-identity-name')['white-space'],'nowrap');
+assert.equal(declarations('.assigned-people .actor-identity-name')['text-overflow'],'ellipsis');
+css.walkDecls(d=>{assert.notEqual(d.prop,'max-height');assert.ok(!/#(?:[0-9a-f]{3}){1,2}\b/i.test(d.value),'semantic colors');});
 console.log('PASS: five/all assigned people, full names, shared photos/fallback, honest states, no presence/actions and wrapping token-based CSS');

@@ -14,7 +14,7 @@ const mobile=read('app/mobile-navigation.css');
 
 test('collaborator identity is rendered by its card, while access keeps only state and actions',()=>{
  assert.match(operations,/ops-person-info/);
- assert.match(operations,/\{accessRole\} · \{accessState\}/);
+  assert.match(operations,/\$\{entry\.member!\.email\} · \$\{accessRole\} · \$\{accessState\}/);
  assert.match(operations,/\{p\.email\|\|'Sin correo'\}/);
  assert.doesNotMatch(operations,/Cargo: \{p\.job_title/);
  assert.doesNotMatch(access,/ActorIdentity|team-access-member|team-access-help/);

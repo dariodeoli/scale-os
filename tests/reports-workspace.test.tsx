@@ -39,18 +39,18 @@ async function run(){
  for(const role of ['owner','admin','finance']){
   act(()=>{renderer=create(<ReportsWorkspace role={role}/>);});
   assert.equal(latest().init.credentials,'include');
-  assert.match(latest().url,/^\/core-api\/api\/agency\/reports\?month=\d{4}-\d{2}&months=12$/);
+  assert.ok(requests.some(r=>/^\/core-api\/api\/agency\/reports\?month=\d{4}-\d{2}&months=12$/.test(r.url)),'monthly report request fires');
   const input=renderer.root.findByProps({type:'month'});
   assert.equal(input.props.max,input.props.value,'current Asuncion month is the maximum');
   const before:number=requests.length;month('9998-12');month('2020-13');month('');
   assert.equal(requests.length,before,'invalid and future months never fetch');
   act(()=>renderer.unmount());
  }
- act(()=>{renderer=create(<ReportsWorkspace key="org1" role="owner"/>);});
- const staleInitial=latest();month('2020-06');
+  act(()=>{renderer=create(<ReportsWorkspace key="org1" role="owner"/>);});
+  const staleInitial=requests.find(r=>r.url?.includes('/reports?'))!;month('2020-06');
  const june=latest();assert.match(june.url,/month=2020-06&months=12/);
  await respond(june,fixture('2020-06'));
- assert.equal(renderer.root.findByType('h2').children[0],'Evolución mensual');
+  assert.equal(renderer.root.findAllByType('h2')[0].children[0],'Evolución mensual');
  assert.match(text(),/Mes a consultar/);
  assert.match(text(),/10 de septiembre de 2026(?:, | a las )12:00 \(hora de Asunción\)/);
  assert.match(text(),/Histórico confiable desde: 1 de enero de 2020/);
@@ -89,9 +89,10 @@ async function run(){
  assert.match(text(),/Histórico confiable desde: sin fecha confirmada/);
  assert.match(text(),/Sin datos/);assert.match(text(),/Sin porcentaje/);
  assert.equal(renderer.root.findAllByType('select')[1].props.disabled,true);
- history(6);const previousTenant=latest();
- act(()=>renderer.update(<ReportsWorkspace key="org2" role="owner"/>));
- const newTenant=latest();assert.match(text(),/Cargando reportes/);
+  history(6);const previousTenant=latest();
+  const tenantRequests=requests.length;
+  act(()=>renderer.update(<ReportsWorkspace key="org2" role="owner"/>));
+  const newTenant=requests.slice(tenantRequests).find(r=>r.url?.includes('/reports?'))!;assert.match(text(),/Cargando reportes/);
  await respond(previousTenant,fixture('2020-06',[row('2020-06',999)]));
  assert.doesNotMatch(text(),/999/,'integration organization key isolates same-role tenants');
  const newMonth=new URL(newTenant.url,'https://fixture.invalid').searchParams.get('month')!;

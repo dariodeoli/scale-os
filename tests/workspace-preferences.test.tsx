@@ -117,7 +117,7 @@ test('Home wiring gates startup on current operational data and preserves explic
  assert(!/setDetail\(null\);setProductionClientId/.test(home),'path changes no longer reset saved filters');
  const logout=home.slice(home.indexOf('async function logout()'),home.indexOf('async function onDragEnd'));
  assert(!logout.includes('updatePreferences'));assert(logout.includes('clearSessionState()'));
- const cleanup=home.slice(home.indexOf('function clearSessionState()'),home.indexOf('async function logout()'));
+  const cleanup=home.slice(home.indexOf('function clearScopedShellData()'),home.indexOf('function clearSessionState()'));
  assert(cleanup.includes("setStartupDataScope('')"));assert(!cleanup.includes('updatePreferences'));
  assert(home.includes("active==='Preferencias'"));
  assert(home.includes('preferencesReady?<SelectCustom'));

@@ -32,7 +32,7 @@ test('identity changes clear scoped shell state, invalidate stale loads, and rem
  assert.match(source,/if\(!identityScopeChanged\(userRef\.current,d\.user\)\)\{setUser\(d\.user\);return;\}/);
  assert.match(source,/clearScopedShellData\(\);\s*clearDataCache\(\);setDataScope\(nextScope\);setWorkspaceScope\(nextScope\);\s*userRef\.current=d\.user;setUser\(d\.user\);\s*if\(d\.user\.subscription\?\.hasAccess!==false\)void load\(d\.user\)/);
  assert.match(source,/dataLoadSequence\.current\+\+;setGuideData\(\{scope:null,status:'unknown'\}\);/);
- assert.match(source,/setClientStatusFilter\(''\);setMoraFilter\(''\);setProjectClient\(''\);setProductionFiltersDialogScope\(''\);setStartupDataScope\(''\);setWorkspaceScope\(''\);/);
+  assert.match(source,/setClientStatusFilter\(''\);setMoraFilter\(''\);setProjectClientFilter\(''\);setProjectClient\(''\);setProductionFiltersDialogScope\(''\);setStartupDataScope\(''\);setWorkspaceScope\(''\);/);
  assert.match(source,/<WorkspaceSearch key=\{workspaceScope\}/);
  assert.match(source,/if\(sequence!==dataLoadSequence\.current\)return;/);
 });

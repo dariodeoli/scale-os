@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=(name:string)=>readFileSync('app/'+name,'utf8');
-const workspace=read('scale-workspace.tsx'),toolbar=read('demo-toolbar.tsx'),sidebar=read('desktop-sidebar.css');
+const workspace=read('scale-workspace.tsx'),toolbar=read('demo-toolbar.tsx'),sidebar=read('desktop-sidebar.css'),personContainer=read('person-container.css');
 assert.equal((workspace.match(/<DemoToolbar/g)||[]).length,1);
 assert(workspace.indexOf('<div className="workspace-context">')<workspace.indexOf('<DemoToolbar'));
 assert(!toolbar.includes('demo-session-note'));
@@ -9,7 +9,7 @@ assert(toolbar.includes('aria-label="Información de la demo"'));
 assert(toolbar.includes('Sin dinero real'));
 assert(toolbar.includes('disabled={busy}'));
 assert(sidebar.includes('grid-template-columns:minmax(0,1fr) 36px'));
-assert(sidebar.includes('overflow:hidden;text-overflow:ellipsis;white-space:nowrap'));
+assert(personContainer.includes('overflow:hidden;text-overflow:ellipsis;white-space:nowrap'));
 assert(workspace.includes('aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}'));
 assert(workspace.includes('onClick={logout} aria-label="Cerrar sesión"'));
 const fields=read('operations.tsx'),css=read('operations.css');

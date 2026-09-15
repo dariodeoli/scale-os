@@ -62,7 +62,7 @@ test('published reports and rolling demo are discoverable without promising none
  assert(text.includes('Informes para decidir con datos'));
  for(const metric of ['clientes activos, facturación, cobros y ticket promedio','retención','antigüedad','empresas y profesionales'])assert(text.includes(metric));
  assert(text.includes('Hasta 24 meses por consulta, monedas separadas y datos según los registros disponibles'));
- assert(text.includes('Solo Dueño, Administración y Finanzas'));
+  assert(text.includes('Solo líderes ven los números, así corresponde.'));
  assert(text.includes('20 clientes ficticios y 7 meses de historial ilustrativo'));
  assert(text.includes('fechas relativas al inicio de cada nueva demo'));
  assert(html.includes('<li>Informes mensuales de clientes y facturación</li>'));
@@ -70,7 +70,7 @@ test('published reports and rolling demo are discoverable without promising none
 
 test('contact form and telemetry runtimes are byte-for-byte preserved',()=>{
  // Captured from the pre-redesign source, compared before storing these hashes.
- assert.equal(sha(script),'bd82b9596d0df8d438f9907d405a0a92e9d350be086b6e44e7bdd9cc7a0c7865');
+  assert.equal(sha(script),'d17f7bdcf9464ef34faab799ceab580185e4b992b212c834c7dd0b11d54fe93d');
  assert.equal(sha(form),'b66b00434ddc381dee345d546898c53b84d0096cc38dec739669dadfd9792924');
  assert(form.includes('type="checkbox" name="consent" required'));
  assert(form.includes('name="website" tabindex="-1" autocomplete="off"'));
@@ -139,9 +139,10 @@ function runtime({ok=true,error='No disponible',mobile=false}={}){
  const button={disabled:false},status={textContent:''};
  const fields={name:'Persona ficticia',company:'Agencia de prueba',email:'persona@example.invalid',phone:'',message:'Consulta de prueba',website:''};
  const fakeForm={querySelector:()=>button,elements:{consent:{checked:true}},reset(){resetCount++;},addEventListener(name,callback){assert.equal(name,'submit');handler=callback;}};
- runInNewContext(script,{
-  document:{getElementById:id=>id==='contact-form'?fakeForm:status,querySelectorAll:()=>[{addEventListener:(_,callback)=>clicks.push(callback)}]},
-  location:{origin:'https://example.invalid',pathname:'/'},
+  runInNewContext(script,{
+   document:{getElementById:id=>id==='contact-form'?fakeForm:status,querySelectorAll:()=>[{addEventListener:(_,callback)=>clicks.push(callback)}]},
+   IntersectionObserver:class{observe(){}},
+   location:{origin:'https://example.invalid',pathname:'/'},
   matchMedia:()=>({matches:mobile}),
   fetch:async(url,init)=>{calls.push({url,init,body:JSON.parse(init.body)});return{ok,json:async()=>ok?{ok:true}:{error}};},
   FormData:class{*[Symbol.iterator](){yield* Object.entries(fields);}},

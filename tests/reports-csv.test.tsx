@@ -62,7 +62,7 @@ test('report CSV download uses loaded data only, respects roles and filters, and
  globalThis.setTimeout=((fn:()=>void,ms?:number)=>{if(ms===1000){cleanup.push(fn);return 0;}return originalTimeout(fn,ms);}) as typeof setTimeout;
  Object.defineProperty(globalThis,'document',{configurable:true,value:{body:{appendChild(){}},createElement(tag:string){assert.equal(tag,'a');return {href:'',download:'',click(){filenames.push(this.download);},remove(){removed++;}};}}});
  const button=()=>renderer!.root.findAllByType('button').find(b=>String(b.props.children).startsWith('Exportar histórico CSV'));
- const respond=async()=>{const req=requests.at(-1)!,month=new URL(req.url,'https://fixture.invalid').searchParams.get('month')!;await act(async()=>req.resolve(new Response(JSON.stringify(data(month)))));};
+  const respond=async()=>{const req=requests.filter(r=>r.url?.includes('/reports?')).at(-1)!,month=new URL(req.url,'https://fixture.invalid').searchParams.get('month')!;await act(async()=>req.resolve(new Response(JSON.stringify(data(month)))));};
  try{
   for(const role of ['viewer','editor','production','sales','management']){
    await act(async()=>{renderer=create(<ReportsWorkspace role={role}/>);});assert.equal(button(),undefined);await act(async()=>renderer!.unmount());

@@ -37,14 +37,17 @@ for(const width of [320,360,390,768]){
  assert.equal(get('.inventory-categories>button','max-width'),'100%');
  assert.equal(get('.inventory-categories>button','white-space'),'normal');
  assert.equal(get('.inventory-form-grid .inventory-check input','padding'),'0','18px checkboxes must not inherit text-input padding');
- for(const selector of ['.inventory-form-grid input','.inventory-form-grid select','.inventory-form-grid textarea']){
-  assert.equal(get(selector,'min-width'),'0');assert.equal(get(selector,'max-width'),'100%');assert(Number.parseFloat(get(selector,'min-height'))>=44,'touch control height is at least 44px');
- }
+  for(const selector of ['.inventory-form-grid input','.inventory-form-grid select','.inventory-form-grid textarea']){
+   assert.equal(get(selector,'min-width'),'0');assert.equal(get(selector,'max-width'),'100%');
+  }
+  for(const selector of ['.inventory-form-grid :is(input,select,textarea)','.inventory-month input']){
+   assert(Number.parseFloat(get(selector,'min-height'))>=44,'touch control height is at least 44px');
+  }
  assert.equal(get('.inventory-month input','max-width'),'100%');
  const money=(selector,property)=>value(forecast,selector,property,width);
  assert.equal(money('.financial-forecast .panel-heading label','flex-wrap'),'wrap');
  assert.equal(money('.financial-forecast input','min-width'),'0');
- assert.equal(money('.financial-forecast input','max-width'),'min(100%,12rem)');
+  assert.equal(money('.financial-forecast input','max-width'),'min(100%,16rem)');
  for(const selector of ['.forecast-currency dt','.forecast-currency dd']){
   assert.equal(money(selector,'min-width'),'0');assert.equal(money(selector,'max-width'),'100%');assert.equal(money(selector,'overflow-wrap'),'anywhere');
  }

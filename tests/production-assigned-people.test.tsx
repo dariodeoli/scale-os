@@ -13,7 +13,7 @@ const card=file.statements.find((n):n is ts.FunctionDeclaration=>ts.isFunctionDe
 assert.ok(card);
 const compiled=ts.transpileModule(card.getText(file),{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}}).outputText;
 let dragDisabled=false;
-const scope={React,AssignedPeople,UrgencyBadge,useDraggable:({disabled}:{disabled:boolean})=>{dragDisabled=disabled;return {setNodeRef:()=>{},transform:null,isDragging:false};},identityColor:()=> 'violet',ClientIdentity:()=>null,LinkIcon:()=>null,RecordEditor:()=>null,ProjectCardPresence:({projectId}:{projectId:string})=><div data-project={projectId}>Viendo ahora: Visitante sin asignar</div>};
+const scope={React,AssignedPeople,UrgencyBadge,useDraggable:({disabled}:{disabled:boolean})=>{dragDisabled=disabled;return {setNodeRef:()=>{},transform:null,isDragging:false};},identityColor:()=> 'violet',ClientIdentity:()=>null,LinkIcon:()=>null,RecordEditor:()=>null,DueDate:()=>null,Eye:()=>null,ProjectCardPresence:({projectId}:{projectId:string})=><div data-project={projectId}>Viendo ahora: Visitante sin asignar</div>};
 const Card=new Function(...Object.keys(scope),`${compiled};return DraggableOrder;`)(...Object.values(scope)) as React.ComponentType<any>;
 const people=Array.from({length:5},(_,i)=>({id:String(i+1),full_name:`Responsable ${i+1}`,photo_url:`https://example.invalid/${i}.webp`,is_primary:i===0}));
 const order={id:'77',title:'Pieza',project_id:'12',client_name:'Cliente',project_name:'Proyecto',description:null,drive_url:null,assignees:people,effective_assignees:people,assignee_source:'direct',assigned_user_ids:people.map(p=>p.id)};

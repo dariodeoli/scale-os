@@ -21,10 +21,10 @@ test('actual team loader: people needs 4 parallel reads, commissions retains its
   const deps:Record<string,unknown>={mode,api:(path:string)=>{calls.push(path);return new Promise(resolve=>resolvers.push(()=>resolve({collaborators:[],members:[],archivedProfiles:[],commissions:[],accounts:[],invoices:[],payouts:[],roles:[]})));}};
   for(const setter of ['setPeople','setMembers','setArchivedProfiles','setCommissions','setAccounts','setInvoices','setPayouts','setJobs'])deps[setter]=(value:unknown)=>{state[setter]=value;};
   const run=execute(load.getText(ast)+';return load;',deps);const finished=run();
-  assert.equal(calls.length,mode==='people'?4:6,'all requests begin before any response');
+  assert.equal(calls.length,mode==='people'?3:5,'all requests begin before any response');
   if(mode==='people')assert(!calls.some(path=>/commissions|invoices/.test(path)));
   assert.equal(Object.keys(state).length,0);resolvers.forEach(resolve=>resolve());await finished;
-  assert.equal(Object.keys(state).length,8);
+  assert.equal(Object.keys(state).length,7);
  }
 });
 
