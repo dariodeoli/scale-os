@@ -63,7 +63,7 @@ type Person = {
 type Coupon = {
   id: number;
   code: string;
-  discount_type: "percent" | "fixed";
+  discount_type: "percent" | "fixed" | "days";
   discount_value: string;
   currency: string | null;
   active: boolean;
@@ -204,7 +204,7 @@ export default function PlatformAdmin() {
   const [coupon, setCoupon] = useState({
     code: "",
     discount_value: "10",
-    discount_type: "percent" as "percent" | "fixed",
+    discount_type: "percent" as "percent" | "fixed" | "days",
     currency: "USD",
   });
   const [bootstrap, setBootstrap] = useState<BootstrapStatus | null>(null);
@@ -446,7 +446,7 @@ export default function PlatformAdmin() {
         method: "POST",
         body: JSON.stringify({
           ...coupon,
-          currency: coupon.discount_type === "percent" ? null : coupon.currency,
+          currency: coupon.discount_type === "fixed" ? coupon.currency : null,
         }),
       });
       setCoupon({
@@ -1011,19 +1011,20 @@ export default function PlatformAdmin() {
                       setCoupon({
                         ...coupon,
                         discount_type: event.target.value as
-                          "percent" | "fixed",
+                          "percent" | "fixed" | "days",
                       })
                     }
                   >
                     <option value="percent">Porcentaje</option>
                     <option value="fixed">Monto fijo</option>
+                    <option value="days">Días gratis</option>
                   </select>
                 </label>
                 <label>
-                  Valor
+                  {coupon.discount_type === "days" ? "Días gratis" : "Valor"}
                   <input
                     value={coupon.discount_value}
-                    inputMode="decimal"
+                    inputMode={coupon.discount_type === "days" ? "numeric" : "decimal"}
                     onChange={(event) =>
                       setCoupon({
                         ...coupon,
@@ -1063,7 +1064,9 @@ export default function PlatformAdmin() {
                         <small>
                           {item.discount_type === "percent"
                             ? `${formatPlatformMetric(item.discount_value)}%`
-                            : money(item.discount_value, item.currency)}{" "}
+                            : item.discount_type === "days"
+                              ? `${formatPlatformMetric(item.discount_value)} días gratis`
+                              : money(item.discount_value, item.currency)}{" "}
                           ·{" "}
                           {item.max_redemptions === null
                             ? "Sin límite de usos"

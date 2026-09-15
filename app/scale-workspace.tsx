@@ -1236,7 +1236,8 @@ export default function Home() {
       if(d.user.subscription?.hasAccess!==false)void load(d.user).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
     }).catch(()=>{});};
     window.addEventListener('scale:identity-changed',refreshIdentity);
-    return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);};
+    window.addEventListener('focus',refreshIdentity);
+    return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);window.removeEventListener('focus',refreshIdentity);};
   },[]);
   const active=signedIn&&(!visibleModule(requestedSection,user?.role||'viewer')||requestedSection==='Admin'&&user?.platform_role!=='admin')?'Sin acceso':requestedSection;
   useEffect(()=>{

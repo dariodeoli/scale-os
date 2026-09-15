@@ -22,7 +22,7 @@ test('lists only real companies and waits for server confirmation',async()=>{
  assert.doesNotMatch(JSON.stringify(r!.toJSON()),/Demo/);
  const buttons=()=>r!.root.findAllByType('button');
  assert.equal(buttons().filter(b=>b.props['aria-pressed']!==undefined).length,2);
- assert.equal(buttons().find(b=>b.props['aria-pressed']===true)?.props.disabled,true);
+ assert.equal(buttons().find(b=>b.props['aria-pressed']===true)?.props.disabled,false,'the default star stays clickable and idempotent');
  fail=true;
  await act(async()=>{await buttons().find(b=>b.props['aria-pressed']===false)!.props.onClick();});
  assert.equal(r!.root.findAllByProps({role:'alert'}).length,1);

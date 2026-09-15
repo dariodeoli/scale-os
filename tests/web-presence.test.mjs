@@ -16,9 +16,9 @@ assert(metadata.includes("url:'/favicon.ico'"),'the authenticated app must decla
 assert(metadata.includes("url:'/brand/apple-touch-icon.png'"),'the authenticated app must declare the Apple touch icon');
 assert(metadata.includes('robots:{index:false,follow:false'),'private app pages must remain non-indexable');
 assert(robots.includes("disallow:'/"),'robots route must disallow private application crawling');
-assert.equal(appManifest.start_url,'https://app.scaleparaguay.com/','app manifest must open the product host');
-assert.equal(appManifest.id,'https://app.scaleparaguay.com/','app manifest must keep a stable install identity');
-assert.equal(landingManifest.start_url,'https://sistema.scaleparaguay.com/','landing manifest must remain scoped to the public host');
+assert.equal(appManifest.start_url,'/','app manifest must stay same-origin on every deployment host');
+assert.equal(appManifest.id,'/','app manifest must keep a stable install identity per origin');
+assert.equal(landingManifest.start_url,'/','landing manifest must stay same-origin on every deployment host');
 assert(landing.includes('application/ld+json'),'landing must expose structured data');
 assert(landing.includes('SoftwareApplication'),'landing structured data must identify the product');
 assert(landingRobots.includes('Sitemap: https://sistema.scaleparaguay.com/sitemap.xml'),'landing robots must point crawlers to the canonical sitemap');

@@ -39,7 +39,7 @@ export function CompanySettings(){
     <div className="company-settings-name"><strong>{company.name}</strong><div className="company-settings-meta"><span>{roles[company.role]||company.role}</span>{current&&<span className="company-settings-state">Empresa abierta</span>}</div></div>
     <div className="company-settings-actions">
      {!current&&<button className="secondary company-settings-open" disabled={busy} onClick={()=>void choose(company,false)}>Abrir</button>}
-     {!company.isDemo&&<button className="secondary company-settings-default" disabled={busy||preferred} aria-label={preferred?'Predeterminada':'Usar al iniciar sesión'} aria-pressed={preferred} title={preferred?'Predeterminada':'Usar al iniciar sesión'} onClick={()=>void choose(company,true)}><Star size={17} fill={preferred?'currentColor':'none'} aria-hidden="true"/><span className="company-settings-sr-only">{preferred?'Predeterminada':'Usar al iniciar sesión'}</span></button>}
+     {!company.isDemo&&<button className="secondary company-settings-default" disabled={busy} aria-label={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} aria-pressed={preferred} title={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} onClick={()=>void choose(company,true)}><Star size={17} fill={preferred?'currentColor':'none'} aria-hidden="true"/><span className="company-settings-sr-only">{preferred?'Predeterminada':'Usar al iniciar sesión'}</span></button>}
     </div>
    </article>;
   })}
