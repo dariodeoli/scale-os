@@ -6,8 +6,7 @@
 - La versión visible vive en `release/version.json`, sincronizada con `app/app-version.ts`, `package.json` y el footer.
 
 ## Entrega a main (regla obligatoria)
-- Al terminar una tarea autorizada, commitear por unidad de trabajo y pushear a main (API → interfaz), sin bump de versión: el deploy a producción sigue siendo exclusivo de `npm run release:patch`.
-- En este repo, mergear SOS-03 a main con fast-forward (`git push origin SOS-03:main`). No dejar trabajo terminado sin mergear.
+- Al terminar cada tarea autorizada, commitear por unidad de trabajo y mergear/pushear a main (API → interfaz) SIEMPRE, sin esperar un pedido explícito y sin bump de versión: el deploy a producción sigue siendo exclusivo de `npm run release:patch`. No dejar trabajo terminado sin mergear.
 - Sincronizar los checkouts locales de main (ff-only) después del push.
 
 ## Verificación mínima antes de entregar
