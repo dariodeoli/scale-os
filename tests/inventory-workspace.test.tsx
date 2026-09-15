@@ -102,7 +102,7 @@ async function run(){
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});
  assert.equal(intervals.size,1);assert.match(tree(),/Sincroniza cada 30 s/);assert.match(tree(),/Estante A/);assert.doesNotMatch(tree(),/Cargando inventario/);assert.doesNotMatch(tree(),/Ubicaciones de guardado/,'storage management controls stay hidden outside manager roles');
  assert.equal(renderer.root.findByProps({className:'inventory-toolbar-meta'}).props.children.length,2,'tabs and synchronization status share the compact metadata row');
- const tabs=renderer.root.findByProps({role:'group','aria-label':'Vistas de inventario'}).findAllByType('button');assert.equal(tabs.length,2);assert.equal(tabs[0].props['aria-pressed'],true);assert.equal(tabs[1].props['aria-pressed'],false);
+  const tabs=renderer.root.findByProps({role:'group','aria-label':'Vistas de inventario'}).findAllByType('button');assert.equal(tabs.length,3);assert.equal(tabs[0].props['aria-pressed'],true);assert.equal(tabs[1].props['aria-pressed'],false);assert.equal(tabs[2].props['aria-pressed'],false);
  const viewControl=renderer.root.findByProps({role:'group','aria-label':'Vista de inventario'});let viewButtons=viewControl.findAllByType('button');assert.equal(viewButtons.length,2);assert(viewButtons.every(node=>node.props['aria-label']&&node.props['aria-pressed']!==undefined),'grid/list controls retain accessible labels and selected state');act(()=>viewButtons[1].props.onClick());assert.match(tree(),/inventory-equipment-list/,'list control keeps the dense list view available');viewButtons=viewControl.findAllByType('button');assert.equal(viewButtons[1].props['aria-pressed'],true);act(()=>viewButtons[0].props.onClick());
  assert.match(text(renderer.root),/2 equipos visibles/);change('Buscar equipo o ubicación','Mic');assert.match(text(renderer.root),/1 equipo visible/,'the compact count tracks the filter');change('Buscar equipo o ubicación','');
  act(()=>button('Reservar equipos').props.onClick());change('Producción o uso previsto','Borrador que debe sobrevivir');check('Memoria SD');
@@ -122,21 +122,20 @@ async function run(){
  context.user_id='11';reservations=[{...record,status:'checked_out',custodian_user_id:'11',custodian_name:'Sonido'}];
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});act(()=>button('Calendario y reservas').props.onClick());
  assert(button('Registrar devolución'));assert(!button('Editar reserva'));assert(!button('Cancelar reserva'));act(()=>renderer.unmount());
- // Exercise category and storage-manager wiring without the shared Editor
- // implementation. API/database persistence is tested in the API suite.
- context.role='management';context.can_manage=true;items=equipment;
- await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
- act(()=>button('Agregar categoría').props.onClick());
- categories=[...categories,{id:'3',name:'Accesorios nuevos',active:true}];
- await act(async()=>{await renderer.root.findByType(MockEditor).props.save({name:'Accesorios nuevos',active:'true'});});
- assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories');assert.equal(writes.at(-1)!.method,'POST');assert.equal(writes.at(-1)!.body.active,true);assert(button('Accesorios nuevos'));
- // The production Editor closes only after releasing its own pending state.
- // This minimal mock does not implement that behavior, so emulate its close.
- act(()=>renderer.root.findByType(MockDialog).props.close());
- act(()=>button('Accesorios nuevos').props.onClick());categories=categories.map(c=>c.id==='3'?{...c,name:'Accesorios archivados',active:false}:c);
- await act(async()=>{await renderer.root.findByType(MockEditor).props.save({name:'Accesorios archivados',active:'false'});});
- assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories/3');assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.active,false);assert(button('Accesorios archivados · archivada'));
- act(()=>renderer.root.findByType(MockDialog).props.close());
+  // CategoryForm owns name, availability and icon without the shared Editor.
+  // API/database persistence is tested in the API suite.
+  context.role='management';context.can_manage=true;items=equipment;
+  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+  act(()=>button('Agregar categoría').props.onClick());
+  categories=[...categories,{id:'3',name:'Accesorios nuevos',active:true}];
+  change('Nombre de la categoría','Accesorios nuevos');
+  await submit();
+  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories');assert.equal(writes.at(-1)!.method,'POST');assert.deepEqual(writes.at(-1)!.body,{name:'Accesorios nuevos',active:true,icon:null});assert(button('Accesorios nuevos'));
+  act(()=>button('Accesorios nuevos').props.onClick());categories=categories.map(c=>c.id==='3'?{...c,name:'Accesorios archivados',active:false}:c);
+  change('Nombre de la categoría','Accesorios archivados');
+  act(()=>renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevos equipos'))!.findByType('input').props.onChange({target:{checked:false}}));
+  await submit();
+  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories/3');assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.active,false);assert(button('Accesorios archivados · archivada'));
  assert.match(tree(),/Ubicaciones de guardado/);assert.match(tree(),/Estante A/);assert(renderer.root.findAllByType('small').some(node=>text(node)==='1 equipo'));assert(button('Renombrar'));assert(button('Archivar'));
  const deleteButtons=renderer.root.findAllByType('button').filter(node=>text(node)==='Eliminar');assert.equal(deleteButtons[0].props.disabled,true,'referenced templates cannot be deleted');assert.equal(deleteButtons[1].props.disabled,false,'unreferenced templates stay deletable');
  act(()=>button('Renombrar').props.onClick());change('Nombre de la ubicación','Estante A principal');const availability=renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevas asignaciones'))!.findByType('input');act(()=>availability.props.onChange({target:{checked:false}}));await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-locations/storage-a');assert.deepEqual(writes.at(-1)!.body,{name:'Estante A principal',active:false});act(()=>renderer.unmount());
@@ -172,7 +171,8 @@ async function run(){
   act(()=>button('Cancelar').props.onClick());assert.equal(closed,closedBefore+1);act(()=>renderer.unmount());
  }
  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
- act(()=>button('Archivar').props.onClick());
+ const archiveCardButton=()=>renderer.root.findAllByType('button').find(node=>String(node.props['aria-label']||'').startsWith('Archivar equipo'))!;
+ act(()=>archiveCardButton().props.onClick());
  let archiving!:Promise<void>;delayWrites=true;
  act(()=>{archiving=button('Archivar equipo').props.onClick();});
  assert.equal(renderer.root.findByType(MockDialog).props.busy,true);assert.equal(button('Archivando…').props.disabled,true);
@@ -185,7 +185,7 @@ async function run(){
  await act(async()=>{intervals.forEach(callback=>callback());});
  assert.match(text(renderer.root.findByProps({role:'dialog'})),/Conflicto de reserva/);
  act(()=>button('Cancelar').props.onClick());assert.equal(renderer.root.findAllByType(MockDialog).length,0);
- act(()=>button('Archivar').props.onClick());assert.equal(renderer.root.findAllByProps({role:'alert'}).length,0,'reopening has no stale archive error');
+ act(()=>archiveCardButton().props.onClick());assert.equal(renderer.root.findAllByProps({role:'alert'}).length,0,'reopening has no stale archive error');
  await act(async()=>{await button('Archivar equipo').props.onClick();});
  assert.equal(renderer.root.findAllByType(MockDialog).length,0);assert.match(tree(),/Equipo archivado/);
  assert.equal(writes.at(-1)!.method,'DELETE');act(()=>renderer.unmount());assert.equal(intervals.size,0);

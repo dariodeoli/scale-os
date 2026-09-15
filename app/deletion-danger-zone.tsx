@@ -179,7 +179,7 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
  },[auth]);
 
  useEffect(()=>{
-  if(!auth||confirmationWait<=0)return;
+  if(!auth)return;
   const timer=window.setInterval(()=>setConfirmationWait(seconds=>seconds>1?seconds-1:0),1000);
   return()=>window.clearInterval(timer);
  },[auth]);
