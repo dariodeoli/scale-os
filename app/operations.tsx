@@ -21,7 +21,6 @@ import {CommentBody,CommentComposer} from './commenting';
 import {notifyMutation} from './feedback';
 import {teamDirectory,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
 import {TeamAccess} from './team-access';
-import {MemberAccessEditor} from './suite';
 import {PermissionsMatrix} from './permissions-matrix';
 import {dataFetch} from './data-cache';
 
@@ -423,7 +422,7 @@ export function OperationsWorkspace({
     {
       key: "payment_day",
       label: "Día de pago (1–31)",
-      type: "number",
+      choices: [{value:'',label:'Sin definir'},...Array.from({length:31},(_,i)=>({value:String(i+1),label:String(i+1)}))],
       optional: true,
       section: 'Remuneración y pagos',
     },
@@ -441,14 +440,19 @@ export function OperationsWorkspace({
     invoices_company: String(person?.invoices_company || false),
     started_on: person?.started_on?.slice(0, 10) || "",
     ended_on: person?.ended_on?.slice(0, 10) || "",
-    payment_day: String(person?.payment_day || ""),
+    payment_day: String(person?.payment_day || 5),
     active: String(person?.active ?? true),
     notes: person?.notes || "",
   };
   const dialogMember = person
     ? directory.find(entry=>entry.profile?.id===person.id)?.member || null
     : members.find(member=>member.email===seedEmail) || null;
-  const accessEditsCargo=Boolean(dialogMember)&&dialogMember!.email!==currentEmail&&!(dialogMember!.role==='owner'&&role!=='owner');
+  const [accessDraft,setAccessDraft]=useState<{role:string;active:string}|null>(null);
+  const [accessBusy,setAccessBusy]=useState(false);
+  useEffect(()=>{
+    const member=dialogMember&&!dialogMember.removed_at&&!(dialogMember.email===currentEmail||dialogMember.role==='owner'&&role!=='owner')?dialogMember:null;
+    setAccessDraft(member?{role:member.role,active:String(member.active!==false)}:null);
+  },[dialogMember?.id,dialogMember?.role,dialogMember?.active,dialogMember?.removed_at]);
   return (
     <div className="ops-stack">
       <section className="panel">
@@ -705,26 +709,36 @@ export function OperationsWorkspace({
         <Dialog
           title={person ? "Editar persona" : "Nueva persona"}
           close={() => setEdit(null)}
+          size="wide"
         >
           <p className="form-note">
             {['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso automáticamente. Si es nuevo, recibe una invitación con permiso de lectura; los accesos existentes conservan sus permisos.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
             {person?' El estado laboral no revoca accesos existentes.':seedEmail?' El nombre y la foto se toman de su perfil personal; esta ficha agrega datos laborales.':''}
           </p>
           {!person&&members.find(member=>member.email===seedEmail)?.photo_url&&<PhotoViewer photo={members.find(member=>member.email===seedEmail)!.photo_url!} name={personDefaults.full_name}/>}
-          {person&&<div className="person-identity-panel">
-            <ProfilePhoto compact key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
+          {(person||(dialogMember&&!dialogMember.removed_at))&&<div className={`person-identity-panel${person?'':' is-single'}`}>
+            {person&&<ProfilePhoto compact key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
               const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
               await load();setEdit(result.collaborator);
-            }}/>
+            }}/>}
+            {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section person-access-panel" aria-label="Acceso al panel">
+              <h3>Acceso al panel</h3>
+              <div className="person-access-body">
+                <p className="form-note"><span className={`team-access-status ${dialogMember.active?'is-active':'is-suspended'}`}>{dialogMember.active?'Acceso habilitado':'Acceso suspendido'}</span></p>
+                {accessDraft?<>
+                  <div className="ops-form-grid">
+                    <SelectCustom label="Permiso" choices={[...(role==='owner'?['owner']:[]),'admin','management','finance','sales','production','editor','viewer'].map(v=>({value:v,label:teamRoleLabels[v]||v}))} value={accessDraft.role} onChange={value=>setAccessDraft(draft=>({...draft!,role:value}))}/>
+                    <SelectCustom label="Acceso" choices={[{value:'true',label:'Activo'},{value:'false',label:'Suspendido'}]} value={accessDraft.active} onChange={value=>setAccessDraft(draft=>({...draft!,active:value}))}/>
+                  </div>
+                  <p className="form-note">El permiso y el acceso se guardan junto con el perfil. Cambiar permisos o suspender cierra las sesiones de esta persona en esta empresa.</p>
+                  {dialogMember.active!==false&&<button type="button" className="secondary" disabled={accessBusy} onClick={async()=>{setAccessBusy(true);try{const d=await api<{emailSent:boolean}>(`/api/agency/members/${dialogMember.id}/resend`,{});setNotice(d.emailSent?'Invitación enviada.':'El proveedor no pudo enviar el correo.');}catch(e){setError(message(e));}finally{setAccessBusy(false);}}}>Reenviar invitación</button>}
+                </>:<p className="form-note">Tu propio acceso se administra desde Mi perfil; el de otros dueños, desde Equipo.</p>}
+              </div>
+            </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>:null}
           </div>}
-          {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section" aria-label="Acceso al panel">
-            <h3>Acceso al panel</h3>
-            <p className="form-note"><span className={`team-access-status ${dialogMember.active?'is-active':'is-suspended'}`}>{dialogMember.active?'Acceso habilitado':'Acceso suspendido'}</span></p>
-            <MemberAccessEditor member={dialogMember} person={person} currentEmail={currentEmail} role={role} refresh={load}/>
-          </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>:null}
           <Editor
             columns
-            fields={personFields.filter(field=>!accessEditsCargo||field.key!=='job_title')}
+            fields={personFields}
             defaults={personDefaults}
             save={async (v) => {
               const result = await api<{access?:{status:string;emailSent?:boolean}}>(
@@ -736,6 +750,7 @@ export function OperationsWorkspace({
                 },
                 person ? "PATCH" : "POST",
               );
+              if(accessDraft&&dialogMember)await api(`/api/agency/members/${dialogMember.id}`,{role:accessDraft.role,active:accessDraft.active==='true'},'PATCH');
               await done();
               if(result.access?.status==='suspended'){setNotice('Perfil guardado. Su acceso sigue suspendido; se administra desde Equipo.');return;}
               setNotice(result.access?.status==='invited' ? result.access.emailSent ? 'Colaborador guardado. Acceso habilitado e invitación enviada.' : 'Colaborador guardado y acceso habilitado. No se pudo enviar el correo; puede entrar con Google usando el correo registrado.' : result.access?.status==='linked' ? 'Perfil guardado y acceso vinculado.' : result.access?.status==='needs_admin' ? 'Perfil guardado. Administración debe habilitar el acceso.' : 'Perfil guardado.');
