@@ -256,6 +256,8 @@ type ClientPaymentStatus = {
   next_due_on: string | null;
   days_overdue: number;
   payment_status: "up_to_date" | "due_soon" | "late" | "severe";
+  invoice_count: number;
+  has_invoice: boolean;
 };
 function localMonth(){const parts=new Intl.DateTimeFormat('en',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(new Date());return `${parts.find(part=>part.type==='year')!.value}-${parts.find(part=>part.type==='month')!.value}`;}
 type User = {
@@ -1305,7 +1307,7 @@ export default function Home() {
     }
     return rows;
   }, [moraReports, paymentStatuses]);
-  const visibleMoraClients = moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses;
+  const visibleMoraClients = moraFilter === "no_invoice" ? paymentStatuses.filter(client => !client.has_invoice) : moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses;
   const moneyMora = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
   const moneyKpi = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
   const budgetKpis = useMemo(() => {
@@ -1353,13 +1355,14 @@ export default function Home() {
     return { active, paused, activeProjects, deliveries };
   }, [clients, projects, orders]);
   const cobrosKpis = useMemo(() => {
-    let alDia = 0, porVencer = 0, enMora = 0;
+    let alDia = 0, porVencer = 0, enMora = 0, sinFactura = 0;
     for (const client of paymentStatuses) {
       if (client.payment_status === "up_to_date") alDia += 1;
       else if (client.payment_status === "due_soon") porVencer += 1;
       else if (client.payment_status === "late" || client.payment_status === "severe") enMora += 1;
+      if (!client.has_invoice) sinFactura += 1;
     }
-    return { alDia, porVencer, enMora };
+    return { alDia, porVencer, enMora, sinFactura };
   }, [paymentStatuses]);
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
@@ -1506,7 +1509,7 @@ export default function Home() {
   useEffect(() => {
     if (
       operationalAccess &&
-      active === "Pipeline" &&
+      (active === "Pipeline" || active === "Métricas") &&
       ["owner", "admin"].includes(user?.role || "")
     )
       request<{ events: MetricEvent[] }>("/api/metrics")
@@ -1789,6 +1792,7 @@ export default function Home() {
         {active==='Invitaciones'&&(user?.demo_owner_user_id?<section className="panel"><h2>Invitaciones y solicitudes</h2><p>En tu empresa real podés generar enlaces de un uso o enlaces con aprobación. El Demo no crea accesos externos. Probá los permisos desde la barra superior.</p></section>:<InviteLinks role={user?.role||'viewer'}/>)}
         {active==='Comisiones'&&<OperationsWorkspace key="commissions" mode="commissions" role={user?.role||'viewer'}/>}
         {active==='Pipeline'&&<div className="ops-stack"><CatalogWorkspace key="leads" kind="leads" role={user?.role||'viewer'}/>{user&&<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>} {['owner','admin'].includes(user?.role||'')&&<GrowthDashboard events={metrics}/>}</div>}
+        {active==='Métricas'&&['owner','admin'].includes(user?.role||'')&&<div className="ops-stack"><GrowthDashboard events={metrics}/></div>}
         {active==='Planes'&&<CatalogWorkspace key="plans" kind="plans" role={user?.role||'viewer'}/>}
         {active==='Inventario'&&<InventoryWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
         {active==='Estudio'&&<StudioWorkspace key={String(user?.organization_id)} role={user?.role||'viewer'}/>}
@@ -1956,6 +1960,7 @@ export default function Home() {
                 ["due_soon", "Por vencer"],
                 ["late", "En mora"],
                 ["severe", "Mora grave"],
+                ["no_invoice", "Sin factura"],
               ].map(([value, label]) => (
                 <button
                   type="button"
@@ -2043,7 +2048,7 @@ export default function Home() {
               <article className="kpi-card tone-warning">
                 <p className="eyebrow">COBROS AL DÍA</p>
                 <strong>{cobrosKpis.alDia}</strong>
-                <small>{cobrosKpis.enMora} en mora · {cobrosKpis.porVencer} por vencer</small>
+                <small>{cobrosKpis.enMora} en mora · {cobrosKpis.porVencer} por vencer · {cobrosKpis.sinFactura} sin factura</small>
               </article>
               <article className="kpi-card tone-blue">
                 <p className="eyebrow">ENTREGAS ESTA SEMANA</p>
