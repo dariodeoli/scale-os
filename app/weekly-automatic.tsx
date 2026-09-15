@@ -4,8 +4,10 @@ import {ActorIdentity} from './actor-identity';
 
 export const automaticTypeLabels:Record<string,string>={video:'Videos',reedicion:'Reediciones',foto:'Fotos',produccion:'Producciones',entregable:'Entregables',untyped:'Sin tipo'};
 export const automaticTypes=Object.keys(automaticTypeLabels);
-export type AutomaticEntry={user_id:string;counts:Record<string,number>;actor_name?:string|null;actor_photo_url?:string|null;actor_verified?:boolean};
+export type AutomaticProject={project_id:number;project_name:string|null;count:number;orders:number};
+export type AutomaticEntry={user_id:string;counts:Record<string,number>;orders:number;projects:AutomaticProject[];actor_name?:string|null;actor_photo_url?:string|null;actor_verified?:boolean};
 export type WeeklyAutomaticResult={week:string;scope:string;automatic:AutomaticEntry[]};
+function projectLabel(project:AutomaticProject){return project.project_name??(project.project_id===0?'Sin proyecto':'Proyecto eliminado');}
 export function weekMonday(day:string){
  const date=new Date(day+'T12:00:00Z');
  if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==day)return '';
@@ -34,18 +36,18 @@ export function WeeklyAutomatic({role}:{role:string}){
   return()=>{alive=false;};
  },[week,scope,reload]);
  const rows=result?.automatic??[];
- return <section className="panel weekly-automatic" aria-label="Producción semanal automática">
-  <h2>Producción semanal</h2>
-  <p className="form-note">Terminadas de la semana, calculadas automáticamente desde los cambios de estado. Cada pieza cuenta una sola vez, en la semana en que pasó a terminada, atribuida a quien ejecutó el cambio. Sin horas: se cuentan piezas, no tiempo trabajado.</p>
-  <div className="reports-filters"><label>Semana<input type="date" value={week} onChange={e=>{const w=weekMonday(e.target.value);if(w)setWeek(w);}}/></label></div>
-  <p className="reports-note">Del {week} al {lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</p>
-  {loading&&<p role="status">Cargando producción semanal…</p>}
-  {error&&<div role="alert" className="reports-error"><p>{error}</p><button type="button" className="secondary" onClick={()=>setReload(v=>v+1)}>Reintentar</button></div>}
-  {!loading&&!error&&!rows.length&&<p className="form-note">Sin piezas terminadas en esta semana.</p>}
-  {!loading&&!error&&rows.length>0&&<div className="reports-table-scroll"><table>
-   <caption>Piezas terminadas por tipo · {scope==='team'?'todo el equipo':'tu trabajo'}</caption>
-   <thead><tr><th scope="col">{scope==='team'?'Colaborador':'Trabajo'}</th>{automaticTypes.map(type=><th scope="col" key={type}>{automaticTypeLabels[type]}</th>)}</tr></thead>
-   <tbody>{rows.map(entry=><tr key={entry.user_id}><th scope="row"><ActorIdentity name={entry.actor_name} photoUrl={entry.actor_photo_url} verified={entry.actor_verified===true}/></th>{automaticTypes.map(type=><td key={type}>{entry.counts[type]??0}</td>)}</tr>)}</tbody>
-  </table></div>}
- </section>;
+  return <section className="panel weekly-automatic" aria-label="Producción semanal automática">
+   <h2>Producción semanal</h2>
+   <p className="form-note">Terminadas de la semana, calculadas automáticamente desde los cambios de estado. Cada pieza cuenta una sola vez, en la semana en que pasó a terminada, atribuida a quien ejecutó el cambio. Sin horas: se cuentan piezas, no tiempo trabajado. Órdenes: piezas en las que se trabajó durante la semana, terminadas o no. Proyectos: distribución de las piezas terminadas por proyecto.</p>
+   <div className="reports-filters"><label>Semana<input type="date" value={week} onChange={e=>{const w=weekMonday(e.target.value);if(w)setWeek(w);}}/></label></div>
+   <p className="reports-note">Del {week} al {lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</p>
+   {loading&&<p role="status">Cargando producción semanal…</p>}
+   {error&&<div role="alert" className="reports-error"><p>{error}</p><button type="button" className="secondary" onClick={()=>setReload(v=>v+1)}>Reintentar</button></div>}
+   {!loading&&!error&&!rows.length&&<p className="form-note">Sin piezas terminadas en esta semana.</p>}
+   {!loading&&!error&&rows.length>0&&<div className="reports-table-scroll"><table>
+    <caption>Piezas terminadas por tipo · {scope==='team'?'todo el equipo':'tu trabajo'}</caption>
+    <thead><tr><th scope="col">{scope==='team'?'Colaborador':'Trabajo'}</th>{automaticTypes.map(type=><th scope="col" key={type}>{automaticTypeLabels[type]}</th>)}<th scope="col">Órdenes</th><th scope="col">Proyectos</th></tr></thead>
+    <tbody>{rows.map(entry=><tr key={entry.user_id}><th scope="row"><ActorIdentity name={entry.actor_name} photoUrl={entry.actor_photo_url} verified={entry.actor_verified===true}/></th>{automaticTypes.map(type=><td key={type}>{entry.counts[type]??0}</td>)}<td>{entry.orders??0}</td><td>{entry.projects?.length?entry.projects.map(project=><div key={project.project_id} className="weekly-project-line">{projectLabel(project)} · {project.count}{project.orders>0?` · ${project.orders} órdenes`:''}</div>):'—'}</td></tr>)}</tbody>
+   </table></div>}
+  </section>;
 }
