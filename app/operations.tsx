@@ -21,6 +21,7 @@ import {CommentBody,CommentComposer} from './commenting';
 import {notifyMutation} from './feedback';
 import {teamDirectory,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
 import {TeamAccess} from './team-access';
+import {MemberAccessEditor} from './suite';
 import {PermissionsMatrix} from './permissions-matrix';
 import {dataFetch} from './data-cache';
 
@@ -398,6 +399,7 @@ export function OperationsWorkspace({
   const empty = { value: "", label: "Sin vincular" };
   const personFields: Field[] = [
     { key: "full_name", label: "Nombre completo" },
+    { key: "job_title", label: "Cargo", optional: true },
     {
       key: "email",
       label: "Correo de contacto",
@@ -444,6 +446,7 @@ export function OperationsWorkspace({
   const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
   const personDefaults: Record<string, string> = {
     full_name: person?.full_name || members.find(member=>member.email===seedEmail)?.full_name || "",
+    job_title: person?.job_title || "",
     email: person?.email || seedEmail,
     compensation_type: person?.compensation_type || "fixed",
     compensation_amount: person?.compensation_amount || "0",
@@ -457,6 +460,9 @@ export function OperationsWorkspace({
     active: String(person?.active ?? true),
     notes: person?.notes || "",
   };
+  const dialogMember = person
+    ? directory.find(entry=>entry.profile?.id===person.id)?.member || null
+    : members.find(member=>member.email===seedEmail) || null;
   return (
     <div className="ops-stack">
       <section className="panel">
@@ -538,7 +544,7 @@ export function OperationsWorkspace({
                     )}
                     <div>
                       <h3>{p.full_name}{!p.monthly_salary_amount&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
-                      <small>{entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin cargo'}</small>
+                      <small>{p.job_title||(entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin cargo')}</small>
                     </div>
                   </div>
                 </div>
@@ -565,7 +571,17 @@ export function OperationsWorkspace({
                   <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
                 </div>
               </article>
-            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><PersonContainer size="lg" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} secondary={`${entry.member!.email} · ${accessRole} · ${accessState}`} verified/></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button positive" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={14}/>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={14}/>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
+            ):<article className="ops-card ops-person-card" key={entry.key}>
+              <div className="ops-person"><PersonContainer size="lg" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} secondary={`${entry.member!.email} · ${accessRole} · ${accessState}`} verified/></div>
+              <TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>
+              {entry.archivedProfileId?<button className="text-button positive" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={14}/>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={14}/>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
+              <div className="ops-card-actions">
+                <button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>
+                  <Pencil size={14}/>
+                  Editar
+                </button>
+              </div>
+            </article>;})}
             {!visiblePeople.length && (
               <p className="empty-copy">
                 {search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}
@@ -714,8 +730,12 @@ export function OperationsWorkspace({
               const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
               await load();setEdit(result.collaborator);
             }}/>
-            <TeamAccess member={directory.find(entry=>entry.profile?.id===person.id)?.member||null} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>
           </div>}
+          {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section" aria-label="Acceso al panel">
+            <h3>Acceso al panel</h3>
+            <p className="form-note"><span className={`team-access-status ${dialogMember.active?'is-active':'is-suspended'}`}>{dialogMember.active?'Acceso habilitado':'Acceso suspendido'}</span></p>
+            <MemberAccessEditor member={dialogMember} currentEmail={currentEmail} role={role} refresh={load}/>
+          </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>:null}
           <Editor
             columns
             fields={personFields}

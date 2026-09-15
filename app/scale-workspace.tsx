@@ -56,6 +56,7 @@ import {SaveActions} from './save-actions';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {completeSave} from './save-completion';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
+import {PermissionsMatrixPanel} from './permissions-matrix';
 import './operations.css';
 import './suite.css';
 import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWorkspace,CouponRedeem} from './suite';
@@ -1800,6 +1801,7 @@ export default function Home() {
         {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
         {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><button className="primary" onClick={()=>setActive('Resumen')}>Ir al resumen</button></section>}
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
+        {active==='Roles y permisos'&&<PermissionsMatrixPanel role={user?.role||'viewer'}/>}
         {active==='Historial de trabajo'&&<WorkHistory role={user?.role||'viewer'}/>}
         {active==='Actividad'&&user?.role==='owner'&&<UsagePanel/>}
         {active==='Invitaciones'&&(user?.demo_owner_user_id?<section className="panel"><h2>Invitaciones y solicitudes</h2><p>En tu empresa real podés generar enlaces de un uso o enlaces con aprobación. El Demo no crea accesos externos. Probá los permisos desde la barra superior.</p></section>:<InviteLinks role={user?.role||'viewer'}/>)}
