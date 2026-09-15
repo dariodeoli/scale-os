@@ -20,6 +20,23 @@
 @media(max-width:620px){.financial-forecast .panel-heading label{min-height:44px;width:100%}.financial-forecast input{min-height:38px;flex:1}.financial-forecast summary{min-height:44px}.forecast-currency{padding:13px}}
 .forecast-personnel,.planned-expenses{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
 .forecast-personnel h3,.planned-expenses h3{margin:0}
+.forecast-horizon{display:flex;flex-wrap:wrap;gap:var(--ui-space-1)}
+.forecast-horizon button{min-height:38px;padding:0 12px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;background:var(--surface-raised,var(--surface));color:var(--text-strong,var(--text));font-size:.8rem;font-weight:600;cursor:pointer}
+.forecast-horizon button.is-active{background:var(--violet-soft);border-color:var(--brand-600)}
+.forecast-projection table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:var(--ui-space-2)}
+.forecast-projection th,.forecast-projection td{padding:7px 10px;text-align:right;border-top:1px solid var(--border-subtle,var(--line));font-variant-numeric:tabular-nums;white-space:nowrap}
+.forecast-projection thead th{color:var(--text-subtle);font-weight:600;border-top:0}
+.forecast-projection th[scope=row]{text-align:left;color:var(--text-subtle);font-weight:600}
+.forecast-projection td[data-negative]{color:var(--danger)}
+.contracted-clients{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
+.contracted-clients h3{margin:0}
+.contracted-clients-list{display:grid;gap:.5rem;padding:0;margin:1rem 0 0;list-style:none}
+.contracted-clients-list li{display:flex;justify-content:space-between;gap:6px 14px;flex-wrap:wrap;align-items:center;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:.75rem;font-size:.8rem}
+.contracted-clients-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+.contracted-client-name{display:grid;gap:1px;min-width:0}
+.contracted-client-name b{overflow-wrap:anywhere}
+.contracted-client-name small{color:var(--text-subtle)}
+.missing-invoice-chip{font-style:normal;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid color-mix(in srgb,var(--warning) 30%,transparent);background:var(--warning-soft);color:var(--warning)}
 .planned-expenses-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.75rem;align-items:end;margin-top:1rem}
 .planned-expenses-form label{display:grid;gap:.35rem;min-width:0;font-size:.8rem}.planned-expenses-form input,.planned-expenses-form select{box-sizing:border-box;width:100%;max-width:none}
 .planned-expenses-form button{min-height:2.75rem}.planned-expenses-note{grid-column:span 2}.planned-expenses-list{display:grid;gap:.5rem;padding:0;margin:1rem 0 0;list-style:none}.planned-expenses-list li{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:.75rem}.planned-expenses-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
