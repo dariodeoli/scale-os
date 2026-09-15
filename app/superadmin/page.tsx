@@ -8,12 +8,15 @@ import {
   Building2,
   CircleAlert,
   CircleCheck,
+  Eye,
   KeyRound,
   PauseCircle,
   PlayCircle,
   RefreshCw,
   ShieldAlert,
+  ShieldCheck,
   Ticket,
+  Trash2,
   Users,
   X,
 } from "lucide-react";
@@ -21,6 +24,7 @@ import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
 import "./platform-admin.css";
 import { platformApi, subscriptionExpiry } from "../platform-admin-api";
+import { Dialog } from "../dialog";
 
 type Overview = {
   agencies: { total: number; active: number };
@@ -94,6 +98,10 @@ type BootstrapStatus = {
 
 type PlatformError = Error & { status?: unknown };
 function loginReturnPath() {
+  if (typeof window !== "undefined" && window.location.hostname === "admin.scaleparaguay.com") return "https://app.scaleparaguay.com/";
+  return "/";
+}
+function appHome() {
   if (typeof window !== "undefined" && window.location.hostname === "admin.scaleparaguay.com") return "https://app.scaleparaguay.com/";
   return "/";
 }
@@ -210,6 +218,14 @@ export default function PlatformAdmin() {
   >("active");
   const [subscriptionReason, setSubscriptionReason] = useState("");
   const [subscriptionExpiryValue, setSubscriptionExpiryValue] = useState("");
+  const [myRole, setMyRole] = useState<"admin" | "viewer" | null>(null);
+  const [myUserId, setMyUserId] = useState("");
+  const [confirming, setConfirming] = useState<
+    { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null
+  >(null);
+  const [typed, setTyped] = useState("");
+  const [actionNotice, setActionNotice] = useState("");
+  const [actionError, setActionError] = useState("");
 
   function handlePlatformError(cause: unknown) {
     const status = errorStatus(cause);
@@ -240,12 +256,15 @@ export default function PlatformAdmin() {
       // The overview is the auth/authorization gate. It prevents parallel responses from rendering a generic error before a 401 or 403 is classified.
       // prettier-ignore
       const overview=await platformApi<Overview>('/api/platform/overview',{credentials:'include',cache:'no-store'});
-      const [agencies, users, coupons, audit] = await Promise.all([
+      const [agencies, users, coupons, audit, me] = await Promise.all([
         platformApi<{ agencies: Agency[] }>("/api/platform/agencies?limit=50"),
         platformApi<{ users: Person[] }>("/api/platform/users?limit=50"),
         platformApi<{ coupons: Coupon[] }>("/api/platform/coupons?limit=50"),
         platformApi<{ actions: AuditAction[] }>("/api/platform/audit?limit=50"),
+        platformApi<{ user: { id?: string | number; platform_role?: string | null } }>("/api/auth/me").catch(() => null),
       ]);
+      setMyRole(me?.user?.platform_role === "viewer" ? "viewer" : me?.user?.platform_role === "admin" ? "admin" : null);
+      setMyUserId(me?.user?.id ? String(me.user.id) : "");
       setState({
         overview,
         agencies: agencies.agencies,
@@ -278,6 +297,76 @@ export default function PlatformAdmin() {
     void load();
     void loadBootstrap();
   }, []);
+
+  const writable = myRole === "admin";
+  const selfRow = (person: Person) => String(person.id) === myUserId;
+  async function setPlatformAccess(
+    person: Person,
+    platform_access: "admin" | "viewer" | "none",
+  ) {
+    setBusy(true);
+    setActionError("");
+    setActionNotice("");
+    try {
+      await platformApi(`/api/platform/users/${person.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ platform_access }),
+      });
+      setActionNotice(`${person.email}: acceso global actualizado.`);
+      await load();
+    } catch (cause) {
+      setActionError(
+        cause instanceof Error
+          ? cause.message
+          : "No se pudo actualizar el acceso global.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function removeConfirmed() {
+    if (
+      !confirming ||
+      typed !== (confirming.kind === "user" ? confirming.person.email : confirming.agency.name)
+    )
+      return;
+    setBusy(true);
+    setActionError("");
+    setActionNotice("");
+    try {
+      if (confirming.kind === "user") {
+        const result = await platformApi<{
+          deleted: { userId: number; self: boolean; agencies: number[] };
+        }>(`/api/platform/users/${confirming.person.id}`, { method: "DELETE" });
+        if (result.deleted.self) {
+          setActionNotice("Tu cuenta fue eliminada. La sesión se cerrará.");
+          if (typeof window !== "undefined")
+            window.setTimeout(
+              () => window.location.assign("https://app.scaleparaguay.com/"),
+              2500,
+            );
+          return;
+        }
+        setActionNotice(
+          `Usuario eliminado${result.deleted.agencies.length ? ` junto con ${result.deleted.agencies.length} agencia(s)` : ""}.`,
+        );
+      } else {
+        await platformApi(`/api/platform/agencies/${confirming.agency.id}`, {
+          method: "DELETE",
+        });
+        setActionNotice(`Agencia ${confirming.agency.name} eliminada.`);
+      }
+      setConfirming(null);
+      setTyped("");
+      await load();
+    } catch (cause) {
+      setActionError(
+        cause instanceof Error ? cause.message : "No se pudo completar la eliminación.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function manageSubscription(agency: Agency) {
     setError("");
@@ -393,7 +482,7 @@ export default function PlatformAdmin() {
           Tu sesión está activa, pero no tiene el permiso necesario para
           administrar la plataforma.
         </p>
-        <Link className="secondary platform-admin-back-link" href="/">
+        <Link className="secondary platform-admin-back-link" href={appHome()}>
           <ArrowLeft aria-hidden="true" />
           Volver al panel
         </Link>
@@ -569,6 +658,20 @@ export default function PlatformAdmin() {
                             >
                               Gestionar estado manual
                             </button>
+                            {writable && (
+                              <button
+                                type="button"
+                                className="text-button platform-admin-danger"
+                                disabled={busy}
+                                onClick={() => {
+                                  setConfirming({ kind: "agency", agency });
+                                  setTyped("");
+                                }}
+                              >
+                                <Trash2 size={14} />
+                                Eliminar agencia
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -641,6 +744,20 @@ export default function PlatformAdmin() {
                     >
                       Gestionar estado manual
                     </button>
+                    {writable && (
+                      <button
+                        type="button"
+                        className="text-button platform-admin-danger"
+                        disabled={busy}
+                        onClick={() => {
+                          setConfirming({ kind: "agency", agency });
+                          setTyped("");
+                        }}
+                      >
+                        <Trash2 size={14} />
+                        Eliminar agencia
+                      </button>
+                    )}
                   </article>
                 ))
               ) : (
@@ -759,6 +876,12 @@ export default function PlatformAdmin() {
                   {formatPlatformMetric(state.users.length)} registrados
                 </small>
               </div>
+              {!writable && (
+                <p className="form-note">
+                  Solo lectura: podés consultar la administración global, no
+                  modificarla.
+                </p>
+              )}
               <ul className="platform-admin-list">
                 {state.users.length ? (
                   state.users.map((person) => (
@@ -767,14 +890,83 @@ export default function PlatformAdmin() {
                         <b>{person.email || "Usuario sin correo"}</b>
                         <small>
                           {formatPlatformMetric(person.active_agencies)}{" "}
-                          agencias activas
+                          agencias activas{selfRow(person) ? " · Vos" : ""}
                         </small>
                       </span>
-                      {person.platform_admin ? (
-                        <StatusBadge tone="success">{person.platform_role === "viewer" ? "Solo lectura" : "Admin global"}</StatusBadge>
-                      ) : (
-                        <StatusBadge>Acceso de agencia</StatusBadge>
-                      )}
+                      <div className="platform-admin-user-actions">
+                        {person.platform_admin ? (
+                          <StatusBadge tone="success">
+                            {person.platform_role === "viewer"
+                              ? "Solo lectura"
+                              : "Admin global"}
+                          </StatusBadge>
+                        ) : (
+                          <StatusBadge>Acceso de agencia</StatusBadge>
+                        )}
+                        {selfRow(person) ? (
+                          writable ? (
+                            <button
+                              type="button"
+                              className="text-button platform-admin-danger"
+                              disabled={busy}
+                              onClick={() => {
+                                setConfirming({ kind: "user", person });
+                                setTyped("");
+                              }}
+                            >
+                              <Trash2 size={14} />
+                              Eliminar mi cuenta
+                            </button>
+                          ) : null
+                        ) : writable ? (
+                          <>
+                            {person.platform_role !== "admin" && (
+                              <button
+                                type="button"
+                                className="text-button"
+                                disabled={busy}
+                                onClick={() => void setPlatformAccess(person, "admin")}
+                              >
+                                <ShieldCheck size={14} />
+                                Hacer admin global
+                              </button>
+                            )}
+                            {person.platform_role !== "viewer" && (
+                              <button
+                                type="button"
+                                className="text-button"
+                                disabled={busy}
+                                onClick={() => void setPlatformAccess(person, "viewer")}
+                              >
+                                <Eye size={14} />
+                                Solo lectura
+                              </button>
+                            )}
+                            {person.platform_role && (
+                              <button
+                                type="button"
+                                className="text-button"
+                                disabled={busy}
+                                onClick={() => void setPlatformAccess(person, "none")}
+                              >
+                                Quitar acceso
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="text-button platform-admin-danger"
+                              disabled={busy}
+                              onClick={() => {
+                                setConfirming({ kind: "user", person });
+                                setTyped("");
+                              }}
+                            >
+                              <Trash2 size={14} />
+                              Eliminar usuario
+                            </button>
+                          </>
+                        ) : null}
+                      </div>
                     </li>
                   ))
                 ) : (
@@ -970,7 +1162,7 @@ export default function PlatformAdmin() {
   return (
     <main className="platform-admin-page">
       <header className="platform-admin-header">
-        <Link href="/" aria-label="Scale OS">
+        <Link href={appHome()} aria-label="Scale OS">
           <WorkspaceBrand />
         </Link>
         <div className="platform-admin-title">
@@ -988,13 +1180,68 @@ export default function PlatformAdmin() {
             <RefreshCw aria-hidden="true" />
             Actualizar
           </button>
-          <Link className="text-button" href="/">
+          <Link className="text-button" href={appHome()}>
             <ArrowLeft aria-hidden="true" />
             Panel
           </Link>
         </div>
       </header>
       {pageContent}
+      {actionNotice && <p className="platform-admin-status-note" role="status">{actionNotice}</p>}
+      {actionError && <p className="platform-admin-status-note error" role="alert">{actionError}</p>}
+      {confirming && (
+        <Dialog
+          title={
+            confirming.kind === "user"
+              ? selfRow(confirming.person)
+                ? "Eliminar mi cuenta"
+                : "Eliminar usuario"
+              : "Eliminar agencia"
+          }
+          close={() => {
+            setConfirming(null);
+            setTyped("");
+          }}
+        >
+          <p className="form-note">
+            {confirming.kind === "user"
+              ? selfRow(confirming.person)
+                ? "Se eliminará tu usuario y las agencias que poseas. Solo vos podés eliminar tu propia cuenta. Esta acción es irreversible."
+                : `Se eliminará ${confirming.person.email} y, si es dueño, sus agencias completas. Esta acción es irreversible.`
+              : `Se eliminará la agencia ${confirming.agency.name} con todos sus datos. Esta acción es irreversible.`}
+          </p>
+          <label className="platform-admin-confirm">
+            Escribí{" "}
+            <strong>
+              {confirming.kind === "user"
+                ? confirming.person.email
+                : confirming.agency.name}
+            </strong>{" "}
+            para confirmar
+            <input
+              value={typed}
+              disabled={busy}
+              autoComplete="off"
+              onChange={(event) => setTyped(event.target.value)}
+            />
+          </label>
+          <div className="inline-actions">
+            <button
+              className="primary"
+              disabled={
+                busy ||
+                typed !==
+                  (confirming.kind === "user"
+                    ? confirming.person.email
+                    : confirming.agency.name)
+              }
+              onClick={() => void removeConfirmed()}
+            >
+              {busy ? "Eliminando…" : "Eliminar definitivamente"}
+            </button>
+          </div>
+        </Dialog>
+      )}
       <WorkspaceFooter />
     </main>
   );

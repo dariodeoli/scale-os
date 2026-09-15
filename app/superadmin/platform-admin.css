@@ -943,3 +943,14 @@ html[data-theme="dark"] .platform-admin-section{box-shadow:0 6px 18px rgb(0 0 0 
 html[data-theme="dark"] .platform-admin-commercial{background:linear-gradient(150deg,var(--surface-subtle),var(--platform-surface) 48%)}
 html[data-theme="dark"] .platform-admin-coupon{border-color:#3a2c22;background:rgb(255 250 246 / 6%)}
 html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--surface-raised)}
+
+/* Global access actions per user and destructive confirmations. */
+.platform-admin-user-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:2px 8px;flex:none;max-width:55%}
+.platform-admin-list li .platform-admin-user-actions .text-button{min-height:34px}
+.platform-admin-danger{color:var(--danger)!important}
+.platform-admin-danger:hover{color:var(--danger)!important}
+.platform-admin-confirm{display:grid;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)}
+.platform-admin-confirm input{display:block;margin-top:6px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text)}
+.platform-admin-status-note{position:fixed;z-index:120;right:24px;bottom:24px;max-width:min(420px,calc(100vw - 48px));padding:13px 16px;border-radius:var(--radius-sm);background:var(--success-soft);color:var(--success);box-shadow:var(--shadow-md);font-size:13px}
+.platform-admin-status-note.error{background:var(--danger-soft);color:var(--danger)}
+@media(max-width:760px){.platform-admin-user-actions{max-width:100%;justify-content:flex-start}.platform-admin-list li{flex-wrap:wrap}}
