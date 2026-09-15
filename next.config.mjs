@@ -11,8 +11,13 @@ const nextConfig = {
         { key: 'X-Frame-Options', value: 'DENY' },
         { key: 'Referrer-Policy', value: 'no-referrer' },
         { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-        { key: 'Content-Security-Policy', value: "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.scaleparaguay.com" },
+        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
+        { key: 'X-DNS-Prefetch-Control', value: 'off' },
+        { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+        // Google OAuth uses a redirect-based flow. `same-origin-allow-popups` keeps
+        // cross-origin isolation without breaking that user-controlled handoff.
+        { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
+        { key: 'Content-Security-Policy', value: "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; frame-src 'none'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self'; manifest-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.scaleparaguay.com; upgrade-insecure-requests" },
       ],
     }];
   },

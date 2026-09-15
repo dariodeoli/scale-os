@@ -1,0 +1,16 @@
+{
+  "name": "Scale OS",
+  "short_name": "Scale OS",
+  "id": "https://app.scaleparaguay.com/",
+  "description": "Operación privada para agencias.",
+  "lang": "es-PY",
+  "start_url": "https://app.scaleparaguay.com/",
+  "scope": "https://app.scaleparaguay.com/",
+  "display": "standalone",
+  "background_color": "#fbfafc",
+  "theme_color": "#4d065b",
+  "icons": [
+    {"src":"/brand/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"/brand/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}
+  ]
+}
