@@ -30,13 +30,12 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
  return <Dialog title="Mi perfil" close={close} busy={photoSaving}><div className="my-profile-content my-profile-editor">
   {error&&<div className="my-profile-load-error" role="alert"><p>{error}</p><button className="secondary" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar carga</button></div>}
   {!current&&!error&&<p role="status">Cargando tu perfil…</p>}
-  {current&&<><section className="my-profile-identity" aria-labelledby="my-profile-identity-name">
+  {current&&<><section className="my-profile-identity">
    <p className="my-profile-kicker">Identidad</p>
-   <h3 id="my-profile-identity-name">{name}</h3>
    <dl className="my-profile-login"><dt>Correo de acceso</dt><dd>{current.email||profile.email}</dd></dl>
    <p className="my-profile-help">Tu correo de acceso no se modifica desde acá.</p>
   </section>
-  {current.identity_scope==='personal_readonly'?<div className="my-profile-photo my-profile-readonly">{current.photo_url&&<img src={current.photo_url} alt={`Foto de ${name}`} width={64} height={64} style={{borderRadius:'50%',objectFit:'cover'}}/>}<p>Tu perfil está unificado con tus empresas. Para cambiar el nombre o la foto, seleccioná tu empresa real; la demo no modifica tus datos personales.</p></div>:<><details className="my-profile-optional"><summary>Foto de perfil <span>Opcional</span></summary><div className="my-profile-photo">
+  {current.identity_scope==='personal_readonly'?<div className="my-profile-photo my-profile-readonly">{current.photo_url&&<img src={current.photo_url} alt={`Foto de ${name}`} width={64} height={64}/>}<p>Tu perfil está unificado con tus empresas. Para cambiar el nombre o la foto, seleccioná tu empresa real; la demo no modifica tus datos personales.</p></div>:<><details className="my-profile-optional"><summary>Foto de perfil <span>Opcional</span></summary><div className="my-profile-photo">
    <ProfilePhoto photo={current.photo_url||null} name={name} save={async photo=>{setPhotoSaving(true);try{await save({...(!current.full_name?{full_name:name}:{}),photo_url:photo});}finally{if(mounted.current)setPhotoSaving(false);}}}/>
   </div></details><section className="my-profile-name" aria-labelledby="my-profile-data-title">
    <h4 id="my-profile-data-title">Datos personales</h4>

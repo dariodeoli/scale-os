@@ -11,10 +11,10 @@ let requests:Request[]=[];let renderer:ReactTestRenderer;
 globalThis.fetch=input=>new Promise<Response>(resolve=>requests.push({url:String(input),resolve}));
 const text=()=>JSON.stringify(renderer.toJSON());
 async function respond(request:Request,data:unknown,status=200){await act(async()=>{request.resolve(new Response(JSON.stringify(data),{status}));});}
-const financial={cash:[],receivables:[],collections:[],inventory:[],alerts:[]};
+const financial={cash:[],receivables:[],collections:[],inventory:[],expenses:[],personnel:[],expected:[],alerts:[]};
 const commercial={active_clients:8,active_prospects:3,contracted_billing:{available:true,records:[{currency:'PYG',net_monthly:'1500000'},{currency:'PYG',net_monthly:'250000'},{currency:'USD',net_monthly:'400'}]}};
 const salesCommercial={active_clients:8,active_prospects:3,contracted_billing:{available:false,reason:'permission'}};
-async function mount(role:string){clearDataCache();setDataScope(`user:org:${role}`);requests=[];await act(async()=>{renderer=create(<ControlCenter role={role} orders={[]} refresh={async()=>{}} navigate={()=>{}}/>);});}
+async function mount(role:string){clearDataCache();setDataScope(`user:org:${role}`);requests=[];await act(async()=>{renderer=create(<ControlCenter role={role} orders={[]} refresh={async()=>{}} navigate={()=>{}} signals={{unanswered_budgets:null,unverified_inventory:null,upcoming_deliveries:null}}/>);});}
 async function run(){
  await mount('owner');assert.deepEqual(requests.map(request=>request.url),['/core-api/api/agency/dashboard','/core-api/api/agency/control-center']);await respond(requests[0],financial);await respond(requests[1],commercial);assert.match(text(),/Clientes activos/);assert.match(text(),/Prospectos activos/);assert.match(text(),/USD/);assert.match(text(),/1\.750\.000/,'contracts are totaled per currency');assert.match(text(),/no es el forecast/);act(()=>renderer.unmount());
  await mount('admin');assert.deepEqual(requests.map(request=>request.url),['/core-api/api/agency/dashboard','/core-api/api/agency/control-center']);await respond(requests[0],financial);await respond(requests[1],commercial);assert.match(text(),/1\.750\.000/,'admins retain the per-currency contracted billing aggregation');act(()=>renderer.unmount());

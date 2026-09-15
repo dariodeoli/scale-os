@@ -59,7 +59,7 @@ test('canonical name/email header, single photo preview, edit sequence and scope
  assert.equal(renderer.root.findAllByType('input').length,1);assert.equal(renderer.root.findByType('input').props.name,'full_name');
  assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Guardar nombre')));
  assert.equal(requests.length,1,'opening the editor never writes');
- assert.equal(renderer.root.findByType('h3').children[0],'Ana Personal');
+ assert.equal(renderer.root.findByProps({className:'my-profile-kicker'}).children[0],'Identidad');
  assert.equal(renderer.root.findAllByType(PhotoStub).length,1);
  assert.equal(renderer.root.findAllByType('img').length,1,'the header must not duplicate the photo preview');
  assert.equal(renderer.root.findByProps({className:'my-profile-identity'}).findAllByType('img').length,0);

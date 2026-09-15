@@ -46,10 +46,10 @@ test('legacy form actions register pending, guard cancellation, preserve submit 
  await act(async()=>renderer!.unmount());
 });
 
-test('all eight legacy workspace form footers register their own submitting state',()=>{
+test('all six legacy workspace form footers register their own submitting state',()=>{
  const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
  const file=ts.createSourceFile('scale-workspace.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
- const names=['ClientForm','ProjectForm','OrderForm','BudgetForm','AccountForm','InvoiceForm','PaymentForm','TransferForm'];
+ const names=['ClientForm','ProjectForm','OrderForm','AccountForm','InvoiceForm','PaymentForm'];
  for(const name of names){
   const form=file.statements.find((node):node is ts.FunctionDeclaration=>ts.isFunctionDeclaration(node)&&node.name?.text===name);
   assert(form,`${name} must remain present`);
@@ -66,6 +66,6 @@ test('all eight legacy workspace form footers register their own submitting stat
   assert(form.getText(file).includes('useSingleFlightSubmit(form.handleSubmit(submit))'),'lock starts before async validation');
   assert(form.getText(file).includes('onSubmit={submission.onSubmit}'),'native submission uses the same lock as the footer');
  }
- assert.equal((source.match(/<SaveActions\b/g)||[]).length,8);
+ assert.equal((source.match(/<SaveActions\b/g)||[]).length,6);
  assert(!source.includes('<FormActions>'),'no unregistered legacy footer remains');
 });

@@ -83,6 +83,7 @@
 .control-shell .payment-row :is(b,small){white-space:normal}
 .control-shell :is(.client-status,.inventory-status){display:inline-flex;align-items:center;min-height:26px;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:600}
 .control-shell :is(.payment-row>strong,.metric strong,.financial-amounts,.reports-tiles article>strong){font-variant-numeric:tabular-nums}
+.control-shell :is(.payment-row>strong,.client-row>span){white-space:nowrap}
 
 /* A document preview is not the application sidebar, despite using <aside>. */
 :is(.control-shell,.unified-dialog) .quote-preview{position:static;top:auto;width:auto;height:auto;display:block;min-width:0;max-width:100%;margin:0;padding:var(--ui-card-padding);border:1px solid var(--line);border-radius:var(--radius-md)}
@@ -114,7 +115,7 @@
  .control-shell .header-actions :is(.primary,.secondary){min-height:44px}
  .control-shell .panel-heading{gap:var(--ui-space-3)}
  .control-shell :is(.payment-row,.client-row){align-items:flex-start}
- .control-shell .payment-row>strong{max-width:100%;overflow-wrap:anywhere}
+ .control-shell .payment-row>strong{max-width:100%;white-space:nowrap}
  :is(.control-shell,.unified-dialog) .form-stack{row-gap:var(--ui-space-4)}
  :is(.control-shell,.unified-dialog) .ops-form-grid{grid-template-columns:minmax(0,1fr);row-gap:var(--ui-space-4)}
 }

@@ -18,7 +18,7 @@ export function ClientIdentity({name,logo,color,compact=false}:{name:string;logo
  </span>;
 }
 const schema=z.object({color_key:z.enum(['violet','blue','teal','green','gold','rose','slate'])});
-export function ClientAppearance({id,name,logo,color,refresh}:{id:string;name:string;logo?:string|null;color?:string|null;refresh:()=>Promise<void>}){
+export function ClientAppearance({id,name,logo,color,refresh,showIdentity=true}:{id:string;name:string;logo?:string|null;color?:string|null;refresh:()=>Promise<void>;showIdentity?:boolean}){
  const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{color_key:identityColor(color) as z.infer<typeof schema>['color_key']}});
  const [error,setError]=useState('');
  const [saving,setSaving]=useState(false),pending=useRef(false);
@@ -29,7 +29,7 @@ export function ClientAppearance({id,name,logo,color,refresh}:{id:string;name:st
   catch(e){form.setValue('color_key',previous);setError(e instanceof Error?e.message:'No se pudo guardar.');}
   finally{pending.current=false;setSaving(false);}
  }
- return <section className="client-appearance"><ClientIdentity name={name} logo={logo} color={form.watch('color_key')}/>
+ return <section className="client-appearance">{showIdentity&&<ClientIdentity name={name} logo={logo} color={form.watch('color_key')}/>}
   <ProfilePhoto label="Logo o foto del cliente" name={name} photo={logo||null} save={async photo=>{await api(`/api/agency/clients/${id}`,{logo_url:photo},'PATCH');await refresh();}}/>
   <form noValidate className="form-stack" onSubmit={event=>event.preventDefault()}>
    <fieldset disabled={saving} className="identity-palette"><legend>Color identificador</legend>{clientColors.map(([key,label])=><label className={`identity-${key}`} key={key}><input type="radio" name="color_key" value={key} checked={form.watch('color_key')===key} onChange={()=>void saveColor(key)}/><span className="color-swatch"/><span>{label}</span></label>)}</fieldset>

@@ -23,6 +23,7 @@ import {DueDate} from './due-date';
 const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
 const GrowthDashboard=dynamic(()=>import('./growth-dashboard').then(m=>m.GrowthDashboard));
 const ReportsWorkspace=dynamic(()=>import('./reports-workspace').then(m=>m.ReportsWorkspace));
+import type {ReportsData} from './reports-workspace';
 const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const DemoWelcome=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoWelcome));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
@@ -81,7 +82,7 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ViewToggle } from "./view-toggle";
 import {ClientDirectoryToolbar,filterClientDirectory} from "./client-directory-toolbar";
@@ -249,6 +250,7 @@ type ClientPaymentStatus = {
   days_overdue: number;
   payment_status: "up_to_date" | "due_soon" | "late" | "severe";
 };
+function localMonth(){const parts=new Intl.DateTimeFormat('en',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(new Date());return `${parts.find(part=>part.type==='year')!.value}-${parts.find(part=>part.type==='month')!.value}`;}
 type User = {
   subscription?:SubscriptionState;
   id:string;
@@ -276,6 +278,9 @@ type Summary = {
   active_clients: number;
   active_projects: number;
   open_orders: number;
+  unanswered_budgets: number | null;
+  unverified_inventory: number | null;
+  upcoming_deliveries: number | null;
 };
 type ModalKind =
   | "client"
@@ -699,163 +704,6 @@ function OrderForm({
     </form>
   );
 }
-const budgetSchema = z.object({
-  title: z.string().trim().min(2, "Describí el presupuesto."),
-  clientId: z.string().min(1, "Elegí un cliente."),
-  description: z.string().trim().min(2, "Describí el servicio."),
-  quantity: z.number().positive("La cantidad debe ser mayor a cero."),
-  unitPrice: z.number().min(0, "El importe no puede ser negativo."),
-  currency: z.enum(currencyCodes),
-  validUntil: z.string().optional(),
-});
-type BudgetValues = z.infer<typeof budgetSchema>;
-function BudgetForm({
-  clients,
-  done,
-}: {
-  clients: Client[];
-  done: (budget: Budget) => void;
-}) {
-  const {currency:defaultCurrency}=useCompanyCurrency();
-  const form = useForm<BudgetValues>({
-    resolver: zodResolver(budgetSchema),
-    defaultValues: {
-      title: "",
-      clientId: "",
-      description: "",
-      quantity: 1,
-      unitPrice: 0,
-      currency: defaultCurrency,
-      validUntil: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: BudgetValues) {
-    try {
-      const data = await request<{ budget: Budget }>("/api/agency/budgets", {
-        method: "POST",
-        body: JSON.stringify({
-          ...values,
-          items: [
-            {
-              description: values.description,
-              quantity: values.quantity,
-              unitPrice: values.unitPrice,
-            },
-          ],
-        }),
-      });
-      done(data.budget);
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "No se pudo crear el presupuesto.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <label>
-        Nombre del presupuesto
-        <input
-          {...form.register("title")}
-          autoFocus
-          placeholder="Plan Gold mensual"
-        />
-        {form.formState.errors.title && (
-          <small className="error">{form.formState.errors.title.message}</small>
-        )}
-      </label>
-      <fieldset>
-        <legend>Cliente</legend>
-        <div className="choice-list">
-          {clients.map((client) => (
-            <button
-              type="button"
-              className={
-                form.watch("clientId") === client.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("clientId", client.id, { shouldValidate: true })
-              }
-              key={client.id}
-            >
-              {client.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.clientId && (
-          <small className="error">
-            {form.formState.errors.clientId.message}
-          </small>
-        )}
-      </fieldset>
-      <label>
-        Servicio o alcance
-        <input
-          {...form.register("description")}
-          placeholder="Plan Gold — 12 contenidos"
-        />
-      </label>
-      <div className="two-fields">
-        <label>
-          Cantidad
-          <input
-            type="number"
-            min="1"
-            step="1"
-            {...form.register("quantity", { valueAsNumber: true })}
-          />
-        </label>
-        <label>
-          Importe sin IVA
-          <input
-            type="number"
-            min="0"
-            step="1000"
-            {...form.register("unitPrice", { valueAsNumber: true })}
-          />
-        </label>
-      </div>
-      <fieldset>
-        <legend>Moneda</legend>
-        <div className="choice-list compact">
-          {currencyCodes.map((currency) => (
-            <button
-              type="button"
-              className={
-                form.watch("currency") === currency ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("currency", currency)}
-              key={currency}
-            >
-              {currencyLabels[currency]}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Válido hasta
-        <input type="date" {...form.register("validUntil")} />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!clients.length || submission.pending}
-      >
-        {submission.pending ? "Creando…" : "Crear presupuesto"}
-      </button></SaveActions>
-    </form>
-  );
-}
 const accountSchema = z.object({
   name: z.string().trim().min(2, "Escribí el nombre de la cuenta."),
   accountType: z.enum(["bank", "cash", "digital", "investment"]),
@@ -1268,128 +1116,6 @@ function PaymentForm({
   );
 }
 
-const transferSchema = z.object({
-  fromAccountId: z.string().min(1, "Elegí la cuenta de origen."),
-  toAccountId: z.string().min(1, "Elegí la cuenta de destino."),
-  amount: z.number().positive("El importe debe ser mayor a cero."),
-  transferredOn: z.string().optional(),
-  reference: z.string().max(120).optional(),
-});
-type TransferValues = z.infer<typeof transferSchema>;
-function TransferForm({
-  accounts,
-  done,
-}: {
-  accounts: Account[];
-  done: () => void;
-}) {
-  const form = useForm<TransferValues>({
-    resolver: zodResolver(transferSchema),
-    defaultValues: {
-      fromAccountId: "",
-      toAccountId: "",
-      amount: 0,
-      transferredOn: new Date().toISOString().slice(0, 10),
-      reference: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: TransferValues) {
-    try {
-      await request("/api/agency/transfers", {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
-      done();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "No se pudo registrar la transferencia.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <fieldset>
-        <legend>Sale de</legend>
-        <div className="choice-list">
-          {accounts.map((account) => (
-            <button
-              type="button"
-              className={
-                form.watch("fromAccountId") === account.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("fromAccountId", account.id, {
-                  shouldValidate: true,
-                })
-              }
-              key={account.id}
-            >
-              {account.name} · {account.currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Entra a</legend>
-        <div className="choice-list">
-          {accounts.map((account) => (
-            <button
-              type="button"
-              className={
-                form.watch("toAccountId") === account.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("toAccountId", account.id, {
-                  shouldValidate: true,
-                })
-              }
-              key={account.id}
-            >
-              {account.name} · {account.currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Importe
-        <input
-          type="number"
-          min="1"
-          step="1000"
-          {...form.register("amount", { valueAsNumber: true })}
-        />
-      </label>
-      <label>
-        Fecha
-        <input type="date" {...form.register("transferredOn")} />
-      </label>
-      <label>
-        Referencia
-        <input
-          {...form.register("reference")}
-          placeholder="Comprobante o motivo"
-        />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
-        {submission.pending ? "Guardando…" : "Registrar transferencia"}
-      </button></SaveActions>
-    </form>
-  );
-}
-
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1410,6 +1136,7 @@ export default function Home() {
   const [myProfile,setMyProfile]=useState(false);
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string}|null>(null);
   const [projectClient,setProjectClient]=useState('');
+  const [clientMode,setClientMode]=useState(true);
   const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState(''),[clientSearch,setClientSearch]=useState('');
   const [projectView,setProjectView]=useState('grid');
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
@@ -1523,10 +1250,50 @@ export default function Home() {
   const [invoiceHasMore, setInvoiceHasMore] = useState(false);
   const [allInvoicesLoaded, setAllInvoicesLoaded] = useState(false);
   const [moraFilter, setMoraFilter] = useState("");
+  const [moraReports, setMoraReports] = useState<ReportsData | null>(null);
+  const [moraReportsError, setMoraReportsError] = useState(false);
+  const moraBuckets = useMemo(() => {
+    const buckets = [
+      { key: "early", label: "Mora 1–15 días", min: 1, max: 15, clients: 0, amounts: new Map<string, number>() },
+      { key: "medium", label: "Mora 16–30 días", min: 16, max: 30, clients: 0, amounts: new Map<string, number>() },
+      { key: "critical", label: "Mora crítica (+30 días)", min: 31, max: Infinity, clients: 0, amounts: new Map<string, number>() },
+    ];
+    for (const client of paymentStatuses) {
+      if (!client.currency || Number(client.outstanding_amount) <= 0 || client.days_overdue <= 0) continue;
+      const bucket = buckets.find(b => client.days_overdue >= b.min && client.days_overdue <= b.max);
+      if (!bucket) continue;
+      bucket.clients += 1;
+      bucket.amounts.set(client.currency, (bucket.amounts.get(client.currency) || 0) + Number(client.outstanding_amount));
+    }
+    return buckets;
+  }, [paymentStatuses]);
+  const moraDso = useMemo(() => {
+    if (!moraReports) return null;
+    const current = moraReports.months.find(month => month.month === moraReports.month) || moraReports.months[0];
+    if (!current) return null;
+    const outstanding = new Map<string, number>();
+    for (const client of paymentStatuses) {
+      if (!client.currency || Number(client.outstanding_amount) <= 0) continue;
+      outstanding.set(client.currency, (outstanding.get(client.currency) || 0) + Number(client.outstanding_amount));
+    }
+    const rows: { currency: string; days: number }[] = [];
+    for (const financial of current.financial) {
+      const invoiced = Number(financial.invoiced);
+      const owed = outstanding.get(financial.currency);
+      if (!Number.isFinite(invoiced) || invoiced <= 0 || owed === undefined || owed <= 0) continue;
+      rows.push({ currency: financial.currency, days: Math.max(0, Math.round((owed / invoiced) * 30)) });
+    }
+    return rows;
+  }, [moraReports, paymentStatuses]);
+  const visibleMoraClients = moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses;
+  const moneyMora = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
     active_projects: 0,
     open_orders: 0,
+    unanswered_budgets: null,
+    unverified_inventory: null,
+    upcoming_deliveries: null,
   });
   async function load(identity:User|null=user) {
     if(!identity||identity.subscription?.hasAccess===false)return;
@@ -1560,7 +1327,7 @@ export default function Home() {
     const next=user?.subscription?.hasAccess??null;
     if(next===false){
       dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
-      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
+      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);setMoraReports(null);setMoraReportsError(false);
       setModal(null);setDetail(null);setMyProfile(false);setSubscriptionOpen(false);
     }else if(previousBillingAccess.current===false&&next===true){void load().catch(()=>setToast('No se pudieron actualizar los datos. Intentá nuevamente.'));}
     previousBillingAccess.current=next;
@@ -1594,10 +1361,8 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
   useEffect(() => {
-    if (operationalAccess && active === "Mora")
-      request<{ clients: ClientPaymentStatus[] }>(
-        `/api/agency/client-payment-status${moraFilter ? `?status=${moraFilter}` : ""}`,
-      )
+    if (operationalAccess && active === "Mora") {
+      request<{ clients: ClientPaymentStatus[] }>("/api/agency/client-payment-status")
         .then((data) => setPaymentStatuses(data.clients))
         .catch((cause) =>
           setToast(
@@ -1606,7 +1371,14 @@ export default function Home() {
               : "No se pudo cargar la mora.",
           ),
         );
-  }, [active, operationalAccess, moraFilter]);
+      if (["owner", "admin", "finance"].includes(user?.role || "")) {
+        setMoraReportsError(false);
+        request<ReportsData>(`/api/agency/reports?month=${localMonth()}&months=2`)
+          .then((data) => setMoraReports(data))
+          .catch(() => setMoraReportsError(true));
+      }
+    }
+  }, [active, operationalAccess, user?.role]);
   useEffect(() => {
     if (operationalAccess && active === "Presupuestos")
       request<{ budgets: Budget[] }>("/api/agency/budgets")
@@ -1754,7 +1526,15 @@ export default function Home() {
   const selectedProductionClient = clients.some(client => String(client.id) === productionClientId) ? productionClientId : "";
   const productionOrders = filterProductionOrders(orders, projects, selectedProductionClient,{...preferences.production,userId:String(user?.id||''),today:productionToday});
   const hasProductionFilters=!!productionClientId||preferences.production.mine||preferences.production.week;
-  if (loading) return <div className="loading-page">Cargando Scale OS…</div>;
+  if (loading) return (
+    <div className="loading-page" role="status" aria-live="polite">
+      <div className="loading-frame">
+        <div className="loading-orb"><img src="/brand/icon-192.png" width={46} height={46} alt="Scale OS"/></div>
+        <span className="workspace-wordmark">scale<span>OS</span></span>
+        <p className="loading-caption">Cargando tu espacio…</p>
+      </div>
+    </div>
+  );
   if (!signedIn)
     return (
       <div className="login-page">
@@ -1806,6 +1586,7 @@ export default function Home() {
       </div>
     );
   const firstName = user?.email.split("@")[0] || "U";
+  const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 
   const sidebarContent=<>
@@ -1829,6 +1610,9 @@ export default function Home() {
           ))}
         </nav>
         <div className="sidebar-bottom">
+          <div className="sidebar-company">
+            <CompanySelector name={companyLabel}/>
+          </div>
           <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}>
             {user?.photo_url?<img src={user.photo_url} alt="" width={36} height={36}/>:<div className="avatar">{(user?.full_name||firstName)[0].toUpperCase()}</div>}
             <div>
@@ -1862,9 +1646,6 @@ export default function Home() {
               <MobileNavigation>{sidebarContent}</MobileNavigation>
             </div>
             <div className="topbar-workspace-context">
-              <div className="topbar-company">
-                <CompanySelector name={user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización'}/>
-              </div>
               <div className="topbar-presence" role="group" aria-label="Personas activas en el espacio">
                 <WorkspacePresence projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>
               </div>
@@ -1953,7 +1734,7 @@ export default function Home() {
         {active === "Resumen" && (
           <>
             <WorkspaceGuide {...guideProps} variant="card"/>
-            <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive}/>
+            <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary}/>
             {user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
             <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
             <InternalTasks role={user?.role||'viewer'}/>
@@ -2038,6 +1819,41 @@ export default function Home() {
               </div>
               <span>Actualizado hoy</span>
             </div>
+            <div className="mora-summary" aria-label="Semáforo de mora por antigüedad">
+              {moraBuckets.map(bucket => (
+                <article className={`mora-kpi mora-${bucket.key}`} key={bucket.key}>
+                  <p className="eyebrow">{bucket.label}</p>
+                  <strong>{bucket.clients} cliente{bucket.clients === 1 ? "" : "s"}</strong>
+                  <div className="mora-amounts">
+                    {bucket.amounts.size ? Array.from(bucket.amounts).map(([currency, amount]) => (
+                      <span key={currency}>{moneyMora(amount, currency)}</span>
+                    )) : <span>Sin saldos vencidos</span>}
+                  </div>
+                </article>
+              ))}
+              <article className="mora-kpi mora-dso">
+                <p className="eyebrow">DSO · DÍAS EN CALLE</p>
+                {["owner", "admin", "finance"].includes(user?.role || "") ? (
+                  <>
+                    {moraReportsError ? (
+                      <strong>Sin datos</strong>
+                    ) : moraDso === null ? (
+                      <strong>Calculando…</strong>
+                    ) : moraDso.length ? (
+                      <strong>{moraDso.map(row => `${row.currency} ${row.days} días`).join(" · ")}</strong>
+                    ) : (
+                      <strong>Sin datos</strong>
+                    )}
+                    <small>Saldo pendiente sobre lo facturado del mes, por moneda.</small>
+                  </>
+                ) : (
+                  <>
+                    <strong>—</strong>
+                    <small>Visible para administración y finanzas.</small>
+                  </>
+                )}
+              </article>
+            </div>
             <div
               className="choice-list compact"
               aria-label="Filtrar estado de cobro"
@@ -2046,7 +1862,7 @@ export default function Home() {
                 ["", "Todos"],
                 ["up_to_date", "Al día"],
                 ["due_soon", "Por vencer"],
-                ["late", "Mora 1–30"],
+                ["late", "En mora"],
                 ["severe", "Mora grave"],
               ].map(([value, label]) => (
                 <button
@@ -2060,8 +1876,8 @@ export default function Home() {
               ))}
             </div>
             <div className="client-list">
-              {paymentStatuses.length ? (
-                paymentStatuses.map((client, index) => (
+              {visibleMoraClients.length ? (
+                visibleMoraClients.map((client, index) => (
                   <div
                     className="client-row"
                     key={`${client.client_id}-${client.currency || "none"}`}
@@ -2079,6 +1895,11 @@ export default function Home() {
                           : client.payment_status === "due_soon"
                             ? `Vence ${client.next_due_on || "próximamente"}`
                             : `${client.days_overdue} días de mora`}
+                        {client.days_overdue > 0 && (
+                          <span className={`mora-chip ${client.days_overdue > 30 ? "mora-critical" : client.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>
+                            {client.days_overdue > 30 ? "+30 días" : client.days_overdue > 15 ? "16–30 días" : "1–15 días"}
+                          </span>
+                        )}
                       </small>
                     </div>
                     <span>
@@ -2093,7 +1914,7 @@ export default function Home() {
                   </div>
                 ))
               ) : (
-                <p className="empty-copy">No hay clientes en esta categoría.</p>
+                <p className="empty-copy">{paymentStatuses.length ? "No hay clientes en esta categoría." : "Sin registros de cobranza todavía."}</p>
               )}
             </div>
           </section>
@@ -2291,10 +2112,10 @@ export default function Home() {
                     + Factura
                   </button>
                   <button
-                    className="text-button"
+                    className="primary"
                     onClick={() => setModal("payment")}
                   >
-                    Registrar cobro
+                    <Plus size={16} /> Registrar cobro
                   </button>
                 </div>
               </div>
@@ -2379,18 +2200,24 @@ export default function Home() {
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
         <Modal title="Nuevo cliente" onClose={close}>
-          <ClientRuc embedded refresh={load} onCreated={close}/>
-          <div className="form-flow-divider" aria-hidden="true"><span>o cargá sus datos manualmente</span></div>
-          <ClientForm
-            done={(client) => {
-              setClients((current) => [client, ...current]);
-              setSummary((current) => ({
-                ...current,
-                active_clients: current.active_clients + 1,
-              }));
-              close();
-            }}
-          />
+          <div className="choice-list compact" role="group" aria-label="Cómo cargar el cliente">
+            <button type="button" className={clientMode?'choice active':'choice'} aria-pressed={clientMode} onClick={()=>setClientMode(true)}>Completar desde RUC</button>
+            <button type="button" className={!clientMode?'choice active':'choice'} aria-pressed={!clientMode} onClick={()=>setClientMode(false)}>Carga manual</button>
+          </div>
+          {clientMode ? (
+            <ClientRuc embedded refresh={load} onCreated={close}/>
+          ) : (
+            <ClientForm
+              done={(client) => {
+                setClients((current) => [client, ...current]);
+                setSummary((current) => ({
+                  ...current,
+                  active_clients: current.active_clients + 1,
+                }));
+                close();
+              }}
+            />
+          )}
         </Modal>
       )}
       {modal === "project" && (

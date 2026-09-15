@@ -4,11 +4,13 @@ import postcss from 'postcss';
 const css=readFileSync('app/ui-system.css','utf8'),ast=postcss.parse(css);
 assert(readFileSync('app/layout.tsx','utf8').includes("import './ui-system.css'"));
 const tokens={};ast.walkRules(':root',rule=>{if(rule.parent.type==='root')rule.walkDecls(d=>tokens[d.prop]=d.value);});
+const foundation={};postcss.parse(readFileSync('app/globals.css','utf8')).walkRules(':root',rule=>{if(rule.parent.type==='root')rule.walkDecls(d=>foundation[d.prop]=d.value);});
+function resolveToken(value){let current=value,seen=new Set();while(current.startsWith('var(--')&&!seen.has(current)){seen.add(current);const name=current.slice(4,-1);const next=tokens[name]??foundation[name];if(!next)break;current=next;}return current;}
 assert.deepEqual([1,2,3,4,5,6].map(n=>tokens[`--ui-space-${n}`]),['4px','8px','12px','16px','20px','24px']);
 assert.equal(tokens['--ui-control-height'],'40px');
 assert(css.includes('--ui-control-height:44px'));
 function luminance(hex){const c=hex.replace('#','').match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return c[0]*.2126+c[1]*.7152+c[2]*.0722;}
-for(const background of ['#ffffff','#fbfafc']){const light=luminance(background),dark=luminance(tokens['--ui-field-border']);assert((light+.05)/(dark+.05)>=3,'input boundaries need sufficient contrast');}
+for(const background of ['#ffffff','#fbfafc']){const light=luminance(background),dark=luminance(resolveToken(tokens['--ui-field-border']));assert((light+.05)/(dark+.05)>=3,'input boundaries need sufficient contrast');}
 assert(css.includes('.control-shell .panel .panel{padding:0;border:0;box-shadow:none}'));
 assert(css.includes('.control-shell :is(.ops-stack,.finance-grid)>.panel+.panel{margin-top:0}'));
 assert(css.includes('.control-shell .production-panel,.control-shell .production-focus{padding:0;border:0;background:transparent}'));

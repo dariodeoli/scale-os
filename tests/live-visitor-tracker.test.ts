@@ -16,7 +16,9 @@ assert.equal(normalize(agency),normalize(executable)
  .replace("const site='scale-os-landing';","const site='scale-website';")
  .replace("const allowedOrigins=['https://sistema.scaleparaguay.com'];","const allowedOrigins=['https://scaleparaguay.com','https://www.scaleparaguay.com'];")
  .replace("const endpoint='https://sistema.scaleparaguay.com/core-api/api/public/live-visitors/heartbeat';","const endpoint='https://admin.scaleparaguay.com/api/public/live-visitors/heartbeat';")
- .replace("['/','/scale-os.html']","['/','/index.html']"));
+ .replace("['/','/scale-os.html']","['/','/index.html']")
+ .replace("if(!location.origin.includes('sistema.scaleparaguay.com'))","if(!location.origin.includes('scaleparaguay.com'))")
+ .replace("'https://sistema.scaleparaguay.com/core-api/api/public/live-visitors/count'","'https://admin.scaleparaguay.com/api/public/live-visitors/count'"));
 let now=10000000,cookieValue='',cookieExpiry=0,locked=false,calls:{body:{site:string;session_id:string};init:RequestInit}[]=[],status=202,blocked=false;
 const fakeDate=class extends Date{static now(){return now;}};
 function tab(options:{origin?:string;path?:string;locks?:boolean;visible?:boolean}={}){
@@ -24,13 +26,14 @@ function tab(options:{origin?:string;path?:string;locks?:boolean;visible?:boolea
  const doc={visibilityState:options.visible===false?'hidden':'visible',
   get cookie(){return !blocked&&cookieExpiry>now?cookieValue:'';},
   set cookie(value:string){assert(value.includes('Max-Age=90; Path=/; Secure; SameSite=Strict'));assert(!value.includes('Domain='));if(!blocked){cookieValue=value.split(';')[0];cookieExpiry=now+90000;}},
+  getElementById:(_id:string)=>null,
   addEventListener(event:string,fn:()=>void){listeners.set(event,fn);}};
  const win:{top?:unknown;addEventListener:(event:string,fn:()=>void)=>void}={addEventListener:(event,fn)=>listeners.set(event,fn)};win.top=win;
  runInNewContext(executable,{
   window:win,document:doc,location:{origin:options.origin||'https://sistema.scaleparaguay.com',pathname:options.path||'/'},
   navigator:{locks:options.locks===false?undefined:{request:async(_name:string,_opts:unknown,fn:(lock:object|null)=>unknown)=>{if(locked)return fn(null);locked=true;try{return fn({});}finally{locked=false;}}}},
   crypto:{randomUUID},Date:fakeDate,AbortController,
-  setInterval:(fn:()=>void,ms:number)=>{assert.equal(ms,30000);intervals.set(++timer,fn);return timer;},clearInterval:(id:number)=>intervals.delete(id),
+  setInterval:(fn:()=>void,ms:number)=>{assert([30000,60000].includes(ms),`unexpected interval ${ms}`);intervals.set(++timer,fn);return timer;},clearInterval:(id:number)=>intervals.delete(id),
   setTimeout:(fn:()=>void,ms:number)=>{assert.equal(ms,8000);timeouts.set(++timer,fn);return timer;},clearTimeout:(id:number)=>timeouts.delete(id),
   fetch:async(url:string,init:RequestInit)=>{assert.equal(url,'https://sistema.scaleparaguay.com/core-api/api/public/live-visitors/heartbeat');assert.equal(doc.visibilityState,'visible');assert.equal(init.credentials,'omit');assert.equal(init.cache,'no-store');assert.equal(init.keepalive,undefined);const body=JSON.parse(String(init.body));assert.deepEqual(Object.keys(body).sort(),['session_id','site']);calls.push({body,init});return {ok:status===202,status};},
  });

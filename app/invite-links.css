@@ -4,8 +4,11 @@
 .invite-links-header h2{font-size:clamp(1.1rem,1rem + .35vw,1.35rem)}
 .invite-links-header .form-note,.invite-links-section-heading .form-note{margin:5px 0 0;max-width:64ch}
 .invite-links-kicker{margin:0 0 5px;color:var(--brand-700);font:600 11px 'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
-.invite-link-create{display:grid;gap:10px;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-sm);background:var(--surface-subtle)}
-.invite-link-create h3{margin:0;font-size:14px}
+.invite-links-section-title{display:grid;gap:3px;min-width:0}
+.invite-links-section-title h3{font-size:15px}
+.invite-links-section-title .form-note{margin:0;font-size:12px}
+.invite-link-create{display:grid;gap:12px;padding:16px;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-sunken,var(--surface-subtle))}
+.invite-link-create h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}
 .invite-link-create .form-stack{margin:0;gap:10px}
 .invite-link-create .ops-form-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:end}
 .invite-link-create .dialog-actions{margin:0;justify-content:flex-start}
@@ -14,10 +17,13 @@
 .invite-link-created label{display:grid;gap:5px;min-width:0;font-size:12px;font-weight:700;color:var(--text-muted)}
 .invite-link-created input{min-width:0;width:100%;min-height:44px;font-size:14px}
 .invite-link-created button,.invite-link-actions button{min-height:44px}
-.invite-links-section{display:grid;gap:8px}
-.invite-links-section-heading{align-items:center}
+.invite-links-section{display:grid;gap:8px;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-sunken,var(--surface-subtle))}
+.invite-links-section-heading{align-items:center;padding:0 2px}
 .invite-links-section-heading h3{font-size:15px}
-.invite-links-count{display:inline-flex;align-items:center;justify-content:center;min-width:26px;min-height:26px;padding:0 7px;border-radius:999px;background:var(--surface-subtle);color:var(--text-muted);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.invite-links-count{display:inline-flex;align-items:center;justify-content:center;min-width:26px;min-height:26px;padding:0 7px;border-radius:999px;background:var(--surface-raised,var(--surface));color:var(--text-muted);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.invite-links-count-live{background:var(--warning-soft);color:var(--warning)}
+.invite-link-delete{color:var(--danger)}
+.invite-link-delete:hover{color:var(--danger);text-decoration:underline;text-underline-offset:3px}
 .invite-links-empty{margin:0;padding:12px;border:1px dashed var(--border-subtle,var(--line));border-radius:var(--radius-sm);color:var(--text-muted);font-size:13px;line-height:1.45}
 .invite-link-row{align-items:center;gap:12px;padding:12px;margin:0;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-sm);background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
 .invite-link-person{display:grid;gap:4px;min-width:0;flex:1}
@@ -27,7 +33,7 @@
 .invite-link-actions .text-button{padding-inline:10px}
 .invite-link-joined{display:grid;gap:4px;margin-top:4px;padding-top:8px;border-top:1px solid var(--border-subtle,var(--line))}
 .invite-link-joined>p{margin:0}
-.invite-links-recent{display:grid;gap:8px;padding-top:2px}
+.invite-links-recent{display:grid;gap:8px;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-sunken,var(--surface-subtle))}
 .invite-links :focus-visible{outline:2px solid var(--brand-700);outline-offset:2px}
 .invite-links button{transition:transform 160ms ease-out,opacity 160ms ease-out}
 .invite-links button:active:not(:disabled){transform:scale(.98)}

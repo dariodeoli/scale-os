@@ -35,6 +35,34 @@ function Distribution({title,rows,total}:{title:string;rows:{name:string;count:n
 // Main must key this component by authenticated organization ID. Role changes
 // unmount the authorized view; no GET is issued for an unauthorized role.
 export function ReportsWorkspace({role}:{role:string}){return ['owner','admin','finance'].includes(role)?<ReportsPanel key={role}/>:<p>No tenés permiso para consultar reportes.</p>;}
+function LiveVisitorsWidget(){
+ const [visitors,setVisitors]=useState<number|null>(null),[prior,setPrior]=useState<number|null>(null),[trend,setTrend]=useState<'up'|'down'|null>(null);
+ useEffect(()=>{
+  let alive=true,timer:ReturnType<typeof setInterval>|null=null;
+  const fetch_live=async()=>{
+   try{const resp=await fetch('/core-api/api/public/live-visitors/count',{method:'GET',credentials:'omit',cache:'no-store',headers:{'Accept':'application/json'}});if(resp.ok&&alive){const data=await resp.json();if(typeof data?.active_sessions==='number'){const prev=visitors;setVisitors(data.active_sessions);if(prev!==null&&prev!==data.active_sessions){setPrior(prev);setTrend(data.active_sessions>prev?'up':'down');}else if(prior===null)setPrior(data.active_sessions);}}}catch{}
+  };
+  void fetch_live();
+  timer=setInterval(fetch_live,30000);
+  return()=>{alive=false;if(timer)clearInterval(timer);};
+ },[visitors,prior]);
+ const changePercent=prior&&visitors&&prior!==0?Math.round(((visitors-prior)/prior)*100):null;
+ return <article className="reports-tiles" style={{gridTemplateColumns:'1fr',marginBottom:'20px'}} role="region" aria-label="Visitantes en vivo del landing">
+  <article style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px'}}>
+   <div>
+    <h3 style={{marginBottom:'6px'}}>Visitantes en vivo</h3>
+    <p style={{margin:0,fontSize:'13px',color:'var(--text-muted,var(--muted,#6f6474))'}}>Personas actualmente en el landing de Scale OS</p>
+   </div>
+   <div style={{textAlign:'right'}}>
+    <strong style={{fontSize:'28px',display:'block',color:'#14d981',fontVariantNumeric:'tabular-nums'}}>{visitors===null?'—':visitors}</strong>
+    <span style={{fontSize:'11px',color:'#14d981',display:'inline-flex',alignItems:'center',gap:'4px'}}>
+     ●
+     {trend==='up'&&changePercent!==null?<span style={{color:'#14d981'}}>↑ +{changePercent}%</span>:trend==='down'&&changePercent!==null?<span style={{color:'#f97316'}}>↓ {changePercent}%</span>:<span>—</span>}
+    </span>
+   </div>
+  </article>
+ </article>;
+}
 function ReportsPanel(){
  const [month,setMonth]=useState(currentMonth),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
  const [result,setResult]=useState<{key:string;data:ReportsData}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
@@ -66,7 +94,9 @@ function ReportsPanel(){
   {label:'Facturado promedio por cliente facturado',value:reportMoney(financial?.averageRevenuePerClient,selectedCurrency),change:reportDelta(financial?.averageRevenuePerClient??null,previousFinancial?.averageRevenuePerClient??null,partial)},
  ]:[];
  return <section className="reports-workspace" aria-label="Reportes de la agencia">
-  <h2>Evolución mensual</h2><p>Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado.</p>
+  <h2>Evolución mensual</h2>
+  <LiveVisitorsWidget/>
+  <p>Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado.</p>
   <div className="reports-filters">
    <label>Mes a consultar<input type="month" value={month} min="1900-01" max={currentMonth()} onChange={e=>{if(validMonth(e.target.value)&&e.target.value<=currentMonth())setMonth(e.target.value);}}/></label>
    <label>Histórico<select value={months} onChange={e=>{const value=Number(e.target.value);if([6,12,24].includes(value))setMonths(value);}}>{[6,12,24].map(value=><option key={value} value={value}>Últimos {value} meses</option>)}</select></label>

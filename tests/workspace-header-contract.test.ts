@@ -25,22 +25,27 @@ function order(haystack: string, first: string, second: string) {
   assert.ok(haystack.indexOf(first) < haystack.indexOf(second), `${first} must precede ${second}`);
 }
 
-test("workspace header groups company, presence, status, search, and notifications without changing return handling", () => {
+test("workspace header groups presence, status, search, and notifications without changing return handling", () => {
   order(source, 'className="topbar-workspace-context"', 'className="topbar-utilities"');
-  order(source, 'className="topbar-company"', 'className="topbar-presence"');
   order(source, 'className="topbar-status"', 'className="topbar-utility-actions"');
   order(source, '<WorkspaceSearch', '<NotificationBell');
   assert.match(source, /postLoginDestination\(search:string\)/);
   assert.match(source, /scaleBilling'\)\|\|query\.get\('billing/);
 });
 
-test("workspace header retains visible focus, 44px controls, compact responsive status, and reduced motion", () => {
+test("workspace sidebar owns the company switcher above the signed-in profile", () => {
+  order(source, 'className="sidebar-company"', 'className="profile-footer"');
+  assert.doesNotMatch(source, /className="topbar-company"/);
+  assert.match(mobileNavigation, /sidebar-company[\s\S]*?\.workspace/);
+});
+
+test("workspace header retains visible focus, 40px desktop controls, 44px mobile targets, and reduced motion", () => {
   assert.match(density, /\.workspace-topbar :is\(button,a\):focus-visible\{outline:3px/);
-  assert.match(density, /topbar-utility-actions>\.workspace-search-trigger\{min-width:min\(244px,30vw\);min-height:44px/);
-  assert.match(density, /topbar-utility-actions>\.notification-trigger\{width:44px;min-width:44px;min-height:44px/);
+  assert.match(density, /topbar-utility-actions>\.workspace-search-trigger\{min-width:min\(220px,28vw\);min-height:40px/);
+  assert.match(density, /topbar-utility-actions>\.notification-trigger\{width:40px;min-width:40px;min-height:40px/);
+  assert.match(density, /@media\(max-width:760px\)\{[\s\S]*?\.control-shell \.topbar-utility-actions>\.workspace-search-trigger,\.control-shell \.topbar-utility-actions>\.notification-trigger\{width:44px;min-width:44px;min-height:44px/);
   assert.match(density, /@media\(max-width:520px\)\{[\s\S]*?\.control-shell \.topbar-presence\{display:none\}/);
   assert.match(density, /@media\(prefers-reduced-motion:reduce\)/);
-  assert.doesNotMatch(mobileNavigation, /topbar-company[^}]*display:none/);
   assert.doesNotMatch(mobileNavigation, /\.workspace-topbar/);
 });
 

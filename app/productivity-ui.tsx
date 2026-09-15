@@ -39,8 +39,9 @@ export function WorkDetail({id,organizationId,role,close,refresh}:{id:string;org
  useEffect(()=>{setEditing(false);void load().catch(e=>setError(errorText(e)));},[id]);
  async function action(path:string){setBusy(true);try{await api(path,{});await refresh();await load();notify({tone:'success',message:'Acción guardada.'});}catch(e){setError(errorText(e));}finally{setBusy(false);}}
  const order=data?.order,editable=makers.includes(role);
+ const heading=order?(editing?'Editar pieza':s(order,'title')):'Detalle de la pieza';
  const fields:Field[]=[urgencyField,{key:'title',label:'Título'},{key:'description',label:'Descripción y notas',type:'textarea',optional:true},{key:'drive_links',label:'Enlaces de archivo o carpeta de Drive',type:'textarea',optional:true,wide:true},{key:'due_date',label:'Entrega',type:'date',optional:true},{key:'estimated_hours',label:'Horas estimadas',type:'number',optional:true},{key:'actual_hours',label:'Horas trabajadas',type:'number',optional:true}];
- return <Dialog variant="drawer" title={order?s(order,'title'):'Detalle de la pieza'} close={close}>
+ return <Dialog variant="drawer" title={heading} close={close}>
   {error&&<p className="error" role="alert">{error}</p>}
   {!order?<p>Cargando pieza…</p>:<>
    <ProjectPresence projectId={s(order,'project_id')}/><UrgencyBadge value={order.urgency}/>
@@ -68,7 +69,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
  async function reload(){setData(await api(`/api/agency/productivity/clients/${id}`));await refresh();}
  useEffect(()=>{void api<typeof data>(`/api/agency/productivity/clients/${id}`).then(setData).catch(e=>setError(errorText(e)));},[id]);
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error">{error}</p>}{data?<>
-  {['owner','admin','management','sales'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
+  {['owner','admin','management','sales'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
   <p>{s(data.client,'email')} · {s(data.client,'phone')}</p>{whatsappUrl(s(data.client,'phone'))&&<a className="text-button client-whatsapp" href={whatsappUrl(s(data.client,'phone'))!} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>}<p>{s(data.client,'notes')}</p>
   <ClientLinks id={id} value={data.client.social_links} phone={s(data.client,'phone')} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>
   <ClientReporting key={id} id={id} role={role} onSaved={reload}/>

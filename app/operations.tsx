@@ -141,7 +141,7 @@ export function Editor({
     >
       {fields.some(f=>f.key==='drive_url'||f.key==='drive_links')&&<div className="ops-wide"><DriveLinkNote multiple={fields.some(f=>f.key==='drive_links')}/></div>}
       {fields.filter(f=>!f.section).map(renderField)}
-      {Array.from(new Set(fields.map(f=>f.section).filter((s):s is string=>Boolean(s)))).map(section=><details className="ops-profile-section ops-wide" key={section} open={fields.some(f=>f.section===section&&form.formState.errors[f.key])||undefined}>
+      {Array.from(new Set(fields.map(f=>f.section).filter((s):s is string=>Boolean(s)))).map(section=><details className="ops-profile-section ops-wide" key={section} open>
         <summary>{section}</summary><div className="ops-form-grid">{fields.filter(f=>f.section===section).map(renderField)}</div>
       </details>)}
       {error && (
@@ -249,11 +249,15 @@ export function OperationsWorkspace({
   role,
   currentEmail='',
   organizationName='',
+  activeTab='people',
+  onTabChange,
 }: {
   mode: "people" | "commissions";
   role: string;
   currentEmail?:string;
   organizationName?:string;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }) {
   const {currency:defaultCurrency}=useCompanyCurrency();
   const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[seedEmail,setSeedEmail]=useState(''),[search,setSearch]=useState('');
@@ -341,7 +345,7 @@ export function OperationsWorkspace({
     },
     { key: "job_role_id", label: "Cargo o servicio", optional: true, choices: [{value:'',label:'Sin definir'},...jobs.filter(j=>j.active||String(j.id)===String(person?.job_role_id)).map(j=>({value:String(j.id),label:j.name+(j.active?'':' (archivado)')}))] },
     {
-      key: "active", label: "Estado", choices: [
+      key: "active", label: "Estado laboral", choices: [
         { value: "true", label: "Activo" }, { value: "false", label: "Inactivo" },
       ],
     },
@@ -365,9 +369,9 @@ export function OperationsWorkspace({
       label: "Fecha de ingreso",
       type: "date",
       optional: true,
-      section: 'Imagen y fechas',
+      section: 'Fechas',
     },
-    { key: "ended_on", label: "Fecha de salida", type: "date", optional: true, section: 'Imagen y fechas' },
+    { key: "ended_on", label: "Fecha de salida", type: "date", optional: true, section: 'Fechas' },
     {
       key: "payment_day",
       label: "Día de pago (1–31)",
@@ -427,41 +431,58 @@ export function OperationsWorkspace({
           </p>
         )}
         {notice && <p role="status">{notice}</p>}
-        {mode==='people'&&<label className="team-search">Buscar persona<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Nombre, correo o cargo"/></label>}
+        {mode==='people'&&<div className="team-filters">
+          <label className="team-search">
+            <span>Buscar persona</span>
+            <input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Nombre, correo o cargo"/>
+          </label>
+          <div className="choice-list compact">
+            <button className={!search?'choice active':'choice'} onClick={()=>setSearch('')}>Todos</button>
+            <button className={search==='activo'?'choice active':'choice'} onClick={()=>setSearch('activo')}>Activos</button>
+            <button className={search==='inactivo'?'choice active':'choice'} onClick={()=>setSearch('inactivo')}>Inactivos</button>
+          </div>
+        </div>}
         {loading ? (
           <p>Cargando…</p>
         ) : mode === "people" ? (
           <div className="ops-grid">
-            {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
+            {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';const jobTitle=jobs.find(j=>String(j.id)===String(p?.job_role_id))?.name||p?.job_title;return p?(
               <article className="ops-card ops-person-card" key={p.id}>
-                <div className="ops-person">
-                  {p.photo_url ? (
-                    <PhotoViewer photo={p.photo_url} name={p.full_name}/>
-                  ) : (
-                    <span className="avatar">{p.full_name[0]}</span>
-                  )}
-                  <div>
-                    <h3>{p.full_name}</h3>
-                    <small>{p.email || "Sin correo de contacto"} · {accessRole} · {accessState}</small>
+                <div className="ops-person-header">
+                  <div className="ops-person">
+                    {p.photo_url ? (
+                      <PhotoViewer photo={p.photo_url} name={p.full_name}/>
+                    ) : (
+                      <span className="avatar">{p.full_name[0]}</span>
+                    )}
+                    <div>
+                      <h3>{p.full_name}</h3>
+                      <small>{jobTitle||'Sin cargo'}</small>
+                    </div>
                   </div>
+                </div>
+                <div className="ops-person-info">
+                  <div>{p.email||'Sin correo'}</div>
+                  <div>{accessRole}</div>
+                  {p.started_on&&<div className="ops-since">Desde {p.started_on.slice(0,10)}</div>}
                 </div>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
                 <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} currentEmail={currentEmail} refresh={load}/>
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
-                <div className="inline-actions">
+                <div className="ops-card-actions">
                   <button className="text-button" onClick={() => setEdit(p)}>
-                    Ver perfil
+                    Perfil
                   </button>
                   <button
                     className="text-button"
                     onClick={() => setPay({ person: p })}
                   >
-                    Registrar pago
+                    Pagar
                   </button>
                   <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
                 </div>
               </article>
-            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt="" style={{width:'100%',height:'100%',borderRadius:'50%',objectFit:'cover'}}/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||'Integrante sin ficha'}</h3><small>{entry.member!.email} · {accessRole} · {accessState}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
+            ):<article className="ops-card ops-person-card" key={entry.key}><div className="ops-person"><span className="avatar">{entry.member!.photo_url?<img src={entry.member!.photo_url} alt=""/>:(entry.member!.full_name||entry.member!.email)[0].toUpperCase()}</span><div><h3>{entry.member!.full_name||'Integrante sin ficha'}</h3><small>{entry.member!.email} · {accessRole} · {accessState}</small></div></div><TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>{entry.archivedProfileId?<button className="text-button" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}</article>;})}
             {!visiblePeople.length && (
               <p className="empty-copy">
                 {search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}
@@ -569,14 +590,13 @@ export function OperationsWorkspace({
       </section>
       {edit && (
         <Dialog
-          title={person ? person.full_name : "Persona del equipo"}
+          title={person ? "Editar persona" : "Nueva persona"}
           close={() => setEdit(null)}
         >
           <p className="form-note">
             {['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso automáticamente. Si es nuevo, recibe una invitación con permiso de lectura; los accesos existentes conservan sus permisos.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
-            {person&&' El estado laboral no revoca accesos existentes.'}
+            {person?' El estado laboral no revoca accesos existentes.':seedEmail?' El nombre y la foto se toman de su perfil personal; esta ficha agrega datos laborales.':''}
           </p>
-          {!person&&seedEmail&&<p className="form-note">El nombre y la foto se toman de su perfil personal. Esta ficha agrega datos laborales, no requiere registrarse de nuevo.</p>}
           {!person&&members.find(member=>member.email===seedEmail)?.photo_url&&<PhotoViewer photo={members.find(member=>member.email===seedEmail)!.photo_url!} name={personDefaults.full_name}/>}
           {person&&<ProfilePhoto compact key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
             const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
@@ -585,7 +605,7 @@ export function OperationsWorkspace({
           {person&&<TeamAccess member={directory.find(entry=>entry.profile?.id===person.id)?.member||null} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>}
           <Editor
             columns
-            fields={person ? personFields : personFields.filter(f=>!f.section||f.section==='Planificación salarial')}
+            fields={personFields}
             defaults={personDefaults}
             save={async (v) => {
               const result = await api<{access?:{status:string;emailSent?:boolean}}>(
@@ -765,7 +785,7 @@ function JobCatalog({ jobs, close, refresh }: {jobs:JobRole[];close:()=>void;ref
     <div className="ops-job-list">
       {jobs.map(job=><button type="button" className={selected?.id===job.id?'choice active':'choice'} key={job.id} onClick={()=>setSelected(job)}>{job.name}{!job.active?' · Archivado':''}</button>)}
     </div>
-    <div className="panel-heading"><h3>{selected?'Editar cargo':'Nuevo cargo'}</h3>{selected&&<button className="text-button" onClick={()=>setSelected(null)}>Agregar otro</button>}</div>
+    {selected&&<button className="text-button" onClick={()=>setSelected(null)}>Agregar otro cargo</button>}
     {notice&&<p role="status" className="form-note">{notice}</p>}
     <Editor key={selected?.id||'new'} columns fields={[{key:'name',label:'Nombre del cargo'},...(selected?[{key:'active',label:'Disponible para asignar',choices:[{value:'true',label:'Sí'},{value:'false',label:'Archivado'}]}]:[])]} defaults={{name:selected?.name||'',active:String(selected?.active??true)}} save={async values=>{
       await api(`/api/agency/job-roles${selected?`/${selected.id}`:''}`,{name:values.name,active:values.active!=='false'},selected?'PATCH':'POST');
@@ -921,9 +941,9 @@ export function CompanySelector({ name }: { name: string }) {
   }, []);
   return (
     <>
-      <button className="workspace" onClick={() => setOpen(true)}>
+      <button className="workspace" title={name} onClick={() => setOpen(true)}>
         <Building2 size={16} />
-        {name}
+        <span className="company-name">{name}</span>
       </button>
       {open && (
         <Dialog title="Elegí la empresa" close={() => setOpen(false)}>
