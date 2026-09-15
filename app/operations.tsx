@@ -195,6 +195,16 @@ type Commission = {
   invoice_number: string | null;
   due_on: string | null;
 };
+type MonthlyCommission = {
+  recipient_id: string | null;
+  name: string | null;
+  currency: string;
+  expected_amount: string | number;
+  recorded_amount: string | number;
+  approved_amount: string | number;
+  paid_amount: string | number;
+  pending_amount: string | number;
+};
 type Account = {
   id: string;
   name: string;
@@ -283,6 +293,10 @@ export function OperationsWorkspace({
     } | null>(null),
     [filter, setFilter] = useState("all");
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
+  const [commissionMonth, setCommissionMonth] = useState(() => salaryMonth()),
+    [monthlyCommissions, setMonthlyCommissions] = useState<MonthlyCommission[]>([]),
+    [monthlyLoading, setMonthlyLoading] = useState(false),
+    [monthlyRefresh, setMonthlyRefresh] = useState(0);
   const allowed = ["owner", "admin", "finance"].includes(role);
   useEffect(() => {
     if (!allowed) return;
@@ -293,6 +307,16 @@ export function OperationsWorkspace({
       .catch(() => { if (alive) setCommercial(null); });
     return () => { alive = false; };
   }, [allowed]);
+  useEffect(() => {
+    if (!allowed || mode !== "commissions") return;
+    let alive = true;
+    setMonthlyLoading(true);
+    void api<{ month: string; records: MonthlyCommission[] }>(`/api/agency/commissions/monthly?month=${encodeURIComponent(commissionMonth)}`)
+      .then(value => { if (alive) setMonthlyCommissions(value.records); })
+      .catch(() => { if (alive) setMonthlyCommissions([]); })
+      .finally(() => { if (alive) setMonthlyLoading(false); });
+    return () => { alive = false; };
+  }, [allowed, mode, commissionMonth, monthlyRefresh]);
   const salaryTotals = useMemo(() => {
     const totals = new Map<string, number>();
     let defined = 0, missing = 0;
@@ -346,6 +370,7 @@ export function OperationsWorkspace({
   },[allowed,mode]);
   async function done() {
     await load();
+    setMonthlyRefresh(value => value + 1);
     setEdit(null);
     setNewCommission(false);
     setPay(null);
@@ -549,6 +574,31 @@ export function OperationsWorkspace({
           </div>
         ) : (
           <>
+            <div className="commission-settlement">
+              <div className="panel-heading">
+                <h3>Comisiones del mes por colaborador</h3>
+                <label>
+                  Mes
+                  <input type="month" value={commissionMonth} min="1900-01" max="9998-12" onChange={event => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setCommissionMonth(event.target.value); }} />
+                </label>
+              </div>
+              <p className="form-note">
+                Esperado: acuerdos comerciales vigentes con comisión asignada. Registrado, aprobado, pagado y pendiente: comisiones del mes según la fecha de la factura vinculada.
+              </p>
+              {monthlyLoading ? <p role="status">Cargando comisiones del mes…</p> : monthlyCommissions.length ? monthlyCommissions.map(row => (
+                <div className="payment-row" key={`${row.recipient_id ?? `unlinked-${row.name ?? ""}`}-${row.currency}`}>
+                  <div>
+                    <b>{row.name || "Sin colaborador vinculado"}</b>
+                    <small>{row.currency}</small>
+                  </div>
+                  <strong>Esperado {money(row.expected_amount, row.currency)}</strong>
+                  <strong>Registrado {money(row.recorded_amount, row.currency)}</strong>
+                  <strong>Aprobado {money(row.approved_amount, row.currency)}</strong>
+                  <strong>Pagado {money(row.paid_amount, row.currency)}</strong>
+                  <strong>Pendiente {money(row.pending_amount, row.currency)}</strong>
+                </div>
+              )) : <p className="empty-copy">Sin comisiones ni acuerdos comerciales para este mes.</p>}
+            </div>
             <div className="choice-list compact">
               {["all", "pending", "approved", "paid", "cancelled"].map((s) => (
                 <button

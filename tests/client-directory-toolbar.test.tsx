@@ -56,6 +56,15 @@ test("client directory renders either onboarding or filtered no-results, with a 
   );
 });
 
+test("client directory and mora views flag clients that were never invoiced", () => {
+  const workspace = readFileSync("app/scale-workspace.tsx", "utf8");
+  assert.match(workspace, /invoice_count: number;[\s\S]*?has_invoice: boolean;/);
+  assert.match(workspace, /\["no_invoice", "Sin factura"\]/);
+  assert.match(workspace, /moraFilter === "no_invoice" \? paymentStatuses\.filter\(client => !client\.has_invoice\)/);
+  assert.match(workspace, /cobrosKpis\.sinFactura\} sin factura/);
+  assert.match(workspace, /if \(!client\.has_invoice\) sinFactura \+= 1;/);
+});
+
 test("client toolbar exposes accessible search, count, view controls, and role-gated creation", async () => {
   let renderer: ReactTestRenderer;
   let query = "";
