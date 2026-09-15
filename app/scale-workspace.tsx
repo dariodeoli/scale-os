@@ -1250,6 +1250,7 @@ export default function Home() {
   const [invoiceHasMore, setInvoiceHasMore] = useState(false);
   const [allInvoicesLoaded, setAllInvoicesLoaded] = useState(false);
   const [moraFilter, setMoraFilter] = useState("");
+  const [projectClientFilter, setProjectClientFilter] = useState("");
   const [moraReports, setMoraReports] = useState<ReportsData | null>(null);
   const [moraReportsError, setMoraReportsError] = useState(false);
   const moraBuckets = useMemo(() => {
@@ -1287,6 +1288,51 @@ export default function Home() {
   }, [moraReports, paymentStatuses]);
   const visibleMoraClients = moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses;
   const moneyMora = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+  const moneyKpi = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+  const budgetKpis = useMemo(() => {
+    const totals = new Map<string, number>();
+    let drafts = 0, accepted = 0, expiring = 0;
+    const today = new Date(), week = new Date(Date.now() + 7 * 86400000);
+    for (const budget of budgets) {
+      const amount = Number(budget.total);
+      if (Number.isFinite(amount) && amount > 0) totals.set(budget.currency, (totals.get(budget.currency) || 0) + amount);
+      if (budget.status === "draft") drafts += 1;
+      if (budget.status === "accepted") accepted += 1;
+      if (budget.valid_until && budget.status !== "accepted") {
+        const until = new Date(budget.valid_until);
+        if (!Number.isNaN(until.getTime()) && until >= today && until <= week) expiring += 1;
+      }
+    }
+    return { totals, drafts, accepted, expiring };
+  }, [budgets]);
+  const projectKpis = useMemo(() => {
+    let active = 0, paused = 0, completed = 0, pieces = 0;
+    for (const project of projects) {
+      if (project.status === "active") active += 1;
+      else if (project.status === "paused") paused += 1;
+      else if (project.status === "completed") completed += 1;
+      pieces += project.work_order_count || 0;
+    }
+    return { active, paused, completed, pieces };
+  }, [projects]);
+  const visibleProjects = projectClientFilter ? projects.filter(project => project.client_id === projectClientFilter) : projects;
+  const stageCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const order of orders) counts.set(order.status, (counts.get(order.status) || 0) + 1);
+    return counts;
+  }, [orders]);
+  const directoryKpis = useMemo(() => {
+    const active = clients.filter(client => client.active).length;
+    const paused = clients.length - active;
+    const activeProjects = projects.filter(project => project.status === "active").length;
+    const today = new Date(), week = new Date(Date.now() + 7 * 86400000);
+    const deliveries = orders.filter(order => {
+      if (!order.due_date || ["approved", "published"].includes(order.status)) return false;
+      const due = new Date(order.due_date);
+      return !Number.isNaN(due.getTime()) && due >= today && due <= week;
+    }).length;
+    return { active, paused, activeProjects, deliveries };
+  }, [clients, projects, orders]);
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
     active_projects: 0,
@@ -1461,7 +1507,7 @@ export default function Home() {
   function clearScopedShellData(){
     dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
     setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
-    setClientStatusFilter('');setMoraFilter('');setProjectClient('');setProductionFiltersDialogScope('');setStartupDataScope('');setWorkspaceScope('');
+    setClientStatusFilter('');setMoraFilter('');setProjectClientFilter('');setProjectClient('');setProductionFiltersDialogScope('');setStartupDataScope('');setWorkspaceScope('');
     setMyProfile(false);setDetail(null);setModal(null);setSubscriptionOpen(false);setDemoWelcome(false);
   }
   function clearSessionState() {
@@ -1735,6 +1781,23 @@ export default function Home() {
           <>
             <WorkspaceGuide {...guideProps} variant="card"/>
             <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary}/>
+            <section className="panel" aria-label="Piezas por etapa">
+              <div className="panel-heading">
+                <div>
+                  <p className="eyebrow">PRODUCCIÓN</p>
+                  <h2>Piezas por etapa</h2>
+                </div>
+                <button className="text-button" onClick={() => setActive("Producción")}>Abrir Producción →</button>
+              </div>
+              <div className="stage-strip">
+                {statuses.map(status => (
+                  <span className="stage-chip" key={status.id}>
+                    <span className={`dot${status.tone === "red" ? "" : ` ${status.tone}`}`}/>
+                    {status.label} <strong>{stageCounts.get(status.id) || 0}</strong>
+                  </span>
+                ))}
+              </div>
+            </section>
             {user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
             <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
             <InternalTasks role={user?.role||'viewer'}/>
@@ -1819,19 +1882,19 @@ export default function Home() {
               </div>
               <span>Actualizado hoy</span>
             </div>
-            <div className="mora-summary" aria-label="Semáforo de mora por antigüedad">
+            <div className="kpi-strip" aria-label="Semáforo de mora por antigüedad">
               {moraBuckets.map(bucket => (
-                <article className={`mora-kpi mora-${bucket.key}`} key={bucket.key}>
+                <article className={`kpi-card ${bucket.key === "early" ? "tone-gold" : bucket.key === "medium" ? "tone-warning" : "tone-danger"}`} key={bucket.key}>
                   <p className="eyebrow">{bucket.label}</p>
                   <strong>{bucket.clients} cliente{bucket.clients === 1 ? "" : "s"}</strong>
-                  <div className="mora-amounts">
+                  <div className="kpi-amounts">
                     {bucket.amounts.size ? Array.from(bucket.amounts).map(([currency, amount]) => (
                       <span key={currency}>{moneyMora(amount, currency)}</span>
                     )) : <span>Sin saldos vencidos</span>}
                   </div>
                 </article>
               ))}
-              <article className="mora-kpi mora-dso">
+              <article className="kpi-card tone-brand">
                 <p className="eyebrow">DSO · DÍAS EN CALLE</p>
                 {["owner", "admin", "finance"].includes(user?.role || "") ? (
                   <>
@@ -1921,6 +1984,28 @@ export default function Home() {
         )}
         {active === "Clientes" && (
           <section className="panel directory">
+            <div className="kpi-strip" aria-label="Métricas del directorio">
+              <article className="kpi-card tone-green">
+                <p className="eyebrow">CLIENTES ACTIVOS</p>
+                <strong>{directoryKpis.active}</strong>
+                <small>Con servicio en curso</small>
+              </article>
+              <article className="kpi-card tone-warning">
+                <p className="eyebrow">EN PAUSA</p>
+                <strong>{directoryKpis.paused}</strong>
+                <small>Sin servicio activo</small>
+              </article>
+              <article className="kpi-card tone-brand">
+                <p className="eyebrow">PROYECTOS ACTIVOS</p>
+                <strong>{directoryKpis.activeProjects}</strong>
+                <small>En toda la agencia</small>
+              </article>
+              <article className="kpi-card tone-blue">
+                <p className="eyebrow">ENTREGAS ESTA SEMANA</p>
+                <strong>{directoryKpis.deliveries}</strong>
+                <small>Piezas con vencimiento en 7 días</small>
+              </article>
+            </div>
             <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
               {displayedClients.length ? (
                 displayedClients.map((client) => (
@@ -1949,9 +2034,44 @@ export default function Home() {
         )}
         {active === "Proyectos" && (
           <section className="panel directory">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">ENTREGAS Y CAPACIDAD</p>
+                <h2>{visibleProjects.length} proyecto{visibleProjects.length === 1 ? "" : "s"}</h2>
+              </div>
+              <label className="directory-project-filter">
+                Cliente
+                <select value={projectClientFilter} onChange={event => setProjectClientFilter(event.target.value)}>
+                  <option value="">Todos</option>
+                  {clients.map(client => <option key={client.id} value={client.id}>{client.name}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="kpi-strip" aria-label="Métricas de proyectos">
+              <article className="kpi-card tone-green">
+                <p className="eyebrow">ACTIVOS</p>
+                <strong>{projectKpis.active}</strong>
+                <small>Con trabajo en curso</small>
+              </article>
+              <article className="kpi-card tone-warning">
+                <p className="eyebrow">PAUSADOS</p>
+                <strong>{projectKpis.paused}</strong>
+                <small>Sin producción activa</small>
+              </article>
+              <article className="kpi-card tone-blue">
+                <p className="eyebrow">COMPLETADOS</p>
+                <strong>{projectKpis.completed}</strong>
+                <small>Cerrados en el historial</small>
+              </article>
+              <article className="kpi-card tone-brand">
+                <p className="eyebrow">PIEZAS TOTALES</p>
+                <strong>{projectKpis.pieces}</strong>
+                <small>Órdenes de los proyectos visibles</small>
+              </article>
+            </div>
             <div className={projectView==='grid'?'project-grid':'project-list'}>
-              {projects.length ? (
-                projects.map((project) => (
+              {visibleProjects.length ? (
+                visibleProjects.map((project) => (
                   <ProjectCard key={project.id} project={project} client={clients.find(c=>String(c.id)===String(project.client_id))}>
                     <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
                     <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
@@ -1959,7 +2079,7 @@ export default function Home() {
                 ))
               ) : (
                 <p className="empty-copy">
-                  Creá un proyecto después de cargar un cliente.
+                  {projectClientFilter ? "Este cliente no tiene proyectos." : "Creá un proyecto después de cargar un cliente."}
                 </p>
               )}
             </div>
@@ -1967,6 +2087,32 @@ export default function Home() {
         )}
         {active === "Presupuestos" && (
           <section className="panel directory">
+            <div className="kpi-strip" aria-label="Métricas de presupuestos">
+              <article className="kpi-card tone-brand">
+                <p className="eyebrow">PROPUESTAS</p>
+                <strong>{budgets.length}</strong>
+                <div className="kpi-amounts">
+                  {budgetKpis.totals.size ? Array.from(budgetKpis.totals).map(([currency, amount]) => (
+                    <span key={currency}>{moneyKpi(amount, currency)}</span>
+                  )) : <span>Sin propuestas</span>}
+                </div>
+              </article>
+              <article className="kpi-card tone-warning">
+                <p className="eyebrow">BORRADORES</p>
+                <strong>{budgetKpis.drafts}</strong>
+                <small>Sin enviar al cliente</small>
+              </article>
+              <article className="kpi-card tone-green">
+                <p className="eyebrow">ACEPTADAS</p>
+                <strong>{budgetKpis.accepted}</strong>
+                <small>Con aprobación del cliente</small>
+              </article>
+              <article className="kpi-card tone-blue">
+                <p className="eyebrow">VENCEN ESTA SEMANA</p>
+                <strong>{budgetKpis.expiring}</strong>
+                <small>Vigencia en los próximos 7 días</small>
+              </article>
+            </div>
             <p className="directory-summary">{budgets.length} presupuestos · Propuestas y aprobaciones</p>
             <div className="project-grid">
               {budgets.length ? (

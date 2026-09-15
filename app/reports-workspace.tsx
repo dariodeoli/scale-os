@@ -28,6 +28,21 @@ export function reportDelta(current:string|number|null,prior:string|number|null,
  const percent=(absoluteDiff*BigInt(10000)+base/BigInt(2))/base;
  return `${absolute} · ${diff<BigInt(0)?'-':diff>BigInt(0)?'+':''}${printed(percent,2)} %`;
 }
+function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
+ const series=months.map(row=>{const financial=row.financial.find(item=>item.currency===currency);return {month:row.month,partial:row.isPartial,invoiced:decimal(financial?.invoiced??null),collected:decimal(financial?.collected??null)};}).filter(row=>row.invoiced!==null||row.collected!==null);
+ if(!currency||!series.length)return null;
+ const biggest=series.reduce((top,row)=>{for(const value of [row.invoiced,row.collected]){if(!value)continue;const scale=Math.max(top.scale,value.scale);const candidate=value.units*power(scale-value.scale);const current=top.units*power(scale-top.scale);if(candidate>current){top={units:value.units,scale:value.scale};}}return top;},{units:BigInt(0),scale:0});
+ const heightOf=(value:{units:bigint;scale:number}|null)=>value===null||biggest.units===BigInt(0)?0:Math.max(2,Math.min(100,Number(value.units*power(biggest.scale-value.scale)*BigInt(100)/biggest.units)));
+ return <div className="reports-chart" role="img" aria-label={`Facturado y cobrado mensual en ${currency}`}>
+  {series.map(row=><figure key={row.month}>
+   <div className="chart-bars">
+    <span className={`chart-bar${row.partial?' is-partial':''}`} title={`${row.month} · Facturado ${row.invoiced?`${currency} ${printed(row.invoiced.units,row.invoiced.scale)}`:'sin datos'}`} style={{height:`${heightOf(row.invoiced)}%`}}/>
+    <span className={`chart-bar collected${row.partial?' is-partial':''}`} title={`${row.month} · Cobrado ${row.collected?`${currency} ${printed(row.collected.units,row.collected.scale)}`:'sin datos'}`} style={{height:`${heightOf(row.collected)}%`}}/>
+   </div>
+   <figcaption>{row.month.slice(5)}{row.partial?' · parcial':''}</figcaption>
+  </figure>)}
+ </div>;
+}
 const count=(value:number|null|undefined)=>value==null?'Sin datos':String(value);
 function Distribution({title,rows,total}:{title:string;rows:{name:string;count:number}[];total:number|null}){
  return <section className="reports-distribution"><h3>{title}</h3><p>Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p>{rows.length?<ul>{rows.map((row,index)=>{const share=total!==null&&total>0?row.count/total*100:null;return <li key={`${row.name}-${index}`}><span>{row.name}</span><strong>{row.count} · {share===null?'Sin porcentaje':`${share.toFixed(1).replace('.',',')} %`}</strong>{share!==null?<span className="reports-bar" aria-hidden="true"><span style={{width:`${Math.min(100,Math.max(0,share))}%`}}/></span>:null}</li>;})}</ul>:<p>Sin distribución registrada para este mes.</p>}</section>;
@@ -47,17 +62,16 @@ function LiveVisitorsWidget(){
   return()=>{alive=false;if(timer)clearInterval(timer);};
  },[visitors,prior]);
  const changePercent=prior&&visitors&&prior!==0?Math.round(((visitors-prior)/prior)*100):null;
- return <article className="reports-tiles" style={{gridTemplateColumns:'1fr',marginBottom:'20px'}} role="region" aria-label="Visitantes en vivo del landing">
-  <article style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px'}}>
-   <div>
-    <h3 style={{marginBottom:'6px'}}>Visitantes en vivo</h3>
-    <p style={{margin:0,fontSize:'13px',color:'var(--text-muted,var(--muted,#6f6474))'}}>Personas actualmente en el landing de Scale OS</p>
+ return <article className="reports-tiles live-visitors" role="region" aria-label="Visitantes en vivo del landing">
+  <article>
+   <div className="live-visitors-copy">
+    <h3>Visitantes en vivo</h3>
+    <p>Personas actualmente en el landing de Scale OS</p>
    </div>
-   <div style={{textAlign:'right'}}>
-    <strong style={{fontSize:'28px',display:'block',color:'#14d981',fontVariantNumeric:'tabular-nums'}}>{visitors===null?'—':visitors}</strong>
-    <span style={{fontSize:'11px',color:'#14d981',display:'inline-flex',alignItems:'center',gap:'4px'}}>
-     ●
-     {trend==='up'&&changePercent!==null?<span style={{color:'#14d981'}}>↑ +{changePercent}%</span>:trend==='down'&&changePercent!==null?<span style={{color:'#f97316'}}>↓ {changePercent}%</span>:<span>—</span>}
+   <div className="live-visitors-figure">
+    <strong>{visitors===null?'—':visitors}</strong>
+    <span className={`live-visitors-trend${trend==='down'?' down':''}`}>
+     {trend==='up'&&changePercent!==null?`↑ +${changePercent}%`:trend==='down'&&changePercent!==null?`↓ ${changePercent}%`:'—'}
     </span>
    </div>
   </article>
@@ -114,6 +128,8 @@ function ReportsPanel(){
    {partial?<p role="status" className="reports-warning">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</p>:null}
    {!selected?<p>Sin datos para el mes seleccionado.</p>:<>
     <div className="reports-tiles">{tiles.map(tile=><article key={tile.label}><h3>{tile.label}</h3><strong>{tile.value}</strong><p>{tile.change}</p></article>)}</div>
+    <ReportsChart months={rows} currency={selectedCurrency}/>
+    <p className="reports-note">Barras: facturado (violeta) y cobrado (verde) por mes, en la moneda seleccionada. Los meses parciales se atenúan; la escala es relativa al valor máximo cargado, sin mezclar monedas.</p>
     <p>Antigüedad promedio de clientes activos: <strong>{count(selected.clients.averageTenureDays)}{selected.clients.averageTenureDays===null?'':' días'}</strong>. Fechas conocidas: {selected.clients.tenureKnown} de {count(selected.clients.active)} clientes activos. Las fechas desconocidas se excluyen del promedio.</p>
     <p className="reports-note">Bajas de actividad: clientes que dejaron de estar activos por pausa, cancelación o archivo, incluso si se reactivaron durante el mismo mes. No implica una pérdida definitiva.</p>
     <div className="reports-distributions"><Distribution title="Tipos de clientes activos" total={selected.clients.active} rows={selected.clients.types.map(row=>({name:kinds[row.kind]||'Sin clasificar',count:row.count}))}/><Distribution title="Planes por cantidad de clientes activos" total={selected.clients.active} rows={selected.clients.plans.map(row=>({name:row.planId===null?'Sin plan registrado':row.name||'Plan sin nombre',count:row.count}))}/></div>

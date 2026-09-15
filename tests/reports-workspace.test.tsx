@@ -104,7 +104,7 @@ async function run(){
 
  const css=readFileSync(new URL('../app/reports-workspace.css',import.meta.url),'utf8');
  assert.match(css,/minmax\(min\(100%,180px\),1fr\)/);
- assert.match(css,/minmax\(min\(100%,230px\),1fr\)/);
+ assert.match(css,/minmax\(min\(100%,210px\),1fr\)/);
  assert.match(css,/min-height:44px/);assert.match(css,/font-size:16px/);
  assert.match(css,/\.reports-table-scroll\{[^}]*min-width:0;max-width:100%;overflow-x:auto/);
  assert.match(css,/:focus-visible/);assert.doesNotMatch(css,/100vw|min-width:\s*(?:320|360|390)px/);
