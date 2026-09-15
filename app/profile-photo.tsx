@@ -34,8 +34,11 @@ export async function preparePhoto(file:File,forLogo=false,centerCrop=false):Pro
     const context=canvas.getContext('2d');if(!context)throw new Error('No se pudo preparar la foto.');
     context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
     context.drawImage(bitmap,area.x,area.y,area.width,area.height,0,0,canvas.width,canvas.height);
-    const result=canvas.toDataURL('image/webp',0.92);
-    if(result.length>700000)throw new Error('Elegí una foto más pequeña.');
+    // The API stores at most ~512 KB decoded; keep the base64 comfortably inside.
+    const encode=(quality:number)=>canvas.toDataURL('image/webp',quality);
+    let result=encode(0.92);
+    if(result.length>680000)result=encode(0.72);
+    if(result.length>680000)throw new Error('La foto comprimida supera el límite. Elegí una imagen más pequeña o con menos detalle.');
     return result;
   }finally{bitmap.close();}
 }

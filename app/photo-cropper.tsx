@@ -15,7 +15,12 @@ export async function cropImage(source:string,area:Area):Promise<string>{
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('No se pudo preparar la imagen.');
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   ctx.drawImage(bitmap,area.x,area.y,area.width,area.height,0,0,512,512);
-  return canvas.toDataURL('image/webp',0.92);
+  // The API stores at most ~512 KB decoded; keep the base64 comfortably inside.
+  const encode=(quality:number)=>canvas.toDataURL('image/webp',quality);
+  let result=encode(0.92);
+  if(result.length>680000)result=encode(0.72);
+  if(result.length>680000)throw Error('La foto comprimida supera el límite. Elegí una imagen más pequeña o con menos detalle.');
+  return result;
  }finally{bitmap.close();}
 }
 export function PhotoCropper({source,name,close,save}:{source:string;name:string;close:()=>void;save:(photo:string)=>Promise<void>}){
