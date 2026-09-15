@@ -26,7 +26,7 @@
 .forecast-projection table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:var(--ui-space-2)}
 .forecast-projection th,.forecast-projection td{padding:7px 10px;text-align:right;border-top:1px solid var(--border-subtle,var(--line));font-variant-numeric:tabular-nums;white-space:nowrap}
 .forecast-projection thead th{color:var(--text-subtle);font-weight:600;border-top:0}
-.forecast-projection th[scope=row]{text-align:left;color:var(--text-subtle);font-weight:600}
+.forecast-projection th[scope=row]{text-align:left;color:var(--text-subtle);font-weight:600}.financial-forecast .forecast-projection{overflow-x:auto;overscroll-behavior-x:contain}
 .forecast-projection td[data-negative]{color:var(--danger)}
 .contracted-clients{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
 .contracted-clients h3{margin:0}

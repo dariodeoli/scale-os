@@ -37,7 +37,7 @@
 @media(max-width:700px){.client-directory-toolbar,.directory-toolbar-row{align-items:stretch}.client-directory-toolbar .ops-select{width:100%}.client-directory-toolbar .ops-select-trigger{min-height:44px}.client-list .client-row{min-height:72px;padding:12px}.client-record-actions{justify-content:flex-start;flex-wrap:wrap}}
 
 /* Compact client controls keep filtering, view choice, and creation together. */
-.control-shell .client-directory-toolbar{display:grid;grid-template-columns:auto minmax(220px,1fr) minmax(160px,210px) auto auto auto;align-items:center;gap:8px 10px;width:min(1050px,100%);max-width:1050px;margin:0;padding:10px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
+.control-shell .client-directory-toolbar{display:grid;grid-template-columns:auto minmax(220px,1fr) minmax(160px,210px) auto auto auto;align-items:center;gap:8px 10px;width:100%;max-width:none;margin:0;padding:10px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
 .control-shell .client-directory-toolbar>*{min-width:0}
 .client-directory-toolbar-title{display:grid;gap:3px;min-width:0}
 .client-directory-toolbar-title h1{margin:0;font-size:clamp(25px,2.4vw,31px);font-weight:700;line-height:1;letter-spacing:-.052em}
