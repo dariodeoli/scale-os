@@ -1,39 +1,12 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scale OS · Tu agencia en orden. 30 días gratis.</title>
-<meta name="description" content="Producción, portal del cliente, ventas, equipo, inventario, estudio y finanzas para tu agencia. 30 días gratis, sin tarjeta. Precio de lanzamiento: US$10/mes o G.50.000/mes por agencia. Beneficio para clientes fundadores.">
-<link rel="canonical" href="https://sistema.scaleparaguay.com/">
-<meta name="robots" content="index,follow">
-<meta name="theme-color" content="#4d065b">
-<meta name="color-scheme" content="light">
-<meta name="application-name" content="Scale OS">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="es_PY">
-<meta property="og:site_name" content="Scale OS">
-<meta property="og:title" content="Tu agencia crea. Scale OS ordena.">
-<meta property="og:description" content="Un solo plan para conectar tu operación. 30 días gratis, sin tarjeta. Precio de lanzamiento: US$10/mes o G.50.000/mes por agencia, con tarifa preferencial para clientes fundadores.">
-<meta property="og:url" content="https://sistema.scaleparaguay.com/">
-<meta property="og:image" content="https://sistema.scaleparaguay.com/brand/share.png">
-<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Scale OS, sistema de gestión para agencias">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Tu agencia crea. Scale OS ordena.">
-<meta name="twitter:description" content="Producción, clientes, equipo, inventario y finanzas. Probalo 30 días sin tarjeta.">
-<meta name="twitter:image" content="https://sistema.scaleparaguay.com/brand/share.png">
-<meta name="twitter:image:alt" content="Scale OS, sistema de gestión para agencias">
-<link rel="manifest" href="/site.webmanifest">
-<link rel="shortcut icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/brand/favicon-32.png" type="image/png" sizes="32x32">
-<link rel="icon" href="/brand/icon-192.png" type="image/png" sizes="192x192">
-<link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" sizes="180x180">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://sistema.scaleparaguay.com/#organization","name":"Scale OS","url":"https://sistema.scaleparaguay.com/","logo":"https://sistema.scaleparaguay.com/brand/icon-512.png","inLanguage":"es-PY"},{"@type":"WebSite","@id":"https://sistema.scaleparaguay.com/#website","url":"https://sistema.scaleparaguay.com/","name":"Scale OS","inLanguage":"es-PY","publisher":{"@id":"https://sistema.scaleparaguay.com/#organization"}},{"@type":"SoftwareApplication","name":"Scale OS","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://sistema.scaleparaguay.com/","image":"https://sistema.scaleparaguay.com/brand/share.png","inLanguage":"es-PY","description":"Sistema de gestión para agencias: producción, portal del cliente, ventas, equipo, inventario, estudio y finanzas."}]}
-</script>
-<style>
+import fs from 'node:fs';
+const src = fs.readFileSync('public/scale-os.html', 'utf8');
+const form = src.match(/<form id="contact-form"[\s\S]*?<\/form>/)[0];
+const script = src.match(/<script>\s*\/\/ Aggregate counters only[\s\S]*?<\/script>/)[0];
+const headJsonLd = src.match(/<script type="application\/ld\+json">\n\{"@context":"https:\/\/schema\.org","@graph"[\s\S]*?<\/script>/)[0];
+const headJsonLd2 = src.match(/<script type="application\/ld\+json">\{"@context":"https:\/\/schema\.org","@type":"SoftwareApplication"[\s\S]*?<\/script>/)[0];
+if (!form || !script || !headJsonLd || !headJsonLd2) throw new Error('immutable blocks not found');
 
+const css = `
 /* Self-hosted fonts mirror app/fonts.css so the strict CSP never blocks the landing stylesheet. */
 @font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/s/dmmono/v16/aFTU7PB1QTsUX8KYthSQBK6PYK3EXw.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/s/dmmono/v16/aFTU7PB1QTsUX8KYthqQBK6PYK0.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -307,12 +280,9 @@ footer a:hover{color:#f0b9eb}
 }
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.button:hover,.feature:hover{transform:none}}
+`;
 
-</style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Scale OS","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://sistema.scaleparaguay.com/","description":"Sistema de gestión para agencias: producción, clientes, inventario, finanzas y equipo. Prueba de 30 días desde el alta. Plan único de US$10/mes o G.50.000/mes por agencia, precios alternativos de lanzamiento. Tarifa preferencial para clientes fundadores aunque el importe inicial se actualice.","inLanguage":"es"}</script>
-</head>
-<body>
-<a class="skip" href="#contenido">Saltar al contenido</a>
+const body = `<a class="skip" href="#contenido">Saltar al contenido</a>
 <header class="site-header">
  <div class="wrap nav">
   <a href="#contenido" class="brand" aria-label="Scale OS, inicio"><img src="https://sistema.scaleparaguay.com/brand/icon-192.png" width="36" height="36" alt=""><span>scale<em>OS</em></span></a>
@@ -446,58 +416,58 @@ footer a:hover{color:#f0b9eb}
 </section>
 <section id="contacto" class="wrap section split" aria-labelledby="contact-title">
  <div class="contact-intro"><p class="eyebrow">Hablemos de tu agencia</p><h2 id="contact-title">¿Tenés alguna duda?</h2><p>Contanos qué necesitás. Scale Strategy Group recibirá tus datos para responder esta consulta. Enviar este formulario no crea una cuenta ni inicia una suscripción o un cobro.</p><a href="https://wa.me/595993391354?text=Hola%2C%20quiero%20coordinar%20una%20demo%20de%20Scale%20OS%20para%20mi%20agencia.">También podés consultar por WhatsApp ↗</a></div>
-<form id="contact-form" class="contact-form"><label>Tu nombre<input name="name" required minlength="2" maxlength="100" autocomplete="name"></label><label>Empresa o agencia<input name="company" required minlength="2" maxlength="140" autocomplete="organization"></label><label>Correo<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label>WhatsApp (opcional)<input name="phone" type="tel" maxlength="50" autocomplete="tel"></label><label class="wide">¿Qué necesitás? (opcional)<textarea name="message" rows="4" maxlength="1500"></textarea></label><label class="trap" aria-hidden="true">No completar<input name="website" tabindex="-1" autocomplete="off"></label><label class="wide consent"><input type="checkbox" name="consent" required>Autorizo a Scale Strategy Group a contactarme sobre esta consulta. Puedo solicitar que eliminen mis datos.</label><button class="button wide" type="submit">Enviar consulta</button><p class="wide" role="status" id="contact-status" aria-live="polite"></p><noscript>Activá JavaScript para enviar el formulario o contactanos por WhatsApp.</noscript></form>
+ INSERT_FORM
 </section>
 </main>
-<footer><div class="wrap footer-inner"><span>© 2026 Scale OS. Todos los derechos reservados. · v1.0.71 · Un producto de Scale Strategy Group</span><a href="#precio">Ver el plan</a><a href="https://scaleparaguay.com/">Conocé Scale Strategy Group ↗</a></div></footer>
-<script>
-// Aggregate counters only: no persistent visitor identifier or advertising pixel.
-function recordLanding(name){fetch('https://sistema.scaleparaguay.com/core-api/api/public/telemetry',{method:'POST',credentials:'omit',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({name})}).catch(()=>{});}
-recordLanding('page_view');if(matchMedia('(max-width:760px)').matches)recordLanding('mobile_view');document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a=>a.addEventListener('click',()=>recordLanding('whatsapp_click')));
-// SCROLL DEPTH TRACKING: measure which sections users actually see
-(function(){const sections=['hero','funciones','testimonials','flow','preguntas','precio','start','contacto'];const trackingState={};sections.forEach(id=>{trackingState[id]=false;});const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting&&!trackingState[entry.target.id]){trackingState[entry.target.id]=true;recordLanding('section_'+entry.target.id);}});},{threshold:0.2});sections.forEach(id=>{const elem=document.getElementById(id);if(elem)observer.observe(elem);});})();
-// BEGIN LIVE VISITORS: anonymous presence, independent of aggregate events and contact forms.
-(function(){
- const site='scale-os-landing';
- const allowedOrigins=['https://sistema.scaleparaguay.com'];
- const endpoint='https://sistema.scaleparaguay.com/core-api/api/public/live-visitors/heartbeat';
- // A host-only, first-party cookie lives 90 s, with an absolute 15 min rotation.
- // No advertising cookie, localStorage, IP, fingerprint, URL, referrer or user identity.
- // Web Locks coordinate tabs; if cookies/locks are blocked, omit this estimate.
- if(!allowedOrigins.includes(location.origin)||!['/','/scale-os.html'].includes(location.pathname)||window.top!==window||!navigator.locks||!crypto.randomUUID)return;
- const cookieName='__Host-scale_live_v1',lockName='scale-live-visitors-v1';
- let stopped=false,busy=false,timer,controller,nextAttempt=0;
- const read=()=>{try{const value=document.cookie.split('; ').find(v=>v.startsWith(cookieName+'='));return value?JSON.parse(decodeURIComponent(value.slice(cookieName.length+1))):null;}catch{return null;}};
- async function pulse(){
-  if(stopped||busy||document.visibilityState!=='visible'||Date.now()<nextAttempt)return;
-  busy=true;let timeout;
-  try{
-   const sid=await navigator.locks.request(lockName,{ifAvailable:true},lock=>{
-    if(!lock||stopped||document.visibilityState!=='visible')return null;
-    const now=Date.now();let state=read();
-    if(!state||typeof state.id!=='string'||!/^[0-9a-f-]{36}$/.test(state.id)||!Number.isFinite(state.born)||!Number.isFinite(state.sent)||now-state.sent>=90000||now-state.born>=900000||state.born>now||state.sent>now)state={id:crypto.randomUUID(),born:now,sent:0};
-    if(now-state.sent<30000)return null;
-    state.sent=now;
-    document.cookie=cookieName+'='+encodeURIComponent(JSON.stringify(state))+'; Max-Age=90; Path=/; Secure; SameSite=Strict';
-    if(read()?.id!==state.id)return null;
-    return state.id;
-   });
-   if(!sid||stopped||document.visibilityState!=='visible')return;
-   nextAttempt=Date.now()+30000;controller=new AbortController();timeout=setTimeout(()=>controller.abort(),8000);
-   const response=await fetch(endpoint,{method:'POST',credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({site,session_id:sid})});
-   if(!response.ok)nextAttempt=Date.now()+(response.status===429?60000:120000);
-  }catch{nextAttempt=Date.now()+120000;}finally{clearTimeout(timeout);busy=false;}
- }
- const visibility=()=>{if(document.visibilityState==='visible')void pulse();else controller?.abort();};
- const start=()=>{stopped=false;clearInterval(timer);timer=setInterval(()=>void pulse(),30000);void pulse();};
- document.addEventListener('visibilitychange',visibility);
- window.addEventListener('pagehide',()=>{stopped=true;clearInterval(timer);controller?.abort();});
- window.addEventListener('pageshow',start);
- start();
-})();
-// LIVE VISITORS DISPLAY: show active session count (updated every 60s)
-(function(){if(!location.origin.includes('sistema.scaleparaguay.com'))return;const badge=document.getElementById('live-badge'),count=document.getElementById('live-count');if(!badge||!count)return;async function updateCount(){try{const r=await fetch('https://sistema.scaleparaguay.com/core-api/api/public/live-visitors/count',{method:'GET',credentials:'omit',cache:'no-store',headers:{'Accept':'application/json'}});if(r.ok){const data=await r.json();if(data.active_sessions&&data.active_sessions>0){count.textContent=data.active_sessions;badge.style.display='block';}}}catch{}}updateCount();setInterval(updateCount,60000);})();
-// END LIVE VISITORS
-const contactForm=document.getElementById('contact-form');
-contactForm.addEventListener('submit',async function(event){event.preventDefault();const button=this.querySelector('button'),status=document.getElementById('contact-status');button.disabled=true;status.textContent='Enviando consulta…';try{const values=Object.fromEntries(new FormData(this));values.consent=this.elements.consent.checked;const response=await fetch('https://sistema.scaleparaguay.com/core-api/api/public/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(values)});const data=await response.json();if(!response.ok)throw new Error(data.error||'No se pudo enviar. Intentá nuevamente.');status.textContent='Consulta recibida. El equipo de Scale se pondrá en contacto con vos.';this.reset();}catch(error){status.textContent=error.message||'No se pudo conectar. Intentá nuevamente.';}finally{button.disabled=false;}});
-</script>
+<footer><div class="wrap footer-inner"><span>© 2026 Scale OS. Todos los derechos reservados.</span><a href="#precio">Ver el plan</a><a href="https://scaleparaguay.com/">Conocé Scale Strategy Group ↗</a></div></footer>
+INSERT_SCRIPT
+`;
+
+const head = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scale OS · Tu agencia en orden. 30 días gratis.</title>
+<meta name="description" content="Producción, portal del cliente, ventas, equipo, inventario, estudio y finanzas para tu agencia. 30 días gratis, sin tarjeta. Precio de lanzamiento: US$10/mes o G.50.000/mes por agencia. Beneficio para clientes fundadores.">
+<link rel="canonical" href="https://sistema.scaleparaguay.com/">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#4d065b">
+<meta name="color-scheme" content="light">
+<meta name="application-name" content="Scale OS">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_PY">
+<meta property="og:site_name" content="Scale OS">
+<meta property="og:title" content="Tu agencia crea. Scale OS ordena.">
+<meta property="og:description" content="Un solo plan para conectar tu operación. 30 días gratis, sin tarjeta. Precio de lanzamiento: US$10/mes o G.50.000/mes por agencia, con tarifa preferencial para clientes fundadores.">
+<meta property="og:url" content="https://sistema.scaleparaguay.com/">
+<meta property="og:image" content="https://sistema.scaleparaguay.com/brand/share.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Scale OS, sistema de gestión para agencias">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tu agencia crea. Scale OS ordena.">
+<meta name="twitter:description" content="Producción, clientes, equipo, inventario y finanzas. Probalo 30 días sin tarjeta.">
+<meta name="twitter:image" content="https://sistema.scaleparaguay.com/brand/share.png">
+<meta name="twitter:image:alt" content="Scale OS, sistema de gestión para agencias">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="shortcut icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/brand/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/brand/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" sizes="180x180">
+INSERT_LD
+<style>
+INSERT_CSS
+</style>
+INSERT_LD2
+</head>
+<body>
+`;
+
+const out = head
+  .replace('INSERT_LD', headJsonLd)
+  .replace('INSERT_CSS', css)
+  .replace('INSERT_LD2', headJsonLd2)
+  + body.replace(' INSERT_FORM', form).replace('INSERT_SCRIPT', script);
+
+fs.writeFileSync('public/scale-os.html', out);
+console.log('landing redesigned, immutable blocks preserved');
