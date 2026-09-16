@@ -798,26 +798,16 @@ export default function PlatformAdmin() {
           </section>
 
           {subscriptionAgency ? (
-            <section
-          className="platform-admin-section platform-admin-subscription"
-          role="dialog"
-          aria-label={`Estado manual de ${subscriptionAgency.name}`}
-        >
-          <div className="platform-admin-section-heading">
-            <div>
-              <p className="eyebrow">ACCESO MANUAL</p>
-              <h2>{subscriptionAgency.name}</h2>
-            </div>
-            <button
-              type="button"
-              className="text-button"
-              disabled={busy}
-              onClick={() => setSubscriptionAgency(null)}
+            <Dialog
+              title={`Estado manual · ${subscriptionAgency.name}`}
+              close={() => {
+                if (!busy) {
+                  setSubscriptionAgency(null);
+                  setSubscription(null);
+                  setSubscriptionLoaded(false);
+                }
+              }}
             >
-              <X size={14} />
-              Cerrar
-            </button>
-          </div>
           {!subscriptionLoaded ? (
             <p role="status">Cargando estado manual…</p>
           ) : subscription === null ? (
@@ -935,7 +925,7 @@ export default function PlatformAdmin() {
               </button>
             </form>
           ) : null}
-            </section>
+            </Dialog>
           ) : null}
 
           <section className="platform-admin-two-columns">
