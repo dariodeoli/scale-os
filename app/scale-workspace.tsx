@@ -1584,8 +1584,13 @@ export default function Home() {
   }
   async function onDragEnd(event: DragEndEvent) {
     const id = String(event.active.id);
-    const target = String(event.over?.id || "");
-    if (!target.startsWith("status-")) return;
+    let target = String(event.over?.id || "");
+    if (!target) return;
+    if (!target.startsWith("status-")) {
+      const overOrder = orders.find((order) => order.id === target);
+      if (!overOrder) return;
+      target = `status-${overOrder.status}`;
+    }
     const status = target.replace("status-", "") as Status;
     const current = orders.find((order) => order.id === id);
     if (!current || current.status === status) return;

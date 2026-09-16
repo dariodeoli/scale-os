@@ -115,10 +115,16 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
   try{await api(`/api/agency/inventory/${itemId}`,{storage_location_id:target.locationId,storage_shelf:target.shelf},'PATCH');onMoved();}
   catch(reason){setMoveError(errorMessage(reason));}
  }
- function onDragEnd(event:DragEndEvent){
-  const id=String(event.active.id),over=String(event.over?.id||'');if(!over)return;
-  const column=columns.find(candidate=>candidate.key===over);if(!column)return;void moveItem(id,column);
- }
+  function onDragEnd(event:DragEndEvent){
+   const id=String(event.active.id),over=String(event.over?.id||'');if(!over)return;
+   let column=columns.find(candidate=>candidate.key===over);
+   if(!column){
+    const item=items.find(candidate=>String(candidate.id)===over);
+    if(!item)return;
+    column=columns.find(candidate=>candidate.rows.some(row=>String(row.id)===String(item.id)));
+   }
+   if(!column)return;void moveItem(id,column);
+  }
  return <div className={`inventory-pipeline${dragged?' is-dragging':''}`}>
   {moveError?<p className="error" role="alert">{moveError}</p>:null}
   <DndContext collisionDetection={closestCorners} onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
