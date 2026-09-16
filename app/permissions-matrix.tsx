@@ -82,7 +82,7 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
       <tr className="permissions-domain-row"><th colSpan={data.roles.length+1} scope="colgroup">{group.name}</th></tr>
       {group.rows.map(row=><tr key={row.id}>
        <th scope="row"><b>{row.label}</b><small>{row.description}</small></th>
-       {data.roles.map(roleId=>{const checked=effective(row,roleId),isDefault=defaultAllowed(row,roleId);return <td key={roleId}><label className="permissions-check"><input type="checkbox" checked={checked} disabled={!owner||busy} aria-label={`${row.label} · ${teamRoleLabels[roleId]}`} onChange={event=>void toggle(row.id,roleId,event.target.checked)}/><span className={checked===isDefault?'permissions-state is-default':'permissions-state is-override'} aria-hidden="true">{checked?'✓':'×'}</span></label></td>;})}
+        {data.roles.map(roleId=>{const checked=effective(row,roleId),isDefault=defaultAllowed(row,roleId);return <td key={roleId}><label className="permissions-check"><input type="checkbox" checked={checked} disabled={!owner||busy} aria-label={`${row.label} · ${teamRoleLabels[roleId]}`} onChange={event=>void toggle(row.id,roleId,event.target.checked)}/><span className={`permissions-state ${checked?'is-allowed':'is-denied'} ${checked===isDefault?'is-default':'is-override'}`} aria-hidden="true">{checked?'✓':'×'}</span></label></td>;})}
       </tr>)}
      </tbody>)}
     </table>
