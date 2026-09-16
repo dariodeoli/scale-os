@@ -54,3 +54,7 @@
 .inventory-pipeline-actions .icon-button.positive{color:var(--success)}
 .inventory-pipeline-actions .icon-button:disabled{opacity:.55;cursor:wait}
 .inventory-pipeline-open .inventory-item-photo{width:34px;height:34px;border-radius:8px}
+
+.inventory-view-options{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;background:var(--surface-sunken,var(--surface-subtle))}
+.inventory-view-options button{display:grid;place-items:center;width:44px;min-width:44px;min-height:44px;border:0;border-radius:6px;background:transparent;color:var(--text-subtle);cursor:pointer}
+.inventory-view-options button.active,.inventory-view-options button[aria-pressed=true]{background:var(--surface-raised,var(--surface));color:var(--brand-700);box-shadow:var(--shadow-xs)}
