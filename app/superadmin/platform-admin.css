@@ -34,33 +34,26 @@
 
 /* Executive platform header */
 .platform-admin-header {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: clamp(12px, 2vw, 24px);
+  gap: clamp(10px, 2vw, 20px);
   min-width: 0;
-  padding: clamp(16px, 2vw, 24px);
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--platform-plum-950) 18%, transparent);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 92% 5%, rgba(255, 255, 255, 0.16), transparent 28%),
-    linear-gradient(126deg, var(--platform-plum-950), var(--platform-plum-800) 60%, #792e5f);
-  box-shadow: 0 14px 34px rgba(48, 18, 39, 0.2);
-  color: #fff;
+  min-height: 60px;
+  margin-inline: calc(clamp(16px, 2.6vw, 36px) * -1);
+  padding: 8px clamp(16px, 2.6vw, 36px);
+  border-bottom: 1px solid var(--border-subtle, var(--platform-line));
+  background: color-mix(in srgb, var(--canvas-elevated, #fcfbfd) 90%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--text, var(--platform-ink));
 }
 
 .platform-admin-header::after {
-  position: absolute;
-  right: 19%;
-  bottom: -32px;
-  width: 148px;
-  height: 148px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
-  content: "";
-  pointer-events: none;
+  content: none;
 }
 
 .platform-admin-header > a {
@@ -84,11 +77,11 @@
 }
 
 .platform-admin-header .workspace-wordmark {
-  color: #fff7fc;
+  color: var(--text-strong, var(--platform-ink));
 }
 
 .platform-admin-header .workspace-wordmark > span {
-  color: #f7acff;
+  color: var(--brand-700, var(--platform-plum-700));
 }
 
 .platform-admin-title {
@@ -101,7 +94,7 @@
 
 .platform-admin-title .eyebrow {
   margin: 0;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--brand-700, var(--platform-plum-700));
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -109,15 +102,15 @@
 
 .platform-admin-title h1 {
   margin: 0;
-  color: #fff;
-  font-size: clamp(24px, 3vw, 34px);
-  letter-spacing: -0.045em;
-  line-height: 1.05;
+  color: var(--text-strong, var(--platform-ink));
+  font-size: clamp(17px, 2vw, 20px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .platform-admin-title > span {
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 13px;
+  color: var(--text-muted, var(--platform-muted));
+  font-size: 12px;
 }
 
 .platform-admin-actions {
@@ -138,14 +131,14 @@
   gap: 7px;
   min-height: 44px;
   padding-inline: 13px;
-  border-color: rgba(255, 255, 255, 0.26);
+  border-color: var(--border-subtle, var(--platform-line));
   white-space: nowrap;
 }
 
 .platform-admin-actions .secondary,
 .platform-admin-actions .text-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--surface-raised, #fff);
+  color: var(--text, var(--platform-ink));
 }
 
 .platform-admin-actions svg,
@@ -933,7 +926,7 @@
   }
 }
 
-html[data-theme="dark"] .platform-admin-page{--platform-plum-100:#3a2436;--platform-ink:#f5eff7;--platform-muted:#a99eae;--platform-line:#332a3a;--platform-surface:#1f1923;--platform-surface-muted:#241d29}
+html[data-theme="dark"] .platform-admin-page{--platform-plum-100:#2c2133;--platform-ink:#f5eff7;--platform-muted:#a7a2ad;--platform-line:#3e3e4c;--platform-surface:#1b1b21;--platform-surface-muted:#212128}
 html[data-theme="dark"] .platform-admin-stat-card{box-shadow:0 5px 15px rgb(0 0 0 / 30%)}
 html[data-theme="dark"] .platform-admin-stat-icon{background:var(--violet-soft);color:var(--brand-700)}
 html[data-theme="dark"] .platform-admin-stat-card:nth-child(2) .platform-admin-stat-icon{background:#1d3a34;color:#6fc9bb}
@@ -967,7 +960,6 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 
 /* Modern surface layer: refined cards, sticky header and lift interactions. */
 .platform-admin-page{background:radial-gradient(1100px 420px at 85% -10%,rgba(113,43,87,.10),transparent 62%),radial-gradient(900px 380px at -10% 0%,rgba(87,33,67,.08),transparent 55%),linear-gradient(180deg,rgba(87,33,67,.045),transparent 280px),var(--canvas)}
-.platform-admin-header{position:sticky;top:0;z-index:40;margin-inline:calc(clamp(16px,2.6vw,36px)*-1);padding:12px clamp(16px,2.6vw,36px);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--canvas,#faf8f9) 84%,transparent);border-bottom:1px solid var(--platform-line)}
 .platform-admin-section{border:1px solid var(--platform-line);border-radius:16px;background:var(--platform-surface);box-shadow:0 10px 30px rgba(37,24,33,.05);overflow:clip}
 .platform-admin-section-heading{padding:16px 20px 12px;border-bottom:1px solid color-mix(in srgb,var(--platform-line) 55%,transparent);background:linear-gradient(180deg,var(--platform-surface-muted),var(--platform-surface))}
 .platform-admin-section-heading h2{font-size:15px;letter-spacing:-.01em}

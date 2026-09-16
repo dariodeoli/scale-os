@@ -70,7 +70,6 @@ import {filterProductionOrders} from './production-filter';
 import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type StartupPreference} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
-import {PlatformAccessPanel} from './platform-access-panel';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 import './settings-slice.css';
@@ -1239,14 +1238,14 @@ export default function Home() {
     window.addEventListener('focus',refreshIdentity);
     return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);window.removeEventListener('focus',refreshIdentity);};
   },[]);
-  const active=signedIn&&(!visibleModule(requestedSection,user?.role||'viewer')||requestedSection==='Admin'&&user?.platform_role!=='admin')?'Sin acceso':requestedSection;
+  const active=signedIn&&!visibleModule(requestedSection,user?.role||'viewer')?'Sin acceso':requestedSection;
   useEffect(()=>{
     if(!signedIn||!user)return;
     const query=new URLSearchParams(window.location.search),billing=query.get('scaleBilling')||query.get('billing');
     if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true);
   },[signedIn,user?.id,user?.organization_id]);
   const activeParent=parentSection(active);
-  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer')||child==='Admin'&&user?.platform_role==='admin');
+  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
   const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
   useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);},[pathname]);
   useEffect(()=>{
@@ -1798,7 +1797,7 @@ export default function Home() {
           </>}
         </header>
         {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
-        {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p>{requestedSection==='Admin'?<p className="form-note">La administración global solo aparece para usuarios con rol global de administrador.</p>:null}<Link className="primary" href={sectionPath('Resumen')}>Ir al resumen</Link></section>}
+        {active==='Sin acceso'&&<section className="panel"><h2>No tenés permiso para esta sección</h2><p>Podés elegir otra sección del menú o pedir al dueño que revise tu acceso.</p><Link className="primary" href={sectionPath('Resumen')}>Ir al resumen</Link></section>}
         {active==='Equipo'&&<OperationsWorkspace key="people" mode="people" role={user?.role||'viewer'} currentEmail={user?.email||''} organizationName={user?.organization_name||''}/>}
         {active==='Roles y permisos'&&<PermissionsMatrixPanel role={user?.role||'viewer'}/>}
         {active==='Historial de trabajo'&&<WorkHistory role={user?.role||'viewer'}/>}
@@ -1825,7 +1824,6 @@ export default function Home() {
           {preferenceWarning&&<p role="status" className="settings-notice">{preferenceWarning}</p>}
         </section>}
         {active==='Papelera'&&<TrashWorkspace refresh={load}/>}
-        {active==='Admin'&&user?.platform_role==='admin'&&<PlatformAccessPanel key={String(user.id)} currentUserId={String(user.id)} platformRole={user.platform_role||null}/>}
         {active === "Resumen" && (
           <>
             <WorkspaceGuide {...guideProps} variant="card"/>
