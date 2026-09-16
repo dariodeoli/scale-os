@@ -105,6 +105,7 @@ import {
   LayoutDashboard,
   Link as LinkIcon,
   LogOut,
+  Pencil,
   Plus,
   RotateCcw,
   Search,
@@ -358,7 +359,7 @@ function Modal({
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
-function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;role:string;refresh:()=>Promise<void>;openOrder:(id:string)=>void }) {
+function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;role:string;refresh:()=>Promise<void>;openOrder:(id:string,edit?:boolean)=>void }) {
   const canMove=['owner','admin','management','production','editor'].includes(role);
   const draggable = useDraggable({ id: order.id,disabled:!canMove });
   const style = draggable.transform
@@ -398,7 +399,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
       {!!order.checklist_total&&<small className="card-checklist" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</small>}
-      <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}><Eye size={14}/>Ver más</button>{canMove&&<RecordEditor kind="work-orders" recordId={order.id} name={order.title} refresh={refresh} role={role}/>}</div>
+      <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}><Eye size={14}/>Ver más</button>{canMove&&<button className="text-button" onClick={()=>openOrder(order.id,true)}><Pencil size={14}/>Editar</button>}{canMove&&<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role}/>}</div>
     </article>
   );
 }
@@ -413,7 +414,7 @@ function KanbanColumn({
   orders: WorkOrder[];
   role:string;
   refresh:()=>Promise<void>;
-  openOrder:(id:string)=>void;
+  openOrder:(id:string,edit?:boolean)=>void;
 }) {
   const droppable = useDroppable({ id: `status-${status.id}` });
   return (
@@ -1160,7 +1161,7 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [modal, setModal] = useState<ModalKind>(null);
   const [myProfile,setMyProfile]=useState(false);
-  const [detail,setDetail]=useState<{kind:'client'|'order';id:string;anchor?:string}|null>(null);
+  const [detail,setDetail]=useState<{kind:'client'|'order';id:string;anchor?:string;edit?:boolean}|null>(null);
   const [projectClient,setProjectClient]=useState('');
   const [clientMode,setClientMode]=useState(true);
   const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState(''),[clientSearch,setClientSearch]=useState('');
@@ -1902,7 +1903,7 @@ export default function Home() {
                 <div className="kanban" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
                   {statuses.map((status) => (
                     <KanbanColumn
-                      openOrder={id=>setDetail({kind:'order',id})}
+                      openOrder={(id,edit)=>setDetail({kind:'order',id,...(edit?{edit:true}:{})})}
                       role={user?.role||'viewer'}
                       refresh={load}
                       key={status.id}
@@ -2430,7 +2431,7 @@ export default function Home() {
         <WorkspaceFooter/>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
-      {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
+      {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
         <Modal title="Nuevo cliente" onClose={close}>

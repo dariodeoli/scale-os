@@ -19,6 +19,7 @@ import {PlanComparison} from './plan-comparison';
 import {completeSave} from './save-completion';
 import {RemoveRecord} from './archive-controls';
 import {driveLinksText} from './drive-links';
+import {ManualWorkspace} from './manual';
 import './settings-slice.css';
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
@@ -108,8 +109,7 @@ export function CouponRedeem({role,onRedeemed}:{role:string;onRedeemed?:()=>void
   <p className="form-note">Cada cupón se puede canjear una sola vez por empresa. No cobra ni guarda datos de pago.</p>
  </section>;
 }
-export function SettingsWorkspace(){
- const {setCurrency}=useCompanyCurrency();const [settings,setSettings]=useState<Row|null>(null),[rates,setRates]=useState<Row[]>([]),[notice,setNotice]=useState('');
+export function SettingsWorkspace(){ const {setCurrency}=useCompanyCurrency();const [settings,setSettings]=useState<Row|null>(null),[rates,setRates]=useState<Row[]>([]),[notice,setNotice]=useState('');
  useEffect(()=>{let active=true;void api<{settings:Row}>('/api/agency/settings').then(s=>{if(active)setSettings(s.settings);}).catch(e=>{if(active)setNotice(err(e));});void api<{records:Row[]}>('/api/agency/exchange-rates').then(r=>{if(active)setRates(r.records);}).catch(e=>{if(active)setNotice(err(e));});return()=>{active=false;};},[]);
  const latestRate=rates[0],rateIsValid=latestRate&&validPygRate(latestRate.usd_to_pyg);
  return <div className="settings-slice ops-stack">
@@ -132,5 +132,6 @@ export function SettingsWorkspace(){
    </div>
    <details className="settings-disclosure"><summary>Qué está disponible hoy</summary><p>Este panel no conecta cuentas ni envía mensajes. Los enlaces de Drive se gestionan desde los registros que los usan.</p></details>
   </section>
+  <ManualWorkspace/>
  </div>;
 }

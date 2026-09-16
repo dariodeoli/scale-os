@@ -50,7 +50,7 @@ test('illustration and module copy make no fabricated adoption or live-data clai
  assert(text.includes('VISTA ILUSTRATIVA'));
  assert(text.includes('no es una captura ni actividad en vivo'));
  assert(text.includes('Compartir una tarea no amplía los permisos'));
- assert(text.includes('Registro y control; no mueve dinero por vos'));
+ assert(text.includes('Registro, previsión y control; no mueve dinero por vos'));
  assert(!/miles de agencias|empresas confían|ahorrá \d+ horas|garantizado|soporte 24/i.test(text));
  const metadata=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
  const software=Array.isArray(metadata['@graph'])?metadata['@graph'].find(node=>node['@type']==='SoftwareApplication'):metadata;
@@ -87,8 +87,8 @@ test('semantic anchors, native FAQ and keyboard focus remain available without a
  for(const [,id] of html.matchAll(/href="#([^"]+)"/g))assert(ids.includes(id),'anchor '+id);
  for(const [,id] of html.matchAll(/aria-labelledby="([^"]+)"/g))assert(ids.includes(id),'label '+id);
  assert.equal((html.match(/<h1\b/g)||[]).length,1);
- assert.equal((html.match(/<details>/g)||[]).length,9);
- assert.equal((html.match(/<summary>/g)||[]).length,9);
+ assert.equal((html.match(/<details>/g)||[]).length,10);
+ assert.equal((html.match(/<summary>/g)||[]).length,10);
  assert(html.includes('class="skip" href="#contenido"'));
  assert(!/<script[^>]+src=|type="module"|maximum-scale|user-scalable=no/.test(html));
  for(const img of html.matchAll(/<img\b[^>]*>/g))assert(/\balt="[^"]*"/.test(img[0]));
