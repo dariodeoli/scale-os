@@ -59,10 +59,10 @@ const makers=[...managers,'editor'];
 const localDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 function usePeople(){const [people,setPeople]=useState<Row[]>([]);useEffect(()=>{let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive)setPeople(d.people);}).catch(()=>{});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[]);return [{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email')}))];}
 
-export function WorkDetail({id,organizationId,role,close,refresh,anchor}:{id:string;organizationId:string;role:string;close:()=>void;refresh:()=>Promise<void>;anchor?:string}){
+export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialEditing=false}:{id:string;organizationId:string;role:string;close:()=>void;refresh:()=>Promise<void>;anchor?:string;initialEditing?:boolean}){
  const [data,setData]=useState<{order:Row;comments:Row[];history:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Detalle'),[busy,setBusy]=useState(false),[editing,setEditing]=useState(false);
  async function load(){setData(await api(`/api/agency/productivity/orders/${id}`));}
- useEffect(()=>{setEditing(false);void load().catch(e=>setError(errorText(e)));},[id]);
+ useEffect(()=>{setEditing(Boolean(initialEditing));void load().catch(e=>setError(errorText(e)));},[id]);
  useEffect(()=>{if(!anchor||!data)return;setTab('Comentarios');requestAnimationFrame(()=>{document.getElementById(anchor)?.scrollIntoView({behavior:'smooth',block:'center'});});},[anchor,data]);
  async function action(path:string){setBusy(true);try{await api(path,{});await refresh();await load();notify({tone:'success',message:'Acción guardada.'});}catch(e){setError(errorText(e));}finally{setBusy(false);}}
  const order=data?.order,editable=makers.includes(role);
