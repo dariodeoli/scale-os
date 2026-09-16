@@ -721,6 +721,10 @@ export function OperationsWorkspace({
               const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
               await load();setEdit(result.collaborator);
             }}/>}
+            {!person&&dialogMember&&<ProfilePhoto compact key={dialogMember.id} photo={dialogMember.photo_url||null} name={dialogMember.full_name||dialogMember.email} save={async photo=>{
+              await api<{member:{photo_url:string}}>(`/api/agency/members/${dialogMember.id}/photo`,{photo_url:photo},'PATCH');
+              await load();
+            }}/>}
             {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section person-access-panel" aria-label="Acceso al panel">
               <h3>Acceso al panel</h3>
               <div className="person-access-body">
