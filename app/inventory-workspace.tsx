@@ -81,6 +81,7 @@ type PipelineColumn={key:string;title:string;readOnly:boolean;locationId:string|
 function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVerify,verifyingId}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onDetail:(item:InventoryItem)=>void;onMoved:()=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null}){
  const [dragged,setDragged]=useState<InventoryItem|null>(null);
  const [moveError,setMoveError]=useState('');
+ const [hideUnassigned,setHideUnassigned]=useState(false);
  const columns=useMemo<PipelineColumn[]>(()=>{
   const map=new Map<string,PipelineColumn>();
   const ensure=(key:string,column:Omit<PipelineColumn,'rows'>)=>{let current=map.get(key);if(!current){current={...column,rows:[]};map.set(key,current);}return current;};
@@ -130,16 +131,17 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
  return <div className={`inventory-pipeline${dragged?' is-dragging':''}`}>
   {moveError?<p className="error" role="alert">{moveError}</p>:null}
   <DndContext collisionDetection={pointerWithin} onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
-   {columns.map(column=><PipelineColumn key={column.key} column={column} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
+   {columns.filter(column=>!hideUnassigned||column.key!=='sin-ubicacion').map(column=><PipelineColumn key={column.key} column={column} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId} onHide={column.key==='sin-ubicacion'?()=>setHideUnassigned(true):undefined}/>)}
    <DragOverlay>{dragged?<article className="inventory-pipeline-card is-overlay"><b>{dragged.name}</b><code className="inventory-code">{itemCode(dragged)}</code><small>{dragged.category_name||dragged.category||'Sin categoría'}</small></article>:null}</DragOverlay>
   </DndContext>
+  {hideUnassigned&&<p className="inventory-pipeline-note" role="status">{columns.find(column=>column.key==='sin-ubicacion')?.rows.length||0} equipo(s) sin ubicación no se muestran. <button type="button" className="text-button" onClick={()=>setHideUnassigned(false)}><Eye size={14}/>Mostrar columna</button></p>}
   {!items.length?<p className="empty-copy">No hay equipos para mostrar en el pipeline.</p>:null}
  </div>;
 }
-function PipelineColumn({column,canManage,onDetail,onQuickVerify,verifyingId}:{column:PipelineColumn;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null}){
+function PipelineColumn({column,canManage,onDetail,onQuickVerify,verifyingId,onHide}:{column:PipelineColumn;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onHide?:()=>void}){
  const droppable=useDroppable({id:column.key,disabled:column.readOnly});
  return <section ref={droppable.setNodeRef} className={`inventory-pipeline-column${droppable.isOver?' drop-over':''}${column.readOnly?' is-readonly':''}`}>
-  <header className="inventory-pipeline-header">{column.readOnly?<Lock size={12} aria-label="Solo lectura: la ubicación se cambia al devolver"/>:<span className="inventory-pipeline-column-dot" aria-hidden="true"/>}<h3>{column.title}</h3>{column.responsibleName?<span className="inventory-pipeline-responsible" title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={column.responsiblePhoto??''}/></span>:null}<span className="inventory-pipeline-count">{column.rows.length}</span></header>
+  <header className="inventory-pipeline-header">{column.readOnly?<Lock size={12} aria-label="Solo lectura: la ubicación se cambia al devolver"/>:<span className="inventory-pipeline-column-dot" aria-hidden="true"/>}<h3>{column.title}</h3>{column.responsibleName?<span className="inventory-pipeline-responsible" title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={column.responsiblePhoto??''}/></span>:null}<span className="inventory-pipeline-count">{column.rows.length}</span>{onHide?<button type="button" className="icon-button inventory-pipeline-hide" title="Ocultar columna Sin ubicación" aria-label="Ocultar columna Sin ubicación" onClick={onHide}><X size={14}/></button>:null}</header>
   <div className="inventory-pipeline-column-body">
    {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
    {!column.rows.length?<p className="empty-copy">{column.readOnly?'':canManage?'Arrastrá equipos hasta acá':'Sin equipos'}</p>:null}

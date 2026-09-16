@@ -111,6 +111,11 @@ async function run(){
  assert.match(tree(),/Sin verificación física/);assert.match(tree(),/Sin registro de ingreso a esta ubicación/);
  assert.match(tree(),/Sin equipos/,'empty location columns render with their count at zero');
  assert.match(tree(),/Sin ubicación/,'the unassigned column always exists so items can move back');
+ act(()=>{renderer.root.findByProps({'aria-label':'Ocultar columna Sin ubicación'}).props.onClick();});
+ assert.doesNotMatch(tree(),/Sin ubicación/,'the unassigned column can be hidden from the pipeline');
+ assert.match(tree(),/sin ubicación no se muestran/,'hiding reports how many unassigned items are out of view');
+ act(()=>{button('Mostrar columna').props.onClick();});
+ assert.match(tree(),/Sin ubicación/,'the unassigned column can be restored');
  items=[{...equipment[0],storage_location_id:'storage-a',storage_location_name:'Estante A',storage_shelf:'Estante A',location_changed_at:'2026-09-14T12:00:00.000Z',last_verified_at:'2026-09-15T10:00:00.000Z',last_verifier_name:'Sonido'},equipment[1]];
  await act(async()=>{intervals.forEach(callback=>callback());});
  assert.match(tree(),/Control:/);assert.match(tree(),/Aquí desde/);assert.match(tree(),/Sonido/,'cards show who verified last and when');
