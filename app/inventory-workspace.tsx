@@ -8,7 +8,7 @@ import {useCompanyCurrency} from './currency-provider';
 import {AmountInput} from './profile-controls';
 import {preparePhoto} from './profile-photo';
 import {InventoryBarcode,inventoryCode,printInventoryLabel} from './inventory-label';
-import {DndContext,DragOverlay,useDraggable,useDroppable,closestCorners,type DragEndEvent} from '@dnd-kit/core';
+import {DndContext,DragOverlay,useDraggable,useDroppable,pointerWithin,type DragEndEvent} from '@dnd-kit/core';
 import {Archive,BatteryCharging,Camera,CheckCircle2,ClipboardCheck,Columns3,Eye,Grid2X2,HardDrive,Home,Lamp,Laptop,Lightbulb,List,Lock,Mic,Monitor,Package,Pencil,Plus,RefreshCw,Speaker,Tag,Trash2,Video,X,type LucideIcon} from 'lucide-react';
 import './inventory-workspace.css';
 
@@ -116,21 +116,22 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
   try{await api(`/api/agency/inventory/${itemId}`,{storage_location_id:target.locationId,storage_shelf:target.shelf},'PATCH');onMoved();}
   catch(reason){setMoveError(errorMessage(reason));}
  }
-  function onDragEnd(event:DragEndEvent){
-   const id=String(event.active.id),over=String(event.over?.id||'');if(!over)return;
-   let column=columns.find(candidate=>candidate.key===over);
-   if(!column){
-    const item=items.find(candidate=>String(candidate.id)===over);
-    if(!item)return;
-    column=columns.find(candidate=>candidate.rows.some(row=>String(row.id)===String(item.id)));
-   }
-   if(!column)return;void moveItem(id,column);
+ function onDragEnd(event:DragEndEvent){
+  const id=String(event.active.id),over=String(event.over?.id||'');if(!over)return;
+  let column=columns.find(candidate=>candidate.key===over);
+  if(!column){
+   // Dropping over a card resolves to the column that contains it.
+   const item=items.find(candidate=>String(candidate.id)===over);
+   if(!item)return;
+   column=columns.find(candidate=>candidate.rows.some(row=>String(row.id)===String(item.id)));
   }
+  if(!column)return;void moveItem(id,column);
+ }
  return <div className={`inventory-pipeline${dragged?' is-dragging':''}`}>
   {moveError?<p className="error" role="alert">{moveError}</p>:null}
-  <DndContext collisionDetection={closestCorners} onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
+  <DndContext collisionDetection={pointerWithin} onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
    {columns.map(column=><PipelineColumn key={column.key} column={column} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
-   <DragOverlay>{dragged?<article className="inventory-pipeline-card dragging"><b>{dragged.name}</b><code className="inventory-code">{itemCode(dragged)}</code></article>:null}</DragOverlay>
+   <DragOverlay>{dragged?<article className="inventory-pipeline-card is-overlay"><b>{dragged.name}</b><code className="inventory-code">{itemCode(dragged)}</code><small>{dragged.category_name||dragged.category||'Sin categoría'}</small></article>:null}</DragOverlay>
   </DndContext>
   {!items.length?<p className="empty-copy">No hay equipos para mostrar en el pipeline.</p>:null}
  </div>;
@@ -138,10 +139,10 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
 function PipelineColumn({column,canManage,onDetail,onQuickVerify,verifyingId}:{column:PipelineColumn;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null}){
  const droppable=useDroppable({id:column.key,disabled:column.readOnly});
  return <section ref={droppable.setNodeRef} className={`inventory-pipeline-column${droppable.isOver?' drop-over':''}${column.readOnly?' is-readonly':''}`}>
-    <header className="inventory-pipeline-header">{column.readOnly?<Lock size={12} aria-label="Solo lectura: la ubicación se cambia al devolver"/>:<span className="inventory-pipeline-column-dot" aria-hidden="true"/>}<h3>{column.title}</h3>{column.responsibleName?<span className="inventory-pipeline-responsible"><ActorAvatar name={column.responsibleName} photo={column.responsiblePhoto??''}/></span>:null}<span>{column.rows.length}</span></header>
+  <header className="inventory-pipeline-header">{column.readOnly?<Lock size={12} aria-label="Solo lectura: la ubicación se cambia al devolver"/>:<span className="inventory-pipeline-column-dot" aria-hidden="true"/>}<h3>{column.title}</h3>{column.responsibleName?<span className="inventory-pipeline-responsible" title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={column.responsiblePhoto??''}/></span>:null}<span className="inventory-pipeline-count">{column.rows.length}</span></header>
   <div className="inventory-pipeline-column-body">
-  {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
-  {!column.rows.length?<p className="empty-copy">{column.readOnly?'':canManage?'Arrastrá equipos hasta acá':'Sin equipos'}</p>:null}
+   {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
+   {!column.rows.length?<p className="empty-copy">{column.readOnly?'':canManage?'Arrastrá equipos hasta acá':'Sin equipos'}</p>:null}
   </div>
  </section>;
 }
@@ -152,12 +153,12 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
  const verifying=verifyingId===String(item.id);
  return <article ref={draggable.setNodeRef} style={style} data-status={item.status} className={`inventory-pipeline-card${draggable.isDragging?' dragging':''}`}>
   <button type="button" className="inventory-pipeline-open" onClick={()=>onDetail(item)}>
-   {item.photo_url?<img className="inventory-item-photo" src={item.photo_url} alt={`Foto de ${item.name}`}/>:null}
+   {item.photo_url?<img className="inventory-item-photo" src={item.photo_url} alt={`Foto de ${item.name}`}/>:<span className="inventory-pipeline-tile"><CategoryIcon name={item.category_icon}/></span>}
    <span className="inventory-pipeline-title"><b>{item.name}</b><code className="inventory-code">{itemCode(item)}</code><small><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</small></span>
   </button>
   <span className="inventory-pipeline-verified">{item.last_verified_at?<><ActorAvatar name={item.last_verifier_name||'Verificador'} photo={safePhoto(item.last_verifier_photo_url)}/><span>Control: {verificationLabel(item.last_verification_result)} · {dateTime(item.last_verified_at)}{item.last_verifier_name?` · ${item.last_verifier_name}`:''}</span></>:<span>Sin verificación física</span>}</span>
   <small className="inventory-pipeline-since">{item.location_type==='checked_out'?'En préstamo: devolvelo para cambiar su ubicación':item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación'}</small>
-  <div className="inventory-pipeline-footer"><span className="inventory-status">{({available:'Disponible',in_use:'En uso',maintenance:'Mantenimiento',retired:'Dado de baja'} as Record<string,string>)[item.status]||item.status}</span>{!disabled&&<span className="inventory-pipeline-actions">{canManage&&<button type="button" className="icon-button positive" disabled={verifying} title={verifying?'Verificando…':'Marcar verificado'} aria-label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={event=>{event.stopPropagation();onQuickVerify(item);}}><CheckCircle2 size={15}/></button>}<button type="button" className="icon-button" aria-label={`Mover ${item.name}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button></span>}</div>
+  <div className="inventory-pipeline-footer"><span className="inventory-status">{({available:'Disponible',in_use:'En uso',maintenance:'Mantenimiento',retired:'Dado de baja'} as Record<string,string>)[item.status]||item.status}</span>{!disabled&&<span className="inventory-pipeline-actions">{canManage&&<button type="button" className="icon-button positive" disabled={verifying} title={verifying?'Verificando…':'Marcar verificado'} aria-label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={event=>{event.stopPropagation();onQuickVerify(item);}}><CheckCircle2 size={15}/></button>}<button type="button" className="icon-button" aria-label={`Mover ${item.name}`} onPointerDown={event=>event.stopPropagation()} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button></span>}</div>
  </article>;
 }
 
