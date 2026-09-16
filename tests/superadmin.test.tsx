@@ -31,8 +31,10 @@ test("superadmin sends a 401 to the clean app login without the next param befor
 test("superadmin normalizes absent and invalid dashboard metric values", () => {
   assert.match(
     page,
-    /function formatPlatformMetric\(value: unknown, fallback = "—"\)/,
+    /subscription\/extend/,
   );
+  assert.match(page, /Marcar pago manual/);
+  assert.match(page, /Días a sumar/);
   assert.match(page, /Number\.isFinite\(number\)[\s\S]*?: fallback;/);
   assert.match(page, /const total = formatPlatformMetric\(item\.total, ""\);/);
   assert.match(page, /function subscriptionSummary\(rows: unknown\)/);

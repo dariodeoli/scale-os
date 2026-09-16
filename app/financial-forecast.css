@@ -77,3 +77,5 @@
 .forecast-person-actions{margin-left:auto;display:inline-flex;gap:var(--ui-space-1);align-items:center}
 .forecast-person-actions .icon-button{width:30px;min-width:30px;min-height:30px;flex:none}
 @media(max-width:540px){.forecast-person-actions{margin-left:0;width:100%;justify-content:flex-end}.forecast-person-name{flex-basis:100%}}
+
+@media(min-width:1080px){.financial-forecast{grid-template-columns:repeat(2,minmax(0,1fr))}.financial-forecast>.forecast-balance{grid-column:1;grid-row:1}.financial-forecast>section[aria-labelledby="forecast-summary-title"]{grid-column:2;grid-row:1}.financial-forecast>:is(.contracted-clients,.forecast-month-tools,details){grid-column:1/-1}}

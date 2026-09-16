@@ -399,7 +399,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;rol
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
       {!!order.checklist_total&&<small className="card-checklist" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</small>}
-      <div className="order-actions"><button className="text-button" onClick={()=>openOrder(order.id)}><Eye size={14}/>Ver más</button>{canMove&&<button className="text-button" onClick={()=>openOrder(order.id,true)}><Pencil size={14}/>Editar</button>}{canMove&&<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role}/>}</div>
+      <div className="order-actions">{canMove?<button className="text-button" onClick={()=>openOrder(order.id,true)}><Pencil size={14}/>Editar</button>:<button className="text-button" onClick={()=>openOrder(order.id)}><Eye size={14}/>Ver más</button>}{canMove&&<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role}/>}</div>
     </article>
   );
 }
@@ -1851,7 +1851,6 @@ export default function Home() {
                 ))}
               </div>
             </section>
-            {user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
             <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
             <InternalTasks role={user?.role||'viewer'}/>
             <div className="metrics-heading"><p className="section-eyebrow">Operación</p><h2>Métricas operativas</h2></div>
@@ -2425,9 +2424,9 @@ export default function Home() {
             </section>
             <ReconciliationWorkspace accounts={accounts}/>
           </section>
-          {user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
           </>
         )}
+        {active==='Previsión'&&user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
         <WorkspaceFooter/>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}

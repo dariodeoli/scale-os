@@ -218,6 +218,8 @@ export default function PlatformAdmin() {
   >("active");
   const [subscriptionReason, setSubscriptionReason] = useState("");
   const [subscriptionExpiryValue, setSubscriptionExpiryValue] = useState("");
+  const [extendDays, setExtendDays] = useState("30");
+  const [extendReason, setExtendReason] = useState("Pago manual recibido");
   const [myRole, setMyRole] = useState<"admin" | "viewer" | null>(null);
   const [myUserId, setMyUserId] = useState("");
   const [confirming, setConfirming] = useState<
@@ -417,6 +419,33 @@ export default function PlatformAdmin() {
     } catch (cause) {
       if (!handlePlatformError(cause))
         setError("No pudimos guardar el estado manual.");
+      setBusy(false);
+    }
+  }
+
+  async function saveExtension(event: FormEvent) {
+    event.preventDefault();
+    if (!subscriptionAgency) return;
+    setBusy(true);
+    setError("");
+    try {
+      await platformApi(
+        `/api/platform/agencies/${subscriptionAgency.id}/subscription/extend`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            days: Number(extendDays),
+            reason: extendReason,
+          }),
+        },
+      );
+      setSubscriptionAgency(null);
+      setSubscription(null);
+      setSubscriptionLoaded(false);
+      await load();
+    } catch (cause) {
+      if (!handlePlatformError(cause))
+        setError("No pudimos registrar el pago manual.");
       setBusy(false);
     }
   }
@@ -793,8 +822,8 @@ export default function PlatformAdmin() {
             <p role="status">Cargando estado manual…</p>
           ) : subscription === null ? (
             <p className="form-note">
-              Esta agencia no tiene una suscripción interna administrable. No se
-              aplicó ningún cambio.
+              Esta agencia todavía no tiene una suscripción interna. Podés
+              registrar un pago manual para abrirla.
             </p>
           ) : (
             <form
@@ -862,6 +891,50 @@ export default function PlatformAdmin() {
               </button>
             </form>
           )}
+          {subscriptionLoaded ? (
+            <form
+              className="platform-admin-subscription-form"
+              onSubmit={saveExtension}
+            >
+              <p className="form-note">
+                Pago manual con otro medio: suma días de acceso y lo deja
+                activo. Queda auditado y no contacta a ningún proveedor de
+                pagos.
+              </p>
+              <label>
+                Días a sumar
+                <select
+                  value={extendDays}
+                  disabled={busy}
+                  onChange={(event) => setExtendDays(event.target.value)}
+                >
+                  <option value="7">7 días</option>
+                  <option value="30">30 días</option>
+                  <option value="90">90 días</option>
+                  <option value="180">180 días</option>
+                  <option value="365">365 días</option>
+                </select>
+              </label>
+              <label>
+                Motivo
+                <input
+                  value={extendReason}
+                  disabled={busy}
+                  minLength={3}
+                  maxLength={120}
+                  required
+                  onChange={(event) => setExtendReason(event.target.value)}
+                  placeholder="Ej.: Transferencia bancaria"
+                />
+              </label>
+              <button
+                className="primary"
+                disabled={busy || extendReason.trim().length < 3}
+              >
+                {busy ? "Guardando…" : "Marcar pago manual"}
+              </button>
+            </form>
+          ) : null}
             </section>
           ) : null}
 
