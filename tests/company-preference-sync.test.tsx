@@ -47,19 +47,19 @@ async function harness(t:TestContext){
  const preference=(row:ReactTestInstance)=>row.findAllByType('button').find(b=>/Predeterminada|Usar al iniciar/.test(text(b)))!;
  const settingsButton=(id:number)=>preference(settingsRows()[id-1]);
  const selectorButton=(id:number)=>preference(selectorRows()[id-1]);
- const assertPreferred=(id:number)=>{
-  for(const [index,row] of Array.from(settingsRows().entries())){
-   const button=preference(row);
-   assert.equal(button.props['aria-pressed'],index+1===id);
-   assert.equal(button.props.disabled,index+1===id);
-  }
-  for(const [index,row] of Array.from(selectorRows().entries())){
-   const button=preference(row);
-   assert.equal(text(button),index+1===id?'Predeterminada':'Usar al iniciar sesión');
-   assert.equal(button.props.disabled,index+1===id);
-  }
-  assert.match(text(settingsRows()[0]),/Empresa abierta/,'default changes do not switch the active tenant');
- };
+  const assertPreferred=(id:number)=>{
+   for(const [index,row] of Array.from(settingsRows().entries())){
+    const button=preference(row);
+    assert.equal(button.props['aria-pressed'],index+1===id);
+    assert.equal(button.props.disabled,false,'the default star stays clickable while aria-pressed carries its state');
+   }
+   for(const [index,row] of Array.from(selectorRows().entries())){
+    const button=preference(row);
+    assert.equal(text(button),index+1===id?'Predeterminada':'Usar al iniciar sesión');
+    assert.equal(button.props.disabled,index+1===id);
+   }
+   assert.match(text(settingsRows()[0]),/Empresa abierta/,'default changes do not switch the active tenant');
+  };
  let unmounted=false;
  const unmount=async()=>{if(!unmounted){await act(async()=>renderer.unmount());unmounted=true;}};
  t.after(unmount);
