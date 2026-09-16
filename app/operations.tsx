@@ -500,7 +500,7 @@ export function OperationsWorkspace({
           <article className="kpi-card tone-blue">
             <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
             {commercial===null?<strong>Calculando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong>No disponible</strong>:commercial.expectedMonthlyBilling.length?<div className="kpi-amounts">{commercial.expectedMonthlyBilling.map(item=><span key={item.currency}>{money(Number(item.total),item.currency)} / mes</span>)}</div>:<strong>Sin contratos activos</strong>}
-            <small>Expectativa comercial vigente por moneda</small>
+            <small>{commercial?.expectedMonthlyBilling===undefined?'No disponible':commercial.expectedMonthlyBilling.length?'Expectativa comercial vigente por moneda':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}</small>
           </article>
           <article className="kpi-card tone-warning">
             <p className="eyebrow">RESULTADO MENSUAL</p>
