@@ -6,7 +6,7 @@ assert.equal(sectionPath('Informes'),'/informes');
 assert.equal(sectionLabel('/informes'),'Informes');
 assert(validSection('informes'));
 assert.equal(parentSection('Informes'),'Informes');
-for(const role of ['owner','admin','management','finance','sales','production','editor','viewer']){
+for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','colaborador']){
  assert.equal(visibleModule('Informes',role),['owner','admin','finance','sales'].includes(role),role);
 }
 const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');

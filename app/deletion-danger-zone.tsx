@@ -44,7 +44,7 @@ const consequenceLabels:Record<string,string>={
  organization_soft_delete:'La empresa se desactivará porque sos su único miembro activo; sus datos quedarán inaccesibles.',
  membership_deactivation:'Tu acceso se desactivará; la empresa y sus datos seguirán disponibles para los demás miembros.',
 };
-const roleLabels:Record<string,string>={owner:'Dueño',admin:'Administración',management:'Gerencia',manager:'Gerencia',finance:'Finanzas',sales:'Comercial',editor:'Edición',production:'Producción',viewer:'Lectura'};
+const roleLabels:Record<string,string>={owner:'Dueño',admin:'Administración',management:'Gerencia',manager:'Gerencia',finance:'Finanzas',sales:'Comercial',editor:'Edición',production:'Producción',viewer:'Lectura',colaborador:'Colaborador'};
 const sameScope=(left:string|null,right:string|null)=>String(left??'')===String(right??'');
 const isRecord=(value:unknown):value is Record<string,unknown>=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value);
 

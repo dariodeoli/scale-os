@@ -55,6 +55,7 @@ import {PermissionsMatrixPanel} from './permissions-matrix';
 import './operations.css';
 import './suite.css';
 import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWorkspace,CouponRedeem} from './suite';
+import {ArchivedCapsule} from './archived-capsule';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
@@ -217,6 +218,7 @@ const assignableRoles = [
   { id: "production", label: "Producción" },
   { id: "editor", label: "Edición" },
   { id: "viewer", label: "Solo lectura" },
+  { id: "colaborador", label: "Colaborador" },
 ] as const;
 
 const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];
@@ -312,8 +314,8 @@ export default function Home() {
   function prefetchSection(label:string){
     if(!operationalAccess||!user||!visibleModule(label,user.role))return;
     // Match InventoryWorkspace's read roles; menu visibility alone includes Sales.
-    if(label==='Inventario'&&!['owner','admin','management','production','finance','editor','viewer'].includes(user.role))return;
-    if(label==='Estudio'&&!['owner','admin','management','production','finance','editor','viewer'].includes(user.role))return;
+    if(label==='Inventario'&&!['owner','admin','management','production','finance','editor','viewer','colaborador'].includes(user.role))return;
+    if(label==='Estudio'&&!['owner','admin','management','production','finance','editor','viewer','colaborador'].includes(user.role))return;
     void prefetchSectionData(label,`${user.id}:${user.organization_id}:${user.role}`);
   }
   useStartupPreference({scope:preferenceScope,ready:preferencesReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
@@ -1254,6 +1256,7 @@ export default function Home() {
                 </div>
               )}
             </div>
+            <ArchivedCapsule kind="clients" refresh={load}/>
           </section>
         )}
         {active === "Proyectos" && (
@@ -1307,6 +1310,7 @@ export default function Home() {
                 </p>
               )}
             </div>
+            <ArchivedCapsule kind="projects" refresh={load}/>
           </section>
         )}
         {active === "Presupuestos" && (

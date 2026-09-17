@@ -7,7 +7,7 @@ import './company-settings.css';
 
 type Company={id:string|number;name:string;role:string;isDemo?:boolean};
 type Companies={organizations:Company[];currentOrganizationId:string|number;defaultOrganizationId?:string|number|null};
-const roles:Record<string,string>={owner:'Dueño',admin:'Administración',management:'Gerencia',manager:'Gerencia',finance:'Finanzas',sales:'Comercial',editor:'Edición',production:'Producción',viewer:'Lectura'};
+const roles:Record<string,string>={owner:'Dueño',admin:'Administración',management:'Gerencia',manager:'Gerencia',finance:'Finanzas',sales:'Comercial',editor:'Edición',production:'Producción',viewer:'Lectura',colaborador:'Colaborador'};
 
 export function CompanySettings(){
  const [data,setData]=useState<Companies|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);

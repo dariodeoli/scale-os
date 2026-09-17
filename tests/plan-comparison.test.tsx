@@ -68,10 +68,10 @@ test('catalog renders comparison without preview/read amplification and preserve
   assert.equal(String(input),'/core-api/api/agency/plans');assert.equal(init?.method,'GET');requests++;
   return Response.json({records:[fixture]});
  });
- for(const role of ['owner','admin','management','finance','sales','production','editor','viewer']){
+ for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','colaborador']){
   let renderer!:ReactTestRenderer;
   await act(async()=>{renderer=create(<CatalogWorkspace kind="plans" role={role}/>);});
-  const root=renderer.root,copy=text(root),editable=['owner','admin','management','finance','sales','production'].includes(role);
+  const root=renderer.root,copy=text(root),editable=['owner','admin','management','finance','sales','production','colaborador'].includes(role);
   assert(copy.includes(planAmount(45.25,'USD')));assert(copy.includes('Archivado'));assert(copy.includes(fixture.notes));
   assert.equal(root.findAllByProps({className:'plan-comparison-item'}).length,4);
   assert.equal(root.findAllByProps({role:'dialog'}).length,0);
@@ -81,5 +81,5 @@ test('catalog renders comparison without preview/read amplification and preserve
   if(editable){act(()=>buttons.find(button=>text(button)==='Editar')!.props.onClick());assert.equal(text(root.findByType('output')),fixture.id);}
   act(()=>renderer.unmount());
  }
- assert.equal(requests,8,'one existing list read per mount, no comparison-specific queries');
+ assert.equal(requests,9,'one existing list read per mount, no comparison-specific queries');
 });

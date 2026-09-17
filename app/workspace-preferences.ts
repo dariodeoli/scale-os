@@ -25,7 +25,7 @@ export function parseWorkspacePreferences(raw:string|null):WorkspacePreferences 
  } catch {return fallback;}
 }
 export function startupChoices(role:string) {
- if(!['owner','admin','management','finance','sales','production','editor','viewer'].includes(role))return [];
+ if(!['owner','admin','management','finance','sales','production','editor','viewer','colaborador'].includes(role))return [];
  return ([
   {value:'summary',label:'Resumen',section:'Resumen'},
   {value:'production',label:'Producción',section:'Producción'},
