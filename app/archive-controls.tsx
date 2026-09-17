@@ -5,15 +5,15 @@ import {ActorIdentity} from './actor-identity';
 import {Trash2} from 'lucide-react';
 
 const roles:Record<string,string[]>={
- members:['owner','admin'],
+ members:['owner','admin','management'],
  clients:['owner','admin','management','sales'],
  projects:['owner','admin','management','production'],
  'work-orders':['owner','admin','management','production'],
  leads:['owner','admin','management','finance','sales'],
- plans:['owner','admin','management','finance','sales'],
- budgets:['owner','admin','management','finance','sales'],
+ plans:['owner','admin','management','finance','sales','production'],
+ budgets:['owner','admin','management','finance','sales','production'],
  inventory:['owner','admin','management','production','finance'],
- collaborators:['owner','admin','finance'],accounts:['owner','admin','finance'],
+ collaborators:['owner','admin','management'],accounts:['owner','admin','finance'],
 };
 const labels:Record<string,string>={clients:'Cliente',projects:'Proyecto','work-orders':'Orden',leads:'Oportunidad',plans:'Plan',budgets:'Presupuesto',inventory:'Equipo de inventario',collaborators:'Colaborador',accounts:'Cuenta'};
 const errorMessage=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar la operación';

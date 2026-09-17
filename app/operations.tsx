@@ -263,6 +263,39 @@ export function OperationsWorkspace({
   activeTab?: string;
   onTabChange?: (tab: string) => void;
 }) {
+  if(mode==='people'&&!['owner','admin','finance'].includes(role))return <TeamDirectoryView organizationName={organizationName}/>;
+  return <PeopleWorkspace mode={mode} role={role} currentEmail={currentEmail} organizationName={organizationName} activeTab={activeTab} onTabChange={onTabChange}/>;
+}
+type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
+function TeamDirectoryView({organizationName}:{organizationName:string}){
+  const [directory,setDirectory]=useState<DirectoryPerson[]>([]),[error,setError]=useState('');
+  useEffect(()=>{let alive=true;void api<{directory:DirectoryPerson[]}>('/api/agency/team').then(data=>{if(alive)setDirectory(Array.isArray(data?.directory)?data.directory:[]);}).catch(e=>{if(alive)setError(message(e));});return()=>{alive=false;};},[]);
+  return <div className="ops-stack">
+    <section className="panel">
+      <div className="panel-heading"><div><p className="eyebrow">DIRECTORIO INTERNO</p><h2>Equipo{organizationName?' de '+organizationName:''}</h2></div></div>
+      <p className="form-note">Directorio de personas: foto, nombre y cargo. Los datos personales de cada integrante se administran desde su propio perfil.</p>
+      {error&&<p className="error" role="alert">{error}</p>}
+      {directory.length?<div className="ops-grid team-directory-grid">
+        {directory.map(person=><article className="ops-card team-directory-card" key={person.id}><PersonContainer size="lg" name={person.full_name||'Integrante'} photoUrl={person.photo_url||undefined} secondary={teamRoleLabels[person.role]||person.cargo||'Sin cargo'} verified/></article>)}
+      </div>:!error?<p className="empty-copy">Cargando equipo…</p>:null}
+    </section>
+  </div>;
+}
+function PeopleWorkspace({
+  mode,
+  role,
+  currentEmail='',
+  organizationName='',
+  activeTab='people',
+  onTabChange,
+}: {
+  mode: "people" | "commissions";
+  role: string;
+  currentEmail?:string;
+  organizationName?:string;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}) {
   const {currency:defaultCurrency}=useCompanyCurrency();
   const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[seedEmail,setSeedEmail]=useState(''),[search,setSearch]=useState('');
   const [people, setPeople] = useState<Person[]>([]),
@@ -287,7 +320,8 @@ export function OperationsWorkspace({
     [monthlyCommissions, setMonthlyCommissions] = useState<MonthlyCommission[]>([]),
     [monthlyLoading, setMonthlyLoading] = useState(false),
     [monthlyRefresh, setMonthlyRefresh] = useState(0);
-  const allowed = ["owner", "admin", "finance"].includes(role);
+  const allowed = ["owner", "admin", "finance", "management"].includes(role);
+  const salaryView = ["owner", "admin", "finance"].includes(role);
   useEffect(() => {
     if (!allowed) return;
     let alive = true;
@@ -388,7 +422,6 @@ export function OperationsWorkspace({
   const empty = { value: "", label: "Sin vincular" };
   const personFields: Field[] = [
     { key: "full_name", label: "Nombre completo", section: 'Datos personales' },
-    { key: "job_title", label: "Cargo", optional: true, section: 'Datos personales' },
     {
       key: "email",
       label: "Correo de contacto",
@@ -490,26 +523,26 @@ export function OperationsWorkspace({
         )}
         {notice && <p role="status">{notice}</p>}
         {mode==='people'&&<div className="kpi-strip" aria-label="Salarios y facturación estimada">
-          <article className="kpi-card tone-brand">
+          {salaryView&&<article className="kpi-card tone-brand">
             <p className="eyebrow">SALARIOS MENSUALES</p>
             {salaryTotals.totals.size?<div className="kpi-amounts">{Array.from(salaryTotals.totals).map(([currency,total])=><span key={currency}>{money(total,currency)}</span>)}</div>:<strong>Sin salarios definidos</strong>}
             <small>Suma de perfiles activos con salario fijo mensual</small>
-          </article>
-          <article className="kpi-card tone-green">
+          </article>}
+          {salaryView&&<article className="kpi-card tone-green">
             <p className="eyebrow">PERFILES DE SALARIO</p>
             <strong>{salaryTotals.defined} definidos</strong>
             <small>{salaryTotals.missing} activos sin salario fijo mensual</small>
-          </article>
+          </article>}
           <article className="kpi-card tone-blue">
             <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
             {commercial===null?<strong>Calculando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong>No disponible</strong>:commercial.expectedMonthlyBilling.length?<div className="kpi-amounts">{commercial.expectedMonthlyBilling.map(item=><span key={item.currency}>{money(Number(item.total),item.currency)} / mes</span>)}</div>:<strong>Sin contratos activos</strong>}
             <small>{commercial?.expectedMonthlyBilling===undefined?'No disponible':commercial.expectedMonthlyBilling.length?'Expectativa comercial vigente por moneda':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}</small>
           </article>
-          <article className="kpi-card tone-warning">
+          {salaryView&&<article className="kpi-card tone-warning">
             <p className="eyebrow">RESULTADO MENSUAL</p>
             {monthlyGap.length?<div className="kpi-amounts">{monthlyGap.map(row=><span key={row.currency}>{money(row.gap,row.currency)}</span>)}</div>:<strong>Sin datos</strong>}
             <small>Facturación contratada menos salarios, por moneda</small>
-          </article>
+          </article>}
         </div>}
         {mode==='people'&&<div className="team-filters">
           <label className="team-search">
@@ -540,8 +573,8 @@ export function OperationsWorkspace({
                       <span className="avatar">{actorInitials(p.full_name)}</span>
                     )}
                     <div>
-                      <h3>{p.full_name}{!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
-                      <small>{p.job_title||(entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin cargo')}</small>
+                      <h3>{p.full_name}{salaryView&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
+                      <small>{entry.member?teamRoleLabels[entry.member.role]||entry.member.role:(p.job_title||'Sin cargo')}</small>
                     </div>
                   </div>
                   <span className="person-hub-state" data-state={p.active?'active':'inactive'}>{p.active?'Activo':'Inactivo'}</span>
@@ -552,13 +585,13 @@ export function OperationsWorkspace({
                   <div><dt>Ingreso</dt><dd>{p.started_on?p.started_on.slice(0,10):'Sin fecha'}</dd></div>
                 </dl>
                 <div className="person-hub-chips">
-                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Sin importe acordado</em>}</span>
+                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?(salaryView?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Salario reservado</em>):<em>Sin importe acordado</em>}</span>
                   <span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>
                   {p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
                   {p.ended_on?<span className="hub-chip warn">Salió el {p.ended_on.slice(0,10)}</span>:null}
                 </div>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
-                <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} currentEmail={currentEmail} refresh={load}/>
+                <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} refresh={load}/>
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
                 <footer className="person-hub-actions">
                   <div className="person-hub-buttons">
@@ -566,13 +599,13 @@ export function OperationsWorkspace({
                       <Pencil size={14} />
                       Perfil
                     </button>
-                    <button
+                    {salaryView&&<button
                       className="text-button"
                       onClick={() => setPay({ person: p })}
                     >
                       <Banknote size={14} />
                       Pagar
-                    </button>
+                    </button>}
                   </div>
                   <div className="ops-card-actions"><RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/></div>
                 </footer>
@@ -587,7 +620,7 @@ export function OperationsWorkspace({
                 <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
               </dl>
               <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>
-              <TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>
+              <TeamAccess member={entry.member} email={entry.member!.email} role={role} refresh={load}/>
               <footer className="person-hub-actions">
                 <div className="person-hub-buttons">
                   {entry.archivedProfileId?<button className="text-button positive" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={14}/>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={14}/>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
@@ -764,14 +797,17 @@ export function OperationsWorkspace({
                     <SelectCustom label="Acceso" choices={[{value:'true',label:'Activo'},{value:'false',label:'Suspendido'}]} value={accessDraft.active} onChange={value=>setAccessDraft(draft=>({...draft!,active:value}))}/>
                   </div>
                   <p className="form-note">El permiso y el acceso se guardan junto con el perfil. Cambiar permisos o suspender cierra las sesiones de esta persona en esta empresa.</p>
-                  {dialogMember.active!==false&&<button type="button" className="secondary" disabled={accessBusy} onClick={async()=>{setAccessBusy(true);try{const d=await api<{emailSent:boolean}>(`/api/agency/members/${dialogMember.id}/resend`,{});setNotice(d.emailSent?'Invitación enviada.':'El proveedor no pudo enviar el correo.');}catch(e){setError(message(e));}finally{setAccessBusy(false);}}}>Reenviar invitación</button>}
+                  <div className="person-access-actions">
+                    {dialogMember.active!==false&&<button type="button" className="secondary" disabled={accessBusy} onClick={async()=>{setAccessBusy(true);try{const d=await api<{emailSent:boolean}>(`/api/agency/members/${dialogMember.id}/resend`,{});setNotice(d.emailSent?'Invitación enviada.':'El proveedor no pudo enviar el correo.');}catch(e){setError(message(e));}finally{setAccessBusy(false);}}}>Reenviar invitación</button>}
+                    <RemoveRecord kind="members" id={dialogMember.id} name={dialogMember.email} role={role} done={load}/>
+                  </div>
                 </>:<p className="form-note">Tu propio acceso se administra desde Mi perfil; el de otros dueños, desde Equipo.</p>}
               </div>
-            </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} currentEmail={currentEmail} refresh={load}/>:null}
+            </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} refresh={load}/>:null}
           </div>}
           <Editor
             columns
-            fields={personFields}
+            fields={salaryView?personFields:personFields.filter(field=>!['compensation_amount','currency'].includes(field.key))}
             defaults={personDefaults}
             save={async (v) => {
               const result = await api<{access?:{status:string;emailSent?:boolean}}>(

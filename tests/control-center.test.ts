@@ -19,7 +19,7 @@ for(const [old,target] of Object.entries(legacyRoutes))assert(nextConfig.include
 for(const role of ['owner','admin','management','finance','sales','production','editor','viewer']){
  for(const [label] of sections){if(label!=='Métricas'&&visibleModule(label,role))assert(childSections(parentSection(label)).filter(child=>visibleModule(child,role)).includes(label),'all accessible leaves remain reachable; metrics are embedded in Pipeline');}
 }
-assert(!visibleModule('Pagos','sales'));assert(visibleModule('Mora','sales'));assert(!visibleModule('Configuración','production'));assert(visibleModule('Papelera','production'));assert(!visibleModule('Comisiones','editor'));assert(!visibleModule('Equipo','editor'));
+assert(!visibleModule('Pagos','sales'));assert(visibleModule('Mora','sales'));assert(!visibleModule('Configuración','production'));assert(visibleModule('Papelera','production'));assert(!visibleModule('Comisiones','editor'));assert(visibleModule('Equipo','editor'));
 const ui=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
 for(const hidden of ['Mora','Planes','Comisiones','Papelera'])assert(!ui.slice(ui.indexOf('const nav ='),ui.indexOf('type Client')).includes(`"${hidden}"`));
 assert(ui.indexOf('<ControlCenter')<ui.indexOf('className="metrics operational-metrics"'));assert(ui.indexOf('className="metrics operational-metrics"')<ui.indexOf('id="produccion"'));

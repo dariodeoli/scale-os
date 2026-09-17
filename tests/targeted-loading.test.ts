@@ -14,7 +14,7 @@ function execute(code:string,deps:Record<string,unknown>){
  return new Function(...Object.keys(deps),js)(...Object.values(deps));
 }
 test('actual team loader: people needs 4 parallel reads, commissions retains its 6 reads',async()=>{
- const {ast,fn}=component('operations.tsx','OperationsWorkspace');
+ const {ast,fn}=component('operations.tsx','PeopleWorkspace');
  const load=fn.body!.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='load')!;
  for(const mode of ['people','commissions']){
   const calls:string[]=[],resolvers:(()=>void)[]=[],state:Record<string,unknown>={};

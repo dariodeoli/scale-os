@@ -38,7 +38,7 @@ test('guide uses every canonical section except embedded Metrics and preserves a
   assert.deepEqual(available,sections.filter(([label])=>label!=='Métricas'&&visibleModule(label,role)).map(([label])=>label),role);
   assert.equal(available.length,new Set(available).size);
   assert(available.includes('Producción'));
-  assert.equal(available.includes('Informes'),['owner','admin','finance'].includes(role));
+  assert.equal(available.includes('Informes'),['owner','admin','finance','sales'].includes(role));
   assert.equal(available.includes('Historial de trabajo'),['owner','admin','finance'].includes(role));
   assert.equal(available.includes('Invitaciones'),['owner','admin'].includes(role));
   assert(!available.includes('Métricas'));
