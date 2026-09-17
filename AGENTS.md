@@ -54,6 +54,14 @@
 - Montos, fechas y códigos nunca se cortan (nowrap + tabular-nums). Usar las clases compartidas (`kpi-strip`/`kpi-card`, `panel`, `ops-card`, `Dialog`/`Editor`, `SaveActions`) y tokens de `ui-system.css`; nada de estilos inline salvo valores dinámicos.
 - Los datos que muestra la UI deben venir del contrato real del API; nunca inventar estados, totales ni métricas.
 
+## Reglas de contenedores y acciones (UI)
+- **Alineación**: todo contenedor o cápsula (productos, clientes, personal, proyectos, reservas) alinea su contenido vertical y horizontalmente sin importar el largo del texto: misma altura en cuadrícula, encabezado alineado, hechos/meta alineados por columnas y acciones ancladas al pie. Referencia: tarjetas de Inventario.
+- **Acciones en una sola línea**: los botones de acción de una tarjeta nunca se envuelven; son iconos compactos con `title` (tooltip visible al pasar el cursor) y, si no entran en pantallas chicas, scroll horizontal silencioso. La fila de acciones no compite con contenido.
+- **Sello de verificación**: check del resultado + foto + primer nombre + fecha/hora en 24 h, centrado verticalmente en su fila; el botón de verificar vive al lado del último verificador, no en la fila de acciones.
+- **Espaciado**: gaps y padding consistentes entre objetos laterales y verticales (tokens de `ui-system.css`), sin saltos por largo de texto ni filas colapsadas.
+- **Selección múltiple**: donde haya lista o cuadrícula, se puede seleccionar varios y operar en lote (reservar, verificar, mover de ubicación, archivar), con contador "N seleccionados", acción de seleccionar visibles y limpiar; el lote se resuelve en una sola operación por API cuando exista el endpoint.
+- **Aplica a TODO contenedor existente y a los nuevos**: al crear uno nuevo o tocar uno existente, adoptar estas reglas tanto en cuadrícula como en lista. Un contenedor que no las cumple es deuda de diseño.
+
 ## Reglas de campos (fuente única)
 - Un componente por tipo de dato: antes de escribir un input a mano, usá el tipo del `Editor` o el componente compartido que ya cubre el caso; si no existe, se crea ahí (`app/`) y se adopta en TODOS los lugares que hoy escriben a mano. No crear inputs paralelos.
 - Teléfono: `app/phone-field.tsx` (+ reglas puras en `app/field-rules.ts`), tipo `phone` del Editor. Guarda `+<código> <dígitos>` (Paraguay: 9 móvil / 8 fijo; resto 6–12); el API revalida con `phone()` en `suite-validation.js`.

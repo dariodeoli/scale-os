@@ -287,7 +287,8 @@
 .hub-chip,.finance-state,.budget-state,.commission-state{display:inline-flex;align-items:center;padding:3px 10px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-subtle);color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-weight:700;white-space:nowrap}
 .hub-chip.warn{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
 .hub-chip.muted{font-weight:600}
-.person-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}
+.person-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}
+.person-hub-actions::-webkit-scrollbar{display:none}
 .person-hub-buttons{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 @media(max-width:480px){.person-hub-facts{grid-template-columns:1fr}}
 

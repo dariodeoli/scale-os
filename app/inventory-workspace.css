@@ -117,6 +117,25 @@
 .inventory-detail .inventory-code-payload{background:var(--surface-sunken,var(--surface-subtle))}
 .inventory-trace-row{padding:9px 11px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface)}
 @media(max-width:480px){.inventory-item-facts{grid-template-columns:1fr}}
+.inventory-equipment{display:flex;flex-direction:column;gap:10px;height:100%}
+.inventory-card-head{justify-content:space-between;align-items:flex-start;gap:10px}
+.inventory-card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle,var(--line))}
+.inventory-card-control{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.inventory-card-control .inventory-verify-action{width:30px;min-width:30px;min-height:30px}
+.inventory-return-chip{max-width:100%}
+.inventory-item-actions{flex-wrap:nowrap;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.inventory-item-actions::-webkit-scrollbar{display:none}
+.inventory-bulk-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:8px 12px;border:1px solid color-mix(in srgb,var(--brand-600) 22%,var(--line));border-radius:var(--radius-sm);background:color-mix(in srgb,var(--violet-soft) 60%,var(--surface))}
+.inventory-bulk-count{font-size:12.5px;font-weight:650;color:var(--text-strong,var(--text));white-space:nowrap}
+.inventory-bulk-count b{font-variant-numeric:tabular-nums}
+.inventory-bulk-actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0}
+.inventory-bulk-actions::-webkit-scrollbar{display:none}
+.inventory-select-visible{white-space:nowrap;flex:none}
+.inventory-equipment-list .inventory-equipment{grid-template-columns:minmax(200px,1.1fr) minmax(220px,1.3fr) auto auto}
+.inventory-equipment-list .inventory-card-foot{display:contents}
+.inventory-equipment-list .inventory-card-control{flex-wrap:nowrap}
+@media(max-width:940px){.inventory-equipment-list .inventory-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:0;border-top:0}}
+@media(max-width:480px){.inventory-card-foot{flex-wrap:wrap;row-gap:8px}}
 .inventory-verify-stamp{display:inline-flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
 .inventory-verify-stamp .inventory-verify-check{display:inline-flex;align-items:center;color:inherit}
 .inventory-verify-stamp .inventory-verify-name{font-weight:650;overflow:hidden;text-overflow:ellipsis}

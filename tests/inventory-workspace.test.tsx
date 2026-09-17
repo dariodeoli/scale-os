@@ -143,6 +143,24 @@ async function run(){
  context.user_id='11';reservations=[{...record,status:'checked_out',custodian_user_id:'11',custodian_name:'Sonido'}];
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});act(()=>button('Calendario y reservas').props.onClick());
  assert(button('Registrar devolución'));assert(!button('Editar reserva'));assert(!button('Cancelar reserva'));act(()=>renderer.unmount());
+  // Bulk selection: one-line actions and the batch endpoint.
+  context.role='management';context.can_manage=true;items=equipment;reservations=[record];
+  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+  const hasClass=(node:ReactTestInstance,value:string)=>String(node.props.className||'').split(' ').includes(value);
+  assert(renderer.root.findAll(node=>hasClass(node,'inventory-card-foot')).length,'cards keep a foot row');
+  assert(renderer.root.findAll(node=>hasClass(node,'inventory-verify-action')).length,'the verify check lives in the control row next to the stamp');
+  assert(renderer.root.findAll(node=>hasClass(node,'inventory-item-actions')).length,'actions share the same one-line foot row');
+  act(()=>renderer.root.findAllByProps({'aria-label':'Seleccionar Memoria SD'})[0].props.onChange());
+  assert.equal(text(renderer.root.findByProps({className:'inventory-bulk-count'})),'1 seleccionado','the bulk bar counts the selection');
+  assert(button('Verificar'));assert(button('Mover ubicación'));assert(button('Reservar'));
+  const beforeBatch=writes.length;
+  await act(async()=>{await button('Verificar').props.onClick();});
+  const batchWrite=writes.slice(beforeBatch).find(write=>write.path==='/api/agency/inventory/batch');
+  assert(batchWrite,'bulk verify posts the batch endpoint');
+  assert.deepEqual((batchWrite.body as {ids:string[]}).ids,['1']);
+  assert.equal((batchWrite.body as {change:{verify:boolean}}).change.verify,true);
+  assert.doesNotMatch(tree(),/inventory-bulk-bar/,'a successful batch clears the selection');
+  act(()=>renderer.unmount());
   // CategoryForm owns name, availability and icon without the shared Editor.
   // API/database persistence is tested in the API suite.
   context.role='management';context.can_manage=true;items=equipment;
