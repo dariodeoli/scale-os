@@ -17,6 +17,14 @@
 - Estado raro de git (fetch que falla, refs rotas): parar y avisar al integrador. No borrar ni arreglar refs por cuenta propia.
 - Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build` (el release los corre igual).
 
+## Roles y permisos (fuente única)
+- Roles: `owner`, `admin`, `management` (Gerencia), `finance`, `sales`, `production`, `editor`, `viewer` (Solo lectura). La matriz de capacidades vive en `permissions.js` (API) con overrides por empresa; el NAV se filtra en `app/workspace-access.ts`.
+- Regla: **Rol → módulos → acciones → campos**. Todo control mutante nace con gate de rol/capacidad y el API revalida con `roleCan`; `viewer` nunca ve acciones (ocultas, no deshabilitadas).
+- Campos sensibles (`salary.view` = owner/admin/finance): `compensation_amount`, `monthly_salary_amount/currency`, `payment_day`, `invoices_company`. La API los sirve en `null` a los demás roles y rechaza su edición (403).
+- Equipo: owner/admin/finance ven el panel completo; management ve equipo y accesos sin montos; sales/production/editor/viewer ven el directorio (foto, nombre, cargo).
+- Preferencias personales (página inicial, tema, perfil propio por NAV) pertenecen a cada usuario y no dependen de su rol.
+- Auditoría de sensibles verificada: team/collaborators (filtrado por campo), dashboard/forecast/salary-overrides (`finance.view`), papelera y actividad (solo nombre y metadatos), superadmin (sin salarios).
+
 ## Diseño
 - No duplicar identidad ni datos en el shell: empresa en el TopBar, usuario autenticado al pie del Sidebar, versión solo en el footer.
 - Montos, fechas y códigos nunca se cortan (nowrap + tabular-nums). Usar las clases compartidas (`kpi-strip`/`kpi-card`, `panel`, `ops-card`, `Dialog`/`Editor`, `SaveActions`) y tokens de `ui-system.css`; nada de estilos inline salvo valores dinámicos.
