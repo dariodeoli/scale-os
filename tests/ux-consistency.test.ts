@@ -50,6 +50,12 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
   assert.match(archive,/trash-head[\s\S]*?Tipo[\s\S]*?Registro[\s\S]*?Acciones/,'the trash list shows its column header');
   const styles=read('app/settings-slice.css');
   assert.match(styles,/\.trash-head\{display:grid/);
+  const platform=read('app/platform-access-panel.tsx');
+  assert.match(platform,/platform-access-head[\s\S]*?Usuario[\s\S]*?Acciones[\s\S]*?platform-access-head[\s\S]*?Agencia/,'both platform lists show their headers');
+  const integrations=read('app/suite.tsx');
+  assert.match(integrations,/settings-integration-head[\s\S]*?Integración[\s\S]*?Estado/,'the integrations list shows its header');
+  const invites=read('app/invite-links.tsx');
+  assert.match(invites,/invite-link-head[\s\S]*?Solicitud[\s\S]*?invite-link-head[\s\S]*?Enlace/,'invite requests and links show their headers');
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

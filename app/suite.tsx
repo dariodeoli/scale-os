@@ -128,6 +128,7 @@ export function SettingsWorkspace(){ const {setCurrency}=useCompanyCurrency();co
   <section className="panel settings-card" aria-labelledby="integration-settings-title">
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Link2Off size={18}/></span><div><h2 id="integration-settings-title">Integraciones</h2><p>Estado actual de los servicios que pueden complementar tu flujo de trabajo.</p></div></div>
    <div className="settings-integration-list" role="list" aria-label="Estado de integraciones">
+    <div className="settings-integration-head" role="presentation"><span>Integración</span><span>Estado</span></div>
     <article role="listitem"><div><strong>Google y Drive</strong><p>Usá tu correo invitado para entrar y agregá enlaces de Drive en cada registro.</p></div><span className="settings-status">No configurado</span></article>
     <article role="listitem"><div><strong>WhatsApp, Instagram y Meta</strong><p>Requieren una conexión y permisos de Meta antes de poder usarse.</p></div><span className="settings-status">No configurado</span></article>
    </div>
