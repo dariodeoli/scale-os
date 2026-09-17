@@ -547,13 +547,13 @@ export function OperationsWorkspace({
                   <span className="person-hub-state" data-state={p.active?'active':'inactive'}>{p.active?'Activo':'Inactivo'}</span>
                 </header>
                 <dl className="person-hub-facts">
-                  <div><dt>Correo</dt><dd title={p.email||undefined}>{p.email||'Sin correo'}</dd></div>
+                  <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={p.email||undefined}>{p.email||'Sin correo'}</dd></div>
                   <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
                   <div><dt>Ingreso</dt><dd>{p.started_on?p.started_on.slice(0,10):'Sin fecha'}</dd></div>
-                  <div><dt>Día de pago</dt><dd>{p.payment_day?`Día ${p.payment_day}`:'Sin definir'}</dd></div>
                 </dl>
                 <div className="person-hub-chips">
                   <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Sin importe acordado</em>}</span>
+                  <span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>
                   {p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
                   {p.ended_on?<span className="hub-chip warn">Salió el {p.ended_on.slice(0,10)}</span>:null}
                 </div>
@@ -583,7 +583,7 @@ export function OperationsWorkspace({
                 <span className="person-hub-state" data-state={entry.member!.active?'active':'inactive'}>{entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
               </header>
               <dl className="person-hub-facts">
-                <div><dt>Correo</dt><dd>{entry.member!.email}</dd></div>
+                <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={entry.member!.email||undefined}>{entry.member!.email}</dd></div>
                 <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
               </dl>
               <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>
