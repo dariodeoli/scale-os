@@ -73,7 +73,7 @@
 
 .client-hub-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:24px}
 .client-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}
-.client-hub-list .client-hub-card{display:grid;grid-template-columns:minmax(200px,1.15fr) minmax(0,1fr) auto;align-items:center;gap:10px 18px;padding:12px 14px}
+.client-hub-list .client-hub-card{display:grid;grid-template-columns:minmax(200px,1.15fr) minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px 12px}
 .client-hub-list .client-hub-head{grid-column:1;align-items:center}
 .client-hub-list .client-hub-facts{grid-column:2;padding:0;background:transparent}
 .client-hub-list .client-hub-chips{grid-column:3;justify-content:flex-end;min-height:0}

@@ -3,6 +3,7 @@ import {UrgencyBadge} from './urgency';
 import {useEffect,useRef,type ReactNode} from 'react';
 import {ClientIdentity} from './client-identity';
 import {AssignedPeople,type AssignedPerson} from './assigned-people';
+import {listDateShort,dueTone} from './list-format';
 import './project-card.css';
 
 export type ProjectAssignee=AssignedPerson;
@@ -24,8 +25,8 @@ export function ProjectCard({project,client,children}:{project:{id:string;urgenc
   <div className="project-entry-title"><h3>{project.name}</h3><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key}/></div>
   <div className="project-entry-meta"><span className="client-status" data-status={project.status}>{{active:'Activo',paused:'Pausado',completed:'Completado',cancelled:'Cancelado'}[project.status]||project.status}</span><UrgencyBadge value={project.urgency}/></div>
   <dl className="project-entry-facts">
-   <div><dt>Inicio</dt><dd>{shortDate(project.start_date)||'Sin fecha'}</dd></div>
-   <div><dt>Entrega</dt><dd>{shortDate(project.due_date)||'Sin fecha'}</dd></div>
+   <div><dt>Inicio</dt><dd className="list-date">{listDateShort(project.start_date)||'Sin fecha'}</dd></div>
+   <div><dt>Entrega</dt><dd className="list-date" data-tone={dueTone(project.due_date)||undefined}>{listDateShort(project.due_date)||'Sin fecha'}</dd></div>
    <div><dt>Piezas</dt><dd>{project.work_order_count}</dd></div>
   </dl>
   <div className="project-entry-assignees"><AssignedPeople people={project.assignees}/></div>

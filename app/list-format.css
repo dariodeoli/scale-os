@@ -1,0 +1,7 @@
+.serial-text{font-family:var(--mono);font-size:11px;white-space:nowrap;overflow-wrap:normal}
+.serial-text b{font-weight:800;color:var(--text-strong,var(--text))}
+.list-amount{display:block;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.list-date{font-size:12px;color:var(--text-subtle,var(--text-muted));font-variant-numeric:tabular-nums;white-space:nowrap}
+.list-date[data-tone=warn]{font-weight:650;color:var(--warning)}
+.list-identity{display:block;min-width:0;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-secondary{display:block;min-width:0;font-size:11px;color:var(--text-subtle,var(--text-muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

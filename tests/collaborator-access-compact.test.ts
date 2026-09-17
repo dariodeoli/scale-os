@@ -75,10 +75,10 @@ test('management reaches the team without individual salary amounts',()=>{
 
 test('viewer never reaches a mutating control in the visible sections',()=>{
  assert.match(suite,/const canMove=\['owner','admin','management','finance','sales'\]\.includes\(role\);const drag=useDraggable\(\{id:String\(row\.id\),disabled:!canMove\}\)/);
- assert.match(suite,/\{canMove&&<button className="icon-button" aria-label=\{`Mover \$\{str\(row,'name'\)\}`\}/);
+ assert.match(suite,/\{canMove&&<button className="icon-button" title=\{`Mover \$\{str\(row,'name'\)\}`\} aria-label=\{`Mover \$\{str\(row,'name'\)\}`\}/);
  assert.match(production,/const canMove=\['owner','admin','management','production','editor'\]\.includes\(role\)/);
  assert.match(composer,/const drag=useDraggable\(\{id,disabled:!canReorder\}\)/);
- assert.match(composer,/\{canReorder&&<button type="button" className="icon-button" aria-label="Reordenar ítem"/);
+ assert.match(composer,/\{canReorder&&<button type="button" className="icon-button" title="Reordenar ítem" aria-label="Reordenar ítem"/);
  assert.match(suite,/<QuoteComposer mode="plan" record=\{row\} canReorder=\{canEdit\} done=/);
  assert.match(operations,/\{role !== "viewer" && \(/);
  assert.match(archive,/members:\['owner','admin','management'\]/);
