@@ -73,7 +73,8 @@ import {RemoveRecord,TrashWorkspace} from './archive-controls';
 import {whatsappUrl} from './client-links';
 import {clientPortfolioStats,clientSince,moneyKpi} from './client-format';
 import {statuses,type Status,KanbanColumn} from './production-board';
-import {ClientForm} from './workspace-forms';
+import type {Client,Project,WorkOrder} from './workspace-types';
+import {ClientForm,ProjectForm,driveLinkSchema} from './workspace-forms';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 import './settings-slice.css';
@@ -134,56 +135,6 @@ const nav = [
   ["Estudio", CalendarDays],
   ["Configuración", Settings],
 ] as const;
-type Client = {
-  lifecycle_status?:string;
-  has_recurring_price?:boolean;
-  logo_url?:string|null;
-  color_key?:string;
-  tax_id?:string|null;
-  legal_name?:string|null;
-  created_at?:string;
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  active: boolean;
-};
-type Project = {
-  urgency?:number|null;
-  assignees?: import('./project-card').ProjectAssignee[];
-  start_date?:string|null;
-  due_date?:string|null;
-  id: string;
-  name: string;
-  client_id: string;
-  client_name: string;
-  drive_url: string | null;
-  status: string;
-  work_order_count: number;
-};
-type WorkOrder = {
-  urgency?:number|null;
-  assignees?:AssignedPerson[];
-  effective_assignees?:AssignedPerson[];
-  assignee_source?:'direct'|'project'|null;
-  assigned_user_id?:string|null;
-  assigned_user_ids?:string[];
-  checklist_total?:number;
-  checklist_completed?:number;
-  updated_at?:string;
-  client_logo_url?:string|null;
-  client_color_key?:string;
-  id: string;
-  title: string;
-  project_id: string;
-  project_name: string;
-  client_name: string;
-  status: Status;
-  description: string | null;
-  drive_url: string | null;
-  due_date?: string | null;
-  due_time?: string | null;
-};
 type Budget = {
   id: string;
   number: string;
@@ -355,104 +306,6 @@ function Modal({
   children: React.ReactNode;
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
-}
-const driveLinkSchema=z.string().trim().max(2048).refine(value=>{if(!value)return true;try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password;}catch{return false;}},'Pegá un enlace HTTPS válido de archivo o carpeta.');
-const projectSchema = z.object({
-  urgency:z.enum(["","1","2","3","4","5"]),
-  name: z.string().trim().min(2, "Escribí el nombre del proyecto."),
-  clientId: z.string().min(1, "Elegí un cliente."),
-  driveUrl: driveLinkSchema,
-});
-type ProjectValues = z.infer<typeof projectSchema>;
-function ProjectForm({
-  clients,
-  done,
-  initialClientId='',
-}: {
-  clients: Client[];
-  initialClientId?:string;
-  done: (project: Project) => void;
-}) {
-  const form = useForm<ProjectValues>({
-    resolver: zodResolver(projectSchema),
-    defaultValues: { name: "", clientId: initialClientId, driveUrl: "", urgency:"" },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: ProjectValues) {
-    try {
-      const data = await request<{ project: Project }>("/api/agency/projects", {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
-      done(data.project);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <label>
-        Nombre del proyecto
-        <input {...form.register("name")} autoFocus />
-        {form.formState.errors.name && (
-          <small className="error">{form.formState.errors.name.message}</small>
-        )}
-      </label>
-      <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as ProjectValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
-      <fieldset>
-        <legend>Cliente</legend>
-        <div className="choice-list">
-          {clients.map((client) => (
-            <button
-              type="button"
-              className={
-                form.watch("clientId") === client.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("clientId", client.id, { shouldValidate: true })
-              }
-              key={client.id}
-            >
-              {client.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.clientId && (
-          <small className="error">
-            {form.formState.errors.clientId.message}
-          </small>
-        )}
-      </fieldset>
-      <label>
-        Enlace de archivo o carpeta de Google Drive
-        <input
-          placeholder="https://drive.google.com/..."
-          {...form.register("driveUrl")}
-        />
-        {form.formState.errors.driveUrl && (
-          <small className="error">
-            {form.formState.errors.driveUrl.message}
-          </small>
-        )}
-        <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!clients.length || submission.pending}
-      >
-        {submission.pending ? "Guardando…" : "Crear proyecto"}
-      </button></SaveActions>
-      {!clients.length && <p className="form-note">Primero creá un cliente.</p>}
-    </form>
-  );
 }
 const orderSchema = z.object({
   urgency:z.enum(["","1","2","3","4","5"]),
@@ -2357,6 +2210,7 @@ export default function Home() {
       {modal === "project" && (
         <Modal title="Nuevo proyecto" onClose={close}>
           <ProjectForm
+            request={request}
             clients={clients}
             initialClientId={projectClient}
             done={async () => {

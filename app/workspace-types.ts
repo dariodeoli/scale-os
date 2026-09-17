@@ -1,0 +1,54 @@
+import type {AssignedPerson} from './assigned-people';
+import type {ProjectAssignee} from './project-card';
+import type {Status} from './production-board';
+
+export type Client = {
+  lifecycle_status?:string;
+  has_recurring_price?:boolean;
+  logo_url?:string|null;
+  color_key?:string;
+  tax_id?:string|null;
+  legal_name?:string|null;
+  created_at?:string;
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  active: boolean;
+};
+export type Project = {
+  urgency?:number|null;
+  assignees?: ProjectAssignee[];
+  start_date?:string|null;
+  due_date?:string|null;
+  id: string;
+  name: string;
+  client_id: string;
+  client_name: string;
+  drive_url: string | null;
+  status: string;
+  work_order_count: number;
+};
+export type WorkOrder = {
+  urgency?:number|null;
+  assignees?:AssignedPerson[];
+  effective_assignees?:AssignedPerson[];
+  assignee_source?:'direct'|'project'|null;
+  assigned_user_id?:string|null;
+  assigned_user_ids?:string[];
+  checklist_total?:number;
+  checklist_completed?:number;
+  updated_at?:string;
+  client_logo_url?:string|null;
+  client_color_key?:string;
+  id: string;
+  title: string;
+  project_id: string;
+  project_name: string;
+  client_name: string;
+  status: Status;
+  description: string | null;
+  drive_url: string | null;
+  due_date?: string | null;
+  due_time?: string | null;
+};
