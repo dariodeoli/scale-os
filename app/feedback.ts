@@ -1,5 +1,7 @@
 export type Feedback={message:string;tone:'success'|'error'|'warning'};
 export const feedbackEvent='scale:feedback';
+/** Confirmation toasts stay on screen only 2-3 seconds. */
+export const feedbackDuration=(tone:Feedback['tone'])=>tone==='success'?2000:3000;
 const record=(value:unknown):Record<string,unknown>=>value&&typeof value==='object'?value as Record<string,unknown>:{};
 export function mutationFeedback(path:string,method:string,body:unknown,data:unknown):Feedback|null{
  if(!path.startsWith('/api/agency/')||!['POST','PATCH','DELETE'].includes(method.toUpperCase()))return null;
