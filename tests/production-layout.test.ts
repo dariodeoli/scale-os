@@ -10,7 +10,7 @@ assert(column.includes('max-height:none;overflow:visible'));
 assert(css.includes('overflow-x:auto;overflow-y:hidden'));
 const columnTitle=css.slice(css.indexOf('.control-shell .production-focus .column-title{')).split('}')[0];
 assert(columnTitle.includes('border-radius'));
-const ui=readFileSync('app/scale-workspace.tsx','utf8');
+const ui=readFileSync('app/scale-workspace.tsx','utf8')+readFileSync('app/production-board.tsx','utf8');
 assert(!ui.includes('Enlace directo a Producción'));
 assert(!ui.includes('<summary>Detalles y acciones</summary>'));
 assert(ui.includes('Ver más'));

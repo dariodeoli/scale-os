@@ -3,7 +3,4 @@
 @media(max-width:760px){.control-shell .mobile-menu-trigger{display:grid;width:44px;min-height:44px;flex:none}.topbar-identity{gap:8px}}
 @media(prefers-reduced-motion:reduce){.mobile-sidebar{animation:none}}
 
-.mobile-sidebar .profile-footer .theme-toggle{width:36px;min-width:36px;min-height:36px;padding:0;background:rgb(255 255 255 / 7%);border:1px solid rgb(255 255 255 / 12%);border-radius:10px;color:rgb(252 236 255 / 75%)}
-.mobile-sidebar .profile-footer .theme-toggle:hover{background:rgb(255 255 255 / 14%);color:var(--surface)}
-.mobile-sidebar .profile-footer .theme-toggle svg{width:17px;height:17px}
 html[data-theme="dark"] .mobile-sidebar .workspace-brand img{background:var(--anthracite)}

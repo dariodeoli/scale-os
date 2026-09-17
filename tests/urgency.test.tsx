@@ -21,7 +21,7 @@ for(const [value,label] of [[null,'Sin definir'],[undefined,'No disponible'],[0,
 }
 view.unmount();
 const read=(path:string)=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const workspace=read('app/scale-workspace.tsx');
+const workspace=read('app/scale-workspace.tsx')+read('app/workspace-forms.tsx')+read('app/production-board.tsx');
 assert.equal((workspace.match(/<UrgencySelect /g)||[]).length,2,'project and piece creation');
 assert.match(workspace,/<UrgencyBadge value=\{order.urgency\}/);
 assert.match(read('app/project-card.tsx'),/<UrgencyBadge value=\{project.urgency\}/);

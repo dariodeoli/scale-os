@@ -47,7 +47,7 @@ test('legacy form actions register pending, guard cancellation, preserve submit 
 });
 
 test('all six legacy workspace form footers register their own submitting state',()=>{
- const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8')+readFileSync(new URL('../app/workspace-forms.tsx',import.meta.url),'utf8');
  const file=ts.createSourceFile('scale-workspace.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
  const names=['ClientForm','ProjectForm','OrderForm','AccountForm','InvoiceForm','PaymentForm'];
  for(const name of names){

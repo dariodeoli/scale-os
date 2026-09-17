@@ -62,7 +62,7 @@ test("mobile workspace header keeps the subscription notice visible in the compa
 });
 
 test("manual subscription management renders immediately after agency records", () => {
-  order(superadmin, 'className="platform-admin-agency-cards"', 'platform-admin-section platform-admin-subscription');
-  order(superadmin, 'platform-admin-section platform-admin-subscription', 'className="platform-admin-two-columns"');
+  order(superadmin, 'className="platform-admin-agency-cards"', 'platform-admin-subscription-form');
+  order(superadmin, 'platform-admin-subscription-form', 'className="platform-admin-two-columns"');
   assert.match(superadmin, /<h2>Agencias y suscripciones<\/h2>/);
 });

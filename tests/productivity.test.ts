@@ -15,7 +15,7 @@ setDataScope('');await dataFetch(path);await dataFetch(path);assert.equal(calls,
 clearDataCache();globalThis.fetch=original;
 const ui=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
 assert(ui.includes('aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}'));
-assert(ui.includes('className="logout-only" onClick={logout}'));assert(!ui.includes('className="user" onClick={logout}'));
+assert(ui.includes('className="nav-logout" onClick={logout}'));assert(!ui.includes('className="logout-only"'));assert(!ui.includes('className="user" onClick={logout}'));
 const css=readFileSync(new URL('../app/mobile-navigation.css',import.meta.url),'utf8');assert(css.includes('display:none'));assert(css.includes('.topbar-identity'));
 const crop=readFileSync(new URL('../app/photo-cropper.tsx',import.meta.url),'utf8');
 assert(crop.includes('cropShape="round"'));assert(crop.includes('onCropChange={setCrop}'));assert(crop.includes('await save(await cropImage(source,area))'));

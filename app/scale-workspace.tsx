@@ -1,8 +1,6 @@
 "use client";
-import {UrgencySelect,UrgencyBadge} from './urgency';
 import {ProjectCard} from './project-card';
-import {AssignedPeople,type AssignedPerson} from './assigned-people';
-import {currencyCodes,currencyLabels,Currency} from "./currencies";
+import {Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
 import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
 import Link from 'next/link';
@@ -16,13 +14,12 @@ import {DesktopSidebar} from './desktop-sidebar';
 import {clientState} from './client-status';
 import './client-directory.css';
 import dynamic from 'next/dynamic';
-import {ClientIdentity,identityColor} from './client-identity';
+import {ClientIdentity} from './client-identity';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 import {GoogleSignIn} from './google-sign-in';
 import {ActorIdentity} from './actor-identity';
 import {PersonContainer} from './person-container';
-import {DueDate} from './due-date';
 const InviteLinks=dynamic(()=>import('./invite-links').then(m=>m.InviteLinks));
 const GrowthDashboard=dynamic(()=>import('./growth-dashboard').then(m=>m.GrowthDashboard));
 const ReportsWorkspace=dynamic(()=>import('./reports-workspace').then(m=>m.ReportsWorkspace));
@@ -33,8 +30,8 @@ const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
 const DeletionDangerZone=dynamic(()=>import('./deletion-danger-zone').then(m=>m.DeletionDangerZone));
 const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
-import {BoardPresence,ProjectCardPresence,WorkspacePresence} from './presence';
-import {CompanyCurrencyProvider,useCompanyCurrency} from './currency-provider';
+import {BoardPresence,WorkspacePresence} from './presence';
+import {CompanyCurrencyProvider} from './currency-provider';
 import {FinancialForecast} from './financial-forecast';
 import {LiveVisitors} from './live-visitors';
 const UsagePanel=dynamic(()=>import('./presence').then(m=>m.UsagePanel));
@@ -52,8 +49,6 @@ import './production-focus.css';
 import './mobile-navigation.css';
 import './workspace-density.css';
 import {Dialog} from './dialog';
-import {SaveActions} from './save-actions';
-import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {completeSave} from './save-completion';
 import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
 import {PermissionsMatrixPanel} from './permissions-matrix';
@@ -65,7 +60,7 @@ import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
 import {WorkspaceGuide,workspaceGuideScope,visibleModule,NewCompany,type WorkspaceGuideData} from './workspace-guide';
 import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
-import {SelectCustom,AmountInput} from './profile-controls';
+import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
 import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type StartupPreference} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
@@ -88,12 +83,9 @@ import {
   DragEndEvent,
   DragOverlay,
 } from "@dnd-kit/core";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 import { ViewToggle } from "./view-toggle";
 import {ClientDirectoryToolbar,filterClientDirectory} from "./client-directory-toolbar";
-import { z } from "zod";
 import {
   CircleDollarSign,
   ArrowLeftRight,
@@ -834,10 +826,10 @@ export default function Home() {
               <span className="nav-label">{label}</span>
             </Link>
           ))}
+          <button type="button" className="nav-logout" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/><span className="nav-label">Cerrar sesión</span></button>
         </nav>
         <div className="sidebar-bottom">
-          <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button>
-          <button className="logout-only" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/></button><ThemeToggle/></div>
+          <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
       </>;
   return (
