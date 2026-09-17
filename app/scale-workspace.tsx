@@ -2048,6 +2048,11 @@ export default function Home() {
                 <strong>{directoryKpis.active}</strong>
                 <small>Con servicio en curso</small>
               </article>
+              <article className="kpi-card tone-warning">
+                <p className="eyebrow">COBROS AL DÍA</p>
+                <strong>{cobrosKpis.alDia}</strong>
+                <small>{cobrosKpis.enMora} en mora · {cobrosKpis.porVencer} por vencer · {cobrosKpis.sinFactura} sin factura</small>
+              </article>
               <article className="kpi-card tone-brand">
                 <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
                 {["owner", "admin", "finance"].includes(user?.role || "") ? (
@@ -2069,38 +2074,43 @@ export default function Home() {
                 )}
                 <small>Expectativa comercial vigente por moneda</small>
               </article>
-              <article className="kpi-card tone-warning">
-                <p className="eyebrow">COBROS AL DÍA</p>
-                <strong>{cobrosKpis.alDia}</strong>
-                <small>{cobrosKpis.enMora} en mora · {cobrosKpis.porVencer} por vencer · {cobrosKpis.sinFactura} sin factura</small>
-              </article>
               <article className="kpi-card tone-blue">
                 <p className="eyebrow">ENTREGAS ESTA SEMANA</p>
                 <strong>{directoryKpis.deliveries}</strong>
                 <small>Piezas con vencimiento en 7 días</small>
               </article>
             </div>
-            <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
+            <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
               {displayedClients.length ? (
-                displayedClients.map((client) => {const pay=paymentStatuses.find(ps=>String(ps.client_id)===String(client.id));return (
-                  <div className="client-row" key={client.id}>
-                    <div>
-                      <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/></button>
-                      <small>{client.email || "Sin email registrado"}</small>
+                displayedClients.map((client) => {const pay=paymentStatuses.find(ps=>String(ps.client_id)===String(client.id));const state=clientState(client);return (
+                  <article className="client-hub-card" key={client.id}>
+                    <header className="client-hub-head">
+                      <button type="button" className="client-hub-open" onClick={()=>setDetail({kind:'client',id:client.id})} aria-label={`Abrir ficha de ${client.name}`}>
+                        <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
+                      </button>
+                      <span className="client-status" data-status={state.value}>{state.label}</span>
+                    </header>
+                    <dl className="client-hub-facts">
+                      <div><dt>Correo</dt><dd title={client.email||undefined}>{client.email || "Sin email registrado"}</dd></div>
+                      <div><dt>Teléfono</dt><dd title={client.phone||undefined}>{client.phone || "Sin teléfono"}</dd></div>
+                    </dl>
+                    <div className="client-hub-chips">
+                      {pay ? (
+                        pay.payment_status === "up_to_date" ? (
+                          <span className="mora-chip mora-clear">Al día</span>
+                        ) : pay.payment_status === "due_soon" ? (
+                          <span className="mora-chip mora-early">Vence {pay.next_due_on || "próximamente"}</span>
+                        ) : (
+                          <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
+                        )
+                      ) : null}
+                      {client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
                     </div>
-                    <span>{client.phone || "Sin teléfono"}</span>
-                    <span className="client-status" data-status={clientState(client).value}>{clientState(client).label}</span>{client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
-                    {pay && (
-                      pay.payment_status === "up_to_date" ? (
-                        <span className="mora-chip mora-clear">Al día</span>
-                      ) : pay.payment_status === "due_soon" ? (
-                        <span className="mora-chip mora-early">Vence {pay.next_due_on || "próximamente"}</span>
-                      ) : (
-                        <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
-                      )
-                    )}
-                    <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
-                  </div>
+                    <footer className="client-hub-actions">
+                      <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><Eye size={14}/>Abrir ficha</button>
+                      <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
+                    </footer>
+                  </article>
                 );})
               ) : clients.length===0 ? (
                 <p className="empty-copy">
