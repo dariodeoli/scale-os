@@ -13,6 +13,7 @@ import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
 import {ClientLinks,whatsappUrl} from './client-links';
 import {WhatsAppButton} from './whatsapp-button';
+import {listDateFull,listDateShort} from './list-format';
 import {ClientReporting} from './client-reporting';
 import {ClientCommercialLifecycle} from './client-commercial-lifecycle';
 import {clientState} from './client-status';
@@ -78,7 +79,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
         <span className="work-state" data-status={s(order,'status')}>{states.find(x=>x.value===order.status)?.label||s(order,'status')}</span>
         <span className="hub-chip">{workTypeLabels[s(order,'work_type')]||'Sin clasificar'}</span>
         <DueDate value={s(order,'due_date')} time={s(order,'due_time')} compact/>
-        <span className="hub-chip muted">Actualizada {new Date(s(order,'updated_at')).toLocaleString('es-PY',{hourCycle:'h23'})}</span>
+        <span className="hub-chip muted">Actualizada {listDateFull(s(order,'updated_at'))}</span>
       </div>
       <ProjectPresence projectId={s(order,'project_id')}/>
     </header>

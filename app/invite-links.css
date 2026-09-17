@@ -38,5 +38,5 @@
 .invite-links button{transition:transform 160ms ease-out,opacity 160ms ease-out}
 .invite-links button:active:not(:disabled){transform:scale(.98)}
 @media (hover:hover) and (pointer:fine){.invite-link-row{transition:transform 160ms ease-out,box-shadow 160ms ease-out}.invite-link-row:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}}
-@media (max-width:640px){.invite-link-create .ops-form-grid,.invite-link-created{grid-template-columns:1fr}.invite-link-created button{width:100%}.invite-link-row{align-items:stretch;flex-direction:column}.invite-link-actions{justify-content:flex-start;flex-wrap:wrap}.invite-link-actions button{flex:1 1 150px}.invite-links-section-heading{align-items:flex-start}}
+@media (max-width:640px){.invite-link-create .ops-form-grid,.invite-link-created{grid-template-columns:1fr}.invite-link-created button{width:100%}.invite-link-row{align-items:stretch;flex-direction:column}.invite-link-actions{justify-content:flex-start;overflow-x:auto;scrollbar-width:none}.invite-link-actions button{flex:1 1 150px}.invite-links-section-heading{align-items:flex-start}}
 @media (prefers-reduced-motion:reduce){.invite-links button,.invite-link-row{transition:opacity 120ms ease-out}.invite-links button:active:not(:disabled),.invite-link-row:hover{transform:none}}

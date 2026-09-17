@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {api} from './operations';
 import {AmountInput} from './profile-controls';
+import {formatWholeMoney} from './amount-format';
 import './reports-workspace.css';
 
 type CustomerKind='unknown'|'company'|'professional'|'individual'|'other';
@@ -18,7 +19,6 @@ const readRoles=['owner','admin','management','sales','finance'],writeRoles=['ow
 const isCurrency=(value:unknown):value is MoneyCurrency=>value==='PYG'||value==='USD';
 const isWholeTransport=(value:unknown,allowZero=true):value is SafeWhole=>typeof value==='number'?Number.isSafeInteger(value)&&(allowZero?value>=0:value>0):typeof value==='string'&&new RegExp(allowZero?'^(?:0|[1-9]\\d*)$':'^[1-9]\\d*$').test(value)&&Number.isSafeInteger(Number(value));
 const isPositiveInput=(value:string)=>isWholeTransport(value,false);
-const formatWholeMoney=(value:unknown,currency:unknown)=>isCurrency(currency)&&isWholeTransport(value)?new Intl.NumberFormat(currency==='PYG'?'es-PY':'en-US',{style:'currency',currency,currencyDisplay:'code',maximumFractionDigits:0,minimumFractionDigits:0}).format(Number(value)):'Sin dato';
 const isDate=(value:string)=>/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
 function today(){const parts=new Intl.DateTimeFormat('en',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());return ['year','month','day'].map(type=>parts.find(part=>part.type===type)!.value).join('-');}
 function validTerms(value:unknown):value is CommercialTerms{return !!value&&typeof value==='object'&&typeof (value as CommercialTerms).clientId==='string'&&typeof (value as CommercialTerms).planId==='string'&&typeof (value as CommercialTerms).planName==='string'&&isWholeTransport((value as CommercialTerms).recurringAmount,false)&&isCurrency((value as CommercialTerms).currency)&&typeof (value as CommercialTerms).startsOn==='string'&&(typeof (value as CommercialTerms).endsOn==='string'||(value as CommercialTerms).endsOn===null)&&typeof (value as CommercialTerms).invoiceRequired==='boolean'&&['percentage','fixed','none'].includes((value as CommercialTerms).commissionMode)&&((value as CommercialTerms).commissionMode==='none'?(value as CommercialTerms).commissionRecipientId===null&&(value as CommercialTerms).commissionRecipientName===null&&(value as CommercialTerms).commissionValue===null:typeof (value as CommercialTerms).commissionRecipientId==='string'&&typeof (value as CommercialTerms).commissionRecipientName==='string'&&isWholeTransport((value as CommercialTerms).commissionValue,false));}
