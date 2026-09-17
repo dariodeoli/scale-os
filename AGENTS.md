@@ -1,7 +1,12 @@
 # Reglas operativas — Scale OS
 
 ## Comando abreviado `ht` (integrar y desplegar)
-- Cuando Dario escribe solo `ht`, ejecutar el ciclo completo sin preguntar: (1) `git fetch origin --prune` en scale-os y scale-core-api y relevar ramas con trabajo pendiente; (2) integrar a main una rama por vez (API antes que frontend), verificando el árbol mergeado (API `npm run test:release`; frontend `npm run test:release-regression` + `npx next build`); (3) conflictos: si la rama quedó superseded por main, resolver del lado de main y verificar diff neto vacío; si hay trabajo real en conflicto, parar y preguntar; (4) pushear ambos repos; (5) desplegar con `npm run release:patch` y validar el smoke (reintentar hasta que Coolify sirva la versión nueva). Reportar al final qué ramas integraron y la versión desplegada.
+- Cuando Dario escribe solo `ht`, ejecutar el ciclo completo sin preguntar: (0) preámbulo: matar servidores zombies (`lsof -ti :3000 :<PUERTO_API> | xargs kill -9` y procesos `next-server` de worktrees de Scale OS) y verificar que no haya otro merge en curso (`.git/MERGE_HEAD` ajeno); (1) `git fetch origin --prune` en scale-os y scale-core-api y relevar ramas con trabajo pendiente; (2) integrar a main una rama por vez (core-api antes que scale-os), verificando el árbol mergeado (API `npm run test:release`; frontend `npm run test:release-regression` + `npx next build`); (3) conflictos: si la rama quedó superseded por main, resolver del lado de main y verificar diff neto vacío; si hay trabajo real en conflicto, parar y preguntar; (4) pushear ambos repos con `MOBOS_INTEGRATOR=1`; (5) desplegar solo con `npm run release:patch` y validar el smoke con `npm run release:smoke` (reintentar hasta que Coolify sirva la versión nueva). Reportar al final qué ramas integraron y la versión desplegada.
+
+## Hook y protección de main (regla obligatoria)
+- Nadie pushea ni mergea a `main` salvo el integrador. El hook local `pre-push` bloquea pushes a main sin `MOBOS_INTEGRATOR=1`; instalar en cada checkout con `bash scripts/setup-hooks.sh` (deja `core.hooksPath = .githooks`).
+- La protección de rama en GitHub exige los checks de CI en modo strict y tiene force-push deshabilitado; el integrador pushea con `MOBOS_INTEGRATOR=1 git push origin main`.
+- Conflicto de merge → parar y consultar con Dario; nunca resolver en silencio.
 
 ## Despliegues (regla obligatoria)
 - Cada deploy a producción incrementa el parche de versión. Usar siempre `npm run release:patch`: exige árboles limpios, sube la versión, sincroniza footer y versiones (frontend + API), corre regresiones y build, pushea en orden API → interfaz y dispara Coolify; el smoke valida las URLs públicas al final.
@@ -16,6 +21,13 @@
 - Después de una integración anunciada, verificar por contenido contra `origin/main` (`git merge-base --is-ancestor <sha> origin/main` + `git show origin/main:<ruta>`), no por memoria. Si algo falta, reaplicarlo sobre main actualizado.
 - Estado raro de git (fetch que falla, refs rotas): parar y avisar al integrador. No borrar ni arreglar refs por cuenta propia.
 - Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build` (el release los corre igual).
+
+## Checks de entrega obligatorios (frontend)
+1. `npm run test:release-regression` en verde (incluye release-version, audit, landing y contracts).
+2. `npx next build` exit 0 sin errores de tipos.
+3. `rg "<<<<<<<" app tests build-tools` sin resultados (nunca commits con marcadores de conflicto).
+4. Si tocaste el API (scale-core-api): `npm run test:release` en verde, y toda columna/tabla nueva del schema exige su migración idempotente.
+5. Versión y footer sincronizados: `npm run release:check` y `npm run footer:check` verdes.
 
 ## Roles y permisos (fuente única)
 - Roles: `owner`, `admin`, `management` (Gerencia), `finance`, `sales`, `production`, `editor`, `viewer` (Solo lectura). La matriz de capacidades vive en `permissions.js` (API) con overrides por empresa; el NAV se filtra en `app/workspace-access.ts`.
