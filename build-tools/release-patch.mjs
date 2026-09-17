@@ -7,7 +7,8 @@ const root=fileURLToPath(new URL('..',import.meta.url));
 const envFile=path.join(root,'.release.env');
 if(existsSync(envFile))for(const line of readFileSync(envFile,'utf8').split(/\r?\n/)){const match=/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);if(match&&!process.env[match[1]])process.env[match[1]]=match[2].replace(/^['"]|['"]$/g,'');}
 const apiRoot=process.env.SCALE_API_DIR||path.resolve(root,'../scale-core-api');
-const run=(command,args,cwd=root)=>execFileSync(command,args,{cwd,stdio:'inherit'});
+const integratorEnv={...process.env,MOBOS_INTEGRATOR:'1'};
+const run=(command,args,cwd=root)=>execFileSync(command,args,{cwd,stdio:'inherit',env:integratorEnv});
 const fail=message=>{throw new Error(`Release cancelado: ${message}`);};
 const succeeds=(command,args,cwd=root)=>{try{execFileSync(command,args,{cwd,stdio:'ignore'});return true;}catch{return false;}};
 const assertCleanTracked=(directory,label)=>{if(!succeeds('git',['diff','--quiet'],directory))fail(`${label} tiene cambios rastreados sin guardar.`);if(!succeeds('git',['diff','--cached','--quiet'],directory))fail(`${label} tiene cambios preparados sin commit.`);};
