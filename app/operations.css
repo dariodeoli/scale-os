@@ -306,3 +306,30 @@
 .commission-hub-facts dd{margin:3px 0 0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .commission-hub-actions{margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle,var(--line));justify-content:flex-start}
 @media(max-width:760px){.settlement-head{display:none}.settlement-row{grid-template-columns:minmax(0,1fr) auto}.settlement-value{text-align:left}.settlement-value[data-label]::before{content:attr(data-label) ': ';color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.settlement-name{grid-column:1/-1}}
+
+/* Equipo: header de página en dos filas y vista lista compacta. */
+.team-filters{align-items:end}
+.team-view-toggle{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-raised,var(--surface));margin-left:auto}
+.team-view-toggle button{min-height:34px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--text-subtle,var(--text-muted));font-size:12px;font-weight:650;cursor:pointer;transition:background var(--ease),color var(--ease)}
+.team-view-toggle button:hover{color:var(--text)}
+.team-view-toggle button.is-active{background:var(--violet-soft);color:var(--brand-700)}
+.person-hub-card.is-list{display:grid;grid-template-columns:minmax(210px,1.15fr) minmax(0,1.3fr) minmax(0,.9fr);align-items:center;gap:10px 18px;padding:12px 14px}
+.person-hub-card.is-list .person-hub-head{align-items:center}
+.person-hub-card.is-list .person-hub-facts{grid-column:2;padding:0;background:transparent}
+.person-hub-card.is-list .person-hub-chips{grid-column:3;justify-content:flex-end}
+.person-hub-card.is-list>.ops-note-preview,.person-hub-card.is-list>.person-access-panel,.person-hub-card.is-list>.form-note{grid-column:1/-1}
+.person-hub-card.is-list .person-hub-actions{grid-column:1/-1;margin-top:0;padding-top:10px}
+@media(max-width:860px){.person-hub-card.is-list{grid-template-columns:1fr}.person-hub-card.is-list .person-hub-facts,.person-hub-card.is-list .person-hub-chips,.person-hub-card.is-list .person-hub-actions{grid-column:auto;justify-content:flex-start}.team-view-toggle{margin-left:0}}
+
+/* Actividad: feed agrupado por día con filas compactas. */
+.activity-feed .panel-heading{margin-bottom:6px}
+.activity-day{margin-top:14px}
+.activity-day-title{display:flex;align-items:center;gap:8px;margin:0 0 6px;padding:0 2px;font-size:12px;font-weight:750;letter-spacing:.02em;text-transform:capitalize;color:var(--text-subtle,var(--text-muted))}
+.activity-day-title span{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--surface-sunken,var(--surface-subtle));color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
+.activity-day-rows{display:grid;gap:6px}
+.activity-feed-row{display:grid;grid-template-columns:minmax(180px,max-content) minmax(0,1fr) auto;align-items:baseline;gap:4px 14px;padding:9px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));font-size:12px}
+.activity-feed-row:hover{background:color-mix(in srgb,var(--violet-soft) 30%,transparent)}
+.activity-feed-row p{margin:0;min-width:0}
+.activity-feed-row small{color:var(--text-subtle,var(--text-muted));font-size:10.5px;white-space:nowrap}
+.activity-more{margin-top:14px}
+@media(max-width:700px){.activity-feed-row{grid-template-columns:1fr;gap:3px}.activity-feed-row small{white-space:normal}}

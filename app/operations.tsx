@@ -282,6 +282,7 @@ export function OperationsWorkspace({
     } | null>(null),
     [filter, setFilter] = useState("all");
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
+  const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
   const [commissionMonth, setCommissionMonth] = useState(() => salaryMonth()),
     [monthlyCommissions, setMonthlyCommissions] = useState<MonthlyCommission[]>([]),
     [monthlyLoading, setMonthlyLoading] = useState(false),
@@ -386,18 +387,20 @@ export function OperationsWorkspace({
   const person = edit && edit !== "new" ? edit : null;
   const empty = { value: "", label: "Sin vincular" };
   const personFields: Field[] = [
-    { key: "full_name", label: "Nombre completo" },
-    { key: "job_title", label: "Cargo", optional: true },
+    { key: "full_name", label: "Nombre completo", section: 'Datos personales' },
+    { key: "job_title", label: "Cargo", optional: true, section: 'Datos personales' },
     {
       key: "email",
       label: "Correo de contacto",
       type: "email",
       optional: true,
+      section: 'Datos personales',
     },
     {
       key: "active", label: "Estado laboral", choices: [
         { value: "true", label: "Activo" }, { value: "false", label: "Inactivo" },
       ],
+      section: 'Datos personales',
     },
     {
       key: "started_on",
@@ -518,13 +521,17 @@ export function OperationsWorkspace({
             <button className={search==='activo'?'choice active':'choice'} onClick={()=>setSearch('activo')}>Activos</button>
             <button className={search==='inactivo'?'choice active':'choice'} onClick={()=>setSearch('inactivo')}>Inactivos</button>
           </div>
+          <div className="team-view-toggle" role="group" aria-label="Vista del equipo">
+            <button type="button" className={teamView==='cards'?'is-active':undefined} aria-pressed={teamView==='cards'} onClick={()=>setTeamView('cards')}>Tarjetas</button>
+            <button type="button" className={teamView==='list'?'is-active':undefined} aria-pressed={teamView==='list'} onClick={()=>setTeamView('list')}>Lista</button>
+          </div>
         </div>}
         {loading ? (
           <p>Cargando…</p>
         ) : mode === "people" ? (
           <div className="ops-grid">
             {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
-              <article className="ops-card person-hub-card" key={p.id}>
+              <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
                 <header className="person-hub-head">
                   <div className="ops-person">
                     {p.photo_url ? (
@@ -570,7 +577,7 @@ export function OperationsWorkspace({
                   <div className="ops-card-actions"><RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/></div>
                 </footer>
               </article>
-            ):<article className="ops-card person-hub-card" key={entry.key}>
+            ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
               <header className="person-hub-head">
                 <div className="ops-person"><PersonContainer size="lg" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
                 <span className="person-hub-state" data-state={entry.member!.active?'active':'inactive'}>{entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
@@ -795,6 +802,7 @@ export function OperationsWorkspace({
               {
                 key: "kind",
                 label: "Origen",
+                section: 'Qué se comisiona',
                 choices: [
                   { value: "sales", label: "Venta" },
                   { value: "referral", label: "Referido" },
@@ -803,6 +811,7 @@ export function OperationsWorkspace({
               {
                 key: "basis",
                 label: "Cálculo",
+                section: 'Qué se comisiona',
                 choices: [
                   { value: "fixed", label: "Importe fijo" },
                   { value: "invoiced", label: "% facturado" },
@@ -813,22 +822,26 @@ export function OperationsWorkspace({
                 key: "amount",
                 label: "Importe (para importe fijo)",
                 type: "money",
+                section: 'Qué se comisiona',
               },
               {
                 key: "percentage",
                 label: "Porcentaje (para cálculo %)",
                 type: "number",
                 optional: true,
+                section: 'Qué se comisiona',
               },
               {
                 key: "currency",
                 label: "Moneda (se usa la de la factura si se vincula)",
                 choices: currencies,
+                section: 'Qué se comisiona',
               },
               {
                 key: "collaborator_id",
                 label: "Vincular colaborador",
                 optional: true,
+                section: 'Referencia',
                 choices: [
                   empty,
                   ...people.map((p) => ({ value: p.id, label: p.full_name })),
@@ -838,6 +851,7 @@ export function OperationsWorkspace({
                 key: "invoice_id",
                 label: "Factura de referencia",
                 optional: true,
+                section: 'Referencia',
                 choices: [
                   empty,
                   ...invoices.map((i) => ({
@@ -851,12 +865,14 @@ export function OperationsWorkspace({
                 label: "Vencimiento",
                 type: "date",
                 optional: true,
+                section: 'Referencia',
               },
               {
                 key: "notes",
                 label: "Cliente referido / condiciones",
                 type: "textarea",
                 optional: true,
+                section: 'Referencia',
               },
             ]}
             defaults={{
