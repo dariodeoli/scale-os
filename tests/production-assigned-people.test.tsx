@@ -7,7 +7,7 @@ Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
 const {AssignedPeople}=require('../app/assigned-people') as typeof import('../app/assigned-people');
 const {UrgencyBadge}=require('../app/urgency') as typeof import('../app/urgency');
-const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8')+readFileSync(new URL('../app/production-board.tsx',import.meta.url),'utf8');
 const file=ts.createSourceFile('scale-workspace.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const card=file.statements.find((n):n is ts.FunctionDeclaration=>ts.isFunctionDeclaration(n)&&n.name?.text==='DraggableOrder');
 assert.ok(card);

@@ -22,15 +22,20 @@ require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
 const {SaveActions}=require('../app/save-actions') as typeof import('../app/save-actions');
 const text=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
 const file=ts.createSourceFile('scale-workspace.tsx',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+const formsText=readFileSync(new URL('../app/workspace-forms.tsx',import.meta.url),'utf8');
+const formsFile=ts.createSourceFile('workspace-forms.tsx',formsText,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+const boardText=readFileSync(new URL('../app/production-board.tsx',import.meta.url),'utf8');
+const boardFile=ts.createSourceFile('production-board.tsx',boardText,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+const statements=[...file.statements,...formsFile.statements,...boardFile.statements];
 const names=['ClientForm','ProjectForm','OrderForm','AccountForm','InvoiceForm','PaymentForm'];
-const declarations=file.statements.filter(node=>ts.isVariableStatement(node)&&node.declarationList.declarations.some(d=>/Schema$/.test(d.name.getText(file))||d.name.getText(file)==='statuses'));
+const declarations=statements.filter(node=>ts.isVariableStatement(node)&&node.declarationList.declarations.some(d=>/Schema$/.test(d.name.getText())||d.name.getText()==='statuses'));
 const defaults={name:'Fixture client',email:'fixture@example.invalid',phone:'',clientId:'1',projectId:'2',title:'Fixture production',status:'to_record',driveUrl:'',description:'Fixture service',quantity:1,unitPrice:100,currency:'USD',validUntil:'',accountType:'bank',institution:'Fixture',accountNumber:'',holderName:'',custodianUserId:'',total:'100',dueOn:'',invoiceId:'3',accountId:'4',amount:'100',receivedOn:'2026-09-10',reference:'',receivedByUserId:'',fromAccountId:'4',toAccountId:'5',transferredOn:'2026-09-10'};
 const props={clients:[{id:'1',name:'Fixture client'}],projects:[{id:'2',name:'Fixture project'}],accounts:[{id:'4',name:'A',currency:'USD'},{id:'5',name:'B',currency:'USD'}],invoices:[{id:'3',status:'pending'}],custodians:[]};
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const event=()=>({preventDefault(){},persist(){}});
 
 for(const name of names)test(`${name}: duplicate submit cannot write or unlock a pending save`,async()=>{
- const parent=file.statements.find((node):node is ts.FunctionDeclaration=>ts.isFunctionDeclaration(node)&&node.name?.text===name);
+ const parent=statements.find((node):node is ts.FunctionDeclaration=>ts.isFunctionDeclaration(node)&&node.name?.text===name);
  assert(parent);
  const requests:{path:string;payload:Record<string,unknown>;resolve:(value:unknown)=>void;reject:(error:Error)=>void}[]=[];
  let done=0;
@@ -42,10 +47,10 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
   useForm:(options:Parameters<typeof useForm>[0])=>useForm({...options,defaultValues:{...options?.defaultValues,...defaults}}),
   request:(path:string,options:{body:string})=>new Promise((resolve,reject)=>{requests.push({path,payload:JSON.parse(options.body),resolve,reject});}),
  };
- const compiled=ts.transpileModule([...declarations.map(node=>node.getText(file)),parent.getText(file)].join('\n'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React}}).outputText;
+ const compiled=ts.transpileModule([...declarations.map(node=>node.getText().replace(/^export\s+/,'')),parent.getText().replace(/^export\s+/,'')].join('\n'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React}}).outputText;
  const Component=new Function(...Object.keys(scope),`${compiled}\nreturn ${name};`)(...Object.values(scope)) as React.ComponentType<Record<string,unknown>>;
  let renderer:ReactTestRenderer;
- await act(async()=>{renderer=create(<Component {...props} done={()=>{done++;}}/>);});
+ await act(async()=>{renderer=create(<Component {...props} request={scope.request} done={()=>{done++;}}/>);});
  if(name==='ProjectForm'||name==='OrderForm'){
   const urgency=renderer!.root.findByType(UrgencySelect);
   assert.equal(urgency.props.value,'','new records start unset');

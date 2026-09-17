@@ -13,7 +13,7 @@ const view=create(<ProjectCard project={project}><button>Editar detalles</button
 const rendered=JSON.stringify(view.toJSON());
 assert.match(rendered,/Ana/);assert.match(rendered,/Luis/);assert.match(rendered,/Principal/);assert.match(rendered,/Activo/);
 assert.equal(view.root.findAllByType('img').length,1,'principal photo and secondary fallback');
-assert.equal(view.root.findByType('article').children.length,4,'list groups title, status, assignees and actions into four cells');
+assert.equal(view.root.findByType('article').children.length,5,'list groups title, status, data capsule, assignees and actions into five cells');
 const five=Array.from({length:5},(_,index)=>({id:String(index+1),full_name:`Responsable ${index+1} Nombre completo`,photo_url:`https://example.invalid/${index}.webp`,is_primary:index===0}));
 view.update(<ProjectCard project={{...project,assignees:five}}><button>Editar detalles</button></ProjectCard>);
 assert.equal(view.root.findByType(AssignedPeople).props.people,five,'project uses the same assigned people component and server payload');
