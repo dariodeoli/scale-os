@@ -352,3 +352,22 @@
 .finance-state[data-status=paid]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
 .finance-state[data-status=overdue]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));background:var(--danger-soft);color:var(--danger)}
 @media(max-width:480px){.finance-account-grid{grid-template-columns:1fr}}
+
+/* Presupuestos: tarjetas con estado, datos y total destacado. */
+.budget-hub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,272px),1fr));gap:12px}
+.budget-hub-card{display:flex;flex-direction:column;gap:10px}
+.budget-hub-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.budget-number{font:700 11px 'DM Mono',monospace;letter-spacing:.08em;color:var(--brand-700);white-space:nowrap}
+.budget-state{display:inline-flex;align-items:center;padding:3px 10px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-subtle);color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-weight:750;white-space:nowrap}
+.budget-state[data-status=sent]{border-color:color-mix(in srgb,var(--info) 24%,var(--line));background:var(--info-soft);color:var(--info)}
+.budget-state[data-status=accepted]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
+.budget-state[data-status=rejected],.budget-state[data-status=expired]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));background:var(--danger-soft);color:var(--danger)}
+.budget-hub-card h3{margin:0;font-size:16px;overflow-wrap:anywhere}
+.budget-client{margin:0;color:var(--text-subtle,var(--text-muted));font-size:12px}
+.budget-hub-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;margin:0;padding:10px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
+.budget-hub-facts dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.budget-hub-facts dd{margin:3px 0 0;font-size:12.5px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.budget-hub-total{display:flex;align-items:baseline;gap:6px;font-size:20px;font-variant-numeric:tabular-nums}
+.budget-hub-total small{font-size:10.5px;font-weight:650;color:var(--text-subtle,var(--text-muted))}
+.budget-hub-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle,var(--line))}
+@media(max-width:420px){.budget-hub-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}

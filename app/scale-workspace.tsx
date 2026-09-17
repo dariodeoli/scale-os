@@ -2238,28 +2238,27 @@ export default function Home() {
               </article>
             </div>
             <p className="directory-summary">{budgets.length} presupuestos · Propuestas y aprobaciones</p>
-            <div className="project-grid">
+            <div className="budget-hub-grid">
               {budgets.length ? (
                 budgets.map((budget) => (
-                  <article className="project-card" key={budget.id}>
-                    <p className="eyebrow">
-                      {budget.number} · {budget.client_name}
-                    </p>
+                  <article className="ops-card budget-hub-card" key={budget.id}>
+                    <header className="budget-hub-head">
+                      <span className="budget-number">{budget.number}</span>
+                      <span className="budget-state" data-status={budget.status}>{{draft:'Borrador',sent:'Enviado',accepted:'Aceptado',rejected:'Rechazado',expired:'Vencido'}[budget.status]||budget.status}</span>
+                    </header>
                     <h3>{budget.title}</h3>
-                    <p>
-                      {budget.item_count} ítem ·{" "}
-                      {budget.status === "draft" ? "Borrador" : budget.status}
-                    </p>
-                    <strong>
-                      {new Intl.NumberFormat("es-PY", {
-                        style: "currency",
-                        currency: budget.currency,
-                        maximumFractionDigits: 0,
-                      }).format(Number(budget.total))}{" "}
-                      IVA incl.
-                    </strong>
-                    <BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/>
-                    <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/>
+                    <p className="budget-client">{budget.client_name}</p>
+                    <dl className="budget-hub-facts">
+                      <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
+                      <div><dt>Vigencia</dt><dd>{budget.valid_until?budget.valid_until.slice(0,10):'Sin fecha'}</dd></div>
+                      <div><dt>Sin IVA</dt><dd>{new Intl.NumberFormat("es-PY",{style:"currency",currency:budget.currency,maximumFractionDigits:0}).format(Number(budget.subtotal))}</dd></div>
+                    </dl>
+                    <strong className="budget-hub-total">{new Intl.NumberFormat("es-PY", {
+                      style: "currency",
+                      currency: budget.currency,
+                      maximumFractionDigits: 0,
+                    }).format(Number(budget.total))}<small>IVA incl.</small></strong>
+                    <footer className="budget-hub-actions"><BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>
                   </article>
                 ))
               ) : (
