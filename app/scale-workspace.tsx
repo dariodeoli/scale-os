@@ -826,10 +826,10 @@ export default function Home() {
               <span className="nav-label">{label}</span>
             </Link>
           ))}
+          <button type="button" className="nav-logout" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/><span className="nav-label">Cerrar sesión</span></button>
         </nav>
         <div className="sidebar-bottom">
-          <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button>
-          <button className="logout-only" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/></button><ThemeToggle/></div>
+          <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
       </>;
   return (
