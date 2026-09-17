@@ -89,3 +89,7 @@
 .client-hub-balance{display:inline-flex;align-items:center;padding:3px 9px;border:1px solid color-mix(in srgb,var(--warning) 26%,var(--line));border-radius:999px;background:var(--warning-soft);color:var(--warning);font-size:10.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .client-hub-list .client-hub-stats{grid-column:1}
 .client-hub-list .client-hub-facts{align-self:start}
+.archived-capsule{margin-top:var(--ui-space-4);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--ui-space-3);background:color-mix(in srgb,var(--violet-soft) 16%,transparent)}
+.archived-capsule summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:var(--ui-space-2)}
+.archived-capsule[open] summary{margin-bottom:var(--ui-space-3)}
+.client-hub-card[data-archived]{opacity:.75}

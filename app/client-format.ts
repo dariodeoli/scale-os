@@ -8,14 +8,14 @@ export function clientSince(value?: string): string | null {
 
 export function clientPortfolioStats(
   clients: { id: string }[],
-  projects: { id: string; client_id: string; status: string }[],
+  projects: { id: string; client_id: string; status: string; active?: boolean }[],
   orders: { status: string; project_id: string; due_date?: string | null }[],
 ) {
   const stats = new Map<string, { projects: number; pieces: number; nextDue: string | null }>();
   for (const client of clients) stats.set(String(client.id), { projects: 0, pieces: 0, nextDue: null });
   for (const project of projects) {
     const entry = stats.get(String(project.client_id));
-    if (entry && project.status === 'active') entry.projects += 1;
+    if (entry && project.status === 'active' && project.active !== false) entry.projects += 1;
   }
   for (const order of orders) {
     if (['approved', 'published'].includes(order.status)) continue;

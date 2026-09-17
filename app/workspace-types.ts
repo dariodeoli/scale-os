@@ -19,9 +19,10 @@ export type Client = {
 };
 export type Project = {
   urgency?:number|null;
-  assignees?: ProjectAssignee[];
+  assignees?:ProjectAssignee[];
   start_date?:string|null;
   due_date?:string|null;
+  active?:boolean;
   id: string;
   name: string;
   client_id: string;
