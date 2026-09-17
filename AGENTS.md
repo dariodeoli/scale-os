@@ -31,7 +31,7 @@
 1. `npm run test:release-regression` en verde (incluye release-version, audit, landing y contracts).
 2. `npx next build` exit 0 sin errores de tipos y con artefacto verificado (`.next/BUILD_ID` existe; no alcanza el mensaje de éxito). El prebuild sincroniza versiones y footer.
 3. `rg "<<<<<<<" app tests build-tools` sin resultados (nunca commits con marcadores de conflicto).
-4. Si tocaste el API (scale-core-api): `npm run test:release` en verde, y toda columna/tabla nueva del schema exige su migración idempotente. No exportar símbolos que no sean handlers de Next en `app/api`, no duplicar slugs dinámicos, y los seeds usan guards por conteo + `on conflict do nothing`, nunca «si el dato no existe, salir».
+4. Si tocaste el API (scale-core-api): `npm run test:release` en verde, y toda columna/tabla nueva del schema exige su migración **aditiva, idempotente y re-ejecutable**. No exportar símbolos que no sean handlers de Next en `app/api`, no duplicar slugs dinámicos, y los seeds usan guards por conteo + `on conflict do nothing`, nunca «si el dato no existe, salir».
 5. Versión y footer sincronizados: `npm run release:check` y `npm run footer:check` verdes.
 6. `npx prisma validate` si tocaste `prisma/`.
 
@@ -60,12 +60,15 @@
 - **WhatsApp**: botón con el icono de WhatsApp. Si la empresa no tiene número, el botón no se muestra y el resto **no se reordena ni se reemplaza** por otro objeto.
 
 ## Formatos de listas (tablas densas)
-- **Grilla**: encabezado y filas comparten la misma grilla; `gap-x` de 8 px (nunca 12/16); contenedor con scroll horizontal silencioso cuando no entra.
+- **Grilla**: encabezado y filas comparten la misma grilla (una sola constante); `gap-x` de 8 px (nunca 12/16); contenedor con scroll horizontal silencioso y etiqueta de la vista cuando no entra.
 - **Anchos de columna**: identidad `minmax(Xrem, Nfr)` con el mayor `fr` (ej.: artículos 1.6fr > cliente 1.15fr > serial 0.9fr); categórico corto fijo 2.5–6 rem; fecha fija 5–6.5 rem; monto fijo 5.5–8.5 rem; acciones 8–15 rem.
-- **Tipografía por celda**: encabezado 10 px bold uppercase con tracking; identidad 13.5 px semibold truncada con `title`; dato secundario 11–12 px muted; monto a la derecha, bold, tabular-nums; serial mono 11 px; badge `w-fit` sin wrap; botón de acción 12 px sin wrap.
+- **Tipografía por celda**: encabezado 10 px bold uppercase con tracking; encabezado ordenable igual + icono inline con gap 4 px y color de marca cuando la columna está activa; identidad 13.5 px semibold truncada con `title`; dato secundario 11–12 px muted; monto a la derecha, bold, tabular-nums; serial mono 11 px.
+- **Fila**: borde redondeado (radio 12), borde sutil + fondo tenue, padding compacto (14 px horizontal, 8 px vertical).
+- **Badge**: ancho de contenido, alineado al inicio, sin wrap, padding 6/2 px, 10 px bold.
+- **Botón de acción**: alto 32 px, padding 8 px, 12 px sin wrap; los iconos de acción usan el mismo set y tamaño.
 - **Fechas**: corta de tabla `dd-MMM` (`17-sept`); completa `dd MMM yy · HH:mm`; reserva `dd-MMM · HH:mm`. Siempre en hora de Asunción.
 - **Serial/IMEI**: `SerialTexto` (cabeza + últimos 4 en negrita); enmascarado `••••4821` donde no aporta; la cola nunca se pierde al truncar.
-- **Vencimientos**: fecha muted; se pinta (`data-tone="warn"`, semibold) solo si venció o cae dentro de los próximos 7 días.
+- **Vencimientos**: fecha muted; se pinta (`data-tone="warn"`, semibold) solo si venció o cae dentro de 3–7 días.
 - **Fuente única**: `app/list-format.tsx` + `app/list-format.css` (`SerialTexto`, `listDateShort`, `listDateFull`, `dueTone`, `list-amount`, `list-date`, `list-identity`, `list-secondary`). Ninguna lista escribe fechas, seriales o montos a mano.
 
 ## Reglas de contenedores y acciones (UI)
