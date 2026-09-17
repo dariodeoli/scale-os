@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Banknote, Building2, Check, MessageSquare, Pencil, Plus, RotateCcw, Star, X , CircleDollarSign } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
-import {ProfilePhoto} from './profile-photo';
+import {PersonPhotoField} from './person-photo';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
@@ -745,14 +745,15 @@ export function OperationsWorkspace({
           </p>
           {!person&&members.find(member=>member.email===seedEmail)?.photo_url&&<PhotoViewer photo={members.find(member=>member.email===seedEmail)!.photo_url!} name={personDefaults.full_name}/>}
           {(person||(dialogMember&&!dialogMember.removed_at))&&<div className={`person-identity-panel${person?'':' is-single'}`}>
-            {person&&<ProfilePhoto compact key={person.id} photo={person.photo_url} name={person.full_name} save={async photo=>{
-              const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:photo},'PATCH');
-              await load();setEdit(result.collaborator);
-            }}/>}
-            {!person&&dialogMember&&<ProfilePhoto compact key={dialogMember.id} photo={dialogMember.photo_url||null} name={dialogMember.full_name||dialogMember.email} save={async photo=>{
-              await api<{member:{photo_url:string}}>(`/api/agency/members/${dialogMember.id}/photo`,{photo_url:photo},'PATCH');
-              await load();
-            }}/>}
+            <PersonPhotoField
+              key={person?String(person.id):`member-${dialogMember?.id}`}
+              photo={person?person.photo_url:dialogMember?.photo_url??null}
+              name={person?person.full_name:dialogMember?.full_name||dialogMember?.email||'Integrante'}
+              save={async value=>{
+                if(person){const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:value},'PATCH');await load();setEdit(result.collaborator);}
+                else if(dialogMember){await api<{member:{photo_url:string}}>(`/api/agency/members/${dialogMember.id}/photo`,{photo_url:value},'PATCH');await load();}
+              }}
+            />
             {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section person-access-panel" aria-label="Acceso al panel">
               <h3>Acceso al panel</h3>
               <div className="person-access-body">
