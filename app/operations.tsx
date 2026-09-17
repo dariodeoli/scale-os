@@ -263,6 +263,39 @@ export function OperationsWorkspace({
   activeTab?: string;
   onTabChange?: (tab: string) => void;
 }) {
+  if(mode==='people'&&!['owner','admin','finance'].includes(role))return <TeamDirectoryView organizationName={organizationName}/>;
+  return <PeopleWorkspace mode={mode} role={role} currentEmail={currentEmail} organizationName={organizationName} activeTab={activeTab} onTabChange={onTabChange}/>;
+}
+type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
+function TeamDirectoryView({organizationName}:{organizationName:string}){
+  const [directory,setDirectory]=useState<DirectoryPerson[]>([]),[error,setError]=useState('');
+  useEffect(()=>{let alive=true;void api<{directory:DirectoryPerson[]}>('/api/agency/team').then(data=>{if(alive)setDirectory(Array.isArray(data?.directory)?data.directory:[]);}).catch(e=>{if(alive)setError(message(e));});return()=>{alive=false;};},[]);
+  return <div className="ops-stack">
+    <section className="panel">
+      <div className="panel-heading"><div><p className="eyebrow">DIRECTORIO INTERNO</p><h2>Equipo{organizationName?' de '+organizationName:''}</h2></div></div>
+      <p className="form-note">Directorio de personas: foto, nombre y cargo. Los datos personales de cada integrante se administran desde su propio perfil.</p>
+      {error&&<p className="error" role="alert">{error}</p>}
+      {directory.length?<div className="ops-grid team-directory-grid">
+        {directory.map(person=><article className="ops-card team-directory-card" key={person.id}><PersonContainer size="lg" name={person.full_name||'Integrante'} photoUrl={person.photo_url||undefined} secondary={teamRoleLabels[person.role]||person.cargo||'Sin cargo'} verified/></article>)}
+      </div>:!error?<p className="empty-copy">Cargando equipo…</p>:null}
+    </section>
+  </div>;
+}
+function PeopleWorkspace({
+  mode,
+  role,
+  currentEmail='',
+  organizationName='',
+  activeTab='people',
+  onTabChange,
+}: {
+  mode: "people" | "commissions";
+  role: string;
+  currentEmail?:string;
+  organizationName?:string;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}) {
   const {currency:defaultCurrency}=useCompanyCurrency();
   const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[seedEmail,setSeedEmail]=useState(''),[search,setSearch]=useState('');
   const [people, setPeople] = useState<Person[]>([]),

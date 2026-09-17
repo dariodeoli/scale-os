@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
+import {visibleModule} from '../app/workspace-access';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const operations=read('app/operations.tsx');
@@ -39,6 +40,13 @@ test('team list view renders a compact single-column list and contact data is ne
  assert.match(operationsCss,/\.person-hub-facts \.person-hub-fact-wide\{grid-column:1\/-1\}/);
  assert.match(operationsCss,/\.person-hub-facts dd\{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere\}/);
  assert.match(operations,/person-hub-fact-wide"><dt>Correo<\/dt><dd title=\{p\.email/);
+});
+
+test('team directory keeps normal roles on photo, name and cargo only',()=>{
+ for(const role of ['owner','admin','management','finance','sales','production','editor','viewer'])assert(visibleModule('Equipo',role),`Equipo stays reachable for ${role}`);
+ assert.match(operations,/if\(mode==='people'&&!\['owner','admin','finance'\]\.includes\(role\)\)return <TeamDirectoryView/);
+ assert.match(operations,/secondary=\{teamRoleLabels\[person\.role\]\|\|person\.cargo\|\|'Sin cargo'\}/);
+ assert.match(operations,/Directorio de personas: foto, nombre y cargo/);
 });
 
 test('workspace density owns the header geometry across desktop and mobile',()=>{
