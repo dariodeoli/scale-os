@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {currencyChoices} from './currencies';
 import {api,money} from './operations';
 import {AmountInput} from './profile-controls';
+import {decimalInput} from './field-rules';
 import './reports-workspace.css';
 
 type DiscountType='none'|'percent'|'fixed';
@@ -68,7 +69,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
     <label>Precio mensual contratado<AmountInput value={draft.monthlyPrice} currency={draft.currency} disabled={saving} onChange={value=>update('monthlyPrice',value)}/></label>
     <label>Moneda<select value={draft.currency} disabled={saving} onChange={event=>update('currency',event.target.value)}>{currencyChoices.map(currency=><option key={currency.value} value={currency.value}>{currency.label}</option>)}</select></label>
     <label>Tipo de descuento<select value={draft.discountType} disabled={saving} onChange={event=>update('discountType',event.target.value as DiscountType)}>{(Object.keys(discounts) as DiscountType[]).map(type=><option key={type} value={type}>{discounts[type]}</option>)}</select></label>
-    {draft.discountType!=='none'?<label>Valor del descuento<input type="number" min="0" max={draft.discountType==='percent'?100:undefined} step="0.01" inputMode="decimal" value={draft.discountValue} disabled={saving} onChange={event=>update('discountValue',event.target.value)}/></label>:null}
+    {draft.discountType!=='none'?<label>Valor del descuento<input type="text" inputMode="decimal" autoComplete="off" value={draft.discountValue} disabled={saving} onChange={event=>update('discountValue',decimalInput(event.target.value))}/></label>:null}
     <label className="ops-wide">Términos del descuento (opcional)<textarea value={draft.discountTerms} disabled={saving} onChange={event=>update('discountTerms',event.target.value)}/></label>
     <label className="ops-wide">Extras y entregables personalizados (opcional)<textarea value={draft.extrasDeliverables} disabled={saving} onChange={event=>update('extrasDeliverables',event.target.value)}/></label>
     <div className="client-reporting-actions ops-wide"><button type="button" disabled={saving} onClick={()=>{resetDraft();setAdding(false);}}>Cancelar</button><button type="submit" disabled={saving}>{saving?'Registrando…':'Registrar enmienda'}</button></div>

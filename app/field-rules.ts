@@ -56,6 +56,14 @@ export function normalizeSerial(value: string): string {
   return (value || '').trim().replace(/[\s\-_]+/g, '').toUpperCase();
 }
 
+/** Limpia un decimal al tipear/pegar: un solo separador (coma o punto) y hasta 2 decimales. */
+export function decimalInput(value: string, maxDecimals = 2): string {
+  const clean = (value || '').replace(',', '.').replace(/[^\d.]/g, '');
+  const [whole, ...rest] = clean.split('.');
+  const decimals = rest.join('').slice(0, maxDecimals);
+  return rest.length ? `${whole}.${decimals}` : whole;
+}
+
 export const EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com', 'live.com'];
 
 export function emailSuggestions(value: string): string[] {
