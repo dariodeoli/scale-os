@@ -13,7 +13,7 @@ const filters:{value:Filter;label:string}[]=[{value:'all',label:'Todas'},{value:
 const empty:Inbox={notifications:[],unread:0,next:null};
 const error=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudieron cargar los avisos.';
 const kindLabel=(kind:Notice['kind'])=>({assignment:'Asignación',comment:'Mención o comentario',due:'Entrega pendiente'} as Record<string,string>)[kind||'']||'Aviso';
-function dateLabel(value:string){const date=new Date(value);return Number.isFinite(date.getTime())?date.toLocaleString('es-PY'):'Fecha no disponible';}
+function dateLabel(value:string){const date=new Date(value);return Number.isFinite(date.getTime())?date.toLocaleString('es-PY',{hourCycle:'h23'}):'Fecha no disponible';}
 
 export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:string,anchor?:string)=>void;openPreferences:()=>void}){
  const router=useRouter();
@@ -62,7 +62,7 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
   try{await load(data.next);}finally{locked.current=false;if(alive.current)setBusy(false);}
  }
  return <>
-  <button type="button" className="icon-button notification-trigger" aria-haspopup="dialog" aria-expanded={open} aria-label={`Notificaciones${!loaded?', estado no disponible':data.unread?`, ${data.unread} sin leer`:''}`} onClick={()=>setOpen(true)}><Bell size={19}/>{loaded&&data.unread>0&&<span className="notification-badge" aria-hidden="true">{data.unread>99?'99+':data.unread}</span>}</button>
+  <button type="button" className="icon-button notification-trigger" title="Notificaciones" aria-haspopup="dialog" aria-expanded={open} aria-label={`Notificaciones${!loaded?', estado no disponible':data.unread?`, ${data.unread} sin leer`:''}`} onClick={()=>setOpen(true)}><Bell size={19}/>{loaded&&data.unread>0&&<span className="notification-badge" aria-hidden="true">{data.unread>99?'99+':data.unread}</span>}</button>
   {open&&<Dialog title="Notificaciones" close={()=>setOpen(false)} size="compact" busy={busy}><div className="notification-inbox">
    <div className="notification-toolbar"><p role="status">{loaded?`${data.unread} sin leer${typeof data.pendingCount==='number'?` · ${data.pendingCount} pendientes`:''}`:loading?'Consultando notificaciones…':'Estado no disponible.'}</p><div className="notification-actions" aria-label="Acciones de notificaciones"><button type="button" className="icon-button" title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button><button type="button" className="icon-button notification-action-icon is-confirm" title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')}><CheckCheck size={18}/></button><button type="button" className="icon-button" title="Actualizar" aria-label="Actualizar notificaciones" disabled={busy||loading} onClick={()=>void load()}><RefreshCw size={17}/></button></div></div><p className="form-note">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
    <div className="notification-filters" role="group" aria-label="Filtrar notificaciones">{filters.map(option=><button type="button" key={option.value} className={filter===option.value?'choice active':'choice'} aria-pressed={filter===option.value} disabled={busy} onClick={()=>changeFilter(option.value)}>{option.label}</button>)}</div>
