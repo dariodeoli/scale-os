@@ -10,11 +10,16 @@ import './photo-cropper.css';
 import {Crop,Link2,Trash2} from 'lucide-react';
 const PhotoCropper=dynamic(()=>import('./photo-cropper').then(m=>m.PhotoCropper));
 
+export const PHOTO_MIME_TYPES=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
+export const PHOTO_ACCEPT=PHOTO_MIME_TYPES.join(',');
+export const PHOTO_FORMATS='JPG, PNG, WebP o HEIC';
+export const PHOTO_MAX_BYTES=4*1024*1024;
+
 const schema=z.object({photo:z.string().max(700000).refine(value=>{if(!value||value.startsWith('data:image/'))return true;try{const u=new URL(value);return value.length<=2048&&u.protocol==='https:'&&!u.username&&!u.password;}catch{return false;}},'Usá un enlace HTTPS directo a una imagen, sin credenciales.')});
 
 export async function preparePhoto(file:File,forLogo=false,centerCrop=false):Promise<string>{
-  const imageLike=['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(file.type)||(!file.type&&/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name));
-  if(!imageLike||file.size>4*1024*1024)throw new Error('Elegí una foto JPG, PNG o WebP de hasta 4 MB.');
+  const imageLike=PHOTO_MIME_TYPES.includes(file.type)||(!file.type&&/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name));
+  if(!imageLike||file.size>PHOTO_MAX_BYTES)throw new Error(`Elegí una foto ${PHOTO_FORMATS} de hasta 4 MB.`);
   let bitmap:ImageBitmap;
   try{bitmap=await createImageBitmap(file);}catch{throw new Error(file.type.startsWith('image/heic')||file.type.startsWith('image/heif')?'Este formato HEIC no se pudo leer en este navegador. Convertilo a JPG o PNG e intentá de nuevo.':'No se pudo leer esta imagen. Probá con JPG, PNG o WebP.');}
   try{
@@ -73,7 +78,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
       <div className="profile-photo-summary">
       {preview&&preview!==failedPhoto?<button type="button" className="editable-photo" aria-label={`Cambiar foto de ${name}`} disabled={busy} onClick={()=>fileInput.current?.click()}><img src={preview} referrerPolicy="no-referrer" alt={`Foto de ${name}`} onError={()=>setFailedPhoto(preview)}/></button>:<button type="button" className="avatar editable-photo" aria-label={`Elegir foto de ${name}`} disabled={busy} onClick={()=>fileInput.current?.click()}>{name[0]}</button>}
       <div className="profile-photo-controls">
-      <label className="photo-upload">{processing?'Preparando…':compact?'Cambiar foto':preview?'Cambiar foto':'Elegir foto'}<input ref={fileInput} aria-label="Elegir foto (JPG, PNG, WebP o HEIC; hasta 4 MB)" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" disabled={busy} onChange={async event=>{
+      <label className="photo-upload">{processing?'Preparando…':compact?'Cambiar foto':preview?'Cambiar foto':'Elegir foto'}<input ref={fileInput} aria-label={`Elegir foto (${PHOTO_FORMATS}; hasta 4 MB)`} type="file" accept={PHOTO_ACCEPT} disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file||!startSave())return;
         setError('');setNotice('');try{const source=await preparePhoto(file,isLogo);if(!mounted.current)return;const ready=isLogo?source:await preparePhoto(file,false,true);if(!mounted.current)return;setOriginalSource(source);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);if(!mounted.current)return;form.reset({photo:ready});setFailedPhoto('');setNotice(isLogo?'Logo guardado automáticamente.':'Foto centrada y guardada automáticamente. Podés ajustar el encuadre.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
       }}/></label>
@@ -84,7 +89,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
       {form.formState.errors.photo&&<p role="alert" className="error">{form.formState.errors.photo.message}</p>}
       {preview&&preview===failedPhoto&&<p role="alert" className="error">Esta imagen no se puede mostrar acá. El enlace puede haber vencido o el sitio bloquea mostrarla fuera de su propia página. Subí el archivo o probá otro enlace público.</p>}
       {form.formState.isDirty&&<p className="form-note" role="status">Vista previa: todavía no guardaste el cambio.</p>}
-      <p className="form-note">JPG, PNG o WebP · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
+      <p className="form-note">{PHOTO_FORMATS} · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
       {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
       <div className="inline-actions">{form.formState.isDirty&&<button className="primary" disabled={busy}>{busy?'Procesando…':'Guardar foto'}</button>}<button type="button" className="text-button danger" disabled={busy||!preview} onClick={()=>{form.setValue('photo','',{shouldDirty:true});setOriginalSource(null);setNotice('Guardá para quitar la foto del perfil.');}}><Trash2 size={14}/>Quitar foto</button></div>
     </form>
