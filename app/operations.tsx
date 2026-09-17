@@ -529,7 +529,7 @@ export function OperationsWorkspace({
         {loading ? (
           <p>Cargando…</p>
         ) : mode === "people" ? (
-          <div className="ops-grid">
+          <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
             {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
               <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
                 <header className="person-hub-head">

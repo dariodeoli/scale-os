@@ -314,10 +314,12 @@
 .team-view-toggle button:hover{color:var(--text)}
 .team-view-toggle button.is-active{background:var(--violet-soft);color:var(--brand-700)}
 .person-hub-card.is-list{display:grid;grid-template-columns:minmax(210px,1.15fr) minmax(0,1.3fr) minmax(0,.9fr);align-items:center;gap:10px 18px;padding:12px 14px}
+.ops-grid-list{grid-template-columns:minmax(0,1fr)}
 .person-hub-card.is-list .person-hub-head{align-items:center}
 .person-hub-card.is-list .person-hub-facts{grid-column:2;padding:0;background:transparent}
 .person-hub-card.is-list .person-hub-chips{grid-column:3;justify-content:flex-end}
 .person-hub-card.is-list>.ops-note-preview,.person-hub-card.is-list>.person-access-panel,.person-hub-card.is-list>.form-note{grid-column:1/-1}
+.person-hub-card.is-list .team-access{grid-column:1/-1}
 .person-hub-card.is-list .person-hub-actions{grid-column:1/-1;margin-top:0;padding-top:10px}
 @media(max-width:860px){.person-hub-card.is-list{grid-template-columns:1fr}.person-hub-card.is-list .person-hub-facts,.person-hub-card.is-list .person-hub-chips,.person-hub-card.is-list .person-hub-actions{grid-column:auto;justify-content:flex-start}.team-view-toggle{margin-left:0}}
 
