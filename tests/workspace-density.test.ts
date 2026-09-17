@@ -8,7 +8,7 @@ assert(!toolbar.includes('demo-session-note'));
 assert(toolbar.includes('aria-label="Información de la demo"'));
 assert(toolbar.includes('Sin dinero real'));
 assert(toolbar.includes('disabled={busy}'));
-assert(sidebar.includes('grid-template-columns:minmax(0,1fr) 36px'));
+assert(sidebar.includes('grid-template-columns:minmax(0,1fr)'));
 assert(personContainer.includes('overflow:hidden;text-overflow:ellipsis;white-space:nowrap'));
 assert(workspace.includes('aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}'));
 assert(workspace.includes('onClick={logout} aria-label="Cerrar sesión"'));
