@@ -7,7 +7,7 @@ import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {notify} from './feedback';
 import {completeSave} from './save-completion';
-import {ClientReviewControl,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
+import {ClientReviewControl,ClientReviewPreview,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
 import {ClientAppearance,ClientIdentity} from './client-identity';
 import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
@@ -94,7 +94,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
       {managers.includes(role)&&order.status==='review'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/approve`)} title="Registra una aprobación interna. Al completar los niveles del proyecto, la pieza queda aprobada.">Aprobar siguiente nivel</button>}
       {managers.includes(role)&&order.status==='approved'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/publish`)}>Marcar publicada</button>}
      </div></div>}
-     {managers.includes(role)&&<section className="work-section"><h4 className="work-section-title">Cliente</h4><ClientReviewControl orderId={id}/><ClientPortalDeliveryControl orderId={id} title={s(order,'title')} assetUrl={s(order,'drive_url')}/></section>}
+     {managers.includes(role)&&<section className="work-section"><h4 className="work-section-title">Cliente</h4><ClientReviewPreview title={s(order,'title')} assetUrl={s(order,'drive_url')}/><ClientReviewControl orderId={id}/><ClientPortalDeliveryControl orderId={id} title={s(order,'title')} assetUrl={s(order,'drive_url')}/></section>}
     </div>
    {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente. Usá @ para mencionar a una persona.</p>{editable&&<CommentComposer label="Agregar comentario" save={async (body,mentionedUserIds)=>{await api(`/api/agency/productivity/orders/${id}/comments`,{body,mentioned_user_ids:mentionedUserIds});await completeSave(()=>{},load);}}/>}{data.comments.map(c=><article className="activity-line" id={`comment-${c.id}`} key={c.id}><ActorIdentity name={s(c,'actor_name')||s(c,'author_email')} photoUrl={s(c,'actor_photo_url')} verified={c.actor_verified===true} timestamp={s(c,'created_at')}/><CommentBody value={s(c,'body')}/></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
    {tab==='Historial'&&<><p>Niveles aprobados: {s(order,'approval_step')||'0'}</p>{data.history.map(h=><article className="activity-line" key={h.id}><ActorIdentity name={s(h,'actor_name')} photoUrl={s(h,'actor_photo_url')} verified={h.actor_verified===true} timestamp={s(h,'created_at')}/><p>{s(h,'action')==='INSERT'?'Creó la pieza':'Actualizó la pieza'}</p>{h.previous_status!==h.next_status&&<p>{s(h,'previous_status')||'Nueva'} → {s(h,'next_status')}</p>}</article>)}{!data.history.length&&<p>Sin cambios registrados.</p>}</>}

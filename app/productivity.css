@@ -52,3 +52,14 @@
 .production-toolbar{gap:10px}
 .production-toolbar .production-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-raised,var(--surface))}
 @media(max-width:760px){.production-toolbar .production-filters{border-radius:14px;width:100%}}
+
+/* Vista previa del cliente: réplica del enlace público de revisión. */
+.client-review-preview{display:grid;gap:12px;padding:18px;border:1px solid var(--border-subtle,var(--line));border-radius:16px;background:var(--surface-sunken,var(--surface-subtle))}
+.client-review-preview h3{margin:0;font-size:19px;overflow-wrap:anywhere}
+.client-review-preview p{margin:0;color:var(--text-subtle,var(--text-muted));font-size:13px;line-height:1.55}
+.review-eyebrow{margin:0;color:var(--brand-700)!important;font-size:10px!important;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.client-review-preview .button{justify-self:start}
+.client-review-preview label{display:grid;gap:6px;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}
+.client-review-preview input,.client-review-preview textarea{border-radius:10px;background:var(--surface);opacity:.75}
+.review-preview-actions{justify-content:flex-start}
+.review-preview-actions button{min-height:42px}
