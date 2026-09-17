@@ -4,6 +4,7 @@ import {test} from 'node:test';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const operations=read('app/operations.tsx');
+const operationsCss=read('app/operations.css');
 const access=read('app/team-access.tsx');
 const accessCss=read('app/team-access.css');
 const photo=read('app/profile-photo.tsx');
@@ -29,6 +30,15 @@ test('suspended access has a dedicated semantic badge and collaborator photo use
  assert.match(photo,/compact=false/);
  assert.match(photo,/profile-photo-progressive/);
  assert.match(photoCss,/\.profile-photo-section\.is-compact \.profile-photo-summary \.editable-photo\{width:44px;height:44px\}/);
+});
+
+test('team list view renders a compact single-column list and contact data is never cut',()=>{
+ assert.match(operations,/ops-grid\$\{teamView==='list'\?' ops-grid-list':''\}/);
+ assert.match(operationsCss,/\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\)\}/);
+ assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:1\/3;grid-row:2;display:flex/);
+ assert.match(operationsCss,/\.person-hub-facts \.person-hub-fact-wide\{grid-column:1\/-1\}/);
+ assert.match(operationsCss,/\.person-hub-facts dd\{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere\}/);
+ assert.match(operations,/person-hub-fact-wide"><dt>Correo<\/dt><dd title=\{p\.email/);
 });
 
 test('workspace density owns the header geometry across desktop and mobile',()=>{
