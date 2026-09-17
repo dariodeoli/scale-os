@@ -2271,6 +2271,23 @@ export default function Home() {
         )}
         {active === "Informes" && <ReportsWorkspace key={user?.organization_id} role={user?.role||'viewer'}/>}
         {active === "Finanzas" && (<>
+          {(()=>{const availability=new Map<string,number>();for(const account of accounts)if(account.active!==false)availability.set(account.currency,(availability.get(account.currency)||0)+Number(account.balance));const receivable=new Map<string,number>();let pendingCount=0;for(const invoice of invoices){if(['paid','cancelled','draft'].includes(invoice.status))continue;const pending=Number(invoice.total)-Number(invoice.paid_amount);if(pending<=0)continue;receivable.set(invoice.currency,(receivable.get(invoice.currency)||0)+pending);pendingCount+=1;}return <div className="kpi-strip" aria-label="Resumen financiero">
+            <article className="kpi-card tone-brand">
+              <p className="eyebrow">DISPONIBLE</p>
+              {availability.size?<div className="kpi-amounts">{Array.from(availability).map(([currency,total])=><span key={currency}>{moneyKpi(total,currency)}</span>)}</div>:<strong>Sin cuentas activas</strong>}
+              <small>Saldo actual de cuentas activas por moneda</small>
+            </article>
+            <article className="kpi-card tone-warning">
+              <p className="eyebrow">POR COBRAR</p>
+              {receivable.size?<div className="kpi-amounts">{Array.from(receivable).map(([currency,total])=><span key={currency}>{moneyKpi(total,currency)}</span>)}</div>:<strong>Sin saldos pendientes</strong>}
+              <small>Facturas emitidas o parciales con saldo pendiente</small>
+            </article>
+            <article className="kpi-card tone-blue">
+              <p className="eyebrow">FACTURAS CON SALDO</p>
+              <strong>{pendingCount}</strong>
+              <small>{invoices.length?`${invoices.length} facturas cargadas`:'Todavía no hay facturas registradas'}</small>
+            </article>
+          </div>;})()}
           <section className="finance-grid">
             <section className="panel">
               <div className="panel-heading">
@@ -2296,29 +2313,27 @@ export default function Home() {
                 </div>
               </div>
               {accounts.length ? (
-                <div className="client-list">
+                <div className="finance-account-grid">
                   {accounts.map((account) => (
-                    <div className="payment-row" key={account.id}>
-                      <div>
-                        <b>{account.name}</b>
-                        <small>
-                          {{bank:'Cuenta bancaria',cash:'Caja en efectivo',digital:'Billetera digital',investment:'Inversión'}[account.account_type]} · {account.currency}
-                          {account.custodian_email
-                            ? ` · Custodia: ${account.custodian_email}`
-                            : ""}
-                        </small>
-                        {account.account_number&&<small>N.º {account.account_number}</small>}
-                        {account.holder_name&&<small>Titular: {account.holder_name}</small>}
-                        <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role||'viewer'} done={loadFinance}/>
-                      </div>
-                      <strong>
+                    <article className="finance-account-card" key={account.id} data-active={account.active===false?undefined:'true'}>
+                      <header className="finance-account-head">
+                        <b title={account.name}>{account.name}</b>
+                        <span className="hub-chip">{{bank:'Bancaria',cash:'Efectivo',digital:'Digital',investment:'Inversión'}[account.account_type]||account.account_type} · {account.currency}</span>
+                      </header>
+                      <strong className="finance-account-balance">
                         {new Intl.NumberFormat("es-PY", {
                           style: "currency",
                           currency: account.currency,
                           maximumFractionDigits: 0,
                         }).format(Number(account.balance))}
                       </strong>
-                    </div>
+                      <dl className="finance-facts">
+                        {account.account_number?<div><dt>N.º</dt><dd title={account.account_number}>{account.account_number}</dd></div>:null}
+                        {account.holder_name?<div><dt>Titular</dt><dd title={account.holder_name}>{account.holder_name}</dd></div>:null}
+                        {account.custodian_email?<div><dt>Custodia</dt><dd title={account.custodian_email}>{account.custodian_email}</dd></div>:null}
+                      </dl>
+                      <footer className="finance-card-actions"><RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role||'viewer'} done={loadFinance}/></footer>
+                    </article>
                   ))}
                 </div>
               ) : (
@@ -2393,13 +2408,14 @@ export default function Home() {
               {invoices.length ? (
                 <div className="client-list">
                   {invoices.map((invoice) => (
-                    <div className="payment-row" key={invoice.id}>
+                    <div className="payment-row finance-invoice-row" key={invoice.id}>
                       <div>
                         <b>
                           {invoice.number} · {invoice.client_name}
                         </b>
                         <small>
-                          {invoice.status} · pendiente{" "}
+                          <span className="finance-state" data-status={invoice.status}>{{issued:'Emitida',partial:'Parcial',paid:'Pagada',overdue:'Vencida',draft:'Borrador',cancelled:'Cancelada'}[invoice.status]||invoice.status}</span>
+                          {" · pendiente "}
                           {new Intl.NumberFormat("es-PY", {
                             style: "currency",
                             currency: invoice.currency,

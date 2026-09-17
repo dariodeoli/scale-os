@@ -333,3 +333,22 @@
 .activity-feed-row small{color:var(--text-subtle,var(--text-muted));font-size:10.5px;white-space:nowrap}
 .activity-more{margin-top:14px}
 @media(max-width:700px){.activity-feed-row{grid-template-columns:1fr;gap:3px}.activity-feed-row small{white-space:normal}}
+
+/* Finanzas: cuentas como tarjetas y estado de factura con color. */
+.finance-account-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:10px}
+.finance-account-card{display:flex;flex-direction:column;gap:10px;min-width:0;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:12px;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
+.finance-account-card:hover{border-color:var(--line-strong,var(--border-subtle))}
+.finance-account-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0}
+.finance-account-head b{min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.finance-account-balance{font-size:19px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.finance-facts{display:grid;gap:5px;margin:0}
+.finance-facts>div{display:grid;grid-template-columns:minmax(56px,max-content) minmax(0,1fr);gap:8px;align-items:baseline}
+.finance-facts dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.finance-facts dd{margin:0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.finance-card-actions{margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle,var(--line));display:flex;justify-content:flex-end}
+.finance-state{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;border:1px solid var(--border-subtle,var(--line));background:var(--surface-subtle);color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:700;white-space:nowrap}
+.finance-state[data-status=issued]{border-color:color-mix(in srgb,var(--info) 24%,var(--line));background:var(--info-soft);color:var(--info)}
+.finance-state[data-status=partial]{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
+.finance-state[data-status=paid]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
+.finance-state[data-status=overdue]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));background:var(--danger-soft);color:var(--danger)}
+@media(max-width:480px){.finance-account-grid{grid-template-columns:1fr}}
