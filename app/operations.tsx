@@ -591,8 +591,8 @@ function PeopleWorkspace({
                 </dl>
                 <div className="person-hub-chips">
                   <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?(salaryView?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Salario reservado</em>):<em>Sin importe acordado</em>}</span>
-                  <span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>
-                  {p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
+                  {salaryView&&<span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>}
+                  {salaryView&&p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
                   {p.ended_on?<span className="hub-chip warn">Salió el {p.ended_on.slice(0,10)}</span>:null}
                 </div>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
@@ -812,7 +812,7 @@ function PeopleWorkspace({
           </div>}
           <Editor
             columns
-            fields={salaryView?personFields:personFields.filter(field=>!['compensation_amount','currency'].includes(field.key))}
+            fields={salaryView?personFields:personFields.filter(field=>!['compensation_amount','currency','payment_day','invoices_company'].includes(field.key))}
             defaults={personDefaults}
             save={async (v) => {
               const result = await api<{access?:{status:string;emailSent?:boolean}}>(
