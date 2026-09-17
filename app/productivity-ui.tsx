@@ -30,7 +30,7 @@ const s=(r:Row,k:string)=>String(r[k]??'');
 type ClientSummaryTerms={planName:string;recurringAmount:string|number;currency:string;cadence:string;intervalMonths:number|null;invoiceRequired:boolean};
 type ClientSummary={relationshipStartedOn:string|null;terms:ClientSummaryTerms|null};
 const commercialReadRoles=['owner','admin','management','sales','finance'];
-const commercialFinancialRoles=['owner','admin','finance'];
+const commercialFinancialRoles=['owner','admin','finance','management'];
 function isSummaryTerms(value:unknown):value is ClientSummaryTerms{
  if(!value||typeof value!=='object')return false;
  const t=value as Record<string,unknown>;

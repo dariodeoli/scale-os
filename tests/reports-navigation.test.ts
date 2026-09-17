@@ -7,7 +7,7 @@ assert.equal(sectionLabel('/informes'),'Informes');
 assert(validSection('informes'));
 assert.equal(parentSection('Informes'),'Informes');
 for(const role of ['owner','admin','management','finance','sales','production','editor','viewer']){
- assert.equal(visibleModule('Informes',role),['owner','admin','finance'].includes(role),role);
+ assert.equal(visibleModule('Informes',role),['owner','admin','finance','sales'].includes(role),role);
 }
 const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
 assert(workspace.includes('dynamic(()=>import(\'./reports-workspace\')'));
