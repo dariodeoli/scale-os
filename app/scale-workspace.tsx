@@ -160,6 +160,8 @@ type Client = {
 type Project = {
   urgency?:number|null;
   assignees?: import('./project-card').ProjectAssignee[];
+  start_date?:string|null;
+  due_date?:string|null;
   id: string;
   name: string;
   client_id: string;
