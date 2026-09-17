@@ -15,7 +15,7 @@ const accessState=(member:TeamMember|null):AccessState=>{
 
 export function TeamAccess({member,email,role,refresh,ambiguous=false}:{member:TeamMember|null;email:string|null;role:string;refresh:()=>Promise<void>;ambiguous?:boolean}){
  const [invite,setInvite]=useState(false);
- const manage=['owner','admin'].includes(role)&&(!ambiguous||Boolean(member));
+ const manage=['owner','admin','management'].includes(role)&&(!ambiguous||Boolean(member));
  const state=accessState(member);
  const canInvite=manage&&Boolean(email)&&(!member||Boolean(member.removed_at));
  return <section className="team-access" aria-label="Acceso al panel">

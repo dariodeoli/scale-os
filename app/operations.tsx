@@ -320,7 +320,8 @@ function PeopleWorkspace({
     [monthlyCommissions, setMonthlyCommissions] = useState<MonthlyCommission[]>([]),
     [monthlyLoading, setMonthlyLoading] = useState(false),
     [monthlyRefresh, setMonthlyRefresh] = useState(0);
-  const allowed = ["owner", "admin", "finance"].includes(role);
+  const allowed = ["owner", "admin", "finance", "management"].includes(role);
+  const salaryView = ["owner", "admin", "finance"].includes(role);
   useEffect(() => {
     if (!allowed) return;
     let alive = true;
@@ -522,26 +523,26 @@ function PeopleWorkspace({
         )}
         {notice && <p role="status">{notice}</p>}
         {mode==='people'&&<div className="kpi-strip" aria-label="Salarios y facturación estimada">
-          <article className="kpi-card tone-brand">
+          {salaryView&&<article className="kpi-card tone-brand">
             <p className="eyebrow">SALARIOS MENSUALES</p>
             {salaryTotals.totals.size?<div className="kpi-amounts">{Array.from(salaryTotals.totals).map(([currency,total])=><span key={currency}>{money(total,currency)}</span>)}</div>:<strong>Sin salarios definidos</strong>}
             <small>Suma de perfiles activos con salario fijo mensual</small>
-          </article>
-          <article className="kpi-card tone-green">
+          </article>}
+          {salaryView&&<article className="kpi-card tone-green">
             <p className="eyebrow">PERFILES DE SALARIO</p>
             <strong>{salaryTotals.defined} definidos</strong>
             <small>{salaryTotals.missing} activos sin salario fijo mensual</small>
-          </article>
+          </article>}
           <article className="kpi-card tone-blue">
             <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
             {commercial===null?<strong>Calculando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong>No disponible</strong>:commercial.expectedMonthlyBilling.length?<div className="kpi-amounts">{commercial.expectedMonthlyBilling.map(item=><span key={item.currency}>{money(Number(item.total),item.currency)} / mes</span>)}</div>:<strong>Sin contratos activos</strong>}
             <small>{commercial?.expectedMonthlyBilling===undefined?'No disponible':commercial.expectedMonthlyBilling.length?'Expectativa comercial vigente por moneda':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}</small>
           </article>
-          <article className="kpi-card tone-warning">
+          {salaryView&&<article className="kpi-card tone-warning">
             <p className="eyebrow">RESULTADO MENSUAL</p>
             {monthlyGap.length?<div className="kpi-amounts">{monthlyGap.map(row=><span key={row.currency}>{money(row.gap,row.currency)}</span>)}</div>:<strong>Sin datos</strong>}
             <small>Facturación contratada menos salarios, por moneda</small>
-          </article>
+          </article>}
         </div>}
         {mode==='people'&&<div className="team-filters">
           <label className="team-search">
@@ -572,7 +573,7 @@ function PeopleWorkspace({
                       <span className="avatar">{actorInitials(p.full_name)}</span>
                     )}
                     <div>
-                      <h3>{p.full_name}{!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
+                      <h3>{p.full_name}{salaryView&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
                       <small>{entry.member?teamRoleLabels[entry.member.role]||entry.member.role:(p.job_title||'Sin cargo')}</small>
                     </div>
                   </div>
@@ -584,7 +585,7 @@ function PeopleWorkspace({
                   <div><dt>Ingreso</dt><dd>{p.started_on?p.started_on.slice(0,10):'Sin fecha'}</dd></div>
                 </dl>
                 <div className="person-hub-chips">
-                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Sin importe acordado</em>}</span>
+                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?(salaryView?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Salario reservado</em>):<em>Sin importe acordado</em>}</span>
                   <span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>
                   {p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
                   {p.ended_on?<span className="hub-chip warn">Salió el {p.ended_on.slice(0,10)}</span>:null}
@@ -598,13 +599,13 @@ function PeopleWorkspace({
                       <Pencil size={14} />
                       Perfil
                     </button>
-                    <button
+                    {salaryView&&<button
                       className="text-button"
                       onClick={() => setPay({ person: p })}
                     >
                       <Banknote size={14} />
                       Pagar
-                    </button>
+                    </button>}
                   </div>
                   <div className="ops-card-actions"><RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/></div>
                 </footer>
@@ -806,7 +807,7 @@ function PeopleWorkspace({
           </div>}
           <Editor
             columns
-            fields={personFields}
+            fields={salaryView?personFields:personFields.filter(field=>!['compensation_amount','currency'].includes(field.key))}
             defaults={personDefaults}
             save={async (v) => {
               const result = await api<{access?:{status:string;emailSent?:boolean}}>(
