@@ -40,4 +40,16 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(projects,/\.project-entry-head\{display:grid/);
 });
 
+test('every visible clock is 24-hour and the trash list carries its columns',()=>{
+  for(const file of ['app/account-security.tsx','app/deletion-danger-zone.tsx','app/studio-workspace.tsx']){
+    const source=read(file);
+    assert.doesNotMatch(source,/timeStyle:\s*'short'/,'no 12-hour timeStyle survives');
+    assert.match(source,/hourCycle:\s*'h23'/,`${file} keeps the 24-hour clock`);
+  }
+  const archive=read('app/archive-controls.tsx');
+  assert.match(archive,/trash-head[\s\S]*?Tipo[\s\S]*?Registro[\s\S]*?Acciones/,'the trash list shows its column header');
+  const styles=read('app/settings-slice.css');
+  assert.match(styles,/\.trash-head\{display:grid/);
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

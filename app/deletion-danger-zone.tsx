@@ -94,7 +94,7 @@ function cleanOAuthQuery(){
 
 function formatExpiry(value:string){
  const date=new Date(value);
- return Number.isNaN(date.getTime())?'por unos minutos':`hasta ${new Intl.DateTimeFormat('es-PY',{timeStyle:'short'}).format(date)}`;
+ return Number.isNaN(date.getTime())?'por unos minutos':`hasta ${new Intl.DateTimeFormat('es-PY',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(date)}`;
 }
 
 function AccountConsequences({preview}:{preview:AccountDeletionPreview}){
