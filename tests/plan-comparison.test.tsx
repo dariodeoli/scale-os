@@ -71,7 +71,7 @@ test('catalog renders comparison without preview/read amplification and preserve
  for(const role of ['owner','admin','management','finance','sales','production','editor','viewer']){
   let renderer!:ReactTestRenderer;
   await act(async()=>{renderer=create(<CatalogWorkspace kind="plans" role={role}/>);});
-  const root=renderer.root,copy=text(root),editable=['owner','admin','management','finance','sales'].includes(role);
+  const root=renderer.root,copy=text(root),editable=['owner','admin','management','finance','sales','production'].includes(role);
   assert(copy.includes(planAmount(45.25,'USD')));assert(copy.includes('Archivado'));assert(copy.includes(fixture.notes));
   assert.equal(root.findAllByProps({className:'plan-comparison-item'}).length,4);
   assert.equal(root.findAllByProps({role:'dialog'}).length,0);
