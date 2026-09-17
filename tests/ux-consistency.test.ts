@@ -58,4 +58,19 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
   assert.match(invites,/invite-link-head[\s\S]*?Solicitud[\s\S]*?invite-link-head[\s\S]*?Enlace/,'invite requests and links show their headers');
 });
 
+test('clients, projects and trash support bulk operations',()=>{
+  const workspace=read('app/scale-workspace.tsx');
+  assert.match(workspace,/batchClients[\s\S]*?\/api\/agency\/clients\/batch/,'clients archive in one batch call');
+  assert.match(workspace,/batchProjects[\s\S]*?\/api\/agency\/projects\/batch/,'projects archive in one batch call');
+  assert.match(workspace,/selectVisibleClients/,'clients can select the visible set');
+  assert.match(workspace,/selectVisibleProjects/,'projects can select the visible set');
+  const archive=read('app/archive-controls.tsx');
+  assert.match(archive,/restoreBatch[\s\S]*?\/restore/,'trash restores the selection');
+  const projectCard=read('app/project-card.tsx');
+  assert.match(projectCard,/select-check[\s\S]*?Seleccionar \$\{project\.name\}/,'project cards expose the selection checkbox');
+  const system=read('app/ui-system.css');
+  assert.match(system,/\.select-check\{display:flex/);
+  assert.match(system,/\.bulk-bar\{display:flex/);
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

@@ -263,7 +263,7 @@ function Modal({
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
-function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOpen,onToggleArchive,refresh,role}:{
+function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOpen,onToggleArchive,refresh,role,selectable=false,selected=false,onSelect}:{
   client:Client;
   pay:ClientPaymentStatus|undefined;
   stat:{projects:number;pieces:number;nextDue:string|null}|undefined;
@@ -274,11 +274,15 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
   onToggleArchive:()=>void;
   refresh:()=>Promise<void>;
   role:string;
+  selectable?:boolean;
+  selected?:boolean;
+  onSelect?:()=>void;
 }) {
   const state=clientState(client),tel=whatsappUrl(client.phone||undefined),since=clientSince(client.created_at);
   return (
     <article className="client-hub-card" data-archived={client.active===false||undefined}>
       <header className="client-hub-head">
+        {selectable?<label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
         <button type="button" className="client-hub-open" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
           <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
         </button>
@@ -342,6 +346,8 @@ export default function Home() {
   const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState(''),[clientSearch,setClientSearch]=useState('');
   const [projectView,setProjectView]=useState('grid');
   const [archiveBusy,setArchiveBusy]=useState('');
+  const [selectedClients,setSelectedClients]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false);
+  const [selectedProjects,setSelectedProjects]=useState<string[]>([]);
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
   useEffect(()=>{try{setProjectView(localStorage.getItem('scale:project-view')==='list'?'list':'grid');}catch{/* Optional UI preference. */}},[]);
   function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
@@ -711,8 +717,34 @@ export default function Home() {
     catch(cause){setToast(cause instanceof Error?cause.message:'No se pudo archivar el proyecto.');}
     finally{setArchiveBusy('');}
   }
+  function toggleClientSelected(id:string){setSelectedClients(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
+  function toggleProjectSelected(id:string){setSelectedProjects(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
+  function selectVisibleClients(){const ids=liveClients.map(client=>String(client.id));setSelectedClients(current=>{const all=ids.length>0&&ids.every(id=>current.includes(id));return all?current.filter(id=>!ids.includes(id)):[...new Set([...current,...ids])];});}
+  function selectVisibleProjects(){const ids=liveProjects.map(project=>String(project.id));setSelectedProjects(current=>{const all=ids.length>0&&ids.every(id=>current.includes(id));return all?current.filter(id=>!ids.includes(id)):[...new Set([...current,...ids])];});}
+  async function batchClients(archived:boolean){
+    if(bulkBusy||!selectedClients.length)return;
+    setBulkBusy(true);
+    try{
+      const data=await request<{updated:number}>('/api/agency/clients/batch',{method:'POST',body:JSON.stringify({ids:selectedClients,archived})});
+      const total=data.updated??selectedClients.length;
+      setSelectedClients([]);await load();
+      notify({tone:'success',message:archived?`${total} cliente${total===1?'':'s'} archivado${total===1?'':'s'}.`:`${total} cliente${total===1?'':'s'} reactivado${total===1?'':'s'}.`});
+    }catch(cause){setToast(cause instanceof Error?cause.message:'No se pudo actualizar el lote de clientes.');}
+    finally{setBulkBusy(false);}
+  }
+  async function batchProjects(archived:boolean){
+    if(bulkBusy||!selectedProjects.length)return;
+    setBulkBusy(true);
+    try{
+      const data=await request<{updated:number}>('/api/agency/projects/batch',{method:'POST',body:JSON.stringify({ids:selectedProjects,archived})});
+      const total=data.updated??selectedProjects.length;
+      setSelectedProjects([]);await load();
+      notify({tone:'success',message:archived?`${total} proyecto${total===1?'':'s'} archivado${total===1?'':'s'}.`:`${total} proyecto${total===1?'':'s'} reactivado${total===1?'':'s'}.`});
+    }catch(cause){setToast(cause instanceof Error?cause.message:'No se pudo actualizar el lote de proyectos.');}
+    finally{setBulkBusy(false);}
+  }
   function projectEntry(project:Project){
-    return <ProjectCard key={project.id} project={project} client={clients.find(c=>String(c.id)===String(project.client_id))}>
+    return <ProjectCard key={project.id} project={project} client={clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={selectedProjects.includes(String(project.id))} onSelect={()=>toggleProjectSelected(String(project.id))}>
       <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
       {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
@@ -1287,10 +1319,11 @@ export default function Home() {
                 <small>Piezas con vencimiento en 7 días</small>
               </article>
             </div>
+            {canManageClients&&liveClients.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedClients.length?<><b>{selectedClients.length}</b> seleccionado{selectedClients.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleClients}>Seleccionar visibles</button>{selectedClients.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedClients([])}>Limpiar</button></>:null}</div></div>:null}
             {clientView==='list'?<div className="client-hub-head-row" aria-hidden="true"><span>Cliente</span><span>Datos</span><span>Estado</span><span>Acciones</span></div>:null}
             <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
               {liveClients.map(client=>(
-                <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'}/>
+                <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
               ))}
               {!displayedClients.length ? (
                 clients.length===0 ? (
@@ -1310,7 +1343,7 @@ export default function Home() {
                 <summary>Archivados ({archivedClients.length})</summary>
                 <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
                   {archivedClients.map(client=>(
-                    <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'}/>
+                    <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
                   ))}
                 </div>
               </details>
@@ -1354,6 +1387,7 @@ export default function Home() {
                 <small>Órdenes de los proyectos visibles</small>
               </article>
             </div>
+            {canManageProjects&&liveProjects.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedProjects.length?<><b>{selectedProjects.length}</b> seleccionado{selectedProjects.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleProjects}>Seleccionar visibles</button>{selectedProjects.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedProjects([])}>Limpiar</button></>:null}</div></div>:null}
             {projectView==='list'?<div className="project-entry-head" aria-hidden="true"><span>Proyecto</span><span>Estado</span><span>Fechas y piezas</span><span>Responsables</span></div>:null}
             <div className={projectView==='grid'?'project-grid':'project-list'}>
               {liveProjects.map(project => projectEntry(project))}
