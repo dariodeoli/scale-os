@@ -6,7 +6,7 @@ import {ProfilePhoto} from './profile-photo';
 import {notify} from './feedback';
 import {AccountSecurity} from './account-security';
 import './my-profile.css';
-type Profile={email:string;full_name?:string|null;photo_url?:string|null;identity_scope?:'personal'|'demo'|'personal_readonly'};
+type Profile={email:string;full_name?:string|null;photo_url?:string|null;identity_scope?:'personal'|'demo'|'personal_readonly';google_connected?:boolean};
 export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>void;refresh:()=>Promise<void>}){
  const [current,setCurrent]=useState<Profile|null>(null),[error,setError]=useState(''),[warning,setWarning]=useState(''),[retry,setRetry]=useState(0);
  const [photoSaving,setPhotoSaving]=useState(false),[securityOpen,setSecurityOpen]=useState(false);
@@ -42,7 +42,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
    <Editor fields={[{key:'full_name',label:'Nombre completo'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
    <p className="my-profile-help">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
   </section></>}
-  {current.identity_scope!=='demo'&&<><div className="my-profile-google"><strong>Acceso con Google</strong><p>Podés usar Google para entrar a esta misma cuenta si elegís el mismo correo. Google también puede actualizar tu nombre y foto.</p><a className="secondary" href="/core-api/api/auth/google/start?connect=1">Conectar Google</a></div><details className="my-profile-optional my-profile-access" onToggle={event=>setSecurityOpen(event.currentTarget.open)}><summary>Seguridad de cuenta <span>Opcional</span></summary>{securityOpen&&<div className="my-profile-optional-content"><AccountSecurity onClosed={close}/></div>}</details></>}
+  {current.identity_scope!=='demo'&&<><div className="my-profile-google"><strong>Acceso con Google</strong><p>Podés usar Google para entrar a esta misma cuenta si elegís el mismo correo. Google también puede actualizar tu nombre y foto.</p>{current.google_connected?<p className="my-profile-google-state" role="status">Conectado con Google</p>:<a className="secondary" href="/core-api/api/auth/google/start?connect=1">Conectar Google</a>}</div><details className="my-profile-optional my-profile-access" onToggle={event=>setSecurityOpen(event.currentTarget.open)}><summary>Seguridad de cuenta <span>Opcional</span></summary>{securityOpen&&<div className="my-profile-optional-content"><AccountSecurity onClosed={close}/></div>}</details></>}
   <div className="my-profile-scope"><strong>{current.identity_scope==='demo'?'Solo en este demo':'Identidad personal'}</strong><p>{current.identity_scope==='demo'?'Tu nombre y foto en este demo. Los cambios no modifican tu perfil en empresas reales.':'Tu nombre y foto personales se comparten entre tus empresas. El cargo, sueldo y acceso se mantienen separados en cada empresa.'}</p></div>
   {warning&&<p className="my-profile-warning" role="status">{warning}</p>}
   </>}

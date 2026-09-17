@@ -8,7 +8,13 @@ import {Focus} from 'lucide-react';
 
 export async function cropImage(source:string,area:Area):Promise<string>{
  if(!source.startsWith('data:image/'))throw Error('Volvé a elegir el archivo original para ajustar el encuadre.');
- const response=await fetch(source),bitmap=await createImageBitmap(await response.blob());
+ // Decode the local data URL directly: fetching it would be blocked by the
+ // connect-src content security policy and never leaves the browser.
+ const [meta,payload]=source.split(',');
+ const type=/^data:([^;]+);base64$/.exec(meta)?.[1];
+ if(!type||!payload)throw Error('Volvé a elegir el archivo original para ajustar el encuadre.');
+ const bytes=Uint8Array.from(atob(payload),char=>char.charCodeAt(0));
+ const bitmap=await createImageBitmap(new Blob([bytes],{type}));
  try{
   if(![area.x,area.y,area.width,area.height].every(Number.isFinite)||area.width<=0||area.height<=0)throw Error('Elegí un encuadre válido.');
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;

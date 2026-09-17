@@ -157,3 +157,10 @@ test('scoped CSS: wrapping identity, 44px controls and unchanged hidden file inp
  assert(!source.includes('100vw'));assert(!/#[0-9a-f]{3,8}\b/i.test(source));
  assert(source.includes(':focus-visible'));assert(!/input\[type=file\]/.test(source),'hidden file control remains untouched');
 });
+
+test('a Google-linked account shows the connected state instead of the connect action',async()=>{
+ await mount();await load(fixture({google_connected:true}));
+ assert.match(content(),/Conectado con Google/,'the linked account shows its state');
+ assert.equal(renderer.root.findAllByType('a').some(link=>link.children.includes('Conectar Google')),false,'a linked account never asks to connect again');
+ close();
+});
