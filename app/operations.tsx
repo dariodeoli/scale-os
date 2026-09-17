@@ -282,6 +282,7 @@ export function OperationsWorkspace({
     } | null>(null),
     [filter, setFilter] = useState("all");
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
+  const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
   const [commissionMonth, setCommissionMonth] = useState(() => salaryMonth()),
     [monthlyCommissions, setMonthlyCommissions] = useState<MonthlyCommission[]>([]),
     [monthlyLoading, setMonthlyLoading] = useState(false),
@@ -386,18 +387,20 @@ export function OperationsWorkspace({
   const person = edit && edit !== "new" ? edit : null;
   const empty = { value: "", label: "Sin vincular" };
   const personFields: Field[] = [
-    { key: "full_name", label: "Nombre completo" },
-    { key: "job_title", label: "Cargo", optional: true },
+    { key: "full_name", label: "Nombre completo", section: 'Datos personales' },
+    { key: "job_title", label: "Cargo", optional: true, section: 'Datos personales' },
     {
       key: "email",
       label: "Correo de contacto",
       type: "email",
       optional: true,
+      section: 'Datos personales',
     },
     {
       key: "active", label: "Estado laboral", choices: [
         { value: "true", label: "Activo" }, { value: "false", label: "Inactivo" },
       ],
+      section: 'Datos personales',
     },
     {
       key: "started_on",
@@ -518,14 +521,18 @@ export function OperationsWorkspace({
             <button className={search==='activo'?'choice active':'choice'} onClick={()=>setSearch('activo')}>Activos</button>
             <button className={search==='inactivo'?'choice active':'choice'} onClick={()=>setSearch('inactivo')}>Inactivos</button>
           </div>
+          <div className="team-view-toggle" role="group" aria-label="Vista del equipo">
+            <button type="button" className={teamView==='cards'?'is-active':undefined} aria-pressed={teamView==='cards'} onClick={()=>setTeamView('cards')}>Tarjetas</button>
+            <button type="button" className={teamView==='list'?'is-active':undefined} aria-pressed={teamView==='list'} onClick={()=>setTeamView('list')}>Lista</button>
+          </div>
         </div>}
         {loading ? (
           <p>Cargando…</p>
         ) : mode === "people" ? (
           <div className="ops-grid">
             {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
-              <article className="ops-card ops-person-card" key={p.id}>
-                <div className="ops-person-header">
+              <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
+                <header className="person-hub-head">
                   <div className="ops-person">
                     {p.photo_url ? (
                       <PhotoViewer photo={p.photo_url} name={p.full_name}/>
@@ -537,40 +544,59 @@ export function OperationsWorkspace({
                       <small>{p.job_title||(entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin cargo')}</small>
                     </div>
                   </div>
-                </div>
-                <div className="ops-person-info">
-                  <div>{p.email||'Sin correo'}</div>
-                  <div>{accessRole}</div>
-                  {p.started_on&&<div className="ops-since">Desde {p.started_on.slice(0,10)}</div>}
+                  <span className="person-hub-state" data-state={p.active?'active':'inactive'}>{p.active?'Activo':'Inactivo'}</span>
+                </header>
+                <dl className="person-hub-facts">
+                  <div><dt>Correo</dt><dd title={p.email||undefined}>{p.email||'Sin correo'}</dd></div>
+                  <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
+                  <div><dt>Ingreso</dt><dd>{p.started_on?p.started_on.slice(0,10):'Sin fecha'}</dd></div>
+                  <div><dt>Día de pago</dt><dd>{p.payment_day?`Día ${p.payment_day}`:'Sin definir'}</dd></div>
+                </dl>
+                <div className="person-hub-chips">
+                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Sin importe acordado</em>}</span>
+                  {p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
+                  {p.ended_on?<span className="hub-chip warn">Salió el {p.ended_on.slice(0,10)}</span>:null}
                 </div>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
                 <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} currentEmail={currentEmail} refresh={load}/>
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
-                <div className="ops-card-actions">
-                  <button className="text-button" onClick={() => setEdit(p)}>
-                    <Pencil size={14} />
-                    Perfil
-                  </button>
-                  <button
-                    className="text-button"
-                    onClick={() => setPay({ person: p })}
-                  >
-                    <Banknote size={14} />
-                    Pagar
-                  </button>
-                  <RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/>
-                </div>
+                <footer className="person-hub-actions">
+                  <div className="person-hub-buttons">
+                    <button className="text-button" onClick={() => setEdit(p)}>
+                      <Pencil size={14} />
+                      Perfil
+                    </button>
+                    <button
+                      className="text-button"
+                      onClick={() => setPay({ person: p })}
+                    >
+                      <Banknote size={14} />
+                      Pagar
+                    </button>
+                  </div>
+                  <div className="ops-card-actions"><RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/></div>
+                </footer>
               </article>
-            ):<article className="ops-card ops-person-card" key={entry.key}>
-              <div className="ops-person"><PersonContainer size="lg" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} secondary={`${entry.member!.email} · ${accessRole} · ${accessState}`} verified/></div>
+            ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
+              <header className="person-hub-head">
+                <div className="ops-person"><PersonContainer size="lg" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
+                <span className="person-hub-state" data-state={entry.member!.active?'active':'inactive'}>{entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
+              </header>
+              <dl className="person-hub-facts">
+                <div><dt>Correo</dt><dd>{entry.member!.email}</dd></div>
+                <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
+              </dl>
+              <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>
               <TeamAccess member={entry.member} email={entry.member!.email} role={role} currentEmail={currentEmail} refresh={load}/>
-              {entry.archivedProfileId?<button className="text-button positive" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={14}/>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={14}/>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
-              <div className="ops-card-actions">
-                <button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>
-                  <Pencil size={14}/>
-                  Editar
-                </button>
-              </div>
+              <footer className="person-hub-actions">
+                <div className="person-hub-buttons">
+                  {entry.archivedProfileId?<button className="text-button positive" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={14}/>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={14}/>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
+                  <button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>
+                    <Pencil size={14}/>
+                    Editar
+                  </button>
+                </div>
+              </footer>
             </article>;})}
             {!visiblePeople.length && (
               <p className="empty-copy">
@@ -591,19 +617,21 @@ export function OperationsWorkspace({
               <p className="form-note">
                 Esperado: acuerdos comerciales vigentes con comisión asignada. Registrado, aprobado, pagado y pendiente: comisiones del mes según la fecha de la factura vinculada.
               </p>
-              {monthlyLoading ? <p role="status">Cargando comisiones del mes…</p> : monthlyCommissions.length ? monthlyCommissions.map(row => (
-                <div className="payment-row" key={`${row.recipient_id ?? `unlinked-${row.name ?? ""}`}-${row.currency}`}>
-                  <div>
-                    <b>{row.name || "Sin colaborador vinculado"}</b>
-                    <small>{row.currency}</small>
-                  </div>
-                  <strong>Esperado {money(row.expected_amount, row.currency)}</strong>
-                  <strong>Registrado {money(row.recorded_amount, row.currency)}</strong>
-                  <strong>Aprobado {money(row.approved_amount, row.currency)}</strong>
-                  <strong>Pagado {money(row.paid_amount, row.currency)}</strong>
-                  <strong>Pendiente {money(row.pending_amount, row.currency)}</strong>
+              {monthlyLoading ? <p role="status">Cargando comisiones del mes…</p> : monthlyCommissions.length ? (
+                <div className="settlement-table" aria-label="Comisiones del mes por colaborador">
+                  <div className="settlement-head" aria-hidden="true"><span>Colaborador</span><span>Esperado</span><span>Registrado</span><span>Aprobado</span><span>Pagado</span><span>Pendiente</span></div>
+                  {monthlyCommissions.map(row => (
+                    <div className="settlement-row" key={`${row.recipient_id ?? `unlinked-${row.name ?? ""}`}-${row.currency}`}>
+                      <div className="settlement-name"><b>{row.name || "Sin colaborador vinculado"}</b><small>{row.currency}</small></div>
+                      <strong data-label="Esperado" className="settlement-value">{money(row.expected_amount, row.currency)}</strong>
+                      <strong data-label="Registrado" className="settlement-value">{money(row.recorded_amount, row.currency)}</strong>
+                      <strong data-label="Aprobado" className="settlement-value">{money(row.approved_amount, row.currency)}</strong>
+                      <strong data-label="Pagado" className="settlement-value">{money(row.paid_amount, row.currency)}</strong>
+                      <strong data-label="Pendiente" className="settlement-value">{money(row.pending_amount, row.currency)}</strong>
+                    </div>
+                  ))}
                 </div>
-              )) : <p className="empty-copy">Sin comisiones ni acuerdos comerciales para este mes.</p>}
+              ) : <p className="empty-copy">Sin comisiones ni acuerdos comerciales para este mes.</p>}
             </div>
             <div className="choice-list compact">
               {["all", "pending", "approved", "paid", "cancelled"].map((s) => (
@@ -620,23 +648,23 @@ export function OperationsWorkspace({
               {commissions
                 .filter((c) => filter === "all" || c.status === filter)
                 .map((c) => (
-                  <article className="ops-card" key={c.id}>
-                    <p className="eyebrow">
-                      {c.kind === "sales" ? "Venta" : "Referido"} ·{" "}
-                      {states[c.status]}
-                    </p>
+                  <article className="ops-card commission-hub-card" key={c.id}>
+                    <header className="commission-hub-head">
+                      <span className="hub-chip">{c.kind === "sales" ? "Venta" : "Referido"}</span>
+                      <span className="commission-state" data-status={c.status}>{states[c.status]}</span>
+                    </header>
                     <h3>{c.beneficiary_name}</h3>
-                    <strong>{money(c.amount, c.currency)}</strong>
-                    <p>
-                      {c.invoice_number || "Sin factura vinculada"} · Vence{" "}
-                      {day(c.due_on)}
-                    </p>
-                    <p>
+                    <strong className="commission-hub-amount">{money(c.amount, c.currency)}</strong>
+                    <dl className="commission-hub-facts">
+                      <div><dt>Factura</dt><dd>{c.invoice_number || "Sin factura vinculada"}</dd></div>
+                      <div><dt>Vence</dt><dd>{day(c.due_on)}</dd></div>
+                    </dl>
+                    <p className="form-note">
                       {c.basis === "fixed"
                         ? "Importe fijo"
                         : `${c.percentage}% sobre ${money(c.base_amount || 0, c.currency)} ${c.basis === "collected" ? "cobrados" : "facturados"} al registrar`}
                     </p>
-                    <div className="inline-actions">
+                    <div className="commission-hub-actions inline-actions">
                       {c.status === "pending" && (
                         <button
                           className="text-button positive"
@@ -774,6 +802,7 @@ export function OperationsWorkspace({
               {
                 key: "kind",
                 label: "Origen",
+                section: 'Qué se comisiona',
                 choices: [
                   { value: "sales", label: "Venta" },
                   { value: "referral", label: "Referido" },
@@ -782,6 +811,7 @@ export function OperationsWorkspace({
               {
                 key: "basis",
                 label: "Cálculo",
+                section: 'Qué se comisiona',
                 choices: [
                   { value: "fixed", label: "Importe fijo" },
                   { value: "invoiced", label: "% facturado" },
@@ -792,22 +822,26 @@ export function OperationsWorkspace({
                 key: "amount",
                 label: "Importe (para importe fijo)",
                 type: "money",
+                section: 'Qué se comisiona',
               },
               {
                 key: "percentage",
                 label: "Porcentaje (para cálculo %)",
                 type: "number",
                 optional: true,
+                section: 'Qué se comisiona',
               },
               {
                 key: "currency",
                 label: "Moneda (se usa la de la factura si se vincula)",
                 choices: currencies,
+                section: 'Qué se comisiona',
               },
               {
                 key: "collaborator_id",
                 label: "Vincular colaborador",
                 optional: true,
+                section: 'Referencia',
                 choices: [
                   empty,
                   ...people.map((p) => ({ value: p.id, label: p.full_name })),
@@ -817,6 +851,7 @@ export function OperationsWorkspace({
                 key: "invoice_id",
                 label: "Factura de referencia",
                 optional: true,
+                section: 'Referencia',
                 choices: [
                   empty,
                   ...invoices.map((i) => ({
@@ -830,12 +865,14 @@ export function OperationsWorkspace({
                 label: "Vencimiento",
                 type: "date",
                 optional: true,
+                section: 'Referencia',
               },
               {
                 key: "notes",
                 label: "Cliente referido / condiciones",
                 type: "textarea",
                 optional: true,
+                section: 'Referencia',
               },
             ]}
             defaults={{

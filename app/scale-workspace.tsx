@@ -70,6 +70,11 @@ import {filterProductionOrders} from './production-filter';
 import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type StartupPreference} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
+import {whatsappUrl} from './client-links';
+import {clientPortfolioStats,clientSince,moneyKpi} from './client-format';
+import {statuses,type Status,KanbanColumn} from './production-board';
+import type {Account,Client,Invoice,Member,PaymentRecord,Project,WorkOrder} from './workspace-types';
+import {AccountForm,ClientForm,InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 import './settings-slice.css';
@@ -82,8 +87,6 @@ import {
   DndContext,
   DragEndEvent,
   DragOverlay,
-  useDraggable,
-  useDroppable,
 } from "@dnd-kit/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -118,16 +121,6 @@ import {
 } from "lucide-react";
 
 const core = "/core-api";
-const statuses = [
-  { id: "blocked", label: "Bloqueado", tone: "red" },
-  { id: "to_record", label: "Por grabar", tone: "yellow" },
-  { id: "recorded", label: "Grabado", tone: "teal" },
-  { id: "editing", label: "Editando", tone: "purple" },
-  { id: "review", label: "Revisión", tone: "blue" },
-  { id: "approved", label: "Aprobado", tone: "green" },
-  { id: "published", label: "Publicado", tone: "green" },
-] as const;
-type Status = (typeof statuses)[number]["id"];
 const nav = [
   ["Resumen", LayoutDashboard],
   ["Producción", FolderKanban],
@@ -142,51 +135,6 @@ const nav = [
   ["Estudio", CalendarDays],
   ["Configuración", Settings],
 ] as const;
-type Client = {
-  lifecycle_status?:string;
-  has_recurring_price?:boolean;
-  logo_url?:string|null;
-  color_key?:string;
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  active: boolean;
-};
-type Project = {
-  urgency?:number|null;
-  assignees?: import('./project-card').ProjectAssignee[];
-  id: string;
-  name: string;
-  client_id: string;
-  client_name: string;
-  drive_url: string | null;
-  status: string;
-  work_order_count: number;
-};
-type WorkOrder = {
-  urgency?:number|null;
-  assignees?:AssignedPerson[];
-  effective_assignees?:AssignedPerson[];
-  assignee_source?:'direct'|'project'|null;
-  assigned_user_id?:string|null;
-  assigned_user_ids?:string[];
-  checklist_total?:number;
-  checklist_completed?:number;
-  updated_at?:string;
-  client_logo_url?:string|null;
-  client_color_key?:string;
-  id: string;
-  title: string;
-  project_id: string;
-  project_name: string;
-  client_name: string;
-  status: Status;
-  description: string | null;
-  drive_url: string | null;
-  due_date?: string | null;
-  due_time?: string | null;
-};
 type Budget = {
   id: string;
   number: string;
@@ -198,19 +146,6 @@ type Budget = {
   total: string;
   item_count: number;
   valid_until: string | null;
-};
-type Account = {
-  id: string;
-  name: string;
-  account_type: "bank" | "cash" | "digital" | "investment";
-  currency: Currency;
-  balance: string;
-  active: boolean;
-  institution: string | null;
-  account_number: string | null;
-  holder_name: string | null;
-  custodian_user_id: string | null;
-  custodian_email?: string | null;
 };
 type AccountTransfer = {
   id: string;
@@ -226,32 +161,6 @@ type AccountTransfer = {
   reference: string | null;
   created_by_email: string | null;
   actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
-};
-type PaymentRecord = {
-  id: string;
-  invoice_number: string;
-  client_name: string;
-  account_name: string;
-  account_type: string;
-  currency: Currency;
-  amount: string;
-  received_on: string;
-  reference: string | null;
-  received_by_email: string | null;
-  actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
-  reversal_id?: string | null;
-  reversal_reason?: string | null;
-};
-type Invoice = {
-  id: string;
-  number: string;
-  client_id: string;
-  client_name: string;
-  status: string;
-  currency: Currency;
-  total: string;
-  paid_amount: string;
-  due_on: string | null;
 };
 type MetricEvent = { name: string; event_date: string; count: number };
 type ClientPaymentStatus = {
@@ -289,7 +198,6 @@ export function identityScopeChanged(previous:Pick<User,'id'|'organization_id'|'
 export function shouldRollbackOrderMutation(failingVersion:number,latestVersion:number){
   return failingVersion===latestVersion;
 }
-type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
 type Summary = {
   active_clients: number;
   active_projects: number;
@@ -359,790 +267,6 @@ function Modal({
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
-function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrder;role:string;refresh:()=>Promise<void>;openOrder:(id:string,edit?:boolean)=>void }) {
-  const canMove=['owner','admin','management','production','editor'].includes(role);
-  const draggable = useDraggable({ id: order.id,disabled:!canMove });
-  const style = draggable.transform
-    ? {
-        transform: `translate3d(${draggable.transform.x}px, ${draggable.transform.y}px, 0)`,
-      }
-    : undefined;
-  return (
-    <article
-      ref={draggable.setNodeRef}
-      style={style}
-      className={`work-card identity-card identity-${identityColor(order.client_color_key)} ${draggable.isDragging ? "dragging" : ""}`}
-    >
-      <div className="card-top">
-        <button className="text-button order-open" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
-        {canMove&&<button className="icon-button" aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>}
-      </div>
-      <p>
-        <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/> · {order.project_name}
-      </p>
-      <div className="card-meta"><UrgencyBadge value={order.urgency}/>
-        {order.drive_url ? (
-          <a
-            href={order.drive_url}
-            target="_blank"
-            rel="noreferrer"
-            onPointerDown={(event) => event.stopPropagation()}
-          >
-            <LinkIcon size={12} /> Drive
-          </a>
-        ) : (
-          <span>Sin enlace</span>
-        )}
-        {order.description&&<span className="order-description">{order.description}</span>}
-      </div>
-      <DueDate value={order.due_date} time={order.due_time} compact/>
-      <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
-      <ProjectCardPresence projectId={String(order.project_id)}/>
-      {!!order.checklist_total&&<small className="card-checklist" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</small>}
-      <div className="order-actions">{canMove?<button className="text-button" onClick={()=>openOrder(order.id,true)}><Pencil size={14}/>Editar</button>:<button className="text-button" onClick={()=>openOrder(order.id)}><Eye size={14}/>Ver más</button>}{canMove&&<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role}/>}</div>
-    </article>
-  );
-}
-function KanbanColumn({
-  status,
-  orders,
-  role,
-  refresh,
-  openOrder,
-}: {
-  status: (typeof statuses)[number];
-  orders: WorkOrder[];
-  role:string;
-  refresh:()=>Promise<void>;
-  openOrder:(id:string,edit?:boolean)=>void;
-}) {
-  const droppable = useDroppable({ id: `status-${status.id}` });
-  return (
-    <section
-      ref={droppable.setNodeRef}
-      className={`column ${droppable.isOver ? "drop-over" : ""}`}
-    >
-      <div className="column-title">
-        <span className={`dot ${status.tone}`} />
-        <b>{status.label}</b>
-        <em>{orders.length}</em>
-      </div>
-      {orders.map((order) => (
-        <DraggableOrder key={order.id} order={order} role={role} refresh={refresh} openOrder={openOrder}/>
-      ))}
-    </section>
-  );
-}
-
-const clientSchema = z.object({
-  name: z.string().trim().min(2, "Escribí el nombre del cliente."),
-  email: z.string().email("Email inválido.").or(z.literal("")),
-  phone: z.string().max(40).optional(),
-});
-type ClientValues = z.infer<typeof clientSchema>;
-function ClientForm({ done }: { done: (client: Client) => void }) {
-  const form = useForm<ClientValues>({
-    resolver: zodResolver(clientSchema),
-    defaultValues: { name: "", email: "", phone: "" },
-  });
-  const [error, setError] = useState("");
-  const [dialCode,setDialCode]=useState('+595');
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: ClientValues) {
-    try {
-      const digits=values.phone?.replace(/\D/g,'')||'';
-      const data = await request<{ client: Client }>("/api/agency/clients", {
-        method: "POST",
-        body: JSON.stringify({...values,phone:digits?`${dialCode}${digits}`:''}),
-      });
-      done(data.client);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <label>
-        Nombre
-        <input {...form.register("name")} autoFocus />
-        {form.formState.errors.name && (
-          <small className="error">{form.formState.errors.name.message}</small>
-        )}
-      </label>
-      <label>
-        Email
-        <input type="email" {...form.register("email")} />
-        {form.formState.errors.email && (
-          <small className="error">{form.formState.errors.email.message}</small>
-        )}
-      </label>
-      <label>
-        Teléfono / WhatsApp · Opcional
-        <span className="phone-input"><select aria-label="Código de país" value={dialCode} onChange={event=>setDialCode(event.target.value)}><option value="+595">🇵🇾 +595</option><option value="+55">🇧🇷 +55</option><option value="+54">🇦🇷 +54</option><option value="+1">🇺🇸 +1</option><option value="+34">🇪🇸 +34</option></select><input inputMode="tel" autoComplete="tel-national" placeholder="981 123 456" {...form.register("phone")} /></span>
-        <small className="field-help">Elegí el país; al guardar se conserva el código internacional y se habilita el acceso directo a WhatsApp.</small>
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
-        {submission.pending ? "Guardando…" : "Crear cliente"}
-      </button></SaveActions>
-    </form>
-  );
-}
-const driveLinkSchema=z.string().trim().max(2048).refine(value=>{if(!value)return true;try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password;}catch{return false;}},'Pegá un enlace HTTPS válido de archivo o carpeta.');
-const projectSchema = z.object({
-  urgency:z.enum(["","1","2","3","4","5"]),
-  name: z.string().trim().min(2, "Escribí el nombre del proyecto."),
-  clientId: z.string().min(1, "Elegí un cliente."),
-  driveUrl: driveLinkSchema,
-});
-type ProjectValues = z.infer<typeof projectSchema>;
-function ProjectForm({
-  clients,
-  done,
-  initialClientId='',
-}: {
-  clients: Client[];
-  initialClientId?:string;
-  done: (project: Project) => void;
-}) {
-  const form = useForm<ProjectValues>({
-    resolver: zodResolver(projectSchema),
-    defaultValues: { name: "", clientId: initialClientId, driveUrl: "", urgency:"" },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: ProjectValues) {
-    try {
-      const data = await request<{ project: Project }>("/api/agency/projects", {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
-      done(data.project);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <label>
-        Nombre del proyecto
-        <input {...form.register("name")} autoFocus />
-        {form.formState.errors.name && (
-          <small className="error">{form.formState.errors.name.message}</small>
-        )}
-      </label>
-      <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as ProjectValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
-      <fieldset>
-        <legend>Cliente</legend>
-        <div className="choice-list">
-          {clients.map((client) => (
-            <button
-              type="button"
-              className={
-                form.watch("clientId") === client.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("clientId", client.id, { shouldValidate: true })
-              }
-              key={client.id}
-            >
-              {client.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.clientId && (
-          <small className="error">
-            {form.formState.errors.clientId.message}
-          </small>
-        )}
-      </fieldset>
-      <label>
-        Enlace de archivo o carpeta de Google Drive
-        <input
-          placeholder="https://drive.google.com/..."
-          {...form.register("driveUrl")}
-        />
-        {form.formState.errors.driveUrl && (
-          <small className="error">
-            {form.formState.errors.driveUrl.message}
-          </small>
-        )}
-        <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!clients.length || submission.pending}
-      >
-        {submission.pending ? "Guardando…" : "Crear proyecto"}
-      </button></SaveActions>
-      {!clients.length && <p className="form-note">Primero creá un cliente.</p>}
-    </form>
-  );
-}
-const orderSchema = z.object({
-  urgency:z.enum(["","1","2","3","4","5"]),
-  title: z.string().trim().min(2, "Escribí qué hay que hacer."),
-  projectId: z.string().min(1, "Elegí un proyecto."),
-  status: z.enum([
-    "blocked",
-    "to_record",
-    "recorded",
-    "editing",
-    "review",
-    "approved",
-    "published",
-  ]),
-  driveUrl: driveLinkSchema,
-  description: z.string().max(500).optional(),
-  work_type: z.enum(["", "video", "reedicion", "foto", "produccion", "entregable"]),
-  due_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida").or(z.literal("")),
-});
-type OrderValues = z.infer<typeof orderSchema>;
-function OrderForm({
-  projects,
-  done,
-}: {
-  projects: Project[];
-  done: (order: WorkOrder) => void;
-}) {
-  const form = useForm<OrderValues>({
-    resolver: zodResolver(orderSchema),
-    defaultValues: {
-      title: "",
-      projectId: "",
-      urgency:"",
-      status: "to_record",
-      driveUrl: "",
-      description: "",
-      work_type: "",
-      due_time: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: OrderValues) {
-    try {
-      const data = await request<{ workOrder: WorkOrder }>(
-        "/api/agency/work-orders",
-        { method: "POST", body: JSON.stringify(values) },
-      );
-      done(data.workOrder);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <label>
-        Orden de trabajo
-        <input {...form.register("title")} autoFocus />
-        {form.formState.errors.title && (
-          <small className="error">{form.formState.errors.title.message}</small>
-        )}
-      </label>
-      <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as OrderValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
-      <fieldset>
-        <legend>Proyecto</legend>
-        <div className="choice-list">
-          {projects.map((project) => (
-            <button
-              type="button"
-              className={
-                form.watch("projectId") === project.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("projectId", project.id, { shouldValidate: true })
-              }
-              key={project.id}
-            >
-              {project.client_name} · {project.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.projectId && (
-          <small className="error">
-            {form.formState.errors.projectId.message}
-          </small>
-        )}
-      </fieldset>
-      <fieldset>
-        <legend>Estado inicial</legend>
-        <div className="choice-list compact">
-          {statuses.filter(status=>!['approved','published'].includes(status.id)).map((status) => (
-            <button
-              type="button"
-              className={
-                form.watch("status") === status.id ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("status", status.id)}
-              key={status.id}
-            >
-              {status.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Tipo de trabajo
-        <select {...form.register("work_type")}>
-          <option value="">Sin clasificar</option>
-          <option value="video">Video</option>
-          <option value="reedicion">Reedición</option>
-          <option value="foto">Foto</option>
-          <option value="produccion">Producción</option>
-          <option value="entregable">Entregable</option>
-        </select>
-        <small>Se usa para los conteos automáticos del resumen semanal.</small>
-      </label>
-      <label>
-        Hora de entrega
-        <input type="time" {...form.register("due_time")} />
-        <small>Opcional, junto con la fecha de entrega.</small>
-      </label>
-      <label>
-        Enlace de archivo o carpeta de Drive
-        <input
-          placeholder="https://drive.google.com/..."
-          {...form.register("driveUrl")}
-        />
-        <small>Solo guardamos el enlace, no el archivo. Los permisos se gestionan en Drive.</small>
-      </label>
-      <label>
-        Notas
-        <textarea {...form.register("description")} />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!projects.length || submission.pending}
-      >
-        {submission.pending ? "Guardando…" : "Crear orden"}
-      </button></SaveActions>
-      {!projects.length && (
-        <p className="form-note">Primero creá un proyecto.</p>
-      )}
-    </form>
-  );
-}
-const accountSchema = z.object({
-  name: z.string().trim().min(2, "Escribí el nombre de la cuenta."),
-  accountType: z.enum(["bank", "cash", "digital", "investment"]),
-  currency: z.enum(currencyCodes),
-  institution: z.string().max(100).optional(),
-  accountNumber: z.string().max(80).optional(),
-  holderName: z.string().max(120).optional(),
-  custodianUserId: z.string().optional(),
-});
-type AccountValues = z.infer<typeof accountSchema>;
-function AccountForm({
-  custodians,
-  done,
-}: {
-  custodians: Member[];
-  done: (account: Account) => void;
-}) {
-  const {currency:defaultCurrency}=useCompanyCurrency();
-  const form = useForm<AccountValues>({
-    resolver: zodResolver(accountSchema),
-    defaultValues: {
-      name: "",
-      accountType: "bank",
-      currency: defaultCurrency,
-      institution: "",
-      accountNumber: "",
-      holderName: "",
-      custodianUserId: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: AccountValues) {
-    try {
-      const data = await request<{ account: Account }>("/api/agency/accounts", {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
-      done(data.account);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "No se pudo crear la cuenta.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <label>
-        Nombre de la cuenta
-        <input
-          {...form.register("name")}
-          autoFocus
-          placeholder="Banco Regional — Operativa"
-        />
-      </label>
-      <fieldset>
-        <legend>Tipo</legend>
-        <div className="choice-list compact">
-          {(
-            [
-              { id: "bank", label: "Banco" },
-              { id: "cash", label: "Caja" },
-              { id: "digital", label: "Digital" },
-              { id: "investment", label: "Inversión" },
-            ] as const
-          ).map((type) => (
-            <button
-              type="button"
-              className={
-                form.watch("accountType") === type.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("accountType", type.id)}
-              key={type.id}
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Banco, billetera o institución
-        <input
-          {...form.register("institution")}
-          placeholder="Ej. Banco Regional / Efectivo"
-        />
-      </label>
-      <label>
-        Número de cuenta o referencia
-        <input {...form.register("accountNumber")} placeholder="Opcional" />
-      </label>
-      <label>
-        Titular de la cuenta
-        <input
-          {...form.register("holderName")}
-          placeholder="Empresa, socio o familiar"
-        />
-      </label>
-      <fieldset>
-        <legend>Quién custodia este dinero</legend>
-        <div className="choice-list compact">
-          <button
-            type="button"
-            className={
-              !form.watch("custodianUserId") ? "choice active" : "choice"
-            }
-            onClick={() => form.setValue("custodianUserId", "")}
-          >
-            Sin asignar
-          </button>
-          {custodians.map((member) => (
-            <button
-              type="button"
-              className={
-                form.watch("custodianUserId") === member.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("custodianUserId", member.id)}
-              key={member.id}
-            >
-              {member.email}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Moneda</legend>
-        <div className="choice-list compact">
-          {currencyCodes.map((currency) => (
-            <button
-              type="button"
-              className={
-                form.watch("currency") === currency ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("currency", currency)}
-              key={currency}
-            >
-              {currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
-        {submission.pending ? "Creando…" : "Crear cuenta"}
-      </button></SaveActions>
-    </form>
-  );
-}
-const invoiceSchema = z.object({
-  clientId: z.string().min(1, "Elegí un cliente."),
-  total: z.string().min(1, "Ingresá el importe.").refine(value=>Number.isFinite(Number(value))&&Number(value)>=0, "El importe no puede ser negativo."),
-  currency: z.enum(currencyCodes),
-  dueOn: z.string().optional(),
-});
-type InvoiceValues = z.infer<typeof invoiceSchema>;
-function InvoiceForm({
-  clients,
-  done,
-}: {
-  clients: Client[];
-  done: (invoice: Invoice) => void;
-}) {
-  const {currency:defaultCurrency}=useCompanyCurrency();
-  const form = useForm<InvoiceValues>({
-    resolver: zodResolver(invoiceSchema),
-    defaultValues: { clientId: "", total: "0", currency: defaultCurrency, dueOn: "" },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: InvoiceValues) {
-    try {
-      const data = await request<{ invoice: Invoice }>("/api/agency/invoices", {
-        method: "POST",
-        body: JSON.stringify({...values,total:Number(values.total)}),
-      });
-      done(data.invoice);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "No se pudo crear la factura.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <fieldset>
-        <legend>Cliente</legend>
-        <div className="choice-list">
-          {clients.map((client) => (
-            <button
-              type="button"
-              className={
-                form.watch("clientId") === client.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("clientId", client.id, { shouldValidate: true })
-              }
-              key={client.id}
-            >
-              {client.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.clientId && (
-          <small className="error">
-            {form.formState.errors.clientId.message}
-          </small>
-        )}
-      </fieldset>
-      <label>
-        Total sin IVA
-        <AmountInput value={form.watch('total')||''} currency={form.watch('currency')} invalid={!!form.formState.errors.total} onChange={value=>form.setValue('total',value,{shouldValidate:true,shouldDirty:true})}/>
-      </label>
-      <fieldset>
-        <legend>Moneda</legend>
-        <div className="choice-list compact">
-          {currencyCodes.map((currency) => (
-            <button
-              type="button"
-              className={
-                form.watch("currency") === currency ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("currency", currency)}
-              key={currency}
-            >
-              {currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Vencimiento
-        <input type="date" {...form.register("dueOn")} />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!clients.length || submission.pending}
-      >
-        {submission.pending ? "Creando…" : "Crear factura"}
-      </button></SaveActions>
-    </form>
-  );
-}
-const paymentSchema = z.object({
-  invoiceId: z.string().min(1, "Elegí una factura."),
-  accountId: z.string().min(1, "Elegí una cuenta."),
-  amount: z.string().min(1, "Ingresá el importe cobrado.").refine(value=>Number.isFinite(Number(value))&&Number(value)>0, "El cobro debe ser mayor a cero."),
-  receivedOn: z.string().optional(),
-  reference: z.string().max(120).optional(),
-  receivedByUserId: z.string().optional(),
-});
-type PaymentValues = z.infer<typeof paymentSchema>;
-function PaymentForm({
-  invoices,
-  accounts,
-  custodians,
-  done,
-}: {
-  invoices: Invoice[];
-  accounts: Account[];
-  custodians: Member[];
-  done: () => void;
-}) {
-  const [requestId]=useState(()=>crypto.randomUUID());
-  const form = useForm<PaymentValues>({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: {
-      invoiceId: "",
-      accountId: "",
-      amount: "0",
-      receivedOn: new Date().toISOString().slice(0, 10),
-      reference: "",
-      receivedByUserId: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: PaymentValues) {
-    try {
-      await request("/api/agency/payments", {
-        method: "POST",
-        body: JSON.stringify({...values,amount:Number(values.amount),requestId}),
-      });
-      done();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "No se pudo registrar el cobro.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <fieldset>
-        <legend>Factura</legend>
-        <div className="choice-list">
-          {invoices
-            .filter((invoice) => invoice.status !== "paid")
-            .map((invoice) => (
-              <button
-                type="button"
-                className={
-                  form.watch("invoiceId") === invoice.id
-                    ? "choice active"
-                    : "choice"
-                }
-                onClick={() =>
-                  form.setValue("invoiceId", invoice.id, {
-                    shouldValidate: true,
-                  })
-                }
-                key={invoice.id}
-              >
-                {invoice.number} · {invoice.client_name}
-              </button>
-            ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Quién recibió el cobro</legend>
-        <div className="choice-list">
-          {custodians.map((member) => (
-            <button
-              type="button"
-              className={
-                form.watch("receivedByUserId") === member.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("receivedByUserId", member.id)}
-              key={member.id}
-            >
-              {member.email}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Cuenta de ingreso</legend>
-        <div className="choice-list">
-          {accounts.map((account) => (
-            <button
-              type="button"
-              className={
-                form.watch("accountId") === account.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("accountId", account.id, { shouldValidate: true })
-              }
-              key={account.id}
-            >
-              {account.name} · {account.currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Importe cobrado
-        <AmountInput value={form.watch('amount')||''} currency={accounts.find(account=>account.id===form.watch('accountId'))?.currency||'PYG'} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
-      </label>
-      <label>
-        Fecha
-        <input type="date" {...form.register("receivedOn")} />
-      </label>
-      <label>
-        Referencia
-        <input
-          {...form.register("reference")}
-          placeholder="Transferencia / comprobante"
-        />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!accounts.length || submission.pending}
-      >
-        {submission.pending ? "Guardando…" : "Registrar cobro"}
-      </button></SaveActions>
-    </form>
-  );
-}
-
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1259,6 +383,7 @@ export default function Home() {
   const displayedClients=filterClientDirectory(clients,clientSearch,clientStatusFilter);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
+  const clientHubStats=useMemo(()=>clientPortfolioStats(clients,projects,orders),[clients,projects,orders]);
   const productionClientId=preferences.production.clientId;
   function setProductionClientId(clientId:string){updatePreferences({production:{...preferences.production,clientId}});}
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
@@ -1318,7 +443,6 @@ export default function Home() {
   }, [moraReports, paymentStatuses]);
   const visibleMoraClients = (moraFilter === "no_invoice" ? paymentStatuses.filter(client => !client.has_invoice) : moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses).filter(client => !moraSearch || client.client_name.toLowerCase().includes(moraSearch.toLowerCase()));
   const moneyMora = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
-  const moneyKpi = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
   const budgetKpis = useMemo(() => {
     const totals = new Map<string, number>();
     let drafts = 0, accepted = 0, expiring = 0;
@@ -2048,6 +1172,11 @@ export default function Home() {
                 <strong>{directoryKpis.active}</strong>
                 <small>Con servicio en curso</small>
               </article>
+              <article className="kpi-card tone-warning">
+                <p className="eyebrow">COBROS AL DÍA</p>
+                <strong>{cobrosKpis.alDia}</strong>
+                <small>{cobrosKpis.enMora} en mora · {cobrosKpis.porVencer} por vencer · {cobrosKpis.sinFactura} sin factura</small>
+              </article>
               <article className="kpi-card tone-brand">
                 <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
                 {["owner", "admin", "finance"].includes(user?.role || "") ? (
@@ -2069,38 +1198,53 @@ export default function Home() {
                 )}
                 <small>Expectativa comercial vigente por moneda</small>
               </article>
-              <article className="kpi-card tone-warning">
-                <p className="eyebrow">COBROS AL DÍA</p>
-                <strong>{cobrosKpis.alDia}</strong>
-                <small>{cobrosKpis.enMora} en mora · {cobrosKpis.porVencer} por vencer · {cobrosKpis.sinFactura} sin factura</small>
-              </article>
               <article className="kpi-card tone-blue">
                 <p className="eyebrow">ENTREGAS ESTA SEMANA</p>
                 <strong>{directoryKpis.deliveries}</strong>
                 <small>Piezas con vencimiento en 7 días</small>
               </article>
             </div>
-            <div className={clientView==='grid'?'client-directory-grid':'client-list'}>
+            <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
               {displayedClients.length ? (
-                displayedClients.map((client) => {const pay=paymentStatuses.find(ps=>String(ps.client_id)===String(client.id));return (
-                  <div className="client-row" key={client.id}>
-                    <div>
-                      <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/></button>
-                      <small>{client.email || "Sin email registrado"}</small>
+                displayedClients.map((client) => {const pay=paymentStatuses.find(ps=>String(ps.client_id)===String(client.id));const state=clientState(client);const stat=clientHubStats.get(String(client.id));const tel=whatsappUrl(client.phone||undefined);const since=clientSince(client.created_at);return (
+                  <article className="client-hub-card" key={client.id}>
+                    <header className="client-hub-head">
+                      <button type="button" className="client-hub-open" onClick={()=>setDetail({kind:'client',id:client.id})} aria-label={`Abrir ficha de ${client.name}`}>
+                        <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
+                      </button>
+                      <span className="client-status" data-status={state.value}>{state.label}</span>
+                    </header>
+                    <dl className="client-hub-facts">
+                      <div><dt>Correo</dt><dd title={client.email||undefined}>{client.email || "Sin email registrado"}</dd></div>
+                      <div><dt>Teléfono</dt><dd title={client.phone||undefined}>{client.phone || "Sin teléfono"}</dd></div>
+                      <div><dt>RUC</dt><dd title={client.tax_id||undefined}>{client.tax_id || "Sin RUC registrado"}</dd></div>
+                      <div><dt>Cliente desde</dt><dd>{since || "Sin fecha de alta"}</dd></div>
+                    </dl>
+                    <div className="client-hub-stats" aria-label="Cartera del cliente">
+                      {stat?.projects?<span className="client-hub-stat"><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
+                      {stat?.pieces?<span className="client-hub-stat"><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
+                      {stat?.nextDue?<span className="client-hub-stat">Próxima entrega <b>{stat.nextDue.slice(8,10)}/{stat.nextDue.slice(5,7)}</b></span>:null}
+                      {stat&&!stat.projects&&!stat.pieces?<span className="client-hub-stat muted">Sin proyectos activos</span>:null}
                     </div>
-                    <span>{client.phone || "Sin teléfono"}</span>
-                    <span className="client-status" data-status={clientState(client).value}>{clientState(client).label}</span>{client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
-                    {pay && (
-                      pay.payment_status === "up_to_date" ? (
-                        <span className="mora-chip mora-clear">Al día</span>
-                      ) : pay.payment_status === "due_soon" ? (
-                        <span className="mora-chip mora-early">Vence {pay.next_due_on || "próximamente"}</span>
-                      ) : (
-                        <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
-                      )
-                    )}
-                    <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
-                  </div>
+                    <div className="client-hub-chips">
+                      {pay ? (
+                        pay.payment_status === "up_to_date" ? (
+                          <span className="mora-chip mora-clear">Al día</span>
+                        ) : pay.payment_status === "due_soon" ? (
+                          <span className="mora-chip mora-early">Vence {pay.next_due_on || "próximamente"}</span>
+                        ) : (
+                          <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
+                        )
+                      ) : null}
+                      {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance">Pendiente {moneyKpi(Number(pay.outstanding_amount),pay.currency)}</span>:null}
+                      {client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
+                    </div>
+                    <footer className="client-hub-actions">
+                      <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><Eye size={14}/>Abrir ficha</button>
+                      {tel?<a className="text-button" href={tel} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>:null}
+                      <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
+                    </footer>
+                  </article>
                 );})
               ) : clients.length===0 ? (
                 <p className="empty-copy">
@@ -2197,28 +1341,27 @@ export default function Home() {
               </article>
             </div>
             <p className="directory-summary">{budgets.length} presupuestos · Propuestas y aprobaciones</p>
-            <div className="project-grid">
+            <div className="budget-hub-grid">
               {budgets.length ? (
                 budgets.map((budget) => (
-                  <article className="project-card" key={budget.id}>
-                    <p className="eyebrow">
-                      {budget.number} · {budget.client_name}
-                    </p>
+                  <article className="ops-card budget-hub-card" key={budget.id}>
+                    <header className="budget-hub-head">
+                      <span className="budget-number">{budget.number}</span>
+                      <span className="budget-state" data-status={budget.status}>{{draft:'Borrador',sent:'Enviado',accepted:'Aceptado',rejected:'Rechazado',expired:'Vencido'}[budget.status]||budget.status}</span>
+                    </header>
                     <h3>{budget.title}</h3>
-                    <p>
-                      {budget.item_count} ítem ·{" "}
-                      {budget.status === "draft" ? "Borrador" : budget.status}
-                    </p>
-                    <strong>
-                      {new Intl.NumberFormat("es-PY", {
-                        style: "currency",
-                        currency: budget.currency,
-                        maximumFractionDigits: 0,
-                      }).format(Number(budget.total))}{" "}
-                      IVA incl.
-                    </strong>
-                    <BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/>
-                    <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/>
+                    <p className="budget-client">{budget.client_name}</p>
+                    <dl className="budget-hub-facts">
+                      <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
+                      <div><dt>Vigencia</dt><dd>{budget.valid_until?budget.valid_until.slice(0,10):'Sin fecha'}</dd></div>
+                      <div><dt>Sin IVA</dt><dd>{new Intl.NumberFormat("es-PY",{style:"currency",currency:budget.currency,maximumFractionDigits:0}).format(Number(budget.subtotal))}</dd></div>
+                    </dl>
+                    <strong className="budget-hub-total">{new Intl.NumberFormat("es-PY", {
+                      style: "currency",
+                      currency: budget.currency,
+                      maximumFractionDigits: 0,
+                    }).format(Number(budget.total))}<small>IVA incl.</small></strong>
+                    <footer className="budget-hub-actions"><BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>
                   </article>
                 ))
               ) : (
@@ -2232,6 +1375,23 @@ export default function Home() {
         )}
         {active === "Informes" && <ReportsWorkspace key={user?.organization_id} role={user?.role||'viewer'}/>}
         {active === "Finanzas" && (<>
+          {(()=>{const availability=new Map<string,number>();for(const account of accounts)if(account.active!==false)availability.set(account.currency,(availability.get(account.currency)||0)+Number(account.balance));const receivable=new Map<string,number>();let pendingCount=0;for(const invoice of invoices){if(['paid','cancelled','draft'].includes(invoice.status))continue;const pending=Number(invoice.total)-Number(invoice.paid_amount);if(pending<=0)continue;receivable.set(invoice.currency,(receivable.get(invoice.currency)||0)+pending);pendingCount+=1;}return <div className="kpi-strip" aria-label="Resumen financiero">
+            <article className="kpi-card tone-brand">
+              <p className="eyebrow">DISPONIBLE</p>
+              {availability.size?<div className="kpi-amounts">{Array.from(availability).map(([currency,total])=><span key={currency}>{moneyKpi(total,currency)}</span>)}</div>:<strong>Sin cuentas activas</strong>}
+              <small>Saldo actual de cuentas activas por moneda</small>
+            </article>
+            <article className="kpi-card tone-warning">
+              <p className="eyebrow">POR COBRAR</p>
+              {receivable.size?<div className="kpi-amounts">{Array.from(receivable).map(([currency,total])=><span key={currency}>{moneyKpi(total,currency)}</span>)}</div>:<strong>Sin saldos pendientes</strong>}
+              <small>Facturas emitidas o parciales con saldo pendiente</small>
+            </article>
+            <article className="kpi-card tone-blue">
+              <p className="eyebrow">FACTURAS CON SALDO</p>
+              <strong>{pendingCount}</strong>
+              <small>{invoices.length?`${invoices.length} facturas cargadas`:'Todavía no hay facturas registradas'}</small>
+            </article>
+          </div>;})()}
           <section className="finance-grid">
             <section className="panel">
               <div className="panel-heading">
@@ -2257,29 +1417,27 @@ export default function Home() {
                 </div>
               </div>
               {accounts.length ? (
-                <div className="client-list">
+                <div className="finance-account-grid">
                   {accounts.map((account) => (
-                    <div className="payment-row" key={account.id}>
-                      <div>
-                        <b>{account.name}</b>
-                        <small>
-                          {{bank:'Cuenta bancaria',cash:'Caja en efectivo',digital:'Billetera digital',investment:'Inversión'}[account.account_type]} · {account.currency}
-                          {account.custodian_email
-                            ? ` · Custodia: ${account.custodian_email}`
-                            : ""}
-                        </small>
-                        {account.account_number&&<small>N.º {account.account_number}</small>}
-                        {account.holder_name&&<small>Titular: {account.holder_name}</small>}
-                        <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role||'viewer'} done={loadFinance}/>
-                      </div>
-                      <strong>
+                    <article className="finance-account-card" key={account.id} data-active={account.active===false?undefined:'true'}>
+                      <header className="finance-account-head">
+                        <b title={account.name}>{account.name}</b>
+                        <span className="hub-chip">{{bank:'Bancaria',cash:'Efectivo',digital:'Digital',investment:'Inversión'}[account.account_type]||account.account_type} · {account.currency}</span>
+                      </header>
+                      <strong className="finance-account-balance">
                         {new Intl.NumberFormat("es-PY", {
                           style: "currency",
                           currency: account.currency,
                           maximumFractionDigits: 0,
                         }).format(Number(account.balance))}
                       </strong>
-                    </div>
+                      <dl className="finance-facts">
+                        {account.account_number?<div><dt>N.º</dt><dd title={account.account_number}>{account.account_number}</dd></div>:null}
+                        {account.holder_name?<div><dt>Titular</dt><dd title={account.holder_name}>{account.holder_name}</dd></div>:null}
+                        {account.custodian_email?<div><dt>Custodia</dt><dd title={account.custodian_email}>{account.custodian_email}</dd></div>:null}
+                      </dl>
+                      <footer className="finance-card-actions"><RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role||'viewer'} done={loadFinance}/></footer>
+                    </article>
                   ))}
                 </div>
               ) : (
@@ -2354,13 +1512,14 @@ export default function Home() {
               {invoices.length ? (
                 <div className="client-list">
                   {invoices.map((invoice) => (
-                    <div className="payment-row" key={invoice.id}>
+                    <div className="payment-row finance-invoice-row" key={invoice.id}>
                       <div>
                         <b>
                           {invoice.number} · {invoice.client_name}
                         </b>
                         <small>
-                          {invoice.status} · pendiente{" "}
+                          <span className="finance-state" data-status={invoice.status}>{{issued:'Emitida',partial:'Parcial',paid:'Pagada',overdue:'Vencida',draft:'Borrador',cancelled:'Cancelada'}[invoice.status]||invoice.status}</span>
+                          {" · pendiente "}
                           {new Intl.NumberFormat("es-PY", {
                             style: "currency",
                             currency: invoice.currency,
@@ -2442,6 +1601,7 @@ export default function Home() {
             <ClientRuc embedded refresh={load} onCreated={close}/>
           ) : (
             <ClientForm
+              request={request}
               done={(client) => {
                 setClients((current) => [client, ...current]);
                 setSummary((current) => ({
@@ -2457,6 +1617,7 @@ export default function Home() {
       {modal === "project" && (
         <Modal title="Nuevo proyecto" onClose={close}>
           <ProjectForm
+            request={request}
             clients={clients}
             initialClientId={projectClient}
             done={async () => {
@@ -2468,6 +1629,7 @@ export default function Home() {
       {modal === "order" && (
         <Modal title="Nueva orden de trabajo" onClose={close}>
           <OrderForm
+            request={request}
             projects={projects}
             done={async () => {
               await completeSave(close,load);
@@ -2483,6 +1645,7 @@ export default function Home() {
       {modal === "account" && (
         <Modal title="Nueva cuenta" onClose={close}>
           <AccountForm
+            request={request}
             custodians={custodians}
             done={(account) => {
               setAccounts((current) => [...current, account]);
@@ -2494,6 +1657,7 @@ export default function Home() {
       {modal === "invoice" && (
         <Modal title="Nueva factura" onClose={close}>
           <InvoiceForm
+            request={request}
             clients={clients}
             done={(invoice) => {
               setInvoices((current) => [invoice, ...current]);
@@ -2505,6 +1669,7 @@ export default function Home() {
       {modal === "payment" && (
         <Modal title="Registrar cobro" onClose={close}>
           <PaymentForm
+            request={request}
             invoices={invoices}
             accounts={accounts}
             custodians={custodians}

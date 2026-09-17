@@ -23,3 +23,18 @@
 @media(hover:hover) and (pointer:fine){.settings-integration-list article{transition:background 160ms ease-out}.settings-integration-list article:hover{background:var(--surface-sunken)}.settings-card-actions .secondary:active,.settings-card .form-actions .primary:active{transform:scale(.97)}}
 @media(max-width:700px){.settings-card{gap:14px}.settings-card .form-actions .primary{width:100%}.settings-integration-list article{grid-template-columns:1fr;gap:8px}.settings-status{justify-self:start}.preferences-row{grid-template-columns:1fr;gap:10px}.preferences-row .ops-select-trigger{min-height:44px}.settings-card-actions{justify-content:stretch}.settings-card-actions .secondary{width:100%}}
 @media(prefers-reduced-motion:reduce){.settings-card *{transition-duration:.01ms!important}.settings-card :is(button,a):active{transform:none!important}}
+
+/* Papelera: filas estructuradas con chip de tipo. */
+.trash-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.trash-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border-subtle,var(--line));border-radius:12px;background:var(--surface-raised,var(--surface));transition:border-color var(--ease),box-shadow var(--ease)}
+.trash-row:hover{border-color:var(--line-strong,var(--border-subtle));box-shadow:var(--shadow-xs)}
+.trash-kind{display:inline-flex;align-items:center;padding:3px 10px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--violet-soft);color:var(--brand-700);font-size:10.5px;font-weight:700;white-space:nowrap}
+.trash-info{min-width:0}
+.trash-info b{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trash-info small{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;color:var(--text-subtle,var(--text-muted));font-size:11.5px}
+.trash-restore{white-space:nowrap;min-height:40px}
+.trash-empty{padding:18px;border:1px dashed var(--border-subtle,var(--line));border-radius:12px;background:var(--surface-sunken,var(--surface-subtle));color:var(--text-subtle,var(--text-muted));text-align:center}
+/* Preferencias y zona sensible en cápsulas. */
+.preferences-card .preferences-row{padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:12px;background:var(--surface-sunken,var(--surface-subtle));margin-top:12px}
+.settings-danger-wrap .settings-card,.settings-danger-wrap>section{border-radius:16px}
+@media(max-width:640px){.trash-row{grid-template-columns:auto minmax(0,1fr)}.trash-restore{grid-column:1/-1;justify-content:center}}

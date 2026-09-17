@@ -9,7 +9,7 @@ import {z} from 'zod';
 import {api,Dialog,Editor,money} from './operations';
 import {SelectCustom,AmountInput} from './profile-controls';
 import {parseStatementCsv} from './statement-csv';
-import {Copy,Link2,Link2Off,Undo2,Unlink} from 'lucide-react';
+import {Copy,Eye,Link2,Link2Off,Undo2,Unlink} from 'lucide-react';
 type Account={id:string;name:string;currency:string;active:boolean};
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
@@ -56,6 +56,22 @@ export function ClientReviewControl({orderId}:{orderId:string}){
  async function load(){setRows((await api<{reviews:Row[]}>(`/api/agency/work-orders/${orderId}/client-review`)).reviews);}
  async function perform(fn:()=>Promise<void>){setBusy(true);setError('');try{await fn();}catch(e){setError(errorText(e));}finally{setBusy(false);}}
  return <><button className="secondary" onClick={()=>{setOpen(true);void perform(load);}}>Revisión del cliente</button>{open&&<Dialog title="Compartir pieza para aprobación" close={()=>setOpen(false)}><p className="form-note">Primero completá las aprobaciones internas y agregá el enlace del archivo. El enlace de revisión vence en siete días. No se envía automáticamente.</p><button className="primary" disabled={busy} onClick={()=>void perform(async()=>{const d=await api<{url:string}>(`/api/agency/work-orders/${orderId}/client-review`,{});setUrl(d.url);await load();})}>Crear enlace para esta versión</button>{url&&<p><a href={url} target="_blank" rel="noreferrer">{url}</a></p>}{error&&<p role="alert" className="error">{error}</p>}{!rows.length&&!busy&&<p className="empty-copy">Todavía no hay enlaces de revisión para esta pieza.</p>}{rows.map(r=><article className="ops-card" key={r.id}><h3>{({pending:'Pendiente',approved:'Aprobado',changes:'Cambios solicitados',revoked:'Desactivado'} as Record<string,string>)[str(r,'status')]}</h3><p>Enlace creado por <ActorIdentity name={str(r,'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} timestamp={str(r,'created_at')}/></p>{str(r,'reviewer_name')&&<p>Respuesta del cliente <ActorIdentity name={str(r,'reviewer_name')} timestamp={str(r,'responded_at')}/></p>}<p>{str(r,'feedback')}</p><small>Vence: {str(r,'expires_at').slice(0,10)}</small>{r.status==='pending'&&<button className="text-button danger" disabled={busy} onClick={()=>void perform(async()=>{await api(`/api/agency/work-orders/${orderId}/client-review/${r.id}/revoke`,{});setUrl('');await load();})}><Link2Off size={14}/>Desactivar enlace</button>}</article>)}</Dialog>}</>;
+}
+export function ClientReviewPreview({title,assetUrl}:{title:string;assetUrl?:string|null}){
+ const [open,setOpen]=useState(false);
+ return <><button className="secondary" type="button" onClick={()=>setOpen(true)}><Eye size={14}/>Ver como cliente</button>{open&&<Dialog title="Vista previa del cliente" close={()=>setOpen(false)}>
+  <p className="form-note">Así ve el cliente el enlace de revisión. Las acciones están desactivadas: no se envía nada ni cambia el estado de la pieza.</p>
+  <article className="client-review-preview" aria-label="Vista previa de la revisión del cliente">
+   <p className="review-eyebrow">REVISIÓN DE CONTENIDO</p>
+   <h3>{title}</h3>
+   <p>Revisá la pieza y dejá tu respuesta. El archivo se abre en su servicio de origen.</p>
+   {assetUrl?<a className="button" href={assetUrl} target="_blank" rel="noreferrer">Abrir pieza</a>:<p className="form-note">Esta versión todavía no tiene enlace de archivo. Agregalo en Enlaces para que el cliente pueda abrirla.</p>}
+   <label>Nombre completo<input disabled placeholder="Nombre y apellido" autoComplete="off"/></label>
+   <label>Comentarios o cambios<textarea disabled rows={3} placeholder="Qué te gustaría ajustar"/></label>
+   <div className="inline-actions review-preview-actions"><button className="primary" type="button" disabled>Aprobar esta versión</button><button className="secondary" type="button" disabled>Solicitar cambios</button></div>
+   <p className="form-note">El enlace real vence a los siete días. El nombre declarado no equivale a una firma digital verificada.</p>
+  </article>
+ </Dialog>}</>;
 }
 export function ClientPortalDeliveryControl({orderId,title,assetUrl}:{orderId:string;title:string;assetUrl:string}){
  const [open,setOpen]=useState(false),[delivery,setDelivery]=useState<Row|null>(null),[error,setError]=useState('');

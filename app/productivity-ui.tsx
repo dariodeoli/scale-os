@@ -7,7 +7,7 @@ import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {notify} from './feedback';
 import {completeSave} from './save-completion';
-import {ClientReviewControl,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
+import {ClientReviewControl,ClientReviewPreview,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
 import {ClientAppearance,ClientIdentity} from './client-identity';
 import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
@@ -68,23 +68,34 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
  const order=data?.order,editable=makers.includes(role);
  const heading=order?(editing?'Editar pieza':s(order,'title')):'Detalle de la pieza';
   const fields:Field[]=[urgencyField,{key:'title',label:'Título'},{key:'description',label:'Descripción y notas',type:'textarea',optional:true},{key:'drive_links',label:'Enlaces de archivo o carpeta de Drive',type:'textarea',optional:true,wide:true},{key:'due_date',label:'Entrega',type:'date',optional:true},{key:'due_time',label:'Hora de entrega',type:'time',optional:true},{key:'work_type',label:'Tipo de trabajo',optional:true,choices:workTypeChoices},{key:'estimated_hours',label:'Horas estimadas',type:'number',optional:true},{key:'actual_hours',label:'Horas trabajadas',type:'number',optional:true}];
- return <Dialog variant="drawer" title={heading} close={close}>
-  {error&&<p className="error" role="alert">{error}</p>}
-  {!order?<p>Cargando pieza…</p>:<>
-   <ProjectPresence projectId={s(order,'project_id')}/><UrgencyBadge value={order.urgency}/>
-   <ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/>
-   <p className="form-note">{states.find(x=>x.value===order.status)?.label||s(order,'status')} · Actualizada {new Date(s(order,'updated_at')).toLocaleString('es-PY')}</p>
-   <div className="choice-list">{['Detalle','Comentarios','Historial'].map(t=><button className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)} key={t}>{t}{t==='Comentarios'?` (${data.comments.length})`:''}</button>)}</div>
-   <div hidden={tab!=='Detalle'}>
-    <div className="work-detail-toolbar">{editable&&!editing?<button className="icon-button" type="button" title="Editar pieza" aria-label="Editar pieza" onClick={()=>setEditing(true)}><Pencil size={16}/></button>:null}</div>
-    {editing&&editable?<RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role={role} updatedAt={s(order,'updated_at')} refresh={()=>completeSave(close,refresh)}>{save=><Editor key={s(order,'updated_at')} fields={fields} defaults={Object.fromEntries(fields.map(f=>[f.key,f.key==='due_date'?s(order,f.key).slice(0,10):f.key==='due_time'?s(order,f.key).slice(0,5):f.key==='drive_links'?driveLinksText(order.drive_links,s(order,'drive_url')):s(order,f.key)]))} save={save}/>}</RecordAssignees>:<><RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role="viewer" refresh={refresh}/><p className="work-detail-description">{s(order,'description')||'Sin descripción'}</p><DueDate value={s(order,'due_date')} time={s(order,'due_time')}/><p className="form-note">{workTypeLabels[s(order,'work_type')]?`Tipo de trabajo: ${workTypeLabels[s(order,'work_type')]}`:'Tipo de trabajo: sin clasificar'}</p><DriveLinks value={order.drive_links} legacy={s(order,'drive_url')}/></>}
-    <WorkChecklist id={id} organizationId={organizationId} role={role} refresh={refresh}/><WorkOrderLinks orderId={id} role={role}/>
-    {editable&&<div className="quick-actions"><button className="secondary" disabled={busy||['approved','published','review'].includes(s(order,'status'))} onClick={async()=>{setBusy(true);try{await api(`/api/agency/work-orders/${id}`,{status:'review'},'PATCH');await load();await refresh();}catch(e){setError(errorText(e));}finally{setBusy(false);}}}>Listo para revisión</button><button className="text-button" disabled={busy} onClick={()=>void action(`/api/agency/productivity/orders/${id}/duplicate`)}><Copy size={14}/>Duplicar pieza</button>
-     {managers.includes(role)&&order.status==='review'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/approve`)} title="Registra una aprobación interna. Al completar los niveles del proyecto, la pieza queda aprobada.">Aprobar siguiente nivel</button>}
-     {managers.includes(role)&&order.status==='approved'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/publish`)}>Marcar publicada</button>}
-    </div>}
-    {managers.includes(role)&&<><ClientReviewControl orderId={id}/><ClientPortalDeliveryControl orderId={id} title={s(order,'title')} assetUrl={s(order,'drive_url')}/></>}
-   </div>
+  return <Dialog variant="drawer" title={heading} close={close}>
+   {error&&<p className="error" role="alert">{error}</p>}
+   {!order?<p>Cargando pieza…</p>:<>
+    <header className="work-hero">
+      <div className="work-hero-top"><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/><UrgencyBadge value={order.urgency}/></div>
+      <div className="work-hero-chips">
+        <span className="work-state" data-status={s(order,'status')}>{states.find(x=>x.value===order.status)?.label||s(order,'status')}</span>
+        <span className="hub-chip">{workTypeLabels[s(order,'work_type')]||'Sin clasificar'}</span>
+        <DueDate value={s(order,'due_date')} time={s(order,'due_time')} compact/>
+        <span className="hub-chip muted">Actualizada {new Date(s(order,'updated_at')).toLocaleString('es-PY')}</span>
+      </div>
+      <ProjectPresence projectId={s(order,'project_id')}/>
+    </header>
+    <div className="choice-list work-tabs">{['Detalle','Comentarios','Historial'].map(t=><button className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)} key={t}>{t}{t==='Comentarios'?` (${data.comments.length})`:''}</button>)}</div>
+    <div hidden={tab!=='Detalle'} className="work-detail-stack">
+     <div className="work-detail-toolbar">{editable&&!editing?<button className="secondary" type="button" onClick={()=>setEditing(true)}><Pencil size={14}/>Editar pieza</button>:null}</div>
+     {editing&&editable?<RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role={role} updatedAt={s(order,'updated_at')} refresh={()=>completeSave(close,refresh)}>{save=><Editor key={s(order,'updated_at')} fields={fields} defaults={Object.fromEntries(fields.map(f=>[f.key,f.key==='due_date'?s(order,f.key).slice(0,10):f.key==='due_time'?s(order,f.key).slice(0,5):f.key==='drive_links'?driveLinksText(order.drive_links,s(order,'drive_url')):s(order,f.key)]))} save={save}/>}</RecordAssignees>:<>
+       <section className="work-section"><h4 className="work-section-title">Descripción</h4><p className="work-detail-description">{s(order,'description')||'Sin descripción'}</p></section>
+       <section className="work-section"><h4 className="work-section-title">Responsables</h4><RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role="viewer" refresh={refresh}/></section>
+       <section className="work-section"><h4 className="work-section-title">Archivos y enlaces</h4><DriveLinks value={order.drive_links} legacy={s(order,'drive_url')}/><WorkOrderLinks orderId={id} role={role}/></section>
+       <section className="work-section"><WorkChecklist id={id} organizationId={organizationId} role={role} refresh={refresh}/></section>
+     </>}
+     {editable&&<div className="quick-actions work-section"><h4 className="work-section-title">Acciones</h4><div className="inline-actions"><button className="secondary" disabled={busy||['approved','published','review'].includes(s(order,'status'))} onClick={async()=>{setBusy(true);try{await api(`/api/agency/work-orders/${id}`,{status:'review'},'PATCH');await load();await refresh();}catch(e){setError(errorText(e));}finally{setBusy(false);}}}>Listo para revisión</button><button className="text-button" disabled={busy} onClick={()=>void action(`/api/agency/productivity/orders/${id}/duplicate`)}><Copy size={14}/>Duplicar pieza</button>
+      {managers.includes(role)&&order.status==='review'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/approve`)} title="Registra una aprobación interna. Al completar los niveles del proyecto, la pieza queda aprobada.">Aprobar siguiente nivel</button>}
+      {managers.includes(role)&&order.status==='approved'&&<button className="secondary" disabled={busy} onClick={()=>void action(`/api/agency/work-orders/${id}/publish`)}>Marcar publicada</button>}
+     </div></div>}
+     {managers.includes(role)&&<section className="work-section"><h4 className="work-section-title">Cliente</h4><ClientReviewPreview title={s(order,'title')} assetUrl={s(order,'drive_url')}/><ClientReviewControl orderId={id}/><ClientPortalDeliveryControl orderId={id} title={s(order,'title')} assetUrl={s(order,'drive_url')}/></section>}
+    </div>
    {tab==='Comentarios'&&<><p className="form-note">Comentarios internos de esta pieza; no se envían al cliente. Usá @ para mencionar a una persona.</p>{editable&&<CommentComposer label="Agregar comentario" save={async (body,mentionedUserIds)=>{await api(`/api/agency/productivity/orders/${id}/comments`,{body,mentioned_user_ids:mentionedUserIds});await completeSave(()=>{},load);}}/>}{data.comments.map(c=><article className="activity-line" id={`comment-${c.id}`} key={c.id}><ActorIdentity name={s(c,'actor_name')||s(c,'author_email')} photoUrl={s(c,'actor_photo_url')} verified={c.actor_verified===true} timestamp={s(c,'created_at')}/><CommentBody value={s(c,'body')}/></article>)}{!data.comments.length&&<p className="empty-copy">Todavía no hay comentarios.</p>}</>}
    {tab==='Historial'&&<><p>Niveles aprobados: {s(order,'approval_step')||'0'}</p>{data.history.map(h=><article className="activity-line" key={h.id}><ActorIdentity name={s(h,'actor_name')} photoUrl={s(h,'actor_photo_url')} verified={h.actor_verified===true} timestamp={s(h,'created_at')}/><p>{s(h,'action')==='INSERT'?'Creó la pieza':'Actualizó la pieza'}</p>{h.previous_status!==h.next_status&&<p>{s(h,'previous_status')||'Nueva'} → {s(h,'next_status')}</p>}</article>)}{!data.history.length&&<p>Sin cambios registrados.</p>}</>}
   </>}
