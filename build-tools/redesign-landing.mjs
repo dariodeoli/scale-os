@@ -35,7 +35,7 @@ img,svg{max-width:100%}
 button,input,textarea{font:inherit}
 a,button,summary{-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:3px solid var(--accent-bright);outline-offset:4px}
-.wrap{width:100%;max-width:1220px;margin-inline:auto;padding-inline:clamp(18px,3.3vw,40px)}
+.wrap{width:100%;max-width:1680px;margin-inline:auto;padding-inline:clamp(20px,3.2vw,48px)}
 .skip{position:absolute;top:-100px;left:16px;z-index:20;background:var(--white);padding:12px 18px;border:2px solid var(--brand);border-radius:8px}
 .skip:focus{top:10px}
 .site-header{position:sticky;top:0;z-index:10;background:rgb(250 247 252 / 88%);border-bottom:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
