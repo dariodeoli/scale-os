@@ -27,9 +27,17 @@ export type SubscriptionPanelProps={
  loading?:boolean;
  error?:string|null;
  embedded?:boolean;
+ /** Optional agency name for the assisted-activation request message. */
+ organizationName?:string;
 };
 const prices={USD:'US$ 10',PYG:'Gs. 50.000'} as const;
 const monthlyLabels={USD:'USD 10/mes',PYG:'Gs. 50.000/mes'} as const;
+const activationWhatsApp='595993391354';
+function activationRequestUrl(organizationName?:string){
+ const name=(organizationName||'').trim().replace(/\s+/g,' ').slice(0,120);
+ const text=`Hola, quiero activar la suscripción mensual de Scale OS${name?` para la agencia "${name}"`:''} (US$ 10 o Gs. 50.000 por mes, todos los integrantes y módulos incluidos). El cobro en línea no está habilitado en esta instalación; quiero coordinar el pago.`;
+ return `https://wa.me/${activationWhatsApp}?text=${encodeURIComponent(text)}`;
+}
 const titles={unmanaged:'Sin suscripción gestionada',demo:'Demo · sin cobros',trialing:'Prueba gratuita',active:'Suscripción activa',grace:'Pago pendiente · período de gracia',suspended:'Acceso suspendido'};
 const managed=(state:SubscriptionState)=>!['unmanaged','demo'].includes(state.status);
 function dateLabel(value:string|null){
@@ -63,7 +71,7 @@ function readinessMessage(readiness:SubscriptionState['billingReadiness']){
 
 // Main owns GET /api/billing/subscription and the suspended workspace gate.
 // Mount with key={organizationId}; never reuse in-flight billing across tenants.
-export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=false}:SubscriptionPanelProps){
+export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=false,organizationName}:SubscriptionPanelProps){
  const heading=useId();
  const [accepted,setAccepted]=useState(false),[actionError,setActionError]=useState('');
  const [verification,setVerification]=useState('');
@@ -176,12 +184,16 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
     {!state.canManage?<p className="subscription-owner-help">Contactá al dueño de esta empresa para gestionar la suscripción.</p>:<>
      {!state.checkoutReady?<p className="subscription-setup" role="status" data-billing-readiness={state.billingReadiness||'unknown'}>{readinessMessage(state.billingReadiness)}</p>:null}
      <div className="subscription-actions">
-     {showCheckout?<div className="subscription-checkout">
+     {showCheckout?(state.checkoutReady?<div className="subscription-checkout">
       <label className="subscription-consent"><input type="checkbox" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en el checkout seguro.</span></label>
       <button type="button" className="subscription-primary" disabled={busy||!canCheckout||!accepted} onClick={()=>redirect('checkout')}>{pending==='checkout'?'Abriendo checkout…':'Activar suscripción mensual'}</button>
-     </div>:null}
+     </div>:<div className="subscription-manual">
+      <p><strong>Activación con pago coordinado.</strong> El cobro en línea no está disponible en esta instalación, pero podés activar la suscripción igual: coordinamos el pago (transferencia, giro o efectivo) y administración la activa al confirmarlo. La suscripción es mensual, de {prices[currency]} por mes por agencia, con todos los integrantes y módulos incluidos.</p>
+      <a className="subscription-primary subscription-manual-link" href={activationRequestUrl(organizationName)} target="_blank" rel="noopener noreferrer">Solicitar activación por WhatsApp</a>
+      <p className="subscription-help">Este enlace abre WhatsApp con el mensaje ya escrito; no realiza ningún cobro. Cuando el pago se confirme, esta pantalla mostrará “Suscripción activa”.</p>
+     </div>):null}
      {showPortal?<button type="button" className="subscription-secondary" disabled={busy||!canPortal} onClick={()=>redirect('portal')}>{pending==='portal'?'Abriendo portal…':'Gestionar suscripción en Stripe'}</button>:null}
-     <p className="subscription-help">Abrir el checkout no confirma un pago. Al volver, Scale mostrará “verificando” y consultará el estado autorizado por el servidor.</p>
+     {state.checkoutReady?<p className="subscription-help">Abrir el checkout no confirma un pago. Al volver, Scale mostrará “verificando” y consultará el estado autorizado por el servidor.</p>:null}
      </div>
     </>}
    </>:null}

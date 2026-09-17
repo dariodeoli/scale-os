@@ -58,13 +58,15 @@ async function main(){
    assert.equal(renderer!.root.findAllByProps({type:'checkbox'}).length,0);assert(!findButton('Activar'));assert(!findButton('Gestionar'));
   }
   assert.equal(requests.length,0);
-  await render({...state,checkoutReady:false,billingReadiness:'disabled'});assert(text().includes('cobro en línea todavía no fue habilitado'));assert.equal(renderer!.root.findByProps({className:'subscription-setup'}).props['data-billing-readiness'],'disabled');
+  await render({...state,checkoutReady:false,billingReadiness:'disabled'},{organizationName:'Agencia Horizonte'});assert(text().includes('cobro en línea todavía no fue habilitado'));assert.equal(renderer!.root.findByProps({className:'subscription-setup'}).props['data-billing-readiness'],'disabled');
+  const manual=renderer!.root.findByType('a');assert(manual.props.href.startsWith('https://wa.me/595993391354?text='));assert(manual.props.href.includes(encodeURIComponent('Agencia Horizonte')));assert.equal(manual.props.target,'_blank');assert.equal(manual.props.rel,'noopener noreferrer');
+  assert(text().includes('Activación con pago coordinado'));assert(!findButton('Activar suscripción mensual'),'Assisted activation replaces the dead checkout');
+  assert.equal(renderer!.root.findAllByProps({type:'checkbox'}).length,0,'Assisted activation does not ask for checkout consent');
   await render({...state,checkoutReady:false,billingReadiness:'configuration_pending'});assert(text().includes('Falta validar la configuración de Stripe'));
   await render({...state,checkoutReady:false,billingReadiness:'webhook_pending'});assert(text().includes('falta comprobar una entrega firmada del webhook'));
   await render({...state,checkoutReady:false});assert(text().includes('configuración de Stripe está pendiente'));
-  const unavailable=findButton('Activar suscripción mensual');assert.equal(unavailable.props.disabled,true);
-  await act(async()=>{await unavailable.props.onClick();});assert.equal(requests.length,0);
-  await render({...state,status:'active',checkoutReady:false});assert.equal(findButton('Gestionar').props.disabled,true);
+  assert(text().includes('Solicitar activación por WhatsApp'));assert.equal(requests.length,0);
+  await render({...state,status:'active',checkoutReady:false});assert.equal(findButton('Gestionar').props.disabled,true);assert(!text().includes('Solicitar activación por WhatsApp'),'An active subscription does not offer assisted activation');
   await click('Gestionar');assert.equal(requests.length,0);
 
   await render(null,{loading:true});assert(text().includes('Cargando suscripción'));assert.equal(findButton('Reintentar').props.disabled,true);
@@ -200,6 +202,7 @@ async function main(){
   assert.equal(rules('.subscription-notice .subscription-secondary')['min-height'],'44px');assert.equal(rules('.subscription-notice .subscription-secondary')['min-width'],'0');assert.equal(rules('.subscription-notice .subscription-secondary')['white-space'],'nowrap');
   for(const width of [320,360,390])assert(width-28>=44,'Touch target fits inside mobile padding');
   assert.equal(rules('.subscription-panel input[type=checkbox]').padding,'0');assert.equal(rules('.subscription-currency')['min-width'],'0');assert.equal(rules('.subscription-currency-segments label')['min-height'],'44px');
+  assert.equal(rules('.subscription-manual .subscription-manual-link')['display'],'inline-flex');assert.equal(rules('.subscription-manual .subscription-manual-link')['text-decoration'],'none');
   assert(!/transition\s*:\s*all\b/.test(readFileSync(new URL('../app/subscription-panel.css',import.meta.url),'utf8')),'Billing transitions must name the affected properties');
   const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
   assert(workspace.includes("query.get('scaleBilling')||query.get('billing')"));assert(workspace.includes("if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true)"));
