@@ -49,6 +49,13 @@ test('team directory keeps normal roles on photo, name and cargo only',()=>{
  assert.match(operations,/Directorio de personas: foto, nombre y cargo/);
 });
 
+test('budgets reach production while the pipeline does not',()=>{
+ for(const role of ['owner','admin','management','finance','sales','production'])assert(visibleModule('Presupuestos',role),`Presupuestos stays reachable for ${role}`);
+ for(const role of ['owner','admin','management','finance','sales'])assert(visibleModule('Planes',role),`Planes stays reachable for ${role}`);
+ assert(!visibleModule('Pipeline','production'),'production keeps budgets without the sales pipeline');
+ assert(visibleModule('Pipeline','sales'));
+});
+
 test('workspace density owns the header geometry across desktop and mobile',()=>{
  assert.match(density,/Canonical workspace header geometry/);
  assert.match(density,/\.control-shell \.workspace-topbar\{display:flex;align-items:center;justify-content:space-between/);

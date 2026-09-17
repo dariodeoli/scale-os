@@ -33,7 +33,7 @@ export function CatalogWorkspace({kind,role}:{kind:'leads'|'inventory'|'plans';r
  const {currency:defaultCurrency}=useCompanyCurrency();
  const [rows,setRows]=useState<Row[]>([]),[members,setMembers]=useState<Row[]>([]),[edit,setEdit]=useState<Row|'new'|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
- const canEdit=kind==='inventory'?['owner','admin','management','production','finance'].includes(role):['owner','admin','management','finance','sales'].includes(role);
+ const canEdit=kind==='inventory'?['owner','admin','management','production','finance'].includes(role):kind==='plans'?['owner','admin','management','finance','sales','production'].includes(role):['owner','admin','management','finance','sales'].includes(role);
  async function load(){const d=await api<{records:Row[]}>(`/api/agency/${kind}`);setRows(d.records);if(kind==='inventory'){const m=await api<{members:Row[]}>('/api/agency/custodians');setMembers(m.members);}}
  useEffect(()=>{void load().catch(e=>setError(err(e)));},[kind]);
  const row=edit&&edit!=='new'?edit:null;
