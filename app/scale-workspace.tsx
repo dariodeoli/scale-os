@@ -71,7 +71,7 @@ import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type S
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
 import {whatsappUrl} from './client-links';
-import {clientSince,moneyKpi} from './client-format';
+import {clientPortfolioStats,clientSince,moneyKpi} from './client-format';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 import './settings-slice.css';
@@ -1266,20 +1266,7 @@ export default function Home() {
   const displayedClients=filterClientDirectory(clients,clientSearch,clientStatusFilter);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
-  const clientHubStats=useMemo(()=>{
-    const stats=new Map<string,{projects:number;pieces:number;nextDue:string|null}>();
-    for(const client of clients)stats.set(String(client.id),{projects:0,pieces:0,nextDue:null});
-    for(const project of projects){const entry=stats.get(String(project.client_id));if(entry&&project.status==='active')entry.projects+=1;}
-    for(const order of orders){
-      if(['approved','published'].includes(order.status))continue;
-      const project=projects.find(candidate=>String(candidate.id)===String(order.project_id));if(!project)continue;
-      const entry=stats.get(String(project.client_id));if(!entry)continue;
-      entry.pieces+=1;
-      const due=order.due_date?String(order.due_date).slice(0,10):null;
-      if(due&&(!entry.nextDue||due<entry.nextDue))entry.nextDue=due;
-    }
-    return stats;
-  },[clients,projects,orders]);
+  const clientHubStats=useMemo(()=>clientPortfolioStats(clients,projects,orders),[clients,projects,orders]);
   const productionClientId=preferences.production.clientId;
   function setProductionClientId(clientId:string){updatePreferences({production:{...preferences.production,clientId}});}
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
