@@ -16,7 +16,7 @@ function MobileDrawer({id,close,children}:{id:string;close:()=>void;children:Rea
  useOverlay(panel,close);
  return createPortal(<div className="mobile-sidebar-backdrop" onClick={event=>{if(event.target===event.currentTarget)close();}}>
   <section id={id} className="mobile-sidebar" ref={panel} role="dialog" aria-modal="true" aria-label="Menú de Scale OS" tabIndex={-1}>
-   <div className="mobile-sidebar-heading"><strong>Menú principal</strong><button type="button" className="icon-button" onClick={close} aria-label="Cerrar menú"><X size={20}/></button></div>
+   <div className="mobile-sidebar-heading"><strong>Menú principal</strong><button type="button" className="icon-button" title="Cerrar menú" onClick={close} aria-label="Cerrar menú"><X size={20}/></button></div>
    <div className="mobile-sidebar-body" onClick={event=>{if((event.target as HTMLElement).closest('a[href]'))close();}}>{children}</div>
   </section>
  </div>,document.body);
@@ -33,7 +33,7 @@ export function MobileNavigation({children}:{children:ReactNode}){
   return()=>desktop.removeEventListener('change',resized);
  },[]);
  return <>
-  <button className="icon-button mobile-menu-trigger" type="button" aria-label="Abrir menú" aria-expanded={open} aria-controls={open?id:undefined} aria-haspopup="dialog" onClick={()=>setOpen(v=>!v)}><Menu size={22}/></button>
+  <button className="icon-button mobile-menu-trigger" type="button" title="Abrir menú" aria-label="Abrir menú" aria-expanded={open} aria-controls={open?id:undefined} aria-haspopup="dialog" onClick={()=>setOpen(v=>!v)}><Menu size={22}/></button>
   {open&&<MobileDrawer id={id} close={()=>setOpen(false)}>{children}</MobileDrawer>}
  </>;
 }

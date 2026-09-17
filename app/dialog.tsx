@@ -99,7 +99,7 @@ export function Dialog({title,close,children,variant='modal',busy=false,size='de
  const controls=useMemo(()=>({requestClose,setPending}),[requestClose,setPending]);
  const ancestry=useMemo(()=>[...parents,id],[parents,id]);
  return createPortal(<div className={`ops-overlay${variant==='drawer'?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal="true" aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
-  <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" onClick={requestClose} disabled={blocked} aria-label="Cerrar"><X size={18}/></button></div>
+  <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} aria-label="Cerrar"><X size={18}/></button></div>
   <OverlayContext.Provider value={ancestry}><DialogContext.Provider value={controls}><FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider></DialogContext.Provider></OverlayContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>
  </section></div>,document.body);

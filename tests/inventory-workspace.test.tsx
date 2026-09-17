@@ -116,9 +116,13 @@ async function run(){
  assert.match(tree(),/sin ubicación no se muestran/,'hiding reports how many unassigned items are out of view');
  act(()=>{button('Mostrar columna').props.onClick();});
  assert.match(tree(),/Sin ubicación/,'the unassigned column can be restored');
- items=[{...equipment[0],storage_location_id:'storage-a',storage_location_name:'Estante A',storage_shelf:'Estante A',location_changed_at:'2026-09-14T12:00:00.000Z',last_verified_at:'2026-09-15T10:00:00.000Z',last_verifier_name:'Sonido'},equipment[1]];
+ items=[{...equipment[0],storage_location_id:'storage-a',storage_location_name:'Estante A',storage_shelf:'Estante A',location_changed_at:'2026-09-14T12:00:00.000Z',last_verified_at:'2026-09-15T10:00:00.000Z',last_verifier_name:'Rita Mical Herrera',last_verification_result:'confirmed'},equipment[1]];
  await act(async()=>{intervals.forEach(callback=>callback());});
- assert.match(tree(),/Control:/);assert.match(tree(),/Aquí desde/);assert.match(tree(),/Sonido/,'cards show who verified last and when');
+ assert.match(tree(),/Control:/,'the verified icon keeps the control status accessible');
+ assert.match(tree(),/Aquí desde/);assert.match(tree(),/Rita/,'cards show the verifier first name');
+ assert.match(tree(),/07:00/,'the control stamp renders the Asunción time in 24-hour format');
+ assert.doesNotMatch(tree(),/a\. m\.|p\. m\./,'no meridiem markers in the inventory stamps');
+ assert.equal(renderer.root.findAllByProps({className:'inventory-verify-name'}).map(node=>(node.children||[]).join('')).every(name=>name==='Rita'),true,'only the first name shows in the compact stamp');
  items=equipment;await act(async()=>{intervals.forEach(callback=>callback());});
  viewButtons=viewControl.findAllByType('button');act(()=>viewButtons[0].props.onClick());
  act(()=>tabs[0].props.onClick());

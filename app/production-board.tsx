@@ -55,7 +55,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
     >
       <div className="card-top">
         <button className="text-button order-open" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
-        {canMove&&<button className="icon-button" aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>}
+        {canMove&&<button className="icon-button" title={`Mover ${order.title}`} aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>}
       </div>
       <p>
         <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/> · {order.project_name}
