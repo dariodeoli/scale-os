@@ -4,6 +4,7 @@ import {test} from 'node:test';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const operations=read('app/operations.tsx');
+const operationsCss=read('app/operations.css');
 const access=read('app/team-access.tsx');
 const accessCss=read('app/team-access.css');
 const photo=read('app/profile-photo.tsx');
@@ -13,8 +14,9 @@ const control=read('app/control-center.css');
 const mobile=read('app/mobile-navigation.css');
 
 test('collaborator identity is rendered by its card, while access keeps only state and actions',()=>{
- assert.match(operations,/ops-person-info/);
-  assert.match(operations,/\$\{entry\.member!\.email\} · \$\{accessRole\} · \$\{accessState\}/);
+ assert.match(operations,/person-hub-facts/);
+  assert.match(operations,/\{entry\.member!\.email\}/);
+  assert.match(operations,/\{accessRole\} · \{accessState\}/);
  assert.match(operations,/\{p\.email\|\|'Sin correo'\}/);
  assert.doesNotMatch(operations,/Cargo: \{p\.job_title/);
  assert.doesNotMatch(access,/ActorIdentity|team-access-member|team-access-help/);
@@ -28,6 +30,12 @@ test('suspended access has a dedicated semantic badge and collaborator photo use
  assert.match(photo,/compact=false/);
  assert.match(photo,/profile-photo-progressive/);
  assert.match(photoCss,/\.profile-photo-section\.is-compact \.profile-photo-summary \.editable-photo\{width:44px;height:44px\}/);
+});
+
+test('team list view renders the collection as a single-column list',()=>{
+ assert.match(operations,/ops-grid\$\{teamView==='list'\?' ops-grid-list':''\}/);
+ assert.match(operationsCss,/\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\)\}/);
+ assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:1\/-1\}/);
 });
 
 test('workspace density owns the header geometry across desktop and mobile',()=>{
