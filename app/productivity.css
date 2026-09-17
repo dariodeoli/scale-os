@@ -30,3 +30,25 @@
 .client-summary-grid article{transition:border-color var(--ease)}
 .client-summary-grid article:hover{border-color:var(--line-strong,var(--border-subtle))}
 .quick-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* Pieza: hero con estado, secciones en cápsulas y acciones agrupadas. */
+.work-hero{display:grid;gap:10px;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:14px;background:var(--surface-sunken,var(--surface-subtle))}
+.work-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.work-hero-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.work-state{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;border:1px solid var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface));color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-weight:750;white-space:nowrap}
+.work-state[data-status=blocked]{border-color:color-mix(in srgb,var(--danger) 24%,var(--line));background:var(--danger-soft);color:var(--danger)}
+.work-state[data-status=to_record],.work-state[data-status=recorded]{border-color:color-mix(in srgb,var(--info) 24%,var(--line));background:var(--info-soft);color:var(--info)}
+.work-state[data-status=editing]{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
+.work-state[data-status=review]{border-color:color-mix(in srgb,var(--brand-600) 26%,var(--line));background:var(--violet-soft);color:var(--brand-700)}
+.work-state[data-status=approved],.work-state[data-status=published]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
+.work-tabs{margin-block:4px}
+.work-detail-stack{display:grid;gap:12px}
+.work-section{display:grid;gap:10px;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:14px;background:var(--surface-raised,var(--surface))}
+.work-section-title{margin:0;font-size:10.5px;font-weight:750;letter-spacing:.07em;text-transform:uppercase;color:var(--text-subtle,var(--text-muted))}
+.work-section .work-detail-description{margin:0}
+.quick-actions.work-section{gap:10px}
+
+/* Producción: toolbar compacto en cápsula. */
+.production-toolbar{gap:10px}
+.production-toolbar .production-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-raised,var(--surface))}
+@media(max-width:760px){.production-toolbar .production-filters{border-radius:14px;width:100%}}
