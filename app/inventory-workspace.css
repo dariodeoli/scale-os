@@ -131,10 +131,31 @@
 .inventory-bulk-actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0}
 .inventory-bulk-actions::-webkit-scrollbar{display:none}
 .inventory-select-visible{white-space:nowrap;flex:none}
-.inventory-equipment-list .inventory-equipment{grid-template-columns:minmax(200px,1.1fr) minmax(220px,1.3fr) auto auto}
-.inventory-equipment-list .inventory-card-foot{display:contents}
-.inventory-equipment-list .inventory-card-control{flex-wrap:nowrap}
-@media(max-width:940px){.inventory-equipment-list .inventory-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:0;border-top:0}}
+.inventory-state{min-width:104px;justify-content:center}
+.inventory-equipment-head{display:none}
+.inventory-equipment-list .inventory-equipment{grid-template-columns:minmax(180px,1.25fr) minmax(160px,1.1fr) minmax(96px,auto) minmax(110px,.85fr) minmax(150px,auto) minmax(132px,auto);align-items:center}
+.inventory-equipment-list .inventory-card-head,.inventory-equipment-list .inventory-card-foot{display:contents}
+.inventory-equipment-list .inventory-item-title{grid-column:1;grid-row:1/4;align-self:center;min-width:0}
+.inventory-equipment-list .inventory-item-title h3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inventory-equipment-list .inventory-item-facts{display:contents}
+.inventory-equipment-list .inventory-fact{grid-column:2;display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 8px;min-width:0}
+.inventory-equipment-list .inventory-fact:nth-child(1){grid-row:1}
+.inventory-equipment-list .inventory-fact:nth-child(3){grid-row:2}
+.inventory-equipment-list .inventory-fact:nth-child(4){grid-row:3}
+.inventory-equipment-list .inventory-fact dt{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-subtle,var(--text-muted))}
+.inventory-equipment-list .inventory-fact dd{margin:0;font-size:12.5px;font-weight:650}
+.inventory-equipment-list .inventory-fact-location{grid-column:4;grid-row:1/4;align-self:center}
+.inventory-equipment-list .inventory-state{grid-column:3;grid-row:1/4;align-self:center;justify-self:start}
+.inventory-equipment-list .inventory-card-control{grid-column:5;grid-row:1/4;align-self:center;justify-content:flex-start}
+.inventory-equipment-list .inventory-item-actions{grid-column:6;grid-row:1/4;align-self:center;display:grid;grid-template-columns:repeat(3,auto);gap:6px;justify-content:end;overflow:visible}
+@media(min-width:941px){.inventory-equipment-head{display:grid;grid-template-columns:minmax(180px,1.25fr) minmax(160px,1.1fr) minmax(96px,auto) minmax(110px,.85fr) minmax(150px,auto) minmax(132px,auto);gap:0 16px;padding:0 4px 6px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}}
+@media(max-width:940px){
+ .inventory-equipment-list .inventory-card-head{display:flex}
+ .inventory-equipment-list .inventory-item-facts{display:grid}
+ .inventory-equipment-list .inventory-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:0;border-top:0}
+ .inventory-equipment-list .inventory-item-title,.inventory-equipment-list .inventory-state,.inventory-equipment-list .inventory-fact,.inventory-equipment-list .inventory-fact-location,.inventory-equipment-list .inventory-card-control,.inventory-equipment-list .inventory-item-actions{grid-column:auto;grid-row:auto}
+ .inventory-equipment-list .inventory-item-actions{display:flex}
+}
 @media(max-width:480px){.inventory-card-foot{flex-wrap:wrap;row-gap:8px}}
 .inventory-verify-stamp{display:inline-flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
 .inventory-verify-stamp .inventory-verify-check{display:inline-flex;align-items:center;color:inherit}
