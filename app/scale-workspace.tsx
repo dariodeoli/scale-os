@@ -55,7 +55,6 @@ import {PermissionsMatrixPanel} from './permissions-matrix';
 import './operations.css';
 import './suite.css';
 import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWorkspace,CouponRedeem} from './suite';
-import {ArchivedCapsule} from './archived-capsule';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
@@ -218,7 +217,6 @@ const assignableRoles = [
   { id: "production", label: "Producción" },
   { id: "editor", label: "Edición" },
   { id: "viewer", label: "Solo lectura" },
-  { id: "colaborador", label: "Colaborador" },
 ] as const;
 
 const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];
@@ -265,6 +263,61 @@ function Modal({
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
+function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOpen,onToggleArchive,refresh,role}:{
+  client:Client;
+  pay:ClientPaymentStatus|undefined;
+  stat:{projects:number;pieces:number;nextDue:string|null}|undefined;
+  canSeeBilling:boolean;
+  canManage:boolean;
+  archiveBusy:boolean;
+  onOpen:()=>void;
+  onToggleArchive:()=>void;
+  refresh:()=>Promise<void>;
+  role:string;
+}) {
+  const state=clientState(client),tel=whatsappUrl(client.phone||undefined),since=clientSince(client.created_at);
+  return (
+    <article className="client-hub-card" data-archived={client.active===false||undefined}>
+      <header className="client-hub-head">
+        <button type="button" className="client-hub-open" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
+          <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
+        </button>
+        <span className="client-status" data-status={state.value}>{state.label}</span>
+      </header>
+      <dl className="client-hub-facts">
+        <div><dt>Correo</dt><dd title={client.email||undefined}>{client.email || "Sin email registrado"}</dd></div>
+        <div><dt>Teléfono</dt><dd title={client.phone||undefined}>{client.phone || "Sin teléfono"}</dd></div>
+        <div><dt>RUC</dt><dd title={client.tax_id||undefined}>{client.tax_id || "Sin RUC registrado"}</dd></div>
+        <div><dt>Cliente desde</dt><dd>{since || "Sin fecha de alta"}</dd></div>
+      </dl>
+      <div className="client-hub-stats" aria-label="Cartera del cliente">
+        {stat?.projects?<span className="client-hub-stat"><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
+        {stat?.pieces?<span className="client-hub-stat"><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
+        {stat?.nextDue?<span className="client-hub-stat">Próxima entrega <b>{stat.nextDue.slice(8,10)}/{stat.nextDue.slice(5,7)}</b></span>:null}
+        {stat&&!stat.projects&&!stat.pieces?<span className="client-hub-stat muted">Sin proyectos activos</span>:null}
+      </div>
+      {canSeeBilling?<div className="client-hub-chips">
+        {pay ? (
+          pay.payment_status === "up_to_date" ? (
+            <span className="mora-chip mora-clear">Al día</span>
+          ) : pay.payment_status === "due_soon" ? (
+            <span className="mora-chip mora-early">Vence {pay.next_due_on || "próximamente"}</span>
+          ) : (
+            <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
+          )
+        ) : null}
+        {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance">Pendiente {moneyKpi(Number(pay.outstanding_amount),pay.currency)}</span>:null}
+        {client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
+      </div>:null}
+      <footer className="client-hub-actions">
+        <button className="text-button" onClick={onOpen}><Eye size={14}/>Abrir ficha</button>
+        {tel?<a className="text-button" href={tel} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>:null}
+        {canManage?<button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button>:null}
+        <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} refresh={refresh}/></div>
+      </footer>
+    </article>
+  );
+}
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -288,6 +341,7 @@ export default function Home() {
   const [clientMode,setClientMode]=useState(true);
   const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState(''),[clientSearch,setClientSearch]=useState('');
   const [projectView,setProjectView]=useState('grid');
+  const [archiveBusy,setArchiveBusy]=useState('');
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
   useEffect(()=>{try{setProjectView(localStorage.getItem('scale:project-view')==='list'?'list':'grid');}catch{/* Optional UI preference. */}},[]);
   function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
@@ -308,14 +362,17 @@ export default function Home() {
   const [demoWelcome,setDemoWelcome]=useState(false);
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
+  const canSeeBilling=['owner','admin','management','finance','sales'].includes(user?.role||'');
+  const canManageClients=['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'');
+  const canManageProjects=['owner','admin','management','production','collaborator'].includes(user?.role||'');
   useEffect(()=>{userRef.current=user;},[user]);
   // Invalidate before child loading effects can read a previous tenant/role cache.
   useLayoutEffect(()=>{setDataScope(operationalAccess&&user?`${user.id}:${user.organization_id}:${user.role}`:'');},[operationalAccess,user?.id,user?.organization_id,user?.role]);
   function prefetchSection(label:string){
     if(!operationalAccess||!user||!visibleModule(label,user.role))return;
     // Match InventoryWorkspace's read roles; menu visibility alone includes Sales.
-    if(label==='Inventario'&&!['owner','admin','management','production','finance','editor','viewer','colaborador'].includes(user.role))return;
-    if(label==='Estudio'&&!['owner','admin','management','production','finance','editor','viewer','colaborador'].includes(user.role))return;
+    if(label==='Inventario'&&!['owner','admin','management','production','finance','editor','viewer','collaborator'].includes(user.role))return;
+    if(label==='Estudio'&&!['owner','admin','management','production','finance','editor','viewer','collaborator'].includes(user.role))return;
     void prefetchSectionData(label,`${user.id}:${user.organization_id}:${user.role}`);
   }
   useStartupPreference({scope:preferenceScope,ready:preferencesReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
@@ -379,6 +436,8 @@ export default function Home() {
   useEffect(()=>{if(signedIn){const id=new URLSearchParams(window.location.search).get('order');if(id&&/^\d+$/.test(id))setDetail({kind:'order',id});}},[signedIn,pathname]);
   const [clients, setClients] = useState<Client[]>([]);
   const displayedClients=filterClientDirectory(clients,clientSearch,clientStatusFilter);
+  const liveClients=displayedClients.filter(client=>client.active!==false);
+  const archivedClients=displayedClients.filter(client=>client.active===false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
   const clientHubStats=useMemo(()=>clientPortfolioStats(clients,projects,orders),[clients,projects,orders]);
@@ -460,6 +519,7 @@ export default function Home() {
   const projectKpis = useMemo(() => {
     let active = 0, paused = 0, completed = 0, pieces = 0;
     for (const project of projects) {
+      if (project.active === false) continue;
       if (project.status === "active") active += 1;
       else if (project.status === "paused") paused += 1;
       else if (project.status === "completed") completed += 1;
@@ -468,6 +528,8 @@ export default function Home() {
     return { active, paused, completed, pieces };
   }, [projects]);
   const visibleProjects = projectClientFilter ? projects.filter(project => project.client_id === projectClientFilter) : projects;
+  const liveProjects = visibleProjects.filter(project => project.active !== false);
+  const archivedProjects = visibleProjects.filter(project => project.active === false);
   const stageCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const order of orders) counts.set(order.status, (counts.get(order.status) || 0) + 1);
@@ -570,6 +632,7 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
   useEffect(() => {
+    if (!canSeeBilling) { setPaymentStatuses([]); return; }
     if (operationalAccess && (active === "Mora" || active === "Clientes")) {
       request<{ clients: ClientPaymentStatus[] }>("/api/agency/client-payment-status")
         .then((data) => setPaymentStatuses(listOf<ClientPaymentStatus>(data?.clients)))
@@ -634,6 +697,27 @@ export default function Home() {
         ),
       );
   }, [active, operationalAccess]);
+  async function setClientArchive(id:string,archived:boolean){
+    if(archiveBusy)return;
+    setArchiveBusy(`client:${id}`);
+    try{await request(`/api/agency/clients/${id}`,{method:'PATCH',body:JSON.stringify({active:!archived})});await load();}
+    catch(cause){setToast(cause instanceof Error?cause.message:'No se pudo archivar el cliente.');}
+    finally{setArchiveBusy('');}
+  }
+  async function setProjectArchive(id:string,archived:boolean){
+    if(archiveBusy)return;
+    setArchiveBusy(`project:${id}`);
+    try{await request(`/api/agency/projects/${id}`,{method:'PATCH',body:JSON.stringify({active:!archived})});await load();}
+    catch(cause){setToast(cause instanceof Error?cause.message:'No se pudo archivar el proyecto.');}
+    finally{setArchiveBusy('');}
+  }
+  function projectEntry(project:Project){
+    return <ProjectCard key={project.id} project={project} client={clients.find(c=>String(c.id)===String(project.client_id))}>
+      <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
+      {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
+      <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
+    </ProjectCard>;
+  }
   async function loadAllInvoices(){
     const data=await request<{invoices:Invoice[];hasMore?:boolean}>("/api/agency/invoices?limit=all");
     setInvoices(listOf<Invoice>(data?.invoices));setInvoiceHasMore(false);setAllInvoicesLoaded(true);
@@ -1204,59 +1288,32 @@ export default function Home() {
               </article>
             </div>
             <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
-              {displayedClients.length ? (
-                displayedClients.map((client) => {const pay=paymentStatuses.find(ps=>String(ps.client_id)===String(client.id));const state=clientState(client);const stat=clientHubStats.get(String(client.id));const tel=whatsappUrl(client.phone||undefined);const since=clientSince(client.created_at);return (
-                  <article className="client-hub-card" key={client.id}>
-                    <header className="client-hub-head">
-                      <button type="button" className="client-hub-open" onClick={()=>setDetail({kind:'client',id:client.id})} aria-label={`Abrir ficha de ${client.name}`}>
-                        <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
-                      </button>
-                      <span className="client-status" data-status={state.value}>{state.label}</span>
-                    </header>
-                    <dl className="client-hub-facts">
-                      <div><dt>Correo</dt><dd title={client.email||undefined}>{client.email || "Sin email registrado"}</dd></div>
-                      <div><dt>Teléfono</dt><dd title={client.phone||undefined}>{client.phone || "Sin teléfono"}</dd></div>
-                      <div><dt>RUC</dt><dd title={client.tax_id||undefined}>{client.tax_id || "Sin RUC registrado"}</dd></div>
-                      <div><dt>Cliente desde</dt><dd>{since || "Sin fecha de alta"}</dd></div>
-                    </dl>
-                    <div className="client-hub-stats" aria-label="Cartera del cliente">
-                      {stat?.projects?<span className="client-hub-stat"><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
-                      {stat?.pieces?<span className="client-hub-stat"><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
-                      {stat?.nextDue?<span className="client-hub-stat">Próxima entrega <b>{stat.nextDue.slice(8,10)}/{stat.nextDue.slice(5,7)}</b></span>:null}
-                      {stat&&!stat.projects&&!stat.pieces?<span className="client-hub-stat muted">Sin proyectos activos</span>:null}
-                    </div>
-                    <div className="client-hub-chips">
-                      {pay ? (
-                        pay.payment_status === "up_to_date" ? (
-                          <span className="mora-chip mora-clear">Al día</span>
-                        ) : pay.payment_status === "due_soon" ? (
-                          <span className="mora-chip mora-early">Vence {pay.next_due_on || "próximamente"}</span>
-                        ) : (
-                          <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
-                        )
-                      ) : null}
-                      {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance">Pendiente {moneyKpi(Number(pay.outstanding_amount),pay.currency)}</span>:null}
-                      {client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
-                    </div>
-                    <footer className="client-hub-actions">
-                      <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><Eye size={14}/>Abrir ficha</button>
-                      {tel?<a className="text-button" href={tel} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>:null}
-                      <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
-                    </footer>
-                  </article>
-                );})
-              ) : clients.length===0 ? (
-                <p className="empty-copy">
-                  Todavía no hay clientes. Creá el primero para empezar.
-                </p>
-              ) : (
-                <div className="empty-copy">
-                  <p>{clientSearch.trim()?'No hay clientes que coincidan con tu búsqueda y filtros.':'No hay clientes con este estado.'}</p>
-                  <button className="text-button" type="button" onClick={()=>{setClientSearch('');setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>
-                </div>
-              )}
+              {liveClients.map(client=>(
+                <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'}/>
+              ))}
+              {!displayedClients.length ? (
+                clients.length===0 ? (
+                  <p className="empty-copy">
+                    Todavía no hay clientes. Creá el primero para empezar.
+                  </p>
+                ) : (
+                  <div className="empty-copy">
+                    <p>{clientSearch.trim()?'No hay clientes que coincidan con tu búsqueda y filtros.':'No hay clientes con este estado.'}</p>
+                    <button className="text-button" type="button" onClick={()=>{setClientSearch('');setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>
+                  </div>
+                )
+              ) : null}
             </div>
-            <ArchivedCapsule kind="clients" refresh={load}/>
+            {archivedClients.length ? (
+              <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
+                <summary>Archivados ({archivedClients.length})</summary>
+                <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
+                  {archivedClients.map(client=>(
+                    <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'}/>
+                  ))}
+                </div>
+              </details>
+            ) : null}
           </section>
         )}
         {active === "Proyectos" && (
@@ -1264,7 +1321,7 @@ export default function Home() {
             <div className="panel-heading">
               <div>
                 <p className="eyebrow">ENTREGAS Y CAPACIDAD</p>
-                <h2>{visibleProjects.length} proyecto{visibleProjects.length === 1 ? "" : "s"}</h2>
+                <h2>{liveProjects.length} proyecto{liveProjects.length === 1 ? "" : "s"}</h2>
               </div>
               <label className="directory-project-filter">
                 Cliente
@@ -1297,20 +1354,21 @@ export default function Home() {
               </article>
             </div>
             <div className={projectView==='grid'?'project-grid':'project-list'}>
-              {visibleProjects.length ? (
-                visibleProjects.map((project) => (
-                  <ProjectCard key={project.id} project={project} client={clients.find(c=>String(c.id)===String(project.client_id))}>
-                    <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
-                    <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
-                  </ProjectCard>
-                ))
-              ) : (
+              {liveProjects.map(project => projectEntry(project))}
+              {!visibleProjects.length ? (
                 <p className="empty-copy">
                   {projectClientFilter ? "Este cliente no tiene proyectos." : "Creá un proyecto después de cargar un cliente."}
                 </p>
-              )}
+              ) : null}
             </div>
-            <ArchivedCapsule kind="projects" refresh={load}/>
+            {archivedProjects.length ? (
+              <details className="archived-capsule">
+                <summary>Archivados ({archivedProjects.length})</summary>
+                <div className={projectView==='grid'?'project-grid':'project-list'}>
+                  {archivedProjects.map(project => projectEntry(project))}
+                </div>
+              </details>
+            ) : null}
           </section>
         )}
         {active === "Presupuestos" && (

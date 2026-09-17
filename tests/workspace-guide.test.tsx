@@ -30,7 +30,7 @@ const open=()=>act(()=>button('Guía del panel').props.onClick());
 const close=()=>act(()=>renderer.unmount());
 
 test('guide uses every canonical section except embedded Metrics and preserves all eight role filters',()=>{
- for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','colaborador']){
+ for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator']){
   act(()=>{renderer=create(<WorkspaceGuide role={role} navigate={()=>{throw Error('must not navigate on mount');}}/>);});
   assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0);
   open();

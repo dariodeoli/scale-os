@@ -20,7 +20,7 @@ export const roleDescriptions:Record<string,string>={
  production:'Producción: ejecuta proyectos y órdenes y utiliza Inventario y Estudio.',
  editor:'Editor: consulta y trabaja la producción de piezas.',
  viewer:'Solo lectura: consulta los módulos del panel con acceso reducido.',
- colaborador:'Colaborador: trabaja en clientes, proyectos, producción, presupuestos, pipeline, inventario y estudio, sin ver finanzas, salarios, pagos, accesos ni actividad.',
+ collaborator:'Colaborador: trabaja clientes, proyectos, producción, presupuestos, pipeline, estudio e inventario sin ver finanzas, salarios, accesos ni actividad.',
 };
 
 const capabilityGroups:{name:string;keywords:string[]}[]=[

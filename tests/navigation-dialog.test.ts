@@ -7,7 +7,7 @@ import {visibleModule} from '../app/workspace-access';
 assert.equal(sectionPath('Preferencias'),'/configuracion/preferencias');
 assert.equal(parentSection('Preferencias'),'Configuración');
 assert(childSections('Configuración').includes('Preferencias'));
-for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','colaborador'])assert(visibleModule('Preferencias',role));
+for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'])assert(visibleModule('Preferencias',role));
 assert(!visibleModule('Configuración','viewer'));
 assert.equal(new Set(sections.map(([,slug])=>slug)).size,sections.length);
 for(const [label,slug] of sections){assert(validSection(slug));assert.equal(sectionPath(label),label==='Métricas'?'/pipeline':'/'+slug);assert.equal(sectionLabel('/'+slug),label);assert.equal(sectionLabel('/'+slug+'/'),label);}

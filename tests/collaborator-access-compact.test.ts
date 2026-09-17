@@ -46,7 +46,7 @@ test('team list view renders a compact single-column list and contact data is ne
 });
 
 test('team directory keeps normal roles on photo, name and cargo only',()=>{
- for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','colaborador'])assert(visibleModule('Equipo',role),`Equipo stays reachable for ${role}`);
+ for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'])assert(visibleModule('Equipo',role),`Equipo stays reachable for ${role}`);
  assert.match(operations,/if\(mode==='people'&&!\['owner','admin','finance'\]\.includes\(role\)\)return <TeamDirectoryView/);
  assert.match(operations,/secondary=\{teamRoleLabels\[person\.role\]\|\|person\.cargo\|\|'Sin cargo'\}/);
  assert.match(operations,/Directorio de personas: foto, nombre y cargo/);

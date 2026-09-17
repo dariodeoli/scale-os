@@ -21,7 +21,7 @@ test('versioned preferences validate input and use collision-free user+org keys'
  for(const raw of [null,'bad','null','[]','{"version":2}'])assert.deepEqual(parseWorkspacePreferences(raw),defaultWorkspacePreferences());
  assert.deepEqual(parseWorkspacePreferences(JSON.stringify({version:1,startup:'https://evil.invalid',production:{clientId:'../2',mine:'true',week:1}})),defaultWorkspacePreferences());
  assert.deepEqual(parseWorkspacePreferences(JSON.stringify({version:1,startup:'my-day',production:{clientId:'123',mine:true,week:true}})),{version:1,startup:'my-day',production:{clientId:'123',mine:true,week:true}});
- for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','colaborador'])assert.equal(startupChoices(role).length,3);
+ for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'])assert.equal(startupChoices(role).length,3);
  assert.deepEqual(startupChoices('unknown'),[]);
 });
 test('only untouched bare root can resolve a permitted startup',()=>{

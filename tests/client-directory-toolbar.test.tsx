@@ -48,7 +48,7 @@ test("client directory renders either onboarding or filtered no-results, with a 
 
   assert.match(
     workspace,
-    /displayedClients\.length \? \([\s\S]*?\) : clients\.length===0 \? \([\s\S]*?Todavía no hay clientes\. Creá el primero para empezar\.[\s\S]*?\) : \([\s\S]*?Limpiar filtros/,
+    /!displayedClients\.length \? \([\s\S]*?clients\.length===0 \? \([\s\S]*?Todavía no hay clientes\. Creá el primero para empezar\.[\s\S]*?\) : \([\s\S]*?Limpiar filtros/,
   );
   assert.doesNotMatch(
     workspace,

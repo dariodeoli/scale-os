@@ -20,4 +20,4 @@ export function teamDirectory<P extends TeamProfile>(profiles:P[],members:TeamMe
  }
  return entries;
 }
-export const teamRoleLabels:Record<string,string>={owner:'Dueño',admin:'Administrador',management:'Gerencia',finance:'Finanzas',sales:'Ventas',production:'Producción',editor:'Editor',viewer:'Solo lectura',colaborador:'Colaborador'};
+export const teamRoleLabels:Record<string,string>={owner:'Dueño',admin:'Administrador',management:'Gerencia',finance:'Finanzas',sales:'Ventas',production:'Producción',editor:'Editor',viewer:'Solo lectura',collaborator:'Colaborador'};

@@ -16,7 +16,7 @@ assert.equal(sectionPath('Tablero de producción'),'/produccion');assert.equal(s
 assert.equal(legacyDestination('constructor'),undefined);assert.equal(legacyDestination('toString'),undefined);assert.equal(legacyDestination('mora'),'/pagos/mora');
 const nextConfig=readFileSync(new URL('../next.config.mjs',import.meta.url),'utf8');
 for(const [old,target] of Object.entries(legacyRoutes))assert(nextConfig.includes(`source: '/${old}', destination: '${target}'`),'legacy paths also have server-level redirects');
-for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','colaborador']){
+for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator']){
  for(const [label] of sections){if(label!=='Métricas'&&visibleModule(label,role))assert(childSections(parentSection(label)).filter(child=>visibleModule(child,role)).includes(label),'all accessible leaves remain reachable; metrics are embedded in Pipeline');}
 }
 assert(!visibleModule('Pagos','sales'));assert(visibleModule('Mora','sales'));assert(!visibleModule('Configuración','production'));assert(visibleModule('Papelera','production'));assert(!visibleModule('Comisiones','editor'));assert(visibleModule('Equipo','editor'));

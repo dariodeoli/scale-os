@@ -6,12 +6,12 @@ import {Trash2} from 'lucide-react';
 
 const roles:Record<string,string[]>={
  members:['owner','admin','management'],
- clients:['owner','admin','management','sales','colaborador'],
- projects:['owner','admin','management','production','colaborador'],
+ clients:['owner','admin','management','sales','collaborator'],
+ projects:['owner','admin','management','production','collaborator'],
  'work-orders':['owner','admin','management','production'],
  leads:['owner','admin','management','finance','sales'],
- plans:['owner','admin','management','finance','sales','production','colaborador'],
- budgets:['owner','admin','management','finance','sales','production','colaborador'],
+ plans:['owner','admin','management','finance','sales','production','collaborator'],
+ budgets:['owner','admin','management','finance','sales','production','collaborator'],
  inventory:['owner','admin','management','production','finance'],
  collaborators:['owner','admin','management'],accounts:['owner','admin','finance'],
 };
