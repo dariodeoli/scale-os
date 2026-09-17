@@ -71,6 +71,7 @@ import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type S
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
 import {whatsappUrl} from './client-links';
+import {clientSince,moneyKpi} from './client-format';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 import './settings-slice.css';
@@ -1279,7 +1280,6 @@ export default function Home() {
     }
     return stats;
   },[clients,projects,orders]);
-  const clientSince=(value?:string)=>value?new Intl.DateTimeFormat('es-PY',{month:'short',year:'numeric'}).format(new Date(value)):null;
   const productionClientId=preferences.production.clientId;
   function setProductionClientId(clientId:string){updatePreferences({production:{...preferences.production,clientId}});}
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
@@ -1339,7 +1339,6 @@ export default function Home() {
   }, [moraReports, paymentStatuses]);
   const visibleMoraClients = (moraFilter === "no_invoice" ? paymentStatuses.filter(client => !client.has_invoice) : moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses).filter(client => !moraSearch || client.client_name.toLowerCase().includes(moraSearch.toLowerCase()));
   const moneyMora = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
-  const moneyKpi = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
   const budgetKpis = useMemo(() => {
     const totals = new Map<string, number>();
     let drafts = 0, accepted = 0, expiring = 0;
