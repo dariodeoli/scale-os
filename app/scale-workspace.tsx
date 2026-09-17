@@ -73,8 +73,8 @@ import {RemoveRecord,TrashWorkspace} from './archive-controls';
 import {whatsappUrl} from './client-links';
 import {clientPortfolioStats,clientSince,moneyKpi} from './client-format';
 import {statuses,type Status,KanbanColumn} from './production-board';
-import type {Client,Project,WorkOrder} from './workspace-types';
-import {ClientForm,ProjectForm,driveLinkSchema} from './workspace-forms';
+import type {Account,Client,Invoice,Member,PaymentRecord,Project,WorkOrder} from './workspace-types';
+import {AccountForm,ClientForm,InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 import './settings-slice.css';
@@ -147,19 +147,6 @@ type Budget = {
   item_count: number;
   valid_until: string | null;
 };
-type Account = {
-  id: string;
-  name: string;
-  account_type: "bank" | "cash" | "digital" | "investment";
-  currency: Currency;
-  balance: string;
-  active: boolean;
-  institution: string | null;
-  account_number: string | null;
-  holder_name: string | null;
-  custodian_user_id: string | null;
-  custodian_email?: string | null;
-};
 type AccountTransfer = {
   id: string;
   from_account_id: string;
@@ -174,32 +161,6 @@ type AccountTransfer = {
   reference: string | null;
   created_by_email: string | null;
   actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
-};
-type PaymentRecord = {
-  id: string;
-  invoice_number: string;
-  client_name: string;
-  account_name: string;
-  account_type: string;
-  currency: Currency;
-  amount: string;
-  received_on: string;
-  reference: string | null;
-  received_by_email: string | null;
-  actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
-  reversal_id?: string | null;
-  reversal_reason?: string | null;
-};
-type Invoice = {
-  id: string;
-  number: string;
-  client_id: string;
-  client_name: string;
-  status: string;
-  currency: Currency;
-  total: string;
-  paid_amount: string;
-  due_on: string | null;
 };
 type MetricEvent = { name: string; event_date: string; count: number };
 type ClientPaymentStatus = {
@@ -237,7 +198,6 @@ export function identityScopeChanged(previous:Pick<User,'id'|'organization_id'|'
 export function shouldRollbackOrderMutation(failingVersion:number,latestVersion:number){
   return failingVersion===latestVersion;
 }
-type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
 type Summary = {
   active_clients: number;
   active_projects: number;
@@ -307,559 +267,6 @@ function Modal({
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
-const orderSchema = z.object({
-  urgency:z.enum(["","1","2","3","4","5"]),
-  title: z.string().trim().min(2, "Escribí qué hay que hacer."),
-  projectId: z.string().min(1, "Elegí un proyecto."),
-  status: z.enum([
-    "blocked",
-    "to_record",
-    "recorded",
-    "editing",
-    "review",
-    "approved",
-    "published",
-  ]),
-  driveUrl: driveLinkSchema,
-  description: z.string().max(500).optional(),
-  work_type: z.enum(["", "video", "reedicion", "foto", "produccion", "entregable"]),
-  due_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida").or(z.literal("")),
-});
-type OrderValues = z.infer<typeof orderSchema>;
-function OrderForm({
-  projects,
-  done,
-}: {
-  projects: Project[];
-  done: (order: WorkOrder) => void;
-}) {
-  const form = useForm<OrderValues>({
-    resolver: zodResolver(orderSchema),
-    defaultValues: {
-      title: "",
-      projectId: "",
-      urgency:"",
-      status: "to_record",
-      driveUrl: "",
-      description: "",
-      work_type: "",
-      due_time: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: OrderValues) {
-    try {
-      const data = await request<{ workOrder: WorkOrder }>(
-        "/api/agency/work-orders",
-        { method: "POST", body: JSON.stringify(values) },
-      );
-      done(data.workOrder);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <label>
-        Orden de trabajo
-        <input {...form.register("title")} autoFocus />
-        {form.formState.errors.title && (
-          <small className="error">{form.formState.errors.title.message}</small>
-        )}
-      </label>
-      <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as OrderValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
-      <fieldset>
-        <legend>Proyecto</legend>
-        <div className="choice-list">
-          {projects.map((project) => (
-            <button
-              type="button"
-              className={
-                form.watch("projectId") === project.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("projectId", project.id, { shouldValidate: true })
-              }
-              key={project.id}
-            >
-              {project.client_name} · {project.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.projectId && (
-          <small className="error">
-            {form.formState.errors.projectId.message}
-          </small>
-        )}
-      </fieldset>
-      <fieldset>
-        <legend>Estado inicial</legend>
-        <div className="choice-list compact">
-          {statuses.filter(status=>!['approved','published'].includes(status.id)).map((status) => (
-            <button
-              type="button"
-              className={
-                form.watch("status") === status.id ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("status", status.id)}
-              key={status.id}
-            >
-              {status.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Tipo de trabajo
-        <select {...form.register("work_type")}>
-          <option value="">Sin clasificar</option>
-          <option value="video">Video</option>
-          <option value="reedicion">Reedición</option>
-          <option value="foto">Foto</option>
-          <option value="produccion">Producción</option>
-          <option value="entregable">Entregable</option>
-        </select>
-        <small>Se usa para los conteos automáticos del resumen semanal.</small>
-      </label>
-      <label>
-        Hora de entrega
-        <input type="time" {...form.register("due_time")} />
-        <small>Opcional, junto con la fecha de entrega.</small>
-      </label>
-      <label>
-        Enlace de archivo o carpeta de Drive
-        <input
-          placeholder="https://drive.google.com/..."
-          {...form.register("driveUrl")}
-        />
-        <small>Solo guardamos el enlace, no el archivo. Los permisos se gestionan en Drive.</small>
-      </label>
-      <label>
-        Notas
-        <textarea {...form.register("description")} />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!projects.length || submission.pending}
-      >
-        {submission.pending ? "Guardando…" : "Crear orden"}
-      </button></SaveActions>
-      {!projects.length && (
-        <p className="form-note">Primero creá un proyecto.</p>
-      )}
-    </form>
-  );
-}
-const accountSchema = z.object({
-  name: z.string().trim().min(2, "Escribí el nombre de la cuenta."),
-  accountType: z.enum(["bank", "cash", "digital", "investment"]),
-  currency: z.enum(currencyCodes),
-  institution: z.string().max(100).optional(),
-  accountNumber: z.string().max(80).optional(),
-  holderName: z.string().max(120).optional(),
-  custodianUserId: z.string().optional(),
-});
-type AccountValues = z.infer<typeof accountSchema>;
-function AccountForm({
-  custodians,
-  done,
-}: {
-  custodians: Member[];
-  done: (account: Account) => void;
-}) {
-  const {currency:defaultCurrency}=useCompanyCurrency();
-  const form = useForm<AccountValues>({
-    resolver: zodResolver(accountSchema),
-    defaultValues: {
-      name: "",
-      accountType: "bank",
-      currency: defaultCurrency,
-      institution: "",
-      accountNumber: "",
-      holderName: "",
-      custodianUserId: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: AccountValues) {
-    try {
-      const data = await request<{ account: Account }>("/api/agency/accounts", {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
-      done(data.account);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "No se pudo crear la cuenta.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <label>
-        Nombre de la cuenta
-        <input
-          {...form.register("name")}
-          autoFocus
-          placeholder="Banco Regional — Operativa"
-        />
-      </label>
-      <fieldset>
-        <legend>Tipo</legend>
-        <div className="choice-list compact">
-          {(
-            [
-              { id: "bank", label: "Banco" },
-              { id: "cash", label: "Caja" },
-              { id: "digital", label: "Digital" },
-              { id: "investment", label: "Inversión" },
-            ] as const
-          ).map((type) => (
-            <button
-              type="button"
-              className={
-                form.watch("accountType") === type.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("accountType", type.id)}
-              key={type.id}
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Banco, billetera o institución
-        <input
-          {...form.register("institution")}
-          placeholder="Ej. Banco Regional / Efectivo"
-        />
-      </label>
-      <label>
-        Número de cuenta o referencia
-        <input {...form.register("accountNumber")} placeholder="Opcional" />
-      </label>
-      <label>
-        Titular de la cuenta
-        <input
-          {...form.register("holderName")}
-          placeholder="Empresa, socio o familiar"
-        />
-      </label>
-      <fieldset>
-        <legend>Quién custodia este dinero</legend>
-        <div className="choice-list compact">
-          <button
-            type="button"
-            className={
-              !form.watch("custodianUserId") ? "choice active" : "choice"
-            }
-            onClick={() => form.setValue("custodianUserId", "")}
-          >
-            Sin asignar
-          </button>
-          {custodians.map((member) => (
-            <button
-              type="button"
-              className={
-                form.watch("custodianUserId") === member.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("custodianUserId", member.id)}
-              key={member.id}
-            >
-              {member.email}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Moneda</legend>
-        <div className="choice-list compact">
-          {currencyCodes.map((currency) => (
-            <button
-              type="button"
-              className={
-                form.watch("currency") === currency ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("currency", currency)}
-              key={currency}
-            >
-              {currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
-        {submission.pending ? "Creando…" : "Crear cuenta"}
-      </button></SaveActions>
-    </form>
-  );
-}
-const invoiceSchema = z.object({
-  clientId: z.string().min(1, "Elegí un cliente."),
-  total: z.string().min(1, "Ingresá el importe.").refine(value=>Number.isFinite(Number(value))&&Number(value)>=0, "El importe no puede ser negativo."),
-  currency: z.enum(currencyCodes),
-  dueOn: z.string().optional(),
-});
-type InvoiceValues = z.infer<typeof invoiceSchema>;
-function InvoiceForm({
-  clients,
-  done,
-}: {
-  clients: Client[];
-  done: (invoice: Invoice) => void;
-}) {
-  const {currency:defaultCurrency}=useCompanyCurrency();
-  const form = useForm<InvoiceValues>({
-    resolver: zodResolver(invoiceSchema),
-    defaultValues: { clientId: "", total: "0", currency: defaultCurrency, dueOn: "" },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: InvoiceValues) {
-    try {
-      const data = await request<{ invoice: Invoice }>("/api/agency/invoices", {
-        method: "POST",
-        body: JSON.stringify({...values,total:Number(values.total)}),
-      });
-      done(data.invoice);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "No se pudo crear la factura.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <fieldset>
-        <legend>Cliente</legend>
-        <div className="choice-list">
-          {clients.map((client) => (
-            <button
-              type="button"
-              className={
-                form.watch("clientId") === client.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("clientId", client.id, { shouldValidate: true })
-              }
-              key={client.id}
-            >
-              {client.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.clientId && (
-          <small className="error">
-            {form.formState.errors.clientId.message}
-          </small>
-        )}
-      </fieldset>
-      <label>
-        Total sin IVA
-        <AmountInput value={form.watch('total')||''} currency={form.watch('currency')} invalid={!!form.formState.errors.total} onChange={value=>form.setValue('total',value,{shouldValidate:true,shouldDirty:true})}/>
-      </label>
-      <fieldset>
-        <legend>Moneda</legend>
-        <div className="choice-list compact">
-          {currencyCodes.map((currency) => (
-            <button
-              type="button"
-              className={
-                form.watch("currency") === currency ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("currency", currency)}
-              key={currency}
-            >
-              {currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Vencimiento
-        <input type="date" {...form.register("dueOn")} />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!clients.length || submission.pending}
-      >
-        {submission.pending ? "Creando…" : "Crear factura"}
-      </button></SaveActions>
-    </form>
-  );
-}
-const paymentSchema = z.object({
-  invoiceId: z.string().min(1, "Elegí una factura."),
-  accountId: z.string().min(1, "Elegí una cuenta."),
-  amount: z.string().min(1, "Ingresá el importe cobrado.").refine(value=>Number.isFinite(Number(value))&&Number(value)>0, "El cobro debe ser mayor a cero."),
-  receivedOn: z.string().optional(),
-  reference: z.string().max(120).optional(),
-  receivedByUserId: z.string().optional(),
-});
-type PaymentValues = z.infer<typeof paymentSchema>;
-function PaymentForm({
-  invoices,
-  accounts,
-  custodians,
-  done,
-}: {
-  invoices: Invoice[];
-  accounts: Account[];
-  custodians: Member[];
-  done: () => void;
-}) {
-  const [requestId]=useState(()=>crypto.randomUUID());
-  const form = useForm<PaymentValues>({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: {
-      invoiceId: "",
-      accountId: "",
-      amount: "0",
-      receivedOn: new Date().toISOString().slice(0, 10),
-      reference: "",
-      receivedByUserId: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: PaymentValues) {
-    try {
-      await request("/api/agency/payments", {
-        method: "POST",
-        body: JSON.stringify({...values,amount:Number(values.amount),requestId}),
-      });
-      done();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "No se pudo registrar el cobro.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      <fieldset>
-        <legend>Factura</legend>
-        <div className="choice-list">
-          {invoices
-            .filter((invoice) => invoice.status !== "paid")
-            .map((invoice) => (
-              <button
-                type="button"
-                className={
-                  form.watch("invoiceId") === invoice.id
-                    ? "choice active"
-                    : "choice"
-                }
-                onClick={() =>
-                  form.setValue("invoiceId", invoice.id, {
-                    shouldValidate: true,
-                  })
-                }
-                key={invoice.id}
-              >
-                {invoice.number} · {invoice.client_name}
-              </button>
-            ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Quién recibió el cobro</legend>
-        <div className="choice-list">
-          {custodians.map((member) => (
-            <button
-              type="button"
-              className={
-                form.watch("receivedByUserId") === member.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("receivedByUserId", member.id)}
-              key={member.id}
-            >
-              {member.email}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Cuenta de ingreso</legend>
-        <div className="choice-list">
-          {accounts.map((account) => (
-            <button
-              type="button"
-              className={
-                form.watch("accountId") === account.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("accountId", account.id, { shouldValidate: true })
-              }
-              key={account.id}
-            >
-              {account.name} · {account.currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label>
-        Importe cobrado
-        <AmountInput value={form.watch('amount')||''} currency={accounts.find(account=>account.id===form.watch('accountId'))?.currency||'PYG'} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
-      </label>
-      <label>
-        Fecha
-        <input type="date" {...form.register("receivedOn")} />
-      </label>
-      <label>
-        Referencia
-        <input
-          {...form.register("reference")}
-          placeholder="Transferencia / comprobante"
-        />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <SaveActions pending={submission.pending}><button
-        className="primary"
-        disabled={!accounts.length || submission.pending}
-      >
-        {submission.pending ? "Guardando…" : "Registrar cobro"}
-      </button></SaveActions>
-    </form>
-  );
-}
-
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -2222,6 +1629,7 @@ export default function Home() {
       {modal === "order" && (
         <Modal title="Nueva orden de trabajo" onClose={close}>
           <OrderForm
+            request={request}
             projects={projects}
             done={async () => {
               await completeSave(close,load);
@@ -2237,6 +1645,7 @@ export default function Home() {
       {modal === "account" && (
         <Modal title="Nueva cuenta" onClose={close}>
           <AccountForm
+            request={request}
             custodians={custodians}
             done={(account) => {
               setAccounts((current) => [...current, account]);
@@ -2248,6 +1657,7 @@ export default function Home() {
       {modal === "invoice" && (
         <Modal title="Nueva factura" onClose={close}>
           <InvoiceForm
+            request={request}
             clients={clients}
             done={(invoice) => {
               setInvoices((current) => [invoice, ...current]);
@@ -2259,6 +1669,7 @@ export default function Home() {
       {modal === "payment" && (
         <Modal title="Registrar cobro" onClose={close}>
           <PaymentForm
+            request={request}
             invoices={invoices}
             accounts={accounts}
             custodians={custodians}

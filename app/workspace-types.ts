@@ -1,3 +1,4 @@
+import type {Currency} from './currencies';
 import type {AssignedPerson} from './assigned-people';
 import type {ProjectAssignee} from './project-card';
 import type {Status} from './production-board';
@@ -52,3 +53,44 @@ export type WorkOrder = {
   due_date?: string | null;
   due_time?: string | null;
 };
+
+export type Account = {
+  id: string;
+  name: string;
+  account_type: "bank" | "cash" | "digital" | "investment";
+  currency: Currency;
+  balance: string;
+  active: boolean;
+  institution: string | null;
+  account_number: string | null;
+  holder_name: string | null;
+  custodian_user_id: string | null;
+  custodian_email?: string | null;
+};
+export type PaymentRecord = {
+  id: string;
+  invoice_number: string;
+  client_name: string;
+  account_name: string;
+  account_type: string;
+  currency: Currency;
+  amount: string;
+  received_on: string;
+  reference: string | null;
+  received_by_email: string | null;
+  actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
+  reversal_id?: string | null;
+  reversal_reason?: string | null;
+};
+export type Invoice = {
+  id: string;
+  number: string;
+  client_id: string;
+  client_name: string;
+  status: string;
+  currency: Currency;
+  total: string;
+  paid_amount: string;
+  due_on: string | null;
+};
+export type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
