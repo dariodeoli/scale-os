@@ -27,9 +27,19 @@ export type SubscriptionPanelProps={
  loading?:boolean;
  error?:string|null;
  embedded?:boolean;
+ /** Optional agency name for the assisted-activation request message. */
+ organizationName?:string;
 };
 const prices={USD:'US$ 10',PYG:'Gs. 50.000'} as const;
 const monthlyLabels={USD:'USD 10/mes',PYG:'Gs. 50.000/mes'} as const;
+const activationWhatsApp='595993391354';
+// Bank details authorized by Scale Strategy Group for subscription transfers.
+const transferAccount={holder:'SCALE STRATEGY GROUP E.A.S.',taxId:'80168807-8',bank:'Banco Continental · Caja de ahorro en guaraníes',number:'310056630007'};
+function activationRequestUrl(organizationName?:string){
+ const name=(organizationName||'').trim().replace(/\s+/g,' ').slice(0,120);
+ const text=`Hola, quiero activar la suscripción mensual de Scale OS${name?` para la agencia "${name}"`:''} (US$ 10 o Gs. 50.000 por mes, todos los integrantes y módulos incluidos). El cobro en línea no está habilitado en esta instalación; quiero coordinar la transferencia y enviar el comprobante.`;
+ return `https://wa.me/${activationWhatsApp}?text=${encodeURIComponent(text)}`;
+}
 const titles={unmanaged:'Sin suscripción gestionada',demo:'Demo · sin cobros',trialing:'Prueba gratuita',active:'Suscripción activa',grace:'Pago pendiente · período de gracia',suspended:'Acceso suspendido'};
 const managed=(state:SubscriptionState)=>!['unmanaged','demo'].includes(state.status);
 function dateLabel(value:string|null){
@@ -63,7 +73,7 @@ function readinessMessage(readiness:SubscriptionState['billingReadiness']){
 
 // Main owns GET /api/billing/subscription and the suspended workspace gate.
 // Mount with key={organizationId}; never reuse in-flight billing across tenants.
-export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=false}:SubscriptionPanelProps){
+export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=false,organizationName}:SubscriptionPanelProps){
  const heading=useId();
  const [accepted,setAccepted]=useState(false),[actionError,setActionError]=useState('');
  const [verification,setVerification]=useState('');
@@ -176,12 +186,28 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
     {!state.canManage?<p className="subscription-owner-help">Contactá al dueño de esta empresa para gestionar la suscripción.</p>:<>
      {!state.checkoutReady?<p className="subscription-setup" role="status" data-billing-readiness={state.billingReadiness||'unknown'}>{readinessMessage(state.billingReadiness)}</p>:null}
      <div className="subscription-actions">
-     {showCheckout?<div className="subscription-checkout">
+     {showCheckout?(state.checkoutReady?<div className="subscription-checkout">
       <label className="subscription-consent"><input type="checkbox" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en el checkout seguro.</span></label>
       <button type="button" className="subscription-primary" disabled={busy||!canCheckout||!accepted} onClick={()=>redirect('checkout')}>{pending==='checkout'?'Abriendo checkout…':'Activar suscripción mensual'}</button>
-     </div>:null}
+     </div>:<div className="subscription-manual">
+      <p><strong>Activación con pago coordinado.</strong> El cobro en línea no está disponible en esta instalación, pero podés activar la suscripción igual:</p>
+      <ol className="subscription-manual-steps">
+       <li>Si tenés un cupón, canjealo en Configuración → Cupones: suma tiempo gratis al instante.</li>
+       <li>Transferí el monto del plan a la cuenta de Scale OS.</li>
+       <li>Enviá el comprobante por WhatsApp: administración verifica el pago y libera el mes en tu suscripción.</li>
+      </ol>
+      <dl className="subscription-transfer" aria-label="Datos para la transferencia">
+       <div><dt>Titular</dt><dd>{transferAccount.holder}</dd></div>
+       <div><dt>RUC</dt><dd className="subscription-transfer-code">{transferAccount.taxId}</dd></div>
+       <div><dt>Banco</dt><dd>{transferAccount.bank}</dd></div>
+       <div><dt>Cuenta</dt><dd className="subscription-transfer-code">{transferAccount.number}</dd></div>
+       <div><dt>Monto</dt><dd>{prices[currency]} por mes, por agencia</dd></div>
+      </dl>
+      <a className="subscription-primary subscription-manual-link" href={activationRequestUrl(organizationName)} target="_blank" rel="noopener noreferrer">Enviar comprobante por WhatsApp</a>
+      <p className="subscription-help">Este enlace abre WhatsApp con el mensaje ya escrito; no realiza ningún cobro. La cuenta recibe guaraníes; si tu plan está en dólares, coordinamos el equivalente al enviar el comprobante. Cuando administración verifique el pago, esta pantalla mostrará “Suscripción activa”.</p>
+     </div>):null}
      {showPortal?<button type="button" className="subscription-secondary" disabled={busy||!canPortal} onClick={()=>redirect('portal')}>{pending==='portal'?'Abriendo portal…':'Gestionar suscripción en Stripe'}</button>:null}
-     <p className="subscription-help">Abrir el checkout no confirma un pago. Al volver, Scale mostrará “verificando” y consultará el estado autorizado por el servidor.</p>
+     {state.checkoutReady?<p className="subscription-help">Abrir el checkout no confirma un pago. Al volver, Scale mostrará “verificando” y consultará el estado autorizado por el servidor.</p>:null}
      </div>
     </>}
    </>:null}

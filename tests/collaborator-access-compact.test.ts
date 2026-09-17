@@ -25,7 +25,7 @@ test('collaborator identity is rendered by its card, while access keeps only sta
 test('suspended access has a dedicated semantic badge and collaborator photo uses the compact opt-in',()=>{
  assert.match(access,/className:'is-suspended'/);
  assert.match(accessCss,/\.team-access-status\.is-suspended\{border-color:#b42318;background:#fef0ef;color:#8d1812\}/);
- assert.match(operations,/<ProfilePhoto compact key=\{person\.id\}/);
+ assert.match(operations,/<PersonPhotoField/);
  assert.match(photo,/compact=false/);
  assert.match(photo,/profile-photo-progressive/);
  assert.match(photoCss,/\.profile-photo-section\.is-compact \.profile-photo-summary \.editable-photo\{width:44px;height:44px\}/);

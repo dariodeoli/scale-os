@@ -805,7 +805,7 @@ export default function Home() {
     );
   const firstName = user?.email.split("@")[0] || "U";
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
-  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
+  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 
   const sidebarContent=<>
         <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
@@ -848,7 +848,7 @@ export default function Home() {
           <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
-        {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></Dialog>}
+        {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
         <div className="workspace-topbar" role="toolbar" aria-label="Controles del espacio de trabajo">
           <div className="topbar-primary">
             <div className="topbar-identity">
@@ -935,7 +935,7 @@ export default function Home() {
         {active==='Configuración'&&<div className="settings-page"><div className="settings-layout">
           <div className="settings-column"><SettingsWorkspace/></div>
           <div className="settings-column settings-side-column">
-            <div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription}/></div>
+            <div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user?.organization_name}/></div>
             {!user?.demo_owner_user_id&&['owner','admin'].includes(user?.role||'')&&<CouponRedeem role={user?.role||''} onRedeemed={refreshSubscription}/>}
             {!user?.demo_owner_user_id&&<NewCompany/>}
           </div>
