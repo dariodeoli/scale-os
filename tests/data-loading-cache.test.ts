@@ -70,3 +70,11 @@ test('prefetch stays in the current scope and excludes fresh or unrelated endpoi
  assert(!urls.some(url=>/members|team|settings|reservations|context|invit|projects|summary|people/.test(url)));
  setDataScope('');await prefetchSectionData('Pipeline','user:agency:owner');assert.equal(urls.length,8);
 });
+
+test('a 200 with a non-JSON body never becomes empty workspace state',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ assert(workspace.includes('if (text.trim()) throw new Error("El servidor devolvió una respuesta inválida. Reintentá.");'),'a non-empty non-JSON 200 must throw instead of returning an empty object');
+ assert(workspace.includes("if(!Array.isArray(clientData?.clients)||!Array.isArray(projectData?.projects)||!Array.isArray(orderData?.workOrders)||!summaryData?.summary)throw new Error('El servidor devolvió datos incompletos. Reintentá.');"),'the main load validates every array before setting state');
+ assert(workspace.includes('const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];'),'secondary loaders coerce non-arrays');
+});

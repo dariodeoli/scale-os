@@ -219,6 +219,8 @@ const assignableRoles = [
   { id: "viewer", label: "Solo lectura" },
 ] as const;
 
+const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await dataFetch(`${core}${path}`, {
     ...init,
@@ -238,7 +240,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     if (!response.ok) {
       throw new Error(`${errorMsg} (HTTP ${response.status})`);
     }
-    // If status was ok but JSON parsing failed, return empty object
+    // A 200 with a non-empty non-JSON body is an error page, never data: it must
+    // fail loudly instead of becoming an empty object that corrupts state.
+    if (text.trim()) throw new Error("El servidor devolvió una respuesta inválida. Reintentá.");
     data = {} as T & { error?: string };
   }
   if (!response.ok)
@@ -513,6 +517,7 @@ export default function Home() {
       ],
     );
     if(sequence!==dataLoadSequence.current)return;
+    if(!Array.isArray(clientData?.clients)||!Array.isArray(projectData?.projects)||!Array.isArray(orderData?.workOrders)||!summaryData?.summary)throw new Error('El servidor devolvió datos incompletos. Reintentá.');
     setClients(clientData.clients);
     setProjects(projectData.projects);
     setOrders(orderData.workOrders);
@@ -565,7 +570,7 @@ export default function Home() {
   useEffect(() => {
     if (operationalAccess && (active === "Mora" || active === "Clientes")) {
       request<{ clients: ClientPaymentStatus[] }>("/api/agency/client-payment-status")
-        .then((data) => setPaymentStatuses(data.clients))
+        .then((data) => setPaymentStatuses(listOf<ClientPaymentStatus>(data?.clients)))
         .catch((cause) =>
           setToast(
             cause instanceof Error
@@ -592,7 +597,7 @@ export default function Home() {
   useEffect(() => {
     if (operationalAccess && active === "Presupuestos")
       request<{ budgets: Budget[] }>("/api/agency/budgets")
-        .then((data) => setBudgets(data.budgets))
+        .then((data) => setBudgets(listOf<Budget>(data?.budgets)))
         .catch((cause) =>
           setToast(
             cause instanceof Error
@@ -610,12 +615,12 @@ export default function Home() {
         request<{ payments: PaymentRecord[] }>("/api/agency/payments"),
         request<{ members: Member[] }>("/api/agency/custodians"),
       ]);
-    setAccounts(accountData.accounts);
-    setInvoices(invoiceData.invoices);
-    setInvoiceHasMore(invoiceData.hasMore===true);
-    setTransfers(transferData.transfers);
-    setPayments(paymentData.payments);
-    setCustodians(custodianData.members);
+    setAccounts(listOf<Account>(accountData?.accounts));
+    setInvoices(listOf<Invoice>(invoiceData?.invoices));
+    setInvoiceHasMore(invoiceData?.hasMore===true);
+    setTransfers(listOf<AccountTransfer>(transferData?.transfers));
+    setPayments(listOf<PaymentRecord>(paymentData?.payments));
+    setCustodians(listOf<Member>(custodianData?.members));
   }
   useEffect(() => {
     if (operationalAccess && active === "Finanzas")
@@ -629,7 +634,7 @@ export default function Home() {
   }, [active, operationalAccess]);
   async function loadAllInvoices(){
     const data=await request<{invoices:Invoice[];hasMore?:boolean}>("/api/agency/invoices?limit=all");
-    setInvoices(data.invoices);setInvoiceHasMore(false);setAllInvoicesLoaded(true);
+    setInvoices(listOf<Invoice>(data?.invoices));setInvoiceHasMore(false);setAllInvoicesLoaded(true);
   }
   useEffect(() => {
     if (
@@ -638,7 +643,7 @@ export default function Home() {
       ["owner", "admin"].includes(user?.role || "")
     )
       request<{ events: MetricEvent[] }>("/api/metrics")
-        .then((data) => setMetrics(data.events))
+        .then((data) => setMetrics(listOf<MetricEvent>(data?.events)))
         .catch((cause) =>
           setToast(
             cause instanceof Error
