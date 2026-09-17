@@ -70,6 +70,7 @@ import {filterProductionOrders} from './production-filter';
 import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type StartupPreference} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
+import {whatsappUrl} from './client-links';
 import {notify,notifyMutation} from './feedback';
 import {SubscriptionPanel,SubscriptionNotice,type SubscriptionState} from './subscription-panel';
 import './settings-slice.css';
@@ -147,6 +148,9 @@ type Client = {
   has_recurring_price?:boolean;
   logo_url?:string|null;
   color_key?:string;
+  tax_id?:string|null;
+  legal_name?:string|null;
+  created_at?:string;
   id: string;
   name: string;
   email: string | null;
@@ -1259,6 +1263,21 @@ export default function Home() {
   const displayedClients=filterClientDirectory(clients,clientSearch,clientStatusFilter);
   const [projects, setProjects] = useState<Project[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
+  const clientHubStats=useMemo(()=>{
+    const stats=new Map<string,{projects:number;pieces:number;nextDue:string|null}>();
+    for(const client of clients)stats.set(String(client.id),{projects:0,pieces:0,nextDue:null});
+    for(const project of projects){const entry=stats.get(String(project.client_id));if(entry&&project.status==='active')entry.projects+=1;}
+    for(const order of orders){
+      if(['approved','published'].includes(order.status))continue;
+      const project=projects.find(candidate=>String(candidate.id)===String(order.project_id));if(!project)continue;
+      const entry=stats.get(String(project.client_id));if(!entry)continue;
+      entry.pieces+=1;
+      const due=order.due_date?String(order.due_date).slice(0,10):null;
+      if(due&&(!entry.nextDue||due<entry.nextDue))entry.nextDue=due;
+    }
+    return stats;
+  },[clients,projects,orders]);
+  const clientSince=(value?:string)=>value?new Intl.DateTimeFormat('es-PY',{month:'short',year:'numeric'}).format(new Date(value)):null;
   const productionClientId=preferences.production.clientId;
   function setProductionClientId(clientId:string){updatePreferences({production:{...preferences.production,clientId}});}
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
@@ -2082,7 +2101,7 @@ export default function Home() {
             </div>
             <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
               {displayedClients.length ? (
-                displayedClients.map((client) => {const pay=paymentStatuses.find(ps=>String(ps.client_id)===String(client.id));const state=clientState(client);return (
+                displayedClients.map((client) => {const pay=paymentStatuses.find(ps=>String(ps.client_id)===String(client.id));const state=clientState(client);const stat=clientHubStats.get(String(client.id));const tel=whatsappUrl(client.phone||undefined);const since=clientSince(client.created_at);return (
                   <article className="client-hub-card" key={client.id}>
                     <header className="client-hub-head">
                       <button type="button" className="client-hub-open" onClick={()=>setDetail({kind:'client',id:client.id})} aria-label={`Abrir ficha de ${client.name}`}>
@@ -2093,7 +2112,15 @@ export default function Home() {
                     <dl className="client-hub-facts">
                       <div><dt>Correo</dt><dd title={client.email||undefined}>{client.email || "Sin email registrado"}</dd></div>
                       <div><dt>Teléfono</dt><dd title={client.phone||undefined}>{client.phone || "Sin teléfono"}</dd></div>
+                      <div><dt>RUC</dt><dd title={client.tax_id||undefined}>{client.tax_id || "Sin RUC registrado"}</dd></div>
+                      <div><dt>Cliente desde</dt><dd>{since || "Sin fecha de alta"}</dd></div>
                     </dl>
+                    <div className="client-hub-stats" aria-label="Cartera del cliente">
+                      {stat?.projects?<span className="client-hub-stat"><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
+                      {stat?.pieces?<span className="client-hub-stat"><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
+                      {stat?.nextDue?<span className="client-hub-stat">Próxima entrega <b>{stat.nextDue.slice(8,10)}/{stat.nextDue.slice(5,7)}</b></span>:null}
+                      {stat&&!stat.projects&&!stat.pieces?<span className="client-hub-stat muted">Sin proyectos activos</span>:null}
+                    </div>
                     <div className="client-hub-chips">
                       {pay ? (
                         pay.payment_status === "up_to_date" ? (
@@ -2104,10 +2131,12 @@ export default function Home() {
                           <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
                         )
                       ) : null}
+                      {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance">Pendiente {moneyKpi(Number(pay.outstanding_amount),pay.currency)}</span>:null}
                       {client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
                     </div>
                     <footer className="client-hub-actions">
                       <button className="text-button" onClick={()=>setDetail({kind:'client',id:client.id})}><Eye size={14}/>Abrir ficha</button>
+                      {tel?<a className="text-button" href={tel} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>:null}
                       <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={user?.role||'viewer'} refresh={load}/></div>
                     </footer>
                   </article>
