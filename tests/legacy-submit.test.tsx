@@ -9,6 +9,8 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
 import {useSingleFlightSubmit} from '../app/use-single-flight-submit';
 import {currencyCodes,currencyLabels} from '../app/currencies';
+import {PHONE_ERROR,phoneValid} from '../app/field-rules';
+import {PhoneField} from '../app/phone-field';
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
@@ -41,7 +43,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let done=0;
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
-  const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect,
+  const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect,PHONE_ERROR,phoneValid,PhoneField,
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    useCompanyCurrency:()=>({currency:'USD'}),
   useForm:(options:Parameters<typeof useForm>[0])=>useForm({...options,defaultValues:{...options?.defaultValues,...defaults}}),

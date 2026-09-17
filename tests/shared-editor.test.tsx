@@ -88,6 +88,20 @@ async function main(){
   assert.equal(lookups.length,beforeEmpty,'an empty value never reaches the provider');
   assert(JSON.stringify(r!.toJSON()).includes('Escribí RUC primero'),'the form explains why nothing was queried');
   await act(async()=>r!.unmount());
-  console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out, inline lookups that query and apply returned values');
+  // Phone fields share the country code control, normalize typed values and validate digits.
+  const phoneWrites:Record<string,string>[]=[];
+  await act(async()=>{r=create(<Editor fields={[{key:'phone',label:'Teléfono',type:'phone',optional:true,help:'Elegí el país'}]} defaults={{phone:''}} save={async v=>{phoneWrites.push(v);}}/>);});
+  const telInput=(()=>r!.root.findAllByType('input').find(node=>node.props.inputMode==='tel'))();
+  assert(telInput,'the phone field renders a tel input');
+  assert.equal(r!.root.findByType('select').props['aria-label'],'Código de país');
+  await act(async()=>{telInput!.props.onChange({target:{value:'0981 123 456'}});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(phoneWrites.at(-1)!.phone,'+595 981123456','typed phone keeps the country code and strips the trunk zero');
+  await act(async()=>{r!.root.findAllByType('input').find(node=>node.props.inputMode==='tel')!.props.onChange({target:{value:'123'}});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(phoneWrites.length,1,'an incomplete phone never reaches the save');
+  assert(JSON.stringify(r!.toJSON()).includes('Ingresá un teléfono válido'));
+  await act(async()=>r!.unmount());
+  console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out, inline lookups that query and apply returned values, phone fields that normalize and validate');
 }
 test('Shared editor validation and complete save/cancel lifecycle',main);

@@ -11,12 +11,14 @@ import type {Account,Client,Invoice,Member,Project,WorkOrder} from './workspace-
 import {currencyCodes} from './currencies';
 import {AmountInput} from './profile-controls';
 import {UrgencySelect} from './urgency';
+import {PHONE_ERROR, phoneValid} from './field-rules';
+import {PhoneField} from './phone-field';
 
 
 export const clientSchema = z.object({
   name: z.string().trim().min(2, "Escribí el nombre del cliente."),
   email: z.string().email("Email inválido.").or(z.literal("")),
-  phone: z.string().max(40).optional(),
+  phone: z.string().max(40).optional().refine(value => !value || phoneValid(value), PHONE_ERROR),
 });
 type ClientValues = z.infer<typeof clientSchema>;
 type SavedClient = { id: string; name: string; email: string | null; phone: string | null; active: boolean; [key: string]: unknown };
@@ -27,14 +29,12 @@ export function ClientForm({ request, done }: { request: WorkspaceRequest; done:
     defaultValues: { name: "", email: "", phone: "" },
   });
   const [error, setError] = useState("");
-  const [dialCode,setDialCode]=useState('+595');
   const submission=useSingleFlightSubmit(form.handleSubmit(submit));
   async function submit(values: ClientValues) {
     try {
-      const digits=values.phone?.replace(/\D/g,'')||'';
       const data = await request<{ client: SavedClient }>("/api/agency/clients", {
         method: "POST",
-        body: JSON.stringify({...values,phone:digits?`${dialCode}${digits}`:''}),
+        body: JSON.stringify({...values,phone:values.phone||''}),
       });
       done(data.client);
     } catch (cause) {
@@ -63,7 +63,7 @@ export function ClientForm({ request, done }: { request: WorkspaceRequest; done:
       </label>
       <label>
         Teléfono / WhatsApp · Opcional
-        <span className="phone-input"><select aria-label="Código de país" value={dialCode} onChange={event=>setDialCode(event.target.value)}><option value="+595">🇵🇾 +595</option><option value="+55">🇧🇷 +55</option><option value="+54">🇦🇷 +54</option><option value="+1">🇺🇸 +1</option><option value="+34">🇪🇸 +34</option></select><input inputMode="tel" autoComplete="tel-national" placeholder="981 123 456" {...form.register("phone")} /></span>
+        <PhoneField value={form.watch('phone')||''} onChange={value=>form.setValue('phone',value,{shouldValidate:true,shouldDirty:true})}/>
         <small className="field-help">Elegí el país; al guardar se conserva el código internacional y se habilita el acceso directo a WhatsApp.</small>
       </label>
       {error && <p className="error">{error}</p>}
