@@ -35,7 +35,7 @@ test('suspended access has a dedicated semantic badge and collaborator photo use
 test('team list view renders the collection as a single-column list',()=>{
  assert.match(operations,/ops-grid\$\{teamView==='list'\?' ops-grid-list':''\}/);
  assert.match(operationsCss,/\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\)\}/);
- assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:1\/-1\}/);
+ assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:1\/-1;display:flex/);
 });
 
 test('workspace density owns the header geometry across desktop and mobile',()=>{
