@@ -116,6 +116,23 @@ async function main(){
   await act(async()=>{await submit(r!);});
   assert.equal(numberWrites.at(-1)!.probability,'70');
   await act(async()=>r!.unmount());
-  console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out, inline lookups that query and apply returned values, phone fields that normalize and validate, integer fields that keep the numeric keypad');
+  // Email fields suggest known domains without blocking autofill, paste or submit.
+  const emailWrites:Record<string,string>[]=[];
+  await act(async()=>{r=create(<Editor fields={[{key:'email',label:'Correo',type:'email',optional:true}]} defaults={{email:''}} save={async v=>{emailWrites.push(v);}}/>);});
+  const emailInput=r!.root.findByType('input');
+  assert.equal(emailInput.props.type,'email');
+  assert.equal(emailInput.props.autoComplete,'email');
+  assert.equal(emailInput.props.maxLength,200);
+  await act(async()=>{emailInput.props.onChange({target:{value:'ana@g'}});});
+  assert.deepEqual(r!.root.findAllByType('option').map(node=>node.props.value),['ana@gmail.com']);
+  await act(async()=>{r!.root.findByType('input').props.onChange({target:{value:'ana'}});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(emailWrites.length,0,'an invalid email never reaches the save');
+  assert(JSON.stringify(r!.toJSON()).includes('Ingresá un correo válido'));
+  await act(async()=>{r!.root.findByType('input').props.onChange({target:{value:'ana@ejemplo.com'}});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(emailWrites.at(-1)!.email,'ana@ejemplo.com');
+  await act(async()=>r!.unmount());
+  console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out, inline lookups that query and apply returned values, phone fields that normalize and validate, integer fields that keep the numeric keypad, email fields with safe domain suggestions');
 }
 test('Shared editor validation and complete save/cancel lifecycle',main);

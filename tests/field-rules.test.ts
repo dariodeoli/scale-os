@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, digitsOnly, internationalPhone, normalizePhone, normalizeSerial, parsePhone, phoneMessage, phoneValid} from '../app/field-rules';
+import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, digitsOnly, emailSuggestions, internationalPhone, normalizePhone, normalizeSerial, parsePhone, phoneMessage, phoneValid} from '../app/field-rules';
 
 assert.equal(digitsOnly('+595 (981) 123-456'), '595981123456');
 assert.equal(digitsOnly(''), '');
@@ -34,5 +34,12 @@ assert.equal(normalizePhone('no es un teléfono'), null);
 assert.equal(normalizeSerial(' sn-123 456 '), 'SN123456');
 assert.equal(normalizeSerial('dji_mic_2'), 'DJIMIC2');
 assert.equal(normalizeSerial(''), '');
+
+assert.deepEqual(emailSuggestions('ana@g'), ['ana@gmail.com']);
+assert.equal(emailSuggestions('ana@').length, 4);
+assert.deepEqual(emailSuggestions('ana@gmail.com'), [], 'a complete domain never suggests');
+assert.deepEqual(emailSuggestions('ana g@'), [], 'spaces disable suggestions');
+assert.deepEqual(emailSuggestions('@g'), [], 'a missing local part never suggests');
+assert.deepEqual(emailSuggestions('ana@zzz'), []);
 
 console.log('PASS: shared phone rules parse, validate and normalize country code plus national digits');

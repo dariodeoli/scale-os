@@ -55,3 +55,14 @@ export function normalizePhone(value: string): string | null {
 export function normalizeSerial(value: string): string {
   return (value || '').trim().replace(/[\s\-_]+/g, '').toUpperCase();
 }
+
+export const EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com', 'live.com'];
+
+export function emailSuggestions(value: string): string[] {
+  const at = (value || '').indexOf('@');
+  if (at < 1 || /\s/.test(value)) return [];
+  const local = value.slice(0, at);
+  const domain = value.slice(at + 1).toLowerCase();
+  if (domain.includes('.')) return [];
+  return EMAIL_DOMAINS.filter(entry => entry.startsWith(domain)).slice(0, 4).map(entry => `${local}@${entry}`);
+}
