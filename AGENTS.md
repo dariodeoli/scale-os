@@ -20,17 +20,20 @@
 - Entrega (handover): commitear por unidad de trabajo (conventional commits, sin atribución de IA), correr la verificación mínima, pushear la rama propia y avisar con: nombre de rama, `git log --oneline origin/main..HEAD`, qué hace cada commit, rutas tocadas y resultado de las verificaciones.
 - Después de una integración anunciada, verificar por contenido contra `origin/main` (`git merge-base --is-ancestor <sha> origin/main` + `git show origin/main:<ruta>`), no por memoria. Si algo falta, reaplicarlo sobre main actualizado.
 - Estado raro de git (fetch que falla, refs rotas): parar y avisar al integrador. No borrar ni arreglar refs por cuenta propia.
+- Matá tus servidores zombies al terminar: `lsof -ti :3000 :<PUERTO_API> | xargs kill -9` (y procesos `next-server` de worktrees de Scale OS).
 - Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build` (el release los corre igual).
 
 ## Checks de entrega obligatorios (frontend)
 1. `npm run test:release-regression` en verde (incluye release-version, audit, landing y contracts).
-2. `npx next build` exit 0 sin errores de tipos.
+2. `npx next build` exit 0 sin errores de tipos y con artefacto verificado (`.next/BUILD_ID` existe; no alcanza el mensaje de éxito). El prebuild sincroniza versiones y footer.
 3. `rg "<<<<<<<" app tests build-tools` sin resultados (nunca commits con marcadores de conflicto).
-4. Si tocaste el API (scale-core-api): `npm run test:release` en verde, y toda columna/tabla nueva del schema exige su migración idempotente.
+4. Si tocaste el API (scale-core-api): `npm run test:release` en verde, y toda columna/tabla nueva del schema exige su migración idempotente. No exportar símbolos que no sean handlers de Next en `app/api`, no duplicar slugs dinámicos, y los seeds usan guards por conteo + `on conflict do nothing`, nunca «si el dato no existe, salir».
 5. Versión y footer sincronizados: `npm run release:check` y `npm run footer:check` verdes.
+6. `npx prisma validate` si tocaste `prisma/`.
 
 ## Pedidos de Dario (backlog de issues)
 - Un issue por repo, según dónde vive el cambio principal: permisos, migraciones o lógica de API → `dariodeoli/scale-core-api`; UI, formularios o navegación → `dariodeoli/scale-os`. El issue del otro repo se referencia desde el cuerpo (ej. "API: dariodeoli/scale-core-api#N"). Nunca duplicar el mismo pedido en los dos backlogs.
+- Al entregar, citá los commits de la rama en el handover y en el issue.
 - Si el cambio toca ambos repos sin un lado claro, el issue va al repo del commit bloqueante (datos/permisos → API; experiencia visual → frontend).
 - El integrador cierra issues solo después de verificar por contenido contra `origin/main` del repo del issue.
 
