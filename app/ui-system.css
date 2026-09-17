@@ -221,3 +221,8 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 .data-capsule dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .data-capsule dd{margin:3px 0 0;font-size:12.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:480px){.data-capsule{grid-template-columns:1fr}}
+
+:is(.client-status,.inventory-state,.work-state,.studio-state){display:inline-flex;align-items:center;width:fit-content;max-width:100%;padding:3px 10px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-subtle);color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-weight:700;white-space:nowrap}
+:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0;padding:11px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
+:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts) dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts) dd{margin:3px 0 0;font-size:12.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

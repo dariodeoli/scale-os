@@ -1,6 +1,6 @@
 .client-directory-toolbar{display:flex;align-items:flex-end;flex-wrap:wrap;gap:var(--ui-space-3);margin-block:var(--ui-space-4)}
 .client-directory-toolbar>.ops-select{min-width:180px;flex:1}
-.client-status{display:inline-flex;align-items:center;justify-content:center;width:fit-content;min-height:24px;border:1px solid transparent;border-radius:99px;padding:3px 9px;font-size:10px;font-weight:700;letter-spacing:.035em;line-height:1.2;white-space:nowrap;background:var(--surface-subtle);color:var(--text-muted)}
+
 .client-status[data-status=active]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));color:var(--success);background:var(--success-soft)}
 .client-status[data-status=paused],.client-status[data-status=expired]{border-color:color-mix(in srgb,var(--warning) 24%,var(--line));color:var(--warning);background:var(--warning-soft)}
 .client-status[data-status=cancelled]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));color:var(--danger);background:var(--danger-soft)}
@@ -68,9 +68,9 @@
 .client-hub-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
 .client-hub-open{display:block;min-width:0;padding:0;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .client-hub-open:focus-visible{outline:3px solid var(--focus-halo,var(--brand-600));outline-offset:3px}
-.client-hub-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0;padding:11px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
-.client-hub-facts dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
-.client-hub-facts dd{margin:3px 0 0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+
+
 .client-hub-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:24px}
 .client-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}
 .client-hub-list .client-hub-card{display:grid;grid-template-columns:minmax(200px,1.15fr) minmax(0,1fr) auto;align-items:center;gap:10px 18px;padding:12px 14px}
