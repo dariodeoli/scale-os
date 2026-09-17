@@ -22,6 +22,10 @@
 - Estado raro de git (fetch que falla, refs rotas): parar y avisar al integrador. No borrar ni arreglar refs por cuenta propia.
 - Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build` (el release los corre igual).
 
+## Issues (backlog)
+- Cada pedido se trabaja desde un issue: abrirlo en el repo donde vive el cambio principal (frontend → scale-os; API → scale-core-api) y referenciar el otro si aplica.
+- En commits y handover citar `Refs #<n>`; el integrador cierra el issue solo después de verificar por contenido contra `main`.
+
 ## Checks de entrega obligatorios (frontend)
 1. `npm run test:release-regression` en verde (incluye release-version, audit, landing y contracts).
 2. `npx next build` exit 0 sin errores de tipos.
