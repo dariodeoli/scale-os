@@ -95,3 +95,25 @@
 .inventory-pipeline-actions .icon-button:disabled{opacity:.55;cursor:wait}
 .inventory-pipeline-hide{width:24px;min-width:24px;min-height:24px;flex:none}
 .inventory-pipeline-note{display:flex;align-items:center;gap:8px;margin:2px 0 0;font-size:12px}
+
+/* Inventario: estado en cápsula, datos del equipo y drawer moderno. */
+.inventory-state{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;border:1px solid var(--border-subtle,var(--line));background:var(--surface-subtle);color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-weight:750;white-space:nowrap}
+.inventory-state[data-status=available]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
+.inventory-state[data-status=in_use]{border-color:color-mix(in srgb,var(--info) 24%,var(--line));background:var(--info-soft);color:var(--info)}
+.inventory-state[data-status=maintenance]{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
+.inventory-state[data-status=retired]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));background:var(--danger-soft);color:var(--danger)}
+.inventory-item-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0;padding:11px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
+.inventory-item-facts dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.inventory-item-facts dd{display:flex;align-items:center;gap:5px;margin:3px 0 0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inventory-item-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.inventory-verify-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;border:1px solid var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface));color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-weight:650;white-space:nowrap;min-width:0}
+.inventory-verify-chip[data-result=confirmed]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
+.inventory-verify-chip[data-result=difference]{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
+.inventory-verify-chip[data-result=missing]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));background:var(--danger-soft);color:var(--danger)}
+/* Drawer de detalle: secciones en cápsulas. */
+.inventory-detail{display:grid;gap:12px}
+.inventory-detail>section{display:grid;gap:10px;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:14px;background:var(--surface-raised,var(--surface))}
+.inventory-detail>section>h3{margin:0;font-size:10.5px;font-weight:750;letter-spacing:.07em;text-transform:uppercase;color:var(--text-subtle,var(--text-muted))}
+.inventory-detail .inventory-code-payload{background:var(--surface-sunken,var(--surface-subtle))}
+.inventory-trace-row{padding:9px 11px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface)}
+@media(max-width:480px){.inventory-item-facts{grid-template-columns:1fr}}
