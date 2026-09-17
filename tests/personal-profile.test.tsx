@@ -17,7 +17,7 @@ function mock(path:string,exports:unknown){const id=require.resolve(path);requir
 mock('../app/profile-photo',{ProfilePhoto:PhotoStub});
 mock('../app/dialog',{Dialog:DialogStub,FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogPending:()=>{},useDialogClose:()=>React.useContext(CloseContext)});
 const {MyProfile}=require('../app/my-profile') as typeof import('../app/my-profile');
-type Profile={email:string;full_name:string|null;photo_url:string|null;identity_scope:'personal'|'demo'|'personal_readonly'};
+type Profile={email:string;full_name:string|null;photo_url:string|null;identity_scope:'personal'|'demo'|'personal_readonly';google_connected?:boolean};
 type Request={url:string;init:RequestInit;resolve:(value:Response)=>void};
 const requests:Request[]=[];
 globalThis.fetch=(input,init)=>new Promise<Response>(resolve=>requests.push({url:String(input),init:init||{},resolve}));
