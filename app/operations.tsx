@@ -14,6 +14,7 @@ import {PHONE_ERROR, phoneValid} from './field-rules';
 import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
 import {PersonPhotoField} from './person-photo';
+import {listDateShort} from './list-format';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
@@ -587,13 +588,13 @@ function PeopleWorkspace({
                 <dl className="person-hub-facts">
                   <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={p.email||undefined}>{p.email||'Sin correo'}</dd></div>
                   <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
-                  <div><dt>Ingreso</dt><dd>{p.started_on?p.started_on.slice(0,10):'Sin fecha'}</dd></div>
+                  <div><dt>Ingreso</dt><dd className="list-date">{listDateShort(p.started_on)||'Sin fecha'}</dd></div>
                 </dl>
                 <div className="person-hub-chips">
                   <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?(salaryView?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Salario reservado</em>):<em>Sin importe acordado</em>}</span>
                   {salaryView&&<span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>}
                   {salaryView&&p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
-                  {p.ended_on?<span className="hub-chip warn">Salió el {p.ended_on.slice(0,10)}</span>:null}
+                  {p.ended_on?<span className="hub-chip warn">Salió el {listDateShort(p.ended_on)}</span>:null}
                 </div>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
                 <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} refresh={load}/>
