@@ -21,3 +21,14 @@
 - No duplicar identidad ni datos en el shell: empresa en el TopBar, usuario autenticado al pie del Sidebar, versión solo en el footer.
 - Montos, fechas y códigos nunca se cortan (nowrap + tabular-nums). Usar las clases compartidas (`kpi-strip`/`kpi-card`, `panel`, `ops-card`, `Dialog`/`Editor`, `SaveActions`) y tokens de `ui-system.css`; nada de estilos inline salvo valores dinámicos.
 - Los datos que muestra la UI deben venir del contrato real del API; nunca inventar estados, totales ni métricas.
+
+## Reglas de campos (fuente única)
+- Un componente por tipo de dato: antes de escribir un input a mano, usá el tipo del `Editor` o el componente compartido que ya cubre el caso; si no existe, se crea ahí (`app/`) y se adopta en TODOS los lugares que hoy escriben a mano. No crear inputs paralelos.
+- Teléfono: `app/phone-field.tsx` (+ reglas puras en `app/field-rules.ts`), tipo `phone` del Editor. Guarda `+<código> <dígitos>` (Paraguay: 9 móvil / 8 fijo; resto 6–12); el API revalida con `phone()` en `suite-validation.js`.
+- Correo: `app/email-field.tsx`, tipo `email` del Editor (autofill nativo + sugerencias de dominio que no bloquean pegado ni envío); el API valida con `email()`.
+- Serial/IMEI: `normalizeSerial()` al tipear (trim, sin separadores, mayúsculas); el API normaliza con `serial()`.
+- Moneda: `AmountInput`/`money()` (`app/amount-format.ts`); el símbolo nunca va dentro del valor guardado.
+- Contraseña: `PasswordField` (`app/password-field.tsx`). Excepción: el comprobante de eliminación (`app/deletion-danger-zone.tsx`) conserva su contrato propio de foco/aria.
+- Fechas `type="date"`/`type="time"`; enteros y porcentajes con `integer:true` (inputMode numeric); decimales con inputMode decimal.
+- Mensajes de error: uno por regla, en el módulo compartido; el backend revalida siempre (nunca confiar en el cliente).
+- Checklist antes de entregar: ¿usa el componente compartido? ¿respeta defaults (país/moneda)? ¿el API revalida? ¿`npm run test:release-regression` + `npx next build` verdes?
