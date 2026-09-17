@@ -117,3 +117,10 @@
 .inventory-detail .inventory-code-payload{background:var(--surface-sunken,var(--surface-subtle))}
 .inventory-trace-row{padding:9px 11px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface)}
 @media(max-width:480px){.inventory-item-facts{grid-template-columns:1fr}}
+.inventory-verify-stamp{display:inline-flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.inventory-verify-stamp .inventory-verify-check{display:inline-flex;align-items:center;color:inherit}
+.inventory-verify-stamp .inventory-verify-name{font-weight:650;overflow:hidden;text-overflow:ellipsis}
+.inventory-verify-stamp .inventory-verify-time{color:inherit;font-variant-numeric:tabular-nums}
+.inventory-verify-stamp .inventory-control-avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;border-radius:50%;overflow:hidden}
+.inventory-verify-stamp .actor-identity-avatar{width:100%;height:100%;flex-basis:auto;border:0;box-shadow:none;font-size:9px}
+
