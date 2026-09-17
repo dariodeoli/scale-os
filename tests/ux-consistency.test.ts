@@ -25,4 +25,19 @@ test('icon-only actions explain themselves on hover',()=>{
   for(const [file,pattern] of expectations)assert.match(read(file),pattern,`${file} keeps the hover label`);
 });
 
+test('every list view carries the same column-header and alignment contract',()=>{
+  const workspace=read('app/scale-workspace.tsx');
+  assert.match(workspace,/client-hub-head-row[\s\S]*?Cliente[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Acciones/,'the client list shows its column header');
+  assert.match(workspace,/project-entry-head[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables/,'the project list shows its column header');
+  const operations=read('app/operations.tsx');
+  assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
+  const clients=read('app/client-directory.css');
+  assert.match(clients,/\.client-hub-head-row\{display:grid/);
+  assert.match(clients,/\.client-hub-actions\{grid-column:4/,'client actions sit in their own column');
+  const team=read('app/operations.css');
+  assert.match(team,/\.person-hub-head-row\{display:grid/);
+  const projects=read('app/project-card.css');
+  assert.match(projects,/\.project-entry-head\{display:grid/);
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

@@ -1287,6 +1287,7 @@ export default function Home() {
                 <small>Piezas con vencimiento en 7 días</small>
               </article>
             </div>
+            {clientView==='list'?<div className="client-hub-head-row" aria-hidden="true"><span>Cliente</span><span>Datos</span><span>Estado</span><span>Acciones</span></div>:null}
             <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
               {liveClients.map(client=>(
                 <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'}/>
@@ -1353,6 +1354,7 @@ export default function Home() {
                 <small>Órdenes de los proyectos visibles</small>
               </article>
             </div>
+            {projectView==='list'?<div className="project-entry-head" aria-hidden="true"><span>Proyecto</span><span>Estado</span><span>Fechas y piezas</span><span>Responsables</span></div>:null}
             <div className={projectView==='grid'?'project-grid':'project-list'}>
               {liveProjects.map(project => projectEntry(project))}
               {!visibleProjects.length ? (
