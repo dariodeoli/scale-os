@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, digitsOnly, internationalPhone, normalizePhone, parsePhone, phoneMessage, phoneValid} from '../app/field-rules';
+import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, digitsOnly, internationalPhone, normalizePhone, normalizeSerial, parsePhone, phoneMessage, phoneValid} from '../app/field-rules';
 
 assert.equal(digitsOnly('+595 (981) 123-456'), '595981123456');
 assert.equal(digitsOnly(''), '');
@@ -30,5 +30,9 @@ assert.equal(normalizePhone('0981 123 456'), '+595 981123456');
 assert.equal(normalizePhone('+55 (11) 91234-5678'), '+55 11912345678');
 assert.equal(normalizePhone(''), null);
 assert.equal(normalizePhone('no es un teléfono'), null);
+
+assert.equal(normalizeSerial(' sn-123 456 '), 'SN123456');
+assert.equal(normalizeSerial('dji_mic_2'), 'DJIMIC2');
+assert.equal(normalizeSerial(''), '');
 
 console.log('PASS: shared phone rules parse, validate and normalize country code plus national digits');

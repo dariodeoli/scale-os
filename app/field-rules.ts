@@ -51,3 +51,7 @@ export function normalizePhone(value: string): string | null {
   const parsed = parsePhone(value)!;
   return internationalPhone(parsed.country || DEFAULT_PHONE_COUNTRY, parsed.national);
 }
+
+export function normalizeSerial(value: string): string {
+  return (value || '').trim().replace(/[\s\-_]+/g, '').toUpperCase();
+}

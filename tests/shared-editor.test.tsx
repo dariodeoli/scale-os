@@ -102,6 +102,20 @@ async function main(){
   assert.equal(phoneWrites.length,1,'an incomplete phone never reaches the save');
   assert(JSON.stringify(r!.toJSON()).includes('Ingresá un teléfono válido'));
   await act(async()=>r!.unmount());
-  console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out, inline lookups that query and apply returned values, phone fields that normalize and validate');
+  // Integer number fields request the numeric keypad and reject decimals.
+  const numberWrites:Record<string,string>[]=[];
+  await act(async()=>{r=create(<Editor fields={[{key:'probability',label:'Probabilidad (%)',type:'number',integer:true,optional:true}]} defaults={{probability:'10'}} save={async v=>{numberWrites.push(v);}}/>);});
+  const numberInput=r!.root.findByType('input');
+  assert.equal(numberInput.props.inputMode,'numeric');
+  assert.equal(numberInput.props.step,'1');
+  await act(async()=>{numberInput.props.onChange({target:{name:'probability',value:'10.5'},type:'change'});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(numberWrites.length,0,'decimals never reach an integer save');
+  assert(JSON.stringify(r!.toJSON()).includes('Ingresá un número entero'));
+  await act(async()=>{r!.root.findByType('input').props.onChange({target:{name:'probability',value:'70'},type:'change'});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(numberWrites.at(-1)!.probability,'70');
+  await act(async()=>r!.unmount());
+  console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out, inline lookups that query and apply returned values, phone fields that normalize and validate, integer fields that keep the numeric keypad');
 }
 test('Shared editor validation and complete save/cancel lifecycle',main);
