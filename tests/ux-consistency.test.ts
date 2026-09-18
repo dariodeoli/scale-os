@@ -100,4 +100,18 @@ test('the team list can suspend and reactivate access in bulk',()=>{
   assert.match(agents,/Excepción de contrato \(decisión 17-09\)[\s\S]*?formatWholeMoney/,'the whole-money contract exception stays documented');
 });
 
+test('statement rows and projected payroll keep fixed columns',()=>{
+  const controls=read('app/daily-controls.tsx');
+  assert.match(controls,/statement-row-head[\s\S]*?Extracto[\s\S]*?Monto[\s\S]*?Acciones/,'the reconciliation list shows its header');
+  assert.match(controls,/payment-row statement-row/,'statement rows join the fixed grid');
+  const system=read('app/ui-system.css');
+  assert.match(system,/\.statement-row-head\{display:grid/);
+  assert.match(system,/\.control-shell \.statement-row\{display:grid/);
+  const forecast=read('app/financial-forecast.tsx');
+  assert.match(forecast,/forecast-person-who/,'avatar and name share the first column');
+  assert.match(forecast,/forecast-person-override is-empty/,'a missing adjustment reserves its column');
+  const forecastCss=read('app/financial-forecast.css');
+  assert.match(forecastCss,/\.forecast-person-list-row\{display:grid/);
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');
