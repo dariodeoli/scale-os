@@ -4,6 +4,7 @@ import {currencyChoices} from './currencies';
 import {api,money} from './operations';
 import {AmountInput,SelectCustom} from './profile-controls';
 import {decimalInput} from './field-rules';
+import {listDateFull} from './list-format';
 import './reports-workspace.css';
 
 type DiscountType='none'|'percent'|'fixed';
@@ -59,7 +60,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
   {!data&&!error?<p role="status">Cargando ciclo comercial…</p>:null}
   {data? <>
    {!writable?<p>Solo lectura: Finanzas puede consultar el historial comercial, no modificarlo.</p>:record?.archived?<p>El cliente está archivado. Esta ficha es de solo lectura.</p>:null}
-   {record?.amendments.length?<div className="reports-table-scroll"><table><caption>Historial de condiciones contratadas</caption><thead><tr><th>Vigente desde</th><th>Cliente desde</th><th>Plan</th><th>Mensual</th><th>Descuento</th><th>Extras y entregables</th></tr></thead><tbody>{record.amendments.map(amendment=><tr key={amendment.id}><td><time dateTime={amendment.effectiveOn}>{amendment.effectiveOn}</time></td><td>{amendment.activationDate?<time dateTime={amendment.activationDate}>{amendment.activationDate}</time>:'Sin fecha registrada'}</td><td><b>{amendment.planName}</b><small>Versión contratada: {amendment.planVersionSnapshot}</small></td><td>{money(amendment.monthlyPrice,amendment.currency)}</td><td>{amendmentLabel(amendment)}{amendment.discountTerms?<small>{amendment.discountTerms}</small>:null}</td><td>{amendment.extrasDeliverables||'Sin extras registrados'}</td></tr>)}</tbody></table></div>:<p className="reports-warning" role="status">Todavía no hay condiciones comerciales registradas para este cliente.</p>}
+   {record?.amendments.length?<div className="reports-table-scroll"><table><caption>Historial de condiciones contratadas</caption><thead><tr><th>Vigente desde</th><th>Cliente desde</th><th>Plan</th><th>Mensual</th><th>Descuento</th><th>Extras y entregables</th></tr></thead><tbody>{record.amendments.map(amendment=><tr key={amendment.id}><td><time dateTime={amendment.effectiveOn}>{listDateFull(amendment.effectiveOn)}</time></td><td>{amendment.activationDate?<time dateTime={amendment.activationDate}>{listDateFull(amendment.activationDate)}</time>:'Sin fecha registrada'}</td><td><b>{amendment.planName}</b><small>Versión contratada: {amendment.planVersionSnapshot}</small></td><td>{money(amendment.monthlyPrice,amendment.currency)}</td><td>{amendmentLabel(amendment)}{amendment.discountTerms?<small>{amendment.discountTerms}</small>:null}</td><td>{amendment.extrasDeliverables||'Sin extras registrados'}</td></tr>)}</tbody></table></div>:<p className="reports-warning" role="status">Todavía no hay condiciones comerciales registradas para este cliente.</p>}
    {editable&&!adding?<div className="client-reporting-actions"><button type="button" onClick={()=>{resetDraft();setAdding(true);}}>Registrar enmienda comercial</button></div>:null}
    {editable&&adding?<form className="client-reporting-fields" noValidate aria-busy={saving} onSubmit={save}>
     <label>Vigente desde<input type="date" min="1900-01-01" max={today()} value={draft.effectiveOn} disabled={saving} onChange={event=>update('effectiveOn',event.target.value)}/></label>

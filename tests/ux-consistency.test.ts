@@ -47,6 +47,19 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(projects,/\.project-list>\.project-entry\{display:grid;grid-template-columns:var\(--project-cols\)/,'project rows consume --project-cols');
 });
 
+test('the client directory keeps one template, ordered row actions and shared date formats',()=>{
+  const clients=read('app/client-directory.css');
+  assert.match(clients,/\.client-hub-list \.client-hub-stats\{grid-column:5/,'the portfolio keeps its own column');
+  assert.doesNotMatch(clients,/\.client-hub-list \.client-hub-stats\{grid-column:1\}/,'no later rule drags the portfolio into the identity column');
+  assert.match(clients,/\.client-hub-list \.client-hub-actions\{grid-column:6[\s\S]*?grid-template-columns:repeat\(2,auto\)/,'row actions stack in up to two ordered rows');
+  assert.doesNotMatch(clients,/\.client-hub-list \.client-hub-card\{grid-template-columns:1fr\}/,'the thin list never collapses into stacked cards');
+  assert.match(clients,/@media\(max-width:760px\)\{\.client-hub-list\{overflow-x:auto/,'small screens scroll the thin list horizontally');
+  const workspace=read('app/scale-workspace.tsx');
+  assert.match(workspace,/archived-capsule[\s\S]*?clientHeadRow/,'the archived list carries the same column header');
+  assert.match(workspace,/listDateShort\(stat\.nextDue\)/,'client due dates use the shared short format');
+  assert.doesNotMatch(workspace,/client-hub-balance[^\n]*moneyKpi/,'row balances use the shared money formatter');
+});
+
 test('every visible clock is 24-hour and the trash list carries its columns',()=>{
   for(const file of ['app/account-security.tsx','app/deletion-danger-zone.tsx','app/studio-workspace.tsx']){
     const source=read(file);

@@ -69,6 +69,7 @@ import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from '
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
 import {whatsappUrl} from './client-links';
 import {clientPortfolioStats,clientSince,moneyKpi} from './client-format';
+import {listDateShort} from './list-format';
 import {statuses,type Status,KanbanColumn} from './production-board';
 import type {Account,Client,Invoice,Member,PaymentRecord,Project,WorkOrder} from './workspace-types';
 import {AccountForm,ClientForm,InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
@@ -266,6 +267,7 @@ function Modal({
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
+const clientHeadRow=()=> <div className="client-hub-head-row" aria-hidden="true"><span>Cliente</span><span>Datos</span><span>Estado</span><span>Cobros</span><span>Actividad</span><span>Acciones</span></div>;
 function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOpen,onToggleArchive,refresh,role,selectable=false,selected=false,onSelect}:{
   client:Client;
   pay:ClientPaymentStatus|undefined;
@@ -300,7 +302,7 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
       <div className="client-hub-stats" aria-label="Cartera del cliente">
         {stat?.projects?<span className="client-hub-stat"><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
         {stat?.pieces?<span className="client-hub-stat"><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
-        {stat?.nextDue?<span className="client-hub-stat">Próxima entrega <b>{stat.nextDue.slice(8,10)}/{stat.nextDue.slice(5,7)}</b></span>:null}
+        {stat?.nextDue?<span className="client-hub-stat">Próxima entrega <b>{listDateShort(stat.nextDue)}</b></span>:null}
         {stat&&!stat.projects&&!stat.pieces?<span className="client-hub-stat muted">Sin proyectos activos</span>:null}
       </div>
       {canSeeBilling?<div className="client-hub-chips">
@@ -308,12 +310,12 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
           pay.payment_status === "up_to_date" ? (
             <span className="mora-chip mora-clear">Al día</span>
           ) : pay.payment_status === "due_soon" ? (
-            <span className="mora-chip mora-early">Vence {pay.next_due_on || "próximamente"}</span>
+            <span className="mora-chip mora-early">Vence {listDateShort(pay.next_due_on) || "próximamente"}</span>
           ) : (
             <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
           )
         ) : null}
-        {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance">Pendiente {moneyKpi(Number(pay.outstanding_amount),pay.currency)}</span>:null}
+        {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance">Pendiente {money(Number(pay.outstanding_amount),pay.currency)}</span>:null}
         {client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
       </div>:null}
       <footer className="client-hub-actions">
@@ -1240,7 +1242,7 @@ export default function Home() {
                         {client.payment_status === "up_to_date"
                           ? "Al día"
                           : client.payment_status === "due_soon"
-                            ? `Vence ${client.next_due_on || "próximamente"}`
+                            ? `Vence ${listDateShort(client.next_due_on) || "próximamente"}`
                             : `${client.days_overdue} días de mora`}
                         {client.days_overdue > 0 && (
                           <span className={`mora-chip ${client.days_overdue > 30 ? "mora-critical" : client.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>
@@ -1305,10 +1307,11 @@ export default function Home() {
             </div>
             {canManageClients&&liveClients.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedClients.length?<><b>{selectedClients.length}</b> seleccionado{selectedClients.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleClients}>Seleccionar visibles</button>{selectedClients.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedClients([])}>Limpiar</button></>:null}</div></div>:null}
             <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
-              {clientView==='list'?<div className="client-hub-head-row" aria-hidden="true"><span>Cliente</span><span>Datos</span><span>Estado</span><span>Cobros</span><span>Actividad</span><span>Acciones</span></div>:null}
+              {clientView==='list'?clientHeadRow():null}
               {liveClients.map(client=>(
                 <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
               ))}
+              {!liveClients.length&&archivedClients.length&&clientStatusFilter!=='inactive'?<p className="empty-copy">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p>:null}
               {!displayedClients.length ? (
                 clients.length===0 ? (
                   <p className="empty-copy">
@@ -1326,6 +1329,7 @@ export default function Home() {
               <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
                 <summary>Archivados ({archivedClients.length})</summary>
                 <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
+                  {clientView==='list'?clientHeadRow():null}
                   {archivedClients.map(client=>(
                     <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
                   ))}

@@ -16,6 +16,8 @@
 .drawer-list-head span:last-child{justify-self:end}
 .drawer-list .activity-line{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 14px;min-height:40px;padding:8px 0}
 .drawer-list .activity-line>span,.drawer-list .activity-line>small{justify-self:end;white-space:nowrap}
+.drawer-list .activity-line>.payment-cell{justify-self:end;display:flex;align-items:center;gap:8px;min-width:0}
+.drawer-list .payment-cell small{white-space:nowrap;color:var(--text-subtle,var(--text-muted))}
 .drawer-list .work-list-row{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 14px;min-height:40px;padding:8px 4px}
 .drawer-list .work-list-row>span{justify-self:end;white-space:nowrap}
 @media(max-width:560px){.drawer-list .activity-line,.drawer-list .work-list-row{grid-template-columns:1fr}.drawer-list .activity-line>span,.drawer-list .activity-line>small,.drawer-list .work-list-row>span{justify-self:start;white-space:normal}}

@@ -3,7 +3,7 @@ export function moneyKpi(value: number, currency: string) {
 }
 
 export function clientSince(value?: string): string | null {
-  return value ? new Intl.DateTimeFormat('es-PY', { month: 'short', year: 'numeric' }).format(new Date(value)) : null;
+  return value ? new Intl.DateTimeFormat('es-PY', { month: 'short', year: 'numeric', timeZone: 'America/Asuncion' }).format(new Date(value)) : null;
 }
 
 const asuncionDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit', day: '2-digit' });
