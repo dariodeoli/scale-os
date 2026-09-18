@@ -5,7 +5,10 @@ import {act,create} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 const {SerialTexto,listDateShort,listDateFull,dueTone}=require('../app/list-format') as typeof import('../app/list-format');
-const day=(offset:number)=>new Date(Date.now()+offset*86_400_000).toISOString().slice(0,10);
+// Las fechas del helper se calculan en el calendario de Asunción (el mismo que
+// usa dueTone): con ISO en UTC el borde day(7) cambiaba según la hora del día.
+const asuncionDay=(date:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+const day=(offset:number)=>asuncionDay(new Date(Date.now()+offset*86_400_000));
 const plain=(node:any):string=>!node?'':typeof node==='string'?node:Array.isArray(node)?node.map(plain).join(''):plain(node.children);
 
 test('serial keeps the ending visible, bolds it and can mask the rest',async()=>{

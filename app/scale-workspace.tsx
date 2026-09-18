@@ -50,7 +50,7 @@ import './mobile-navigation.css';
 import './workspace-density.css';
 import {Dialog} from './dialog';
 import {completeSave} from './save-completion';
-import {OperationsWorkspace, ProjectComments, CompanySelector} from './operations';
+import {OperationsWorkspace, ProjectComments, CompanySelector, money} from './operations';
 import {PermissionsMatrixPanel} from './permissions-matrix';
 import './operations.css';
 import './suite.css';
@@ -506,7 +506,7 @@ export default function Home() {
     return rows;
   }, [moraReports, paymentStatuses]);
   const visibleMoraClients = (moraFilter === "no_invoice" ? paymentStatuses.filter(client => !client.has_invoice) : moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses).filter(client => !moraSearch || client.client_name.toLowerCase().includes(moraSearch.toLowerCase()));
-  const moneyMora = (value: number, currency: string) => new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+  const moneyMora = money;
   const budgetKpis = useMemo(() => {
     const totals = new Map<string, number>();
     let drafts = 0, accepted = 0, expiring = 0;
@@ -1265,11 +1265,7 @@ export default function Home() {
                     </div>
                     <span className="client-row-amount">
                       {client.currency
-                        ? new Intl.NumberFormat("es-PY", {
-                            style: "currency",
-                            currency: client.currency,
-                            maximumFractionDigits: 0,
-                          }).format(Number(client.outstanding_amount))
+                        ? money(Number(client.outstanding_amount), client.currency)
                         : "Sin saldo pendiente"}
                     </span>
                   </div>
@@ -1450,13 +1446,9 @@ export default function Home() {
                     <dl className="budget-hub-facts">
                       <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
                       <div><dt>Vigencia</dt><dd>{budget.valid_until?budget.valid_until.slice(0,10):'Sin fecha'}</dd></div>
-                      <div><dt>Sin IVA</dt><dd>{new Intl.NumberFormat("es-PY",{style:"currency",currency:budget.currency,maximumFractionDigits:0}).format(Number(budget.subtotal))}</dd></div>
+                      <div><dt>Sin IVA</dt><dd>{money(Number(budget.subtotal),budget.currency)}</dd></div>
                     </dl>
-                    <strong className="budget-hub-total">{new Intl.NumberFormat("es-PY", {
-                      style: "currency",
-                      currency: budget.currency,
-                      maximumFractionDigits: 0,
-                    }).format(Number(budget.total))}<small>IVA incl.</small></strong>
+                    <strong className="budget-hub-total">{money(Number(budget.total),budget.currency)}<small>IVA incl.</small></strong>
                     <footer className="budget-hub-actions"><BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>
                   </article>
                 ))
@@ -1521,11 +1513,7 @@ export default function Home() {
                         <span className="hub-chip">{{bank:'Bancaria',cash:'Efectivo',digital:'Digital',investment:'Inversión'}[account.account_type]||account.account_type} · {account.currency}</span>
                       </header>
                       <strong className="finance-account-balance">
-                        {new Intl.NumberFormat("es-PY", {
-                          style: "currency",
-                          currency: account.currency,
-                          maximumFractionDigits: 0,
-                        }).format(Number(account.balance))}
+                        {money(Number(account.balance),account.currency)}
                       </strong>
                       <dl className="finance-facts">
                         {account.account_number?<div><dt>N.º</dt><dd title={account.account_number}>{account.account_number}</dd></div>:null}
@@ -1549,8 +1537,9 @@ export default function Home() {
               </div>
               {transfers.length ? (
                 <div className="client-list">
+                  <div className="finance-row-head" aria-hidden="true"><span>Transferencia</span><span>Monto</span></div>
                   {transfers.slice(0, 5).map((transfer) => (
-                    <div className="payment-row" key={transfer.id}>
+                    <div className="payment-row finance-transfer-row" key={transfer.id}>
                       <div>
                         <b>
                           {transfer.from_account_name} →{" "}
@@ -1561,18 +1550,10 @@ export default function Home() {
                           <ActorIdentity name={transfer.actor_name||transfer.created_by_email} photoUrl={transfer.actor_photo_url} verified={transfer.actor_verified===true}/>
                           {transfer.reference ? ` · ${transfer.reference}` : ""}
                         </small>
-                        {transfer.to_currency&&<small>Recibido: {new Intl.NumberFormat('es-PY',{style:'currency',currency:transfer.to_currency,maximumFractionDigits:transfer.to_currency==='PYG'?0:2}).format(Number(transfer.received_amount||transfer.amount))}</small>}
+                        {transfer.to_currency&&<small>Recibido: {money(Number(transfer.received_amount||transfer.amount),transfer.to_currency)}</small>}
                       </div>
                       <strong>
-                        {new Intl.NumberFormat("es-PY", {
-                          style: "currency",
-                          currency:
-                            accounts.find(
-                              (account) =>
-                                account.id === transfer.from_account_id,
-                            )?.currency || "PYG",
-                          maximumFractionDigits: 0,
-                        }).format(Number(transfer.amount))}
+                        {money(Number(transfer.amount),accounts.find(account=>account.id===transfer.from_account_id)?.currency||'PYG')}
                       </strong>
                     </div>
                   ))}
@@ -1607,6 +1588,7 @@ export default function Home() {
               </div>
               {invoices.length ? (
                 <div className="client-list">
+                  <div className="finance-row-head" aria-hidden="true"><span>Factura</span><span>Total</span></div>
                   {invoices.map((invoice) => (
                     <div className="payment-row finance-invoice-row" key={invoice.id}>
                       <div>
@@ -1616,21 +1598,11 @@ export default function Home() {
                         <small>
                           <span className="finance-state" data-status={invoice.status}>{{issued:'Emitida',partial:'Parcial',paid:'Pagada',overdue:'Vencida',draft:'Borrador',cancelled:'Cancelada'}[invoice.status]||invoice.status}</span>
                           {" · pendiente "}
-                          {new Intl.NumberFormat("es-PY", {
-                            style: "currency",
-                            currency: invoice.currency,
-                            maximumFractionDigits: 0,
-                          }).format(
-                            Number(invoice.total) - Number(invoice.paid_amount),
-                          )}
+                          {money(Number(invoice.total) - Number(invoice.paid_amount),invoice.currency)}
                         </small>
                       </div>
                       <strong>
-                        {new Intl.NumberFormat("es-PY", {
-                          style: "currency",
-                          currency: invoice.currency,
-                          maximumFractionDigits: 0,
-                        }).format(Number(invoice.total))}
+                        {money(Number(invoice.total),invoice.currency)}
                       </strong>
                     </div>
                   ))}
@@ -1649,8 +1621,9 @@ export default function Home() {
               </div>
               {payments.length ? (
                 <div className="client-list">
+                  <div className="finance-row-head" aria-hidden="true"><span>Cobro</span><span>Monto</span></div>
                   {payments.map((payment) => (
-                    <div className="payment-row" key={payment.id}>
+                    <div className="payment-row finance-payment-row" key={payment.id}>
                       <div>
                         <b>
                           {payment.client_name} · {payment.invoice_number}
@@ -1664,11 +1637,7 @@ export default function Home() {
                         <ReceiptReversal payment={payment} refresh={loadFinance}/>
                       </div>
                       <strong>
-                        {new Intl.NumberFormat("es-PY", {
-                          style: "currency",
-                          currency: payment.currency,
-                          maximumFractionDigits: 0,
-                        }).format(Number(payment.amount))}
+                        {money(Number(payment.amount),payment.currency)}
                       </strong>
                     </div>
                   ))}

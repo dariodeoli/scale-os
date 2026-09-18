@@ -75,4 +75,13 @@ test('clients, projects and trash support bulk operations',()=>{
   assert.match(system,/\.bulk-bar\{display:flex/);
 });
 
+test('finance panels use column headers and the shared money formatter',()=>{
+  const workspace=read('app/scale-workspace.tsx');
+  assert.match(workspace,/finance-row-head[\s\S]*?Transferencia[\s\S]*?Factura[\s\S]*?Cobro/,'each finance list shows its header');
+  assert.doesNotMatch(workspace,/Intl\.NumberFormat\("es-PY"/,'amounts go through money(), not inline formatters');
+  const styles=read('app/operations.css');
+  assert.match(styles,/\.finance-row-head\{display:grid/);
+  assert.match(styles,/\.finance-grid :is\(\.finance-transfer-row,.finance-invoice-row,.finance-payment-row\)\{display:grid/);
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');
