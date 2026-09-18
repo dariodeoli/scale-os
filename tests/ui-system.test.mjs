@@ -36,3 +36,6 @@ assert(css.includes('.person-hub-card:not(.is-list) .ops-person small'),'team ca
 assert(css.includes('.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-code'),'inventory cards show the code as a chip beside the title');
 assert(/:is\(\.person-hub-card:not\(\.is-list\),\.notice\) :is\(\.ops-person h3,\.notice-identity h3\)\{font-size:14px/.test(css),'team and notification titles share one size');
 console.log('PASS team and inventory cards follow the notification card anatomy');
+assert(css.includes('.project-grid>.project-entry .project-entry-title h3{font-size:14px'),'project grid cards keep the shared title size');
+assert(css.includes('.project-grid>.project-entry>.project-entry-actions{justify-content:space-between}'),'project grid cards separate the drive meta from the action buttons');
+console.log('PASS project grid cards follow the shared anatomy');
