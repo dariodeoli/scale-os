@@ -223,9 +223,9 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 @media(max-width:480px){.data-capsule{grid-template-columns:1fr}}
 
 :is(.client-status,.inventory-state,.work-state,.studio-state){display:inline-flex;align-items:center;width:fit-content;max-width:100%;padding:3px 10px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-subtle);color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-weight:700;white-space:nowrap}
-:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0;padding:11px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
-:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts) dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts) dd{margin:3px 0 0;font-size:12.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts,.budget-hub-facts){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0;padding:11px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
+:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts,.budget-hub-facts) dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+:is(.client-hub-facts,.inventory-item-facts,.project-entry-facts,.studio-facts,.budget-hub-facts) dd{margin:3px 0 0;font-size:12.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 
 /* Campos por tipo (fuente única): un campo corto nunca estira una fila entera.
@@ -266,11 +266,13 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 
 /* Cápsulas en cuadrícula (fuente única): identidad · hechos por columnas ·
    chips · acciones ancladas al pie. Filas de igual altura y gaps consistentes. */
-:is(.inventory-equipment-grid:not(.inventory-equipment-list),.ops-grid:not(.ops-grid-list),.client-hub-grid,.project-grid,.suite-board){grid-auto-rows:1fr}
+:is(.inventory-equipment-grid:not(.inventory-equipment-list),.ops-grid:not(.ops-grid-list),.client-hub-grid,.project-grid,.suite-board,.studio-reservation-list,.budget-hub-grid){grid-auto-rows:1fr}
 :is(.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment,
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
     .client-hub-grid>.client-hub-card,
     .project-grid>.project-entry,
+    .studio-reservation-list>.studio-reservation,
+    .budget-hub-grid>.budget-hub-card,
     .suite-column>.lead-card){
  display:flex;flex-direction:column;gap:var(--ui-space-3,12px);
  height:100%;min-width:0;padding:16px;
@@ -282,20 +284,26 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
     .client-hub-grid>.client-hub-card,
     .project-grid>.project-entry,
-    .suite-column>.lead-card)>:is(.panel-heading,.lead-card-head,.person-hub-head,.client-hub-head){
+    .studio-reservation-list>.studio-reservation,
+    .budget-hub-grid>.budget-hub-card,
+    .suite-column>.lead-card)>:is(.panel-heading,.lead-card-head,.person-hub-head,.client-hub-head,.budget-hub-head){
  margin:0;gap:10px;min-width:0;min-height:44px;align-items:flex-start;
 }
 :is(.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment,
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
     .client-hub-grid>.client-hub-card,
     .project-grid>.project-entry,
-    .suite-column>.lead-card)>:is(.inventory-item-facts,.person-hub-facts,.client-hub-facts,.project-entry-facts){
+    .studio-reservation-list>.studio-reservation,
+    .budget-hub-grid>.budget-hub-card,
+    .suite-column>.lead-card)>:is(.inventory-item-facts,.person-hub-facts,.client-hub-facts,.project-entry-facts,.studio-facts,.budget-hub-facts){
  margin:0;
 }
 :is(.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment,
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
     .client-hub-grid>.client-hub-card,
     .project-grid>.project-entry,
+    .studio-reservation-list>.studio-reservation,
+    .budget-hub-grid>.budget-hub-card,
     .suite-column>.lead-card)>:is(.inventory-item-chips,.person-hub-chips,.client-hub-chips){
  display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:24px;
 }
@@ -303,7 +311,9 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
     .client-hub-grid>.client-hub-card,
     .project-grid>.project-entry,
-    .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions,.customer-review-actions){
+    .studio-reservation-list>.studio-reservation,
+    .budget-hub-grid>.budget-hub-card,
+    .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions,.customer-review-actions,.budget-hub-actions){
  display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-end;gap:8px;
  margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line));
  overflow-x:auto;scrollbar-width:none;
@@ -312,9 +322,13 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
     .client-hub-grid>.client-hub-card,
     .project-grid>.project-entry,
+    .studio-reservation-list>.studio-reservation,
+    .budget-hub-grid>.budget-hub-card,
     .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions)::-webkit-scrollbar{display:none}
 :is(.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment,
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
     .client-hub-grid>.client-hub-card,
     .project-grid>.project-entry,
-    .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions)>*{flex:none}
+    .studio-reservation-list>.studio-reservation,
+    .budget-hub-grid>.budget-hub-card,
+    .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions,.budget-hub-actions)>*{flex:none}
