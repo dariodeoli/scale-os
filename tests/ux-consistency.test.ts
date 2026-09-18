@@ -40,6 +40,11 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(team,/\.person-hub-head-row\{display:grid/);
   const projects=read('app/project-card.css');
   assert.match(projects,/\.project-entry-head\{display:grid/);
+  // Encabezado y filas comparten UNA plantilla por lista (variable CSS).
+  assert.match(clients,/--client-cols:[\s\S]*?grid-template-columns:var\(--client-cols\)[\s\S]*?\.client-hub-head-row\{display:grid;grid-template-columns:var\(--client-cols\)/,'client header and rows share --client-cols');
+  assert.match(team,/--person-cols:[\s\S]*?grid-template-columns:var\(--person-cols\)[\s\S]*?\.person-hub-head-row\{display:grid;grid-template-columns:var\(--person-cols\)/,'team header and rows share --person-cols');
+  assert.match(projects,/--project-cols:[\s\S]*?\.project-entry-head\{display:grid;grid-template-columns:var\(--project-cols\)/,'the project header shares --project-cols');
+  assert.match(projects,/\.project-list>\.project-entry\{display:grid;grid-template-columns:var\(--project-cols\)/,'project rows consume --project-cols');
 });
 
 test('every visible clock is 24-hour and the trash list carries its columns',()=>{
