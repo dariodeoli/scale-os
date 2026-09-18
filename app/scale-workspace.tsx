@@ -58,6 +58,7 @@ import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWo
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
+import {EmailField} from './email-field';
 import {WorkspaceGuide,workspaceGuideScope,visibleModule,NewCompany,type WorkspaceGuideData} from './workspace-guide';
 import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
 import {SelectCustom} from './profile-controls';
@@ -900,14 +901,7 @@ export default function Home() {
           <form noValidate onSubmit={login}>
             <label>
               Email
-              <input
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                type="email"
-                placeholder="Tu email"
-                autoComplete="email"
-                required
-              />
+              <EmailField value={email} onChange={setEmail} placeholder="Tu email" required/>
             </label>
             <PasswordField
               label="Contraseña"

@@ -2,6 +2,7 @@
 
 import {useId,type ReactNode} from 'react';
 import {currencyCodes,type Currency} from './currencies';
+import {money} from './operations';
 import './plan-comparison.css';
 
 export type ComparablePlan={id:string;[key:string]:unknown};
@@ -12,8 +13,7 @@ const amount=(value:unknown)=>typeof value==='number'||typeof value==='string'&&
 const roundedAmount=(value:number)=>Number.isFinite(value)&&value>=0&&value<=999999999999?Math.round(value*100)/100:null;
 const numberLabel=(value:number)=>value.toLocaleString('es-PY',{maximumFractionDigits:20});
 export function planAmount(value:number|null,currency:string){
- return value!==null&&Number.isFinite(value)&&currencyCodes.includes(currency as Currency)?
-  new Intl.NumberFormat('es-PY',{style:'currency',currency,maximumFractionDigits:currency==='PYG'?0:2}).format(value):'No disponible';
+ return value!==null&&Number.isFinite(value)&&currencyCodes.includes(currency as Currency)?money(value,currency):'No disponible';
 }
 
 // Preserve the unified checkout's legacy field support, zero prices and invalid
