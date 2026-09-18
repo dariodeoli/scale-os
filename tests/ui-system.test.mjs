@@ -32,3 +32,7 @@ assert(/\.notification-inbox \.notice\{[^}]*flex-direction:column/.test(notifica
 assert(notifications.includes('.notification-inbox .notice-identity h3'),'notification titles keep their card hierarchy');
 assert(notifications.includes('.notification-inbox .notice-kind-chip'),'notification kind stays a chip beside the title');
 console.log('PASS notification feed keeps stacked cards per the documented exception');
+assert(css.includes('.person-hub-card:not(.is-list) .ops-person small'),'team cards show the role as a chip beside the name');
+assert(css.includes('.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-code'),'inventory cards show the code as a chip beside the title');
+assert(/:is\(\.person-hub-card:not\(\.is-list\),\.notice\) :is\(\.ops-person h3,\.notice-identity h3\)\{font-size:14px/.test(css),'team and notification titles share one size');
+console.log('PASS team and inventory cards follow the notification card anatomy');
