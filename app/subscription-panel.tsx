@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect,useId,useRef,useState} from 'react';
+import {daysUntil} from './client-format';
 import {founderPricingNote} from './founder-pricing';
 import './subscription-panel.css';
 
@@ -51,6 +52,12 @@ function remaining(state:SubscriptionState){
  if(state.daysRemaining===null||!Number.isFinite(state.daysRemaining))return 'Plazo pendiente de confirmación.';
  const days=Math.max(0,Math.floor(state.daysRemaining));
  return `${days} ${days===1?'día':'días'} de ${state.status==='grace'?'gracia':'prueba'} restantes.`;
+}
+function expiryCountdown(value:string|null){
+ const days=daysUntil(value);
+ if(days===null)return 'Por confirmar';
+ if(days===0)return 'Vence hoy';
+ return days>0?`Faltan ${days} ${days===1?'día':'días'}`:`Vencido hace ${-days} ${-days===1?'día':'días'}`;
 }
 function description(state:SubscriptionState){
  switch(state.status){
@@ -168,6 +175,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
      <div><dt>Plan</dt><dd>{monthlyLabels[currency]}</dd></div>
      {state.status==='trialing'?<div><dt>Fin de prueba</dt><dd>{dateLabel(state.trialEndsAt)}</dd></div>:null}
      <div><dt>Vencimiento</dt><dd>{dateLabel(state.dueAt)}</dd></div>
+     <div><dt>Días para vencer</dt><dd>{expiryCountdown(state.dueAt)}</dd></div>
      {['grace','suspended'].includes(state.status)?<div><dt>Suspensión {state.status==='suspended'?'desde':'prevista'}</dt><dd>{dateLabel(state.suspendAt)}</dd></div>:null}
     </dl>
     <div className="subscription-explainer">

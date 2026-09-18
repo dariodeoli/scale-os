@@ -53,6 +53,12 @@ async function main(){
   assert(text().includes('USD 10/mes'));assert(text().includes('Gs. 50.000/mes'));
   await render({...state,daysRemaining:0});assert(text().includes('0 días de prueba restantes'));
   await render({...state,daysRemaining:null,trialEndsAt:'invalid'});assert(text().includes('pendiente de confirmación'));assert(text().includes('Por confirmar'));assert(!text().includes('Invalid Date'));
+  const asuncionDay=(offset:number)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()+offset*86_400_000));
+  await render({...state,status:'active',dueAt:asuncionDay(30)});assert(text().includes('Días para vencer'));assert(text().includes('Faltan 30 días'));
+  await render({...state,status:'active',dueAt:asuncionDay(1)});assert(text().includes('Faltan 1 día'));assert(!text().includes('Faltan 1 días'));
+  await render({...state,dueAt:asuncionDay(0)});assert(text().includes('Vence hoy'));assert(text().includes('días de prueba restantes'),'Trial days and plan expiry countdown coexist');
+  await render({...state,status:'grace',dueAt:asuncionDay(-3)});assert(text().includes('Vencido hace 3 días'));
+  await render({...state,status:'active',dueAt:null});assert(text().includes('Días para vencer'));
   for(const status of ['trialing','active','grace','suspended'] as const){
    await render({...state,status,canManage:false});assert(text().includes('Contactá al dueño'));
    assert.equal(renderer!.root.findAllByProps({type:'checkbox'}).length,0);assert(!findButton('Activar'));assert(!findButton('Gestionar'));
