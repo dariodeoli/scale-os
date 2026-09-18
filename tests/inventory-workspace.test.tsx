@@ -5,6 +5,7 @@ import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-te
 import type {InventoryItem,InventoryReservation,StorageTemplate} from '../app/inventory-workspace';
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+const {SearchField}=require('../app/search-field') as typeof import('../app/search-field');
 const intervals=new Map<number,()=>void>();let timerId=0;
 const documentEvents=Object.assign(new EventTarget(),{visibilityState:'visible'});
 Object.defineProperty(globalThis,'document',{configurable:true,value:documentEvents});
@@ -42,7 +43,7 @@ const {InventoryWorkspace,InventoryItemForm,InventoryReservationForm,InventoryTr
 let renderer:ReactTestRenderer,done=0;
 function text(node:ReactTestInstance|string):string{return typeof node==='string'?node:node.children.map(text).join('');}
 const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label)!;
-const field=(label:string,tag:'input'|'select'|'textarea'='input')=>tag==='select'?renderer.root.findAllByType(SelectCustom).find(candidate=>candidate.props.label===label)!:renderer.root.findAllByType('label').find(candidate=>candidate.children.some(c=>c===label))!.findByType(tag);
+const field=(label:string,tag:'input'|'select'|'textarea'='input')=>tag==='select'?renderer.root.findAllByType(SelectCustom).find(candidate=>candidate.props.label===label)!:tag==='input'&&renderer.root.findAllByType(SearchField).some(candidate=>candidate.props.label===label)?renderer.root.findAllByType(SearchField).find(candidate=>candidate.props.label===label)!.findByType('input'):renderer.root.findAllByType('label').find(candidate=>candidate.children.some(c=>c===label))!.findByType(tag);
 const change=(label:string,value:string,tag:'input'|'select'|'textarea'='input')=>act(()=>{const node=field(label,tag);node.props.onChange(tag==='select'?value:{target:{value}});});
 // Identity chips now include avatar initials before the visible person name.
 const check=(label:string)=>act(()=>renderer.root.findAllByType('label').find(node=>text(node).includes(label))!.findByType('input').props.onChange());

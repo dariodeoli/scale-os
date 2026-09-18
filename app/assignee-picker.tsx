@@ -1,6 +1,7 @@
 'use client';
 
 import {useId,useState} from 'react';
+import {SearchField} from './search-field';
 import './assignee-picker.css';
 import {PersonContainer} from './person-container';
 
@@ -51,7 +52,7 @@ export function AssigneePicker({members,value,onChange,disabled=false,loading=fa
    <button type="button" className="assignee-primary" disabled={locked||!options.has(person)} aria-pressed={selected.assigned_user_id===person} aria-label={`Usar como principal: ${name(person)}`} onClick={()=>{if(!locked&&options.has(person))onChange({...selected,assigned_user_id:person});}}>{selected.assigned_user_id===person?'Principal':'Hacer principal'}</button>
    <button type="button" className="assignee-remove" disabled={locked} aria-label={`Quitar a ${name(person)}`} title={`Quitar a ${name(person)}`} onClick={()=>toggle(person)}>×</button>
   </li>)}</ul>:<p className="assignee-help">Sin responsables asignados.</p>}
-  <label className="assignee-search" htmlFor={`${id}-search`}>Buscar integrante<input id={`${id}-search`} type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Nombre o correo" autoComplete="off" disabled={locked}/></label>
+  <SearchField className="assignee-search" label="Buscar integrante" value={search} onChange={setSearch} placeholder="Nombre o correo" disabled={locked}/>
   {loading?<p role="status">Cargando integrantes…</p>:<div className="assignee-options">{visible.map(([person,member])=><label className="assignee-option" key={person}>
    <input type="checkbox" checked={selected.assigned_user_ids.includes(person)} disabled={locked||selected.assigned_user_ids.length>=100&&!selected.assigned_user_ids.includes(person)} onChange={()=>toggle(person)}/>
    <span><PersonContainer name={name(person)} photoUrl={member.photo_url} secondary={member.full_name&&member.email?member.email:undefined} verified/></span>
