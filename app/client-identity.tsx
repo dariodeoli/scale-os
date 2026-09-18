@@ -15,7 +15,7 @@ export function ClientIdentity({name,logo,color,compact=false}:{name:string;logo
  const [failed,setFailed]=useState('');
  return <span className={`client-identity identity-${identityColor(color)} ${compact?'compact':''}`}>
   <span className="identity-avatar" aria-hidden="true">{logo&&logo!==failed?<img src={logo} alt="" loading="lazy" referrerPolicy="no-referrer" width={36} height={36} onError={()=>setFailed(logo)}/>:actorInitials(name)}</span>
-  <span className="identity-name">{name}</span>
+  <span className="identity-name" title={name}>{name}</span>
  </span>;
 }
 const schema=z.object({color_key:z.enum(['violet','blue','teal','green','gold','rose','slate'])});

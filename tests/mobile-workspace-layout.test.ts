@@ -27,7 +27,7 @@ function declaration(file:string,selector:string,property:string,width:number){
 const workspace=read('scale-workspace.tsx'),operations=read('operations.tsx');
 assert(workspace.includes("import {ProjectCard} from './project-card'"),'workspace imports the project card being tested');
 assert(workspace.includes('<ProjectCard key={project.id} project={project}'),'directory passes each project into the shared card');
-assert(read('project-card.tsx').includes('<h3>{project.name}</h3>'),'project name is rendered as a card heading');
+assert(read('project-card.tsx').includes('<h3 title={project.name}>{project.name}</h3>'),'project name is rendered as a card heading with its full title');
 assert(operations.includes('<ActorIdentity name={c.actor_name||c.author_email'),'project comments render the shared author identity with email fallback');
 
 for(const width of [320,360,390,768]){
@@ -64,3 +64,15 @@ for(const width of [320,360,390,768]){
  }
 }
 console.log('PASS: source CSS contracts at 320/360/390/768px; project text wrapping, responsive sidebar/checklist and intentional board scrolling. Not visual QA.');
+
+// Reglas de contenedores: cápsulas alineadas con identidad, hechos por columnas,
+// chips de altura estable y acciones ancladas al pie.
+import {test as layoutTest} from 'node:test';
+layoutTest('grid capsules share one aligned skeleton',()=>{
+ const ui=readFileSync(new URL('../app/ui-system.css',import.meta.url),'utf8');
+ assert(ui.includes('grid-auto-rows:1fr'),'grid rows keep one height per line');
+ assert(ui.includes('.ops-grid:not(.ops-grid-list)>.person-hub-card'),'the shared capsule skeleton covers the team grid');
+ assert(ui.includes('.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment'),'the skeleton covers the inventory grid');
+ assert(ui.includes('margin-top:auto'),'card actions anchor to the footer');
+ assert(ui.includes('min-height:24px'),'chip rows keep a stable height');
+});
