@@ -26,3 +26,9 @@ for(const viewport of [320,360,390,768]){
  assert(css.includes('min-width:0;max-width:100%'));assert(css.includes('white-space:normal'));
  console.log(`PASS ${viewport}px source contracts: shrinkable fields, wrapping actions, shared surfaces; not visual viewport QA`);
 }
+const notifications=readFileSync('app/notifications.css','utf8');
+assert(!/\.notification-inbox \.notice\{[^}]*display:grid/.test(notifications),'notifications keep stacked cards, never thin rows (documented exception)');
+assert(/\.notification-inbox \.notice\{[^}]*flex-direction:column/.test(notifications),'notification cards stack title, body, time and actions');
+assert(notifications.includes('.notification-inbox .notice-identity h3'),'notification titles keep their card hierarchy');
+assert(notifications.includes('.notification-inbox .notice-kind-chip'),'notification kind stays a chip beside the title');
+console.log('PASS notification feed keeps stacked cards per the documented exception');

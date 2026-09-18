@@ -1,0 +1,66 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+
+const css=(file)=>readFileSync(new URL(`../app/${file}`,import.meta.url),'utf8').replace(/@media\s*\(max-width[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g,'');
+function rule(text,selector){
+ const pattern=selector.split(' ').map(part=>part.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s*');
+ const re=new RegExp(pattern+'\\s*\\{([^}]*)\\}','g');
+ let match,last=null;
+ while((match=re.exec(text)))last=match[1];
+ return last||'';
+}
+function tracks(value){
+ const declaration=value.match(/--[a-z-]+-cols:([^;}]+)/);
+ if(!declaration)return [];
+ return declaration[1].trim().split(/\s+/);
+}
+function xGap(gap){
+ const values=gap.match(/gap:([^;}]+)/);
+ if(!values)return null;
+ const parts=values[1].trim().split(/\s+/);
+ return parts.length>1?parts[1]:parts[0];
+}
+function xPadding(padding){
+ const values=padding.match(/padding:([^;}]+)/);
+ if(!values)return null;
+ const parts=values[1].trim().split(/\s+/);
+ return parts.length>=2?parts[1]:parts[0];
+}
+
+const lists=[
+ {name:'clientes',vars:'client-directory.css',source:'client-directory.css',head:'.client-hub-head-row',row:'.client-hub-list .client-hub-card',decl:'.client-hub-list'},
+ {name:'equipo',vars:'operations.css',source:'operations.css',head:'.person-hub-head-row',row:'.person-hub-card.is-list',decl:'.ops-grid-list'},
+ {name:'proyectos',vars:'project-card.css',source:'project-card.css',head:'.project-entry-head',row:'.project-list>.project-entry',decl:'.project-list'},
+ {name:'inventario',vars:'inventory-workspace.css',source:'inventory-workspace.css',head:'.inventory-equipment-head',row:'.inventory-equipment-list .inventory-equipment',decl:'.inventory-equipment-list'},
+ {name:'reservas',vars:'inventory-workspace.css',source:'inventory-workspace.css',head:'.inventory-reservation-head',row:'.inventory-reservation',decl:'.inventory-reservation-list'},
+];
+
+for(const list of lists){
+ const file=css(list.source);
+ const declaration=rule(file,list.decl);
+ const head=rule(file,list.head);
+ const row=rule(file,list.row);
+ test(`${list.name}: encabezado y filas comparten la plantilla`,()=>{
+  assert.match(declaration,/--[a-z-]+-cols:/,`${list.name} declara su plantilla`);
+  assert.match(head,/grid-template-columns:var\(--[a-z-]+-cols\)/,`${list.name}: el encabezado usa la variable compartida`);
+  const rowPattern=list.row.split(' ').map(part=>part.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s*');
+  assert.match(file,new RegExp(rowPattern+'\\{[^}]*grid-template-columns:var\\(--[a-z-]+-cols\\)'),`${list.name}: la fila usa la variable compartida`);
+ });
+ test(`${list.name}: columnas de ancho fijo (nada de auto por tarjeta)`,()=>{
+  const columns=tracks(declaration);
+  assert.ok(columns.length>=4,`${list.name}: la plantilla tiene columnas`);
+  for(const column of columns){
+   assert.notEqual(column,'auto',`${list.name}: una columna auto se dimensiona por tarjeta y desalinea`);
+   assert.doesNotMatch(column,/minmax\([^)]*,auto\)$/,`${list.name}: minmax con máximo auto se dimensiona por tarjeta`);
+  }
+ });
+ test(`${list.name}: mismo gap-x y padding lateral en encabezado y fila`,()=>{
+  assert.equal(xGap(head),xGap(row),`${list.name}: gap-x del encabezado y de la fila`);
+  assert.equal(xPadding(head),xPadding(row),`${list.name}: padding lateral del encabezado y de la fila`);
+ });
+ test(`${list.name}: la última columna (acciones) alinea a la derecha en el encabezado`,()=>{
+  const headPattern=list.head.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  assert.match(file,new RegExp(headPattern+' span:last-child\\{justify-self:end\\}'),`${list.name}: el encabezado de acciones cierra a la derecha como la fila`);
+ });
+}
