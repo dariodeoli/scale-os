@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {api,Dialog} from './operations';
+import {notify} from './feedback';
 import {ActorIdentity} from './actor-identity';
 import {Trash2} from 'lucide-react';
 
@@ -39,9 +40,24 @@ export function RemoveRecord({kind,id,name,role,done}:{kind:string;id:string;nam
 type Removed={kind:string;id:string;name:string;removed_at:string;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
  const [records,setRecords]=useState<Removed[]>([]),[error,setError]=useState(''),[loading,setLoading]=useState(true),[busy,setBusy]=useState('');
+ const [selected,setSelected]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false);
+ const keyOf=(r:Removed)=>`${r.kind}-${r.id}`;
+ function toggleSelected(key:string){setSelected(current=>current.includes(key)?current.filter(value=>value!==key):[...current,key]);}
+ async function restoreBatch(){
+  if(bulkBusy||!selected.length)return;
+  const total=selected.length;
+  setBulkBusy(true);setError('');
+  let restored=0;
+  try{
+   for(const key of selected){const record=records.find(item=>keyOf(item)===key);if(!record)continue;await api(`/api/agency/${record.kind}/${record.id}/restore`,{});restored+=1;}
+   setSelected([]);await Promise.all([load(),refresh()]);
+   notify({tone:restored===total?'success':'warning',message:`${restored} de ${total} registro${total===1?'':'s'} restaurado${restored===1?'':'s'}.`});
+  }catch(e){setError(errorMessage(e));await load().catch(()=>{});}
+  finally{setBulkBusy(false);}
+ }
  async function load(){setRecords((await api<{records:Removed[]}>('/api/agency/trash')).records);}
  useEffect(()=>{void load().catch(e=>setError(errorMessage(e))).finally(()=>setLoading(false));},[]);
  return <section className="panel settings-card" aria-labelledby="trash-workspace-title"><div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Trash2 size={18}/></span><div><h2 id="trash-workspace-title">Papelera de esta empresa</h2><p>Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva. Los accesos retirados se devuelven con una nueva invitación desde Equipo.</p></div></div>
- {error&&<p className="error" role="alert">{error}</p>}{loading?<p>Cargando…</p>:!records.length?<p className="trash-empty">No hay registros en la papelera.</p>:<ul className="trash-list">{records.map(r=><li className="trash-row" key={`${r.kind}-${r.id}`}><span className="trash-kind">{labels[r.kind]}</span><div className="trash-info"><b>{r.name}</b><small>Movido a Papelera por <ActorIdentity name={r.actor_name} photoUrl={r.actor_photo_url} verified={r.actor_verified===true} timestamp={r.removed_at}/></small></div><button className="secondary trash-restore" disabled={Boolean(busy)} onClick={async()=>{setBusy(`${r.kind}-${r.id}`);setError('');try{await api(`/api/agency/${r.kind}/${r.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}>{busy===`${r.kind}-${r.id}`?'Restaurando…':'Restaurar'}</button></li>)}</ul>}
+  {error&&<p className="error" role="alert">{error}</p>}{loading?<p>Cargando…</p>:!records.length?<p className="trash-empty">No hay registros en la papelera.</p>:<><div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selected.length?<><b>{selected.length}</b> seleccionado{selected.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para restaurar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={()=>setSelected(selected.length===records.length?[]:records.map(keyOf))}>{selected.length===records.length?'Limpiar selección':'Seleccionar todos'}</button>{selected.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()}>{bulkBusy?'Restaurando…':'Restaurar'}</button><button type="button" className="text-button" onClick={()=>setSelected([])}>Limpiar</button></>:null}</div></div><ul className="trash-list"><li className="trash-head" aria-hidden="true"><span/><span>Tipo</span><span>Registro</span><span>Acciones</span></li>{records.map(r=><li className="trash-row" key={keyOf(r)}><label className="select-check" title="Seleccionar registro"><input type="checkbox" aria-label={`Seleccionar ${r.name}`} checked={selected.includes(keyOf(r))} onChange={()=>toggleSelected(keyOf(r))}/></label><span className="trash-kind">{labels[r.kind]}</span><div className="trash-info"><b>{r.name}</b><small>Movido a Papelera por <ActorIdentity name={r.actor_name} photoUrl={r.actor_photo_url} verified={r.actor_verified===true} timestamp={r.removed_at}/></small></div><button className="secondary trash-restore" disabled={Boolean(busy)||bulkBusy} onClick={async()=>{setBusy(keyOf(r));setError('');try{await api(`/api/agency/${r.kind}/${r.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}>{busy===keyOf(r)?'Restaurando…':'Restaurar'}</button></li>)}</ul></>}
  </section>;
 }

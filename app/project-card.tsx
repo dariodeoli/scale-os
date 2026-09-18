@@ -7,7 +7,7 @@ import {listDateShort,dueTone} from './list-format';
 import './project-card.css';
 
 export type ProjectAssignee=AssignedPerson;
-export function ProjectCard({project,client,children}:{project:{id:string;urgency?:number|null;name:string;client_name:string;status:string;work_order_count:number;drive_url:string|null;start_date?:string|null;due_date?:string|null;assignees?:ProjectAssignee[]};client?:{logo_url?:string|null;color_key?:string};children:ReactNode}){
+export function ProjectCard({project,client,children,selectable=false,selected=false,onSelect}:{project:{id:string;urgency?:number|null;name:string;client_name:string;status:string;work_order_count:number;drive_url:string|null;start_date?:string|null;due_date?:string|null;assignees?:ProjectAssignee[]};client?:{logo_url?:string|null;color_key?:string};children:ReactNode;selectable?:boolean;selected?:boolean;onSelect?:()=>void}){
  const anchor=`project-${project.id}`,card=useRef<HTMLElement>(null);
  const shortDate=(value?:string|null)=>value?String(value).slice(0,10).split('-').reverse().slice(0,2).join('/'):null;
  useEffect(()=>{
@@ -22,7 +22,7 @@ export function ProjectCard({project,client,children}:{project:{id:string;urgenc
   return()=>window.removeEventListener('hashchange',reveal);
  },[anchor]);
  return <article id={anchor} ref={card} tabIndex={-1} className="project-entry">
-  <div className="project-entry-title"><h3>{project.name}</h3><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key}/></div>
+  <div className="project-entry-title">{selectable?<label className="select-check" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}<h3>{project.name}</h3><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key}/></div>
   <div className="project-entry-meta"><span className="client-status" data-status={project.status}>{{active:'Activo',paused:'Pausado',completed:'Completado',cancelled:'Cancelado'}[project.status]||project.status}</span><UrgencyBadge value={project.urgency}/></div>
   <dl className="project-entry-facts">
    <div><dt>Inicio</dt><dd className="list-date">{listDateShort(project.start_date)||'Sin fecha'}</dd></div>

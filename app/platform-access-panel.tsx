@@ -45,7 +45,7 @@ export function PlatformAccessPanel({currentUserId,platformRole}:{currentUserId:
    <article className="kpi-card"><span><Building2 size={14}/>Agencias</span><strong>{agencies?agencies.length:'—'}</strong></article>
   </div>
   <h3>Usuarios</h3>
-  {!users?<p role="status">Cargando usuarios…</p>:users.length?<ul className="platform-access-list">{users.map(person=><li key={person.id} className="platform-access-row">
+  {!users?<p role="status">Cargando usuarios…</p>:users.length?<ul className="platform-access-list"><li className="platform-access-head" aria-hidden="true"><span>Usuario</span><span>Acciones</span></li>{users.map(person=><li key={person.id} className="platform-access-row">
    <div className="platform-access-person"><b>{person.email}</b><small>{person.active_agencies} agencias activas · {person.platform_role?roleLabels[person.platform_role]:'Acceso de agencia'}{selfRow(person)?' · Vos':''}</small></div>
    <div className="platform-access-actions">
     {selfRow(person)?<>{writable?<button className="text-button danger" disabled={busy} onClick={()=>openDelete({kind:'user',person})}><Trash2 size={14}/>Eliminar mi cuenta</button>:<span className="platform-access-badge admin"><ShieldCheck size={13}/>{roleLabels[person.platform_role||'admin']}</span>}</>:writable?<>
@@ -57,7 +57,7 @@ export function PlatformAccessPanel({currentUserId,platformRole}:{currentUserId:
    </div>
   </li>)}</ul>:<p className="empty-copy">No hay usuarios para mostrar.</p>}
   <h3>Agencias</h3>
-  {!agencies?<p role="status">Cargando agencias…</p>:agencies.length?<ul className="platform-access-list">{agencies.map(agency=><li key={agency.id} className="platform-access-row">
+  {!agencies?<p role="status">Cargando agencias…</p>:agencies.length?<ul className="platform-access-list"><li className="platform-access-head" aria-hidden="true"><span>Agencia</span><span>Acciones</span></li>{agencies.map(agency=><li key={agency.id} className="platform-access-row">
    <div className="platform-access-person"><b>{agency.name}</b><small>{agency.slug} · {agency.active_users} usuarios{agency.active?` · ${agency.subscription_status||'Activa'}`:' · Inactiva'}</small></div>
    <div className="platform-access-actions">{writable?<button className="text-button danger" disabled={busy} onClick={()=>openDelete({kind:'agency',agency})}><Trash2 size={14}/>Eliminar agencia</button>:<span className="platform-access-badge">{agency.active?'Activa':'Inactiva'}</span>}</div>
   </li>)}</ul>:<p className="empty-copy">No hay agencias para mostrar.</p>}
