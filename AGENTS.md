@@ -31,7 +31,7 @@
 1. `npm run test:release-regression` en verde (incluye release-version, audit, landing y contracts).
 2. `npx next build` exit 0 sin errores de tipos y con artefacto verificado (`.next/BUILD_ID` existe; no alcanza el mensaje de éxito). El prebuild sincroniza versiones y footer.
 3. `rg "<<<<<<<" app tests build-tools` sin resultados (nunca commits con marcadores de conflicto).
-4. Si tocaste el API (scale-core-api): `npm run test:release` en verde, y toda columna/tabla nueva del schema exige su migración idempotente. No exportar símbolos que no sean handlers de Next en `app/api`, no duplicar slugs dinámicos, y los seeds usan guards por conteo + `on conflict do nothing`, nunca «si el dato no existe, salir».
+4. Si tocaste el API (scale-core-api): `npm run test:release` en verde, y toda columna/tabla nueva del schema exige su migración **aditiva, idempotente y re-ejecutable**. No exportar símbolos que no sean handlers de Next en `app/api`, no duplicar slugs dinámicos, y los seeds usan guards por conteo + `on conflict do nothing`, nunca «si el dato no existe, salir».
 5. Versión y footer sincronizados: `npm run release:check` y `npm run footer:check` verdes.
 6. `npx prisma validate` si tocaste `prisma/`.
 
@@ -48,11 +48,28 @@
 - Equipo: owner/admin/finance ven el panel completo; management ve equipo y accesos sin montos; sales/production/editor/viewer ven el directorio (foto, nombre, cargo).
 - Preferencias personales (página inicial, tema, perfil propio por NAV) pertenecen a cada usuario y no dependen de su rol.
 - Auditoría de sensibles verificada: team/collaborators (filtrado por campo), dashboard/forecast/salary-overrides (`finance.view`), papelera y actividad (solo nombre y metadatos), superadmin (sin salarios).
+- **Equipo (cápsula)**: no muestra el salario individual (solo modalidad y estado); el salario se edita en el diálogo de perfil y se ve únicamente en Finanzas. El pago a colaboradores vive en Finanzas, no en la cápsula de Equipo. Ningún bloque de acciones vacío: si un rol no tiene acciones, el contenedor no se renderiza (nada de objetos al pedo).
 
 ## Diseño
 - No duplicar identidad ni datos en el shell: empresa en el TopBar, usuario autenticado al pie del Sidebar, versión solo en el footer.
 - Montos, fechas y códigos nunca se cortan (nowrap + tabular-nums). Usar las clases compartidas (`kpi-strip`/`kpi-card`, `panel`, `ops-card`, `Dialog`/`Editor`, `SaveActions`) y tokens de `ui-system.css`; nada de estilos inline salvo valores dinámicos.
 - Los datos que muestra la UI deben venir del contrato real del API; nunca inventar estados, totales ni métricas.
+- **Componentes primitivos (fuente única)**: un solo diseño por tipo que varía únicamente en tamaño, acción y texto — botones (`primary`, `secondary`, `text-button`, `icon-button`), inputs del `Editor`, dropdowns (`SelectCustom`), cápsulas de usuario (`PersonContainer`), buscadores, selectores visibles, popups de edición y creación (`Dialog`/`Editor`), notificaciones, cápsulas de estado, de disponibilidad y de verificación. No crear variantes paralelas.
+- **Tamaños de campo por tipo**: moneda 9–11 rem; fecha ~9 rem; hora ~7 rem; número/porcentaje ~7 rem; moneda (select) ~9 rem; texto corto 12–16 rem; notas a ancho completo. Ningún input ocupa una pantalla entera.
+- **Iconos de acción** (editar, borrar, archivar, verificar, mover): mismo set y tamaño; al pasar el cursor se oscurecen levemente; al clicar cambian de color (tono semántico); siempre con `title` + `aria-label` que nombran la acción exacta (ej.: "Editar equipo: Memoria SD").
+- **WhatsApp**: botón con el icono de WhatsApp. Si la empresa no tiene número, el botón no se muestra y el resto **no se reordena ni se reemplaza** por otro objeto.
+
+## Formatos de listas (tablas densas)
+- **Grilla**: encabezado y filas comparten la misma grilla (una sola constante); `gap-x` de 8 px (nunca 12/16); contenedor con scroll horizontal silencioso y etiqueta de la vista cuando no entra.
+- **Anchos de columna**: identidad `minmax(Xrem, Nfr)` con el mayor `fr` (ej.: artículos 1.6fr > cliente 1.15fr > serial 0.9fr); categórico corto fijo 2.5–6 rem; fecha fija 5–6.5 rem; monto fijo 5.5–8.5 rem; acciones 8–15 rem.
+- **Tipografía por celda**: encabezado 10 px bold uppercase con tracking; encabezado ordenable igual + icono inline con gap 4 px y color de marca cuando la columna está activa; identidad 13.5 px semibold truncada con `title`; dato secundario 11–12 px muted; monto a la derecha, bold, tabular-nums; serial mono 11 px.
+- **Fila**: borde redondeado (radio 12), borde sutil + fondo tenue, padding compacto (14 px horizontal, 8 px vertical).
+- **Badge**: ancho de contenido, alineado al inicio, sin wrap, padding 6/2 px, 10 px bold.
+- **Botón de acción**: alto 32 px, padding 8 px, 12 px sin wrap; los iconos de acción usan el mismo set y tamaño.
+- **Fechas**: corta de tabla `dd-MMM` (`17-sept`); completa `dd MMM yy · HH:mm`; reserva `dd-MMM · HH:mm`. Siempre en hora de Asunción.
+- **Serial/IMEI**: `SerialTexto` (cabeza + últimos 4 en negrita); enmascarado `••••4821` donde no aporta; la cola nunca se pierde al truncar.
+- **Vencimientos**: fecha muted; se pinta (`data-tone="warn"`, semibold) solo si venció o cae dentro de 3–7 días.
+- **Fuente única**: `app/list-format.tsx` + `app/list-format.css` (`SerialTexto`, `listDateShort`, `listDateFull`, `dueTone`, `list-amount`, `list-date`, `list-identity`, `list-secondary`). Ninguna lista escribe fechas, seriales o montos a mano.
 
 ## Reglas de contenedores y acciones (UI)
 - **Alineación**: todo contenedor o cápsula (productos, clientes, personal, proyectos, reservas) alinea su contenido vertical y horizontalmente sin importar el largo del texto: misma altura en cuadrícula, encabezado alineado, hechos/meta alineados por columnas y acciones ancladas al pie. Referencia: tarjetas de Inventario.

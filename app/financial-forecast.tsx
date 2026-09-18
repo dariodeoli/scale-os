@@ -4,6 +4,7 @@ import {ActorAvatar,safePhoto} from './actor-identity';
 import {currencyChoices} from './currencies';
 import {dataFetch} from './data-cache';
 import {feedbackEvent} from './feedback';
+import {formatWholeMoney,formatSignedMoney} from './amount-format';
 import './financial-forecast.css';
 import {Pencil,RefreshCw,SlidersHorizontal,Trash2} from 'lucide-react';
 import {Dialog,api} from './operations';
@@ -33,8 +34,8 @@ const isWholeTransport=(value:unknown,allowZero=true):value is WholeTransport=>t
 const isSignedWhole=(value:unknown):value is WholeTransport=>typeof value==='number'?Number.isSafeInteger(value):typeof value==='string'&&new RegExp('^-?(?:0|[1-9]\\d*)$').test(value)&&Number.isSafeInteger(Number(value));
 const isPositiveInput=(value:string)=>isWholeTransport(value,false);
 const isRecord=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
-export const formatWholeMoney=(value:unknown,currency:unknown)=>isCurrency(currency)&&isWholeTransport(value)?new Intl.NumberFormat(currency==='PYG'?'es-PY':'en-US',{style:'currency',currency,currencyDisplay:'code',maximumFractionDigits:0,minimumFractionDigits:0}).format(Number(value)):'Sin dato';
-export const formatSignedMoney=(value:unknown,currency:unknown)=>{if(!isCurrency(currency)||!isSignedWhole(value))return 'Sin dato';const amount=Number(value);return `${amount<0?'−':''}${new Intl.NumberFormat(currency==='PYG'?'es-PY':'en-US',{style:'currency',currency,currencyDisplay:'code',maximumFractionDigits:0,minimumFractionDigits:0}).format(Math.abs(amount))}`;};
+export {formatWholeMoney,formatSignedMoney};
+
 const count=(value:unknown)=>isWholeTransport(value)?Number(value):0;
 const aggregateRows=(value:unknown):AggregateRow[]=>isRecord(value)&&Array.isArray(value.records)?value.records.filter((row):row is AggregateRow=>isRecord(row)&&isCurrency(row.currency)&&isWholeTransport(row.amount)):[];
 const validProjection=(data:Record<string,unknown>)=>data.projection===undefined||(isRecord(data.projection)&&Array.isArray(data.projection.records)&&data.projection.records.every((row):row is ProjectionRow=>isRecord(row)&&typeof row.month==='string'&&isCurrency(row.currency)&&isSignedWhole(row.projected_cash)&&isSignedWhole(row.projected_result)&&isWholeTransport(row.collected)&&isWholeTransport(row.expected)&&isWholeTransport(row.personnel)&&isWholeTransport(row.planned_expenses)&&isWholeTransport(row.commission_forecast)));

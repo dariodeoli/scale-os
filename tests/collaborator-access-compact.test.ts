@@ -10,6 +10,8 @@ const archive=read('app/archive-controls.tsx');
 const suite=read('app/suite.tsx');
 const production=read('app/production-board.tsx');
 const composer=read('app/quote-composer.tsx');
+const whatsapp=read('app/whatsapp-button.tsx');
+const workspace=read('app/scale-workspace.tsx');
 const access=read('app/team-access.tsx');
 const accessCss=read('app/team-access.css');
 const photo=read('app/profile-photo.tsx');
@@ -64,8 +66,9 @@ test('management reaches the team without individual salary amounts',()=>{
  assert.match(operations,/const allowed = \["owner", "admin", "finance", "management"\]\.includes\(role\);/);
  assert.match(operations,/const salaryView = \["owner", "admin", "finance"\]\.includes\(role\);/);
  assert.match(operations,/fields=\{salaryView\?personFields:personFields\.filter\(field=>!\['compensation_amount','currency','payment_day','invoices_company'\]\.includes\(field\.key\)\)\}/);
- assert.match(operations,/\{salaryView&&<button/);
- assert.match(operations,/salaryView\?<b>\{money\(p\.compensation_amount,p\.currency\)\}<\/b>:<em>Salario reservado<\/em>/);
+ assert.match(operations,/person-hub-comp">\{types\.find\(type=>type\.value===p\.compensation_type\)\?\.label\|\|'Sin modalidad'\}<\/span>/);
+ assert.doesNotMatch(operations,/Salario reservado/,'the capsule never shows the individual amount');
+ assert.doesNotMatch(operations,/setPay\(\{ person:/,'paying a collaborator lives in Finanzas, not in the team capsule');
  assert.match(operations,/salaryView&&!p\.compensation_amount/);
  assert.match(operations,/\{salaryView&&<span className="hub-chip">\{p\.payment_day/);
  assert.match(operations,/\{salaryView&&p\.invoices_company\?/);
@@ -82,6 +85,17 @@ test('viewer never reaches a mutating control in the visible sections',()=>{
  assert.match(suite,/<QuoteComposer mode="plan" record=\{row\} canReorder=\{canEdit\} done=/);
  assert.match(operations,/\{role !== "viewer" && \(/);
  assert.match(archive,/members:\['owner','admin','management'\]/);
+});
+
+test('the WhatsApp action renders only with a number and never reorders the row',()=>{
+ assert.match(whatsapp,/if \(!href\) return null;/);
+ assert.match(whatsapp,/viewBox="0 0 24 24"/);
+ assert.match(workspace,/<WhatsAppButton href=\{tel\}\/>/);
+ assert.doesNotMatch(workspace,/WhatsApp ↗/,'the text-only link is replaced by the shared button');
+});
+
+test('the team access block renders only when it has actions',()=>{
+ assert.match(access,/\{canInvite&&<div className="team-access-actions">/);
 });
 
 test('workspace density owns the header geometry across desktop and mobile',()=>{

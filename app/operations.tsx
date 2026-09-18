@@ -591,7 +591,7 @@ function PeopleWorkspace({
                   <div><dt>Ingreso</dt><dd className="list-date">{listDateShort(p.started_on)||'Sin fecha'}</dd></div>
                 </dl>
                 <div className="person-hub-chips">
-                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}{p.compensation_amount?(salaryView?<b>{money(p.compensation_amount,p.currency)}</b>:<em>Salario reservado</em>):<em>Sin importe acordado</em>}</span>
+                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}</span>
                   {salaryView&&<span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>}
                   {salaryView&&p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
                   {p.ended_on?<span className="hub-chip warn">Salió el {listDateShort(p.ended_on)}</span>:null}
@@ -605,13 +605,6 @@ function PeopleWorkspace({
                       <Pencil size={14} />
                       Perfil
                     </button>
-                    {salaryView&&<button
-                      className="text-button"
-                      onClick={() => setPay({ person: p })}
-                    >
-                      <Banknote size={14} />
-                      Pagar
-                    </button>}
                   </div>
                   <div className="ops-card-actions"><RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/></div>
                 </footer>

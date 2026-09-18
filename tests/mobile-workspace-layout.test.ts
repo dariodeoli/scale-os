@@ -39,7 +39,8 @@ for(const width of [320,360,390,768]){
  assert.equal(at('project-card.css','.project-list>.project-entry','grid-template-columns'),'minmax(0,1fr) auto',`compact list adapts to ${width}px`);
  assert.equal(at('project-card.css','.project-list .project-entry-assignees','grid-column'),'1/-1');
  assert.equal(at('project-card.css','.project-list .project-entry-actions','grid-column'),'1/-1');
- assert.equal(at('project-card.css','.project-entry-actions','flex-wrap'),'wrap');
+ assert.equal(at('project-card.css','.project-entry-actions','flex-wrap'),'nowrap','card actions never wrap; they scroll silently');
+ assert.equal(at('project-card.css','.project-entry-actions','overflow-x'),'auto');
  // Comments live in a portal outside .control-shell: do not scope to the shell.
  assert.equal(at('actor-identity.css','.actor-identity-name','overflow-wrap'),'anywhere',`comment author names must wrap at ${width}px`);
  assert.equal(at('actor-identity.css','.actor-identity','max-width'),'100%');

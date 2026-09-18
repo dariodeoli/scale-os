@@ -4,6 +4,7 @@ import {Dialog} from './dialog';
 import {ActorIdentity,actorInitials} from './actor-identity';
 import './presence.css';
 import {Eye} from 'lucide-react';
+import {listDateFull} from './list-format';
 const views=new Map<symbol,string>();
 const currentProject=()=>Array.from(views.values()).at(-1)||null;
 export type PresentPerson={id:string;name:string;photo_url?:string|null;active?:boolean;project_id?:string};
@@ -77,7 +78,7 @@ export function ProjectPresence({projectId}:{projectId:string}){
 }
 type Person={id:string;name:string;email:string;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean;last_seen_at:string|null;sessions:number;active_seconds:number;online:boolean;active:boolean};
 type Visit={first_seen_at:string;last_seen_at:string;active_seconds:number};
-const when=(value:string|null)=>value?new Date(value).toLocaleString('es-PY',{hourCycle:'h23'}):'Sin actividad registrada';
+const when=(value:string|null)=>listDateFull(value)||'Sin actividad registrada';
 const duration=(seconds:number)=>seconds<60?`${seconds} s`:`${Math.floor(seconds/3600)} h ${Math.floor(seconds%3600/60)} min`;
 export function UsagePanel(){
  const [people,setPeople]=useState<Person[]>([]),[error,setError]=useState(''),[selected,setSelected]=useState<Person|null>(null),[visits,setVisits]=useState<Visit[]>([]),[historyError,setHistoryError]=useState(''),[loading,setLoading]=useState(false);

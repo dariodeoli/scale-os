@@ -4,6 +4,7 @@ import {Bell,Check,CheckCheck,CircleCheck,ExternalLink,RefreshCw,RotateCcw,Setti
 import {useRouter} from 'next/navigation';
 import {api} from './operations';
 import {Dialog} from './dialog';
+import {listDateFull} from './list-format';
 import './notifications.css';
 
 type Notice={id:string;kind?:'assignment'|'comment'|'due';title:string;body:string;work_order_id:string|null;project_id?:string|null;comment_id?:string|null;read_at:string|null;resolved_at?:string|null;created_at:string};
@@ -13,7 +14,7 @@ const filters:{value:Filter;label:string}[]=[{value:'all',label:'Todas'},{value:
 const empty:Inbox={notifications:[],unread:0,next:null};
 const error=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudieron cargar los avisos.';
 const kindLabel=(kind:Notice['kind'])=>({assignment:'Asignación',comment:'Mención o comentario',due:'Entrega pendiente'} as Record<string,string>)[kind||'']||'Aviso';
-function dateLabel(value:string){const date=new Date(value);return Number.isFinite(date.getTime())?date.toLocaleString('es-PY',{hourCycle:'h23'}):'Fecha no disponible';}
+function dateLabel(value:string){return listDateFull(value)||'Fecha no disponible';}
 
 export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:string,anchor?:string)=>void;openPreferences:()=>void}){
  const router=useRouter();

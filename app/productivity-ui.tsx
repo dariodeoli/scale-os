@@ -12,6 +12,8 @@ import {ClientAppearance,ClientIdentity} from './client-identity';
 import './productivity.css';
 import {MonthlySchedules} from './notifications-ui';
 import {ClientLinks,whatsappUrl} from './client-links';
+import {WhatsAppButton} from './whatsapp-button';
+import {listDateFull,listDateShort} from './list-format';
 import {ClientReporting} from './client-reporting';
 import {ClientCommercialLifecycle} from './client-commercial-lifecycle';
 import {clientState} from './client-status';
@@ -77,7 +79,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
         <span className="work-state" data-status={s(order,'status')}>{states.find(x=>x.value===order.status)?.label||s(order,'status')}</span>
         <span className="hub-chip">{workTypeLabels[s(order,'work_type')]||'Sin clasificar'}</span>
         <DueDate value={s(order,'due_date')} time={s(order,'due_time')} compact/>
-        <span className="hub-chip muted">Actualizada {new Date(s(order,'updated_at')).toLocaleString('es-PY',{hourCycle:'h23'})}</span>
+        <span className="hub-chip muted">Actualizada {listDateFull(s(order,'updated_at'))}</span>
       </div>
       <ProjectPresence projectId={s(order,'project_id')}/>
     </header>
@@ -124,7 +126,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
  const sinceValue=summary?.relationshipStartedOn||(data?String(data.client.created_at||'').slice(0,10):'');
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error">{error}</p>}{data?<>
   {['owner','admin','management','sales'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
-  <p>{s(data.client,'email')} · {s(data.client,'phone')}</p>{whatsappUrl(s(data.client,'phone'))&&<a className="text-button client-whatsapp" href={whatsappUrl(s(data.client,'phone'))!} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>}<p>{s(data.client,'notes')}</p>
+  <p>{s(data.client,'email')} · {s(data.client,'phone')}</p><WhatsAppButton className="client-whatsapp" href={whatsappUrl(s(data.client,'phone'))}/><p>{s(data.client,'notes')}</p>
   {summary&&<section className="client-summary" aria-label="Resumen comercial del cliente">
    <div className="client-summary-grid">
     <article><span>Estado del servicio</span><strong>{clientState({lifecycle_status:s(data.client,'lifecycle_status'),active:data.client.active!==false}).label}</strong></article>

@@ -85,6 +85,7 @@ import {
 } from "@dnd-kit/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ViewToggle } from "./view-toggle";
+import {WhatsAppButton} from './whatsapp-button';
 import {ClientDirectoryToolbar,filterClientDirectory} from "./client-directory-toolbar";
 import {
   CircleDollarSign,
@@ -311,7 +312,7 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
       </div>:null}
       <footer className="client-hub-actions">
         <button className="text-button" onClick={onOpen}><Eye size={14}/>Abrir ficha</button>
-        {tel?<a className="text-button" href={tel} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>:null}
+        <WhatsAppButton href={tel}/>
         {canManage?<button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button>:null}
         <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} refresh={refresh}/></div>
       </footer>

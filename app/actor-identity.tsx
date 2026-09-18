@@ -1,5 +1,6 @@
 "use client";
 import {useState} from 'react';
+import {listDateFull} from './list-format';
 import './actor-identity.css';
 
 export type ActorIdentityProps={name?:string|null;photoUrl?:string|null;verified?:boolean;imported?:boolean;timestamp?:string|null};
@@ -18,7 +19,7 @@ export function ActorIdentity({name,photoUrl,verified=false,imported=false,times
  // Keying the image state to both author and URL also retries a changed photo.
  const date=timestamp?new Date(timestamp):null;
  const validDate=date&&!Number.isNaN(date.getTime())?date:null;
- return <span className="actor-identity"><ActorAvatar key={`${label}\n${photo}`} name={label} photo={photo}/><span className="actor-identity-details"><span className="actor-identity-name">{label}</span>{validDate&&<time className="actor-identity-time" dateTime={validDate.toISOString()}>{validDate.toLocaleString('es-PY',{hourCycle:'h23'})}</time>}{imported&&<span className="actor-identity-source">Autor de registro importado</span>}</span></span>;
+ return <span className="actor-identity"><ActorAvatar key={`${label}\n${photo}`} name={label} photo={photo}/><span className="actor-identity-details"><span className="actor-identity-name">{label}</span>{validDate&&<time className="actor-identity-time" dateTime={validDate.toISOString()}>{listDateFull(validDate.toISOString())}</time>}{imported&&<span className="actor-identity-source">Autor de registro importado</span>}</span></span>;
 }
 export function ActorAvatar({name,photo}:{name:string;photo:string}){
  const [failed,setFailed]=useState(false);
