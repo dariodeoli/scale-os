@@ -141,6 +141,10 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(team,/\.team-directory-card\{[^}]*min-height:190px/,'the directory keeps big grid cards');
   const presence=read('app/presence.css');
   assert.match(presence,/\.usage-grid \.ops-card\{[^}]*min-height:180px/,'usage cards keep grid height');
+  const productivity=read('app/productivity-ui.tsx');
+  assert.match(productivity,/drawer-list-head[\s\S]*?Proyecto[\s\S]*?Pieza[\s\S]*?Presupuesto[\s\S]*?Factura/,'the client drawer lists show their headers');
+  const productivityCss=read('app/productivity.css');
+  assert.match(productivityCss,/\.drawer-list\{--drawer-cols:[\s\S]*?\.drawer-list \.activity-line\{display:grid;grid-template-columns:var\(--drawer-cols\)[\s\S]*?min-height:40px/,'drawer rows use thin shared templates');
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');
