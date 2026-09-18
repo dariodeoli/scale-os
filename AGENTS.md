@@ -118,6 +118,13 @@
 
 **Testing mínimo antes de entregar**: unitarios por validador/normalizador; en este repo los formularios se validan con `react-test-renderer` (no hay e2e): el envío con valores válidos persiste y el inválido no escribe; adjunto grande → error claro; `npx tsc --noEmit` + suite completa verdes. Checklist de PR: ¿usa el componente compartido? ¿respeta defaults (país/moneda)? ¿el API revalida? ¿tests verdes?
 
+## Listas y cuadrículas (contrato obligatorio)
+- **Lista**: filas FINAS y compactas (una sola línea de alto, sin filas gordas ni dobles alturas), pero con TODA la información visible en columnas alineadas: identidad, montos, fechas, códigos y estado en la misma fila. Los montos/fechas/códigos nowrap + tabular-nums; nada se corta.
+- **Cuadrícula**: tarjetas GRANDES con el contenido ordenado y distribuido: encabezado (título + código + estado), meta alineada por columnas, y acciones ancladas al pie; cada tarjeta respira y nada queda amontonado.
+- El cambio de vista (lista/cuadrícula) cambia SOLO la densidad y distribución, nunca la información disponible.
+- Aplica a TODO lugar con lista o cuadrícula (clientes, equipo, proyectos, inventario, planes, oportunidades, registros): al tocar uno existente o crear uno nuevo, cumplir el contrato; el que no lo cumple se rediseña de cero, sin excepciones ni parches por encima.
+- Verificar en mobile: la lista conserva columnas legibles en una línea y la cuadrícula distribuye el contenido sin cortes.
+
 ## Notificaciones (toasts)
 - **Un solo sistema**: todo aviso transitorio sale por `notify()` (`app/feedback.ts`) y lo dibuja `app/notification-center.tsx` con `app/toast.css`. Prohibido crear toasts propios o usar la clase vieja `.toast`.
 - **Duración 2–3 s**: éxito 2 s, error y advertencia 3 s (`feedbackDuration`).
