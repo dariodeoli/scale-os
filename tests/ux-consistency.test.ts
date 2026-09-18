@@ -75,4 +75,43 @@ test('clients, projects and trash support bulk operations',()=>{
   assert.match(system,/\.bulk-bar\{display:flex/);
 });
 
+test('finance panels use column headers and the shared money formatter',()=>{
+  const workspace=read('app/scale-workspace.tsx');
+  assert.match(workspace,/finance-row-head[\s\S]*?Transferencia[\s\S]*?Factura[\s\S]*?Cobro/,'each finance list shows its header');
+  assert.doesNotMatch(workspace,/Intl\.NumberFormat\("es-PY"/,'amounts go through money(), not inline formatters');
+  const styles=read('app/operations.css');
+  assert.match(styles,/\.finance-row-head\{display:grid/);
+  assert.match(styles,/\.finance-grid :is\(\.finance-transfer-row,.finance-invoice-row,.finance-payment-row\)\{display:grid/);
+  const operations=read('app/operations.tsx');
+  assert.match(operations,/finance-row-head[\s\S]*?Egreso[\s\S]*?Referido/,'payouts and referral discounts show their headers');
+  assert.match(styles,/\.control-shell :is\(\.finance-payout-row,.finance-referral-row\)\{display:grid/);
+  const forecast=read('app/financial-forecast.tsx');
+  assert.match(forecast,/planned-expenses-list"><li className="finance-row-head"[\s\S]*?Gasto[\s\S]*?Monto/,'real expenses show their header');
+});
+
+test('the team list can suspend and reactivate access in bulk',()=>{
+  const operations=read('app/operations.tsx');
+  assert.match(operations,/batchSetAccess[\s\S]*?\/api\/agency\/members\/\$\{id\}/,'bulk access updates each selected member');
+  assert.match(operations,/Suspender acceso[\s\S]*?Reactivar acceso/,'the team bulk bar exposes both access actions');
+  assert.match(operations,/selectVisibleAccess/,'the team list can select the visible people');
+  assert.match(operations,/select-check[\s\S]*?Seleccionar \$\{p\.full_name\}/,'member rows expose the selection checkbox');
+  const agents=read('AGENTS.md');
+  assert.match(agents,/Excepción \(decisión 17-09\)[\s\S]*?feeds de tarjetas apiladas/,'the card-feed exception stays documented');
+  assert.match(agents,/Excepción de contrato \(decisión 17-09\)[\s\S]*?formatWholeMoney/,'the whole-money contract exception stays documented');
+});
+
+test('statement rows and projected payroll keep fixed columns',()=>{
+  const controls=read('app/daily-controls.tsx');
+  assert.match(controls,/statement-row-head[\s\S]*?Extracto[\s\S]*?Monto[\s\S]*?Acciones/,'the reconciliation list shows its header');
+  assert.match(controls,/payment-row statement-row/,'statement rows join the fixed grid');
+  const system=read('app/ui-system.css');
+  assert.match(system,/\.statement-row-head\{display:grid/);
+  assert.match(system,/\.control-shell \.statement-row\{display:grid/);
+  const forecast=read('app/financial-forecast.tsx');
+  assert.match(forecast,/forecast-person-who/,'avatar and name share the first column');
+  assert.match(forecast,/forecast-person-override is-empty/,'a missing adjustment reserves its column');
+  const forecastCss=read('app/financial-forecast.css');
+  assert.match(forecastCss,/\.forecast-person-list-row\{display:grid/);
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

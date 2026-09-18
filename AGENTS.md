@@ -78,6 +78,7 @@
 - **Espaciado**: gaps y padding consistentes entre objetos laterales y verticales (tokens de `ui-system.css`), sin saltos por largo de texto ni filas colapsadas.
 - **Selección múltiple**: donde haya lista o cuadrícula, se puede seleccionar varios y operar en lote (reservar, verificar, mover de ubicación, archivar), con contador "N seleccionados", acción de seleccionar visibles y limpiar; el lote se resuelve en una sola operación por API cuando exista el endpoint.
 - **Aplica a TODO contenedor existente y a los nuevos**: al crear uno nuevo o tocar uno existente, adoptar estas reglas tanto en cuadrícula como en lista. Un contenedor que no las cumple es deuda de diseño.
+- **Excepción (decisión 17-09)**: los feeds de tarjetas apiladas (Reservas de inventario, Notificaciones) no llevan encabezado de columnas porque cada tarjeta agrupa bloques propios; mantienen alineación, elipsis y acciones en una línea.
 
 ## Reglas de campos (fuente única)
 **Principios**
@@ -130,3 +131,4 @@
 - **Montos**: `money()` y `AmountInput`; PYG sin decimales, el resto 2; `tabular-nums` y `nowrap` (montos, fechas y códigos nunca se cortan).
 - **Teléfono** `+<código> <dígitos>`; **serial** mayúsculas sin separadores; **RUC** con patrón y sin dígito verificador inventado; **porcentajes** enteros 0–100 en el Editor (`integer:true`).
 - Lo guardado es dato normalizado; el formato (símbolo, separadores, @) lo dibuja el campo.
+- **Excepción de contrato (decisión 17-09)**: los montos de transporte entero (Previsión y reportes) usan `formatWholeMoney`/`formatSignedMoney` de `amount-format.ts` (0 decimales forzados para toda moneda, con guarda de dato inválido). `formatPygRate` y `numberLabel` formatean números, no montos.

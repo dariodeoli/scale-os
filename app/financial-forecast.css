@@ -74,6 +74,12 @@
 .forecast-person-override{display:grid;gap:1px;min-width:6.5rem;padding:var(--ui-space-1) var(--ui-space-2);border:1px solid color-mix(in srgb,var(--warning) 30%,transparent);border-radius:var(--radius-sm);background:var(--warning-soft)}
 .forecast-person-override strong{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--warning)}
 .forecast-person-total strong[data-negative]{color:var(--danger)}
+/* Alineación fija por columnas: el ajuste ausente reserva su lugar. */
+.forecast-person-who{display:flex;align-items:center;gap:var(--ui-space-2);min-width:0}
+.forecast-person-list-row{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(104px,.9fr) minmax(116px,.9fr) minmax(116px,.9fr) auto;align-items:center}
+.forecast-person-list-row .forecast-person-actions{display:flex;gap:6px;justify-self:end;justify-content:flex-end}
+.forecast-person-override.is-empty{visibility:hidden}
+@media(max-width:860px){.forecast-person-list-row{display:flex;flex-wrap:wrap}}
 .forecast-person-actions{margin-left:auto;display:inline-flex;gap:var(--ui-space-1);align-items:center}
 .forecast-person-actions .icon-button{width:30px;min-width:30px;min-height:30px;flex:none}
 @media(max-width:540px){.forecast-person-actions{margin-left:0;width:100%;justify-content:flex-end}.forecast-person-name{flex-basis:100%}}

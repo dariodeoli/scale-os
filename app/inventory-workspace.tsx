@@ -119,7 +119,7 @@ function InventorySummary({items}:{items:InventoryItem[]}){
   else if(item.status==='maintenance')maintenance+=1;
   else if(item.status==='available')available+=1;
  }
- const format=(value:number,currency:string)=>new Intl.NumberFormat('es-PY',{style:'currency',currency,maximumFractionDigits:0}).format(value);
+  const format=(value:number,currency:string)=>money(value,currency);
   return <div className="kpi-strip" aria-label="Métricas de inventario">
    <article className="kpi-card tone-brand"><p className="eyebrow">VALOR TOTAL</p><strong>{items.length} equipos</strong><div className="kpi-amounts">{totals.size?Array.from(totals).map(([currency,value])=><span key={currency}>{format(value,currency)}</span>):<span>Sin valores registrados</span>}</div></article>
    <article className="kpi-card tone-blue"><p className="eyebrow">EN USO</p><strong>{inUse}</strong><small>Retirados o en rodaje</small></article>

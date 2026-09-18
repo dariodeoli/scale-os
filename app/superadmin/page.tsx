@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import {money as formatMoney} from "../operations";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -138,11 +139,7 @@ function money(value: unknown, currency: unknown) {
       : "USD";
   if (!Number.isFinite(amount)) return "—";
   try {
-    return new Intl.NumberFormat("es-PY", {
-      style: "currency",
-      currency: code,
-      maximumFractionDigits: code === "PYG" ? 0 : 2,
-    }).format(amount);
+    return formatMoney(amount, code);
   } catch {
     return "—";
   }

@@ -22,7 +22,7 @@ import {PhotoViewer} from './photo-viewer';
 import {ActorIdentity,actorInitials} from './actor-identity';
 import {PersonContainer} from './person-container';
 import {CommentBody,CommentComposer} from './commenting';
-import {notifyMutation} from './feedback';
+import {notify,notifyMutation} from './feedback';
 import {teamDirectory,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
 import {TeamAccess} from './team-access';
 import {PermissionsMatrix} from './permissions-matrix';
@@ -322,6 +322,25 @@ function PeopleWorkspace({
     [filter, setFilter] = useState("all");
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
+  const canManageAccess=['owner','admin','management'].includes(role);
+  const [selectedAccess,setSelectedAccess]=useState<string[]>([]),[bulkAccessBusy,setBulkAccessBusy]=useState(false);
+  function toggleAccessSelected(id:string){setSelectedAccess(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
+  function selectVisibleAccess(){
+    const ids=visiblePeople.filter(entry=>entry.member&&entry.member.email!==currentEmail).map(entry=>String(entry.member!.id));
+    setSelectedAccess(current=>{const all=ids.length>0&&ids.every(id=>current.includes(id));return all?current.filter(id=>!ids.includes(id)):[...new Set([...current,...ids])];});
+  }
+  async function batchSetAccess(active:boolean){
+    if(bulkAccessBusy||!selectedAccess.length)return;
+    setBulkAccessBusy(true);setError('');
+    const total=selectedAccess.length;
+    let done=0;
+    try{
+      for(const id of selectedAccess){await api(`/api/agency/members/${id}`,{active},'PATCH');done+=1;}
+      setSelectedAccess([]);await load();
+      notify({tone:done===total?'success':'warning',message:active?`${done} acceso${done===1?'':'s'} reactivado${done===1?'':'s'}.`:`${done} acceso${done===1?'':'s'} suspendido${done===1?'':'s'}.`});
+    }catch(cause){setError(message(cause));await load().catch(()=>{});}
+    finally{setBulkAccessBusy(false);}
+  }
   const [commissionMonth, setCommissionMonth] = useState(() => salaryMonth()),
     [monthlyCommissions, setMonthlyCommissions] = useState<MonthlyCommission[]>([]),
     [monthlyLoading, setMonthlyLoading] = useState(false),
@@ -569,10 +588,12 @@ function PeopleWorkspace({
           <p>Cargando…</p>
         ) : mode === "people" ? (
           <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
+            {canManageAccess&&visiblePeople.some(entry=>entry.member&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
             {teamView==='list'?<div className="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Datos</span><span>Estado</span></div>:null}
             {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
               <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
                 <header className="person-hub-head">
+                  {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                   <div className="ops-person">
                     {p.photo_url ? (
                       <PhotoViewer photo={p.photo_url} name={p.full_name}/>
@@ -612,6 +633,7 @@ function PeopleWorkspace({
               </article>
             ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
               <header className="person-hub-head">
+                {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${entry.member.full_name||entry.member.email}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                 <div className="ops-person"><PersonContainer size="lg" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
                 <span className="person-hub-state" data-state={entry.member!.active?'active':'inactive'}>{entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
               </header>
@@ -747,12 +769,13 @@ function PeopleWorkspace({
         <p className="form-note">
           Cada pago descuenta el saldo de la cuenta elegida.
         </p>
+        {payouts.length?<div className="finance-row-head" aria-hidden="true"><span>Egreso</span><span>Monto</span></div>:null}
         {payouts
           .filter((p) =>
             mode === "people" ? p.collaborator_name : p.beneficiary_name,
           )
           .map((p) => (
-            <div className="payment-row" key={p.id}>
+            <div className="payment-row finance-payout-row" key={p.id}>
               <div>
                 <b>{p.collaborator_name || p.beneficiary_name}</b>
                 <small>
@@ -1015,7 +1038,8 @@ function ReferralDiscounts() {
     <p className="form-note">Se descuenta del saldo pendiente de la factura. Conservamos el motivo y el historial de reversiones.</p>
     {error && <p className="error" role="alert">{error}</p>}
     {!items.length && <p className="empty-copy">Todavía no hay descuentos registrados.</p>}
-    {items.map(item => <article className="payment-row" key={item.id}>
+    {items.length?<div className="finance-row-head" aria-hidden="true"><span>Referido</span><span>Acciones</span></div>:null}
+    {items.map(item => <article className="payment-row finance-referral-row" key={item.id}>
       <div><b>{item.referrer} · {money(item.amount, item.currency)}</b>
         <small>{item.invoice_number} · {item.client_name}</small><small>{item.reason}</small>
         <small>{item.status === "applied" ? "Aplicado" : "Revertido"}</small>
