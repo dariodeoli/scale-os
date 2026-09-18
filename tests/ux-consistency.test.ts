@@ -134,6 +134,13 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(projects,/\.project-grid>\.project-entry\{min-height:200px\}/,'project cards keep a big grid height');
   const agents=read('AGENTS.md');
   assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
+  const forecastCss=read('app/financial-forecast.css');
+  assert.match(forecastCss,/\.contracted-clients-list\{display:grid;grid-template-columns:1fr;gap:4px;--contracted-cols:[\s\S]*?\.contracted-clients-list li\{display:grid;grid-template-columns:var\(--contracted-cols\)[\s\S]*?min-height:44px/,'contracted clients use thin rows with a shared template');
+  const forecast=read('app/financial-forecast.tsx');
+  assert.match(forecast,/contracted-clients-head[\s\S]*?Cliente[\s\S]*?Contratado[\s\S]*?Facturado/,'contracted clients show their header');
+  assert.match(team,/\.team-directory-card\{[^}]*min-height:190px/,'the directory keeps big grid cards');
+  const presence=read('app/presence.css');
+  assert.match(presence,/\.usage-grid \.ops-card\{[^}]*min-height:180px/,'usage cards keep grid height');
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

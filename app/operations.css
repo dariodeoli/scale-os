@@ -261,7 +261,7 @@
 .person-access-body .form-note{margin:0}
 .person-access-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .team-directory-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))}
-.team-directory-card{display:flex;align-items:center;gap:10px;padding:14px}
+.team-directory-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;min-height:190px;text-align:center}
 .person-identity-panel>*{min-width:0}
 .ops-profile-section:not(:has(>summary))>h3{padding:12px 14px 0;margin:0;font-size:13px}
 .ops-profile-section:not(:has(>summary))>h3+.form-note{padding:4px 14px 0;margin:0}
