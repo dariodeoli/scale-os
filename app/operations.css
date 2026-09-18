@@ -365,6 +365,8 @@
 .finance-row-head span:last-child{justify-self:end}
 .finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
 .finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>strong{justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
+.control-shell :is(.finance-payout-row,.finance-referral-row){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.control-shell :is(.finance-payout-row,.finance-referral-row)>:is(strong,button){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 @media(max-width:560px){.finance-row-head{display:none}}
 .finance-state[data-status=issued]{border-color:color-mix(in srgb,var(--info) 24%,var(--line));background:var(--info-soft);color:var(--info)}
 .finance-state[data-status=partial]{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}

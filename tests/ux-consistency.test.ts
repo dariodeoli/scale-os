@@ -82,6 +82,11 @@ test('finance panels use column headers and the shared money formatter',()=>{
   const styles=read('app/operations.css');
   assert.match(styles,/\.finance-row-head\{display:grid/);
   assert.match(styles,/\.finance-grid :is\(\.finance-transfer-row,.finance-invoice-row,.finance-payment-row\)\{display:grid/);
+  const operations=read('app/operations.tsx');
+  assert.match(operations,/finance-row-head[\s\S]*?Egreso[\s\S]*?Referido/,'payouts and referral discounts show their headers');
+  assert.match(styles,/\.control-shell :is\(\.finance-payout-row,.finance-referral-row\)\{display:grid/);
+  const forecast=read('app/financial-forecast.tsx');
+  assert.match(forecast,/planned-expenses-list"><li className="finance-row-head"[\s\S]*?Gasto[\s\S]*?Monto/,'real expenses show their header');
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

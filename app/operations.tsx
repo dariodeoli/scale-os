@@ -747,12 +747,13 @@ function PeopleWorkspace({
         <p className="form-note">
           Cada pago descuenta el saldo de la cuenta elegida.
         </p>
+        {payouts.length?<div className="finance-row-head" aria-hidden="true"><span>Egreso</span><span>Monto</span></div>:null}
         {payouts
           .filter((p) =>
             mode === "people" ? p.collaborator_name : p.beneficiary_name,
           )
           .map((p) => (
-            <div className="payment-row" key={p.id}>
+            <div className="payment-row finance-payout-row" key={p.id}>
               <div>
                 <b>{p.collaborator_name || p.beneficiary_name}</b>
                 <small>
@@ -1015,7 +1016,8 @@ function ReferralDiscounts() {
     <p className="form-note">Se descuenta del saldo pendiente de la factura. Conservamos el motivo y el historial de reversiones.</p>
     {error && <p className="error" role="alert">{error}</p>}
     {!items.length && <p className="empty-copy">Todavía no hay descuentos registrados.</p>}
-    {items.map(item => <article className="payment-row" key={item.id}>
+    {items.length?<div className="finance-row-head" aria-hidden="true"><span>Referido</span><span>Acciones</span></div>:null}
+    {items.map(item => <article className="payment-row finance-referral-row" key={item.id}>
       <div><b>{item.referrer} · {money(item.amount, item.currency)}</b>
         <small>{item.invoice_number} · {item.client_name}</small><small>{item.reason}</small>
         <small>{item.status === "applied" ? "Aplicado" : "Revertido"}</small>
