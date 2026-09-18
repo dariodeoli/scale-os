@@ -267,13 +267,14 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 
 /* Cápsulas en cuadrícula (fuente única): identidad · hechos por columnas ·
    chips · acciones ancladas al pie. Filas de igual altura y gaps consistentes. */
-:is(.inventory-equipment-grid:not(.inventory-equipment-list),.ops-grid:not(.ops-grid-list),.client-hub-grid,.project-grid,.suite-board,.studio-reservation-list,.budget-hub-grid){grid-auto-rows:1fr}
+:is(.inventory-equipment-grid:not(.inventory-equipment-list),.ops-grid:not(.ops-grid-list),.client-hub-grid,.project-grid,.suite-board,.studio-reservation-list,.budget-hub-grid,.team-directory-grid){grid-auto-rows:1fr}
 :is(.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment,
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
     .client-hub-grid>.client-hub-card,
     .project-grid>.project-entry,
     .studio-reservation-list>.studio-reservation,
     .budget-hub-grid>.budget-hub-card,
+    .team-directory-grid>.team-directory-card,
     .suite-column>.lead-card){
  display:flex;flex-direction:column;gap:var(--ui-space-3,12px);
  height:100%;min-width:0;padding:16px;
@@ -287,6 +288,7 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .project-grid>.project-entry,
     .studio-reservation-list>.studio-reservation,
     .budget-hub-grid>.budget-hub-card,
+    .team-directory-grid>.team-directory-card,
     .suite-column>.lead-card)>:is(.panel-heading,.lead-card-head,.person-hub-head,.client-hub-head,.budget-hub-head){
  margin:0;gap:10px;min-width:0;min-height:44px;align-items:flex-start;
 }
@@ -296,6 +298,7 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .project-grid>.project-entry,
     .studio-reservation-list>.studio-reservation,
     .budget-hub-grid>.budget-hub-card,
+    .team-directory-grid>.team-directory-card,
     .suite-column>.lead-card)>:is(.inventory-item-facts,.person-hub-facts,.client-hub-facts,.project-entry-facts,.studio-facts,.budget-hub-facts){
  margin:0;
 }
@@ -305,6 +308,7 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .project-grid>.project-entry,
     .studio-reservation-list>.studio-reservation,
     .budget-hub-grid>.budget-hub-card,
+    .team-directory-grid>.team-directory-card,
     .suite-column>.lead-card)>:is(.inventory-item-chips,.person-hub-chips,.client-hub-chips){
  display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:24px;
 }
@@ -314,6 +318,7 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .project-grid>.project-entry,
     .studio-reservation-list>.studio-reservation,
     .budget-hub-grid>.budget-hub-card,
+    .team-directory-grid>.team-directory-card,
     .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions,.customer-review-actions,.budget-hub-actions){
  display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-end;gap:8px;
  margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line));
@@ -325,6 +330,7 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .project-grid>.project-entry,
     .studio-reservation-list>.studio-reservation,
     .budget-hub-grid>.budget-hub-card,
+    .team-directory-grid>.team-directory-card,
     .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions)::-webkit-scrollbar{display:none}
 :is(.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment,
     .ops-grid:not(.ops-grid-list)>.person-hub-card,
@@ -332,6 +338,7 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .project-grid>.project-entry,
     .studio-reservation-list>.studio-reservation,
     .budget-hub-grid>.budget-hub-card,
+    .team-directory-grid>.team-directory-card,
     .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions,.budget-hub-actions)>*{flex:none}
 
 /* Anatomía compartida de cápsula: título + chip en la identidad, cuerpo muted,

@@ -1,5 +1,6 @@
 "use client";
 import {currencyChoices} from "./currencies";
+import {ViewToggle} from './view-toggle';
 import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
@@ -275,8 +276,8 @@ export function OperationsWorkspace({
 }
 type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
 function TeamDirectoryView({organizationName}:{organizationName:string}){
-  const [directory,setDirectory]=useState<DirectoryPerson[]>([]),[error,setError]=useState('');
-  useEffect(()=>{let alive=true;void api<{directory:DirectoryPerson[]}>('/api/agency/team').then(data=>{if(alive)setDirectory(Array.isArray(data?.directory)?data.directory:[]);}).catch(e=>{if(alive)setError(message(e));});return()=>{alive=false;};},[]);
+  const [directory,setDirectory]=useState<DirectoryPerson[]>([]),[loaded,setLoaded]=useState(false),[error,setError]=useState('');
+  useEffect(()=>{let alive=true;void api<{directory:DirectoryPerson[]}>('/api/agency/team').then(data=>{if(alive){setDirectory(Array.isArray(data?.directory)?data.directory:[]);setLoaded(true);}}).catch(e=>{if(alive)setError(message(e));});return()=>{alive=false;};},[]);
   return <div className="ops-stack">
     <section className="panel">
       <div className="panel-heading"><div><p className="eyebrow">DIRECTORIO INTERNO</p><h2>Equipo{organizationName?' de '+organizationName:''}</h2></div></div>
@@ -284,7 +285,7 @@ function TeamDirectoryView({organizationName}:{organizationName:string}){
       {error&&<p className="error" role="alert">{error}</p>}
       {directory.length?<div className="ops-grid team-directory-grid">
         {directory.map(person=><article className="ops-card team-directory-card" key={person.id}><PersonContainer size="lg" name={person.full_name||'Integrante'} photoUrl={person.photo_url||undefined} secondary={teamRoleLabels[person.role]||person.cargo||'Sin cargo'} verified/></article>)}
-      </div>:!error?<p className="empty-copy">Cargando equipo…</p>:null}
+      </div>:!error?<p className="empty-copy">{loaded?'Sin integrantes para mostrar.':'Cargando equipo…'}</p>:null}
     </section>
   </div>;
 }
@@ -577,13 +578,10 @@ function PeopleWorkspace({
             <button className={search==='activo'?'choice active':'choice'} onClick={()=>setSearch('activo')}>Activos</button>
             <button className={search==='inactivo'?'choice active':'choice'} onClick={()=>setSearch('inactivo')}>Inactivos</button>
           </div>
-          <div className="team-view-toggle" role="group" aria-label="Vista del equipo">
-            <button type="button" className={teamView==='cards'?'is-active':undefined} aria-pressed={teamView==='cards'} onClick={()=>setTeamView('cards')}>Tarjetas</button>
-            <button type="button" className={teamView==='list'?'is-active':undefined} aria-pressed={teamView==='list'} onClick={()=>setTeamView('list')}>Lista</button>
-          </div>
+          <div className="workspace-view-controls"><ViewToggle label="Vista del equipo" value={teamView==='list'?'list':'grid'} onChange={value=>setTeamView(value==='list'?'list':'cards')}/></div>
         </div>}
         {loading ? (
-          <p>Cargando…</p>
+          <p role="status">Cargando…</p>
         ) : mode === "people" ? (
           <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
             {canManageAccess&&visiblePeople.some(entry=>entry.member&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
@@ -652,9 +650,10 @@ function PeopleWorkspace({
               </footer></div>
             </article>;})}
             {!visiblePeople.length && (
-              <p className="empty-copy">
-                {search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}
-              </p>
+              <div className="empty-copy">
+                <p>{search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}</p>
+                {search?<button type="button" className="text-button" onClick={()=>setSearch('')}>Limpiar búsqueda</button>:null}
+              </div>
             )}
           </div>
         ) : (
