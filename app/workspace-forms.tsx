@@ -13,6 +13,7 @@ import {AmountInput,SelectCustom} from './profile-controls';
 import {UrgencySelect} from './urgency';
 import {PHONE_ERROR, phoneValid} from './field-rules';
 import {PhoneField} from './phone-field';
+import {EmailField} from './email-field';
 
 
 export const clientSchema = z.object({
@@ -56,7 +57,7 @@ export function ClientForm({ request, done }: { request: WorkspaceRequest; done:
       </label>
       <label>
         Email
-        <input type="email" {...form.register("email")} />
+        <EmailField value={form.watch('email')||''} onChange={value=>form.setValue('email',value,{shouldValidate:true,shouldDirty:true})}/>
         {form.formState.errors.email && (
           <small className="error">{form.formState.errors.email.message}</small>
         )}

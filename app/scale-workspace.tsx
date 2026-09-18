@@ -59,6 +59,7 @@ import {CatalogWorkspace,RecordEditor,BudgetActions,ActivityWorkspace,SettingsWo
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
+import {EmailField} from './email-field';
 import {WorkspaceGuide,workspaceGuideScope,visibleModule,NewCompany,type WorkspaceGuideData} from './workspace-guide';
 import {FXTransferForm,ReceiptReversal,ReconciliationWorkspace} from './daily-controls';
 import {SelectCustom} from './profile-controls';
@@ -901,14 +902,7 @@ export default function Home() {
           <form noValidate onSubmit={login}>
             <label>
               Email
-              <input
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                type="email"
-                placeholder="Tu email"
-                autoComplete="email"
-                required
-              />
+              <EmailField value={email} onChange={setEmail} placeholder="Tu email" required/>
             </label>
             <PasswordField
               label="Contraseña"
@@ -1310,8 +1304,8 @@ export default function Home() {
               </article>
             </div>
             {canManageClients&&liveClients.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedClients.length?<><b>{selectedClients.length}</b> seleccionado{selectedClients.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleClients}>Seleccionar visibles</button>{selectedClients.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedClients([])}>Limpiar</button></>:null}</div></div>:null}
-            {clientView==='list'?<div className="client-hub-head-row" aria-hidden="true"><span>Cliente</span><span>Datos</span><span>Estado</span><span>Acciones</span></div>:null}
             <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
+              {clientView==='list'?<div className="client-hub-head-row" aria-hidden="true"><span>Cliente</span><span>Datos</span><span>Estado</span><span>Cobros</span><span>Actividad</span><span>Acciones</span></div>:null}
               {liveClients.map(client=>(
                 <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
               ))}
@@ -1378,8 +1372,8 @@ export default function Home() {
               </article>
             </div>
             {canManageProjects&&liveProjects.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedProjects.length?<><b>{selectedProjects.length}</b> seleccionado{selectedProjects.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleProjects}>Seleccionar visibles</button>{selectedProjects.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedProjects([])}>Limpiar</button></>:null}</div></div>:null}
-            {projectView==='list'?<div className="project-entry-head" aria-hidden="true"><span>Proyecto</span><span>Estado</span><span>Fechas y piezas</span><span>Responsables</span></div>:null}
             <div className={projectView==='grid'?'project-grid':'project-list'}>
+              {projectView==='list'?<div className="project-entry-head" aria-hidden="true"><span>Proyecto</span><span>Estado</span><span>Fechas y piezas</span><span>Responsables</span><span>Acciones</span></div>:null}
               {liveProjects.map(project => projectEntry(project))}
               {!visibleProjects.length ? (
                 <p className="empty-copy">

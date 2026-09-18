@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {teamRoleLabels} from '../team-directory';
 import {WorkspaceFooter} from '../workspace-footer';
 import {PasswordField} from '../password-field';
+import {EmailField} from '../email-field';
 type Preview={organization_name:string;role:string;mode:'single'|'approval';expires_at?:string};
 type State={status:'loading'|'missing'|'invalid'|'pending'|'previous-error'|'unavailable'|'connection'|'expired'|'revoked'|'used'}|{status:'ready';info:Preview;token:string};
 function isPreview(value:unknown):value is Preview{
@@ -26,7 +27,7 @@ const notices={
 export default function InvitationPage(){
  const [state,setState]=useState<State>({status:'loading'});
  const [attempt,setAttempt]=useState(0);
- const [passwordOpen,setPasswordOpen]=useState(false),[passwordError,setPasswordError]=useState(''),[passwordNotice,setPasswordNotice]=useState(''),[passwordBusy,setPasswordBusy]=useState(false),[password,setPassword]=useState(''),[confirm,setConfirm]=useState('');
+ const [passwordOpen,setPasswordOpen]=useState(false),[passwordError,setPasswordError]=useState(''),[passwordNotice,setPasswordNotice]=useState(''),[passwordBusy,setPasswordBusy]=useState(false),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[email,setEmail]=useState('');
  useEffect(()=>{
   const query=new URLSearchParams(window.location.search),token=query.get('token')||'';
   // Query errors describe an earlier callback, never a fresh preview result.
@@ -69,7 +70,7 @@ export default function InvitationPage(){
   if(password!==confirm){setPasswordError('Las contraseñas no coinciden.');return;}
   setPasswordBusy(true);
   try{
-   const response=await fetch('/core-api/api/auth/password/invitations/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:state.token,email:values.get('email'),password,full_name:values.get('full_name')}),referrerPolicy:'no-referrer'});
+   const response=await fetch('/core-api/api/auth/password/invitations/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:state.token,email,password,full_name:values.get('full_name')}),referrerPolicy:'no-referrer'});
    const data=await response.json().catch(()=>null);
    if(!response.ok)throw Error(data?.error||'No se pudo crear la cuenta.');
    setPasswordNotice(data?.message||'Revisá tu correo para verificar tu cuenta.');
@@ -81,7 +82,7 @@ export default function InvitationPage(){
   <p className="invite-eyebrow">Scale OS · Acceso de equipo</p>
   <h1>{notice?.heading||'Invitación al equipo'}</h1>
   <p className="invite-link-status" data-state={state.status} role="status" aria-live="polite"><span aria-hidden="true">{state.status==='ready'?'✓':'•'}</span> {labels[state.status]}</p>
-  {expiration&&!Number.isNaN(expiration.getTime())&&<p className="invite-expiration">Vence: <time dateTime={expiration.toISOString()}>{new Intl.DateTimeFormat('es-PY',{dateStyle:'medium',timeStyle:'short'}).format(expiration)}</time> · hora local</p>}
+  {expiration&&!Number.isNaN(expiration.getTime())&&<p className="invite-expiration">Vence: <time dateTime={expiration.toISOString()}>{new Intl.DateTimeFormat('es-PY',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(expiration)}</time> · hora local</p>}
   {state.status==='ready'?<>
    <p className="login-copy">Te invitaron a trabajar en este espacio.</p>
    <div className="invite-summary"><strong>{state.info.organization_name}</strong><span>Permiso asignado: <b>{teamRoleLabels[state.info.role]}</b></span></div>
@@ -90,8 +91,8 @@ export default function InvitationPage(){
    <div className="invite-actions"><a className="primary login-button" referrerPolicy="no-referrer" href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
    {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:<form className="invite-password-form" onSubmit={registerWithPassword} noValidate>
     <label>Nombre y apellido <input name="full_name" maxLength={160} autoComplete="name" placeholder="Cómo te llamamos"/></label>
-    <label>Correo <input name="email" type="email" required autoComplete="email" placeholder="tu@correo.com"/></label>
-    <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="12+ caracteres" required/>
+    <label>Correo <EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
+    <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="12+ caracteres" required minLength={12}/>
     <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required/>
     <p className="password-hint">12+ caracteres con mayúscula, minúscula, número y símbolo; sin espacios.</p>
     <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>

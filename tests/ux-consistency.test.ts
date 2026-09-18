@@ -35,11 +35,16 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
   const clients=read('app/client-directory.css');
   assert.match(clients,/\.client-hub-head-row\{display:grid/);
-  assert.match(clients,/\.client-hub-actions\{grid-column:4/,'client actions sit in their own column');
+  assert.match(clients,/\.client-hub-actions\{grid-column:6/,'client actions sit in their own column');
   const team=read('app/operations.css');
   assert.match(team,/\.person-hub-head-row\{display:grid/);
   const projects=read('app/project-card.css');
   assert.match(projects,/\.project-entry-head\{display:grid/);
+  // Encabezado y filas comparten UNA plantilla por lista (variable CSS).
+  assert.match(clients,/--client-cols:[\s\S]*?grid-template-columns:var\(--client-cols\)[\s\S]*?\.client-hub-head-row\{display:grid;grid-template-columns:var\(--client-cols\)/,'client header and rows share --client-cols');
+  assert.match(team,/--person-cols:[\s\S]*?grid-template-columns:var\(--person-cols\)[\s\S]*?\.person-hub-head-row\{display:grid;grid-template-columns:var\(--person-cols\)/,'team header and rows share --person-cols');
+  assert.match(projects,/--project-cols:[\s\S]*?\.project-entry-head\{display:grid;grid-template-columns:var\(--project-cols\)/,'the project header shares --project-cols');
+  assert.match(projects,/\.project-list>\.project-entry\{display:grid;grid-template-columns:var\(--project-cols\)/,'project rows consume --project-cols');
 });
 
 test('every visible clock is 24-hour and the trash list carries its columns',()=>{
@@ -112,6 +117,34 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   assert.match(forecast,/forecast-person-override is-empty/,'a missing adjustment reserves its column');
   const forecastCss=read('app/financial-forecast.css');
   assert.match(forecastCss,/\.forecast-person-list-row\{display:grid/);
+});
+
+test('lists are thin rows and grids are big distributed cards',()=>{
+  const clients=read('app/client-directory.css');
+  assert.match(clients,/\.client-hub-list \.client-hub-card\{display:grid;grid-template-columns:var\(--client-cols\)[\s\S]*?min-height:48px/,'client rows stay under a thin height');
+  assert.match(clients,/\.client-hub-list \.client-hub-facts\{[\s\S]*?display:flex/,'secondary client data goes inline');
+  assert.match(clients,/\.client-hub-grid \.client-hub-card\{min-height:200px\}/,'client cards keep a big grid height');
+  const team=read('app/operations.css');
+  assert.match(team,/\.person-hub-card\.is-list\{display:grid;grid-template-columns:var\(--person-cols\)[\s\S]*?min-height:48px/,'team rows stay thin');
+  const inventory=read('app/inventory-workspace.css');
+  assert.match(inventory,/\.inventory-equipment-list \.inventory-item-facts\{grid-column:4;grid-row:1;display:flex/,'inventory facts go inline');
+  assert.match(inventory,/--reservation-cols:[\s\S]*?\.inventory-reservation\{display:grid;grid-template-columns:var\(--reservation-cols\)/,'reservation rows share the template');
+  assert.match(inventory,/\.inventory-equipment-grid:not\(\.inventory-equipment-list\) \.inventory-equipment\{min-height:210px\}/,'inventory cards keep a big grid height');
+  const projects=read('app/project-card.css');
+  assert.match(projects,/\.project-grid>\.project-entry\{min-height:200px\}/,'project cards keep a big grid height');
+  const agents=read('AGENTS.md');
+  assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
+  const forecastCss=read('app/financial-forecast.css');
+  assert.match(forecastCss,/\.contracted-clients-list\{display:grid;grid-template-columns:1fr;gap:4px;--contracted-cols:[\s\S]*?\.contracted-clients-list li\{display:grid;grid-template-columns:var\(--contracted-cols\)[\s\S]*?min-height:44px/,'contracted clients use thin rows with a shared template');
+  const forecast=read('app/financial-forecast.tsx');
+  assert.match(forecast,/contracted-clients-head[\s\S]*?Cliente[\s\S]*?Contratado[\s\S]*?Facturado/,'contracted clients show their header');
+  assert.match(team,/\.team-directory-card\{[^}]*min-height:190px/,'the directory keeps big grid cards');
+  const presence=read('app/presence.css');
+  assert.match(presence,/\.usage-grid \.ops-card\{[^}]*min-height:180px/,'usage cards keep grid height');
+  const productivity=read('app/productivity-ui.tsx');
+  assert.match(productivity,/drawer-list-head[\s\S]*?Proyecto[\s\S]*?Pieza[\s\S]*?Presupuesto[\s\S]*?Factura/,'the client drawer lists show their headers');
+  const productivityCss=read('app/productivity.css');
+  assert.match(productivityCss,/\.drawer-list\{--drawer-cols:[\s\S]*?\.drawer-list \.activity-line\{display:grid;grid-template-columns:var\(--drawer-cols\)[\s\S]*?min-height:40px/,'drawer rows use thin shared templates');
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');
