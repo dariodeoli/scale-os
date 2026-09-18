@@ -64,3 +64,20 @@ for(const list of lists){
   assert.match(file,new RegExp(headPattern+' span:last-child\\{justify-self:end\\}'),`${list.name}: el encabezado de acciones cierra a la derecha como la fila`);
  });
 }
+
+const cells={
+ clientes:{file:'client-directory.css',selectors:['.client-hub-facts','.client-hub-chips','.client-hub-stats','.client-hub-actions','.client-status']},
+ equipo:{file:'operations.css',selectors:['.person-hub-facts','.person-hub-state','.person-hub-chips','.person-hub-actions','.team-access']},
+ proyectos:{file:'project-card.css',selectors:['.project-entry-meta','.project-entry-facts','.project-entry-assignees','.project-entry-actions']},
+ inventario:{file:'inventory-workspace.css',selectors:['.inventory-item-facts','.inventory-state','.inventory-fact-location','.inventory-card-control','.inventory-item-actions']},
+ reservas:{file:'inventory-workspace.css',selectors:['.inventory-reservation-cell','.inventory-reservation-actions']},
+};
+for(const [name,{file,selectors}] of Object.entries(cells)){
+ test(`${name}: ninguna celda no-identidad se fuerza a la columna 1`,()=>{
+  const desktop=css(file);
+  for(const selector of selectors){
+   const pattern=new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\{[^}]*grid-column:1(?![/\\d])');
+   assert.doesNotMatch(desktop,pattern,`${selector} no puede quedar en la columna de identidad`);
+  }
+ });
+}
