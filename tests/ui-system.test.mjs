@@ -39,3 +39,6 @@ console.log('PASS team and inventory cards follow the notification card anatomy'
 assert(css.includes('.project-grid>.project-entry .project-entry-title h3{font-size:14px'),'project grid cards keep the shared title size');
 assert(css.includes('.project-grid>.project-entry>.project-entry-actions{justify-content:space-between}'),'project grid cards separate the drive meta from the action buttons');
 console.log('PASS project grid cards follow the shared anatomy');
+assert(css.includes(',.team-directory-grid){grid-auto-rows:1fr}'),'team directory cards share the capsule height contract');
+assert(css.includes('.team-directory-grid>.team-directory-card,'),'team directory cards use the shared card shell');
+console.log('PASS team directory joins the shared card contract');
