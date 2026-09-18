@@ -17,7 +17,7 @@
 .control-shell .production-panel,.control-shell .production-focus{padding:0;border:0;background:transparent}
 .control-shell :is(.ops-card,.project-card,.inventory-equipment,.inventory-reservation,.reports-distribution,.reports-tiles article){padding:var(--ui-card-padding);border-radius:var(--radius-md);background:var(--surface)}
 .control-shell :is(.ops-stack,.finance-grid){gap:var(--ui-space-4)}
-.control-shell :is(.ops-grid,.project-grid,.client-directory-grid,.inventory-equipment-grid,.reports-tiles,.reports-distributions){gap:var(--ui-space-3)}
+.control-shell :is(.ops-grid,.project-grid,.inventory-equipment-grid,.reports-tiles,.reports-distributions){gap:var(--ui-space-3)}
 .control-shell .panel-heading{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-3);margin-bottom:var(--ui-space-4)}
 .control-shell .panel-heading>*{min-width:0;max-width:100%}
 .control-shell .panel-heading :is(h2,h3){display:flex;align-items:center;gap:var(--ui-space-2)}
