@@ -4,6 +4,7 @@ import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {useForm} from 'react-hook-form';
 import {CompanyCurrencyProvider,useCompanyCurrency} from '../app/currency-provider';
 import type {ForecastData} from '../app/financial-forecast';
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
@@ -30,14 +31,14 @@ let renderer:ReactTestRenderer;const rendered=()=>JSON.stringify(renderer.toJSON
 async function run(){
  for(const role of ['management','sales','production','editor','viewer','collaborator']){await act(async()=>{renderer=create(<FinancialForecast role={role} organizationId="one"/>);});assert.equal(renderer.toJSON(),null);act(()=>renderer.unmount());}assert.equal(requests.length,0,'restricted roles do not request financial data');
  await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});assert.equal(requests[0].url,'/core-api/api/agency/forecast?month=2026-09');await respond(requests[0],fixture);assert.match(rendered(),/Recurrente contratado/);assert.match(rendered(),/1\.000/,'contracted total comes from top-level aggregate');assert.match(rendered(),/Cobrado/);assert.match(rendered(),/80/,'numeric canonical transport is accepted');assert.match(rendered(),/Gastos planificados/);assert.equal(renderer.root.findAllByProps({className:'forecast-currency'}).length,5,'segregated aggregates remain per currency');
- const selects=renderer.root.findAllByType('select');assert.equal(selects.find(select=>select.props.value==='variable')!==undefined,true,'kind select defaults to variable');act(()=>selects[0].props.onChange({target:{value:'recurring'}}));act(()=>selects[1].props.onChange({target:{value:'Herramientas'}}));act(()=>selects[2].props.onChange({target:{value:'fixed'}}));act(()=>renderer.root.findAllByProps({placeholder:'Sin separadores'})[0].props.onChange({target:{value:'3500'}}));act(()=>selects[3].props.onChange({target:{value:'USD'}}));act(()=>renderer.root.findAllByType('input').find(input=>input.props.maxLength===280)!.props.onChange({target:{value:'Licencia'}}));
+ const selects=renderer.root.findAllByType(SelectCustom);assert.equal(selects.find(select=>select.props.value==='variable')!==undefined,true,'kind select defaults to variable');act(()=>selects[0].props.onChange('recurring'));act(()=>selects[1].props.onChange('Herramientas'));act(()=>selects[2].props.onChange('fixed'));act(()=>renderer.root.findAllByProps({placeholder:'Sin separadores'})[0].props.onChange({target:{value:'3500'}}));act(()=>selects[3].props.onChange('USD'));act(()=>renderer.root.findAllByType('input').find(input=>input.props.maxLength===280)!.props.onChange({target:{value:'Licencia'}}));
  act(()=>{void renderer.root.findAllByType('form')[0].props.onSubmit({preventDefault(){}});});const post=requests.at(-1)!;assert.equal(post.url,'/core-api/api/agency/planned-expenses');assert.equal(post.init.method,'POST');assert.deepEqual(JSON.parse(String(post.init.body)),{cadence:'recurring',effectiveMonth:'2026-09',category:'Herramientas',amount:'3500',currency:'USD',kind:'fixed',note:'Licencia'},'planned expense POST carries the canonical payload with kind');await respond(post,{expense:{id:'1'}});assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09','save refreshes canonical forecast aggregates');await respond(requests.at(-1)!,fixture);assert.equal(JSON.stringify(renderer.root.findByProps({className:'planned-expenses-kinds'}).children),JSON.stringify(['2',' fijos · ','1',' variables']),'planned expense list shows the fixed versus variable split');
  assert.match(rendered(),/Gastos reales del mes/);
  const accountsRequest=requests.filter(request=>request.url==='/core-api/api/agency/accounts'&&!request.init.method).at(-1)!;await respond(accountsRequest,{accounts:[{id:'5',name:'Gastos PYG',currency:'PYG',active:true}]});
  const expensesRequest=requests.filter(request=>request.url.startsWith('/core-api/api/agency/expenses?month=2026-09')&&!request.init.method).at(-1)!;await respond(expensesRequest,{month:'2026-09',expenses:[{id:'1',account_id:'5',account_name:'Gastos PYG',category:'Herramientas',kind:'fixed',amount:'1500',currency:'PYG',paid_on:'2026-09-12',reference:'Licencia',created_by_email:'finanzas@example.invalid'}]});
  assert.match(rendered(),/Herramientas/);assert.match(rendered(),/1\.500/);assert.equal((rendered().match(/Gastos reales/g)||[]).length>=2,true,'the real-expense row joins the per-currency summary beside planned expenses');
  const realForm=renderer.root.findAllByType('form')[1];
- act(()=>renderer.root.findAllByType('select').find(select=>select.props.value==='')!.props.onChange({target:{value:'5'}}));
+ act(()=>renderer.root.findAllByType(SelectCustom).find(select=>select.props.value==='')!.props.onChange('5'));
  const realInputs=realForm.findAllByType('input');
  act(()=>realInputs[0].props.onChange({target:{value:'999'}}));act(()=>realInputs[1].props.onChange({target:{value:'2026-09-10'}}));act(()=>realInputs[2].props.onChange({target:{value:'Dominio'}}));
  act(()=>{void realForm.props.onSubmit({preventDefault(){}});});
@@ -50,13 +51,13 @@ async function run(){
  assert.match(rendered(),/Contratos vs facturación del mes/);assert.match(rendered(),/Sin factura/,'missing invoice renders the chip');assert.match(rendered(),/Forecast fixture/);assert.match(rendered(),/2\.000/,'invoiced amount renders whole money');
  const horizonButtons=renderer.root.findAllByType('button').filter(button=>button.props['aria-pressed']===true||button.props['aria-pressed']===false);
  assert.equal(horizonButtons.length,4,'four horizon options');assert.equal(horizonButtons[0].props['aria-pressed'],true,'one month is the default horizon');
- assert.equal(renderer.root.findAllByType('select').length,7,'horizon buttons keep the expense form selects in place');
+ assert.equal(renderer.root.findAllByType(SelectCustom).length,7,'horizon buttons keep the expense form selects in place');
  act(()=>horizonButtons[1].props.onClick());
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09&months=3','horizon changes fetch months');await respond(requests.at(-1)!,multiFixture);
  assert.match(rendered(),/Proyección de caja y resultado/);assert.match(rendered(),/1,860/);assert.match(rendered(),/2,060/);assert.match(rendered(),/−/,'negative projection renders a minus sign');assert.match(rendered(),/09\/2026/);
  assert.equal(renderer.root.findAllByType('table').length,2,'one compact table per currency');
  assert.match(rendered(),/Sin factura/,'contracted clients remain visible in the horizon view');
- assert.equal(renderer.root.findAllByType('select').length,0,'month tools hide in the horizon view');
+ assert.equal(renderer.root.findAllByType(SelectCustom).length,0,'month tools hide in the horizon view');
  act(()=>renderer.root.findAllByType('button').filter(button=>button.props['aria-pressed']===true||button.props['aria-pressed']===false)[0].props.onClick());
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09','back to one month drops the months parameter');await respond(requests.at(-1)!,contractedFixture);
  assert.match(rendered(),/Recurrente contratado/);act(()=>renderer.unmount());

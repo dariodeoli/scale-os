@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import type {ReportMonth,ReportsData} from '../app/reports-workspace';
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
@@ -18,7 +19,7 @@ async function respond(request:Request,data:unknown,status=200){await act(async(
 function row(month:string,active:number|null=4,isPartial=false):ReportMonth{return {month,isPartial,clients:{active,added:1,lost:1,retentionPercent:75,averageTenureDays:100,tenureKnown:3,types:[{kind:'company',count:1},{kind:'unknown',count:3}],plans:[{planId:'2',name:'Mensual',count:1},{planId:null,name:null,count:3}]},financial:[{currency:'USD',invoiced:'9007199254740993.1234',collected:'-10.00',invoiceCount:2,billedClients:1,averageTicket:'4503599627370496.56',averageRevenuePerClient:'9007199254740993.12'},{currency:'PYG',invoiced:'50000',collected:'40000',invoiceCount:1,billedClients:1,averageTicket:'50000',averageRevenuePerClient:'50000'}]};}
 function fixture(month:string,rows=[row('2020-05'),row(month)]):ReportsData{return {asOf:'2026-09-10T15:00:00Z',month,historySince:'2020-01-01T03:00:00Z',months:rows};}
 function month(value:string){act(()=>renderer.root.findByProps({type:'month'}).props.onChange({target:{value}}));}
-function history(value:number){act(()=>renderer.root.findAllByType('select')[0].props.onChange({target:{value:String(value)}}));}
+function history(value:number){act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange(String(value)));}
 
 async function run(){
  assert.equal(reportMoney('9007199254740993.1234','USD'),'USD 9.007.199.254.740.993,1234');
@@ -68,7 +69,7 @@ async function run(){
  assert.equal(renderer.root.findByType('tbody').findAllByType('tr').length,2);
  assert.match(renderer.root.findByType('caption').children.join(''),/^Evolución mensual · PYG/);
  assert.equal(renderer.root.findByProps({className:'reports-table-scroll'}).props.tabIndex,0);
- act(()=>renderer.root.findAllByType('select')[1].props.onChange({target:{value:'USD'}}));
+ act(()=>renderer.root.findAllByType(SelectCustom)[1].props.onChange('USD'));
  assert.match(text(),/USD 9\.007\.199\.254\.740\.993,1234/);
  assert.doesNotMatch(text(),/PYG 50\.000/,'financial currencies are not summed or displayed together');
  const tile=renderer.root.findAllByType('article').find(article=>article.findByType('h3').children[0]==='Facturado · incluye impuestos')!;
@@ -84,11 +85,11 @@ async function run(){
  await respond(staleSix,{error:'old failure'},500);assert.doesNotMatch(text(),/old failure/);
  history(12);await respond(latest(),{error:'No autorizado'},403);
  assert.match(text(),/No autorizado/);assert.equal(renderer.root.findAllByType('table').length,0);
- act(()=>renderer.root.findByType('button').props.onClick());
+ act(()=>renderer.root.findAllByType("button").find(node=>String(node.props.children).includes("Reintentar"))!.props.onClick());
  await respond(latest(),{...fixture('2020-06',[{...row('2020-06',null),financial:[]}]),historySince:null});
  assert.match(text(),/Histórico confiable desde: sin fecha confirmada/);
  assert.match(text(),/Sin datos/);assert.match(text(),/Sin porcentaje/);
- assert.equal(renderer.root.findAllByType('select')[1].props.disabled,true);
+ assert.equal(renderer.root.findAllByType(SelectCustom)[1].props.disabled,true);
   history(6);const previousTenant=latest();
   const tenantRequests=requests.length;
   act(()=>renderer.update(<ReportsWorkspace key="org2" role="owner"/>));

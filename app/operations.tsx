@@ -1,5 +1,6 @@
 "use client";
 import {currencyChoices} from "./currencies";
+import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
 import { useEffect, useMemo, useState, useRef, useId } from "react";
@@ -570,10 +571,7 @@ function PeopleWorkspace({
           </article>}
         </div>}
         {mode==='people'&&<div className="team-filters">
-          <label className="team-search">
-            <span>Buscar persona</span>
-            <input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Nombre, correo o cargo"/>
-          </label>
+          <SearchField className="team-search" label="Buscar persona" value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
           <div className="choice-list compact">
             <button className={!search?'choice active':'choice'} onClick={()=>setSearch('')}>Todos</button>
             <button className={search==='activo'?'choice active':'choice'} onClick={()=>setSearch('activo')}>Activos</button>
@@ -601,7 +599,7 @@ function PeopleWorkspace({
                       <span className="avatar">{actorInitials(p.full_name)}</span>
                     )}
                     <div>
-                      <h3>{p.full_name}{salaryView&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
+                      <h3 title={p.full_name}>{p.full_name}{salaryView&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
                       <small>{entry.member?teamRoleLabels[entry.member.role]||entry.member.role:(p.job_title||'Sin cargo')}</small>
                     </div>
                   </div>

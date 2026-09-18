@@ -9,7 +9,7 @@ import {statuses} from './production-board';
 import {SaveActions} from './save-actions';
 import type {Account,Client,Invoice,Member,Project,WorkOrder} from './workspace-types';
 import {currencyCodes} from './currencies';
-import {AmountInput} from './profile-controls';
+import {AmountInput,SelectCustom} from './profile-controls';
 import {UrgencySelect} from './urgency';
 import {PHONE_ERROR, phoneValid} from './field-rules';
 import {PhoneField} from './phone-field';
@@ -285,15 +285,7 @@ export function OrderForm({
         </div>
       </fieldset>
       <label>
-        Tipo de trabajo
-        <select {...form.register("work_type")}>
-          <option value="">Sin clasificar</option>
-          <option value="video">Video</option>
-          <option value="reedicion">Reedición</option>
-          <option value="foto">Foto</option>
-          <option value="produccion">Producción</option>
-          <option value="entregable">Entregable</option>
-        </select>
+        <SelectCustom label="Tipo de trabajo" choices={[{value:'',label:'Sin clasificar'},{value:'video',label:'Video'},{value:'reedicion',label:'Reedición'},{value:'foto',label:'Foto'},{value:'produccion',label:'Producción'},{value:'entregable',label:'Entregable'}]} value={form.watch('work_type')??''} onChange={value=>form.setValue('work_type',value as OrderValues['work_type'],{shouldDirty:true,shouldValidate:true})}/>
         <small>Se usa para los conteos automáticos del resumen semanal.</small>
       </label>
       <label>

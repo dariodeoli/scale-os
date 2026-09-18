@@ -61,16 +61,6 @@
   max-width: 440px;
   margin-top: 2px;
 }
-.team-search {
-  display: grid;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-.team-search input {
-  width: 100%;
-}
 .avatar {
   width: 48px;
   height: 48px;

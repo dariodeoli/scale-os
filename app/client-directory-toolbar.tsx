@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Search } from "lucide-react";
+import {SearchField} from './search-field';
 import { clientState, clientStatuses } from "./client-status";
 import { SelectCustom } from "./profile-controls";
 import { ViewToggle, type CollectionView } from "./view-toggle";
@@ -79,16 +80,7 @@ export function ClientDirectoryToolbar({
           Mostrando {resultCount} {clientLabel} de {totalCount} {totalLabel}
         </p>
       </div>
-      <label className="client-directory-search">
-        <span className="sr-only">Buscar clientes</span>
-        <Search aria-hidden="true" size={18} />
-        <input
-          type="search"
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Buscar por nombre, correo o teléfono"
-        />
-      </label>
+      <SearchField className="client-directory-search" hideLabel label="Buscar clientes" value={query} onChange={onQueryChange} placeholder="Buscar por nombre, correo o teléfono"/>
       <SelectCustom
         label="Estado"
         value={status}

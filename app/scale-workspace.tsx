@@ -1,5 +1,6 @@
 "use client";
 import {ProjectCard} from './project-card';
+import {SearchField} from './search-field';
 import {Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
 import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
@@ -1225,15 +1226,7 @@ export default function Home() {
                   </button>
                 ))}
               </div>
-              <label className="mora-search">
-                <span className="sr-only">Buscar cliente en cobranza</span>
-                <input
-                  type="search"
-                  value={moraSearch}
-                  onChange={event => setMoraSearch(event.target.value)}
-                  placeholder="Buscar cliente…"
-                />
-              </label>
+              <SearchField className="mora-search" hideLabel label="Buscar cliente en cobranza" value={moraSearch} onChange={setMoraSearch} placeholder="Buscar cliente…"/>
             </div>
             <div className="client-list">
               {visibleMoraClients.length ? (

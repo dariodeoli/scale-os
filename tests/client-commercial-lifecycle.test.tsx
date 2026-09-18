@@ -2,6 +2,7 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import type {ClientCommercialLifecycleRecord} from '../app/client-commercial-lifecycle';
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
@@ -24,7 +25,7 @@ async function run(){
  act(()=>{renderer=create(<ClientCommercialLifecycle id="1" role="finance"/>);});assert.equal(latest().url,'/core-api/api/agency/clients/1/commercial-lifecycle');await respond(latest(),fixture());assert.match(rendered(),/Solo lectura/);assert.equal(renderer.root.findAllByType('button').length,0);act(()=>renderer.unmount());
  act(()=>{renderer=create(<ClientCommercialLifecycle id="1" role="owner"/>);});await respond(latest(),fixture());assert.match(rendered(),/Contenido mensual/);assert.match(rendered(),/Gs\./);act(()=>renderer.root.findByType('button').props.onClick());
  setInput('Vigente desde','2026-09-14');setInput('Cliente desde (opcional)','2024-02-29');setInput('Nombre del plan','Gestión comercial');setInput('Versión contratada','v4.0');setInput('Precio mensual contratado','2000');
- const selects=renderer.root.findAllByType('select');act(()=>selects[0].props.onChange({target:{value:'USD'}}));act(()=>selects[1].props.onChange({target:{value:'percent'}}));setInput('Valor del descuento','15');
+ const selects=renderer.root.findAllByType(SelectCustom);act(()=>selects[0].props.onChange('USD'));act(()=>selects[1].props.onChange('percent'));setInput('Valor del descuento','15');
  const before=requests.length;await act(async()=>{renderer.root.findAllByType('form')[0].props.onSubmit({preventDefault(){}});});assert.equal(requests.length,before+1,'one immutable amendment POST is issued');assert.equal(latest().init.method,'POST');assert.deepEqual(JSON.parse(String(latest().init.body)),{expectedVersion:'9007199254740993',effectiveOn:'2026-09-14',activationDate:'2024-02-29',planName:'Gestión comercial',planVersionSnapshot:'v4.0',monthlyPrice:'2000',currency:'USD',discountType:'percent',discountValue:'15',discountTerms:null,extrasDeliverables:null});
  await respond(latest(),fixture('1',{version:'9007199254740994',amendments:[...record().amendments,{...record().amendments[0],id:'502',planName:'Gestión comercial',planVersionSnapshot:'v4.0',monthlyPrice:'2000',currency:'USD'}]}));assert.match(rendered(),/El historial previo no se modifica/);assert.equal(renderer.root.findAllByType('form').length,0);
  act(()=>renderer.root.findByType('button').props.onClick());setInput('Nombre del plan','Borrador conservado');setInput('Versión contratada','v5.0');setInput('Precio mensual contratado','3000');const form=renderer.root.findAllByType('form')[0];await act(async()=>{form.props.onSubmit({preventDefault(){}});});await respond(latest(),{error:'El cliente cambió. Actualizá los datos antes de guardar.'},409);assert.match(rendered(),/El cliente cambió/);assert.equal(inputs().find(item=>item.parent?.props.children?.[0]==='Nombre del plan')!.props.value,'Borrador conservado','conflict preserves draft');

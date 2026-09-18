@@ -57,7 +57,7 @@ html[data-theme="dark"] .control-shell>aside nav>a.active,html[data-theme="dark"
 html[data-theme="dark"] .control-shell>aside nav>a.active svg,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a.active svg{color:#d18ad9}
 html[data-theme="dark"] .control-shell>aside nav>a.active::after,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a.active::after{background:#c06bd0;box-shadow:0 0 0 3px rgb(192 107 208 / 16%)}
 html[data-theme="dark"] .desktop-sidebar .workspace-wordmark>span,html[data-theme="dark"] .control-shell>aside .brand{color:#d18ad9}
-html[data-theme="dark"] .comment-composer textarea,html[data-theme="dark"] .assignee-picker .assignee-search input[type=search]{box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
+html[data-theme="dark"] .comment-composer textarea{box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
 html[data-theme="dark"] .assignee-picker .assignee-selected li{box-shadow:inset 0 1px 0 rgb(255 255 255 / 4%)}
 html[data-theme="dark"] .team-access-status.is-active{border-color:color-mix(in srgb,var(--success) 42%,transparent);background:var(--success-soft);color:var(--success)}
 html[data-theme="dark"] .team-access-status.is-suspended{border-color:color-mix(in srgb,var(--danger) 42%,transparent);background:var(--danger-soft);color:var(--danger)}

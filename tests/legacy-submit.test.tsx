@@ -45,6 +45,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  // dialog environment, fixtures and initial field values are local doubles.
   const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect,PHONE_ERROR,phoneValid,PhoneField,
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
+   SelectCustom:({label,value,onChange,disabled}:{label:string;value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':label,value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    useCompanyCurrency:()=>({currency:'USD'}),
   useForm:(options:Parameters<typeof useForm>[0])=>useForm({...options,defaultValues:{...options?.defaultValues,...defaults}}),
   request:(path:string,options:{body:string})=>new Promise((resolve,reject)=>{requests.push({path,payload:JSON.parse(options.body),resolve,reject});}),

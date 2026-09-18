@@ -22,7 +22,7 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
   return()=>window.removeEventListener('hashchange',reveal);
  },[anchor]);
  return <article id={anchor} ref={card} tabIndex={-1} className="project-entry">
-  <div className="project-entry-title">{selectable?<label className="select-check" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}<h3>{project.name}</h3><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key}/></div>
+  <div className="project-entry-title">{selectable?<label className="select-check" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}<h3 title={project.name}>{project.name}</h3><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key}/></div>
   <div className="project-entry-meta"><span className="client-status" data-status={project.status}>{{active:'Activo',paused:'Pausado',completed:'Completado',cancelled:'Cancelado'}[project.status]||project.status}</span><UrgencyBadge value={project.urgency}/></div>
   <dl className="project-entry-facts">
    <div><dt>Inicio</dt><dd className="list-date">{listDateShort(project.start_date)||'Sin fecha'}</dd></div>

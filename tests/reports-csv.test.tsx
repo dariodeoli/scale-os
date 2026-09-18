@@ -4,6 +4,7 @@ import test from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {reportsCsv} from '../app/reports-csv';
 import type {ReportMonth,ReportsData} from '../app/reports-workspace';
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 function row(month:string):ReportMonth{return {month,isPartial:true,clients:{active:null,added:0,lost:1,retentionPercent:null,averageTenureDays:12.5,tenureKnown:2,types:[],plans:[]},financial:[
  {currency:'USD',invoiced:'9007199254740993.123400',collected:'-0.0100',invoiceCount:2,billedClients:1,averageTicket:null,averageRevenuePerClient:'0.00'},
@@ -71,7 +72,7 @@ test('report CSV download uses loaded data only, respects roles and filters, and
   for(const role of ['owner','admin','finance']){
    await act(async()=>{renderer=create(<ReportsWorkspace role={role}/>);});assert.equal(button(),undefined);
    await respond();
-   await act(async()=>renderer!.root.findAllByType('select')[1].props.onChange({target:{value:'USD'}}));
+   await act(async()=>renderer!.root.findAllByType(SelectCustom)[1].props.onChange('USD'));
    const count:number=requests.length;
    await act(async()=>button()!.props.onClick());
    assert.equal(requests.length,count,'export never makes an API request');
@@ -86,11 +87,11 @@ test('report CSV download uses loaded data only, respects roles and filters, and
   assert(JSON.stringify(renderer!.toJSON()).includes('No se pudo descargar el CSV'));
   failDownload=false;await act(async()=>button()!.props.onClick());
   assert(!JSON.stringify(renderer!.toJSON()).includes('No se pudo descargar el CSV'));
-  await act(async()=>renderer!.root.findAllByType('select')[0].props.onChange({target:{value:'6'}}));
+  await act(async()=>renderer!.root.findAllByType(SelectCustom)[0].props.onChange('6'));
   assert.equal(button(),undefined,'changed filters hide stale export immediately');
   const req=requests.at(-1)!;await act(async()=>req.resolve(new Response(JSON.stringify({error:'Sin acceso'}),{status:403})));
   assert.equal(button(),undefined,'failed report fetch offers no export');
-  await act(async()=>renderer!.root.findByType('button').props.onClick());
+  await act(async()=>renderer!.root.findAllByType("button").find(node=>String(node.props.children).includes("Reintentar"))!.props.onClick());
   const empty=requests.at(-1)!,month=new URL(empty.url,'https://fixture.invalid').searchParams.get('month')!;
   await act(async()=>empty.resolve(new Response(JSON.stringify({...data(month),months:[]}))));
   assert.equal(button()!.props.disabled,true);
