@@ -142,7 +142,7 @@ async function run(){
  // Assigned returners see Return but cannot edit/cancel another person's booking.
  context.user_id='11';reservations=[{...record,status:'checked_out',custodian_user_id:'11',custodian_name:'Sonido'}];
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});act(()=>button('Calendario y reservas').props.onClick());
- assert(button('Registrar devolución'));assert(!button('Editar reserva'));assert(!button('Cancelar reserva'));act(()=>renderer.unmount());
+ assert(renderer.root.findAllByProps({'aria-label':'Registrar devolución: Rodaje de prueba'}).length,'the returner sees the return action');assert(!renderer.root.findAllByProps({'aria-label':'Editar reserva: Rodaje de prueba'}).length);assert(!renderer.root.findAllByProps({'aria-label':'Cancelar reserva: Rodaje de prueba'}).length);act(()=>renderer.unmount());
   // Bulk selection: one-line actions and the batch endpoint.
   context.role='management';context.can_manage=true;items=equipment;reservations=[record];
   await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});

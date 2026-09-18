@@ -35,7 +35,7 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
   const clients=read('app/client-directory.css');
   assert.match(clients,/\.client-hub-head-row\{display:grid/);
-  assert.match(clients,/\.client-hub-actions\{grid-column:4/,'client actions sit in their own column');
+  assert.match(clients,/\.client-hub-actions\{grid-column:6/,'client actions sit in their own column');
   const team=read('app/operations.css');
   assert.match(team,/\.person-hub-head-row\{display:grid/);
   const projects=read('app/project-card.css');
@@ -117,6 +117,23 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   assert.match(forecast,/forecast-person-override is-empty/,'a missing adjustment reserves its column');
   const forecastCss=read('app/financial-forecast.css');
   assert.match(forecastCss,/\.forecast-person-list-row\{display:grid/);
+});
+
+test('lists are thin rows and grids are big distributed cards',()=>{
+  const clients=read('app/client-directory.css');
+  assert.match(clients,/\.client-hub-list \.client-hub-card\{display:grid;grid-template-columns:var\(--client-cols\)[\s\S]*?min-height:48px/,'client rows stay under a thin height');
+  assert.match(clients,/\.client-hub-list \.client-hub-facts\{[\s\S]*?display:flex/,'secondary client data goes inline');
+  assert.match(clients,/\.client-hub-grid \.client-hub-card\{min-height:200px\}/,'client cards keep a big grid height');
+  const team=read('app/operations.css');
+  assert.match(team,/\.person-hub-card\.is-list\{display:grid;grid-template-columns:var\(--person-cols\)[\s\S]*?min-height:48px/,'team rows stay thin');
+  const inventory=read('app/inventory-workspace.css');
+  assert.match(inventory,/\.inventory-equipment-list \.inventory-item-facts\{grid-column:4;grid-row:1;display:flex/,'inventory facts go inline');
+  assert.match(inventory,/--reservation-cols:[\s\S]*?\.inventory-reservation\{display:grid;grid-template-columns:var\(--reservation-cols\)/,'reservation rows share the template');
+  assert.match(inventory,/\.inventory-equipment-grid:not\(\.inventory-equipment-list\) \.inventory-equipment\{min-height:210px\}/,'inventory cards keep a big grid height');
+  const projects=read('app/project-card.css');
+  assert.match(projects,/\.project-grid>\.project-entry\{min-height:200px\}/,'project cards keep a big grid height');
+  const agents=read('AGENTS.md');
+  assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

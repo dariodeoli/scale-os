@@ -78,7 +78,11 @@
 - **Espaciado**: gaps y padding consistentes entre objetos laterales y verticales (tokens de `ui-system.css`), sin saltos por largo de texto ni filas colapsadas.
 - **Selección múltiple**: donde haya lista o cuadrícula, se puede seleccionar varios y operar en lote (reservar, verificar, mover de ubicación, archivar), con contador "N seleccionados", acción de seleccionar visibles y limpiar; el lote se resuelve en una sola operación por API cuando exista el endpoint.
 - **Aplica a TODO contenedor existente y a los nuevos**: al crear uno nuevo o tocar uno existente, adoptar estas reglas tanto en cuadrícula como en lista. Un contenedor que no las cumple es deuda de diseño.
-- **Excepción (decisión 17-09)**: los feeds de tarjetas apiladas (Reservas de inventario, Notificaciones) no llevan encabezado de columnas porque cada tarjeta agrupa bloques propios; mantienen alineación, elipsis y acciones en una línea.
+- **Excepción (decisión 17-09)**: los feeds de tarjetas apiladas (Notificaciones) y los tableros kanban mantienen tarjetas/bloques propios en vez de filas con encabezado; cualquier lista de registros (incluida Reservas de inventario) se rediseña al contrato de fila finita.
+- **Lista vs. cuadrícula (regla 17-09)**:
+  - **Lista = filas finitas**: una sola línea de contenido principal (44–52 px), a todo el ancho, con TODA la información repartida en columnas (los valores secundarios van inline separados por `·`, con `title` para el detalle). Etiquetas del encabezado arriba; nada de bloques apilados dentro de la fila salvo una línea muted de auditoría cuando el dato importa (p. ej. quién retiró/devolvió).
+  - **Cuadrícula = tarjetas grandes**: `padding` 16 px, `min-height` ~200 px, contenido ordenado y distribuido (`display:flex;flex-direction:column` + pie anclado con `margin-top:auto`), misma altura entre tarjetas de la fila y sin columnas colapsadas.
+  - **Al tocar una lista o cuadrícula existente, se rediseña al contrato completo** (encabezado, plantilla compartida, fila fina o tarjeta distribuida), no se parchea.
 
 ## Reglas de campos (fuente única)
 **Principios**
