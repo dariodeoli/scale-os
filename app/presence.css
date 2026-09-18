@@ -8,3 +8,4 @@
 @media(max-width:760px){.project-presence{padding:8px 10px}.workspace-presence{min-height:44px;padding-inline:8px}}
 
 html[data-theme="dark"] .project-presence{box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
+.usage-panel .activity-line{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}.usage-panel .activity-line>*{margin:0}.usage-panel .activity-line small{font-size:11px;color:var(--text-subtle,var(--text-muted))}.usage-panel .activity-line p{font-size:11px;color:var(--text-subtle,var(--text-muted))}

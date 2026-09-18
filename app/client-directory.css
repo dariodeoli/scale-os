@@ -81,7 +81,7 @@
 .client-hub-list .client-hub-chips{grid-column:3;justify-content:flex-end;min-height:0}
 .client-hub-list .client-hub-actions{grid-column:4;justify-self:end;margin-top:0;padding-top:0;border-top:0}
 .client-hub-list :is(.client-identity,.actor-identity){min-width:0}
-.client-hub-list :is(.client-identity-name,.actor-identity-name){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.client-hub-list :is(.client-identity-name,.actor-identity-name){white-space:normal;overflow-wrap:anywhere}
 .client-hub-head-row{display:none}
 @media(min-width:761px){.client-hub-head-row{display:grid;grid-template-columns:minmax(190px,1.1fr) minmax(0,1.1fr) auto auto;gap:0 16px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.client-hub-head-row span:nth-child(n+3){justify-self:end}}
 @media(max-width:760px){.client-hub-list .client-hub-card{grid-template-columns:1fr}.client-hub-list .client-hub-head,.client-hub-list .client-hub-facts,.client-hub-list .client-hub-chips,.client-hub-list .client-hub-actions{grid-column:auto}.client-hub-list .client-hub-chips{justify-content:flex-start}}

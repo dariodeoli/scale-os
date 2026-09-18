@@ -619,7 +619,7 @@ function PeopleWorkspace({
                   {p.ended_on?<span className="hub-chip warn">Salió el {listDateShort(p.ended_on)}</span>:null}
                 </div>
                 {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
-                <TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} refresh={load}/>
+                <div className="person-hub-tail"><TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} refresh={load}/>
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
                 <footer className="person-hub-actions">
                   <div className="person-hub-buttons">
@@ -629,7 +629,7 @@ function PeopleWorkspace({
                     </button>
                   </div>
                   <div className="ops-card-actions"><RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/></div>
-                </footer>
+                </footer></div>
               </article>
             ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
               <header className="person-hub-head">
@@ -642,7 +642,7 @@ function PeopleWorkspace({
                 <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
               </dl>
               <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>
-              <TeamAccess member={entry.member} email={entry.member!.email} role={role} refresh={load}/>
+              <div className="person-hub-tail"><TeamAccess member={entry.member} email={entry.member!.email} role={role} refresh={load}/>
               <footer className="person-hub-actions">
                 <div className="person-hub-buttons">
                   {entry.archivedProfileId?<button className="text-button positive" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={14}/>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={14}/>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
@@ -651,7 +651,7 @@ function PeopleWorkspace({
                     Editar
                   </button>
                 </div>
-              </footer>
+              </footer></div>
             </article>;})}
             {!visiblePeople.length && (
               <p className="empty-copy">

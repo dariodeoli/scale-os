@@ -69,7 +69,9 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
    <div className="notification-filters" role="group" aria-label="Filtrar notificaciones">{filters.map(option=><button type="button" key={option.value} className={filter===option.value?'choice active':'choice'} aria-pressed={filter===option.value} disabled={busy} onClick={()=>changeFilter(option.value)}>{option.label}</button>)}</div>
    {message&&<p role="alert">{message}</p>}
    <div aria-busy={loading||busy}>{loading?<p role="status">Cargando avisos…</p>:!data.notifications.length?<p className="empty-copy">{message?'No se pudo mostrar la lista. Intentá actualizar.':filter==='all'?'No tenés notificaciones. Acá aparecerán tus avisos de asignaciones, comentarios y entregas.':'No hay notificaciones para este filtro.'}</p>:<div className="notification-list">{data.notifications.map(notice=><article key={notice.id} className={notice.read_at?'notice':'notice unread'}>
-    <h3>{notice.title}</h3><p className="notification-kind">{kindLabel(notice.kind)}</p><p>{notice.body}</p><time dateTime={Number.isFinite(new Date(notice.created_at).getTime())?notice.created_at:undefined}>{dateLabel(notice.created_at)}</time>
+    <div className="notice-identity"><h3>{notice.title}</h3><span className="notice-kind-chip">{kindLabel(notice.kind)}</span></div>
+    <p className="notice-body">{notice.body}</p>
+    <time dateTime={Number.isFinite(new Date(notice.created_at).getTime())?notice.created_at:undefined}>{dateLabel(notice.created_at)}</time>
     <p className="notification-state">{notice.read_at?'Leída':'Sin leer'} · {notice.resolved_at?'Resuelta':'Pendiente'}</p>
     <div className="notification-actions">
      {(notice.work_order_id||notice.project_id)&&<button type="button" className="icon-button" title={notice.work_order_id?'Ver pieza':'Ver proyecto'} aria-label={`${notice.work_order_id?'Ver pieza':'Ver proyecto'}: ${notice.title}`} disabled={busy} onClick={()=>{if(locked.current)return;if(notice.read_at)visitNotice(notice);else void mutate('read',notice,true);}}><ExternalLink size={17}/></button>}
