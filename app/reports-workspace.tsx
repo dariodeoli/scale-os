@@ -4,6 +4,7 @@ import {api} from './operations';
 import {downloadReportsCsv} from './reports-csv';
 import {WeeklyAutomatic} from './weekly-automatic';
 import './reports-workspace.css';
+import {SelectCustom} from './profile-controls';
 
 export type ReportMonth={month:string;isPartial:boolean;clients:{active:number|null;added:number|null;lost:number|null;retentionPercent:number|null;averageTenureDays:number|null;tenureKnown:number;types:{kind:string;count:number}[];plans:{planId:string|number|null;name:string|null;count:number}[]};financial:{currency:string;invoiced:string;collected:string;invoiceCount:number;billedClients:number;averageTicket:string|null;averageRevenuePerClient:string|null}[]};
 export type ReportsData={asOf:string;month:string;historySince:string|null;months:ReportMonth[]};
@@ -120,8 +121,8 @@ function ReportsPanel(){
   <p>Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado.</p>
   <div className="reports-filters">
    <label>Mes a consultar<input type="month" value={month} min="1900-01" max={currentMonth()} onChange={e=>{if(validMonth(e.target.value)&&e.target.value<=currentMonth())setMonth(e.target.value);}}/></label>
-   <label>Histórico<select value={months} onChange={e=>{const value=Number(e.target.value);if([6,12,24].includes(value))setMonths(value);}}>{[6,12,24].map(value=><option key={value} value={value}>Últimos {value} meses</option>)}</select></label>
-   <label>Moneda<select value={selectedCurrency} disabled={!currencies.length} onChange={e=>setCurrency(e.target.value)}>{currencies.length?currencies.map(value=><option key={value}>{value}</option>):<option value="">Sin datos monetarios</option>}</select></label>
+   <label><SelectCustom label="Histórico" choices={[6,12,24].map(value=>({value:String(value),label:'Últimos '+value+' meses'}))} value={String(months)} onChange={value=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/></label>
+   <label><SelectCustom label="Moneda" choices={currencies.length?currencies.map(value=>({value,label:value})):[{value:'',label:'Sin datos monetarios'}]} value={selectedCurrency} disabled={!currencies.length} onChange={setCurrency}/></label>
   </div>
   {error?<div role="alert" className="reports-error"><p>{error}</p><button type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button></div>:!data?<p role="status">Cargando reportes…</p>:<>
    <p className="reports-note">Datos al {reportDate(data.asOf,true)} (hora de Asunción). Histórico confiable desde: {reportDate(data.historySince)}.</p>

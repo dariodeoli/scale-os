@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-test-renderer';
 import type {InventoryItem,InventoryReservation,StorageTemplate} from '../app/inventory-workspace';
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
 const intervals=new Map<number,()=>void>();let timerId=0;
 const documentEvents=Object.assign(new EventTarget(),{visibilityState:'visible'});
@@ -41,8 +42,8 @@ const {InventoryWorkspace,InventoryItemForm,InventoryReservationForm,InventoryTr
 let renderer:ReactTestRenderer,done=0;
 function text(node:ReactTestInstance|string):string{return typeof node==='string'?node:node.children.map(text).join('');}
 const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label)!;
-const field=(label:string,tag:'input'|'select'|'textarea'='input')=>renderer.root.findAllByType('label').find(node=>node.children.some(c=>c===label))!.findByType(tag);
-const change=(label:string,value:string,tag:'input'|'select'|'textarea'='input')=>act(()=>field(label,tag).props.onChange({target:{value}}));
+const field=(label:string,tag:'input'|'select'|'textarea'='input')=>tag==='select'?renderer.root.findAllByType(SelectCustom).find(candidate=>candidate.props.label===label)!:renderer.root.findAllByType('label').find(candidate=>candidate.children.some(c=>c===label))!.findByType(tag);
+const change=(label:string,value:string,tag:'input'|'select'|'textarea'='input')=>act(()=>{const node=field(label,tag);node.props.onChange(tag==='select'?value:{target:{value}});});
 // Identity chips now include avatar initials before the visible person name.
 const check=(label:string)=>act(()=>renderer.root.findAllByType('label').find(node=>text(node).includes(label))!.findByType('input').props.onChange());
 const tree=()=>JSON.stringify(renderer.toJSON());
@@ -77,14 +78,14 @@ async function run(){
  await submit();assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.expected_version,record.version);assert.deepEqual(writes.at(-1)!.body.inventory_ids,['1']);
  act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryTransitionForm action="checkout" record={record} done={()=>{done++;}}/>);});
- assert.deepEqual(field('Quién lleva los equipos (custodio)','select').findAllByType('option').map(o=>o.props.value),['','10','11']);
+ assert.deepEqual(field('Quién lleva los equipos (custodio)','select').props.choices.map((choice:{value:string})=>choice.value),['','10','11']);
  change('Quién lleva los equipos (custodio)','11','select');await submit();assert.equal(writes.at(-1)!.body.custodian_user_id,'11');assert.equal(writes.at(-1)!.path,'/api/agency/inventory-reservations/30/checkout');act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryTransitionForm action="return" record={{...record,status:'checked_out'}} done={()=>{done++;}}/>);});
  assert.equal(renderer.root.findAllByType('fieldset').length,2);
  assert.match(tree(),/devolución completa/,'partial return is not represented as supported');
  const returnFields=renderer.root.findAllByType('fieldset');
  act(()=>returnFields[0].findAllByType('input')[0].props.onChange({target:{value:'Estante nuevo'}}));
- act(()=>returnFields[1].findByType('select').props.onChange({target:{value:'maintenance'}}));
+ act(()=>returnFields[1].findByType(SelectCustom).props.onChange('maintenance'));
  await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-reservations/30/return');assert.equal(writes.at(-1)!.body.locations.length,2);assert.equal(writes.at(-1)!.body.expected_version,0);
  assert.equal(writes.at(-1)!.body.locations[0].storage_shelf,'Estante nuevo');assert.equal(writes.at(-1)!.body.locations[1].status,'maintenance');
  fail=true;const beforeDone=done;await submit();assert.equal(done,beforeDone);assert.equal(returnFields[0].findAllByType('input')[0].props.value,'Estante nuevo','failed return retains recorded locations');fail=false;
@@ -180,8 +181,8 @@ async function run(){
  act(()=>button('Renombrar').props.onClick());change('Nombre de la ubicación','Estante A principal');const availability=renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevas asignaciones'))!.findByType('input');act(()=>availability.props.onChange({target:{checked:false}}));await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-locations/storage-a');assert.deepEqual(writes.at(-1)!.body,{name:'Estante A principal',active:false,responsible_user_id:null});act(()=>renderer.unmount());
  let itemSaved=0;
  await act(async()=>{renderer=create(<InventoryItemForm item={null} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage createStorageTemplate={async name=>(await mockApi('/api/agency/inventory-locations',{name},'POST') as {location:StorageTemplate}).location} done={()=>{itemSaved++;}}/>);});
- assert.deepEqual(field('Ubicación','select').findAllByType('option').map(option=>option.props.value),['','storage-a','storage-b'],'active templates plus custom fallback are selectable');
- assert.deepEqual(field('Categoría','select').findAllByType('option').map(option=>option.props.value),['1','2'],'archived categories are excluded from new inventory forms');
+ assert.deepEqual(field('Ubicación','select').props.choices.map((choice:{value:string})=>choice.value),['','storage-a','storage-b'],'active templates plus custom fallback are selectable');
+ assert.deepEqual(field('Categoría','select').props.choices.map((choice:{value:string})=>choice.value),['1','2'],'archived categories are excluded from new inventory forms');
  change('Ubicación','storage-a','select');assert.doesNotMatch(tree(),/placeholder="Estante, depósito o lugar"/);change('Fila / posición','7');
  change('Crear lugar','Rack C');await act(async()=>{await button('Crear lugar').props.onClick();});assert.equal(field('Ubicación','select').props.value,'storage-new','new place is selected in context');assert.equal(field('Fila / posición').props.value,'7','storage row remains free text when a template changes');
  change('Ubicación','', 'select');assert(button('Crear lugar'));change('Ubicación personalizada','Depósito temporal');change('Fila / posición','libre');await submit();assert.equal(itemSaved,1);assert.equal(writes.at(-1)!.path,'/api/agency/inventory');assert.deepEqual(writes.at(-1)!.body.storage_location_id,null);assert.equal(writes.at(-1)!.body.storage_shelf,'Depósito temporal');assert.equal(writes.at(-1)!.body.storage_row,'libre');act(()=>renderer.unmount());assert.equal(intervals.size,0);
