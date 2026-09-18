@@ -89,4 +89,15 @@ test('finance panels use column headers and the shared money formatter',()=>{
   assert.match(forecast,/planned-expenses-list"><li className="finance-row-head"[\s\S]*?Gasto[\s\S]*?Monto/,'real expenses show their header');
 });
 
+test('the team list can suspend and reactivate access in bulk',()=>{
+  const operations=read('app/operations.tsx');
+  assert.match(operations,/batchSetAccess[\s\S]*?\/api\/agency\/members\/\$\{id\}/,'bulk access updates each selected member');
+  assert.match(operations,/Suspender acceso[\s\S]*?Reactivar acceso/,'the team bulk bar exposes both access actions');
+  assert.match(operations,/selectVisibleAccess/,'the team list can select the visible people');
+  assert.match(operations,/select-check[\s\S]*?Seleccionar \$\{p\.full_name\}/,'member rows expose the selection checkbox');
+  const agents=read('AGENTS.md');
+  assert.match(agents,/Excepción \(decisión 17-09\)[\s\S]*?feeds de tarjetas apiladas/,'the card-feed exception stays documented');
+  assert.match(agents,/Excepción de contrato \(decisión 17-09\)[\s\S]*?formatWholeMoney/,'the whole-money contract exception stays documented');
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');
