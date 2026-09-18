@@ -333,3 +333,20 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
     .studio-reservation-list>.studio-reservation,
     .budget-hub-grid>.budget-hub-card,
     .suite-column>.lead-card)>:is(.inline-actions,.person-hub-actions,.client-hub-actions,.project-entry-actions,.budget-hub-actions)>*{flex:none}
+
+/* Anatomía compartida de cápsula: título + chip en la identidad, cuerpo muted,
+   meta y acciones al pie (la misma jerarquía que el feed de notificaciones). */
+:is(.person-hub-card:not(.is-list),.notice) :is(.ops-person h3,.notice-identity h3){font-size:14px;line-height:1.3;font-weight:700;margin:0}
+.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-item-name h3{font-size:14px;line-height:1.3;font-weight:700}
+.person-hub-card:not(.is-list) .ops-person>div{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-width:0}
+.person-hub-card:not(.is-list) .ops-person small{display:inline-flex;align-items:center;min-height:20px;padding:1px 7px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-item-name{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-width:0}
+.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-item-name h3{min-width:0;max-width:100%}
+.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-code{margin-top:0;padding:1px 7px;border:1px solid var(--border-subtle,var(--line));border-radius:999px}
+
+/* Proyectos: la tarjeta de cuadrícula sigue la misma anatomía — identidad con
+   el cliente en línea, hechos por columnas, responsables y pie alineado. */
+.project-grid>.project-entry .project-entry-title{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-width:0}
+.project-grid>.project-entry .project-entry-title h3{font-size:14px;line-height:1.3;font-weight:700;margin:0}
+.project-grid>.project-entry .project-entry-meta{align-items:center}
+.project-grid>.project-entry>.project-entry-actions{justify-content:space-between}
