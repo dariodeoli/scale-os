@@ -44,7 +44,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let done=0;
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
-  const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect,PHONE_ERROR,phoneValid,PhoneField,EmailField,
+  const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    SelectCustom:({label,value,onChange,disabled}:{label:string;value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':label,value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    useCompanyCurrency:()=>({currency:'USD'}),
@@ -56,9 +56,9 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let renderer:ReactTestRenderer;
  await act(async()=>{renderer=create(<Component {...props} request={scope.request} done={()=>{done++;}}/>);});
  if(name==='ProjectForm'||name==='OrderForm'){
-  const urgency=renderer!.root.findByType(UrgencySelect);
+  const urgency=renderer!.root.findByProps({'aria-label':'Urgencia'});
   assert.equal(urgency.props.value,'','new records start unset');
-  await act(async()=>{urgency.findByType('select').props.onChange({target:{value:'4'}});});
+  await act(async()=>{urgency.props.onChange({target:{value:'4'}});});
  }
  const submit=()=>renderer!.root.findByType('form').props.onSubmit(event()) as Promise<void>;
  let first:Promise<void>,second:Promise<void>;
@@ -66,7 +66,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  assert.equal(requests.length,1,'two clicks/Enter submit only one request');
  if(name==='ProjectForm'||name==='OrderForm'){
   assert.equal(requests[0].payload.urgency,'4','real selector value survives schema and submission');
-  assert.equal(renderer!.root.findByType(UrgencySelect).findByType('select').props.disabled,true);
+  assert.equal(renderer!.root.findByProps({'aria-label':'Urgencia'}).props.disabled,true);
  }
  await act(async()=>{await second!;});
  assert.equal(dialogPending,true,'settling the ignored submit cannot permit dismissal');
