@@ -14,11 +14,11 @@
 .drawer-list{--drawer-cols:minmax(0,1fr) auto}
 .drawer-list-head{display:grid;grid-template-columns:var(--drawer-cols);gap:4px 8px;padding:2px 2px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .drawer-list-head span:last-child{justify-self:end}
-.drawer-list .activity-line{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:40px;padding:8px 0}
+.drawer-list .activity-line{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:44px;padding:8px 0}
 .drawer-list .activity-line>span,.drawer-list .activity-line>small{justify-self:end;white-space:nowrap}
 .drawer-list .activity-line>.payment-cell{justify-self:end;display:flex;align-items:center;gap:8px;min-width:0}
 .drawer-list .payment-cell small{white-space:nowrap;color:var(--text-subtle,var(--text-muted))}
-.drawer-list .work-list-row{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:40px;padding:8px 4px}
+.drawer-list .work-list-row{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:44px;padding:8px 4px}
 .drawer-list .work-list-row>span{justify-self:end;white-space:nowrap}
 @media(max-width:560px){.drawer-list .activity-line,.drawer-list .work-list-row{grid-template-columns:1fr}.drawer-list .activity-line>span,.drawer-list .activity-line>small,.drawer-list .work-list-row>span{justify-self:start;white-space:normal}}
 .work-detail-toolbar{display:flex;justify-content:flex-end;min-height:0}.work-detail-toolbar .icon-button{width:34px;min-height:34px;padding:0}.work-detail-description{white-space:pre-wrap;line-height:1.55}.work-detail-toolbar+.record-assignees,.work-detail-toolbar+.work-detail-description{margin-top:0}
