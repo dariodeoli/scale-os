@@ -26,3 +26,13 @@
 .live-visitors-trend.down::before{background:var(--warning)}
 
 html[data-theme="dark"] .reports-filters,html[data-theme="dark"] .client-reporting-fields{box-shadow:inset 0 1px rgb(255 255 255 / 6%)}
+
+/* Previous-window comparison: same dense table language as the monthly history. */
+.reports-actions{display:flex;flex-wrap:wrap;gap:8px}
+.reports-comparison{display:grid;gap:8px;min-width:0}
+.reports-comparison-scroll{min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));scrollbar-width:thin;box-shadow:var(--shadow-xs)}
+.reports-comparison-scroll table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.reports-comparison-scroll th,.reports-comparison-scroll td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border-subtle,var(--line));white-space:nowrap}
+.reports-comparison-scroll th{font-size:10px;font-weight:700;letter-spacing:.055em;text-transform:uppercase;color:var(--text-subtle,var(--text-muted));background:var(--surface-sunken,var(--surface-subtle))}
+.reports-comparison-scroll tbody tr:last-child th,.reports-comparison-scroll tbody tr:last-child td{border-bottom:0}
+.reports-comparison-scroll tbody th[scope="row"]{white-space:normal;min-width:170px;font-weight:600}

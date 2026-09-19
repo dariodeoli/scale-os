@@ -66,11 +66,11 @@ test('report CSV download uses loaded data only, respects roles and filters, and
   const respond=async()=>{const req=requests.filter(r=>r.url?.includes('/reports?')).at(-1)!,month=new URL(req.url,'https://fixture.invalid').searchParams.get('month')!;await act(async()=>req.resolve(new Response(JSON.stringify(data(month)))));};
  try{
  for(const role of ['viewer','editor','production','management']){
-  await act(async()=>{renderer=create(<ReportsWorkspace role={role}/>);});assert.equal(button(),undefined);await act(async()=>renderer!.unmount());
+  await act(async()=>{renderer=create(<ReportsWorkspace role={role} organizationName="Scale"/>);});assert.equal(button(),undefined);await act(async()=>renderer!.unmount());
  }
  assert.equal(requests.length,0);
  for(const role of ['owner','admin','finance','sales']){
-   await act(async()=>{renderer=create(<ReportsWorkspace role={role}/>);});assert.equal(button(),undefined);
+   await act(async()=>{renderer=create(<ReportsWorkspace role={role} organizationName="Scale"/>);});assert.equal(button(),undefined);
    await respond();
    await act(async()=>renderer!.root.findAllByType(SelectCustom)[1].props.onChange('USD'));
    const count:number=requests.length;
@@ -82,7 +82,7 @@ test('report CSV download uses loaded data only, respects roles and filters, and
    assert(!JSON.stringify(renderer!.toJSON()).includes('No se pudo descargar'));
    await act(async()=>renderer!.unmount());
   }
-  await act(async()=>{renderer=create(<ReportsWorkspace role="owner"/>);});await respond();
+  await act(async()=>{renderer=create(<ReportsWorkspace role="owner" organizationName="Scale"/>);});await respond();
   failDownload=true;await act(async()=>button()!.props.onClick());
   assert(JSON.stringify(renderer!.toJSON()).includes('No se pudo descargar el CSV'));
   failDownload=false;await act(async()=>button()!.props.onClick());
@@ -95,7 +95,7 @@ test('report CSV download uses loaded data only, respects roles and filters, and
   const empty=requests.at(-1)!,month=new URL(empty.url,'https://fixture.invalid').searchParams.get('month')!;
   await act(async()=>empty.resolve(new Response(JSON.stringify({...data(month),months:[]}))));
   assert.equal(button()!.props.disabled,true);
-  await act(async()=>renderer!.update(<ReportsWorkspace role="viewer"/>));assert.equal(button(),undefined);
+  await act(async()=>renderer!.update(<ReportsWorkspace role="viewer" organizationName="Scale"/>));assert.equal(button(),undefined);
   assert.equal(revoked.length,0);cleanup.forEach(fn=>fn());
   assert.equal(revoked.length,blobs.length);assert.equal(removed,blobs.length);
  }finally{

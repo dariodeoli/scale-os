@@ -1449,7 +1449,7 @@ export default function Home() {
             </div>
           </section>
         )}
-        {active === "Informes" && <ReportsWorkspace key={user?.organization_id} role={user?.role||'viewer'}/>}
+        {active === "Informes" && <ReportsWorkspace key={user?.organization_id} role={user?.role||'viewer'} organizationName={user?.organization_name||''}/>}
         {active === "Finanzas" && (<>
           {(()=>{const availability=new Map<string,number>();for(const account of accounts)if(account.active!==false)availability.set(account.currency,(availability.get(account.currency)||0)+Number(account.balance));const receivable=new Map<string,number>();let pendingCount=0;for(const invoice of invoices){if(['paid','cancelled','draft'].includes(invoice.status))continue;const pending=Number(invoice.total)-Number(invoice.paid_amount);if(pending<=0)continue;receivable.set(invoice.currency,(receivable.get(invoice.currency)||0)+pending);pendingCount+=1;}return <div className="kpi-strip" aria-label="Resumen financiero">
             <article className="kpi-card tone-brand">
