@@ -152,10 +152,10 @@
 .platform-admin-state,
 .platform-admin-error,
 .platform-admin-access-denied {
-  border: 1px solid var(--platform-line);
-  border-radius: 14px;
-  background: var(--platform-surface);
-  box-shadow: 0 6px 18px rgba(37, 24, 33, 0.045);
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: var(--radius-md);
+  background: var(--surface-raised, var(--surface));
+  box-shadow: var(--shadow-xs);
 }
 
 .platform-admin-notice {
@@ -184,8 +184,8 @@
   display: grid;
   gap: 4px;
   padding: 13px 15px;
-  border-color: color-mix(in srgb, var(--warning) 45%, var(--platform-line));
-  background: color-mix(in srgb, var(--warning) 8%, var(--platform-surface));
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--border-subtle, var(--line)));
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised, var(--surface)));
   font-size: 13px;
 }
 
@@ -198,7 +198,7 @@
   display: flex;
   align-items: flex-start;
   gap: 13px;
-  padding: 19px;
+  padding: var(--ui-card-padding);
 }
 
 .platform-admin-state svg {
@@ -225,8 +225,8 @@
 }
 
 .platform-admin-error {
-  border-color: color-mix(in srgb, var(--danger) 58%, var(--platform-line));
-  background: color-mix(in srgb, var(--danger) 7%, var(--platform-surface));
+  border-color: color-mix(in srgb, var(--danger) 58%, var(--border-subtle, var(--line)));
+  background: color-mix(in srgb, var(--danger) 7%, var(--surface-raised, var(--surface)));
 }
 
 .platform-admin-error svg {
@@ -243,12 +243,12 @@
   gap: 16px;
   align-self: center;
   margin-block: clamp(32px, 10vh, 112px);
-  padding: clamp(22px, 4vw, 32px);
-  border-color: color-mix(in srgb, var(--warning) 48%, var(--platform-line));
+  padding: var(--ui-panel-padding);
+  border-color: color-mix(in srgb, var(--warning) 48%, var(--border-subtle, var(--line)));
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--warning) 10%, var(--platform-surface)),
-    var(--platform-surface) 58%
+    color-mix(in srgb, var(--warning) 10%, var(--surface-raised, var(--surface))),
+    var(--surface-raised, var(--surface)) 58%
   );
 }
 
@@ -287,12 +287,12 @@
   align-items: start;
   gap: 11px;
   min-width: 0;
-  padding: 15px;
+  padding: var(--ui-card-padding);
   overflow: hidden;
-  border: 1px solid var(--platform-line);
-  border-radius: 13px;
-  background: var(--platform-surface);
-  box-shadow: 0 5px 15px rgba(37, 24, 33, 0.035);
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: var(--radius-md);
+  background: var(--surface-raised, var(--surface));
+  box-shadow: var(--shadow-xs);
 }
 
 .platform-admin-stat-card::before {
@@ -388,11 +388,11 @@
 /* Shared section shell */
 .platform-admin-section {
   min-width: 0;
-  padding: clamp(15px, 2vw, 21px);
-  border: 1px solid var(--platform-line);
-  border-radius: 15px;
-  background: var(--platform-surface);
-  box-shadow: 0 6px 18px rgba(37, 24, 33, 0.04);
+  padding: var(--ui-panel-padding);
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: var(--radius-md);
+  background: var(--surface-raised, var(--surface));
+  box-shadow: var(--shadow-xs);
 }
 
 .platform-admin-section-heading {
@@ -807,7 +807,7 @@
   }
 
   .platform-admin-section {
-    padding: 15px;
+    padding: var(--ui-panel-padding);
   }
 
   .platform-admin-section-heading {
@@ -825,15 +825,6 @@
   .platform-admin-agency-cards {
     display: grid;
     gap: 10px;
-  }
-
-  .platform-admin-agency-card {
-    display: grid;
-    gap: 11px;
-    padding: 13px;
-    border: 1px solid var(--platform-line);
-    border-radius: 11px;
-    background: var(--platform-surface-muted);
   }
 
   .platform-admin-card-badges {
@@ -997,13 +988,13 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 
 /* Modern surface layer: refined cards, sticky header and lift interactions. */
 .platform-admin-page{background:radial-gradient(1100px 420px at 85% -10%,rgba(113,43,87,.10),transparent 62%),radial-gradient(900px 380px at -10% 0%,rgba(87,33,67,.08),transparent 55%),linear-gradient(180deg,rgba(87,33,67,.045),transparent 280px),var(--canvas)}
-.platform-admin-section{border:1px solid var(--platform-line);border-radius:16px;background:var(--platform-surface);box-shadow:0 10px 30px rgba(37,24,33,.05);overflow:clip}
-.platform-admin-section-heading{padding:16px 20px 12px;border-bottom:1px solid color-mix(in srgb,var(--platform-line) 55%,transparent);background:linear-gradient(180deg,var(--platform-surface-muted),var(--platform-surface))}
+.platform-admin-section{border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs);overflow:clip}
+.platform-admin-section-heading{padding:16px 20px 12px;border-bottom:1px solid color-mix(in srgb,var(--border-subtle,var(--line)) 55%,transparent);background:linear-gradient(180deg,var(--surface-subtle),var(--surface-raised,var(--surface)))}
 .platform-admin-section-heading h2{font-size:15px;letter-spacing:-.01em}
 .platform-admin-section-heading .eyebrow{color:var(--platform-plum-700)}
 .platform-admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px 20px 20px}
-.platform-admin-stat-card{position:relative;display:grid;gap:6px;padding:15px 16px;border-radius:14px;border:1px solid var(--platform-line);background:linear-gradient(160deg,var(--platform-surface),var(--platform-surface-muted));transition:transform 160ms ease-out,box-shadow 160ms ease-out,border-color 160ms ease-out}
-.platform-admin-stat-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(37,24,33,.08);border-color:color-mix(in srgb,var(--platform-plum-700) 30%,var(--platform-line))}
+.platform-admin-stat-card{position:relative;display:grid;gap:6px;padding:var(--ui-card-padding);border-radius:var(--radius-md);border:1px solid var(--border-subtle,var(--line));background:linear-gradient(160deg,var(--surface-raised,var(--surface)),var(--surface-subtle));transition:transform 160ms ease-out,box-shadow 160ms ease-out,border-color 160ms ease-out}
+.platform-admin-stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-card);border-color:color-mix(in srgb,var(--platform-plum-700) 30%,var(--border-subtle,var(--line)))}
 .platform-admin-stat-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--platform-plum-100);color:var(--platform-plum-700)}
 .platform-admin-list{padding:8px 20px 16px}
 .platform-admin-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border-radius:12px;border:1px solid transparent;transition:background 150ms ease-out,border-color 150ms ease-out}
@@ -1017,13 +1008,13 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 .platform-admin-coupon label{display:grid;gap:5px;font-size:12px;font-weight:600;color:var(--platform-muted)}
 .platform-admin-ledger{border-radius:0}
 .platform-admin-two-columns{gap:16px}
-.platform-admin-agency-card,.platform-admin-card-badges,.platform-admin-subscription-form,.platform-admin-bootstrap,.platform-admin-state,.platform-admin-error,.platform-admin-access-denied,.platform-admin-notice{border-radius:16px}
+.platform-admin-agency-card,.platform-admin-card-badges,.platform-admin-subscription-form,.platform-admin-bootstrap,.platform-admin-state,.platform-admin-error,.platform-admin-access-denied,.platform-admin-notice{border-radius:var(--radius-md)}
 @media(max-width:900px){.platform-admin-coupon{grid-template-columns:1fr 1fr}.platform-admin-coupon button{grid-column:1/-1}}
 @media(max-width:620px){.platform-admin-coupon{grid-template-columns:1fr}.platform-admin-coupon button{grid-column:auto}}
 
 /* Capsule and dialog layer: agency cards, confirmations and subscription popups. */
-.platform-admin-agency-card{display:grid;gap:12px;padding:16px;border:1px solid var(--platform-line);background:linear-gradient(165deg,var(--platform-surface),var(--platform-surface-muted));transition:transform 160ms ease-out,box-shadow 160ms ease-out,border-color 160ms ease-out}
-.platform-admin-agency-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(37,24,33,.08);border-color:color-mix(in srgb,var(--platform-plum-700) 28%,var(--platform-line))}
+.platform-admin-agency-card{display:grid;gap:12px;padding:var(--ui-card-padding);border:1px solid var(--border-subtle,var(--line));background:linear-gradient(165deg,var(--surface-raised,var(--surface)),var(--surface-subtle));transition:transform 160ms ease-out,box-shadow 160ms ease-out,border-color 160ms ease-out}
+.platform-admin-agency-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-card);border-color:color-mix(in srgb,var(--platform-plum-700) 28%,var(--border-subtle,var(--line)))}
 .platform-admin-card-badges{gap:6px;flex-wrap:wrap}
 .platform-admin-status-note{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--platform-line);border-radius:999px;background:var(--platform-surface-muted);color:var(--platform-muted);font-size:11px;font-weight:650}
 .platform-admin-cell-stack{gap:2px}
@@ -1031,16 +1022,12 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 .platform-admin-ledger thead th{position:sticky;top:0;z-index:1;background:var(--platform-surface-muted);backdrop-filter:blur(6px)}
 .platform-admin-ledger tbody tr{transition:background 140ms ease-out}
 .platform-admin-ledger tbody tr:hover{background:color-mix(in srgb,var(--platform-plum-100) 45%,transparent)}
-.platform-admin-empty{padding:22px 20px;border:1px dashed var(--platform-line);border-radius:14px;background:var(--platform-surface-muted);color:var(--platform-muted);text-align:center}
+.platform-admin-empty{padding:var(--ui-card-padding);border:1px dashed var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-subtle);color:var(--platform-muted);text-align:center}
 /* Popups: confirmaciones y suscripción en cápsulas. */
-.platform-admin-confirm{gap:9px;padding:14px;border:1px solid var(--platform-line);border-radius:14px;background:var(--platform-surface-muted);font-size:12.5px}
+.platform-admin-confirm{gap:9px;padding:var(--ui-card-padding);border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-subtle);font-size:12.5px}
 .platform-admin-confirm input{margin-top:8px;min-height:44px;border-radius:10px}
-.platform-admin-subscription-summary{display:grid;gap:10px;padding:14px;border:1px solid var(--platform-line);border-radius:14px;background:var(--platform-surface-muted)}
-.platform-admin-subscription-form{display:grid;gap:12px;padding:14px;border:1px solid var(--platform-line);background:var(--platform-surface)}
+.platform-admin-subscription-summary{display:grid;gap:10px;padding:var(--ui-card-padding);border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-subtle)}
+.platform-admin-subscription-form{display:grid;gap:12px;padding:var(--ui-card-padding);border:1px solid var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface))}
 .platform-admin-subscription-form label{display:grid;gap:6px;font-size:12px;font-weight:650;color:var(--platform-muted)}
 .platform-admin-subscription-form input,.platform-admin-subscription-form select,.platform-admin-subscription-form textarea{border-radius:10px;min-height:44px}
 .platform-admin-actions button.danger,.dialog-body button.danger{border-color:color-mix(in srgb,var(--danger) 34%,var(--platform-line));background:var(--danger-soft);color:var(--danger)}
-@media(max-width:760px){
- .platform-admin-agency-card{padding:14px}
- .platform-admin-confirm,.platform-admin-subscription-summary,.platform-admin-subscription-form{padding:12px}
-}
