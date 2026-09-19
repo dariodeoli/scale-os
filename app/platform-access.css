@@ -7,7 +7,8 @@
 .platform-access-person b,.platform-access-person small{display:block}
 .platform-access-person b{overflow:hidden;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
 .platform-access-person small{margin-top:2px;color:var(--text-muted);font-size:11px;overflow-wrap:anywhere}
-.platform-access-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px}
+.platform-access-actions{display:flex;flex-wrap:nowrap;justify-content:flex-end;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none}
+.platform-access-actions::-webkit-scrollbar{display:none}
 .platform-access-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:1px solid var(--line);border-radius:99px;background:var(--surface-subtle);color:var(--text-muted);font-size:11px;font-weight:600;white-space:nowrap}
 .platform-access-badge.admin{color:var(--success);border-color:var(--success-soft)}
 .platform-access-badge.viewer{color:var(--info);border-color:var(--info-soft)}
