@@ -6,6 +6,7 @@ import {WeeklyAutomatic} from './weekly-automatic';
 import './reports-workspace.css';
 import {SelectCustom} from './profile-controls';
 import {listDateShort} from './list-format';
+import {printReportsPdf} from './reports-print';
 
 export type ReportMonth={month:string;isPartial:boolean;clients:{active:number|null;added:number|null;lost:number|null;retentionPercent:number|null;averageTenureDays:number|null;tenureKnown:number;types:{kind:string;count:number}[];plans:{planId:string|number|null;name:string|null;count:number}[]};financial:{currency:string;invoiced:string;collected:string;invoiceCount:number;billedClients:number;averageTicket:string|null;averageRevenuePerClient:string|null}[]};
 export type ReportsData={asOf:string;month:string;historySince:string|null;months:ReportMonth[]};
@@ -31,6 +32,38 @@ export function reportDelta(current:string|number|null,prior:string|number|null,
  const percent=(absoluteDiff*BigInt(10000)+base/BigInt(2))/base;
  return `${absolute} · ${diff<BigInt(0)?'-':diff>BigInt(0)?'+':''}${printed(percent,2)} %`;
 }
+function shiftMonth(value:string,offset:number){const [year,month]=value.split('-').map(Number);const total=year*12+month-1+offset,shiftedYear=Math.floor(total/12),shiftedMonth=total-shiftedYear*12+1;return shiftedYear>=1900&&shiftedYear<=9998?`${shiftedYear}-${String(shiftedMonth).padStart(2,'0')}`:null;}
+function decimalText(units:bigint,scale:number){const negative=units<BigInt(0),digits=(negative?-units:units).toString().padStart(scale+1,'0');return `${negative?'-':''}${scale?digits.slice(0,-scale):digits}${scale?'.'+digits.slice(-scale):''}`;}
+function roundedRatio(numerator:bigint,denominator:bigint,scale:number){if(denominator===BigInt(0))return BigInt(0);const negative=numerator<BigInt(0),absolute=negative?-numerator:numerator,rounded=(absolute*power(scale)+denominator/BigInt(2))/denominator;return negative?-rounded:rounded;}
+function monthOf(value:string|null){if(!value)return null;const date=new Date(value);return Number.isNaN(date.getTime())?null:new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).format(date);}
+function monthLabel(value:string){return listDateShort(`${value}-01`)||value;}
+/** Only months with at least one registered figure are shown; an empty month is not zero. */
+export const hasMonthData=(row:ReportMonth)=>row.clients.active!==null||row.clients.added!==null||row.clients.lost!==null||row.clients.retentionPercent!==null||row.clients.averageTenureDays!==null||row.financial.some(item=>item.invoiced!==null||item.collected!==null||item.invoiceCount!==null||item.billedClients!==null)||row.clients.types.length>0||row.clients.plans.length>0;
+type WindowValue={value:string|number;partial:boolean};
+export type ReportComparisonRow={label:string;current:string;previous:string;change:string};
+export type ReportComparison={available:boolean;currentStart:string;currentEnd:string;previousStart:string|null;previousEnd:string|null;rows:ReportComparisonRow[]};
+function lastWithActive(rows:ReportMonth[]):WindowValue|null{for(let index=rows.length-1;index>=0;index-=1){const row=rows[index];if(row.clients.active!==null)return {value:row.clients.active,partial:row.isPartial};}return null;}
+function sumCounts(rows:ReportMonth[],key:'added'|'lost'):WindowValue|null{let total=0,any=false,partial=false;for(const row of rows){const value=row.clients[key];if(value===null)continue;total+=value;any=true;partial=partial||row.isPartial;}return any?{value:total,partial}:null;}
+function sumMoney(rows:ReportMonth[],currency:string,key:'invoiced'|'collected'):WindowValue|null{let units=BigInt(0),scale=0,any=false,partial=false;for(const row of rows){const parsed=decimal(row.financial.find(item=>item.currency===currency)?.[key]??null);if(!parsed)continue;if(parsed.scale>scale){units*=power(parsed.scale-scale);scale=parsed.scale;}units+=parsed.units*power(scale-parsed.scale);any=true;partial=partial||row.isPartial;}return any?{value:decimalText(units,scale),partial}:null;}
+function ticketAverage(rows:ReportMonth[],currency:string):WindowValue|null{let units=BigInt(0),scale=0,count=0,any=false,partial=false;for(const row of rows){const item=row.financial.find(entry=>entry.currency===currency),parsed=decimal(item?.invoiced??null);if(!parsed)continue;if(parsed.scale>scale){units*=power(parsed.scale-scale);scale=parsed.scale;}units+=parsed.units*power(scale-parsed.scale);if(item?.invoiceCount!=null)count+=item.invoiceCount;any=true;partial=partial||row.isPartial;}if(!any||count<=0)return null;return {value:decimalText(roundedRatio(units,BigInt(count)*power(scale),2),2),partial};}
+/** Visible window against the equal window immediately before it; partial months never compare. */
+export function reportComparison(data:ReportsData,previousData:ReportsData|null,currency:string,months:number):ReportComparison{
+ const end=data.month,currentStart=shiftMonth(end,-(months-1)),previousEnd=previousData?previousData.month:shiftMonth(end,-months),previousStart=previousEnd?shiftMonth(previousEnd,-(months-1)):null;
+ const currentRows=data.months.filter(row=>row.month<=end&&(!currentStart||row.month>=currentStart)).sort((a,b)=>a.month.localeCompare(b.month));
+ const previousRows=previousData?previousData.months.filter(row=>row.month<=(previousEnd||data.month)&&(!previousStart||row.month>=previousStart)).sort((a,b)=>a.month.localeCompare(b.month)):[];
+ const previousWithData=previousRows.filter(hasMonthData),historyMonth=monthOf(data.historySince);
+ const available=!!previousData&&previousWithData.length>0&&!previousWithData.every(row=>row.isPartial)&&(!historyMonth||!previousStart||historyMonth<previousStart);
+ const build=(label:string,current:WindowValue|null,previous:WindowValue|null,format:(value:string|number|null)=>string):ReportComparisonRow=>({label,current:format(current?.value??null),previous:format(previous?.value??null),change:reportDelta(current?.value??null,previous?.value??null,!!(current?.partial||previous?.partial))});
+ const showNumber=(value:string|number|null)=>typeof value==='number'?count(value):value===null?'Sin datos':String(value),showMoney=(value:string|number|null)=>reportMoney(value===null?null:String(value),currency);
+ return {available,currentStart:currentStart||end,currentEnd:end,previousStart,previousEnd:previousEnd||null,rows:[
+  build('Clientes activos (último mes con datos)',lastWithActive(currentRows),lastWithActive(previousRows),showNumber),
+  build('Clientes incorporados (suma del período)',sumCounts(currentRows,'added'),sumCounts(previousRows,'added'),showNumber),
+  build('Bajas de actividad (suma del período)',sumCounts(currentRows,'lost'),sumCounts(previousRows,'lost'),showNumber),
+  build('Facturación (suma del período)',sumMoney(currentRows,currency,'invoiced'),sumMoney(previousRows,currency,'invoiced'),showMoney),
+  build('Cobros (suma del período)',sumMoney(currentRows,currency,'collected'),sumMoney(previousRows,currency,'collected'),showMoney),
+  build('Ticket promedio por factura',ticketAverage(currentRows,currency),ticketAverage(previousRows,currency),showMoney),
+ ]};
+}
 function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
  const series=months.map(row=>{const financial=row.financial.find(item=>item.currency===currency);return {month:row.month,partial:row.isPartial,invoiced:decimal(financial?.invoiced??null),collected:decimal(financial?.collected??null)};}).filter(row=>row.invoiced!==null||row.collected!==null);
  if(!currency||!series.length)return null;
@@ -46,13 +79,13 @@ function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
   </figure>)}
  </div>;
 }
-const count=(value:number|null|undefined)=>value==null?'Sin datos':String(value);
+export const count=(value:number|null|undefined)=>value==null?'Sin datos':String(value);
 function Distribution({title,rows,total}:{title:string;rows:{name:string;count:number}[];total:number|null}){
  return <section className="reports-distribution"><h3>{title}</h3><p>Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p>{rows.length?<ul>{rows.map((row,index)=>{const share=total!==null&&total>0?row.count/total*100:null;return <li key={`${row.name}-${index}`}><span>{row.name}</span><strong>{row.count} · {share===null?'Sin porcentaje':`${share.toFixed(1).replace('.',',')} %`}</strong>{share!==null?<span className="reports-bar" aria-hidden="true"><span style={{width:`${Math.min(100,Math.max(0,share))}%`}}/></span>:null}</li>;})}</ul>:<p>Sin distribución registrada para este mes.</p>}</section>;
 }
 // Main must key this component by authenticated organization ID. Role changes
 // unmount the authorized view; no GET is issued for an unauthorized role.
-export function ReportsWorkspace({role}:{role:string}){return ['owner','admin','finance','sales'].includes(role)?<><ReportsPanel key={role}/><WeeklyAutomatic role={role}/></>:<p>No tenés permiso para consultar reportes.</p>;}
+export function ReportsWorkspace({role,organizationName}:{role:string;organizationName:string}){return ['owner','admin','finance','sales'].includes(role)?<><ReportsPanel key={role} organizationName={organizationName}/><WeeklyAutomatic role={role}/></>:<p>No tenés permiso para consultar reportes.</p>;}
 function LiveVisitorsWidget(){
  const [visitors,setVisitors]=useState<number|null>(null),[prior,setPrior]=useState<number|null>(null),[trend,setTrend]=useState<'up'|'down'|null>(null);
  useEffect(()=>{
@@ -80,29 +113,35 @@ function LiveVisitorsWidget(){
   </article>
  </article>;
 }
-function ReportsPanel(){
+function ReportsPanel({organizationName}:{organizationName:string}){
  const [month,setMonth]=useState(currentMonth),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
- const [result,setResult]=useState<{key:string;data:ReportsData}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
+ const [result,setResult]=useState<{key:string;data:ReportsData}|null>(null),[previousResult,setPreviousResult]=useState<{key:string;data:ReportsData}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  const [exportError,setExportError]=useState('');
  const queryKey=`${month}:${months}:${retry}`;
  useEffect(()=>{
-  let alive=true;setResult(null);setError('');setExportError('');
+  let alive=true;setResult(null);setPreviousResult(null);setError('');setExportError('');
   void api<ReportsData>(`/api/agency/reports?month=${month}&months=${months}`).then(data=>{
    if(!data||data.month!==month||!Array.isArray(data.months))throw Error('La respuesta del reporte no corresponde al mes solicitado.');
    if(alive)setResult({key:queryKey,data});
+   const previousWindowMonth=shiftMonth(month,-months);
+   if(!alive||!previousWindowMonth)return;
+   void api<ReportsData>(`/api/agency/reports?month=${previousWindowMonth}&months=${months}`).then(previous=>{
+    if(!previous||previous.month!==previousWindowMonth||!Array.isArray(previous.months))return;
+    if(alive)setPreviousResult({key:queryKey,data:previous});
+   }).catch(()=>{});
   }).catch(e=>{if(alive)setError(e instanceof Error?e.message:'No se pudo cargar el reporte.');});
   return()=>{alive=false;};
  },[month,months,retry,queryKey]);
   const data=result?.key===queryKey?result.data:null;
-  // Only months with at least one registered figure are shown. The table lists
-  // the newest month first, oldest at the bottom; the chart keeps chronological
-  // order (oldest on the left).
-  const hasMonthData=(row:ReportMonth)=>row.clients.active!==null||row.clients.added!==null||row.clients.lost!==null||row.clients.retentionPercent!==null||row.clients.averageTenureDays!==null||row.financial.some(item=>item.invoiced!==null||item.collected!==null||item.invoiceCount!==null||item.billedClients!==null)||row.clients.types.length>0||row.clients.plans.length>0;
+  const previousData=previousResult?.key===queryKey?previousResult.data:null;
+  // The table lists the newest month first, oldest at the bottom; the chart
+  // keeps chronological order (oldest on the left).
   const loadedMonths=(data?.months||[]).filter(hasMonthData);
   const rows=loadedMonths.slice().sort((a,b)=>b.month.localeCompare(a.month));
   const chartMonths=loadedMonths.slice().sort((a,b)=>a.month.localeCompare(b.month));
  const currencies=Array.from(new Set(rows.flatMap(row=>row.financial.map(item=>item.currency)))).sort();
  const selectedCurrency=currencies.includes(currency)?currency:currencies[0]||'';
+ const comparison=data?reportComparison(data,previousData,selectedCurrency,months):null;
  const selected=rows.find(row=>row.month===month),prior=rows.find(row=>row.month===previousMonth(month));
  const financial=selected?.financial.find(row=>row.currency===selectedCurrency),previousFinancial=prior?.financial.find(row=>row.currency===selectedCurrency);
  const partial=!!(selected?.isPartial||prior?.isPartial);
@@ -127,14 +166,26 @@ function ReportsPanel(){
   </div>
   {error?<div role="alert" className="reports-error"><p>{error}</p><button type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button></div>:!data?<p role="status">Cargando reportes…</p>:<>
    <p className="reports-note">Datos al {reportDate(data.asOf,true)} (hora de Asunción). Histórico confiable desde: {reportDate(data.historySince)}.</p>
-   <div><button type="button" disabled={!rows.length} onClick={()=>{
+   <div className="reports-actions"><button type="button" disabled={!rows.length} onClick={()=>{
     if(!data||!rows.length)return;
     setExportError('');
     try{downloadReportsCsv(data,selectedCurrency);}catch{setExportError('No se pudo descargar el CSV. Intentá nuevamente.');}
-   }}>Exportar histórico CSV{selectedCurrency?` · ${selectedCurrency}`:''}</button></div>
+   }}>Exportar histórico CSV{selectedCurrency?` · ${selectedCurrency}`:''}</button><button type="button" disabled={!rows.length} onClick={()=>{
+    if(!data||!rows.length)return;
+    setExportError('');
+    try{printReportsPdf({data,previousData,currency:selectedCurrency,organizationName});}catch{setExportError('No se pudo exportar el PDF. Intentá nuevamente.');}
+   }}>Exportar PDF{selectedCurrency?` · ${selectedCurrency}`:''}</button></div>
    <p className="reports-note">Exporta los meses cargados de la moneda seleccionada. CSV UTF-8, separado por punto y coma; decimales con punto, sin separador de miles. Celdas vacías: sin datos. Para conservar todos los dígitos, importá los importes como texto en tu planilla.</p>
    {exportError?<p role="alert">{exportError}</p>:null}
    {partial?<p role="status" className="reports-warning">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</p>:null}
+   {data&&comparison&&rows.length?<section className="reports-comparison">
+    <h3>Comparativa del período visible contra el anterior</h3>
+    <p className="reports-note">Período visible: {monthLabel(comparison.currentStart)} – {monthLabel(comparison.currentEnd)} · período anterior: {comparison.previousStart&&comparison.previousEnd?`${monthLabel(comparison.previousStart)} – ${monthLabel(comparison.previousEnd)}`:'sin período anterior disponible'} ({months} meses por período).</p>
+    {comparison.available?<div className="reports-comparison-scroll" role="region" aria-label={`Comparativa del período visible contra el anterior${selectedCurrency?` en ${selectedCurrency}`:''}, desplazable horizontalmente`} tabIndex={0}><table>
+     <thead><tr>{['Métrica','Período visible','Período anterior','Variación'].map(label=><th key={label} scope="col">{label}</th>)}</tr></thead>
+     <tbody>{comparison.rows.map(row=><tr key={row.label}><th scope="row">{row.label}</th><td>{row.current}</td><td>{row.previous}</td><td>{row.change}</td></tr>)}</tbody>
+    </table></div>:<p role="status">Sin comparación: no hay período anterior con datos.</p>}
+   </section>:null}
    {!selected?<p>Sin datos para el mes seleccionado.</p>:<>
     <div className="reports-tiles">{tiles.map(tile=><article key={tile.label}><h3>{tile.label}</h3><strong>{tile.value}</strong><p>{tile.change}</p></article>)}</div>
      <ReportsChart months={chartMonths} currency={selectedCurrency}/>
