@@ -2,6 +2,7 @@
 
 import {useEffect,useId,useRef,useState} from 'react';
 import {daysUntil} from './client-format';
+import {listDateFull} from './list-format';
 import {founderPricingNote} from './founder-pricing';
 import './subscription-panel.css';
 
@@ -46,7 +47,7 @@ const managed=(state:SubscriptionState)=>!['unmanaged','demo'].includes(state.st
 function dateLabel(value:string|null){
  if(!value)return 'Por confirmar';
  const parsed=new Date(/^\d{4}-\d{2}-\d{2}$/.test(value)?`${value}T12:00:00Z`:value);
- return Number.isNaN(parsed.getTime())?'Por confirmar':parsed.toLocaleDateString('es-PY',{timeZone:'America/Asuncion',day:'2-digit',month:'2-digit',year:'numeric'});
+ return Number.isNaN(parsed.getTime())?'Por confirmar':listDateFull(value)||'Por confirmar';
 }
 function remaining(state:SubscriptionState){
  if(state.daysRemaining===null||!Number.isFinite(state.daysRemaining))return 'Plazo pendiente de confirmación.';

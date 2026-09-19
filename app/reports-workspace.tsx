@@ -5,6 +5,7 @@ import {downloadReportsCsv} from './reports-csv';
 import {WeeklyAutomatic} from './weekly-automatic';
 import './reports-workspace.css';
 import {SelectCustom} from './profile-controls';
+import {listDateShort} from './list-format';
 
 export type ReportMonth={month:string;isPartial:boolean;clients:{active:number|null;added:number|null;lost:number|null;retentionPercent:number|null;averageTenureDays:number|null;tenureKnown:number;types:{kind:string;count:number}[];plans:{planId:string|number|null;name:string|null;count:number}[]};financial:{currency:string;invoiced:string;collected:string;invoiceCount:number;billedClients:number;averageTicket:string|null;averageRevenuePerClient:string|null}[]};
 export type ReportsData={asOf:string;month:string;historySince:string|null;months:ReportMonth[]};
@@ -38,10 +39,10 @@ function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
  return <div className="reports-chart" role="img" aria-label={`Facturado y cobrado mensual en ${currency}`}>
   {series.map(row=><figure key={row.month}>
    <div className="chart-bars">
-    <span className={`chart-bar${row.partial?' is-partial':''}`} title={`${row.month} · Facturado ${row.invoiced?`${currency} ${printed(row.invoiced.units,row.invoiced.scale)}`:'sin datos'}`} style={{height:`${heightOf(row.invoiced)}%`}}/>
-    <span className={`chart-bar collected${row.partial?' is-partial':''}`} title={`${row.month} · Cobrado ${row.collected?`${currency} ${printed(row.collected.units,row.collected.scale)}`:'sin datos'}`} style={{height:`${heightOf(row.collected)}%`}}/>
+    <span className={`chart-bar${row.partial?' is-partial':''}`} title={`${listDateShort(`${row.month}-01`)} · Facturado ${row.invoiced?`${currency} ${printed(row.invoiced.units,row.invoiced.scale)}`:'sin datos'}`} style={{height:`${heightOf(row.invoiced)}%`}}/>
+    <span className={`chart-bar collected${row.partial?' is-partial':''}`} title={`${listDateShort(`${row.month}-01`)} · Cobrado ${row.collected?`${currency} ${printed(row.collected.units,row.collected.scale)}`:'sin datos'}`} style={{height:`${heightOf(row.collected)}%`}}/>
    </div>
-   <figcaption>{row.month.slice(5)}{row.partial?' · parcial':''}</figcaption>
+   <figcaption>{listDateShort(`${row.month}-01`)}{row.partial?' · parcial':''}</figcaption>
   </figure>)}
  </div>;
 }
@@ -51,7 +52,7 @@ function Distribution({title,rows,total}:{title:string;rows:{name:string;count:n
 }
 // Main must key this component by authenticated organization ID. Role changes
 // unmount the authorized view; no GET is issued for an unauthorized role.
-export function ReportsWorkspace({role}:{role:string}){return ['owner','admin','finance'].includes(role)?<><ReportsPanel key={role}/><WeeklyAutomatic role={role}/></>:<p>No tenés permiso para consultar reportes.</p>;}
+export function ReportsWorkspace({role}:{role:string}){return ['owner','admin','finance','sales'].includes(role)?<><ReportsPanel key={role}/><WeeklyAutomatic role={role}/></>:<p>No tenés permiso para consultar reportes.</p>;}
 function LiveVisitorsWidget(){
  const [visitors,setVisitors]=useState<number|null>(null),[prior,setPrior]=useState<number|null>(null),[trend,setTrend]=useState<'up'|'down'|null>(null);
  useEffect(()=>{

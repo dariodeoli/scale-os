@@ -41,7 +41,7 @@ async function main(){
   assert.equal(renderer!.root.findByType('h2').props.hidden,true);
   assert.equal(renderer!.root.findByProps({className:'subscription-panel'}).props['data-embedded'],true);
   assert.equal(renderer!.root.findByProps({className:'subscription-panel'}).props['aria-labelledby'],renderer!.root.findByType('h2').props.id);
-  await render(state);assert(text().includes('30 días de prueba restantes'));assert(text().includes('10/10/2026'));
+  await render(state);assert(text().includes('30 días de prueba restantes'));assert(text().includes('10 oct 26'));
   assert.equal(renderer!.root.findByType('h2').props.hidden,false);
   const statusBadge=renderer!.root.findByProps({className:'subscription-badge'});assert.equal(statusBadge.props.role,'status');assert.equal(statusBadge.children.join(''),'Estado actual');
   assert(text().includes('US$ 10 o Gs. 50.000 por mes, por agencia'));assert(text().includes('no una conversión'));assert(text().includes('2 días de gracia'));

@@ -7,7 +7,7 @@ import {Trash2} from 'lucide-react';
 
 const roles:Record<string,string[]>={
  members:['owner','admin','management'],
- clients:['owner','admin','management','sales','collaborator'],
+ clients:['owner','admin','management','sales','finance','collaborator'],
  projects:['owner','admin','management','production','collaborator'],
  'work-orders':['owner','admin','management','production'],
  leads:['owner','admin','management','finance','sales'],

@@ -17,7 +17,7 @@ import {EmailField} from './email-field';
 
 
 export const clientSchema = z.object({
-  name: z.string().trim().min(2, "Escribí el nombre del cliente."),
+  name: z.string().trim().min(2, "Escribí el nombre del cliente.").max(120, "El nombre no puede superar los 120 caracteres."),
   email: z.string().email("Email inválido.").or(z.literal("")),
   phone: z.string().max(40).optional().refine(value => !value || phoneValid(value), PHONE_ERROR),
 });
@@ -77,7 +77,7 @@ export function ClientForm({ request, done }: { request: WorkspaceRequest; done:
 export const driveLinkSchema=z.string().trim().max(2048).refine(value=>{if(!value)return true;try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password;}catch{return false;}},'Pegá un enlace HTTPS válido de archivo o carpeta.');
 const projectSchema = z.object({
   urgency:z.enum(["","1","2","3","4","5"]),
-  name: z.string().trim().min(2, "Escribí el nombre del proyecto."),
+  name: z.string().trim().min(2, "Escribí el nombre del proyecto.").max(120, "El nombre no puede superar los 120 caracteres."),
   clientId: z.string().min(1, "Elegí un cliente."),
   driveUrl: driveLinkSchema,
 });
@@ -176,7 +176,7 @@ export function ProjectForm({
 }
 const orderSchema = z.object({
   urgency:z.enum(["","1","2","3","4","5"]),
-  title: z.string().trim().min(2, "Escribí qué hay que hacer."),
+  title: z.string().trim().min(2, "Escribí qué hay que hacer.").max(120, "El título no puede superar los 120 caracteres."),
   projectId: z.string().min(1, "Elegí un proyecto."),
   status: z.enum([
     "blocked",
@@ -320,7 +320,7 @@ export function OrderForm({
   );
 }
 const accountSchema = z.object({
-  name: z.string().trim().min(2, "Escribí el nombre de la cuenta."),
+  name: z.string().trim().min(2, "Escribí el nombre de la cuenta.").max(120, "El nombre no puede superar los 120 caracteres."),
   accountType: z.enum(["bank", "cash", "digital", "investment"]),
   currency: z.enum(currencyCodes),
   institution: z.string().max(100).optional(),

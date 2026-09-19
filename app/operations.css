@@ -262,7 +262,7 @@
 /* Equipo: tarjetas con jerarquía por persona (identidad, datos, remuneración, acciones). */
 .person-hub-card{display:flex;flex-direction:column;gap:12px}
 .person-hub-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
-.person-hub-state{display:inline-flex;align-items:center;width:max-content;min-height:24px;padding:3px 9px;border:1px solid color-mix(in srgb,var(--success) 22%,var(--line));border-radius:999px;background:var(--success-soft);color:var(--success);font-size:10.5px;font-weight:700;white-space:nowrap}
+.person-hub-state{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
 .person-hub-state[data-state=inactive]{border-color:color-mix(in srgb,var(--warning) 24%,var(--line));background:var(--warning-soft);color:var(--warning)}
 .person-hub-facts,.commission-hub-facts,.budget-hub-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0;padding:11px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
 .person-hub-facts dt,.commission-hub-facts dt,
@@ -313,7 +313,8 @@
 .ops-grid-list{grid-template-columns:minmax(0,1fr);--person-cols:minmax(180px,1.1fr) minmax(0,1.2fr) 5.5rem minmax(120px,.9fr) minmax(140px,1fr) 11rem}
 .person-hub-card.is-list{display:grid;grid-template-columns:var(--person-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px}
 .person-hub-card.is-list .person-hub-head{display:contents}
-.person-hub-card.is-list .ops-person{grid-column:1;grid-row:1;align-self:center;min-width:0}
+.person-hub-card.is-list .select-check{grid-column:1;grid-row:1;align-self:center;justify-self:start;z-index:1}
+.person-hub-card.is-list .ops-person{grid-column:1;grid-row:1;align-self:center;min-width:0;padding-left:26px}
 .person-hub-card.is-list .person-hub-facts{grid-column:2;grid-row:1;display:flex;align-items:baseline;gap:12px;padding:0;background:transparent;min-width:0;overflow:hidden}
 .person-hub-card.is-list .person-hub-facts>div{display:flex;align-items:baseline;gap:6px;min-width:0}
 .person-hub-card.is-list .person-hub-facts dt{display:none}
@@ -324,6 +325,7 @@
 .person-hub-card.is-list .team-access{grid-column:5;grid-row:1;display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:8px;padding:0;overflow-x:auto;scrollbar-width:none}
 .person-hub-card.is-list .team-access::-webkit-scrollbar{display:none}
 .person-hub-card.is-list .team-access-header{min-width:0}
+.person-hub-card.is-list .person-hub-tail{display:contents}
 .person-hub-card.is-list .person-hub-actions{grid-column:6;grid-row:1;justify-content:flex-end;margin-top:0;padding-top:0}
 .person-hub-card.is-list>.ops-note-preview{grid-column:1/-1;grid-row:2;-webkit-line-clamp:1}
 .person-hub-card.is-list>.person-access-panel{grid-column:1/-1;grid-row:2}
@@ -338,7 +340,7 @@
 .activity-day-title{display:flex;align-items:center;gap:8px;margin:0 0 6px;padding:0 2px;font-size:12px;font-weight:750;letter-spacing:.02em;text-transform:capitalize;color:var(--text-subtle,var(--text-muted))}
 .activity-day-title span{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--surface-sunken,var(--surface-subtle));color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
 .activity-day-rows{display:grid;gap:6px}
-.activity-feed-row{display:grid;grid-template-columns:minmax(180px,max-content) minmax(0,1fr) auto;align-items:baseline;gap:4px 14px;padding:9px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));font-size:12px}
+.activity-feed-row{display:grid;grid-template-columns:minmax(180px,max-content) minmax(0,1fr) auto;align-items:baseline;gap:4px 8px;padding:9px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));font-size:12px}
 .activity-feed-row:hover{background:color-mix(in srgb,var(--violet-soft) 30%,transparent)}
 .activity-feed-row p{margin:0;min-width:0}
 .activity-feed-row small{color:var(--text-subtle,var(--text-muted));font-size:10.5px;white-space:nowrap}
@@ -358,12 +360,12 @@
 .finance-facts dd{margin:0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .finance-card-actions{margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle,var(--line));display:flex;justify-content:flex-end}
 
-.finance-row-head{display:grid;grid-template-columns:var(--finance-cols);gap:12px;align-items:center;padding:2px 2px 6px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.finance-row-head{display:grid;grid-template-columns:var(--finance-cols);gap:8px;align-items:center;padding:2px 2px 6px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .finance-row-head span:last-child{justify-self:end}
 
-.finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row){display:grid;grid-template-columns:var(--finance-cols);gap:12px;align-items:center}
+.finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row){display:grid;grid-template-columns:var(--finance-cols);gap:8px;align-items:center}
 .finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>strong{justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
-.control-shell :is(.finance-payout-row,.finance-referral-row){display:grid;grid-template-columns:var(--finance-cols);gap:12px;align-items:center}
+.control-shell :is(.finance-payout-row,.finance-referral-row){display:grid;grid-template-columns:var(--finance-cols);gap:8px;align-items:center}
 .control-shell :is(.finance-payout-row,.finance-referral-row)>:is(strong,button){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 @media(max-width:560px){.finance-row-head{display:none}}
 .finance-state[data-status=issued]{border-color:color-mix(in srgb,var(--info) 24%,var(--line));background:var(--info-soft);color:var(--info)}

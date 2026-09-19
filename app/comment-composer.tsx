@@ -35,7 +35,7 @@ export function CommentComposer({onSubmit,label='Publicar comentario',disabled=f
  }
  return <form className="comment-composer" onSubmit={submit} aria-busy={sending||undefined}>
   <label htmlFor={fieldId}>Comentario</label>
-  <textarea ref={textarea} id={fieldId} value={body} onChange={event=>change(event.target.value)} placeholder="Escribí @ para mencionar a alguien" disabled={disabled||sending} aria-describedby={`${fieldId}-help`}/>
+  <textarea ref={textarea} id={fieldId} value={body} onChange={event=>change(event.target.value)} placeholder="Escribí @ para mencionar a alguien" maxLength={2000} disabled={disabled||sending} aria-describedby={`${fieldId}-help`}/>
   <small id={`${fieldId}-help`} className="form-note">Usá @ para avisar a un integrante. Las personas mencionadas reciben una notificación en esta empresa.</small>
   {token!==null&&<div className="mention-suggestions" role="listbox" aria-label="Personas para mencionar">{loading?<p role="status">Buscando integrantes…</p>:choices.map(person=><button type="button" role="option" key={person.id} onMouseDown={event=>event.preventDefault()} onClick={()=>choose(person)} disabled={sending}><ActorIdentity name={name(person)} photoUrl={person.photo_url} verified/><span>{person.email&&person.full_name?person.email:null}</span></button>)}{!loading&&!choices.length&&<p className="form-note">No hay integrantes activos que coincidan.</p>}</div>}
   {mentions.size>0&&<div className="mention-selected" aria-label="Personas mencionadas">{Array.from(mentions.entries()).map(([id,display])=><span key={id}>@{display}<button type="button" aria-label={`Quitar mención a ${display}`} onClick={()=>setMentions(previous=>{const next=new Map(previous);next.delete(id);return next;})}>×</button></span>)}</div>}

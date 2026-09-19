@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {api,Editor} from './operations';
+import {listDateShort} from './list-format';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {ActorIdentity} from './actor-identity';
@@ -31,7 +32,7 @@ export function InternalTasks({role}:{role:string}){
  async function load(){setRows((await api<{records:Row[]}>('/api/agency/productivity/internal-tasks')).records);}
  useEffect(()=>{void load().catch(e=>setError(e.message));},[]);
  const record=edit&&edit!=='new'?edit:null;
- return <details className="panel"><summary>Pendientes internos · {rows.filter(r=>r.status!=='done').length}</summary><p className="form-note">Trabajo de la agencia, separado de los proyectos de clientes y sin efecto financiero.</p>{canEdit&&<button className="text-button" onClick={()=>setEdit('new')}><Plus size={14}/>Agregar tarea interna</button>}{error&&<p className="error">{error}</p>}{rows.map(r=><article className="activity-line" key={r.id}><b>{str(r,'title')}</b><small>{{pending:'Pendiente',in_progress:'En curso',done:'Lista'}[str(r,'status')]} · {str(r,'due_date').slice(0,10)||'Sin fecha'}</small><p>{str(r,'description')}</p>{canEdit&&<button className="text-button" onClick={()=>setEdit(r)}><Pencil size={14}/>Editar tarea</button>}</article>)}
+ return <details className="panel"><summary>Pendientes internos · {rows.filter(r=>r.status!=='done').length}</summary><p className="form-note">Trabajo de la agencia, separado de los proyectos de clientes y sin efecto financiero.</p>{canEdit&&<button className="text-button" onClick={()=>setEdit('new')}><Plus size={14}/>Agregar tarea interna</button>}{error&&<p className="error">{error}</p>}{rows.map(r=><article className="activity-line" key={r.id}><b>{str(r,'title')}</b><small>{{pending:'Pendiente',in_progress:'En curso',done:'Lista'}[str(r,'status')]} · {listDateShort(str(r,'due_date'))||'Sin fecha'}</small><p>{str(r,'description')}</p>{canEdit&&<button className="text-button" onClick={()=>setEdit(r)}><Pencil size={14}/>Editar tarea</button>}</article>)}
  {edit&&<Dialog title={record?'Editar tarea interna':'Nueva tarea interna'} close={()=>setEdit(null)}><Editor fields={[{key:'title',label:'Título'},{key:'description',label:'Detalle',type:'textarea',optional:true},{key:'due_date',label:'Fecha',type:'date',optional:true},...(record?[{key:'status',label:'Estado',choices:[{value:'pending',label:'Pendiente'},{value:'in_progress',label:'En curso'},{value:'done',label:'Lista'}]}]:[])]} defaults={{title:record?str(record,'title'):'',description:record?str(record,'description'):'',due_date:record?str(record,'due_date').slice(0,10):'',status:record?str(record,'status'):'pending'}} save={async v=>{await api(`/api/agency/productivity/internal-tasks${record?'/'+record.id:''}`,v,record?'PATCH':'POST');setEdit(null);await load();}}/></Dialog>}
  </details>;
 }

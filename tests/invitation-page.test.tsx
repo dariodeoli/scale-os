@@ -102,7 +102,7 @@ test('unmount aborts an outstanding preview',async()=>{
 
 test('active invitation shows a readable status and expiration without granting access',async()=>{
  await mount(`?token=${token}`,async()=>response(200,{...valid,mode:'approval',expires_at:'2026-09-20T15:00:00Z',link_status:'active'}));
- assert(text().includes('Enlace activo'));assert(text().includes('hora local'));
+ assert(text().includes('Enlace activo'));assert(text().includes('hora de Asunción'));
  assert.equal(renderer!.root.findByType('time').props.dateTime,'2026-09-20T15:00:00.000Z');
  assert(text().includes('el dueño lo aprobará'));assert.equal(oauth().length,1);
 });

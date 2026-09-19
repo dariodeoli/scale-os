@@ -78,7 +78,7 @@
 - **Espaciado**: gaps y padding consistentes entre objetos laterales y verticales (tokens de `ui-system.css`), sin saltos por largo de texto ni filas colapsadas.
 - **Selección múltiple**: donde haya lista o cuadrícula, se puede seleccionar varios y operar en lote (reservar, verificar, mover de ubicación, archivar), con contador "N seleccionados", acción de seleccionar visibles y limpiar; el lote se resuelve en una sola operación por API cuando exista el endpoint.
 - **Aplica a TODO contenedor existente y a los nuevos**: al crear uno nuevo o tocar uno existente, adoptar estas reglas tanto en cuadrícula como en lista. Un contenedor que no las cumple es deuda de diseño.
-- **Excepción (decisión 17-09)**: los feeds de tarjetas apiladas (Notificaciones, entregas del portal del cliente) y los tableros kanban mantienen tarjetas/bloques propios en vez de filas con encabezado; cualquier lista de registros (incluida Reservas de inventario) se rediseña al contrato de fila finita.
+- **Excepción (decisión 17-09)**: los feeds de tarjetas apiladas (Notificaciones, entregas del portal del cliente) y los tableros kanban mantienen tarjetas/bloques propios en vez de filas con encabezado; el portal del cliente conserva su sistema visual público (botones y cápsulas propios de esa superficie) sin reutilizar el shell interno; cualquier lista de registros (incluida Reservas de inventario) se rediseña al contrato de fila finita.
 - **Lista vs. cuadrícula (regla 17-09)**:
   - **Lista = filas finitas**: una sola línea de contenido principal (44–52 px), a todo el ancho, con TODA la información repartida en columnas (los valores secundarios van inline separados por `·`, con `title` para el detalle). Etiquetas del encabezado arriba; nada de bloques apilados dentro de la fila salvo una línea muted de auditoría cuando el dato importa (p. ej. quién retiró/devolvió).
   - **Cuadrícula = tarjetas grandes**: `padding` 16 px, `min-height` ~200 px, contenido ordenado y distribuido (`display:flex;flex-direction:column` + pie anclado con `margin-top:auto`), misma altura entre tarjetas de la fila y sin columnas colapsadas.
@@ -111,7 +111,7 @@
 7. Usuario social: sin `@` en el dato guardado (cuando se implemente).
 8. Ciudad/región: autocompletado con campo derivado automático (cuando se implemente).
 9. Texto libre: límites explícitos (nombres 120, direcciones 400, notas 2000), fechas `type="date"`, horas `type="time"`, códigos con patrón `[A-Za-z0-9_-]{2,40}`.
-10. PIN/contraseña: PIN con `PinInput` (4–6) cuando exista; contraseña con `PasswordField` (8–72; registro exige 12+). Excepción documentada: el comprobante de eliminación (`app/deletion-danger-zone.tsx`) conserva su contrato propio de foco/aria.
+10. PIN/contraseña: PIN con `PinInput` (4–6) cuando exista; contraseña con `PasswordField` (mínimo 8, hasta 128; sin requisitos de mayúsculas, números ni símbolos). Excepción documentada: el comprobante de eliminación (`app/deletion-danger-zone.tsx`) conserva su contrato propio de foco/aria.
 11. Adjuntos: tipos permitidos, tamaño máximo validado en cliente y servidor (las fotos ya se normalizan a WebP ≤180 KB en la API); si se agregan PDF/archivos, exigir magic bytes en el servidor.
 12. Documento fiscal: patrón configurable por país; consulta externa con confirmación.
 13. Búsquedas: campo libre con `q`; en escaneos, normalizar a mayúsculas sin separadores.
@@ -142,4 +142,4 @@
 - **Montos**: `money()` y `AmountInput`; PYG sin decimales, el resto 2; `tabular-nums` y `nowrap` (montos, fechas y códigos nunca se cortan).
 - **Teléfono** `+<código> <dígitos>`; **serial** mayúsculas sin separadores; **RUC** con patrón y sin dígito verificador inventado; **porcentajes** enteros 0–100 en el Editor (`integer:true`).
 - Lo guardado es dato normalizado; el formato (símbolo, separadores, @) lo dibuja el campo.
-- **Excepción de contrato (decisión 17-09)**: los montos de transporte entero (Previsión y reportes) usan `formatWholeMoney`/`formatSignedMoney` de `amount-format.ts` (0 decimales forzados para toda moneda, con guarda de dato inválido). `formatPygRate` y `numberLabel` formatean números, no montos.
+- **Excepción de contrato (decisión 17-09)**: los montos de transporte entero (Previsión) usan `formatWholeMoney`/`formatSignedMoney` de `amount-format.ts` (0 decimales forzados para toda moneda, con guarda de dato inválido); los Informes formatean sus decimales con `reportMoney` (bigint-safe) para no perder centavos. `formatPygRate` y `numberLabel` formatean números, no montos.

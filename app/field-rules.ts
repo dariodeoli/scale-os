@@ -8,6 +8,13 @@ export const PHONE_COUNTRIES = [
 export const DEFAULT_PHONE_COUNTRY = '+595';
 export const PHONE_ERROR = 'Ingresá un teléfono válido: código de país y número, por ejemplo +595 981 123 456.';
 export const PHONE_HELP = 'Elegí el país y escribí solo dígitos, sin el 0 inicial. Paraguay: 9 dígitos para móvil, 8 para fijo; el resto: 6 a 12.';
+export const EMAIL_ERROR = 'Ingresá un correo válido.';
+
+/** Shared email check: non-empty, up to 254 chars, single @ with a dot. Empty values are handled by each field's optional rule. */
+export function emailValid(value: string): boolean {
+  const email = (value || '').trim();
+  return email.length > 0 && email.length <= 254 && /^\S+@\S+\.\S+$/.test(email);
+}
 
 export function digitsOnly(value: string): string {
   return (value || '').replace(/\D/g, '');
@@ -65,6 +72,13 @@ export function decimalInput(value: string, maxDecimals = 2): string {
 }
 
 export const EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com', 'live.com'];
+
+/** Today's calendar day in the company time zone, as `YYYY-MM-DD` for date inputs. */
+export function todayInAsuncion(): string {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const part = (type: string) => parts.find(entry => entry.type === type)!.value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
+}
 
 export function emailSuggestions(value: string): string[] {
   const at = (value || '').indexOf('@');

@@ -65,11 +65,11 @@ test('report CSV download uses loaded data only, respects roles and filters, and
  const button=()=>renderer!.root.findAllByType('button').find(b=>String(b.props.children).startsWith('Exportar histórico CSV'));
   const respond=async()=>{const req=requests.filter(r=>r.url?.includes('/reports?')).at(-1)!,month=new URL(req.url,'https://fixture.invalid').searchParams.get('month')!;await act(async()=>req.resolve(new Response(JSON.stringify(data(month)))));};
  try{
-  for(const role of ['viewer','editor','production','sales','management']){
-   await act(async()=>{renderer=create(<ReportsWorkspace role={role}/>);});assert.equal(button(),undefined);await act(async()=>renderer!.unmount());
-  }
-  assert.equal(requests.length,0);
-  for(const role of ['owner','admin','finance']){
+ for(const role of ['viewer','editor','production','management']){
+  await act(async()=>{renderer=create(<ReportsWorkspace role={role}/>);});assert.equal(button(),undefined);await act(async()=>renderer!.unmount());
+ }
+ assert.equal(requests.length,0);
+ for(const role of ['owner','admin','finance','sales']){
    await act(async()=>{renderer=create(<ReportsWorkspace role={role}/>);});assert.equal(button(),undefined);
    await respond();
    await act(async()=>renderer!.root.findAllByType(SelectCustom)[1].props.onChange('USD'));

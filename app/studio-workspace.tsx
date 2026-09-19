@@ -6,6 +6,7 @@ import {SaveActions} from './save-actions';
 import './studio-workspace.css';
 import {Pencil,X} from 'lucide-react';
 import {SelectCustom} from './profile-controls';
+import {listDateFull} from './list-format';
 
 type Person={id:string;name:string;photo_url?:string|null};
 type Project={id:string;name:string;client_name?:string};
@@ -16,12 +17,12 @@ type ProductionType='video'|'podcast'|'ads'|'fotografia'|'streaming'|'otro';
 const types:{value:ProductionType;label:string}[]=[{value:'video',label:'Video / Reels'},{value:'podcast',label:'Podcast'},{value:'ads',label:'Ads'},{value:'fotografia',label:'Foto'},{value:'streaming',label:'Streaming'},{value:'otro',label:'Otro'}];
 const errorMessage=(error:unknown)=>error instanceof Error?error.message:'No se pudo completar la operación';
 const zone='America/Asuncion';
-const dateTime=(value:string)=>new Intl.DateTimeFormat('es-PY',{timeZone:zone,weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
+const dateTime=(value:string)=>listDateFull(value)||'';
 function localTime(value:string|Date){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(value));const part=(type:string)=>parts.find(item=>item.type===type)!.value;return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;}
 function utcTime(value:string){if(!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(value))throw Error('Completá fecha y hora');const base=new Date(value+'Z').getTime();if(!Number.isFinite(base))throw Error('Fecha inválida');let candidate=base;for(let index=0;index<3;index++)candidate+=base-new Date(localTime(new Date(candidate))+'Z').getTime();if(localTime(new Date(candidate))!==value)throw Error('Esa hora no existe en Asunción');return new Date(candidate).toISOString();}
 function monthRange(month:string){const [year,currentMonth]=month.split('-').map(Number),next=new Date(Date.UTC(year,currentMonth,1)).toISOString().slice(0,7);return {from:utcTime(`${month}-01T00:00`),to:utcTime(`${next}-01T00:00`)};}
 
-export function StudioWorkspace({role}:{role:string}){return ['owner','admin','management','production','finance','editor','viewer'].includes(role)?<StudioPanel/>:null;}
+export function StudioWorkspace({role}:{role:string}){return ['owner','admin','management','production','finance','editor','viewer','sales','collaborator'].includes(role)?<StudioPanel/>:null;}
 function StudioPanel(){
  const [context,setContext]=useState<Context|null>(null),[spaces,setSpaces]=useState<StudioSpace[]>([]),[reservations,setReservations]=useState<StudioReservation[]>([]),[month,setMonth]=useState(()=>localTime(new Date()).slice(0,7));
  const [loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0),[editSpace,setEditSpace]=useState<StudioSpace|'new'|null>(null),[editReservation,setEditReservation]=useState<StudioReservation|'new'|null>(null),[cancel,setCancel]=useState<StudioReservation|null>(null),[busy,setBusy]=useState(false);

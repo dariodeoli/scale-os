@@ -32,12 +32,12 @@ async function run(){
  assert.equal(reportDelta('2','0'),'+2 · porcentaje no disponible (base cero)');
  assert.equal(reportDelta(null,0),'Sin comparación: faltan datos');
  assert.equal(reportDelta(2,1,true),'Sin comparación: mes parcial');
- for(const role of ['management','sales','production','viewer','editor','']){
+ for(const role of ['management','production','viewer','editor','']){
   act(()=>{renderer=create(<ReportsWorkspace role={role}/>);});
   assert.match(text(),/No tenés permiso/);act(()=>renderer.unmount());
  }
  assert.equal(requests.length,0,'unauthorized roles never fetch');
- for(const role of ['owner','admin','finance']){
+ for(const role of ['owner','admin','finance','sales']){
   act(()=>{renderer=create(<ReportsWorkspace role={role}/>);});
   assert.equal(latest().init.credentials,'include');
   assert.ok(requests.some(r=>/^\/core-api\/api\/agency\/reports\?month=\d{4}-\d{2}&months=12$/.test(r.url)),'monthly report request fires');

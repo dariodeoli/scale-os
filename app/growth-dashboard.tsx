@@ -1,6 +1,7 @@
 "use client";
 import {useState} from 'react';
 import {Eye,Smartphone,MessageCircle,TrendingUp} from 'lucide-react';
+import {SelectCustom} from './profile-controls';
 import './growth-dashboard.css';
 export type GrowthEvent={name:string;event_date:string;count:number};
 export function growthSeries(events:GrowthEvent[],days:number,today=new Date()){
@@ -14,7 +15,7 @@ export function growthSeries(events:GrowthEvent[],days:number,today=new Date()){
 }
 export function GrowthDashboard({events}:{events:GrowthEvent[]}){
  const [days,setDays]=useState(30),{sum,points}=growthSeries(events,days),max=Math.max(1,...points.map(p=>p.count));
- return <section className="panel ops-stack growth-dashboard"><div className="panel-heading"><div><p className="eyebrow">CAPTACIÓN DIGITAL</p><h2>Visitas y crecimiento</h2></div><label>Período <select value={days} onChange={e=>setDays(Number(e.target.value))}><option value={7}>Últimos 7 días</option><option value={30}>Últimos 30 días</option><option value={90}>Últimos 90 días</option></select></label></div>
+ return <section className="panel ops-stack growth-dashboard"><div className="panel-heading"><div><p className="eyebrow">CAPTACIÓN DIGITAL</p><h2>Visitas y crecimiento</h2></div><SelectCustom label="Período" choices={[{value:'7',label:'Últimos 7 días'},{value:'30',label:'Últimos 30 días'},{value:'90',label:'Últimos 90 días'}]} value={String(days)} onChange={value=>setDays(Number(value))}/></div>
  <div className="growth-cards">{([{name:'page_view',label:'Páginas vistas',Icon:Eye},{name:'mobile_view',label:'Vistas desde móvil',Icon:Smartphone},{name:'whatsapp_click',label:'Clics en WhatsApp',Icon:MessageCircle}]).map(({name,label,Icon})=>{const value=sum(name),previous=sum(name,true),change=previous?((value-previous)/previous*100):null;return <article key={name}><p><Icon size={20}/>{label}</p><strong>{value.toLocaleString('es-PY')}</strong><small><TrendingUp size={14}/>{change===null?'Sin base anterior':`${change>0?'+':''}${change.toFixed(1)}% vs. período anterior`}</small></article>;})}</div>
  <div><h3>Evolución diaria · páginas vistas</h3><div className="growth-chart" role="img" aria-label={`Páginas vistas durante ${days} días. ${sum('page_view')} en total.`}>{points.map(p=><div key={p.day} style={{height:Math.max(1,p.count/max*100)+'%'}} title={`${p.day}: ${p.count} vistas`}/>)}</div><div className="growth-axis"><span>{points[0]?.day}</span><span>{points.at(-1)?.day}</span></div></div>
  <p className="form-note">Son eventos registrados, no personas únicas ni usuarios conectados. Las vistas móviles no se suman al total de páginas. Las comprobaciones de despliegue quedan excluidas.</p>

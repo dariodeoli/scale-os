@@ -13,7 +13,7 @@ export function PasswordPanel(){
   {!open&&notice&&<p role="status">{notice}</p>}
   {open&&<Dialog title={token?'Nueva contraseña':'Recuperar acceso'} close={()=>setOpen(false)}>
    {notice?<p role="status">{notice}</p>:<Editor fields={token?[
-    {key:'password',label:'Nueva contraseña (mínimo 12 caracteres)',type:'password'},
+    {key:'password',label:'Nueva contraseña (mínimo 8 caracteres)',type:'password'},
     {key:'confirm',label:'Repetir contraseña',type:'password'},
    ]:[{key:'email',label:'Correo con acceso a la empresa',type:'email'}]}
     defaults={{email:'',password:'',confirm:''}} label={token?'Guardar contraseña':'Enviar enlace'} save={async v=>{

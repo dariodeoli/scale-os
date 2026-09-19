@@ -5,7 +5,7 @@ import {LogOut,Smartphone} from 'lucide-react';
 import {api} from './operations';
 
 type Session={id:string;created_at:string;expires_at:string;current:boolean};
-const when=(value:string)=>new Intl.DateTimeFormat('es-PY',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
+const when=(value:string)=>new Intl.DateTimeFormat('es-PY',{timeZone:'America/Asuncion',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
 
 export function AccountSecurity({onClosed}:{onClosed:()=>void}){
  const [sessions,setSessions]=useState<Session[]>([]),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState('');
