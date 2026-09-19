@@ -79,8 +79,11 @@
 .forecast-person-override strong{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--warning)}
 .forecast-person-total strong[data-negative]{color:var(--danger)}
 /* Alineación fija por columnas: el ajuste ausente reserva su lugar. */
+.forecast-personnel{--forecast-person-cols:minmax(150px,1.2fr) minmax(104px,.9fr) minmax(116px,.9fr) minmax(116px,.9fr) auto}
+.forecast-person-head{display:grid;grid-template-columns:var(--forecast-person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.forecast-person-head span:last-child{justify-self:end}
 .forecast-person-who{display:flex;align-items:center;gap:var(--ui-space-2);min-width:0}
-.forecast-person-list-row{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(104px,.9fr) minmax(116px,.9fr) minmax(116px,.9fr) auto;align-items:center}
+.forecast-person-list-row{display:grid;grid-template-columns:var(--forecast-person-cols);align-items:center;gap:4px 8px}
 .forecast-person-list-row .forecast-person-actions{display:flex;gap:6px;justify-self:end;justify-content:flex-end}
 .forecast-person-override.is-empty{visibility:hidden}
 @media(max-width:860px){.forecast-person-list-row{display:flex;flex-wrap:wrap}}
