@@ -1348,13 +1348,7 @@ export default function Home() {
                 <p className="eyebrow">ENTREGAS Y CAPACIDAD</p>
                 <h2>{liveProjects.length} proyecto{liveProjects.length === 1 ? "" : "s"}</h2>
               </div>
-              <label className="directory-project-filter">
-                Cliente
-                <select value={projectClientFilter} onChange={event => setProjectClientFilter(event.target.value)}>
-                  <option value="">Todos</option>
-                  {clients.map(client => <option key={client.id} value={client.id}>{client.name}</option>)}
-                </select>
-              </label>
+              <SelectCustom label="Cliente" choices={[{value:'',label:'Todos'},...clients.map(client=>({value:String(client.id),label:client.name}))]} value={projectClientFilter} onChange={setProjectClientFilter}/>
             </div>
             <div className="kpi-strip" aria-label="Métricas de proyectos">
               <article className="kpi-card tone-green">

@@ -26,6 +26,7 @@ import { WorkspaceFooter } from "../workspace-footer";
 import "./platform-admin.css";
 import { platformApi, subscriptionExpiry, asuncionInput } from "../platform-admin-api";
 import { decimalInput, digitsOnly } from "../field-rules";
+import { SelectCustom } from "../profile-controls";
 import { Dialog } from "../dialog";
 
 type Overview = {
@@ -829,22 +830,7 @@ export default function PlatformAdmin() {
                 Este control es un override manual y auditado de acceso. No
                 cobra, no guarda secretos y no confirma pagos.
               </p>
-              <label>
-                Estado
-                <select
-                  value={subscriptionState}
-                  disabled={busy}
-                  onChange={(event) =>
-                    setSubscriptionState(
-                      event.target.value as typeof subscriptionState,
-                    )
-                  }
-                >
-                  <option value="active">Acceso manual activo</option>
-                  <option value="suspended">Acceso manual suspendido</option>
-                  <option value="clear">Quitar estado manual</option>
-                </select>
-              </label>
+              <SelectCustom label="Estado" choices={[{value:'active',label:'Acceso manual activo'},{value:'suspended',label:'Acceso manual suspendido'},{value:'clear',label:'Quitar estado manual'}]} value={subscriptionState} disabled={busy} onChange={value=>setSubscriptionState(value as typeof subscriptionState)}/>
               {subscriptionState !== "clear" ? (
                 <>
                   <label>
@@ -896,20 +882,7 @@ export default function PlatformAdmin() {
                 activo. Queda auditado y no contacta a ningún proveedor de
                 pagos.
               </p>
-              <label>
-                Días a sumar
-                <select
-                  value={extendDays}
-                  disabled={busy}
-                  onChange={(event) => setExtendDays(event.target.value)}
-                >
-                  <option value="7">7 días</option>
-                  <option value="30">30 días</option>
-                  <option value="90">90 días</option>
-                  <option value="180">180 días</option>
-                  <option value="365">365 días</option>
-                </select>
-              </label>
+              <SelectCustom label="Días a sumar" choices={['7','30','90','180','365'].map(days=>({value:days,label:`${days} días`}))} value={extendDays} disabled={busy} onChange={setExtendDays}/>
               <label>
                 Motivo
                 <input
@@ -1071,23 +1044,7 @@ export default function PlatformAdmin() {
                     maxLength={40}
                   />
                 </label>
-                <label>
-                  Tipo
-                  <select
-                    value={coupon.discount_type}
-                    onChange={(event) =>
-                      setCoupon({
-                        ...coupon,
-                        discount_type: event.target.value as
-                          "percent" | "fixed" | "days",
-                      })
-                    }
-                  >
-                    <option value="percent">Porcentaje</option>
-                    <option value="fixed">Monto fijo</option>
-                    <option value="days">Días gratis</option>
-                  </select>
-                </label>
+                  <SelectCustom label="Tipo" choices={[{value:'percent',label:'Porcentaje'},{value:'fixed',label:'Monto fijo'},{value:'days',label:'Días gratis'}]} value={coupon.discount_type} onChange={value=>setCoupon({...coupon,discount_type:value as 'percent'|'fixed'|'days'})}/>
                 <label>
                   {coupon.discount_type === "days" ? "Días gratis" : "Valor"}
                   <input
@@ -1104,18 +1061,7 @@ export default function PlatformAdmin() {
                   />
                 </label>
                 {coupon.discount_type === "fixed" ? (
-                  <label>
-                    Moneda
-                    <select
-                      value={coupon.currency}
-                      onChange={(event) =>
-                        setCoupon({ ...coupon, currency: event.target.value })
-                      }
-                    >
-                      <option value="USD">USD</option>
-                      <option value="PYG">PYG</option>
-                    </select>
-                  </label>
+                    <SelectCustom label="Moneda" choices={[{value:'USD',label:'USD'},{value:'PYG',label:'PYG'}]} value={coupon.currency} onChange={value=>setCoupon({...coupon,currency:value})}/>
                 ) : null}
                 <button className="primary" disabled={busy}>
                   Crear cupón
