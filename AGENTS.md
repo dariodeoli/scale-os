@@ -111,7 +111,7 @@
 7. Usuario social: sin `@` en el dato guardado (cuando se implemente).
 8. Ciudad/región: autocompletado con campo derivado automático (cuando se implemente).
 9. Texto libre: límites explícitos (nombres 120, direcciones 400, notas 2000), fechas `type="date"`, horas `type="time"`, códigos con patrón `[A-Za-z0-9_-]{2,40}`.
-10. PIN/contraseña: PIN con `PinInput` (4–6) cuando exista; contraseña con `PasswordField` (8–72; registro exige 12+). Excepción documentada: el comprobante de eliminación (`app/deletion-danger-zone.tsx`) conserva su contrato propio de foco/aria.
+10. PIN/contraseña: PIN con `PinInput` (4–6) cuando exista; contraseña con `PasswordField` (mínimo 8, hasta 128; sin requisitos de mayúsculas, números ni símbolos). Excepción documentada: el comprobante de eliminación (`app/deletion-danger-zone.tsx`) conserva su contrato propio de foco/aria.
 11. Adjuntos: tipos permitidos, tamaño máximo validado en cliente y servidor (las fotos ya se normalizan a WebP ≤180 KB en la API); si se agregan PDF/archivos, exigir magic bytes en el servidor.
 12. Documento fiscal: patrón configurable por país; consulta externa con confirmación.
 13. Búsquedas: campo libre con `q`; en escaneos, normalizar a mayúsculas sin separadores.

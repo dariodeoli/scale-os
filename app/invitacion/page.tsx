@@ -92,9 +92,9 @@ export default function InvitationPage(){
    {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:<form className="invite-password-form" onSubmit={registerWithPassword} noValidate>
     <label>Nombre y apellido <input name="full_name" maxLength={160} autoComplete="name" placeholder="Cómo te llamamos"/></label>
     <label>Correo <EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
-    <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="12+ caracteres" required minLength={12}/>
-    <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required/>
-    <p className="password-hint">12+ caracteres con mayúscula, minúscula, número y símbolo; sin espacios.</p>
+    <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="8+ caracteres" required minLength={8}/>
+    <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required minLength={8}/>
+    <p className="password-hint">8+ caracteres; sin requisitos de mayúsculas, números ni símbolos.</p>
     <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
     {passwordError&&<p className="error" role="alert">{passwordError}</p>}{passwordNotice&&<p className="success" role="status">{passwordNotice}</p>}
    </form>}</div>
