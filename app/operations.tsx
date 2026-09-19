@@ -12,7 +12,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Banknote, Building2, Check, MessageSquare, Pencil, Plus, RotateCcw, Star, X , CircleDollarSign } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
-import {PHONE_ERROR, phoneValid} from './field-rules';
+import {PHONE_ERROR, phoneValid, todayInAsuncion, emailValid, EMAIL_ERROR} from './field-rules';
+import {PasswordField} from './password-field';
 import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
 import {PersonPhotoField} from './person-photo';
@@ -55,7 +56,7 @@ export const money = (value: string | number, currency = "PYG") =>
     currency,
     maximumFractionDigits: currency === "PYG" ? 0 : 2,
   }).format(Number(value));
-const day = (v: string | null) => (v ? v.slice(0, 10) : "—");
+const day = (v: string | null) => (v ? listDateShort(v) || "—" : "—");
 export {Dialog} from './dialog';
 type Choice = { value: string; label: string };
 export type Field = {
@@ -68,6 +69,7 @@ export type Field = {
   wide?: boolean;
   help?: string;
   integer?: boolean;
+  maxLength?: number;
   currencyKey?: string;
   currency?: string;
   currencyFrom?: (values: Record<string, string>) => string;
@@ -99,7 +101,7 @@ export function Editor({
     if (!f.optional) s = s.min(1, `Completá ${f.label.toLowerCase()}`);
     if(f.integer)s=s.refine(value=>value===''||/^\d+$/.test(value),'Ingresá un número entero.');
     if(f.type==='phone')s=s.refine(value=>value===''||phoneValid(value),PHONE_ERROR);
-    if(f.type==='email')s=s.refine(value=>value===''||/^\S+@\S+\.\S+$/.test(value),'Ingresá un correo válido.');
+    if(f.type==='email')s=s.refine(value=>value===''||emailValid(value),EMAIL_ERROR);
     shape[f.key] = s;
   }
   const form = useForm<Record<string, string>>({
@@ -122,7 +124,7 @@ export function Editor({
       {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={pending} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} {...form.register(f.key)}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={pending||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={pending||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
@@ -271,7 +273,7 @@ export function OperationsWorkspace({
   activeTab?: string;
   onTabChange?: (tab: string) => void;
 }) {
-  if(mode==='people'&&!['owner','admin','finance'].includes(role))return <TeamDirectoryView organizationName={organizationName}/>;
+  if(mode==='people'&&!['owner','admin','finance','management'].includes(role))return <TeamDirectoryView organizationName={organizationName}/>;
   return <PeopleWorkspace mode={mode} role={role} currentEmail={currentEmail} organizationName={organizationName} activeTab={activeTab} onTabChange={onTabChange}/>;
 }
 type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
@@ -368,30 +370,6 @@ function PeopleWorkspace({
       .finally(() => { if (alive) setMonthlyLoading(false); });
     return () => { alive = false; };
   }, [allowed, mode, commissionMonth, monthlyRefresh]);
-  const salaryTotals = useMemo(() => {
-    const totals = new Map<string, number>();
-    let defined = 0, missing = 0;
-    for (const person of people) {
-      if (!person.active) continue;
-      const amount = Number(person.compensation_amount);
-      if (person.compensation_type === "fixed" && Number.isFinite(amount) && amount > 0) {
-        totals.set(person.currency, (totals.get(person.currency) || 0) + amount);
-        defined += 1;
-      } else {
-        missing += 1;
-      }
-    }
-    return { totals, defined, missing };
-  }, [people]);
-  const monthlyGap = useMemo(() => {
-    if (!commercial?.expectedMonthlyBilling) return [];
-    return commercial.expectedMonthlyBilling
-      .filter(item => Number(item.total) > 0)
-      .map(item => {
-        const salary = salaryTotals.totals.get(item.currency) || 0;
-        return { currency: item.currency, gap: Number(item.total) - salary };
-      });
-  }, [commercial, salaryTotals]);
   async function load() {
     const [p, c, a, i, x] = await Promise.all([
       api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>(mode==='people'?"/api/agency/team":"/api/agency/collaborators"),
@@ -549,27 +527,12 @@ function PeopleWorkspace({
           </p>
         )}
         {notice && <p role="status">{notice}</p>}
-        {mode==='people'&&<div className="kpi-strip" aria-label="Salarios y facturación estimada">
-          {salaryView&&<article className="kpi-card tone-brand">
-            <p className="eyebrow">SALARIOS MENSUALES</p>
-            {salaryTotals.totals.size?<div className="kpi-amounts">{Array.from(salaryTotals.totals).map(([currency,total])=><span key={currency}>{money(total,currency)}</span>)}</div>:<strong>Sin salarios definidos</strong>}
-            <small>Suma de perfiles activos con salario fijo mensual</small>
-          </article>}
-          {salaryView&&<article className="kpi-card tone-green">
-            <p className="eyebrow">PERFILES DE SALARIO</p>
-            <strong>{salaryTotals.defined} definidos</strong>
-            <small>{salaryTotals.missing} activos sin salario fijo mensual</small>
-          </article>}
+        {mode==='people'&&<div className="kpi-strip" aria-label="Facturación contratada">
           <article className="kpi-card tone-blue">
             <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
             {commercial===null?<strong>Calculando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong>No disponible</strong>:commercial.expectedMonthlyBilling.length?<div className="kpi-amounts">{commercial.expectedMonthlyBilling.map(item=><span key={item.currency}>{money(Number(item.total),item.currency)} / mes</span>)}</div>:<strong>Sin contratos activos</strong>}
             <small>{commercial?.expectedMonthlyBilling===undefined?'No disponible':commercial.expectedMonthlyBilling.length?'Expectativa comercial vigente por moneda':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}</small>
           </article>
-          {salaryView&&<article className="kpi-card tone-warning">
-            <p className="eyebrow">RESULTADO MENSUAL</p>
-            {monthlyGap.length?<div className="kpi-amounts">{monthlyGap.map(row=><span key={row.currency}>{money(row.gap,row.currency)}</span>)}</div>:<strong>Sin datos</strong>}
-            <small>Facturación contratada menos salarios, por moneda</small>
-          </article>}
         </div>}
         {mode==='people'&&<div className="team-filters">
           <SearchField className="team-search" label="Buscar persona" value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
@@ -990,7 +953,7 @@ function PeopleWorkspace({
                 pay.person?.compensation_amount ||
                 pay.commission?.amount ||
                 "0",
-              paid_on: new Date().toISOString().slice(0, 10),
+              paid_on: todayInAsuncion(),
               reference: "",
             }}
             label="Confirmar pago"

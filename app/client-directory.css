@@ -56,6 +56,7 @@
 .client-hub-card{display:flex;flex-direction:column;gap:12px;min-width:0;padding:16px;border:1px solid var(--border-subtle,var(--line));border-radius:14px;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs);overflow-wrap:anywhere;transition:border-color var(--ease),box-shadow var(--ease),transform var(--ease)}
 .client-hub-card:hover{border-color:var(--line-strong,var(--border-subtle));box-shadow:var(--shadow-md);transform:translateY(-1px)}
 .client-hub-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
+.client-hub-identity{display:flex;align-items:flex-start;gap:8px;min-width:0}
 .client-hub-open{display:block;min-width:0;padding:0;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .client-hub-open:focus-visible{outline:3px solid var(--focus-halo,var(--brand-600));outline-offset:3px}
 
@@ -67,7 +68,8 @@
 .client-hub-actions>*{flex:none}
 .client-hub-list .client-hub-card{display:grid;grid-template-columns:var(--client-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px}
 .client-hub-list .client-hub-head{display:contents}
-.client-hub-list .client-hub-open{grid-column:1;grid-row:1;align-self:center;min-width:0}
+.client-hub-list .client-hub-identity{grid-column:1;grid-row:1;align-items:center;min-width:0}
+.client-hub-list .client-hub-open{grid-column:auto;grid-row:auto;align-self:center;min-width:0}
 .client-hub-list .client-status{grid-column:3;grid-row:1;justify-self:start;align-self:center}
 .client-hub-list .client-hub-facts{grid-column:2;grid-row:1;display:flex;align-items:baseline;gap:12px;padding:0;background:transparent;min-width:0;overflow:hidden}
 .client-hub-list .client-hub-facts>div{display:flex;align-items:baseline;gap:6px;min-width:0}

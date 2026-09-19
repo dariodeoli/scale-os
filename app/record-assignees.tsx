@@ -17,7 +17,7 @@ export type RecordAssigneesProps={
  children?:(save:(details:Record<string,string>)=>Promise<void>)=>ReactNode;
 };
 const readers=['owner','admin','management','finance','sales','production','editor','viewer'];
-const managers=['owner','admin','management','production'];
+const managers=['owner','admin','management','production','collaborator'];
 type Person=Omit<AssigneeMember,'active'>&{active?:boolean};
 class RequestError extends Error{constructor(message:string,readonly status:number){super(message);}}
 async function request<T>(path:string,init:RequestInit={}):Promise<T>{

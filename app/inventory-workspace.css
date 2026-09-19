@@ -167,7 +167,7 @@
 .inventory-reservation{display:grid;grid-template-columns:var(--reservation-cols);align-items:center;gap:4px 14px;padding:8px 12px;min-height:48px}
 .inventory-reservation-title{display:flex;align-items:center;gap:8px;min-width:0}
 .inventory-reservation-title h3{margin:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.inventory-reservation-cell{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inventory-reservation-cell{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
 .inventory-reservation-actions{justify-content:flex-end}
 .inventory-reservation-audit{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin:0;font-size:11px;color:var(--text-subtle,var(--text-muted))}
 @media(max-width:940px){.inventory-reservation{grid-template-columns:1fr;gap:4px}.inventory-reservation-title h3{white-space:normal}.inventory-reservation-cell{white-space:normal}}

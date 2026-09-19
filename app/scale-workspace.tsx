@@ -287,10 +287,12 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
   return (
     <article className="client-hub-card" data-archived={client.active===false||undefined}>
       <header className="client-hub-head">
+        <div className="client-hub-identity">
         {selectable?<label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
         <button type="button" className="client-hub-open" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
           <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
         </button>
+        </div>
         <span className="client-status" data-status={state.value}>{state.label}</span>
       </header>
       <dl className="client-hub-facts">
@@ -1002,7 +1004,7 @@ export default function Home() {
         </div>
         <header className="workspace-page-header">
           {active==='Clientes' ? <ClientDirectoryToolbar
-            canCreate={['owner','admin','management','sales'].includes(user?.role||'')}
+            canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
             onCreate={()=>setModal('client')}
             onQueryChange={setClientSearch}
             onStatusChange={setClientStatusFilter}

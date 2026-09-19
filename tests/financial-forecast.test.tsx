@@ -54,7 +54,7 @@ async function run(){
  assert.equal(renderer.root.findAllByType(SelectCustom).length,7,'horizon buttons keep the expense form selects in place');
  act(()=>horizonButtons[1].props.onClick());
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09&months=3','horizon changes fetch months');await respond(requests.at(-1)!,multiFixture);
- assert.match(rendered(),/Proyección de caja y resultado/);assert.match(rendered(),/1,860/);assert.match(rendered(),/2,060/);assert.match(rendered(),/−/,'negative projection renders a minus sign');assert.match(rendered(),/09\/2026/);
+ assert.match(rendered(),/Proyección de caja y resultado/);assert.match(rendered(),/1,860/);assert.match(rendered(),/2,060/);assert.match(rendered(),/−/,'negative projection renders a minus sign');assert.match(rendered(),/01-sept/);
  assert.equal(renderer.root.findAllByType('table').length,2,'one compact table per currency');
  assert.match(rendered(),/Sin factura/,'contracted clients remain visible in the horizon view');
  assert.equal(renderer.root.findAllByType(SelectCustom).length,0,'month tools hide in the horizon view');

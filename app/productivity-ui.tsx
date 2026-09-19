@@ -56,7 +56,7 @@ const errorText=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar'
 const states=[{value:'blocked',label:'Bloqueado'},{value:'to_record',label:'Por grabar'},{value:'recorded',label:'Grabado'},{value:'editing',label:'Editando'},{value:'review',label:'Listo para revisión'}];
 const workTypeLabels:Record<string,string>={video:'Video',reedicion:'Reedición',foto:'Foto',produccion:'Producción',entregable:'Entregable'};
 const workTypeChoices=[{value:'',label:'Sin clasificar'},...Object.entries(workTypeLabels).map(([value,label])=>({value,label}))];
-const managers=['owner','admin','management','production'];
+const managers=['owner','admin','management','production','collaborator'];
 const makers=[...managers,'editor'];
 const localDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 function usePeople(){const [people,setPeople]=useState<Row[]>([]);useEffect(()=>{let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive)setPeople(d.people);}).catch(()=>{});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[]);return [{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email')}))];}
@@ -125,7 +125,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
  },[id,role]);
  const sinceValue=summary?.relationshipStartedOn||(data?String(data.client.created_at||'').slice(0,10):'');
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error">{error}</p>}{data?<>
-  {['owner','admin','management','sales'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
+  {['owner','admin','management','sales','finance'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
   <p>{s(data.client,'email')} · {s(data.client,'phone')}</p><WhatsAppButton className="client-whatsapp" href={whatsappUrl(s(data.client,'phone'))}/><p>{s(data.client,'notes')}</p>
   {summary&&<section className="client-summary" aria-label="Resumen comercial del cliente">
    <div className="client-summary-grid">

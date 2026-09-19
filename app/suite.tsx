@@ -57,7 +57,7 @@ type PlanTermsResponse={clientId:string;archived:boolean;terms:PlanTerms|null;pl
 export function RecordEditor({kind,recordId,name,refresh,role}:{kind:'clients'|'projects'|'work-orders';recordId:string;name?:string;refresh:()=>Promise<void>;role:string}){
  const [record,setRecord]=useState<Row|null>(null),[error,setError]=useState('');
  const [planData,setPlanData]=useState<PlanTermsResponse|null>(null),[planError,setPlanError]=useState('');
- const permitted=kind==='clients'?['owner','admin','management','sales','collaborator']:kind==='projects'?['owner','admin','management','production','collaborator']:['owner','admin','management','production','editor','collaborator'];
+ const permitted=kind==='clients'?['owner','admin','management','sales','finance','collaborator']:kind==='projects'?['owner','admin','management','production','collaborator']:['owner','admin','management','production','editor','collaborator'];
  const canPlan=kind==='clients'&&['owner','admin','management','finance'].includes(role);
  async function open(){setError('');setPlanError('');setPlanData(null);try{const loaded=(await api<{record:Row}>(`/api/agency/${kind}/${recordId}`)).record;setRecord(loaded);if(canPlan)try{setPlanData(await api<PlanTermsResponse>(`/api/agency/clients/${recordId}/commercial-terms`));}catch(e){setPlanError(err(e));}}catch(e){setError(err(e));}}
  if(!permitted.includes(role))return null;

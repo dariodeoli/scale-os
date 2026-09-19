@@ -27,7 +27,7 @@
 .work-list-row>input[type=checkbox]{width:20px;height:20px;flex:none}
 .work-list-row>.text-button{flex:1;min-width:0;text-align:left;font-size:13px}
 .work-list-row small{display:block;font-weight:400;color:var(--text-muted);font-size:11px}
-.work-list-row time,.work-list-row>span{font-size:11px;color:var(--text-muted)}
+.work-list-row time,.work-list-row>span{font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .ops-select-options [role=listbox]{display:grid}.ops-select-options input{position:sticky;top:0;background:var(--surface)}
 @media(max-width:760px){.detail-drawer-overlay .ops-dialog.unified-dialog{border-radius:0}.work-list-row{flex-wrap:wrap;gap:8px}.work-list-row>.text-button{flex-basis:70%}.work-planner .panel-heading{flex-wrap:wrap}.work-planner .choice{min-height:44px}}
 

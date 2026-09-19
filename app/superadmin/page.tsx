@@ -24,7 +24,7 @@ import {
 import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
 import "./platform-admin.css";
-import { platformApi, subscriptionExpiry } from "../platform-admin-api";
+import { platformApi, subscriptionExpiry, asuncionInput } from "../platform-admin-api";
 import { Dialog } from "../dialog";
 
 type Overview = {
@@ -149,7 +149,7 @@ function platformDate(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return "—";
   const date = new Date(value);
   return Number.isFinite(date.getTime())
-    ? new Intl.DateTimeFormat("es-PY", { dateStyle: "medium" }).format(date)
+    ? new Intl.DateTimeFormat("es-PY", { dateStyle: "medium", timeZone: "America/Asuncion" }).format(date)
     : "—";
 }
 
@@ -382,7 +382,7 @@ export default function PlatformAdmin() {
       setSubscriptionReason(data.subscription?.internal_reason || "");
       setSubscriptionExpiryValue(
         data.subscription?.internal_expires_at
-          ? data.subscription.internal_expires_at.slice(0, 16)
+          ? asuncionInput(data.subscription.internal_expires_at)
           : "",
       );
     } catch (cause) {

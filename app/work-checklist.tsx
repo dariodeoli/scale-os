@@ -9,7 +9,7 @@ export type WorkChecklistItem={id:string;text:string;completed:boolean;completed
 export type WorkChecklistSnapshot={version:string;items:WorkChecklistItem[];total:number;completed:number;max_items:number};
 export type WorkChecklistProps={id:string|number;organizationId:string|number;role:string;refresh?:()=>Promise<void>|void};
 const readers=['owner','admin','management','finance','sales','production','editor','viewer'];
-const writers=['owner','admin','management','production','editor'];
+const writers=['owner','admin','management','production','editor','collaborator'];
 class ChecklistError extends Error {constructor(message:string,readonly status:number){super(message);}}
 const message=(error:unknown)=>error instanceof Error?error.message:'No se pudo cargar el checklist';
 async function request(path:string,init:RequestInit={}):Promise<WorkChecklistSnapshot>{
