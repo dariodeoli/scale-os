@@ -31,7 +31,7 @@ export async function cropImage(source:string,area:Area):Promise<string>{
 }
 export function PhotoCropper({source,name,close,save}:{source:string;name:string;close:()=>void;save:(photo:string)=>Promise<void>}){
  const [crop,setCrop]=useState({x:0,y:0}),[zoom,setZoom]=useState(1),[area,setArea]=useState<Area|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
- return <Dialog title={`Ajustar foto de ${name}`} close={()=>{if(!busy)close();}}>
+ return <Dialog title={`Ajustar foto de ${name}`} busy={busy} close={()=>{if(!busy)close();}}>
   <p className="form-note">Mové la foto con el mouse, el dedo o las flechas. El círculo muestra cómo se verá tu perfil.</p>
   <div className="profile-crop-stage"><Cropper image={source} crop={crop} zoom={zoom} aspect={1} objectFit="cover" restrictPosition cropShape="round" showGrid={false} minZoom={1} maxZoom={3} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_,pixels)=>setArea(pixels)} disableAutomaticStylesInjection zoomWithScroll={false} cropperProps={{'aria-label':'Mover encuadre de la foto'}} mediaProps={{onError:()=>setError('No se pudo abrir la foto. Volvé a elegir el archivo.')}}/></div>
   {area&&Math.min(area.width,area.height)<256&&<p className="form-note" role="status">Este encuadre tiene pocos píxeles. Reducí el zoom o elegí la foto original para mayor nitidez.</p>}

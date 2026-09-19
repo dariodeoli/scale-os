@@ -11,6 +11,8 @@ const FooterContext=createContext<HTMLElement|null>(null);
 const OverlayContext=createContext<symbol[]>([]);
 type OverlayEntry={id:symbol;panel:RefObject<HTMLElement>;previous:HTMLElement|null;parents:symbol[]};
 const overlays:OverlayEntry[]=[];
+const overlayListeners=new Set<()=>void>();
+const notifyOverlayChange=()=>{overlayListeners.forEach(listener=>listener());};
 const focusSelector='button,input:not([type="hidden"]),select,textarea,a[href],summary,[tabindex],[contenteditable="true"]';
 function focusable(panel:HTMLElement|null){
  return Array.from(panel?.querySelectorAll?.<HTMLElement>(focusSelector)||[]).filter(el=>
@@ -27,6 +29,9 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
  const id=useRef(Symbol('overlay')).current,parents=useContext(OverlayContext);
  const closeRef=useRef(close),busyRef=useRef(busy);closeRef.current=close;busyRef.current=busy;
  const requestClose=useCallback(()=>{if(layers.isTop(id)&&!busyRef.current)closeRef.current();},[id]);
+ // aria-modal belongs to the top layer only; nested dialogs stay mounted until their child closes.
+ const [isTop,setIsTop]=useState(true);
+ useEffect(()=>{const update=()=>setIsTop(layers.isTop(id));overlayListeners.add(update);update();return()=>{overlayListeners.delete(update);};},[id]);
  useEffect(()=>{
   const element=panel.current;
   const entry:OverlayEntry={id,panel,previous:document.activeElement as HTMLElement|null,parents};
@@ -36,6 +41,7 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
   if(childIndex>=0)entry.previous=overlays[childIndex].previous;
   overlays.splice(childIndex<0?overlays.length:childIndex,0,entry);
   overlays.forEach(item=>layers.remove(item.id));overlays.forEach(item=>layers.add(item.id));
+  notifyOverlayChange();
   document.body.style.overflow='hidden';
   if(layers.isTop(id))focusFirst(panel.current);
   const keyboard=(event:KeyboardEvent)=>{
@@ -60,6 +66,7 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
   return()=>{
    const wasTop=layers.isTop(id);
    layers.remove(id);overlays.splice(overlays.indexOf(entry),1);
+   notifyOverlayChange();
    document.removeEventListener('keydown',keyboard);document.removeEventListener('focusin',containFocus);
    // If a covered parent disappears, retain its external trigger for the surviving child.
    overlays.forEach(item=>{if(element?.contains?.(item.previous))item.previous=entry.previous;});
@@ -71,7 +78,7 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
    }
   };
  },[id,panel,parents,requestClose]);
- return {id,parents,requestClose};
+ return {id,parents,requestClose,isTop};
 }
 /** Existing photo/navigation consumers may ignore the returned guarded dismiss callback. */
 export function useOverlay(panel:RefObject<HTMLElement>,close:()=>void,options:OverlayOptions={}){
@@ -94,11 +101,11 @@ export function Dialog({title,close,children,variant='modal',busy=false,size='de
  const guardedClose=useCallback(()=>{if(!pendingForms.current.size)close();},[close]);
  // The registry ref releases synchronously in child layout effects, before an Editor's
  // post-save passive effect requests close; rendering aria-busy must not delay it.
- const {id,parents,requestClose}=useOverlayState(panel,guardedClose,{busy});
+ const {id,parents,requestClose,isTop}=useOverlayState(panel,guardedClose,{busy});
  const setPending=useCallback((id:symbol,pending:boolean)=>{if(pending)pendingForms.current.add(id);else pendingForms.current.delete(id);setFormBusy(pendingForms.current.size>0);},[]);
  const controls=useMemo(()=>({requestClose,setPending}),[requestClose,setPending]);
  const ancestry=useMemo(()=>[...parents,id],[parents,id]);
- return createPortal(<div className={`ops-overlay${variant==='drawer'?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal="true" aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
+ return createPortal(<div className={`ops-overlay${variant==='drawer'?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal={isTop?'true':undefined} aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
   <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} aria-label="Cerrar"><X size={18}/></button></div>
   <OverlayContext.Provider value={ancestry}><DialogContext.Provider value={controls}><FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider></DialogContext.Provider></OverlayContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>

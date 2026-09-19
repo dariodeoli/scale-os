@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {money as formatMoney} from "../operations";
 import { useRouter } from "next/navigation";
@@ -28,6 +28,7 @@ import { platformApi, subscriptionExpiry, asuncionInput } from "../platform-admi
 import { decimalInput, digitsOnly } from "../field-rules";
 import { SelectCustom } from "../profile-controls";
 import { Dialog } from "../dialog";
+import { SaveActions } from "../save-actions";
 
 type Overview = {
   agencies: { total: number; active: number };
@@ -212,6 +213,8 @@ export default function PlatformAdmin() {
   );
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState("");
+  const subscriptionRequest = useRef(0);
   const [subscriptionState, setSubscriptionState] = useState<
     "active" | "suspended" | "clear"
   >("active");
@@ -327,6 +330,7 @@ export default function PlatformAdmin() {
   }
   async function removeConfirmed() {
     if (
+      busy ||
       !confirming ||
       typed !== (confirming.kind === "user" ? confirming.person.email : confirming.agency.name)
     )
@@ -370,7 +374,10 @@ export default function PlatformAdmin() {
   }
 
   async function manageSubscription(agency: Agency) {
+    // A slow response for a previous agency must never overwrite the current one.
+    const generation = ++subscriptionRequest.current;
     setError("");
+    setSubscriptionError("");
     setSubscriptionAgency(agency);
     setSubscription(null);
     setSubscriptionLoaded(false);
@@ -378,6 +385,7 @@ export default function PlatformAdmin() {
       const data = await platformApi<{ subscription: Subscription | null }>(
         `/api/platform/agencies/${agency.id}/subscription`,
       );
+      if (generation !== subscriptionRequest.current) return;
       setSubscription(data.subscription);
       setSubscriptionLoaded(true);
       setSubscriptionState(data.subscription?.internal_state || "active");
@@ -388,8 +396,9 @@ export default function PlatformAdmin() {
           : "",
       );
     } catch (cause) {
+      if (generation !== subscriptionRequest.current) return;
       if (!handlePlatformError(cause))
-        setError("No pudimos cargar el estado manual.");
+        setSubscriptionError("No pudimos cargar el estado manual.");
     }
   }
 
@@ -806,15 +815,30 @@ export default function PlatformAdmin() {
           {subscriptionAgency ? (
             <Dialog
               title={`Estado manual · ${subscriptionAgency.name}`}
+              busy={busy}
               close={() => {
                 if (!busy) {
+                  subscriptionRequest.current += 1;
                   setSubscriptionAgency(null);
                   setSubscription(null);
                   setSubscriptionLoaded(false);
+                  setSubscriptionError("");
                 }
               }}
             >
-          {!subscriptionLoaded ? (
+          {subscriptionError ? (
+            <div>
+              <p className="error" role="alert">{subscriptionError}</p>
+              <button
+                type="button"
+                className="text-button"
+                disabled={busy}
+                onClick={() => void manageSubscription(subscriptionAgency)}
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : !subscriptionLoaded ? (
             <p role="status">Cargando estado manual…</p>
           ) : subscription === null ? (
             <p className="form-note">
@@ -824,6 +848,7 @@ export default function PlatformAdmin() {
           ) : (
             <form
               className="platform-admin-subscription-form"
+              aria-busy={busy}
               onSubmit={saveSubscription}
             >
               <p className="form-note">
@@ -860,21 +885,24 @@ export default function PlatformAdmin() {
                   </label>
                 </>
               ) : null}
-              <button
-                className="primary"
-                disabled={
-                  busy ||
-                  (subscriptionState !== "clear" &&
-                    subscriptionReason.trim().length < 3)
-                }
-              >
-                {busy ? "Guardando…" : "Guardar estado manual"}
-              </button>
+              <SaveActions pending={busy} cancelLabel={false}>
+                <button
+                  className="primary"
+                  disabled={
+                    busy ||
+                    (subscriptionState !== "clear" &&
+                      subscriptionReason.trim().length < 3)
+                  }
+                >
+                  {busy ? "Guardando…" : "Guardar estado manual"}
+                </button>
+              </SaveActions>
             </form>
           )}
           {subscriptionLoaded ? (
             <form
               className="platform-admin-subscription-form"
+              aria-busy={busy}
               onSubmit={saveExtension}
             >
               <p className="form-note">
@@ -895,12 +923,14 @@ export default function PlatformAdmin() {
                   placeholder="Ej.: Transferencia bancaria"
                 />
               </label>
-              <button
-                className="primary"
-                disabled={busy || extendReason.trim().length < 3}
-              >
-                {busy ? "Guardando…" : "Marcar pago manual"}
-              </button>
+              <SaveActions pending={busy} cancelLabel={false}>
+                <button
+                  className="primary"
+                  disabled={busy || extendReason.trim().length < 3}
+                >
+                  {busy ? "Guardando…" : "Marcar pago manual"}
+                </button>
+              </SaveActions>
             </form>
           ) : null}
             </Dialog>
@@ -924,6 +954,12 @@ export default function PlatformAdmin() {
                 </p>
               )}
               <ul className="platform-admin-list">
+                {state.users.length ? (
+                  <li className="platform-admin-list-head" aria-hidden="true">
+                    <span>Usuario</span>
+                    <span>Acciones</span>
+                  </li>
+                ) : null}
                 {state.users.length ? (
                   state.users.map((person) => (
                     <li key={person.id}>
@@ -1072,6 +1108,12 @@ export default function PlatformAdmin() {
               </p>
               <ul className="platform-admin-list">
                 {state.coupons.length ? (
+                  <li className="platform-admin-list-head" aria-hidden="true">
+                    <span>Cupón</span>
+                    <span>Acciones</span>
+                  </li>
+                ) : null}
+                {state.coupons.length ? (
                   state.coupons.map((item) => (
                     <li key={item.id}>
                       <span>
@@ -1216,7 +1258,9 @@ export default function PlatformAdmin() {
                 : "Eliminar usuario"
               : "Eliminar agencia"
           }
+          busy={busy}
           close={() => {
+            if (busy) return;
             setConfirming(null);
             setTyped("");
           }}

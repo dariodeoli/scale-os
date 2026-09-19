@@ -602,8 +602,33 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   flex: none;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.platform-admin-list-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.platform-admin-list li.platform-admin-list-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  align-items: center;
+  padding-block: 2px 6px;
+  color: var(--platform-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.platform-admin-list li.platform-admin-list-head span:last-child {
+  justify-self: end;
 }
 
 .platform-admin-empty {
@@ -911,6 +936,17 @@
     flex-direction: row;
     justify-content: space-between;
   }
+
+  .platform-admin-list li.platform-admin-list-head {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .platform-admin-list li .platform-admin-user-actions .text-button,
+  .platform-admin-list-actions .text-button {
+    min-height: 44px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -938,7 +974,8 @@ html[data-theme="dark"] .platform-admin-coupon{border-color:#3a2c22;background:r
 html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--surface-raised)}
 
 /* Global access actions per user and destructive confirmations. */
-.platform-admin-user-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:2px 8px;flex:none;max-width:55%}
+.platform-admin-user-actions{display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-end;gap:2px 8px;flex:none;max-width:55%;min-width:0;overflow-x:auto;scrollbar-width:none}
+.platform-admin-user-actions::-webkit-scrollbar{display:none}
 .platform-admin-list li .platform-admin-user-actions .text-button{min-height:34px}
 .platform-admin-danger{color:var(--danger)!important}
 .platform-admin-danger:hover{color:var(--danger)!important}
@@ -973,7 +1010,8 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 .platform-admin-list li+li{margin-top:4px}
 .platform-admin-list li:hover{background:var(--platform-surface-muted);border-color:color-mix(in srgb,var(--platform-line) 70%,transparent)}
 .platform-admin-list small{color:var(--platform-muted)}
-.platform-admin-list-actions{display:inline-flex;align-items:center;gap:6px;flex:none}
+.platform-admin-list-actions{display:inline-flex;align-items:center;gap:6px;flex:none;flex-wrap:nowrap;max-width:100%;min-width:0;overflow-x:auto;scrollbar-width:none}
+.platform-admin-list-actions::-webkit-scrollbar{display:none}
 .platform-admin-badge{border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700}
 .platform-admin-coupon{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(120px,.7fr) minmax(110px,.6fr) auto auto;gap:10px;align-items:end;padding:14px 20px;border-bottom:1px solid var(--platform-line);background:var(--platform-surface-muted)}
 .platform-admin-coupon label{display:grid;gap:5px;font-size:12px;font-weight:600;color:var(--platform-muted)}
