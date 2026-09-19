@@ -1172,7 +1172,7 @@ export default function Home() {
                     />
                   ))}
                 </div>
-                <DragOverlay>{draggedOrderId&&<article className="work-card" style={{width:280}}><strong>{orders.find(o=>String(o.id)===draggedOrderId)?.title}</strong><p>{orders.find(o=>String(o.id)===draggedOrderId)?.client_name}</p></article>}</DragOverlay>
+                <DragOverlay>{draggedOrderId&&<article className="work-card is-overlay"><strong>{orders.find(o=>String(o.id)===draggedOrderId)?.title}</strong><p>{orders.find(o=>String(o.id)===draggedOrderId)?.client_name}</p></article>}</DragOverlay>
               </DndContext></BoardPresence>
               <p className="board-note">
                 Arrastrá una orden de una columna a otra para actualizar su
