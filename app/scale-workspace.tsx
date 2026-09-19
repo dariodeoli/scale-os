@@ -364,6 +364,8 @@ export default function Home() {
   const [workspaceScope,setWorkspaceScope]=useState('');
   const [guideData,setGuideData]=useState<WorkspaceGuideData>({scope:null,status:'unknown'});
   const dataLoadSequence=useRef(0);
+  const [projectsState,setProjectsState]=useState<'loading'|'ready'|'error'>('loading');
+  useEffect(()=>{setProjectsState(guideData.status==='error'?'error':guideData.status==='ready'?'ready':'loading');},[guideData.status]);
   const orderMutationVersions=useRef(new Map<string,number>());
   const orderMutationQueue=useRef(new Map<string,Promise<void>>());
   const guideProps={userId:user?.id,organizationId:user?.organization_id,role:user?.role||'viewer',demo:!!user?.demo_owner_user_id,data:guideData,navigate:setActive};
@@ -460,7 +462,9 @@ export default function Home() {
   const [productionView,setProductionView]=useState("Tablero");
   useEffect(()=>{const read=()=>{const v=new URLSearchParams(window.location.search).get("vista");setProductionView(["Mi día","Calendario","Lista y lotes"].includes(v||"")?v!:"Tablero");};read();window.addEventListener("popstate",read);return()=>window.removeEventListener("popstate",read);},[pathname]);
   const changeProductionView=(v:string)=>{setProductionView(v);const url=new URL(window.location.href);if(v==="Tablero")url.searchParams.delete("vista");else url.searchParams.set("vista",v);window.history.replaceState(window.history.state,"",url);};
+  const [budgetsState, setBudgetsState] = useState<'loading'|'ready'|'error'>('loading');
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [financeState, setFinanceState] = useState<'loading'|'ready'|'error'>('loading');
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [transfers, setTransfers] = useState<AccountTransfer[]>([]);
@@ -474,8 +478,10 @@ export default function Home() {
   const [allInvoicesLoaded, setAllInvoicesLoaded] = useState(false);
   const [moraFilter, setMoraFilter] = useState("");
   const [moraSearch, setMoraSearch] = useState("");
+  const [moraUpdated, setMoraUpdated] = useState<Date | null>(null);
   const [projectClientFilter, setProjectClientFilter] = useState("");
   const [commercialSummary, setCommercialSummary] = useState<CommercialDashboard | null>(null);
+  const [commercialState, setCommercialState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [moraReports, setMoraReports] = useState<ReportsData | null>(null);
   const [moraReportsError, setMoraReportsError] = useState(false);
   const moraBuckets = useMemo(() => {
@@ -543,6 +549,7 @@ export default function Home() {
   const visibleProjects = projectClientFilter ? projects.filter(project => project.client_id === projectClientFilter) : projects;
   const liveProjects = visibleProjects.filter(project => project.active !== false);
   const archivedProjects = visibleProjects.filter(project => project.active === false);
+  const financeEmpty = !accounts.length && !invoices.length && !transfers.length && !payments.length;
   const stageCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const order of orders) counts.set(order.status, (counts.get(order.status) || 0) + 1);
@@ -648,7 +655,10 @@ export default function Home() {
     if (!canSeeBilling) { setPaymentStatuses([]); return; }
     if (operationalAccess && (active === "Mora" || active === "Clientes")) {
       request<{ clients: ClientPaymentStatus[] }>("/api/agency/client-payment-status")
-        .then((data) => setPaymentStatuses(listOf<ClientPaymentStatus>(data?.clients)))
+        .then((data) => {
+          setPaymentStatuses(listOf<ClientPaymentStatus>(data?.clients));
+          setMoraUpdated(new Date());
+        })
         .catch((cause) =>
           setToast(
             cause instanceof Error
@@ -667,38 +677,48 @@ export default function Home() {
   useEffect(() => {
     if (operationalAccess && active === "Clientes" && ["owner", "admin", "management", "sales", "finance"].includes(user?.role || "")) {
       setCommercialSummary(null);
+      setCommercialState('loading');
       request<unknown>("/api/agency/control-center")
-        .then((value) => setCommercialSummary(normalizeCommercialDashboard(value)))
-        .catch(() => setCommercialSummary(null));
+        .then((value) => {setCommercialSummary(normalizeCommercialDashboard(value));setCommercialState('ready');})
+        .catch(() => {setCommercialSummary(null);setCommercialState('error');});
     }
   }, [active, operationalAccess, user?.role]);
+  async function loadBudgets() {
+    setBudgetsState('loading');
+    try {
+      const data = await request<{ budgets: Budget[] }>("/api/agency/budgets");
+      setBudgets(listOf<Budget>(data?.budgets));
+      setBudgetsState('ready');
+    } catch (cause) {
+      setBudgetsState('error');
+      setToast(cause instanceof Error ? cause.message : "No se pudieron cargar los presupuestos.");
+    }
+  }
   useEffect(() => {
-    if (operationalAccess && active === "Presupuestos")
-      request<{ budgets: Budget[] }>("/api/agency/budgets")
-        .then((data) => setBudgets(listOf<Budget>(data?.budgets)))
-        .catch((cause) =>
-          setToast(
-            cause instanceof Error
-              ? cause.message
-              : "No se pudieron cargar los presupuestos.",
-          ),
-        );
+    if (operationalAccess && active === "Presupuestos") void loadBudgets();
   }, [active, operationalAccess]);
   async function loadFinance() {
-    const [accountData, invoiceData, transferData, paymentData, custodianData] =
-      await Promise.all([
-        request<{ accounts: Account[] }>("/api/agency/accounts"),
-        request<{ invoices: Invoice[]; hasMore?: boolean }>(`/api/agency/invoices${allInvoicesLoaded ? "?limit=all" : ""}`),
-        request<{ transfers: AccountTransfer[] }>("/api/agency/transfers"),
-        request<{ payments: PaymentRecord[] }>("/api/agency/payments"),
-        request<{ members: Member[] }>("/api/agency/custodians"),
-      ]);
-    setAccounts(listOf<Account>(accountData?.accounts));
-    setInvoices(listOf<Invoice>(invoiceData?.invoices));
-    setInvoiceHasMore(invoiceData?.hasMore===true);
-    setTransfers(listOf<AccountTransfer>(transferData?.transfers));
-    setPayments(listOf<PaymentRecord>(paymentData?.payments));
-    setCustodians(listOf<Member>(custodianData?.members));
+    setFinanceState('loading');
+    try {
+      const [accountData, invoiceData, transferData, paymentData, custodianData] =
+        await Promise.all([
+          request<{ accounts: Account[] }>("/api/agency/accounts"),
+          request<{ invoices: Invoice[]; hasMore?: boolean }>(`/api/agency/invoices${allInvoicesLoaded ? "?limit=all" : ""}`),
+          request<{ transfers: AccountTransfer[] }>("/api/agency/transfers"),
+          request<{ payments: PaymentRecord[] }>("/api/agency/payments"),
+          request<{ members: Member[] }>("/api/agency/custodians"),
+        ]);
+      setAccounts(listOf<Account>(accountData?.accounts));
+      setInvoices(listOf<Invoice>(invoiceData?.invoices));
+      setInvoiceHasMore(invoiceData?.hasMore===true);
+      setTransfers(listOf<AccountTransfer>(transferData?.transfers));
+      setPayments(listOf<PaymentRecord>(paymentData?.payments));
+      setCustodians(listOf<Member>(custodianData?.members));
+      setFinanceState('ready');
+    } catch (cause) {
+      setFinanceState('error');
+      throw cause;
+    }
   }
   useEffect(() => {
     if (operationalAccess && active === "Finanzas")
@@ -1152,7 +1172,7 @@ export default function Home() {
                     />
                   ))}
                 </div>
-                <DragOverlay>{draggedOrderId&&<article className="work-card" style={{width:280,padding:16,boxShadow:"0 12px 30px #0003"}}><strong>{orders.find(o=>String(o.id)===draggedOrderId)?.title}</strong><p>{orders.find(o=>String(o.id)===draggedOrderId)?.client_name}</p></article>}</DragOverlay>
+                <DragOverlay>{draggedOrderId&&<article className="work-card" style={{width:280}}><strong>{orders.find(o=>String(o.id)===draggedOrderId)?.title}</strong><p>{orders.find(o=>String(o.id)===draggedOrderId)?.client_name}</p></article>}</DragOverlay>
               </DndContext></BoardPresence>
               <p className="board-note">
                 Arrastrá una orden de una columna a otra para actualizar su
@@ -1167,7 +1187,7 @@ export default function Home() {
                 <p className="eyebrow">CRM · COBRANZAS</p>
                 <h2>Estado de pagos</h2>
               </div>
-              <span>Actualizado hoy</span>
+              {moraUpdated?<span>Actualizado {moraUpdated.toLocaleTimeString('es-PY',{timeZone:'America/Asuncion',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}</span>:null}
             </div>
             <div className="kpi-strip" aria-label="Semáforo de mora por antigüedad">
               {moraBuckets.map(bucket => (
@@ -1284,8 +1304,10 @@ export default function Home() {
               <article className="kpi-card tone-brand">
                 <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
                 {["owner", "admin", "finance"].includes(user?.role || "") ? (
-                  commercialSummary === null ? (
-                    <strong>Calculando…</strong>
+                  commercialState === 'error' ? (
+                    <strong role="alert">No se pudo cargar</strong>
+                  ) : commercialSummary === null ? (
+                    <strong role="status">Calculando…</strong>
                   ) : commercialSummary.expectedMonthlyBilling === undefined ? (
                     <strong>No disponible</strong>
                   ) : commercialSummary.expectedMonthlyBilling.length ? (
@@ -1373,19 +1395,27 @@ export default function Home() {
               </article>
             </div>
             {canManageProjects&&liveProjects.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedProjects.length?<><b>{selectedProjects.length}</b> seleccionado{selectedProjects.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleProjects}>Seleccionar visibles</button>{selectedProjects.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedProjects([])}>Limpiar</button></>:null}</div></div>:null}
+            {projectsState === 'error' && projects.length ? <p className="error" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={()=>void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los proyectos.'))}>Reintentar</button></p> : null}
             <div className={projectView==='grid'?'project-grid':'project-list'}>
               {projectView==='list'?<div className="project-entry-head" aria-hidden="true"><span>Proyecto</span><span>Estado</span><span>Fechas y piezas</span><span>Responsables</span><span>Acciones</span></div>:null}
               {liveProjects.map(project => projectEntry(project))}
               {!visibleProjects.length ? (
-                <p className="empty-copy">
-                  {projectClientFilter ? "Este cliente no tiene proyectos." : "Creá un proyecto después de cargar un cliente."}
-                </p>
+                projectsState === 'loading' && !projects.length ? (
+                  <p role="status">Cargando proyectos…</p>
+                ) : projectsState === 'error' && !projects.length ? (
+                  <p className="error" role="alert">No se pudieron cargar los proyectos. <button type="button" className="text-button" onClick={()=>void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los proyectos.'))}>Reintentar</button></p>
+                ) : (
+                  <p className="empty-copy">
+                    {projectClientFilter ? "Este cliente no tiene proyectos." : "Creá un proyecto después de cargar un cliente."}
+                  </p>
+                )
               ) : null}
             </div>
             {archivedProjects.length ? (
               <details className="archived-capsule">
                 <summary>Archivados ({archivedProjects.length})</summary>
                 <div className={projectView==='grid'?'project-grid':'project-list'}>
+                  {projectView==='list'?<div className="project-entry-head" aria-hidden="true"><span>Proyecto</span><span>Estado</span><span>Fechas y piezas</span><span>Responsables</span><span>Acciones</span></div>:null}
                   {archivedProjects.map(project => projectEntry(project))}
                 </div>
               </details>
@@ -1421,6 +1451,7 @@ export default function Home() {
               </article>
             </div>
             <p className="directory-summary">{budgets.length} presupuestos · Propuestas y aprobaciones</p>
+            {budgetsState === 'error' && budgets.length ? <p className="error" role="alert">No se pudieron actualizar los presupuestos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={()=>void loadBudgets()}>Reintentar</button></p> : null}
             <div className="budget-hub-grid">
               {budgets.length ? (
                 budgets.map((budget) => (
@@ -1433,13 +1464,17 @@ export default function Home() {
                     <p className="budget-client">{budget.client_name}</p>
                     <dl className="budget-hub-facts">
                       <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
-                      <div><dt>Vigencia</dt><dd>{budget.valid_until?budget.valid_until.slice(0,10):'Sin fecha'}</dd></div>
+                      <div><dt>Vigencia</dt><dd>{budget.valid_until?listDateShort(budget.valid_until)||'Sin fecha':'Sin fecha'}</dd></div>
                       <div><dt>Sin IVA</dt><dd>{money(Number(budget.subtotal),budget.currency)}</dd></div>
                     </dl>
                     <strong className="budget-hub-total">{money(Number(budget.total),budget.currency)}<small>IVA incl.</small></strong>
                     <footer className="budget-hub-actions"><BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>
                   </article>
                 ))
+              ) : budgetsState === 'loading' ? (
+                <p role="status">Cargando presupuestos…</p>
+              ) : budgetsState === 'error' ? (
+                <p className="error" role="alert">No se pudieron cargar los presupuestos. <button type="button" className="text-button" onClick={()=>void loadBudgets()}>Reintentar</button></p>
               ) : (
                 <p className="empty-copy">
                   Todavía no hay presupuestos. Creá el primero con un valor sin
@@ -1451,6 +1486,14 @@ export default function Home() {
         )}
         {active === "Informes" && <ReportsWorkspace key={user?.organization_id} role={user?.role||'viewer'} organizationName={user?.organization_name||''}/>}
         {active === "Finanzas" && (<>
+          {financeEmpty && financeState !== 'ready' ? (
+            financeState === 'error' ? (
+              <section className="panel"><p className="error" role="alert">No se pudieron cargar las finanzas. <button type="button" className="text-button" onClick={()=>void loadFinance().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar las finanzas.'))}>Reintentar</button></p></section>
+            ) : (
+              <section className="panel"><p role="status">Cargando finanzas…</p></section>
+            )
+          ) : (<>
+            {financeState === 'error' ? <p className="error" role="alert">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <button type="button" className="text-button" onClick={()=>void loadFinance().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar las finanzas.'))}>Reintentar</button></p> : null}
           {(()=>{const availability=new Map<string,number>();for(const account of accounts)if(account.active!==false)availability.set(account.currency,(availability.get(account.currency)||0)+Number(account.balance));const receivable=new Map<string,number>();let pendingCount=0;for(const invoice of invoices){if(['paid','cancelled','draft'].includes(invoice.status))continue;const pending=Number(invoice.total)-Number(invoice.paid_amount);if(pending<=0)continue;receivable.set(invoice.currency,(receivable.get(invoice.currency)||0)+pending);pendingCount+=1;}return <div className="kpi-strip" aria-label="Resumen financiero">
             <article className="kpi-card tone-brand">
               <p className="eyebrow">DISPONIBLE</p>
@@ -1517,7 +1560,7 @@ export default function Home() {
                   Creá la primera cuenta para registrar cobros.
                 </p>
               )}
-              <div className="panel-heading">
+              <div className="section-caption">
                 <div>
                   <p className="eyebrow">TRAZABILIDAD</p>
                   <h3>Transferencias recientes</h3>
@@ -1534,7 +1577,7 @@ export default function Home() {
                           {transfer.to_account_name}
                         </b>
                         <small>
-                          {transfer.transferred_on} ·{" "}
+                          {listDateShort(transfer.transferred_on)||'—'} ·{" "}
                           <ActorIdentity name={transfer.actor_name||transfer.created_by_email} photoUrl={transfer.actor_photo_url} verified={transfer.actor_verified===true}/>
                           {transfer.reference ? ` · ${transfer.reference}` : ""}
                         </small>
@@ -1601,7 +1644,7 @@ export default function Home() {
                 </p>
               )}
               {invoiceHasMore&&<div className="inline-actions"><button className="secondary" type="button" onClick={()=>void loadAllInvoices()}>Ver todas las facturas</button></div>}
-              <div className="panel-heading">
+              <div className="section-caption">
                 <div>
                   <p className="eyebrow">COBROS REGISTRADOS</p>
                   <h3>Quién cobró y dónde quedó</h3>
@@ -1617,7 +1660,7 @@ export default function Home() {
                           {payment.client_name} · {payment.invoice_number}
                         </b>
                         <small>
-                          {payment.received_on} · {payment.account_name} (
+                          {listDateShort(payment.received_on)||'—'} · {payment.account_name} (
                           {payment.account_type}) · recibió{" "}
                           <ActorIdentity name={payment.actor_name||payment.received_by_email||'Sin asignar'} photoUrl={payment.actor_photo_url} verified={payment.actor_verified===true}/>
                           {payment.reference ? ` · ${payment.reference}` : ""}
@@ -1636,6 +1679,7 @@ export default function Home() {
             </section>
             <ReconciliationWorkspace accounts={accounts}/>
           </section>
+          </>)}
           </>
         )}
         {active==='Previsión'&&user&&<FinancialForecast role={user.role} organizationId={user.organization_id}/>}
