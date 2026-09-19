@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {ActorIdentity} from './actor-identity';
+import {listDateShort} from './list-format';
 
 export const automaticTypeLabels:Record<string,string>={video:'Videos',reedicion:'Reediciones',foto:'Fotos',produccion:'Producciones',entregable:'Entregables',untyped:'Sin tipo'};
 export const automaticTypes=Object.keys(automaticTypeLabels);
@@ -40,7 +41,7 @@ export function WeeklyAutomatic({role}:{role:string}){
    <h2>Producción semanal</h2>
    <p className="form-note">Terminadas de la semana, calculadas automáticamente desde los cambios de estado. Cada pieza cuenta una sola vez, en la semana en que pasó a terminada, atribuida a quien ejecutó el cambio. Sin horas: se cuentan piezas, no tiempo trabajado. Órdenes: piezas en las que se trabajó durante la semana, terminadas o no. Proyectos: distribución de las piezas terminadas por proyecto.</p>
    <div className="reports-filters"><label>Semana<input type="date" value={week} onChange={e=>{const w=weekMonday(e.target.value);if(w)setWeek(w);}}/></label></div>
-   <p className="reports-note">Del {week} al {lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</p>
+   <p className="reports-note">Del {listDateShort(week)||week} al {listDateShort(lastDay(week))||lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</p>
    {loading&&<p role="status">Cargando producción semanal…</p>}
    {error&&<div role="alert" className="reports-error"><p>{error}</p><button type="button" className="secondary" onClick={()=>setReload(v=>v+1)}>Reintentar</button></div>}
    {!loading&&!error&&!rows.length&&<p className="form-note">Sin piezas terminadas en esta semana.</p>}
