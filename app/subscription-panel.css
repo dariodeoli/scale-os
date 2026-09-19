@@ -11,4 +11,5 @@
 @media (prefers-reduced-motion:reduce){.subscription-panel .subscription-primary,.subscription-panel .subscription-secondary,.subscription-notice .subscription-secondary{transition-duration:.01ms}.subscription-panel .subscription-primary:active:not(:disabled),.subscription-panel .subscription-secondary:active:not(:disabled),.subscription-notice .subscription-secondary:active:not(:disabled){transform:none}}
 
 html[data-theme="dark"] .subscription-status--grace,html[data-theme="dark"] .subscription-status--suspended{--subscription-status-color:var(--warning)}
+html[data-theme="dark"] .subscription-panel .subscription-setup,html[data-theme="dark"] .subscription-panel .subscription-owner-help{color:var(--warning)}
 html[data-theme="dark"] .subscription-notice.subscription-status--grace .subscription-secondary{color:var(--warning)}

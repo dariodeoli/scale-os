@@ -12,7 +12,7 @@
 .activity-line small{color:var(--text-muted)}.activity-line p{white-space:pre-wrap;margin:0}
 /* Listas dentro de la ficha: fila finita con encabezado y plantilla compartida. */
 .drawer-list{--drawer-cols:minmax(0,1fr) auto}
-.drawer-list-head{display:grid;grid-template-columns:var(--drawer-cols);gap:4px 8px;padding:2px 2px 4px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.drawer-list-head{display:grid;grid-template-columns:var(--drawer-cols);gap:4px 8px;padding:2px 2px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .drawer-list-head span:last-child{justify-self:end}
 .drawer-list .activity-line{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:40px;padding:8px 0}
 .drawer-list .activity-line>span,.drawer-list .activity-line>small{justify-self:end;white-space:nowrap}

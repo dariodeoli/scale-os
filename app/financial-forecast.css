@@ -24,8 +24,9 @@
 .forecast-month-tools>section{margin:0;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:linear-gradient(180deg,var(--surface-raised,var(--surface)),var(--surface-subtle,#fbfafc));box-shadow:var(--shadow-xs)}
 @media(min-width:920px){.forecast-month-tools{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
 .forecast-horizon{display:flex;flex-wrap:wrap;gap:var(--ui-space-1)}
-.forecast-horizon button{min-height:38px;padding:0 12px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;background:var(--surface-raised,var(--surface));color:var(--text-strong,var(--text));font-size:.8rem;font-weight:600;cursor:pointer}
+.forecast-horizon button{min-height:40px;padding:0 12px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;background:var(--surface-raised,var(--surface));color:var(--text-strong,var(--text));font-size:.8rem;font-weight:600;cursor:pointer}
 .forecast-horizon button.is-active{background:var(--violet-soft);border-color:var(--brand-600)}
+@media(max-width:760px){.forecast-horizon button{min-height:44px}}
 .forecast-projection table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:var(--ui-space-2)}
 .forecast-projection th,.forecast-projection td{padding:7px 10px;text-align:right;border-top:1px solid var(--border-subtle,var(--line));font-variant-numeric:tabular-nums;white-space:nowrap}
 .forecast-projection thead th{color:var(--text-subtle);font-weight:600;border-top:0}
@@ -37,7 +38,7 @@
 @media(max-width:640px){.contracted-clients-list{grid-template-columns:1fr}}
 .contracted-clients-list li{display:grid;grid-template-columns:var(--contracted-cols);align-items:center;gap:4px 8px;min-height:44px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:6px 10px;font-size:.8rem}
 .contracted-clients-head{display:none}
-@media(min-width:861px){.contracted-clients-head{display:grid;grid-template-columns:var(--contracted-cols);gap:0 8px;padding:0 10px 4px;border:0;min-height:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.contracted-clients-head span:nth-child(n+2){justify-self:end}}
+@media(min-width:861px){.contracted-clients-head{display:grid;grid-template-columns:var(--contracted-cols);gap:0 8px;padding:0 10px 4px;border:0;min-height:0;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.contracted-clients-head span:nth-child(n+2){justify-self:end}}
 .contracted-clients-list li>span:nth-child(2),.contracted-clients-list li>span:nth-child(3){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 .contracted-clients-list li>em{justify-self:end}
 .contracted-clients-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -47,7 +48,7 @@
 .missing-invoice-chip{font-style:normal;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid color-mix(in srgb,var(--warning) 30%,transparent);background:var(--warning-soft);color:var(--warning)}
 .planned-expenses-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.75rem;align-items:end;margin-top:1rem}
 .planned-expenses-form label{display:grid;gap:.35rem;min-width:0;font-size:.8rem}.planned-expenses-form input,.planned-expenses-form select{box-sizing:border-box;width:100%;max-width:none}
-.planned-expenses-form button{min-height:2.75rem}.planned-expenses-note{grid-column:span 2}.planned-expenses-list{display:grid;gap:.5rem;padding:0;margin:1rem 0 0;list-style:none}.planned-expenses-list li{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:.75rem}.planned-expenses-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+.planned-expenses-form button{min-height:2.75rem}.planned-expenses-note{grid-column:span 2}.planned-expenses-list{display:grid;gap:.5rem;padding:0;margin:1rem 0 0;list-style:none;--planned-cols:minmax(0,1fr) auto}.planned-expenses-list li{display:grid;grid-template-columns:var(--planned-cols);align-items:center;gap:8px;min-height:44px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:.75rem}.planned-expenses-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
 @media(max-width:540px){.planned-expenses-note{grid-column:auto}.planned-expenses-form button{width:100%}}
 .forecast-balance{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
 .forecast-balance h3{margin:0}
@@ -80,7 +81,7 @@
 .forecast-person-total strong[data-negative]{color:var(--danger)}
 /* Alineación fija por columnas: el ajuste ausente reserva su lugar. */
 .forecast-personnel{--forecast-person-cols:minmax(150px,1.2fr) minmax(104px,.9fr) minmax(116px,.9fr) minmax(116px,.9fr) auto}
-.forecast-person-head{display:grid;grid-template-columns:var(--forecast-person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.forecast-person-head{display:grid;grid-template-columns:var(--forecast-person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .forecast-person-head span:last-child{justify-self:end}
 .forecast-person-who{display:flex;align-items:center;gap:var(--ui-space-2);min-width:0}
 .forecast-person-list-row{display:grid;grid-template-columns:var(--forecast-person-cols);align-items:center;gap:4px 8px}

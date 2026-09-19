@@ -46,10 +46,10 @@
 .mora-toolbar{display:flex;flex-wrap:wrap;gap:var(--ui-space-3);align-items:center;justify-content:space-between;margin-block:var(--ui-space-3)}
 .mora-search{min-width:min(280px,100%)}
 
-.client-list .client-row>span.client-row-amount{min-width:max-content;text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.client-list .client-row>span.client-row-amount{min-width:max-content;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* Mora: fila finita con su propio encabezado y plantilla compartida. */
 .mora-list{--mora-cols:2.25rem minmax(0,1fr) auto;border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
-.mora-list-head{display:grid;grid-template-columns:var(--mora-cols);gap:8px;padding:8px 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.mora-list-head{display:grid;grid-template-columns:var(--mora-cols);gap:8px;padding:8px 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .mora-list-head span:last-child{justify-self:end}
 .mora-list .client-row{display:grid;grid-template-columns:var(--mora-cols);align-items:center;gap:4px 8px;min-height:48px;padding:8px 12px;border-bottom:1px solid var(--border-subtle,var(--line))}
 .mora-list .client-row:last-child{border-bottom:0}
@@ -89,7 +89,7 @@
 .client-hub-list .client-hub-actions{grid-column:6;grid-row:1;justify-self:end;display:grid;grid-template-columns:repeat(2,auto);justify-items:end;gap:4px 8px;overflow:visible;margin-top:0;padding-top:0;border-top:0}
 .client-hub-list :is(.client-identity,.actor-identity){min-width:0}
 .client-hub-list :is(.client-identity-name,.actor-identity-name){white-space:normal;overflow-wrap:anywhere}
-.client-hub-head-row{display:grid;grid-template-columns:var(--client-cols);grid-column:1/-1;gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.client-hub-head-row{display:grid;grid-template-columns:var(--client-cols);grid-column:1/-1;gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .client-hub-head-row span:last-child{justify-self:end}
 @media(max-width:760px){.client-hub-list{overflow-x:auto;scrollbar-width:none}.client-hub-list::-webkit-scrollbar{display:none}.client-hub-list .client-hub-card,.client-hub-list .client-hub-head-row{min-width:44rem}.client-hub-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.client-hub-facts{grid-template-columns:1fr}}
