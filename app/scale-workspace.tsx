@@ -1226,7 +1226,8 @@ export default function Home() {
               </div>
               <SearchField className="mora-search" hideLabel label="Buscar cliente en cobranza" value={moraSearch} onChange={setMoraSearch} placeholder="Buscar cliente…"/>
             </div>
-            <div className="client-list">
+            <div className="client-list mora-list">
+              <div className="mora-list-head" aria-hidden="true"><span></span><span>Cliente</span><span>Pendiente</span></div>
               {visibleMoraClients.length ? (
                 visibleMoraClients.map((client, index) => (
                   <div

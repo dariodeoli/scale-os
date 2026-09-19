@@ -25,6 +25,7 @@ import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
 import "./platform-admin.css";
 import { platformApi, subscriptionExpiry, asuncionInput } from "../platform-admin-api";
+import { decimalInput, digitsOnly } from "../field-rules";
 import { Dialog } from "../dialog";
 
 type Overview = {
@@ -467,6 +468,13 @@ export default function PlatformAdmin() {
     event.preventDefault();
     setBusy(true);
     setError("");
+    const value = coupon.discount_value.trim();
+    const pattern = coupon.discount_type === "fixed" ? /^\d+(?:\.\d{1,2})?$/ : /^\d+$/;
+    if (!pattern.test(value) || (coupon.discount_type === "percent" && Number(value) > 100) || (coupon.discount_type === "days" && Number(value) > 365)) {
+      setError("Indicá un valor entero: porcentaje hasta 100, días hasta 365 o importe sin decimales.");
+      setBusy(false);
+      return;
+    }
     try {
       await platformApi("/api/platform/coupons", {
         method: "POST",
@@ -1085,10 +1093,11 @@ export default function PlatformAdmin() {
                   <input
                     value={coupon.discount_value}
                     inputMode={coupon.discount_type === "days" ? "numeric" : "decimal"}
+                    maxLength={coupon.discount_type === "fixed" ? 10 : 3}
                     onChange={(event) =>
                       setCoupon({
                         ...coupon,
-                        discount_value: event.target.value,
+                        discount_value: coupon.discount_type === "fixed" ? decimalInput(event.target.value) : digitsOnly(event.target.value).slice(0, 3),
                       })
                     }
                     required

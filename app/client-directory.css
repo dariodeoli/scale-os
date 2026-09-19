@@ -47,6 +47,14 @@
 .mora-search{min-width:min(280px,100%)}
 
 .client-list .client-row>span.client-row-amount{min-width:max-content;text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Mora: fila finita con su propio encabezado y plantilla compartida. */
+.mora-list{--mora-cols:2.25rem minmax(0,1fr) auto;border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
+.mora-list-head{display:grid;grid-template-columns:var(--mora-cols);gap:8px;padding:8px 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.mora-list-head span:last-child{justify-self:end}
+.mora-list .client-row{display:grid;grid-template-columns:var(--mora-cols);align-items:center;gap:4px 8px;min-height:48px;padding:8px 12px;border-bottom:1px solid var(--border-subtle,var(--line))}
+.mora-list .client-row:last-child{border-bottom:0}
+.mora-list .client-row>div{min-width:0}
+.mora-list .client-row .client-row-amount{justify-self:end}
 @media(max-width:620px){.mora-toolbar{gap:var(--ui-space-2)}.mora-search{min-width:100%}.client-list .client-row>span.client-row-amount{min-width:0;text-align:left}}
 
 /* Redesigned client directory: structured cards with a clear reading order. */
