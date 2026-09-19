@@ -45,7 +45,7 @@
 .contracted-client-name{display:grid;gap:1px;min-width:0}
 .contracted-client-name b{overflow-wrap:anywhere}
 .contracted-client-name small{color:var(--text-subtle)}
-.missing-invoice-chip{font-style:normal;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid color-mix(in srgb,var(--warning) 30%,transparent);background:var(--warning-soft);color:var(--warning)}
+.missing-invoice-chip{font-style:normal;border-color:color-mix(in srgb,var(--warning) 30%,transparent);background:var(--warning-soft);color:var(--warning)}
 .planned-expenses-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.75rem;align-items:end;margin-top:1rem}
 .planned-expenses-form label{display:grid;gap:.35rem;min-width:0;font-size:.8rem}.planned-expenses-form input,.planned-expenses-form select{box-sizing:border-box;width:100%;max-width:none}
 .planned-expenses-form button{min-height:2.75rem}.planned-expenses-note{grid-column:span 2}.planned-expenses-list{display:grid;gap:.5rem;padding:0;margin:1rem 0 0;list-style:none;--planned-cols:minmax(0,1fr) auto}.planned-expenses-list li{display:grid;grid-template-columns:var(--planned-cols);align-items:center;gap:8px;min-height:44px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:.75rem}.planned-expenses-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
