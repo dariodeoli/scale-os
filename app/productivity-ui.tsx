@@ -72,7 +72,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
   const fields:Field[]=[urgencyField,{key:'title',label:'Título'},{key:'description',label:'Descripción y notas',type:'textarea',optional:true},{key:'drive_links',label:'Enlaces de archivo o carpeta de Drive',type:'textarea',optional:true,wide:true},{key:'due_date',label:'Entrega',type:'date',optional:true},{key:'due_time',label:'Hora de entrega',type:'time',optional:true},{key:'work_type',label:'Tipo de trabajo',optional:true,choices:workTypeChoices},{key:'estimated_hours',label:'Horas estimadas',type:'number',optional:true},{key:'actual_hours',label:'Horas trabajadas',type:'number',optional:true}];
   return <Dialog variant="drawer" title={heading} close={close}>
    {error&&<p className="error" role="alert">{error}</p>}
-   {!order?<p>Cargando pieza…</p>:<>
+   {!order?<p role="status">Cargando pieza…</p>:<>
     <header className="work-hero">
       <div className="work-hero-top"><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/><UrgencyBadge value={order.urgency}/></div>
       <div className="work-hero-chips">
@@ -124,7 +124,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
   return()=>{alive=false;};
  },[id,role]);
  const sinceValue=summary?.relationshipStartedOn||(data?String(data.client.created_at||'').slice(0,10):'');
- return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error">{error}</p>}{data?<>
+ return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error" role="alert">{error}</p>}{data?<>
   {['owner','admin','management','sales','finance'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
   <p>{s(data.client,'email')} · {s(data.client,'phone')}</p><WhatsAppButton className="client-whatsapp" href={whatsappUrl(s(data.client,'phone'))}/><p>{s(data.client,'notes')}</p>
   {summary&&<section className="client-summary" aria-label="Resumen comercial del cliente">
@@ -148,7 +148,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
   <ClientCommercialLifecycle key={`commercial-${id}`} id={id} role={role} onSaved={reload}/>
   <ClientLinks id={id} value={data.client.social_links} phone={s(data.client,'phone')} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>
   <p className="form-note">Historial de hasta 100 registros por categoría. Los movimientos financieros solo aparecen con permiso.</p>
- </>:<p>Cargando cliente…</p>}</Dialog>;
+ </>:<p role="status">Cargando cliente…</p>}</Dialog>;
 }
 
 export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navigate,initialView}:{initialView?:string;orders:WorkItem[];userId:string;role:string;projects:{id:string;name:string;client_name:string}[];openOrder:(id:string)=>void;refresh:()=>Promise<void>;navigate:(label:string)=>void}){
@@ -171,10 +171,10 @@ function BatchEditor({orders,close,done}:{orders:WorkItem[];close:()=>void;done:
  return <Dialog title={`Actualizar ${orders.length} piezas`} close={close}><p>Se aplica todo el lote o ninguno. No incluye aprobaciones, publicaciones ni cobros.</p><SelectCustom label="Qué cambiar" value={field} onChange={setField} choices={[{value:'due_date',label:'Fecha de entrega'},{value:'assigned_user_id',label:'Responsable'},{value:'status',label:'Estado de producción'}]}/><Editor key={field} fields={[{key:'value',label:'Nuevo valor',...(field==='due_date'?{type:'date' as const}:{choices:field==='status'?states:people})}]} defaults={{value:field==='status'?'to_record':''}} save={async v=>{const result=await api<{updated:number}>('/api/agency/productivity/batch',{ids:orders.map(o=>o.id),versions:Object.fromEntries(orders.map(o=>[o.id,o.updated_at])),change:{[field]:v.value}});notify({tone:'success',message:`${result.updated} piezas actualizadas.`});await done();}}/></Dialog>;
 }
 function MonthlyTemplates({projects,close,refresh}:{projects:{id:string;name:string;client_name:string}[];close:()=>void;refresh:()=>Promise<void>}){
- const [templates,setTemplates]=useState<Row[]>([]),[creating,setCreating]=useState(false),[notice,setNotice]=useState('');const people=usePeople();
+ const [templates,setTemplates]=useState<Row[]>([]),[creating,setCreating]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState('');const people=usePeople();
  async function load(){setTemplates((await api<{templates:Row[]}>('/api/agency/productivity/templates')).templates);}
- useEffect(()=>{void load().catch(e=>setNotice(errorText(e)));},[]);
- return <Dialog title="Plantillas mensuales de producción" close={close}><p>Generá una tanda en un proyecto existente. Repetir la misma plantilla, proyecto y mes no crea duplicados. No genera facturas ni cobros.</p><button className="text-button" onClick={()=>setCreating(v=>!v)}><LayoutTemplate size={14}/>{creating?'Usar una plantilla':'Crear plantilla'}</button>{notice&&<p role="status">{notice}</p>}
+ useEffect(()=>{void load().catch(e=>setError(errorText(e)));},[]);
+ return <Dialog title="Plantillas mensuales de producción" close={close}><p>Generá una tanda en un proyecto existente. Repetir la misma plantilla, proyecto y mes no crea duplicados. No genera facturas ni cobros.</p><button className="text-button" onClick={()=>setCreating(v=>!v)}><LayoutTemplate size={14}/>{creating?'Usar una plantilla':'Crear plantilla'}</button>{error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
  {creating?<><p className="form-note">Una pieza por línea: título | día del mes | horas estimadas | checklist opcional.</p><Editor fields={[{key:'name',label:'Nombre de la plantilla'},{key:'lines',label:'Piezas',type:'textarea'}]} defaults={{name:'',lines:''}} save={async v=>{const items=v.lines.split('\n').filter(l=>l.trim()).map(l=>{const [title,day,hours,...rest]=l.split('|').map(x=>x.trim());return{title,day:Number(day),hours:Number(hours||0),checklist:rest.join(' | ')};});await api('/api/agency/productivity/templates',{name:v.name,items});await load();setCreating(false);}}/></>:<Editor key={templates.length} fields={[{key:'template',label:'Plantilla',choices:templates.map(t=>({value:String(t.id),label:s(t,'name')}))},{key:'project_id',label:'Proyecto',choices:projects.map(p=>({value:String(p.id),label:`${p.client_name} · ${p.name}`}))},{key:'month',label:'Mes (AAAA-MM)'},{key:'assigned_user_id',label:'Responsable inicial',choices:people,optional:true}]} defaults={{template:'',project_id:'',month:localDay().slice(0,7),assigned_user_id:''}} save={async v=>{if(!v.template||!v.project_id)throw Error('Elegí plantilla y proyecto.');const r=await api<{created:number;alreadyGenerated:boolean}>(`/api/agency/productivity/templates/${v.template}/generate`,v);await refresh();setNotice(r.alreadyGenerated?'Ese mes ya fue generado para esta plantilla y proyecto.':`${r.created} piezas creadas para ${v.month}.`);}}/>}
  <MonthlySchedules projects={projects} templates={templates.map(t=>({id:String(t.id),name:s(t,'name')}))} people={people}/>
  </Dialog>;

@@ -1001,14 +1001,13 @@ function ReferralDiscounts() {
     {items.length?<div className="finance-row-head" aria-hidden="true"><span>Referido</span><span>Acciones</span></div>:null}
     {items.map(item => <article className="payment-row finance-referral-row" key={item.id}>
       <div><b>{item.referrer} · {money(item.amount, item.currency)}</b>
-        <small>{item.invoice_number} · {item.client_name}</small><small>{item.reason}</small>
-        <small>{item.status === "applied" ? "Aplicado" : "Revertido"}</small>
+        <small>{item.invoice_number} · {item.client_name} · {item.reason} · {item.status === "applied" ? "Aplicado" : "Revertido"}</small>
       </div>
-      {item.status === "applied" && <button className="secondary" disabled={busy !== null} onClick={async () => {
+      {item.status === "applied" ? <button className="secondary" disabled={busy !== null} onClick={async () => {
         setBusy(item.id); setError("");
         try { await api(`/api/agency/referral-discounts/${item.id}`, {}, "PATCH"); await load(); }
         catch(e) { setError(message(e)); } finally { setBusy(null); }
-      }}>{busy === item.id ? "Revirtiendo…" : "Revertir descuento"}</button>}
+      }}>{busy === item.id ? "Revirtiendo…" : "Revertir descuento"}</button> : <span aria-hidden="true"/>}
     </article>)}
     {open && <Dialog title="Descuento por referido" close={() => setOpen(false)}>
       <Editor fields={[
@@ -1074,7 +1073,7 @@ export function ProjectComments({
               </p>
             )}
           </div>
-          {error && <p className="error">{error}</p>}
+          {error && <p className="error" role="alert">{error}</p>}
           {role !== "viewer" && (
             <CommentComposer
               label="Comentario"
@@ -1164,7 +1163,7 @@ export function CompanySelector({ name }: { name: string }) {
               </div>
             ))}
           </div>
-          {error && <p className="error">{error}</p>}
+          {error && <p className="error" role="alert">{error}</p>}
         </Dialog>
       )}
     </>
