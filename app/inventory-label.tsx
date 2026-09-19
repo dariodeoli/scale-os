@@ -1,4 +1,5 @@
 "use client";
+import {notify} from './feedback';
 
 // Code 39 is deliberately used because the inventory code is short, printable
 // and can be scanned without a network request or a third-party renderer.
@@ -32,7 +33,7 @@ export function InventoryBarcode({code}:{code:string}){
 
 export function printInventoryLabel({code,name,category,serial,location}:{code:string;name:string;category:string;serial?:string|null;location:string}){
  const popup=window.open('','_blank','width=520,height=380');
- if(!popup){window.alert('Permití ventanas emergentes para imprimir la etiqueta.');return;}
+ if(!popup){notify({tone:'warning',message:'Permití ventanas emergentes para imprimir la etiqueta.'});return;}
  const details=[category,serial?`Serie / IMEI: ${serial}`:'',location].filter(Boolean).map(value=>`<p>${escapeHtml(value)}</p>`).join('');
  popup.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Etiqueta ${escapeHtml(code)}</title><style>@page{size:80mm 50mm;margin:0}body{margin:0;font-family:Arial,sans-serif;color:#151219}.label{box-sizing:border-box;width:80mm;height:50mm;padding:5mm;border:1px solid #111;display:grid;grid-template-columns:1fr 29mm;gap:3mm}.code{font:700 10pt monospace;letter-spacing:.7pt;margin:0 0 2mm}.name{font-size:13pt;line-height:1.15;margin:0}.details{margin-top:3mm;font-size:8pt;color:#48424b}.details p{margin:1mm 0}.barcode{align-self:end}.barcode svg{width:100%;height:auto;display:block}</style></head><body><main class="label"><section><p class="code">${escapeHtml(code)}</p><h1 class="name">${escapeHtml(name)}</h1><div class="details">${details}</div></section><div class="barcode">${barcodeMarkup(code)}</div></main><script>window.onload=()=>window.print()</script></body></html>`);
  popup.document.close();

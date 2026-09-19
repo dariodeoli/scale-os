@@ -163,8 +163,8 @@
 /* Reservas: fila finita con toda la información y auditoría en una línea muted. */
 .inventory-reservation-list{display:grid;gap:6px;--reservation-cols:minmax(150px,1.1fr) minmax(110px,.8fr) minmax(150px,1fr) minmax(140px,1fr) minmax(120px,.9fr) minmax(110px,.8fr) 11rem}
 .inventory-reservation-head{display:none}
-@media(min-width:941px){.inventory-reservation-head{display:grid;grid-template-columns:var(--reservation-cols);grid-column:1/-1;gap:0 14px;padding:0 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}}
-.inventory-reservation{display:grid;grid-template-columns:var(--reservation-cols);align-items:center;gap:4px 14px;padding:8px 12px;min-height:48px}
+@media(min-width:941px){.inventory-reservation-head{display:grid;grid-template-columns:var(--reservation-cols);grid-column:1/-1;gap:0 8px;padding:0 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}}
+.inventory-reservation{display:grid;grid-template-columns:var(--reservation-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px}
 .inventory-reservation-title{display:flex;align-items:center;gap:8px;min-width:0}
 .inventory-reservation-title h3{margin:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .inventory-reservation-cell{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
