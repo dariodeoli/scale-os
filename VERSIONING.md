@@ -10,6 +10,8 @@ Regla de publicación: cada actualización que llegue a producción incrementa e
 
 La landing sigue siendo HTML estático: `build-tools/sync-landing-footer.tsx` renderiza la variante comercial del mismo componente, con la versión compartida y el año del build, dentro de `public/scale-os.html`. No editar ese footer manualmente. Funciona sin JavaScript, sin consultas a la API y sin carga adicional en el navegador.
 
+El resto del documento (estructura, estilos y contenido de `public/scale-os.html`) se mantiene directo sobre ese archivo: no hay generador del cuerpo de la landing y el único script que lo toca es el del footer. Cualquier ajuste se valida con los tests de landing (`tests/landing-routing.test.ts`, `tests/landing-sales.test.mjs`, `tests/web-presence.test.mjs`, `tests/founder-pricing.test.ts`) y con `npm run footer:check`.
+
 Al cambiar la versión o el footer, ejecutar `npm run footer:sync` e incluir el HTML actualizado en la entrega. `npm run dev` y `npm run build` lo sincronizan automáticamente. `npm run footer:check` detecta divergencias sin escribir archivos; `npx tsx --test tests/workspace-footer.test.tsx` comprueba ambas variantes y la salida estática.
 
 Los estilos compartidos viven en `app/workspace-footer.css`, cargado desde los estilos globales. Las pantallas públicas de acceso usan texto de 12 px, interlineado 1,6 y enlaces de 44 px de alto; el tablero conserva sus ajustes de densidad existentes.
