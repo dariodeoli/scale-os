@@ -1,5 +1,6 @@
 "use client";
 import {useState} from 'react';
+import {roleCan} from './capabilities';
 import {api,Dialog,Editor} from './operations';
 import {completeSave} from './save-completion';
 import {TeamMember,teamRoleLabels} from './team-directory';
@@ -15,7 +16,7 @@ const accessState=(member:TeamMember|null):AccessState=>{
 
 export function TeamAccess({member,email,role,refresh,ambiguous=false}:{member:TeamMember|null;email:string|null;role:string;refresh:()=>Promise<void>;ambiguous?:boolean}){
  const [invite,setInvite]=useState(false);
- const manage=['owner','admin','management'].includes(role)&&(!ambiguous||Boolean(member));
+ const manage=roleCan(role,'members.manage')&&(!ambiguous||Boolean(member));
  const state=accessState(member);
  const canInvite=manage&&Boolean(email)&&(!member||Boolean(member.removed_at));
  return <section className="team-access" aria-label="Acceso al panel">

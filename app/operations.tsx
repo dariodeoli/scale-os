@@ -30,6 +30,7 @@ import {teamDirectory,TeamMember,ArchivedProfile,teamRoleLabels} from './team-di
 import {TeamAccess} from './team-access';
 import {PermissionsMatrix} from './permissions-matrix';
 import {dataFetch} from './data-cache';
+import {canOpenPeopleWorkspace,roleCan} from './capabilities';
 
 export async function api<T>(
   path: string,
@@ -273,7 +274,7 @@ export function OperationsWorkspace({
   activeTab?: string;
   onTabChange?: (tab: string) => void;
 }) {
-  if(mode==='people'&&!['owner','admin','finance','management'].includes(role))return <TeamDirectoryView organizationName={organizationName}/>;
+  if(mode==='people'&&!canOpenPeopleWorkspace(role))return <TeamDirectoryView organizationName={organizationName}/>;
   return <PeopleWorkspace mode={mode} role={role} currentEmail={currentEmail} organizationName={organizationName} activeTab={activeTab} onTabChange={onTabChange}/>;
 }
 type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
@@ -326,7 +327,7 @@ function PeopleWorkspace({
     [filter, setFilter] = useState("all");
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
-  const canManageAccess=['owner','admin','management'].includes(role);
+  const canManageAccess=roleCan(role,'members.manage');
   const [selectedAccess,setSelectedAccess]=useState<string[]>([]),[bulkAccessBusy,setBulkAccessBusy]=useState(false);
   function toggleAccessSelected(id:string){setSelectedAccess(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
   function selectVisibleAccess(){
@@ -355,8 +356,10 @@ function PeopleWorkspace({
     [monthlyCommissions, setMonthlyCommissions] = useState<MonthlyCommission[]>([]),
     [monthlyLoading, setMonthlyLoading] = useState(false),
     [monthlyRefresh, setMonthlyRefresh] = useState(0);
-  const allowed = ["owner", "admin", "finance", "management"].includes(role);
-  const salaryView = ["owner", "admin", "finance"].includes(role);
+  // Comisiones sigue a `commissions.manage` (scale-core-api#14); Equipo, a quienes
+  // gestionan personas o ven salarios. Sin listas de roles paralelas.
+  const salaryView = roleCan(role, "salary.view");
+  const allowed = mode === "commissions" ? roleCan(role, "commissions.manage") : canOpenPeopleWorkspace(role);
   useEffect(() => {
     if (!allowed) return;
     let alive = true;
@@ -378,11 +381,15 @@ function PeopleWorkspace({
   }, [allowed, mode, commissionMonth, monthlyRefresh]);
   async function load() {
     const [p, c, a, i, x] = await Promise.all([
-      api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>(mode==='people'?"/api/agency/team":"/api/agency/collaborators"),
+      mode === "people"
+        ? api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>("/api/agency/team")
+        : roleCan(role, "members.manage") || roleCan(role, "finance.view")
+          ? api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>("/api/agency/collaborators")
+          : Promise.resolve({ collaborators: [] as Person[], members: [] as TeamMember[], archivedProfiles: [] as ArchivedProfile[] }),
       mode==='commissions'?api<{ commissions: Commission[] }>("/api/agency/commissions"):Promise.resolve({commissions:[]}),
-      api<{ accounts: Account[] }>("/api/agency/accounts"),
-      mode==='commissions'?api<{ invoices: Invoice[] }>("/api/agency/invoices"):Promise.resolve({invoices:[]}),
-      api<{ payouts: Payout[] }>("/api/agency/payouts"),
+      roleCan(role, "accounts.manage")?api<{ accounts: Account[] }>("/api/agency/accounts"):Promise.resolve({accounts:[] as Account[]}),
+      mode==='commissions'&&roleCan(role, "invoices.manage")?api<{ invoices: Invoice[] }>("/api/agency/invoices"):Promise.resolve({invoices:[] as Invoice[]}),
+      roleCan(role, "finance.view")?api<{ payouts: Payout[] }>("/api/agency/payouts"):Promise.resolve({payouts:[] as Payout[]}),
     ]);
     setPeople(p.collaborators);
     setMembers(p.members||[]);setArchivedProfiles(p.archivedProfiles||[]);
@@ -518,7 +525,7 @@ function PeopleWorkspace({
             </h2>
           </div>
           <div className="inline-actions">
-          {mode==='people'&&['owner','admin'].includes(role)&&<button className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
+          {mode==='people'&&roleCan(role,'settings.manage')&&<button className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
           <button
             className="primary"
             onClick={() =>

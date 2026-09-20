@@ -58,6 +58,29 @@ export function roleCan(role: string | null | undefined, capability: Capability)
  return roles ? roles.includes(role) : false;
 }
 
+/** Tipos de la papelera del API (`record-lifecycle.js`: archiveKinds) → capacidad que los habilita. */
+export const ARCHIVE_KIND_CAPABILITIES={
+ clients:'clients.manage',
+ projects:'projects.edit',
+ 'work-orders':'work-orders.manage',
+ leads:'commercial.manage',
+ plans:'budgets.manage',
+ budgets:'budgets.manage',
+ inventory:'inventory.manage',
+ collaborators:'members.manage',
+ accounts:'accounts.manage',
+} as const;
+
+/** La papelera se ve si el rol puede archivar al menos un tipo; el API filtra los tipos. */
+export function canSeeTrash(role: string | null | undefined){
+ return (Object.values(ARCHIVE_KIND_CAPABILITIES) as Capability[]).some(capability => roleCan(role, capability));
+}
+
+/** El workspace completo de Equipo es para quienes gestionan personas o ven salarios. */
+export function canOpenPeopleWorkspace(role: string | null | undefined){
+ return roleCan(role, 'members.manage') || roleCan(role, 'salary.view');
+}
+
 /** Topes por llamada de los endpoints de lote del dominio. */
 export const BATCH_LIMITS = {
  clients: 50,

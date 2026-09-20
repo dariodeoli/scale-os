@@ -5,20 +5,10 @@ import {notify} from './feedback';
 import {ActorIdentity} from './actor-identity';
 import {listDateFull} from './list-format';
 import {Trash2} from 'lucide-react';
-import {roleCan,type Capability} from './capabilities';
+import {ARCHIVE_KIND_CAPABILITIES,roleCan,type Capability} from './capabilities';
 
-const roles:Record<string,Capability>={
- members:'members.manage',
- clients:'clients.manage',
- projects:'projects.edit',
- 'work-orders':'work-orders.manage',
- leads:'commercial.manage',
- plans:'budgets.manage',
- budgets:'budgets.manage',
- inventory:'inventory.manage',
- collaborators:'members.manage',
- accounts:'accounts.manage',
-};
+// Fuente única con la papelera del API: el NAV usa el mismo mapa.
+const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>;
 const labels:Record<string,string>={clients:'Cliente',projects:'Proyecto','work-orders':'Orden',leads:'Oportunidad',plans:'Plan',budgets:'Presupuesto',inventory:'Equipo de inventario',collaborators:'Colaborador',accounts:'Cuenta'};
 const errorMessage=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar la operación';
 

@@ -12,8 +12,9 @@ test('collaborator reaches operations without finance, salaries, access or activ
   assert.match(matrix,/collaborator:'Colaborador: .*sin ver finanzas, salarios, accesos ni actividad\.'/);
   const allowed=['Resumen','Producción','Clientes','Proyectos','Presupuestos','Planes','Pipeline','Inventario','Estudio','Equipo'];
   for(const label of allowed)assert(visibleModule(label,'collaborator'),`${label} stays reachable for collaborator`);
-  const denied=['Finanzas','Pagos','Comisiones','Previsión','Informes','Mora','Actividad','Configuración','Métricas','Papelera','Roles y permisos'];
+  const denied=['Finanzas','Pagos','Comisiones','Previsión','Informes','Mora','Actividad','Configuración','Métricas','Roles y permisos'];
   for(const label of denied)assert(!visibleModule(label,'collaborator'),`${label} stays hidden for collaborator`);
+ assert(visibleModule('Papelera','collaborator'),'la papelera sigue a las capacidades de archivo del API');
   assert(!visibleModule('Pipeline','production'),'production still keeps budgets without the sales pipeline');
 });
 
