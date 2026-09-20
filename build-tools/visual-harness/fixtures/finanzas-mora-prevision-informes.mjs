@@ -3,16 +3,19 @@
  * Informes (/informes) y Comisiones (/equipo/comisiones).
  *
  * El markup espeja el JSX real (sin clases inventadas):
- *  - app/scale-workspace.tsx 1488-1681 · Finanzas: kpi-strip, cuentas, transferencias,
+ *  - app/scale-workspace.tsx 1490-1686 · Finanzas: kpi-strip, cuentas, transferencias,
  *    cobros pendientes y cobros registrados.
- *  - app/scale-workspace.tsx 1183-1289 · Mora: kpi-strip, toolbar y mora-list.
- *  - app/financial-forecast.tsx 71-72 · Previsión (mes, proyección, contratos).
+ *  - app/scale-workspace.tsx 1185-1292 · Mora: kpi-strip, toolbar y mora-list.
+ *  - app/financial-forecast.tsx 73-74 · Previsión (mes, proyección, contratos);
+ *    sin salary.view los importes por persona llegan en null: salario y cierre
+ *    muestran "Sin dato" y la fila no dibuja acciones de salario.
  *  - app/reports-workspace.tsx 67-205 · Informes (tiles, chart, tablas, distribución).
  *  - app/operations.tsx 500-750 modo commissions · liquidación, tarjetas y egresos.
  *
  * Datos de estrés deliberados: montos PYG/USD grandes y negativos, nombres y
  * referencias largas, estados con dato y columnas sin dato (moneda nula,
- * ajuste inexistente, contrato sin factura) para medir el lugar reservado.
+ * ajuste inexistente, contrato sin factura, salario oculto por salary.view)
+ * para medir el lugar reservado.
  */
 
 const icon = (size, path, extra = '') => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"${extra}>${path}</svg>`;
@@ -125,21 +128,23 @@ const forecastCurrencyCard = ({label, strong = '', dl = '', small = '', list = '
 
 const forecastFact = (term, value) => `<div><dt>${term}</dt><dd>${value}</dd></div>`;
 
-/* Fila de personal: app/financial-forecast.tsx 71 + app/financial-forecast.css 73-96. */
-const forecastPersonRow = ({name, initials, base, override, total, negative = false, noBase = false}) => `
+/* Fila de personal: app/financial-forecast.tsx 73 + app/financial-forecast.css 73-96.
+   Con `base_amount` en null (rol sin salary.view) el salario y el cierre dicen
+   "Sin dato" y la fila no dibuja `forecast-person-actions`: no hay edición a ciegas. */
+const forecastPersonRow = ({name, initials, base, override, total, negative = false, noBase = false, masked = false}) => `
 <div class="forecast-person-list-row">
  <span class="forecast-person-who"><span class="forecast-person-avatar"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span></span><span class="forecast-person-name">${name}${noBase ? '<small class="forecast-person-no-base">Sin salario fijo</small>' : ''}</span></span>
- <span class="forecast-person-base"><small>Salario base</small><strong>${base}</strong></span>
+ <span class="forecast-person-base"><small>Salario base</small><strong>${masked ? 'Sin dato' : base}</strong></span>
  ${override ? `<span class="forecast-person-override"><small>Ajuste del mes</small><strong>${override}</strong></span>` : '<span class="forecast-person-override is-empty" aria-hidden="true"></span>'}
- <span class="forecast-person-total"><small>Cierre del mes</small><strong${negative ? ' data-negative="true"' : ''}>${total}</strong></span>
- <span class="forecast-person-actions">
+ <span class="forecast-person-total"><small>Cierre del mes</small><strong${negative ? ' data-negative="true"' : ''}>${masked ? 'Sin dato' : total}</strong></span>
+ ${masked ? '' : `<span class="forecast-person-actions">
   <button class="icon-button" type="button" title="Editar salario" aria-label="Editar salario: ${name}">${pencilIcon(16)}</button>
   <button class="icon-button" type="button" title="Ajuste del mes" aria-label="Ajuste del mes: ${name}">${slidersIcon(16)}</button>
   ${override ? `<button class="icon-button warn" type="button" title="Quitar ajuste del mes" aria-label="Quitar ajuste del mes: ${name}">${trashIcon(16)}</button>` : ''}
- </span>
+ </span>`}
 </div>`;
 
-/* Fila de gasto real: app/financial-forecast.tsx 71 + app/financial-forecast.css 55. */
+/* Fila de gasto real: app/financial-forecast.tsx 73 + app/financial-forecast.css 55. */
 const plannedExpenseRow = ({category, kind, date, account, reference, amount}) => `
 <li>
  <div>
@@ -149,7 +154,7 @@ const plannedExpenseRow = ({category, kind, date, account, reference, amount}) =
  <div class="inline-actions"><strong>${amount}</strong><button type="button" class="text-button danger">Revertir</button></div>
 </li>`;
 
-/* Fila de contrato: app/financial-forecast.tsx 72 + app/financial-forecast.css 37-52. */
+/* Fila de contrato: app/financial-forecast.tsx 74 + app/financial-forecast.css 37-52. */
 const contractedRow = ({name, currency, endsOn, contracted, invoiced, missing}) => `
 <li>
  <span class="contracted-client-name"><b>${name}</b><small>${currency}${endsOn ? ` · hasta ${endsOn}` : ''}</small></span>
@@ -523,7 +528,7 @@ const previsionResumen = {
   <section class="forecast-personnel" aria-labelledby="personnel-forecast-title">
    <h3 id="personnel-forecast-title">Personal proyectado</h3>
    <p class="form-note">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p>
-   <p role="status">4 colaborador(es) activo(s) incluido(s).</p>
+   <p role="status">7 colaborador(es) activo(s) incluido(s).</p>
    <div class="forecast-currencies">
     ${forecastCurrencyCard({
       label: 'PYG · gasto esperado al cierre',
@@ -536,6 +541,7 @@ const previsionResumen = {
      ${forecastPersonRow({name: 'Juan Carlos Benítez Ocampos', initials: 'JB', base: 'PYG 24.000.000', override: '', total: 'PYG 24.000.000'})}
      ${forecastPersonRow({name: 'Lucía Fernanda Sosa Martínez', initials: 'LS', base: 'PYG 20.000.000', override: '−PYG 4.234.568', total: '−PYG 15.765.432', negative: true})}
      ${forecastPersonRow({name: 'Diego Ramón Aquino Cáceres', initials: 'DA', base: 'PYG 0', override: '', total: 'PYG 0', noBase: true})}
+     ${forecastPersonRow({name: 'Natalia Beatriz Fretes Giménez', initials: 'NF', masked: true})}
     </div>`,
     })}
     ${forecastCurrencyCard({
@@ -546,6 +552,7 @@ const previsionResumen = {
     <div class="forecast-personnel-list">
      <div class="forecast-person-head" aria-hidden="true"><span>Persona</span><span>Salario base</span><span>Ajuste del mes</span><span>Cierre del mes</span><span>Acciones</span></div>
      ${forecastPersonRow({name: 'Valeria Isabel González Núñez', initials: 'VG', base: 'USD 8,400', override: '', total: 'USD 8,400'})}
+     ${forecastPersonRow({name: 'Rodrigo Iván Mongelós Villalba', initials: 'RM', masked: true})}
     </div>`,
     })}
    </div>
