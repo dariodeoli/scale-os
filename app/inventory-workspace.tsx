@@ -74,7 +74,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
   <div className="inventory-item-facts">
    <dl className="inventory-facts-inline">
     <div className="inventory-fact"><dt>Categoría</dt><dd title={item.category_name||item.category||'Sin categoría'}><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</dd></div>
-    <div className="inventory-fact"><dt>Serie / IMEI</dt><dd title={item.serial_number||undefined}>{item.serial_number?<SerialTexto value={item.serial_number}/>:'Sin registrar'}</dd></div>
+    <div className="inventory-fact"><dt>Serie / IMEI</dt><dd title={item.serial_number||'Sin registrar'}>{item.serial_number?<SerialTexto value={item.serial_number}/>:'Sin registrar'}</dd></div>
     <div className="inventory-fact"><dt>Valor</dt><dd className="list-amount">{money(item.value,item.currency)}</dd></div>
    </dl>
    <dl className="inventory-fact inventory-fact-location"><dt>Ubicación</dt><dd title={location}>{location}</dd></dl>
@@ -83,7 +83,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
    <div className="inventory-card-control">
     <VerificationStamp item={item} className="inventory-verify-chip" empty={<span className="hub-chip muted">Sin verificación física</span>}/>
     {canManage?<button type="button" className="icon-button positive inventory-verify-action" disabled={verifying} title={verifying?'Verificando…':'Marcar verificado'} aria-label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={()=>onVerify(item)}><CheckCircle2 size={16}/></button>:null}
-    {item.return_user_name?<span className="hub-chip inventory-return-chip">Devuelve {item.return_user_name}{item.expected_return_at?<> · previsto <span className="list-date" data-tone={dueTone(item.expected_return_at)||undefined}>{listDateFull(item.expected_return_at)}</span></>:null}</span>:null}
+    {item.return_user_name?<span className="hub-chip inventory-return-chip" title={`Devuelve ${item.return_user_name}${item.expected_return_at?` · previsto ${listDateFull(item.expected_return_at)}`:''}`}>Devuelve {item.return_user_name}{item.expected_return_at?<> · previsto <span className="list-date" data-tone={dueTone(item.expected_return_at)||undefined}>{listDateFull(item.expected_return_at)}</span></>:null}</span>:null}
    </div>
    <div className="inline-actions inventory-item-actions">
     <button className="icon-button" type="button" title="Detalle y trazabilidad" aria-label={`Detalle y trazabilidad: ${item.name}`} onClick={()=>onDetail(item)}><Eye size={16}/></button>
