@@ -140,7 +140,8 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   const team=read('app/operations.css');
   assert.match(team,/\.person-hub-card\.is-list\{display:grid;grid-template-columns:var\(--person-cols\)[\s\S]*?min-height:48px/,'team rows stay thin');
   const inventory=read('app/inventory-workspace.css');
-  assert.match(inventory,/\.inventory-equipment-list \.inventory-item-facts\{grid-column:4;grid-row:1;display:flex/,'inventory facts go inline');
+  assert.match(inventory,/\.inventory-equipment-list \.inventory-item-facts\{display:contents\}\.inventory-equipment-list \.inventory-facts-inline\{grid-column:4;grid-row:1;display:flex/,'inventory facts go inline');
+  assert.match(inventory,/\.inventory-equipment-list \.inventory-fact-location\{grid-column:6;grid-row:1/,'the location fact keeps its own column');
   assert.match(inventory,/--reservation-cols:[\s\S]*?\.inventory-reservation\{display:grid;grid-template-columns:var\(--reservation-cols\)/,'reservation rows share the template');
   assert.match(inventory,/\.inventory-equipment-grid:not\(\.inventory-equipment-list\) \.inventory-equipment\{min-height:210px\}/,'inventory cards keep a big grid height');
   const projects=read('app/project-card.css');

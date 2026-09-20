@@ -50,7 +50,7 @@ function VerificationStamp({item,className,empty}:{item:InventoryItem;className:
  return <span className={`inventory-verify-stamp ${className}`} data-result={item.last_verification_result}>
   <span className="inventory-verify-check" role="img" title={`Control: ${label}`} aria-label={`Control: ${label}`}><Icon size={14} aria-hidden="true"/></span>
   <span className="inventory-control-avatar"><ActorAvatar name={item.last_verifier_name||'Verificador'} photo={safePhoto(item.last_verifier_photo_url)}/></span>
-  <span className="inventory-verify-name">{firstName(item.last_verifier_name)||'Verificador'}</span>
+  <span className="inventory-verify-name" title={item.last_verifier_name||'Verificador'}>{firstName(item.last_verifier_name)||'Verificador'}</span>
   <time className="inventory-verify-time" dateTime={item.last_verified_at}>{dateTime(item.last_verified_at)}</time>
  </span>;
 }
@@ -69,12 +69,14 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
    </div>
    <span className="inventory-state" data-status={item.status}>{equipmentStatusLabel(item.status)}</span>
   </div>
-  <dl className="inventory-item-facts">
-   <div className="inventory-fact"><dt>Categoría</dt><dd><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</dd></div>
-   <div className="inventory-fact inventory-fact-location"><dt>Ubicación</dt><dd title={location}>{location}</dd></div>
-   <div className="inventory-fact"><dt>Serie / IMEI</dt><dd title={item.serial_number||undefined}>{item.serial_number?<SerialTexto value={item.serial_number}/>:'Sin registrar'}</dd></div>
-   <div className="inventory-fact"><dt>Valor</dt><dd className="list-amount">{money(item.value,item.currency)}</dd></div>
-  </dl>
+  <div className="inventory-item-facts">
+   <dl className="inventory-facts-inline">
+    <div className="inventory-fact"><dt>Categoría</dt><dd title={item.category_name||item.category||'Sin categoría'}><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</dd></div>
+    <div className="inventory-fact"><dt>Serie / IMEI</dt><dd title={item.serial_number||undefined}>{item.serial_number?<SerialTexto value={item.serial_number}/>:'Sin registrar'}</dd></div>
+    <div className="inventory-fact"><dt>Valor</dt><dd className="list-amount">{money(item.value,item.currency)}</dd></div>
+   </dl>
+   <dl className="inventory-fact inventory-fact-location"><dt>Ubicación</dt><dd title={location}>{location}</dd></dl>
+  </div>
   <div className="inventory-card-foot">
    <div className="inventory-card-control">
     <VerificationStamp item={item} className="inventory-verify-chip" empty={<span className="hub-chip muted">Sin verificación física</span>}/>
