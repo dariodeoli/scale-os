@@ -140,6 +140,7 @@
         horizontalOverflow: Math.max(0, doc.scrollWidth - doc.clientWidth),
       },
       overflow: [],
+      cardBleed: [],
       clipped: [],
       overlaps: [],
       pseudoOverflow: [],
@@ -206,6 +207,49 @@
       out.overflow.push({...clean, samples});
     }
     out.bledPaths = rawOverflow.filter((entry) => entry.kind !== 'scrollable').map((entry) => entry.selector);
+
+    /* ---- bleed outside card/panel padding boxes ------------------------ */
+    const CARD_SELECTOR = '.panel,.ops-card,.metric,.kpi-card,.work-card,.client-hub-card,.project-entry,.person-hub-card,.budget-hub-card,.financial-stat,.inventory-equipment,.studio-reservation,.delivery,.login-card,.client-portal-card,.status-shell,.settings-card,.catalog-card';
+    const rawCardBleed = [];
+    for (const el of all) {
+      if (!visible(el)) continue;
+      if (el.tagName === 'SVG' || el.closest('svg')) continue;
+      const card = el.closest(CARD_SELECTOR);
+      if (!card || card === el) continue;
+      const cs = getComputedStyle(card);
+      const cr = card.getBoundingClientRect();
+      if (cr.width < 40 || cr.height < 40) continue;
+      let intentional = false;
+      for (let p = el.parentElement; p && p !== card; p = p.parentElement) {
+        const s = getComputedStyle(p);
+        if (['auto', 'scroll', 'hidden', 'clip'].includes(s.overflowX)) {
+          intentional = true;
+          break;
+        }
+      }
+      if (intentional) continue;
+      const padLeft = cr.left + (parseFloat(cs.borderLeftWidth) || 0);
+      const padRight = cr.right - (parseFloat(cs.borderRightWidth) || 0);
+      const r = el.getBoundingClientRect();
+      const bleedRight = r.right - padRight;
+      const bleedLeft = padLeft - r.left;
+      if (bleedRight <= 3 && bleedLeft <= 3) continue;
+      rawCardBleed.push({
+        selector: pathOf(el),
+        card: pathOf(card),
+        text: deepText(el).slice(0, 80),
+        bleedRight: Math.round(bleedRight * 10) / 10,
+        bleedLeft: Math.round(bleedLeft * 10) / 10,
+        el,
+        cardEl: card,
+      });
+    }
+    for (const entry of rawCardBleed) {
+      if (rawCardBleed.some((other) => other !== entry && other.cardEl === entry.cardEl && other.el !== entry.el && other.el.contains(entry.el))) continue;
+      const {el, cardEl, ...clean} = entry;
+      out.cardBleed.push(clean);
+    }
+    out.cardBledPaths = rawCardBleed.map((entry) => entry.selector);
 
     /* ---- decorative pseudo-elements that extend the scroll area -------- */
     for (const el of all) {

@@ -10,11 +10,13 @@ const PROPOSALS = {
   'overflow-documento': 'Algo excede el ancho del viewport. Ubicar el primer nodo marcado como bleed y corregir el ancho mínimo del contenedor o su plantilla.',
   bleed: 'El nodo se sale de su contenedor. Ajustar min-width/overflow con la plantilla compartida de la vista; nada de anchos fijos por tarjeta.',
   'bleed-clip': 'El contenedor recorta al nodo. Revisar la plantilla de columnas y permitir shrink (min-width:0) o wrap donde corresponda al campo.',
+  'bleed-tarjeta': 'El contenido se sale de su tarjeta o panel. Revisar min-width:0 en el flex/grid, plantilla de columnas y overflow del contenedor.',
   'texto-cortado': 'Texto recortado sin salida. Si es nombre o texto libre: permitir wrap o agregar title con el valor completo. Si es monto/fecha/código: nowrap + tabular-nums y ancho de columna suficiente.',
   'clip-sin-elipsis': 'Texto recortado sin elipsis ni title: el usuario no ve que falta contenido. Aplicar ellipsis + title o permitir wrap.',
   'altura-recortada': 'Contenido recortado en vertical sin salida. Revisar altura fija o line-clamp: debe poder verse completo (o title).',
   superposicion: 'Dos elementos se pisan. Revisar posicionamiento absoluto, márgenes negativos o layouts que se solapan en este ancho.',
   'plantilla-encabezado-fila': 'El encabezado y las filas no comparten la variable de plantilla. Unificar en --<vista>-cols (una sola plantilla por lista).',
+  'plantilla-auto': 'Una columna usa auto: se dimensiona por el contenido de cada fila y desalinea el encabezado. Usar ancho fijo (rem) o minmax(0,Nfr).',
   'desalineacion-celdas': 'Las celdas del encabezado no arrancan en la misma x que las de la fila. Compartir plantilla, gap-x y padding lateral entre encabezado y fila.',
   'altura-fila': 'Fila fuera del contrato 44–52 px: revisar padding vertical, min-height y contenido que hace wrap.',
   'columna-colapsada': 'Una celda quedó más angosta que su contenido o desapareció: la columna debe reservar su lugar aunque no haya dato.',
@@ -29,6 +31,7 @@ function severityFor(type, item) {
     return 'alta';
   }
   if (type === 'bleed' || type === 'bleed-clip') return 'alta';
+  if (type === 'bleed-tarjeta') return 'alta';
   if (type === 'superposicion') return item.overlapPx >= 24 ? 'alta' : 'media';
   if (type === 'texto-cortado') {
     if (item.kind === 'clip-sin-elipsis') return 'alta';
@@ -37,6 +40,7 @@ function severityFor(type, item) {
   }
   if (type === 'clip-sin-elipsis' || type === 'altura-recortada') return 'alta';
   if (type === 'plantilla-encabezado-fila' || type === 'columna-colapsada') return 'alta';
+  if (type === 'plantilla-auto') return 'alta';
   return 'media';
 }
 
@@ -64,8 +68,14 @@ export function buildFindings(run, width) {
         docOverflow: fixture.doc?.horizontalOverflow || 0,
       });
     }
-    const bledSelectors = new Set(fixture.bledPaths || (fixture.overflow || []).filter((item) => item.kind !== 'scrollable').map((item) => item.selector));
+    const bledSelectors = new Set([
+      ...(fixture.bledPaths || []),
+      ...(fixture.cardBledPaths || []),
+      ...(fixture.overflow || []).filter((item) => item.kind !== 'scrollable').map((item) => item.selector),
+    ]);
+    const cardBledSet = new Set(fixture.cardBledPaths || []);
     for (const item of fixture.overflow || []) {
+      if ((item.kind === 'bleed' || item.kind === 'bleed-clip') && cardBledSet.has(item.selector)) continue;
       if (item.kind === 'bleed' || item.kind === 'bleed-clip') {
         push(item.kind, fixture, {
           selector: item.selector,
@@ -76,6 +86,9 @@ export function buildFindings(run, width) {
           width: item.width,
         });
       }
+    }
+    for (const item of fixture.cardBleed || []) {
+      push('bleed-tarjeta', fixture, item);
     }
     for (const item of fixture.pseudoOverflow || []) {
       push('pseudo-overflow', fixture, item);
@@ -100,6 +113,15 @@ export function buildFindings(run, width) {
       if (list.missing) {
         push('lista-ausente', fixture, {container: list.container}, {severity: 'info', skipped: true});
         continue;
+      }
+      if (list.template && (list.headTemplate || list.rowTemplate) && /(^|\s)auto(\s|$)/.test(list.headTemplate || list.rowTemplate)) {
+        push('plantilla-auto', fixture, {
+          container: list.container,
+          head: list.head,
+          row: list.row,
+          template: list.template,
+          value: list.headTemplate || list.rowTemplate,
+        });
       }
       if (list.headTemplate && list.rowTemplate && list.headTemplate !== list.rowTemplate) {
         push('plantilla-encabezado-fila', fixture, {
@@ -181,6 +203,7 @@ function describeEvidence(finding) {
   if (evidence.text) parts.push(`“${String(evidence.text).slice(0, 60)}”`);
   if (evidence.bleedRight !== undefined && evidence.bleedRight > 2) parts.push(`se sale ${evidence.bleedRight}px`);
   if (evidence.bleedLeft !== undefined && evidence.bleedLeft > 2) parts.push(`se sale ${evidence.bleedLeft}px a la izquierda`);
+  if (finding.type === 'bleed-tarjeta' && evidence.card) parts.push(`tarjeta: \`${evidence.card}\``);
   if (evidence.kind && finding.type === 'texto-cortado') parts.push(`recorte: ${evidence.kind}`);
   if (finding.type === 'texto-cortado') parts.push(`${evidence.scrollWidth}px en ${evidence.clientWidth}px`);
   if (finding.type === 'overflow-documento') parts.push(`scrollWidth ${evidence.scrollWidth} > clientWidth ${evidence.clientWidth} (+${evidence.overflowPx}px)`);
@@ -191,6 +214,7 @@ function describeEvidence(finding) {
   }
   if (finding.type === 'superposicion') parts.push(`solape ${evidence.overlapPx}px² (${Math.round((evidence.ratio || 0) * 100)}%) entre “${String(evidence.aText || '').slice(0, 30)}” y “${String(evidence.bText || '').slice(0, 30)}”`);
   if (finding.type === 'plantilla-encabezado-fila') parts.push(`head: ${evidence.headCols} · row: ${evidence.rowCols}`);
+  if (finding.type === 'plantilla-auto') parts.push(`${evidence.template}: \`${evidence.value}\``);
   if (finding.type === 'desalineacion-celdas') parts.push(`“${evidence.head}” head ${evidence.headLeft}px vs fila ${evidence.rowLeft}px (Δ${evidence.delta}px)`);
   if (finding.type === 'altura-fila') parts.push(`${evidence.height}px (contrato ${evidence.contract})`);
   if (finding.type === 'columna-colapsada') parts.push(`${evidence.width}px de ancho`);
