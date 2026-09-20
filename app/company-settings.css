@@ -21,5 +21,7 @@
 @media(max-width:640px){.company-settings-row{grid-template-columns:40px minmax(0,1fr);align-items:start}.company-settings-actions{grid-column:1/-1;margin-block-start:var(--ui-space-1,4px)}.company-settings-open{flex:1}.company-settings-default{flex:0 0 44px}}
 @media(prefers-reduced-motion:reduce){.company-settings-row,.company-settings-actions button{transition-duration:.01ms}}
 
+/* La empresa abierta se marca con el riel de marca; la preferida conserva su borde ámbar. */
+.company-settings-row.is-current{border-color:color-mix(in srgb,var(--brand-700) 34%,var(--border-subtle,var(--line)));box-shadow:inset 3px 0 0 var(--brand-700)}
 .company-settings-row.is-default{border-color:color-mix(in srgb,var(--warning,#f59e0b) 45%,var(--border-subtle,var(--line)))}
 .company-settings-row.is-default .company-settings-default{color:var(--warning,#f59e0b);border-color:color-mix(in srgb,var(--warning,#f59e0b) 50%,transparent);background:var(--warning-soft,color-mix(in srgb,var(--warning,#f59e0b) 12%,var(--surface,transparent)))}

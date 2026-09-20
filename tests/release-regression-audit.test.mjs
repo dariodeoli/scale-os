@@ -24,4 +24,6 @@ assert(operationsCss.includes('.ops-grid-list{grid-template-columns:minmax(0,1fr
 assert(operationsCss.includes('.company-choice-row{display:flex'),'the company switcher row wraps instead of overflowing the dialog');
 const portalCss=file('../app/cliente/portal.css');
 assert(portalCss.includes('.delivery-activity{list-style:none'),'the portal activity feed drops the native bullets');
+const companyCss=file('../app/company-settings.css');
+assert(companyCss.includes('.company-settings-row.is-current{'),'the open company is marked in Configuración');
 console.log('PASS: rail, topbar, company switcher and dense lists keep their content inside the container.');
