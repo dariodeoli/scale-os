@@ -36,6 +36,21 @@ async function run(){
   setSelect(5,'none');act(()=>{void saveButton().props.onClick();});const nonePatch=requests.at(-1)!;assert.equal(nonePatch.url,'/core-api/api/agency/clients/1/commercial-terms');assert.deepEqual(json(nonePatch),{planId:'7',recurringAmount:'2500000',currency:'PYG',startsOn:'2024-02-01',endsOn:'2024-03-31',invoiceRequired:false,commissionRecipientId:null,commissionMode:'none',commissionValue:null},'a contract without commission saves plan, amount and end date alone');await respond(nonePatch,commercial({...terms,recurringAmount:'2500000',startsOn:'2024-02-01',endsOn:'2024-03-31',invoiceRequired:false,commissionMode:'none',commissionRecipientId:null,commissionRecipientName:null,commissionValue:null}));
   assert.match(JSON.stringify(renderer.toJSON()),/Sin comisión/);
   assert.match(JSON.stringify(renderer.toJSON()),/Datos para reportes guardados/);act(()=>renderer.unmount());
-  console.log('PASS client reporting: role safety, financial-only commercial terms, reporting-only sales save, read-only finance, owner editor without terms, exact nine-field terms PATCH with end date, optional commission, and preserved reporting version PATCH');
+  // Seis monedas: el editor ofrece las seis y un término en EUR se lee completo.
+  await act(async()=>{renderer=create(<ClientReporting id="1" role="owner"/>);});
+  await load(reporting(),commercial({...terms,currency:'EUR',recurringAmount:'2500000'}));
+  const eurSelects=renderer.root.findAllByType(SelectCustom);
+  assert.equal(eurSelects[3].props.choices.length,6,'the currency select offers the six company currencies');
+  assert.equal(eurSelects[3].props.value,'EUR','an EUR term keeps its currency in the editor');
+  assert.match(JSON.stringify(renderer.toJSON()),/EUR[^0-9]*2,500,000/,'an EUR term renders its amount');
+  act(()=>eurSelects[3].props.onChange('BRL'));
+  act(()=>{void saveButton().props.onClick();});
+  const brlPatch=requests.at(-1)!;
+  assert.equal(brlPatch.url,'/core-api/api/agency/clients/1/commercial-terms');
+  assert.deepEqual(json(brlPatch),{planId:'7',recurringAmount:'2500000',currency:'BRL',startsOn:'2024-01-15',endsOn:null,invoiceRequired:true,commissionRecipientId:'9',commissionMode:'percentage',commissionValue:'10'},'a terms PATCH carries any of the six currencies');
+  await respond(brlPatch,commercial({...terms,currency:'BRL',recurringAmount:'2500000'}));
+  assert.match(JSON.stringify(renderer.toJSON()),/BRL[^0-9]*2,500,000/,'a BRL term renders its amount');
+  act(()=>renderer.unmount());
+  console.log('PASS client reporting: role safety, financial-only commercial terms, reporting-only sales save, read-only finance, owner editor without terms, exact nine-field terms PATCH with end date, optional commission, preserved reporting version PATCH, and the six company currencies in the terms editor');
 }
 void run();

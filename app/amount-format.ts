@@ -1,3 +1,4 @@
+import {currencyCodes,type Currency} from './currencies';
 // es-PY input convention: periods group thousands; a comma separates USD cents.
 // PYG amounts are integer-only; other currencies keep two decimals.
 const groupedThousands = /^\d{1,3}([.,])\d{3}(?:\1\d{3})*$/;
@@ -52,9 +53,11 @@ export function caretAfterDigits(display: string, digitCount: number): number {
 }
 
 // Whole-amount transport and display: one definition for every money surface
-// (listas, previsión, reportes). PYG is integer-only; USD keeps no decimals here.
-export type MoneyCurrency='PYG'|'USD';
-export const isMoneyCurrency=(value:unknown):value is MoneyCurrency=>value==='PYG'||value==='USD';
+// (listas, previsión, reportes). PYG is integer-only; every other currency keeps
+// no decimals here (whole transport). The currency codes come from the shared
+// list so the whole app accepts the same six codes.
+export type MoneyCurrency=Currency;
+export const isMoneyCurrency=(value:unknown):value is MoneyCurrency=>typeof value==='string'&&currencyCodes.includes(value as Currency);
 export const isWholeTransport=(value:unknown,allowZero=true):value is string|number=>typeof value==='number'?Number.isSafeInteger(value)&&(allowZero?value>=0:value>0):typeof value==='string'&&new RegExp(allowZero?'^(?:0|[1-9]\\d*)$':'^[1-9]\\d*$').test(value)&&Number.isSafeInteger(Number(value));
 export const isSignedWhole=(value:unknown):value is string|number=>typeof value==='number'?Number.isSafeInteger(value):typeof value==='string'&&new RegExp('^-?(?:0|[1-9]\\d*)$').test(value)&&Number.isSafeInteger(Number(value));
 export const formatWholeMoney=(value:unknown,currency:unknown)=>isMoneyCurrency(currency)&&isWholeTransport(value)?new Intl.NumberFormat(currency==='PYG'?'es-PY':'en-US',{style:'currency',currency,currencyDisplay:'code',maximumFractionDigits:0,minimumFractionDigits:0}).format(Number(value)):'Sin dato';

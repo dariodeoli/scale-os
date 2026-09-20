@@ -7,5 +7,7 @@ assert(source.includes('salary-overrides'),'salary override endpoints are wired'
 assert(source.includes('Sin salario fijo'),'zero-base members render the fallback badge');
 assert(source.includes('formatSignedMoney'),'signed override amounts render with sign');
 assert(source.includes('ActorAvatar'),'members render with ActorAvatar');
-assert(source.includes('monthly_salary_amount'),'salary editing updates the labor record');
+assert(source.includes('compensation_amount'),'salary editing updates the labor record amount');
+assert(!source.includes('monthly_salary_currency'),'salary editing never sends the legacy monthly_salary_currency pair (API limited to PYG|USD)');
+assert(source.includes('currency={salaryPerson.currency}'),'the salary amount is drawn in the record currency');
 console.log('PASS: per-person personnel breakdown with avatars, signed monthly adjustments and salary editing');
