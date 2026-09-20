@@ -16,7 +16,7 @@ assert(!roleCan('viewer','checklists.edit'),'viewer never edits checklists');
 assert(!roleCan('collaborator','finance.view'),'collaborator never sees balances');
 assert(!roleCan('collaborator','salary.view'),'collaborator never sees salaries');
 assert(!roleCan('','inventory.view'),'an unknown role has no capability');
-for(const capability of ['inventory.view','inventory.manage','inventory.book','work-orders.manage','work-orders.edit','projects.manage','projects.edit','checklists.edit','assignees.manage','studio.manage','portal.manage'] as const)
+for(const capability of ['inventory.view','inventory.manage','inventory.book','work-orders.manage','work-orders.edit','projects.manage','projects.edit','work-checklists.view','checklists.edit','assignees.manage','studio.manage','portal.manage'] as const)
  assert(roleCan('collaborator',capability),`collaborator keeps ${capability} like the API`);
 
 // 2. Los gates del dominio se derivan de la capacidad, no de listas de roles.
@@ -24,7 +24,7 @@ const gates:[string,string,RegExp][]=[
  ['app/inventory-workspace.tsx','inventory.view',/return roleCan\(role,'inventory\.view'\)\?<InventoryPanel/],
  ['app/production-board.tsx','work-orders.edit',/const canMove=roleCan\(role,'work-orders\.edit'\)/],
  ['app/record-assignees.tsx','inventory.view',/if\(!roleCan\(props\.role,'inventory\.view'\)\)return null/],
- ['app/work-checklist.tsx','inventory.view',/if\(!roleCan\(props\.role,'inventory\.view'\)\)return null/],
+ ['app/work-checklist.tsx','work-checklists.view',/if\(!roleCan\(props\.role,'work-checklists\.view'\)\)return null/],
  ['app/work-checklist.tsx','checklists.edit',/editable=roleCan\(role,'checklists\.edit'\)/],
  ['app/work-order-links.tsx','work-orders.edit',/const canEdit=roleCan\(role,'work-orders\.edit'\)/],
  ['app/record-assignees.tsx','projects.edit',/const editable=roleCan\(role,kind==='work-orders'\?'work-orders\.edit':'projects\.edit'\)/],

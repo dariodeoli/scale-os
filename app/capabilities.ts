@@ -27,6 +27,7 @@ export const CAPABILITY_ROLES = {
  'work-orders.manage': ['owner','admin','management','production','collaborator'],
  'work-orders.edit': ['owner','admin','management','production','editor','collaborator'],
  'assignees.manage': ['owner','admin','management','production','collaborator'],
+ 'work-checklists.view': ['owner','admin','management','production','editor','collaborator'],
  'checklists.edit': ['owner','admin','management','production','editor','collaborator'],
  'commercial.manage': ['owner','admin','management','finance','sales','collaborator'],
  'budgets.manage': ['owner','admin','management','finance','sales','production','collaborator'],

@@ -96,13 +96,12 @@ failStatus=409;await click('Guardar ítem');await click('Recargar checklist');
 assert.equal(renderer.root.findByType('textarea').props.value,'No perder este texto');
 await click('Descartar texto pendiente');
 
+// El checklist tiene capacidad propia (issue #18): inventario ya no lo cubre,
+// así que estos roles dejan de recibir el componente en lugar de verlo en solo lectura.
 for(const role of ['viewer','finance','sales']){
  const before=writeCount();props={...props,role};await act(async()=>renderer.update(<WorkChecklist {...props}/>));
+ assert.equal(renderer.root.findAllByType('textarea').length,0,`${role} ya no hereda el checklist de inventory.view`);
  assert.equal(renderer.root.findAllByType('button').length,0);
- for(const checkbox of renderer.root.findAllByProps({type:'checkbox'})){
-  assert.equal(checkbox.props.disabled,true);
-  await act(async()=>checkbox.props.onChange({target:{checked:true}}));
- }
  assert.equal(writeCount(),before);
 }
 props={...props,role:'collaborator'};await act(async()=>renderer.update(<WorkChecklist {...props}/>));
@@ -131,6 +130,6 @@ assert.equal(oldSignal?.aborted,true);
 await act(async()=>{deferGet!(response({version:'9',items:[{id:'99',text:'Private old tenant',completed:false}],total:1,completed:0,max_items:100}));});
 assert.doesNotMatch(tree(),/Private old tenant/);assert.equal(addInput().props.value,'');
 act(()=>renderer.unmount());
-console.log('PASS: checklist CRUD/progress, explicit removal confirmation, readonly roles, retained drafts on 409/deleted item, ambiguous failure reload, version payloads, 100-item limit, keyboard/form behavior, single-flight mutation and late tenant-response isolation');
+console.log('PASS: checklist CRUD/progress, explicit removal confirmation, capability boundary for roles without work-checklists.view, retained drafts on 409/deleted item, ambiguous failure reload, version payloads, 100-item limit, keyboard/form behavior, single-flight mutation and late tenant-response isolation');
 }
 void main().catch(error=>{console.error(error);process.exitCode=1;});
