@@ -40,7 +40,10 @@
 .control-shell .client-directory-toolbar .workspace-view-controls>div{min-height:50px;padding:3px}
 .control-shell .client-directory-toolbar .workspace-view-controls button{width:44px;min-width:44px;min-height:44px}
 .client-directory-create{min-height:44px!important;white-space:nowrap}
-@media(max-width:960px){.control-shell .client-directory-toolbar{grid-template-columns:minmax(0,1fr) minmax(160px,210px) auto auto auto}.client-directory-toolbar-title{grid-column:1/-1}}
+/* 761–1100: la toolbar no entra en 5–6 columnas (el buscador quedaba en 26 px
+   contra un select de 210). Pasa a 2 columnas: buscador en su propia fila y el
+   summary puede encogerse. */
+@media(max-width:1100px){.control-shell .client-directory-toolbar{grid-template-columns:minmax(0,1fr) minmax(160px,210px);align-items:end}.client-directory-toolbar-title{grid-column:1/-1}.client-directory-toolbar .directory-summary{white-space:normal}.client-directory-search{grid-column:1/-1}.control-shell .client-directory-toolbar .workspace-view-controls{justify-self:end}.client-directory-create{justify-self:end}}
 @media(max-width:700px){.control-shell .client-directory-toolbar{grid-template-columns:minmax(0,1fr) auto;align-items:end}.client-directory-search{grid-column:1/-1}.client-directory-toolbar .ops-select{grid-column:1/-1}.client-directory-toolbar-title{align-items:start}.client-directory-toolbar .directory-summary{white-space:normal}.client-directory-toolbar>:is(.secondary,.client-directory-create){width:100%}.client-directory-toolbar>.secondary{grid-column:1/-1}.client-directory-create{grid-column:1/-1;justify-self:stretch}.control-shell .client-directory-toolbar .workspace-view-controls{justify-self:end}}
 
 .mora-toolbar{display:flex;flex-wrap:wrap;gap:var(--ui-space-3);align-items:center;justify-content:space-between;margin-block:var(--ui-space-3)}
@@ -91,15 +94,26 @@
 .client-hub-list .client-hub-chips{grid-column:4;grid-row:1;justify-content:flex-start;min-height:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .client-hub-list .client-hub-chips::-webkit-scrollbar{display:none}
 .client-hub-list .client-hub-chips>*{flex:none;max-width:none}
-.client-hub-list .client-hub-stats{grid-column:5;grid-row:1;display:block;min-width:0;min-height:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.client-hub-list .client-hub-actions{grid-column:6;grid-row:1;justify-self:end;display:grid;grid-template-columns:repeat(2,auto);justify-items:end;gap:4px 8px;overflow:visible;margin-top:0;padding-top:0;border-top:0}
+.client-hub-list .client-hub-stats{grid-column:5;grid-row:1;display:block;min-width:0;min-height:0;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.client-hub-list .client-hub-stats::-webkit-scrollbar{display:none}
+/* Identidad compacta en la fila: el avatar de la tarjeta (38/42 px) no cabe en
+   la fila finita de 44–52 px. */
+.client-hub-list .client-identity:not(.compact) .identity-avatar{width:32px;height:32px}
+.client-hub-list .client-hub-actions{grid-column:6;grid-row:1;justify-self:end;display:flex;flex-wrap:nowrap;align-items:center;justify-content:safe flex-end;gap:8px;overflow-x:auto;scrollbar-width:none;margin-top:0;padding-top:0;border-top:0}
+.client-hub-list .client-hub-actions::-webkit-scrollbar{display:none}
+/* Fila finita: acciones en una sola línea y botones de 32 px como el contrato
+   de listas densas; el icono conserva su tamaño en mobile para no engordar la fila. */
+.client-hub-list .client-hub-actions :is(.text-button,.icon-button){min-height:32px}
+.client-hub-list .client-hub-actions .icon-button{width:32px;min-width:32px}
 .client-hub-list :is(.client-identity,.actor-identity){min-width:0}
 .client-hub-list :is(.client-identity-name,.actor-identity-name){white-space:normal;overflow-wrap:anywhere}
 .client-hub-head-row{display:grid;grid-template-columns:var(--client-cols);grid-column:1/-1;gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .client-hub-head-row span:last-child{justify-self:end}
 .client-hub-list>.empty-copy{grid-column:1/-1}
+/* Los hechos nunca ensanchan su pista: el dd recorta con elipsis y title. */
+.client-hub-facts>div{min-width:0}
 @media(max-width:760px){.client-hub-list{overflow-x:auto;scrollbar-width:none}.client-hub-grid{grid-template-columns:1fr}}
-@media(max-width:480px){.client-hub-facts{grid-template-columns:1fr}}
+@media(max-width:480px){.client-hub-facts{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){.client-hub-card{transition:none}.client-hub-card:hover{transform:none}}
 
 /* Cartera del cliente: proyectos, piezas y próxima entrega. */
