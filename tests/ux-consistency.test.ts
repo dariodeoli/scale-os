@@ -51,7 +51,8 @@ test('the client directory keeps one template, ordered row actions and shared da
   const clients=read('app/client-directory.css');
   assert.match(clients,/\.client-hub-list \.client-hub-stats\{grid-column:5/,'the portfolio keeps its own column');
   assert.doesNotMatch(clients,/\.client-hub-list \.client-hub-stats\{grid-column:1\}/,'no later rule drags the portfolio into the identity column');
-  assert.match(clients,/\.client-hub-list \.client-hub-actions\{grid-column:6[\s\S]*?grid-template-columns:repeat\(2,auto\)/,'row actions stack in up to two ordered rows');
+  assert.match(clients,/\.client-hub-list \.client-hub-actions\{grid-column:6[\s\S]*?flex-wrap:nowrap/,'row actions stay in one line');
+  assert.match(clients,/\.client-hub-list \.client-hub-actions \.icon-button\{width:32px/,'dense row action icons keep the 32px contract');
   assert.doesNotMatch(clients,/\.client-hub-list \.client-hub-card\{grid-template-columns:1fr\}/,'the thin list never collapses into stacked cards');
   assert.match(clients,/@media\(max-width:760px\)\{\.client-hub-list\{overflow-x:auto/,'small screens scroll the thin list horizontally');
   const workspace=read('app/scale-workspace.tsx');

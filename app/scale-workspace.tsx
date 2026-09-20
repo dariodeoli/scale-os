@@ -303,12 +303,12 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,canManageTerms,a
         <span className="client-status" data-status={state.value}>{state.label}</span>
       </header>
       <dl className="client-hub-facts">
-        <div><dt>Correo</dt><dd title={client.email||undefined}>{client.email || "Sin email registrado"}</dd></div>
-        <div><dt>Teléfono</dt><dd title={client.phone||undefined}>{client.phone || "Sin teléfono"}</dd></div>
-        <div><dt>RUC</dt><dd title={client.tax_id||undefined}>{client.tax_id || "Sin RUC registrado"}</dd></div>
-        <div><dt>Cliente desde</dt><dd>{since || "Sin fecha de alta"}</dd></div>
+        <div><dt>Correo</dt><dd title={client.email||"Sin email registrado"}>{client.email || "Sin email registrado"}</dd></div>
+        <div><dt>Teléfono</dt><dd title={client.phone||"Sin teléfono"}>{client.phone || "Sin teléfono"}</dd></div>
+        <div><dt>RUC</dt><dd title={client.tax_id||"Sin RUC registrado"}>{client.tax_id || "Sin RUC registrado"}</dd></div>
+        <div><dt>Cliente desde</dt><dd title={since||"Sin fecha de alta"}>{since || "Sin fecha de alta"}</dd></div>
       </dl>
-      <div className="client-hub-stats" aria-label="Cartera del cliente">
+      <div className="client-hub-stats" aria-label="Cartera del cliente" title={portfolio.length?portfolio.map(part=>part.text).join(' · '):undefined}>
         {portfolio.length?<span className="client-hub-stat" title={portfolio.map(part=>part.text).join(' · ')}>{portfolio.map((part,index)=><span className="client-hub-stat-part" key={part.key}>{index?<span className="client-hub-sep" aria-hidden="true"> · </span>:null}{part.node}</span>)}</span>:<span className="client-hub-stat muted">Sin proyectos activos</span>}
       </div>
       {canSeeBilling?<div className="client-hub-chips">

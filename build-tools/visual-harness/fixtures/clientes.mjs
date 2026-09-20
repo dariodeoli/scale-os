@@ -8,8 +8,9 @@
  *
  * Stress values are deliberate: long names, long emails, big amounts, empty
  * fields ("Sin email registrado" / "Sin proyectos activos") and an archived
- * card. In list view the cartera is one line cut with ellipsis (title holds
- * the three values) since commit df8de9c.
+ * card. In list view the cartera is one line in a silent horizontal scroll
+ * with the full value in the container title (SOS-COM issue #25); facts carry
+ * a title even for empty placeholders so a squeezed cell always has an exit.
  *
  * The view toggle carries the CSS-module class emitted by the build the
  * harness serves (view-toggle.module.css -> view-toggle_toggle__ybg7L in the
@@ -49,12 +50,12 @@ const clientCard = ({name, initials, status, email, phone, tax, since, projects,
   <span class="client-status" data-status="${status.key}">${status.label}</span>
  </header>
  <dl class="client-hub-facts">
-  <div><dt>Correo</dt><dd${email ? ` title="${email}"` : ''}>${email || 'Sin email registrado'}</dd></div>
-  <div><dt>Teléfono</dt><dd${phone ? ` title="${phone}"` : ''}>${phone || 'Sin teléfono'}</dd></div>
-  <div><dt>RUC</dt><dd${tax ? ` title="${tax}"` : ''}>${tax || 'Sin RUC registrado'}</dd></div>
-  <div><dt>Cliente desde</dt><dd>${since || 'Sin fecha de alta'}</dd></div>
+  <div><dt>Correo</dt><dd title="${email || 'Sin email registrado'}">${email || 'Sin email registrado'}</dd></div>
+  <div><dt>Teléfono</dt><dd title="${phone || 'Sin teléfono'}">${phone || 'Sin teléfono'}</dd></div>
+  <div><dt>RUC</dt><dd title="${tax || 'Sin RUC registrado'}">${tax || 'Sin RUC registrado'}</dd></div>
+  <div><dt>Cliente desde</dt><dd title="${since || 'Sin fecha de alta'}">${since || 'Sin fecha de alta'}</dd></div>
  </dl>
- <div class="client-hub-stats" aria-label="Cartera del cliente">${stats}</div>
+ <div class="client-hub-stats" aria-label="Cartera del cliente"${portfolio.length ? ` title="${portfolio.map(part => part.text).join(' · ')}"` : ''}>${stats}</div>
  ${billing ? `<div class="client-hub-chips">
   <span class="mora-chip ${chip.tone}">${chip.label}</span>
   ${balance ? `<span class="client-hub-balance" title="Pendiente ${balance}">Pendiente ${balance}</span>` : ''}
