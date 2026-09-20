@@ -61,6 +61,19 @@ test("mobile workspace header keeps the subscription notice visible in the compa
   );
 });
 
+test("the company name truncates in the topbar and wraps inside the switcher", () => {
+  assert.match(
+    density,
+    /\.topbar-company>\.workspace \.company-name\{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\}/,
+    "a long company name truncates in the topbar instead of widening the shell",
+  );
+  const operations = readFileSync(new URL("../app/operations.tsx", import.meta.url), "utf8");
+  assert.match(operations, /<button className="workspace" title=\{name\}/, "the company switcher keeps its hover label");
+  const operationsCss = readFileSync(new URL("../app/operations.css", import.meta.url), "utf8");
+  assert.match(operationsCss, /\.company-choice-row\{display:flex/, "the company switcher row wraps instead of overflowing the dialog");
+  assert.match(operationsCss, /\.company-choice-row>\.choice\{flex:1 1 12rem;min-width:0;text-align:left;white-space:normal/, "the company option wraps its full name");
+});
+
 test("manual subscription management renders immediately after agency records", () => {
   order(superadmin, 'className="platform-admin-agency-cards"', 'platform-admin-subscription-form');
   order(superadmin, 'platform-admin-subscription-form', 'className="platform-admin-two-columns"');

@@ -14,4 +14,14 @@ assert(mobile.includes('height:100dvh')&&mobile.includes('min-height:44px'),'mob
 assert(platform.includes("'/api/platform/overview'")&&platform.includes("credentials:'include'")&&platform.includes("cache:'no-store'"),'global panel must use its dedicated, authenticated no-store API');
 assert(!platform.includes('ScaleWorkspace')&&!platform.includes('DesktopSidebar'),'global panel must not mount the agency workspace');
 assert(platformCss.includes('@media(max-width:760px)'),'global panel must keep an explicit mobile layout contract');
-console.log('PASS: release regression audit covers cache scope, role-aware prefetch, mobile touch layout and isolated global-admin route. Pair with API test-platform-admin.mjs for authorization.');
+// Ronda 20-09 (SOS-PLT): riel, encabezado y listas densas dentro de su contenedor.
+const rail=file('../app/desktop-sidebar.css');
+assert(rail.includes('.control-shell .desktop-sidebar nav>a,.control-shell .desktop-sidebar nav>button{'),'rail logout button shares the link geometry');
+const density=file('../app/workspace-density.css');
+assert(density.includes('.topbar-company>.workspace .company-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'),'long company names truncate in the topbar');
+const operationsCss=file('../app/operations.css');
+assert(operationsCss.includes('.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto'),'the team list scrolls instead of overflowing its panel');
+assert(operationsCss.includes('.company-choice-row{display:flex'),'the company switcher row wraps instead of overflowing the dialog');
+const portalCss=file('../app/cliente/portal.css');
+assert(portalCss.includes('.delivery-activity{list-style:none'),'the portal activity feed drops the native bullets');
+console.log('PASS: rail, topbar, company switcher and dense lists keep their content inside the container.');
