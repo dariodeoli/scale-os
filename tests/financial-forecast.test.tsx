@@ -10,6 +10,10 @@ Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
 const {FinancialForecast,currentForecastMonth,formatWholeMoney,formatSignedMoney}=require('../app/financial-forecast') as typeof import('../app/financial-forecast');
 const events=new EventTarget();Object.defineProperty(globalThis,'window',{configurable:true,value:events});
+// El diálogo del salario se monta con portal: se captura para poder afirmar su
+// contrato (moneda de la ficha y payload del PATCH) sin un DOM real.
+const reactDOM=require('react-dom');reactDOM.createPortal=(children:React.ReactNode)=>children;
+Object.defineProperty(globalThis,'document',{configurable:true,value:{activeElement:null,body:{style:{overflow:''}},addEventListener(){},removeEventListener(){}}});
 let preference:ReturnType<typeof useCompanyCurrency>;
 function Form(){const {currency}=useCompanyCurrency();const form=useForm({defaultValues:{currency}});return <output>{form.watch('currency')}</output>;}
 function Preference(){preference=useCompanyCurrency();return <span>{preference.currency}</span>;}
@@ -82,6 +86,47 @@ async function run(){
  assert.equal(renderer.root.findAllByProps({className:'forecast-person-actions'}).length,0,'a masked salary offers no blind salary edit');
  assert.match(rendered(),/1\.000/,'the per-currency planning aggregate stays without salary.view');
  act(()=>renderer.unmount());
- console.log('PASS financial forecast: role gating, canonical numeric/string response transport, top-level segregated aggregates, per-currency rendering, exact planned-expense POST, refresh, horizon selection with multi-month projection tables, contracted versus invoiced per client, and masked per-person salaries (salary.view)');
+
+ // Seis monedas: un mes en EUR viaja completo (registros, personal, contratos, cobros,
+ // gastos planificados y reales) sin caer en "datos inválidos", y el salario se guarda
+ // en la moneda de la ficha (sin el par legacy monthly_salary_* limitado a PYG|USD).
+ const eurFixture:ForecastData={...contractedFixture,
+  records:[{currency:'EUR',issued_total:1000,accepted_uninvoiced_total:0,expected_total:1000,invoice_count:1,budget_count:0,undated_budget_count:0}],
+  contracted_recurring:{month:'2026-09',records:[{currency:'EUR',amount:500}]},
+  invoiced:{month:'2026-09',records:[{currency:'EUR',amount:1000}]},
+  collected_actual:{month:'2026-09',records:[{currency:'EUR',amount:200}]},
+  commission_forecast:{month:'2026-09',records:[{currency:'EUR',amount:50}]},
+  planned_expenses:{month:'2026-09',records:[{currency:'EUR',amount:100,expense_count:1,fixed_count:1,variable_count:0}]},
+  personnel:{month:'2026-09',included_headcount:'1',records:[{currency:'EUR',included_headcount:1,base_count:1,base_amount:'1234',override_count:0,override_amount:'0',expected_end_of_month_expense:'1234',members:[{collaborator_id:'11',user_id:null,name:'Salario EUR',photo_url:null,compensation_type:'fixed',currency:'EUR',base_amount:'1234',override_amount:'0'}]}]},
+  contracted_clients:{month:'2026-09',records:[{client_id:'1',client_name:'Cliente EUR',currency:'EUR',contracted_amount:500,invoiced_amount:1000,invoice_required:true,missing_invoice:false}]}};
+ await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});
+ await respond(requests.at(-1)!,eurFixture);
+ assert.doesNotMatch(rendered(),/datos inválidos/,'an EUR month is valid money');
+ assert.match(rendered(),/EUR[^0-9]*1,000/,'EUR records render with their code');
+ assert.match(rendered(),/Cliente EUR/,'contracted clients in EUR stay visible');
+ const currencySelect=renderer.root.findAllByType(SelectCustom).find(select=>select.props.label==='Moneda')!;
+ assert.equal(currencySelect.props.choices.length,6,'the planned-expense currency select offers the six company currencies');
+ act(()=>currencySelect.props.onChange('EUR'));
+ assert.equal(renderer.root.findAllByType(SelectCustom).find(select=>select.props.label==='Moneda')!.props.value,'EUR','picking EUR in the selector is not silently reset to PYG');
+ // Cuentas y gastos reales en EUR: la lectura ya no los descarta.
+ const eurAccounts=requests.filter(request=>request.url==='/core-api/api/agency/accounts'&&!request.init.method).at(-1)!;
+ await respond(eurAccounts,{accounts:[{id:'7',name:'Cuenta EUR',currency:'EUR',active:true}]});
+ const eurExpenses=requests.filter(request=>request.url.startsWith('/core-api/api/agency/expenses?month=2026-09')&&!request.init.method).at(-1)!;
+ await respond(eurExpenses,{month:'2026-09',expenses:[{id:'3',account_id:'7',account_name:'Cuenta EUR',category:'Herramientas',kind:'fixed',amount:'150',currency:'EUR',paid_on:'2026-09-12',reference:'Licencia EUR',created_by_email:'fin@example.invalid'}]});
+ assert.match(rendered(),/Licencia EUR/,'an EUR real expense stays in the month list');
+ assert.match(rendered(),/EUR[^0-9]*150/,'the EUR real expense renders its amount');
+ // El salario se guarda en la moneda de la ficha, sin el par limitado a PYG|USD.
+ const salaryButton=renderer.root.findAllByType('button').find(button=>button.props.title==='Editar salario')!;
+ act(()=>salaryButton.props.onClick());
+ const salaryFields=renderer.root.findAllByProps({className:'amount-field'});
+ assert.equal(salaryFields.at(-1)!.props['data-currency'],'EUR','the salary field draws the record currency');
+ act(()=>{void renderer.root.findAllByType('form').at(-1)!.props.onSubmit({preventDefault(){}});});
+ const salaryPatch=requests.at(-1)!;
+ assert.equal(salaryPatch.url,'/core-api/api/agency/collaborators/11');
+ assert.equal(salaryPatch.init.method,'PATCH');
+ assert.deepEqual(JSON.parse(String(salaryPatch.init.body)),{compensation_type:'fixed',compensation_amount:'1234'},'the salary keeps the record currency and skips the 2-currency legacy pair');
+ await respond(salaryPatch,{collaborator:{id:'11'}});
+ act(()=>renderer.unmount());
+ console.log('PASS financial forecast: role gating, canonical numeric/string response transport, top-level segregated aggregates, per-currency rendering, exact planned-expense POST, refresh, horizon selection with multi-month projection tables, contracted versus invoiced per client, masked per-person salaries (salary.view), and the six company currencies with the salary kept in the record currency');
 }
 void run();

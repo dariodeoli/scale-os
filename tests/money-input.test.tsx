@@ -26,5 +26,18 @@ assert.equal(changed.at(-1),'1234');
 renderer.update(<AmountInput value="0" currency="PYG" required onChange={value=>changed.push(value)}/>);
 input=renderer.root.findByType('input');
 assert.equal(input.props.required,true);
+// Las seis monedas de la empresa comparten el mismo campo: PYG entero, el resto con
+// dos decimales y su símbolo propio.
+renderer.update(<AmountInput value="1234.5" currency="EUR" onChange={value=>changed.push(value)}/>);
+input=renderer.root.findByType('input');
+assert.equal(input.props.value,'1.234,5');
+assert.equal(input.props.inputMode,'decimal');
+assert.equal(input.props.placeholder,'1.250,50');
+act(()=>input.props.onChange({currentTarget:{value:'1.234,50',selectionStart:8}}));
+assert.equal(changed.at(-1),'1234.50');
+renderer.update(<AmountInput integerOnly value="1500" currency="BRL" onChange={value=>changed.push(value)}/>);
+input=renderer.root.findByType('input');
+assert.equal(input.props.inputMode,'numeric');
+assert.equal(input.props.value,'1.500');
 renderer.unmount();
-console.log('PASS: shared money input keeps locale grouping, cents, integer keyboards, grouped paste and required');
+console.log('PASS: shared money input keeps locale grouping, cents, integer keyboards, grouped paste, required and the six company currencies');
