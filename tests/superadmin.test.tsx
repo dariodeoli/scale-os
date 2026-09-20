@@ -28,6 +28,21 @@ test("superadmin sends a 401 to the clean app login without the next param befor
   );
 });
 
+test("superadmin sends the real re-authentication proof on global deletions", () => {
+  // Issue #22: el modal ya no es cosmético; el API exige vista previa + prueba.
+  assert.match(page, /\/api\/platform\/destructive\/preview/);
+  assert.match(page, /\/api\/auth\/account\/recent-auth\/password/);
+  assert.match(page, /confirmation, recentAuthProof \}/);
+  assert.match(page, /autoComplete="current-password"/);
+  assert.match(page, /!confirmPassword \|\|/);
+  assert.match(page, /code === "PASSWORD_REAUTH_FAILED"/);
+  assert.match(page, /code === "PASSWORD_REAUTH_UNAVAILABLE"/);
+  assert.match(page, /code === "RECENT_AUTH_REQUIRED"/);
+  assert.equal((page.match(/proofPayload/g) ?? []).length, 3, "una definición y los dos envíos con prueba");
+  assert.match(page, /method: "DELETE", body: JSON\.stringify\(proofPayload\)/);
+  assert.match(page, /method: "DELETE",\n\s+body: JSON\.stringify\(proofPayload\),/);
+});
+
 test("superadmin normalizes absent and invalid dashboard metric values", () => {
   assert.match(
     page,

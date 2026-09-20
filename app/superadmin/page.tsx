@@ -100,7 +100,7 @@ type BootstrapStatus = {
     | "awaiting_eligible_user";
 };
 
-type PlatformError = Error & { status?: unknown };
+type PlatformError = Error & { status?: unknown; code?: unknown };
 function loginReturnPath() {
   if (typeof window !== "undefined" && window.location.hostname === "admin.scaleparaguay.com") return "https://app.scaleparaguay.com/";
   return "/";
@@ -113,6 +113,11 @@ function appHome() {
 function errorStatus(cause: unknown) {
   const status = (cause as PlatformError)?.status;
   return typeof status === "number" ? status : undefined;
+}
+
+function errorCode(cause: unknown) {
+  const code = (cause as PlatformError)?.code;
+  return typeof code === "string" ? code : undefined;
 }
 
 function formatPlatformMetric(value: unknown, fallback = "—") {
@@ -236,6 +241,7 @@ export default function PlatformAdmin() {
     { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null
   >(null);
   const [typed, setTyped] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [actionNotice, setActionNotice] = useState("");
   const [actionError, setActionError] = useState("");
 
@@ -343,14 +349,46 @@ export default function PlatformAdmin() {
       typed !== (confirming.kind === "user" ? confirming.person.email : confirming.agency.name)
     )
       return;
+    if (!confirmPassword) {
+      setActionError("Ingresá tu contraseña actual para confirmar la eliminación.");
+      return;
+    }
+    // El API exige vista previa + prueba de re-autenticación (issue #22).
+    const confirmation = typed;
+    const action = confirming.kind === "user" ? "platform.user.delete" : "platform.agency.delete";
+    const targetId = confirming.kind === "user" ? confirming.person.id : confirming.agency.id;
     setBusy(true);
     setActionError("");
     setActionNotice("");
     try {
+      const preview = await platformApi<{ preview: { id: string } }>("/api/platform/destructive/preview", {
+        method: "POST",
+        body: JSON.stringify({ action, targetId }),
+      });
+      let recentAuthProof: string;
+      try {
+        const auth = await platformApi<{ proof: string }>("/api/auth/account/recent-auth/password", {
+          method: "POST",
+          body: JSON.stringify({ previewId: preview.preview.id, password: confirmPassword }),
+        });
+        recentAuthProof = auth.proof;
+      } catch (cause) {
+        const code = errorCode(cause);
+        if (code === "PASSWORD_REAUTH_FAILED") {
+          setActionError("No pudimos confirmar tu contraseña. Revisala y volvé a intentar.");
+          return;
+        }
+        if (code === "PASSWORD_REAUTH_UNAVAILABLE") {
+          setActionError("Esta cuenta confirma su identidad con Google. Completá la verificación desde la zona de eliminación de tu cuenta.");
+          return;
+        }
+        throw cause;
+      }
+      const proofPayload = { previewId: preview.preview.id, confirmation, recentAuthProof };
       if (confirming.kind === "user") {
         const result = await platformApi<{
           deleted: { userId: number; self: boolean; agencies: number[] };
-        }>(`/api/platform/users/${confirming.person.id}`, { method: "DELETE" });
+        }>(`/api/platform/users/${confirming.person.id}`, { method: "DELETE", body: JSON.stringify(proofPayload) });
         if (result.deleted.self) {
           setActionNotice("Tu cuenta fue eliminada. La sesión se cerrará.");
           if (typeof window !== "undefined")
@@ -366,16 +404,25 @@ export default function PlatformAdmin() {
       } else {
         await platformApi(`/api/platform/agencies/${confirming.agency.id}`, {
           method: "DELETE",
+          body: JSON.stringify(proofPayload),
         });
         setActionNotice(`Agencia ${confirming.agency.name} eliminada.`);
       }
+      setConfirmPassword("");
       setConfirming(null);
       setTyped("");
       await load();
     } catch (cause) {
-      setActionError(
-        cause instanceof Error ? cause.message : "No se pudo completar la eliminación.",
-      );
+      const code = errorCode(cause);
+      if (code === "CONFIRMATION_MISMATCH") {
+        setActionError("El texto de confirmación cambió. Revisalo y volvé a intentar.");
+      } else if (code === "RECENT_AUTH_REQUIRED" || code === "RECENT_AUTH_INVALID") {
+        setActionError("La confirmación de identidad venció. Volvé a intentar con tu contraseña.");
+      } else if (code === "DELETION_PREVIEW_STALE" || code === "DELETION_PREVIEW_INVALID" || code === "DELETION_SCOPE_MISMATCH") {
+        setActionError("La vista previa venció. Cerrá la confirmación y volvé a intentar.");
+      } else if (!handlePlatformError(cause)) {
+        setActionError(cause instanceof Error ? cause.message : "No se pudo completar la eliminación.");
+      }
     } finally {
       setBusy(false);
     }
@@ -1275,6 +1322,7 @@ export default function PlatformAdmin() {
             if (busy) return;
             setConfirming(null);
             setTyped("");
+            setConfirmPassword("");
           }}
         >
           <p className="form-note">
@@ -1299,11 +1347,23 @@ export default function PlatformAdmin() {
               onChange={(event) => setTyped(event.target.value)}
             />
           </label>
+          <label className="platform-admin-confirm">
+            Confirmá tu identidad con tu contraseña actual
+            <input
+              type="password"
+              value={confirmPassword}
+              disabled={busy}
+              autoComplete="current-password"
+              maxLength={128}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+            />
+          </label>
           <div className="inline-actions">
             <button
               className="primary"
               disabled={
                 busy ||
+                !confirmPassword ||
                 typed !==
                   (confirming.kind === "user"
                     ? confirming.person.email

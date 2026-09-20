@@ -14,22 +14,37 @@ const roleLabels:Record<string,string>={admin:'Admin global',viewer:'Solo lectur
 
 export function PlatformAccessPanel({currentUserId,platformRole}:{currentUserId:string;platformRole:string|null}){
  const [users,setUsers]=useState<PlatformUser[]|null>(null),[agencies,setAgencies]=useState<PlatformAgency[]|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
- const [confirming,setConfirming]=useState<{kind:'user';person:PlatformUser}|{kind:'agency';agency:PlatformAgency}|null>(null),[typed,setTyped]=useState('');
+ const [confirming,setConfirming]=useState<{kind:'user';person:PlatformUser}|{kind:'agency';agency:PlatformAgency}|null>(null),[typed,setTyped]=useState(''),[confirmPassword,setConfirmPassword]=useState('');
  const writable=platformRole==='admin';
  async function load(){setBusy(true);setError('');try{const [userData,agencyData]=await Promise.all([platformApi<UsersResponse>('/api/platform/users?limit=100'),platformApi<AgenciesResponse>('/api/platform/agencies?limit=100')]);setUsers(userData.users);setAgencies(agencyData.agencies);}catch(cause){setError(cause instanceof Error?cause.message:'No se pudo cargar la administración global.');}finally{setBusy(false);}}
  useEffect(()=>{void load();},[]);
  async function setAccess(target:PlatformUser,platform_access:'admin'|'viewer'|'none'){setBusy(true);setError('');setNotice('');try{await platformApi(`/api/platform/users/${target.id}`,{method:'PATCH',body:JSON.stringify({platform_access})});setNotice(`${target.email}: acceso global actualizado.`);await load();}catch(cause){setError(cause instanceof Error?cause.message:'No se pudo actualizar el acceso global.');}finally{setBusy(false);}}
  function openDelete(target:{kind:'user';person:PlatformUser}|{kind:'agency';agency:PlatformAgency}){setConfirming(target);setTyped('');}
- async function remove(){if(busy||!confirming)return;const targetLabel=confirming.kind==='user'?confirming.person.email:confirming.agency.name;if(typed!==targetLabel)return;setBusy(true);setError('');setNotice('');try{
+ async function remove(){if(busy||!confirming)return;const targetLabel=confirming.kind==='user'?confirming.person.email:confirming.agency.name;if(typed!==targetLabel)return;
+  if(!confirmPassword){setError('Ingresá tu contraseña actual para confirmar la eliminación.');return;}
+  setBusy(true);setError('');setNotice('');
+  const action=confirming.kind==='user'?'platform.user.delete':'platform.agency.delete';
+  const targetId=confirming.kind==='user'?confirming.person.id:confirming.agency.id;
+  let proofPayload:{previewId:string;confirmation:string;recentAuthProof:string};
+  try{
+   const preview=await platformApi<{preview:{id:string}}>('/api/platform/destructive/preview',{method:'POST',body:JSON.stringify({action,targetId})});
+   const auth=await platformApi<{proof:string}>('/api/auth/account/recent-auth/password',{method:'POST',body:JSON.stringify({previewId:preview.preview.id,password:confirmPassword})});
+   proofPayload={previewId:preview.preview.id,confirmation:typed,recentAuthProof:auth.proof};
+  }catch(cause){
+   const code=(cause as {code?:string}).code;
+   setError(code==='PASSWORD_REAUTH_FAILED'?'No pudimos confirmar tu contraseña. Revisala y volvé a intentar.':code==='PASSWORD_REAUTH_UNAVAILABLE'?'Esta cuenta confirma su identidad con Google. Completá la verificación desde la zona de eliminación de tu cuenta.':cause instanceof Error?cause.message:'No se pudo confirmar tu identidad.');
+   setBusy(false);return;
+  }
+  try{
   if(confirming.kind==='user'){
-   const result=await platformApi<DeleteResponse>(`/api/platform/users/${confirming.person.id}`,{method:'DELETE'});
+   const result=await platformApi<DeleteResponse>(`/api/platform/users/${confirming.person.id}`,{method:'DELETE',body:JSON.stringify(proofPayload)});
    if(result.deleted.self){setConfirming(null);setTyped('');setNotice('Tu cuenta fue eliminada. La sesión se cerrará.');if(typeof window!=='undefined')window.setTimeout(()=>window.location.reload(),2500);return;}
    setNotice(`Usuario eliminado${result.deleted.agencies.length?` junto con ${result.deleted.agencies.length} agencia(s) completa(s)`:''}.`);
   }else{
-   await platformApi(`/api/platform/agencies/${confirming.agency.id}`,{method:'DELETE'});
+   await platformApi(`/api/platform/agencies/${confirming.agency.id}`,{method:'DELETE',body:JSON.stringify(proofPayload)});
    setNotice(`Agencia ${confirming.agency.name} eliminada.`);
   }
-  setConfirming(null);setTyped('');await load();
+  setConfirming(null);setTyped('');setConfirmPassword('');await load();
  }catch(cause){setError(cause instanceof Error?cause.message:'No se pudo completar la eliminación.');}finally{setBusy(false);}}
  const selfRow=(person:PlatformUser)=>String(person.id)===currentUserId;
  const adminCount=users?.filter(person=>person.platform_role==='admin').length??0;
@@ -61,10 +76,11 @@ export function PlatformAccessPanel({currentUserId,platformRole}:{currentUserId:
    <div className="platform-access-person"><b title={agency.name}>{agency.name}</b><small>{agency.slug} · {agency.active_users} usuarios{agency.active?` · ${agency.subscription_status||'Activa'}`:' · Inactiva'}</small></div>
    <div className="platform-access-actions">{writable?<button className="text-button danger" disabled={busy} onClick={()=>openDelete({kind:'agency',agency})}><Trash2 size={14}/>Eliminar agencia</button>:<span className="platform-access-badge">{agency.active?'Activa':'Inactiva'}</span>}</div>
   </li>)}</ul>:<p className="empty-copy">No hay agencias para mostrar.</p>}
-  {confirming&&<Dialog title={confirming.kind==='user'?(selfRow(confirming.person)?'Eliminar mi cuenta':'Eliminar usuario'):'Eliminar agencia'} busy={busy} close={()=>{if(busy)return;setConfirming(null);setTyped('');}}>
+  {confirming&&<Dialog title={confirming.kind==='user'?(selfRow(confirming.person)?'Eliminar mi cuenta':'Eliminar usuario'):'Eliminar agencia'} busy={busy} close={()=>{if(busy)return;setConfirming(null);setTyped('');setConfirmPassword('');}}>
    <p className="form-note">{confirming.kind==='user'?selfRow(confirming.person)?'Se eliminará tu usuario y las agencias que poseas. Solo vos podés eliminar tu propia cuenta. Esta acción es irreversible.':'Se eliminará el usuario y, si es dueño, sus agencias completas. Esta acción es irreversible.':'Se eliminará la agencia con todos sus datos. Esta acción es irreversible.'}</p>
    <label className="platform-access-confirm">Escribí <strong>{confirming.kind==='user'?confirming.person.email:confirming.agency.name}</strong> para confirmar<input value={typed} disabled={busy} autoComplete="off" onChange={event=>setTyped(event.target.value)}/></label>
-   <div className="inline-actions"><button className="primary" disabled={busy||typed!==(confirming.kind==='user'?confirming.person.email:confirming.agency.name)} onClick={()=>void remove()}>{busy?'Eliminando…':'Eliminar definitivamente'}</button></div>
+   <label className="platform-access-confirm">Confirmá tu identidad con tu contraseña actual<input type="password" value={confirmPassword} disabled={busy} autoComplete="current-password" maxLength={128} onChange={event=>setConfirmPassword(event.target.value)}/></label>
+   <div className="inline-actions"><button className="primary" disabled={busy||!confirmPassword||typed!==(confirming.kind==='user'?confirming.person.email:confirming.agency.name)} onClick={()=>void remove()}>{busy?'Eliminando…':'Eliminar definitivamente'}</button></div>
   </Dialog>}
  </section>;
 }

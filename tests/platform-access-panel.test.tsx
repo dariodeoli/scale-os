@@ -66,30 +66,44 @@ async function run(){
  act(()=>button('Eliminar usuario')!.props.onClick());
  assert.match(text(),/Escribí/);assert.match(text(),/member@scale.example/);
  const confirm=()=>buttons().find(node=>textOf(node).includes('Eliminar definitivamente'))!;
+ const inputs=()=>renderer.root.findAllByType('input');
+ // Issue #22: el borrado global exige vista previa + re-autenticación + prueba.
+ async function confirmDeletion(password='secreta'){
+  act(()=>inputs()[1].props.onChange({target:{value:password}}));
+  act(()=>{void confirm().props.onClick();});
+  const preview=lastRequest();assert.equal(preview.url,'/core-api/api/platform/destructive/preview');assert.equal(preview.init.method,'POST');
+  await respond(preview,{preview:{id:'preview-1'}});
+  const auth=lastRequest();assert.equal(auth.url,'/core-api/api/auth/account/recent-auth/password');
+  await respond(auth,{proof:'p'.repeat(43)});
+  const remove=lastRequest();
+  assert.equal(remove.init.method,'DELETE');
+  assert.match(String(remove.init.body),/"recentAuthProof":"p{43}"/,'el borrado viaja con la prueba');
+  return remove;
+ }
  assert.equal(confirm().props.disabled,true,'confirmation requires the typed email');
- act(()=>renderer.root.findAllByType('input')[0].props.onChange({target:{value:'member@scale.example'}}));
- assert.equal(confirm().props.disabled,false);
- act(()=>{void confirm().props.onClick();});
- const remove=lastRequest();assert.equal(remove.url,'/core-api/api/platform/users/2');assert.equal(remove.init.method,'DELETE');
+ act(()=>inputs()[0].props.onChange({target:{value:'member@scale.example'}}));
+ assert.equal(confirm().props.disabled,true,'the password is required too');
+ const remove=await confirmDeletion();
+ assert.equal(remove.url,'/core-api/api/platform/users/2');
  await respond(remove,{deleted:{userId:2,self:false,agencies:[60]}});
  await respond(requests.at(-2)!,fixtureUsers());await respond(lastRequest(),fixtureAgencies());
  assert.match(text(),/junto con 1 agencia\(s\) completa\(s\)/);
  act(()=>button('Eliminar agencia')!.props.onClick());
  assert.match(text(),/Escribí/);assert.match(text(),/Agency One/);
- act(()=>renderer.root.findAllByType('input')[0].props.onChange({target:{value:'Agency One'}}));
- act(()=>{void confirm().props.onClick();});
- const agencyRemoved=lastRequest();assert.equal(agencyRemoved.url,'/core-api/api/platform/agencies/10');assert.equal(agencyRemoved.init.method,'DELETE');
+ act(()=>inputs()[0].props.onChange({target:{value:'Agency One'}}));
+ const agencyRemoved=await confirmDeletion();
+ assert.equal(agencyRemoved.url,'/core-api/api/platform/agencies/10');
  await respond(agencyRemoved,{deleted:{agencyId:10,name:'Agency One',slug:'agency-one'}});
  await respond(requests.at(-2)!,fixtureUsers());await respond(lastRequest(),fixtureAgencies());
  assert.match(text(),/Agencia Agency One eliminada/);
  act(()=>button('Eliminar mi cuenta')!.props.onClick());
  assert.match(text(),/Solo vos podés eliminar tu propia cuenta/);
- act(()=>renderer.root.findAllByType('input')[0].props.onChange({target:{value:'owner@scale.example'}}));
- act(()=>{void confirm().props.onClick();});
- const self=lastRequest();assert.equal(self.url,'/core-api/api/platform/users/1');assert.equal(self.init.method,'DELETE');
+ act(()=>inputs()[0].props.onChange({target:{value:'owner@scale.example'}}));
+ const self=await confirmDeletion();
+ assert.equal(self.url,'/core-api/api/platform/users/1');
  await respond(self,{deleted:{userId:1,self:true,agencies:[]}});
  assert.match(text(),/Tu cuenta fue eliminada/);
  act(()=>renderer.unmount());
- console.log('PASS platform access panel: role-aware read-only view, access grants/revokes, email-confirmed user deletion with agency cascade notice, agency deletion and self-deletion');
+ console.log('PASS platform access panel: role-aware read-only view, access grants/revokes, re-authenticated deletions (preview + password proof) with agency cascade notice, and self-deletion');
 }
 void run();

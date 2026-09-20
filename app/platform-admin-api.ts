@@ -2,7 +2,8 @@ export const platformApiBase='/core-api';
 export async function platformApi<T>(path:string,init:RequestInit={}){
  const response=await fetch(platformApiBase+path,{...init,credentials:'include',cache:'no-store',signal:AbortSignal.timeout(15000),headers:{'Content-Type':'application/json',...(init.headers||{})}});
  const data=await response.json().catch(()=>({}));
- if(!response.ok)throw Object.assign(Error(data.error||'No se pudo completar la administración global.'),{status:response.status});
+ // El código del API viaja en el error: la UI decide por él (re-autenticación, vista previa).
+ if(!response.ok)throw Object.assign(Error(data.error||'No se pudo completar la administración global.'),{status:response.status,code:typeof data.code==='string'?data.code:undefined});
  return data as T;
 }
 const asuncionZone='America/Asuncion';
