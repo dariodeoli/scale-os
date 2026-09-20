@@ -79,7 +79,7 @@ const actorIdentity = ({name, photo = '', timestamp = '', verified = true, impor
 const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
 const searchField = ({label, placeholder}) => `<label class="search-field"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
-const ammount = (text) => `<dd class="list-amount">${text}</dd>`;
+const amountCell = (text) => `<dd class="list-amount">${text}</dd>`;
 
 /* ------------------------------------------------------------- inventario */
 const verificationStamp = ({result, label, verifier, initials, time, stampClass, empty}) => {
@@ -107,7 +107,7 @@ const equipmentCard = ({name, code, photo = '', status, statusLabel, category, c
   <div class="inventory-fact"><dt>Categoría</dt><dd>${categoryIcon}${category}</dd></div>
   <div class="inventory-fact inventory-fact-location"><dt>Ubicación</dt><dd title="${location}">${location}</dd></div>
   <div class="inventory-fact"><dt>Serie / IMEI</dt><dd${serial ? ` title="${serial}"` : ''}>${serial ? serialTexto(serial) : 'Sin registrar'}</dd></div>
-  <div class="inventory-fact"><dt>Valor</dt>${ammount(value)}</div>
+  <div class="inventory-fact"><dt>Valor</dt>${amountCell(value)}</div>
  </dl>
  <div class="inventory-card-foot">
   <div class="inventory-card-control">
@@ -233,7 +233,7 @@ const inventoryToolbar = `
  </div><button type="button" class="text-button inventory-select-visible">Seleccionar visibles</button></div></div>
 </div>`;
 
-const inventoryEquipmentHead = '<div class="inventory-equipment-head" aria-hidden="true"><span>Foto</span><span/><span>Artículo</span><span>Detalles</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span>Acciones</span></div>';
+const inventoryEquipmentHead = '<div class="inventory-equipment-head" aria-hidden="true"><span>Foto</span><span></span><span>Artículo</span><span>Detalles</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span>Acciones</span></div>';
 
 /* Reservas y calendario (app/inventory-workspace.tsx 310, 440-447). */
 const reservationRow = ({title, status, statusLabel, project, dates, items, responsibles, returns, actions = '', audit = ''}) => `
@@ -1123,7 +1123,7 @@ ${equipmentSummary}
  <div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.trash, 18)}</span><div><h2 id="trash-workspace-title">Papelera de esta empresa</h2><p>Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva. Los accesos retirados se devuelven con una nueva invitación desde Equipo.</p></div></div>
  <div class="bulk-bar" role="status" aria-live="polite"><span class="bulk-count"><b>2</b> seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button">Seleccionar todos</button><button type="button" class="secondary">Restaurar</button><button type="button" class="text-button">Limpiar</button></div></div>
  <ul class="trash-list">
-  <li class="trash-head" aria-hidden="true"><span/><span>Tipo</span><span>Registro</span><span>Acciones</span></li>
+  <li class="trash-head" aria-hidden="true"><span></span><span>Tipo</span><span>Registro</span><span>Acciones</span></li>
   ${trashRecords.map(trashRow).join('')}
  </ul>
 </section>`,

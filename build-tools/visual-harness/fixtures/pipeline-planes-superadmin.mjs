@@ -6,6 +6,10 @@
  * are deliberate: long company/plan names, big amounts (Gs 1.234.567.890 /
  * USD 12.345,67), long free text, chips and empty states.
  *
+ * State variants: `metricas-crecimiento` renders `<details open>` (the daily
+ * table is only measurable expanded); `planes-comparacion` includes an archived
+ * plan and a plan with no items ("No disponible" / "Sin ítems guardados").
+ *
  * Surfaces:
  *  - app/suite.tsx CatalogWorkspace kind='leads' (LeadCard/LeadColumn lines 38-39,
  *    workspace lines 40-72) + app/pipeline-summary.css + app/suite.css
@@ -15,7 +19,11 @@
  *    lines 46-73 + app/plan-comparison.css
  *  - app/superadmin/page.tsx (StatusBadge 183-195, stats 579-633, agencies 635-812,
  *    two columns 939-1160, audit 1162-1215, shell 1222-1248)
- *  - app/platform-access-panel.tsx lines 37-69 + app/platform-access.css
+ *  - app/platform-access-panel.tsx lines 37-69 + app/platform-access.css:
+ *    NOT registered — `platform-access.css` is not part of the shipped CSS
+ *    (0 of the 24 built chunks) because PlatformAccessPanel has no route, so the
+ *    harness would measure unstyled markup. Kept as a named export ready to
+ *    register once the component is wired (see `platformAccessFixture`).
  *  - app/desktop-sidebar.tsx lines 10-13 + app/desktop-sidebar.css
  *  - app/scale-workspace.tsx topbar lines 995-1024 + app/workspace-density.css
  *  - app/mobile-navigation.tsx lines 17-22/36-37 + app/mobile-navigation.css
@@ -45,6 +53,7 @@ const I = {
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
   panelLeftOpen: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/>',
+  panelLeftClose: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m16 9-3 3 3 3"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
   refresh: '<path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/>',
   shieldAlert: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M12 8v4M12 16h.01"/>',
@@ -56,11 +65,9 @@ const I = {
   smartphone: '<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
   messageCircle: '<path d="M21 12a9 9 0 1 1-3.2-6.9L21 3l-1 4.2A8.9 8.9 0 0 1 21 12Z"/>',
   trendingUp: '<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
-  calendarClock: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18M12 15v3M10 18h4"/>',
   check: '<path d="m5 12 5 5L20 6"/>',
   checkCheck: '<path d="m2 13 4 4 8-8"/><path d="m10 17 10-10"/>',
   externalLink: '<path d="M15 3h6v6M21 3l-9 9"/><path d="M10 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/>',
-  rotateCcw: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>',
   circleCheck: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 5-5"/>',
   pauseCircle: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
   playCircle: '<circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4Z"/>',
@@ -73,15 +80,25 @@ const money = (value, currency) =>
 const whole = (value) => new Intl.NumberFormat('es-PY', {maximumFractionDigits: 0}).format(Number(value));
 
 const removeRecordButton = (kind, name) => {
-  const roles = {leads: true, plans: true};
-  if (!roles[kind]) return '';
+  if (!['leads', 'plans'].includes(kind)) return '';
   return `<button class="icon-button record-remove" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: ${name}">${svg(I.trash, 16)}</button>`;
 };
 
 /* ============================================================ 1. PIPELINE ==
  * app/suite.tsx LeadCard line 38 / LeadColumn line 39 / CatalogWorkspace 40-72.
+ *
+ * The board is a kanban: per the 17-09 decision it keeps its own cards, so this
+ * fixture declares no list/grid. Its two real defects are not expressible as a
+ * harness declaration and were measured with a CDP probe against audit.html:
+ *  - `.suite-column` widths (`.suite-board` at 1440): 590/549/387/414/280/280/319
+ *    px although the CSS pins `flex: 0 0 280px` (item `min-width: auto` gives in
+ *    to the nowrap opportunity name/email).
+ *  - `.suite-column > .lead-card` takes `height: 100%` from the shared capsule
+ *    rule (app/ui-system.css lines 272-281): every card is 573 px tall, the
+ *    second card of a column starts below the column box (y 1019 vs bottom 982)
+ *    and `.suite-board` clips it vertically (clientHeight 613 / scrollHeight 1249).
  * ========================================================================= */
-const leadCard = ({name, amount, currency, probability, email, level, clientless = false}) => `
+const leadCard = ({name, amount, currency, probability, email, level}) => `
   <article class="ops-card lead-card">
    <header class="lead-card-head"><b title="${name}">${name}</b><button class="icon-button" title="Mover ${name}" aria-label="Mover ${name}">${svg(I.grip, 16)}</button></header>
    <strong class="lead-card-amount">${money(amount, currency)}</strong>
@@ -91,7 +108,7 @@ const leadCard = ({name, amount, currency, probability, email, level, clientless
   </article>`;
 
 const leadColumn = ({stage, label, readOnly = false, cards, pondered = []}) => `
-  <section class="suite-column${readOnly ? '' : ''}" data-stage="${stage}">
+  <section class="suite-column" data-stage="${stage}">
    <h3>${label}${readOnly ? ' · desactivada' : ''} · ${cards.length}</h3>
    ${pondered.map((value) => `<small>${value} ponderado</small>`).join('')}
    ${cards.join('')}
@@ -156,7 +173,7 @@ const pipelineColumns = [
 /* ===================================================== 2. VISITANTES WEB ==
  * app/live-visitors.tsx lines 41-46 (counts state).
  * ========================================================================= */
-const peopleContainer = ({name, secondary, initials, avatar = true}) => `
+const peopleContainer = ({name, secondary, initials}) => `
   <span class="person-container person-container-md">
    <span class="person-container-avatar" aria-hidden="true">${initials}</span>
    <span class="person-container-details"><span class="person-container-name">${name}</span>${secondary ? `<span class="person-container-secondary">${secondary}</span>` : ''}</span>
@@ -196,11 +213,11 @@ const growthDashboard = `
   <div class="ops-select"><span class="ops-label" id="growth-period-label">Período</span><button type="button" class="ops-select-trigger" aria-labelledby="growth-period-label growth-period-value" aria-haspopup="listbox" aria-expanded="false"><span id="growth-period-value">Últimos 30 días</span>${svg(I.chevronDown, 16)}</button></div>
  </div>
  <div class="growth-cards">
-  <article><p>${svg(I.eye, 20)}Páginas vistas</p><strong>1.234.567</strong><small>${svg(I.trendingUp, 14)}+128,4% vs. período anterior</small></article>
-  <article><p>${svg(I.smartphone, 20)}Vistas desde móvil</p><strong>98.765</strong><small>${svg(I.trendingUp, 14)}Sin base anterior</small></article>
-  <article><p>${svg(I.messageCircle, 20)}Clics en WhatsApp</p><strong>12</strong><small>${svg(I.trendingUp, 14)}-12,5% vs. período anterior</small></article>
+  <article><p>${svg(I.eye, 20)}Páginas vistas</p><strong>37.479</strong><small>${svg(I.trendingUp, 14)}+128.4% vs. período anterior</small></article>
+  <article><p>${svg(I.smartphone, 20)}Vistas desde móvil</p><strong>18.240</strong><small>${svg(I.trendingUp, 14)}Sin base anterior</small></article>
+  <article><p>${svg(I.messageCircle, 20)}Clics en WhatsApp</p><strong>1.284</strong><small>${svg(I.trendingUp, 14)}-12.5% vs. período anterior</small></article>
  </div>
- <div><h3>Evolución diaria · páginas vistas</h3><div class="growth-chart" role="img" aria-label="Páginas vistas durante 30 días. 38.245 en total.">${growthBars}</div><div class="growth-axis"><span>${growthPointDays[0]}</span><span>${growthPointDays[growthPointDays.length - 1]}</span></div></div>
+ <div><h3>Evolución diaria · páginas vistas</h3><div class="growth-chart" role="img" aria-label="Páginas vistas durante 30 días. 37.479 en total.">${growthBars}</div><div class="growth-axis"><span>${growthPointDays[0]}</span><span>${growthPointDays[growthPointDays.length - 1]}</span></div></div>
  <p class="form-note">Son eventos registrados, no personas únicas ni usuarios conectados. Las vistas móviles no se suman al total de páginas. Las comprobaciones de despliegue quedan excluidas.</p>
  <details open><summary>Ver datos diarios</summary><div class="growth-table"><table><thead><tr><th>Fecha</th><th>Páginas vistas</th></tr></thead><tbody>${growthPointCounts.map((count, index) => `<tr><td>${growthPointDays[index]}</td><td>${count}</td></tr>`).join('')}</tbody></table></div></details>
 </section>`;
@@ -458,22 +475,29 @@ const superadminAudit = `
 
 /* ============================================== 7. ADMINISTRACIÓN GLOBAL =
  * app/platform-access-panel.tsx lines 37-69 + app/platform-access.css.
+ * Held out of the registry: this stylesheet is absent from the built CSS
+ * (`platform-access-*` appears in 0 of the 24 shipped chunks), so any geometry
+ * here would be base-HTML noise. See `platformAccessFixture` at the bottom.
  * ========================================================================= */
 const platformAccessUsers = [
-  {email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', agencies: 12, role: 'Admin global', self: ' · Vos', kind: 'self'},
-  {email: 'compras@coopservicios.com.py', agencies: 3, role: 'Acceso de agencia', self: '', kind: 'writable'},
-  {email: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', agencies: 1, role: 'Solo lectura', self: '', kind: 'writable'},
+  {email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', agencies: 12, role: 'Admin global', self: ' · Vos', access: 'self'},
+  {email: 'compras@coopservicios.com.py', agencies: 3, role: 'Acceso de agencia', self: '', access: 'none'},
+  {email: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', agencies: 1, role: 'Solo lectura', self: '', access: 'viewer'},
 ];
 
+/* Mirrors platform-access-panel.tsx lines 50-57: admin/viewer rows swap the
+ * action for their badge, "Quitar acceso" only exists when a global role is set. */
 const platformAccessRow = (person) => `
   <li class="platform-access-row">
    <div class="platform-access-person"><b title="${person.email}">${person.email}</b><small>${whole(person.agencies)} agencias activas · ${person.role}${person.self}</small></div>
    <div class="platform-access-actions">
-    ${person.kind === 'self'
+    ${person.access === 'self'
       ? `<button type="button" class="text-button danger">${svg(I.trash, 14)}Eliminar mi cuenta</button>`
-      : person.kind === 'writable'
-        ? `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">${svg(I.eye, 14)}Solo lectura</button><button type="button" class="text-button">Quitar acceso</button><button type="button" class="text-button danger">${svg(I.trash, 14)}Eliminar usuario</button>`
-        : `<span class="platform-access-badge">${person.role}</span>`}
+      : person.access === 'admin'
+        ? `<span class="platform-access-badge admin">${svg(I.shieldCheck, 13)}Admin global</span><button type="button" class="text-button">${svg(I.eye, 14)}Solo lectura</button><button type="button" class="text-button">Quitar acceso</button><button type="button" class="text-button danger">${svg(I.trash, 14)}Eliminar usuario</button>`
+        : person.access === 'viewer'
+          ? `<span class="platform-access-badge viewer">${svg(I.eye, 13)}Solo lectura</span><button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">Quitar acceso</button><button type="button" class="text-button danger">${svg(I.trash, 14)}Eliminar usuario</button>`
+          : `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">${svg(I.eye, 14)}Solo lectura</button><button type="button" class="text-button danger">${svg(I.trash, 14)}Eliminar usuario</button>`}
    </div>
   </li>`;
 
@@ -518,7 +542,7 @@ const navLink = ([label, active]) =>
 
 const sidebar = ({collapsed = false, active = 'Resumen'} = {}) => `
 <aside class="desktop-sidebar${collapsed ? ' is-collapsed' : ''}">
- <button type="button" class="sidebar-collapse" aria-label="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" title="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" aria-expanded="${collapsed ? 'false' : 'true'}">${collapsed ? svg(I.panelLeftOpen, 18) : svg(I.x, 18)}</button>
+ <button type="button" class="sidebar-collapse" aria-label="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" title="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" aria-expanded="${collapsed ? 'false' : 'true'}">${collapsed ? svg(I.panelLeftOpen, 18) : svg(I.panelLeftClose, 18)}</button>
  <div class="sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
  <div class="mobile-sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
  <p class="nav-caption">Espacio de trabajo</p>
@@ -732,16 +756,6 @@ export default [
     body: `<main class="platform-admin-page">${superadminAudit}</main>`,
   },
   {
-    id: 'platform-access-global',
-    section: 'Superadmin',
-    surface: 'Administración global (accesos y agencias)',
-    kind: 'workspace',
-    lists: [
-      {container: '.platform-access-list', head: '.platform-access-head', row: '.platform-access-row', label: 'Administración global · usuarios y agencias', exemptBelow: 640},
-    ],
-    body: `<div class="ops-stack">${platformAccessPanel}</div>`,
-  },
-  {
     id: 'shell-sidebar-colapsada',
     section: 'Shell',
     surface: 'Sidebar colapsada (60 px)',
@@ -791,3 +805,25 @@ export default [
     body: workspaceFooter,
   },
 ];
+
+/*
+ * Held out of the registry on purpose.
+ *
+ * `platform-access.css` ships in none of the 24 built CSS chunks
+ * (`grep -l platform-access .next/static/css/*.css` → 0) because
+ * `PlatformAccessPanel` is not referenced by any route; the harness renders
+ * fixtures with the built CSS only, so registering this fixture today would
+ * report geometry of unstyled markup (base-HTML list rows, an email forcing
+ * horizontal overflow). Enable it — by adding it to the default export — when
+ * the panel is wired to a route and its chunk is built.
+ */
+export const platformAccessFixture = {
+  id: 'platform-access-global',
+  section: 'Superadmin',
+  surface: 'Administración global (accesos y agencias)',
+  kind: 'workspace',
+  lists: [
+    {container: '.platform-access-list', head: '.platform-access-head', row: '.platform-access-row', label: 'Administración global · usuarios y agencias', exemptBelow: 640},
+  ],
+  body: `<div class="ops-stack">${platformAccessPanel}</div>`,
+};

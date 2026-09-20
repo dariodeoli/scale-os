@@ -114,13 +114,13 @@ export function buildFindings(run, width) {
         push('lista-ausente', fixture, {container: list.container}, {severity: 'info', skipped: true});
         continue;
       }
-      if (list.template && (list.headTemplate || list.rowTemplate) && /(^|\s)auto(\s|$)/.test(list.headTemplate || list.rowTemplate)) {
+      const templateValue = list.headTemplate || list.rowTemplate;
+      if (templateValue && /(^|\s)auto(\s|$)/.test(templateValue)) {
         push('plantilla-auto', fixture, {
           container: list.container,
           head: list.head,
           row: list.row,
-          template: list.template,
-          value: list.headTemplate || list.rowTemplate,
+          value: templateValue,
         });
       }
       if (list.headTemplate && list.rowTemplate && list.headTemplate !== list.rowTemplate) {
@@ -214,7 +214,7 @@ function describeEvidence(finding) {
   }
   if (finding.type === 'superposicion') parts.push(`solape ${evidence.overlapPx}px² (${Math.round((evidence.ratio || 0) * 100)}%) entre “${String(evidence.aText || '').slice(0, 30)}” y “${String(evidence.bText || '').slice(0, 30)}”`);
   if (finding.type === 'plantilla-encabezado-fila') parts.push(`head: ${evidence.headCols} · row: ${evidence.rowCols}`);
-  if (finding.type === 'plantilla-auto') parts.push(`${evidence.template}: \`${evidence.value}\``);
+  if (finding.type === 'plantilla-auto') parts.push(`plantilla: \`${evidence.value}\``);
   if (finding.type === 'desalineacion-celdas') parts.push(`“${evidence.head}” head ${evidence.headLeft}px vs fila ${evidence.rowLeft}px (Δ${evidence.delta}px)`);
   if (finding.type === 'altura-fila') parts.push(`${evidence.height}px (contrato ${evidence.contract})`);
   if (finding.type === 'columna-colapsada') parts.push(`${evidence.width}px de ancho`);
@@ -239,6 +239,19 @@ export function renderBaselineMarkdown(payload) {
   const bySeverity = {alta: 0, media: 0, baja: 0, info: 0};
   for (const finding of grouped) bySeverity[finding.severity] = (bySeverity[finding.severity] || 0) + 1;
   lines.push(`Altas: ${bySeverity.alta} · Medias: ${bySeverity.media} · Bajas: ${bySeverity.baja}`);
+  lines.push('');
+  const bySection = new Map();
+  for (const finding of grouped) {
+    const entry = bySection.get(finding.section) || {alta: 0, media: 0, info: 0, total: 0};
+    entry[finding.severity] = (entry[finding.severity] || 0) + 1;
+    entry.total += 1;
+    bySection.set(finding.section, entry);
+  }
+  lines.push('| Sección | Altas | Medias | Info | Total |');
+  lines.push('|---------|-------|--------|------|-------|');
+  for (const [section, entry] of [...bySection.entries()].sort((a, b) => b[1].total - a[1].total)) {
+    lines.push(`| ${section} | ${entry.alta || 0} | ${entry.media || 0} | ${entry.info || 0} | ${entry.total} |`);
+  }
   lines.push('');
   lines.push('| # | Sev. | Sección | Tipo | Anchos | Evidencia | Fix propuesto |');
   lines.push('|---|------|---------|------|--------|-----------|----------------|');
