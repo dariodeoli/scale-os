@@ -285,6 +285,7 @@
 .settlement-table{display:grid;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);overflow:hidden;background:var(--surface-raised,var(--surface));--settlement-cols:minmax(140px,1.2fr) repeat(5,minmax(90px,1fr))}
 .settlement-head,.settlement-row{display:grid;grid-template-columns:var(--settlement-cols);gap:8px;align-items:center;padding:10px 14px}
 .settlement-head{background:var(--surface-sunken,var(--surface-subtle));color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.settlement-head span:nth-child(n+2){justify-self:end}
 .settlement-row{border-top:1px solid var(--border-subtle,var(--line));min-height:44px}
 .settlement-row:hover{background:color-mix(in srgb,var(--violet-soft) 36%,transparent)}
 .settlement-name{min-width:0}.settlement-name b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.settlement-name small{color:var(--text-subtle,var(--text-muted));font-size:10.5px}
@@ -302,7 +303,16 @@
 
 .commission-hub-actions{margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle,var(--line));justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .commission-hub-actions::-webkit-scrollbar{display:none}
-@media(max-width:760px){.settlement-head{display:none}.settlement-row{grid-template-columns:minmax(0,1fr) auto}.settlement-value{text-align:left}.settlement-value[data-label]::before{content:attr(data-label) ': ';color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.settlement-name{grid-column:1/-1}}
+/* La liquidación se apila con etiquetas cuando su contenedor no da para la grilla completa:
+   antes las columnas de la derecha quedaban cortadas por overflow:hidden sin scroll. */
+.settlement-table{container-type:inline-size}
+@container (max-width:42rem){
+ .settlement-head{display:none}
+ .settlement-row{grid-template-columns:minmax(0,1fr) auto}
+ .settlement-value{text-align:left}
+ .settlement-value[data-label]::before{content:attr(data-label) ': ';color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+ .settlement-name{grid-column:1/-1}
+}
 
 /* Equipo: header de página en dos filas y vista lista compacta. */
 .team-filters{align-items:end}.team-filters .workspace-view-controls{margin-left:auto}

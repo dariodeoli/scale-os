@@ -471,6 +471,9 @@ function PeopleWorkspace({
   ];
   const directory=teamDirectory(people,members,archivedProfiles);
   const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
+  // Un pago sin nombre en el modo activo no se lista: el encabezado de columnas
+  // solo aparece cuando hay filas visibles que lo justifiquen.
+  const visiblePayouts=payouts.filter(p=>mode==='people'?p.collaborator_name:p.beneficiary_name);
   const personDefaults: Record<string, string> = {
     full_name: person?.full_name || members.find(member=>member.email===seedEmail)?.full_name || "",
     job_title: person?.job_title || "",
@@ -637,7 +640,7 @@ function PeopleWorkspace({
                   <div className="settlement-head" aria-hidden="true"><span>Colaborador</span><span>Esperado</span><span>Registrado</span><span>Aprobado</span><span>Pagado</span><span>Pendiente</span></div>
                   {monthlyCommissions.map(row => (
                     <div className="settlement-row" key={`${row.recipient_id ?? `unlinked-${row.name ?? ""}`}-${row.currency}`}>
-                      <div className="settlement-name"><b>{row.name || "Sin colaborador vinculado"}</b><small>{row.currency}</small></div>
+                      <div className="settlement-name"><b title={row.name || "Sin colaborador vinculado"}>{row.name || "Sin colaborador vinculado"}</b><small>{row.currency}</small></div>
                       <strong data-label="Esperado" className="settlement-value">{money(row.expected_amount, row.currency)}</strong>
                       <strong data-label="Registrado" className="settlement-value">{money(row.recorded_amount, row.currency)}</strong>
                       <strong data-label="Aprobado" className="settlement-value">{money(row.approved_amount, row.currency)}</strong>
@@ -729,23 +732,19 @@ function PeopleWorkspace({
         <p className="form-note">
           Cada pago descuenta el saldo de la cuenta elegida.
         </p>
-        {payouts.length?<div className="finance-row-head" aria-hidden="true"><span>Egreso</span><span>Monto</span></div>:null}
-        {payouts
-          .filter((p) =>
-            mode === "people" ? p.collaborator_name : p.beneficiary_name,
-          )
-          .map((p) => (
-            <div className="payment-row finance-payout-row" key={p.id}>
-              <div>
-                <b>{p.collaborator_name || p.beneficiary_name}</b>
-                <small>
-                  {day(p.paid_on)} · {p.account_name} · {p.reference}
-                </small>
-              </div>
-              <strong>{money(p.amount, p.currency)}</strong>
+        {visiblePayouts.length?<div className="finance-row-head" aria-hidden="true"><span>Egreso</span><span>Monto</span></div>:null}
+        {visiblePayouts.map((p) => (
+          <div className="payment-row finance-payout-row" key={p.id}>
+            <div>
+              <b>{p.collaborator_name || p.beneficiary_name}</b>
+              <small>
+                {day(p.paid_on)} · {p.account_name} · {p.reference}
+              </small>
             </div>
-          ))}
-        {!payouts.length && (
+            <strong>{money(p.amount, p.currency)}</strong>
+          </div>
+        ))}
+        {!visiblePayouts.length && (
           <p className="empty-copy">Todavía no hay egresos registrados.</p>
         )}
       </section>
