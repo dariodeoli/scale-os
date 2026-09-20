@@ -364,6 +364,9 @@
 .finance-row-head span:last-child{justify-self:end}
 
 .finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row){display:grid;grid-template-columns:var(--finance-cols);gap:8px;align-items:center}
+/* El detalle secundario de las filas financieras viaja en la misma línea. */
+.finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>div:first-child{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>div:first-child>small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>strong{justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 .control-shell :is(.finance-payout-row,.finance-referral-row){display:grid;grid-template-columns:var(--finance-cols);gap:8px;align-items:center}
 .control-shell :is(.finance-payout-row,.finance-referral-row)>:is(strong,button){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}

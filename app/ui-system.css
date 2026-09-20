@@ -261,6 +261,8 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 .statement-row-head{display:grid;grid-template-columns:var(--statement-cols);gap:8px;align-items:center;padding:2px 2px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .statement-row-head span:last-child{justify-self:end}
 .control-shell .statement-row{display:grid;grid-template-columns:var(--statement-cols);gap:8px;align-items:center}
+.control-shell .statement-row>div:first-child{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.control-shell .statement-row>div:first-child>small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .control-shell .statement-row>:is(b,button){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 @media(max-width:560px){.statement-row-head{display:none}}
 
