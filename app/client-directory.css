@@ -69,7 +69,7 @@
 .client-hub-card:hover{border-color:var(--line-strong,var(--border-subtle));box-shadow:var(--shadow-md);transform:translateY(-1px)}
 .client-hub-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
 .client-hub-identity{display:flex;align-items:flex-start;gap:8px;min-width:0}
-.client-hub-open{display:block;min-width:0;padding:0;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.client-hub-open{display:flex;align-items:center;min-width:0;padding:0;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .client-hub-open:focus-visible{outline:3px solid var(--focus-halo,var(--brand-600));outline-offset:3px}
 
 
