@@ -24,7 +24,7 @@ test("superadmin sends a 401 to the clean app login without the next param befor
   );
   assert.match(
     page,
-    /if \(!handlePlatformError\(cause\)\)[\s\S]*?"No pudimos cargar el control global/,
+    /if \(!handlePlatformError\(cause, true\)\)[\s\S]*?"No pudimos cargar el control global/,
   );
 });
 
@@ -34,13 +34,40 @@ test("superadmin sends the real re-authentication proof on global deletions", ()
   assert.match(page, /\/api\/auth\/account\/recent-auth\/password/);
   assert.match(page, /confirmation, recentAuthProof \}/);
   assert.match(page, /autoComplete="current-password"/);
-  assert.match(page, /!confirmPassword \|\|/);
+  assert.match(page, /authMethod === "password"\s*\? !confirmPassword/);
+  assert.match(page, /emailCode\.length !== 8/);
   assert.match(page, /code === "PASSWORD_REAUTH_FAILED"/);
   assert.match(page, /code === "PASSWORD_REAUTH_UNAVAILABLE"/);
   assert.match(page, /code === "RECENT_AUTH_REQUIRED"/);
   assert.equal((page.match(/proofPayload/g) ?? []).length, 3, "una definición y los dos envíos con prueba");
   assert.match(page, /method: "DELETE", body: JSON\.stringify\(proofPayload\)/);
   assert.match(page, /method: "DELETE",\n\s+body: JSON\.stringify\(proofPayload\),/);
+});
+
+test("superadmin hides every mutation control from a viewer and keeps the panel on action 403s", () => {
+  // Issue #22: viewer nunca ve acciones; un 403 de acción no desmonta el panel.
+  assert.match(page, /const writable = myRole === "admin"/);
+  assert.match(page, /function handlePlatformError\(cause: unknown, fromLoad = false\)/);
+  assert.match(page, /if \(!fromLoad\) return false;/);
+  assert.match(page, /if \(!handlePlatformError\(cause, true\)\)/);
+  assert.match(page, /if \(!writable\) return;/, "manageSubscription no muta sin rol de escritura del API");
+  assert.match(page, /\{writable && subscriptionAgency \? \(/);
+  assert.match(page, /\{confirming && writable && \(/);
+  assert.match(page, /\{writable && \(\s*<form className="platform-admin-coupon"/);
+  assert.match(page, /\{writable && \(\s*<button\s+type="button"\s+className=\{"text-button " \+/);
+  const manual = page.match(/\{writable && \(\s*<button\s+type="button"\s+className="text-button platform-admin-inline-action"[\s\S]*?\)\}/g) ?? [];
+  assert.equal(manual.length, 2, "los dos accesos manuales quedan detrás de writable");
+});
+
+test("superadmin offers the email code re-authentication for passwordless admins", () => {
+  // Follow-up #22: el API ya soporta el código por correo con la misma vista previa.
+  assert.match(page, /\/api\/auth\/account\/recent-auth\/email\/request/);
+  assert.match(page, /\/api\/auth\/account\/recent-auth\/email\/complete/);
+  assert.match(page, /authMethod === "email"\s*\?/);
+  assert.match(page, /EMAIL_REAUTH_INVALID/);
+  assert.match(page, /autoComplete="one-time-code"/);
+  assert.match(page, /setAuthMethod\("email"\)/, "una cuenta sin contraseña cambia al código sin redirigir");
+  assert.match(page, /authPreviewId/, "el código reusa la vista previa ya creada");
 });
 
 test("superadmin normalizes absent and invalid dashboard metric values", () => {

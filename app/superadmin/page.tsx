@@ -242,10 +242,15 @@ export default function PlatformAdmin() {
   >(null);
   const [typed, setTyped] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [authMethod, setAuthMethod] = useState<"password" | "email">("password");
+  const [authPreviewId, setAuthPreviewId] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailCode, setEmailCode] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
   const [actionNotice, setActionNotice] = useState("");
   const [actionError, setActionError] = useState("");
 
-  function handlePlatformError(cause: unknown) {
+  function handlePlatformError(cause: unknown, fromLoad = false) {
     const status = errorStatus(cause);
     if (status === 401) {
       setState(null);
@@ -258,6 +263,9 @@ export default function PlatformAdmin() {
       return true;
     }
     if (status === 403) {
+      // Solo la carga inicial decide el acceso. Un 403 de una acción se muestra
+      // inline y el panel sigue montado (viewer nunca ve acciones, issue #22).
+      if (!fromLoad) return false;
       setState(null);
       setError("");
       setAccessDenied(true);
@@ -291,7 +299,7 @@ export default function PlatformAdmin() {
         audit: audit.actions,
       });
     } catch (cause) {
-      if (!handlePlatformError(cause))
+      if (!handlePlatformError(cause, true))
         setError(
           "No pudimos cargar el control global. Actualizá para reintentar.",
         );
@@ -342,6 +350,42 @@ export default function PlatformAdmin() {
       setBusy(false);
     }
   }
+  async function requestEmailCode() {
+    if (!confirming || emailSending || busy) return;
+    setEmailSending(true);
+    setActionError("");
+    setActionNotice("");
+    try {
+      const action =
+        confirming.kind === "user" ? "platform.user.delete" : "platform.agency.delete";
+      const targetId = confirming.kind === "user" ? confirming.person.id : confirming.agency.id;
+      const preview = await platformApi<{ preview: { id: string } }>(
+        "/api/platform/destructive/preview",
+        { method: "POST", body: JSON.stringify({ action, targetId }) },
+      );
+      setAuthPreviewId(preview.preview.id);
+      await platformApi("/api/auth/account/recent-auth/email/request", {
+        method: "POST",
+        body: JSON.stringify({ previewId: preview.preview.id }),
+      });
+      setEmailSent(true);
+      setActionNotice("Si podemos confirmar la operación, enviamos un código a tu correo registrado.");
+    } catch (cause) {
+      const code = errorCode(cause);
+      setActionError(
+        code === "EMAIL_REAUTH_UNAVAILABLE"
+          ? "La verificación por correo no está disponible en este momento. Usá Google o contactá al administrador."
+          : code === "EMAIL_REAUTH_RATE_LIMITED"
+            ? "Demasiados intentos. Esperá unos minutos y volvé a pedir el código."
+            : cause instanceof Error
+              ? cause.message
+              : "No pudimos enviar el código de verificación.",
+      );
+    } finally {
+      setEmailSending(false);
+    }
+  }
+
   async function removeConfirmed() {
     if (
       busy ||
@@ -349,8 +393,12 @@ export default function PlatformAdmin() {
       typed !== (confirming.kind === "user" ? confirming.person.email : confirming.agency.name)
     )
       return;
-    if (!confirmPassword) {
+    if (authMethod === "password" && !confirmPassword) {
       setActionError("Ingresá tu contraseña actual para confirmar la eliminación.");
+      return;
+    }
+    if (authMethod === "email" && emailCode.length !== 8) {
+      setActionError("Ingresá el código de 8 dígitos que enviamos a tu correo.");
       return;
     }
     // El API exige vista previa + prueba de re-autenticación (issue #22).
@@ -361,16 +409,24 @@ export default function PlatformAdmin() {
     setActionError("");
     setActionNotice("");
     try {
-      const preview = await platformApi<{ preview: { id: string } }>("/api/platform/destructive/preview", {
-        method: "POST",
-        body: JSON.stringify({ action, targetId }),
-      });
+      const preview = authPreviewId
+        ? { preview: { id: authPreviewId } }
+        : await platformApi<{ preview: { id: string } }>("/api/platform/destructive/preview", {
+            method: "POST",
+            body: JSON.stringify({ action, targetId }),
+          });
       let recentAuthProof: string;
       try {
-        const auth = await platformApi<{ proof: string }>("/api/auth/account/recent-auth/password", {
-          method: "POST",
-          body: JSON.stringify({ previewId: preview.preview.id, password: confirmPassword }),
-        });
+        const auth =
+          authMethod === "email"
+            ? await platformApi<{ proof: string }>("/api/auth/account/recent-auth/email/complete", {
+                method: "POST",
+                body: JSON.stringify({ previewId: preview.preview.id, code: emailCode }),
+              })
+            : await platformApi<{ proof: string }>("/api/auth/account/recent-auth/password", {
+                method: "POST",
+                body: JSON.stringify({ previewId: preview.preview.id, password: confirmPassword }),
+              });
         recentAuthProof = auth.proof;
       } catch (cause) {
         const code = errorCode(cause);
@@ -379,7 +435,16 @@ export default function PlatformAdmin() {
           return;
         }
         if (code === "PASSWORD_REAUTH_UNAVAILABLE") {
-          setActionError("Esta cuenta confirma su identidad con Google. Completá la verificación desde la zona de eliminación de tu cuenta.");
+          setAuthMethod("email");
+          setActionError("Esta cuenta no usa contraseña: pedí el código de 8 dígitos a tu correo.");
+          return;
+        }
+        if (code === "EMAIL_REAUTH_INVALID") {
+          setActionError("El código no es válido o venció. Pedí uno nuevo.");
+          return;
+        }
+        if (code === "EMAIL_REAUTH_UNAVAILABLE" || code === "EMAIL_REAUTH_RATE_LIMITED") {
+          setActionError(cause instanceof Error ? cause.message : "No pudimos validar el código.");
           return;
         }
         throw cause;
@@ -409,6 +474,9 @@ export default function PlatformAdmin() {
         setActionNotice(`Agencia ${confirming.agency.name} eliminada.`);
       }
       setConfirmPassword("");
+      setAuthPreviewId("");
+      setEmailSent(false);
+      setEmailCode("");
       setConfirming(null);
       setTyped("");
       await load();
@@ -429,6 +497,7 @@ export default function PlatformAdmin() {
   }
 
   async function manageSubscription(agency: Agency) {
+    if (!writable) return;
     // A slow response for a previous agency must never overwrite the current one.
     const generation = ++subscriptionRequest.current;
     setError("");
@@ -753,6 +822,7 @@ export default function PlatformAdmin() {
                                   agency.due_at,
                               )}
                             </span>
+                            {writable && (
                             <button
                               type="button"
                               className="text-button platform-admin-inline-action"
@@ -761,6 +831,7 @@ export default function PlatformAdmin() {
                             >
                               Gestionar estado manual
                             </button>
+                            )}
                             {writable && (
                               <button
                                 type="button"
@@ -839,6 +910,7 @@ export default function PlatformAdmin() {
                         </dd>
                       </div>
                     </dl>
+                    {writable && (
                     <button
                       type="button"
                       className="text-button platform-admin-inline-action"
@@ -847,6 +919,7 @@ export default function PlatformAdmin() {
                     >
                       Gestionar estado manual
                     </button>
+                    )}
                     {writable && (
                       <button
                         type="button"
@@ -871,7 +944,7 @@ export default function PlatformAdmin() {
             </div>
           </section>
 
-          {subscriptionAgency ? (
+          {writable && subscriptionAgency ? (
             <Dialog
               title={`Estado manual · ${subscriptionAgency.name}`}
               busy={busy}
@@ -1122,6 +1195,7 @@ export default function PlatformAdmin() {
                   {formatPlatformMetric(state.coupons.length)} códigos
                 </small>
               </div>
+              {writable && (
               <form className="platform-admin-coupon" onSubmit={createCoupon}>
                 <label>
                   Código
@@ -1162,6 +1236,7 @@ export default function PlatformAdmin() {
                   Crear cupón
                 </button>
               </form>
+              )}
               <p className="form-note">
                 Crear un cupón no inicia cobros ni activa un proveedor de pagos.
               </p>
@@ -1193,6 +1268,7 @@ export default function PlatformAdmin() {
                         <StatusBadge tone={item.active ? "success" : "neutral"}>
                           {item.active ? "Activo" : "Pausado"}
                         </StatusBadge>
+                        {writable && (
                         <button
                           type="button"
                           className={"text-button " + (item.active ? "warn" : "positive")}
@@ -1206,6 +1282,7 @@ export default function PlatformAdmin() {
                           )}
                           {item.active ? "Pausar" : "Reactivar"}
                         </button>
+                        )}
                       </span>
                     </li>
                   ))
@@ -1308,7 +1385,7 @@ export default function PlatformAdmin() {
       {pageContent}
       {actionNotice && <p className="platform-admin-status-note" role="status">{actionNotice}</p>}
       {actionError && <p className="platform-admin-status-note error" role="alert">{actionError}</p>}
-      {confirming && (
+      {confirming && writable && (
         <Dialog
           title={
             confirming.kind === "user"
@@ -1323,6 +1400,10 @@ export default function PlatformAdmin() {
             setConfirming(null);
             setTyped("");
             setConfirmPassword("");
+            setAuthMethod("password");
+            setAuthPreviewId("");
+            setEmailSent(false);
+            setEmailCode("");
           }}
         >
           <p className="form-note">
@@ -1347,23 +1428,76 @@ export default function PlatformAdmin() {
               onChange={(event) => setTyped(event.target.value)}
             />
           </label>
-          <label className="platform-admin-confirm">
-            Confirmá tu identidad con tu contraseña actual
-            <input
-              type="password"
-              value={confirmPassword}
-              disabled={busy}
-              autoComplete="current-password"
-              maxLength={128}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-            />
-          </label>
+          {authMethod === "password" ? (
+            <label className="platform-admin-confirm">
+              Confirmá tu identidad con tu contraseña actual
+              <input
+                type="password"
+                value={confirmPassword}
+                disabled={busy}
+                autoComplete="current-password"
+                maxLength={128}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+              />
+            </label>
+          ) : (
+            <div className="form-stack">
+              <p className="form-note">
+                Para cuentas sin contraseña (Google): te enviamos un código de 8 dígitos al correo registrado.
+              </p>
+              {emailSent ? (
+                <label className="platform-admin-confirm">
+                  Código recibido
+                  <input
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={8}
+                    value={emailCode}
+                    disabled={busy}
+                    onChange={(event) =>
+                      setEmailCode(event.target.value.replace(/\D/g, "").slice(0, 8))
+                    }
+                  />
+                </label>
+              ) : (
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={
+                    busy ||
+                    emailSending ||
+                    typed !==
+                      (confirming.kind === "user"
+                        ? confirming.person.email
+                        : confirming.agency.name)
+                  }
+                  onClick={() => void requestEmailCode()}
+                >
+                  {emailSending ? "Enviando…" : "Enviar código a mi correo"}
+                </button>
+              )}
+            </div>
+          )}
+          <button
+            type="button"
+            className="text-button"
+            disabled={busy}
+            onClick={() => {
+              setAuthMethod(authMethod === "password" ? "email" : "password");
+              setActionError("");
+              setActionNotice("");
+            }}
+          >
+            {authMethod === "password"
+              ? "No tengo contraseña (usar código por correo)"
+              : "Usar mi contraseña"}
+          </button>
           <div className="inline-actions">
             <button
               className="primary"
               disabled={
                 busy ||
-                !confirmPassword ||
+                (authMethod === "password" ? !confirmPassword : emailCode.length !== 8) ||
                 typed !==
                   (confirming.kind === "user"
                     ? confirming.person.email
