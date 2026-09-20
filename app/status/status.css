@@ -1,3 +1,5 @@
+/* La página de estado crece con su contenido: `.login-page` la fijaba a 100dvh con overflow oculto. */
+.status-page{block-size:auto;min-block-size:100vh;min-block-size:100dvh;place-items:start center;overflow:auto;padding-block:clamp(16px,4vh,40px)}
 .status-shell{width:min(640px,100%);margin:0 auto;display:grid;gap:18px;padding:clamp(22px,3.4vw,34px);border:1px solid var(--border-subtle,var(--line));border-radius:22px;background:var(--surface);box-shadow:var(--shadow-md)}
 .status-hero{display:flex;align-items:flex-start;gap:14px;min-width:0;flex-wrap:wrap;margin-bottom:0}
 .status-brand{flex:none;display:grid;place-items:center;width:52px;height:52px}
