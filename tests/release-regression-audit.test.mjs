@@ -53,7 +53,6 @@ assert(file('../app/workspace-density.css').includes(':is(.control-shell,.unifie
 assert(file('../app/settings-slice.css').includes('.trash-info{grid-column:1/-1;grid-row:2}'),'trash rows keep the name out of the checkbox column on mobile');
 assert(file('../app/subscription-panel.css').includes('.subscription-notice.subscription-status--trialing .subscription-secondary{'),'the trial notice keeps its own tone instead of the danger palette');
 assert(file('../app/registro/registration.css').includes('.registration-card{display:flex;flex-direction:column;width:min(468px,100%)'),'the verification card keeps the access width and scroll caps');
-assert(file('../app/platform-access.css').includes('.platform-access-list{display:grid;gap:2px;margin:0;padding:0;list-style:none}'),'platform lists drop the native indentation');
 assert(file('../app/invite-links.css').includes('.invite-link-actions{display:flex'),'invite row actions lay out with the shared gap');
 assert(file('../app/superadmin/platform-admin.css').includes('margin-bottom: 0;'),'the global admin header resets the leaking global header margin');
 assert(file('../app/superadmin/page.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');

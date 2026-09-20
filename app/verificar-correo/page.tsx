@@ -3,14 +3,27 @@ import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {WorkspaceBrand} from '../workspace-brand';
 import {WorkspaceFooter} from '../workspace-footer';
+import {api} from '../operations';
 import '../registro/registration.css';
 
 type State='checking'|'done'|'error'|'missing';
 export default function VerifyEmailPage(){
  const [state,setState]=useState<State>('checking'),[message,setMessage]=useState('Comprobando tu enlace de verificación…');
+ const [email,setEmail]=useState(''),[resending,setResending]=useState(false),[resendMessage,setResendMessage]=useState('');
+ async function resendVerification(event:React.FormEvent){
+  event.preventDefault();
+  if(!email||resending)return;
+  setResending(true);setResendMessage('');
+  try{
+   // El API responde genérico: no revela si el correo existe (issue #22).
+   await api('/api/auth/password/verification/request',{email});
+   setResendMessage('Si hay una cuenta pendiente para ese correo, enviamos un nuevo enlace de verificación.');
+  }catch(cause){setResendMessage(cause instanceof Error?cause.message:'No pudimos solicitar un nuevo enlace.');}
+  finally{setResending(false);}
+ }
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),token=params.get('verifyToken')||'';
-  if(!/^[a-f0-9]{64}$/.test(token)){setState('missing');setMessage('Este enlace de verificación no es válido. Solicitá uno nuevo desde el registro.');return;}
+  if(!/^[a-f0-9]{64}$/.test(token)){setState('missing');setMessage('Este enlace no es válido o ya venció. Pedí uno nuevo con tu correo acá abajo.');return;}
   let active=true;
   void (async()=>{
    try{
@@ -28,7 +41,12 @@ export default function VerifyEmailPage(){
  return <main className="registration-page"><section className="registration-card" aria-busy={state==='checking'}>
   <WorkspaceBrand/><p className="eyebrow">SCALE OS · ACCESO SEGURO</p><h1>{state==='done'?'Correo verificado':'Verificación de correo'}</h1>
   <p role="status" className={state==='error'||state==='missing'?'error':'success'}>{message}</p>
-  {(state==='error'||state==='missing')&&<p className="registration-links"><Link href="/registro">Volver al registro</Link><Link href="/">Ir al inicio de sesión</Link></p>}
+  {(state==='error'||state==='missing')&&<form className="registration-links" onSubmit={resendVerification}>
+   <label htmlFor="verify-email">Correo de la cuenta<input id="verify-email" type="email" value={email} autoComplete="email" maxLength={200} disabled={resending} onChange={event=>setEmail(event.target.value)}/></label>
+   <button className="primary" type="submit" disabled={!email||resending}>{resending?'Enviando…':'Reenviar correo de verificación'}</button>
+   {resendMessage?<p role="status">{resendMessage}</p>:null}
+   <span><Link href="/registro">Volver al registro</Link><Link href="/">Ir al inicio de sesión</Link></span>
+  </form>}
   <WorkspaceFooter/>
  </section></main>;
 }
