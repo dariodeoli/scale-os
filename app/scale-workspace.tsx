@@ -302,9 +302,9 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
         <div><dt>Cliente desde</dt><dd>{since || "Sin fecha de alta"}</dd></div>
       </dl>
       <div className="client-hub-stats" aria-label="Cartera del cliente">
-        {stat?.projects?<span className="client-hub-stat"><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
-        {stat?.pieces?<span className="client-hub-stat"><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
-        {stat?.nextDue?<span className="client-hub-stat">Próxima entrega <b>{listDateShort(stat.nextDue)}</b></span>:null}
+        {stat?.projects?<span className="client-hub-stat" title={`${stat.projects} proyecto${stat.projects===1?'':'s'} activo${stat.projects===1?'':'s'}`}><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
+        {stat?.pieces?<span className="client-hub-stat" title={`${stat.pieces} pieza${stat.pieces===1?'':'s'} en curso`}><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
+        {stat?.nextDue?<span className="client-hub-stat" title={`Próxima entrega ${listDateShort(stat.nextDue)}`}>Próxima entrega <b>{listDateShort(stat.nextDue)}</b></span>:null}
         {stat&&!stat.projects&&!stat.pieces?<span className="client-hub-stat muted">Sin proyectos activos</span>:null}
       </div>
       {canSeeBilling?<div className="client-hub-chips">
@@ -317,7 +317,7 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
             <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
           )
         ) : null}
-        {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance">Pendiente {money(Number(pay.outstanding_amount),pay.currency)}</span>:null}
+        {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance" title={`Pendiente ${money(Number(pay.outstanding_amount),pay.currency)}`}>Pendiente {money(Number(pay.outstanding_amount),pay.currency)}</span>:null}
         {client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
       </div>:null}
       <footer className="client-hub-actions">
