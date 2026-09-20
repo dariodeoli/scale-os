@@ -1465,7 +1465,7 @@ export default function Home() {
                     <dl className="budget-hub-facts">
                       <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
                       <div><dt>Vigencia</dt><dd>{budget.valid_until?listDateShort(budget.valid_until)||'Sin fecha':'Sin fecha'}</dd></div>
-                      <div><dt>Sin IVA</dt><dd>{money(Number(budget.subtotal),budget.currency)}</dd></div>
+                      <div className="budget-hub-fact-amount"><dt>Sin IVA</dt><dd title={money(Number(budget.subtotal),budget.currency)}>{money(Number(budget.subtotal),budget.currency)}</dd></div>
                     </dl>
                     <strong className="budget-hub-total">{money(Number(budget.total),budget.currency)}<small>IVA incl.</small></strong>
                     <footer className="budget-hub-actions"><BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>
