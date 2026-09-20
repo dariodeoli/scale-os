@@ -102,14 +102,9 @@
   padding-top: 12px;
   border-top: 1px solid var(--line);
 }
+/* El overlay conserva su tinte; la geometría vive en dialog.css (hoja del diálogo). */
 .ops-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
   background: color-mix(in srgb, var(--anthracite) 55%, transparent);
-  display: grid;
-  place-items: center;
-  padding: 20px;
 }
 .ops-dialog {
   width: min(720px, 100%);
@@ -227,8 +222,11 @@
 .ops-comment small{color:var(--text-subtle)}
 .ops-job-list{gap:var(--ui-space-2,8px)}
 
-@media (max-width:760px){
+/* Por encima de 540px el modal usa 12px de margen; por debajo manda la hoja anclada. */
+@media (min-width:541px) and (max-width:760px){
  .ops-overlay{padding:12px}
+}
+@media (max-width:760px){
  .ops-dialog{width:100%;max-height:calc(100dvh - 24px);padding:20px 16px}
  .ops-select-options button{min-height:44px}
 }
