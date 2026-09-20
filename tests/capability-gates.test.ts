@@ -39,8 +39,9 @@ for(const [file,capability,pattern] of gates)assert.match(read(file),pattern,`${
 const archive=read('app/archive-controls.tsx');
 for(const [capability,kind] of [['work-orders.manage','work-orders'],['inventory.manage','inventory'],['projects.edit','projects'],['clients.manage','clients'],['commercial.manage','leads']] as const){
  const quoted=kind.includes('-')?`'${kind}'`:kind;
- assert(archive.includes(`${quoted}:'${capability}'`),`archive ${kind} follows ${capability}`);
+ assert(read('app/capabilities.ts').includes(`${quoted}:'${capability}'`),`archive ${kind} follows ${capability}`);
 }
+assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'the trash uses the shared capability map from capabilities.ts');
 assert.match(archive,/if\(!capability\|\|!roleCan\(role,capability\)\)return null;/, 'a missing capability never renders the remove control');
 
 // 3. Topes de lote: la selección informa y no ofrece más de lo que el API acepta.

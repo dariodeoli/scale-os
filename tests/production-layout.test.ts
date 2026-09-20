@@ -19,5 +19,6 @@ assert.equal(sectionPath('Historial de trabajo'),'/equipo/historial');
 assert.equal(parentSection('Actividad'),'Equipo');
 assert(childSections('Equipo').includes('Historial de trabajo'));
 assert(!visibleModule('Actividad','editor'));
-assert(!visibleModule('Historial de trabajo','editor'));
+assert(visibleModule('Historial de trabajo','editor'),'el historial propio lo ve cualquier rol (API)');
+assert(visibleModule('Historial de trabajo','viewer'));
 console.log('PASS: page-scrolling production, rounded headers, visible editing and permission-preserving team tabs');

@@ -50,7 +50,7 @@ test('team list view renders a compact single-column list and contact data is ne
 
 test('team directory keeps normal roles on photo, name and cargo only',()=>{
  for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'])assert(visibleModule('Equipo',role),`Equipo stays reachable for ${role}`);
- assert.match(operations,/if\(mode==='people'&&!\['owner','admin','finance','management'\]\.includes\(role\)\)return <TeamDirectoryView/);
+ assert.match(operations,/if\(mode==='people'&&!canOpenPeopleWorkspace\(role\)\)return <TeamDirectoryView/);
  assert.match(operations,/secondary=\{teamRoleLabels\[person\.role\]\|\|person\.cargo\|\|'Sin cargo'\}/);
  assert.match(operations,/Directorio de personas: foto, nombre y cargo/);
 });
@@ -63,8 +63,8 @@ test('budgets reach production while the pipeline does not',()=>{
 });
 
 test('management reaches the team without individual salary amounts',()=>{
- assert.match(operations,/const allowed = \["owner", "admin", "finance", "management"\]\.includes\(role\);/);
- assert.match(operations,/const salaryView = \["owner", "admin", "finance"\]\.includes\(role\);/);
+ assert.match(operations,/const allowed = mode === "commissions" \? roleCan\(role, "commissions\.manage"\) : canOpenPeopleWorkspace\(role\);/);
+ assert.match(operations,/const salaryView = roleCan\(role, "salary\.view"\);/);
  assert.match(operations,/fields=\{salaryView\?personFields:personFields\.filter\(field=>!\['compensation_amount','currency','payment_day','invoices_company'\]\.includes\(field\.key\)\)\}/);
  assert.match(operations,/person-hub-comp">\{types\.find\(type=>type\.value===p\.compensation_type\)\?\.label\|\|'Sin modalidad'\}<\/span>/);
  assert.doesNotMatch(operations,/Salario reservado/,'the capsule never shows the individual amount');
@@ -72,8 +72,9 @@ test('management reaches the team without individual salary amounts',()=>{
  assert.match(operations,/salaryView&&!p\.compensation_amount/);
  assert.match(operations,/\{salaryView&&<span className="hub-chip">\{p\.payment_day/);
  assert.match(operations,/\{salaryView&&p\.invoices_company\?/);
- assert.match(archive,/members:'members\.manage'/);
- assert.match(access,/const manage=\['owner','admin','management'\]\.includes\(role\)/);
+ assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');
+ assert.match(read('app/capabilities.ts'),/collaborators:'members\.manage'/);
+ assert.match(access,/const manage=roleCan\(role,'members\.manage'\)/);
 });
 
 test('viewer never reaches a mutating control in the visible sections',()=>{
@@ -84,7 +85,8 @@ test('viewer never reaches a mutating control in the visible sections',()=>{
  assert.match(composer,/\{canReorder&&<button type="button" className="icon-button" title="Reordenar ítem" aria-label="Reordenar ítem"/);
  assert.match(suite,/<QuoteComposer mode="plan" record=\{row\} canReorder=\{canEdit\} done=/);
  assert.match(operations,/\{role !== "viewer" && \(/);
- assert.match(archive,/members:'members\.manage'/);
+ assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');
+ assert.match(read('app/capabilities.ts'),/collaborators:'members\.manage'/);
 });
 
 test('the WhatsApp action renders only with a number and never reorders the row',()=>{
