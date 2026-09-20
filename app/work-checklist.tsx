@@ -9,7 +9,7 @@ import {roleCan} from './capabilities';
 export type WorkChecklistItem={id:string;text:string;completed:boolean;completed_at?:string|null;completed_by_name?:string|null;completed_by_photo_url?:string|null;completed_by_verified?:boolean;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 export type WorkChecklistSnapshot={version:string;items:WorkChecklistItem[];total:number;completed:number;max_items:number};
 export type WorkChecklistProps={id:string|number;organizationId:string|number;role:string;refresh?:()=>Promise<void>|void};
-// Same capabilities the API validates: inventory.view for reads, checklists.edit for writes.
+// Same capabilities the API validates: work-checklists.view for reads, checklists.edit for writes.
 class ChecklistError extends Error {constructor(message:string,readonly status:number){super(message);}}
 const message=(error:unknown)=>error instanceof Error?error.message:'No se pudo cargar el checklist';
 async function request(path:string,init:RequestInit={}):Promise<WorkChecklistSnapshot>{
@@ -20,7 +20,7 @@ async function request(path:string,init:RequestInit={}):Promise<WorkChecklistSna
  return data as WorkChecklistSnapshot;
 }
 export function WorkChecklist(props:WorkChecklistProps){
- if(!roleCan(props.role,'inventory.view'))return null;
+ if(!roleCan(props.role,'work-checklists.view'))return null;
  if(!/^[1-9]\d{0,18}$/.test(String(props.id))||!props.organizationId)return <p role="alert">Pieza inválida.</p>;
  // A new company, piece or effective role discards the previous component's drafts
  // and aborts requests. Never share checklist data through the application cache.
