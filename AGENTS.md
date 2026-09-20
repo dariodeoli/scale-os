@@ -12,7 +12,7 @@
 - Cada deploy a producción incrementa el parche de versión. Usar siempre `npm run release:patch`: exige árboles limpios, sube la versión, sincroniza footer y versiones (frontend + API), corre regresiones y build, pushea en orden API → interfaz y dispara Coolify; el smoke valida las URLs públicas al final.
 - No publicar sin bump de versión ni sin el footer regenerado (`footer:sync` / `footer:check`). Detalle en `VERSIONING.md`.
 - La versión visible vive en `release/version.json`, sincronizada con `app/app-version.ts`, `package.json` y el footer.
-- Las sesiones de worktree (SOS-01/02/03) nunca despliegan. El deploy es exclusivo del integrador, y solo con pedido explícito.
+- Las sesiones de worktree de los slots (SOS-COM/OPS/FIN/PLT) nunca despliegan. El deploy es exclusivo del integrador, y solo con pedido explícito.
 
 ## Integración a main (regla obligatoria)
 - main pertenece al integrador. Ningún agente de worktree hace `git merge`, edita main ni pushea a main: los cambios se integran únicamente a través del integrador.
@@ -23,8 +23,17 @@
 - Matá tus servidores zombies al terminar: `lsof -ti :3000 :<PUERTO_API> | xargs kill -9` (y procesos `next-server` de worktrees de Scale OS).
 - Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build` (el release los corre igual).
 
+## Slots de agente (4 worktrees + integrador)
+- **SOS-COM (Comercial)**: clientes, pipeline/métricas, presupuestos y planes.
+- **SOS-OPS (Operaciones)**: producción (kanban), proyectos, estudio, inventario (reservas, verificación, valor y depreciación).
+- **SOS-FIN (Finanzas)**: finanzas, mora/cobranza, previsión, informes y comisiones.
+- **SOS-PLT (Plataforma)**: auth/registro, equipo y accesos, configuración/preferencias/papelera, superadmin, portal del cliente y shell.
+- Cada slot tiene una **rama persistente con el mismo nombre en los dos repos** y su par de worktrees: `~/.herdr/worktrees/scale-os/<slot>` (frontend) y `~/.herdr/worktrees/scale-core-api/<slot>` (API).
+- **La rama no se recrea por pedido**: antes de cada tarea `git fetch origin --prune && git rebase origin/main`; después de una integración la rama se reposiciona sobre `origin/main` y sigue viva.
+- **Transversales con dueño**: los cambios de primitivos compartidos (`Dialog`/`Editor`, `list-format`, `ui-system.css`, `field-rules.ts`, `notify()`, `amount-format.ts`) se piden por issue y los implementa **SOS-PLT** (o el slot que designe el integrador) para no crear variantes paralelas.
+
 ## Worktrees e implementadores (cómo actúa cada uno)
-- **Implementador (agente en worktree)**: trabaja SOLO en su rama `SOS-XX` dentro de su worktree y nunca toca `main`. Antes de empezar: `git fetch origin --prune && git rebase origin/main`. Entrega con conventional commits por unidad de trabajo, checks verdes y `git push origin SOS-XX`; reporta rama, `git log --oneline origin/main..HEAD`, qué hace cada commit, rutas y verificaciones. Prohibido: mergear/pushear a main, hacer deploy, resolver conflictos sobre main, borrar o arreglar refs, editar otro worktree.
+- **Implementador (agente en worktree)**: trabaja SOLO en su rama de slot (`SOS-COM`/`SOS-OPS`/`SOS-FIN`/`SOS-PLT`) dentro de sus worktrees y nunca toca `main`. Antes de empezar: `git fetch origin --prune && git rebase origin/main`. Entrega con conventional commits por unidad de trabajo, checks verdes y `git push origin <slot>`; reporta rama, `git log --oneline origin/main..HEAD`, qué hace cada commit, rutas y verificaciones. Prohibido: mergear/pushear a main, hacer deploy, resolver conflictos sobre main, borrar o arreglar refs, editar otro worktree.
 - **Integrador (sesión sobre main)**: único autorizado a mergear y pushear `main` (siempre con `MOBOS_INTEGRATOR=1`). Integra una rama por vez (API antes que frontend), corre la verificación por cada merge, resuelve solo ramas superseded (del lado de main y con diff neto vacío) y ante conflicto real **para y consulta**. Despliega solo con pedido explícito (`ht`) vía `npm run release:patch` y valida el smoke.
 - **Estado raro de git** (fetch que falla, refs rotas, `.git/MERGE_HEAD` ajeno): parar y avisar; no reparar por cuenta propia.
 
