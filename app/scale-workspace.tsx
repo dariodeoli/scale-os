@@ -284,6 +284,11 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
   onSelect?:()=>void;
 }) {
   const state=clientState(client),tel=whatsappUrl(client.phone||undefined),since=clientSince(client.created_at);
+  const portfolio=stat?[
+    stat.projects?{key:'projects',text:`${stat.projects} proyecto${stat.projects===1?'':'s'} activo${stat.projects===1?'':'s'}`,node:<><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</>}:null,
+    stat.pieces?{key:'pieces',text:`${stat.pieces} pieza${stat.pieces===1?'':'s'} en curso`,node:<><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</>}:null,
+    stat.nextDue?{key:'due',text:`Próxima entrega ${listDateShort(stat.nextDue)}`,node:<>Próxima entrega <b>{listDateShort(stat.nextDue)}</b></>}:null,
+  ].filter((part):part is {key:string;text:string;node:JSX.Element}=>part!==null):[];
   return (
     <article className="client-hub-card" data-archived={client.active===false||undefined}>
       <header className="client-hub-head">
@@ -302,10 +307,7 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
         <div><dt>Cliente desde</dt><dd>{since || "Sin fecha de alta"}</dd></div>
       </dl>
       <div className="client-hub-stats" aria-label="Cartera del cliente">
-        {stat?.projects?<span className="client-hub-stat" title={`${stat.projects} proyecto${stat.projects===1?'':'s'} activo${stat.projects===1?'':'s'}`}><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
-        {stat?.pieces?<span className="client-hub-stat" title={`${stat.pieces} pieza${stat.pieces===1?'':'s'} en curso`}><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
-        {stat?.nextDue?<span className="client-hub-stat" title={`Próxima entrega ${listDateShort(stat.nextDue)}`}>Próxima entrega <b>{listDateShort(stat.nextDue)}</b></span>:null}
-        {stat&&!stat.projects&&!stat.pieces?<span className="client-hub-stat muted">Sin proyectos activos</span>:null}
+        {portfolio.length?<span className="client-hub-stat" title={portfolio.map(part=>part.text).join(' · ')}>{portfolio.map((part,index)=><span className="client-hub-stat-part" key={part.key}>{index?<span className="client-hub-sep" aria-hidden="true"> · </span>:null}{part.node}</span>)}</span>:<span className="client-hub-stat muted">Sin proyectos activos</span>}
       </div>
       {canSeeBilling?<div className="client-hub-chips">
         {pay ? (

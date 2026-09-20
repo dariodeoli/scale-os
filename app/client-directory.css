@@ -91,9 +91,7 @@
 .client-hub-list .client-hub-chips{grid-column:4;grid-row:1;justify-content:flex-start;min-height:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .client-hub-list .client-hub-chips::-webkit-scrollbar{display:none}
 .client-hub-list .client-hub-chips>*{flex:none;max-width:none}
-.client-hub-list .client-hub-stats{grid-column:5;grid-row:1;min-height:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-.client-hub-list .client-hub-stats::-webkit-scrollbar{display:none}
-.client-hub-list .client-hub-stats>*{flex:none}
+.client-hub-list .client-hub-stats{grid-column:5;grid-row:1;display:block;min-width:0;min-height:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .client-hub-list .client-hub-actions{grid-column:6;grid-row:1;justify-self:end;display:grid;grid-template-columns:repeat(2,auto);justify-items:end;gap:4px 8px;overflow:visible;margin-top:0;padding-top:0;border-top:0}
 .client-hub-list :is(.client-identity,.actor-identity){min-width:0}
 .client-hub-list :is(.client-identity-name,.actor-identity-name){white-space:normal;overflow-wrap:anywhere}
@@ -106,8 +104,9 @@
 
 /* Cartera del cliente: proyectos, piezas y próxima entrega. */
 .client-hub-stats{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-height:20px;color:var(--text-subtle,var(--text-muted));font-size:11.5px}
-.client-hub-stat{display:inline-flex;align-items:center;gap:5px}
+.client-hub-stat{display:inline}
 .client-hub-stat b{color:var(--text);font-variant-numeric:tabular-nums}
+.client-hub-stat-part{display:inline}
 .client-hub-balance{display:inline-flex;align-items:center;padding:3px 9px;border:1px solid color-mix(in srgb,var(--warning) 26%,var(--line));border-radius:999px;background:var(--warning-soft);color:var(--warning);font-size:10.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .archived-capsule{margin-top:var(--ui-space-4);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--ui-space-3);background:color-mix(in srgb,var(--violet-soft) 16%,transparent)}
 .archived-capsule summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:var(--ui-space-2)}
