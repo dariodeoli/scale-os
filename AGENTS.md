@@ -33,16 +33,17 @@
 - **La rama no se recrea por pedido**: antes de cada tarea `git fetch origin --prune && git rebase origin/main`; después de una integración la rama se reposiciona sobre `origin/main` y sigue viva.
 - **Transversales con dueño**: los cambios de primitivos y reglas visuales (`Dialog`/`Editor`, `list-format`, `ui-system.css`, `field-rules.ts`, `notify()`, `amount-format.ts`) los implementa **SOS-DSN**; los transversales de plataforma (`suite-validation.js`, `permissions.js`, migraciones) se coordinan con **SOS-PLT**. Para no crear variantes paralelas.
 
-## Flujo de pedidos (Dario → integrador → slots)
-- Dario habla solo con el integrador (sesión main) y en lenguaje de producto; no necesita saber en qué repo vive el cambio.
-- El integrador: (1) abre el issue en el repo del cambio principal (referenciando el otro si aplica), (2) elige el slot por dominio, (3) inicia la sesión del agente en el workspace del slot y le pasa el brief estándar, (4) acompaña hasta el handover.
-- El slot implementa front y/o API con la misma rama; nunca mergea ni despliega. El integrador verifica por contenido, mergea (API antes que front) y despliega solo con `ht`.
-- Un solo encargado: no hay orquestadores intermedios; si hace falta escala, se suma slot (SOS-05…) antes que jerarquía.
-- Brief estándar: slot, issue(s), pedido en una frase, alcance, criterio de aceptación, rama, checks de AGENTS.md y handover.
+## Flujo de pedidos (Dario → orquestador → integrador/slots)
+- Dario le pasa todo al **orquestador** (sesión de coordinación) y en lenguaje de producto; no necesita saber en qué repo vive el cambio.
+- El **orquestador** no mergea ni despliega: abre los issues, elige el slot por dominio, arranca/briefea a los agentes, sigue los handovers y le ordena al integrador qué rama integrar. Es el único interlocutor de Dario.
+- El **integrador** es una sesión dedicada sobre los checkouts de `main` (scale-os y scale-core-api): único autorizado a mergear, verificar por contenido, pushear con `MOBOS_INTEGRATOR=1` y desplegar. El orquestador le manda cada rama y espera su reporte.
+- Los **slots** implementan front y/o API con la misma rama; nunca mergean ni despliegan.
+- La escala se resuelve sumando slots o agentes de campaña, no apilando orquestadores.
 
 ## Worktrees e implementadores (cómo actúa cada uno)
 - **Implementador (agente en worktree)**: trabaja SOLO en su rama de slot (`SOS-COM`/`SOS-OPS`/`SOS-FIN`/`SOS-PLT`) dentro de sus worktrees y nunca toca `main`. Antes de empezar: `git fetch origin --prune && git rebase origin/main`. Entrega con conventional commits por unidad de trabajo, checks verdes y `git push origin <slot>`; reporta rama, `git log --oneline origin/main..HEAD`, qué hace cada commit, rutas y verificaciones. Prohibido: mergear/pushear a main, hacer deploy, resolver conflictos sobre main, borrar o arreglar refs, editar otro worktree.
-- **Integrador (sesión sobre main)**: único autorizado a mergear y pushear `main` (siempre con `MOBOS_INTEGRATOR=1`). Integra una rama por vez (API antes que frontend), corre la verificación por cada merge, resuelve solo ramas superseded (del lado de main y con diff neto vacío) y ante conflicto real **para y consulta**. Despliega solo con pedido explícito (`ht`) vía `npm run release:patch` y valida el smoke.
+- **Orquestador (sesión de coordinación)**: único interlocutor de Dario; abre issues, elige slot, arranca y briefea agentes, sigue handovers y ordena la integración. No mergea, no pushea y no despliega.
+- **Integrador (sesión sobre los checkouts principales)**: único autorizado a mergear y pushear `main` (siempre con `MOBOS_INTEGRATOR=1`). Integra una rama por vez (API antes que frontend), corre la verificación por cada merge, resuelve solo ramas superseded (del lado de main y con diff neto vacío) y ante conflicto real **para y consulta**. Despliega solo con pedido explícito (`ht`) vía `npm run release:patch` y valida el smoke.
 - **Estado raro de git** (fetch que falla, refs rotas, `.git/MERGE_HEAD` ajeno): parar y avisar; no reparar por cuenta propia.
 
 ## Objetos y valores predeterminados (fuente única)
