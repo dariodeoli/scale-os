@@ -12,6 +12,9 @@ for(const [capability,roles] of Object.entries(CAPABILITY_ROLES)){
  assert(roleCan('owner',capability as never),'owner keeps every capability');
 }
 assert(!roleCan('viewer','inventory.manage'),'viewer never manages inventory');
+// Decisión de producto #25: producción reserva el estudio (mismo espejo que el API).
+assert(roleCan('production','studio.manage'),'production keeps studio.manage like the API');
+assert.deepEqual(CAPABILITY_ROLES['studio.manage'],['owner','admin','management','sales','production','collaborator'],'studio.manage mirrors the API defaults');
 assert(!roleCan('viewer','checklists.edit'),'viewer never edits checklists');
 assert(!roleCan('collaborator','finance.view'),'collaborator never sees balances');
 assert(!roleCan('collaborator','salary.view'),'collaborator never sees salaries');
