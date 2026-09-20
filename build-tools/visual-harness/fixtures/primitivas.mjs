@@ -209,14 +209,14 @@ const drawerFixture = {
    <h3>Proyectos (2)</h3>
    <div class="drawer-list">
     <div class="drawer-list-head" aria-hidden="true"><span>Proyecto</span><span>Enlaces</span></div>
-    <article class="activity-line"><b>Campaña integral de lanzamiento con producción audiovisual y activaciones</b><span>2 enlaces</span></article>
-    <article class="activity-line"><b>Reels mensuales de producto y testimoniales de clientes</b><span>1 enlace</span></article>
+    <article class="activity-line"><b title="Campaña integral de lanzamiento con producción audiovisual y activaciones">Campaña integral de lanzamiento con producción audiovisual y activaciones</b><span>2 enlaces</span></article>
+    <article class="activity-line"><b title="Reels mensuales de producto y testimoniales de clientes">Reels mensuales de producto y testimoniales de clientes</b><span>1 enlace</span></article>
    </div>
    <h3>Piezas recientes</h3>
    <div class="drawer-list">
     <div class="drawer-list-head" aria-hidden="true"><span>Pieza</span><span>Estado</span></div>
-    <button type="button" class="work-list-row"><b>Video institucional de 90 segundos con locución en guaraní</b><span>En revisión</span></button>
-    <button type="button" class="work-list-row"><b>Placas para redes del lanzamiento</b><span>Publicada</span></button>
+    <button type="button" class="work-list-row"><b title="Video institucional de 90 segundos con locución en guaraní">Video institucional de 90 segundos con locución en guaraní</b><span>En revisión</span></button>
+    <button type="button" class="work-list-row"><b title="Placas para redes del lanzamiento">Placas para redes del lanzamiento</b><span>Publicada</span></button>
    </div>
    <p class="form-note">Historial de hasta 100 registros por categoría. Los movimientos financieros solo aparecen con permiso.</p>
   </div>
@@ -320,7 +320,7 @@ const commissionCard = ({kind, status, state, name, amount, currency, invoice, d
  <header class="commission-hub-head"><span class="hub-chip">${kind}</span><span class="commission-state" data-status="${status}">${state}</span></header>
  <h3>${name}</h3>
  <strong class="commission-hub-amount">${money(amount, currency)}</strong>
- <dl class="commission-hub-facts"><div><dt>Factura</dt><dd>${invoice}</dd></div><div><dt>Vence</dt><dd>${due}</dd></div></dl>
+ <dl class="commission-hub-facts"><div><dt>Factura</dt><dd title="${invoice}">${invoice}</dd></div><div><dt>Vence</dt><dd>${due}</dd></div></dl>
  <p class="form-note">${note}</p>
  <div class="commission-hub-actions inline-actions">${actions}</div>
 </article>`;

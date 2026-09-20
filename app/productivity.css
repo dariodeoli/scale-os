@@ -10,17 +10,20 @@
 .quick-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
 .activity-line{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 .activity-line small{color:var(--text-muted)}.activity-line p{white-space:pre-wrap;margin:0}
-/* Listas dentro de la ficha: fila finita con encabezado y plantilla compartida. */
-.drawer-list{--drawer-cols:minmax(0,1fr) auto}
+/* Listas dentro de la ficha: fila finita con encabezado y plantilla compartida.
+   La segunda columna es fija para que encabezado y filas midan igual en todos los
+   anchos; el dato que no entra se recorta con elipsis y su title viene del JSX. */
+.drawer-list{--drawer-cols:minmax(0,1fr) 9rem}
 .drawer-list-head{display:grid;grid-template-columns:var(--drawer-cols);gap:4px 8px;padding:2px 2px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
-.drawer-list-head span:last-child{justify-self:end}
+.drawer-list-head span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawer-list-head span:last-child{justify-self:end;max-width:100%}
 .drawer-list .activity-line{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:44px;padding:8px 0}
-.drawer-list .activity-line>span,.drawer-list .activity-line>small{justify-self:end;white-space:nowrap}
-.drawer-list .activity-line>.payment-cell{justify-self:end;display:flex;align-items:center;gap:8px;min-width:0}
+.drawer-list .activity-line>span,.drawer-list .activity-line>small{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawer-list .activity-line>.payment-cell{justify-self:end;display:flex;align-items:center;gap:8px;min-width:0;max-width:100%;overflow:hidden}
 .drawer-list .payment-cell small{white-space:nowrap;color:var(--text-subtle,var(--text-muted))}
 .drawer-list .work-list-row{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:44px;padding:8px 4px}
-.drawer-list .work-list-row>span{justify-self:end;white-space:nowrap}
-@media(max-width:560px){.drawer-list .activity-line,.drawer-list .work-list-row{grid-template-columns:1fr}.drawer-list .activity-line>span,.drawer-list .activity-line>small,.drawer-list .work-list-row>span{justify-self:start;white-space:normal}}
+.drawer-list .work-list-row>span{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:560px){.drawer-list{--drawer-cols:minmax(0,1fr) 6.5rem}}
 /* La celda de identidad de las listas del drawer recorta en una linea con title. */
 .drawer-list :is(.activity-line,.work-list-row)>b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .work-detail-toolbar{display:flex;justify-content:flex-end;min-height:0}.work-detail-toolbar .icon-button{width:34px;min-height:34px;padding:0}.work-detail-description{white-space:pre-wrap;line-height:1.55}.work-detail-toolbar+.record-assignees,.work-detail-toolbar+.work-detail-description{margin-top:0}
