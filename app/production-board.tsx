@@ -74,7 +74,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
         ) : (
           <span>Sin enlace</span>
         )}
-        {order.description&&<span className="order-description">{order.description}</span>}
+        {order.description&&<span className="order-description" title={order.description}>{order.description}</span>}
       </div>
       <DueDate value={order.due_date} time={order.due_time} compact/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
