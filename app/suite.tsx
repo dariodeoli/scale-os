@@ -24,6 +24,7 @@ import {completeSave} from './save-completion';
 import {RemoveRecord} from './archive-controls';
 import {driveLinksText} from './drive-links';
 import {ManualWorkspace} from './manual';
+import {listDateShort} from './list-format';
 import './settings-slice.css';
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
@@ -176,7 +177,7 @@ export function SettingsWorkspace(){ const {setCurrency}=useCompanyCurrency();co
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><ChartNoAxesCombined size={18}/></span><div><h2 id="exchange-settings-title">Cotización USD / PYG</h2><p>Referencia por fecha; no modifica saldos ni convierte movimientos anteriores.</p></div></div>
    {latestRate&&!rateIsValid&&<p className="form-error-summary" role="alert">La cotización guardada está fuera de rango. Se preparó G. 6.000 como referencia para que la revises y guardes.</p>}
    <Editor columns fields={[{key:'rate_date',label:'Fecha',type:'date'},{key:'usd_to_pyg',label:'Guaraníes por dólar',type:'money',help:'Solo enteros entre G. 1.000 y G. 100.000. Referencia indicada: G. 6.000/USD.'}]} key={rates.length} defaults={{rate_date:new Date().toISOString().slice(0,10),usd_to_pyg:rateIsValid?str(latestRate!,'usd_to_pyg'):'6000'}} save={async v=>{if(!validPygRate(v.usd_to_pyg))throw Error('Ingresá una cotización entera entre G. 1.000 y G. 100.000 por USD.');await api('/api/agency/exchange-rates',{...v,usd_to_pyg:Number(v.usd_to_pyg)});setRates((await api<{records:Row[]}>('/api/agency/exchange-rates')).records);}}/>
-   {rates.some(r=>validPygRate(r.usd_to_pyg))&&<details className="settings-disclosure"><summary>Ver cotizaciones guardadas</summary><div className="settings-history">{rates.map((r,i)=>validPygRate(r.usd_to_pyg)?<p key={i}>{str(r,'rate_date')}<strong>G. {formatPygRate(r.usd_to_pyg)}/USD</strong></p>:null)}</div></details>}
+   {rates.some(r=>validPygRate(r.usd_to_pyg))&&<details className="settings-disclosure"><summary>Ver cotizaciones guardadas</summary><div className="settings-history">{rates.map((r,i)=>validPygRate(r.usd_to_pyg)?<p key={i}><span className="list-date">{listDateShort(str(r,'rate_date'))||str(r,'rate_date')}</span><strong>G. {formatPygRate(r.usd_to_pyg)}/USD</strong></p>:null)}</div></details>}
   </section>
   <section className="panel settings-card" aria-labelledby="integration-settings-title">
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Link2Off size={18}/></span><div><h2 id="integration-settings-title">Integraciones</h2><p>Estado actual de los servicios que pueden complementar tu flujo de trabajo.</p></div></div>

@@ -1195,7 +1195,7 @@ export default function PlatformAdmin() {
                           typeof entry.metadata === "object" &&
                           !Array.isArray(entry.metadata) &&
                           Object.keys(entry.metadata as object).length ? (
-                            <small>
+                            <small title={JSON.stringify(entry.metadata)}>
                               {JSON.stringify(entry.metadata).slice(0, 160)}
                             </small>
                           ) : null}

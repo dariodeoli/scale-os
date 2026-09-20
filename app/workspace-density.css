@@ -18,8 +18,9 @@
 .control-shell .client-ruc-inline{display:grid;gap:var(--ui-space-3);padding:var(--ui-space-4);border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-subtle)}
 .control-shell .client-ruc-inline>div:first-child{display:flex;align-items:baseline;justify-content:space-between;gap:var(--ui-space-2);flex-wrap:wrap}
 .control-shell .client-ruc-inline small{font-size:12px;color:var(--text-muted)}
-.control-shell .phone-input{display:grid;grid-template-columns:minmax(94px,.42fr) minmax(0,1fr);gap:var(--ui-space-2)}
-.control-shell .phone-input select{padding-inline:8px}
+/* PhoneField vive también en diálogos portalizados fuera del shell. */
+:is(.control-shell,.unified-dialog,.photo-dialog) .phone-input{display:grid;grid-template-columns:minmax(94px,.42fr) minmax(0,1fr);gap:var(--ui-space-2)}
+:is(.control-shell,.unified-dialog,.photo-dialog) .phone-input select{padding-inline:8px}
 .control-shell .directory-summary{margin:0 0 12px;font-size:12px;color:var(--text-muted)}
 /* Project identifiers and author emails can have no natural line breaks.
    Comments render in a dialog portal, outside the workspace shell. */

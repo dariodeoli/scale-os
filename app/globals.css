@@ -67,3 +67,7 @@ html[data-theme="dark"] .forecast-balance-fill.income{background:linear-gradient
 html[data-theme="dark"] .forecast-balance-fill.expense{background:linear-gradient(90deg,var(--danger),color-mix(in srgb,var(--danger) 45%,var(--canvas)))}
 html[data-theme="dark"] .forecast-balance-fill.negative{background:linear-gradient(90deg,var(--danger),color-mix(in srgb,var(--danger) 55%,#000))}
 .client-price-missing{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;border-radius:999px;background:var(--warning-soft,var(--surface-subtle));color:var(--warning,#b45309);vertical-align:middle}.client-price-missing svg{width:13px;height:13px}
+
+/* Contenido solo para lectores de pantalla: una definición global para toda la app
+   (el portal también lo usa en su propia hoja). Sin esto, el texto se ve duplicado. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}

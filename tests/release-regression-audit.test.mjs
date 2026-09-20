@@ -36,4 +36,13 @@ assert(companyCss.includes('.company-settings-row.is-current{'),'the open compan
 const ui=file('../app/ui-system.css');
 assert(ui.includes('.ops-select-options{position:absolute')&&ui.includes('.ops-select-options.ops-select-floating{position:fixed'),'SelectCustom keeps its geometry in the shared sheet (superadmin and portal do not load operations.css)');
 assert(ui.includes('overflow-x:hidden;overflow-y:auto'),'the select menu scrolls its options instead of clipping them');
+assert(file('../app/globals.css').includes('.sr-only{position:absolute'),'the app has one global visually-hidden utility (deletion countdown, search labels, Google button)');
+assert(file('../app/workspace-density.css').includes(':is(.control-shell,.unified-dialog,.photo-dialog) .phone-input{display:grid'),'the phone field lays out inside portaled dialogs too');
+assert(file('../app/settings-slice.css').includes('.trash-info{grid-column:1/-1;grid-row:2}'),'trash rows keep the name out of the checkbox column on mobile');
+assert(file('../app/subscription-panel.css').includes('.subscription-notice.subscription-status--trialing .subscription-secondary{'),'the trial notice keeps its own tone instead of the danger palette');
+assert(file('../app/registro/registration.css').includes('.registration-card{display:flex;flex-direction:column;width:min(468px,100%)'),'the verification card keeps the access width and scroll caps');
+assert(file('../app/platform-access.css').includes('.platform-access-list{display:grid;gap:2px;margin:0;padding:0;list-style:none}'),'platform lists drop the native indentation');
+assert(file('../app/invite-links.css').includes('.invite-link-actions{display:flex'),'invite row actions lay out with the shared gap');
+assert(file('../app/superadmin/platform-admin.css').includes('margin-bottom: 0;'),'the global admin header resets the leaking global header margin');
+assert(file('../app/superadmin/page.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');
 console.log('PASS: rail, topbar, company switcher and dense lists keep their content inside the container.');
