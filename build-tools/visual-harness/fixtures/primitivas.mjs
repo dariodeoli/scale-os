@@ -38,7 +38,7 @@ const personContainer = ({name, initials, secondary = '', size = 'md'}) => `
 
 /* app/actor-identity.tsx lines 16-27 + actor-identity.css */
 const actorIdentity = ({name, initials, time = null, imported = false}) => `
-<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name">${name}</span>${time ? `<time class="actor-identity-time" datetime="${time.iso}">${time.label}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
+<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span>${time ? `<time class="actor-identity-time" datetime="${time.iso}">${time.label}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
 
 const LONG_CLIENT = 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima';
 const LONG_EMAIL = 'administracion.facturacion@estudiocomunicacionparaguay.com.py';
@@ -70,14 +70,14 @@ const editorFields = `
 <div>
  <div class="ops-select">
   <span class="ops-label" id="pf-type-label">Tipo de trabajo</span>
-  <button type="button" class="ops-select-trigger" aria-invalid="true" aria-describedby="pf-type-error" aria-labelledby="pf-type-label pf-type-value" aria-haspopup="listbox" aria-expanded="false"><span id="pf-type-value">Producción audiovisual con cobertura de eventos y postproducción</span>${iconChevron}</button>
+  <button type="button" class="ops-select-trigger" title="Producción audiovisual con cobertura de eventos y postproducción" aria-invalid="true" aria-describedby="pf-type-error" aria-labelledby="pf-type-label pf-type-value" aria-haspopup="listbox" aria-expanded="false"><span id="pf-type-value">Producción audiovisual con cobertura de eventos y postproducción</span>${iconChevron}</button>
  </div>
  <small id="pf-type-error" class="error" role="alert">Elegí un tipo de trabajo</small>
 </div>
 <div>
  <div class="ops-select">
   <span class="ops-label" id="pf-stage-label">Etapa</span>
-  <button type="button" class="ops-select-trigger" disabled aria-labelledby="pf-stage-label pf-stage-value" aria-haspopup="listbox" aria-expanded="false"><span id="pf-stage-value">Seleccionar…</span>${iconChevron}</button>
+  <button type="button" class="ops-select-trigger" title="Seleccionar…" disabled aria-labelledby="pf-stage-label pf-stage-value" aria-haspopup="listbox" aria-expanded="false"><span id="pf-stage-value">Seleccionar…</span>${iconChevron}</button>
  </div>
 </div>`;
 
@@ -118,7 +118,7 @@ const textoFields = `
   <div>
    <div class="ops-select">
     <span class="ops-label" id="pf-basis-label">Cálculo</span>
-    <button type="button" class="ops-select-trigger" aria-labelledby="pf-basis-label pf-basis-value" aria-haspopup="listbox" aria-expanded="false"><span id="pf-basis-value">% facturado sobre el total del contrato</span>${iconChevron}</button>
+    <button type="button" class="ops-select-trigger" title="% facturado sobre el total del contrato" aria-labelledby="pf-basis-label pf-basis-value" aria-haspopup="listbox" aria-expanded="false"><span id="pf-basis-value">% facturado sobre el total del contrato</span>${iconChevron}</button>
    </div>
   </div>
  </div>

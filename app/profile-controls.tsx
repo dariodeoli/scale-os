@@ -36,6 +36,7 @@ export function SelectCustom({ label, value, choices, onChange,disabled=false,in
   const menu=useRef<HTMLDivElement>(null);
   const [floating,setFloating]=useState<{target:Element;style:ReturnType<typeof selectPosition>}|null>(null);
   const filtered=choices.filter(c=>c.label.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(query.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()));
+  const selectedLabel=choices.find(c=>String(c.value)===String(value))?.label||'Seleccionar…';
   useEffect(()=>{if(!open)setQuery('');},[open]);
   useEffect(()=>{if(disabled)setOpen(false);},[disabled]);
   useLayoutEffect(()=>{if(!open){setFloating(null);return;}const update=()=>{if(!trigger.current)return;setFloating({target:root.current?.closest('[role="dialog"]')||document.body,style:selectPosition(trigger.current.getBoundingClientRect(),{width:window.innerWidth,height:window.innerHeight},Math.min(380,choices.length*44+12+(choices.length>8?48:0)))});};update();window.addEventListener('resize',update);const scroll=(event:Event)=>{if(!menu.current?.contains(event.target as Node))update();};window.addEventListener('scroll',scroll,true);return()=>{window.removeEventListener('resize',update);window.removeEventListener('scroll',scroll,true);};},[open,choices.length]);
@@ -48,8 +49,8 @@ export function SelectCustom({ label, value, choices, onChange,disabled=false,in
     if(open&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();const options=Array.from(menu.current?.querySelectorAll<HTMLButtonElement>('[role="option"]')||[]);const current=options.indexOf(document.activeElement as HTMLButtonElement);const next=e.key==='Home'?0:e.key==='End'?options.length-1:(current+(e.key==='ArrowDown'?1:-1)+options.length)%options.length;options[next]?.focus();}
   }}>
     <span className="ops-label" id={`${id}-label`}>{label}</span>
-    <button type="button" ref={trigger} disabled={disabled} className="ops-select-trigger" aria-invalid={invalid||undefined} aria-describedby={describedBy} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open&&!disabled} aria-controls={open&&!disabled?id:undefined} onClick={()=>{if(!disabled)setOpen(!open);}} onKeyDown={e=>{if(!disabled&&!open&&['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();setOpen(true);}}}>
-      <span id={`${id}-value`}>{choices.find(c=>String(c.value)===String(value))?.label || 'Seleccionar…'}</span><ChevronDown size={16}/>
+    <button type="button" ref={trigger} disabled={disabled} title={selectedLabel} className="ops-select-trigger" aria-invalid={invalid||undefined} aria-describedby={describedBy} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open&&!disabled} aria-controls={open&&!disabled?id:undefined} onClick={()=>{if(!disabled)setOpen(!open);}} onKeyDown={e=>{if(!disabled&&!open&&['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();setOpen(true);}}}>
+      <span id={`${id}-value`}>{selectedLabel}</span><ChevronDown size={16}/>
     </button>
     {open&&!disabled&&floating&&createPortal(<div className="ops-select-options ops-select-floating" ref={menu} style={floating.style}>
       {choices.length>8&&<input type="search" aria-label={`Buscar ${label.toLowerCase()}`} placeholder="Buscar…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(['Home','End'].includes(e.key))e.stopPropagation();}}/>}

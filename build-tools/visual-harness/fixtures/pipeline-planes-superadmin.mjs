@@ -217,7 +217,7 @@ const growthDashboard = `
 <section class="panel ops-stack growth-dashboard">
  <div class="panel-heading">
   <div><p class="eyebrow">CAPTACIÓN DIGITAL</p><h2>Visitas y crecimiento</h2></div>
-  <div class="ops-select"><span class="ops-label" id="growth-period-label">Período</span><button type="button" class="ops-select-trigger" aria-labelledby="growth-period-label growth-period-value" aria-haspopup="listbox" aria-expanded="false"><span id="growth-period-value">Últimos 30 días</span>${svg(I.chevronDown, 16)}</button></div>
+  <div class="ops-select"><span class="ops-label" id="growth-period-label">Período</span><button type="button" class="ops-select-trigger" title="Últimos 30 días" aria-labelledby="growth-period-label growth-period-value" aria-haspopup="listbox" aria-expanded="false"><span id="growth-period-value">Últimos 30 días</span>${svg(I.chevronDown, 16)}</button></div>
  </div>
  <div class="growth-cards">
   <article><p>${svg(I.eye, 20)}Páginas vistas</p><strong>37.479</strong><small>${svg(I.trendingUp, 14)}+128.4% vs. período anterior</small></article>
@@ -453,9 +453,9 @@ const superadminCoupons = `
  <div class="platform-admin-section-heading"><div><p class="eyebrow">CUPONES</p><h2>Catálogo comercial</h2></div><small>${whole(coupons.length)} códigos</small></div>
  <form class="platform-admin-coupon">
   <label>Código<input value="SCALE10" placeholder="SCALE10" required minlength="3" maxlength="40"></label>
-  <div class="ops-select"><span class="ops-label" id="coupon-type-label">Tipo</span><button type="button" class="ops-select-trigger" aria-labelledby="coupon-type-label coupon-type-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-type-value">Monto fijo</span>${svg(I.chevronDown, 16)}</button></div>
+  <div class="ops-select"><span class="ops-label" id="coupon-type-label">Tipo</span><button type="button" class="ops-select-trigger" title="Monto fijo" aria-labelledby="coupon-type-label coupon-type-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-type-value">Monto fijo</span>${svg(I.chevronDown, 16)}</button></div>
   <label>Valor<input value="150" inputmode="decimal" maxlength="10" required></label>
-  <div class="ops-select"><span class="ops-label" id="coupon-currency-label">Moneda</span><button type="button" class="ops-select-trigger" aria-labelledby="coupon-currency-label coupon-currency-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-currency-value">USD</span>${svg(I.chevronDown, 16)}</button></div>
+  <div class="ops-select"><span class="ops-label" id="coupon-currency-label">Moneda</span><button type="button" class="ops-select-trigger" title="USD" aria-labelledby="coupon-currency-label coupon-currency-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-currency-value">USD</span>${svg(I.chevronDown, 16)}</button></div>
   <button class="primary" disabled>Crear cupón</button>
  </form>
  <ul class="platform-admin-list">

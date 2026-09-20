@@ -90,9 +90,9 @@ const actorIdentity = ({name, photo = '', timestamp = '', timeText = '', verifie
   const label = name || (imported ? 'Autor importado' : 'Sistema');
   const initials = label.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((word) => Array.from(word)[0]).join('').toLocaleUpperCase('es');
   const avatar = verified && photo ? `<img src="${photo}" alt="" referrerpolicy="no-referrer">` : initials;
-  return `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}">${timeText || listDateFull(timestamp)}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
+  return `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${label}">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}">${timeText || listDateFull(timestamp)}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
 };
-const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
+const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" title="${value}" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
 const searchField = ({label, placeholder}) => `<label class="search-field"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
 const amountCell = (text) => `<dd class="list-amount">${text}</dd>`;
