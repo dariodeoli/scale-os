@@ -31,6 +31,11 @@ assert(operationsCss.includes('.person-hub-actions .ops-card-actions{margin:0;pa
 assert(operationsCss.includes('.person-hub-card.is-list>.person-hub-tail>.form-note'),'the ambiguous-profile note spans the row');
 const portalCss=file('../app/cliente/portal.css');
 assert(portalCss.includes('.delivery-activity{list-style:none'),'the portal activity feed drops the native bullets');
+assert(portalCss.includes('.portal-date,.delivery-activity small{white-space:nowrap'),'portal dates never break mid-value');
+assert(portalCss.includes('.client-portal :is(h1,h2){min-width:0;overflow-wrap:anywhere}'),'long portal titles wrap instead of being clipped');
+for(const route of ['../app/cliente/entregas/page.tsx','../app/cliente/entregas/[id]/page.tsx']){
+  assert(!file(route).includes('${listDateFull'),`${route} never interpolates a nullable date`);
+}
 const companyCss=file('../app/company-settings.css');
 assert(companyCss.includes('.company-settings-row.is-current{'),'the open company is marked in Configuración');
 const ui=file('../app/ui-system.css');
