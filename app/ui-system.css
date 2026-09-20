@@ -237,6 +237,20 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 :is(.control-shell,.unified-dialog,.photo-dialog) .ops-form-grid label>input[inputmode=decimal]{max-width:7rem}
 :is(.control-shell,.unified-dialog,.photo-dialog) .amount-field{max-width:11rem}
 
+/* SelectCustom (fuente única): el disparador, el menú y su desplazamiento viven en la
+   hoja compartida para que el primitivo funcione en toda ruta, incluso fuera del shell
+   (superadmin, portal). Las hojas de módulo solo afinan color, radio o densidad. */
+.ops-select{position:relative;min-width:0}
+.ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0;text-align:left;padding:11px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:inherit;font-size:14px}
+.ops-select-options{position:absolute;z-index:1;top:100%;left:0;right:0;max-height:210px;overflow-x:hidden;overflow-y:auto;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);box-shadow:var(--shadow-md);padding:4px}
+.ops-select-options button{display:block;width:100%;text-align:left;padding:10px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text);font:inherit;font-size:13px}
+.ops-select-options button:hover,.ops-select-options button:focus-visible,.ops-select-options button[aria-selected="true"]{background:var(--violet-soft);color:var(--brand-700)}
+.ops-select-options button:disabled{opacity:.55;cursor:not-allowed}
+.ops-select-options>input{position:relative;z-index:1;margin:0 0 4px;min-height:36px;border-color:var(--border-subtle,var(--line));font-size:13px}
+.ops-select-options.ops-select-floating{position:fixed;top:auto;right:auto;z-index:90;overscroll-behavior:contain;scroll-padding-block:4px;touch-action:pan-y}
+.ops-select-floating button{min-height:44px}
+@media(max-width:760px){.ops-select-options>input{min-height:44px;font-size:16px}.ops-select-floating button{min-height:44px}}
+
 /* Iconos de acción (editar, borrar, archivar, verificar, mover): mismo set y tamaño;
    el cursor los oscurece levemente y el clic cambia el color con tono semántico. */
 :is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{transition:background var(--ease),border-color var(--ease),color var(--ease),filter var(--ease)}

@@ -26,4 +26,7 @@ const portalCss=file('../app/cliente/portal.css');
 assert(portalCss.includes('.delivery-activity{list-style:none'),'the portal activity feed drops the native bullets');
 const companyCss=file('../app/company-settings.css');
 assert(companyCss.includes('.company-settings-row.is-current{'),'the open company is marked in Configuración');
+const ui=file('../app/ui-system.css');
+assert(ui.includes('.ops-select-options{position:absolute')&&ui.includes('.ops-select-options.ops-select-floating{position:fixed'),'SelectCustom keeps its geometry in the shared sheet (superadmin and portal do not load operations.css)');
+assert(ui.includes('overflow-x:hidden;overflow-y:auto'),'the select menu scrolls its options instead of clipping them');
 console.log('PASS: rail, topbar, company switcher and dense lists keep their content inside the container.');
