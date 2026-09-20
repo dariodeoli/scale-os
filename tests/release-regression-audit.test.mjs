@@ -17,8 +17,11 @@ assert(platformCss.includes('@media(max-width:760px)'),'global panel must keep a
 // Ronda 20-09 (SOS-PLT): riel, encabezado y listas densas dentro de su contenedor.
 const rail=file('../app/desktop-sidebar.css');
 assert(rail.includes('.control-shell .desktop-sidebar nav>a,.control-shell .desktop-sidebar nav>button{'),'rail logout button shares the link geometry');
+assert(rail.includes('.sidebar-collapse{position:static'),'the collapsed rail keeps the toggle out of the brand');
 const density=file('../app/workspace-density.css');
 assert(density.includes('.topbar-company>.workspace .company-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'),'long company names truncate in the topbar');
+assert(density.includes('.topbar-utility-actions>.theme-toggle{width:40px;min-width:40px;min-height:40px'),'the theme toggle matches its toolbar neighbours');
+assert(file('../app/control-center.css').includes('@media(max-width:760px){.control-shell>.content{padding:16px 16px 28px}'),'mobile content padding matches the pulled topbar');
 const operationsCss=file('../app/operations.css');
 assert(operationsCss.includes('.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto'),'the team list scrolls instead of overflowing its panel');
 assert(operationsCss.includes('.company-choice-row{display:flex'),'the company switcher row wraps instead of overflowing the dialog');
