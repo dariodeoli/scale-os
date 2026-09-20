@@ -53,8 +53,9 @@ for(const width of [320,360,390,768]){
  if(width<=760){
   assert.equal(at('desktop-sidebar.css','.control-shell .desktop-sidebar','display'),'none');
   assert.equal(at('mobile-navigation.css','.control-shell .mobile-menu-trigger','display'),'grid');
-  assert.equal(at('production-focus.css','.production-toolbar .production-filters','display'),'contents');
-  assert.equal(at('production-focus.css','.production-toolbar .production-filters .ops-select','min-width'),'0');
+  assert.equal(at('production-focus.css','.control-shell .production-toolbar','flex-direction'),'column');
+  assert.equal(at('production-focus.css','.control-shell .production-toolbar .production-filters','width'),'100%');
+  assert.equal(at('production-focus.css','.control-shell .production-toolbar .production-filters .ops-select','min-width'),'0');
   assert.equal(at('work-checklist.css','.work-checklist-item','flex-wrap'),'wrap');
   assert.equal(at('work-checklist.css','.work-checklist-add-row','flex-wrap'),'wrap');
  }else{

@@ -224,7 +224,7 @@ const workCard = (order) => `
   <button class="icon-button" title="Mover ${order.title}" aria-label="Mover ${order.title}">⋮⋮</button>
  </div>
  <p>${clientIdentity(order.client.name, order.client.initials, order.client.color, true)} · ${order.project}</p>
- <div class="card-meta"><small class="urgency-badge">Urgencia: ${order.urgency}</small>${order.drive ? `<a href="${order.drive}" target="_blank" rel="noreferrer">${svg(12, ICON.link)} Drive</a>` : '<span>Sin enlace</span>'}${order.description ? `<span class="order-description">${order.description}</span>` : ''}</div>
+ <div class="card-meta"><small class="urgency-badge">Urgencia: ${order.urgency}</small>${order.drive ? `<a href="${order.drive}" target="_blank" rel="noreferrer">${svg(12, ICON.link)} Drive</a>` : '<span>Sin enlace</span>'}${order.description ? `<span class="order-description" title="${order.description}">${order.description}</span>` : ''}</div>
  ${order.due ? `<span class="due-date${order.overdue ? ' overdue' : ''} compact" title="Entrega: ${order.due.title}">${order.due.text}</span>` : ''}
  ${assignedPeople(order.people)}
  ${order.checklist ? `<small class="card-checklist" aria-label="${order.checklist.done} de ${order.checklist.total} pasos completados">☑ ${order.checklist.done}/${order.checklist.total} pasos</small>` : ''}

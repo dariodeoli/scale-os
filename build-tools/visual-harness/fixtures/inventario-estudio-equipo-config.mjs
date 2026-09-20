@@ -124,7 +124,7 @@ const equipmentCard = ({name, code, photo = '', status, statusLabel, category, c
  <div class="inventory-item-facts">
   <dl class="inventory-facts-inline">
    <div class="inventory-fact"><dt>Categoría</dt><dd title="${category}">${categoryIcon}${category}</dd></div>
-   <div class="inventory-fact"><dt>Serie / IMEI</dt><dd${serial ? ` title="${serial}"` : ''}>${serial ? serialTexto(serial) : 'Sin registrar'}</dd></div>
+   <div class="inventory-fact"><dt>Serie / IMEI</dt><dd title="${serial || 'Sin registrar'}">${serial ? serialTexto(serial) : 'Sin registrar'}</dd></div>
    <div class="inventory-fact"><dt>Valor</dt>${amountCell(value)}</div>
   </dl>
   <dl class="inventory-fact inventory-fact-location"><dt>Ubicación</dt><dd title="${location}">${location}</dd></dl>
@@ -133,7 +133,7 @@ const equipmentCard = ({name, code, photo = '', status, statusLabel, category, c
   <div class="inventory-card-control">
    ${verificationStamp(verification)}
    ${canManage ? iconButton({title: 'Marcar verificado', label: `Marcar verificado: ${name}`, path: ICON.checkCircle, tone: 'positive inventory-verify-action'}) : ''}
-   ${returning ? `<span class="hub-chip inventory-return-chip">${returning}</span>` : ''}
+   ${returning ? `<span class="hub-chip inventory-return-chip" title="${returning}">${returning}</span>` : ''}
   </div>
   <div class="inline-actions inventory-item-actions">
    ${iconButton({title: 'Detalle y trazabilidad', label: `Detalle y trazabilidad: ${name}`, path: ICON.eye})}
@@ -421,9 +421,9 @@ const studioReservations = [
 
 const studioReservationRow = (reservation) => `
 <article class="studio-reservation">
- <div class="studio-reservation-identity"><h3>${reservation.title}</h3><small>${reservation.space}${reservation.scenario ? ' · ' + reservation.scenario : ''} · ${reservation.type}</small></div>
+ <div class="studio-reservation-identity"><h3 title="${reservation.title}">${reservation.title}</h3><small title="${reservation.space}${reservation.scenario ? ' · ' + reservation.scenario : ''} · ${reservation.type}">${reservation.space}${reservation.scenario ? ' · ' + reservation.scenario : ''} · ${reservation.type}</small></div>
  <span class="studio-reservation-schedule">${reservation.schedule}</span>
- <span class="studio-reservation-project">${reservation.project || 'Sin proyecto vinculado'}</span>
+ <span class="studio-reservation-project" title="${reservation.project || 'Sin proyecto vinculado'}">${reservation.project || 'Sin proyecto vinculado'}</span>
  <span class="studio-members"><span>Responsables:</span>${reservation.members.map((name) => actorIdentity({name, photo: ''})).join('')}</span>
  <span class="${reservation.cancelled ? 'studio-state muted' : 'studio-state'}">${reservation.status}</span>
  ${reservation.cancelled ? '' : `<div class="inline-actions studio-reservation-actions">${iconButton({title: 'Editar reserva', label: `Editar reserva: ${reservation.title}`, path: ICON.pencil})}${iconButton({title: 'Cancelar reserva', label: `Cancelar reserva: ${reservation.title}`, path: ICON.x, tone: 'warn'})}</div>`}
