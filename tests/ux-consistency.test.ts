@@ -168,6 +168,12 @@ test('dense list templates keep a silent horizontal escape hatch',()=>{
   assert.match(clients,/\.client-hub-list\{overflow-x:auto;scrollbar-width:none\}/,'the client list keeps its scroll escape hatch');
 });
 
+test('the client portal styles every list it renders',()=>{
+  const portal=read('app/cliente/portal.css');
+  for(const cls of ['delivery-list','delivery','delivery-activity'])assert.match(portal,new RegExp(`\\.${cls}\\{`),`the portal styles .${cls}`);
+  assert.match(portal,/\.delivery-activity\{list-style:none/,'the delivery activity drops the native bullets');
+});
+
 test('the rail navigation keeps one geometry for links and the logout button',()=>{
   const desktop=read('app/desktop-sidebar.css');
   assert.match(desktop,/\.control-shell \.desktop-sidebar nav>a,\.control-shell \.desktop-sidebar nav>button\{/,'the desktop rail styles the logout button with the link geometry');
