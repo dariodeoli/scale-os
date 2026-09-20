@@ -44,6 +44,7 @@
   min-width: 0;
   min-height: 60px;
   margin-inline: calc(clamp(16px, 2.6vw, 36px) * -1);
+  margin-bottom: 0;
   padding: 8px clamp(16px, 2.6vw, 36px);
   border-bottom: 1px solid var(--border-subtle, var(--platform-line));
   background: color-mix(in srgb, var(--canvas-elevated, #fcfbfd) 90%, transparent);
@@ -700,6 +701,11 @@
   align-items: end;
 }
 
+/* La nota del formulario no cabe en una columna de 141px: ocupa la fila completa. */
+.platform-admin-subscription-form label:has(textarea) {
+  grid-column: 1 / -1;
+}
+
 .platform-admin-subscription-form .form-note {
   grid-column: 1 / -1;
   margin: 0;
@@ -782,6 +788,8 @@
     gap: 10px;
     padding: 16px;
     border-radius: 15px;
+    /* El page padding móvil es 12px: el encabezado no puede sobresalir del viewport. */
+    margin-inline: -12px;
   }
 
   .platform-admin-header .workspace-brand {
@@ -1026,7 +1034,8 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 /* Popups: confirmaciones y suscripción en cápsulas. */
 .platform-admin-confirm{gap:9px;padding:var(--ui-card-padding);border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-subtle);font-size:12.5px}
 .platform-admin-confirm input{margin-top:8px;min-height:44px;border-radius:10px}
-.platform-admin-subscription-summary{display:grid;gap:10px;padding:var(--ui-card-padding);border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-md);background:var(--surface-subtle)}
+/* Es el valor dentro de la tarjeta de suscripción: no dibuja otra caja anidada. */
+.platform-admin-subscription-summary{display:block;min-width:0;font-variant-numeric:tabular-nums}
 .platform-admin-subscription-form{display:grid;gap:12px;padding:var(--ui-card-padding);border:1px solid var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface))}
 .platform-admin-subscription-form label{display:grid;gap:6px;font-size:12px;font-weight:650;color:var(--platform-muted)}
 .platform-admin-subscription-form input,.platform-admin-subscription-form select,.platform-admin-subscription-form textarea{border-radius:10px;min-height:44px}

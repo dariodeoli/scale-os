@@ -52,8 +52,8 @@ html[data-theme="dark"] .brand-mark{background:var(--anthracite);color:var(--tex
 html[data-theme="dark"] .my-profile-name input{box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
 /* Dark polish: deeper shell, clearer borders and readable chips. */
 html[data-theme="dark"] .control-shell>aside,html[data-theme="dark"] .control-shell .desktop-sidebar{background:linear-gradient(180deg,#0a0a0e 0%,#101016 100%);border-right-color:rgb(255 255 255 / 10%)}
-html[data-theme="dark"] .control-shell>aside nav>a,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a{color:rgb(226 214 232 / 66%)}
-html[data-theme="dark"] .control-shell>aside nav>a:hover,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a:hover{background:rgb(255 255 255 / 7%);color:#fdf8fe}
+html[data-theme="dark"] .control-shell>aside nav>a,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a,html[data-theme="dark"] .control-shell .desktop-sidebar nav>button{color:rgb(226 214 232 / 66%)}
+html[data-theme="dark"] .control-shell>aside nav>a:hover,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a:hover,html[data-theme="dark"] .control-shell .desktop-sidebar nav>button:hover{background:rgb(255 255 255 / 7%);color:#fdf8fe}
 html[data-theme="dark"] .control-shell>aside nav>a.active,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a.active{background:linear-gradient(90deg,rgb(192 107 208 / 34%),rgb(160 79 175 / 18%));border-color:rgb(192 107 208 / 34%);color:#fdf8fe;box-shadow:inset 3px 0 #c06bd0}
 html[data-theme="dark"] .control-shell>aside nav>a.active svg,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a.active svg{color:#d18ad9}
 html[data-theme="dark"] .control-shell>aside nav>a.active::after,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a.active::after{background:#c06bd0;box-shadow:0 0 0 3px rgb(192 107 208 / 16%)}
@@ -67,3 +67,7 @@ html[data-theme="dark"] .forecast-balance-fill.income{background:linear-gradient
 html[data-theme="dark"] .forecast-balance-fill.expense{background:linear-gradient(90deg,var(--danger),color-mix(in srgb,var(--danger) 45%,var(--canvas)))}
 html[data-theme="dark"] .forecast-balance-fill.negative{background:linear-gradient(90deg,var(--danger),color-mix(in srgb,var(--danger) 55%,#000))}
 .client-price-missing{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;border-radius:999px;background:var(--warning-soft,var(--surface-subtle));color:var(--warning,#b45309);vertical-align:middle}.client-price-missing svg{width:13px;height:13px}
+
+/* Contenido solo para lectores de pantalla: una definición global para toda la app
+   (el portal también lo usa en su propia hoja). Sin esto, el texto se ve duplicado. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}

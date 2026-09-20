@@ -16,8 +16,8 @@ export function PersonContainer({name,photoUrl,secondary,verified=false,size='md
  return <span className={`person-container person-container-${size}${className?' '+className:''}`}>
   <PersonAvatar name={name} photo={photo}/>
   <span className="person-container-details">
-   <span className="person-container-name">{name}</span>
-   {secondary?<span className="person-container-secondary">{secondary}</span>:null}
+   <span className="person-container-name" title={name}>{name}</span>
+   {secondary?<span className="person-container-secondary" title={secondary}>{secondary}</span>:null}
   </span>
  </span>;
 }

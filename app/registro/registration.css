@@ -1,6 +1,8 @@
 /* Registration wizard: same centered glass panel and soft shell as login. */
 .access-layout-shell{width:min(468px,100%);display:grid;place-items:center}
-.registration-card{display:flex;flex-direction:column;padding:22px 28px 20px;overflow-wrap:anywhere}
+/* La tarjeta de acceso acota ancho y alto igual que .login-card: verificar-correo no
+   usa el shell de acceso y quedaba sin tope ni scroll en viewports bajos. */
+.registration-card{display:flex;flex-direction:column;width:min(468px,100%);max-block-size:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain;padding:22px 28px 20px;overflow-wrap:anywhere}
 .registration-card .access-layout-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
 .registration-card .access-layout-brand{display:inline-flex;width:max-content;max-width:100%;text-decoration:none}
 .registration-card .access-layout-header .eyebrow{margin:0;color:var(--brand-600);font:700 10px/1.3 'DM Mono',monospace;letter-spacing:.13em}
@@ -46,4 +48,5 @@
  .registration-progress b{display:none}
  .registration-links{display:grid;justify-items:center;gap:6px}
  .registration-links a{min-height:44px}
+ .back-link{min-height:44px}
 }

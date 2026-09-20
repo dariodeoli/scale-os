@@ -102,14 +102,9 @@
   padding-top: 12px;
   border-top: 1px solid var(--line);
 }
+/* El overlay conserva su tinte; la geometría vive en dialog.css (hoja del diálogo). */
 .ops-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
   background: color-mix(in srgb, var(--anthracite) 55%, transparent);
-  display: grid;
-  place-items: center;
-  padding: 20px;
 }
 .ops-dialog {
   width: min(720px, 100%);
@@ -130,13 +125,8 @@
 .ops-profile-section summary { cursor:pointer; padding:14px 16px; font-size:14px; font-weight:600; }
 .ops-profile-section > div,.ops-profile-section > form { padding:4px 16px 16px; }
 .ops-label { display:block; margin-bottom:7px; font-size:12px; font-weight:500; color:var(--text-muted); }
-.ops-select { position:relative; min-width:0; }
-.ops-select-trigger { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; text-align:left; padding:11px 12px; border:1px solid var(--line-strong); border-radius:var(--radius-sm); background:var(--surface); color:var(--text); font:inherit; font-size:14px; }
-.ops-select-options { position:absolute; z-index:1; top:100%; left:0; right:0; max-height:210px; overflow-y:auto; border:1px solid var(--line-strong); border-radius:var(--radius-sm); background:var(--surface); box-shadow:var(--shadow-md); padding:4px; }
-.ops-select-options button { display:block; width:100%; text-align:left; padding:10px; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--text); font:inherit; font-size:13px; }
-.ops-select-options button:hover,.ops-select-options button:focus-visible,.ops-select-options button[aria-selected="true"] { background:var(--violet-soft); color:var(--brand-700); }
-.ops-select-options.ops-select-floating{position:fixed;top:auto;right:auto;z-index:90;overscroll-behavior:contain;scroll-padding-block:4px;touch-action:pan-y}
-.ops-select-floating button{min-height:44px}
+/* La geometría base de SelectCustom vive en ui-system.css: esta hoja solo la afina.
+   El menú conserva scroll vertical: nunca recorta opciones sin salida. */
 .ops-select-trigger:focus-visible,.ops-profile-section summary:focus-visible { outline:2px solid var(--brand-600); outline-offset:2px; }
 .ops-job-list { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; max-height:210px; overflow-y:auto; }
 .ops-person-card { padding:18px; gap:10px; }
@@ -232,8 +222,11 @@
 .ops-comment small{color:var(--text-subtle)}
 .ops-job-list{gap:var(--ui-space-2,8px)}
 
-@media (max-width:760px){
+/* Por encima de 540px el modal usa 12px de margen; por debajo manda la hoja anclada. */
+@media (min-width:541px) and (max-width:760px){
  .ops-overlay{padding:12px}
+}
+@media (max-width:760px){
  .ops-dialog{width:100%;max-height:calc(100dvh - 24px);padding:20px 16px}
  .ops-select-options button{min-height:44px}
 }
@@ -241,7 +234,11 @@
 /* Compact operational primitives: aligned controls, dense forms, and calm data surfaces. */
 .ops-stack{gap:12px}.ops-grid{gap:12px}.ops-card{border-radius:10px;border-color:var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs);transition:border-color var(--ease),box-shadow var(--ease),transform var(--ease)}.ops-card:hover{border-color:color-mix(in srgb,var(--brand-700) 25%,var(--border-subtle,var(--line)));box-shadow:var(--shadow-card);transform:translateY(-1px)}
 .ops-form-grid{gap:12px}.ops-form-grid label,.ops-label{gap:5px;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}.ops-form-grid :is(input,textarea,select),.ops-select-trigger{min-height:38px;border-radius:8px;background:var(--surface-raised,var(--surface));border-color:var(--border-interactive,var(--line-strong))}.ops-form-grid textarea{min-height:96px}.ops-form-grid :is(input,textarea,select):focus,.ops-select-trigger:focus-visible{border-color:var(--brand-600);box-shadow:0 0 0 3px var(--focus-halo,color-mix(in srgb,var(--brand-700) 20%,transparent))}
-.ops-select{min-width:0}.ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;font-size:12px;font-weight:600;text-align:left}.ops-select-options{border-radius:10px;border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay,0 28px 80px rgb(37 28 41 / 24%));overflow:hidden}.ops-select-options button{min-height:36px;padding:8px 10px}.ops-select-options button:hover{background:var(--violet-soft)}
+/* Selector de empresa: la fila reparte nombre y preferencia sin desbordar el diálogo. */
+.company-choice-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.company-choice-row>.choice{flex:1 1 12rem;min-width:0;text-align:left;white-space:normal;overflow-wrap:anywhere}
+.company-choice-row>.text-button{flex:none}
+.ops-select{min-width:0}.ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;font-size:12px;font-weight:600;text-align:left}.ops-select-options{border-radius:10px;border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay,0 28px 80px rgb(37 28 41 / 24%));overflow-x:hidden;overflow-y:auto}.ops-select-options button{min-height:36px;padding:8px 10px}.ops-select-options button:hover{background:var(--violet-soft)}
 .ops-dialog{border-radius:14px;border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay,0 28px 80px rgb(37 28 41 / 24%))}.ops-dialog .panel-heading{margin-bottom:14px}.ops-overlay{background:rgb(37 28 41 / 48%);backdrop-filter:blur(4px)}.dialog-actions,.form-actions{gap:8px;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}.dialog-actions :is(button,.primary,.secondary),.form-actions :is(button,.primary,.secondary){min-height:38px;border-radius:8px}
 .ops-job-list,.ops-comments{gap:8px}.ops-comment{padding:12px;border-radius:10px;border-color:var(--border-subtle,var(--line));background:var(--surface-sunken,var(--surface-subtle))}.ops-person-card{padding:14px}.ops-person{gap:10px}.ops-note-preview{font-size:12px;line-height:1.45;color:var(--text-subtle,var(--text-muted))}.ops-profile-section{border-color:var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}.ops-profile-section>summary{min-height:42px;padding:10px 12px;font-size:13px;font-weight:700}.ops-profile-section[open]>summary{border-bottom-color:var(--border-subtle,var(--line))}
 /* Person edit dialog: photo and panel access share one row; sections keep one padded header. */
@@ -320,7 +317,10 @@
 
 
 
-.ops-grid-list{grid-template-columns:minmax(0,1fr);--person-cols:minmax(180px,1.1fr) minmax(0,1.2fr) 5.5rem minmax(120px,.9fr) minmax(140px,1fr) 11rem}
+/* La lista del equipo conserva su plantilla de 6 columnas y se desplaza en silencio
+   cuando el riel deja menos ancho que el mínimo de la plantilla (861–1049 px). */
+.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;--person-cols:minmax(180px,1.1fr) minmax(0,1.2fr) 5.5rem minmax(120px,.9fr) minmax(140px,1fr) 11rem}
+.ops-grid-list::-webkit-scrollbar{display:none}
 .person-hub-card.is-list{display:grid;grid-template-columns:var(--person-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px}
 .person-hub-card.is-list .person-hub-head{display:contents}
 .person-hub-card.is-list .select-check{grid-column:1;grid-row:1;align-self:center;justify-self:start;z-index:1}
@@ -337,12 +337,27 @@
 .person-hub-card.is-list .team-access-header{min-width:0}
 .person-hub-card.is-list .person-hub-tail{display:contents}
 .person-hub-card.is-list .person-hub-actions{grid-column:6;grid-row:1;justify-content:flex-end;margin-top:0;padding-top:0}
+.person-hub-card.is-list :is(.ops-person img,.avatar){width:32px;height:32px;font-size:13px}
+.person-hub-card.is-list .ops-person h3{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* La fila finita no repite divisores internos ni arrastra el pie de la tarjeta. */
+.person-hub-card.is-list :is(.team-access,.person-hub-actions,.person-hub-buttons,.ops-card-actions){border-top:0;border-bottom:0}
+.person-hub-card.is-list :is(.person-hub-buttons,.ops-card-actions){margin-top:0;padding-top:0}
+.person-hub-card.is-list .person-hub-chips{overflow-x:auto;scrollbar-width:none}
+.person-hub-card.is-list .person-hub-chips::-webkit-scrollbar{display:none}
+/* La columna «Acceso» ya está rotulada por el encabezado: no repite el título
+   interno y evita que el chip envuelva y estire la fila. */
+.person-hub-card.is-list .team-access-header h3{display:none}
+.person-hub-card.is-list .team-access-status{white-space:nowrap;max-width:100%}
 .person-hub-card.is-list>.ops-note-preview{grid-column:1/-1;grid-row:2;-webkit-line-clamp:1}
 .person-hub-card.is-list>.person-access-panel{grid-column:1/-1;grid-row:2}
-.person-hub-card.is-list>.form-note{grid-column:1/-1;grid-row:3}
+.person-hub-card.is-list>.person-hub-tail>.form-note{grid-column:1/-1;grid-row:3}
+/* En tarjeta, el pie de acciones se ancla al borde inferior aunque el contenido varíe. */
+.person-hub-card:not(.is-list)>.person-hub-tail{display:flex;flex-direction:column;flex:1;min-height:0}
+.person-hub-actions .ops-card-actions{margin:0;padding:0;border:0;display:flex;justify-content:flex-end}
 .person-hub-head-row{grid-column:1/-1;display:none}
-@media(min-width:861px){.person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.person-hub-head-row span:last-child{justify-self:end}}
-@media(max-width:860px){.person-hub-card.is-list{grid-template-columns:1fr}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}}
+@media(min-width:861px){.person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.person-hub-head-row span:first-child{padding-left:26px}.person-hub-head-row span:last-child{justify-self:end}}
+/* Hasta 860px la fila se apila: recupera la densidad de tarjeta (16px, 12px de gap). */
+@media(max-width:860px){.person-hub-card.is-list{grid-template-columns:1fr;gap:12px;padding:16px;min-height:0}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}}
 
 /* Actividad: feed agrupado por día con filas compactas. */
 .activity-feed .panel-heading{margin-bottom:6px}

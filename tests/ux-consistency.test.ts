@@ -161,4 +161,28 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(productivityCss,/\.drawer-list\{--drawer-cols:[\s\S]*?\.drawer-list \.activity-line\{display:grid;grid-template-columns:var\(--drawer-cols\)[\s\S]*?min-height:44px/,'drawer rows use thin shared templates');
 });
 
+test('dense list templates keep a silent horizontal escape hatch',()=>{
+  const team=read('app/operations.css');
+  assert.match(team,/\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none/,'the team list scrolls instead of spilling out of its panel');
+  assert.match(team,/\.ops-grid-list::-webkit-scrollbar\{display:none\}/,'the team list keeps the scroll silent');
+  const clients=read('app/client-directory.css');
+  assert.match(clients,/\.client-hub-list\{overflow-x:auto;scrollbar-width:none\}/,'the client list keeps its scroll escape hatch');
+});
+
+test('the client portal styles every list it renders',()=>{
+  const portal=read('app/cliente/portal.css');
+  for(const cls of ['delivery-list','delivery','delivery-activity'])assert.match(portal,new RegExp(`\\.${cls}\\{`),`the portal styles .${cls}`);
+  assert.match(portal,/\.delivery-activity\{list-style:none/,'the delivery activity drops the native bullets');
+});
+
+test('the rail navigation keeps one geometry for links and the logout button',()=>{
+  const desktop=read('app/desktop-sidebar.css');
+  assert.match(desktop,/\.control-shell \.desktop-sidebar nav>a,\.control-shell \.desktop-sidebar nav>button\{/,'the desktop rail styles the logout button with the link geometry');
+  assert.match(desktop,/nav>button:hover\{/,'the logout button keeps the rail hover state');
+  const mobile=read('app/mobile-navigation.css');
+  assert.match(mobile,/\.mobile-sidebar nav>a,\.mobile-sidebar nav>button\{/,'the mobile drawer styles the logout button with the link geometry');
+  const workspace=read('app/scale-workspace.tsx');
+  assert.match(workspace,/nav-logout/,'the logout button keeps its rail slot');
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

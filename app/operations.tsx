@@ -558,7 +558,7 @@ function PeopleWorkspace({
                   {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                   <div className="ops-person">
                     {p.photo_url ? (
-                      <PhotoViewer photo={p.photo_url} name={p.full_name}/>
+                      <PhotoViewer photo={p.photo_url} name={p.full_name} size={teamView==='list'?32:48}/>
                     ) : (
                       <span className="avatar">{actorInitials(p.full_name)}</span>
                     )}
@@ -571,7 +571,7 @@ function PeopleWorkspace({
                 </header>
                 <dl className="person-hub-facts">
                   <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={p.email||undefined}>{p.email||'Sin correo'}</dd></div>
-                  <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
+                  <div><dt>Acceso</dt><dd title={`${accessRole} · ${accessState}`}>{accessRole} · {accessState}</dd></div>
                   <div><dt>Ingreso</dt><dd className="list-date">{listDateShort(p.started_on)||'Sin fecha'}</dd></div>
                 </dl>
                 <div className="person-hub-chips">
@@ -580,7 +580,7 @@ function PeopleWorkspace({
                   {salaryView&&p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
                   {p.ended_on?<span className="hub-chip warn">Salió el {listDateShort(p.ended_on)}</span>:null}
                 </div>
-                {p.notes&&<p className="ops-note-preview">{p.notes}</p>}
+                {p.notes&&<p className="ops-note-preview" title={p.notes}>{p.notes}</p>}
                 <div className="person-hub-tail"><TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} refresh={load}/>
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
                 <footer className="person-hub-actions">
@@ -596,12 +596,12 @@ function PeopleWorkspace({
             ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
               <header className="person-hub-head">
                 {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${entry.member.full_name||entry.member.email}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
-                <div className="ops-person"><PersonContainer size="lg" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
+                <div className="ops-person"><PersonContainer size={teamView==='list'?'md':'lg'} name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
                 <span className="person-hub-state" data-state={entry.member!.active?'active':'inactive'}>{entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
               </header>
               <dl className="person-hub-facts">
                 <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={entry.member!.email||undefined}>{entry.member!.email}</dd></div>
-                <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
+                <div><dt>Acceso</dt><dd title={`${accessRole} · ${accessState}`}>{accessRole} · {accessState}</dd></div>
               </dl>
               <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>
               <div className="person-hub-tail"><TeamAccess member={entry.member} email={entry.member!.email} role={role} refresh={load}/>
