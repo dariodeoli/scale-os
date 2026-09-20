@@ -258,10 +258,12 @@
         const ps = getComputedStyle(el, which);
         if (!ps || ps.content === 'none' || ps.display === 'none' || ps.visibility === 'hidden') continue;
         if (ps.position !== 'absolute' && ps.position !== 'fixed') continue;
-        const width = parseFloat(ps.width);
-        const height = parseFloat(ps.height);
-        if (!Number.isFinite(width) || !Number.isFinite(height)) continue;
-        if (width < 2 || height < 2) continue;
+        const resolveLength = (value, base) => {
+          if (value === 'auto' || value == null) return null;
+          if (String(value).endsWith('%')) return (base * parseFloat(value)) / 100;
+          const px = parseFloat(value);
+          return Number.isFinite(px) ? px : null;
+        };
         let base = el;
         if (!['relative', 'absolute', 'fixed', 'sticky'].includes(getComputedStyle(el).position)) {
           base = null;
@@ -275,10 +277,24 @@
         }
         if (!base) continue;
         const br = base.getBoundingClientRect();
+        const width = resolveLength(ps.width, br.width);
+        const height = resolveLength(ps.height, br.height);
+        if (width === null || height === null) continue;
+        if (width < 2 || height < 2) continue;
         let left;
-        if (ps.left !== 'auto') left = br.left + parseFloat(ps.left);
-        else if (ps.right !== 'auto') left = br.right - parseFloat(ps.right) - width;
+        const leftOffset = resolveLength(ps.left, br.width);
+        const rightOffset = resolveLength(ps.right, br.width);
+        if (leftOffset !== null) left = br.left + leftOffset;
+        else if (rightOffset !== null) left = br.right - rightOffset - width;
         else left = br.left;
+        let translateX = 0;
+        const transform = ps.transform || '';
+        const matrix = transform.match(/matrix\(([^)]+)\)/);
+        if (matrix) {
+          const parts = matrix[1].split(',').map((value) => parseFloat(value.trim()));
+          if (Number.isFinite(parts[4])) translateX = parts[4];
+        }
+        left += translateX;
         const right = left + width;
         if (right <= rootRect.right + 2 && left >= rootRect.left - 2) continue;
         const scroller = scrollableAncestor(el, root);
