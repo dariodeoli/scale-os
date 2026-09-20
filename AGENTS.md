@@ -23,14 +23,15 @@
 - Matá tus servidores zombies al terminar: `lsof -ti :3000 :<PUERTO_API> | xargs kill -9` (y procesos `next-server` de worktrees de Scale OS).
 - Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build` (el release los corre igual).
 
-## Slots de agente (4 worktrees + integrador)
+## Slots de agente (5 worktrees + integrador)
 - **SOS-COM (Comercial)**: clientes, pipeline/métricas, presupuestos y planes.
 - **SOS-OPS (Operaciones)**: producción (kanban), proyectos, estudio, inventario (reservas, verificación, valor y depreciación).
 - **SOS-FIN (Finanzas)**: finanzas, mora/cobranza, previsión, informes y comisiones.
-- **SOS-PLT (Plataforma)**: auth/registro, equipo y accesos, configuración/preferencias/papelera, superadmin, portal del cliente y shell.
-- Cada slot tiene una **rama persistente con el mismo nombre en los dos repos** y su par de worktrees: `~/.herdr/worktrees/scale-os/<slot>` (frontend) y `~/.herdr/worktrees/scale-core-api/<slot>` (API).
+- **SOS-PLT (Plataforma)**: auth/registro, equipo y accesos, configuración/preferencias/papelera, superadmin, portal del cliente y automatizaciones (sin primitivos de diseño).
+- **SOS-DSN (Diseño)**: dueño transversal del sistema de diseño y la verificación visual de toda la app: primitivos y tokens (`ui-system.css`, `list-format`, cápsulas, diálogos, campos, toasts), responsividad mobile/web, baseline visual y harness de medición. Audita todas las secciones; los fixes de dominio los reporta al slot dueño o los ejecuta con coordinación del integrador.
+- Cada slot tiene una **rama persistente con el mismo nombre en los dos repos** y su par de worktrees: `~/.herdr/worktrees/scale-os/<slot>` (frontend) y `~/.herdr/worktrees/scale-core-api/<slot>` (API). SOS-DSN trabaja solo en el frontend salvo pedido explícito.
 - **La rama no se recrea por pedido**: antes de cada tarea `git fetch origin --prune && git rebase origin/main`; después de una integración la rama se reposiciona sobre `origin/main` y sigue viva.
-- **Transversales con dueño**: los cambios de primitivos compartidos (`Dialog`/`Editor`, `list-format`, `ui-system.css`, `field-rules.ts`, `notify()`, `amount-format.ts`) se piden por issue y los implementa **SOS-PLT** (o el slot que designe el integrador) para no crear variantes paralelas.
+- **Transversales con dueño**: los cambios de primitivos y reglas visuales (`Dialog`/`Editor`, `list-format`, `ui-system.css`, `field-rules.ts`, `notify()`, `amount-format.ts`) los implementa **SOS-DSN**; los transversales de plataforma (`suite-validation.js`, `permissions.js`, migraciones) se coordinan con **SOS-PLT**. Para no crear variantes paralelas.
 
 ## Flujo de pedidos (Dario → integrador → slots)
 - Dario habla solo con el integrador (sesión main) y en lenguaje de producto; no necesita saber en qué repo vive el cambio.
