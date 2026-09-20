@@ -339,9 +339,23 @@
 .person-hub-card.is-list .team-access-header{min-width:0}
 .person-hub-card.is-list .person-hub-tail{display:contents}
 .person-hub-card.is-list .person-hub-actions{grid-column:6;grid-row:1;justify-content:flex-end;margin-top:0;padding-top:0}
+.person-hub-card.is-list :is(.ops-person img,.avatar){width:32px;height:32px;font-size:13px}
+.person-hub-card.is-list .ops-person h3{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* La fila finita no repite divisores internos ni arrastra el pie de la tarjeta. */
+.person-hub-card.is-list :is(.team-access,.person-hub-actions,.person-hub-buttons,.ops-card-actions){border-top:0;border-bottom:0}
+.person-hub-card.is-list :is(.person-hub-buttons,.ops-card-actions){margin-top:0;padding-top:0}
+.person-hub-card.is-list .person-hub-chips{overflow-x:auto;scrollbar-width:none}
+.person-hub-card.is-list .person-hub-chips::-webkit-scrollbar{display:none}
+/* La columna «Acceso» ya está rotulada por el encabezado: no repite el título
+   interno y evita que el chip envuelva y estire la fila. */
+.person-hub-card.is-list .team-access-header h3{display:none}
+.person-hub-card.is-list .team-access-status{white-space:nowrap;max-width:100%}
 .person-hub-card.is-list>.ops-note-preview{grid-column:1/-1;grid-row:2;-webkit-line-clamp:1}
 .person-hub-card.is-list>.person-access-panel{grid-column:1/-1;grid-row:2}
-.person-hub-card.is-list>.form-note{grid-column:1/-1;grid-row:3}
+.person-hub-card.is-list>.person-hub-tail>.form-note{grid-column:1/-1;grid-row:3}
+/* En tarjeta, el pie de acciones se ancla al borde inferior aunque el contenido varíe. */
+.person-hub-card:not(.is-list)>.person-hub-tail{display:flex;flex-direction:column;flex:1;min-height:0}
+.person-hub-actions .ops-card-actions{margin:0;padding:0;border:0;display:flex;justify-content:flex-end}
 .person-hub-head-row{grid-column:1/-1;display:none}
 @media(min-width:861px){.person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.person-hub-head-row span:last-child{justify-self:end}}
 @media(max-width:860px){.person-hub-card.is-list{grid-template-columns:1fr}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}}

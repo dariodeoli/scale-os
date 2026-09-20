@@ -25,6 +25,10 @@ assert(file('../app/control-center.css').includes('@media(max-width:760px){.cont
 const operationsCss=file('../app/operations.css');
 assert(operationsCss.includes('.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto'),'the team list scrolls instead of overflowing its panel');
 assert(operationsCss.includes('.company-choice-row{display:flex'),'the company switcher row wraps instead of overflowing the dialog');
+assert(operationsCss.includes('.person-hub-card.is-list :is(.ops-person img,.avatar){width:32px'),'team list rows keep a thin identity');
+assert(operationsCss.includes('.person-hub-card:not(.is-list)>.person-hub-tail{display:flex'),'team cards anchor their actions to the foot');
+assert(operationsCss.includes('.person-hub-actions .ops-card-actions{margin:0;padding:0;border:0'),'no empty or double-bordered action block in the team cards');
+assert(operationsCss.includes('.person-hub-card.is-list>.person-hub-tail>.form-note'),'the ambiguous-profile note spans the row');
 const portalCss=file('../app/cliente/portal.css');
 assert(portalCss.includes('.delivery-activity{list-style:none'),'the portal activity feed drops the native bullets');
 const companyCss=file('../app/company-settings.css');
