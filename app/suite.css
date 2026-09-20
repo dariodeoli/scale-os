@@ -63,7 +63,7 @@ html[data-theme="dark"] .suite-column{background:var(--surface-sunken,var(--surf
 .stage-manager input{box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:9px 10px;border:1px solid var(--border-interactive,var(--line-strong));border-radius:var(--radius-sm);background:var(--surface-raised,var(--surface));color:var(--text-strong,var(--text));font:inherit}
 .stage-manager button{min-height:44px;white-space:nowrap}
 .stage-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
-.stage-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,110px) auto auto auto;gap:8px;align-items:end;padding:10px;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-sm);background:var(--surface-raised,var(--surface))}
+.stage-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,110px) auto auto auto minmax(160px,300px);gap:8px;align-items:end;padding:10px;border:1px solid var(--border-subtle,var(--line));border-radius:var(--radius-sm);background:var(--surface-raised,var(--surface))}
 .stage-row[data-active=false]{opacity:.75}
 .stage-active{grid-auto-flow:column;align-items:center;justify-content:start;gap:6px}
 .stage-active input{width:18px;min-height:18px;height:18px;padding:0;accent-color:var(--brand-700)}
