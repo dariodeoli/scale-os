@@ -42,6 +42,10 @@
 .contracted-clients-list li>span:nth-child(2),.contracted-clients-list li>span:nth-child(3){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 .contracted-clients-list li>em{justify-self:end}
 .contracted-clients-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Los encabezados de estas listas son leyenda de columnas, no una fila más:
+   el `li` de la lista no los alcanza (misma plantilla, sin caja ni 44 px). */
+.planned-expenses-list li.finance-row-head{border:0;border-radius:0;background:transparent;min-height:0;padding:2px 12px 6px}
+.contracted-clients-list li.contracted-clients-head{border:0;border-radius:0;background:transparent;min-height:0;padding:0 10px 4px;font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .contracted-client-name{display:grid;gap:1px;min-width:0}
 .contracted-client-name b{overflow-wrap:anywhere}
 .contracted-client-name small{color:var(--text-subtle)}
@@ -93,3 +97,21 @@
 @media(max-width:540px){.forecast-person-actions{margin-left:0;width:100%;justify-content:flex-end}.forecast-person-name{flex-basis:100%}}
 
 @media(min-width:1080px){.financial-forecast{grid-template-columns:repeat(2,minmax(0,1fr))}.financial-forecast>.forecast-balance{grid-column:1;grid-row:1}.financial-forecast>section[aria-labelledby="forecast-summary-title"]{grid-column:2;grid-row:1}.financial-forecast>:is(.contracted-clients,.forecast-month-tools,details){grid-column:1/-1}}
+
+/* Personal proyectado: la lista completa (150/104/116/116 px + acciones) nunca entra en una
+   tarjeta angosta. La tarjeta es el contenedor de consulta: cuando no da para la grilla, cada
+   dato se apila con su etiqueta y el encabezado desaparece (nada se desborda ni se superpone). */
+.forecast-personnel .forecast-currency{container-type:inline-size}
+@container (max-width:42rem){
+ .forecast-personnel .forecast-person-head{display:none}
+ .forecast-personnel .forecast-person-list-row{display:flex;flex-wrap:wrap;gap:8px 12px}
+}
+.forecast-person-name{overflow-wrap:anywhere}
+.planned-expenses-kinds{font-size:.72rem;font-weight:600;color:var(--text-subtle,var(--text-muted))}
+
+/* Contratos vs facturación: en mobile la fila se apila (los rótulos Contratado/Facturado
+   nombran el dato) en lugar de forzar 509 px de ancho mínimo en todo el panel. */
+@media(max-width:640px){
+ .contracted-clients-list li{grid-template-columns:minmax(0,1fr)}
+ .contracted-clients-list li>span:nth-child(2),.contracted-clients-list li>span:nth-child(3),.contracted-clients-list li>em{justify-self:start}
+}
