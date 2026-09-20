@@ -194,6 +194,13 @@ function StatusBadge({
   );
 }
 
+/** Clave estable por apertura del diálogo: un reintento del mismo extend no duplica días. */
+function newExtendKey(){
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `extend-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export default function PlatformAdmin() {
   const router = useRouter();
   const [state, setState] = useState<State | null>(null);
@@ -222,6 +229,7 @@ export default function PlatformAdmin() {
   const [subscriptionExpiryValue, setSubscriptionExpiryValue] = useState("");
   const [extendDays, setExtendDays] = useState("30");
   const [extendReason, setExtendReason] = useState("Pago manual recibido");
+  const [extendKey, setExtendKey] = useState("");
   const [myRole, setMyRole] = useState<"admin" | "viewer" | null>(null);
   const [myUserId, setMyUserId] = useState("");
   const [confirming, setConfirming] = useState<
@@ -379,6 +387,7 @@ export default function PlatformAdmin() {
     setError("");
     setSubscriptionError("");
     setSubscriptionAgency(agency);
+    setExtendKey(newExtendKey());
     setSubscription(null);
     setSubscriptionLoaded(false);
     try {
@@ -437,10 +446,13 @@ export default function PlatformAdmin() {
     setBusy(true);
     setError("");
     try {
+      const key = extendKey || newExtendKey();
+      if (!extendKey) setExtendKey(key);
       await platformApi(
         `/api/platform/agencies/${subscriptionAgency.id}/subscription/extend`,
         {
           method: "POST",
+          headers: { "Idempotency-Key": key },
           body: JSON.stringify({
             days: Number(extendDays),
             reason: extendReason,
