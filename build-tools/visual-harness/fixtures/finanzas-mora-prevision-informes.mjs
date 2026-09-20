@@ -126,7 +126,7 @@ const forecastCurrencyCard = ({label, strong = '', dl = '', small = '', list = '
 const forecastFact = (term, value) => `<div><dt>${term}</dt><dd>${value}</dd></div>`;
 
 /* Fila de personal: app/financial-forecast.tsx 71 + app/financial-forecast.css 73-96. */
-const forecastPersonRow = ({name, initials, currency, base, override, total, negative = false, noBase = false}) => `
+const forecastPersonRow = ({name, initials, base, override, total, negative = false, noBase = false}) => `
 <div class="forecast-person-list-row">
  <span class="forecast-person-who"><span class="forecast-person-avatar"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span></span><span class="forecast-person-name">${name}${noBase ? '<small class="forecast-person-no-base">Sin salario fijo</small>' : ''}</span></span>
  <span class="forecast-person-base"><small>Salario base</small><strong>${base}</strong></span>
@@ -233,7 +233,7 @@ const finanzasMovimientos = {
       rowHeight: [44, 52],
     },
     {
-      container: 'section.finance-grid > section.panel:nth-of-type(2) .client-list',
+      container: 'section.finance-grid > section.panel:nth-of-type(2) > .client-list:nth-of-type(2)',
       head: '.finance-row-head',
       row: '.finance-invoice-row',
       label: 'Finanzas · cobros pendientes',
@@ -241,7 +241,7 @@ const finanzasMovimientos = {
       rowHeight: [44, 52],
     },
     {
-      container: 'section.finance-grid > section.panel:nth-of-type(3) .client-list',
+      container: 'section.finance-grid > section.panel:nth-of-type(2) > .client-list:nth-of-type(4)',
       head: '.finance-row-head',
       row: '.finance-payment-row',
       label: 'Finanzas · cobros registrados',
@@ -304,8 +304,6 @@ const finanzasMovimientos = {
      total: 'Gs. 12.345.678',
    })}
   </div>
- </section>
- <section class="panel">
   <div class="section-caption"><div><p class="eyebrow">COBROS REGISTRADOS</p><h3>Quién cobró y dónde quedó</h3></div></div>
   <div class="client-list">
    <div class="finance-row-head" aria-hidden="true"><span>Cobro</span><span>Monto</span></div>

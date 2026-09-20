@@ -28,7 +28,7 @@ const DIALOG_STABILIZE = `<style>
 
 /* app/person-container.tsx lines 14-27 + person-container.css */
 const personContainer = ({name, initials, secondary = '', size = 'md'}) => `
-<span class="person-container person-container-${size}"><span class="person-container-avatar" aria-hidden="true">${initials}</span><span class="person-container-details"><span class="person-container-name">${name}</span>${secondary ? `<span class="person-container-secondary">${secondary}</span>` : ''}</span></span>`;
+<span class="person-container person-container-${size}"><span class="person-container-avatar" aria-hidden="true">${initials}</span><span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span>${secondary ? `<span class="person-container-secondary" title="${secondary}">${secondary}</span>` : ''}</span></span>`;
 
 /* app/actor-identity.tsx lines 16-27 + actor-identity.css */
 const actorIdentity = ({name, initials, time = null, imported = false}) => `
@@ -417,26 +417,54 @@ const botonesFixture = {
 </article>`,
 };
 
-const camposEditorFixture = {
-  id: 'primitivas-campos-editor',
+/* Short dialogs keep every field inside the visible scroll area of
+ * .dialog-body at 360/390, where the sheet is one column. */
+const editorDialog = ({id, surface, heading, note, fields}) => ({
+  id,
   section: 'Sistema de diseño',
-  surface: 'Campos del Editor en diálogo',
+  surface,
   kind: 'plain',
   body: `${DIALOG_STABILIZE}
 <div class="ops-overlay">
- <section class="ops-dialog unified-dialog" data-dialog-size="wide" role="dialog" aria-modal="true" aria-labelledby="pf-title-heading" tabindex="-1">
-  <div class="dialog-heading"><h2 id="pf-title-heading">Editar pieza: Campaña integral de lanzamiento con producción audiovisual y cobertura en redes</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
+ <section class="ops-dialog unified-dialog" data-dialog-size="wide" role="dialog" aria-modal="true" aria-labelledby="${id}-heading" tabindex="-1">
+  <div class="dialog-heading"><h2 id="${id}-heading">${heading}</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
   <div class="dialog-body">
-   <p class="form-note">Un componente por tipo de dato: texto, número, porcentaje entero, moneda (Gs/US$), fecha, hora, teléfono, correo, contraseña, selector y notas. Lo que se guarda es el valor normalizado; el símbolo lo dibuja el campo.</p>
-   <form class="form-stack ops-form-grid" novalidate aria-busy="true">${editorFields}</form>
+   <p class="form-note">${note}</p>
+   <form class="form-stack ops-form-grid" novalidate aria-busy="true">${fields}</form>
   </div>
   <div class="dialog-footer"><div class="dialog-actions"><button class="secondary" type="button" disabled>Cancelar</button><button class="primary ops-wide" type="submit" disabled>Guardando…</button></div></div>
  </section>
 </div>`,
-};
+});
+
+const camposEditorFixture = editorDialog({
+  id: 'primitivas-campos-editor',
+  surface: 'Campos simples, selector y errores inline',
+  heading: 'Editar pieza: Campaña integral de lanzamiento con producción audiovisual y cobertura en redes',
+  note: 'Un componente por tipo de dato. Texto, número, porcentaje entero, fecha y hora (24 h) con límites y formatos compartidos; el error se muestra inline y el selector mantiene el foco.',
+  fields: editorFields,
+});
+
+const camposMonedaFixture = editorDialog({
+  id: 'primitivas-campos-editor-moneda',
+  surface: 'Moneda, teléfono, correo y contraseña',
+  heading: 'Editar persona: María Fernanda González de la Cruz',
+  note: 'Moneda con símbolo fijo (Gs / US$) y valor normalizado; teléfono con código de país; correo con autofill; contraseña con control de visibilidad.',
+  fields: monedaFields,
+});
+
+const camposTextoFixture = editorDialog({
+  id: 'primitivas-campos-editor-texto',
+  surface: 'Notas, consulta externa y secciones',
+  heading: 'Nueva comisión o referido',
+  note: 'Notas de hasta 2000 caracteres, consulta externa con nota de estado, sección plegable y resumen de error del formulario.',
+  fields: textoFields,
+});
 
 export default [
   camposEditorFixture,
+  camposMonedaFixture,
+  camposTextoFixture,
   dialogFixture,
   drawerFixture,
   notificationsFixture,

@@ -317,11 +317,15 @@
         const b = atoms[j];
         if (a.contains(b) || b.contains(a)) continue;
         if (/avatar/i.test(String(a.className)) && /avatar/i.test(String(b.className))) continue;
-        const controlAffordance = (control, overlay) =>
-          ['INPUT', 'SELECT', 'TEXTAREA'].includes(control.tagName) &&
-          overlay.tagName === 'BUTTON' &&
-          overlay.getBoundingClientRect().left >= control.getBoundingClientRect().left &&
-          overlay.getBoundingClientRect().right <= control.getBoundingClientRect().right;
+        const controlAffordance = (control, overlay) => {
+          if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(control.tagName)) return false;
+          const cr = control.getBoundingClientRect();
+          const or = overlay.getBoundingClientRect();
+          const inside = or.left >= cr.left - 1 && or.right <= cr.right + 1 && or.top >= cr.top - 1 && or.bottom <= cr.bottom + 1;
+          if (!inside) return false;
+          const overlayPosition = getComputedStyle(overlay).position;
+          return overlayPosition === 'absolute' || overlayPosition === 'fixed' || overlay.tagName === 'BUTTON';
+        };
         if (controlAffordance(a, b) || controlAffordance(b, a)) continue;
         let area = 0;
         const ra = a.getBoundingClientRect();
