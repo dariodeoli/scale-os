@@ -25,7 +25,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "test:docker-build-secrets": "node tests/docker-build-secrets.test.mjs",
-    "test:release-regression": "node tests/release-version.test.mjs && tsx tests/data-loading-cache.test.ts && tsx tests/mobile-workspace-layout.test.ts && tsx tests/mobile-navigation.test.tsx && tsx tests/landing-routing.test.ts && node tests/registration-flow.test.mjs && node tests/release-regression-audit.test.mjs && node tests/web-presence.test.mjs && tsx tests/control-center.test.ts && tsx tests/plan-comparison.test.tsx && tsx tests/commercial-gates.test.tsx && tsx tests/capability-gates.test.ts && tsx tests/release-hardening.test.ts && npm run test:docker-build-secrets"
+    "test:release-regression": "node tests/release-version.test.mjs && tsx tests/data-loading-cache.test.ts && tsx tests/mobile-workspace-layout.test.ts && tsx tests/mobile-navigation.test.tsx && tsx tests/landing-routing.test.ts && node tests/landing-sales.test.mjs && tsx tests/workspace-footer.test.tsx && tsx tests/founder-pricing.test.ts && node tests/registration-flow.test.mjs && node tests/release-regression-audit.test.mjs && node tests/web-presence.test.mjs && tsx tests/control-center.test.ts && node tests/mora-kpi-mobile.test.mjs && tsx tests/plan-comparison.test.tsx && tsx tests/commercial-gates.test.tsx && tsx tests/capability-gates.test.ts && tsx tests/release-hardening.test.ts && npm run test:docker-build-secrets"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
