@@ -23,6 +23,15 @@
 @media(max-width:560px){.drawer-list .activity-line,.drawer-list .work-list-row{grid-template-columns:1fr}.drawer-list .activity-line>span,.drawer-list .activity-line>small,.drawer-list .work-list-row>span{justify-self:start;white-space:normal}}
 .work-detail-toolbar{display:flex;justify-content:flex-end;min-height:0}.work-detail-toolbar .icon-button{width:34px;min-height:34px;padding:0}.work-detail-description{white-space:pre-wrap;line-height:1.55}.work-detail-toolbar+.record-assignees,.work-detail-toolbar+.work-detail-description{margin-top:0}
 .work-planner{margin-bottom:18px}.work-planner-list{max-height:360px;overflow:auto}
+/* Work planner: fila finita con encabezado y plantilla compartida. */
+.work-planner-list{--work-cols:minmax(0,1fr) auto auto}
+.work-planner-head{display:grid;grid-template-columns:var(--work-cols);gap:0 8px;padding:0 4px 4px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.work-planner-head span:last-child{justify-self:end}
+.work-planner-list .work-list-row{display:grid;grid-template-columns:var(--work-cols);align-items:center;gap:4px 8px;padding:8px 4px}
+.work-list-main{display:flex;align-items:center;gap:12px;min-width:0}
+.work-list-main>.text-button{flex:1;min-width:0;text-align:left;font-size:13px}
+.work-planner-list .work-list-row>time{justify-self:end}
+.work-planner-list .work-list-row>.work-list-state{justify-self:end;white-space:nowrap}
 .work-list-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 4px;border-bottom:1px solid var(--line);background:transparent;text-align:left}
 .work-list-row>input[type=checkbox]{width:20px;height:20px;flex:none}
 .work-list-row>.text-button{flex:1;min-width:0;text-align:left;font-size:13px}
