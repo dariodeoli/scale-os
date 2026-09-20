@@ -674,7 +674,7 @@ function PeopleWorkspace({
                     <h3>{c.beneficiary_name}</h3>
                     <strong className="commission-hub-amount">{money(c.amount, c.currency)}</strong>
                     <dl className="commission-hub-facts">
-                      <div><dt>Factura</dt><dd>{c.invoice_number || "Sin factura vinculada"}</dd></div>
+                      <div><dt>Factura</dt><dd title={c.invoice_number || "Sin factura vinculada"}>{c.invoice_number || "Sin factura vinculada"}</dd></div>
                       <div><dt>Vence</dt><dd>{day(c.due_on)}</dd></div>
                     </dl>
                     <p className="form-note">
