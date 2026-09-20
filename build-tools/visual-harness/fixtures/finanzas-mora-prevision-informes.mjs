@@ -32,10 +32,10 @@ const undoIcon = (size = 14) => icon(size, '<path d="M3 7v6h6"/><path d="M3 13a9
 const chevronIcon = (size = 16) => icon(size, '<path d="m6 9 6 6 6-6"/>');
 
 /* ActorIdentity sin foto ni timestamp, como en las filas financieras (app/actor-identity.tsx 16-27). */
-const actorIdentity = (initials, name) => `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name">${name}</span></span></span>`;
+const actorIdentity = (initials, name) => `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span></span></span>`;
 
 /* SelectCustom cerrado (app/profile-controls.tsx 45-58). */
-const selectCustom = (label, value, labelId) => `<div class="ops-select"><span class="ops-label" id="${labelId}-label">${label}</span><button type="button" class="ops-select-trigger" aria-labelledby="${labelId}-label ${labelId}-value" aria-haspopup="listbox" aria-expanded="false"><span id="${labelId}-value">${value}</span>${chevronIcon(16)}</button></div>`;
+const selectCustom = (label, value, labelId) => `<div class="ops-select"><span class="ops-label" id="${labelId}-label">${label}</span><button type="button" class="ops-select-trigger" title="${value}" aria-labelledby="${labelId}-label ${labelId}-value" aria-haspopup="listbox" aria-expanded="false"><span id="${labelId}-value">${value}</span>${chevronIcon(16)}</button></div>`;
 
 /* RemoveRecord (app/archive-controls.tsx 22-26). */
 const removeRecord = (name) => `<button class="icon-button record-remove" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: ${name}">${trashIcon(16)}</button>`;

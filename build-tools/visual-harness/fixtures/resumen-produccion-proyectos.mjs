@@ -73,7 +73,7 @@ const assignedPeople = (people, inherited = false) => `
     ? '<p class="assigned-people-state" role="status">Responsables no disponibles</p>'
     : people.length === 0
       ? '<p class="assigned-people-state">Sin responsables</p>'
-      : `<ul class="assigned-people-list">${people.map((person) => `<li class="assigned-person"><span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${person.initials}</span><span class="actor-identity-details"><span class="actor-identity-name">${person.name}</span></span></span>${person.primary ? `<span class="assigned-person-primary">${inherited ? 'Principal del proyecto' : 'Principal'}</span>` : ''}</li>`).join('')}</ul>`}
+      : `<ul class="assigned-people-list">${people.map((person) => `<li class="assigned-person"><span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${person.initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${person.name}">${person.name}</span></span></span>${person.primary ? `<span class="assigned-person-primary">${inherited ? 'Principal del proyecto' : 'Principal'}</span>` : ''}</li>`).join('')}</ul>`}
 </section>`;
 
 /* app/archive-controls.tsx líneas 22-37 (RemoveRecord) */
@@ -89,7 +89,7 @@ const recordEditorIcons = (name) =>
 const selectCustom = (label, value, id) => `
 <div class="ops-select">
  <span class="ops-label" id="${id}-label">${label}</span>
- <button type="button" class="ops-select-trigger" aria-labelledby="${id}-label ${id}-value" aria-haspopup="listbox" aria-expanded="false"><span id="${id}-value">${value}</span>${svg(16, ICON.chevronDown)}</button>
+ <button type="button" class="ops-select-trigger" title="${value}" aria-labelledby="${id}-label ${id}-value" aria-haspopup="listbox" aria-expanded="false"><span id="${id}-value">${value}</span>${svg(16, ICON.chevronDown)}</button>
 </div>`;
 
 /* --------------------------------------------------------------------- Resumen */
