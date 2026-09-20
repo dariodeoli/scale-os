@@ -381,7 +381,7 @@ export default function Home() {
   const [demoWelcome,setDemoWelcome]=useState(false);
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
-  const canSeeBilling=['owner','admin','management','finance','sales'].includes(user?.role||'');
+  const canSeeBilling=roleCan(user?.role,'billing.view');
   const canManageClients=roleCan(user?.role,'clients.manage');
   const canManageProjects=roleCan(user?.role,'projects.edit');
   // The header button creates the record of the visible section; each one has its own capability.
@@ -751,13 +751,23 @@ export default function Home() {
     catch(cause){setToast(cause instanceof Error?cause.message:'No se pudo archivar el proyecto.');}
     finally{setArchiveBusy('');}
   }
-  function toggleClientSelected(id:string){setSelectedClients(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
+  function toggleClientSelected(id:string){
+    if(selectedClients.includes(id)){setSelectedClients(current=>current.filter(value=>value!==id));return;}
+    if(selectedClients.length>=BATCH_LIMITS.clients){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.clients} clientes. Quitá alguno para sumar otro.`});return;}
+    setSelectedClients(current=>[...current,id]);
+  }
   function toggleProjectSelected(id:string){
     if(selectedProjects.includes(id)){setSelectedProjects(current=>current.filter(value=>value!==id));return;}
     if(selectedProjects.length>=BATCH_LIMITS.projects){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.projects} proyectos. Quitá alguno para sumar otro.`});return;}
     setSelectedProjects(current=>[...current,id]);
   }
-  function selectVisibleClients(){const ids=liveClients.map(client=>String(client.id));setSelectedClients(current=>{const all=ids.length>0&&ids.every(id=>current.includes(id));return all?current.filter(id=>!ids.includes(id)):[...new Set([...current,...ids])];});}
+  function selectVisibleClients(){
+    const ids=liveClients.map(client=>String(client.id));
+    if(ids.length>0&&ids.every(id=>selectedClients.includes(id))){setSelectedClients(current=>current.filter(id=>!ids.includes(id)));return;}
+    const {selection,capped}=limitSelection([...selectedClients,...ids],BATCH_LIMITS.clients);
+    setSelectedClients(selection);
+    if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.clients} clientes: se seleccionaron los primeros ${BATCH_LIMITS.clients}.`});
+  }
   function selectVisibleProjects(){
     const ids=liveProjects.map(project=>String(project.id));
     if(ids.length>0&&ids.every(id=>selectedProjects.includes(id))){setSelectedProjects(current=>current.filter(id=>!ids.includes(id)));return;}
@@ -1347,7 +1357,7 @@ export default function Home() {
                 <small>Piezas con vencimiento en 7 días</small>
               </article>
             </div>
-            {canManageClients&&liveClients.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedClients.length?<><b>{selectedClients.length}</b> seleccionado{selectedClients.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleClients}>Seleccionar visibles</button>{selectedClients.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedClients([])}>Limpiar</button></>:null}</div></div>:null}
+            {canManageClients&&liveClients.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedClients.length?<><b>{selectedClients.length}</b> de {BATCH_LIMITS.clients} seleccionado{selectedClients.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote · máximo {BATCH_LIMITS.clients}</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleClients}>Seleccionar visibles</button>{selectedClients.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchClients(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedClients([])}>Limpiar</button></>:null}</div></div>:null}
             <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
               {clientView==='list'?clientHeadRow():null}
               {liveClients.map(client=>(

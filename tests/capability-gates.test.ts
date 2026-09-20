@@ -33,6 +33,7 @@ const gates:[string,string,RegExp][]=[
  ['app/scale-workspace.tsx','projects.manage',/roleCan\(user\?\.role,'projects\.manage'\)/],
  ['app/scale-workspace.tsx','projects.edit',/const canManageProjects=roleCan\(user\?\.role,'projects\.edit'\)/],
  ['app/scale-workspace.tsx','budgets.manage',/roleCan\(user\?\.role,'budgets\.manage'\)/],
+ ['app/scale-workspace.tsx','billing.view',/const canSeeBilling=roleCan\(user\?\.role,'billing\.view'\)/],
 ];
 for(const [file,capability,pattern] of gates)assert.match(read(file),pattern,`${file} gates on ${capability}`);
 const archive=read('app/archive-controls.tsx');
@@ -48,6 +49,7 @@ assert.deepEqual(limitSelection(['1','2'],5),{selection:['1','2'],capped:false})
 assert.deepEqual(limitSelection(['1','1','2'],5).selection,['1','2'],'duplicates collapse before the cap');
 assert.equal(BATCH_LIMITS.inventory,50);
 assert.equal(BATCH_LIMITS.projects,50);
+assert.equal(BATCH_LIMITS.clients,50);
 const inventory=read('app/inventory-workspace.tsx'),workspace=read('app/scale-workspace.tsx');
 assert.match(inventory,/limitSelection\(\[\.\.\.selectedItems,\.\.\.ids\],BATCH_LIMITS\.inventory\)/);
 assert.match(inventory,/de \{BATCH_LIMITS\.inventory\} seleccionado/,'the bulk counter shows the limit');
@@ -58,5 +60,8 @@ assert.match(workspace,/limitSelection\(\[\.\.\.selectedProjects,\.\.\.ids\],BAT
 assert.match(read('app/studio-workspace.tsx'),/members\.length>=BATCH_LIMITS\.reservationResponsibles/,'the studio form stops at the API responsible cap');
 assert.match(workspace,/de \{BATCH_LIMITS\.projects\} seleccionado/,'the projects bulk counter shows the limit');
 assert.match(workspace,/selectedProjects\.length>=BATCH_LIMITS\.projects/,'adding past the cap is refused');
+assert.match(workspace,/limitSelection\(\[\.\.\.selectedClients,\.\.\.ids\],BATCH_LIMITS\.clients\)/);
+assert.match(workspace,/de \{BATCH_LIMITS\.clients\} seleccionado/,'the clients bulk counter shows the limit');
+assert.match(workspace,/selectedClients\.length>=BATCH_LIMITS\.clients/,'adding past the clients cap is refused');
 
 console.log('PASS: capability gates mirror the API permissions and batch selections respect the endpoint caps');

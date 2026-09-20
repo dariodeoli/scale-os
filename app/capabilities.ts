@@ -59,6 +59,7 @@ export function roleCan(role: string | null | undefined, capability: Capability)
 
 /** Topes por llamada de los endpoints de lote del dominio. */
 export const BATCH_LIMITS = {
+ clients: 50,
  inventory: 50,
  projects: 50,
  reservationItems: 50,
