@@ -964,7 +964,7 @@ export default function PlatformAdmin() {
                   state.users.map((person) => (
                     <li key={person.id}>
                       <span>
-                        <b>{person.email || "Usuario sin correo"}</b>
+                        <b title={person.email || "Usuario sin correo"}>{person.email || "Usuario sin correo"}</b>
                         <small>
                           {formatPlatformMetric(person.active_agencies)}{" "}
                           agencias activas{selfRow(person) ? " · Vos" : ""}
@@ -1117,7 +1117,7 @@ export default function PlatformAdmin() {
                   state.coupons.map((item) => (
                     <li key={item.id}>
                       <span>
-                        <b>{item.code || "Cupón sin código"}</b>
+                        <b title={item.code || "Cupón sin código"}>{item.code || "Cupón sin código"}</b>
                         <small>
                           {item.discount_type === "percent"
                             ? `${formatPlatformMetric(item.discount_value)}%`

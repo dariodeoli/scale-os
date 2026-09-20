@@ -18,7 +18,7 @@ export default function StatusPage(){
   {icon:<Mail size={17}/>,name:'Correo transaccional',detail:'Supervisado mediante WEEM',tone:'available',chip:'Supervisado'},
   {icon:<Globe size={17}/>,name:'API y base de datos',detail:state==='available'?'Responde a la comprobación en vivo':state==='unavailable'?'Sin respuesta en esta comprobación':'Comprobando ahora…',tone:state,chip:state==='available'?'Operativo':state==='unavailable'?'Sin respuesta':'Comprobando'},
  ];
- return <main className="login-page"><section className="status-shell">
+ return <main className="login-page status-page"><section className="status-shell">
   <header className="status-hero">
    <span className="status-brand"><img src="/brand/icon-192.png" width={52} height={52} alt="Scale OS"/></span>
    <div className="status-hero-copy">

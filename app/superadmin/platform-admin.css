@@ -494,7 +494,10 @@
 .platform-admin-agency-card b,
 .platform-admin-list b {
   display: block;
-  overflow-wrap: anywhere;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--platform-ink);
   font-weight: 750;
 }
@@ -580,13 +583,20 @@
   list-style: none;
 }
 
+/* Una sola plantilla para el encabezado y las filas (antes: grid vs flex). */
+.platform-admin-list {
+  --platform-admin-cols: minmax(0, 1fr) 15rem;
+}
+
 .platform-admin-list li {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: var(--platform-admin-cols);
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
   min-width: 0;
-  padding: 13px 0;
+  min-height: 48px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--platform-line);
 }
 
@@ -617,10 +627,11 @@
 
 .platform-admin-list li.platform-admin-list-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: var(--platform-admin-cols);
+  min-height: 0;
   column-gap: 8px;
   align-items: center;
-  padding-block: 2px 6px;
+  padding: 2px 12px 6px;
   color: var(--platform-muted);
   font-size: 10px;
   font-weight: 800;
@@ -887,7 +898,7 @@
   }
 
   .platform-admin-list li {
-    padding-block: 13px;
+    padding-block: 8px;
   }
 
   .platform-admin-list-actions {
@@ -926,7 +937,7 @@
   }
 
   .platform-admin-list li {
-    flex-direction: column;
+    grid-template-columns: var(--platform-admin-cols);
   }
 
   .platform-admin-list-actions {
@@ -982,7 +993,7 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 .platform-admin-confirm input{display:block;margin-top:6px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text)}
 .platform-admin-status-note{position:fixed;z-index:120;right:24px;bottom:24px;max-width:min(420px,calc(100vw - 48px));padding:13px 16px;border-radius:var(--radius-sm);background:var(--success-soft);color:var(--success);box-shadow:var(--shadow-md);font-size:13px}
 .platform-admin-status-note.error{background:var(--danger-soft);color:var(--danger)}
-@media(max-width:760px){.platform-admin-user-actions{max-width:100%;justify-content:flex-start}.platform-admin-list li{flex-wrap:wrap}}
+@media(max-width:760px){.platform-admin-user-actions{max-width:100%;justify-content:flex-start}}
 
 /* Shared Dialog mounts here without dialog.css on this route: restore overlay */
 .ops-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:color-mix(in srgb,var(--canvas,#1c1b22) 62%,transparent);backdrop-filter:blur(8px);overflow:auto}
@@ -1005,7 +1016,7 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 .platform-admin-stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-card);border-color:color-mix(in srgb,var(--platform-plum-700) 30%,var(--border-subtle,var(--line)))}
 .platform-admin-stat-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--platform-plum-100);color:var(--platform-plum-700)}
 .platform-admin-list{padding:8px 20px 16px}
-.platform-admin-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border-radius:12px;border:1px solid transparent;transition:background 150ms ease-out,border-color 150ms ease-out}
+.platform-admin-list li{display:grid;grid-template-columns:var(--platform-admin-cols);align-items:center;justify-content:space-between;gap:4px 8px;min-height:48px;padding:6px 12px;border-radius:12px;border:0;transition:background 150ms ease-out,border-color 150ms ease-out}
 .platform-admin-list li+li{margin-top:4px}
 .platform-admin-list li:hover{background:var(--platform-surface-muted);border-color:color-mix(in srgb,var(--platform-line) 70%,transparent)}
 .platform-admin-list small{color:var(--platform-muted)}

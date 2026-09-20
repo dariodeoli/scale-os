@@ -164,7 +164,7 @@ test('lists are thin rows and grids are big distributed cards',()=>{
 
 test('dense list templates keep a silent horizontal escape hatch',()=>{
   const team=read('app/operations.css');
-  assert.match(team,/\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none/,'the team list scrolls instead of spilling out of its panel');
+  assert.match(team,/\.control-shell \.ops-grid\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none/,'the team list wins over the card grid and scrolls instead of spilling out of its panel');
   assert.match(team,/\.ops-grid-list::-webkit-scrollbar\{display:none\}/,'the team list keeps the scroll silent');
   const clients=read('app/client-directory.css');
   assert.match(clients,/\.client-hub-list\{overflow-x:auto;scrollbar-width:none\}/,'the client list keeps its scroll escape hatch');

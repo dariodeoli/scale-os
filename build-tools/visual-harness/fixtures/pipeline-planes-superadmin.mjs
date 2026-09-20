@@ -436,7 +436,7 @@ const superadminUsers = `
   <li class="platform-admin-list-head" aria-hidden="true"><span>Usuario</span><span>Acciones</span></li>
   ${platformUsers.map((person) => `
   <li>
-   <span><b>${person.email}</b><small>${whole(person.agencies)} agencias activas${person.self ? ' · Vos' : ''}</small></span>
+   <span><b title="${person.email}">${person.email}</b><small>${whole(person.agencies)} agencias activas${person.self ? ' · Vos' : ''}</small></span>
    <div class="platform-admin-user-actions">${person.badge}${person.actions}</div>
   </li>`).join('')}
  </ul>
@@ -462,7 +462,7 @@ const superadminCoupons = `
   <li class="platform-admin-list-head" aria-hidden="true"><span>Cupón</span><span>Acciones</span></li>
   ${coupons.map((coupon) => `
   <li>
-   <span><b>${coupon.code}</b><small>${coupon.detail}</small></span>
+   <span><b title="${coupon.code}">${coupon.code}</b><small>${coupon.detail}</small></span>
    <span class="platform-admin-list-actions">${badge(coupon.active ? 'Activo' : 'Pausado', coupon.active ? 'success' : 'neutral')}<button type="button" class="text-button ${coupon.active ? 'warn' : 'positive'}">${coupon.active ? svg(I.pauseCircle, 14) + 'Pausar' : svg(I.playCircle, 14) + 'Reactivar'}</button></span>
   </li>`).join('')}
  </ul>

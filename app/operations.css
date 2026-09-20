@@ -319,8 +319,14 @@
 
 /* La lista del equipo conserva su plantilla de 6 columnas y se desplaza en silencio
    cuando el riel deja menos ancho que el mínimo de la plantilla (861–1049 px). */
-.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;--person-cols:minmax(180px,1.1fr) minmax(0,1.2fr) 5.5rem minmax(120px,.9fr) minmax(140px,1fr) 11rem}
-.ops-grid-list::-webkit-scrollbar{display:none}
+/* La lista del equipo: la especificidad le gana a `.control-shell .ops-grid` (la
+   grilla de tarjetas) y conserva su plantilla de 6 columnas con scroll en silencio
+   cuando el riel deja menos ancho que el mínimo (861–1049 px). */
+/* La barra de lote del equipo envuelve sin estirar el documento en anchos chicos. */
+.control-shell .ops-grid.ops-grid-list>.bulk-bar .bulk-actions{flex:1 1 100%;min-width:0;max-width:100%;justify-content:flex-start;flex-wrap:wrap;overflow:visible}
+.control-shell .ops-grid.ops-grid-list>.bulk-bar .bulk-actions>*{flex:0 0 auto}
+.control-shell .ops-grid.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;--person-cols:minmax(8rem,1.1fr) minmax(6.5rem,1.2fr) 4.5rem minmax(5.5rem,.9fr) minmax(6.5rem,1fr) 8.5rem}
+.control-shell .ops-grid.ops-grid-list::-webkit-scrollbar{display:none}
 .person-hub-card.is-list{display:grid;grid-template-columns:var(--person-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px}
 .person-hub-card.is-list .person-hub-head{display:contents}
 .person-hub-card.is-list .select-check{grid-column:1;grid-row:1;align-self:center;justify-self:start;z-index:1}
@@ -329,6 +335,8 @@
 .person-hub-card.is-list .person-hub-facts>div{display:flex;align-items:baseline;gap:6px;min-width:0}
 .person-hub-card.is-list .person-hub-facts dt{display:none}
 .person-hub-card.is-list .person-hub-facts dd{margin:0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Las fechas/códigos no se cortan: el texto del correo cede el ancho primero. */
+.person-hub-card.is-list .person-hub-facts>div:has(.list-date){flex:none}
 .person-hub-card.is-list .person-hub-facts>div+div::before{content:'·';flex:none;color:var(--text-subtle,var(--text-muted))}
 .person-hub-card.is-list .person-hub-state{grid-column:3;grid-row:1;justify-self:start;align-self:center}
 .person-hub-card.is-list .person-hub-chips{grid-column:4;grid-row:1;justify-content:flex-start;flex-wrap:nowrap;overflow:hidden}
@@ -338,6 +346,7 @@
 .person-hub-card.is-list .person-hub-tail{display:contents}
 .person-hub-card.is-list .person-hub-actions{grid-column:6;grid-row:1;justify-content:flex-end;margin-top:0;padding-top:0}
 .person-hub-card.is-list :is(.ops-person img,.avatar){width:32px;height:32px;font-size:13px}
+.person-hub-card.is-list .ops-person>div{min-width:0}
 .person-hub-card.is-list .ops-person h3{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* La fila finita no repite divisores internos ni arrastra el pie de la tarjeta. */
 .person-hub-card.is-list :is(.team-access,.person-hub-actions,.person-hub-buttons,.ops-card-actions){border-top:0;border-bottom:0}
@@ -357,7 +366,13 @@
 .person-hub-head-row{grid-column:1/-1;display:none}
 @media(min-width:861px){.person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.person-hub-head-row span:first-child{padding-left:26px}.person-hub-head-row span:last-child{justify-self:end}}
 /* Hasta 860px la fila se apila: recupera la densidad de tarjeta (16px, 12px de gap). */
-@media(max-width:860px){.person-hub-card.is-list{grid-template-columns:1fr;gap:12px;padding:16px;min-height:0}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}}
+@media(max-width:860px){.person-hub-card.is-list{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px;min-height:0}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}
+ .person-hub-card.is-list .person-hub-facts dd{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+ .person-hub-card.is-list .person-hub-facts>div{grid-template-columns:minmax(0,1fr)}
+ .person-hub-card.is-list :is(.person-hub-chips,.team-access,.person-hub-actions,.person-hub-buttons){flex-wrap:wrap;overflow:visible}
+ /* Apilada, cada hecho reserva el ancho de su etiqueta: el `dt` no se recorta. */
+ .person-hub-card.is-list .person-hub-facts>div{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px;align-items:baseline}
+ .person-hub-card.is-list .person-hub-facts dt{white-space:nowrap}}
 
 /* Actividad: feed agrupado por día con filas compactas. */
 .activity-feed .panel-heading{margin-bottom:6px}
@@ -365,7 +380,16 @@
 .activity-day-title{display:flex;align-items:center;gap:8px;margin:0 0 6px;padding:0 2px;font-size:12px;font-weight:750;letter-spacing:.02em;text-transform:capitalize;color:var(--text-subtle,var(--text-muted))}
 .activity-day-title span{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--surface-sunken,var(--surface-subtle));color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
 .activity-day-rows{display:grid;gap:6px}
-.activity-feed-row{display:grid;grid-template-columns:minmax(180px,max-content) minmax(0,1fr) auto;align-items:baseline;gap:4px 8px;padding:9px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));font-size:12px}
+/* Fila finita: la identidad no crece con el nombre y el hecho se recorta con `title`. */
+.activity-feed-row{display:grid;grid-template-columns:minmax(0,14rem) minmax(0,1fr) auto;align-items:center;gap:4px 8px;padding:6px 12px;min-height:48px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));font-size:12px}
+.activity-feed-row :is(.actor-identity,.actor-identity-details){min-width:0}
+/* En una fila densa la identidad va en una línea: sin caja alta ni fecha debajo. */
+.activity-feed-row .actor-identity{padding:0 6px;gap:6px}
+.activity-feed-row .actor-identity-details{flex-direction:row;align-items:baseline;gap:8px}
+.activity-feed-row .actor-identity-avatar{flex:0 0 24px;width:24px;height:24px;font-size:10px}
+/* La fecha del autor nunca se corta: cede el nombre. */
+.activity-feed-row .actor-identity-name,.activity-feed-row p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.activity-feed-row .actor-identity-time{flex:none;white-space:nowrap}
 .activity-feed-row:hover{background:color-mix(in srgb,var(--violet-soft) 30%,transparent)}
 .activity-feed-row p{margin:0;min-width:0}
 .activity-feed-row small{color:var(--text-subtle,var(--text-muted));font-size:10.5px;white-space:nowrap}

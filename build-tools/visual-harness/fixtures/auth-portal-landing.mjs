@@ -187,7 +187,7 @@ export default [
     surface: 'Comunicación de respaldo',
     kind: 'plain',
     body: `
-<main class="login-page"><section class="status-shell">
+<main class="login-page status-page"><section class="status-shell">
  <header class="status-hero">
   <span class="status-brand"><img src="/brand/icon-192.png" width="52" height="52" alt="Scale OS"/></span>
   <div class="status-hero-copy"><p class="status-eyebrow">Comunicación de respaldo</p><h1>Estado de Scale OS</h1><p class="status-chip is-available" aria-live="polite">${checkCircle14}API y base de datos disponibles</p></div>

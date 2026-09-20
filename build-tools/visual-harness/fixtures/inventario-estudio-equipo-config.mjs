@@ -90,7 +90,7 @@ const actorIdentity = ({name, photo = '', timestamp = '', timeText = '', verifie
   const label = name || (imported ? 'Autor importado' : 'Sistema');
   const initials = label.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((word) => Array.from(word)[0]).join('').toLocaleUpperCase('es');
   const avatar = verified && photo ? `<img src="${photo}" alt="" referrerpolicy="no-referrer">` : initials;
-  return `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${label}">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}">${timeText || listDateFull(timestamp)}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
+  return `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${label}">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}" title="${timeText || listDateFull(timestamp)}">${timeText || listDateFull(timestamp)}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
 };
 const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" title="${value}" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
 const searchField = ({label, placeholder}) => `<label class="search-field"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
@@ -618,10 +618,9 @@ const inviteLinkState = (link) => link.revoked ? 'Revocado' : link.used ? 'Utili
 const inviteLinkRow = (link) => `
 <article class="payment-row invite-link-row">
  <div class="invite-link-person">
-  <strong>${link.role} · ${link.mode}</strong>
-  <p>${inviteLinkState(link)} · ${link.meta}</p>
-  <p>Creado por ${actorIdentity({name: link.actor, photo: '', verified: false})}</p>
-  ${link.joined.length ? `<div class="invite-link-joined"><small>Usuarios que se unieron</small>${link.joined.map((join) => `<p>${actorIdentity({name: join.name, photo: '', timestamp: join.timestamp})}</p>`).join('')}</div>` : '<small>Ningún usuario se unió todavía.</small>'}
+  <strong title="${link.role} · ${link.mode}">${link.role} · ${link.mode}</strong>
+  <p title="${inviteLinkState(link)} · ${link.meta} · Creado por ${link.actor} · ${link.joined.length ? `Se unieron ${link.joined.map((join) => join.name).join(', ')}` : 'Nadie se unió todavía'}">${inviteLinkState(link)} · ${link.meta}</p>
+  ${actorIdentity({name: link.actor, photo: '', verified: false})}${link.joined.length ? `<span class="invite-link-joined-chip" title="Se unieron ${link.joined.map((join) => join.name).join(', ')}">${link.joined.length} unidos</span>` : ''}
  </div>
  <div class="actions invite-link-actions"><button class="secondary">${svg(ICON.copy, 16)}Copiar enlace</button>${!link.joined.length && (link.revoked || link.used) ? `<button class="text-button invite-link-delete">${svg(ICON.trash, 16)}Eliminar</button>` : !link.joined.length ? `<button class="text-button">${svg(ICON.x, 16)}Revocar</button>` : ''}</div>
 </article>`;
@@ -663,13 +662,13 @@ const permissionsTable = `
 /* ---------------------------------------------------- historial / actividad */
 const historyLine = ({actor, photo = '', timestamp, title, meta}) => `<article class="activity-line">
  <div class="history-author">${actorIdentity({name: actor, photo, timestamp})}</div>
- <p>${title}</p>
+ <p title="${title}">${title}</p>
  <small>${meta}</small>
 </article>`;
 
 const activityDay = ({label, count, rows}) => `<section class="activity-day">
  <h3 class="activity-day-title">${label} <span>${count}</span></h3>
- <div class="activity-day-rows">${rows.map((row) => `<div class="activity-feed-row">${actorIdentity({name: row.actor, photo: row.photo || '', timestamp: row.timestamp})}<p><b>${row.table}</b> · ${row.operation}</p><small>Registro ${row.record}</small></div>`).join('')}</div>
+ <div class="activity-day-rows">${rows.map((row) => `<div class="activity-feed-row">${actorIdentity({name: row.actor, photo: row.photo || '', timestamp: row.timestamp})}<p title="${row.table} · ${row.operation}"><b>${row.table}</b> · ${row.operation}</p><small>Registro ${row.record}</small></div>`).join('')}</div>
 </section>`;
 
 const usageCards = [
@@ -696,7 +695,7 @@ const settingsField = ({label: fieldLabel, value, optional = false, help = '', w
 </div>`;
 };
 
-const integrationRow = (name, description, status) => `<article role="listitem"><div><strong>${name}</strong><p>${description}</p></div><span class="settings-status">${status}</span></article>`;
+const integrationRow = (name, description, status) => `<article role="listitem"><div><strong>${name}</strong><p title="${description}">${description}</p></div><span class="settings-status">${status}</span></article>`;
 const companySettingsRows = [
   {name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima', role: 'Dueño', current: true, preferred: true},
   {name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', role: 'Administración', current: false, preferred: false},
@@ -719,7 +718,7 @@ const trashRecords = [
 const trashRow = (record) => `<li class="trash-row">
  <label class="select-check" title="Seleccionar registro"><input type="checkbox" aria-label="Seleccionar ${record.name}"></label>
  <span class="trash-kind">${record.kind}</span>
- <div class="trash-info"><b title="${record.name}">${record.name}</b><small>Movido a Papelera por ${actorIdentity({name: record.actor, photo: record.photo, timestamp: record.timestamp})}</small></div>
+ <div class="trash-info"><b title="${record.name}">${record.name}</b><small title="Movido a Papelera por ${record.actor} · ${record.timeText}">Movido a Papelera por ${actorIdentity({name: record.actor, photo: record.photo, timestamp: record.timestamp, timeText: record.timeText})}</small></div>
  <button class="secondary trash-restore">Restaurar</button>
 </li>`;
 
