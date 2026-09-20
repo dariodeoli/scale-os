@@ -31,6 +31,7 @@ let renderer:ReactTestRenderer;const rendered=()=>JSON.stringify(renderer.toJSON
 async function run(){
  for(const role of ['management','sales','production','editor','viewer','collaborator']){await act(async()=>{renderer=create(<FinancialForecast role={role} organizationId="one"/>);});assert.equal(renderer.toJSON(),null);act(()=>renderer.unmount());}assert.equal(requests.length,0,'restricted roles do not request financial data');
  await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});assert.equal(requests[0].url,'/core-api/api/agency/forecast?month=2026-09');await respond(requests[0],fixture);assert.match(rendered(),/Recurrente contratado/);assert.match(rendered(),/1\.000/,'contracted total comes from top-level aggregate');assert.match(rendered(),/Cobrado/);assert.match(rendered(),/80/,'numeric canonical transport is accepted');assert.match(rendered(),/Gastos planificados/);assert.equal(renderer.root.findAllByProps({className:'forecast-currency'}).length,5,'segregated aggregates remain per currency');
+ assert.equal(renderer.root.findAllByProps({className:'forecast-person-actions'}).length,2,'salary.view roles keep the per-person salary actions');
  const selects=renderer.root.findAllByType(SelectCustom);assert.equal(selects.find(select=>select.props.value==='variable')!==undefined,true,'kind select defaults to variable');act(()=>selects[0].props.onChange('recurring'));act(()=>selects[1].props.onChange('Herramientas'));act(()=>selects[2].props.onChange('fixed'));act(()=>renderer.root.findAllByProps({placeholder:'Sin separadores'})[0].props.onChange({target:{value:'3500'}}));act(()=>selects[3].props.onChange('USD'));act(()=>renderer.root.findAllByType('input').find(input=>input.props.maxLength===280)!.props.onChange({target:{value:'Licencia'}}));
  act(()=>{void renderer.root.findAllByType('form')[0].props.onSubmit({preventDefault(){}});});const post=requests.at(-1)!;assert.equal(post.url,'/core-api/api/agency/planned-expenses');assert.equal(post.init.method,'POST');assert.deepEqual(JSON.parse(String(post.init.body)),{cadence:'recurring',effectiveMonth:'2026-09',category:'Herramientas',amount:'3500',currency:'USD',kind:'fixed',note:'Licencia'},'planned expense POST carries the canonical payload with kind');await respond(post,{expense:{id:'1'}});assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09','save refreshes canonical forecast aggregates');await respond(requests.at(-1)!,fixture);assert.equal(JSON.stringify(renderer.root.findByProps({className:'planned-expenses-kinds'}).children),JSON.stringify(['2',' fijos · ','1',' variables']),'planned expense list shows the fixed versus variable split');
  assert.match(rendered(),/Gastos reales del mes/);
@@ -61,6 +62,26 @@ async function run(){
  act(()=>renderer.root.findAllByType('button').filter(button=>button.props['aria-pressed']===true||button.props['aria-pressed']===false)[0].props.onClick());
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09','back to one month drops the months parameter');await respond(requests.at(-1)!,contractedFixture);
  assert.match(rendered(),/Recurrente contratado/);act(()=>renderer.unmount());
- console.log('PASS financial forecast: role gating, canonical numeric/string response transport, top-level segregated aggregates, per-currency rendering, exact planned-expense POST, refresh, horizon selection with multi-month projection tables, and contracted versus invoiced per client');
+ // salary.view: el API manda null en los importes por persona. La pantalla debe
+ // aceptar el payload, mostrar "Sin dato" y nunca fabricar un sueldo en cero,
+ // conservando el agregado de planificación por moneda.
+ const maskedFixture:ForecastData={...contractedFixture,personnel:{month:'2026-09',included_headcount:'2',records:[{currency:'PYG',included_headcount:1,base_count:1,base_amount:'1000',override_count:0,override_amount:'0',expected_end_of_month_expense:'1000',members:[{collaborator_id:'9',user_id:null,name:'Salario oculto',photo_url:null,compensation_type:'fixed',currency:'PYG',base_amount:null,override_amount:null}]},{currency:'USD',included_headcount:'1',base_count:0,base_amount:'0',override_count:1,override_amount:'50',expected_end_of_month_expense:'50',members:[{collaborator_id:'10',user_id:null,name:'Ajuste oculto',photo_url:null,compensation_type:'variable',currency:'USD',base_amount:null,override_amount:null}]}]}};
+ await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});
+ assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09');await respond(requests.at(-1)!,maskedFixture);
+ assert.doesNotMatch(rendered(),/datos inválidos/,'masked per-person salaries are a valid payload');
+ assert.match(rendered(),/Salario oculto/,'the person stays visible without their salary');
+ assert.match(rendered(),/Ajuste oculto/,'the adjustment row stays visible without the amount');
+ assert.doesNotMatch(rendered(),/Sin salario fijo/,'a masked salary is not a zero salary');
+ assert.doesNotMatch(rendered(),/Ajuste del mes<\/small><strong>/,'a masked adjustment never renders an amount');
+ const maskedBases=renderer.root.findAllByProps({className:'forecast-person-base'});
+ assert.equal(maskedBases.length,2,'one base-salary cell per masked member');
+ assert.equal(maskedBases.every(cell=>cell.findByType('strong').children[0]==='Sin dato'),true,'a masked base salary shows Sin dato');
+ const maskedTotals=renderer.root.findAllByProps({className:'forecast-person-total'});
+ assert.equal(maskedTotals.length,2,'one month-close cell per masked member');
+ assert.equal(maskedTotals.every(cell=>cell.findByType('strong').children[0]==='Sin dato'),true,'a masked month close shows Sin dato, never a fabricated zero');
+ assert.equal(renderer.root.findAllByProps({className:'forecast-person-actions'}).length,0,'a masked salary offers no blind salary edit');
+ assert.match(rendered(),/1\.000/,'the per-currency planning aggregate stays without salary.view');
+ act(()=>renderer.unmount());
+ console.log('PASS financial forecast: role gating, canonical numeric/string response transport, top-level segregated aggregates, per-currency rendering, exact planned-expense POST, refresh, horizon selection with multi-month projection tables, contracted versus invoiced per client, and masked per-person salaries (salary.view)');
 }
 void run();
