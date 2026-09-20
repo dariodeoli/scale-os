@@ -72,19 +72,19 @@ test('management reaches the team without individual salary amounts',()=>{
  assert.match(operations,/salaryView&&!p\.compensation_amount/);
  assert.match(operations,/\{salaryView&&<span className="hub-chip">\{p\.payment_day/);
  assert.match(operations,/\{salaryView&&p\.invoices_company\?/);
- assert.match(archive,/members:\['owner','admin','management'\]/);
+ assert.match(archive,/members:'members\.manage'/);
  assert.match(access,/const manage=\['owner','admin','management'\]\.includes\(role\)/);
 });
 
 test('viewer never reaches a mutating control in the visible sections',()=>{
  assert.match(suite,/const canMove=\['owner','admin','management','finance','sales'\]\.includes\(role\);const drag=useDraggable\(\{id:String\(row\.id\),disabled:!canMove\}\)/);
  assert.match(suite,/\{canMove&&<button className="icon-button" title=\{`Mover \$\{str\(row,'name'\)\}`\} aria-label=\{`Mover \$\{str\(row,'name'\)\}`\}/);
- assert.match(production,/const canMove=\['owner','admin','management','production','editor'\]\.includes\(role\)/);
+ assert.match(production,/const canMove=roleCan\(role,'work-orders\.edit'\)/,'moving a piece follows the API capability');
  assert.match(composer,/const drag=useDraggable\(\{id,disabled:!canReorder\}\)/);
  assert.match(composer,/\{canReorder&&<button type="button" className="icon-button" title="Reordenar ítem" aria-label="Reordenar ítem"/);
  assert.match(suite,/<QuoteComposer mode="plan" record=\{row\} canReorder=\{canEdit\} done=/);
  assert.match(operations,/\{role !== "viewer" && \(/);
- assert.match(archive,/members:\['owner','admin','management'\]/);
+ assert.match(archive,/members:'members\.manage'/);
 });
 
 test('the WhatsApp action renders only with a number and never reorders the row',()=>{

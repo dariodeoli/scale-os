@@ -8,11 +8,13 @@ import {ActorIdentity} from './actor-identity';
 import './productivity.css';
 import './work-history.css';
 import {History,Pencil,Plus} from 'lucide-react';
+import {roleCan} from './capabilities';
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
 export function WorkHistory({role}:{role:string}){
  const [rows,setRows]=useState<Row[]>([]),[people,setPeople]=useState<Row[]>([]),[who,setWho]=useState(''),[source,setSource]=useState(false),[error,setError]=useState('');
- const managers=['owner','admin','management','production'].includes(role);
+ // Seeing the whole team's history is the same capability the API asks for (work-orders.manage).
+ const managers=roleCan(role,'work-orders.manage');
  const [limit,setLimit]=useState('10'),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[loading,setLoading]=useState(true);
  const [identityVersion,setIdentityVersion]=useState(0);
  useEffect(()=>{const reload=()=>setIdentityVersion(v=>v+1);window.addEventListener('scale:identity-changed',reload);return()=>window.removeEventListener('scale:identity-changed',reload);},[]);
@@ -28,7 +30,7 @@ export function WorkHistory({role}:{role:string}){
 }
 export function InternalTasks({role}:{role:string}){
  const [rows,setRows]=useState<Row[]>([]),[edit,setEdit]=useState<Row|'new'|null>(null),[error,setError]=useState('');
- const canEdit=['owner','admin','management','production','editor'].includes(role);
+ const canEdit=roleCan(role,'work-orders.edit');
  async function load(){setRows((await api<{records:Row[]}>('/api/agency/productivity/internal-tasks')).records);}
  useEffect(()=>{void load().catch(e=>setError(e.message));},[]);
  const record=edit&&edit!=='new'?edit:null;

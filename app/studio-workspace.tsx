@@ -7,6 +7,7 @@ import './studio-workspace.css';
 import {Pencil,X} from 'lucide-react';
 import {SelectCustom} from './profile-controls';
 import {listDateFull} from './list-format';
+import {BATCH_LIMITS} from './capabilities';
 
 type Person={id:string;name:string;photo_url?:string|null};
 type Project={id:string;name:string;client_name?:string};
@@ -48,7 +49,7 @@ function StudioReservationForm({context,spaces,reservations,record,done}:{contex
  <label><SelectCustom label="Tipo de producción" choices={types} value={productionType} onChange={value=>setProductionType(value as ProductionType)}/></label>
  <label className="studio-wide"><SelectCustom label="Proyecto vinculado · Opcional" choices={[{value:'',label:'Sin proyecto vinculado'},...context.projects.map(item=>({value:String(item.id),label:item.client_name?item.client_name+' · '+item.name:item.name}))]} value={project} onChange={setProject}/></label>
  <label>Desde · Asunción<input type="datetime-local" value={startsAt} onChange={event=>setStartsAt(event.target.value)} required/></label><label>Hasta · Asunción<input type="datetime-local" value={endsAt} min={startsAt||undefined} onChange={event=>setEndsAt(event.target.value)} required/></label>
- <fieldset className="studio-wide"><legend>Responsables · {members.length}</legend><div className="studio-member-options">{context.members.map(person=><label key={person.id} className="studio-member-option"><input type="checkbox" checked={members.includes(String(person.id))} onChange={()=>toggle(String(person.id))}/><ActorIdentity name={person.name} photoUrl={person.photo_url} verified/></label>)}</div></fieldset>
+ <fieldset className="studio-wide"><legend>Responsables · {members.length} de {BATCH_LIMITS.reservationResponsibles}</legend><div className="studio-member-options">{context.members.map(person=><label key={person.id} className="studio-member-option"><input type="checkbox" checked={members.includes(String(person.id))} disabled={members.length>=BATCH_LIMITS.reservationResponsibles&&!members.includes(String(person.id))} onChange={()=>toggle(String(person.id))}/><ActorIdentity name={person.name} photoUrl={person.photo_url} verified/></label>)}</div>{members.length>=BATCH_LIMITS.reservationResponsibles?<p className="form-note">El lote admite hasta {BATCH_LIMITS.reservationResponsibles} responsables: quitá uno para sumar otro.</p>:null}</fieldset>
  <label className="studio-wide">Notas · Opcional<textarea value={notes} onChange={event=>setNotes(event.target.value)} maxLength={2000}/></label><p className="form-note studio-wide">El sistema impide reservas que se superpongan en el mismo espacio. Reservar un estudio no bloquea inventario.</p>{error&&<p className="error studio-wide" role="alert">{error}</p>}<SaveActions pending={busy}><button className="primary" disabled={busy}>{busy?'Guardando…':'Guardar reserva'}</button></SaveActions>
  </form>;
 }

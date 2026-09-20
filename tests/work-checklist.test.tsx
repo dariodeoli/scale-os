@@ -105,6 +105,8 @@ for(const role of ['viewer','finance','sales']){
  }
  assert.equal(writeCount(),before);
 }
+props={...props,role:'collaborator'};await act(async()=>renderer.update(<WorkChecklist {...props}/>));
+assert(renderer.root.findAllByType('button').length>0,'collaborator edits the checklist with checklists.edit');
 // 100 item cap, forms, Enter prevention and single-flight saves.
 saved={...empty(),items:Array.from({length:100},(_,i)=>({id:String(i+1),text:`Item ${i+1}`,completed:false})),total:100};
 props={...props,role:'editor'};await act(async()=>renderer.update(<WorkChecklist {...props}/>));

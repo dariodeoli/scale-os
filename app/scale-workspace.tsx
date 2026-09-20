@@ -13,6 +13,7 @@ import {ThemeToggle} from './theme-toggle';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar} from './desktop-sidebar';
 import {clientState} from './client-status';
+import {roleCan,BATCH_LIMITS,limitSelection} from './capabilities';
 import './client-directory.css';
 import dynamic from 'next/dynamic';
 import {ClientIdentity} from './client-identity';
@@ -380,16 +381,19 @@ export default function Home() {
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
   const canSeeBilling=['owner','admin','management','finance','sales'].includes(user?.role||'');
-  const canManageClients=['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'');
-  const canManageProjects=['owner','admin','management','production','collaborator'].includes(user?.role||'');
+  const canManageClients=roleCan(user?.role,'clients.manage');
+  const canManageProjects=roleCan(user?.role,'projects.edit');
+  // The header button creates the record of the visible section; each one has its own capability.
+  const canCreateRecord=(section:string)=>section==='Proyectos'?roleCan(user?.role,'projects.manage'):section==='Presupuestos'?roleCan(user?.role,'budgets.manage'):roleCan(user?.role,'work-orders.edit');
   useEffect(()=>{userRef.current=user;},[user]);
   // Invalidate before child loading effects can read a previous tenant/role cache.
   useLayoutEffect(()=>{setDataScope(operationalAccess&&user?`${user.id}:${user.organization_id}:${user.role}`:'');},[operationalAccess,user?.id,user?.organization_id,user?.role]);
   function prefetchSection(label:string){
     if(!operationalAccess||!user||!visibleModule(label,user.role))return;
-    // Match InventoryWorkspace's read roles; menu visibility alone includes Sales.
-    if(label==='Inventario'&&!['owner','admin','management','production','finance','editor','viewer','collaborator'].includes(user.role))return;
-    if(label==='Estudio'&&!['owner','admin','management','production','finance','editor','viewer','collaborator'].includes(user.role))return;
+    // Only warm the sections whose module the role can open: the same capability
+    // InventoryWorkspace and StudioWorkspace check, so menu visibility alone (which
+    // includes Sales) never triggers a denied read.
+    if(['Inventario','Estudio'].includes(label)&&!roleCan(user.role,'inventory.view'))return;
     void prefetchSectionData(label,`${user.id}:${user.organization_id}:${user.role}`);
   }
   useStartupPreference({scope:preferenceScope,ready:preferencesReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
@@ -747,9 +751,19 @@ export default function Home() {
     finally{setArchiveBusy('');}
   }
   function toggleClientSelected(id:string){setSelectedClients(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
-  function toggleProjectSelected(id:string){setSelectedProjects(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
+  function toggleProjectSelected(id:string){
+    if(selectedProjects.includes(id)){setSelectedProjects(current=>current.filter(value=>value!==id));return;}
+    if(selectedProjects.length>=BATCH_LIMITS.projects){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.projects} proyectos. Quitá alguno para sumar otro.`});return;}
+    setSelectedProjects(current=>[...current,id]);
+  }
   function selectVisibleClients(){const ids=liveClients.map(client=>String(client.id));setSelectedClients(current=>{const all=ids.length>0&&ids.every(id=>current.includes(id));return all?current.filter(id=>!ids.includes(id)):[...new Set([...current,...ids])];});}
-  function selectVisibleProjects(){const ids=liveProjects.map(project=>String(project.id));setSelectedProjects(current=>{const all=ids.length>0&&ids.every(id=>current.includes(id));return all?current.filter(id=>!ids.includes(id)):[...new Set([...current,...ids])];});}
+  function selectVisibleProjects(){
+    const ids=liveProjects.map(project=>String(project.id));
+    if(ids.length>0&&ids.every(id=>selectedProjects.includes(id))){setSelectedProjects(current=>current.filter(id=>!ids.includes(id)));return;}
+    const {selection,capped}=limitSelection([...selectedProjects,...ids],BATCH_LIMITS.projects);
+    setSelectedProjects(selection);
+    if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.projects} proyectos: se seleccionaron los primeros ${BATCH_LIMITS.projects}.`});
+  }
   async function batchClients(archived:boolean){
     if(bulkBusy||!selectedClients.length)return;
     setBulkBusy(true);
@@ -1044,7 +1058,7 @@ export default function Home() {
             <div className="header-actions">
               {active==='Proyectos'&&<div className="workspace-view-controls"><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>}
               <WorkspaceGuide {...guideProps}/>
-              {((['Proyectos','Resumen','Producción'].includes(active)&&['owner','admin','management','production'].includes(user?.role||''))||active==='Presupuestos') && (
+              {(['Proyectos','Resumen','Producción','Presupuestos'].includes(active)&&canCreateRecord(active)) && (
                 <button
                   className="primary"
                   onClick={() =>
@@ -1396,7 +1410,7 @@ export default function Home() {
                 <small>Órdenes de los proyectos visibles</small>
               </article>
             </div>
-            {canManageProjects&&liveProjects.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedProjects.length?<><b>{selectedProjects.length}</b> seleccionado{selectedProjects.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleProjects}>Seleccionar visibles</button>{selectedProjects.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedProjects([])}>Limpiar</button></>:null}</div></div>:null}
+            {canManageProjects&&liveProjects.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedProjects.length?<><b>{selectedProjects.length}</b> de {BATCH_LIMITS.projects} seleccionado{selectedProjects.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná varios para operar en lote · máximo {BATCH_LIMITS.projects}</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleProjects}>Seleccionar visibles</button>{selectedProjects.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedProjects([])}>Limpiar</button></>:null}</div></div>:null}
             {projectsState === 'error' && projects.length ? <p className="error" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={()=>void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los proyectos.'))}>Reintentar</button></p> : null}
             <div className={projectView==='grid'?'project-grid':'project-list'}>
               {projectView==='list'?<div className="project-entry-head" aria-hidden="true"><span>Proyecto</span><span>Estado</span><span>Fechas y piezas</span><span>Responsables</span><span>Acciones</span></div>:null}

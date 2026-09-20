@@ -6,6 +6,7 @@ import {AssigneePicker,assigneeSelection,type AssigneeMember,type AssigneeSelect
 import {clearDataCache} from './data-cache';
 import {notifyMutation} from './feedback';
 import {Pencil,RefreshCw,X} from 'lucide-react';
+import {roleCan} from './capabilities';
 
 export type RecordAssigneesProps={
  kind:'projects'|'work-orders';
@@ -16,8 +17,6 @@ export type RecordAssigneesProps={
  updatedAt?:string;
  children?:(save:(details:Record<string,string>)=>Promise<void>)=>ReactNode;
 };
-const readers=['owner','admin','management','finance','sales','production','editor','viewer'];
-const managers=['owner','admin','management','production','collaborator'];
 type Person=Omit<AssigneeMember,'active'>&{active?:boolean};
 class RequestError extends Error{constructor(message:string,readonly status:number){super(message);}}
 async function request<T>(path:string,init:RequestInit={}):Promise<T>{
@@ -32,14 +31,15 @@ function same(a:AssigneeSelection,b:AssigneeSelection){
  return a.assigned_user_id===b.assigned_user_id&&a.assigned_user_ids.length===b.assigned_user_ids.length&&a.assigned_user_ids.every(id=>b.assigned_user_ids.includes(id));
 }
 export function RecordAssignees(props:RecordAssigneesProps){
- if(!readers.includes(props.role))return null;
+ if(!roleCan(props.role,'inventory.view'))return null;
  if(!/^\d+$/.test(String(props.id))||!['projects','work-orders'].includes(props.kind))return <p role="alert">Registro inválido.</p>;
  return <RecordAssigneesForm key={`${props.organizationId??''}:${props.kind}:${props.id}:${props.role}`} {...props}/>;
 }
 function RecordAssigneesForm({kind,id,role,refresh,updatedAt,children}:RecordAssigneesProps){
  const panelId=useId();
  const path=`/api/agency/${kind}/${id}/assignees`;
- const editable=managers.includes(role)||kind==='work-orders'&&role==='editor';
+ // The API gates the assignee write with the record's edit capability.
+ const editable=roleCan(role,kind==='work-orders'?'work-orders.edit':'projects.edit');
  const [saved,setSaved]=useState<AssigneeSnapshot|null>(null),[draft,setDraft]=useState<AssigneeSelection>({assigned_user_ids:[],assigned_user_id:null});
  const [members,setMembers]=useState<AssigneeMember[]>([]),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[conflict,setConflict]=useState(false),[reload,setReload]=useState(0);
  const [expanded,setExpanded]=useState(false);

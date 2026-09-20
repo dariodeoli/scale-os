@@ -3,6 +3,7 @@ import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 import {visibleModule} from '../app/workspace-access';
+import {roleCan} from '../app/capabilities';
 
 function component(file:string,name:string){
  const ast=ts.createSourceFile(file,readFileSync(new URL('../app/'+file,import.meta.url),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
@@ -72,24 +73,20 @@ test('navigation prefetch requires operational access and visible role, and scop
  assert.deepEqual(scopes,['u:o:viewer','']);
 });
 
-test('Inventory prefetch matches panel roles: Sales issues no warmup, but keeps Pipeline prefetch',()=>{
+test('Inventory prefetch follows inventory.view: every role warms it, unknown roles do not',()=>{
  const {ast,fn}=component('scale-workspace.tsx','Home');
  const prefetch=fn.body!.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='prefetchSection')!;
- const inventory=component('inventory-workspace.tsx','InventoryWorkspace');
- const declaration=inventory.fn.body!.statements[0] as ts.VariableStatement;
- const allowed=declaration.declarationList.declarations[0].initializer!.getText(inventory.ast);
- for(const role of ['owner','admin','management','production','finance','editor','viewer','sales','unknown']){
+ for(const role of ['owner','admin','management','production','finance','editor','viewer','sales','collaborator','unknown']){
   const calls:unknown[][]=[];
   const run=execute(prefetch.getText(ast)+';return prefetchSection;',{
-   operationalAccess:true,user:{id:'u',organization_id:'o',role},visibleModule,
+   operationalAccess:true,user:{id:'u',organization_id:'o',role},visibleModule,roleCan,
    prefetchSectionData:(...args:unknown[])=>{calls.push(args);},
   });
   run('Inventario');
-  const panelAllowed=execute('return '+allowed,{role});
-  assert.equal(calls.length,panelAllowed?1:0,role);
+  assert.equal(calls.length,roleCan(role,'inventory.view')?1:0,role);
   if(role==='sales'){
-   assert.equal(calls.length,0,'no Inventory requests for Sales despite menu visibility');
-   run('Pipeline');assert.deepEqual(calls,[['Pipeline','u:o:sales']]);
+   assert.equal(calls.length,1,'Sales opens Inventory with inventory.view like the API');
+   run('Pipeline');assert.deepEqual(calls,[['Inventario','u:o:sales'],['Pipeline','u:o:sales']]);
   }
  }
 });
