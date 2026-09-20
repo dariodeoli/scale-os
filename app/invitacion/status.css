@@ -5,7 +5,7 @@
 .invite-page .invite-card{gap:14px;padding:clamp(20px,4vw,28px);border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-sm)}
 .invite-page .login-brand{margin-bottom:0}.invite-page .login-brand img{width:48px;height:48px}
 .invite-page .invite-eyebrow{margin-bottom:2px}.invite-page .invite-card h1{margin:0;font-size:clamp(1.35rem,1.2rem + .8vw,1.75rem);line-height:1.12;letter-spacing:-.035em}
-.invite-page .invite-link-status{margin:0 auto;padding:6px 10px;font-size:12px}.invite-page .invite-expiration{margin:-4px 0 2px;font-size:12px}
+.invite-page .invite-link-status{margin:0 auto;padding:6px 10px;font-size:12px}.invite-page .invite-expiration{margin:0 0 2px;font-size:12px}
 .invite-page .login-copy{margin:0;color:var(--text-muted);font-size:14px;line-height:1.5}.invite-page .invite-summary{gap:5px;margin:0;padding:12px;border-color:var(--border-subtle,var(--line));background:var(--surface-subtle);box-shadow:var(--shadow-xs)}
 .invite-page .invite-summary strong{font-size:17px;line-height:1.25}.invite-page .invite-helper{margin:0;color:var(--text-muted);font-size:12px;line-height:1.45}.invite-page .invite-actions{display:grid;gap:8px}
 .invite-page .login-button{display:flex;align-items:center;justify-content:center;min-height:44px;margin:0;transition:transform 160ms ease-out,opacity 160ms ease-out}.invite-page .login-button:active:not(:disabled){transform:scale(.98)}
