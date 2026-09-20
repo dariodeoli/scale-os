@@ -42,7 +42,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
   const maximum=today(),price=Number(draft.monthlyPrice),discount=Number(draft.discountValue);
   if(!validDate(draft.effectiveOn,maximum)||draft.activationDate&&!validDate(draft.activationDate,maximum)){setError('Ingresá fechas reales válidas, no futuras.');return;}
   if(!draft.planName.trim()||!draft.planVersionSnapshot.trim()){setError('Indicá el nombre y la versión del plan contratados.');return;}
-  if(!Number.isFinite(price)||price<0){setError('Ingresá un precio mensual válido.');return;}
+  if(!Number.isFinite(price)||price<=0){setError('El precio mensual debe ser mayor a cero.');return;}
   if(!currencies.includes(draft.currency)){setError('Elegí una moneda válida.');return;}
   if(draft.discountType!=='none'&&(!Number.isFinite(discount)||discount<=0||(draft.discountType==='percent'&&discount>100))){setError(draft.discountType==='percent'?'El descuento porcentual debe ser mayor a 0 y hasta 100.':'Ingresá un descuento válido mayor a 0.');return;}
   locked.current=true;setSaving(true);setError('');setNotice('');
