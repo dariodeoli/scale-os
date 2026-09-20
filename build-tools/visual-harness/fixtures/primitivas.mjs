@@ -320,7 +320,7 @@ const commissionCard = ({kind, status, state, name, amount, currency, invoice, d
  <header class="commission-hub-head"><span class="hub-chip">${kind}</span><span class="commission-state" data-status="${status}">${state}</span></header>
  <h3>${name}</h3>
  <strong class="commission-hub-amount">${money(amount, currency)}</strong>
- <dl class="commission-hub-facts"><div><dt>Factura</dt><dd title="${invoice}">${invoice}</dd></div><div><dt>Vence</dt><dd>${due}</dd></div></dl>
+ <dl class="commission-hub-facts"><div><dt>Factura</dt><dd title="${invoice}">${invoice}</dd></div><div><dt>Vence</dt><dd title="${due}">${due}</dd></div></dl>
  <p class="form-note">${note}</p>
  <div class="commission-hub-actions inline-actions">${actions}</div>
 </article>`;

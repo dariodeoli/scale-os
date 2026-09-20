@@ -21,11 +21,13 @@ function value(sheet,selector,property,width){
  });
  return result;
 }
+// Hasta 960 px los montos de 4 columnas no entran en la tarjeta (baseline #28), así
+// que el strip reflowa a 2 columnas antes que en el corte mobile de 760.
 for(const width of [320,390,768,1100]){
  const get=(selector,property)=>value(control,selector,property,width);
- assert.equal(get('.kpi-strip','grid-template-columns'),width<=760?'repeat(2,minmax(0,1fr))':'repeat(4,minmax(0,1fr))',`${width}px must keep KPI cards readable`);
- assert.equal(get('.kpi-strip:has(> article:nth-child(3):last-child)','grid-template-columns'),width<=760?'repeat(2,minmax(0,1fr))':'repeat(3,minmax(0,1fr))',`${width}px must not draw an empty fourth KPI track`);
- assert.equal(get('.kpi-strip:has(> article:only-child)','grid-template-columns'),width<=760?'minmax(0,1fr)':'minmax(0,min(100%,360px))',`${width}px must cap the single KPI card instead of stretching it`);
+ assert.equal(get('.kpi-strip','grid-template-columns'),width<=960?'repeat(2,minmax(0,1fr))':'repeat(4,minmax(0,1fr))',`${width}px must keep KPI cards readable`);
+ assert.equal(get('.kpi-strip:has(> article:nth-child(3):last-child)','grid-template-columns'),width<=960?'repeat(2,minmax(0,1fr))':'repeat(3,minmax(0,1fr))',`${width}px must not draw an empty fourth KPI track`);
+ assert.equal(get('.kpi-strip:has(> article:only-child)','grid-template-columns'),width<=960?'minmax(0,1fr)':'minmax(0,min(100%,360px))',`${width}px must cap the single KPI card instead of stretching it`);
  assert.equal(get('.kpi-card','min-width'),'0','KPI cards must be able to shrink');
  assert.equal(get('.stage-chip','white-space'),'nowrap','stage chips keep their semantic unit on one line');
  assert.equal(get('.kpi-card .kpi-amounts span','white-space'),'normal','amounts may wrap at separators instead of leaving the card');
