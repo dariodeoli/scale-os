@@ -48,8 +48,9 @@
 
 .client-list .client-row>span.client-row-amount{min-width:max-content;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* Mora: fila finita con su propio encabezado y plantilla compartida. */
-.mora-list{--mora-cols:2.25rem minmax(0,1fr) auto;border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
-.mora-list-head{display:grid;grid-template-columns:var(--mora-cols);gap:8px;padding:8px 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.mora-list{--mora-cols:2.25rem minmax(0,1fr) 8.5rem;border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
+/* El gap-x del encabezado iguala la fila (ui-system fija 12 px en .client-row). */
+.mora-list-head{display:grid;grid-template-columns:var(--mora-cols);gap:12px;padding:8px 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .mora-list-head span:last-child{justify-self:end}
 .mora-list .client-row{display:grid;grid-template-columns:var(--mora-cols);align-items:center;gap:4px 8px;min-height:48px;padding:8px 12px;border-bottom:1px solid var(--border-subtle,var(--line))}
 .mora-list .client-row:last-child{border-bottom:0}
