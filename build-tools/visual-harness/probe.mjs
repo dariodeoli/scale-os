@@ -16,7 +16,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..', '..');
 const width = Number(process.argv[2] || 390);
 const expression = process.argv[3] || 'document.documentElement.scrollWidth';
-const htmlPath = resolve(repo, 'work', 'visual-harness', 'latest', 'audit.html');
+const pageName = process.argv[4] || 'audit';
+const htmlPath = resolve(repo, 'work', 'visual-harness', 'latest', `${pageName === 'audit' ? 'audit' : `page-${pageName}`}.html`);
 if (!existsSync(htmlPath)) {
   console.error('Run `node build-tools/visual-harness/run.mjs` first (needs work/visual-harness/latest/audit.html).');
   process.exit(1);

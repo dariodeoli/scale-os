@@ -19,10 +19,15 @@ const PROPOSALS = {
   'altura-fila': 'Fila fuera del contrato 44–52 px: revisar padding vertical, min-height y contenido que hace wrap.',
   'columna-colapsada': 'Una celda quedó más angosta que su contenido o desapareció: la columna debe reservar su lugar aunque no haya dato.',
   'tarjeta-baja': 'Tarjeta de cuadrícula por debajo de ~200 px: el contenido queda amontonado. Distribuir con flex column y pie anclado.',
+  'pseudo-overflow': 'Un pseudo-elemento decorativo (::before/::after) se sale del viewport y agranda el área scrolleable. Recortarlo con overflow:hidden en su contenedor o reposicionarlo.',
 };
 
 function severityFor(type, item) {
   if (type === 'overflow-documento') return 'alta';
+  if (type === 'pseudo-overflow') {
+    if (item.clipped || item.contributes === false) return 'info';
+    return 'alta';
+  }
   if (type === 'bleed' || type === 'bleed-clip') return 'alta';
   if (type === 'superposicion') return item.overlapPx >= 24 ? 'alta' : 'media';
   if (type === 'texto-cortado') {
@@ -71,6 +76,9 @@ export function buildFindings(run, width) {
           width: item.width,
         });
       }
+    }
+    for (const item of fixture.pseudoOverflow || []) {
+      push('pseudo-overflow', fixture, item);
     }
     for (const item of fixture.clipped || []) {
       if (item.title) continue;
@@ -176,6 +184,11 @@ function describeEvidence(finding) {
   if (evidence.kind && finding.type === 'texto-cortado') parts.push(`recorte: ${evidence.kind}`);
   if (finding.type === 'texto-cortado') parts.push(`${evidence.scrollWidth}px en ${evidence.clientWidth}px`);
   if (finding.type === 'overflow-documento') parts.push(`scrollWidth ${evidence.scrollWidth} > clientWidth ${evidence.clientWidth} (+${evidence.overflowPx}px)`);
+  if (finding.type === 'pseudo-overflow') {
+    parts.push(`pseudo ${evidence.width}×${evidence.height}px en x ${evidence.left}–${evidence.right}`);
+    if (evidence.bleedRight > 2) parts.push(`se sale ${evidence.bleedRight}px`);
+    if (evidence.bleedLeft > 2) parts.push(`se sale ${evidence.bleedLeft}px a la izquierda`);
+  }
   if (finding.type === 'superposicion') parts.push(`solape ${evidence.overlapPx}px² (${Math.round((evidence.ratio || 0) * 100)}%) entre “${String(evidence.aText || '').slice(0, 30)}” y “${String(evidence.bText || '').slice(0, 30)}”`);
   if (finding.type === 'plantilla-encabezado-fila') parts.push(`head: ${evidence.headCols} · row: ${evidence.rowCols}`);
   if (finding.type === 'desalineacion-celdas') parts.push(`“${evidence.head}” head ${evidence.headLeft}px vs fila ${evidence.rowLeft}px (Δ${evidence.delta}px)`);

@@ -11,6 +11,8 @@
     if (s.display === 'none' || s.visibility === 'hidden') return false;
     const r = el.getBoundingClientRect();
     if (r.width <= 1 || r.height <= 1) return false;
+    if (r.right < -500 || r.left > window.innerWidth + 500) return false;
+    if (hiddenByDetails(el)) return false;
     if (['absolute', 'fixed'].includes(s.position) && r.width <= 2 && r.height <= 2) return false;
     return true;
   }
@@ -19,6 +21,16 @@
     const s = getComputedStyle(el);
     if (s.position === 'absolute' && el.clientWidth <= 2 && el.clientHeight <= 2 && ['hidden', 'clip'].includes(s.overflow)) return true;
     return false;
+  }
+
+  function hiddenByDetails(el) {
+    const details = el.closest('details');
+    if (!details || details.open) return false;
+    return !details.querySelector(':scope > summary')?.contains(el);
+  }
+
+  function visualRects(el) {
+    return Array.from(el.getClientRects()).filter((rect) => rect.width > 2 && rect.height > 2);
   }
 
   function pathOf(el) {
@@ -130,6 +142,7 @@
       overflow: [],
       clipped: [],
       overlaps: [],
+      pseudoOverflow: [],
       lists: [],
       grids: [],
       scrollables: [],
@@ -194,6 +207,65 @@
     }
     out.bledPaths = rawOverflow.filter((entry) => entry.kind !== 'scrollable').map((entry) => entry.selector);
 
+    /* ---- decorative pseudo-elements that extend the scroll area -------- */
+    for (const el of all) {
+      if (!visible(el)) continue;
+      for (const which of ['::before', '::after']) {
+        const ps = getComputedStyle(el, which);
+        if (!ps || ps.content === 'none' || ps.display === 'none' || ps.visibility === 'hidden') continue;
+        if (ps.position !== 'absolute' && ps.position !== 'fixed') continue;
+        const width = parseFloat(ps.width);
+        const height = parseFloat(ps.height);
+        if (!Number.isFinite(width) || !Number.isFinite(height)) continue;
+        if (width < 2 || height < 2) continue;
+        let base = el;
+        if (!['relative', 'absolute', 'fixed', 'sticky'].includes(getComputedStyle(el).position)) {
+          base = null;
+          for (let p = el.parentElement; p && p !== root; p = p.parentElement) {
+            const s = getComputedStyle(p);
+            if (['relative', 'absolute', 'fixed', 'sticky'].includes(s.position)) {
+              base = p;
+              break;
+            }
+          }
+        }
+        if (!base) continue;
+        const br = base.getBoundingClientRect();
+        let left;
+        if (ps.left !== 'auto') left = br.left + parseFloat(ps.left);
+        else if (ps.right !== 'auto') left = br.right - parseFloat(ps.right) - width;
+        else left = br.left;
+        const right = left + width;
+        if (right <= rootRect.right + 2 && left >= rootRect.left - 2) continue;
+        const scroller = scrollableAncestor(el, root);
+        if (scroller) continue;
+        const ownOverflow = getComputedStyle(el).overflowX;
+        const clip = ['hidden', 'clip'].includes(ownOverflow) ? el : clippingAncestor(el, root);
+        if (clip) {
+          const cr = clip.getBoundingClientRect();
+          if (left >= cr.left - 2 && right <= cr.right + 2) continue;
+        }
+        const container = clip || root;
+        const scrollBefore = container.scrollWidth;
+        const hideAttribute = which === '::before' ? 'data-harness-hide-before' : 'data-harness-hide-after';
+        el.setAttribute(hideAttribute, '1');
+        const scrollAfter = container.scrollWidth;
+        el.removeAttribute(hideAttribute);
+        out.pseudoOverflow.push({
+          selector: `${pathOf(el)}${which}`,
+          text: deepText(el).slice(0, 60),
+          width: Math.round(width),
+          height: Math.round(height),
+          left: Math.round(left),
+          right: Math.round(right),
+          bleedRight: Math.round((right - rootRect.right) * 10) / 10,
+          bleedLeft: Math.round((rootRect.left - left) * 10) / 10,
+          contributes: scrollAfter < scrollBefore - 0.5,
+          clipped: Boolean(clip),
+        });
+      }
+    }
+
     /* ---- truncated text without escape -------------------------------- */
     for (const el of all) {
       if (!visible(el)) continue;
@@ -244,13 +316,26 @@
         const a = atoms[i];
         const b = atoms[j];
         if (a.contains(b) || b.contains(a)) continue;
+        if (/avatar/i.test(String(a.className)) && /avatar/i.test(String(b.className))) continue;
+        const controlAffordance = (control, overlay) =>
+          ['INPUT', 'SELECT', 'TEXTAREA'].includes(control.tagName) &&
+          overlay.tagName === 'BUTTON' &&
+          overlay.getBoundingClientRect().left >= control.getBoundingClientRect().left &&
+          overlay.getBoundingClientRect().right <= control.getBoundingClientRect().right;
+        if (controlAffordance(a, b) || controlAffordance(b, a)) continue;
+        let area = 0;
         const ra = a.getBoundingClientRect();
         const rb = b.getBoundingClientRect();
-        const w = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
-        const h = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top);
-        if (w <= 2 || h <= 2) continue;
-        const area = w * h;
         const minArea = Math.min(ra.width * ra.height, rb.width * rb.height);
+        for (const rectA of visualRects(a)) {
+          for (const rectB of visualRects(b)) {
+            const w = Math.min(rectA.right, rectB.right) - Math.max(rectA.left, rectB.left);
+            const h = Math.min(rectA.bottom, rectB.bottom) - Math.max(rectA.top, rectB.top);
+            if (w <= 2 || h <= 2) continue;
+            area = Math.max(area, w * h);
+          }
+        }
+        if (area <= 2) continue;
         const ratio = area / minArea;
         if (ratio < 0.12 && area < 24) continue;
         const positioned = (el) => {

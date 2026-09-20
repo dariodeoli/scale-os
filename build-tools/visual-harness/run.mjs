@@ -109,6 +109,8 @@ const measure = readFileSync(join(here, 'measure.js'), 'utf8');
 const overrides = `
 /* harness stabilization: no motion, static sidebar */
 *,*::before,*::after{animation:none!important;transition:none!important}
+[data-harness-hide-before]::before{display:none!important}
+[data-harness-hide-after]::after{display:none!important}
 .harness-fixture .desktop-sidebar{position:static!important;height:auto!important;min-height:640px}
 .harness-fixture{margin:0 0 2px;outline:1px dashed rgb(0 0 0 / 8%)}
 `;
@@ -124,8 +126,15 @@ ${inlineFixtures.map(fixtureSection).join('\n')}
 for (const fixture of filtered.filter((item) => item.kind === 'external')) {
   const source = resolve(repo, fixture.source);
   let html = readFileSync(source, 'utf8');
-  html = html.replace(/<body([^>]*)>/i, `<body$1 data-fixture="${fixture.id}" data-section="${fixture.section}" data-kind="external">`);
-  html = html.replace(/<\/body>/i, `<script>${measure}</script></body>`);
+  const externalStyle = `<style>*,*::before,*::after{animation:none!important;transition:none!important}[data-harness-hide-before]::before{display:none!important}[data-harness-hide-after]::after{display:none!important}</style>`;
+  html = html.replace(/<body([^>]*)>/i, `<body$1 data-fixture="${fixture.id}" data-section="${fixture.section}" data-kind="external">${externalStyle}`);
+  if (/<\/body>/i.test(html)) {
+    html = html.replace(/<\/body>/i, `<script>${measure}</script></body>`);
+  } else if (/<\/html>/i.test(html)) {
+    html = html.replace(/<\/html>/i, `<script>${measure}</script></html>`);
+  } else {
+    html += `<script>${measure}</script>`;
+  }
   pages.set(`/${fixture.id}.html`, html);
 }
 
@@ -167,24 +176,37 @@ async function navigate(url) {
   await new Promise((resolveWait) => setTimeout(resolveWait, 150));
 }
 
-const page = pages.has(`/${filtered[0].id}.html`) ? `/${filtered[0].id}.html` : '/audit.html';
-await navigate(`${origin}${page}`);
+const page = pages.has('/audit.html') && inlineFixtures.length === 0
+  ? `/${filtered[0].id}.html`
+  : '/audit.html';
+const pageUrls = [];
+if (inlineFixtures.length > 0 || page === '/audit.html') pageUrls.push('/audit.html');
+for (const fixture of filtered.filter((item) => item.kind === 'external')) pageUrls.push(`/${fixture.id}.html`);
 
-const runs = [];
-for (const width of widths) {
-  await cdp.send('Emulation.setDeviceMetricsOverride', {
-    width,
-    height: viewportHeight,
-    deviceScaleFactor: 1,
-    mobile: width < 768,
-    screenWidth: width,
-    screenHeight: viewportHeight,
-  });
-  await new Promise((resolveWait) => setTimeout(resolveWait, 120));
-  const measured = await cdp.evaluate('window.__visualHarness.measure()');
-  runs.push({width, ...measured});
-  const findings = buildFindings(measured, width);
-  console.log(`${String(width).padStart(4)}px  fixtures=${measured.fixtures.length}  findings=${findings.length}  docOverflow=${measured.docOverflow}`);
+const runsByWidth = new Map(widths.map((width) => [width, {width, docOverflow: 0, clientWidth: width, fixtures: []}]));
+for (const pageUrl of pageUrls) {
+  await navigate(`${origin}${pageUrl}`);
+  for (const width of widths) {
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: viewportHeight,
+      deviceScaleFactor: 1,
+      mobile: width < 768,
+      screenWidth: width,
+      screenHeight: viewportHeight,
+    });
+    await new Promise((resolveWait) => setTimeout(resolveWait, 120));
+    const measured = await cdp.evaluate('window.__visualHarness.measure()');
+    const run = runsByWidth.get(width);
+    run.docOverflow = Math.max(run.docOverflow, measured.docOverflow);
+    run.clientWidth = measured.clientWidth;
+    run.fixtures.push(...measured.fixtures);
+  }
+}
+const runs = widths.map((width) => runsByWidth.get(width));
+for (const run of runs) {
+  const findings = buildFindings(run, run.width);
+  console.log(`${String(run.width).padStart(4)}px  fixtures=${run.fixtures.length}  findings=${findings.length}  docOverflow=${run.docOverflow}`);
 }
 cdp.close();
 await chrome.close();
@@ -202,6 +224,10 @@ const payload = {
 };
 writeFileSync(join(outDir, 'results.json'), JSON.stringify(payload, null, 2));
 writeFileSync(join(outDir, 'audit.html'), pages.get('/audit.html'));
+for (const [route, html] of pages) {
+  if (route === '/audit.html') continue;
+  writeFileSync(join(outDir, `page${route.replace(/\//g, '-')}`), html);
+}
 const baseline = renderBaselineMarkdown(payload);
 writeFileSync(join(outDir, 'baseline.md'), baseline);
 if (!keep) {
