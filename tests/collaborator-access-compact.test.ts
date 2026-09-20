@@ -41,7 +41,7 @@ test('suspended access has a dedicated semantic badge and collaborator photo use
 
 test('team list view renders a compact single-column list and contact data is never cut',()=>{
  assert.match(operations,/ops-grid\$\{teamView==='list'\?' ops-grid-list':''\}/);
- assert.match(operationsCss,/\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(operationsCss,/\.control-shell \.ops-grid\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\)/);
  assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:5;grid-row:1;display:flex/);
  assert.match(operationsCss,/\.person-hub-facts \.person-hub-fact-wide\{grid-column:1\/-1\}/);
  assert.match(operationsCss,/\.person-hub-facts dd\{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere\}/);

@@ -23,14 +23,14 @@ assert(density.includes('.topbar-company>.workspace .company-name{min-width:0;ov
 assert(density.includes('.topbar-utility-actions>.theme-toggle{width:40px;min-width:40px;min-height:40px'),'the theme toggle matches its toolbar neighbours');
 assert(file('../app/control-center.css').includes('@media(max-width:760px){.control-shell>.content{padding:16px 16px 28px}'),'mobile content padding matches the pulled topbar');
 const operationsCss=file('../app/operations.css');
-assert(operationsCss.includes('.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto'),'the team list scrolls instead of overflowing its panel');
+assert(operationsCss.includes('.control-shell .ops-grid.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto'),'the team list wins over the card grid and scrolls instead of overflowing its panel');
 assert(operationsCss.includes('.company-choice-row{display:flex'),'the company switcher row wraps instead of overflowing the dialog');
 assert(operationsCss.includes('.person-hub-card.is-list :is(.ops-person img,.avatar){width:32px'),'team list rows keep a thin identity');
 assert(operationsCss.includes('.person-hub-card:not(.is-list)>.person-hub-tail{display:flex'),'team cards anchor their actions to the foot');
 assert(operationsCss.includes('.person-hub-actions .ops-card-actions{margin:0;padding:0;border:0'),'no empty or double-bordered action block in the team cards');
 assert(operationsCss.includes('.person-hub-card.is-list>.person-hub-tail>.form-note'),'the ambiguous-profile note spans the row');
 assert(operationsCss.includes('.person-hub-head-row span:first-child{padding-left:26px}'),'the team header aligns with the row identity');
-assert(operationsCss.includes('.person-hub-card.is-list{grid-template-columns:1fr;gap:12px;padding:16px'),'the stacked team list returns to card density');
+assert(operationsCss.includes('.person-hub-card.is-list{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px'),'the stacked team list returns to card density without growing past its column');
 assert(file('../app/operations.tsx').includes('visiblePayouts.length?<div className="finance-row-head"'),'the payout header only renders with visible rows');
 const portalCss=file('../app/cliente/portal.css');
 assert(portalCss.includes('.delivery-activity{list-style:none'),'the portal activity feed drops the native bullets');
