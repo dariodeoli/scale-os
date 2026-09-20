@@ -28,7 +28,8 @@ for(const width of [320,390,768,1100]){
  assert.equal(get('.kpi-strip:has(> article:only-child)','grid-template-columns'),width<=760?'minmax(0,1fr)':'minmax(0,min(100%,360px))',`${width}px must cap the single KPI card instead of stretching it`);
  assert.equal(get('.kpi-card','min-width'),'0','KPI cards must be able to shrink');
  assert.equal(get('.stage-chip','white-space'),'nowrap','stage chips keep their semantic unit on one line');
- assert.equal(get('.kpi-card .kpi-amounts span','white-space'),'nowrap','amounts never break across lines');
+ assert.equal(get('.kpi-card .kpi-amounts span','white-space'),'normal','amounts may wrap at separators instead of leaving the card');
+ assert.equal(get('.kpi-card .kpi-amounts span','overflow-wrap'),'normal','numeric tokens are never broken mid-number');
  console.log(`PASS ${width}px: KPI strips, stage chips and semantic units`);
 }
 assert.equal(value(reports,'.reports-chart','overflow-x'),'auto','chart scrolls inside its own surface');
