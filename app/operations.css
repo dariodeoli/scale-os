@@ -320,7 +320,10 @@
 
 
 
-.ops-grid-list{grid-template-columns:minmax(0,1fr);--person-cols:minmax(180px,1.1fr) minmax(0,1.2fr) 5.5rem minmax(120px,.9fr) minmax(140px,1fr) 11rem}
+/* La lista del equipo conserva su plantilla de 6 columnas y se desplaza en silencio
+   cuando el riel deja menos ancho que el mínimo de la plantilla (861–1049 px). */
+.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;--person-cols:minmax(180px,1.1fr) minmax(0,1.2fr) 5.5rem minmax(120px,.9fr) minmax(140px,1fr) 11rem}
+.ops-grid-list::-webkit-scrollbar{display:none}
 .person-hub-card.is-list{display:grid;grid-template-columns:var(--person-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px}
 .person-hub-card.is-list .person-hub-head{display:contents}
 .person-hub-card.is-list .select-check{grid-column:1;grid-row:1;align-self:center;justify-self:start;z-index:1}
