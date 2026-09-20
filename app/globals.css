@@ -52,8 +52,8 @@ html[data-theme="dark"] .brand-mark{background:var(--anthracite);color:var(--tex
 html[data-theme="dark"] .my-profile-name input{box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
 /* Dark polish: deeper shell, clearer borders and readable chips. */
 html[data-theme="dark"] .control-shell>aside,html[data-theme="dark"] .control-shell .desktop-sidebar{background:linear-gradient(180deg,#0a0a0e 0%,#101016 100%);border-right-color:rgb(255 255 255 / 10%)}
-html[data-theme="dark"] .control-shell>aside nav>a,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a{color:rgb(226 214 232 / 66%)}
-html[data-theme="dark"] .control-shell>aside nav>a:hover,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a:hover{background:rgb(255 255 255 / 7%);color:#fdf8fe}
+html[data-theme="dark"] .control-shell>aside nav>a,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a,html[data-theme="dark"] .control-shell .desktop-sidebar nav>button{color:rgb(226 214 232 / 66%)}
+html[data-theme="dark"] .control-shell>aside nav>a:hover,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a:hover,html[data-theme="dark"] .control-shell .desktop-sidebar nav>button:hover{background:rgb(255 255 255 / 7%);color:#fdf8fe}
 html[data-theme="dark"] .control-shell>aside nav>a.active,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a.active{background:linear-gradient(90deg,rgb(192 107 208 / 34%),rgb(160 79 175 / 18%));border-color:rgb(192 107 208 / 34%);color:#fdf8fe;box-shadow:inset 3px 0 #c06bd0}
 html[data-theme="dark"] .control-shell>aside nav>a.active svg,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a.active svg{color:#d18ad9}
 html[data-theme="dark"] .control-shell>aside nav>a.active::after,html[data-theme="dark"] .control-shell .desktop-sidebar nav>a.active::after{background:#c06bd0;box-shadow:0 0 0 3px rgb(192 107 208 / 16%)}

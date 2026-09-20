@@ -160,4 +160,14 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(productivityCss,/\.drawer-list\{--drawer-cols:[\s\S]*?\.drawer-list \.activity-line\{display:grid;grid-template-columns:var\(--drawer-cols\)[\s\S]*?min-height:44px/,'drawer rows use thin shared templates');
 });
 
+test('the rail navigation keeps one geometry for links and the logout button',()=>{
+  const desktop=read('app/desktop-sidebar.css');
+  assert.match(desktop,/\.control-shell \.desktop-sidebar nav>a,\.control-shell \.desktop-sidebar nav>button\{/,'the desktop rail styles the logout button with the link geometry');
+  assert.match(desktop,/nav>button:hover\{/,'the logout button keeps the rail hover state');
+  const mobile=read('app/mobile-navigation.css');
+  assert.match(mobile,/\.mobile-sidebar nav>a,\.mobile-sidebar nav>button\{/,'the mobile drawer styles the logout button with the link geometry');
+  const workspace=read('app/scale-workspace.tsx');
+  assert.match(workspace,/nav-logout/,'the logout button keeps its rail slot');
+});
+
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');
