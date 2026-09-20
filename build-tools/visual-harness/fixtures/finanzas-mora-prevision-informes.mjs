@@ -933,7 +933,7 @@ const comisionesTarjetas = {
     <header class="commission-hub-head"><span class="hub-chip">Referido</span><span class="commission-state" data-status="approved">Aprobada</span></header>
     <h3>Juan Carlos Benítez Ocampos</h3>
     <strong class="commission-hub-amount">Gs. 1.500.000</strong>
-    <dl class="commission-hub-facts"><div><dt>Factura</dt><dd>Sin factura vinculada</dd></div><div><dt>Vence</dt><dd>07-nov</dd></div></dl>
+    <dl class="commission-hub-facts"><div><dt>Factura</dt><dd title="Sin factura vinculada">Sin factura vinculada</dd></div><div><dt>Vence</dt><dd title="07-nov">07-nov</dd></div></dl>
     <p class="form-note">Importe fijo</p>
     <div class="commission-hub-actions inline-actions"><button class="text-button" type="button">${banknoteIcon(14)}Registrar pago</button><button class="text-button danger" type="button">${xIcon(14)}Cancelar</button></div>
    </article>
