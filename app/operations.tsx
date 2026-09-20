@@ -330,18 +330,24 @@ function PeopleWorkspace({
   const [selectedAccess,setSelectedAccess]=useState<string[]>([]),[bulkAccessBusy,setBulkAccessBusy]=useState(false);
   function toggleAccessSelected(id:string){setSelectedAccess(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
   function selectVisibleAccess(){
-    const ids=visiblePeople.filter(entry=>entry.member&&entry.member.email!==currentEmail).map(entry=>String(entry.member!.id));
+    const ids=visiblePeople.filter(entry=>entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail).map(entry=>String(entry.member!.id));
     setSelectedAccess(current=>{const all=ids.length>0&&ids.every(id=>current.includes(id));return all?current.filter(id=>!ids.includes(id)):[...new Set([...current,...ids])];});
   }
   async function batchSetAccess(active:boolean){
     if(bulkAccessBusy||!selectedAccess.length)return;
     setBulkAccessBusy(true);setError('');
     const total=selectedAccess.length;
-    let done=0;
+    let done=0,failed=0;
     try{
-      for(const id of selectedAccess){await api(`/api/agency/members/${id}`,{active},'PATCH');done+=1;}
+      // Una fila retirada o vencida no aborta el lote: se cuenta y se sigue (issue #22).
+      for(const id of selectedAccess){
+        try{await api(`/api/agency/members/${id}`,{active},'PATCH');done+=1;}
+        catch{failed+=1;}
+      }
       setSelectedAccess([]);await load();
-      notify({tone:done===total?'success':'warning',message:active?`${done} acceso${done===1?'':'s'} reactivado${done===1?'':'s'}.`:`${done} acceso${done===1?'':'s'} suspendido${done===1?'':'s'}.`});
+      const action=active?'reactivado':'suspendido';
+      const plural=(count:string)=>`${count} acceso${count==='1'?'':'s'} ${action}${count==='1'?'':'s'}.`;
+      notify({tone:failed?'warning':'success',message:failed?`${plural(String(done))} ${failed} no se pudieron actualizar (acceso ya retirado).`:plural(String(done))});
     }catch(cause){setError(message(cause));await load().catch(()=>{});}
     finally{setBulkAccessBusy(false);}
   }
@@ -550,12 +556,12 @@ function PeopleWorkspace({
           <p role="status">Cargando…</p>
         ) : mode === "people" ? (
           <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
-            {canManageAccess&&visiblePeople.some(entry=>entry.member&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
+            {canManageAccess&&visiblePeople.some(entry=>entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
             {teamView==='list'?<div className="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>:null}
             {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
               <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
                 <header className="person-hub-head">
-                  {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
+                  {canManageAccess&&entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                   <div className="ops-person">
                     {p.photo_url ? (
                       <PhotoViewer photo={p.photo_url} name={p.full_name} size={teamView==='list'?32:48}/>
@@ -597,7 +603,7 @@ function PeopleWorkspace({
               <header className="person-hub-head">
                 {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${entry.member.full_name||entry.member.email}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                 <div className="ops-person"><PersonContainer size={teamView==='list'?'md':'lg'} name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
-                <span className="person-hub-state" data-state={entry.member!.active?'active':'inactive'}>{entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
+                <span className="person-hub-state" data-state={entry.member!.removed_at||!entry.member!.active?'inactive':'active'}>{entry.member!.removed_at?'Acceso retirado':entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
               </header>
               <dl className="person-hub-facts">
                 <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={entry.member!.email||undefined}>{entry.member!.email}</dd></div>

@@ -14,7 +14,8 @@ export function teamDirectory<P extends TeamProfile>(profiles:P[],members:TeamMe
   return{key:`person-${profile.id}`,profile,member,archivedProfileId:null,ambiguous};
  });
  for(const member of members){
-  if(represented.has(String(member.id))||member.removed_at)continue;
+  // Los retirados sin ficha también se listan: es el único punto para reinvitar (issue #22).
+  if(represented.has(String(member.id)))continue;
   const matches=archived.filter(p=>p.user_id?String(p.user_id)===String(member.id):emailKey(p.email)===emailKey(member.email));
   entries.push({key:`member-${member.id}`,profile:null,member,archivedProfileId:matches.length===1?String(matches[0].id):null,ambiguous:matches.length>1||(counts.get(emailKey(member.email))||0)>1});
  }
