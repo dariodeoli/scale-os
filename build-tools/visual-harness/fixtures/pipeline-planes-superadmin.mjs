@@ -11,11 +11,13 @@
  * plan and a plan with no items ("No disponible" / "Sin ítems guardados").
  *
  * Surfaces:
- *  - app/suite.tsx CatalogWorkspace kind='leads' (LeadCard/LeadColumn lines 38-39,
- *    workspace lines 40-72) + app/pipeline-summary.css + app/suite.css
+ *  - app/suite.tsx CatalogWorkspace kind='leads' (LeadCard/LeadColumn lines 39-40,
+ *    workspace lines 41-73) + app/pipeline-summary.css + app/suite.css. The card
+ *    actions live in one <footer class="inline-actions"> (SOS-COM, #12): "Ver
+ *    oportunidad" + RemoveRecord share the footer, never loose siblings.
  *  - app/live-visitors.tsx lines 41-46 + app/live-visitors.css
  *  - app/growth-dashboard.tsx lines 16-22 + app/growth-dashboard.css
- *  - app/suite.tsx CatalogWorkspace kind='plans' (line 67) + app/plan-comparison.tsx
+ *  - app/suite.tsx CatalogWorkspace kind='plans' (line 68) + app/plan-comparison.tsx
  *    lines 46-73 + app/plan-comparison.css
  *  - app/superadmin/page.tsx (StatusBadge 183-195, stats 579-633, agencies 635-812,
  *    two columns 939-1160, audit 1162-1215, shell 1222-1248)
@@ -25,7 +27,7 @@
  *    harness would measure unstyled markup. Kept as a named export ready to
  *    register once the component is wired (see `platformAccessFixture`).
  *  - app/desktop-sidebar.tsx lines 10-13 + app/desktop-sidebar.css
- *  - app/scale-workspace.tsx topbar lines 995-1024 + app/workspace-density.css
+ *  - app/scale-workspace.tsx topbar lines 997-1026 + app/workspace-density.css
  *  - app/mobile-navigation.tsx lines 17-22/36-37 + app/mobile-navigation.css
  *  - app/notification-inbox.tsx lines 66-83 + app/notification-center.tsx 12/18
  *    (+ app/notifications.css / app/toast.css)
@@ -85,26 +87,29 @@ const removeRecordButton = (kind, name) => {
 };
 
 /* ============================================================ 1. PIPELINE ==
- * app/suite.tsx LeadCard line 38 / LeadColumn line 39 / CatalogWorkspace 40-72.
+ * app/suite.tsx LeadCard line 39 / LeadColumn line 40 / CatalogWorkspace 41-73.
+ * The board shows the six fixed stages plus one loose/deactivated stage (the
+ * `looseSlugs` + `readOnly` path), each with its own `.lead-card` footer.
  *
  * The board is a kanban: per the 17-09 decision it keeps its own cards, so this
  * fixture declares no list/grid. Its two real defects are not expressible as a
- * harness declaration and were measured with a CDP probe against audit.html:
+ * harness declaration and were measured with a CDP probe against audit.html at
+ * 1440 (2026-09-20, current main):
  *  - `.suite-column` widths (`.suite-board` at 1440): 590/549/387/414/280/280/319
- *    px although the CSS pins `flex: 0 0 280px` (item `min-width: auto` gives in
- *    to the nowrap opportunity name/email).
+ *    px although the CSS pins `flex-basis: 280px` (the column `min-width: auto`
+ *    gives in to the nowrap opportunity name/email).
  *  - `.suite-column > .lead-card` takes `height: 100%` from the shared capsule
- *    rule (app/ui-system.css lines 272-281): every card is 573 px tall, the
- *    second card of a column starts below the column box (y 1019 vs bottom 982)
- *    and `.suite-board` clips it vertically (clientHeight 613 / scrollHeight 1249).
+ *    rule (app/ui-system.css lines 294-300): every card measures 511 px, the
+ *    first card's bottom (947) falls below the column bottom (920) and the second
+ *    starts at y 957; `.suite-board` clips the overflow (clientHeight 551 /
+ *    scrollHeight 1125).
  * ========================================================================= */
 const leadCard = ({name, amount, currency, probability, email, level}) => `
-  <article class="ops-card lead-card">
-   <header class="lead-card-head"><b title="${name}">${name}</b><button class="icon-button" title="Mover ${name}" aria-label="Mover ${name}">${svg(I.grip, 16)}</button></header>
+  <article class="ops-card lead-card" style="opacity:1">
+   <header class="lead-card-head"><b title="${name}">${name}</b><button class="icon-button" type="button" title="Mover ${name}" aria-label="Mover ${name}">${svg(I.grip, 16)}</button></header>
    <strong class="lead-card-amount">${money(amount, currency)}</strong>
    <div class="lead-card-chips"><span class="lead-prob" data-level="${level}">${probability}%</span>${email ? `<span class="lead-contact" title="${email}">${email}</span>` : ''}</div>
-   <button class="text-button">${svg(I.eye, 14)}Ver oportunidad</button>
-   ${removeRecordButton('leads', name)}
+   <footer class="inline-actions"><button class="text-button" type="button">${svg(I.eye, 14)}Ver oportunidad</button>${removeRecordButton('leads', name)}</footer>
   </article>`;
 
 const leadColumn = ({stage, label, readOnly = false, cards, pondered = []}) => `
@@ -171,12 +176,14 @@ const pipelineColumns = [
 ].join('');
 
 /* ===================================================== 2. VISITANTES WEB ==
- * app/live-visitors.tsx lines 41-46 (counts state).
+ * app/live-visitors.tsx lines 41-46 (counts state). `peopleContainer` mirrors
+ * app/person-container.tsx lines 14-27 (title on name and secondary) and is
+ * reused by the shell sidebar/profile.
  * ========================================================================= */
 const peopleContainer = ({name, secondary, initials}) => `
   <span class="person-container person-container-md">
    <span class="person-container-avatar" aria-hidden="true">${initials}</span>
-   <span class="person-container-details"><span class="person-container-name">${name}</span>${secondary ? `<span class="person-container-secondary">${secondary}</span>` : ''}</span>
+   <span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span>${secondary ? `<span class="person-container-secondary" title="${secondary}">${secondary}</span>` : ''}</span>
   </span>`;
 
 const liveVisitorsPanel = `
@@ -224,24 +231,39 @@ const growthDashboard = `
 
 /* ======================================================== 4. PLANES =======
  * app/plan-comparison.tsx PlanComparison lines 46-73 + Deliverables 40-44.
+ * Amounts keep their own currency; an invalid/missing value renders `No
+ * disponible`, and a semicolon list is one priced package (same model as the
+ * component: descriptions are split on ';', never invented per-line prices).
  * ========================================================================= */
+const currencyCodes = ['PYG', 'USD', 'EUR', 'BRL', 'ARS', 'MXN'];
+const validCurrency = (currency) => currencyCodes.includes(currency);
+const numberLabel = (value) => new Intl.NumberFormat('es-PY', {maximumFractionDigits: 20}).format(Number(value));
+const planAmount = (value, currency) => value !== null && Number.isFinite(value) && validCurrency(currency) ? money(value, currency) : 'No disponible';
+const planTotal = (items) => items.length && items.every((item) => item.subtotal !== null) ? items.reduce((sum, item) => sum + item.subtotal, 0) : null;
+
 const planActions = (name) => `<div class="plan-comparison-actions"><button type="button" class="text-button">${svg(I.pencil, 14)}Editar</button>${removeRecordButton('plans', name)}</div>`;
 
-const planHeader = ({name, currency, items, archived}) => `
+const planHeader = (plan) => `
   <th scope="col">
-   <h3>${name}</h3>
-   <span class="plan-comparison-meta">${currency} · ${items} ${items === 1 ? 'ítem' : 'ítems'}</span>
-   ${archived ? '<span class="plan-comparison-meta">Archivado</span>' : ''}
-   ${planActions(name)}
+   <h3>${plan.name}</h3>
+   <span class="plan-comparison-meta">${validCurrency(plan.currency) ? plan.currency : 'Moneda no disponible'} · ${plan.items.length} ${plan.items.length === 1 ? 'ítem' : 'ítems'}</span>
+   ${plan.archived ? '<span class="plan-comparison-meta">Archivado</span>' : ''}
+   ${planActions(plan.name)}
   </th>`;
+
+/* app/plan-comparison.tsx Deliverables line 40-44: split(';'), one package. */
+const planDeliverables = (description) => {
+  const parts = description.split(';');
+  return parts.length > 1
+    ? `<ul class="plan-comparison-deliverables">${parts.map((part, index) => `<li>${part.trim()}${index < parts.length - 1 ? ';' : ''}</li>`).join('')}</ul>`
+    : `<p class="plan-comparison-description">${description}</p>`;
+};
 
 const planItems = (plan) => plan.items
   .map((item) => `
    <li class="plan-comparison-item">
-    ${item.deliverables.length > 1
-      ? `<ul class="plan-comparison-deliverables">${item.deliverables.map((part, index) => `<li>${part}${index < item.deliverables.length - 1 ? ';' : ''}</li>`).join('')}</ul>`
-      : `<p class="plan-comparison-description">${item.deliverables[0]}</p>`}
-    <div class="plan-comparison-item-price"><span>Cantidad del ítem: ${whole(item.quantity)}</span><span>Precio unitario: ${item.price}</span><strong>Subtotal: ${item.subtotal}</strong></div>
+    ${planDeliverables(item.description)}
+    <div class="plan-comparison-item-price"><span>Cantidad del ítem: ${item.quantity === null ? 'No disponible' : numberLabel(item.quantity)}</span><span>Precio unitario: ${planAmount(item.price, plan.currency)}</span><strong>Subtotal: ${planAmount(item.subtotal, plan.currency)}</strong></div>
    </li>`)
   .join('')
   .trim();
@@ -250,33 +272,30 @@ const comparisonPlans = [
   {
     name: 'Producción audiovisual integral para campaña de lanzamiento regional · 12 meses',
     currency: 'PYG',
-    total: money(1234567890, 'PYG'),
     archived: false,
     notes: 'Contrato anual con renovación automática.\nFacturación el día 5 de cada mes. Incluye dos rondas de ajustes por pieza.\nLos traslados fuera de Asunción se presupuestan aparte.',
     items: [
       {
-        deliverables: ['Dirección creativa y guion técnico', 'Rodaje en locación: 3 jornadas completas', 'Edición, color y mezcla final', 'Entrega de master y cortes para redes'],
+        description: 'Dirección creativa y guion técnico; Rodaje en locación: 3 jornadas completas; Edición, color y mezcla final; Entrega de master y cortes para redes',
         quantity: 12,
-        price: money(102880657.5, 'PYG'),
-        subtotal: money(1234567890, 'PYG'),
+        price: 102880657.5,
+        subtotal: 1234567890,
       },
     ],
   },
   {
     name: 'Retainer mensual de contenidos y social media',
     currency: 'USD',
-    total: money(12345.67, 'USD'),
     archived: false,
     notes: 'Se factura por adelantado, sin IVA. El plan conserva su moneda: no se convierte a guaraníes.',
     items: [
-      {deliverables: ['Planificación mensual de contenidos; Reporte de métricas; Community management'], quantity: 1, price: money(10000, 'USD'), subtotal: money(10000, 'USD')},
-      {deliverables: ['Producción de piezas gráficas adicionales'], quantity: 3, price: money(781.89, 'USD'), subtotal: money(2345.67, 'USD')},
+      {description: 'Planificación mensual de contenidos; Reporte de métricas; Community management', quantity: 1, price: 10000, subtotal: 10000},
+      {description: 'Producción de piezas gráficas adicionales', quantity: 3, price: 781.89, subtotal: 2345.67},
     ],
   },
   {
     name: 'Plan archivado sin ítems guardados',
     currency: 'PYG',
-    total: null,
     archived: true,
     notes: 'Sin notas guardadas.',
     items: [],
@@ -291,7 +310,7 @@ const planComparison = `
    <caption>Planes, precios y entregables incluidos</caption>
    <thead><tr><th scope="col">Comparar</th>${comparisonPlans.map(planHeader).join('')}</tr></thead>
    <tbody>
-    <tr class="plan-comparison-total"><th scope="row">Total de ítems <small>Sin IVA</small></th>${comparisonPlans.map((plan) => `<td><strong>${plan.total ?? 'No disponible'}</strong>${plan.items.length ? '' : '<small>Sin ítems guardados</small>'}</td>`).join('')}</tr>
+    <tr class="plan-comparison-total"><th scope="row">Total de ítems <small>Sin IVA</small></th>${comparisonPlans.map((plan) => `<td><strong>${planAmount(planTotal(plan.items), plan.currency)}</strong>${plan.items.length ? '' : '<small>Sin ítems guardados</small>'}</td>`).join('')}</tr>
     <tr><th scope="row">Entregables incluidos</th>${comparisonPlans.map((plan) => `<td>${plan.items.length ? `<ol class="plan-comparison-items">${planItems(plan)}</ol>` : '<span class="plan-comparison-meta">Sin entregables guardados.</span>'}</td>`).join('')}</tr>
     <tr><th scope="row">Condiciones y fuente</th>${comparisonPlans.map((plan) => `<td class="plan-comparison-notes">${plan.notes}</td>`).join('')}</tr>
    </tbody>
@@ -299,21 +318,14 @@ const planComparison = `
  </div>
 </div>`;
 
-/* =============================================== 5. PLANES CUADRÍCULA =====
- * app/suite.tsx CatalogWorkspace kind='plans' line 67 (.ops-grid branch).
+/* ============================================ 5. PLANES SIN CUADRÍCULA ====
+ * `CatalogWorkspace kind='plans'` renders <PlanComparison> only (app/suite.tsx
+ * line 68). The `.ops-grid` branch of the same component belongs to
+ * kind='inventory', which no route calls today (Inventario uses
+ * app/inventory-workspace.tsx), so its `.ops-card.catalog-card` markup is
+ * unreachable. The former `planes-cuadricula` fixture measured that dead markup
+ * and was removed from the registry.
  * ========================================================================= */
-const planCard = ({name, currency, items, archived}) => `
-  <article class="ops-card catalog-card">
-   <header class="catalog-card-head"><h3>${name}</h3><span class="hub-chip">${currency}${archived ? ' · Archivado' : ''}</span></header>
-   <dl class="catalog-card-facts"><div><dt>Ítems</dt><dd>${items}</dd></div><div><dt>Moneda</dt><dd>${currency}</dd></div></dl>
-   <footer class="catalog-card-actions"><button class="icon-button" type="button" title="Editar" aria-label="Editar: ${name}">${svg(I.pencil, 16)}</button>${removeRecordButton('plans', name)}</footer>
-  </article>`;
-
-const planCards = [
-  planCard({name: 'Producción audiovisual integral para campaña de lanzamiento regional · 12 meses', currency: 'PYG', items: 148, archived: false}),
-  planCard({name: 'Retainer mensual de contenidos y social media', currency: 'USD', items: 12, archived: false}),
-  planCard({name: 'Cobertura de evento institucional con transmisión en vivo y postproducción', currency: 'PYG', items: 0, archived: true}),
-].join('');
 
 /* ==================================================== 6. SUPERADMIN =======
  * app/superadmin/page.tsx. StatusBadge 183-195; stats 579-633;
@@ -323,9 +335,9 @@ const badge = (label, tone = 'neutral') => `<span class="platform-admin-badge" d
 
 const platformHeader = `
 <header class="platform-admin-header">
- <a href="#" aria-label="Scale OS"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></a>
+ <a href="/" aria-label="Scale OS"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></a>
  <div class="platform-admin-title"><p class="eyebrow">ADMINISTRACIÓN GLOBAL</p><h1>Control de Scale OS</h1><span>Operación, acceso y catálogo comercial</span></div>
- <div class="platform-admin-actions"><button type="button" class="secondary">${svg(I.refresh, 16)}Actualizar</button><a class="text-button" href="#">${svg(I.arrowLeft, 16)}Panel</a></div>
+ <div class="platform-admin-actions"><button type="button" class="secondary">${svg(I.refresh, 16)}Actualizar</button><a class="text-button" href="/">${svg(I.arrowLeft, 16)}Panel</a></div>
 </header>`;
 
 const platformNotice = `
@@ -409,9 +421,12 @@ ${platformStats}
 </section>`;
 
 const platformUsers = [
-  {email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', agencies: 12, badge: badge('Admin global', 'success'), actions: `<button type="button" class="text-button disabled" disabled>${svg(I.eye, 14)}Solo lectura</button><button type="button" class="text-button" disabled>Quitar acceso</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
-  {email: 'compras@coopservicios.com.py', agencies: 3, badge: badge('Acceso de agencia'), actions: `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">${svg(I.eye, 14)}Solo lectura</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
-  {email: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', agencies: 1, badge: badge('Solo lectura', 'success'), actions: `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button" disabled>Quitar acceso</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
+  /* Self row, writable: badge + "Eliminar mi cuenta" only (page.tsx 974-997). */
+  {email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', agencies: 12, self: true, badge: badge('Admin global', 'success'), actions: `<button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar mi cuenta</button>`},
+  /* Acceso de agencia: "Hacer admin global" + "Solo lectura" + delete (998-1045). */
+  {email: 'compras@coopservicios.com.py', agencies: 3, self: false, badge: badge('Acceso de agencia'), actions: `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">${svg(I.eye, 14)}Solo lectura</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
+  /* Viewer: "Quitar acceso" replaces "Solo lectura" (1000-1031). */
+  {email: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', agencies: 1, self: false, badge: badge('Solo lectura', 'success'), actions: `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">Quitar acceso</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
 ];
 
 const superadminUsers = `
@@ -421,7 +436,7 @@ const superadminUsers = `
   <li class="platform-admin-list-head" aria-hidden="true"><span>Usuario</span><span>Acciones</span></li>
   ${platformUsers.map((person) => `
   <li>
-   <span><b>${person.email}</b><small>${whole(person.agencies)} agencias activas · Vos</small></span>
+   <span><b>${person.email}</b><small>${whole(person.agencies)} agencias activas${person.self ? ' · Vos' : ''}</small></span>
    <div class="platform-admin-user-actions">${person.badge}${person.actions}</div>
   </li>`).join('')}
  </ul>
@@ -437,11 +452,11 @@ const superadminCoupons = `
 <section class="platform-admin-section platform-admin-commercial">
  <div class="platform-admin-section-heading"><div><p class="eyebrow">CUPONES</p><h2>Catálogo comercial</h2></div><small>${whole(coupons.length)} códigos</small></div>
  <form class="platform-admin-coupon">
-  <label>Código<input value="SCALE10" placeholder="SCALE10" maxlength="40"></label>
-  <div class="ops-select"><span class="ops-label" id="coupon-type-label">Tipo</span><button type="button" class="ops-select-trigger" aria-labelledby="coupon-type-label coupon-type-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-type-value">Porcentaje</span>${svg(I.chevronDown, 16)}</button></div>
-  <label>Valor<input value="10" inputmode="decimal"></label>
-  <label>Moneda<input value="USD" maxlength="3"></label>
-  <button class="primary" type="submit" disabled>Crear cupón</button>
+  <label>Código<input value="SCALE10" placeholder="SCALE10" required minlength="3" maxlength="40"></label>
+  <div class="ops-select"><span class="ops-label" id="coupon-type-label">Tipo</span><button type="button" class="ops-select-trigger" aria-labelledby="coupon-type-label coupon-type-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-type-value">Monto fijo</span>${svg(I.chevronDown, 16)}</button></div>
+  <label>Valor<input value="150" inputmode="decimal" maxlength="10" required></label>
+  <div class="ops-select"><span class="ops-label" id="coupon-currency-label">Moneda</span><button type="button" class="ops-select-trigger" aria-labelledby="coupon-currency-label coupon-currency-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-currency-value">USD</span>${svg(I.chevronDown, 16)}</button></div>
+  <button class="primary" disabled>Crear cupón</button>
  </form>
  <ul class="platform-admin-list">
   <li class="platform-admin-list-head" aria-hidden="true"><span>Cupón</span><span>Acciones</span></li>
@@ -467,7 +482,7 @@ const superadminAudit = `
    <thead><tr><th>Fecha</th><th>Actor</th><th>Acción</th><th>Destino</th></tr></thead>
    <tbody>
     ${auditEntries.map((entry) => `
-    <tr><td>${entry.date}</td><td>${entry.actor}</td><td>${entry.action}</td><td>${entry.target}${entry.open ? `<small>${entry.metadata}</small>` : ''}</td></tr>`).join('')}
+    <tr><td>${entry.date}</td><td>${entry.actor}</td><td>${entry.action}</td><td>${entry.target}${entry.open ? `<small title="${entry.metadata.replace(/"/g, '&quot;')}">${entry.metadata}</small>` : ''}</td></tr>`).join('')}
    </tbody>
   </table>
  </div>
@@ -508,8 +523,8 @@ const platformAccessAgencies = [
 ];
 
 const platformAccessPanel = `
-<section class="panel platform-access">
- <div class="panel-heading"><div><p class="eyebrow">SCALE OS</p><h2>Administración global</h2></div><a class="text-button" href="#">Panel completo${svg(I.arrowUpRight, 14)}</a></div>
+<section class="panel platform-access" aria-busy="false">
+ <div class="panel-heading"><div><p class="eyebrow">SCALE OS</p><h2>Administración global</h2></div><a class="text-button" href="https://admin.scaleparaguay.com/" target="_blank" rel="noreferrer">Panel completo${svg(I.arrowUpRight, 14)}</a></div>
  <p class="form-note">Gestioná quién administra Scale OS, quién solo puede ver y qué cuentas y agencias se eliminan. Cada cambio queda auditado.</p>
  <div class="kpi-strip">
   <article class="kpi-card"><span>${svg(I.users, 14)}Usuarios</span><strong>${whole(98765)}</strong></article>
@@ -566,7 +581,7 @@ const topbar = `
   <div class="topbar-identity"><button class="icon-button mobile-menu-trigger" type="button" title="Abrir menú" aria-label="Abrir menú" aria-expanded="false" aria-haspopup="dialog">${svg(I.menu, 22)}</button></div>
   <div class="topbar-workspace-context">
    <div class="topbar-company"><button class="workspace" title="Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima">${svg(I.building, 16)}<span class="company-name">Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima</span></button></div>
-   <div class="topbar-presence" role="group" aria-label="Personas activas en el espacio"><div class="workspace-presence workspace-presence-compact" title="Fredd D., Ana Giménez, Marcos Rojas, Sofía Benítez, +3" aria-label="Fredd D., Ana Giménez, Marcos Rojas, Sofía Benítez, +3"><span class="presence-avatars"><span class="presence-person"><span class="person-container-avatar">FD</span><i data-active="true"></i></span><span class="presence-person"><span class="person-container-avatar">AG</span><i data-active="false"></i></span><span class="presence-person"><span class="person-container-avatar">MR</span><i data-active="true"></i></span><span class="presence-person"><span class="person-container-avatar">SB</span><i data-active="true"></i></span><span class="presence-more" title="+3">+3</span></span></div></div>
+   <div class="topbar-presence" role="group" aria-label="Personas activas en el espacio"><div class="workspace-presence workspace-presence-compact" title="Fredd D., Ana Giménez, Marcos Rojas, Sofía Benítez, Daniela Ayala, Carlos Núñez, Lucía Ortega · 7 en línea" aria-label="Fredd D., Ana Giménez, Marcos Rojas, Sofía Benítez, Daniela Ayala, Carlos Núñez, Lucía Ortega · 7 en línea"><span class="presence-avatars"><span class="presence-person" title="Fredd D. · Activo en este proyecto" aria-label="Fredd D. · Activo en este proyecto"><span aria-hidden="true">FD</span><i data-active="true"></i></span><span class="presence-person" title="Ana Giménez · Viendo este proyecto" aria-label="Ana Giménez · Viendo este proyecto"><span aria-hidden="true">AG</span><i data-active="false"></i></span><span class="presence-person" title="Marcos Rojas · Activo en este proyecto" aria-label="Marcos Rojas · Activo en este proyecto"><span aria-hidden="true">MR</span><i data-active="true"></i></span><span class="presence-person" title="Sofía Benítez · Activo en este proyecto" aria-label="Sofía Benítez · Activo en este proyecto"><span aria-hidden="true">SB</span><i data-active="true"></i></span><span class="presence-more" title="Daniela Ayala, Carlos Núñez, Lucía Ortega">+3</span></span></div></div>
   </div>
  </div>
  <div class="topbar-utilities">
@@ -648,7 +663,7 @@ const notificationInbox = `
     <div class="notification-toolbar"><p role="status">12 sin leer · 4 pendientes</p><div class="notification-actions" aria-label="Acciones de notificaciones"><button type="button" class="icon-button" title="Preferencias" aria-label="Abrir preferencias de notificaciones">${svg(I.settings, 17)}</button><button type="button" class="icon-button notification-action-icon is-confirm" title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas">${svg(I.checkCheck, 18)}</button><button type="button" class="icon-button" title="Actualizar" aria-label="Actualizar notificaciones">${svg(I.refresh, 17)}</button></div></div>
     <p class="form-note">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
     <div class="notification-filters" role="group" aria-label="Filtrar notificaciones"><button type="button" class="choice active" aria-pressed="true">Todas</button><button type="button" class="choice" aria-pressed="false">Sin leer</button><button type="button" class="choice" aria-pressed="false">Pendientes</button><button type="button" class="choice" aria-pressed="false">Resueltas</button></div>
-    <div><div class="notification-list">${notices.map(noticeArticle).join('')}</div></div>
+    <div aria-busy="false"><div class="notification-list">${notices.map(noticeArticle).join('')}</div></div>
     <button type="button" class="secondary">Ver avisos anteriores</button>
    </div>
   </div>
@@ -715,20 +730,6 @@ export default [
     surface: 'Comparación de planes (tabla)',
     kind: 'workspace',
     body: `<div class="ops-stack"><section class="panel">${planComparison}</section></div>`,
-  },
-  {
-    id: 'planes-cuadricula',
-    section: 'Planes',
-    surface: 'Planes reutilizables (cuadrícula)',
-    kind: 'workspace',
-    grids: [{container: '.ops-grid', card: '.catalog-card', label: 'Planes · cuadrícula', minHeight: 200}],
-    body: `
-<div class="ops-stack">
-<section class="panel">
- <div class="panel-heading"><h2>Planes reutilizables</h2><button class="primary">${svg(I.plus, 16)}Agregar</button></div>
- <div class="ops-grid">${planCards}</div>
-</section>
-</div>`,
   },
   {
     id: 'superadmin-agencias',

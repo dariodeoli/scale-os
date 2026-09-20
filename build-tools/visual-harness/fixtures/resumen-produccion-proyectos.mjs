@@ -2,35 +2,41 @@
  * Fixtures: Resumen (centro de control), Producción (tablero), Proyectos y Presupuestos.
  *
  * Markup mirrors the real JSX (file + lines):
- *  - app/control-center.tsx (ControlCenter) líneas 36-68 → .control-signals/.control-signal,
- *    .financial-summary/.section-caption, .financial-strip/.financial-stat/.financial-amounts,
- *    .commercial-bars, .finance-compare, .inventory-summary, .due-alert/.due-details.
+ *  - app/control-center.tsx (ControlCenter) líneas 36-40 → .control-signals/.control-signal,
+ *    41-48 (resumen comercial), 49-61 (.financial-summary/.section-caption, .financial-strip/
+ *    .financial-stat/.financial-amounts, .commercial-bars, .finance-compare, .inventory-summary)
+ *    y 62-68 (.due-alert/.due-details/.due-group).
  *    CSS: app/control-center.css (líneas 39-43, 68-71).
- *  - app/scale-workspace.tsx líneas 1137-1182 → toolbar .production-view-menu.production-toolbar
+ *  - app/scale-workspace.tsx líneas 1139-1156 → toolbar .production-view-menu.production-toolbar
  *    (SelectCustom de app/profile-controls.tsx: .ops-select/.ops-label/.ops-select-trigger),
- *    .production-filters, .production-filter-summary, .panel.production-panel.production-focus,
+ *    .production-filters, .production-filter-summary, .form-note.
+ *  - app/scale-workspace.tsx líneas 1159-1183 → .panel.production-panel.production-focus,
  *    .kanban, .board-note.
- *  - app/production-board.tsx líneas 50-115 → KanbanColumn (.column/.column-title/.dot)
- *    y DraggableOrder (.work-card/.card-top/.card-meta/.order-actions).
+ *  - app/production-board.tsx líneas 42-85 → DraggableOrder (.work-card/.card-top/.card-meta/
+ *    .order-actions) y 86-115 → KanbanColumn (.column/.column-title/.dot).
  *    CSS: app/globals.css (línea 11) + app/production-focus.css (líneas 3, 11).
- *  - app/scale-workspace.tsx líneas 1399-1401 + app/project-card.tsx líneas 24-34 →
+ *  - app/scale-workspace.tsx líneas 1401-1403 + app/project-card.tsx líneas 24-34 →
  *    .project-list/.project-entry-head/.project-entry y .project-grid/.project-entry.
- *    CSS: app/project-card.css + app/ui-system.css (272-344, 356-361).
- *  - app/scale-workspace.tsx líneas 1455-1472 → .budget-hub-grid + article.ops-card.budget-hub-card
- *    con app/suite.tsx (BudgetActions, línea 135) y app/archive-controls.tsx (RemoveRecord).
- *    CSS: app/operations.css (390-407) + app/ui-system.css (219, 272-344).
+ *    CSS: app/project-card.css (10-13, 22-31) + app/ui-system.css (272-344, 356-361).
+ *  - app/scale-workspace.tsx líneas 1457-1473 → .budget-hub-grid + article.ops-card.budget-hub-card
+ *    con app/suite.tsx (BudgetActions, línea 136) y app/archive-controls.tsx (RemoveRecord, 22-37).
+ *    CSS: app/operations.css (406-425) + app/ui-system.css (219, 272-344).
  *
  * Notas de medición:
  *  - `.kanban` es un scroll horizontal intencional (7 carriles de 252-286 px,
  *    overflow-x:auto en app/production-focus.css): NO se declara como lista ni
  *    cuadrícula; su desborde interno sale como 'scrollable' y queda excluido.
  *  - `.project-list` declara template `--project-cols`, rowHeight 44-52 y
- *    exemptBelow 960 (debajo de 960 px el CSS apila la fila a propósito).
+ *    exemptBelow 1240: la tabla completa sólo se muestra cuando entra (≥1241 px);
+ *    por debajo el CSS apila la fila a propósito y la altura no se mide.
  *  - `.project-grid` y `.budget-hub-grid` se declaran como cuadrículas (≥200 px).
  *  - Los <details> de vencimientos van `open`: el detalle sólo es medible abierto
  *    (es un estado real de uso).
+ *  - La tarjeta de presupuesto lleva el importe sin IVA en `.budget-hub-fact-amount`
+ *    (ocupa las dos columnas de la ficha) y con `title`: es el contrato vigente.
  *  - Datos de estrés: nombres largos, Gs 1.234.567.890 / USD 12.345,67, fechas
- *    reales y estados vacíos (Sin Drive, Sin responsables, carriles vacíos, all-clear).
+ *    reales y estados vacíos (Sin Drive, Sin responsables, Responsables no
+ *    disponibles, carriles vacíos, all-clear).
  */
 
 /* Iconos lucide-like recortados para el fixture (misma forma que usa la app). */
@@ -60,23 +66,26 @@ const clientIdentity = (name, initials, color = 'violet', compact = false) =>
   `<span class="client-identity identity-${color}${compact ? ' compact' : ''}"><span class="identity-avatar" aria-hidden="true">${initials}</span><span class="identity-name" title="${name}">${name}</span></span>`;
 
 /* app/assigned-people.tsx líneas 11-17 + app/actor-identity.tsx líneas 16-26 */
-const assignedPeople = (people, label = 'Responsables') => `
-<section class="assigned-people" aria-label="Responsables asignados">
- <span class="assigned-people-label">${label}</span>
- ${people === null || people.length === 0
-    ? '<p class="assigned-people-state">Sin responsables</p>'
-    : `<ul class="assigned-people-list">${people.map((person) => `<li class="assigned-person"><span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${person.initials}</span><span class="actor-identity-details"><span class="actor-identity-name">${person.name}</span></span></span>${person.primary ? '<span class="assigned-person-primary">Principal</span>' : ''}</li>`).join('')}</ul>`}
+const assignedPeople = (people, inherited = false) => `
+<section class="assigned-people" aria-label="${inherited ? 'Responsables del proyecto' : 'Responsables asignados'}">
+ <span class="assigned-people-label">${inherited ? 'Responsables del proyecto' : 'Responsables'}</span>
+ ${people === null || people === undefined
+    ? '<p class="assigned-people-state" role="status">Responsables no disponibles</p>'
+    : people.length === 0
+      ? '<p class="assigned-people-state">Sin responsables</p>'
+      : `<ul class="assigned-people-list">${people.map((person) => `<li class="assigned-person"><span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${person.initials}</span><span class="actor-identity-details"><span class="actor-identity-name">${person.name}</span></span></span>${person.primary ? `<span class="assigned-person-primary">${inherited ? 'Principal del proyecto' : 'Principal'}</span>` : ''}</li>`).join('')}</ul>`}
 </section>`;
 
-/* app/archive-controls.tsx líneas 22-26 */
+/* app/archive-controls.tsx líneas 22-37 (RemoveRecord) */
 const removeRecord = (name) =>
   `<button class="icon-button record-remove" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: ${name}">${svg(16, ICON.trash)}</button>`;
 
-/* app/suite.tsx línea 133 (RecordEditor: Editar + papelera) */
+/* app/suite.tsx línea 134 (RecordEditor: Editar + papelera; el control de revisión
+   del cliente queda fuera: está condicionado por rol y no cambia la fila) */
 const recordEditorIcons = (name) =>
   `<button class="icon-button" type="button" title="Editar" aria-label="Editar ${name}">${svg(16, ICON.pencil)}</button>${removeRecord(name)}`;
 
-/* app/profile-controls.tsx líneas 45-53 (SelectCustom) */
+/* app/profile-controls.tsx líneas 34-59 (SelectCustom) */
 const selectCustom = (label, value, id) => `
 <div class="ops-select">
  <span class="ops-label" id="${id}-label">${label}</span>
@@ -207,7 +216,7 @@ const dueAlertClear = `
 
 /* ---------------------------------------------------------------- Producción */
 
-/* app/production-board.tsx líneas 50-84 (DraggableOrder) */
+/* app/production-board.tsx líneas 42-85 (DraggableOrder) */
 const workCard = (order) => `
 <article class="work-card identity-card identity-${order.color}">
  <div class="card-top">
@@ -222,7 +231,7 @@ const workCard = (order) => `
  <div class="order-actions"><button class="text-button">${svg(14, ICON.pencil)}Editar</button>${removeRecord(order.title)}</div>
 </article>`;
 
-/* app/production-board.tsx líneas 100-114 (KanbanColumn) */
+/* app/production-board.tsx líneas 86-115 (KanbanColumn) */
 const kanbanColumn = (status, orders) => `
 <section class="column">
  <div class="column-title"><span class="dot ${status.tone}"></span><b>${status.label}</b><em>${orders.length}</em></div>
@@ -303,7 +312,7 @@ const productionColumns = [
   {status: {id: 'published', label: 'Publicado', tone: 'green'}, orders: []},
 ];
 
-/* app/scale-workspace.tsx líneas 1137-1181 */
+/* app/scale-workspace.tsx líneas 1139-1156 (toolbar + nota de filtros) */
 const productionToolbar = `
 <div class="production-view-menu production-toolbar">
  ${selectCustom('Vista de Producción', 'Tablero por etapas', 'vw')}
@@ -327,7 +336,7 @@ const productionPanel = `
 
 /* ------------------------------------------------------------------- Proyectos */
 
-/* app/project-card.tsx líneas 24-34 + app/scale-workspace.tsx líneas 773-779 */
+/* app/project-card.tsx líneas 24-34 + app/scale-workspace.tsx líneas 775-781 */
 const projectEntry = (project) => `
 <article class="project-entry" id="project-${project.id}" tabindex="-1">
  <div class="project-entry-title">${project.selectable ? `<label class="select-check" title="Seleccionar proyecto"><input type="checkbox" aria-label="Seleccionar ${project.name}"></label>` : ''}<h3 title="${project.name}">${project.name}</h3>${clientIdentity(project.client.name, project.client.initials, project.client.color)}</div>
@@ -337,7 +346,7 @@ const projectEntry = (project) => `
   <div><dt>Entrega</dt><dd class="list-date"${project.dueTone ? ` data-tone="${project.dueTone}"` : ''}>${project.due || 'Sin fecha'}</dd></div>
   <div><dt>Piezas</dt><dd>${project.pieces}</dd></div>
  </dl>
- <div class="project-entry-assignees">${assignedPeople(project.people, project.peopleSource || 'Responsables')}</div>
+ <div class="project-entry-assignees">${assignedPeople(project.people, project.inherited === true)}</div>
  <div class="project-entry-actions">${project.drive ? `<a href="${project.drive}" target="_blank" rel="noreferrer">Abrir Drive ↗</a>` : '<small>Sin Drive</small>'}<button class="text-button">${svg(14, ICON.messageSquare)} Comentarios</button>${project.manageable ? '<button class="text-button">Archivar</button>' : ''}${project.manageable ? recordEditorIcons(project.name) : ''}</div>
 </article>`;
 
@@ -384,8 +393,8 @@ const projects = [
     due: '14-ago',
     dueTone: '',
     pieces: 0,
-    people: null,
-    peopleSource: 'Responsables del proyecto',
+    people: [],
+    inherited: true,
     drive: null,
     selectable: true,
     manageable: true,
@@ -409,7 +418,7 @@ const projects = [
 
 /* ----------------------------------------------------------------- Presupuestos */
 
-/* app/scale-workspace.tsx líneas 1458-1472 + app/suite.tsx línea 135 (BudgetActions) */
+/* app/scale-workspace.tsx líneas 1457-1473 + app/suite.tsx línea 136 (BudgetActions) */
 const budgetCard = (budget) => `
 <article class="ops-card budget-hub-card">
  <header class="budget-hub-head"><span class="budget-number">${budget.number}</span><span class="budget-state" data-status="${budget.status.key}">${budget.status.label}</span></header>
@@ -418,7 +427,7 @@ const budgetCard = (budget) => `
  <dl class="budget-hub-facts">
   <div><dt>Ítems</dt><dd>${budget.items}</dd></div>
   <div><dt>Vigencia</dt><dd>${budget.validUntil || 'Sin fecha'}</dd></div>
-  <div><dt>Sin IVA</dt><dd>${budget.subtotal}</dd></div>
+  <div class="budget-hub-fact-amount"><dt>Sin IVA</dt><dd title="${budget.subtotal}">${budget.subtotal}</dd></div>
  </dl>
  <strong class="budget-hub-total">${budget.total}<small>IVA incl.</small></strong>
  <footer class="budget-hub-actions"><button class="text-button">${svg(14, ICON.eye)}Abrir presupuesto</button>${removeRecord(budget.title)}</footer>
@@ -504,7 +513,7 @@ export default [
         label: 'Proyectos · lista',
         template: '--project-cols',
         rowHeight: [44, 52],
-        exemptBelow: 960,
+        exemptBelow: 1240,
       },
     ],
     body: `<div class="project-list">${projectHeadRow}${projects.map(projectEntry).join('')}</div>`,

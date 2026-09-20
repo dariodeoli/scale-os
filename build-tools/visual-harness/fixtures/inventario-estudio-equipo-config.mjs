@@ -4,25 +4,30 @@
  * Papelera.
  *
  * Markup mirrored from the real JSX (class names copied verbatim):
- *  - app/inventory-workspace.tsx: EquipmentCard (58-91), InventorySummary (130-135),
- *    list head + rows (300-308), InventoryCalendar (440-447), reservation rows (310)
- *  - app/studio-workspace.tsx: spaces list (35), reservation list/calendar (36, 55)
- *  - app/operations.tsx: people mode (533-617), TeamAccess (app/team-access.tsx 21-25),
- *    PersonContainer (app/person-container.tsx 14-27), avatar (operations.css 64-76)
+ *  - app/inventory-workspace.tsx: VerificationStamp (46-56), EquipmentCard (58-93),
+ *    InventorySummary (121-138), toolbar + list head + rows (300-310),
+ *    reservation rows (312), InventoryCalendar (442-449)
+ *  - app/studio-workspace.tsx: spaces list (35), reservation list (36), calendar (55)
+ *  - app/operations.tsx: people mode (533-624), person-hub card (555-617),
+ *    PhotoViewer (app/photo-viewer.tsx 18-21), avatar (operations.css 64-76)
+ *  - app/team-access.tsx (16-26)
+ *  - app/person-container.tsx (14-27)
  *  - app/invite-links.tsx (18-27)
- *  - app/permissions-matrix.tsx: panel (100-109), explorer (38-62), table (73-93)
+ *  - app/permissions-matrix.tsx: panel (100-109), explorer (37-62), table (73-93)
  *  - app/work-history.tsx (21-27)
- *  - app/suite.tsx: ActivityWorkspace (136-141), SettingsWorkspace (166-191),
- *    CouponRedeem (156-165)
+ *  - app/suite.tsx: ActivityWorkspace (137-142), SettingsWorkspace (167-193),
+ *    CouponRedeem (146-166)
  *  - app/presence.tsx UsagePanel (83-87)
  *  - app/archive-controls.tsx TrashWorkspace (41-62)
- *  - app/scale-workspace.tsx: settings page (1078-1086), preferences card (1087-1090),
- *    papelera (1091)
- *  - app/my-profile.tsx (30-50)
+ *  - app/company-settings.tsx (31-49), app/workspace-guide.tsx NewCompany (61-68)
+ *  - app/scale-workspace.tsx: settings page (1080-1088), preferences card (1089-1092),
+ *    papelera (1093)
+ *  - app/my-profile.tsx (30-49), app/profile-photo.tsx (72-91)
  * CSS contracts cited per fixture: app/inventory-workspace.css,
  * app/studio-workspace.css, app/operations.css, app/invite-links.css,
  * app/permissions-matrix.css, app/work-history.css, app/settings-slice.css,
- * app/my-profile.css y los primitivos de app/ui-system.css.
+ * app/company-settings.css, app/my-profile.css, app/dialog.css y los primitivos
+ * de app/ui-system.css.
  *
  * Datos de estrés deliberados: nombres/correos/seriales largos, montos grandes,
  * fechas con vencimiento, equipos sin foto/serie/verificación y accesos suspendidos.
@@ -70,16 +75,29 @@ const ICON = {
 };
 
 const iconButton = ({title, label, path, tone = '', disabled = false}) => `<button class="icon-button${tone ? ' ' + tone : ''}" type="button" title="${title}" aria-label="${label}"${disabled ? ' disabled' : ''}>${svg(path)}</button>`;
-const actorIdentity = ({name, photo = '', timestamp = '', verified = true, imported = false}) => {
+/* Formatos de app/list-format.tsx: el sello de tiempo del actor se dibuja con
+   listDateFull (24 h, America/Asuncion), nunca con el ISO crudo. */
+const asuncion = 'America/Asuncion';
+const listDateFull = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const day = new Intl.DateTimeFormat('es-PY', {timeZone: asuncion, day: '2-digit', month: 'short', year: '2-digit'}).format(date).replace(/\./g, '');
+  const clock = new Intl.DateTimeFormat('es-PY', {timeZone: asuncion, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'}).format(date).slice(0, 5);
+  return `${day} · ${clock}`;
+};
+const listDateShort = (value) => new Intl.DateTimeFormat('es-PY', {timeZone: asuncion, day: '2-digit', month: 'short'}).format(new Date(`${String(value).slice(0, 10)}T12:00:00Z`)).replace(/\./g, '').replace(/\s+/g, '-');
+const actorIdentity = ({name, photo = '', timestamp = '', timeText = '', verified = true, imported = false}) => {
   const label = name || (imported ? 'Autor importado' : 'Sistema');
   const initials = label.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((word) => Array.from(word)[0]).join('').toLocaleUpperCase('es');
   const avatar = verified && photo ? `<img src="${photo}" alt="" referrerpolicy="no-referrer">` : initials;
-  return `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}">${timestamp}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
+  return `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}">${timeText || listDateFull(timestamp)}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
 };
 const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
 const searchField = ({label, placeholder}) => `<label class="search-field"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
 const amountCell = (text) => `<dd class="list-amount">${text}</dd>`;
+/* app/field-rules.ts: único mensaje de ayuda del teléfono. */
+const PHONE_HELP = 'Elegí el país y escribí solo dígitos, sin el 0 inicial. Paraguay: 9 dígitos para móvil, 8 para fijo; el resto: 6 a 12.';
 
 /* ------------------------------------------------------------- inventario */
 const verificationStamp = ({result, label, verifier, initials, time, stampClass, empty}) => {
@@ -88,7 +106,7 @@ const verificationStamp = ({result, label, verifier, initials, time, stampClass,
   return `<span class="inventory-verify-stamp ${stampClass}" data-result="${result}">
    <span class="inventory-verify-check" role="img" title="Control: ${label}" aria-label="Control: ${label}">${svg(icon, 14)}</span>
    <span class="inventory-control-avatar"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span></span>
-   <span class="inventory-verify-name">${verifier}</span>
+   <span class="inventory-verify-name" title="${verifier}">${verifier}</span>
    <time class="inventory-verify-time" datetime="2026-09-17T09:48:00-03:00">${time}</time>
   </span>`;
 };
@@ -103,12 +121,14 @@ const equipmentCard = ({name, code, photo = '', status, statusLabel, category, c
   </div>
   <span class="inventory-state" data-status="${status}">${statusLabel}</span>
  </div>
- <dl class="inventory-item-facts">
-  <div class="inventory-fact"><dt>Categoría</dt><dd>${categoryIcon}${category}</dd></div>
-  <div class="inventory-fact inventory-fact-location"><dt>Ubicación</dt><dd title="${location}">${location}</dd></div>
-  <div class="inventory-fact"><dt>Serie / IMEI</dt><dd${serial ? ` title="${serial}"` : ''}>${serial ? serialTexto(serial) : 'Sin registrar'}</dd></div>
-  <div class="inventory-fact"><dt>Valor</dt>${amountCell(value)}</div>
- </dl>
+ <div class="inventory-item-facts">
+  <dl class="inventory-facts-inline">
+   <div class="inventory-fact"><dt>Categoría</dt><dd title="${category}">${categoryIcon}${category}</dd></div>
+   <div class="inventory-fact"><dt>Serie / IMEI</dt><dd${serial ? ` title="${serial}"` : ''}>${serial ? serialTexto(serial) : 'Sin registrar'}</dd></div>
+   <div class="inventory-fact"><dt>Valor</dt>${amountCell(value)}</div>
+  </dl>
+  <dl class="inventory-fact inventory-fact-location"><dt>Ubicación</dt><dd title="${location}">${location}</dd></dl>
+ </div>
  <div class="inventory-card-foot">
   <div class="inventory-card-control">
    ${verificationStamp(verification)}
@@ -216,26 +236,34 @@ const inventoryBulkBar = `
 <div class="inventory-bulk-bar" role="status" aria-live="polite">
  <span class="inventory-bulk-count"><b>1</b> seleccionado</span>
  <div class="inline-actions inventory-bulk-actions">
-  <button type="button" class="secondary" disabled>Suspender acceso</button>
-  <button type="button" class="secondary">Reactivar acceso</button>
+  <button type="button" class="secondary">Reservar</button>
+  <button type="button" class="secondary">Verificar</button>
+  <button type="button" class="secondary">Mover ubicación</button>
   <button type="button" class="text-button">Limpiar</button>
  </div>
 </div>`;
 
 const inventoryToolbar = `
-<div class="client-directory-toolbar" aria-label="Controles de inventario">
- <div class="client-directory-toolbar-title"><h1>Inventario</h1><p class="directory-summary" role="status">Mostrando 6 equipos de 6 equipos</p></div>
+<div class="inventory-toolbar">
+ <div class="panel-heading inventory-title-block"><div><h2>Inventario y reservas</h2><p class="form-note">Ubicación registrada y préstamo de equipos por producción.</p></div></div>
+ <div class="inline-actions inventory-header-actions"><button type="button" class="secondary">Agregar equipo</button></div>
+ <div class="inventory-toolbar-meta">
+  <div class="inline-actions inventory-tabs" role="group" aria-label="Vistas de inventario"><button type="button" class="secondary" aria-pressed="true">Equipos</button><button type="button" class="text-button" aria-pressed="false">Calendario y reservas</button></div>
+  <p class="form-note inventory-refresh-note" role="status">Sincroniza cada 30 s mientras esta pestaña esté visible. Actualizado 15:42</p>
+ </div>
  <div class="inventory-toolbar-controls"><div class="inventory-form-grid inventory-filters">${searchField({label: 'Buscar equipo o ubicación', placeholder: 'Memoria, DJI Mic, estante…'})}${selectCustom({label: 'Categoría', value: 'Todas'})}</div>
  <div class="inventory-collection-toolbar"><p class="directory-summary" aria-live="polite">6 equipos visibles</p><div class="inventory-view-options" role="group" aria-label="Vista de inventario">
-  <button type="button" aria-label="Ver como cuadrícula" aria-pressed="true" title="Ver como cuadrícula">${svg(ICON.grid, 18)}</button>
-  <button type="button" aria-label="Ver como lista" aria-pressed="false" title="Ver como lista">${svg(ICON.list, 18)}</button>
+  <button type="button" aria-label="Ver como cuadrícula" aria-pressed="false" title="Ver como cuadrícula">${svg(ICON.grid, 18)}</button>
+  <button type="button" class="active" aria-label="Ver como lista" aria-pressed="true" title="Ver como lista">${svg(ICON.list, 18)}</button>
   <button type="button" aria-label="Ver como pipeline de ubicaciones" aria-pressed="false" title="Ver como pipeline de ubicaciones">${svg(ICON.columns, 18)}</button>
- </div><button type="button" class="text-button inventory-select-visible">Seleccionar visibles</button></div></div>
+ </div><button type="button" class="text-button inventory-select-visible">Seleccionar visibles</button></div>
+ ${inventoryBulkBar}
+ </div>
 </div>`;
 
 const inventoryEquipmentHead = '<div class="inventory-equipment-head" aria-hidden="true"><span>Foto</span><span></span><span>Artículo</span><span>Detalles</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span>Acciones</span></div>';
 
-/* Reservas y calendario (app/inventory-workspace.tsx 310, 440-447). */
+/* Reservas y calendario (app/inventory-workspace.tsx 312, 442-449). */
 const reservationRow = ({title, status, statusLabel, project, dates, items, responsibles, returns, actions = '', audit = ''}) => `
 <article class="inventory-reservation" data-status="${status}">
  <div class="inventory-reservation-title"><h3 title="${title}">${title}</h3><span class="inventory-status inventory-status-${status}">${statusLabel}</span></div>
@@ -418,18 +446,20 @@ const studioCalendar = (() => {
 })();
 
 /* ---------------------------------------------------------------- equipo */
-const personFacts = ({email, accessRole, accessState, startedOn}) => `<dl class="person-hub-facts">
+/* El perfil laboral reserva las tres filas (Correo, Acceso, Ingreso); el miembro
+   sin ficha solo muestra Correo y Acceso (operations.tsx 572-605). */
+const personFacts = ({email, accessRole, accessState, startedOn}, member = false) => `<dl class="person-hub-facts">
  <div class="person-hub-fact-wide"><dt>Correo</dt><dd title="${email}">${email}</dd></div>
  <div><dt>Acceso</dt><dd title="${accessRole} · ${accessState}">${accessRole} · ${accessState}</dd></div>
- <div><dt>Ingreso</dt><dd class="list-date">${startedOn || 'Sin fecha'}</dd></div>
+ ${member ? '' : `<div><dt>Ingreso</dt><dd class="list-date">${startedOn || 'Sin fecha'}</dd></div>`}
 </dl>`;
 const teamAccess = ({statusLabel, statusClass, action}) => `<section class="team-access" aria-label="Acceso al panel">
  <header class="team-access-header"><h3>Acceso al panel</h3><span class="team-access-status ${statusClass}" data-access-state="${statusClass.slice(3)}">${statusLabel}</span></header>
  ${action ? `<div class="team-access-actions"><button type="button" class="secondary">${action}</button></div>` : ''}
 </section>`;
-const personActions = ({profile = true, remove = true}) => `<footer class="person-hub-actions">
- <div class="person-hub-buttons">${profile ? `<button class="text-button">${svg(ICON.pencil, 14)}Perfil</button>` : ''}</div>
- ${remove ? `<div class="ops-card-actions">${iconButton({title: 'Mover a la papelera', label: 'Mover a la papelera: ficha', path: ICON.trash, tone: 'record-remove'})}</div>` : ''}
+const personActions = (person) => `<footer class="person-hub-actions">
+ <div class="person-hub-buttons">${person.actions.profile ? `<button class="text-button">${svg(ICON.pencil, 14)}Perfil</button>` : ''}</div>
+ ${person.actions.remove ? `<div class="ops-card-actions">${iconButton({title: 'Mover a la papelera', label: `Mover a la papelera: ${person.name}`, path: ICON.trash, tone: 'record-remove'})}</div>` : ''}
 </footer>`;
 
 const people = [
@@ -440,7 +470,7 @@ const people = [
     role: 'Gerencia',
     state: 'Activo',
     facts: {email: 'maria.jose.fernandez.delavega@estudiocomunicacionparaguay.com.py', accessRole: 'Gerencia', accessState: 'Acceso habilitado', startedOn: '14-mar'},
-    chips: '<span class="person-hub-comp">Relación de dependencia</span><span class="hub-chip">Día de pago 15</span><span class="hub-chip">Emite factura</span>',
+    chips: '<span class="person-hub-comp">Fijo mensual</span><span class="hub-chip">Día de pago 15</span><span class="hub-chip">Emite factura</span>',
     notes: 'Coordina la planificación trimestral de producción, el calendario de rodajes y la relación con los clientes de mayor volumen.',
     access: {statusLabel: 'Acceso habilitado', statusClass: 'is-active', action: ''},
     actions: {profile: true, remove: true},
@@ -464,7 +494,7 @@ const people = [
     role: 'Finanzas',
     state: 'Activo',
     facts: {email: 'ana.paula.benitez.delacruz@estudiocomunicacionparaguay.com.py', accessRole: 'Finanzas', accessState: 'Acceso habilitado', startedOn: '20-jul-2023'},
-    chips: '<span class="person-hub-comp">Relación de dependencia</span><span class="hub-chip">Día de pago 5</span><span class="hub-chip">Emite factura</span>',
+    chips: '<span class="person-hub-comp">Fijo mensual</span><span class="hub-chip">Día de pago 5</span><span class="hub-chip">Emite factura</span>',
     notes: '',
     access: {statusLabel: 'Acceso habilitado', statusClass: 'is-active', action: ''},
     actions: {profile: true, remove: true},
@@ -485,9 +515,9 @@ const people = [
     name: 'Ramón Augusto Villalba de Jesús',
     photo: '',
     memberActive: false,
-    accessRole: 'Edición',
+    accessRole: 'Editor',
     accessState: 'Acceso suspendido',
-    facts: {email: 'ramon.augusto.villalba.dejesus@estudiocomunicacionparaguay.com.py', accessRole: 'Edición', accessState: 'Acceso suspendido', startedOn: ''},
+    facts: {email: 'ramon.augusto.villalba.dejesus@estudiocomunicacionparaguay.com.py', accessRole: 'Editor', accessState: 'Acceso suspendido', startedOn: ''},
     access: {statusLabel: 'Acceso suspendido', statusClass: 'is-suspended', action: 'Reinvitar'},
     actions: {profile: false, remove: false},
   },
@@ -495,15 +525,22 @@ const people = [
 
 const personCard = (person, list = false) => {
   const isMember = person.kind === 'member';
+  // En lista la app baja foto y contenedor a 32px (PhotoViewer size / PersonContainer md);
+  // en cuadrícula usa 48px (operations.tsx 561, 599).
+  const avatarSize = list ? 32 : 48;
+  const initials = person.name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase();
   const avatar = isMember
-    ? `<div class="ops-person"><span class="person-container person-container-lg"><span class="person-container-avatar" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : person.name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase()}</span><span class="person-container-details"><span class="person-container-name">${person.name}</span></span></span></div>`
-    : `<div class="ops-person">${person.photo ? `<button type="button" class="photo-preview-button" style="width:48px;height:48px" aria-label="Ampliar foto de ${person.name}"><img src="${person.photo}" alt="Foto de ${person.name}" referrerpolicy="no-referrer"><span aria-hidden="true">${svg(ICON.zoomIn, 13)}</span></button>` : `<span class="avatar">${person.name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase()}</span>`}<div><h3 title="${person.name}">${person.name}</h3><small>${person.role}</small></div></div>`;
+    ? `<div class="ops-person"><span class="person-container person-container-${list ? 'md' : 'lg'}"><span class="person-container-avatar" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : initials}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span></span></span></div>`
+    : `<div class="ops-person">${person.photo ? `<button type="button" class="photo-preview-button" style="width:${avatarSize}px;height:${avatarSize}px" aria-label="Ampliar foto de ${person.name}"><img src="${person.photo}" alt="Foto de ${person.name}" referrerpolicy="no-referrer"><span aria-hidden="true">${svg(ICON.zoomIn, 13)}</span></button>` : `<span class="avatar">${initials}</span>`}<div><h3 title="${person.name}">${person.name}</h3><small>${person.role}</small></div></div>`;
   const stateLabel = isMember ? (person.memberActive ? 'Acceso activo' : 'Acceso suspendido') : person.state;
   const stateAttr = isMember ? (person.memberActive ? 'active' : 'inactive') : (person.state === 'Activo' ? 'active' : 'inactive');
   const chips = isMember
     ? '<div class="person-hub-chips"><span class="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>'
     : `<div class="person-hub-chips">${person.chips}</div>`;
-  const tail = `<div class="person-hub-tail">${teamAccess(person.access)}${person.notes ? `<p class="ops-note-preview">${person.notes}</p>` : ''}${isMember ? `<footer class="person-hub-actions"><div class="person-hub-buttons"><button class="text-button">${svg(ICON.plus, 14)}Agregar ficha laboral</button><button class="text-button">${svg(ICON.pencil, 14)}Editar</button></div></footer>` : personActions(person.actions)}</div>`;
+  // Las notas son hijas directas de la tarjeta: en lista ocupan la fila 2
+  // (.person-hub-card.is-list>.ops-note-preview) y nunca viajan dentro del pie.
+  const note = person.notes ? `<p class="ops-note-preview" title="${person.notes}">${person.notes}</p>` : '';
+  const tail = `<div class="person-hub-tail">${teamAccess(person.access)}${isMember ? `<footer class="person-hub-actions"><div class="person-hub-buttons"><button class="text-button">${svg(ICON.plus, 14)}Agregar ficha laboral</button><button class="text-button">${svg(ICON.pencil, 14)}Editar</button></div></footer>` : personActions(person)}</div>`;
   return `
 <article class="ops-card person-hub-card${list ? ' is-list' : ''}">
  <header class="person-hub-head">
@@ -511,19 +548,22 @@ const personCard = (person, list = false) => {
   ${avatar}
   <span class="person-hub-state" data-state="${stateAttr}">${stateLabel}</span>
  </header>
- ${personFacts(person.facts)}
+ ${personFacts(person.facts, isMember)}
  ${chips}
+ ${note}
  ${tail}
 </article>`;
 };
 
 /* ----------------------------------------------------------- invitaciones */
-const inviteHead = '<div class="invite-link-head" aria-hidden="true"><span>Solicitud</span><span>Acciones</span></div>';
+/* El encabezado nombra la columna de cada lista: «Solicitud» en solicitudes y
+   «Enlace» en enlaces recientes (invite-links.tsx 22-27). */
+const inviteHead = (label) => `<div class="invite-link-head" aria-hidden="true"><span>${label}</span><span>Acciones</span></div>`;
 const inviteRequests = [
   {
     actor: 'Ramón Augusto Villalba de Jesús',
     email: 'ramon.augusto.villalba.dejesus@estudiocomunicacionparaguay.com.py',
-    role: 'Edición',
+    role: 'Editor',
     status: 'pending',
     timestamp: '2026-09-18T10:24:00-03:00',
     unavailable: '',
@@ -531,7 +571,7 @@ const inviteRequests = [
   {
     actor: 'Lucía Fernanda Centurión Aquino',
     email: 'lucia.fernanda.centurion.aquino@productora-paraguay.com.py',
-    role: 'Lectura',
+    role: 'Solo lectura',
     status: 'unavailable',
     timestamp: '2026-09-11T16:02:00-03:00',
     unavailable: 'Solicitud no disponible. El enlace venció.',
@@ -547,51 +587,49 @@ const inviteLinks = [
   {
     role: 'Producción',
     mode: 'Un solo uso',
-    state: 'Vence 27-sept',
+    expires: '2026-09-27',
     meta: '0 clics · 0 cuentas creadas',
     actor: 'María José Fernández de la Vega y Rivarola',
     joined: [],
-    action: 'Revocar',
-    deleteButton: false,
   },
   {
-    role: 'Lectura',
+    role: 'Solo lectura',
     mode: 'Con aprobación',
-    state: 'Utilizado',
+    used: true,
     meta: '48 clics · 3 cuentas creadas',
     actor: 'Ana Paula Benítez de la Cruz',
     joined: [
       {name: 'Ramón Augusto Villalba de Jesús', email: 'ramon.augusto.villalba.dejesus@estudiocomunicacionparaguay.com.py', timestamp: '2026-08-30T09:12:00-03:00'},
       {name: 'Lucía Fernanda Centurión Aquino', email: 'lucia.fernanda.centurion.aquino@productora-paraguay.com.py', timestamp: '2026-08-30T09:40:00-03:00'},
     ],
-    action: 'Copiar enlace',
-    deleteButton: true,
   },
   {
     role: 'Colaborador',
     mode: 'Un solo uso',
-    state: 'Revocado',
+    revoked: true,
     meta: '12 clics · 0 cuentas creadas',
     actor: 'Fabrizio Dellacasa Reyes',
     joined: [],
-    action: 'Copiar enlace',
-    deleteButton: true,
   },
 ];
+const inviteLinkState = (link) => link.revoked ? 'Revocado' : link.used ? 'Utilizado' : `Vence ${listDateShort(link.expires)}`;
+/* Eliminar solo aparece cuando el enlace está agotado o revocado y nadie se unió;
+   los que tuvieron ingresos conservan su historial (invite-links.tsx 27). */
 const inviteLinkRow = (link) => `
 <article class="payment-row invite-link-row">
  <div class="invite-link-person">
   <strong>${link.role} · ${link.mode}</strong>
-  <p>${link.state} · ${link.meta}</p>
+  <p>${inviteLinkState(link)} · ${link.meta}</p>
   <p>Creado por ${actorIdentity({name: link.actor, photo: '', verified: false})}</p>
   ${link.joined.length ? `<div class="invite-link-joined"><small>Usuarios que se unieron</small>${link.joined.map((join) => `<p>${actorIdentity({name: join.name, photo: '', timestamp: join.timestamp})}</p>`).join('')}</div>` : '<small>Ningún usuario se unió todavía.</small>'}
  </div>
- <div class="actions invite-link-actions"><button class="secondary">${svg(ICON.copy, 16)}${link.action}</button>${link.deleteButton ? `<button class="text-button invite-link-delete">${svg(ICON.trash, 16)}Eliminar</button>` : `<button class="text-button">${svg(ICON.x, 16)}Revocar</button>`}</div>
+ <div class="actions invite-link-actions"><button class="secondary">${svg(ICON.copy, 16)}Copiar enlace</button>${!link.joined.length && (link.revoked || link.used) ? `<button class="text-button invite-link-delete">${svg(ICON.trash, 16)}Eliminar</button>` : !link.joined.length ? `<button class="text-button">${svg(ICON.x, 16)}Revocar</button>` : ''}</div>
 </article>`;
 
 /* --------------------------------------------------- roles y permisos */
 const permissionRoles = ['owner', 'admin', 'management', 'finance', 'sales', 'production', 'editor', 'viewer', 'collaborator'];
-const roleLabels = {owner: 'Dueño', admin: 'Administración', management: 'Gerencia', finance: 'Finanzas', sales: 'Comercial', production: 'Producción', editor: 'Edición', viewer: 'Lectura', collaborator: 'Colaborador'};
+/* Etiquetas de app/team-directory.ts (fuente única de cargos). */
+const roleLabels = {owner: 'Dueño', admin: 'Administrador', management: 'Gerencia', finance: 'Finanzas', sales: 'Ventas', production: 'Producción', editor: 'Editor', viewer: 'Solo lectura', collaborator: 'Colaborador'};
 const permissionGroups = [
   {name: 'Panel', rows: [
     {id: 'dashboard.view', label: 'Ver el resumen operativo de la empresa', description: 'Tablero con piezas por etapa, señales y control center.', defaults: permissionRoles, allowed: permissionRoles},
@@ -613,7 +651,7 @@ const permissionRow = (row) => `<tr>
  ${permissionRoles.map((role) => {
     const checked = row.allowed.includes(role);
     const isDefault = row.defaults.includes(role);
-    return `<td><label class="permissions-check"><input type="checkbox"${checked ? ' checked' : ''} disabled aria-label="${row.label} · ${roleLabels[role]}"><span class="permissions-state ${checked ? 'is-allowed' : 'is-denied'} ${checked === isDefault ? 'is-default' : 'is-override'}" aria-hidden="true">${checked ? '✓' : '×'}</span></label></td>`;
+    return `<td><label class="permissions-check"><input type="checkbox"${checked ? ' checked' : ''} aria-label="${row.label} · ${roleLabels[role]}"><span class="permissions-state ${checked ? 'is-allowed' : 'is-denied'} ${checked === isDefault ? 'is-default' : 'is-override'}" aria-hidden="true">${checked ? '✓' : '×'}</span></label></td>`;
   }).join('')}
 </tr>`;
 const permissionsTable = `
@@ -623,8 +661,8 @@ const permissionsTable = `
 </table></div>`;
 
 /* ---------------------------------------------------- historial / actividad */
-const historyLine = ({actor, photo = '', title, meta}) => `<article class="activity-line">
- <div class="history-author">${actorIdentity({name: actor, photo})}</div>
+const historyLine = ({actor, photo = '', timestamp, title, meta}) => `<article class="activity-line">
+ <div class="history-author">${actorIdentity({name: actor, photo, timestamp})}</div>
  <p>${title}</p>
  <small>${meta}</small>
 </article>`;
@@ -641,16 +679,22 @@ const usageCards = [
 ];
 
 /* --------------------------------------------------------- configuración */
-const settingsField = ({label, value, optional = false, help = '', wide = false, control = 'input', type = 'text'}) => `<div${wide ? ' class="ops-wide"' : ''}>
- <label><span>${label}${optional ? '<span class="field-optional"> · Opcional</span>' : ''}</span>
-  ${control === 'select'
-    ? selectCustom({label, value})
-    : control === 'phone'
-      ? `<span class="phone-input"><select aria-label="Código de país" disabled><option value="+595">Paraguay +595</option></select><input type="tel" inputmode="tel" autocomplete="tel-national" maxlength="18" value="${value}"></span>`
-      : `<input type="${type}" value="${value}">`}
+/* El Editor dibuja el campo de texto dentro de su <label>; los campos con
+   `choices` van directo como SelectCustom y el teléfono usa PhoneField
+   (operations.tsx 119-133, phone-field.tsx 20-25). */
+const settingsField = ({label: fieldLabel, value, optional = false, help = '', wide = false, control = 'input', type = 'text'}) => {
+  const optionalMark = optional ? '<span class="field-optional"> · Opcional</span>' : '';
+  if (control === 'select') return `<div${wide ? ' class="ops-wide"' : ''}>${selectCustom({label: `${fieldLabel}${optional ? ' · Opcional' : ''}`, value})}</div>`;
+  const inner = control === 'phone'
+    ? `<span class="phone-input"><select aria-label="Código de país"><option value="+595">🇵🇾 +595</option></select><input id="settings-phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="981 123 456" maxlength="18" value="${value}"></span>`
+    : `<input id="settings-${fieldLabel.toLowerCase().replace(/[^a-z]+/g, '-')}" type="${type}" value="${value}">`;
+  return `<div${wide ? ' class="ops-wide"' : ''}>
+ <label><span>${fieldLabel}${optionalMark}</span>
+  ${inner}
  </label>
  ${help ? `<small class="field-help">${help}</small>` : ''}
 </div>`;
+};
 
 const integrationRow = (name, description, status) => `<article role="listitem"><div><strong>${name}</strong><p>${description}</p></div><span class="settings-status">${status}</span></article>`;
 const companySettingsRows = [
@@ -661,7 +705,7 @@ const companySettingsRows = [
 const companySettingsRow = (company) => `<article class="company-settings-row${company.current ? ' is-current' : ''}${company.preferred ? ' is-default' : ''}">
  <span class="company-settings-icon">${svg(ICON.building, 20)}</span>
  <div class="company-settings-name"><strong>${company.name}</strong><div class="company-settings-meta"><span>${company.role}</span>${company.current ? '<span class="company-settings-state">Empresa abierta</span>' : ''}</div></div>
- <div class="company-settings-actions">${company.current ? '' : '<button class="secondary company-settings-open">Abrir</button>'}<button class="secondary company-settings-default" aria-label="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}" aria-pressed="${company.preferred}" title="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}">${svg(ICON.star, 16)}<span class="company-settings-sr-only">${company.preferred ? 'Predeterminada' : 'Usar al iniciar sesión'}</span></button></div>
+ <div class="company-settings-actions">${company.current ? '' : '<button class="secondary company-settings-open">Abrir</button>'}<button class="secondary company-settings-default" aria-label="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}" aria-pressed="${company.preferred}" title="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="${company.preferred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.star}</svg><span class="company-settings-sr-only">${company.preferred ? 'Predeterminada' : 'Usar al iniciar sesión'}</span></button></div>
 </article>`;
 
 /* --------------------------------------------------------------- papelera */
@@ -696,14 +740,15 @@ export default [
       exemptBelow: 940,
     }],
     body: `
-<section class="panel inventory-workspace">${inventoryToolbar}
-${inventoryBulkBar}
-${equipmentSummary}
-<div class="inventory-equipment-grid inventory-equipment-list">
- ${inventoryEquipmentHead}
- ${equipment.map((item) => equipmentCard(item)).join('')}
-</div>
-</section>`,
+<div class="ops-stack inventory-workspace">
+ <section class="panel">${inventoryToolbar}
+ ${equipmentSummary}
+ <div class="inventory-equipment-grid inventory-equipment-list">
+  ${inventoryEquipmentHead}
+  ${equipment.map((item) => equipmentCard(item)).join('')}
+ </div>
+ </section>
+</div>`,
   },
 
   {
@@ -730,10 +775,13 @@ ${equipmentSummary}
       exemptBelow: 940,
     }],
     body: `
-<section class="panel inventory-workspace">
- <div class="panel-heading"><div><h2>Calendario y reservas</h2><p class="form-note">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p></div></div>
- <div class="inventory-reservation-list">${reservationHead}${reservations.map(reservationRow).join('')}</div>
-</section>`,
+<div class="ops-stack inventory-workspace">
+ <section class="panel">
+  <label class="inventory-month">Mes del calendario<input type="month" value="2026-09" min="1900-01" max="9998-12"></label>
+  <p class="form-note">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p>
+  <div class="inventory-reservation-list">${reservationHead}${reservations.map(reservationRow).join('')}</div>
+ </section>
+</div>`,
   },
 
   {
@@ -743,7 +791,7 @@ ${equipmentSummary}
     kind: 'workspace',
     lists: [],
     grids: [],
-    body: `<section class="panel inventory-workspace">${inventoryCalendar}</section>`,
+    body: `<div class="ops-stack inventory-workspace"><section class="panel">${inventoryCalendar}</section></div>`,
   },
 
   {
@@ -753,10 +801,12 @@ ${equipmentSummary}
     kind: 'workspace',
     grids: [{container: '.studio-spaces', card: '.studio-space', label: 'Estudio · espacios', minHeight: 190}],
     body: `
-<section class="panel studio-workspace">
- <div class="panel-heading"><div><h2>Estudio y reservas</h2><p class="form-note">Espacios, escenarios y franjas de producción. No reserva ni retira equipos.</p></div><div class="inline-actions"><button class="secondary">Agregar espacio</button><button class="primary">Nueva reserva</button></div></div>
- <div class="studio-spaces">${studioSpaces.map(studioSpaceCard).join('')}</div>
-</section>`,
+<div class="studio-workspace ops-stack">
+ <section class="panel">
+  <div class="panel-heading"><div><h2>Estudio y reservas</h2><p class="form-note">Espacios, escenarios y franjas de producción. No reserva ni retira equipos.</p></div><div class="inline-actions"><button class="secondary">Agregar espacio</button><button class="primary">Nueva reserva</button></div></div>
+  <div class="studio-spaces">${studioSpaces.map(studioSpaceCard).join('')}</div>
+ </section>
+</div>`,
   },
 
   {
@@ -774,14 +824,16 @@ ${equipmentSummary}
       exemptBelow: 980,
     }],
     body: `
-<section class="panel studio-workspace">
- <div class="panel-heading"><div><h2>Calendario del estudio</h2><p class="form-note">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p></div><label class="studio-month">Mes<input type="month" value="2026-09"></label></div>
- ${studioCalendar}
- <div class="studio-reservation-list">
-  <div class="studio-reservation-head" aria-hidden="true"><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span>Acciones</span></div>
-  ${studioReservations.map(studioReservationRow).join('')}
- </div>
-</section>`,
+<div class="studio-workspace ops-stack">
+ <section class="panel">
+  <div class="panel-heading"><div><h2>Calendario del estudio</h2><p class="form-note">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p></div><label class="studio-month">Mes<input type="month" value="2026-09"></label></div>
+  ${studioCalendar}
+  <div class="studio-reservation-list">
+   <div class="studio-reservation-head" aria-hidden="true"><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span>Acciones</span></div>
+   ${studioReservations.map(studioReservationRow).join('')}
+  </div>
+ </section>
+</div>`,
   },
 
   {
@@ -842,7 +894,7 @@ ${equipmentSummary}
  <header class="invite-links-header"><div><p class="invite-links-kicker">Acceso de equipo</p><h2>${svg(ICON.link2, 20)} Invitaciones y solicitudes</h2><p class="form-note">Atendé las solicitudes pendientes, generá enlaces temporales y limpiá los que ya cumplieron su ciclo.</p></div></header>
  <div class="invite-links-section" aria-labelledby="invite-requests-heading">
   <div class="invite-links-section-heading"><div class="invite-links-section-title"><h3 id="invite-requests-heading">${svg(ICON.userCheck, 18)} Solicitudes</h3><p class="form-note">Aprobá solo los accesos disponibles.</p></div><span class="invite-links-count invite-links-count-live" aria-label="2 solicitudes pendientes">2</span></div>
-  ${inviteHead}
+  ${inviteHead('Solicitud')}
   ${inviteRequests.map(inviteRequestRow).join('')}
  </div>
 </section>`,
@@ -866,7 +918,7 @@ ${equipmentSummary}
 <section class="panel ops-stack invite-links">
  <div class="invite-links-recent">
   <div class="invite-links-section-heading"><div class="invite-links-section-title"><h3>${svg(ICON.link2, 18)} Enlaces recientes</h3><p class="form-note">Los enlaces agotados o revocados se pueden eliminar; los que tuvieron ingresos conservan su historial.</p></div><span class="invite-links-count">3</span></div>
-  ${inviteHead}
+  ${inviteHead('Enlace')}
   ${inviteLinks.map(inviteLinkRow).join('')}
  </div>
 </section>`,
@@ -882,12 +934,12 @@ ${equipmentSummary}
     body: `
 <section class="panel" aria-labelledby="roles-permissions-title">
  <div class="panel-heading"><div><p class="eyebrow">EQUIPO</p><h2 id="roles-permissions-title">Roles y permisos</h2></div></div>
- <div class="permissions-matrix">
+ <div class="permissions-matrix" aria-busy="false">
   <p class="form-note">${svg(ICON.shield, 16)} Definí qué puede hacer cada cargo. El Dueño siempre conserva todos los permisos. Los cambios se guardan por empresa y se auditan.</p>
   <p role="status" class="permissions-notice">Permiso guardado. Los cambios se aplican desde la próxima acción de esa persona.</p>
   <div class="permissions-explorer">
    <details class="permissions-role-card" open>
-    <summary><span class="permissions-role-name">Gerencia</span><span class="permissions-role-description">Gerencia: dirige clientes, proyectos, producción y la operación comercial.</span><span class="permissions-role-count">7 de 9</span>${svg(ICON.chevron, 16)}</summary>
+    <summary><span class="permissions-role-name">Gerencia</span><span class="permissions-role-description">Gerencia: dirige clientes, proyectos, producción y la operación comercial.</span><span class="permissions-role-count">7 de 9</span><svg class="permissions-role-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.chevron}</svg></summary>
     <div class="permissions-role-lists">
      <div><h4>Qué puede hacer</h4><ul>
       <li><b>Gestionar clientes, planes y presupuestos</b><small>Alta, edición, plan contratado y presupuestos del cliente.</small></li>
@@ -900,8 +952,8 @@ ${equipmentSummary}
      </ul></div>
     </div>
    </details>
-   <details class="permissions-role-card"><summary><span class="permissions-role-name">Finanzas</span><span class="permissions-role-description">Finanzas: administra pagos, informes, Equipo y comisiones.</span><span class="permissions-role-count">6 de 9</span>${svg(ICON.chevron, 16)}</summary></details>
-   <details class="permissions-role-card"><summary><span class="permissions-role-name">Colaborador</span><span class="permissions-role-description">Colaborador: trabaja clientes, proyectos, producción, presupuestos, pipeline, estudio e inventario sin ver finanzas, salarios, accesos ni actividad.</span><span class="permissions-role-count">4 de 9</span>${svg(ICON.chevron, 16)}</summary></details>
+   <details class="permissions-role-card"><summary><span class="permissions-role-name">Finanzas</span><span class="permissions-role-description">Finanzas: administra pagos, informes, Equipo y comisiones.</span><span class="permissions-role-count">6 de 9</span><svg class="permissions-role-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.chevron}</svg></summary></details>
+   <details class="permissions-role-card"><summary><span class="permissions-role-name">Colaborador</span><span class="permissions-role-description">Colaborador: trabaja clientes, proyectos, producción, presupuestos, pipeline, estudio e inventario sin ver finanzas, salarios, accesos ni actividad.</span><span class="permissions-role-count">4 de 9</span><svg class="permissions-role-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.chevron}</svg></summary></details>
   </div>
   ${permissionsTable}
   <div class="inline-actions permissions-reset"><button type="button" class="text-button">Restablecer todos los permisos por defecto</button></div>
@@ -932,10 +984,10 @@ ${equipmentSummary}
   ${selectCustom({label: 'Registros por página', value: '100'})}
  </div>
  <div aria-busy="false">
-  ${historyLine({actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', title: 'Rodaje campaña Primavera 2026 · Banco Atlas (estudio y exteriores)', meta: 'Creó ·  → reservado'})}
-  ${historyLine({actor: 'Fabrizio Dellacasa Reyes', title: 'Cámara Sony FX6 Full Frame con montura E, visor OLED y tarjeta CFexpress de 512 GB', meta: 'Actualizó · disponible → en uso'})}
-  ${historyLine({actor: 'Ana Paula Benítez de la Cruz', photo: '/brand/icon-192.png', title: 'Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido)', meta: 'Actualizó · en uso → mantenimiento'})}
-  ${historyLine({actor: 'Carlos Ramón Ovelar Giménez', title: 'Presupuesto N.º 2026-0148 · Producción audiovisual integral y difusión en vía pública', meta: 'Eliminó'})}
+  ${historyLine({actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-09-18T16:20:00-03:00', title: 'Rodaje campaña Primavera 2026 · Banco Atlas (estudio y exteriores)', meta: 'Creó ·  → reservado'})}
+  ${historyLine({actor: 'Fabrizio Dellacasa Reyes', timestamp: '2026-09-17T09:48:00-03:00', title: 'Cámara Sony FX6 Full Frame con montura E, visor OLED y tarjeta CFexpress de 512 GB', meta: 'Actualizó · disponible → en uso'})}
+  ${historyLine({actor: 'Ana Paula Benítez de la Cruz', photo: '/brand/icon-192.png', timestamp: '2026-09-16T15:10:00-03:00', title: 'Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido)', meta: 'Actualizó · en uso → mantenimiento'})}
+  ${historyLine({actor: 'Carlos Ramón Ovelar Giménez', timestamp: '2026-09-15T11:02:00-03:00', title: 'Presupuesto N.º 2026-0148 · Producción audiovisual integral y difusión en vía pública', meta: 'Eliminó'})}
  </div>
  <div class="history-pagination"><span role="status">1–4</span><button class="secondary" disabled>Anterior</button><button class="secondary">Siguiente</button></div>
 </section>`,
@@ -958,12 +1010,12 @@ ${equipmentSummary}
     body: `
 <section class="panel activity-feed">
  <div class="panel-heading"><div><h2>Actividad del equipo</h2><p class="form-note">Últimos 6 cambios registrados por el servidor en esta empresa. Se muestran 6.</p></div></div>
- ${activityDay({label: 'mié, 17 sept', count: 3, rows: [
+ ${activityDay({label: 'jue, 17 sept.', count: 3, rows: [
    {actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-09-17T14:30:00-03:00', table: 'inventory_reservations', operation: 'INSERT', record: '4821'},
    {actor: 'Fabrizio Dellacasa Reyes', timestamp: '2026-09-17T11:12:00-03:00', table: 'inventory', operation: 'UPDATE', record: '341'},
    {actor: 'Ana Paula Benítez de la Cruz', timestamp: '2026-09-17T09:05:00-03:00', table: 'clients', operation: 'UPDATE', record: '88'},
  ]})}
- ${activityDay({label: 'mar, 16 sept', count: 3, rows: [
+ ${activityDay({label: 'mié, 16 sept.', count: 3, rows: [
    {actor: 'Carlos Ramón Ovelar Giménez', timestamp: '2026-09-16T18:44:00-03:00', table: 'work_orders', operation: 'UPDATE', record: '1502'},
    {actor: 'Lucía Fernanda Centurión Aquino', timestamp: '2026-09-16T10:20:00-03:00', table: 'studio_reservations_cancelled', operation: 'DELETE', record: '212'},
    {actor: 'Sistema', timestamp: '2026-09-16T03:00:00-03:00', table: 'exchange_rates', operation: 'INSERT', record: '59'},
@@ -982,7 +1034,7 @@ ${equipmentSummary}
 <section class="panel usage-panel">
  <h2>Uso del equipo</h2>
  <p class="form-note">Solo para dueños · Últimos 30 días. Se registra desde la activación de esta función; no reconstruye accesos anteriores.</p>
- <p class="form-note">Tiempo activo estimado: ventana visible e interacción reciente. No equivale a horas trabajadas.</p>
+ <p class="form-note">Tiempo activo estimado: ventana visible e interacción reciente. No equivale a horas trabajadas. Una sesión puede abarcar varios días; recargar no cuenta como otro ingreso.</p>
  <div class="usage-grid">${usageCards.map((card) => `<article class="ops-card"><div class="panel-heading">${actorIdentity({name: card.name, photo: card.photo})}<span class="client-status" data-status="${card.state}">${card.status}</span></div><small>Última conexión: ${card.last}</small><p>${card.summary}</p><button class="text-button">${svg(ICON.eye, 14)}Ver accesos</button></article>`).join('')}</div>
 </section>`,
   },
@@ -1010,13 +1062,13 @@ ${equipmentSummary}
     <div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.building, 18)}</span><div><h2 id="company-settings-title">Empresa</h2><p>Datos que identifican a esta empresa y valores predeterminados para nuevos formularios.</p></div></div>
     <form class="form-stack ops-form-grid" novalidate aria-busy="false">
      ${settingsField({label: 'Nombre de la empresa', value: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima'})}
+     ${settingsField({label: 'Moneda predeterminada', value: 'Guaraníes (PYG)', control: 'select'})}
      <details class="ops-profile-section ops-wide" open><summary>Datos fiscales y contacto</summary><div class="ops-form-grid">
       ${settingsField({label: 'Razón social', value: 'Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.', optional: true, wide: true})}
       ${settingsField({label: 'RUC', value: '80012345-6', optional: true})}
-      ${settingsField({label: 'Teléfono', value: '981 123 456', optional: true, control: 'phone', help: 'Se guarda como +595 981123456.'})}
+      ${settingsField({label: 'Teléfono', value: '981123456', optional: true, control: 'phone', help: PHONE_HELP})}
       ${settingsField({label: 'Dirección', value: 'Avda. Mcal. López 1234 casi San Martín, Asunción, Paraguay', optional: true, wide: true})}
      </div></details>
-     ${settingsField({label: 'Moneda predeterminada', value: 'PYG · Guaraníes', control: 'select'})}
      <div class="dialog-actions"><button type="submit" class="primary ops-wide">Guardar</button></div>
     </form>
    </section>
@@ -1027,7 +1079,7 @@ ${equipmentSummary}
      <div><label><span>Guaraníes por dólar</span><span class="amount-field" data-currency="PYG"><span class="amount-currency" aria-hidden="true">Gs</span><input type="text" inputmode="numeric" autocomplete="off" value="6.250" placeholder="1.000.000"></span></label><small class="field-help">Solo enteros entre G. 1.000 y G. 100.000. Referencia indicada: G. 6.000/USD.</small></div>
      <div class="dialog-actions"><button type="submit" class="primary ops-wide">Guardar</button></div>
     </form>
-    <details class="settings-disclosure"><summary>Ver cotizaciones guardadas</summary><div class="settings-history"><p>2026-09-20<strong>G. 6.250/USD</strong></p><p>2026-09-13<strong>G. 6.180/USD</strong></p><p>2026-08-30<strong>G. 6.100/USD</strong></p></div></details>
+    <details class="settings-disclosure"><summary>Ver cotizaciones guardadas</summary><div class="settings-history"><p><span class="list-date">${listDateShort('2026-09-20')}</span><strong>G. 6.250/USD</strong></p><p><span class="list-date">${listDateShort('2026-09-13')}</span><strong>G. 6.180/USD</strong></p><p><span class="list-date">${listDateShort('2026-08-30')}</span><strong>G. 6.100/USD</strong></p></div></details>
    </section>
    <section class="panel settings-card" aria-labelledby="integration-settings-title">
     <div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.linkOff, 18)}</span><div><h2 id="integration-settings-title">Integraciones</h2><p>Estado actual de los servicios que pueden complementar tu flujo de trabajo.</p></div></div>
@@ -1041,15 +1093,17 @@ ${equipmentSummary}
   </div>
  </div>
  <div class="settings-column settings-side-column">
-  <section class="panel settings-card"><div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.building, 18)}</span><div><h2>Tus empresas</h2><p>Elegí cuál abrir al iniciar sesión; esto no cambia tus permisos ni mezcla los datos.</p></div></div>
+  <section class="panel settings-card workspace-company-card" aria-labelledby="workspace-company-title"><div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.building, 18)}</span><div><h2 id="workspace-company-title">Empresas</h2><p>Cambiá de empresa o creá un espacio separado para otra operación.</p></div></div>
    <div class="company-settings" aria-busy="false">
     <p class="form-note company-settings-intro">Tus empresas y accesos. Elegí cuál abrir al iniciar sesión; esto no cambia tus permisos ni mezcla los datos.</p>
     ${companySettingsRows.map(companySettingsRow).join('')}
    </div>
+   <details class="settings-disclosure"><summary>Cómo funciona una empresa adicional</summary><div><p>Cada empresa tendrá sus propios clientes, equipo, proyectos y finanzas. Solo tu usuario tendrá acceso inicial.</p><p>Las nuevas empresas incluyen 30 días gratis. Después: US$10 o G. 50.000 al mes por empresa, con 2 días de gracia. Al comenzar el tercer día sin pagar se suspende el uso, sin borrar los datos. No se realiza ningún cobro al crearla.</p><p><strong>Precio de lanzamiento.</strong> El precio de lanzamiento puede cambiar en el futuro. Como cliente fundador, conservarás siempre una tarifa preferencial frente a los nuevos clientes, aunque el importe inicial se actualice.</p></div></details>
+   <div class="settings-card-actions"><button class="secondary">Crear otra empresa</button></div>
   </section>
   <section class="panel settings-card" aria-labelledby="coupon-redeem-title">
    <div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.ticket, 18)}</span><div><h2 id="coupon-redeem-title">Cupones</h2><p>Canjeá un código de la administración global para sumar un mes gratis a tu suscripción.</p></div></div>
-   <form class="form-stack" novalidate aria-busy="false"><label><span>Código del cupón</span><input value="" placeholder="SCALE10" maxlength="40"></label><button class="primary" type="submit" disabled>Canjear cupón</button></form>
+   <form class="form-stack" novalidate aria-busy="false"><label>Código del cupón<input value="" placeholder="SCALE10" maxlength="40"></label><button class="primary" type="submit" disabled>Canjear cupón</button></form>
    <p class="form-note">Cada cupón se puede canjear una sola vez por empresa. No cobra ni guarda datos de pago.</p>
   </section>
  </div>
@@ -1079,28 +1133,45 @@ ${equipmentSummary}
     lists: [],
     grids: [],
     body: `
-<div class="ops-dialog unified-dialog" role="dialog" aria-modal="true" aria-labelledby="my-profile-title">
- <div class="dialog-heading"><h2 id="my-profile-title">Mi perfil</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${svg(ICON.x, 18)}</button></div>
- <div class="dialog-body"><div class="my-profile-content my-profile-editor">
-  <section class="my-profile-identity">
-   <p class="my-profile-kicker">Identidad</p>
-   <dl class="my-profile-login"><dt>Correo de acceso</dt><dd>maria.jose.fernandez.delavega@estudiocomunicacionparaguay.com.py</dd></dl>
-   <p class="my-profile-help">Tu correo de acceso no se modifica desde acá.</p>
-  </section>
-  <details class="my-profile-optional"><summary>Foto de perfil <span>Opcional</span></summary><div class="my-profile-photo"></div></details>
-  <section class="my-profile-name" aria-labelledby="my-profile-data-title">
-   <h4 id="my-profile-data-title">Datos personales</h4>
-   <form class="form-stack" novalidate aria-busy="false">
-    <label><span>Nombre completo</span><input type="text" value="María José Fernández de la Vega y Rivarola" maxlength="120"></label>
-    <div class="dialog-actions"><button type="submit" class="primary">Guardar nombre</button></div>
-   </form>
-   <p class="my-profile-help">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
-  </section>
-  <div class="my-profile-google"><strong>Acceso con Google</strong><p>Podés usar Google para entrar a esta misma cuenta si elegís el mismo correo. Google también puede actualizar tu nombre y foto.</p><p class="my-profile-google-state" role="status">Conectado con Google</p></div>
-  <details class="my-profile-optional my-profile-access"><summary>Seguridad de cuenta <span>Opcional</span></summary></details>
-  <div class="my-profile-scope"><strong>Identidad personal</strong><p>Tu nombre y foto personales se comparten entre tus empresas. El cargo, sueldo y acceso se mantienen separados en cada empresa.</p></div>
- </div></div>
- <div class="dialog-footer"></div>
+<div class="ops-overlay">
+ <section class="ops-dialog unified-dialog" data-dialog-size="default" role="dialog" aria-modal="true" aria-labelledby="my-profile-title" tabindex="-1">
+  <div class="dialog-heading"><h2 id="my-profile-title">Mi perfil</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${svg(ICON.x, 18)}</button></div>
+  <div class="dialog-body"><div class="my-profile-content my-profile-editor">
+   <section class="my-profile-identity">
+    <p class="my-profile-kicker">Identidad</p>
+    <dl class="my-profile-login"><dt>Correo de acceso</dt><dd>maria.jose.fernandez.delavega@estudiocomunicacionparaguay.com.py</dd></dl>
+    <p class="my-profile-help">Tu correo de acceso no se modifica desde acá.</p>
+   </section>
+   <details class="my-profile-optional"><summary>Foto de perfil <span>Opcional</span></summary><div class="my-profile-photo">
+    <section class="ops-profile-section profile-photo-section" aria-label="Foto de perfil">
+     <div class="profile-photo-section-heading"><strong>Foto de perfil</strong><small>Seleccioná la foto para reemplazarla; después podés ajustar el encuadre.</small></div>
+     <form class="form-stack profile-photo-form" novalidate>
+      <div class="profile-photo-summary">
+       <button type="button" class="editable-photo" aria-label="Cambiar foto de María José Fernández de la Vega y Rivarola"><img src="/brand/icon-192.png" referrerpolicy="no-referrer" alt="Foto de María José Fernández de la Vega y Rivarola"></button>
+       <div class="profile-photo-controls">
+        <label class="photo-upload">Cambiar foto<input aria-label="Elegir foto (JPG, PNG, WebP o HEIC; hasta 4 MB)" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"></label>
+        <button type="button" class="text-button">${svg(ICON.link2, 14)}Usar enlace de imagen</button>
+       </div>
+      </div>
+      <p class="form-note">JPG, PNG, WebP o HEIC · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
+      <div class="inline-actions"><button type="button" class="text-button danger">${svg(ICON.trash, 14)}Quitar foto</button></div>
+     </form>
+    </section>
+   </div></details>
+   <section class="my-profile-name" aria-labelledby="my-profile-data-title">
+    <h4 id="my-profile-data-title">Datos personales</h4>
+    <form class="form-stack" id="my-profile-name-form" novalidate aria-busy="false">
+     <div><label for="my-profile-full-name"><span>Nombre completo</span><input id="my-profile-full-name" type="text" value="María José Fernández de la Vega y Rivarola"></label></div>
+     <span hidden></span>
+    </form>
+    <p class="my-profile-help">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
+   </section>
+   <div class="my-profile-google"><strong>Acceso con Google</strong><p>Podés usar Google para entrar a esta misma cuenta si elegís el mismo correo. Google también puede actualizar tu nombre y foto.</p><p class="my-profile-google-state" role="status">Conectado con Google</p></div>
+   <details class="my-profile-optional my-profile-access"><summary>Seguridad de cuenta <span>Opcional</span></summary></details>
+   <div class="my-profile-scope"><strong>Identidad personal</strong><p>Tu nombre y foto personales se comparten entre tus empresas. El cargo, sueldo y acceso se mantienen separados en cada empresa.</p></div>
+  </div></div>
+  <div class="dialog-footer"><div class="dialog-actions"><button type="submit" class="primary ops-wide" form="my-profile-name-form">Guardar nombre</button></div></div>
+ </section>
 </div>`,
   },
 

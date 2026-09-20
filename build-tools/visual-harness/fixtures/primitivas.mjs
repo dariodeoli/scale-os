@@ -5,11 +5,13 @@
  * and stresses the primitives with long identities, big amounts, long serials
  * and long free text. No lists/grids are declared unless the rows are real.
  *
- * Dialog fixtures render `.ops-overlay` inline (the CSS keeps it fixed for the
- * real app). The `<style>` block below is the same kind of harness
- * stabilization as run.mjs overrides: without it, three fixed overlays render
- * on top of each other and of the other fixtures, which is not what is being
- * measured. Everything inside the dialog is untouched.
+ * Dialog fixtures render the portal content inline (app/dialog.tsx keeps the
+ * overlay fixed/portalized for the real app; app/dialog.css owns that geometry:
+ * `position:fixed` + grid centering and the anchored mobile sheet at ≤540 px).
+ * The `<style>` block below is the same kind of harness stabilization as run.mjs
+ * overrides: without it, three fixed overlays render on top of each other and of
+ * the other fixtures, which is not what is being measured. Everything inside the
+ * dialog is untouched.
  */
 
 /* lucide-react stand-ins (same shapes/sizes the components render). */
@@ -21,6 +23,10 @@ const iconPencil = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
 const iconTrash = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
 const iconPlus = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
 const iconWhatsapp = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Z"/></svg>';
+const iconCheck14 = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 5 5L20 6"/></svg>';
+const iconX14 = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+const iconBanknote = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>';
+const money = (value, currency) => new Intl.NumberFormat('es-PY', {style: 'currency', currency, maximumFractionDigits: currency === 'PYG' ? 0 : 2}).format(Number(value));
 
 const DIALOG_STABILIZE = `<style>
 [data-fixture^="primitivas-"] .ops-overlay{position:static;inset:auto;z-index:auto;height:auto;min-height:0;overflow:visible}
@@ -38,7 +44,7 @@ const LONG_CLIENT = 'Estudio de Comunicación y Producción Audiovisual del Para
 const LONG_EMAIL = 'administracion.facturacion@estudiocomunicacionparaguay.com.py';
 
 /* ==================================================================== */
-/* 1. Editor fields — app/operations.tsx Editor renderField (lines 119-132),
+/* 1. Editor fields — app/operations.tsx Editor renderField (lines 119-133),
  *    form wrapper (134-177), FormActions and .dialog-footer (dialog.tsx). */
 const editorFields = `
 <div>
@@ -78,13 +84,13 @@ const editorFields = `
 /* Money, phone, email and password fields (same renderField branch). */
 const monedaFields = `
 <div>
- <label for="pf-budget"><span>Presupuesto</span><span class="amount-field" data-currency="PYG"><span class="amount-currency" aria-hidden="true">Gs</span><input id="pf-budget" type="text" inputmode="numeric" autocomplete="off" value="1.234.567.890"></span></label>
+ <label for="pf-budget"><span>Presupuesto</span><span class="amount-field" data-currency="PYG"><span class="amount-currency" aria-hidden="true">Gs</span><input id="pf-budget" type="text" inputmode="numeric" autocomplete="off" value="1.234.567.890" placeholder="1.000.000"></span></label>
 </div>
 <div>
- <label for="pf-balance"><span>Saldo en dólares</span><span class="amount-field" data-currency="USD"><span class="amount-currency" aria-hidden="true">US$</span><input id="pf-balance" type="text" inputmode="decimal" autocomplete="off" value="12.345,67"></span></label>
+ <label for="pf-balance"><span>Saldo en dólares</span><span class="amount-field" data-currency="USD"><span class="amount-currency" aria-hidden="true">US$</span><input id="pf-balance" type="text" inputmode="decimal" autocomplete="off" value="12.345,67" placeholder="1.250,50"></span></label>
 </div>
 <div>
- <label for="pf-phone"><span>Teléfono</span><span class="phone-input"><select aria-label="Código de país" autocomplete="off"><option value="+595">🇵🇾 +595</option><option value="+55">🇧🇷 +55</option><option value="+54">🇦🇷 +54</option><option value="+1">🇺🇸 +1</option><option value="+34">🇪🇸 +34</option></select><input id="pf-phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="981 123 456" maxlength="18" value="981123456"></span></label>
+ <label for="pf-phone"><span>Teléfono</span><span class="phone-input"><select aria-label="Código de país"><option value="+595">🇵🇾 +595</option><option value="+55">🇧🇷 +55</option><option value="+54">🇦🇷 +54</option><option value="+1">🇺🇸 +1</option><option value="+34">🇪🇸 +34</option></select><input id="pf-phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="981 123 456" maxlength="18" value="981123456"></span></label>
 </div>
 <div>
  <label for="pf-email"><span>Correo</span><input id="pf-email" type="email" inputmode="email" autocomplete="email" maxlength="200" placeholder="nombre@dominio.com" value="${LONG_EMAIL}"></label>
@@ -120,9 +126,10 @@ const textoFields = `
 <p class="error form-error-summary ops-wide" role="alert">No se pudo guardar: el proveedor de correo rechazó la invitación. Revisá el dominio del cliente y volvé a intentar.</p>`;
 
 /* ==================================================================== */
-/* 2. Modal dialog — dialog.tsx lines 108-112; body mirrors the
- *    ProjectComments dialog (operations.tsx lines 1059-1085) plus the
- *    Footer actions from FormActions/SaveActions (dialog.tsx 116-124). */
+/* 2. Modal dialog — dialog.tsx lines 96-112 (portal, overlay, data-dialog-size,
+ *    aria-busy); body mirrors the ProjectComments dialog (operations.tsx lines
+ *    1059-1085) plus the Footer actions from FormActions/SaveActions
+ *    (dialog.tsx 116-124). */
 const commentOne = `
 <article class="ops-comment">
  ${actorIdentity({name: 'María Fernanda González de la Cruz', initials: 'MC', time: {iso: '2026-09-18T14:30:00.000Z', label: '18 sept 26 · 10:30'}})}
@@ -141,17 +148,17 @@ const dialogFixture = {
   kind: 'plain',
   body: `${DIALOG_STABILIZE}
 <div class="ops-overlay">
- <section class="ops-dialog unified-dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" tabindex="-1">
-  <div class="dialog-heading"><h2 id="dlg-title">Seguimiento · ${LONG_CLIENT}</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
+ <section class="ops-dialog unified-dialog" data-dialog-size="default" role="dialog" aria-modal="true" aria-busy="true" aria-labelledby="dlg-title" tabindex="-1">
+  <div class="dialog-heading"><h2 id="dlg-title">Seguimiento · ${LONG_CLIENT}</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar" disabled>${iconX}</button></div>
   <div class="dialog-body">
    <div class="ops-comments">${commentOne}${commentTwo}
     <p class="empty-copy">Todavía no hay comentarios. Dejá el próximo paso o una actualización.</p>
    </div>
-   <p class="error" role="alert">No se pudo completar la operación: el servicio de correo devolvió un error al notificar a los responsables.</p>
-   <form class="comment-composer" aria-busy="true">
+   <form class="comment-composer">
     <label>Comentario<textarea placeholder="Escribí una actualización. Usá @ para mencionar a alguien." disabled></textarea></label>
     <fieldset class="comment-link-fields"><legend>Enlace con nombre</legend><label>Nombre visible<input value="Brief aprobado por el cliente" maxlength="120" disabled></label><label>URL HTTPS<input value="https://drive.google.com/drive/folders/9z8y7x6w5v4u" type="url" inputmode="url" disabled></label><button type="button" class="secondary" disabled>Agregar enlace</button></fieldset>
     <div class="inline-actions"><small class="form-note">Enter agrega la mención elegida · Shift + Enter crea una línea.</small><button class="primary" disabled type="submit">Publicando…</button></div>
+    <p class="error" role="alert">No se pudo completar la operación: el servicio de correo devolvió un error al notificar a los responsables.</p>
    </form>
   </div>
   <div class="dialog-footer"><div class="dialog-actions"><button class="secondary" type="button" disabled>Cancelar</button><button class="primary ops-wide" type="submit" disabled>Guardando…</button></div></div>
@@ -179,21 +186,25 @@ const drawerFixture = {
   ],
   body: `${DIALOG_STABILIZE}
 <div class="ops-overlay detail-drawer-overlay">
- <section class="ops-dialog unified-dialog" role="dialog" aria-modal="true" aria-labelledby="drw-title" tabindex="-1">
-  <div class="dialog-heading"><h2 id="drw-title">Ficha de cliente · ${LONG_CLIENT}</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
+ <section class="ops-dialog unified-dialog" data-dialog-size="default" role="dialog" aria-modal="true" aria-labelledby="drw-title" tabindex="-1">
+  <div class="dialog-heading"><h2 id="drw-title">${LONG_CLIENT}</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
   <div class="dialog-body">
    <p>${LONG_EMAIL} · +595 981 123 456</p>
+   <a class="text-button whatsapp-button client-whatsapp" href="https://wa.me/595981123456" target="_blank" rel="noopener noreferrer"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Z"/></svg>WhatsApp</a>
+   <p>Contrato anual con renovación automática. Facturación el día 5 de cada mes; los traslados fuera de Asunción se presupuestan aparte.</p>
    <section class="client-summary" aria-label="Resumen comercial del cliente">
     <div class="client-summary-grid">
      <article><span>Estado del servicio</span><strong>Activo</strong></article>
-     <article><span>Cobros</span><strong>23 días de mora</strong><small>Pendiente Gs 1.234.567.890</small></article>
+     <article><span>Cobros</span><strong>23 días de mora</strong><small title="Pendiente Gs 1.234.567.890">Pendiente Gs 1.234.567.890</small></article>
      <article><span>Plan</span><strong title="Plan integral de comunicación con producción audiovisual y pauta">Plan integral de comunicación con producción audiovisual y pauta</strong></article>
-     <article><span>Pago mensual</span><strong>USD 12.345,67</strong></article>
-     <article><span>Cliente desde</span><strong>34 meses</strong><small>18 nov 23 · 09:15</small></article>
-     <article><span>RUC</span><strong>80012345-6</strong><small>Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.</small></article>
+     <article><span>Pago mensual</span><strong title="USD 12.345,67">USD 12.345,67</strong></article>
+     <article><span>Recurrencia</span><strong>Mensual</strong></article>
+     <article><span>Cliente desde</span><strong>34 meses</strong><small>18 nov 23</small></article>
+     <article><span>Factura</span><strong>Pide factura</strong></article>
+     <article><span>RUC</span><strong title="80012345-6">80012345-6</strong><small title="Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.">Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.</small></article>
     </div>
    </section>
-   <div class="quick-actions"><button class="primary" type="button">${iconPlus}Nuevo proyecto para este cliente</button><button class="secondary" type="button" title="Acceso del cliente al portal de entregas">Portal del cliente</button></div>
+   <div class="quick-actions"><button class="primary" type="button">${iconPlus}Nuevo proyecto para este cliente</button><button class="secondary" type="button">Acceso del cliente</button></div>
    <div class="choice-list"><button type="button" class="choice active">Producción</button><button type="button" class="choice">Presupuestos</button><button type="button" class="choice">Cobros</button></div>
    <h3>Proyectos (2)</h3>
    <div class="drawer-list">
@@ -293,8 +304,9 @@ const asignacionesFixture = {
 
 /* ==================================================================== */
 /* 7. Cápsulas — kpi-strip/kpi-card (control-center.css 10-35),
- *    ops-card/catalog-card (operations.css 11-21 y 408),
- *    hub-chip (ui-system.css 219), panel (globals.css 10/38). */
+ *    ops-card/commission-hub-card (operations.tsx lines 665-714: header chip +
+ *    estado, monto, hechos, nota y acciones al pie), hub-chip (ui-system.css) y
+ *    panel (globals.css). */
 const kpiCards = `
 <div class="kpi-strip" aria-label="Métricas del directorio">
  <article class="kpi-card tone-green"><p class="eyebrow">CLIENTES ACTIVOS</p><strong>148</strong><small>Con servicio en curso</small></article>
@@ -303,17 +315,42 @@ const kpiCards = `
  <article class="kpi-card tone-blue"><p class="eyebrow">FACTURACIÓN CONTRATADA</p><div class="kpi-amounts"><span>Gs 123.456.789 / mes</span><span>USD 12.345,67 / mes</span></div><small>Expectativa comercial vigente por moneda</small></article>
 </div>`;
 
-const capsuleCard = ({title, chip, value, serial, actions}) => `
-<article class="ops-card catalog-card">
- <header class="catalog-card-head"><h3>${title}</h3><span class="hub-chip">${chip}</span></header>
- <dl class="catalog-card-facts">
-  <div><dt>Categoría</dt><dd>Cámara y óptica profesional</dd></div>
-  <div><dt>Serie</dt><dd>${serial}</dd></div>
-  <div><dt>Valor</dt><dd class="list-amount">${value}</dd></div>
-  <div><dt>Estado</dt><dd>Disponible</dd></div>
- </dl>
- <footer class="catalog-card-actions">${actions}</footer>
+const commissionCard = ({kind, status, state, name, amount, currency, invoice, due, note, actions}) => `
+<article class="ops-card commission-hub-card">
+ <header class="commission-hub-head"><span class="hub-chip">${kind}</span><span class="commission-state" data-status="${status}">${state}</span></header>
+ <h3>${name}</h3>
+ <strong class="commission-hub-amount">${money(amount, currency)}</strong>
+ <dl class="commission-hub-facts"><div><dt>Factura</dt><dd>${invoice}</dd></div><div><dt>Vence</dt><dd>${due}</dd></div></dl>
+ <p class="form-note">${note}</p>
+ <div class="commission-hub-actions inline-actions">${actions}</div>
 </article>`;
+
+const commissionCards = [
+  commissionCard({
+    kind: 'Venta',
+    status: 'pending',
+    state: 'Pendiente',
+    name: 'Comisión por Producción audiovisual integral para campaña de lanzamiento regional · 12 meses',
+    amount: 1234567890,
+    currency: 'PYG',
+    invoice: 'FAC-2026-000148',
+    due: '30-nov',
+    note: '35% sobre Gs 3.527.336.828 facturados al registrar la comisión.',
+    actions: `<button class="text-button positive" type="button">${iconCheck14}Aprobar</button><button class="text-button danger" type="button">${iconX14}Cancelar</button>`,
+  }),
+  commissionCard({
+    kind: 'Referido',
+    status: 'approved',
+    state: 'Aprobada',
+    name: 'Comisión por recomendación de la Cooperativa Multiactiva de Servicios Múltiples Limitada',
+    amount: 12345.67,
+    currency: 'USD',
+    invoice: 'Sin factura vinculada',
+    due: '—',
+    note: 'Importe fijo',
+    actions: `<button class="text-button" type="button">${iconBanknote}Registrar pago</button><button class="text-button danger" type="button">${iconX14}Cancelar</button>`,
+  }),
+].join('');
 
 const capsulasFixture = {
   id: 'primitivas-capsulas',
@@ -334,8 +371,7 @@ const capsulasFixture = {
  </div>
 </section>
 <div class="ops-grid">
- ${capsuleCard({title: 'Cámara mirrorless full frame con kit de ópticas y baterías de repuesto', chip: 'En uso', value: 'Gs 1.234.567.890', serial: '356938035643809', actions: `<button class="icon-button" type="button" title="Editar equipo: Cámara mirrorless full frame" aria-label="Editar equipo: Cámara mirrorless full frame">${iconPencil}</button><button class="icon-button" type="button" title="Eliminar equipo: Cámara mirrorless full frame" aria-label="Eliminar equipo: Cámara mirrorless full frame">${iconTrash}</button>`})}
- ${capsuleCard({title: 'Memoria SD 128 GB', chip: 'Disponible', value: 'USD 12.345,67', serial: '••••4821', actions: `<button class="text-button" type="button">Ver historial</button><button class="icon-button" type="button" title="Editar equipo: Memoria SD 128 GB" aria-label="Editar equipo: Memoria SD 128 GB">${iconPencil}</button>`})}
+ ${commissionCards}
 </div>`,
 };
 
@@ -378,8 +414,8 @@ const formatosFixture = {
 
 /* ==================================================================== */
 /* 9. Botones y acciones — globals.css 9-10/32-35 + ui-system.css 34-48 y
- *    240-247; catálogo de acciones de tarjeta (ops-card, catalog-card-actions),
- *    text-button, icon-button con title, estados disabled. */
+ *    240-247; catálogo de acciones de tarjeta (ops-card/commission-hub-card,
+ *    operaciones 665-714), text-button, icon-button con title, estados disabled. */
 const botonesFixture = {
   id: 'primitivas-botones',
   section: 'Sistema de diseño',
@@ -393,7 +429,7 @@ const botonesFixture = {
   <button class="primary" type="button">${iconPlus}Nuevo cliente</button>
   <button class="secondary" type="button">Cancelar</button>
   <button class="text-button" type="button">Restaurar</button>
-  <button class="whatsapp-button text-button" type="button">${iconWhatsapp}WhatsApp</button>
+  <a class="text-button whatsapp-button" href="https://wa.me/595981123456" target="_blank" rel="noopener noreferrer">${iconWhatsapp}WhatsApp</a>
   <button class="icon-button" type="button" title="Editar equipo: Cámara mirrorless full frame" aria-label="Editar equipo: Cámara mirrorless full frame">${iconPencil}</button>
   <button class="icon-button" type="button" title="Eliminar equipo: Cámara mirrorless full frame" aria-label="Eliminar equipo: Cámara mirrorless full frame">${iconTrash}</button>
  </div>
@@ -410,10 +446,11 @@ const botonesFixture = {
   <button class="primary" type="button" disabled>Publicando…</button>
  </div>
 </section>
-<article class="ops-card">
- <header class="catalog-card-head"><h3>Acciones de tarjeta en una sola fila con etiquetas largas</h3><span class="hub-chip">En revisión</span></header>
- <p>Cuatro acciones de distinto tipo en el pie; deben quedar alineadas y sin envolver (o con scroll silencioso) en mobile.</p>
- <footer class="catalog-card-actions"><button class="text-button" type="button">Abrir ficha completa</button><button class="whatsapp-button text-button" type="button">${iconWhatsapp}WhatsApp</button><button class="icon-button" type="button" title="Editar equipo: Cámara mirrorless full frame" aria-label="Editar equipo: Cámara mirrorless full frame">${iconPencil}</button><button class="icon-button" type="button" title="Eliminar equipo: Cámara mirrorless full frame" aria-label="Eliminar equipo: Cámara mirrorless full frame">${iconTrash}</button></footer>
+<article class="ops-card commission-hub-card">
+ <header class="commission-hub-head"><span class="hub-chip">En revisión</span><span class="commission-state" data-status="pending">Pendiente</span></header>
+ <h3>Acciones de tarjeta en una sola fila con etiquetas largas</h3>
+ <p class="form-note">Cuatro acciones de distinto tipo en el pie; deben quedar alineadas y sin envolver (o con scroll silencioso) en mobile.</p>
+ <div class="commission-hub-actions inline-actions"><button class="text-button" type="button">Abrir ficha completa</button><a class="text-button whatsapp-button" href="https://wa.me/595981123456" target="_blank" rel="noopener noreferrer">${iconWhatsapp}WhatsApp</a><button class="icon-button" type="button" title="Editar equipo: Cámara mirrorless full frame" aria-label="Editar equipo: Cámara mirrorless full frame">${iconPencil}</button><button class="icon-button" type="button" title="Eliminar equipo: Cámara mirrorless full frame" aria-label="Eliminar equipo: Cámara mirrorless full frame">${iconTrash}</button></div>
 </article>`,
 };
 
@@ -426,8 +463,8 @@ const editorDialog = ({id, surface, heading, note, fields}) => ({
   kind: 'plain',
   body: `${DIALOG_STABILIZE}
 <div class="ops-overlay">
- <section class="ops-dialog unified-dialog" data-dialog-size="wide" role="dialog" aria-modal="true" aria-labelledby="${id}-heading" tabindex="-1">
-  <div class="dialog-heading"><h2 id="${id}-heading">${heading}</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
+ <section class="ops-dialog unified-dialog" data-dialog-size="wide" role="dialog" aria-modal="true" aria-busy="true" aria-labelledby="${id}-heading" tabindex="-1">
+  <div class="dialog-heading"><h2 id="${id}-heading">${heading}</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar" disabled>${iconX}</button></div>
   <div class="dialog-body">
    <p class="form-note">${note}</p>
    <form class="form-stack ops-form-grid" novalidate aria-busy="true">${fields}</form>
