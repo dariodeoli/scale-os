@@ -21,6 +21,8 @@
 .drawer-list .work-list-row{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:44px;padding:8px 4px}
 .drawer-list .work-list-row>span{justify-self:end;white-space:nowrap}
 @media(max-width:560px){.drawer-list .activity-line,.drawer-list .work-list-row{grid-template-columns:1fr}.drawer-list .activity-line>span,.drawer-list .activity-line>small,.drawer-list .work-list-row>span{justify-self:start;white-space:normal}}
+/* La celda de identidad de las listas del drawer recorta en una linea con title. */
+.drawer-list :is(.activity-line,.work-list-row)>b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .work-detail-toolbar{display:flex;justify-content:flex-end;min-height:0}.work-detail-toolbar .icon-button{width:34px;min-height:34px;padding:0}.work-detail-description{white-space:pre-wrap;line-height:1.55}.work-detail-toolbar+.record-assignees,.work-detail-toolbar+.work-detail-description{margin-top:0}
 .work-planner{margin-bottom:18px}.work-planner-list{max-height:360px;overflow:auto}
 /* Work planner: fila finita con encabezado y plantilla compartida. */

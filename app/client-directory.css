@@ -60,12 +60,16 @@
 /* Redesigned client directory: structured cards with a clear reading order. */
 .client-hub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,292px),1fr));gap:14px}
 .client-hub-grid .client-hub-card{min-height:200px}
-.client-hub-list{display:grid;gap:6px;--client-cols:minmax(11rem,1.6fr) minmax(0,1.1fr) 5.5rem 7.5rem minmax(6.5rem,.8fr) 9rem}
+/* Fila finita: la plantilla reserva ancho para las cuatro acciones (Abrir ficha,
+   WhatsApp, Archivar y editar/borrar) y el contenedor scrollea en silencio
+   cuando el viewport no alcanza, en vez de desbordar el panel. */
+.client-hub-list{display:grid;gap:6px;--client-cols:minmax(11rem,1.6fr) minmax(7.5rem,1.1fr) 5.5rem 7.5rem minmax(6.5rem,.8fr) 12.5rem;overflow-x:auto;scrollbar-width:none}
+.client-hub-list::-webkit-scrollbar{display:none}
 .client-hub-card{display:flex;flex-direction:column;gap:12px;min-width:0;padding:16px;border:1px solid var(--border-subtle,var(--line));border-radius:14px;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs);overflow-wrap:anywhere;transition:border-color var(--ease),box-shadow var(--ease),transform var(--ease)}
 .client-hub-card:hover{border-color:var(--line-strong,var(--border-subtle));box-shadow:var(--shadow-md);transform:translateY(-1px)}
 .client-hub-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
 .client-hub-identity{display:flex;align-items:flex-start;gap:8px;min-width:0}
-.client-hub-open{display:block;min-width:0;padding:0;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.client-hub-open{display:flex;align-items:center;min-width:0;padding:0;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .client-hub-open:focus-visible{outline:3px solid var(--focus-halo,var(--brand-600));outline-offset:3px}
 
 
@@ -74,7 +78,7 @@
 .client-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}
 .client-hub-actions::-webkit-scrollbar{display:none}
 .client-hub-actions>*{flex:none}
-.client-hub-list .client-hub-card{display:grid;grid-template-columns:var(--client-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px}
+.client-hub-list .client-hub-card{display:grid;grid-template-columns:var(--client-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px;min-width:min-content}
 .client-hub-list .client-hub-head{display:contents}
 .client-hub-list .client-hub-identity{grid-column:1;grid-row:1;align-items:center;min-width:0}
 .client-hub-list .client-hub-open{grid-column:auto;grid-row:auto;align-self:center;min-width:0}
@@ -84,21 +88,25 @@
 .client-hub-list .client-hub-facts dt{display:none}
 .client-hub-list .client-hub-facts dd{margin:0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .client-hub-list .client-hub-facts>div+div::before{content:'·';flex:none;color:var(--text-subtle,var(--text-muted))}
-.client-hub-list .client-hub-chips{grid-column:4;grid-row:1;justify-content:flex-start;min-height:0;flex-wrap:nowrap;overflow:hidden}
-.client-hub-list .client-hub-stats{grid-column:5;grid-row:1;min-height:0;flex-wrap:nowrap;overflow:hidden}
+.client-hub-list .client-hub-chips{grid-column:4;grid-row:1;justify-content:flex-start;min-height:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.client-hub-list .client-hub-chips::-webkit-scrollbar{display:none}
+.client-hub-list .client-hub-chips>*{flex:none;max-width:none}
+.client-hub-list .client-hub-stats{grid-column:5;grid-row:1;display:block;min-width:0;min-height:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .client-hub-list .client-hub-actions{grid-column:6;grid-row:1;justify-self:end;display:grid;grid-template-columns:repeat(2,auto);justify-items:end;gap:4px 8px;overflow:visible;margin-top:0;padding-top:0;border-top:0}
 .client-hub-list :is(.client-identity,.actor-identity){min-width:0}
 .client-hub-list :is(.client-identity-name,.actor-identity-name){white-space:normal;overflow-wrap:anywhere}
 .client-hub-head-row{display:grid;grid-template-columns:var(--client-cols);grid-column:1/-1;gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .client-hub-head-row span:last-child{justify-self:end}
-@media(max-width:760px){.client-hub-list{overflow-x:auto;scrollbar-width:none}.client-hub-list::-webkit-scrollbar{display:none}.client-hub-list .client-hub-card,.client-hub-list .client-hub-head-row{min-width:44rem}.client-hub-grid{grid-template-columns:1fr}}
+.client-hub-list>.empty-copy{grid-column:1/-1}
+@media(max-width:760px){.client-hub-list{overflow-x:auto;scrollbar-width:none}.client-hub-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.client-hub-facts{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.client-hub-card{transition:none}.client-hub-card:hover{transform:none}}
 
 /* Cartera del cliente: proyectos, piezas y próxima entrega. */
 .client-hub-stats{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-height:20px;color:var(--text-subtle,var(--text-muted));font-size:11.5px}
-.client-hub-stat{display:inline-flex;align-items:center;gap:5px}
+.client-hub-stat{display:inline}
 .client-hub-stat b{color:var(--text);font-variant-numeric:tabular-nums}
+.client-hub-stat-part{display:inline}
 .client-hub-balance{display:inline-flex;align-items:center;padding:3px 9px;border:1px solid color-mix(in srgb,var(--warning) 26%,var(--line));border-radius:999px;background:var(--warning-soft);color:var(--warning);font-size:10.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .archived-capsule{margin-top:var(--ui-space-4);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--ui-space-3);background:color-mix(in srgb,var(--violet-soft) 16%,transparent)}
 .archived-capsule summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:var(--ui-space-2)}

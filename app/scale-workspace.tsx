@@ -284,6 +284,11 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
   onSelect?:()=>void;
 }) {
   const state=clientState(client),tel=whatsappUrl(client.phone||undefined),since=clientSince(client.created_at);
+  const portfolio=stat?[
+    stat.projects?{key:'projects',text:`${stat.projects} proyecto${stat.projects===1?'':'s'} activo${stat.projects===1?'':'s'}`,node:<><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</>}:null,
+    stat.pieces?{key:'pieces',text:`${stat.pieces} pieza${stat.pieces===1?'':'s'} en curso`,node:<><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</>}:null,
+    stat.nextDue?{key:'due',text:`Próxima entrega ${listDateShort(stat.nextDue)}`,node:<>Próxima entrega <b>{listDateShort(stat.nextDue)}</b></>}:null,
+  ].filter((part):part is {key:string;text:string;node:JSX.Element}=>part!==null):[];
   return (
     <article className="client-hub-card" data-archived={client.active===false||undefined}>
       <header className="client-hub-head">
@@ -302,10 +307,7 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
         <div><dt>Cliente desde</dt><dd>{since || "Sin fecha de alta"}</dd></div>
       </dl>
       <div className="client-hub-stats" aria-label="Cartera del cliente">
-        {stat?.projects?<span className="client-hub-stat"><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</span>:null}
-        {stat?.pieces?<span className="client-hub-stat"><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</span>:null}
-        {stat?.nextDue?<span className="client-hub-stat">Próxima entrega <b>{listDateShort(stat.nextDue)}</b></span>:null}
-        {stat&&!stat.projects&&!stat.pieces?<span className="client-hub-stat muted">Sin proyectos activos</span>:null}
+        {portfolio.length?<span className="client-hub-stat" title={portfolio.map(part=>part.text).join(' · ')}>{portfolio.map((part,index)=><span className="client-hub-stat-part" key={part.key}>{index?<span className="client-hub-sep" aria-hidden="true"> · </span>:null}{part.node}</span>)}</span>:<span className="client-hub-stat muted">Sin proyectos activos</span>}
       </div>
       {canSeeBilling?<div className="client-hub-chips">
         {pay ? (
@@ -317,7 +319,7 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
             <span className={`mora-chip ${pay.days_overdue > 30 ? "mora-critical" : pay.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>{pay.days_overdue} días de mora</span>
           )
         ) : null}
-        {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance">Pendiente {money(Number(pay.outstanding_amount),pay.currency)}</span>:null}
+        {pay&&pay.currency&&Number(pay.outstanding_amount)>0?<span className="client-hub-balance" title={`Pendiente ${money(Number(pay.outstanding_amount),pay.currency)}`}>Pendiente {money(Number(pay.outstanding_amount),pay.currency)}</span>:null}
         {client.has_recurring_price!==true?<span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span>:null}
       </div>:null}
       <footer className="client-hub-actions">
@@ -1465,7 +1467,7 @@ export default function Home() {
                     <dl className="budget-hub-facts">
                       <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
                       <div><dt>Vigencia</dt><dd>{budget.valid_until?listDateShort(budget.valid_until)||'Sin fecha':'Sin fecha'}</dd></div>
-                      <div><dt>Sin IVA</dt><dd>{money(Number(budget.subtotal),budget.currency)}</dd></div>
+                      <div className="budget-hub-fact-amount"><dt>Sin IVA</dt><dd title={money(Number(budget.subtotal),budget.currency)}>{money(Number(budget.subtotal),budget.currency)}</dd></div>
                     </dl>
                     <strong className="budget-hub-total">{money(Number(budget.total),budget.currency)}<small>IVA incl.</small></strong>
                     <footer className="budget-hub-actions"><BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>

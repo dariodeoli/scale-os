@@ -413,7 +413,10 @@
 .budget-state[data-status=rejected],.budget-state[data-status=expired]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));background:var(--danger-soft);color:var(--danger)}
 .budget-hub-card h3{margin:0;font-size:16px;overflow-wrap:anywhere}
 .budget-client{margin:0;color:var(--text-subtle,var(--text-muted));font-size:12px}
-.budget-hub-facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;padding:10px 12px}
+.budget-hub-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;padding:10px 12px}
+/* El monto sin IVA ocupa la fila completa: nunca se elipsa ni se recorta. */
+.budget-hub-facts>.budget-hub-fact-amount{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:12px;min-width:0}
+.budget-hub-facts>.budget-hub-fact-amount dd{margin:0;text-align:right}
 
 .budget-hub-facts dd{font-variant-numeric:tabular-nums}
 .budget-hub-total{display:flex;align-items:baseline;gap:6px;font-size:20px;font-variant-numeric:tabular-nums}
