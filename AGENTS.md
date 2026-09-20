@@ -23,6 +23,16 @@
 - Matá tus servidores zombies al terminar: `lsof -ti :3000 :<PUERTO_API> | xargs kill -9` (y procesos `next-server` de worktrees de Scale OS).
 - Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build` (el release los corre igual).
 
+## Worktrees e implementadores (cómo actúa cada uno)
+- **Implementador (agente en worktree)**: trabaja SOLO en su rama `SOS-XX` dentro de su worktree y nunca toca `main`. Antes de empezar: `git fetch origin --prune && git rebase origin/main`. Entrega con conventional commits por unidad de trabajo, checks verdes y `git push origin SOS-XX`; reporta rama, `git log --oneline origin/main..HEAD`, qué hace cada commit, rutas y verificaciones. Prohibido: mergear/pushear a main, hacer deploy, resolver conflictos sobre main, borrar o arreglar refs, editar otro worktree.
+- **Integrador (sesión sobre main)**: único autorizado a mergear y pushear `main` (siempre con `MOBOS_INTEGRATOR=1`). Integra una rama por vez (API antes que frontend), corre la verificación por cada merge, resuelve solo ramas superseded (del lado de main y con diff neto vacío) y ante conflicto real **para y consulta**. Despliega solo con pedido explícito (`ht`) vía `npm run release:patch` y valida el smoke.
+- **Estado raro de git** (fetch que falla, refs rotas, `.git/MERGE_HEAD` ajeno): parar y avisar; no reparar por cuenta propia.
+
+## Objetos y valores predeterminados (fuente única)
+- **Componentes canónicos**: `Dialog`/`Editor`/`FormActions`/`SaveActions`, `SelectCustom`, `SearchField`, `PhoneField`, `EmailField`, `AmountInput`, `PasswordField`, `PersonContainer`, `ActorIdentity`, `SerialTexto` y utilidades de `list-format`, `notify()` + notification-center, clases `panel`/`ops-card`/`kpi-strip`/`hub-chip`. Un diseño por tipo; si el caso no existe se crea UNA vez en `app/` y se adopta en todos lados. Prohibido crear variantes paralelas o componentes muertos.
+- **Valores por defecto**: país `+595`; moneda de la empresa (`useCompanyCurrency`); zona `America/Asuncion`; hora siempre 24 h (`hourCycle:'h23'`); PYG sin decimales y el resto 2; fechas con `type="date"` y horas con `type="time"`; límites por tipo (nombres 120, direcciones 400, notas 2000); sin máscaras que rompan pegado/autofill.
+- **Guardado vs. mostrado**: se guarda normalizado (número, teléfono `+<código> <dígitos>`, serial mayúsculas sin separadores, correo en minúsculas); el símbolo/separador lo dibuja el campo.
+
 ## Issues (backlog)
 - Cada pedido se trabaja desde un issue: abrirlo en el repo donde vive el cambio principal (frontend → scale-os; API → scale-core-api) y referenciar el otro si aplica.
 - En commits y handover citar `Refs #<n>`; el integrador cierra el issue solo después de verificar por contenido contra `main`.
