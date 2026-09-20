@@ -112,6 +112,11 @@ async function run(){
  assert.deepEqual(renderer.root.findByType(AssigneePicker).props.value.assigned_user_ids,['2','1'],'confirmed assignment remains saved despite refresh failure');
  assert.equal(button('Guardar responsables'),undefined,'detail mode retains a single save action');
  act(()=>renderer.unmount());
+ const collaboratorStart=requests.length;
+ await mount({...props,role:'collaborator'});await loaded(collaboratorStart);
+ assert.match(json(),/Responsables/,'collaborator sees the assignees panel the API allows');
+ assert(button('Cambiar responsables'),'collaborator edits assignees with the record capability');
+ act(()=>renderer.unmount());
  console.log('PASS: compact summary, unified atomic payload, retained drafts on failure, loading guard, versioned save, conflict, tenant isolation and refresh failure');
 }
 void run();

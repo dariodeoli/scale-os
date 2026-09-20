@@ -7,6 +7,7 @@ import {DueDate} from './due-date';
 import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {ProjectCardPresence} from './presence';
 import {RemoveRecord} from './archive-controls';
+import {roleCan} from './capabilities';
 
 export const statuses = [
   { id: "blocked", label: "Bloqueado", tone: "red" },
@@ -40,7 +41,7 @@ export type WorkOrderCard = {
 };
 
 function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard;role:string;refresh:()=>Promise<void>;openOrder:(id:string,edit?:boolean)=>void }) {
-  const canMove=['owner','admin','management','production','editor'].includes(role);
+  const canMove=roleCan(role,'work-orders.edit');
   const draggable = useDraggable({ id: order.id,disabled:!canMove });
   const style = draggable.transform
     ? {

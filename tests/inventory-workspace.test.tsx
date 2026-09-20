@@ -9,7 +9,7 @@ const {SearchField}=require('../app/search-field') as typeof import('../app/sear
 const intervals=new Map<number,()=>void>();let timerId=0;
 const documentEvents=Object.assign(new EventTarget(),{visibilityState:'visible'});
 Object.defineProperty(globalThis,'document',{configurable:true,value:documentEvents});
-Object.defineProperty(globalThis,'window',{configurable:true,value:{setInterval(callback:()=>void,ms:number){assert.equal(ms,30000);intervals.set(++timerId,callback);return timerId;},clearInterval(id:number){intervals.delete(id);}}});
+Object.defineProperty(globalThis,'window',{configurable:true,value:{setInterval(callback:()=>void,ms:number){assert.equal(ms,30000);intervals.set(++timerId,callback);return timerId;},clearInterval(id:number){intervals.delete(id);},dispatchEvent(){return true;}}});
 const context={user_id:'10',role:'production',can_manage:false,can_reserve:true,time_zone:'America/Asuncion',members:[{id:'10',name:'Cámara'},{id:'11',name:'Sonido'}],projects:[{id:'20',name:'Proyecto de prueba'}]};
 const equipment:InventoryItem[]=[{id:'1',name:'Memoria SD',category:'Memoria',category_id:'1',serial_number:null,value:'0',currency:'PYG',status:'available',storage_shelf:'Estante A',storage_row:'2',custodian_user_id:null,location_type:'storage'},{id:'2',name:'DJI Mic',category:'Audio',category_id:'2',serial_number:null,value:'100',currency:'USD',status:'available',storage_shelf:'Estante B',storage_row:'1',custodian_user_id:null,location_type:'storage'}];
 const record:InventoryReservation={id:'30',title:'Rodaje de prueba',project_id:'20',project_name:'Proyecto de prueba',starts_at:'2026-09-10T12:00:00.000Z',ends_at:'2026-09-10T15:00:00.000Z',status:'reserved',created_by_user_id:'10',return_user_id:'11',return_user_name:'Sonido',custodian_user_id:null,custodian_name:null,responsible_members:context.members,items:equipment.map(i=>({id:i.id,name:i.name,storage_shelf:i.storage_shelf,storage_row:i.storage_row})),notes:'',version:0};
@@ -61,6 +61,7 @@ async function run(){
  assert.equal(inventoryCanReturn({...context,user_id:'11'},record),true);
  assert.equal(inventoryCanReturn({...context,user_id:'12'},{...record,custodian_user_id:'12'}),true);
  for(const role of ['viewer','editor','finance'])assert.equal(inventoryCanReturn({...context,user_id:'11',role,can_reserve:false},record),false);
+ assert.equal(inventoryCanReturn({...context,user_id:'11',role:'collaborator',can_reserve:true},record),true,'the assigned returner keeps the action with inventory.book');
  await act(async()=>{renderer=create(<InventoryReservationForm context={context} items={equipment} record={null} done={()=>{done++;}}/>);});
  change('Producción o uso previsto','Rodaje de productos');change('Proyecto','20','select');change('Desde · Asunción','2026-09-10T09:00');change('Devolución prevista · Asunción','2026-09-10T12:00');
  await submit();assert.match(tree(),/Elegí al menos un equipo/);assert.equal(writes.length,0);
@@ -100,7 +101,10 @@ async function run(){
  await act(async()=>{renderer=create(<InventoryCalendar month="2033-01" reservations={[yearBoundary]}/>);});assert.doesNotMatch(tree(),/Rodaje de prueba/);act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryCalendar month="2032-02" reservations={[{...record,starts_at:'2032-02-29T12:00:00.000Z',ends_at:'2032-03-01T03:00:00.000Z'}]}/>);});
  assert.match(text(renderer.root.findByProps({'aria-label':'2032-02-29'})),/Rodaje de prueba/);assert.equal(renderer.root.findAllByType('time').length,29);act(()=>renderer.unmount());
- const before=reads;await act(async()=>{renderer=create(<InventoryWorkspace role="sales"/>);});assert.equal(renderer.toJSON(),null);assert.equal(reads,before);act(()=>renderer.unmount());
+ // inventory.view covers every role, so sales and collaborators open the catalog too.
+ const before=reads;await act(async()=>{renderer=create(<InventoryWorkspace role="sales"/>);});assert.notEqual(renderer.toJSON(),null,'sales reaches the inventory catalog');assert(reads>before,'the catalog is requested');act(()=>renderer.unmount());
+ await act(async()=>{renderer=create(<InventoryWorkspace role="collaborator"/>);});assert.notEqual(renderer.toJSON(),null,'collaborator reaches the inventory catalog');act(()=>renderer.unmount());
+ await act(async()=>{renderer=create(<InventoryWorkspace role="guest"/>);});assert.equal(renderer.toJSON(),null,'a role outside the capability renders nothing');act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});
  assert.equal(intervals.size,1);assert.match(tree(),/Sincroniza cada 30 s/);assert.match(tree(),/Estante A/);assert.doesNotMatch(tree(),/Cargando inventario/);assert.doesNotMatch(tree(),/Ubicaciones de guardado/,'storage management controls stay hidden outside manager roles');
  assert.equal(renderer.root.findByProps({className:'inventory-toolbar-meta'}).props.children.length,2,'tabs and synchronization status share the compact metadata row');
@@ -154,7 +158,7 @@ async function run(){
   assert(renderer.root.findAll(node=>hasClass(node,'inventory-verify-action')).length,'the verify check lives in the control row next to the stamp');
   assert(renderer.root.findAll(node=>hasClass(node,'inventory-item-actions')).length,'actions share the same one-line foot row');
   act(()=>renderer.root.findAllByProps({'aria-label':'Seleccionar Memoria SD'})[0].props.onChange());
-  assert.equal(text(renderer.root.findByProps({className:'inventory-bulk-count'})),'1 seleccionado','the bulk bar counts the selection');
+  assert.equal(text(renderer.root.findByProps({className:'inventory-bulk-count'})),'1 de 50 seleccionado','the bulk bar counts the selection against the API batch cap');
   assert(button('Verificar'));assert(button('Mover ubicación'));assert(button('Reservar'));
   const beforeBatch=writes.length;
   await act(async()=>{await button('Verificar').props.onClick();});
@@ -163,6 +167,17 @@ async function run(){
   assert.deepEqual((batchWrite.body as {ids:string[]}).ids,['1']);
   assert.equal((batchWrite.body as {change:{verify:boolean}}).change.verify,true);
   assert.doesNotMatch(tree(),/inventory-bulk-bar/,'a successful batch clears the selection');
+  act(()=>renderer.unmount());
+  // The API caps a batch at 50 records: the selection stops there and the counter shows the limit.
+  items=Array.from({length:51},(_,index)=>({...equipment[0],id:String(100+index),name:`Equipo ${100+index}`}));
+  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+  act(()=>button('Seleccionar visibles').props.onClick());
+  assert.equal(text(renderer.root.findByProps({className:'inventory-bulk-count'})),'50 de 50 seleccionados','the selection stops at the API batch cap');
+  const beforeCap=writes.length;
+  await act(async()=>{await button('Verificar').props.onClick();});
+  const capWrite=writes.slice(beforeCap).find(write=>write.path==='/api/agency/inventory/batch');
+  assert(capWrite,'the capped selection still posts one batch');
+  assert.equal((capWrite.body as {ids:string[]}).ids.length,50,'the request never exceeds the API cap');
   act(()=>renderer.unmount());
   // CategoryForm owns name, availability and icon without the shared Editor.
   // API/database persistence is tested in the API suite.

@@ -51,6 +51,10 @@ async function main(){
  assert.match(text(renderer),/Solo interno/);assert.match(text(renderer),/Visible en el portal/);
  assert.equal(renderer.root.findAllByType('form').length,0,'readers cannot add links');
  renderer.unmount();
+ await mount('collaborator');
+ assert(checkboxes().length>=2,'collaborator edits links with work-orders.edit');
+ assert.equal(renderer.root.findAllByType('form').length,1,'collaborator can add links');
+ renderer.unmount();
  console.log('PASS: work-order link visibility toggles PATCH immediately, defaults private, and readers only see the state');
 }
 void main().catch(error=>{console.error(error);process.exitCode=1;});

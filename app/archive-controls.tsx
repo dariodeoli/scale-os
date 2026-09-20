@@ -4,24 +4,27 @@ import {api,Dialog} from './operations';
 import {notify} from './feedback';
 import {ActorIdentity} from './actor-identity';
 import {Trash2} from 'lucide-react';
+import {roleCan,type Capability} from './capabilities';
 
-const roles:Record<string,string[]>={
- members:['owner','admin','management'],
- clients:['owner','admin','management','sales','finance','collaborator'],
- projects:['owner','admin','management','production','collaborator'],
- 'work-orders':['owner','admin','management','production'],
- leads:['owner','admin','management','finance','sales'],
- plans:['owner','admin','management','finance','sales','production','collaborator'],
- budgets:['owner','admin','management','finance','sales','production','collaborator'],
- inventory:['owner','admin','management','production','finance'],
- collaborators:['owner','admin','management'],accounts:['owner','admin','finance'],
+const roles:Record<string,Capability>={
+ members:'members.manage',
+ clients:'clients.manage',
+ projects:'projects.edit',
+ 'work-orders':'work-orders.manage',
+ leads:'commercial.manage',
+ plans:'budgets.manage',
+ budgets:'budgets.manage',
+ inventory:'inventory.manage',
+ collaborators:'members.manage',
+ accounts:'accounts.manage',
 };
 const labels:Record<string,string>={clients:'Cliente',projects:'Proyecto','work-orders':'Orden',leads:'Oportunidad',plans:'Plan',budgets:'Presupuesto',inventory:'Equipo de inventario',collaborators:'Colaborador',accounts:'Cuenta'};
 const errorMessage=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar la operación';
 
 export function RemoveRecord({kind,id,name,role,done}:{kind:string;id:string;name:string;role:string;done:()=>Promise<void>}){
  const [open,setOpen]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
- if(!roles[kind]?.includes(role))return null;
+ const capability=roles[kind];
+ if(!capability||!roleCan(role,capability))return null;
  const access=kind==='members';
  return <><button className="icon-button record-remove" type="button" title={access?'Quitar acceso':'Mover a la papelera'} aria-label={`${access?'Quitar acceso':'Mover a la papelera'}: ${name}`} onClick={()=>{setError('');setOpen(true);}}><Trash2 size={16}/></button>
  {open&&<Dialog title={access?'Quitar acceso o invitación':'Mover a la papelera'} close={()=>{if(!busy)setOpen(false);}}>

@@ -1,13 +1,13 @@
 "use client";
 import {useEffect,useState,type FormEvent} from 'react';
 import {api} from './operations';
+import {roleCan} from './capabilities';
 
 type LinkRecord={id:string;label:string;url:string;visible_to_client?:boolean;created_at:string};
-const writers=['owner','admin','management','production','editor'];
 function httpsUrl(value:string){try{const url=new URL(value.trim());return url.protocol==='https:'&&!url.username&&!url.password?url.toString():null;}catch{return null;}}
 export function WorkOrderLinks({orderId,role}:{orderId:string;role:string}){
  const [links,setLinks]=useState<LinkRecord[]>([]),[label,setLabel]=useState(''),[url,setUrl]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
- const canEdit=writers.includes(role);
+ const canEdit=roleCan(role,'work-orders.edit');
  async function load(){try{setLinks((await api<{links:LinkRecord[]}>(`/api/agency/work-orders/${orderId}/links`)).links);setError('');}catch(cause){setError(cause instanceof Error?cause.message:'No se pudieron cargar los enlaces.');}}
  useEffect(()=>{void load();},[orderId]);
  async function submit(event:FormEvent){event.preventDefault();const href=httpsUrl(url);if(!href||label.trim().length<2){setError('Indicá un nombre y un enlace HTTPS válido.');return;}setBusy(true);setError('');try{await api(`/api/agency/work-orders/${orderId}/links`,{label:label.trim(),url:href});setLabel('');setUrl('');await load();}catch(cause){setError(cause instanceof Error?cause.message:'No se pudo guardar el enlace.');}finally{setBusy(false);}}

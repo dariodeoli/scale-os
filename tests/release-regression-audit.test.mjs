@@ -9,7 +9,7 @@ const platformCss=file('../app/superadmin/platform-admin.css');
 assert(cache.includes('expires:Date.now()+15000'),'shared read cache must remain bounded to 15 seconds');
 for(const endpoint of ['/members','/team','/settings','/activity','/notifications','/inventory-context','/inventory-reservations'])assert(cache.includes(endpoint),'permission-bearing and live endpoints must bypass cache: '+endpoint);
 assert(workspace.includes('setDataScope(operationalAccess&&user?`${user.id}:${user.organization_id}:${user.role}`:\'\')'),'cache scope must include user, organization and role');
-assert(workspace.includes("if(label==='Inventario'&&!['owner','admin','management','production','finance','editor','viewer','collaborator'].includes(user.role))return;"),'inventory preload must respect the same role boundary as the feature');
+assert(workspace.includes("if(['Inventario','Estudio'].includes(label)&&!roleCan(user.role,'inventory.view'))return;"),'inventory and studio preload respect the same capability as the feature');
 assert(mobile.includes('height:100dvh')&&mobile.includes('min-height:44px'),'mobile drawer must cover the viewport and preserve touch targets');
 assert(platform.includes("'/api/platform/overview'")&&platform.includes("credentials:'include'")&&platform.includes("cache:'no-store'"),'global panel must use its dedicated, authenticated no-store API');
 assert(!platform.includes('ScaleWorkspace')&&!platform.includes('DesktopSidebar'),'global panel must not mount the agency workspace');
