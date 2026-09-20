@@ -355,8 +355,9 @@
 .person-hub-card:not(.is-list)>.person-hub-tail{display:flex;flex-direction:column;flex:1;min-height:0}
 .person-hub-actions .ops-card-actions{margin:0;padding:0;border:0;display:flex;justify-content:flex-end}
 .person-hub-head-row{grid-column:1/-1;display:none}
-@media(min-width:861px){.person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.person-hub-head-row span:last-child{justify-self:end}}
-@media(max-width:860px){.person-hub-card.is-list{grid-template-columns:1fr}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}}
+@media(min-width:861px){.person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.person-hub-head-row span:first-child{padding-left:26px}.person-hub-head-row span:last-child{justify-self:end}}
+/* Hasta 860px la fila se apila: recupera la densidad de tarjeta (16px, 12px de gap). */
+@media(max-width:860px){.person-hub-card.is-list{grid-template-columns:1fr;gap:12px;padding:16px;min-height:0}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}}
 
 /* Actividad: feed agrupado por día con filas compactas. */
 .activity-feed .panel-heading{margin-bottom:6px}

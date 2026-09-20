@@ -571,7 +571,7 @@ function PeopleWorkspace({
                 </header>
                 <dl className="person-hub-facts">
                   <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={p.email||undefined}>{p.email||'Sin correo'}</dd></div>
-                  <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
+                  <div><dt>Acceso</dt><dd title={`${accessRole} · ${accessState}`}>{accessRole} · {accessState}</dd></div>
                   <div><dt>Ingreso</dt><dd className="list-date">{listDateShort(p.started_on)||'Sin fecha'}</dd></div>
                 </dl>
                 <div className="person-hub-chips">
@@ -601,7 +601,7 @@ function PeopleWorkspace({
               </header>
               <dl className="person-hub-facts">
                 <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={entry.member!.email||undefined}>{entry.member!.email}</dd></div>
-                <div><dt>Acceso</dt><dd title={accessState}>{accessRole} · {accessState}</dd></div>
+                <div><dt>Acceso</dt><dd title={`${accessRole} · ${accessState}`}>{accessRole} · {accessState}</dd></div>
               </dl>
               <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>
               <div className="person-hub-tail"><TeamAccess member={entry.member} email={entry.member!.email} role={role} refresh={load}/>
