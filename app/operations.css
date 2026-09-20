@@ -389,9 +389,11 @@
 .finance-row-head span:last-child{justify-self:end}
 
 .finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row){display:grid;grid-template-columns:var(--finance-cols);gap:8px;align-items:center}
-/* El detalle secundario de las filas financieras viaja en la misma línea. */
+/* Columna de monto reservada (sin `auto`) en encabezado y filas de dinero. */
+.finance-row-head,.finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row),.control-shell :is(.finance-payout-row,.finance-referral-row){--finance-cols:minmax(0,1fr) 8.5rem}
+/* El detalle secundario envuelve: la identidad del actor nunca queda recortada. */
 .finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>div:first-child{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
-.finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>div:first-child>small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>div:first-child>small{min-width:0}
 .finance-grid :is(.finance-transfer-row,.finance-invoice-row,.finance-payment-row)>strong{justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 .control-shell :is(.finance-payout-row,.finance-referral-row){display:grid;grid-template-columns:var(--finance-cols);gap:8px;align-items:center}
 .control-shell :is(.finance-payout-row,.finance-referral-row)>:is(strong,button){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -424,5 +426,7 @@
 .budget-hub-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle,var(--line))}
 @media(max-width:420px){.budget-hub-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .catalog-card{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:200px}.catalog-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0}.catalog-card-head h3{margin:0;font-size:14px;overflow-wrap:anywhere}.catalog-card-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0}.catalog-card-facts dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}.catalog-card-facts dd{margin:3px 0 0;font-size:12.5px;overflow-wrap:anywhere}.catalog-card-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:auto;padding-top:8px;border-top:1px solid var(--border-subtle,var(--line))}.production-focus .work-card{padding:14px}
-.finance-payout-row>div,.finance-referral-row>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}.finance-payout-row b,.finance-referral-row b{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}.finance-payout-row small,.finance-referral-row small{margin-top:0;white-space:nowrap;flex:none}
+.finance-payout-row>div,.finance-referral-row>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}.finance-payout-row b,.finance-referral-row b{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}.finance-payout-row small,.finance-referral-row small{margin-top:0;min-width:0}
 .statement-row>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}.statement-row b{white-space:normal;overflow-wrap:anywhere}.statement-row small{margin-top:0;white-space:nowrap;flex:none}
+/* A 768–1024 la grilla financiera de 2 columnas deja paneles de ~210 px: una sola columna. */
+@media(max-width:1024px){.control-shell .finance-grid{grid-template-columns:minmax(0,1fr)}}

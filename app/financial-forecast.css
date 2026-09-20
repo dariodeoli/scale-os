@@ -34,12 +34,12 @@
 .forecast-projection td[data-negative]{color:var(--danger)}
 .contracted-clients{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
 .contracted-clients h3{margin:0}
-.contracted-clients-list{display:grid;grid-template-columns:1fr;gap:4px;--contracted-cols:minmax(160px,1.2fr) minmax(120px,.9fr) minmax(120px,.9fr) auto;padding:0;margin:1rem 0 0;list-style:none}
-@media(max-width:640px){.contracted-clients-list{grid-template-columns:1fr}}
+.contracted-clients-list{display:grid;grid-template-columns:1fr;gap:4px;--contracted-cols:minmax(160px,1.2fr) minmax(9rem,1fr) minmax(9rem,1fr) 6.5rem;padding:0;margin:1rem 0 0;list-style:none}
+@media(max-width:860px){.contracted-clients-list{grid-template-columns:1fr}}
 .contracted-clients-list li{display:grid;grid-template-columns:var(--contracted-cols);align-items:center;gap:4px 8px;min-height:44px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:6px 10px;font-size:.8rem}
-.contracted-clients-head{display:none}
-@media(min-width:861px){.contracted-clients-head{display:grid;grid-template-columns:var(--contracted-cols);gap:0 8px;padding:0 10px 4px;border:0;min-height:0;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.contracted-clients-head span:nth-child(n+2){justify-self:end}}
-.contracted-clients-list li>span:nth-child(2),.contracted-clients-list li>span:nth-child(3){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
+.contracted-clients-list li.contracted-clients-head{display:none}
+@media(min-width:861px){.contracted-clients-list li.contracted-clients-head{display:grid;grid-template-columns:var(--contracted-cols);gap:0 8px;padding:0 10px 4px;border:0;min-height:0;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.contracted-clients-head span:nth-child(n+2){justify-self:end}}
+.contracted-clients-list li>span:nth-child(2),.contracted-clients-list li>span:nth-child(3){justify-self:end;font-variant-numeric:tabular-nums}
 .contracted-clients-list li>em{justify-self:end}
 .contracted-clients-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
 /* Los encabezados de estas listas son leyenda de columnas, no una fila más:
@@ -52,7 +52,7 @@
 .missing-invoice-chip{font-style:normal;border-color:color-mix(in srgb,var(--warning) 30%,transparent);background:var(--warning-soft);color:var(--warning)}
 .planned-expenses-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.75rem;align-items:end;margin-top:1rem}
 .planned-expenses-form label{display:grid;gap:.35rem;min-width:0;font-size:.8rem}.planned-expenses-form input,.planned-expenses-form select{box-sizing:border-box;width:100%;max-width:none}
-.planned-expenses-form button{min-height:2.75rem}.planned-expenses-note{grid-column:span 2}.planned-expenses-list{display:grid;gap:.5rem;padding:0;margin:1rem 0 0;list-style:none;--planned-cols:minmax(0,1fr) auto}.planned-expenses-list li{display:grid;grid-template-columns:var(--planned-cols);align-items:center;gap:8px;min-height:44px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:.75rem}.planned-expenses-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+.planned-expenses-form button{min-height:2.75rem}.planned-expenses-note{grid-column:span 2}.planned-expenses-list{display:grid;gap:.5rem;padding:0;margin:1rem 0 0;list-style:none;--planned-cols:minmax(0,1fr) 8.5rem}.planned-expenses-list li{display:grid;grid-template-columns:var(--planned-cols);align-items:center;gap:8px;min-height:44px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;padding:.75rem}.planned-expenses-list strong{font-variant-numeric:tabular-nums;white-space:nowrap}
 @media(max-width:540px){.planned-expenses-note{grid-column:auto}.planned-expenses-form button{width:100%}}
 .forecast-balance{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle,var(--line))}
 .forecast-balance h3{margin:0}
@@ -84,7 +84,7 @@
 .forecast-person-override strong{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--warning)}
 .forecast-person-total strong[data-negative]{color:var(--danger)}
 /* Alineación fija por columnas: el ajuste ausente reserva su lugar. */
-.forecast-personnel{--forecast-person-cols:minmax(150px,1.2fr) minmax(104px,.9fr) minmax(116px,.9fr) minmax(116px,.9fr) auto}
+.forecast-personnel{--forecast-person-cols:minmax(150px,1.2fr) minmax(104px,.9fr) minmax(116px,.9fr) minmax(116px,.9fr) 7rem}
 .forecast-person-head{display:grid;grid-template-columns:var(--forecast-person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .forecast-person-head span:last-child{justify-self:end}
 .forecast-person-who{display:flex;align-items:center;gap:var(--ui-space-2);min-width:0}
@@ -111,7 +111,7 @@
 
 /* Contratos vs facturación: en mobile la fila se apila (los rótulos Contratado/Facturado
    nombran el dato) en lugar de forzar 509 px de ancho mínimo en todo el panel. */
-@media(max-width:640px){
+@media(max-width:860px){
  .contracted-clients-list li{grid-template-columns:minmax(0,1fr)}
- .contracted-clients-list li>span:nth-child(2),.contracted-clients-list li>span:nth-child(3),.contracted-clients-list li>em{justify-self:start}
+ .contracted-clients-list li>span:nth-child(2),.contracted-clients-list li>span:nth-child(3),.contracted-clients-list li>em{justify-self:start;white-space:normal}
 }
