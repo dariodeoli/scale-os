@@ -269,12 +269,13 @@ function Modal({
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
 const clientHeadRow=()=> <div className="client-hub-head-row" aria-hidden="true"><span>Cliente</span><span>Datos</span><span>Estado</span><span>Cobros</span><span>Actividad</span><span>Acciones</span></div>;
-function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOpen,onToggleArchive,refresh,role,selectable=false,selected=false,onSelect}:{
+function ClientHubCard({client,pay,stat,canSeeBilling,canManage,canManageTerms,archiveBusy,onOpen,onToggleArchive,refresh,role,selectable=false,selected=false,onSelect}:{
   client:Client;
   pay:ClientPaymentStatus|undefined;
   stat:{projects:number;pieces:number;nextDue:string|null}|undefined;
   canSeeBilling:boolean;
   canManage:boolean;
+  canManageTerms:boolean;
   archiveBusy:boolean;
   onOpen:()=>void;
   onToggleArchive:()=>void;
@@ -327,7 +328,7 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,archiveBusy,onOp
         <button className="text-button" onClick={onOpen}><Eye size={14}/>Abrir ficha</button>
         <WhatsAppButton href={tel}/>
         {canManage?<button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button>:null}
-        <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} refresh={refresh}/></div>
+        <div className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} canManageTerms={canManageTerms} refresh={refresh}/></div>
       </footer>
     </article>
   );
@@ -1350,7 +1351,7 @@ export default function Home() {
             <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
               {clientView==='list'?clientHeadRow():null}
               {liveClients.map(client=>(
-                <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
+                <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} canManageTerms={roleCan(user?.role,'commercial-terms.manage')} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
               ))}
               {!liveClients.length&&archivedClients.length&&clientStatusFilter!=='inactive'?<p className="empty-copy">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p>:null}
               {!displayedClients.length ? (
@@ -1372,7 +1373,7 @@ export default function Home() {
                 <div className={clientView==='grid'?'client-hub-grid':'client-hub-list'}>
                   {clientView==='list'?clientHeadRow():null}
                   {archivedClients.map(client=>(
-                    <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
+                    <ClientHubCard key={client.id} client={client} pay={paymentStatuses.find(ps=>String(ps.client_id)===String(client.id))} stat={clientHubStats.get(String(client.id))} canSeeBilling={canSeeBilling} canManage={canManageClients} canManageTerms={roleCan(user?.role,'commercial-terms.manage')} archiveBusy={archiveBusy===`client:${client.id}`} onOpen={()=>setDetail({kind:'client',id:client.id})} onToggleArchive={()=>void setClientArchive(client.id,client.active===false)} refresh={load} role={user?.role||'viewer'} selectable={canManageClients} selected={selectedClients.includes(String(client.id))} onSelect={()=>toggleClientSelected(String(client.id))}/>
                   ))}
                 </div>
               </details>
@@ -1484,7 +1485,7 @@ export default function Home() {
                       <div className="budget-hub-fact-amount"><dt>Sin IVA</dt><dd title={money(Number(budget.subtotal),budget.currency)}>{money(Number(budget.subtotal),budget.currency)}</dd></div>
                     </dl>
                     <strong className="budget-hub-total">{money(Number(budget.total),budget.currency)}<small>IVA incl.</small></strong>
-                    <footer className="budget-hub-actions"><BudgetActions id={budget.id} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>
+                    <footer className="budget-hub-actions"><BudgetActions id={budget.id} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>
                   </article>
                 ))
               ) : budgetsState === 'loading' ? (
