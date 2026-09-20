@@ -701,6 +701,11 @@
   align-items: end;
 }
 
+/* La nota del formulario no cabe en una columna de 141px: ocupa la fila completa. */
+.platform-admin-subscription-form label:has(textarea) {
+  grid-column: 1 / -1;
+}
+
 .platform-admin-subscription-form .form-note {
   grid-column: 1 / -1;
   margin: 0;

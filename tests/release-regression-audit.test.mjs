@@ -57,4 +57,7 @@ assert(file('../app/platform-access.css').includes('.platform-access-list{displa
 assert(file('../app/invite-links.css').includes('.invite-link-actions{display:flex'),'invite row actions lay out with the shared gap');
 assert(file('../app/superadmin/platform-admin.css').includes('margin-bottom: 0;'),'the global admin header resets the leaking global header margin');
 assert(file('../app/superadmin/page.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');
+assert(file('../app/superadmin/platform-admin.css').includes('.platform-admin-subscription-form label:has(textarea)'),'subscription notes span the full row');
+assert(file('../app/actor-identity.css').includes('.actor-identity-time{white-space:nowrap'),'author timestamps never break mid-value');
+assert(file('../app/status/status.css').includes('.status-hero{display:flex;align-items:flex-start;gap:14px;min-width:0;flex-wrap:wrap;margin-bottom:0}'),'the public status hero resets the global header margin');
 console.log('PASS: rail, topbar, company switcher and dense lists keep their content inside the container.');
