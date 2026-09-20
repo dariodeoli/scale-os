@@ -16,7 +16,8 @@
 .settings-card .ops-profile-section>summary::after,.settings-disclosure>summary::after{content:'+';margin-left:auto;color:var(--text-muted);font-size:17px;font-weight:400}.settings-card .ops-profile-section[open]>summary::after,.settings-disclosure[open]>summary::after{content:'−'}
 .settings-card .ops-profile-section>.ops-form-grid,.settings-disclosure>div,.settings-disclosure>p{margin:0;padding:0 12px 12px}.settings-disclosure>p{line-height:1.55}
 .settings-notice{margin:0;padding:10px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:8px;background:var(--surface-sunken);color:var(--text-muted);font-size:12px}
-.settings-integration-list{display:grid;border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;--settings-cols:minmax(0,1fr) auto}.settings-integration-list article{display:grid;grid-template-columns:var(--settings-cols);align-items:center;gap:8px;padding:12px;border-bottom:1px solid var(--border-subtle,var(--line));background:var(--surface-raised)}.settings-integration-list article:last-child{border-bottom:0}.settings-integration-list strong{font-size:13px}.settings-integration-list p{margin:3px 0 0;color:var(--text-muted);font-size:12px;line-height:1.45}.settings-status{justify-self:start}
+/* Estado con ancho fijo: con `auto` el encabezado y cada fila medían distinto (Δ52,8 px). */
+.settings-integration-list{display:grid;border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;--settings-cols:minmax(0,1fr) 8.5rem}.settings-integration-list article{display:grid;grid-template-columns:var(--settings-cols);align-items:center;gap:8px;padding:6px 12px;min-height:48px;border-bottom:1px solid var(--border-subtle,var(--line));background:var(--surface-raised)}.settings-integration-list article:last-child{border-bottom:0}.settings-integration-list article>div{min-width:0}.settings-integration-list strong{font-size:13px}.settings-integration-list p{margin:2px 0 0;color:var(--text-muted);font-size:12px;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.settings-status{justify-self:start}
 .settings-integration-head{display:grid;grid-template-columns:var(--settings-cols);gap:8px;padding:8px 12px;border-bottom:1px solid var(--border-subtle,var(--line));background:var(--surface-sunken,var(--surface-subtle));color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 @media(max-width:700px){.settings-integration-head{display:none}}
 .settings-history{display:grid;gap:0}.settings-history p{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:8px 0;border-top:1px solid var(--border-subtle,var(--line));color:var(--text-muted);font-size:12px}.settings-history p:first-child{border-top:0}.settings-history strong{color:var(--text);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -28,18 +29,26 @@
 @media(prefers-reduced-motion:reduce){.settings-card *{transition-duration:.01ms!important}.settings-card :is(button,a):active{transform:none!important}}
 
 /* Papelera: filas estructuradas con chip de tipo. */
-.trash-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;--trash-cols:auto auto minmax(0,1fr) auto}
+/* Columnas fijas: la fila mide lo mismo que su encabezado y el actor entra en una línea. */
+.trash-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;--trash-cols:1.75rem 7rem minmax(0,1fr) 7.5rem}
 .trash-head{display:grid;grid-template-columns:var(--trash-cols);gap:8px;padding:0 14px 2px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .trash-head span:last-child{justify-self:end}
 /* El encabezado de 4 columnas desaparece junto con la plantilla de fila (mismo corte). */
 @media(max-width:640px){.trash-head{display:none}}
-.trash-row{display:grid;grid-template-columns:var(--trash-cols);align-items:center;gap:8px;padding:12px 14px;border:1px solid var(--border-subtle,var(--line));border-radius:12px;background:var(--surface-raised,var(--surface));transition:border-color var(--ease),box-shadow var(--ease)}
+.trash-row{display:grid;grid-template-columns:var(--trash-cols);align-items:center;gap:8px;padding:6px 14px;min-height:48px;border:1px solid var(--border-subtle,var(--line));border-radius:12px;background:var(--surface-raised,var(--surface));transition:border-color var(--ease),box-shadow var(--ease)}
 .trash-row:hover{border-color:var(--line-strong,var(--border-subtle));box-shadow:var(--shadow-xs)}
 .trash-kind{background:var(--violet-soft);color:var(--brand-700)}
 .trash-info{min-width:0}
 .trash-info b{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.trash-info small{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;color:var(--text-subtle,var(--text-muted));font-size:11.5px}
-.trash-restore{white-space:nowrap;min-height:40px}
+.trash-info small{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden;white-space:nowrap;margin-top:2px;color:var(--text-subtle,var(--text-muted));font-size:11.5px}
+/* La auditoría de la fila es una línea muted: nombre y fecha al lado, sin avatar ni caja. */
+.trash-row :is(.actor-identity,.actor-identity-details){min-width:0}
+.trash-row .actor-identity{padding:0;border:0;background:transparent;gap:6px}
+.trash-row .actor-identity-details{flex-direction:row;align-items:baseline;gap:8px}
+.trash-row .actor-identity-avatar{display:none}
+.trash-row .actor-identity-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trash-row .actor-identity-time{flex:none;white-space:nowrap}
+.trash-restore{white-space:nowrap;min-height:36px}
 .trash-empty{padding:18px;border:1px dashed var(--border-subtle,var(--line));border-radius:12px;background:var(--surface-sunken,var(--surface-subtle));color:var(--text-subtle,var(--text-muted));text-align:center}
 /* Preferencias y zona sensible en cápsulas. */
 .preferences-card .preferences-row{padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:12px;background:var(--surface-sunken,var(--surface-subtle));margin-top:12px}

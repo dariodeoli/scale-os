@@ -38,7 +38,7 @@ const personContainer = ({name, initials, secondary = '', size = 'md'}) => `
 
 /* app/actor-identity.tsx lines 16-27 + actor-identity.css */
 const actorIdentity = ({name, initials, time = null, imported = false}) => `
-<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span>${time ? `<time class="actor-identity-time" datetime="${time.iso}">${time.label}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
+<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span>${time ? `<time class="actor-identity-time" datetime="${time.iso}" title="${time.label}">${time.label}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
 
 const LONG_CLIENT = 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima';
 const LONG_EMAIL = 'administracion.facturacion@estudiocomunicacionparaguay.com.py';
