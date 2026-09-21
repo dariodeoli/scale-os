@@ -54,11 +54,20 @@ for (const dead of [
   'app/api/auth/login/route.ts',
   'app/api/auth/me/route.ts',
   'app/api/auth/logout/route.ts',
+  'app/api/clients/route.ts',
+  'app/api/projects/route.ts',
+  'app/api/work-orders/route.ts',
+  'lib/auth.ts',
+  'lib/session.ts',
   'app/platform-access-panel.tsx',
   'app/platform-access.css',
   'tests/platform-access-panel.test.tsx',
 ])
   assert.ok(missing(dead), `${dead} fue eliminado`);
+// lib/prisma.ts queda: lo usa prisma/seed.ts (npm run db:seed), no las rutas retiradas.
+assert.match(read('prisma/seed.ts'), /from '\.\.\/lib\/prisma'/, 'el seed sigue usando el cliente Prisma');
+assert.ok(existsSync(new URL('../lib/prisma.ts', import.meta.url)), 'lib/prisma.ts se conserva para el seed');
+assert.ok(missing('lib/auth.ts') && missing('lib/session.ts'), 'la cadena de auth paralela se retiró');
 const superadmin = read('app/superadmin/page.tsx');
 assert.match(superadmin, /\/api\/platform\/users\?limit=50/, 'el panel global vivo es el de superadmin');
 assert.doesNotMatch(superadmin, /platform-access-panel/, 'superadmin no importa el componente retirado');
