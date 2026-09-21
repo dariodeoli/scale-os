@@ -8,7 +8,7 @@ const script=html.split('// BEGIN LIVE VISITORS:')[1]?.split('// END LIVE VISITO
 assert(script,'isolated live visitor script exists');
 const executable=script.slice(script.indexOf('\n'));
 // The agency handoff carries the same tested runtime, with only site/host/path configuration changed.
-const handoff=readFileSync('../scale-core-api/LIVE-VISITORS-INTEGRATION.md','utf8');
+const handoff=readFileSync('backend/LIVE-VISITORS-INTEGRATION.md','utf8');
 const agency=handoff.split('```html\n<script>\n')[1]?.split('\n</script>')[0];
 assert(agency,'agency website snippet exists');
 const normalize=(source:string)=>source.split('\n').filter(line=>!line.trim().startsWith('//')).join('\n').trim();
