@@ -6,6 +6,8 @@ Próxima versión preparada: **1.0.25** (12-09-2026, Paraguay). No implica publi
 
 Regla de publicación: cada actualización que llegue a producción incrementa el último número de parche. No publicar sin actualizar la fuente y regenerar la landing. El mismo criterio se aplica a las demás aplicaciones del ecosistema: una única fuente de versión por aplicación y un footer visible.
 
+Desde la migración a monorepo (scale-os#34) el API vive en `backend/` y comparte la versión central: `npm run release:sync` / `release:check` mantienen alineados `app/app-version.ts`, `package.json`, `backend/release-version.json`, `backend/package.json` y `backend/package-lock.json`. `npm run release:patch` hace un solo bump, un solo commit y un solo push, y GitHub → Coolify despliega web y API con la misma versión; el API la publica en `/health` (`release.version`) y el smoke la valida. Detalle de la topología en `DEPLOYMENT.md`.
+
 `app/workspace-footer.tsx` es la única fuente del contenido del footer: panel, login, registro, invitación, espera de acceso y landing. La variante comercial conserva sus enlaces y no incluye el crédito interno ni el aviso de actividad del panel.
 
 La landing sigue siendo HTML estático: `build-tools/sync-landing-footer.tsx` renderiza la variante comercial del mismo componente, con la versión compartida y el año del build, dentro de `public/scale-os.html`. No editar ese footer manualmente. Funciona sin JavaScript, sin consultas a la API y sin carga adicional en el navegador.

@@ -5,6 +5,12 @@ node_modules
 !.env.example
 .git
 
+# El API vive en backend/ del mismo repositorio: sus dependencias y secretos
+# nunca entran al contexto de la imagen web.
+backend/node_modules
+backend/.env
+backend/.env.*
+
 # Runtime configuration is injected by Coolify at container start, never copied
 # into an image layer. Keep the example file so developers can document keys.
 
