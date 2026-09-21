@@ -45,6 +45,7 @@ export const CAPABILITY_ROLES = {
  'inventory.manage': ['owner','admin','management','production','finance','collaborator'],
  'inventory.book': ['owner','admin','management','production','collaborator'],
  'studio.manage': ['owner','admin','management','sales','production','collaborator'],
+ 'portal-access.manage': ['owner','admin','management','production'],
  'portal.manage': ['owner','admin','management','production','collaborator'],
  'salary.view': ['owner','admin','finance'],
 } as const;

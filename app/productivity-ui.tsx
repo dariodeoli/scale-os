@@ -1,5 +1,6 @@
 "use client";
 import {urgencyField,UrgencyBadge} from './urgency';
+import {roleCan} from './capabilities';
 import {useEffect,useState} from 'react';
 import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-react';
 import {api,Editor,money,type Field} from './operations';
@@ -143,7 +144,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
     <article><span>RUC</span><strong title={s(data.client,'tax_id')||undefined}>{s(data.client,'tax_id')||'Sin RUC registrado'}</strong>{s(data.client,'legal_name')&&s(data.client,'legal_name')!==s(data.client,'name')?<small title={s(data.client,'legal_name')}>{s(data.client,'legal_name')}</small>:null}</article>
    </div>
   </section>}
-  {managers.includes(role)&&<div className="quick-actions"><button className="primary" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button><ClientPortalAccess clientId={id}/></div>}
+  {managers.includes(role)&&<div className="quick-actions"><button className="primary" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button>{roleCan(role,'portal-access.manage')&&<ClientPortalAccess clientId={id}/>}</div>}
   <div className="choice-list">{['Producción',...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={tab===t?'choice active':'choice'} onClick={()=>setTab(t)}>{t}</button>)}</div>
   {tab==='Producción'&&<><h3>Proyectos ({data.projects.length})</h3><div className="drawer-list">{data.projects.length?<div className="drawer-list-head" aria-hidden="true"><span>Proyecto</span><span>Enlaces</span></div>:null}{data.projects.map(p=><article className="activity-line" key={p.id}><b title={s(p,'name')}>{s(p,'name')}</b><DriveLinks value={p.drive_links} legacy={s(p,'drive_url')} compact/></article>)}</div><h3>Piezas recientes</h3><div className="drawer-list">{data.orders.length?<div className="drawer-list-head" aria-hidden="true"><span>Pieza</span><span>Estado</span></div>:null}{data.orders.map(o=><button className="work-list-row" key={o.id} onClick={()=>openOrder(String(o.id))}><b title={s(o,'title')}>{s(o,'title')}</b><span>{workStatusLabel(s(o,'status'))}</span></button>)}</div>{!data.projects.length&&<p className="empty-copy">Este cliente aún no tiene proyectos.</p>}</>}
   {tab==='Presupuestos'&&<div className="drawer-list"><div className="drawer-list-head" aria-hidden="true"><span>Presupuesto</span><span>Estado y total</span></div>{data.budgets?.map(b=><article className="activity-line" key={b.id}><b title={`${s(b,'number')} · ${s(b,'title')}`}>{s(b,'number')} · {s(b,'title')}</b><span title={`${s(b,'status')} · ${money(s(b,'total'),s(b,'currency'))}`}>{s(b,'status')} · {money(s(b,'total'),s(b,'currency'))}</span></article>)}</div>}
