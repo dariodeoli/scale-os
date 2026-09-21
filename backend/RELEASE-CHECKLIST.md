@@ -37,7 +37,7 @@ Interfaz publicada `4b2ca26c9bac2b19ea18922a5f7a6331141bd1fd`; despliegue `hep5v
 - Sistema compartido de contenedores, espaciado, controles, formularios y estados aplicado a los once apartados, conservando los diseños especializados de Producción, calendarios e informes. No equivale a once pantallas rediseñadas y revisadas visualmente de forma individual.
 - Diálogos con foco contenido y recuperado, Escape para la ventana superior, selectores con manejo propio y bloqueo de cierre durante guardado. Los formularios de edición cierran tras persistir; los comentarios y otras acciones parciales conservan su ficha. Fallos de persistencia no descartan borradores; fallos posteriores al refrescar no se presentan como un guardado fallido.
 - Perfil reorganizado sin miniatura duplicada. Vista previa de presupuestos sin heredar dimensiones de la barra lateral ni truncar importes. Controles móviles y bordes coherentes.
-- Verificación sobre export limpio: 94 resultados aprobados y compilación de 41 rutas. Revisión independiente cerrada; cambios ajenos WEEM/Dadoo preservados. Detalle en `scale-os/DESIGN-SYSTEM.md`.
+- Verificación sobre export limpio: 94 resultados aprobados y compilación de 41 rutas. Revisión independiente cerrada; cambios ajenos WEEM/Dadoo preservados. Detalle en `DESIGN-SYSTEM.md`.
 
 La comprobación visual en navegador, móvil físico y selector de fotos continúa bloqueada por la política administrativa; no se intentaron rutas alternativas. La publicación y estas pruebas no cierran los bloqueos externos enumerados a continuación. Referencia de reversión de interfaz: `daf8e5615e53bf1a0802c2f2baa0ff7a84f4c4f8`, sin borrar datos.
 

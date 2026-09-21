@@ -184,7 +184,7 @@ invoices, audit history, direct project notes, or data from another delivery.
 
 ## UI composition
 
-- Add a host branch for `cliente.scaleparaguay.com` in `scale-os/middleware.ts`.
+- Add a host branch for `cliente.scaleparaguay.com` in `middleware.ts`.
   It may serve only portal routes, `/core-api/*`, `/brand/*`, and a noindex
   robots response. Do not expose the workspace fallback there.
 - Add `app/cliente/*` pages: `/ingresar`, `/invitacion`, `/entregas` and
@@ -249,9 +249,9 @@ Create `test-client-portal.mjs` with at least these cases:
 - `password-access.js`: existing password-reset and throttling pattern.
 - `media-policy.js`: HTTPS-link validation; it deliberately does not fetch
   external documents.
-- `scale-os/next.config.mjs` and `scale-os/middleware.ts`: Core API proxy and
+- `next.config.mjs` and `middleware.ts`: Core API proxy and
   host routing boundary.
-- `scale-os/app/daily-controls.tsx`: existing internal UI for per-piece public
+- `app/daily-controls.tsx`: existing internal UI for per-piece public
   reviews.
 
 ## Estado de implementación (2026-09-14)

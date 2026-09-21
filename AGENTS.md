@@ -1,17 +1,17 @@
 # Reglas operativas — Scale OS
 
 ## Comando abreviado `ht` (integrar y desplegar)
-- Cuando Dario escribe solo `ht`, ejecutar el ciclo completo sin preguntar: (0) preámbulo: matar servidores zombies (`lsof -ti :3000 :<PUERTO_API> | xargs kill -9` y procesos `next-server` de worktrees de Scale OS) y verificar que no haya otro merge en curso (`.git/MERGE_HEAD` ajeno); (1) `git fetch origin --prune` en scale-os y scale-core-api y relevar ramas con trabajo pendiente; (2) integrar a main una rama por vez (core-api antes que scale-os), verificando el árbol mergeado (API `npm run test:release`; frontend `npm run test:release-regression` + `npx next build`); (3) conflictos: si la rama quedó superseded por main, resolver del lado de main y verificar diff neto vacío; si hay trabajo real en conflicto, parar y preguntar; (4) pushear ambos repos con `MOBOS_INTEGRATOR=1`; (5) desplegar solo con `npm run release:patch` y validar el smoke con `npm run release:smoke` (reintentar hasta que Coolify sirva la versión nueva). Reportar al final qué ramas integraron y la versión desplegada.
+- Cuando Dario escribe solo `ht`, ejecutar el ciclo completo sin preguntar (monorepo `scale-os`; el API vive en `backend/`): (0) preámbulo: matar servidores zombies (`lsof -ti :3000 :<PUERTO_API> | xargs kill -9` y procesos `next-server` de worktrees de Scale OS) y verificar que no haya otro merge en curso (`.git/MERGE_HEAD` ajeno); (1) `git fetch origin --prune` y relevar ramas con trabajo pendiente; (2) integrar a main una rama por vez, verificando el árbol mergeado (`npm run test:release-regression` + `npx next build` para el front; `npm --prefix backend run test:release` para el API); (3) conflictos: si la rama quedó superseded por main, resolver del lado de main y verificar diff neto vacío; si hay trabajo real en conflicto, parar y preguntar; (4) pushear con `MOBOS_INTEGRATOR=1` (un solo push a main); (5) desplegar solo con `npm run release:patch` y validar el smoke con `npm run release:smoke` (reintentar hasta que Coolify sirva la versión nueva). Reportar al final qué ramas integraron y la versión desplegada.
 
 ## Hook y protección de main (regla obligatoria)
-- Nadie pushea ni mergea a `main` salvo el integrador. El hook local `pre-push` bloquea pushes a main sin `MOBOS_INTEGRATOR=1`; instalar en cada checkout con `bash scripts/setup-hooks.sh` (deja `core.hooksPath = .githooks`).
+- Nadie pushea ni mergea a `main` salvo el integrador. El hook local `pre-push` de la raíz es el único (cubre front y `backend/`); bloquea pushes a main sin `MOBOS_INTEGRATOR=1`; instalar en cada checkout con `bash scripts/setup-hooks.sh` (deja `core.hooksPath = .githooks`). No recrear `backend/.githooks`: quedó retirado en la migración.
 - La protección de rama en GitHub exige los checks de CI en modo strict y tiene force-push deshabilitado; el integrador pushea con `MOBOS_INTEGRATOR=1 git push origin main`.
 - Conflicto de merge → parar y consultar con Dario; nunca resolver en silencio.
 
 ## Despliegues (regla obligatoria)
-- Cada deploy a producción incrementa el parche de versión. Usar siempre `npm run release:patch`: exige árboles limpios, sube la versión, sincroniza footer y versiones (frontend + API), corre regresiones y build, pushea en orden API → interfaz y dispara Coolify; el smoke valida las URLs públicas al final.
-- No publicar sin bump de versión ni sin el footer regenerado (`footer:sync` / `footer:check`). Detalle en `VERSIONING.md`.
-- La versión visible vive en `release/version.json`, sincronizada con `app/app-version.ts`, `package.json` y el footer.
+- Un solo repositorio, un solo release: cada deploy a producción incrementa el parche de versión con `npm run release:patch`. El script ahora exige el árbol limpio, hace **un solo bump** de `release/version.json`, sincroniza front y `backend/`, corre regresiones + build + `npm --prefix backend run test:release`, commitea y pushea una sola vez a main; GitHub → Coolify despliega los dos servicios (web en la raíz, API con base `backend/`). El smoke valida las URLs públicas al final.
+- No publicar sin bump de versión ni sin el footer regenerado (`footer:sync` / `footer:check`). Detalle en `VERSIONING.md` y `DEPLOYMENT.md`.
+- La versión visible vive en `release/version.json`, sincronizada con `app/app-version.ts`, `package.json`, `backend/release-version.json`, `backend/package.json` y el footer (`npm run release:check`).
 - Las sesiones de worktree de los slots (SOS-COM/OPS/FIN/PLT) nunca despliegan. El deploy es exclusivo del integrador, y solo con pedido explícito.
 
 ## Integración a main (regla obligatoria)
@@ -21,7 +21,7 @@
 - Después de una integración anunciada, verificar por contenido contra `origin/main` (`git merge-base --is-ancestor <sha> origin/main` + `git show origin/main:<ruta>`), no por memoria. Si algo falta, reaplicarlo sobre main actualizado.
 - Estado raro de git (fetch que falla, refs rotas): parar y avisar al integrador. No borrar ni arreglar refs por cuenta propia.
 - Matá tus servidores zombies al terminar: `lsof -ti :3000 :<PUERTO_API> | xargs kill -9` (y procesos `next-server` de worktrees de Scale OS).
-- Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build` (el release los corre igual).
+- Verificación mínima antes de entregar: `npm run test:release-regression` y `npx next build`; si tocaste el API, además `npm --prefix backend run test:release` (el release los corre igual).
 
 ## Slots de agente (5 worktrees + integrador)
 - **SOS-COM (Comercial)**: clientes, pipeline/métricas, presupuestos y planes.
@@ -29,21 +29,21 @@
 - **SOS-FIN (Finanzas)**: finanzas, mora/cobranza, previsión, informes y comisiones.
 - **SOS-PLT (Plataforma)**: auth/registro, equipo y accesos, configuración/preferencias/papelera, superadmin, portal del cliente y automatizaciones (sin primitivos de diseño).
 - **SOS-DSN (Diseño)**: dueño transversal del sistema de diseño y la verificación visual de toda la app: primitivos y tokens (`ui-system.css`, `list-format`, cápsulas, diálogos, campos, toasts), responsividad mobile/web, baseline visual y harness de medición. Audita todas las secciones; los fixes de dominio los reporta al slot dueño o los ejecuta con coordinación del integrador.
-- Cada slot tiene una **rama persistente con el mismo nombre en los dos repos** y su par de worktrees: `~/.herdr/worktrees/scale-os/<slot>` (frontend) y `~/.herdr/worktrees/scale-core-api/<slot>` (API). SOS-DSN trabaja solo en el frontend salvo pedido explícito.
+- Cada slot tiene una **rama persistente con el mismo nombre en el monorepo** y un **solo worktree**: `~/.herdr/worktrees/scale-os/<slot>` (incluye `backend/` adentro). Los pares `~/.herdr/worktrees/scale-core-api/<slot>` quedaron retirados con la migración (scale-os#34); SOS-DSN trabaja solo en el front salvo pedido explícito.
 - **La rama no se recrea por pedido**: antes de cada tarea `git fetch origin --prune && git rebase origin/main`; después de una integración la rama se reposiciona sobre `origin/main` y sigue viva.
-- **Transversales con dueño**: los cambios de primitivos y reglas visuales (`Dialog`/`Editor`, `list-format`, `ui-system.css`, `field-rules.ts`, `notify()`, `amount-format.ts`) los implementa **SOS-DSN**; los transversales de plataforma (`suite-validation.js`, `permissions.js`, migraciones) se coordinan con **SOS-PLT**. Para no crear variantes paralelas.
+- **Transversales con dueño**: los cambios de primitivos y reglas visuales (`Dialog`/`Editor`, `list-format`, `ui-system.css`, `field-rules.ts`, `notify()`, `amount-format.ts`) los implementa **SOS-DSN**; los transversales de API y plataforma (`backend/suite-validation.js`, `backend/permissions.js`, migraciones) se coordinan con **SOS-PLT**. Para no crear variantes paralelas.
 
 ## Flujo de pedidos (Dario → orquestador → integrador/slots)
 - Dario le pasa todo al **orquestador** (sesión de coordinación) y en lenguaje de producto; no necesita saber en qué repo vive el cambio.
 - El **orquestador** no mergea ni despliega: abre los issues, elige el slot por dominio, arranca/briefea a los agentes, sigue los handovers y le ordena al integrador qué rama integrar. Es el único interlocutor de Dario.
-- El **integrador** es una sesión dedicada sobre los checkouts de `main` (scale-os y scale-core-api): único autorizado a mergear, verificar por contenido, pushear con `MOBOS_INTEGRATOR=1` y desplegar. El orquestador le manda cada rama y espera su reporte.
+- El **integrador** es una sesión dedicada sobre el checkout de `main` del monorepo (`scale-os`, con `backend/` adentro): único autorizado a mergear, verificar por contenido, pushear con `MOBOS_INTEGRATOR=1` y desplegar. El orquestador le manda cada rama y espera su reporte.
 - Los **slots** implementan front y/o API con la misma rama; nunca mergean ni despliegan.
 - La escala se resuelve sumando slots o agentes de campaña, no apilando orquestadores.
 
 ## Worktrees e implementadores (cómo actúa cada uno)
-- **Implementador (agente en worktree)**: trabaja SOLO en su rama de slot (`SOS-COM`/`SOS-OPS`/`SOS-FIN`/`SOS-PLT`) dentro de sus worktrees y nunca toca `main`. Antes de empezar: `git fetch origin --prune && git rebase origin/main`. Entrega con conventional commits por unidad de trabajo, checks verdes y `git push origin <slot>`; reporta rama, `git log --oneline origin/main..HEAD`, qué hace cada commit, rutas y verificaciones. Prohibido: mergear/pushear a main, hacer deploy, resolver conflictos sobre main, borrar o arreglar refs, editar otro worktree.
+- **Implementador (agente en worktree)**: trabaja SOLO en su rama de slot (`SOS-COM`/`SOS-OPS`/`SOS-FIN`/`SOS-PLT`) dentro de su worktree único (`~/.herdr/worktrees/scale-os/<slot>`, con `backend/` adentro) y nunca toca `main`. Antes de empezar: `git fetch origin --prune && git rebase origin/main`. Entrega con conventional commits por unidad de trabajo, checks verdes y `git push origin <slot>`; reporta rama, `git log --oneline origin/main..HEAD`, qué hace cada commit, rutas y verificaciones. Prohibido: mergear/pushear a main, hacer deploy, resolver conflictos sobre main, borrar o arreglar refs, editar otro worktree.
 - **Orquestador (sesión de coordinación)**: único interlocutor de Dario; abre issues, elige slot, arranca y briefea agentes, sigue handovers y ordena la integración. No mergea, no pushea y no despliega.
-- **Integrador (sesión sobre los checkouts principales)**: único autorizado a mergear y pushear `main` (siempre con `MOBOS_INTEGRATOR=1`). Integra una rama por vez (API antes que frontend), corre la verificación por cada merge, resuelve solo ramas superseded (del lado de main y con diff neto vacío) y ante conflicto real **para y consulta**. Despliega solo con pedido explícito (`ht`) vía `npm run release:patch` y valida el smoke.
+- **Integrador (sesión sobre el checkout principal)**: único autorizado a mergear y pushear `main` (siempre con `MOBOS_INTEGRATOR=1`). Integra una rama por vez (front y `backend/` viajan en la misma rama), corre la verificación por cada merge (`npm run test:release-regression` + `npx next build` y `npm --prefix backend run test:release` si la rama toca el API), resuelve solo ramas superseded (del lado de main y con diff neto vacío) y ante conflicto real **para y consulta**. Despliega solo con pedido explícito (`ht`) vía `npm run release:patch` y valida el smoke.
 - **Estado raro de git** (fetch que falla, refs rotas, `.git/MERGE_HEAD` ajeno): parar y avisar; no reparar por cuenta propia.
 
 ## Objetos y valores predeterminados (fuente única)
@@ -52,25 +52,35 @@
 - **Guardado vs. mostrado**: se guarda normalizado (número, teléfono `+<código> <dígitos>`, serial mayúsculas sin separadores, correo en minúsculas); el símbolo/separador lo dibuja el campo.
 
 ## Issues (backlog)
-- Cada pedido se trabaja desde un issue: abrirlo en el repo donde vive el cambio principal (frontend → scale-os; API → scale-core-api) y referenciar el otro si aplica.
+- Cada pedido se trabaja desde un issue del **backlog único** de este repositorio (`dariodeoli/scale-os`), sin importar si el cambio vive en el front o en `backend/`.
 - En commits y handover citar `Refs #<n>`; el integrador cierra el issue solo después de verificar por contenido contra `main`.
 
 ## Checks de entrega obligatorios (frontend)
 1. `npm run test:release-regression` en verde (incluye release-version, audit, landing y contracts).
 2. `npx next build` exit 0 sin errores de tipos y con artefacto verificado (`.next/BUILD_ID` existe; no alcanza el mensaje de éxito). El prebuild sincroniza versiones y footer.
 3. `rg "<<<<<<<" app tests build-tools` sin resultados (nunca commits con marcadores de conflicto).
-4. Si tocaste el API (scale-core-api): `npm run test:release` en verde, y toda columna/tabla nueva del schema exige su migración **aditiva, idempotente y re-ejecutable**. No exportar símbolos que no sean handlers de Next en `app/api`, no duplicar slugs dinámicos, y los seeds usan guards por conteo + `on conflict do nothing`, nunca «si el dato no existe, salir».
-5. Versión y footer sincronizados: `npm run release:check` y `npm run footer:check` verdes.
+4. Si tocaste el API (`backend/`): `npm --prefix backend run test:release` en verde; la migración nueva va **aditiva, idempotente, re-ejecutable y registrada** (ver «Backend (API en `backend/`)»). En el front, no exportar símbolos que no sean handlers de Next en `app/api` ni duplicar slugs dinámicos.
+5. Versión y footer sincronizados en web y backend: `npm run release:check` y `npm run footer:check` verdes.
 6. `npx prisma validate` si tocaste `prisma/`.
 
+## Backend (API en `backend/`)
+- El API (Express + Postgres, `server.js`) vive en `backend/` desde la migración a monorepo (scale-os#34). Su historial completo llegó con `git subtree`: es parte de este repositorio, no un checkout aparte; no hagas `subtree pull` ni recrees `backend/.githooks`/`backend/.github`.
+- **Entrega**: `npm --prefix backend ci` y `npm --prefix backend run test:release` en verde; `node --check` de cada archivo JS tocado; 0 marcadores de conflicto; handover con rama, `git log --oneline origin/main..HEAD`, rutas y verificaciones. No exportar símbolos que no sean handlers ni duplicar slugs dinámicos.
+- **Migraciones**: toda columna o tabla nueva del schema exige su migración **aditiva, idempotente y re-ejecutable**, y además **registrada**: archivo `backend/migrations/AAAAMMDD_slug.sql`, incluido en la cadena curada de `backend/scripts/migration-order.mjs` y en las listas de fixtures de `backend/test-suite.mjs`/`backend/test-auth.mjs` para que los tests la carguen. El API aplica lo pendiente al arrancar (`backend/migrations-runner.mjs`, con advisory lock y baseline), así que no hay paso manual de migración en el deploy; nunca edites una migración ya aplicada.
+- **Seeds**: guards por conteo + `on conflict do nothing`; nunca «si el dato no existe, salir».
+- **Validación compartida**: el front normaliza y el API revalida siempre; la fuente única es `backend/suite-validation.js` (`text`, `email`, `phone`, `serial`, `amount`, `date`, `option`, `id`/`optId`). Al crear una regla nueva, agregarla ahí y usarla en TODOS los endpoints que la reciben. Los PATCH solo revalidan el campo que cambia y preservan el valor viejo tal cual (legacy).
+- **Tests con base de datos**: la mayoría corre con **PGlite** (sin instalación): `backend/test-suite.mjs`, `test-operations.mjs`, `test-auth.mjs`, `test-forecast.mjs`, `test-platform-admin.mjs` y compañía. Los de **PostgreSQL real** requieren binarios `initdb`/`pg_ctl` (`brew install postgresql@16`) y levantan su propio clúster temporal: `node test-inventory-postgres.mjs` y `node test-treasury-concurrency.mjs` (correrlos al tocar inventario, tesorería o concurrencia de saldos). Detalle en `backend/POSTGRES-CONCURRENCY.md`.
+- **Contratos de endpoints**: los de salary-overrides (GET/PATCH/DELETE por colaborador y mes) sostienen los ajustes mensuales por persona de la Previsión financiera y admiten importes con signo; cualquier cambio exige actualizar la previsión. Mantener estables los contratos públicos (`/health`, `/core-api/*`, portal del cliente y captura de visitantes).
+- **Deploy**: segundo servicio de Coolify desde este mismo repositorio con base `backend/` y el mismo dominio/variables (`api.scaleparaguay.com`); el cambio de base en Coolify es de Fase 2 y está documentado en `DEPLOYMENT.md`.
+
 ## Pedidos de Dario (backlog de issues)
-- Un issue por repo, según dónde vive el cambio principal: permisos, migraciones o lógica de API → `dariodeoli/scale-core-api`; UI, formularios o navegación → `dariodeoli/scale-os`. El issue del otro repo se referencia desde el cuerpo (ej. "API: dariodeoli/scale-core-api#N"). Nunca duplicar el mismo pedido en los dos backlogs.
+- Un issue por pedido, siempre en el backlog de `dariodeoli/scale-os` (repo único). El cuerpo indica el alcance (front, `backend/` o ambos) y las rutas esperadas; las referencias históricas a `scale-core-api#N` se conservan como contexto, no se recrean.
 - Al entregar, citá los commits de la rama en el handover y en el issue.
-- Si el cambio toca ambos repos sin un lado claro, el issue va al repo del commit bloqueante (datos/permisos → API; experiencia visual → frontend).
-- El integrador cierra issues solo después de verificar por contenido contra `origin/main` del repo del issue.
+- Si el cambio toca front y API, un solo issue en este repo con el alcance completo.
+- El integrador cierra issues solo después de verificar por contenido contra `origin/main`.
 
 ## Roles y permisos (fuente única)
-- Roles: `owner`, `admin`, `management` (Gerencia), `finance`, `sales`, `production`, `editor`, `viewer`, `collaborator` (Colaborador). La matriz de capacidades vive en `permissions.js` (API) con overrides por empresa; el NAV se filtra en `app/workspace-access.ts`.
+- Roles: `owner`, `admin`, `management` (Gerencia), `finance`, `sales`, `production`, `editor`, `viewer`, `collaborator` (Colaborador). La matriz de capacidades vive en `backend/permissions.js` (API) con overrides por empresa; el NAV se filtra en `app/workspace-access.ts`.
 - Regla: **Rol → módulos → acciones → campos**. Todo control mutante nace con gate de rol/capacidad y el API revalida con `roleCan`; `viewer` nunca ve acciones (ocultas, no deshabilitadas).
 - Campos sensibles (`salary.view` = owner/admin/finance): `compensation_amount`, `monthly_salary_amount/currency`, `payment_day`, `invoices_company`. La API los sirve en `null` a los demás roles y rechaza su edición (403).
 - Equipo: owner/admin/finance ven el panel completo; management ve equipo y accesos sin montos; sales/production/editor/viewer ven el directorio (foto, nombre, cargo).
@@ -123,7 +133,7 @@
 **Kit base (implementado)**: `Editor` (`app/operations.tsx`) con tipos `text/textarea/select/number/date/time/email/url/money/password/phone` + `choices` + `lookup`; `AmountInput` (MoneyInput) y `SelectCustom` (`app/profile-controls.tsx`); `money()`/`amount-format.ts` (solo lectura y formateo); `PasswordField`; `PhoneField`; `EmailField`; `Dialog`/`FormActions`/`SaveActions`; clases `ui-system.css` (`panel`, `ops-card`, `kpi-strip`, `hub-chip`, `field-help`).
 
 **Campos compuestos**
-- `PhoneField` (`app/phone-field.tsx`): código de país editable con `+` fijo + número que admite dígitos/espacios/guiones/paréntesis; valida longitud local (PY 9 móvil / 8 fijo; resto 6–12) y guarda `+<código> <dígitos>`. API: `phone()` en `suite-validation.js`.
+- `PhoneField` (`app/phone-field.tsx`): código de país editable con `+` fijo + número que admite dígitos/espacios/guiones/paréntesis; valida longitud local (PY 9 móvil / 8 fijo; resto 6–12) y guarda `+<código> <dígitos>`. API: `phone()` en `backend/suite-validation.js`.
 - `EmailField` (`app/email-field.tsx`): `type="email"`, `autoComplete="email"`, máx. 200; sugiere dominios frecuentes solo con teclado real (datalist nativo: no abre con pegado/autofill ni intercepta Enter). API: `email()`.
 - Serial/IMEI: `normalizeSerial()` al tipear (trim, sin separadores, mayúsculas), `autoCapitalize="characters"`; API: `serial()`.
 - RUC/CI: patrón por país y, si hay consulta externa, aplicar razón social **solo con confirmación** (`app/client-ruc.tsx`; nunca inventar el dígito verificador).

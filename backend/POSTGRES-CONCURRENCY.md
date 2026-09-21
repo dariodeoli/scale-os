@@ -1,6 +1,6 @@
 # Concurrencia de inventario en PostgreSQL real
 
-Desde un checkout **Git** de `scale-core-api`, con Node, dependencias locales y
+Desde un checkout **Git** de `scale-os`, dentro de `backend/`, con Node, dependencias locales y
 PostgreSQL 16 ya instalados (`.git` accesible; también admite worktrees):
 
 ```sh

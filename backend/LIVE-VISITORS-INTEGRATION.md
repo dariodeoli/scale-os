@@ -4,7 +4,7 @@ Integración implementada en `server.js` y `app/scale-workspace.tsx`. La web de 
 
 ## API
 
-En `scale-core-api/server.js`:
+En `backend/server.js`:
 
 ```js
 import {liveVisitors,startLiveVisitorCleanup} from './live-visitors.js';
@@ -41,7 +41,7 @@ Contrato:
 
 ## Pipeline
 
-En `scale-os/app/scale-workspace.tsx`:
+En `app/scale-workspace.tsx`:
 
 ```tsx
 import {LiveVisitors} from './live-visitors';
@@ -62,7 +62,7 @@ El componente importa su CSS con clases propias. No necesita cambios en CSS glob
 ## Política de demo y privacidad
 
 - La demo muestra **3 visitantes ficticios** en «Web de ejemplo», con texto explícito. No hace solicitudes ni crea visitantes. El API, como defensa adicional, entrega ese mismo ejemplo aislado si la sesión pertenece a una demo; nunca consulta estadísticas reales para ella. Los roles sin permiso no ven el componente ni el ejemplo.
-- La captura nueva de `scale-os/public/scale-os.html` corre solo en la raíz de `sistema.scaleparaguay.com`, nunca en `/demo`, `/pipeline` ni en el host de la app. Los eventos agregados y el formulario previo quedaron intactos.
+- La captura nueva de `public/scale-os.html` corre solo en la raíz de `sistema.scaleparaguay.com`, nunca en `/demo`, `/pipeline` ni en el host de la app. Los eventos agregados y el formulario previo quedaron intactos.
 - Sesiones UUID v4 aleatorias, compartidas entre pestañas del mismo host mediante Web Locks y una cookie propia `__Host-scale_live_v1`: `Secure; SameSite=Strict; Path=/; Max-Age=90`. El identificador rota como máximo a los 15 minutos de actividad continua. No usa almacenamiento persistente, cookies publicitarias, IP, huella del dispositivo, identidad de cuenta, URL/referrer ni historial. El API recibe solo sitio e identificador; la cookie no viaja con la captura (`credentials:'omit'`).
 - Una señal por sesión cada 30 segundos mientras alguna pestaña esté visible. Sin locks o con cookies bloqueadas se omite la estimación; no se crea una sesión por pestaña como alternativa. La cookie caduca a los 90 segundos sin señal. Los registros del servidor dejan de contar a los 90 segundos (o al cumplir 15 minutos de vida), y la limpieza elimina los vencidos al siguiente ciclo de 60 segundos, salvo indisponibilidad de la base/proceso.
 - API: mínimo 20 segundos entre señales del mismo identificador y máximo 600 intentos válidos por sitio/minuto, compartidos entre instancias usando PostgreSQL. No crea filas de límites por IP ni identificador. Solicitudes duplicadas reciben 429; el navegador usa pausas y timeout de 8 segundos. Estos límites pueden subcontar sitios con más de ~300 sesiones simultáneas; no son una defensa completa contra bots que simulen navegadores.

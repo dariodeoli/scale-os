@@ -27,7 +27,7 @@
 - Filtros combinables por cliente, asignación y semana local de lunes a domingo; reglas relativas, no fechas congeladas. Conserva los estados del tablero y ofrece restablecer. La interfaz deja claro cuándo el cliente guardado ya no existe.
 - Búsqueda: el destino de las órdenes es Producción, coherente con el texto del botón. El icono de marca se sirve desde los archivos locales de la app para no depender de la web de la agencia.
 
-Estos patrones reutilizan contenedores, botones y selectores existentes; no crean permisos ni rutas de servidor nuevas. La revisión visual sigue pendiente del acceso permitido al navegador. Las evidencias de pruebas y publicación se registran por separado en `scale-core-api/RELEASE-CHECKLIST.md`.
+Estos patrones reutilizan contenedores, botones y selectores existentes; no crean permisos ni rutas de servidor nuevas. La revisión visual sigue pendiente del acceso permitido al navegador. Las evidencias de pruebas y publicación se registran por separado en `backend/RELEASE-CHECKLIST.md`.
 
 ## Alcance del rediseño
 
