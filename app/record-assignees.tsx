@@ -39,7 +39,8 @@ function RecordAssigneesForm({kind,id,role,refresh,updatedAt,children}:RecordAss
  const panelId=useId();
  const path=`/api/agency/${kind}/${id}/assignees`;
  // The API gates the assignee write with the record's edit capability.
- const editable=roleCan(role,kind==='work-orders'?'work-orders.edit':'projects.edit');
+ // La asignación de responsables sigue a assignees.manage (issue #26), igual que el API.
+ const editable=roleCan(role,'assignees.manage');
  const [saved,setSaved]=useState<AssigneeSnapshot|null>(null),[draft,setDraft]=useState<AssigneeSelection>({assigned_user_ids:[],assigned_user_id:null});
  const [members,setMembers]=useState<AssigneeMember[]>([]),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[conflict,setConflict]=useState(false),[reload,setReload]=useState(0);
  const [expanded,setExpanded]=useState(false);

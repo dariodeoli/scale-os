@@ -14,6 +14,11 @@ for(const [capability,roles] of Object.entries(CAPABILITY_ROLES)){
 assert(!roleCan('viewer','inventory.manage'),'viewer never manages inventory');
 // Decisión de producto #25: producción reserva el estudio (mismo espejo que el API).
 assert(roleCan('production','studio.manage'),'production keeps studio.manage like the API');
+// Issue #26: el ADR deja invitar/revocar clientes del portal en owner/admin/management/production.
+assert.deepEqual(CAPABILITY_ROLES['portal-access.manage'],['owner','admin','management','production'],'portal-access.manage mirrors the ADR');
+assert(!roleCan('collaborator','portal-access.manage'),'collaborator no invita ni revoca clientes del portal');
+assert(roleCan('collaborator','portal.manage'),'collaborator sigue publicando entregas y revisiones');
+assert(roleCan('collaborator','assignees.manage'),'collaborator sigue asignando responsables');
 assert.deepEqual(CAPABILITY_ROLES['studio.manage'],['owner','admin','management','sales','production','collaborator'],'studio.manage mirrors the API defaults');
 assert(!roleCan('viewer','checklists.edit'),'viewer never edits checklists');
 assert(!roleCan('collaborator','finance.view'),'collaborator never sees balances');
@@ -30,7 +35,8 @@ const gates:[string,string,RegExp][]=[
  ['app/work-checklist.tsx','work-checklists.view',/if\(!roleCan\(props\.role,'work-checklists\.view'\)\)return null/],
  ['app/work-checklist.tsx','checklists.edit',/editable=roleCan\(role,'checklists\.edit'\)/],
  ['app/work-order-links.tsx','work-orders.edit',/const canEdit=roleCan\(role,'work-orders\.edit'\)/],
- ['app/record-assignees.tsx','projects.edit',/const editable=roleCan\(role,kind==='work-orders'\?'work-orders\.edit':'projects\.edit'\)/],
+ ['app/record-assignees.tsx','assignees.manage',/const editable=roleCan\(role,'assignees\.manage'\)/],
+ ['app/productivity-ui.tsx','portal-access.manage',/roleCan\(role,'portal-access\.manage'\)&&<ClientPortalAccess/],
  ['app/work-history.tsx','work-orders.manage',/const managers=roleCan\(role,'work-orders\.manage'\)/],
  ['app/work-history.tsx','work-orders.edit',/const canEdit=roleCan\(role,'work-orders\.edit'\)/],
  ['app/scale-workspace.tsx','projects.manage',/roleCan\(user\?\.role,'projects\.manage'\)/],
