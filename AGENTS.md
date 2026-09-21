@@ -17,6 +17,7 @@
 ## Integración a main (regla obligatoria)
 - main pertenece al integrador. Ningún agente de worktree hace `git merge`, edita main ni pushea a main: los cambios se integran únicamente a través del integrador.
 - Antes de tocar archivos: `git fetch origin --prune && git rebase origin/main`. Conflicto → se resuelve en la rama propia; force-push solo a la rama propia, jamás a main.
+- **Excepción de subtree (migración scale-os#34)**: una rama que contiene el merge de `git subtree` de `backend/` (hoy `SOS-MIG`, hasta que se integre) **no se rebasea**: `git rebase origin/main` intenta reaplicar los 376 commits del API y falla. Esa rama se actualiza con `git merge origin/main`. Después de integrarse, los commits del API son ancestros de `main` y el rebase normal vuelve a funcionar en las ramas de slot.
 - Entrega (handover): commitear por unidad de trabajo (conventional commits, sin atribución de IA), correr la verificación mínima, pushear la rama propia y avisar con: nombre de rama, `git log --oneline origin/main..HEAD`, qué hace cada commit, rutas tocadas y resultado de las verificaciones.
 - Después de una integración anunciada, verificar por contenido contra `origin/main` (`git merge-base --is-ancestor <sha> origin/main` + `git show origin/main:<ruta>`), no por memoria. Si algo falta, reaplicarlo sobre main actualizado.
 - Estado raro de git (fetch que falla, refs rotas): parar y avisar al integrador. No borrar ni arreglar refs por cuenta propia.
