@@ -90,3 +90,104 @@ Patrón compartido en `app/urgency.tsx`: 1 Baja, 2 Moderada, 3 Media, 4 Alta, 5 
 Creación usa un selector nativo con etiqueta vinculada y ayuda permanente mediante `aria-describedby`, navegación de teclado nativa, texto de 16 px y objetivo mínimo de 44 px. Edición reutiliza las opciones y ayuda en el selector accesible de Editor; el botón principal guarda detalles, urgencia y responsables en una transacción, conservando el borrador ante errores o conflictos. No hay guardado automático. Estado pendiente deshabilitado; errores siguen el contrato existente del formulario.
 
 La etiqueta en tarjetas y detalle muestra número y nombre, sin depender del color. Reutiliza tokens `--text`, `--text-muted`, `--surface`, `--line` y `--ui-space-2`; permite ajuste de línea y no agrega acciones a las tarjetas. Verificación automatizada: `tests/urgency.test.tsx`; servidor: `test-urgency.mjs`. Revisar teclado y lector de pantalla reales antes de la publicación.
+
+## Sistema v2 (Tailwind + owncoding-ui) — 22-09-2026
+
+Decisión del dueño (campaña #41): la base del rediseño es **Tailwind CSS 3.4 +
+`owncoding-ui` v0.12.0**. El CSS plano legado convive durante la migración y se
+retira cuando cada pantalla se rediseñe. **No se crean hojas de componente
+nuevas**: lo nuevo se escribe con utilidades Tailwind y objetos de la librería.
+
+### Montaje y convivencia
+
+- `tailwind.config.mjs` usa el preset de `owncoding-ui`, escanea `app/`, el
+  bundle de la librería y los fixtures del harness visual. `postcss.config.mjs`
+  corre Tailwind + autoprefixer sobre todo el CSS (las hojas legadas no cambian).
+- Orden de carga en `app/layout.tsx`: `globals.css` → hojas legadas →
+  `owncoding-ui/styles.css` → `app/tailwind.css` (hoja del sistema). Las
+  utilidades salen después del CSS legado: en un mismo elemento gana Tailwind;
+  las hojas de módulo legadas siguen mandando en sus pantallas.
+- **Preflight desactivado** (`corePlugins.preflight = false`): el reset global
+  rompería las 53 hojas actuales (márgenes, títulos, listas, bordes). En su
+  lugar, la hoja del sistema trae una **base mínima**: borde sólido y color
+  heredable para que funcionen las utilidades `border*`, incluyendo `button`
+  (el legado fija `button{border:0}`). No se resetean tipografía, márgenes ni
+  listas. Evidencia: build en verde, harness visual y capturas de las
+  referencias en claro/oscuro; cualquier excepción se corrige en la base, no
+  por pantalla.
+- **Tema oscuro**: Scale OS sigue usando `html[data-theme="dark"]` (script del
+  layout). Tailwind se configura con `darkMode: ['selector', 'html[data-theme="dark"]']`,
+  así los `dark:` del preset y de la librería siguen el tema legado sin depender
+  de la clase `dark` y sin duplicar temas.
+- **Fuentes**: `fontFamily` mapea `sans`/`display` a Outfit y `mono` a DM Mono;
+  la marca no cambia.
+- **Tokens**: la paleta legada se publica como canales RGB en `--c-paper`,
+  `--c-fore`, `--c-ink-950/900/800/700/600/500`, `--c-mute`, `--c-fono`,
+  `--c-fono-dark`, `--c-fono-light`, `--c-ok`, `--c-bad`, `--c-warn`, `--c-info`
+  y `--c-onbrand` (claro en `:root`, oscuro en `html[data-theme="dark"]`).
+  Los objetos de la librería toman de ahí sus colores; no se hardcodean colores
+  nuevos por pantalla.
+
+### Adopción de la librería
+
+- **Ya disponible y de uso obligatorio en lo nuevo**: `Button`, `Input`,
+  `Textarea`, `Select`, `Label`, `FormField`, `MoneyInput`, `PasswordInput`,
+  `SearchField`, `Switch`, `SegmentedField`, `PercentField`, `CurrencySelect`,
+  `PhoneField`, `EmailField`, `SerialField`, `Card`, `Stat`, `PageHeader`,
+  `EmptyState`, `ErrorState`, `Skeleton`, `Aviso`, `Nota`, `Badge`, `Dot`,
+  `IconAction`, `FilaDato`, `CeldaMoneda`, `BarraProgreso`, `Subtabs`,
+  `Modal`/`ConfirmDialog`/`Drawer`, `ListGridToggle`, `DataTable`.
+- **Todavía no portado (sigue legado, sin duplicar)**: `Dialog` con pending por
+  formulario (`useDialogPending`), `SelectCustom` buscable, `SaveActions` +
+  `useSingleFlightSubmit` y el contrato de listas densas. Su port a la librería
+  se coordina por `dariodeoli/owncoding-ui#2`; hasta entonces se usan como
+  están y no se crean variantes paralelas.
+- Los primitivos de aplicación viven en `app/ui-v2.tsx`: `Kpi`/`KpiStrip`
+  (envuelven `Stat` + `CeldaMoneda`), `StateChip` (envuelve `Badge`) y
+  `LoadingBlock` (envuelve `Skeleton`). Vacío, error y avisos se usan directo
+  de la librería (`EmptyState`, `ErrorState`, `Aviso`, `Nota`).
+
+### Arquetipos
+
+| Arquetipo | Jerarquía | Cabecera y acciones | Densidad y mobile |
+| --- | --- | --- | --- |
+| **Dashboard / resumen** | Señales accionables arriba; KPIs; detalle financiero u operativo debajo. | Título de sección en el shell; acciones de contexto en la cabecera del panel. | KPIs en grilla 2/4 columnas; una columna a 360 px; nada de elipsis en cifras. |
+| **Lista + detalle** | KPIs → barra de lote → encabezado de columnas → filas finitas; el detalle abre en ficha lateral. | Buscador, filtro y vista en la cabecera; alta a la derecha. | Fila 44–52 px con scroll horizontal silencioso; cuadrícula con tarjetas ≥200 px; el detalle es `Drawer` en móvil. |
+| **Formulario / editor** | Secciones con título; campos por tipo con su ancho; acciones al pie. | Un solo primario de guardado; cancelar dentro de ventanas. | Una columna a 360 px; controles de 44 px; ayudas y errores bajo el campo. |
+| **Tablero** | Columnas por estado con conteo y total; tarjetas con identidad y hechos. | Filtros del tablero en la cabecera; sin alta duplicada. | Scroll horizontal intencional; no se declara lista. |
+| **Ajustes / configuración** | Dos columnas (principal + lateral) con tarjetas por tema; zona destructiva al final, separada. | Título por tarjeta; guardado por formulario. | Una columna a ≤1000 px; la zona destructiva conserva su confirmación tipada. |
+| **Cuenta / acceso** | Un solo foco: identidad → verificación → contraseña. | Un primario por paso; enlaces secundarios discretos. | Tarjeta centrada, sin scroll horizontal; errores inline `role="alert"`. |
+
+### Reglas de deuda (se corrigen en toda pantalla que se toque)
+
+1. **Prohibido cortar con elipsis** montos, fechas, códigos, seriales o nombres.
+   Se usa el ancho necesario, `nowrap` + `tabular-nums` para cifras y el ajuste
+   de línea para textos; nunca `text-overflow: ellipsis` sobre esos datos.
+2. **Una sola fuente de fechas y horas**: `list-format` (`listDateShort`,
+   `listDateFull`, `dueTone`) dentro y fuera de listas; 24 h y zona Asunción.
+   Prohibido `toLocaleString`/`toLocaleDateString` sueltos.
+3. **Un solo KPI**: `Kpi`/`KpiStrip` de `app/ui-v2.tsx` (o `Stat` de la
+   librería). No se crean `.metric`, `.kpi-card` ni `.financial-stat` nuevos.
+4. **Un chip base**: `StateChip` (o `Badge`) con tono semántico; no se agregan
+   chips por pantalla ni variantes paralelas.
+5. **Anchos de campo por tipo** fuera del `Editor`: moneda 9–11 rem, fecha ~9,
+   hora ~7, número/porcentaje ~7, texto corto 12–16, notas a ancho completo.
+   Se aplican con clases Tailwind (`w-36`, `w-44`, `w-full`), no con CSS nuevo.
+6. **Listas con encabezado y plantilla compartida**: el encabezado vive dentro
+   del contenedor de la lista y comparte la plantilla de columnas con las filas
+   (una sola constante en el módulo, `gap-x-2`); si una celda no tiene dato,
+   reserva su lugar. Cuadrícula = tarjetas ≥200 px distribuidas.
+7. **Estados en toda página**: vacío (`EmptyState`), carga (`Skeleton`/
+   `LoadingBlock`) y error con reintento (`ErrorState`) con datos reales.
+8. **Sin hojas CSS nuevas**: lo que no cubra Tailwind o la librería se agrega a
+   `app/tailwind.css` (sistema) o se corrige en el objeto compartido.
+
+### Migración
+
+- La descomposición del shell (`scale-workspace.tsx`) la ejecuta **SOS-PLT
+  (#47)**; las 3 páginas de referencia (`Panel`, `Clientes`, `Configuración`) se
+  construyen sobre esos módulos extraídos, reciben datos y callbacks del shell y
+  no fetchean ni conocen permisos. Los dominios de fase 2 replican ese patrón y
+  retiran su CSS plano al rediseñarse.
+- Ningún dominio toca el shell salvo la extracción de su módulo; los objetos
+  compartidos se corrigen una vez y se adoptan en todos lados.
