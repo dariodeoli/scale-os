@@ -147,7 +147,7 @@ test("client toolbar exposes accessible search, count, view controls, and role-g
 
 test("client toolbar protects touch targets and small-screen layout with the v2 objects", () => {
   const source = readFileSync("app/client-directory-toolbar.tsx", "utf8");
-  assert.match(source, /from "owncoding-ui"/, "el toolbar usa los objetos compartidos");
+  assert.match(source, /from ['"]owncoding-ui['"]/, "el toolbar usa los objetos compartidos");
   assert.match(source, /SearchField/, "la búsqueda es el campo compartido");
   assert.match(source, /ListGridToggle/, "el selector de vista es el objeto compartido, sin variantes");
   assert.match(source, /flex-wrap/, "los controles bajan de fila a 360 px");
