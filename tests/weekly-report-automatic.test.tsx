@@ -23,6 +23,7 @@ globalThis.fetch=async(input)=>{
  return Response.json(path.includes('scope=team')?teamPayload:ownPayload);
 };
 const text=(renderer:ReactTestRenderer)=>JSON.stringify(renderer.toJSON());
+function instanceText(node:ReactTestInstance|string|number):string{if(typeof node!=='object')return String(node);return node.children.map(instanceText).join('');}
 let renderer!:ReactTestRenderer;
 async function mount(role:string){await act(async()=>{renderer=create(<WeeklyAutomatic role={role}/>);});}
 
@@ -31,15 +32,15 @@ async function main(){
  await mount('owner');
  assert.match(requests[0].path,/^\/core-api\/api\/agency\/weekly-reports\?week=\d{4}-\d{2}-\d{2}&scope=team$/);
  assert.match(text(renderer),/Ana López/);assert.match(text(renderer),/Bruno/);
- const teamCells=renderer.root.findAllByType('td');
- assert.equal(teamCells.length,16,'two extra columns per row: Órdenes and Proyectos');
- assert.deepEqual(teamCells.slice(0,6).map(cell=>cell.children.join('')),['2','0','1','0','0','1'],'finished counts render per collaborator and type');
- assert.equal(teamCells[6].children.join(''),'4','entry orders render in their own column');
- assert.equal(teamCells[7].children.length,2,'one compact line per project under the collaborator');
- assert.equal((teamCells[7].children[0] as ReactTestInstance).children.join(''),'Tienda Norte · 2 · 3 órdenes','project line shows name, finished count and worked orders');
- assert.equal((teamCells[7].children[1] as ReactTestInstance).children.join(''),'Proyecto eliminado · 1','missing project names fall back instead of breaking');
- assert.deepEqual(teamCells.slice(8,14).map(cell=>cell.children.join('')),['0','1','0','2','0','0']);
- assert.equal(teamCells[14].children.join(''),'0');assert.equal(teamCells[15].children.join(''),'—','no project lines renders a dash');
+ const teamRows=renderer.root.findAllByType('tbody').at(-1)!.findAllByType('tr');
+ assert.equal(teamRows.length,2,'una fila por colaborador');
+ const counts=(row:ReactTestInstance)=>row.findAllByType('td').slice(1,7).map(cell=>cell.children.join(''));
+ assert.deepEqual(counts(teamRows[0]),['2','0','1','0','0','1'],'finished counts render per collaborator and type');
+ assert.equal(teamRows[0].findAllByType('td')[7].children.join(''),'4','entry orders render in their own column');
+ assert.equal(/Tienda Norte · 2 · 3 órdenes/.test(instanceText(teamRows[0].findAllByType('td')[8])),true,'project line shows name, finished count and worked orders');
+ assert.equal(/Proyecto eliminado · 1/.test(instanceText(teamRows[0].findAllByType('td')[8])),true,'missing project names fall back instead of breaking');
+ assert.deepEqual(counts(teamRows[1]),['0','1','0','2','0','0']);
+ assert.equal(instanceText(teamRows[1].findAllByType('td')[8]),'—','no project lines renders a dash');
  assert.match(text(renderer),/Videos/);assert.match(text(renderer),/Reediciones/);assert.match(text(renderer),/Entregables/);assert.match(text(renderer),/Sin tipo/);
  assert.match(text(renderer),/Órdenes/);assert.match(text(renderer),/Proyectos/);
  assert.match(text(renderer),/Sin horas/,'read-only section states no hours');
@@ -52,10 +53,10 @@ async function main(){
  await mount('admin');
  assert.match(requests.at(-1)!.path,/scope=own$/);
  assert.doesNotMatch(text(renderer),/Bruno/,'own scope never shows other collaborators');
- const ownCells=renderer.root.findAllByType('td');
- assert.equal(ownCells.length,8);
- assert.equal(ownCells[6].children.join(''),'4');
- assert.equal((ownCells[7].children[0] as ReactTestInstance).children.join(''),'Tienda Norte · 2 · 3 órdenes');
+ const ownRow=renderer.root.findAllByType('tbody').at(-1)!.findAllByType('tr')[0];
+ assert.deepEqual(ownRow.findAllByType('td').slice(1,7).map(cell=>cell.children.join('')),['2','0','1','0','0','1']);
+ assert.equal(ownRow.findAllByType('td')[7].children.join(''),'4');
+ assert.equal(/Tienda Norte · 2 · 3 órdenes/.test(instanceText(ownRow.findAllByType('td')[8])),true);
  renderer.unmount();
  // Empty week renders an empty state instead of a table.
  globalThis.fetch=async()=>Response.json({week:'2026-09-14',scope:'own',automatic:[]});
