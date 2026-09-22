@@ -2,6 +2,12 @@ export function moneyKpi(value: number, currency: string) {
   return new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
 }
 
+/** Día calendario de Asunción (YYYY-MM-DD) para hoy; fuente única del dominio. */
+export function todayAsuncion(now: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en', { timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
+  return ['year', 'month', 'day'].map((type) => parts.find((part) => part.type === type)!.value).join('-');
+}
+
 export function clientSince(value?: string): string | null {
   return value ? new Intl.DateTimeFormat('es-PY', { month: 'short', year: 'numeric', timeZone: 'America/Asuncion' }).format(new Date(value)) : null;
 }

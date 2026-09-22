@@ -7,10 +7,12 @@ import {ProfilePhoto} from './profile-photo';
 import {actorInitials} from './actor-identity';
 import {api} from './operations';
 import {notify} from './feedback';
+import {CLIENT_COLOR_VALUES,clientColors,identityColor,type ClientColorKey} from './client-identity-data';
 import './client-identity.css';
-
-export const clientColors=[['violet','Violeta'],['blue','Azul'],['teal','Turquesa'],['green','Verde'],['gold','Dorado'],['rose','Rosa'],['slate','Gris']] as const;
-export function identityColor(value?:string|null){return clientColors.some(([key])=>key===value)?value!:'violet';}
+// La paleta y el mapeo de color viven en ./client-identity-data (puros); se
+// reexporta para no romper imports existentes (production-board usa identityColor).
+export {CLIENT_COLOR_VALUES,clientColorLabels,clientColors,identityColor} from './client-identity-data';
+export type {ClientColorKey,ClientIdentityRecord} from './client-identity-data';
 export function ClientIdentity({name,logo,color,compact=false}:{name:string;logo?:string|null;color?:string|null;compact?:boolean}){
  const [failed,setFailed]=useState('');
  return <span className={`client-identity identity-${identityColor(color)} ${compact?'compact':''}`}>
@@ -18,12 +20,12 @@ export function ClientIdentity({name,logo,color,compact=false}:{name:string;logo
   <span className="identity-name" title={name}>{name}</span>
  </span>;
 }
-const schema=z.object({color_key:z.enum(['violet','blue','teal','green','gold','rose','slate'])});
+const schema=z.object({color_key:z.enum(CLIENT_COLOR_VALUES)});
 export function ClientAppearance({id,name,logo,color,refresh,showIdentity=true}:{id:string;name:string;logo?:string|null;color?:string|null;refresh:()=>Promise<void>;showIdentity?:boolean}){
- const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{color_key:identityColor(color) as z.infer<typeof schema>['color_key']}});
+ const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{color_key:identityColor(color)}});
  const [error,setError]=useState('');
  const [saving,setSaving]=useState(false),pending=useRef(false);
- async function saveColor(value:typeof clientColors[number][0]){
+ async function saveColor(value:ClientColorKey){
   if(pending.current||form.getValues('color_key')===value)return;
   const previous=form.getValues('color_key');pending.current=true;setSaving(true);setError('');form.setValue('color_key',value);
   try{const values=schema.parse({color_key:value});await api(`/api/agency/clients/${id}`,values,'PATCH');form.reset(values);notify({tone:'success',message:'Color del cliente guardado.'});try{await refresh();}catch{setError('Color guardado. Actualizá la página para refrescar las otras vistas.');}}
