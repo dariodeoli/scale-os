@@ -85,7 +85,9 @@ datos reales del inventario de la campaña (`REDISENO-INVENTARIO.md`).
   v2 es una clase Tailwind compartida (no una variable CSS), así que no se
   declara `template`: el harness igual mide altura de fila y alineación de
   celdas contra el encabezado.
-- Estado actual: **0 hallazgos** a 360/768/1440. Capturas base en
+- Espeja las referencias ya implementadas: `app/sections/resumen.tsx`,
+  `app/sections/clientes.tsx`, `app/sections/configuracion.tsx`,
+  `app/client-directory-toolbar.tsx` y los patrones de `app/ui-v2.tsx`.
+- Estado actual: **0 hallazgos** a 360/768/1440 (fila 44–52 px, encabezado y
+  filas con la misma plantilla, sin superposiciones ni overflow). Capturas en
   `work/visual-harness/referencias/captures` (`capture.mjs`, claro/oscuro).
-- Cuando #47 integre los módulos extraídos y las referencias se implementen en
-  TSX, estas fixtures se re-sincronizan citando los archivos finales.

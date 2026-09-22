@@ -7,7 +7,7 @@
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
 import {Badge, CeldaMoneda, EmptyState, ErrorState, Skeleton, Stat} from 'owncoding-ui';
-import type {ReactNode} from 'react';
+import type {HTMLAttributes, ReactNode} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -29,8 +29,8 @@ export function Kpi({label, valor, currency, hint, destacado = false, className}
 }
 
 /** Grilla de KPIs: 1 columna en móvil, 2 en tablet y 4 en escritorio. */
-export function KpiStrip({className, children}: {className?: string; children: ReactNode}) {
-  return <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>{children}</div>;
+export function KpiStrip({className, children, ...props}: {className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} className={`grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>{children}</div>;
 }
 
 /** Carga con esqueleto: anuncia con `role="status"` y no inventa datos. */
@@ -109,6 +109,6 @@ export function ListGrid({label, template, columns, children, minWidthClass = 'm
 }
 
 /** Fila finita v2: misma plantilla que el encabezado; una celda sin dato reserva su lugar. */
-export function ListRow({template, className, children}: {template: string; className?: string; children: ReactNode}) {
-  return <div role="row" className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-2 last:border-0 md:min-h-11 ${template} ${className ?? ''}`}>{children}</div>;
+export function ListRow({template, className, children, ...props}: {template: string; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
+  return <div role="row" {...props} className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{children}</div>;
 }
