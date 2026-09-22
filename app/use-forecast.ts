@@ -4,11 +4,13 @@ import {dataFetch} from './data-cache';
 import {feedbackEvent} from './feedback';
 import {
   isRecord,
+  normalizePlannedExpenses,
   realAccounts,
   realExpenseRows,
   validForecast,
   type ForecastData,
   type Horizon,
+  type PlannedExpensesPayload,
   type RealAccountRow,
   type RealExpenseRow,
 } from './forecast-data';
@@ -76,4 +78,30 @@ export function useRealExpenses(month: string, data: ForecastData | null) {
     return () => {active = false;};
   }, [data, month]);
   return {accounts, expenses, error, setError};
+}
+
+/**
+ * Listado individual de gastos planificados del mes (`GET /api/agency/planned-expenses`).
+ * Es un bloque aparte de la previsión: si falla, la pantalla sigue con los
+ * agregados del forecast y el bloque muestra su propio error.
+ */
+export function usePlannedExpenses(month: string, data: ForecastData | null) {
+  const [payload, setPayload] = useState<PlannedExpensesPayload | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    if (!data || data.month !== month) return;
+    let active = true;
+    setError('');
+    void dataFetch(`/core-api/api/agency/planned-expenses?month=${encodeURIComponent(month)}`, {credentials: 'include'})
+      .then(async response => {
+        const result: unknown = await response.json();
+        if (!response.ok) throw new Error(isRecord(result) && typeof result.error === 'string' ? result.error : 'No se pudieron cargar los gastos planificados');
+        const normalized = normalizePlannedExpenses(result);
+        if (!normalized) throw new Error('Los gastos planificados recibieron datos inválidos. Recargá la página.');
+        if (active) setPayload(normalized);
+      })
+      .catch(cause => {if (active) setError(cause instanceof Error ? cause.message : 'No se pudieron cargar los gastos planificados');});
+    return () => {active = false;};
+  }, [data, month]);
+  return {payload, error};
 }
