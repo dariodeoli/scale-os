@@ -6,7 +6,7 @@
 // estado (`StateChip` sobre `Badge`) y un solo bloque de carga (`LoadingBlock`
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
-import {Badge, CeldaMoneda, Skeleton, Stat} from 'owncoding-ui';
+import {Badge, CeldaMoneda, EmptyState, ErrorState, Skeleton, Stat} from 'owncoding-ui';
 import type {ReactNode} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
@@ -39,4 +39,76 @@ export function LoadingBlock({label = 'Cargando…', lines = 3, className}: {lab
     <Skeleton className="h-4 w-1/3"/>
     {Array.from({length: Math.max(1, lines)}, (_, index) => <Skeleton key={index} className="h-10 w-full"/>)}
   </div>;
+}
+
+/** Superficie común de los estados de panel v2. */
+const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-4';
+
+/**
+ * Vacío de panel: `EmptyState` de la librería sobre la superficie v2 y con
+ * aviso accesible (`role="status"`). No inventa datos ni métricas.
+ */
+export function EmptyBlock({title, description, action, icon, compact = false, className}: {title: string; description?: ReactNode; action?: ReactNode; icon?: string; compact?: boolean; className?: string}) {
+  return <div role="status" className={`${STATE_SURFACE} ${className ?? ''}`}>
+    <EmptyState title={title} description={description} action={action} icon={icon} compact={compact}/>
+  </div>;
+}
+
+/** Error de panel con reintento: `ErrorState` de la librería, anunciado como alerta. */
+export function ErrorBlock({title, description, onRetry, className}: {title?: string; description?: ReactNode; onRetry?: () => void; className?: string}) {
+  return <div role="alert" className={`${STATE_SURFACE} ${className ?? ''}`}>
+    <ErrorState title={title} description={description} onRetry={onRetry}/>
+  </div>;
+}
+
+export type Column = {key: string; label: string; align?: 'start' | 'end' | 'center'};
+
+const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left', end: 'text-right', center: 'text-center'};
+
+/**
+ * Encabezado de página v2 (arquetipo dashboard/lista/ajustes): eyebrow, título
+ * y acciones. El título no se trunca (regla de deuda: nada de elipsis en
+ * nombres); si no cabe, envuelve.
+ */
+export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyebrow?: string; title: string; subtitle?: ReactNode; actions?: ReactNode; className?: string}) {
+  return <header className={`mb-4 flex flex-wrap items-start justify-between gap-3 ${className ?? ''}`}>
+    <div className="min-w-0">
+      {eyebrow && <p className="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">{eyebrow}</p>}
+      <h1 className="text-2xl font-bold tracking-tight text-fore">{title}</h1>
+      {subtitle && <p className="mt-1 text-sm text-mute">{subtitle}</p>}
+    </div>
+    {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+  </header>;
+}
+
+/** Toolbar de filtros/búsqueda: los controles son objetos de la librería. */
+export function FilterToolbar({children, summary, className}: {children: ReactNode; summary?: ReactNode; className?: string}) {
+  return <div className={`mb-4 flex flex-wrap items-end gap-3 ${className ?? ''}`}>
+    {children}
+    {summary !== undefined && summary !== null && <p className="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">{summary}</p>}
+  </div>;
+}
+
+/**
+ * Lista densa v2: el encabezado de columnas y las filas comparten UNA
+ * plantilla (`template`, p. ej. `grid-cols-[minmax(11rem,1.6fr)_minmax(9rem,1.15fr)_7rem_auto]`).
+ * En mobile conserva las columnas y el contenedor scrollea en silencio, sin
+ * colapsar celdas ni cortar montos, fechas o códigos.
+ */
+export function ListGrid({label, template, columns, children, minWidthClass = 'min-w-[48rem]', className}: {label: string; template: string; columns: Column[]; children: ReactNode; minWidthClass?: string; className?: string}) {
+  return <div role="table" aria-label={label} className={`silent-scroll min-w-0 overflow-x-auto ${className ?? ''}`}>
+    <div className={minWidthClass}>
+      <div role="row" className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`}>
+        {columns.map((column, index) => (
+          <span key={column.key} role="columnheader" className={`${index === columns.length - 1 ? 'text-right' : ALIGN[column.align ?? 'start']} whitespace-nowrap`}>{column.label}</span>
+        ))}
+      </div>
+      <div role="rowgroup">{children}</div>
+    </div>
+  </div>;
+}
+
+/** Fila finita v2: misma plantilla que el encabezado; una celda sin dato reserva su lugar. */
+export function ListRow({template, className, children}: {template: string; className?: string; children: ReactNode}) {
+  return <div role="row" className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-2 last:border-0 md:min-h-11 ${template} ${className ?? ''}`}>{children}</div>;
 }

@@ -155,6 +155,21 @@ nuevas**: lo nuevo se escribe con utilidades Tailwind y objetos de la librería.
   `LoadingBlock` (envuelve `Skeleton`). Vacío, error y avisos se usan directo
   de la librería (`EmptyState`, `ErrorState`, `Aviso`, `Nota`).
 
+### Patrones compartidos v2 (`app/ui-v2.tsx`)
+
+Los dominios no inventan variantes: si falta un patrón, se agrega acá con test
+y esta sección se actualiza.
+
+| Patrón | Regla |
+| --- | --- |
+| `PageHeader` | Eyebrow + título + acciones. El título **no se trunca**: envuelve. Es el encabezado de página de los arquetipos dashboard, lista y ajustes. |
+| `FilterToolbar` | Fila que envuelve con la búsqueda/filtros (objetos de la librería: `SearchField`, `Select`, `SegmentedField`, `ListGridToggle`) y un contador `tabular-nums` al extremo. |
+| `ListGrid` + `ListRow` + `Column` | Encabezado de columnas y filas comparten **una sola** plantilla (`template` con `grid-cols-[…]`, `gap-x-2`); la lista conserva columnas en mobile y scrollea en silencio (`.silent-scroll`); una celda sin dato reserva su lugar y nada se corta con elipsis. |
+| `EmptyBlock` | `EmptyState` de la librería sobre la superficie v2, con `role="status"`. Nunca inventa datos ni métricas. |
+| `ErrorBlock` | `ErrorState` de la librería con reintento, con `role="alert"`. |
+| `LoadingBlock` | `Skeleton` con `role="status"` y `aria-busy`; reemplaza los “Cargando…” sueltos de las páginas nuevas. |
+| `Kpi`/`KpiStrip`, `StateChip` | Ya descriptos arriba: un solo KPI y un solo chip. |
+
 ### Arquetipos
 
 | Arquetipo | Jerarquía | Cabecera y acciones | Densidad y mobile |

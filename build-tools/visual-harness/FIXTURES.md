@@ -71,3 +71,21 @@ objetivo del baseline, no un error del fixture.
 - Nada de bleed fuera de tarjeta/panel; scroll horizontal silencioso solo donde es intencional.
 - Textos cortados: con `title` o sin recorte; montos/fechas/códigos nunca se cortan.
 - Superposiciones: ningún par de nodos visibles se pisa.
+
+## Referencias v2 (campaña #41)
+
+`fixtures/referencias-v2.mjs` genera el markup con `renderToStaticMarkup` sobre
+`owncoding-ui` y los patrones de `app/ui-v2.tsx`: no se transcriben clases a
+mano, así que el fixture queda fiel al render real. Fixtures: `v2-panel`,
+`v2-clientes-lista`, `v2-clientes-cuadricula`, `v2-config` y `v2-estados`, con
+datos reales del inventario de la campaña (`REDISENO-INVENTARIO.md`).
+
+- `v2-clientes-lista` declara la lista con `container: '[role="table"]'`,
+  `head: '[role="row"]'` y `row: '[role="rowgroup"] [role="row"]'`. La plantilla
+  v2 es una clase Tailwind compartida (no una variable CSS), así que no se
+  declara `template`: el harness igual mide altura de fila y alineación de
+  celdas contra el encabezado.
+- Estado actual: **0 hallazgos** a 360/768/1440. Capturas base en
+  `work/visual-harness/referencias/captures` (`capture.mjs`, claro/oscuro).
+- Cuando #47 integre los módulos extraídos y las referencias se implementen en
+  TSX, estas fixtures se re-sincronizan citando los archivos finales.
