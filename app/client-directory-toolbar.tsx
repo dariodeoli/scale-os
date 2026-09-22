@@ -1,43 +1,18 @@
 "use client";
-
+// Rediseño v2 (campaña #41 / spec #43 §1.2) reconciliado con la adaptación de
+// DSN para la referencia de Clientes (#42): mismos props y objetos de la
+// librería, con la lógica pura centralizada en ./client-directory-data.
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
 import {Button, Label, ListGridToggle, SearchField, Select} from 'owncoding-ui';
-import { clientState, clientStatuses } from "./client-status";
+import { clientStatuses } from "./client-status";
 import type { CollectionView } from "./view-toggle";
+import {directorySummaryText} from "./client-directory-data";
 
-export type DirectoryClient = {
-  active: boolean;
-  email: string | null;
-  lifecycle_status?: string;
-  name: string;
-  phone: string | null;
-};
-
-const normalizeSearch = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLocaleLowerCase("es");
-
-export function filterClientDirectory<T extends DirectoryClient>(
-  clients: readonly T[],
-  query: string,
-  lifecycleStatus: string,
-): T[] {
-  const term = normalizeSearch(query);
-
-  return clients.filter((client) => {
-    if (lifecycleStatus && clientState(client).value !== lifecycleStatus)
-      return false;
-    if (!term) return true;
-
-    return [client.name, client.email, client.phone]
-      .filter((value): value is string => Boolean(value))
-      .some((value) => normalizeSearch(value).includes(term));
-  });
-}
+// La lógica pura vive en ./client-directory-data; se reexporta para no romper
+// a los consumidores existentes (el shell importa filterClientDirectory de acá).
+export {filterClientDirectory, normalizeSearch, directorySummaryText} from "./client-directory-data";
+export type {DirectoryClient, DirectoryClientRecord} from "./client-directory-data";
 
 type ClientDirectoryToolbarProps = {
   canCreate: boolean;
@@ -66,9 +41,6 @@ export function ClientDirectoryToolbar({
   totalCount,
   view,
 }: ClientDirectoryToolbarProps) {
-  const clientLabel = resultCount === 1 ? "cliente" : "clientes";
-  const totalLabel = totalCount === 1 ? "cliente" : "clientes";
-
   return (
     <div
       className="client-directory-toolbar flex flex-wrap items-end gap-3"
@@ -77,7 +49,7 @@ export function ClientDirectoryToolbar({
       <div className="client-directory-toolbar-title min-w-0">
         <h1 className="text-2xl font-bold tracking-tight text-fore">Clientes</h1>
         <p className="directory-summary text-xs tabular-nums text-mute" role="status" aria-atomic="true">
-          Mostrando {resultCount} {clientLabel} de {totalCount} {totalLabel}
+          {directorySummaryText(resultCount, totalCount)}
         </p>
       </div>
       <SearchField className="client-directory-search w-full sm:w-72" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder="Buscar por nombre, correo o teléfono"/>

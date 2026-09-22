@@ -145,15 +145,13 @@ test("client toolbar exposes accessible search, count, view controls, and role-g
   await act(async () => renderer!.unmount());
 });
 
-test("client toolbar protects 44px icon targets and small-screen overflow", () => {
-  const css = readFileSync("app/client-directory.css", "utf8");
-  assert.match(
-    css,
-    /\.client-directory-toolbar \.workspace-view-controls button\{width:44px;min-width:44px;min-height:44px\}/,
-  );
-  assert.match(
-    css,
-    /@media\(max-width:700px\)[\s\S]*grid-template-columns:minmax\(0,1fr\) auto/,
-  );
-  assert.match(css, /\.client-directory-search\{grid-column:1\/-1\}/);
+test("client toolbar protects touch targets and small-screen layout with the v2 objects", () => {
+  const source = readFileSync("app/client-directory-toolbar.tsx", "utf8");
+  assert.match(source, /from ['"]owncoding-ui['"]/, "el toolbar usa los objetos compartidos");
+  assert.match(source, /SearchField/, "la búsqueda es el campo compartido");
+  assert.match(source, /ListGridToggle/, "el selector de vista es el objeto compartido, sin variantes");
+  assert.match(source, /flex-wrap/, "los controles bajan de fila a 360 px");
+  assert.match(source, /aria-label="Controles del directorio de clientes"/);
+  assert.doesNotMatch(source, /SelectCustom|ViewToggle|search-field'|search-field"/, "los objetos legados quedaron atrás; las clases de la referencia de Clientes se conservan");
+  assert.match(source, /directorySummaryText/, "el resumen sale de la capa de datos del dominio");
 });

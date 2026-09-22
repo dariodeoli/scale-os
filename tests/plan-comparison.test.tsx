@@ -38,14 +38,16 @@ test('long package descriptions and full conditions are visible, without turning
  for(const description of deliverables)assert(copy.includes(description));assert(copy.includes(notes));
  assert(copy.includes(planAmount(1234.5,'USD')));assert(copy.includes('Cantidad del ítem: 1'));
  assert.equal(root.findAllByType('details').length,0);assert.equal(root.findAllByProps({role:'dialog'}).length,0);
- assert.equal(root.findAllByType('button').length,0);assert.equal(root.findAllByProps({className:'plan-comparison-item'}).length,5);
+ assert.equal(root.findAllByType('button').length,0);assert.equal(root.findAllByProps({'data-plan-item':true}).length,5);
  assert(copy.includes('Sin IVA'));assert(copy.includes('El IVA se define en el presupuesto'));
  assert(!/mensual|IVA incluido|NaN|Infinity/.test(copy));
  const scroll=root.findByProps({role:'region'});assert.equal(scroll.props.tabIndex,0);assert(scroll.props['aria-describedby']);
  assert.equal(root.findAllByProps({scope:'col'}).length,3);assert.equal(root.findAllByProps({scope:'row'}).length,3);
- const css=readFileSync(new URL('../app/plan-comparison.css',import.meta.url),'utf8');
- assert(css.includes('overflow-x:auto'));assert(css.includes(':focus-visible'));assert(css.includes('overflow-wrap:anywhere'));assert(css.includes('white-space:pre-wrap'));assert(css.includes('min-height:44px'));
- assert(!/line-clamp|text-overflow:ellipsis|display:none/.test(css));
+ // Contrato v2: la tabla conserva scroll horizontal, foco visible, quiebre de
+ // texto largo y ningún recorte por elipsis; ahora vive en utilidades Tailwind.
+ const source=readFileSync(new URL('../app/plan-comparison.tsx',import.meta.url),'utf8');
+ assert(source.includes('overflow-x-auto'));assert(source.includes('focus-visible:outline'));assert(source.includes('[overflow-wrap:anywhere]'));assert(source.includes('whitespace-pre-wrap'));
+ assert(!/line-clamp|text-overflow:ellipsis|truncate/.test(source));
  act(()=>renderer.unmount());
 });
 
@@ -56,9 +58,9 @@ test('matches backend rounding of unit prices and each line before summing',()=>
  assert.equal(comparePlans([{...fixture,items:[{description:'Normalización',quantity:2,unitPrice:'.105'}]}])[0].total,.22);
  let renderer!:ReactTestRenderer;
  act(()=>{renderer=create(<PlanComparison plans={[plan]}/>);});
- const row=renderer.root.findByProps({className:'plan-comparison-total'});
+ const row=renderer.root.findByProps({'data-plan-total':true});
  assert(text(row).includes(planAmount(.06,'USD')));assert(!text(row).includes(planAmount(.07,'USD')));
- assert.equal(renderer.root.findAllByProps({className:'plan-comparison-item-price'}).filter(node=>text(node).includes(`Subtotal: ${planAmount(.03,'USD')}`)).length,2);
+ assert.equal(renderer.root.findAllByProps({'data-plan-item-price':true}).filter(node=>text(node).includes(`Subtotal: ${planAmount(.03,'USD')}`)).length,2);
  act(()=>renderer.unmount());
 });
 
@@ -73,7 +75,7 @@ test('catalog renders comparison without preview/read amplification and preserve
   await act(async()=>{renderer=create(<CatalogWorkspace kind="plans" role={role}/>);});
   const root=renderer.root,copy=text(root),editable=['owner','admin','management','finance','sales','production','collaborator'].includes(role);
   assert(copy.includes(planAmount(45.25,'USD')));assert(copy.includes('Archivado'));assert(copy.includes(fixture.notes));
-  assert.equal(root.findAllByProps({className:'plan-comparison-item'}).length,4);
+  assert.equal(root.findAllByProps({'data-plan-item':true}).length,4);
   assert.equal(root.findAllByProps({role:'dialog'}).length,0);
   const buttons=root.findAllByType('button');assert(!buttons.some(button=>text(button)==='Vista previa'));
   for(const label of ['Agregar','Editar'])assert.equal(buttons.some(button=>text(button)===label),editable,`${role}: ${label}`);

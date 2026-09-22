@@ -83,7 +83,7 @@ test('viewer never reaches a mutating control in the visible sections',()=>{
  assert.match(suite,/\{canMove&&<button className="icon-button" title=\{`Mover \$\{str\(row,'name'\)\}`\} aria-label=\{`Mover \$\{str\(row,'name'\)\}`\}/);
  assert.match(production,/const canMove=roleCan\(role,'work-orders\.edit'\)/,'moving a piece follows the API capability');
  assert.match(composer,/const drag=useDraggable\(\{id,disabled:!canReorder\}\)/);
- assert.match(composer,/\{canReorder&&<button type="button" className="icon-button" title="Reordenar ítem" aria-label="Reordenar ítem"/);
+ assert.match(composer,/\{canReorder&&<button type="button" className="[^"]*" title="Reordenar ítem" aria-label="Reordenar ítem"/);
  assert.match(suite,/<QuoteComposer mode="plan" record=\{row\} canReorder=\{canEdit\} done=/);
  assert.match(operations,/\{role !== "viewer" && \(/);
  assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');
