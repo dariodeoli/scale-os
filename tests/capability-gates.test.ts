@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {CAPABILITY_ROLES,roleCan,BATCH_LIMITS,limitSelection} from '../app/capabilities';
+import {workspaceSource} from './workspace-source';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 
@@ -60,7 +61,7 @@ assert.deepEqual(limitSelection(['1','1','2'],5).selection,['1','2'],'duplicates
 assert.equal(BATCH_LIMITS.inventory,50);
 assert.equal(BATCH_LIMITS.projects,50);
 assert.equal(BATCH_LIMITS.clients,50);
-const inventory=read('app/inventory-workspace.tsx'),workspace=read('app/scale-workspace.tsx');
+const inventory=read('app/inventory-workspace.tsx'),workspace=workspaceSource();
 assert.match(inventory,/limitSelection\(\[\.\.\.selectedItems,\.\.\.ids\],BATCH_LIMITS\.inventory\)/);
 assert.match(inventory,/de \{BATCH_LIMITS\.inventory\} seleccionado/,'the bulk counter shows the limit');
 assert.match(inventory,/selectedItems\.length>=BATCH_LIMITS\.inventory/,'adding past the cap is refused');

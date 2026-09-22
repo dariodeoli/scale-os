@@ -1,4 +1,5 @@
 import type {Currency} from './currencies';
+import type {SubscriptionState} from './subscription-panel';
 import type {AssignedPerson} from './assigned-people';
 import type {ProjectAssignee} from './project-card';
 import type {Status} from './production-board';
@@ -95,3 +96,75 @@ export type Invoice = {
   due_on: string | null;
 };
 export type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
+export type Budget = {
+  id: string;
+  number: string;
+  title: string;
+  client_name: string;
+  currency: Currency;
+  status: string;
+  subtotal: string;
+  total: string;
+  item_count: number;
+  valid_until: string | null;
+};
+export type AccountTransfer = {
+  id: string;
+  from_account_id: string;
+  to_account_id: string;
+  from_account_name: string;
+  to_account_name: string;
+  amount: string;
+  received_amount?: string;
+  from_currency?: string;
+  to_currency?: string;
+  transferred_on: string;
+  reference: string | null;
+  created_by_email: string | null;
+  actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
+};
+export type MetricEvent = { name: string; event_date: string; count: number };
+export type ClientPaymentStatus = {
+  client_id: string;
+  client_name: string;
+  currency: Currency | null;
+  outstanding_amount: string;
+  next_due_on: string | null;
+  days_overdue: number;
+  payment_status: "up_to_date" | "due_soon" | "late" | "severe";
+  invoice_count: number;
+  has_invoice: boolean;
+};
+export type User = {
+  subscription?:SubscriptionState;
+  id:string;
+  organization_id:string;
+  full_name?:string|null;
+  photo_url?:string|null;
+  email: string;
+  role: string;
+  organization_name: string;
+  organization_slug: string;
+  demo_owner_user_id?:string|null;
+  default_currency?:Currency;
+  platform_role?:string|null;
+};
+export type Summary = {
+  active_clients: number;
+  active_projects: number;
+  open_orders: number;
+  unanswered_budgets: number | null;
+  unverified_inventory: number | null;
+  upcoming_deliveries: number | null;
+};
+
+export type ModalKind =
+  | "client"
+  | "project"
+  | "order"
+  | "budget"
+  | "account"
+  | "invoice"
+  | "payment"
+  | "transfer"
+  | null;

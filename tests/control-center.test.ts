@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {groupDueAlerts,normalizeSearch,shortDate,DueAlert} from '../app/control-center-data';
 import {sections,legacyRoutes,legacyDestination,parentSection,childSections,sectionPath,sectionLabel} from '../app/navigation';
 import {visibleModule} from '../app/workspace-access';
+import {workspaceSource} from './workspace-source';
 const records:DueAlert[]=[{id:'1',type:'invoice',name:'DEMO-PRO-3',due:'2026-08-29'},...Array.from({length:4},(_,i)=>({id:String(i+2),type:'work_order',name:'Reel de lanzamiento',due:'2026-09-07',context:`Cliente ${i}`}))];
 const snapshot=JSON.stringify(records),groups=groupDueAlerts(records);
 assert.equal(groups.length,2);assert.equal(groups[0].name,'DEMO-PRO-3');assert.equal(groups[1].items.length,4);
@@ -20,8 +21,8 @@ for(const role of ['owner','admin','management','finance','sales','production','
  for(const [label] of sections){if(label!=='Métricas'&&visibleModule(label,role))assert(childSections(parentSection(label)).filter(child=>visibleModule(child,role)).includes(label),'all accessible leaves remain reachable; metrics are embedded in Pipeline');}
 }
 assert(!visibleModule('Pagos','sales'));assert(visibleModule('Mora','sales'));assert(!visibleModule('Configuración','production'));assert(visibleModule('Papelera','production'));assert(!visibleModule('Comisiones','editor'));assert(visibleModule('Equipo','editor'));
-const ui=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
-for(const hidden of ['Mora','Planes','Comisiones','Papelera'])assert(!ui.slice(ui.indexOf('const nav ='),ui.indexOf('type Client')).includes(`"${hidden}"`));
+const ui=workspaceSource();
+for(const hidden of ['Mora','Planes','Comisiones','Papelera'])assert(!ui.slice(ui.indexOf('const nav ='),ui.indexOf('function localMonth')).includes(`"${hidden}"`));
 assert(ui.indexOf('<ControlCenter')<ui.indexOf('className="metrics operational-metrics"'));assert(ui.indexOf('className="metrics operational-metrics"')<ui.indexOf('id="produccion"'));
 const css=readFileSync(new URL('../app/control-center.css',import.meta.url),'utf8');assert(!/#[0-9a-f]{3,8}\b/i.test(css),'new stylesheet uses color tokens');
 for(const block of css.split('}')){const [selector,body]=block.split('{');if(/(?:^|[\s,.])(?:\.ops-card|\.financial-stat|\.metric)\s*$/.test(selector))assert(!body?.includes('min-height'),'no fixed minimum card height');}

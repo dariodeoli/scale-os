@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
+import {workspaceSource} from './workspace-source';
 require.extensions[".css"] = (module: NodeModule) => {
   module.exports = { toggle: "toggle" };
 };
@@ -44,7 +45,7 @@ test("client directory filtering uses the same displayed subset for query and li
 });
 
 test("client directory renders either onboarding or filtered no-results, with a reset affordance", () => {
-  const workspace = readFileSync("app/scale-workspace.tsx", "utf8");
+  const workspace = workspaceSource();
 
   assert.match(
     workspace,
@@ -57,7 +58,7 @@ test("client directory renders either onboarding or filtered no-results, with a 
 });
 
 test("client directory and mora views flag clients that were never invoiced", () => {
-  const workspace = readFileSync("app/scale-workspace.tsx", "utf8");
+  const workspace = workspaceSource();
   assert.match(workspace, /invoice_count: number;[\s\S]*?has_invoice: boolean;/);
   assert.match(workspace, /\["no_invoice", "Sin factura"\]/);
   assert.match(workspace, /moraFilter === "no_invoice" \? paymentStatuses\.filter\(client => !client\.has_invoice\)/);

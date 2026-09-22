@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
+import {workspaceSource} from './workspace-source';
 
 const suite=readFileSync(new URL('../app/suite.tsx',import.meta.url),'utf8');
-const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+const workspace=workspaceSource();
 const guide=readFileSync(new URL('../app/workspace-guide.tsx',import.meta.url),'utf8');
 const styles=readFileSync(new URL('../app/settings-slice.css',import.meta.url),'utf8');
 

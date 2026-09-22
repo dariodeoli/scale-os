@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import {visibleModule} from '../app/workspace-access';
 import {teamRoleLabels} from '../app/team-directory';
+import {workspaceSource} from './workspace-source';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 
@@ -19,7 +20,7 @@ test('collaborator reaches operations without finance, salaries, access or activ
 });
 
 test('archived clients and projects collapse into a reactivatable capsule',()=>{
-  const workspace=read('app/scale-workspace.tsx');
+  const workspace=workspaceSource();
   assert.match(workspace,/<details className="archived-capsule" open=\{clientStatusFilter==='inactive'\}>/);
   assert.match(workspace,/<details className="archived-capsule">/);
   assert.match(workspace,/async function setClientArchive/);
