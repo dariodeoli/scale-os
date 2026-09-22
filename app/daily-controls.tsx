@@ -14,8 +14,8 @@ import {listDateShort} from './list-format';
 import {movementValue,matchingMovements,reconciliationPending,transferPreview,type StatementLine} from './treasury-data';
 import {useReconciliation} from './use-reconciliation';
 import {todayInAsuncion} from './field-rules';
-import {Aviso,Button,Card,EmptyState,FormField,IconAction,Input,Nota,cn} from 'owncoding-ui';
-import {StateChip} from './ui-v2';
+import {Aviso,Button,Card,EmptyState,ErrorState,FormField,IconAction,Input,Nota,cn} from 'owncoding-ui';
+import {LoadingBlock,StateChip} from './ui-v2';
 import {Copy,Eye,Link2,Link2Off,Undo2,Unlink} from 'lucide-react';
 type Account={id:string;name:string;currency:string;active:boolean};
 type Row={id:string;[key:string]:unknown};
@@ -124,6 +124,7 @@ export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
     <Button variant="outline" disabled={busy} onClick={()=>void perform(async()=>{const d=await api<{matched:number}>(`/api/agency/reconciliation/${accountId}/auto`,{});setNotice(`${d.matched} coincidencias conciliadas.`);await load(accountId);})}>Conciliar coincidencias exactas</Button>
    </div>
    <p className="text-sm text-mute">{reconciliationPending(lines)} pendientes de {lines.length} movimientos importados (hasta 1.000 visibles).</p>
+   {busy&&!lines.length?<LoadingBlock label="Cargando extracto…" lines={2}/>:null}
    {lines.length?<div className="min-w-0 overflow-x-auto" role="table" aria-label="Movimientos del extracto"><div className="min-w-[40rem]">
     <div className={cn(STATEMENT_HEAD,STATEMENT_COLS)} aria-hidden="true"><span>Extracto</span><span>Estado</span><span className="text-right">Monto</span><span className="text-right">Acciones</span></div>
     {lines.map(l=><div role="row" className={cn(STATEMENT_ROW,STATEMENT_COLS)} key={l.id}>
@@ -137,7 +138,8 @@ export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
    </div></div>:<EmptyState compact title="Sin movimientos importados para esta cuenta."/>}
   </>:<EmptyState compact title="Elegí una cuenta para conciliar el extracto."/>}
   {notice?<Aviso tono="ok">{notice}</Aviso>:null}
-  {error?<Aviso tono="error">{error}</Aviso>:null}
+  {error&&!lines.length?<ErrorState title="No se pudo cargar el extracto" description={error} onRetry={()=>void perform(()=>load(accountId))}/>:null}
+  {error&&lines.length?<Aviso tono="error">{error}</Aviso>:null}
   {importing&&<Dialog title="Importar extracto CSV" close={()=>setImporting(false)}><p>Copiá el CSV con encabezado <code>id,fecha,importe,referencia</code>. Fecha YYYY-MM-DD; importe positivo para ingresos y negativo para egresos, sin miles y con punto decimal. El ID debe ser único por cuenta.</p><div className="grid gap-3"><FormField label="Archivo CSV"><Input type="file" accept=".csv,text/csv" onChange={async (e:ChangeEvent<HTMLInputElement>)=>{const file=e.target.files?.[0];if(!file)return;if(file.size>800000){setError('El archivo supera 800 KB');return;}setCsv(await file.text());}}/></FormField></div><Editor key={csv} fields={[{key:'csv',label:'Contenido del CSV',type:'textarea'}]} defaults={{csv}} save={async v=>{const d=await api<{imported:number}>('/api/agency/reconciliation',{accountId,lines:parseStatementCsv(v.csv)});setNotice(`${d.imported} filas nuevas importadas.`);await load(accountId);setImporting(false);}}/></Dialog>}
   {matching&&<Dialog title="Vincular movimiento" close={()=>setMatching(null)}><p className="tabular-nums">{money(matching.amount,currency)} · {matching.reference}</p><Editor fields={[{key:'movement',label:'Movimiento registrado del mismo importe',choices:matchingMovements(matching,movements).map(m=>({value:movementValue(m),label:`${listDateShort(m.booked_on)} · ${m.movement_type} · ${m.reference}`}))}]} defaults={{movement:''}} save={async v=>{const [movement_type,movement_id]=v.movement.split(':');await api(`/api/agency/reconciliation/${matching.id}/match`,{movement_type,movement_id});await load(accountId);setMatching(null);}}/></Dialog>}
  </Card>;

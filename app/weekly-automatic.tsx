@@ -2,7 +2,7 @@
 import {useEffect,useState,type ChangeEvent,type ReactNode} from 'react';
 import {ActorIdentity} from './actor-identity';
 import {listDateShort} from './list-format';
-import {Card,DataTable,ErrorState,FilaDato,FormField,Input,Nota} from 'owncoding-ui';
+import {Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,Input,Nota} from 'owncoding-ui';
 import {LoadingBlock} from './ui-v2';
 
 export const automaticTypeLabels:Record<string,string>={video:'Videos',reedicion:'Reediciones',foto:'Fotos',produccion:'Producciones',entregable:'Entregables',untyped:'Sin tipo'};
@@ -52,7 +52,7 @@ export function WeeklyAutomatic({role}:{role:string}){
   <Nota tono="neutro">Del {listDateShort(week)||week} al {listDateShort(lastDay(week))||lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</Nota>
   {loading?<LoadingBlock label="Cargando producción semanal…" lines={3}/>:null}
   {error?<ErrorState title="No se pudo cargar la producción semanal" description={error} onRetry={()=>setReload(v=>v+1)}/>:null}
-  {!loading&&!error&&!rows.length?<p className="text-sm text-mute">Sin piezas terminadas en esta semana.</p>:null}
+  {!loading&&!error&&!rows.length?<EmptyState compact title="Sin piezas terminadas en esta semana."/>:null}
   {!loading&&!error&&rows.length>0?<DataTable
    columns={[{key:'who',label:scope==='team'?'Colaborador':'Trabajo'},...automaticTypes.map(type=>({key:type,label:automaticTypeLabels[type],align:'right' as const})),{key:'orders',label:'Órdenes',align:'right' as const},{key:'projects',label:'Proyectos'}]}
    rows={rows.map(entry=>({
