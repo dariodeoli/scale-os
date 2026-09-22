@@ -3,11 +3,11 @@
    Hoja única del sistema: utilidades Tailwind, tokens de marca mapeados a la
    paleta de Scale OS y la base mínima que necesitan las utilidades.
 
-   Orden de carga (app/layout.tsx): globals.css → hojas legadas →
-   owncoding-ui/styles.css → app/tailwind.css. Las reglas de acá salen después
-   del CSS legado: las utilidades de Tailwind ganan cuando el marcador nuevo y
-   el viejo conviven en el mismo elemento; las hojas de módulo legadas siguen
-   mandando dentro de sus pantallas sin cambios.
+   Orden de carga (app/layout.tsx): owncoding-ui/styles.css (tokens y base del
+   grupo) → globals.css y hojas legadas → app/tailwind.css (esta hoja). Las
+   reglas de acá salen después del CSS legado: las utilidades de Tailwind ganan
+   cuando el marcador nuevo y el viejo conviven en el mismo elemento; las hojas
+   de módulo legadas siguen mandando dentro de sus pantallas sin cambios.
 
    `preflight` está desactivado (ver DESIGN-SYSTEM.md §Sistema v2): el reset
    global de Tailwind rompería las 53 hojas actuales (márgenes, tipografía de
@@ -41,6 +41,15 @@ button {
   border-width: 0;
   border-style: solid;
   border-color: rgb(var(--c-ink-600));
+}
+
+/* Scroll horizontal silencioso de las listas densas v2 (`ListGrid`): el
+   contenedor conserva las columnas y scrollea sin barra visible. */
+.silent-scroll {
+  scrollbar-width: none;
+}
+.silent-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Convivencia con la base de la librería ─────────────────────────────────

@@ -4,7 +4,7 @@ import {test} from 'node:test';
 import {act,create} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
-const {Kpi,KpiStrip,LoadingBlock,StateChip}=require('../app/ui-v2') as typeof import('../app/ui-v2');
+const {EmptyBlock,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,PageHeader,StateChip}=require('../app/ui-v2') as typeof import('../app/ui-v2');
 const plain=(node:any):string=>!node?'':typeof node==='string'?node:Array.isArray(node)?node.map(plain).join(''):plain(node.children);
 
 test('un solo chip de estado: tonos semánticos sobre el Badge compartido',async()=>{
@@ -44,3 +44,31 @@ test('KpiStrip y LoadingBlock: grilla responsive y carga anunciada sin inventar 
 });
 
 console.log('PASS: primitivas v2 — un chip, un KPI y una carga sobre los objetos compartidos');
+
+test('patrones v2: encabezado, toolbar, lista y estados salen de una sola pieza',async()=>{
+ let renderer:any;
+ await act(async()=>{renderer=create(<PageHeader eyebrow="Comercial" title="Clientes" subtitle="Mostrando 4 de 4" actions={<button>Nuevo cliente</button>}/>);});
+ const header=plain(renderer.toJSON());
+ assert(header.includes('Comercial')&&header.includes('Clientes')&&header.includes('Mostrando 4 de 4')&&header.includes('Nuevo cliente'));
+ assert(!JSON.stringify(renderer.toJSON()).includes('truncate'),'el encabezado no trunca el título');
+
+ await act(async()=>{renderer=create(<FilterToolbar summary="4 de 4"><span>Buscar</span></FilterToolbar>);});
+ const toolbar=plain(renderer.toJSON());
+ assert(toolbar.includes('Buscar')&&toolbar.includes('4 de 4'),'la toolbar agrupa controles y contador');
+
+ const template='grid-cols-[minmax(11rem,1.6fr)_8rem_auto]';
+ await act(async()=>{renderer=create(<ListGrid label="Clientes" template={template} columns={[{key:'name',label:'Cliente'},{key:'state',label:'Estado'},{key:'actions',label:'Acciones'}]}><ListRow template={template}><span>Estudio</span><span>Activo</span><span>Editar</span></ListRow></ListGrid>);});
+ const list=JSON.stringify(renderer.toJSON());
+ assert.equal(list.split(template).length-1,2,'el encabezado y la fila comparten la plantilla');
+ assert.equal(renderer.root.findByProps({role:'table'}).props['aria-label'],'Clientes','la lista tiene nombre accesible');
+ assert(list.includes('silent-scroll'),'la lista conserva el scroll silencioso');
+
+ let retries=0;
+ await act(async()=>{renderer=create(<EmptyBlock title="Sin clientes" description="Cargá el primero"/>);});
+ assert.equal(renderer.root.findByProps({role:'status'}).props.role,'status','el vacío se anuncia como estado');
+ assert(plain(renderer.toJSON()).includes('Sin clientes'));
+ await act(async()=>{renderer=create(<ErrorBlock title="No se pudo cargar" onRetry={()=>{retries+=1;}}/>);});
+ assert.equal(renderer.root.findByProps({role:'alert'}).props.role,'alert','el error se anuncia como alerta');
+ await act(async()=>{renderer.root.findByType('button').props.onClick();});
+ assert.equal(retries,1,'el reintento del error dispara el callback');
+});
