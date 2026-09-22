@@ -19,8 +19,8 @@ function Probe(){state=useReconciliation();return null;}
 async function run(){
  let renderer:ReactTestRenderer;
  await act(async()=>{renderer=create(<Probe/>);});
- assert.deepEqual(state.lines,[],'arranca vacío');
- assert.deepEqual(state.movements,[]);
+ assert.equal(state.lines.length,0,'arranca vacío');
+ assert.equal(state.movements.length,0);
 
  let pending!:Promise<void>;
  act(()=>{pending=state.load('5');});
@@ -42,8 +42,8 @@ async function run(){
  assert.equal(state.movements[0].movement_id,'9');
 
  act(()=>{state.reset();});
- assert.deepEqual(state.lines,[],'reset vacía el extracto');
- assert.deepEqual(state.movements,[],'reset vacía los movimientos');
+ assert.equal(state.lines.length,0,'reset vacía el extracto');
+ assert.equal(state.movements.length,0,'reset vacía los movimientos');
 
  let failing!:Promise<void>;
  act(()=>{failing=state.load('6');});
@@ -51,7 +51,7 @@ async function run(){
   calls[1].reject(Error('Sin permiso'));
   await assert.rejects(failing,/Sin permiso/,'el error de transporte se propaga para que la pantalla lo muestre');
  });
- assert.deepEqual(state.lines,[],'un error de carga no deja datos a medias');
+ assert.equal(state.lines.length,0,'un error de carga no deja datos a medias');
  assert.equal(calls[1].path,'/api/agency/reconciliation?accountId=6');
 
  await act(async()=>{renderer.unmount();});
