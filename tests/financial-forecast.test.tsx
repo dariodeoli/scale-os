@@ -3,12 +3,14 @@ import assert from 'node:assert/strict';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {useForm} from 'react-hook-form';
 import {CompanyCurrencyProvider,useCompanyCurrency} from '../app/currency-provider';
-import type {ForecastData} from '../app/financial-forecast';
+import type {ForecastData} from '../app/forecast-data';
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
-const {FinancialForecast,currentForecastMonth,formatWholeMoney,formatSignedMoney}=require('../app/financial-forecast') as typeof import('../app/financial-forecast');
+const {FinancialForecast}=require('../app/financial-forecast') as typeof import('../app/financial-forecast');
+const {currentForecastMonth}=require('../app/forecast-data') as typeof import('../app/forecast-data');
+const {formatWholeMoney,formatSignedMoney}=require('../app/amount-format') as typeof import('../app/amount-format');
 const events=new EventTarget();Object.defineProperty(globalThis,'window',{configurable:true,value:events});
 // El diálogo del salario se monta con portal: se captura para poder afirmar su
 // contrato (moneda de la ficha y payload del PATCH) sin un DOM real.
