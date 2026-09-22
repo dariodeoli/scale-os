@@ -114,54 +114,48 @@ const moraRow = ({initial, tone, name, statusText, chip, invoices, amount}) => `
  <span class="client-row-amount">${amount}</span>
 </div>`;
 
-/* ------------------------------------------------------------------ Previsión */
+/* ------------------------------------------------- Sistema v2 (Tailwind + owncoding-ui)
+   Previsión (app/financial-forecast.tsx), Informes (app/reports-workspace.tsx),
+   conciliación (app/daily-controls.tsx) y producción semanal (app/weekly-automatic.tsx):
+   tarjetas, KPIs, chips, barras y listas de fila finita con plantilla compartida
+   (scroll horizontal silencioso cuando la plantilla no entra). */
+const CARD = 'rounded-xl border border-fono/30 bg-ink-800 p-5';
+const BUTTON_OUTLINE = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold transition h-11 md:h-9 text-sm bg-transparent text-fore border border-ink-500';
+const INPUT = 'w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore h-11 md:h-9 text-base md:text-sm outline-none transition';
+const LIST_HEAD = 'grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-mute';
+const LIST_ROW = 'grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 last:border-0';
+const PERSON_COLS = 'grid-cols-[minmax(10rem,1.2fr)_minmax(7rem,.9fr)_minmax(8rem,.9fr)_minmax(8rem,.9fr)_6.5rem]';
+const CONTRACT_COLS = 'grid-cols-[minmax(0,1fr)_9rem_9rem_9rem]';
+const EXPENSE_COLS = 'grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
+const PLANNED_COLS = 'grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
+const STATEMENT_COLS = 'grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
+const CHIP_TONES = {ok: 'bg-ok/15 text-ok border-ok/25', warn: 'bg-warn/15 text-warn border-warn/25', bad: 'bg-bad/15 text-bad border-bad/25', info: 'bg-fono/15 text-fono-light border-fono/25', mute: 'bg-ink-600 text-mute border-ink-500'};
+const BAR_TONES = {fono: 'bg-fono', ok: 'bg-ok', warn: 'bg-warn', bad: 'bg-bad'};
+const chip = (tone, text, title = '') => `<span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${CHIP_TONES[tone] || CHIP_TONES.mute}"${title ? ` title="${title}"` : ''}>${text}</span>`;
+const barra = (valor, max, tono = 'fono', etiqueta = '') => {
+  const porcentaje = Math.min(100, Math.max(0, Number(valor) / (Number(max) || 100) * 100));
+  return `<div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(porcentaje)}" aria-label="${etiqueta}" class="overflow-hidden rounded-full bg-fore/10 h-1.5"><span class="block h-full rounded-full ${BAR_TONES[tono]}" style="width:${porcentaje}%"></span></div>`;
+};
+const field = (label, control) => `<div><label class="block text-[11px] font-medium uppercase tracking-wider text-mute mb-1.5">${label}</label>${control}</div>`;
+const segmented = (items, activeIndex = 0, aria = 'Horizonte de proyección') => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${aria}">${items.map((label, index) => `<button type="button" class="inline-flex min-h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${index === activeIndex ? 'bg-fono/15 text-fono-light' : 'text-mute'}">${label}</button>`).join('')}</div>`;
+const iconAction = (path, label, tone = 'mute') => {
+  const tones = {ok: 'border-ok/30 text-ok', warn: 'border-warn/30 text-warn', bad: 'border-bad/30 text-bad', mute: 'border-transparent text-mute'};
+  return `<button type="button" title="${label}" aria-label="${label}" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border ${tones[tone] || tones.mute}">${icon(16, path)}</button>`;
+};
+const cell = (content, extra = '') => `<span class="min-w-0 ${extra}">${content}</span>`;
+const listWrap = (minWidth, content) => `<div class="min-w-0 overflow-x-auto"><div class="min-w-[${minWidth}]">${content}</div></div>`;
+const filaDato = (label, valor, tono = '') => `<div class="flex items-center justify-between gap-3"><span class="min-w-0 text-mute">${label}</span><span class="shrink-0 font-semibold tabular-nums ${tono}">${valor}</span></div>`;
+const nota = (tono, text) => {
+  const tones = {warn: 'border-warn/30 bg-warn/10', info: 'border-info/25 bg-info/10', neutro: 'border-ink-600 bg-ink-800/40'};
+  return `<p class="border text-mute rounded-xl p-3 text-sm ${tones[tono] || tones.warn}">${text}</p>`;
+};
+const aviso = (tono, text) => {
+  const tones = {error: 'border-bad/30 bg-bad/10 text-bad', ok: 'border-ok/30 bg-ok/10 text-ok'};
+  return `<p role="${tono === 'error' ? 'alert' : 'status'}" class="rounded-lg border px-3 py-2 text-sm ${tones[tono]}">${text}</p>`;
+};
+const kpi = (label, valor, hint = '') => `<div class="relative overflow-hidden rounded-xl border p-4 border-ink-600 bg-ink-800"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight md:text-3xl text-fore">${valor}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="text-mute">${hint}</span></div>` : ''}</div>`;
+const tableBlock = (labels, rows) => `<div class="hidden max-h-[70vh] overflow-auto md:block"><table class="w-full text-sm"><thead class="sticky top-0 z-10 bg-ink-800"><tr class="border-b border-ink-600 text-left text-xs uppercase tracking-wider text-mute">${labels.map(([label, align]) => `<th class="px-2.5 py-1.5 font-medium${align === 'right' ? ' text-right' : ''}">${label}</th>`).join('')}</tr></thead><tbody>${rows.map(cells => `<tr class="border-b border-ink-600/60 last:border-0">${cells.map(([value, align]) => `<td class="px-2.5 py-1.5 text-fore${align === 'right' ? ' text-right' : ''}">${value}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 
-/* Tarjeta por moneda: app/financial-forecast.tsx 71 (resumen, personal, planificado). */
-const forecastCurrencyCard = ({label, strong = '', dl = '', small = '', list = ''}) => `
-<article class="forecast-currency">
- <span>${label}</span>
- ${strong ? `<strong>${strong}</strong>` : ''}
- ${dl ? `<dl>${dl}</dl>` : ''}
- ${small ? `<small class="planned-expenses-kinds">${small}</small>` : ''}
- ${list}
-</article>`;
-
-const forecastFact = (term, value) => `<div><dt>${term}</dt><dd>${value}</dd></div>`;
-
-/* Fila de personal: app/financial-forecast.tsx 73 + app/financial-forecast.css 73-96.
-   Con `base_amount` en null (rol sin salary.view) el salario y el cierre dicen
-   "Sin dato" y la fila no dibuja `forecast-person-actions`: no hay edición a ciegas. */
-const forecastPersonRow = ({name, initials, base, override, total, negative = false, noBase = false, masked = false}) => `
-<div class="forecast-person-list-row">
- <span class="forecast-person-who"><span class="forecast-person-avatar"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span></span><span class="forecast-person-name">${name}${noBase ? '<small class="forecast-person-no-base">Sin salario fijo</small>' : ''}</span></span>
- <span class="forecast-person-base"><small>Salario base</small><strong>${masked ? 'Sin dato' : base}</strong></span>
- ${override ? `<span class="forecast-person-override"><small>Ajuste del mes</small><strong>${override}</strong></span>` : '<span class="forecast-person-override is-empty" aria-hidden="true"></span>'}
- <span class="forecast-person-total"><small>Cierre del mes</small><strong${negative ? ' data-negative="true"' : ''}>${masked ? 'Sin dato' : total}</strong></span>
- ${masked ? '' : `<span class="forecast-person-actions">
-  <button class="icon-button" type="button" title="Editar salario" aria-label="Editar salario: ${name}">${pencilIcon(16)}</button>
-  <button class="icon-button" type="button" title="Ajuste del mes" aria-label="Ajuste del mes: ${name}">${slidersIcon(16)}</button>
-  ${override ? `<button class="icon-button warn" type="button" title="Quitar ajuste del mes" aria-label="Quitar ajuste del mes: ${name}">${trashIcon(16)}</button>` : ''}
- </span>`}
-</div>`;
-
-/* Fila de gasto real: app/financial-forecast.tsx 73 + app/financial-forecast.css 55. */
-const plannedExpenseRow = ({category, kind, date, account, reference, amount}) => `
-<li>
- <div>
-  <b>${category}${kind ? ` · ${kind}` : ''}</b>
-  <small>${date} · ${account}${reference ? ` · ${reference}` : ''}</small>
- </div>
- <div class="inline-actions"><strong>${amount}</strong><button type="button" class="text-button danger">Revertir</button></div>
-</li>`;
-
-/* Fila de contrato: app/financial-forecast.tsx 74 + app/financial-forecast.css 37-52. */
-const contractedRow = ({name, currency, endsOn, contracted, invoiced, missing}) => `
-<li>
- <span class="contracted-client-name"><b>${name}</b><small>${currency}${endsOn ? ` · hasta ${endsOn}` : ''}</small></span>
- <span>Contratado <strong>${contracted}</strong></span>
- <span>Facturado <strong>${invoiced}</strong></span>
- ${missing ? '<em class="missing-invoice-chip">Sin factura</em>' : ''}
-</li>`;
 
 /* --------------- Finanzas: cuentas (cuadrícula) ---------------------- */
 const finanzasCuentas = {
@@ -438,392 +432,300 @@ const moraCobranzas = {
 </section>`,
 };
 
-/* --------------- Previsión: mes (personal + gastos) ------------------- */
+/* --------------- Finanzas: conciliación por extracto (v2) ------------- */
+const statementRow = ({date, reference, matched, amount}) => `
+<div role="row" class="${LIST_ROW} ${STATEMENT_COLS}">
+ ${cell(`<b class="font-semibold text-fore">${date}</b><small class="ml-2 text-xs text-mute">${reference}</small>`, 'text-sm')}
+ ${cell(chip(matched ? 'ok' : 'warn', matched ? 'Conciliado' : 'Pendiente'))}
+ ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${amount}</strong>`, 'text-right')}
+ ${cell(iconAction(matched ? '<path d="M18 6 6 18M6 6l12 12"/>' : '<path d="M20 6 9 17l-5-5"/>', matched ? `Desvincular movimiento: ${reference}` : `Conciliar ${reference}`, matched ? 'bad' : 'ok'), 'flex justify-end')}
+</div>`;
+const finanzasConciliacion = {
+  id: 'finanzas-conciliacion',
+  section: 'Finanzas',
+  surface: 'Conciliación por extracto (v2)',
+  kind: 'workspace',
+  lists: [
+    {container: '[role="table"][aria-label="Movimientos del extracto"]', head: '[aria-hidden="true"]', row: '[role="row"]', label: 'Finanzas · conciliación', rowHeight: [44, 52]},
+  ],
+  body: `
+<div class="${CARD} grid gap-3">
+ <div class="grid gap-1">
+  <h3 class="text-sm font-semibold text-fore">Conciliación por extracto</h3>
+  <p class="text-xs text-mute">Compará el extracto con los movimientos registrados. Importar y conciliar no modifica saldos. El cruce automático exige fecha, importe y referencia exactos, sin coincidencias ambiguas.</p>
+ </div>
+ ${field('Cuenta a conciliar', `<div class="w-full sm:w-72">${selectCustom('Cuenta a conciliar', 'Banco Regional — Operativa · PYG', 'conc-account')}</div>`)}
+ <div class="flex flex-wrap gap-2">
+  <button type="button" class="${BUTTON_OUTLINE}">Importar CSV</button>
+  <button type="button" class="${BUTTON_OUTLINE}">Conciliar coincidencias exactas</button>
+ </div>
+ <p class="text-sm text-mute">2 pendientes de 4 movimientos importados (hasta 1.000 visibles).</p>
+ ${listWrap('40rem', `<div role="table" aria-label="Movimientos del extracto">
+  <div class="${LIST_HEAD} ${STATEMENT_COLS}" aria-hidden="true"><span>Extracto</span><span>Estado</span><span class="text-right">Monto</span><span class="text-right">Acciones</span></div>
+  ${statementRow({date: '10-sept', reference: 'TRANSFERENCIA RECIBIDA CLIENTE INDUSTRIAS DEL SUR SA', matched: false, amount: 'Gs. 1.234.567.890'})}
+  ${statementRow({date: '09-sept', reference: 'PAGO PROVEEDOR 8842', matched: true, amount: '-Gs. 45.678.900'})}
+  ${statementRow({date: '08-sept', reference: 'COMISION BANCARIA INTERNACIONAL USD', matched: false, amount: '-USD 1.250,75'})}
+  ${statementRow({date: '07-sept', reference: 'COBRO', matched: true, amount: 'Gs. 300.000'})}
+ </div>`)}
+ ${aviso('ok', '3 coincidencias conciliadas.')}
+</div>`,
+};
+
+/* --------------- Previsión: resumen del mes (v2) ---------------------- */
+const personnelRow = ({name, initials, base, override, total, negative = false, noBase = false, masked = false}) => `
+<div class="${LIST_ROW} ${PERSON_COLS} forecast-person-row">
+ ${cell(`<span class="forecast-person-who flex min-w-0 items-center gap-2"><span class="grid h-6 w-6 flex-none place-items-center overflow-hidden rounded-full bg-ink-700 text-[10px] font-semibold">${initials}</span><span class="min-w-0 text-sm font-semibold text-fore">${name}${noBase ? '<small class="ml-2 text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>' : ''}</span></span>`)}
+ ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${masked ? 'Sin dato' : base}</strong>`, 'forecast-person-base')}
+ ${override ? cell(`<span class="whitespace-nowrap text-sm font-semibold tabular-nums text-warn">${override}</span>`) : '<span class="forecast-person-override is-empty hidden md:block" aria-hidden="true"></span>'}
+ ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums ${negative ? 'text-bad' : 'text-fore'}">${masked ? 'Sin dato' : total}</strong>`, 'forecast-person-total')}
+ ${masked ? '<span aria-hidden="true"></span>' : `<span class="forecast-person-actions flex justify-end gap-1.5">${iconAction('<path d="m15 5 4 4L8 20l-5 1 1-5Z"/>', `Editar salario: ${name}`)}${iconAction('<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/>', `Ajuste del mes: ${name}`)}${override ? iconAction('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', `Quitar ajuste del mes: ${name}`, 'bad') : ''}</span>`}
+</div>`;
+const plannedRow = ({category, kind, cadence, note, amount}) => `
+<div role="row" class="${LIST_ROW} ${PLANNED_COLS}">
+ ${cell(`<b class="font-semibold text-fore">${category}</b>${kind ? `<span class="ml-2 text-[10px] font-bold uppercase tracking-wider text-mute">${kind}</span>` : ''}<small class="ml-2 text-xs text-mute">${note}</small>`, 'text-sm')}
+ ${cell(`<span class="text-sm text-fore">${cadence}</span>`)}
+ ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${amount}</strong>`, 'text-right')}
+ ${cell(iconAction('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', `Quitar gasto planificado: ${category}`, 'bad'), 'flex justify-end')}
+</div>`;
+const realExpenseRow = ({category, kind, date, account, reference, createdBy, amount}) => `
+<div role="row" class="${LIST_ROW} ${EXPENSE_COLS}">
+ ${cell(`<b class="font-semibold text-fore">${category}${kind ? ` · ${kind}` : ''}</b><small class="ml-2 text-xs text-mute">${date} · ${account}${reference ? ` · ${reference}` : ''}${createdBy ? ` · registró ${createdBy}` : ''}</small>`, 'text-sm')}
+ ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${amount}</strong>`, 'text-right')}
+ ${cell(iconAction('<path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/>', `Revertir gasto real: ${category}`, 'bad'), 'flex justify-end')}
+</div>`;
 const previsionResumen = {
   id: 'prevision-resumen',
   section: 'Previsión',
-  surface: 'Ingresos vs gastos, personal y gastos del mes',
+  surface: 'Ingresos vs gastos, resumen por moneda, personal y gastos (v2)',
   kind: 'workspace',
   lists: [
-    {
-      container: '.forecast-personnel-list',
-      head: '.forecast-person-head',
-      row: '.forecast-person-list-row',
-      label: 'Previsión · personal proyectado',
-      template: '--forecast-person-cols',
-      rowHeight: [44, 52],
-    },
-    {
-      container: '.planned-expenses-list',
-      head: '.planned-expenses-list > li.finance-row-head',
-      row: '.planned-expenses-list > li:not(.finance-row-head)',
-      label: 'Previsión · gastos reales',
-      template: '--planned-cols',
-      rowHeight: [44, 52],
-    },
+    {container: '.forecast-person-list', head: '[aria-hidden="true"]', row: '.forecast-person-row', label: 'Previsión · personal proyectado', rowHeight: [44, 52]},
+    {container: '[role="table"][aria-label="Gastos planificados del mes"]', head: '[aria-hidden="true"]', row: '[role="row"]', label: 'Previsión · gastos planificados', rowHeight: [44, 52]},
+    {container: '[role="table"][aria-label="Gastos reales del mes"]', head: '[aria-hidden="true"]', row: '[role="row"]', label: 'Previsión · gastos reales', rowHeight: [44, 52]},
   ],
   body: `
-<section class="panel financial-forecast" aria-label="Previsión financiera">
- <div class="panel-heading">
-  <h2>Previsión financiera</h2>
-  <label>Mes<input type="month" value="2026-09" min="1900-01" max="9998-12"></label>
-  <div class="forecast-horizon" role="group" aria-label="Horizonte de proyección">
-   <button type="button" class="is-active" aria-pressed="true">1 mes</button>
-   <button type="button" aria-pressed="false">3 meses</button>
-   <button type="button" aria-pressed="false">6 meses</button>
-   <button type="button" aria-pressed="false">12 meses</button>
+<section class="grid gap-4" aria-label="Previsión financiera">
+ <div class="flex flex-wrap items-end justify-between gap-3">
+  <div><p class="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Planificación mensual</p><h2 class="text-lg font-semibold tracking-tight text-fore">Previsión financiera</h2></div>
+  <div class="flex flex-wrap items-end gap-3">
+   ${field('Mes', `<input type="month" class="${INPUT} w-44" value="2026-09">`)}
+   <div class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Horizonte</span>${segmented(['1 mes', '3 meses', '6 meses', '12 meses'], 0)}</div>
   </div>
  </div>
- <p class="form-note">Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.</p>
- <section class="forecast-balance" aria-labelledby="forecast-balance-title">
-  <h3 id="forecast-balance-title">Ingresos vs gastos del mes</h3>
-  <p class="form-note">Ingresos = emitido más aceptado sin factura. Gastos = personal, comisiones, gastos planificados y gastos reales. Resultado = ingresos menos gastos.</p>
-  <div class="forecast-balance-grid">
-   <article class="forecast-balance-card">
-    <span class="forecast-balance-currency">PYG</span>
-    <div class="forecast-balance-row"><span class="forecast-balance-label">Ingresos</span><span class="forecast-balance-track"><span class="forecast-balance-fill income" style="width:100%"></span></span><strong>PYG 1.691.356.890</strong></div>
-    <div class="forecast-balance-row"><span class="forecast-balance-label">Gastos</span><span class="forecast-balance-track"><span class="forecast-balance-fill expense" style="width:8%"></span></span><strong>PYG 130.894.332</strong></div>
-    <div class="forecast-balance-row"><span class="forecast-balance-label">Resultado</span><span class="forecast-balance-track"><span class="forecast-balance-fill positive" style="width:92%"></span></span><strong>PYG 1.560.462.558</strong></div>
+ ${nota('neutro', 'Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.')}
+ <div class="${CARD} grid gap-3">
+  <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Ingresos vs gastos del mes</h3><p class="text-xs text-mute">Ingresos = emitido más aceptado sin factura. Gastos = personal, comisiones, gastos planificados y gastos reales. Resultado = ingresos menos gastos.</p></div>
+  <div class="grid gap-3 lg:grid-cols-2">
+   <article class="forecast-balance-card grid gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4">
+    <span class="text-xs font-bold uppercase tracking-wider text-mute">PYG</span>
+    <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Ingresos</span>${barra(1691356890, 1691356890, 'ok', 'Ingresos en PYG')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">Gs. 1.691.356.890</strong></div>
+    <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Gastos</span>${barra(130894332, 1691356890, 'bad', 'Gastos en PYG')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">Gs. 130.894.332</strong></div>
+    <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Resultado</span>${barra(1560462558, 1691356890, 'fono', 'Resultado en PYG')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">Gs. 1.560.462.558</strong></div>
    </article>
-   <article class="forecast-balance-card">
-    <span class="forecast-balance-currency">USD</span>
-    <div class="forecast-balance-row"><span class="forecast-balance-label">Ingresos</span><span class="forecast-balance-track"><span class="forecast-balance-fill income" style="width:79%"></span></span><strong>USD 14,445</strong></div>
-    <div class="forecast-balance-row"><span class="forecast-balance-label">Gastos</span><span class="forecast-balance-track"><span class="forecast-balance-fill expense" style="width:100%"></span></span><strong>USD 18,350</strong></div>
-    <div class="forecast-balance-row"><span class="forecast-balance-label">Resultado</span><span class="forecast-balance-track"><span class="forecast-balance-fill negative" style="width:21%"></span></span><strong data-negative="true">−USD 3,905</strong></div>
+   <article class="forecast-balance-card grid gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4">
+    <span class="text-xs font-bold uppercase tracking-wider text-mute">USD</span>
+    <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Ingresos</span>${barra(14445, 18350, 'ok', 'Ingresos en USD')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">USD 14.445</strong></div>
+    <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Gastos</span>${barra(18350, 18350, 'bad', 'Gastos en USD')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">USD 18.350</strong></div>
+    <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Resultado</span>${barra(3905, 18350, 'bad', 'Resultado en USD')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-bad">−USD 3.905</strong></div>
    </article>
   </div>
- </section>
- <section aria-labelledby="forecast-summary-title">
-  <h3 id="forecast-summary-title">Resumen por moneda</h3>
-  <div class="forecast-currencies">
-   ${forecastCurrencyCard({
-     label: 'PYG · planificación del mes',
-     dl: [
-       forecastFact('Recurrente contratado', 'PYG 250.000.000'),
-       forecastFact('Emitido / facturado', 'PYG 1.234.567.890'),
-       forecastFact('Cobrado', 'PYG 987.654.321'),
-       forecastFact('Personal', 'PYG 69.765.432'),
-       forecastFact('Comisiones de clientes', 'PYG 45.678.900'),
-       forecastFact('Gastos planificados', 'PYG 12.000.000'),
-       forecastFact('Gastos reales', 'PYG 3.450.000'),
-       forecastFact('Aceptado sin factura (7)', 'PYG 456.789.000'),
-     ].join(''),
-   })}
-   ${forecastCurrencyCard({
-     label: 'USD · planificación del mes',
-     dl: [
-       forecastFact('Recurrente contratado', 'USD 4,500'),
-       forecastFact('Emitido / facturado', 'USD 12,345'),
-       forecastFact('Cobrado', 'USD 9,800'),
-       forecastFact('Personal', 'USD 8,400'),
-       forecastFact('Comisiones de clientes', 'USD 700'),
-       forecastFact('Gastos planificados', 'USD 1,200'),
-       forecastFact('Gastos reales', 'USD 8,050'),
-       forecastFact('Aceptado sin factura (2)', 'USD 2,100'),
-     ].join(''),
-   })}
-  </div>
- </section>
- <div class="forecast-month-tools">
-  <section class="forecast-personnel" aria-labelledby="personnel-forecast-title">
-   <h3 id="personnel-forecast-title">Personal proyectado</h3>
-   <p class="form-note">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p>
-   <p role="status">7 colaborador(es) activo(s) incluido(s).</p>
-   <div class="forecast-currencies">
-    ${forecastCurrencyCard({
-      label: 'PYG · gasto esperado al cierre',
-      strong: 'PYG 69.765.432',
-      dl: [forecastFact('Salario base (3)', 'PYG 72.000.000'), forecastFact('Ajustes del mes (2)', '−PYG 2.234.568')].join(''),
-      list: `
-    <div class="forecast-personnel-list">
-     <div class="forecast-person-head" aria-hidden="true"><span>Persona</span><span>Salario base</span><span>Ajuste del mes</span><span>Cierre del mes</span><span>Acciones</span></div>
-     ${forecastPersonRow({name: 'María del Carmen Rojas Villalba', initials: 'MR', base: 'PYG 28.000.000', override: '+PYG 2.000.000', total: 'PYG 30.000.000'})}
-     ${forecastPersonRow({name: 'Juan Carlos Benítez Ocampos', initials: 'JB', base: 'PYG 24.000.000', override: '', total: 'PYG 24.000.000'})}
-     ${forecastPersonRow({name: 'Lucía Fernanda Sosa Martínez', initials: 'LS', base: 'PYG 20.000.000', override: '−PYG 4.234.568', total: '−PYG 15.765.432', negative: true})}
-     ${forecastPersonRow({name: 'Diego Ramón Aquino Cáceres', initials: 'DA', base: 'PYG 0', override: '', total: 'PYG 0', noBase: true})}
-     ${forecastPersonRow({name: 'Natalia Beatriz Fretes Giménez', initials: 'NF', masked: true})}
-    </div>`,
-    })}
-    ${forecastCurrencyCard({
-      label: 'USD · gasto esperado al cierre',
-      strong: 'USD 8,400',
-      dl: [forecastFact('Salario base (1)', 'USD 8,400')].join(''),
-      list: `
-    <div class="forecast-personnel-list">
-     <div class="forecast-person-head" aria-hidden="true"><span>Persona</span><span>Salario base</span><span>Ajuste del mes</span><span>Cierre del mes</span><span>Acciones</span></div>
-     ${forecastPersonRow({name: 'Valeria Isabel González Núñez', initials: 'VG', base: 'USD 8,400', override: '', total: 'USD 8,400'})}
-     ${forecastPersonRow({name: 'Rodrigo Iván Mongelós Villalba', initials: 'RM', masked: true})}
-    </div>`,
-    })}
-   </div>
-  </section>
-  <section class="planned-expenses" aria-labelledby="planned-expenses-title">
-   <h3 id="planned-expenses-title">Gastos planificados · 01-sept</h3>
-   <p class="form-note">Esto es planificación interna; no registra un pago, una factura ni una cuenta por pagar.</p>
-   <form class="planned-expenses-form" novalidate aria-busy="false">
-    ${selectCustom('Frecuencia', 'Solo este mes', 'exp-cadence')}
-    ${selectCustom('Categoría', 'Operación', 'exp-category')}
-    ${selectCustom('Tipo', 'Variable', 'exp-kind')}
-    <label>Monto entero<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="16" value="" placeholder="Sin separadores"></label>
-    ${selectCustom('Moneda', 'PYG', 'exp-currency')}
-    <label class="planned-expenses-note">Nota opcional<input type="text" maxlength="280" value=""></label>
-    <button type="submit">Agregar gasto planificado</button>
-   </form>
-   <div class="forecast-currencies">
-    ${forecastCurrencyCard({label: 'PYG · total planificado', strong: 'PYG 12.000.000', small: '3 fijos · 2 variables'})}
-    ${forecastCurrencyCard({label: 'USD · total planificado', strong: 'USD 1,200', small: '1 fijo · 0 variables'})}
-   </div>
-  </section>
-  <section class="planned-expenses" aria-labelledby="real-expenses-title">
-   <h3 id="real-expenses-title">Gastos reales del mes · 01-sept</h3>
-   <p class="form-note">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p>
-   <form class="planned-expenses-form" novalidate aria-busy="false">
-    ${selectCustom('Cuenta', 'Banco Continental S.A.E.C.A. · PYG', 'real-account')}
-    ${selectCustom('Categoría', 'Herramientas', 'real-category')}
-    ${selectCustom('Tipo', 'Fijo', 'real-kind')}
-    <label>Monto entero<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="16" value="" placeholder="Sin separadores"></label>
-    <label>Fecha<input type="date" value="2026-09-04"></label>
-    <label class="planned-expenses-note">Referencia<input type="text" maxlength="180" value=""></label>
-    <button type="submit">Registrar gasto real</button>
-   </form>
-   <ul class="planned-expenses-list">
-    <li class="finance-row-head" aria-hidden="true"><span>Gasto</span><span>Monto</span></li>
-    ${plannedExpenseRow({category: 'Herramientas', kind: 'Fijo', date: '04-sept', account: 'Banco Continental S.A.E.C.A. · Cuenta corriente operativa', reference: 'REF-2026-0914', amount: 'PYG 1.500.000'})}
-    ${plannedExpenseRow({category: 'Marketing', kind: 'Variable', date: '11-sept', account: 'Wise Business · Cuenta internacional USD', reference: 'Campaña institucional Universidad Católica · N.º 2026-4410', amount: 'USD 8.050'})}
-    ${plannedExpenseRow({category: 'Administración', kind: '', date: '17-sept', account: 'Caja Chica Estudio', reference: '', amount: 'PYG 3.450.000'})}
-   </ul>
-  </section>
  </div>
+ <div class="${CARD} grid gap-3">
+  <h3 class="text-sm font-semibold text-fore">Resumen por moneda</h3>
+  <div class="grid gap-3 lg:grid-cols-2">
+   <article class="forecast-currency grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-4">
+    <span class="text-xs font-bold uppercase tracking-wider text-mute">PYG · planificación del mes</span>
+    ${filaDato('Recurrente contratado', 'Gs. 250.000.000')}${filaDato('Emitido / facturado (12 facturas)', 'Gs. 1.234.567.890')}${filaDato('Cobrado', 'Gs. 987.654.321')}${filaDato('Saldo inicial de caja', 'Gs. 620.000.000')}${filaDato('Personal', 'Gs. 69.765.432')}${filaDato('Comisiones de clientes', 'Gs. 45.678.900')}${filaDato('Gastos planificados (4)', 'Gs. 12.000.000')}${filaDato('Gastos reales', 'Gs. 3.450.000')}${filaDato('Aceptado sin factura (7 presupuestos · 2 sin fecha)', 'Gs. 456.789.000')}
+   </article>
+   <article class="forecast-currency grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-4">
+    <span class="text-xs font-bold uppercase tracking-wider text-mute">USD · planificación del mes</span>
+    ${filaDato('Recurrente contratado', 'USD 12.500')}${filaDato('Emitido / facturado (3 facturas)', 'USD 14.445')}${filaDato('Cobrado', 'USD 9.800')}${filaDato('Saldo inicial de caja', 'USD 21.400')}${filaDato('Personal', 'USD 8.350')}${filaDato('Comisiones de clientes', 'USD 1.200')}${filaDato('Gastos planificados (2)', 'USD 4.300')}${filaDato('Gastos reales', 'USD 4.500')}${filaDato('Aceptado sin factura (1 presupuesto)', 'USD 2.400')}
+   </article>
+  </div>
+ </div>
+ <div class="${CARD} grid gap-3">
+  <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Personal proyectado</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
+  <p role="status" class="text-xs text-mute">4 colaborador(es) activo(s) incluido(s).</p>
+  <div class="grid gap-4">
+   <div class="forecast-personnel-card grid gap-2">
+    <div class="flex flex-wrap items-baseline justify-between gap-2"><span class="text-xs font-bold uppercase tracking-wider text-mute">PYG · gasto esperado al cierre</span><strong class="whitespace-nowrap text-lg font-semibold tabular-nums text-fore">Gs. 69.765.432</strong></div>
+    <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-mute"><span>Salario base (3): <b class="font-semibold tabular-nums text-fore">Gs. 68.565.432</b></span><span>Ajustes del mes (1): <b class="font-semibold tabular-nums text-fore">Gs. 1.200.000</b></span></div>
+    ${listWrap('46rem', `<div class="forecast-person-list" role="table" aria-label="Personal proyectado">
+     <div class="${LIST_HEAD} ${PERSON_COLS}" aria-hidden="true"><span>Persona</span><span>Salario base</span><span>Ajuste del mes</span><span>Cierre del mes</span><span class="text-right">Acciones</span></div>
+     ${personnelRow({name: 'Ana López Fernández de la Cruz', initials: 'AL', base: 'Gs. 24.500.000', override: 'Gs. 1.200.000', total: 'Gs. 25.700.000'})}
+     ${personnelRow({name: 'Bruno Villalba', initials: 'BV', base: 'Gs. 32.000.000', override: '', total: 'Gs. 32.000.000'})}
+     ${personnelRow({name: 'Salario variable sin base fija', initials: 'SV', base: 'Gs. 0', override: 'Gs. 2.065.432', total: 'Gs. 2.065.432', noBase: true})}
+     ${personnelRow({name: 'Salario enmascarado por salary.view', initials: 'SM', base: '', override: '', total: '', masked: true})}
+    </div>`)}
+   </div>
+  </div>
+ </div>
+ <div class="${CARD} grid gap-4">
+  <div class="grid gap-3">
+   <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Gastos planificados · 01-sept</h3><p class="text-xs text-mute">Esto es planificación interna; no registra un pago, una factura ni una cuenta por pagar.</p></div>
+   <div class="grid gap-3 sm:grid-cols-2">
+    <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="text-xs font-bold uppercase tracking-wider text-mute">PYG · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">Gs. 12.000.000</strong><small class="planned-expenses-kinds text-xs text-mute">2 fijos · 2 variables</small></article>
+    <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="text-xs font-bold uppercase tracking-wider text-mute">USD · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">USD 4.300</strong><small class="planned-expenses-kinds text-xs text-mute">1 fijos · 1 variables</small></article>
+   </div>
+  </div>
+  ${listWrap('44rem', `<div role="table" aria-label="Gastos planificados del mes">
+   <div class="${LIST_HEAD} ${PLANNED_COLS}" aria-hidden="true"><span>Gasto</span><span>Cadencia</span><span class="text-right">Monto</span><span class="text-right">Acciones</span></div>
+   ${plannedRow({category: 'Herramientas', kind: 'Fijo', cadence: 'Recurrente', note: 'Licencias de edición y almacenamiento en la nube', amount: 'Gs. 9.000.000'})}
+   ${plannedRow({category: 'Marketing', kind: 'Variable', cadence: 'Solo este mes', note: '', amount: 'USD 4.300'})}
+   ${plannedRow({category: 'Administración', kind: 'Fijo', cadence: 'Recurrente', note: 'Honorarios contables mensuales', amount: 'Gs. 3.000.000'})}
+  </div>`)}
+ </div>
+ <div class="${CARD} grid gap-4">
+  <div class="grid gap-3">
+   <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Gastos reales del mes · 01-sept</h3><p class="text-xs text-mute">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p></div>
+  </div>
+  ${listWrap('40rem', `<div role="table" aria-label="Gastos reales del mes">
+   <div class="${LIST_HEAD} ${EXPENSE_COLS}" aria-hidden="true"><span>Gasto</span><span class="text-right">Monto</span><span class="text-right">Acciones</span></div>
+   ${realExpenseRow({category: 'Herramientas', kind: 'Fijo', date: '12-sept', account: 'Banco Regional — Operativa', reference: 'Licencia Adobe Creative Cloud anual', createdBy: 'finanzas@estudio.com.py', amount: 'Gs. 3.450.000'})}
+   ${realExpenseRow({category: 'Marketing', kind: 'Variable', date: '10-sept', account: 'Tarjeta corporativa USD', reference: 'Campaña Meta Ads', createdBy: '', amount: 'USD 4.500'})}
+  </div>`)}
+  ${aviso('error', 'No se pudo revertir el gasto real: la cuenta no tiene saldo suficiente para la corrección.')}
+ </div>
+ ${nota('warn', '2 presupuesto(s) aceptado(s) sin fecha: excluidos del total mensual.')}
 </section>`,
 };
 
-/* --------------- Previsión: contratos vs facturación ------------------ */
+/* --------------- Previsión: contratos vs facturación (v2) ------------- */
+const contractedRow = ({name, currency, endsOn, invoiceRequired, contracted, invoiced, missing}) => `
+<div role="row" class="${LIST_ROW} ${CONTRACT_COLS}">
+ ${cell(`<b class="font-semibold text-fore">${name}</b><small class="ml-2 text-xs text-mute">${currency}${endsOn ? ` · hasta ${endsOn}` : ''}${invoiceRequired ? ' · factura requerida' : ' · sin factura requerida'}</small>`, 'text-sm')}
+ ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${contracted}</strong>`, 'text-right')}
+ ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${invoiced}</strong>`, 'text-right')}
+ ${cell(missing ? chip('bad', 'Sin factura', 'Contrato con facturación requerida y sin factura emitida en el mes') : chip('ok', 'Al día'), 'flex justify-end')}
+</div>`;
 const previsionContratos = {
   id: 'prevision-contratos',
   section: 'Previsión',
-  surface: 'Contratos vs facturación del mes',
+  surface: 'Contratos vs facturación del mes (v2)',
   kind: 'workspace',
   lists: [
-    {
-      container: '.contracted-clients-list',
-      head: '.contracted-clients-head',
-      row: '.contracted-clients-list > li:not(.contracted-clients-head)',
-      label: 'Previsión · contratos del mes',
-      template: '--contracted-cols',
-      rowHeight: [44, 52],
-    },
+    {container: '[role="table"][aria-label="Contratos vigentes contra facturación"]', head: '[aria-hidden="true"]', row: '[role="row"]', label: 'Previsión · contratos vs facturación', rowHeight: [44, 52]},
   ],
   body: `
-<section class="panel financial-forecast" aria-label="Previsión financiera">
- <div class="panel-heading">
-  <h2>Previsión financiera</h2>
-  <label>Mes<input type="month" value="2026-09" min="1900-01" max="9998-12"></label>
-  <div class="forecast-horizon" role="group" aria-label="Horizonte de proyección">
-   <button type="button" class="is-active" aria-pressed="true">1 mes</button>
-   <button type="button" aria-pressed="false">3 meses</button>
-   <button type="button" aria-pressed="false">6 meses</button>
-   <button type="button" aria-pressed="false">12 meses</button>
-  </div>
- </div>
- <section class="contracted-clients" aria-labelledby="contracted-clients-title">
-  <h3 id="contracted-clients-title">Contratos vs facturación del mes</h3>
-  <ul class="contracted-clients-list">
-   <li class="contracted-clients-head" aria-hidden="true"><span>Cliente</span><span>Contratado</span><span>Facturado</span><span>Estado</span></li>
-   ${contractedRow({
-     name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima',
-     currency: 'PYG',
-     endsOn: '31 dic 26',
-     contracted: 'PYG 85.000.000',
-     invoiced: 'PYG 42.500.000',
-     missing: true,
-   })}
-   ${contractedRow({
-     name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada',
-     currency: 'USD',
-     endsOn: '07 nov 26',
-     contracted: 'USD 4,500',
-     invoiced: 'USD 4,500',
-     missing: false,
-   })}
-   ${contractedRow({
-     name: 'Municipalidad de Asunción · Dirección de Cultura y Turismo',
-     currency: 'PYG',
-     endsOn: '',
-     contracted: 'PYG 12.000.000',
-     invoiced: 'PYG 0',
-     missing: true,
-   })}
-   ${contractedRow({
-     name: 'Fundación Niñez y Comunidad',
-     currency: 'PYG',
-     endsOn: '31 dic 26',
-     contracted: 'PYG 3.500.000',
-     invoiced: 'PYG 3.500.000',
-     missing: false,
-   })}
-  </ul>
- </section>
-</section>`,
+<div class="${CARD} grid gap-3">
+ <h3 class="text-sm font-semibold text-fore">Contratos vs facturación del mes</h3>
+ ${listWrap('44rem', `<div role="table" aria-label="Contratos vigentes contra facturación">
+  <div class="${LIST_HEAD} ${CONTRACT_COLS}" aria-hidden="true"><span>Cliente</span><span class="text-right">Contratado</span><span class="text-right">Facturado</span><span class="text-right">Estado</span></div>
+  ${contractedRow({name: 'Industrias del Sur Sociedad Anónima', currency: 'PYG', endsOn: '31-dic-26', invoiceRequired: true, contracted: 'Gs. 45.000.000', invoiced: 'Gs. 90.000.000', missing: false})}
+  ${contractedRow({name: 'Grupo Comercial del Este SRL', currency: 'USD', endsOn: '', invoiceRequired: true, contracted: 'USD 12.500', invoiced: 'USD 0', missing: true})}
+  ${contractedRow({name: 'Fundación Cultural Paraguaya', currency: 'PYG', endsOn: '30-nov-26', invoiceRequired: false, contracted: 'Gs. 8.500.000', invoiced: 'Gs. 8.500.000', missing: false})}
+ </div>`)}
+</div>`,
 };
 
-/* --------------- Previsión: proyección multi-mes ---------------------- */
+/* --------------- Previsión: proyección multi-mes (v2) ----------------- */
+const projectionTable = (currency, rows) => `
+<div class="grid gap-2">
+ <span class="text-xs font-bold uppercase tracking-wider text-mute">${currency} · proyección acumulada</span>
+ ${tableBlock([['Mes'], ['Proyectado', 'right'], ['Resultado', 'right']], rows.map(([month, cash, result]) => [[month], [`<span class="whitespace-nowrap tabular-nums${cash.startsWith('−') ? ' text-bad' : ''}">${cash}</span>`, 'right'], [`<span class="whitespace-nowrap tabular-nums${result.startsWith('−') ? ' text-bad' : ''}">${result}</span>`, 'right']]))}
+</div>`;
 const previsionProyeccion = {
   id: 'prevision-proyeccion',
   section: 'Previsión',
-  surface: 'Proyección de caja y resultado (6 meses)',
+  surface: 'Proyección de caja y resultado (6 meses, v2)',
   kind: 'workspace',
   body: `
-<section class="panel financial-forecast" aria-label="Previsión financiera">
- <div class="panel-heading">
-  <h2>Previsión financiera</h2>
-  <label>Mes<input type="month" value="2026-09" min="1900-01" max="9998-12"></label>
-  <div class="forecast-horizon" role="group" aria-label="Horizonte de proyección">
-   <button type="button" aria-pressed="false">1 mes</button>
-   <button type="button" aria-pressed="false">3 meses</button>
-   <button type="button" class="is-active" aria-pressed="true">6 meses</button>
-   <button type="button" aria-pressed="false">12 meses</button>
-  </div>
+<div class="${CARD} grid gap-3">
+ <h3 class="text-sm font-semibold text-fore">Proyección de caja y resultado · 6 meses</h3>
+ <div class="grid gap-4">
+  ${projectionTable('PYG', [['01-sept', 'Gs. 620.000.000', 'Gs. 45.000.000'], ['01-oct', 'Gs. 650.000.000', '−Gs. 30.000.000'], ['01-nov', 'Gs. 700.000.000', 'Gs. 50.000.000'], ['01-dic', 'Gs. 1.100.000.000', 'Gs. 400.000.000'], ['01-ene', 'Gs. 1.250.000.000', 'Gs. 150.000.000'], ['01-feb', 'Gs. 1.260.000.000', '−Gs. 90.000.000']])}
+  ${projectionTable('USD', [['01-sept', 'USD 21.400', '−USD 3.905'], ['01-oct', 'USD 18.200', '−USD 3.200'], ['01-nov', 'USD 22.000', 'USD 3.800'], ['01-dic', 'USD 26.500', 'USD 4.500'], ['01-ene', 'USD 27.100', 'USD 600'], ['01-feb', 'USD 27.100', '']])}
  </div>
- <p class="form-note">Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.</p>
- <section aria-labelledby="forecast-projection-title">
-  <h3 id="forecast-projection-title">Proyección de caja y resultado · 6 meses</h3>
-  <div class="forecast-currencies">
-   <article class="forecast-currency forecast-projection">
-    <span>PYG · proyección acumulada</span>
-    <table>
-     <thead><tr><th scope="col">Mes</th><th scope="col">Proyectado</th><th scope="col">Resultado</th></tr></thead>
-     <tbody>
-      <tr><th scope="row">01-sept</th><td>PYG 1.234.567.890</td><td>PYG 987.654.321</td></tr>
-      <tr><th scope="row">01-oct</th><td>PYG 1.450.000.000</td><td data-negative="true">−PYG 45.678.900</td></tr>
-      <tr><th scope="row">01-nov</th><td>PYG 998.765.432</td><td>PYG 12.345.678</td></tr>
-      <tr><th scope="row">01-dic</th><td data-negative="true">−PYG 12.345.678</td><td data-negative="true">−PYG 234.567.890</td></tr>
-      <tr><th scope="row">01-ene</th><td>PYG 456.789.000</td><td>PYG 0</td></tr>
-      <tr><th scope="row">01-feb</th><td>PYG 2.345.678.901</td><td>PYG 1.876.543.210</td></tr>
-     </tbody>
-    </table>
-   </article>
-   <article class="forecast-currency forecast-projection">
-    <span>USD · proyección acumulada</span>
-    <table>
-     <thead><tr><th scope="col">Mes</th><th scope="col">Proyectado</th><th scope="col">Resultado</th></tr></thead>
-     <tbody>
-      <tr><th scope="row">01-sept</th><td>USD 12,345</td><td>USD 9,800</td></tr>
-      <tr><th scope="row">01-oct</th><td>USD 24,691</td><td data-negative="true">−USD 3,905</td></tr>
-      <tr><th scope="row">01-nov</th><td>USD 41,666</td><td>USD 18,350</td></tr>
-      <tr><th scope="row">01-dic</th><td data-negative="true">−USD 987,654</td><td data-negative="true">−USD 1,234,567</td></tr>
-      <tr><th scope="row">01-ene</th><td>USD 987,654</td><td>USD 0</td></tr>
-      <tr><th scope="row">01-feb</th><td>USD 1,234,567</td><td>USD 1,111,111</td></tr>
-     </tbody>
-    </table>
-   </article>
-  </div>
- </section>
-</section>`,
+</div>`,
 };
 
-/* --------------- Informes: indicadores + gráfico ---------------------- */
+/* --------------- Informes: indicadores + gráfico (v2) ----------------- */
 const informesIndicadores = {
   id: 'informes-indicadores',
   section: 'Informes',
-  surface: 'Indicadores, chart y distribución',
+  surface: 'Indicadores, gráfico y visitantes (v2)',
   kind: 'workspace',
   body: `
-<section class="reports-workspace" aria-label="Reportes de la agencia">
- <h2>Evolución mensual</h2>
- <article class="reports-tiles live-visitors" role="region" aria-label="Visitantes en vivo del landing">
-  <article>
-   <div class="live-visitors-copy"><h3>Visitantes en vivo</h3><p>Personas actualmente en el landing de Scale OS</p></div>
-   <div class="live-visitors-figure"><strong>1.284</strong><span class="live-visitors-trend">↑ +15%</span></div>
-  </article>
- </article>
- <p>Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado.</p>
- <div class="reports-filters">
-  <label>Mes a consultar<input type="month" value="2026-09" min="1900-01" max="2026-09"></label>
-  <label>${selectCustom('Histórico', 'Últimos 12 meses', 'rep-months')}</label>
-  <label>${selectCustom('Moneda', 'PYG', 'rep-currency')}</label>
+<section class="grid gap-4" aria-label="Reportes de la agencia">
+ <div class="grid gap-1"><p class="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Informes</p><h2 class="text-lg font-semibold tracking-tight text-fore">Evolución mensual</h2><p class="text-xs text-mute">Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado.</p></div>
+ <div class="${CARD} flex flex-wrap items-center justify-between gap-4" role="region" aria-label="Visitantes en vivo del landing">
+  <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Visitantes en vivo</h3><p class="text-xs text-mute">Personas actualmente en el landing de Scale OS</p></div>
+  <div class="text-right"><strong class="block text-2xl font-semibold tabular-nums text-ok">128</strong><span class="inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-ok"><span class="h-2 w-2 rounded-full bg-ok" aria-hidden="true"></span>↑ +12%</span></div>
  </div>
- <p class="reports-note">Datos al 20 sept 26 · 08:05 (hora de Asunción). Histórico confiable desde: 01 ago 26.</p>
- <div class="reports-actions"><button type="button">Exportar histórico CSV · PYG</button><button type="button">Exportar PDF · PYG</button></div>
- <p class="reports-note">Exporta los meses cargados de la moneda seleccionada. CSV UTF-8, separado por punto y coma; decimales con punto, sin separador de miles. Celdas vacías: sin datos. Para conservar todos los dígitos, importá los importes como texto en tu planilla.</p>
- <p role="status" class="reports-warning">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</p>
- <div class="reports-tiles">
-  <article><h3>Clientes activos</h3><strong>38</strong><p>+3 · +8,57 %</p></article>
-  <article><h3>Clientes incorporados</h3><strong>4</strong><p>+1 · +33,33 %</p></article>
-  <article><h3>Bajas de actividad</h3><strong>2</strong><p>-1 · -33,33 %</p></article>
-  <article><h3>Retención</h3><strong>94,7 %</strong><p>Diferencia en puntos porcentuales / relativa: +0,7 · +0,74 %</p></article>
-  <article><h3>Facturado · incluye impuestos</h3><strong>PYG 1.234.567.890,50</strong><p>+145.678.900 · +13,38 %</p></article>
-  <article><h3>Cobrado · neto de reversiones</h3><strong>PYG 987.654.321,00</strong><p>-12.345.000 · -1,23 %</p></article>
-  <article><h3>Ticket promedio por factura</h3><strong>PYG 4.115.226,30</strong><p>+123.456,78 · +3,09 %</p></article>
-  <article><h3>Facturado promedio por cliente facturado</h3><strong>PYG 32.488.628,70</strong><p>+1.234.567,89 · +3,95 %</p></article>
+ <div class="flex flex-wrap items-end gap-3">
+  ${field('Mes a consultar', `<input type="month" class="${INPUT} w-44" value="2026-09">`)}
+  <div class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>${segmented(['Últimos 6 meses', 'Últimos 12 meses', 'Últimos 24 meses'], 1, 'Meses de histórico')}</div>
+  ${field('Moneda', `<div class="w-40">${selectCustom('Moneda', 'PYG', 'informes-currency')}</div>`)}
  </div>
- <div class="reports-chart" role="img" aria-label="Facturado y cobrado mensual en PYG">
-  <figure><div class="chart-bars"><span class="chart-bar" title="01-abr · Facturado PYG 456.789.000" style="height:37%"></span><span class="chart-bar collected" title="01-abr · Cobrado PYG 398.765.432" style="height:32%"></span></div><figcaption>01-abr</figcaption></figure>
-  <figure><div class="chart-bars"><span class="chart-bar" title="01-may · Facturado PYG 512.345.678" style="height:41%"></span><span class="chart-bar collected" title="01-may · Cobrado PYG 501.234.567" style="height:41%"></span></div><figcaption>01-may</figcaption></figure>
-  <figure><div class="chart-bars"><span class="chart-bar" title="01-jun · Facturado PYG 678.901.234" style="height:55%"></span><span class="chart-bar collected" title="01-jun · Cobrado PYG 612.345.678" style="height:50%"></span></div><figcaption>01-jun</figcaption></figure>
-  <figure><div class="chart-bars"><span class="chart-bar" title="01-jul · Facturado PYG 890.123.456" style="height:72%"></span><span class="chart-bar collected" title="01-jul · Cobrado PYG 845.678.901" style="height:68%"></span></div><figcaption>01-jul</figcaption></figure>
-  <figure><div class="chart-bars"><span class="chart-bar" title="01-ago · Facturado PYG 1.088.888.990" style="height:88%"></span><span class="chart-bar collected" title="01-ago · Cobrado PYG 999.999.321" style="height:81%"></span></div><figcaption>01-ago</figcaption></figure>
-  <figure><div class="chart-bars"><span class="chart-bar is-partial" title="01-sept · Facturado PYG 1.234.567.890" style="height:100%"></span><span class="chart-bar collected is-partial" title="01-sept · Cobrado PYG 987.654.321" style="height:80%"></span></div><figcaption>01-sept · parcial</figcaption></figure>
+ ${nota('neutro', 'Datos al 10 sept 26 · 12:00 (hora de Asunción). Histórico confiable desde: 01 ene 20 · 00:00.')}
+ <div class="flex flex-wrap gap-2"><button type="button" class="${BUTTON_OUTLINE}">Exportar histórico CSV · PYG</button><button type="button" class="${BUTTON_OUTLINE}">Exportar PDF · PYG</button></div>
+ <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  ${kpi('Clientes activos', '128', '+12 · +10,34 %')}
+  ${kpi('Clientes incorporados', '14', '+3 · +27,27 %')}
+  ${kpi('Bajas de actividad', '5', '-2 · -28,57 %')}
+  ${kpi('Retención', '96 %', 'Diferencia en puntos porcentuales / relativa: +1 · +1,05 %')}
+  ${kpi('Facturado · incluye impuestos', 'Gs. 1.234.567.890', '+123.456.789 · +11,11 %')}
+  ${kpi('Cobrado · neto de reversiones', 'Gs. 987.654.321', '+87.654.321 · +9,74 %')}
+  ${kpi('Ticket promedio por factura', 'USD 9.007.199.254.740.993,1234', '+100,25 · +0,01 %')}
+  ${kpi('Facturado promedio por cliente facturado', 'Gs. 9.650.000', '-350.000 · -3,50 %')}
  </div>
- <p class="reports-note">Barras: facturado (violeta) y cobrado (verde) por mes, en la moneda seleccionada. Los meses parciales se atenúan; la escala es relativa al valor máximo cargado, sin mezclar monedas.</p>
- <p>Antigüedad promedio de clientes activos: <strong>412</strong> días. Fechas conocidas: 35 de 38 clientes activos. Las fechas desconocidas se excluyen del promedio.</p>
- <p class="reports-note">Bajas de actividad: clientes que dejaron de estar activos por pausa, cancelación o archivo, incluso si se reactivaron durante el mismo mes. No implica una pérdida definitiva.</p>
- <div class="reports-distributions">
-  <section class="reports-distribution"><h3>Tipos de clientes activos</h3><p>Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p><ul>
-   <li><span>Empresa</span><strong>22 · 57,9 %</strong><span class="reports-bar" aria-hidden="true"><span style="width:57.9%"></span></span></li>
-   <li><span>Profesional</span><strong>9 · 23,7 %</strong><span class="reports-bar" aria-hidden="true"><span style="width:23.7%"></span></span></li>
-   <li><span>Persona particular</span><strong>5 · 13,2 %</strong><span class="reports-bar" aria-hidden="true"><span style="width:13.2%"></span></span></li>
-   <li><span>Sin clasificar</span><strong>2 · 5,3 %</strong><span class="reports-bar" aria-hidden="true"><span style="width:5.3%"></span></span></li>
-  </ul></section>
-  <section class="reports-distribution"><h3>Planes por cantidad de clientes activos</h3><p>Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p><ul>
-   <li><span>Plan Integral de Producción Audiovisual Mensual</span><strong>14 · 36,8 %</strong><span class="reports-bar" aria-hidden="true"><span style="width:36.8%"></span></span></li>
-   <li><span>Plan Crecimiento</span><strong>12 · 31,6 %</strong><span class="reports-bar" aria-hidden="true"><span style="width:31.6%"></span></span></li>
-   <li><span>Plan Inicial</span><strong>8 · 21,1 %</strong><span class="reports-bar" aria-hidden="true"><span style="width:21.1%"></span></span></li>
-   <li><span>Sin plan registrado</span><strong>4 · Sin porcentaje</strong></li>
-  </ul></section>
+ <div class="reports-chart overflow-x-auto" role="img" aria-label="Facturado y cobrado mensual en PYG">
+  <div class="flex min-w-full items-end gap-2 pb-1">
+   ${[['01-may', 62, 48, false], ['01-jun', 78, 55, false], ['01-jul', 100, 70, false], ['01-ago', 84, 66, false], ['01-sept', 90, 74, false], ['01-oct', 40, 30, true]].map(([month, invoiced, collected, partial]) => `<figure class="flex min-w-10 flex-1 flex-col items-center gap-1.5"><div class="flex h-[120px] items-end justify-center gap-[3px]"><span class="w-2.5 rounded-t bg-fono-light${partial ? ' opacity-50' : ''}" title="${month} · Facturado PYG 1.234.567.890" style="height:${invoiced}%"></span><span class="w-2.5 rounded-t bg-ok${partial ? ' opacity-50' : ''}" title="${month} · Cobrado PYG 987.654.321" style="height:${collected}%"></span></div><figcaption class="whitespace-nowrap text-[10px] text-mute">${month}${partial ? ' · parcial' : ''}</figcaption></figure>`).join('')}
+  </div>
  </div>
- <p class="reports-note">La distribución de planes muestra clientes activos, no nuevas contrataciones. “Sin clasificar” y “Sin plan registrado” identifican datos desconocidos, no categorías supuestas.</p>
+ <p class="text-xs text-mute">Barras: facturado (violeta) y cobrado (verde) por mes, en la moneda seleccionada. Los meses parciales se atenúan; la escala es relativa al valor máximo cargado, sin mezclar monedas.</p>
 </section>`,
 };
 
-/* --------------- Informes: comparativa + histórico ------------------- */
+/* --------------- Informes: comparativa, distribuciones e histórico (v2) */
 const informesTablas = {
   id: 'informes-tablas',
   section: 'Informes',
-  surface: 'Comparativa de períodos e histórico mensual',
+  surface: 'Comparativa, distribuciones e histórico mensual (v2)',
   kind: 'workspace',
   body: `
-<section class="reports-workspace" aria-label="Reportes de la agencia">
- <h2>Evolución mensual</h2>
- <section class="reports-comparison">
-  <h3>Comparativa del período visible contra el anterior</h3>
-  <p class="reports-note">Período visible: 01-oct – 01-sept · período anterior: 01-oct – 01-sept (12 meses por período).</p>
-  <div class="reports-comparison-scroll" role="region" aria-label="Comparativa del período visible contra el anterior en PYG, desplazable horizontalmente" tabindex="0">
-   <table>
-    <thead><tr><th scope="col">Métrica</th><th scope="col">Período visible</th><th scope="col">Período anterior</th><th scope="col">Variación</th></tr></thead>
-    <tbody>
-     <tr><th scope="row">Clientes activos (último mes con datos)</th><td>38</td><td>35</td><td>+3 · +8,57 %</td></tr>
-     <tr><th scope="row">Clientes incorporados (suma del período)</th><td>41</td><td>29</td><td>+12 · +41,38 %</td></tr>
-     <tr><th scope="row">Bajas de actividad (suma del período)</th><td>7</td><td>9</td><td>-2 · -22,22 %</td></tr>
-     <tr><th scope="row">Facturación (suma del período)</th><td>PYG 12.345.678.901,50</td><td>PYG 10.987.654.321,00</td><td>+1.358.024.580,50 · +12,36 %</td></tr>
-     <tr><th scope="row">Cobros (suma del período)</th><td>PYG 11.987.654.321,00</td><td>PYG 10.111.111.111,11</td><td>+1.876.543.209,89 · +18,56 %</td></tr>
-     <tr><th scope="row">Ticket promedio por factura</th><td>PYG 4.115.226,30</td><td>PYG 3.991.769,52</td><td>+123.456,78 · +3,09 %</td></tr>
-    </tbody>
-   </table>
-  </div>
- </section>
- <div class="reports-table-scroll" role="region" aria-label="Histórico mensual, desplazable horizontalmente" tabindex="0">
-  <table>
-   <caption>Evolución mensual · PYG. “Sin datos” no significa cero.</caption>
-   <thead><tr><th scope="col">Mes</th><th scope="col">Activos</th><th scope="col">Incorporados</th><th scope="col">Bajas de actividad</th><th scope="col">Retención %</th><th scope="col">Antigüedad (días)</th><th scope="col">Fechas conocidas</th><th scope="col">Facturado con impuestos</th><th scope="col">Cobrado neto</th><th scope="col">Facturas</th><th scope="col">Clientes facturados</th><th scope="col">Ticket por factura</th><th scope="col">Promedio por cliente facturado</th></tr></thead>
-   <tbody>
-    <tr><th scope="row">2026-09 · parcial</th><td>38</td><td>4</td><td>2</td><td>94,7</td><td>412</td><td>35</td><td>PYG 1.234.567.890,50</td><td>PYG 987.654.321,00</td><td>18</td><td>17</td><td>PYG 4.115.226,30</td><td>PYG 32.488.628,70</td></tr>
-    <tr><th scope="row">2026-08</th><td>36</td><td>3</td><td>1</td><td>96,2</td><td>389</td><td>33</td><td>PYG 1.088.888.990,00</td><td>PYG 999.999.321,00</td><td>16</td><td>15</td><td>PYG 3.991.769,52</td><td>PYG 30.123.456,78</td></tr>
-    <tr><th scope="row">2026-07</th><td>34</td><td>2</td><td>3</td><td>91,4</td><td>365</td><td>31</td><td>PYG 890.123.456,00</td><td>PYG 845.678.901,00</td><td>14</td><td>13</td><td>PYG 3.786.543.210,00</td><td>PYG 28.765.432.100,00</td></tr>
-    <tr><th scope="row">2026-06</th><td>35</td><td>Sin datos</td><td>2</td><td>Sin datos</td><td>Sin datos</td><td>28</td><td>Sin datos</td><td>Sin datos</td><td>Sin datos</td><td>Sin datos</td><td>Sin datos</td><td>Sin datos</td></tr>
-   </tbody>
-  </table>
+<section class="grid gap-4" aria-label="Reportes de la agencia">
+ <div class="${CARD} grid gap-3">
+  <h3 class="text-sm font-semibold text-fore">Comparativa del período visible contra el anterior</h3>
+  <p class="text-xs text-mute">Período visible: 01-oct – 01-sept · período anterior: 01-oct – 01-sept (12 meses por período).</p>
+  ${tableBlock([['Métrica'], ['Período visible'], ['Período anterior'], ['Variación']], [
+    [['Clientes activos (último mes con datos)'], ['128'], ['116'], ['+12 · +10,34 %']],
+    [['Clientes incorporados (suma del período)'], ['14'], ['11'], ['+3 · +27,27 %']],
+    [['Bajas de actividad (suma del período)'], ['5'], ['7'], ['-2 · -28,57 %']],
+    [['Facturación (suma del período)'], ['PYG 1.234.567.890'], ['PYG 1.111.111.101'], ['+123.456.789 · +11,11 %']],
+    [['Cobros (suma del período)'], ['PYG 987.654.321'], ['PYG 899.999.999'], ['+87.654.321 · +9,74 %']],
+    [['Ticket promedio por factura'], ['PYG 2.469.135,78'], ['PYG 2.222.222,20'], ['+246.913,58 · +11,11 %']],
+  ])}
  </div>
- <p class="reports-note">Comparaciones contra el mes calendario anterior: diferencia absoluta y variación porcentual sobre el valor absoluto anterior. Sin porcentaje cuando la base es cero; sin comparación si falta información o alguno de los meses es parcial. La antigüedad usa solo fechas de inicio conocidas.</p>
+ <div class="grid gap-4 lg:grid-cols-2">
+  <div class="${CARD} grid gap-2">
+   <h4 class="text-sm font-semibold text-fore">Tipos de clientes activos</h4>
+   <p class="text-xs text-mute">Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p>
+   <ul class="grid gap-2">
+    <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs"><span class="min-w-0 text-fore">Empresa</span><strong class="whitespace-nowrap tabular-nums text-fore">96 · 75,0 %</strong>${barra(75, 100, 'fono', 'Empresa: 75,0 %')}</li>
+    <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs"><span class="min-w-0 text-fore">Sin clasificar</span><strong class="whitespace-nowrap tabular-nums text-fore">32 · 25,0 %</strong>${barra(25, 100, 'fono', 'Sin clasificar: 25,0 %')}</li>
+   </ul>
+  </div>
+  <div class="${CARD} grid gap-2">
+   <h4 class="text-sm font-semibold text-fore">Planes por cantidad de clientes activos</h4>
+   <p class="text-xs text-mute">Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p>
+   <ul class="grid gap-2">
+    <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs"><span class="min-w-0 text-fore">Plan Integral de Producción Audiovisual</span><strong class="whitespace-nowrap tabular-nums text-fore">74 · 57,8 %</strong>${barra(57.8, 100, 'fono', 'Plan Integral: 57,8 %')}</li>
+    <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs"><span class="min-w-0 text-fore">Sin plan registrado</span><strong class="whitespace-nowrap tabular-nums text-fore">54 · 42,2 %</strong>${barra(42.2, 100, 'fono', 'Sin plan: 42,2 %')}</li>
+   </ul>
+  </div>
+ </div>
+ <div class="grid gap-2">
+  <p class="text-sm font-semibold text-fore">Evolución mensual · PYG</p>
+  <p class="text-xs text-mute">“Sin datos” no significa cero.</p>
+  ${tableBlock([['Mes'], ['Activos', 'right'], ['Incorporados', 'right'], ['Bajas de actividad', 'right'], ['Retención %', 'right'], ['Antigüedad (días)', 'right'], ['Fechas conocidas', 'right'], ['Facturado con impuestos', 'right'], ['Cobrado neto', 'right'], ['Facturas', 'right'], ['Clientes facturados', 'right'], ['Ticket por factura', 'right'], ['Promedio por cliente facturado', 'right']], [
+    [['<span class="whitespace-nowrap">2026-09</span>'], ['128', 'right'], ['14', 'right'], ['5', 'right'], ['96', 'right'], ['412', 'right'], ['120', 'right'], ['PYG 1.234.567.890', 'right'], ['PYG 987.654.321', 'right'], ['500', 'right'], ['104', 'right'], ['PYG 2.469.135,78', 'right'], ['PYG 11.870.845,10', 'right']],
+    [['<span class="whitespace-nowrap">2026-08</span>'], ['116', 'right'], ['11', 'right'], ['7', 'right'], ['94', 'right'], ['398', 'right'], ['109', 'right'], ['PYG 1.111.111.101', 'right'], ['PYG 899.999.999', 'right'], ['500', 'right'], ['99', 'right'], ['PYG 2.222.222,20', 'right'], ['PYG 11.223.344,45', 'right']],
+    [['<span class="whitespace-nowrap">2026-07</span>'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['0', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right']],
+  ])}
+ </div>
+ <p class="text-xs text-mute">Comparaciones contra el mes calendario anterior: diferencia absoluta y variación porcentual sobre el valor absoluto anterior. Sin porcentaje cuando la base es cero; sin comparación si falta información o alguno de los meses es parcial. La antigüedad usa solo fechas de inicio conocidas.</p>
 </section>`,
 };
 
@@ -997,6 +899,7 @@ const comisionesPagos = {
 
 export default [
   finanzasCuentas,
+  finanzasConciliacion,
   finanzasMovimientos,
   moraCobranzas,
   previsionResumen,

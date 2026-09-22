@@ -2,12 +2,13 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
-import type {ReportMonth,ReportsData} from '../app/reports-workspace';
+import type {ReportMonth,ReportsData} from '../app/reports-data';
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
-const {ReportsWorkspace,reportMoney,reportDelta}=require('../app/reports-workspace') as typeof import('../app/reports-workspace');
+const {ReportsWorkspace}=require('../app/reports-workspace') as typeof import('../app/reports-workspace');
+const {reportMoney,reportDelta}=require('../app/reports-data') as typeof import('../app/reports-data');
 type Request={url:string;init:RequestInit;resolve:(response:Response)=>void};
 const requests:Request[]=[];
 globalThis.fetch=(input,init)=>new Promise<Response>(resolve=>requests.push({url:String(input),init:init||{},resolve}));
@@ -20,8 +21,8 @@ function row(month:string,active:number|null=4,isPartial=false):ReportMonth{retu
 function moneyEntry(currency:string,invoiced:string,collected:string,invoiceCount:number):ReportMonth['financial'][number]{return {currency,invoiced,collected,invoiceCount,billedClients:0,averageTicket:null,averageRevenuePerClient:null};}
 function compareRow(month:string,values:{active:number|null;added:number|null;lost:number|null;isPartial?:boolean;financial?:ReportMonth['financial']}):ReportMonth{return {month,isPartial:!!values.isPartial,clients:{active:values.active,added:values.added,lost:values.lost,retentionPercent:null,averageTenureDays:null,tenureKnown:0,types:[],plans:[]},financial:values.financial||[]};}
 function fixture(month:string,rows=[row('2020-05'),row(month)]):ReportsData{return {asOf:'2026-09-10T15:00:00Z',month,historySince:'2020-01-01T03:00:00Z',months:rows};}
-function month(value:string){act(()=>renderer.root.findByProps({type:'month'}).props.onChange({target:{value}}));}
-function history(value:number){act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange(String(value)));}
+function month(value:string){act(()=>renderer.root.findAllByProps({type:'month'})[0].props.onChange({target:{value}}));}
+function history(value:number){act(()=>renderer.root.findAllByType('button').find(button=>button.props.title===`Últimos ${value} meses`)!.props.onClick());}
 
 async function run(){
  assert.equal(reportMoney('9007199254740993.1234','USD'),'USD 9.007.199.254.740.993,1234');
@@ -43,7 +44,7 @@ async function run(){
   act(()=>{renderer=create(<ReportsWorkspace role={role} organizationName="Scale"/>);});
    assert.equal(latest().init.credentials,'include');
   assert.ok(requests.some(r=>/^\/core-api\/api\/agency\/reports\?month=\d{4}-\d{2}&months=12$/.test(r.url)),'monthly report request fires');
-  const input=renderer.root.findByProps({type:'month'});
+  const input=renderer.root.findAllByProps({type:'month'})[0];
   assert.equal(input.props.max,input.props.value,'current Asuncion month is the maximum');
   const before:number=requests.length;month('9998-12');month('2020-13');month('');
   assert.equal(requests.length,before,'invalid and future months never fetch');
@@ -55,27 +56,24 @@ async function run(){
  await respond(june,fixture('2020-06'));
   assert.equal(renderer.root.findAllByType('h2')[0].children[0],'Evolución mensual');
  assert.match(text(),/Mes a consultar/);
- assert.match(text(),/10 de septiembre de 2026(?:, | a las )12:00 \(hora de Asunción\)/);
- assert.match(text(),/Histórico confiable desde: 1 de enero de 2020/);
+ assert.match(text(),/Datos al 10 sept 26 · 12:00 \(hora de Asunción\)/);
+ assert.match(text(),/Histórico confiable desde: 01 ene 20 · 00:00/);
  assert.doesNotMatch(text(),/2026-09-10T15:00:00Z|2020-01-01T03:00:00Z/,'timestamps are displayed as readable local dates');
  assert.match(text(),/Bajas de actividad/);assert.doesNotMatch(text(),/Clientes perdidos/);
  assert.match(text(),/pausa, cancelación o archivo/);assert.match(text(),/reactivaron durante el mismo mes/);
  assert.match(text(),/fechas desconocidas se excluyen/);assert.match(text(),/no nuevas contrataciones/);
- const distributions=renderer.root.findAllByProps({className:'reports-distribution'});
- assert.equal(distributions.length,2);
- for(const group of distributions){
-  assert.equal(group.findAllByType('strong')[0].children.join(''),'1 · 25,0 %');
-  assert.equal(group.findAllByType('strong')[1].children.join(''),'3 · 75,0 %');
-  assert.equal(group.findAllByProps({className:'reports-bar'})[0].findByType('span').props['aria-hidden'],'true');
- }
- assert.equal(renderer.root.findByType('tbody').findAllByType('tr').length,2);
- assert.match(renderer.root.findByType('caption').children.join(''),/^Evolución mensual · PYG/);
- assert.equal(renderer.root.findByProps({className:'reports-table-scroll'}).props.tabIndex,0);
- act(()=>renderer.root.findAllByType(SelectCustom)[1].props.onChange('USD'));
+ assert.match(text(),/Tipos de clientes activos/);assert.match(text(),/Planes por cantidad de clientes activos/);
+ const occurrences=(value:string)=>text().split(value).length-1;
+ assert.equal(occurrences('1 · 25,0 %'),2,'las dos distribuciones muestran su cuota');
+ assert.equal(occurrences('3 · 75,0 %'),2,'las dos distribuciones muestran su cuota');
+ assert.equal(renderer.root.findAll(node=>node.type==='div'&&node.props.role==='progressbar').length,4,'cada fila con cuota dibuja su barra');
+ assert.equal(renderer.root.findAllByType('tbody').at(-1)!.findAllByType('tr').length,2,'el histórico lista un mes por fila');
+ assert.match(text(),/Evolución mensual · PYG/);
+ assert(renderer.root.findAllByType('table').length>=1,'el histórico es una tabla real');
+ act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange('USD'));
  assert.match(text(),/USD 9\.007\.199\.254\.740\.993,1234/);
  assert.doesNotMatch(text(),/PYG 50\.000/,'financial currencies are not summed or displayed together');
- const tile=renderer.root.findAllByType('article').find(article=>article.findByType('h3').children[0]==='Facturado · incluye impuestos')!;
- assert.equal(tile.findByType('p').children[0],'0,0000 · 0,00 %');
+ assert(renderer.root.findAllByProps({label:'Facturado · incluye impuestos',hint:'0,0000 · 0,00 %'}).length>0,'el tile de facturado muestra su variación');
  await respond(staleInitial,fixture(new URL(staleInitial.url,'https://fixture.invalid').searchParams.get('month')!,[row('2020-06',999)]));
  assert.doesNotMatch(text(),/999/,'out-of-order initial response ignored');
 
@@ -91,17 +89,17 @@ async function run(){
  await respond(latest(),{...fixture('2020-06',[{...row('2020-06',null),financial:[]}]),historySince:null});
  assert.match(text(),/Histórico confiable desde: sin fecha confirmada/);
  assert.match(text(),/Sin datos/);assert.match(text(),/Sin porcentaje/);
- assert.equal(renderer.root.findAllByType(SelectCustom)[1].props.disabled,true);
+ assert.equal(renderer.root.findAllByType(SelectCustom)[0].props.disabled,true);
   history(6);const previousTenant=latest();
   const tenantRequests=requests.length;
   act(()=>renderer.update(<ReportsWorkspace key="org2" role="owner" organizationName="Scale"/>));
-  const newTenant=requests.slice(tenantRequests).find(r=>r.url?.includes('/reports?'))!;assert.match(text(),/Cargando reportes/);
+  const newTenant=requests.slice(tenantRequests).find(r=>r.url?.includes('/reports?'))!;assert(renderer.root.findAllByProps({'aria-label':'Cargando reportes…'}).length>0,'la carga se anuncia');
  await respond(previousTenant,fixture('2020-06',[row('2020-06',999)]));
  assert.doesNotMatch(text(),/999/,'integration organization key isolates same-role tenants');
  const newMonth=new URL(newTenant.url,'https://fixture.invalid').searchParams.get('month')!;
  await respond(newTenant,{...fixture(newMonth,[]),asOf:'2026-09-10T01:15:00Z',historySince:'2026-09-01T01:00:00Z'});assert.match(text(),/Sin meses registrados/);
- assert.match(text(),/9 de septiembre de 2026(?:, | a las )22:15/,'cutoff respects the previous local day');
- assert.match(text(),/Histórico confiable desde: 31 de agosto de 2026/,'coverage date respects Asuncion rather than UTC');
+ assert.match(text(),/Datos al 09 sept 26 · 22:15/,'cutoff respects the previous local day');
+ assert.match(text(),/Histórico confiable desde: 31 ago 26 · 22:00/,'coverage date respects Asuncion rather than UTC');
   act(()=>renderer.update(<ReportsWorkspace key="org2" role="viewer" organizationName="Scale"/>));
   assert.equal(renderer.root.findAllByType('table').length,0,'permission removal clears private report');
   act(()=>renderer.unmount());
@@ -127,9 +125,9 @@ async function run(){
   assert.match(comparePreviousRequest.url,/month=2019-06&months=12$/,'the previous equal window is requested from the same API');
   assert.equal(requests.slice(compareBlockStart).filter(request=>request.url.includes('month=2019-06')).length,1,'the stale initial response never fires a previous window');
   await respond(comparePreviousRequest,comparePrevious);
-  const comparisonText=()=>text(renderer.root.findByProps({className:'reports-comparison'}));
+  const comparisonText=()=>text(renderer.root.findAll(node=>node.type==='div'&&typeof node.props.className==='string'&&node.props.className.includes('rounded-xl')&&text(node).includes('Comparativa del período visible'))[0]);
   assert.match(comparisonText(),/Período visible: 01-jul – 01-jun · período anterior: 01-jul – 01-jun \(12 meses por período\)/,'both windows are described with dd-MMM dates');
-  act(()=>renderer.root.findAllByType(SelectCustom)[1].props.onChange('USD'));
+  act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange('USD'));
   const usdComparison=comparisonText();
   assert.match(usdComparison,/Clientes activos \(último mes con datos\)/);
   assert.match(usdComparison,/\+2 · \+50,00 %/,'active clients use the end-of-window snapshot');
@@ -141,7 +139,7 @@ async function run(){
   assert.match(usdComparison,/USD 80,10/);assert.match(usdComparison,/USD 50,00/);
   assert.match(usdComparison,/\+30,10 · \+60,20 %/,'average ticket divides total invoiced by invoices, rounded half-up');
   assert.doesNotMatch(usdComparison,/PYG/,'the selected currency never mixes with others');
-  act(()=>renderer.root.findAllByType(SelectCustom)[1].props.onChange('PYG'));
+  act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange('PYG'));
   const pygComparison=comparisonText();
   assert.match(pygComparison,/PYG 4\.000\.000/);assert.match(pygComparison,/PYG 500\.000/);assert.match(pygComparison,/PYG 2\.000\.000/);
   assert.doesNotMatch(pygComparison,/USD/,'switching currency rebuilds the comparison rows');
@@ -154,7 +152,7 @@ async function run(){
   await respond(partialPreviousRequest,{asOf:'2026-09-10T15:00:00Z',month:'2019-12',historySince:'2018-01-01T03:00:00Z',months:[
    compareRow('2019-10',{active:4,added:1,lost:0,financial:[moneyEntry('USD','200.00','250.00',4),moneyEntry('PYG','500000','500000',2)]}),
   ]});
-  act(()=>renderer.root.findAllByType(SelectCustom)[1].props.onChange('USD'));
+  act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange('USD'));
   const partialComparison=comparisonText();
   assert.match(partialComparison,/\+2 · \+50,00 %/,'the snapshot still compares when the newest month is complete');
   assert.match(partialComparison,/Sin comparación: mes parcial/,'partial months suppress the sums they feed');

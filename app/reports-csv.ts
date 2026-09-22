@@ -1,4 +1,4 @@
-import type {ReportsData} from './reports-workspace';
+import type {ReportsData} from './reports-data';
 
 const quote=(value:string)=>`"${value.replace(/"/g,'""')}"`;
 // Quoting alone does not stop spreadsheet formulas. Text fields never opt into numbers.

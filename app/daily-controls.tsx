@@ -2,7 +2,7 @@
 import {ActorIdentity} from './actor-identity';
 import {SaveActions} from './save-actions';
 import {completeSave} from './save-completion';
-import {useRef,useState,type FormEvent} from 'react';
+import {useRef,useState,type ChangeEvent,type FormEvent} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
@@ -11,7 +11,11 @@ import {EmailField} from './email-field';
 import {SelectCustom,AmountInput} from './profile-controls';
 import {parseStatementCsv} from './statement-csv';
 import {listDateShort} from './list-format';
+import {movementValue,matchingMovements,reconciliationPending,transferPreview,type StatementLine} from './treasury-data';
+import {useReconciliation} from './use-reconciliation';
 import {todayInAsuncion} from './field-rules';
+import {Aviso,Button,Card,EmptyState,ErrorState,FormField,IconAction,Input,Nota,cn} from 'owncoding-ui';
+import {LoadingBlock,StateChip} from './ui-v2';
 import {Copy,Eye,Link2,Link2Off,Undo2,Unlink} from 'lucide-react';
 type Account={id:string;name:string;currency:string;active:boolean};
 type Row={id:string;[key:string]:unknown};
@@ -20,7 +24,7 @@ const errorText=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar'
 export function FXTransferForm({accounts,done}:{accounts:Account[];done:()=>void|Promise<void>}){
  const schema=z.object({fromAccountId:z.string().min(1),toAccountId:z.string().min(1),amount:z.string().refine(v=>Number(v)>0),receivedAmount:z.string().refine(v=>Number(v)>0),transferredOn:z.string().min(1),reference:z.string().max(120)});
  const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{fromAccountId:'',toAccountId:'',amount:'',receivedAmount:'',transferredOn:todayInAsuncion(),reference:''}});
- const [requestId]=useState(()=>crypto.randomUUID()),[error,setError]=useState('');const v=form.watch(),from=accounts.find(a=>a.id===v.fromAccountId),to=accounts.find(a=>a.id===v.toAccountId);
+ const [requestId]=useState(()=>crypto.randomUUID()),[error,setError]=useState('');const v=form.watch(),from=accounts.find(a=>a.id===v.fromAccountId),to=accounts.find(a=>a.id===v.toAccountId);const transfer=transferPreview({fromCurrency:from?.currency,toCurrency:to?.currency,amount:v.amount,receivedAmount:v.receivedAmount});
  const saving=useRef(false),[savingNow,setSavingNow]=useState(false);
  const pending=form.formState.isSubmitting||savingNow;
  async function submit(event:FormEvent<HTMLFormElement>){
@@ -31,23 +35,25 @@ export function FXTransferForm({accounts,done}:{accounts:Account[];done:()=>void
   saving.current=true;setSavingNow(true);setError('');
   try{
    await form.handleSubmit(async values=>{
-    if(from?.currency===to?.currency&&Number(values.amount)!==Number(values.receivedAmount))throw new Error('En la misma moneda, los importes deben coincidir');
+    if(transfer.mismatch)throw new Error('En la misma moneda, los importes deben coincidir');
     await api('/api/agency/transfers',{...values,requestId});
     await done();
    })(event);
   }catch(e){setError(errorText(e));}
   finally{saving.current=false;setSavingNow(false);}
  }
- return <form className="form-stack ops-form-grid" noValidate aria-busy={pending} onSubmit={submit}>
-  <p className="form-note ops-wide">Esto registra el movimiento; no ordena una transferencia al banco. Indicá los importes reales de salida y entrada.</p>
-  <SelectCustom label="Cuenta de origen" disabled={pending} value={v.fromAccountId} choices={accounts.filter(a=>a.active).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('fromAccountId',value)}/>
-  <SelectCustom label="Cuenta de destino" disabled={pending} value={v.toAccountId} choices={accounts.filter(a=>a.active&&a.id!==v.fromAccountId).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('toAccountId',value)}/>
-  <label>Sale ({from?.currency||'moneda de origen'})<AmountInput disabled={pending} value={v.amount} currency={from?.currency||'PYG'} onChange={value=>form.setValue('amount',value)}/></label>
-  <label>Llega ({to?.currency||'moneda de destino'})<AmountInput disabled={pending} value={v.receivedAmount} currency={to?.currency||'PYG'} onChange={value=>form.setValue('receivedAmount',value)}/></label>
-  <label>Fecha<input type="date" disabled={pending} {...form.register('transferredOn')}/></label><label>Referencia<input disabled={pending} {...form.register('reference')}/></label>
-  {from&&to&&Number(v.amount)>0&&Number(v.receivedAmount)>0&&<p className="ops-wide">{money(v.amount,from.currency)} → {money(v.receivedAmount,to.currency)}{from.currency!==to.currency?` · Cambio: 1 ${from.currency} = ${new Intl.NumberFormat('es-PY',{maximumFractionDigits:8}).format(Number(v.receivedAmount)/Number(v.amount))} ${to.currency}`:''}</p>}
-  {Object.keys(form.formState.errors).length>0&&<p role="alert" className="error ops-wide">Elegí ambas cuentas, fecha e importes positivos.</p>}{error&&<p role="alert" className="error ops-wide">{error}</p>}
-  <SaveActions pending={pending}><button className="primary ops-wide" disabled={pending}>{pending?'Guardando…':'Registrar transferencia'}</button></SaveActions>
+ return <form className="grid gap-3 sm:grid-cols-2" noValidate aria-busy={pending} onSubmit={submit}>
+  <Nota tono="neutro" className="sm:col-span-2">Esto registra el movimiento; no ordena una transferencia al banco. Indicá los importes reales de salida y entrada.</Nota>
+  <FormField label="Cuenta de origen"><SelectCustom label="Cuenta de origen" disabled={pending} value={v.fromAccountId} choices={accounts.filter(a=>a.active).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('fromAccountId',value)}/></FormField>
+  <FormField label="Cuenta de destino"><SelectCustom label="Cuenta de destino" disabled={pending} value={v.toAccountId} choices={accounts.filter(a=>a.active&&a.id!==v.fromAccountId).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('toAccountId',value)}/></FormField>
+  <FormField label={`Sale (${from?.currency||'moneda de origen'})`}><AmountInput disabled={pending} value={v.amount} currency={from?.currency||'PYG'} onChange={value=>form.setValue('amount',value)}/></FormField>
+  <FormField label={`Llega (${to?.currency||'moneda de destino'})`}><AmountInput disabled={pending} value={v.receivedAmount} currency={to?.currency||'PYG'} onChange={value=>form.setValue('receivedAmount',value)}/></FormField>
+  <FormField label="Fecha"><Input type="date" className="w-40" disabled={pending} {...form.register('transferredOn')}/></FormField>
+  <FormField label="Referencia"><Input maxLength={120} disabled={pending} {...form.register('reference')}/></FormField>
+  {from&&to&&Number(v.amount)>0&&Number(v.receivedAmount)>0?<Nota tono="info" className="sm:col-span-2"><span className="tabular-nums">{money(v.amount,from.currency)} → {money(v.receivedAmount,to.currency)}{transfer.rate!==null?` · Cambio: 1 ${from.currency} = ${new Intl.NumberFormat('es-PY',{maximumFractionDigits:8}).format(transfer.rate)} ${to.currency}`:''}</span></Nota>:null}
+  {Object.keys(form.formState.errors).length>0?<Aviso tono="error" className="sm:col-span-2">Elegí ambas cuentas, fecha e importes positivos.</Aviso>:null}
+  {error?<Aviso tono="error" className="sm:col-span-2">{error}</Aviso>:null}
+  <SaveActions pending={pending}><Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending?'Guardando…':'Registrar transferencia'}</Button></SaveActions>
  </form>;
 }
 export function ReceiptReversal({payment,refresh}:{payment:{id:string;amount:string;currency:string;reversal_id?:string|null;reversal_reason?:string|null};refresh:()=>Promise<void>}){
@@ -95,13 +101,46 @@ export function ClientPortalAccess({clientId}:{clientId:string}){
  const inviteExpired=(invite:Row)=>Boolean(invite.expires_at)&&new Date(String(invite.expires_at)).getTime()<=Date.now();
  return <><button className="secondary" onClick={()=>{setOpen(true);setConfirming('');void perform(load);}}>Acceso del cliente</button>{open&&<Dialog title="Acceso del cliente" close={()=>setOpen(false)}><div className="form-stack"><p className="form-note">Generá un enlace personal para el correo elegido. Copialo y envialo sólo a esa persona.</p><label>Correo del cliente<EmailField value={email} onChange={setEmail} disabled={busy}/></label><button className="primary" disabled={!email||busy} onClick={()=>void perform(async()=>{const result=await api<{url:string}>(`/api/agency/clients/${clientId}/client-portal-invites`,{email});setUrl(result.url);setEmail('');await load();})}>Generar invitación</button>{url&&<><p className="success">Invitación creada. Vence en siete días.</p><input aria-label="Enlace de invitación" value={url} readOnly onFocus={event=>event.currentTarget.select()}/><button className="text-button" onClick={()=>void navigator.clipboard?.writeText(url)}><Copy size={14}/>Copiar enlace</button></>}{busy&&!grants.length&&!invites.length?<p role="status">Cargando accesos…</p>:null}{pendingInvites.length>0&&<section aria-label="Invitaciones pendientes"><h3>Invitaciones pendientes</h3>{pendingInvites.map(invite=><article className="ops-card" key={`invite-${String(invite.id)}`}><h3>{str(invite,'email_normalized')}</h3><small>{inviteExpired(invite)?'Vencida':'Pendiente de ingreso'} · vence {listDateShort(str(invite,'expires_at'))}</small>{inviteExpired(invite)?null:<button className="text-button danger" disabled={busy} onClick={()=>void perform(async()=>{await api(`/api/agency/client-portal-invites/${String(invite.id)}/revoke`,{},'POST');await load();})}><Link2Off size={14}/>Revocar invitación</button>}</article>)}</section>}{active.length>0&&active.map(g=><article className="ops-card" key={String(g.id)}><h3>{str(g,'full_name')||str(g,'email')}</h3><p>{str(g,'email')}</p><small>Acceso desde {listDateShort(str(g,'granted_at'))}</small>{confirming===String(g.id)?<span className="inline-actions"><span role="alert">¿Revocar este acceso?</span><button className="secondary danger" disabled={busy} onClick={()=>void perform(async()=>{await api(`/api/agency/clients/${clientId}/portal-access/grants/${String(g.id)}/revoke`,{});setConfirming('');await load();})}>Confirmar</button><button className="secondary" disabled={busy} onClick={()=>setConfirming('')}>Cancelar</button></span>:<button className="text-button danger" disabled={busy} onClick={()=>setConfirming(String(g.id))}><Link2Off size={14}/>Revocar acceso</button>}</article>)}{!active.length&&!pendingInvites.length&&!busy&&<p className="empty-copy">Todavía no hay accesos activos al portal.</p>}{error&&<p className="error" role="alert">{error}</p>}</div></Dialog>}</>;
 }
+// Plantilla compartida por el encabezado y las filas del extracto (fila finita,
+// con scroll horizontal silencioso cuando no entra).
+const STATEMENT_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
+const STATEMENT_HEAD='grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-mute';
+const STATEMENT_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 last:border-0';
 export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
  const [csv,setCsv]=useState('id,fecha,importe,referencia\n');
- const [accountId,setAccountId]=useState(''),[lines,setLines]=useState<Row[]>([]),[moves,setMoves]=useState<Row[]>([]),[importing,setImporting]=useState(false),[matching,setMatching]=useState<Row|null>(null),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
+ const [accountId,setAccountId]=useState(''),[importing,setImporting]=useState(false),[matching,setMatching]=useState<StatementLine|null>(null),[notice,setNotice]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const {lines,movements,load,reset}=useReconciliation();
  const currency=accounts.find(a=>a.id===accountId)?.currency||'PYG';
- async function load(id=accountId){const d=await api<{lines:Row[];movements:Row[]}>(`/api/agency/reconciliation?accountId=${id}`);setLines(d.lines);setMoves(d.movements);}
- return <section className="panel"><h2>Conciliación por extracto</h2><p className="form-note">Compará el extracto con los movimientos registrados. Importar y conciliar no modifica saldos. El cruce automático exige fecha, importe y referencia exactos, sin coincidencias ambiguas.</p><SelectCustom label="Cuenta a conciliar" value={accountId} choices={accounts.map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>{setAccountId(value);setLines([]);setMoves([]);setBusy(true);void load(value).catch(e=>setNotice(errorText(e))).finally(()=>setBusy(false));}}/>{accountId&&<><div className="inline-actions"><button className="secondary" disabled={busy} onClick={()=>setImporting(true)}>Importar CSV</button><button className="secondary" disabled={busy} onClick={async()=>{setBusy(true);try{const d=await api<{matched:number}>(`/api/agency/reconciliation/${accountId}/auto`,{});setNotice(`${d.matched} coincidencias conciliadas.`);await load();}catch(e){setNotice(errorText(e));}finally{setBusy(false);}}}>Conciliar coincidencias exactas</button></div><p>{lines.filter(l=>!l.match_id).length} pendientes de {lines.length} movimientos importados (hasta 1.000 visibles).</p>{lines.length?<div className="statement-row-head" aria-hidden="true"><span>Extracto</span><span>Monto</span><span>Acciones</span></div>:null}{lines.map(l=><div className="payment-row statement-row" key={l.id}><div><b>{listDateShort(str(l,'booked_on'))} · {str(l,'reference')||str(l,'external_id')}</b><small>{l.match_id?'Conciliado':'Pendiente'}</small></div><b>{money(str(l,'amount'),currency)}</b>{l.match_id?<button className="text-button danger" disabled={busy} onClick={async()=>{setBusy(true);try{await api(`/api/agency/reconciliation/${l.id}/unmatch`,{});await load();}catch(e){setNotice(errorText(e));}finally{setBusy(false);}}}><Unlink size={14}/>Desvincular</button>:<button className="text-button positive" disabled={busy} onClick={()=>setMatching(l)}><Link2 size={14}/>Conciliar</button>}</div>)}</>}{notice&&<p role="status">{notice}</p>}
- {importing&&<Dialog title="Importar extracto CSV" close={()=>setImporting(false)}><p>Copiá el CSV con encabezado <code>id,fecha,importe,referencia</code>. Fecha YYYY-MM-DD; importe positivo para ingresos y negativo para egresos, sin miles y con punto decimal. El ID debe ser único por cuenta.</p><div className="form-stack"><label>Archivo CSV<input type="file" accept=".csv,text/csv" onChange={async e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>800000){setNotice('El archivo supera 800 KB');return;}setCsv(await file.text());}}/></label></div><Editor key={csv} fields={[{key:'csv',label:'Contenido del CSV',type:'textarea'}]} defaults={{csv}} save={async v=>{const d=await api<{imported:number}>('/api/agency/reconciliation',{accountId,lines:parseStatementCsv(v.csv)});setNotice(`${d.imported} filas nuevas importadas.`);await load();setImporting(false);}}/></Dialog>}
- {matching&&<Dialog title="Vincular movimiento" close={()=>setMatching(null)}><p>{money(str(matching,'amount'),currency)} · {str(matching,'reference')}</p><Editor fields={[{key:'movement',label:'Movimiento registrado del mismo importe',choices:moves.filter(m=>Number(m.amount)===Number(matching.amount)).map(m=>({value:`${str(m,'movement_type')}:${str(m,'movement_id')}`,label:`${listDateShort(str(m,'booked_on'))} · ${str(m,'movement_type')} · ${str(m,'reference')}`}))}]} defaults={{movement:''}} save={async v=>{const [movement_type,movement_id]=v.movement.split(':');await api(`/api/agency/reconciliation/${matching.id}/match`,{movement_type,movement_id});await load();setMatching(null);}}/></Dialog>}
- </section>;
+ async function perform(fn:()=>Promise<void>){setBusy(true);setError('');try{await fn();}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
+ return <Card className="grid gap-3">
+  <div className="grid gap-1">
+   <h3 className="text-sm font-semibold text-fore">Conciliación por extracto</h3>
+   <p className="text-xs text-mute">Compará el extracto con los movimientos registrados. Importar y conciliar no modifica saldos. El cruce automático exige fecha, importe y referencia exactos, sin coincidencias ambiguas.</p>
+  </div>
+  <FormField label="Cuenta a conciliar"><div className="w-full sm:w-72"><SelectCustom label="Cuenta a conciliar" value={accountId} choices={accounts.map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>{setAccountId(value);reset();setNotice('');setError('');if(value)void perform(()=>load(value));}}/></div></FormField>
+  {accountId?<>
+   <div className="flex flex-wrap gap-2">
+    <Button variant="outline" disabled={busy} onClick={()=>setImporting(true)}>Importar CSV</Button>
+    <Button variant="outline" disabled={busy} onClick={()=>void perform(async()=>{const d=await api<{matched:number}>(`/api/agency/reconciliation/${accountId}/auto`,{});setNotice(`${d.matched} coincidencias conciliadas.`);await load(accountId);})}>Conciliar coincidencias exactas</Button>
+   </div>
+   <p className="text-sm text-mute">{reconciliationPending(lines)} pendientes de {lines.length} movimientos importados (hasta 1.000 visibles).</p>
+   {busy&&!lines.length?<LoadingBlock label="Cargando extracto…" lines={2}/>:null}
+   {lines.length?<div className="min-w-0 overflow-x-auto" role="table" aria-label="Movimientos del extracto"><div className="min-w-[40rem]">
+    <div className={cn(STATEMENT_HEAD,STATEMENT_COLS)} aria-hidden="true"><span>Extracto</span><span>Estado</span><span className="text-right">Monto</span><span className="text-right">Acciones</span></div>
+    {lines.map(l=><div role="row" className={cn(STATEMENT_ROW,STATEMENT_COLS)} key={l.id}>
+     <span className="min-w-0 text-sm"><b className="font-semibold text-fore">{listDateShort(l.booked_on)||'—'}</b><small className="ml-2 text-xs text-mute">{l.reference||l.external_id}</small></span>
+     <span className="min-w-0"><StateChip tone={l.match_id?'ok':'warn'}>{l.match_id?'Conciliado':'Pendiente'}</StateChip></span>
+     <span className={cn('min-w-0','text-right')}><strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{money(l.amount,currency)}</strong></span>
+     <span className={cn('min-w-0','flex justify-end')}>{l.match_id
+      ?<IconAction icon="close" tone="bad" label={`Desvincular movimiento: ${l.reference||l.external_id}`} disabled={busy} onClick={()=>void perform(async()=>{await api(`/api/agency/reconciliation/${l.id}/unmatch`,{});await load(accountId);})}/>
+      :<IconAction icon="check" tone="ok" label={`Conciliar ${l.reference||l.external_id}`} disabled={busy} onClick={()=>setMatching(l)}/>}</span>
+    </div>)}
+   </div></div>:<EmptyState compact title="Sin movimientos importados para esta cuenta."/>}
+  </>:<EmptyState compact title="Elegí una cuenta para conciliar el extracto."/>}
+  {notice?<Aviso tono="ok">{notice}</Aviso>:null}
+  {error&&!lines.length?<ErrorState title="No se pudo cargar el extracto" description={error} onRetry={()=>void perform(()=>load(accountId))}/>:null}
+  {error&&lines.length?<Aviso tono="error">{error}</Aviso>:null}
+  {importing&&<Dialog title="Importar extracto CSV" close={()=>setImporting(false)}><p>Copiá el CSV con encabezado <code>id,fecha,importe,referencia</code>. Fecha YYYY-MM-DD; importe positivo para ingresos y negativo para egresos, sin miles y con punto decimal. El ID debe ser único por cuenta.</p><div className="grid gap-3"><FormField label="Archivo CSV"><Input type="file" accept=".csv,text/csv" onChange={async (e:ChangeEvent<HTMLInputElement>)=>{const file=e.target.files?.[0];if(!file)return;if(file.size>800000){setError('El archivo supera 800 KB');return;}setCsv(await file.text());}}/></FormField></div><Editor key={csv} fields={[{key:'csv',label:'Contenido del CSV',type:'textarea'}]} defaults={{csv}} save={async v=>{const d=await api<{imported:number}>('/api/agency/reconciliation',{accountId,lines:parseStatementCsv(v.csv)});setNotice(`${d.imported} filas nuevas importadas.`);await load(accountId);setImporting(false);}}/></Dialog>}
+  {matching&&<Dialog title="Vincular movimiento" close={()=>setMatching(null)}><p className="tabular-nums">{money(matching.amount,currency)} · {matching.reference}</p><Editor fields={[{key:'movement',label:'Movimiento registrado del mismo importe',choices:matchingMovements(matching,movements).map(m=>({value:movementValue(m),label:`${listDateShort(m.booked_on)} · ${m.movement_type} · ${m.reference}`}))}]} defaults={{movement:''}} save={async v=>{const [movement_type,movement_id]=v.movement.split(':');await api(`/api/agency/reconciliation/${matching.id}/match`,{movement_type,movement_id});await load(accountId);setMatching(null);}}/></Dialog>}
+ </Card>;
 }

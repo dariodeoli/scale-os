@@ -1,7 +1,9 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useState,type ChangeEvent,type ReactNode} from 'react';
 import {ActorIdentity} from './actor-identity';
 import {listDateShort} from './list-format';
+import {Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,Input,Nota} from 'owncoding-ui';
+import {LoadingBlock} from './ui-v2';
 
 export const automaticTypeLabels:Record<string,string>={video:'Videos',reedicion:'Reediciones',foto:'Fotos',produccion:'Producciones',entregable:'Entregables',untyped:'Sin tipo'};
 export const automaticTypes=Object.keys(automaticTypeLabels);
@@ -26,6 +28,7 @@ async function request(week:string,scope:string):Promise<WeeklyAutomaticResult>{
  if(!response.ok)throw Error(data.error||'No se pudo cargar la producción semanal');
  return data;
 }
+type WeeklyRow={id:string;who:ReactNode;orders:number;projects:ReactNode;[type:string]:ReactNode|number};
 export function WeeklyAutomatic({role}:{role:string}){
  const scope=role==='owner'?'team':'own';
  const [week,setWeek]=useState(currentWeek);
@@ -37,18 +40,37 @@ export function WeeklyAutomatic({role}:{role:string}){
   return()=>{alive=false;};
  },[week,scope,reload]);
  const rows=result?.automatic??[];
-  return <section className="panel weekly-automatic" aria-label="Producción semanal automática">
-   <h2>Producción semanal</h2>
-   <p className="form-note">Terminadas de la semana, calculadas automáticamente desde los cambios de estado. Cada pieza cuenta una sola vez, en la semana en que pasó a terminada, atribuida a quien ejecutó el cambio. Sin horas: se cuentan piezas, no tiempo trabajado. Órdenes: piezas en las que se trabajó durante la semana, terminadas o no. Proyectos: distribución de las piezas terminadas por proyecto.</p>
-   <div className="reports-filters"><label>Semana<input type="date" value={week} onChange={e=>{const w=weekMonday(e.target.value);if(w)setWeek(w);}}/></label></div>
-   <p className="reports-note">Del {listDateShort(week)||week} al {listDateShort(lastDay(week))||lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</p>
-   {loading&&<p role="status">Cargando producción semanal…</p>}
-   {error&&<div role="alert" className="reports-error"><p>{error}</p><button type="button" className="secondary" onClick={()=>setReload(v=>v+1)}>Reintentar</button></div>}
-   {!loading&&!error&&!rows.length&&<p className="form-note">Sin piezas terminadas en esta semana.</p>}
-   {!loading&&!error&&rows.length>0&&<div className="reports-table-scroll"><table>
-    <caption>Piezas terminadas por tipo · {scope==='team'?'todo el equipo':'tu trabajo'}</caption>
-    <thead><tr><th scope="col">{scope==='team'?'Colaborador':'Trabajo'}</th>{automaticTypes.map(type=><th scope="col" key={type}>{automaticTypeLabels[type]}</th>)}<th scope="col">Órdenes</th><th scope="col">Proyectos</th></tr></thead>
-    <tbody>{rows.map(entry=><tr key={entry.user_id}><th scope="row"><ActorIdentity name={entry.actor_name} photoUrl={entry.actor_photo_url} verified={entry.actor_verified===true}/></th>{automaticTypes.map(type=><td key={type}>{entry.counts[type]??0}</td>)}<td>{entry.orders??0}</td><td>{entry.projects?.length?entry.projects.map(project=><div key={project.project_id} className="weekly-project-line">{projectLabel(project)} · {project.count}{project.orders>0?` · ${project.orders} órdenes`:''}</div>):'—'}</td></tr>)}</tbody>
-   </table></div>}
-  </section>;
+ const projectsCell=(entry:AutomaticEntry)=>entry.projects?.length?<span className="grid gap-0.5 text-xs text-mute">{entry.projects.map(project=><span key={project.project_id}>{projectLabel(project)} · {project.count}{project.orders>0?` · ${project.orders} órdenes`:''}</span>)}</span>:'—';
+ return <Card className="grid gap-3" aria-label="Producción semanal automática">
+  <div className="grid gap-1">
+   <h2 className="text-lg font-semibold tracking-tight text-fore">Producción semanal</h2>
+   <p className="text-xs text-mute">Terminadas de la semana, calculadas automáticamente desde los cambios de estado. Cada pieza cuenta una sola vez, en la semana en que pasó a terminada, atribuida a quien ejecutó el cambio. Sin horas: se cuentan piezas, no tiempo trabajado. Órdenes: piezas en las que se trabajó durante la semana, terminadas o no. Proyectos: distribución de las piezas terminadas por proyecto.</p>
+  </div>
+  <div className="flex flex-wrap items-end gap-3">
+   <FormField label="Semana"><Input type="date" className="w-44" value={week} onChange={(event:ChangeEvent<HTMLInputElement>)=>{const monday=weekMonday((event.target as HTMLInputElement).value);if(monday)setWeek(monday);}}/></FormField>
+  </div>
+  <Nota tono="neutro">Del {listDateShort(week)||week} al {listDateShort(lastDay(week))||lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</Nota>
+  {loading?<LoadingBlock label="Cargando producción semanal…" lines={3}/>:null}
+  {error?<ErrorState title="No se pudo cargar la producción semanal" description={error} onRetry={()=>setReload(v=>v+1)}/>:null}
+  {!loading&&!error&&!rows.length?<EmptyState compact title="Sin piezas terminadas en esta semana."/>:null}
+  {!loading&&!error&&rows.length>0?<DataTable
+   columns={[{key:'who',label:scope==='team'?'Colaborador':'Trabajo'},...automaticTypes.map(type=>({key:type,label:automaticTypeLabels[type],align:'right' as const})),{key:'orders',label:'Órdenes',align:'right' as const},{key:'projects',label:'Proyectos'}]}
+   rows={rows.map(entry=>({
+    id:entry.user_id,
+    who:<ActorIdentity name={entry.actor_name} photoUrl={entry.actor_photo_url} verified={entry.actor_verified===true}/>,
+    orders:entry.orders??0,
+    projects:projectsCell(entry),
+    ...Object.fromEntries(automaticTypes.map(type=>[type,String(entry.counts[type]??0)])),
+   }))}
+   mobileCard={(row:WeeklyRow)=><div className="grid gap-1 rounded-lg border border-ink-600 bg-ink-900 p-3">
+    <span className="text-sm font-semibold text-fore">{row.who}</span>
+    <FilaDato etiqueta="Órdenes" valor={row.orders}/>
+    {automaticTypes.map(type=><FilaDato key={type} etiqueta={automaticTypeLabels[type]} valor={row[type]??0}/>)}
+    <div className="grid gap-0.5">
+     <span className="text-xs text-mute">Proyectos</span>
+     {row.projects}
+    </div>
+   </div>}
+  />:null}
+ </Card>;
 }
