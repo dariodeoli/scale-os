@@ -73,13 +73,14 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
     assert.match(read(file),/hourCycle:\s*'h23'/,`${file} keeps the 24-hour clock`);
   }
   const archive=read('app/archive-controls.tsx');
-  assert.match(archive,/trash-head[\s\S]*?Tipo[\s\S]*?Registro[\s\S]*?Acciones/,'the trash list shows its column header');
-  const styles=read('app/settings-slice.css');
-  assert.match(styles,/\.trash-head\{display:grid/);
+  assert.match(archive,/TRASH_COLUMNS=\[\{key:'select',label:''\},\{key:'kind',label:'Tipo'\},\{key:'record',label:'Registro'\},\{key:'actions',label:'Acciones'\}\]/,'the trash list shows its column header');
+  assert.match(archive,/ListGrid label="Papelera" template=\{TRASH_TEMPLATE\}/,'the trash list uses the shared v2 template');
   const integrations=read('app/suite.tsx');
   assert.match(integrations,/settings-integration-head[\s\S]*?Integración[\s\S]*?Estado/,'the integrations list shows its header');
   const invites=read('app/invite-links.tsx');
-  assert.match(invites,/invite-link-head[\s\S]*?Solicitud[\s\S]*?invite-link-head[\s\S]*?Enlace/,'invite requests and links show their headers');
+  assert.match(invites,/REQUESTS_COLUMNS=\[\{key:'request',label:'Solicitud'\}/,'invite requests show their column header');
+  assert.match(invites,/LINKS_COLUMNS=\[\{key:'link',label:'Enlace'\}/,'invite links show their column header');
+  assert.match(invites,/ListGrid label="Solicitudes de acceso"[\s\S]*?ListGrid label="Enlaces de invitación"/,'both lists use the shared v2 ListGrid');
 });
 
 test('clients, projects and trash support bulk operations',()=>{

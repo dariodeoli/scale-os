@@ -1,7 +1,9 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {teamRoleLabels} from '../team-directory';
-import {WorkspaceFooter} from '../workspace-footer';
+import {AccessLayout} from '../access-layout';
+import {StateChip} from '../ui-v2';
+import {listDateFull} from '../list-format';
 import {PasswordField} from '../password-field';
 import {EmailField} from '../email-field';
 type Preview={organization_name:string;role:string;mode:'single'|'approval';expires_at?:string};
@@ -77,32 +79,40 @@ export default function InvitationPage(){
   }catch(cause){setPasswordError(cause instanceof Error?cause.message:'No se pudo crear la cuenta.');}
   finally{setPasswordBusy(false);}
  }
- return <main className="login-page invite-page"><section className="login-card invite-card" aria-busy={state.status==='loading'}>
-  <div className="login-brand"><img src="/brand/icon-192.png" width={56} height={56} alt="Scale OS"/></div>
-  <p className="invite-eyebrow">Scale OS · Acceso de equipo</p>
-  <h1>{notice?.heading||'Invitación al equipo'}</h1>
-  <p className="invite-link-status" data-state={state.status} role="status" aria-live="polite"><span aria-hidden="true">{state.status==='ready'?'✓':'•'}</span> {labels[state.status]}</p>
-  {expiration&&!Number.isNaN(expiration.getTime())&&<p className="invite-expiration">Vence: <time dateTime={expiration.toISOString()}>{new Intl.DateTimeFormat('es-PY',{timeZone:'America/Asuncion',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(expiration)}</time> · hora de Asunción</p>}
-  {state.status==='ready'?<>
-   <p className="login-copy">Te invitaron a trabajar en este espacio.</p>
-   <div className="invite-summary"><strong>{state.info.organization_name}</strong><span>Permiso asignado: <b>{teamRoleLabels[state.info.role]}</b></span></div>
-   <p className="login-copy">{state.info.mode==='single'?'Este enlace habilita una sola cuenta.':'Podés solicitar acceso; el dueño lo aprobará antes de habilitarte.'}</p>
-   <p className="invite-helper">Elegí cómo querés verificar tu correo para continuar.</p>
-   <div className="invite-actions"><a className="primary login-button" referrerPolicy="no-referrer" href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
-   {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:<form className="invite-password-form" onSubmit={registerWithPassword} noValidate>
-    <label>Nombre y apellido <input name="full_name" maxLength={120} autoComplete="name" placeholder="Cómo te llamamos"/></label>
-    <label>Correo <EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
-    <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="8+ caracteres" required minLength={8}/>
-    <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required minLength={8}/>
-    <p className="password-hint">8+ caracteres; sin requisitos de mayúsculas, números ni símbolos.</p>
-    <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
-    {passwordError&&<p className="error" role="alert">{passwordError}</p>}{passwordNotice&&<p className="success" role="status">{passwordNotice}</p>}
-   </form>}</div>
-  </>:<div className="auth-notice" role="status" aria-live="polite">
-   <p>{notice?.message}</p>
-   {state.status==='connection'&&<button type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}}>Reintentar comprobación</button>}
-  </div>}
-  <p className="invite-footer"><a href="https://app.scaleparaguay.com/" referrerPolicy="no-referrer">{state.status==='pending'?'Consultar mi acceso':'Ir al inicio de sesión'}</a></p>
-  <WorkspaceFooter/>
- </section></main>;
+ return <AccessLayout eyebrow="Scale OS · Acceso de equipo" busy={state.status==='loading'}>
+  <div className="grid gap-3">
+   <h1 className="text-2xl font-bold tracking-tight text-fore">{notice?.heading||'Invitación al equipo'}</h1>
+   <p role="status" aria-live="polite" className="flex flex-wrap items-center gap-2 text-xs text-mute">
+    <StateChip tone={state.status==='ready'?'ok':state.status==='loading'?'mute':'bad'}>{labels[state.status]}</StateChip>
+    {expiration&&!Number.isNaN(expiration.getTime())?<span className="whitespace-nowrap">Vence: <time dateTime={expiration.toISOString()}>{listDateFull(expiration.toISOString())}</time> · hora de Asunción</span>:null}
+   </p>
+   {state.status==='ready'?<>
+    <p className="text-sm text-mute">Te invitaron a trabajar en este espacio.</p>
+    <div className="grid gap-1 rounded-lg border border-ink-600 px-3 py-2">
+     <strong className="break-words text-sm text-fore">{state.info.organization_name}</strong>
+     <span className="text-xs text-mute">Permiso asignado: <b className="text-fore">{teamRoleLabels[state.info.role]}</b></span>
+    </div>
+    <p className="text-sm text-mute">{state.info.mode==='single'?'Este enlace habilita una sola cuenta.':'Podés solicitar acceso; el dueño lo aprobará antes de habilitarte.'}</p>
+    <p className="text-xs text-mute">Elegí cómo querés verificar tu correo para continuar.</p>
+    <div className="grid gap-2">
+     <a className="primary login-button" referrerPolicy="no-referrer" href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
+     {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:
+      <form className="grid gap-3" onSubmit={registerWithPassword}>
+       <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<input name="full_name" maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
+       <label className="grid gap-1.5 text-xs text-mute">Correo<EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
+       <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="8+ caracteres" required minLength={8}/>
+       <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required minLength={8}/>
+       <p className="text-[11.5px] text-mute">8+ caracteres; sin requisitos de mayúsculas, números ni símbolos.</p>
+       <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
+       {passwordError?<p className="error" role="alert">{passwordError}</p>:null}
+       {passwordNotice?<p className="success" role="status">{passwordNotice}</p>:null}
+      </form>}
+    </div>
+   </>:<div className="grid gap-3" role="status" aria-live="polite">
+    <p className="text-sm text-mute">{notice?.message}</p>
+    {state.status==='connection'?<button type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}}>Reintentar comprobación</button>:null}
+   </div>}
+   <p className="text-[11.5px] text-mute"><a href="https://app.scaleparaguay.com/" referrerPolicy="no-referrer">{state.status==='pending'?'Consultar mi acceso':'Ir al inicio de sesión'}</a></p>
+  </div>
+ </AccessLayout>;
 }
