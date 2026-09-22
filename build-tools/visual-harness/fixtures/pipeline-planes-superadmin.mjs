@@ -199,7 +199,8 @@ const liveVisitorsPanel = `
 </section>`;
 
 /* ======================================================= 3. MÉTRICAS ======
- * app/growth-dashboard.tsx lines 16-22 (GrowthDashboard).
+ * app/growth-dashboard.tsx (rediseño v2): Stat de la librería, barras con
+ * utilidades Tailwind y datos diarios con la tabla compartida.
  * ========================================================================= */
 const growthPointCounts = [
   1024, 987, 0, 1540, 2331, 1204, 876, 990, 1105, 1502, 998, 744, 1310, 1622, 1805, 1201, 933, 1010, 1475, 1320, 1188, 902, 1210, 1660, 1902, 1433, 1108, 995, 1215, 1889,
@@ -210,23 +211,40 @@ const growthPointDays = growthPointCounts.map((_, index) => {
 });
 const growthMax = Math.max(1, ...growthPointCounts);
 const growthBars = growthPointCounts
-  .map((count, index) => `<div style="height:${Math.max(1, (count / growthMax) * 100)}%" title="${growthPointDays[index]}: ${count} vistas"></div>`)
+  .map((count, index) => `<div class="min-w-0 flex-1 rounded-t bg-fono" style="height:${Math.max(1, (count / growthMax) * 100)}%" title="${growthPointDays[index]}: ${count} vistas"></div>`)
   .join('');
 
+const growthCard = (label, value, change, sub) => `
+ <div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4">
+  <div class="text-[11px] font-medium uppercase tracking-wider text-mute">${label}</div>
+  <div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${value}</div>
+  <div class="mt-1.5 flex items-center gap-2 text-xs"><span class="font-medium ${change ? 'text-ok' : 'text-ok'}">${change}</span><span class="text-mute">${sub}</span></div>
+ </div>`;
+
 const growthDashboard = `
-<section class="panel ops-stack growth-dashboard">
- <div class="panel-heading">
-  <div><p class="eyebrow">CAPTACIÓN DIGITAL</p><h2>Visitas y crecimiento</h2></div>
-  <div class="ops-select"><span class="ops-label" id="growth-period-label">Período</span><button type="button" class="ops-select-trigger" title="Últimos 30 días" aria-labelledby="growth-period-label growth-period-value" aria-haspopup="listbox" aria-expanded="false"><span id="growth-period-value">Últimos 30 días</span>${svg(I.chevronDown, 16)}</button></div>
+<section class="grid gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">
+ <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+  <div class="min-w-0"><div class="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Captación digital</div><h2 class="mt-1 text-xl font-bold text-fore">Visitas y crecimiento</h2></div>
+  <label class="flex shrink-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Período
+   <select aria-label="Período" class="h-11 w-44 cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm">
+    <option>Últimos 7 días</option><option selected>Últimos 30 días</option><option>Últimos 90 días</option>
+   </select>
+  </label>
+ </header>
+ <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+  ${growthCard('Páginas vistas', '37.479', '128.4%', 'vs. período anterior')}
+  ${growthCard('Vistas desde móvil', '18.240', '—', 'Sin base anterior')}
+  ${growthCard('Clics en WhatsApp', '1.284', '12.5%', 'vs. período anterior')}
  </div>
- <div class="growth-cards">
-  <article><p>${svg(I.eye, 20)}Páginas vistas</p><strong>37.479</strong><small>${svg(I.trendingUp, 14)}+128.4% vs. período anterior</small></article>
-  <article><p>${svg(I.smartphone, 20)}Vistas desde móvil</p><strong>18.240</strong><small>${svg(I.trendingUp, 14)}Sin base anterior</small></article>
-  <article><p>${svg(I.messageCircle, 20)}Clics en WhatsApp</p><strong>1.284</strong><small>${svg(I.trendingUp, 14)}-12.5% vs. período anterior</small></article>
- </div>
- <div><h3>Evolución diaria · páginas vistas</h3><div class="growth-chart" role="img" aria-label="Páginas vistas durante 30 días. 37.479 en total.">${growthBars}</div><div class="growth-axis"><span>${growthPointDays[0]}</span><span>${growthPointDays[growthPointDays.length - 1]}</span></div></div>
- <p class="form-note">Son eventos registrados, no personas únicas ni usuarios conectados. Las vistas móviles no se suman al total de páginas. Las comprobaciones de despliegue quedan excluidas.</p>
- <details open><summary>Ver datos diarios</summary><div class="growth-table"><table><thead><tr><th>Fecha</th><th>Páginas vistas</th></tr></thead><tbody>${growthPointCounts.map((count, index) => `<tr><td>${growthPointDays[index]}</td><td>${count}</td></tr>`).join('')}</tbody></table></div></details>
+ <section aria-labelledby="growth-evolution">
+  <h3 id="growth-evolution" class="text-sm font-bold text-fore">Evolución diaria · páginas vistas</h3>
+  <div class="mt-2 flex h-40 items-end gap-[3px] rounded-t-lg border border-b-ink-500 border-ink-600 bg-ink-900 px-2 pt-2" role="img" aria-label="Páginas vistas durante 30 días. 37.479 en total.">${growthBars}</div>
+  <div class="mt-1 flex justify-between gap-2 text-[11px] tabular-nums text-mute"><span>${growthPointDays[0]}</span><span>${growthPointDays[growthPointDays.length - 1]}</span></div>
+ </section>
+ <p class="rounded-lg border border-info/25 bg-info/10 p-2 text-xs text-mute">Son eventos registrados, no personas únicas ni usuarios conectados. Las vistas móviles no se suman al total de páginas. Las comprobaciones de despliegue quedan excluidas.</p>
+ <details class="text-sm text-fore" open><summary class="cursor-pointer font-semibold">Ver datos diarios</summary>
+  <div class="mt-2 max-h-[70vh] overflow-auto"><table class="w-full text-sm"><thead class="sticky top-0 z-10 bg-ink-800"><tr class="border-b border-ink-600 text-left text-xs uppercase tracking-wider text-mute"><th class="px-2.5 py-1.5 font-medium">Fecha</th><th class="px-2.5 py-1.5 text-right font-medium">Páginas vistas</th></tr></thead><tbody>${growthPointCounts.map((count, index) => `<tr class="border-b border-ink-600/60 last:border-0"><td class="px-2.5 py-1.5 text-fore">${growthPointDays[index]}</td><td class="px-2.5 py-1.5 text-right text-fore tabular-nums">${count}</td></tr>`).join('')}</tbody></table></div>
+ </details>
 </section>`;
 
 /* ======================================================== 4. PLANES =======
@@ -241,29 +259,29 @@ const numberLabel = (value) => new Intl.NumberFormat('es-PY', {maximumFractionDi
 const planAmount = (value, currency) => value !== null && Number.isFinite(value) && validCurrency(currency) ? money(value, currency) : 'No disponible';
 const planTotal = (items) => items.length && items.every((item) => item.subtotal !== null) ? items.reduce((sum, item) => sum + item.subtotal, 0) : null;
 
-const planActions = (name) => `<div class="plan-comparison-actions"><button type="button" class="text-button">${svg(I.pencil, 14)}Editar</button>${removeRecordButton('plans', name)}</div>`;
+const planActions = (name) => `<div class="mt-2 flex flex-wrap gap-1.5"><button type="button" class="text-button">${svg(I.pencil, 14)}Editar</button>${removeRecordButton('plans', name)}</div>`;
 
 const planHeader = (plan) => `
-  <th scope="col">
-   <h3>${plan.name}</h3>
-   <span class="plan-comparison-meta">${validCurrency(plan.currency) ? plan.currency : 'Moneda no disponible'} · ${plan.items.length} ${plan.items.length === 1 ? 'ítem' : 'ítems'}</span>
-   ${plan.archived ? '<span class="plan-comparison-meta">Archivado</span>' : ''}
+  <th scope="col" class="sticky top-0 z-[1] border-b border-r border-ink-600 bg-ink-900 px-3 py-3 text-left align-top last:border-r-0">
+   <h3 class="whitespace-normal text-sm font-bold leading-snug text-fore">${plan.name}</h3>
+   <span class="mt-1 block text-[11px] font-medium leading-4 text-mute">${validCurrency(plan.currency) ? plan.currency : 'Moneda no disponible'} · ${plan.items.length} ${plan.items.length === 1 ? 'ítem' : 'ítems'}</span>
+   ${plan.archived ? '<span class="mt-1 block text-[11px] font-medium leading-4 text-mute">Archivado</span>' : ''}
    ${planActions(plan.name)}
   </th>`;
 
-/* app/plan-comparison.tsx Deliverables line 40-44: split(';'), one package. */
+/* app/plan-comparison.tsx Deliverables: split(';'), one package. */
 const planDeliverables = (description) => {
   const parts = description.split(';');
   return parts.length > 1
-    ? `<ul class="plan-comparison-deliverables">${parts.map((part, index) => `<li>${part.trim()}${index < parts.length - 1 ? ';' : ''}</li>`).join('')}</ul>`
-    : `<p class="plan-comparison-description">${description}</p>`;
+    ? `<ul class="list-disc pl-4">${parts.map((part, index) => `<li>${part.trim()}${index < parts.length - 1 ? ';' : ''}</li>`).join('')}</ul>`
+    : `<p class="whitespace-pre-wrap">${description}</p>`;
 };
 
 const planItems = (plan) => plan.items
   .map((item) => `
-   <li class="plan-comparison-item">
+   <li data-plan-item class="grid gap-2 border-b border-ink-600/60 pb-2 text-xs leading-relaxed last:border-0 last:pb-0">
     ${planDeliverables(item.description)}
-    <div class="plan-comparison-item-price"><span>Cantidad del ítem: ${item.quantity === null ? 'No disponible' : numberLabel(item.quantity)}</span><span>Precio unitario: ${planAmount(item.price, plan.currency)}</span><strong>Subtotal: ${planAmount(item.subtotal, plan.currency)}</strong></div>
+    <div data-plan-item-price class="grid gap-0.5 rounded-lg border border-ink-600 bg-ink-900 p-2 text-[11px] text-mute"><span class="whitespace-nowrap">Cantidad del ítem: ${item.quantity === null ? 'No disponible' : numberLabel(item.quantity)}</span><span class="whitespace-nowrap">Precio unitario: ${planAmount(item.price, plan.currency)}</span><strong class="whitespace-nowrap text-xs text-fore">Subtotal: ${planAmount(item.subtotal, plan.currency)}</strong></div>
    </li>`)
   .join('')
   .trim();
@@ -302,17 +320,20 @@ const comparisonPlans = [
   },
 ];
 
+const planCell = 'border-b border-r border-ink-600 px-3 py-3 text-left align-top text-[13px] leading-relaxed last:border-r-0';
+const planRowHead = `${planCell} sticky left-0 z-[2] w-44 bg-ink-900 font-bold text-fore`;
+
 const planComparison = `
-<div class="plan-comparison">
- <p class="form-note">Todos los entregables y precios guardados, sin IVA. El IVA se define en el presupuesto. Cada plan conserva su moneda. Desplazá la tabla horizontalmente para comparar.</p>
- <div class="plan-comparison-scroll" role="region" aria-label="Comparación de planes" tabindex="0">
-  <table class="plan-comparison-table" style="min-width:${11 + comparisonPlans.length * 17}rem">
-   <caption>Planes, precios y entregables incluidos</caption>
-   <thead><tr><th scope="col">Comparar</th>${comparisonPlans.map(planHeader).join('')}</tr></thead>
+<div class="min-w-0 max-w-full text-fore">
+ <p class="max-w-[76ch] text-xs leading-5 text-mute">Todos los entregables y precios guardados, sin IVA. El IVA se define en el presupuesto. Cada plan conserva su moneda. Desplazá la tabla horizontalmente para comparar.</p>
+ <div class="mt-3 max-w-full overflow-x-auto rounded-xl border border-ink-600 bg-ink-800" role="region" aria-label="Comparación de planes" tabindex="0">
+  <table class="w-full table-fixed border-separate border-spacing-0 tabular-nums" style="min-width:${11 + comparisonPlans.length * 17}rem">
+   <caption class="border-b border-ink-600 bg-ink-900 px-3 py-3 text-left text-xs font-semibold text-mute">Planes, precios y entregables incluidos</caption>
+   <thead><tr><th scope="col" class="sticky left-0 z-[3] w-44 border-b border-r border-ink-600 bg-ink-900 px-3 py-3 text-left align-top">Comparar</th>${comparisonPlans.map(planHeader).join('')}</tr></thead>
    <tbody>
-    <tr class="plan-comparison-total"><th scope="row">Total de ítems <small>Sin IVA</small></th>${comparisonPlans.map((plan) => `<td><strong>${planAmount(planTotal(plan.items), plan.currency)}</strong>${plan.items.length ? '' : '<small>Sin ítems guardados</small>'}</td>`).join('')}</tr>
-    <tr><th scope="row">Entregables incluidos</th>${comparisonPlans.map((plan) => `<td>${plan.items.length ? `<ol class="plan-comparison-items">${planItems(plan)}</ol>` : '<span class="plan-comparison-meta">Sin entregables guardados.</span>'}</td>`).join('')}</tr>
-    <tr><th scope="row">Condiciones y fuente</th>${comparisonPlans.map((plan) => `<td class="plan-comparison-notes">${plan.notes}</td>`).join('')}</tr>
+    <tr data-plan-total><th scope="row" class="${planRowHead} border-t-2 border-t-fono/60">Total de ítems <small class="mt-1 block text-[11px] font-medium text-mute">Sin IVA</small></th>${comparisonPlans.map((plan) => `<td class="${planCell} border-t-2 border-t-fono/60 bg-fono/10"><strong class="text-base font-bold tracking-tight text-fore">${planAmount(planTotal(plan.items), plan.currency)}</strong>${plan.items.length ? '' : '<small class="mt-1 block text-[11px] font-medium text-mute">Sin ítems guardados</small>'}</td>`).join('')}</tr>
+    <tr><th scope="row" class="${planRowHead}">Entregables incluidos</th>${comparisonPlans.map((plan) => `<td class="${planCell}">${plan.items.length ? `<ol class="grid gap-2">${planItems(plan)}</ol>` : '<span class="text-[11px] font-medium text-mute">Sin entregables guardados.</span>'}</td>`).join('')}</tr>
+    <tr><th scope="row" class="${planRowHead}">Condiciones y fuente</th>${comparisonPlans.map((plan) => `<td class="${planCell} whitespace-pre-wrap text-xs leading-relaxed text-mute">${plan.notes}</td>`).join('')}</tr>
    </tbody>
   </table>
  </div>
