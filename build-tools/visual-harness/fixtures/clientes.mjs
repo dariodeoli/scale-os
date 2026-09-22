@@ -3,7 +3,7 @@
  * Markup mirrors app/scale-workspace.tsx:
  *   - ClientHubCard + clientHeadRow (lines ~270-333)
  *   - app/client-identity.tsx (ClientIdentity)
- *   - app/client-directory-toolbar.tsx (SearchField, SelectCustom, ViewToggle)
+ *   - app/client-directory-toolbar.tsx (rediseño v2: SearchField, Select, ListGridToggle, Button)
  * and the real classes in app/client-directory.css / client-identity.css.
  *
  * Stress values are deliberate: long names, long emails, big amounts, empty
@@ -145,13 +145,13 @@ const gridToggle20 = svg('grid-2x2', 20, '<path d="M12 3v18"/><path d="M3 12h18"
 const listToggle20 = svg('list', 20, '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>', ' stroke-width="2.25"');
 
 const toolbar = `
-<div class="client-directory-toolbar" aria-label="Controles del directorio de clientes">
- <div class="client-directory-toolbar-title"><h1>Clientes</h1><p class="directory-summary" role="status" aria-atomic="true">Mostrando 4 clientes de 4 clientes</p></div>
- <label class="search-field client-directory-search" for="clientes-buscar"><span class="sr-only">Buscar clientes</span><span class="search-field-box">${search16}<input id="clientes-buscar" type="search" placeholder="Buscar por nombre, correo o teléfono" autocomplete="off" value=""/></span></label>
- <div class="ops-select"><span class="ops-label" id="clientes-estado-label">Estado</span><button type="button" class="ops-select-trigger" title="Todos los estados" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="clientes-estado-label clientes-estado-value"><span id="clientes-estado-value">Todos los estados</span>${chevron16}</button></div>
- <div class="workspace-view-controls"><div class="view-toggle_toggle__ybg7L" role="group" aria-label="Vista de clientes"><button type="button" aria-label="Ver como cuadrícula" aria-pressed="false" title="Ver como cuadrícula">${gridToggle20}</button><button type="button" aria-label="Ver como lista" aria-pressed="true" title="Ver como lista">${listToggle20}</button></div></div>
+<div class="flex flex-wrap items-end gap-3" aria-label="Controles del directorio de clientes">
+ <div class="min-w-0 flex-1 basis-52"><h1 class="text-xl font-bold text-fore">Clientes</h1><p class="mt-0.5 text-xs text-mute" role="status" aria-atomic="true">Mostrando 4 clientes de 4 clientes</p></div>
+ <div class="min-w-0 flex-1 basis-64"><div class="relative min-w-0"><span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mute" aria-hidden="true">${search16}</span><input class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 pl-9 pr-9 text-base text-fore outline-none transition placeholder:text-mute/60 focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm" type="search" placeholder="Buscar por nombre, correo o teléfono" aria-label="Buscar clientes" value=""/></div></div>
+ <div class="flex flex-col gap-1"><label class="block text-[11px] font-medium uppercase tracking-wider text-mute" for="clientes-estado">Estado</label><select id="clientes-estado" class="h-11 w-44 cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"><option>Todos los estados</option><option>Activo</option><option>Pausado</option><option>Cancelado</option><option>Servicio vencido</option><option>Inactivo</option></select></div>
+ <div class="flex overflow-hidden rounded-lg border border-ink-600 bg-ink-800" role="group" aria-label="Cambiar vista"><button type="button" title="Ver como lista" aria-label="Ver como lista" aria-pressed="true" class="grid h-9 w-9 place-items-center bg-fono/15 text-fono-light">${listToggle20}</button><button type="button" title="Ver como cuadrícula" aria-label="Ver como cuadrícula" aria-pressed="false" class="grid h-9 w-9 place-items-center text-mute">${gridToggle20}</button></div>
  <button type="button" class="secondary">Guía del panel</button>
- <button type="button" class="primary client-directory-create">${plus18}Nuevo cliente</button>
+ <button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-fono px-4 text-sm font-semibold text-onbrand transition hover:bg-fono-light md:h-9">${plus18} Nuevo cliente</button>
 </div>`;
 
 export default [

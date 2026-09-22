@@ -1,7 +1,7 @@
 "use client";
 // Rediseño v2 (campaña #41 / spec #43 §1.2) reconciliado con la adaptación de
-// DSN para la referencia de Clientes (#42): mismos props, objetos de la
-// librería y la lógica pura centralizada en ./client-directory-data.
+// DSN para la referencia de Clientes (#42): mismos props y objetos de la
+// librería, con la lógica pura centralizada en ./client-directory-data.
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
 import {Button, Label, ListGridToggle, SearchField, Select} from 'owncoding-ui';
@@ -52,7 +52,7 @@ export function ClientDirectoryToolbar({
           {directorySummaryText(resultCount, totalCount)}
         </p>
       </div>
-      <SearchField className="w-full sm:w-72" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder="Buscar por nombre, correo o teléfono"/>
+      <SearchField className="client-directory-search w-full sm:w-72" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder="Buscar por nombre, correo o teléfono"/>
       <div className="grid gap-1.5">
         <Label htmlFor="clientes-estado">Estado</Label>
         <Select id="clientes-estado" value={status} onChange={(event:ChangeEvent<HTMLSelectElement>)=>onStatusChange(event.target.value)} className="min-w-[11rem]">
