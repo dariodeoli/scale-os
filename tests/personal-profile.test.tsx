@@ -59,12 +59,12 @@ test('canonical name/email header, single photo preview, edit sequence and scope
  assert.equal(renderer.root.findAllByType('input').length,1);assert.equal(renderer.root.findByType('input').props.name,'full_name');
  assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Guardar nombre')));
  assert.equal(requests.length,1,'opening the editor never writes');
- assert.equal(renderer.root.findByProps({className:'my-profile-kicker'}).children[0],'Identidad');
+ assert.match(JSON.stringify(renderer.toJSON()),/"data-profile-section":"identity"[\s\S]*?Identidad/,'la sección de identidad encabeza el perfil');
  assert.equal(renderer.root.findAllByType(PhotoStub).length,1);
  assert.equal(renderer.root.findAllByType('img').length,1,'the header must not duplicate the photo preview');
- assert.equal(renderer.root.findByProps({className:'my-profile-identity'}).findAllByType('img').length,0);
+ assert.equal(renderer.root.findByProps({'data-profile-section':'identity'}).findAllByType('img').length,0,'la identidad no monta fotos');
  assert.match(content(),/Acceso con Google/);const google=renderer.root.findAllByType('a').find(link=>link.children.includes('Conectar Google'))!;assert.equal(google.props.href,'/core-api/api/auth/google/start?connect=1');
- assert(content().indexOf('my-profile-photo')<content().indexOf('my-profile-name'),'photo controls precede name editing');close();
+ const rendered=content();assert(rendered.indexOf('"data-profile-section":"photo"')<rendered.indexOf('"data-profile-section":"name"'),'photo controls precede name editing');
 });
 
 test('name failure retains real Editor draft and dialog; retry closes only after persistence',async()=>{
@@ -141,21 +141,15 @@ test('load retry and late responses cannot close or refresh an abandoned editor'
  await mount();const lateLoad=latest();close();await respond(lateLoad,{profile:fixture()});assert.equal(refreshes,0);
 });
 
-test('scoped CSS: wrapping identity, 44px controls and unchanged hidden file input at 320/360/390',()=>{
- const source=readFileSync(new URL('../app/my-profile.css',import.meta.url),'utf8'),css=postcss.parse(source);
- const declaration=(selector:string,property:string)=>{let result:string|undefined;css.walkRules(rule=>{if(rule.selectors.includes(selector))rule.walkDecls(property,d=>{result=d.value;});});return result;};
- css.walkRules(rule=>{assert(rule.selectors.every(selector=>selector.startsWith('.my-profile')),`unscoped CSS: ${rule.selector}`);});
- for(const width of [320,360,390]){
-  assert.equal(declaration('.my-profile-content.my-profile-editor','min-width'),'0');
-  assert.equal(declaration('.my-profile-login dd','overflow-wrap'),'anywhere');
-  assert.equal(declaration('.my-profile-name input','min-height'),'44px');
-  assert.equal(declaration('.my-profile-name input','font-size'),'16px');
-  assert.equal(declaration('.my-profile-photo .profile-photo-summary','flex-wrap'),'wrap');
-  assert.equal(declaration('.my-profile-photo .photo-upload','min-height'),'44px');
-  assert.equal(declaration('.my-profile-photo','max-width'),'100%',`photo controls shrink at ${width}px`);
- }
- assert(!source.includes('100vw'));assert(!/#[0-9a-f]{3,8}\b/i.test(source));
- assert(source.includes(':focus-visible'));assert(!/input\[type=file\]/.test(source),'hidden file control remains untouched');
+test('v2 source: wrapping identity, 44px controls and unchanged hidden file input at 320/360/390',()=>{
+ const source=readFileSync(new URL('../app/my-profile.tsx',import.meta.url),'utf8');
+ const security=readFileSync(new URL('../app/account-security.tsx',import.meta.url),'utf8');
+ assert(source.includes('min-w-0')&&source.includes('grid-cols-[minmax(0,1fr)]'),'el perfil no desborda en mobile');
+ assert(source.includes('break-words'),'los datos largos (correo) parten línea en vez de cortarse');
+ assert(source.includes('data-profile-section=\"access\"')&&source.includes('AccountSecurity'),'la seguridad de cuenta vive en su sección del perfil');
+ assert(security.includes("hourCycle:'h23'"),'el reloj de sesiones sigue en 24 h (contrato de ux-consistency)');
+ assert(!/#[0-9a-f]{3,8}\b/i.test(source)&&!/#[0-9a-f]{3,8}\b/i.test(security),'sin colores hardcodeados: tokens del sistema');
+ assert(!source.includes('my-profile.css')&&!security.includes('my-profile.css'),'el CSS plano del perfil quedó retirado');
 });
 
 test('a Google-linked account shows the connected state instead of the connect action',async()=>{

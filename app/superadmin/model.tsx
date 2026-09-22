@@ -178,3 +178,6 @@ export function newExtendKey(){
     ? crypto.randomUUID()
     : `extend-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+
+export type ConfirmRequest = { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null;
+export type CouponDraft = { code: string; discount_value: string; discount_type: "percent" | "fixed" | "days"; currency: string };
