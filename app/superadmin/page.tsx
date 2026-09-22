@@ -25,187 +25,35 @@ import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
 import "./platform-admin.css";
 import { platformApi, subscriptionExpiry, asuncionInput } from "../platform-admin-api";
+import {
+  StatusBadge,
+  appHome,
+  errorCode,
+  errorStatus,
+  formatPlatformMetric,
+  loginReturnPath,
+  manualAccessLabel,
+  money,
+  newExtendKey,
+  platformDate,
+  subscriptionSummary,
+  type Agency,
+  type AuditAction,
+  type BootstrapStatus,
+  type Coupon,
+  type Overview,
+  type Person,
+  type State,
+  type Subscription,
+} from "./model";
+import {PlatformAccessDenied, PlatformNotices, PlatformRedirecting} from "./states";
+import {PlatformAudit} from "./audit";
 import { soloDigitos } from "owncoding-ui";
 import { decimalInput } from "../field-rules";
 import { SelectCustom } from "../profile-controls";
 import { Dialog } from "../dialog";
 import { SaveActions } from "../save-actions";
 
-type Overview = {
-  agencies: { total: number; active: number };
-  users: { total: number };
-  subscriptions: { status: string; total: number }[];
-  coupons: { total: number; active: number };
-};
-type Agency = {
-  id: number;
-  name: string;
-  slug: string;
-  active: boolean;
-  active_users: number;
-  subscription_status: string | null;
-  subscription_currency: string | null;
-  subscription_amount: string | null;
-  trial_ends_at: string | null;
-  due_at: string | null;
-  internal_subscription_state?: "active" | "suspended" | null;
-  internal_subscription_expires_at?: string | null;
-};
-type Subscription = {
-  internal_state: "active" | "suspended" | null;
-  internal_reason: string | null;
-  internal_expires_at: string | null;
-  provider_status?: string | null;
-  currency?: string | null;
-};
-type Person = {
-  id: number;
-  email: string;
-  active_agencies: number;
-  platform_admin: boolean;
-  platform_role?: "admin" | "viewer" | null;
-};
-type Coupon = {
-  id: number;
-  code: string;
-  discount_type: "percent" | "fixed" | "days";
-  discount_value: string;
-  currency: string | null;
-  active: boolean;
-  max_redemptions: number | null;
-};
-type AuditAction = {
-  id: string;
-  action: string;
-  target_type: string;
-  target_id: string;
-  metadata: unknown;
-  created_at: string;
-  actor_email: string | null;
-};
-type State = {
-  overview: Overview;
-  agencies: Agency[];
-  users: Person[];
-  coupons: Coupon[];
-  audit: AuditAction[];
-};
-type BootstrapStatus = {
-  configured: boolean;
-  valid: boolean;
-  initialized: boolean;
-  state:
-    | "initialized"
-    | "not_configured"
-    | "invalid_configuration"
-    | "awaiting_eligible_user";
-};
-
-type PlatformError = Error & { status?: unknown; code?: unknown };
-function loginReturnPath() {
-  if (typeof window !== "undefined" && window.location.hostname === "admin.scaleparaguay.com") return "https://app.scaleparaguay.com/";
-  return "/";
-}
-function appHome() {
-  if (typeof window !== "undefined" && window.location.hostname === "admin.scaleparaguay.com") return "https://app.scaleparaguay.com/";
-  return "/";
-}
-
-function errorStatus(cause: unknown) {
-  const status = (cause as PlatformError)?.status;
-  return typeof status === "number" ? status : undefined;
-}
-
-function errorCode(cause: unknown) {
-  const code = (cause as PlatformError)?.code;
-  return typeof code === "string" ? code : undefined;
-}
-
-function formatPlatformMetric(value: unknown, fallback = "—") {
-  const number =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim() !== ""
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(number)
-    ? new Intl.NumberFormat("es-PY", { maximumFractionDigits: 0 }).format(
-        number,
-      )
-    : fallback;
-}
-
-function money(value: unknown, currency: unknown) {
-  const amount =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim() !== ""
-        ? Number(value)
-        : Number.NaN;
-  const code =
-    typeof currency === "string" && /^[A-Z]{3}$/.test(currency)
-      ? currency
-      : "USD";
-  if (!Number.isFinite(amount)) return "—";
-  try {
-    return formatMoney(amount, code);
-  } catch {
-    return "—";
-  }
-}
-
-function platformDate(value: unknown) {
-  if (typeof value !== "string" || !value.trim()) return "—";
-  const date = new Date(value);
-  return Number.isFinite(date.getTime())
-    ? new Intl.DateTimeFormat("es-PY", { dateStyle: "medium", timeZone: "America/Asuncion" }).format(date)
-    : "—";
-}
-
-function subscriptionSummary(rows: unknown) {
-  if (!Array.isArray(rows)) return "Sin datos";
-  const values = rows.flatMap((row) => {
-    if (!row || typeof row !== "object") return [];
-    const item = row as { total?: unknown; status?: unknown };
-    const total = formatPlatformMetric(item.total, "");
-    if (!total) return [];
-    const status =
-      typeof item.status === "string" && item.status.trim()
-        ? item.status.trim()
-        : "Sin estado";
-    return [`${total} ${status}`];
-  });
-  return values.join(" · ") || "Sin datos";
-}
-
-function manualAccessLabel(agency: Agency) {
-  if (agency.internal_subscription_state === "active")
-    return "Acceso manual activo";
-  if (agency.internal_subscription_state === "suspended")
-    return "Acceso manual suspendido";
-  return "Sin cambio manual";
-}
-
-function StatusBadge({
-  children,
-  tone = "neutral",
-}: {
-  children: string;
-  tone?: "success" | "warning" | "neutral";
-}) {
-  return (
-    <span className="platform-admin-badge" data-tone={tone}>
-      {children}
-    </span>
-  );
-}
-
-/** Clave estable por apertura del diálogo: un reintento del mismo extend no duplica días. */
-function newExtendKey(){
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `extend-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
 
 export default function PlatformAdmin() {
   const router = useRouter();
@@ -636,73 +484,12 @@ export default function PlatformAdmin() {
   }
 
   const pageContent = redirecting ? (
-    <section className="platform-admin-state" role="status">
-      <KeyRound aria-hidden="true" />
-      <div>
-        <h2>Redirigiendo al inicio de sesión</h2>
-        <p>Verificá tu acceso para continuar con la administración global.</p>
-      </div>
-    </section>
+    <PlatformRedirecting/>
   ) : accessDenied ? (
-    <section className="platform-admin-access-denied" role="alert">
-      <div className="platform-admin-access-denied-icon">
-        <ShieldAlert aria-hidden="true" />
-      </div>
-      <div>
-        <p className="eyebrow">ACCESO RESTRINGIDO</p>
-        <h2>No tenés acceso global</h2>
-        <p>
-          Tu sesión está activa, pero no tiene el permiso necesario para
-          administrar la plataforma.
-        </p>
-        <Link className="secondary platform-admin-back-link" href={appHome()}>
-          <ArrowLeft aria-hidden="true" />
-          Volver al panel
-        </Link>
-      </div>
-    </section>
+    <PlatformAccessDenied/>
   ) : (
     <>
-      <section className="platform-admin-notice">
-        <ShieldAlert aria-hidden="true" />
-        <span>
-          <strong>Acceso separado por plataforma.</strong> Ser dueño de una
-          agencia no habilita este panel ni sus datos.
-        </span>
-      </section>
-      {bootstrap && !bootstrap.initialized ? (
-        <section className="platform-admin-bootstrap" role="status">
-          <strong>Primer acceso global pendiente.</strong>
-          <span>
-            {bootstrap.state === "not_configured"
-              ? "Falta definir la configuración inicial del administrador en el servidor."
-              : bootstrap.state === "invalid_configuration"
-                ? "La configuración inicial del administrador no tiene un formato válido."
-                : bootstrap.state === "awaiting_eligible_user"
-                  ? "La cuenta configurada debe existir, tener correo verificado y acceso activo a una agencia."
-                  : "Estado de configuración pendiente."}
-          </span>
-          <small>Este diagnóstico no expone correos ni secretos.</small>
-        </section>
-      ) : null}
-      {error ? (
-        <section className="platform-admin-error" role="alert">
-          <CircleAlert aria-hidden="true" />
-          <div>
-            <h2>No pudimos actualizar el control global</h2>
-            <p>{error}</p>
-          </div>
-        </section>
-      ) : null}
-      {busy && !state ? (
-        <section className="platform-admin-state" role="status">
-          <RefreshCw aria-hidden="true" />
-          <div>
-            <h2>Cargando control global</h2>
-            <p>Reuniendo indicadores, accesos y catálogo comercial.</p>
-          </div>
-        </section>
-      ) : null}
+      <PlatformNotices state={state} error={error} busy={busy} bootstrap={bootstrap}/>
       {state ? (
         <>
           <section
@@ -1296,60 +1083,7 @@ export default function PlatformAdmin() {
             </section>
           </section>
 
-          <section className="platform-admin-section platform-admin-audit">
-            <div className="platform-admin-section-heading">
-              <div>
-                <p className="eyebrow">AUDITORÍA</p>
-                <h2>Actividad de administración global</h2>
-              </div>
-              <small>
-                {formatPlatformMetric(state.audit.length)} acciones recientes
-              </small>
-            </div>
-            <div className="platform-admin-table-wrap">
-              <table className="platform-admin-ledger">
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Actor</th>
-                    <th>Acción</th>
-                    <th>Destino</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {state.audit.length ? (
-                    state.audit.map((entry) => (
-                      <tr key={entry.id}>
-                        <td>{platformDate(entry.created_at)}</td>
-                        <td>{entry.actor_email || "Sistema"}</td>
-                        <td>{entry.action}</td>
-                        <td>
-                          {entry.target_type}
-                          {entry.target_id
-                            ? ` #${formatPlatformMetric(entry.target_id)}`
-                            : ""}
-                          {entry.metadata &&
-                          typeof entry.metadata === "object" &&
-                          !Array.isArray(entry.metadata) &&
-                          Object.keys(entry.metadata as object).length ? (
-                            <small title={JSON.stringify(entry.metadata)}>
-                              {JSON.stringify(entry.metadata).slice(0, 160)}
-                            </small>
-                          ) : null}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="platform-admin-empty">
-                        Sin acciones registradas.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <PlatformAudit audit={state.audit}/>
         </>
       ) : null}
 

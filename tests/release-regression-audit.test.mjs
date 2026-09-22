@@ -55,7 +55,7 @@ assert(file('../app/subscription-panel.css').includes('.subscription-notice.subs
 assert(file('../app/access-layout.tsx').includes('max-w-[30rem]')&&file('../app/registro/page.tsx').includes('grid gap-3'),'las superficies de acceso comparten el marco v2 y su ritmo vertical');
 assert(file('../app/invite-links.tsx').includes('REQUESTS_TEMPLATE=')&&file('../app/invite-links.tsx').includes('LINKS_TEMPLATE='),'invite rows keep a shared v2 template for header and rows');
 assert(file('../app/superadmin/platform-admin.css').includes('margin-bottom: 0;'),'the global admin header resets the leaking global header margin');
-assert(file('../app/superadmin/page.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');
+assert(file('../app/superadmin/audit.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');
 assert(file('../app/superadmin/platform-admin.css').includes('.platform-admin-subscription-form label:has(textarea)'),'subscription notes span the full row');
 assert(file('../app/actor-identity.css').includes('.actor-identity-time{white-space:nowrap'),'author timestamps never break mid-value');
 assert(file('../app/status/page.tsx').includes('AccessLayout wide')&&file('../app/status/page.tsx').includes('StateChip'),'la página de estado conserva el marco de acceso y un solo chip');

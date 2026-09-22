@@ -10,9 +10,9 @@ export function PasswordPanel(){
  },[]);
  return <>
   <button type="button" className="text-button" onClick={()=>{setNotice('');setOpen(true);}}><KeyRound size={14}/>Establecer o recuperar contraseña</button>
-  {!open&&notice&&<p role="status">{notice}</p>}
+  {!open&&notice?<p role="status" className="text-xs text-ok">{notice}</p>:null}
   {open&&<Dialog title={token?'Nueva contraseña':'Recuperar acceso'} close={()=>setOpen(false)}>
-   {notice?<p role="status">{notice}</p>:<Editor fields={token?[
+   {notice?<p role="status" className="text-xs text-ok">{notice}</p>:<Editor fields={token?[
     {key:'password',label:'Nueva contraseña (mínimo 8 caracteres)',type:'password'},
     {key:'confirm',label:'Repetir contraseña',type:'password'},
    ]:[{key:'email',label:'Correo con acceso a la empresa',type:'email'}]}
