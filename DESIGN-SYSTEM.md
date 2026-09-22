@@ -103,18 +103,26 @@ nuevas**: lo nuevo se escribe con utilidades Tailwind y objetos de la librería.
 - `tailwind.config.mjs` usa el preset de `owncoding-ui`, escanea `app/`, el
   bundle de la librería y los fixtures del harness visual. `postcss.config.mjs`
   corre Tailwind + autoprefixer sobre todo el CSS (las hojas legadas no cambian).
-- Orden de carga en `app/layout.tsx`: `globals.css` → hojas legadas →
-  `owncoding-ui/styles.css` → `app/tailwind.css` (hoja del sistema). Las
-  utilidades salen después del CSS legado: en un mismo elemento gana Tailwind;
-  las hojas de módulo legadas siguen mandando en sus pantallas.
+- Orden de carga en `app/layout.tsx`: `owncoding-ui/styles.css` (tokens y base
+  del grupo) → hojas legadas (`globals`, `qa-fixes`, `mobile-forms`,
+  `ui-system`) → `app/tailwind.css` (hoja del sistema: utilidades y tokens de
+  marca). Las utilidades salen después del CSS legado: en un mismo elemento
+  gana Tailwind; las hojas de módulo legadas siguen mandando en sus pantallas.
+  La base de elementos de la librería (Space Grotesk, titulares balanceados,
+  mono en campos numéricos) se neutraliza en la hoja del sistema para conservar
+  Outfit/DM Mono y las métricas legadas, sin tocar tokens ni objetos.
 - **Preflight desactivado** (`corePlugins.preflight = false`): el reset global
   rompería las 53 hojas actuales (márgenes, títulos, listas, bordes). En su
-  lugar, la hoja del sistema trae una **base mínima**: borde sólido y color
-  heredable para que funcionen las utilidades `border*`, incluyendo `button`
-  (el legado fija `button{border:0}`). No se resetean tipografía, márgenes ni
-  listas. Evidencia: build en verde, harness visual y capturas de las
-  referencias en claro/oscuro; cualquier excepción se corrige en la base, no
-  por pantalla.
+  lugar, la hoja del sistema trae una **base mínima**: `border-width: 0` +
+  `border-style: solid` + color heredable para que funcionen las utilidades
+  `border*` (incluye `button`, que el legado fija `border:0`). El ancho 0 es
+  obligatorio: sin él, cualquier elemento sin borde declarado toma el ancho
+  inicial `medium` (3 px) y cambia todas las métricas. No se resetean
+  tipografía, márgenes ni listas. Evidencia: build en verde y harness visual de
+  Clientes/Resumen/Configuración a 360/768/1440 con paridad exacta contra
+  `main` (mismos 17 hallazgos preexistentes de altura de fila, 0 nuevos);
+  capturas en claro/oscuro en `work/visual-harness/*/captures`. Cualquier
+  excepción se corrige en la base, no por pantalla.
 - **Tema oscuro**: Scale OS sigue usando `html[data-theme="dark"]` (script del
   layout). Tailwind se configura con `darkMode: ['selector', 'html[data-theme="dark"]']`,
   así los `dark:` del preset y de la librería siguen el tema legado sin depender

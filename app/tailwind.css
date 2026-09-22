@@ -24,19 +24,53 @@
 @tailwind utilities;
 
 /* ── Base mínima (sustituto acotado del preflight) ──────────────────────────
-   Tailwind espera `border-style: solid` global para sus utilidades `border*`.
-   El CSS legado fija `button{border:0}`, así que los botones se re-declaran
-   acá: cualquier `<button>` con clase `border` vuelve a dibujar el borde,
-   mientras que los botones legados (sin utilidad de borde) siguen sin borde. */
+   Tailwind espera `border-style: solid` y ancho 0 global para sus utilidades
+   `border*`: sin el ancho 0, cualquier elemento sin borde declarado hereda el
+   ancho inicial (`medium` = 3px) y cambia todas las métricas legadas. El CSS
+   legado fija `button{border:0}`, así que los botones se re-declaran acá:
+   cualquier `<button>` con clase `border` vuelve a dibujar el borde, mientras
+   que los botones legados (sin utilidad de borde) siguen sin borde. */
 *,
 ::before,
 ::after {
+  border-width: 0;
   border-style: solid;
   border-color: rgb(var(--c-ink-600));
 }
 button {
+  border-width: 0;
   border-style: solid;
   border-color: rgb(var(--c-ink-600));
+}
+
+/* ── Convivencia con la base de la librería ─────────────────────────────────
+   `owncoding-ui/styles.css` entra primero (tokens `--c-*` y base del grupo) y
+   ScaleOS carga después sus hojas legadas + esta. Su base de elementos usa la
+   identidad del grupo (Space Grotesk, titulares balanceados, mono en campos
+   numéricos); para no cambiar métricas del CSS legado se neutraliza SOLO eso.
+   Los tokens, los objetos y las utilidades de la librería no se tocan. */
+h1,
+h2,
+h3,
+nav,
+button,
+label {
+  font-family: inherit;
+}
+h1,
+h2,
+h3 {
+  text-wrap: inherit;
+}
+input[inputmode="numeric"] {
+  font-family: inherit;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+body {
+  min-height: 0;
 }
 
 /* ── Paleta Scale OS → tokens de la librería (`--c-*`, canales RGB) ─────────

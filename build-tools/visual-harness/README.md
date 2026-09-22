@@ -28,6 +28,13 @@ node build-tools/visual-harness/run.mjs --out work/visual-harness/mi-run
 # Depurar un ancho y evaluar una expresión en la página
 node build-tools/visual-harness/probe.mjs 390 "document.documentElement.scrollWidth"
 node build-tools/visual-harness/probe.mjs 360 "..." landing   # página external (landing)
+
+# Capturas PNG del artifact (anchos y temas), reutilizando el mismo Chrome CDP
+node build-tools/visual-harness/capture.mjs \
+  --input work/visual-harness/latest/audit.html \
+  --out work/visual-harness/latest/captures \
+  --widths 360,768,1440 --themes light,dark \
+  --only clientes-lista,resumen-indicadores,configuracion-empresa
 ```
 
 Salidas por corrida:
@@ -36,6 +43,9 @@ Salidas por corrida:
 - `baseline.md`: hallazgos agrupados por severidad con evidencia y fix propuesto.
 - `audit.html`: documento exacto que midió el harness (reproducible).
 - `page-*.html`: documento instrumentado para fixtures `external` (landing).
+- `captures/*.png` (opcional, `capture.mjs`): captura completa de cada fixture
+  elegido en el ancho y tema (`light`/`dark` vía `data-theme`) pedidos. Sirve de
+  evidencia visual; el tema oscuro se aplica con el mismo atributo que la app.
 
 ## Qué mide
 

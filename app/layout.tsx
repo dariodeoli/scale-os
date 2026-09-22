@@ -1,8 +1,8 @@
+import 'owncoding-ui/styles.css';
 import './globals.css';
 import './qa-fixes.css';
 import './mobile-forms.css';
 import './ui-system.css';
-import 'owncoding-ui/styles.css';
 import './tailwind.css';
 import {NotificationCenter} from './notification-center';
 import {scaleMetadata,viewport} from './brand-metadata';
