@@ -2,21 +2,16 @@
  * Fixtures de las referencias v2 (campaña #41): Panel, Clientes (lista+detalle)
  * y Configuración, más el set de estados.
  *
+ * Espeja las referencias ya implementadas:
+ *   - app/sections/resumen.tsx (Panel/dashboard)
+ *   - app/sections/clientes.tsx (lista + cuadrícula)
+ *   - app/sections/configuracion.tsx (ajustes)
+ *   - app/client-directory-toolbar.tsx (búsqueda, estado y vista)
+ *   - app/ui-v2.tsx (PageHeader, FilterToolbar, ListGrid/ListRow, Kpi, StateChip,
+ *     EmptyBlock, ErrorBlock, LoadingBlock)
  * El markup de los objetos compartidos se genera con `renderToStaticMarkup`
- * sobre `owncoding-ui` (Button, Card, Stat, Badge, EmptyState, ErrorState,
- * Skeleton, Input, Select, Label, Money, CeldaMoneda, IconAction, SearchField,
- * SegmentedField, ListGridToggle) para que sea fiel al render real; los
- * patrones de aplicación replican `app/ui-v2.tsx` (PageHeader, FilterToolbar,
- * ListGrid/ListRow, Kpi, StateChip, EmptyBlock, ErrorBlock, LoadingBlock) con
- * las mismas clases.
- *
- * Datos reales del inventario (REDISENO-INVENTARIO.md): dashboard de
- * control-center, campos de `agency_clients` + `client_payment_status`, y
- * settings/exchange-rates/suscripción. Sin campos inventados.
- *
- * Estas fixtures son la base previa a la implementación: cuando #47 integre los
- * módulos extraídos y las referencias se implementen en TSX, se re-sincronizan
- * citando los archivos finales (regla de FIXTURES.md).
+ * sobre `owncoding-ui`; los patrones de aplicación replican `app/ui-v2.tsx` con
+ * las mismas clases. Datos reales del inventario (REDISENO-INVENTARIO.md).
  */
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
@@ -69,7 +64,7 @@ const ListGrid = ({label, template, columns, children}) => h('div', {role: 'tabl
     h('div', {role: 'row', className: `grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`},
       columns.map((column, index) => h('span', {key: column.key, role: 'columnheader', className: `${index === columns.length - 1 ? 'text-right' : column.align === 'end' ? 'text-right' : 'text-left'} whitespace-nowrap`}, column.label))),
     h('div', {role: 'rowgroup'}, children)));
-const ListRow = ({template, children}) => h('div', {role: 'row', className: `grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-2 last:border-0 md:min-h-11 ${template}`}, children);
+const ListRow = ({template, children}) => h('div', {role: 'row', className: `grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${template}`}, children);
 const EmptyBlock = ({title, description, action}) => h('div', {role: 'status', className: STATE_SURFACE}, h(EmptyState, {title, description, action}));
 const ErrorBlock = ({title, description}) => h('div', {role: 'alert', className: STATE_SURFACE}, h(ErrorState, {title, description, onRetry: noop}));
 const LoadingBlock = ({label = 'Cargando…', lines = 3}) => h('div', {role: 'status', 'aria-busy': 'true', 'aria-label': label, className: 'grid gap-2'},
@@ -114,7 +109,7 @@ const panelPage = h('div', {className: 'grid gap-5'},
     h(Kpi, {key: 'review', label: 'En revisión', valor: 27, hint: 'Piezas para aprobar'})));
 
 /* ── Clientes (arquetipo lista + detalle) ─────────────────────────────────── */
-const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_13rem_9rem_9rem]';
+const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_13rem_9rem_16rem]';
 const CLIENT_COLUMNS = [
   {key: 'client', label: 'Cliente'},
   {key: 'facts', label: 'Datos'},
@@ -147,6 +142,8 @@ const clientRow = (client) => h(ListRow, {key: client.name, template: CLIENT_TEM
     client.due ? h('span', {className: 'block whitespace-nowrap'}, 'Próxima entrega ', h('b', {className: 'tabular-nums text-fore'}, client.due)) : h('span', {className: 'block'}, 'Sin proyectos activos')),
   h('div', {className: 'flex min-w-0 items-center justify-end gap-1'},
     h(IconAction, {key: 'open', icon: 'eye', label: `Abrir ficha: ${client.name}`, tone: 'fono', onClick: noop}),
+    h('a', {key: 'wa', className: 'text-button whatsapp-button', href: `https://wa.me/595981123456`, target: '_blank', rel: 'noopener noreferrer'}, 'WhatsApp'),
+    h('button', {key: 'archive', type: 'button', className: 'text-button'}, 'Archivar'),
     h(IconAction, {key: 'edit', icon: 'edit', label: `Editar cliente: ${client.name}`, onClick: noop}),
     h(IconAction, {key: 'remove', icon: 'trash', label: `Archivar cliente: ${client.name}`, tone: 'bad', onClick: noop})));
 const clientsPage = h('div', {className: 'grid gap-4'},
@@ -165,7 +162,7 @@ const clientsPage = h('div', {className: 'grid gap-4'},
     h(SearchField, {key: 'search', value: '', onChange: noop, onClear: noop, placeholder: 'Buscar por nombre, correo o teléfono', ariaLabel: 'Buscar clientes', className: 'w-full sm:w-72'}),
     h(SegmentedField, {key: 'status', value: 'all', onChange: noop, ariaLabel: 'Estado del cliente', options: [['all', 'Todos'], ['active', 'Activos'], ['inactive', 'Inactivos']]}),
     h(ListGridToggle, {key: 'view', value: 'list', onChange: noop})),
-  h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[63rem]'}, clients.map(clientRow)),
+  h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[69rem]'}, clients.map(clientRow)),
   h('div', {className: 'mt-2 flex flex-wrap items-center gap-2'},
     h(Button, {variant: 'outline', onClick: noop}, 'Limpiar filtros'),
     h('p', {className: 'text-xs text-mute'}, 'Los clientes archivados se muestran en su propia cápsula.')));
