@@ -25,7 +25,8 @@ import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
 import "./platform-admin.css";
 import { platformApi, subscriptionExpiry, asuncionInput } from "../platform-admin-api";
-import { decimalInput, digitsOnly } from "../field-rules";
+import { soloDigitos } from "owncoding-ui";
+import { decimalInput } from "../field-rules";
 import { SelectCustom } from "../profile-controls";
 import { Dialog } from "../dialog";
 import { SaveActions } from "../save-actions";
@@ -1223,7 +1224,7 @@ export default function PlatformAdmin() {
                     onChange={(event) =>
                       setCoupon({
                         ...coupon,
-                        discount_value: coupon.discount_type === "fixed" ? decimalInput(event.target.value) : digitsOnly(event.target.value).slice(0, 3),
+                        discount_value: coupon.discount_type === "fixed" ? decimalInput(event.target.value) : soloDigitos(event.target.value, 3),
                       })
                     }
                     required

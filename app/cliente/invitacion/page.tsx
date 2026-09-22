@@ -1,5 +1,6 @@
 'use client';
 import {FormEvent,useEffect,useRef,useState} from 'react';
+import {esToken} from 'owncoding-ui';
 import {GoogleSignIn} from '../../google-sign-in';
 import {PasswordField} from '../../password-field';
 import {clientPortalApiUrl,PortalApiError,portalApi} from '../../client-portal-api';
@@ -25,7 +26,7 @@ function previewFailure(error:unknown):Exclude<InvitationStatus,'loading'>{
 }
 export default function ClientInvitation(){
  const [token,setToken]=useState(''),[state,setState]=useState<InvitationState>({status:'loading'}),[fullName,setFullName]=useState(''),[password,setPassword]=useState(''),[formError,setFormError]=useState(''),[busy,setBusy]=useState(false),errorFocus=useRef<HTMLDivElement>(null);
- useEffect(()=>{const value=new URLSearchParams(window.location.search).get('token')||'';setToken(value);if(!/^[a-f0-9]{64}$/.test(value)){setState({status:'invalid'});return;}void portalApi<unknown>('/invites/preview?token='+encodeURIComponent(value),undefined,'GET').then(result=>setState(isPreview(result)?{status:'ready',preview:result}:{status:'connection'})).catch(error=>setState({status:previewFailure(error)}));},[]);
+ useEffect(()=>{const value=new URLSearchParams(window.location.search).get('token')||'';setToken(value);if(!esToken(value)){setState({status:'invalid'});return;}void portalApi<unknown>('/invites/preview?token='+encodeURIComponent(value),undefined,'GET').then(result=>setState(isPreview(result)?{status:'ready',preview:result}:{status:'connection'})).catch(error=>setState({status:previewFailure(error)}));},[]);
  useEffect(()=>{if(state.status!=='loading'&&state.status!=='ready')errorFocus.current?.focus();},[state.status]);
  async function submit(event:FormEvent){event.preventDefault();setBusy(true);setFormError('');try{await portalApi('/invites/accept',{token,fullName,password});window.location.assign('/cliente/entregas');}catch(error){setFormError(error instanceof Error?error.message:'No se pudo activar el acceso');}finally{setBusy(false);}}
  const preview=state.status==='ready'?state.preview:null,notice=state.status==='ready'||state.status==='loading'?null:notices[state.status],expiration=preview?.expiresAt?new Date(preview.expiresAt):null;

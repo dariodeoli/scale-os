@@ -3,7 +3,8 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
 FROM base AS dependencies
-RUN apk add --no-cache libc6-compat
+# `git` es necesario para resolver la dependencia git `owncoding-ui` con npm ci.
+RUN apk add --no-cache libc6-compat git
 COPY package*.json ./
 RUN npm ci --include=dev
 

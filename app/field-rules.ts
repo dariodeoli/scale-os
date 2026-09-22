@@ -1,3 +1,5 @@
+import {parseTelefono, soloDigitos, telefonoValido} from 'owncoding-ui';
+
 export const PHONE_COUNTRIES = [
   { code: '+595', label: '🇵🇾 +595' },
   { code: '+55', label: '🇧🇷 +55' },
@@ -16,47 +18,25 @@ export function emailValid(value: string): boolean {
   return email.length > 0 && email.length <= 254 && /^\S+@\S+\.\S+$/.test(email);
 }
 
-export function digitsOnly(value: string): string {
-  return (value || '').replace(/\D/g, '');
+/** Dígitos locales del teléfono: sin el 0 de discado y hasta 12 (contrato de guardado `+<código> <dígitos>`). */
+export function phoneNational(value: string): string {
+  return soloDigitos(value).replace(/^0+/, '').slice(0, 12);
 }
 
-type ParsedPhone = { country: string; national: string };
-
-export function parsePhone(value: string): ParsedPhone | null {
-  const raw = (value || '').trim();
-  const digits = digitsOnly(raw);
-  if (!digits) return null;
-  const national = digits.replace(/^0+/, '');
-  if (!raw.startsWith('+')) return { country: '', national };
-  const country = PHONE_COUNTRIES.map(entry => entry.code)
-    .sort((a, b) => b.length - a.length)
-    .find(code => digits.startsWith(code.slice(1)));
-  if (!country) return { country: '', national };
-  return { country, national: digits.slice(country.length - 1).replace(/^0+/, '') };
-}
-
+/**
+ * Regla de ScaleOS sobre `telefonoValido` de owncoding-ui: Paraguay acepta
+ * móvil (9 dígitos) y fijo (8), y solo los códigos del selector; el resto de
+ * los países usa la longitud compartida de 6 a 12. La generalización del fijo
+ * se propone en owncoding-ui#2.
+ */
 export function phoneValid(value: string): boolean {
-  const parsed = parsePhone(value);
-  if (!parsed || !parsed.national) return false;
-  if ((value || '').trim().startsWith('+') && !parsed.country) return false;
-  if (parsed.country === '+595') return parsed.national.length === 8 || parsed.national.length === 9;
-  return parsed.national.length >= 6 && parsed.national.length <= 12;
-}
-
-export function phoneMessage(value: string): string | null {
-  return phoneValid(value) ? null : PHONE_ERROR;
-}
-
-export function internationalPhone(country: string, national: string): string {
-  const digits = digitsOnly(national).replace(/^0+/, '').slice(0, 12);
-  return digits ? `${country} ${digits}` : '';
-}
-
-export function normalizePhone(value: string): string | null {
-  if (!(value || '').trim()) return null;
-  if (!phoneValid(value)) return null;
-  const parsed = parsePhone(value)!;
-  return internationalPhone(parsed.country || DEFAULT_PHONE_COUNTRY, parsed.national);
+  if (!String(value || '').trim()) return false;
+  const parsed = parseTelefono(value, DEFAULT_PHONE_COUNTRY);
+  if (!PHONE_COUNTRIES.some(entry => entry.code === parsed.countryCode)) return false;
+  const national = phoneNational(parsed.phone);
+  if (!national) return false;
+  if (parsed.countryCode === DEFAULT_PHONE_COUNTRY) return telefonoValido(national, DEFAULT_PHONE_COUNTRY) || national.length === 8;
+  return telefonoValido(national, parsed.countryCode);
 }
 
 export function normalizeSerial(value: string): string {

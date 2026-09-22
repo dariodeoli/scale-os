@@ -1,17 +1,18 @@
 "use client";
 import {useState} from 'react';
+import {parseTelefono, whatsappUrl} from 'owncoding-ui';
 import {api,Editor} from './operations';
 import {Dialog} from './dialog';
 import {Pencil} from 'lucide-react';
 type Links={website?:string;instagram?:string;whatsapp?:string;other?:{label:string;url:string}[]};
-export function whatsappUrl(phone?:string){
- const digits=(phone||'').replace(/\D/g,'');
- return /^\d{7,15}$/.test(digits)&&phone?.trim().startsWith('+')?`https://wa.me/${digits}`:null;
+/** Enlace de WhatsApp del teléfono guardado (`+<código> <dígitos>`), conservando su país. */
+export function clientWhatsappUrl(phone?:string){
+ return phone?whatsappUrl(phone,'',parseTelefono(phone).countryCode):'';
 }
 export function ClientLinks({id,value,canEdit,refresh,phone}:{id:string;value:unknown;canEdit:boolean;refresh:()=>Promise<void>;phone?:string}){
  const links=(value&&typeof value==='object'?value:{}) as Links,[editing,setEditing]=useState(false);
  const fixed=[['website','Web'],['instagram','Instagram'],['whatsapp','WhatsApp']] as const;
- const generatedWhatsapp=!links.whatsapp?whatsappUrl(phone):null;
+ const generatedWhatsapp=!links.whatsapp?clientWhatsappUrl(phone):null;
  const knownLinks=fixed.flatMap(([key,label])=>typeof links[key]==='string'?[{label,url:links[key]!}]:key==='whatsapp'&&generatedWhatsapp?[{label,url:generatedWhatsapp}]:[]);
  const otherLinks=(Array.isArray(links.other)?links.other:[]).filter(item=>item&&typeof item.url==='string');
  const items=[...knownLinks,...otherLinks];
