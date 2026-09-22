@@ -50,10 +50,10 @@ assert(dialogCss.includes('.ops-overlay{position:fixed;inset:0;z-index:60;displa
 assert(!file('../app/operations.css').includes('.ops-overlay {\n  display: grid'),'no module redefines the overlay centering (the mobile sheet keeps its bottom anchor)');
 assert(dialogCss.includes('@media(max-width:540px){.ops-overlay{align-items:end;padding:0}'),'the mobile dialog stays anchored to the bottom');
 assert(file('../app/workspace-density.css').includes(':is(.control-shell,.unified-dialog,.photo-dialog) .phone-input{display:grid'),'the phone field lays out inside portaled dialogs too');
-assert(file('../app/settings-slice.css').includes('.trash-info{grid-column:1/-1;grid-row:2}'),'trash rows keep the name out of the checkbox column on mobile');
+assert(file('../app/archive-controls.tsx').includes("const TRASH_TEMPLATE='grid-cols-[2rem_7rem_minmax(16rem,2.4fr)_7rem]'"),'trash rows share the v2 template with their header');
 assert(file('../app/subscription-panel.css').includes('.subscription-notice.subscription-status--trialing .subscription-secondary{'),'the trial notice keeps its own tone instead of the danger palette');
 assert(file('../app/registro/registration.css').includes('.registration-card{display:flex;flex-direction:column;width:min(468px,100%)'),'the verification card keeps the access width and scroll caps');
-assert(file('../app/invite-links.css').includes('.invite-link-actions{display:flex'),'invite row actions lay out with the shared gap');
+assert(file('../app/invite-links.tsx').includes('REQUESTS_TEMPLATE=')&&file('../app/invite-links.tsx').includes('LINKS_TEMPLATE='),'invite rows keep a shared v2 template for header and rows');
 assert(file('../app/superadmin/platform-admin.css').includes('margin-bottom: 0;'),'the global admin header resets the leaking global header margin');
 assert(file('../app/superadmin/page.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');
 assert(file('../app/superadmin/platform-admin.css').includes('.platform-admin-subscription-form label:has(textarea)'),'subscription notes span the full row');

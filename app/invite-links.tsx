@@ -1,28 +1,97 @@
 "use client";
-import {useEffect,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import {api,Editor} from './operations';
 import {teamRoleLabels} from './team-directory';
 import {listDateShort} from './list-format';
-import {Link2,UserCheck,Copy,X,Trash2} from 'lucide-react';
+import {Copy,Link2,Trash2,UserCheck,X} from 'lucide-react';
 import {ActorIdentity} from './actor-identity';
-import './invite-links.css';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,LoadingBlock,PageHeader,StateChip} from './ui-v2';
+
 type ActorFields={actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 type LinkRow=ActorFields&{id:string;role:string;mode:string;expires_at:string;revoked_at:string|null;used_at:string|null;click_count:number;account_count:number;url:string|null;created_by_email:string;joined_users:Array<ActorFields&{email:string;full_name:string;joined_at:string}>};
 type RequestRow=ActorFields&{id:string;full_name:string;email:string;role:string;created_at:string;status:'pending'|'unavailable';unavailableReason:string|null};
 const unavailableLabels:Record<string,string>={revoked:'El enlace fue revocado.',expired:'El enlace venció.',used:'El enlace ya fue utilizado.',organization_unavailable:'La empresa no está disponible.',existing_access:'La persona ya tiene un registro de acceso. Administralo desde Equipo.'};
+
+/** Plantillas v2: encabezado y filas comparten una sola grilla por lista. */
+const REQUESTS_TEMPLATE='grid-cols-[minmax(16rem,2.4fr)_15rem]';
+const REQUESTS_COLUMNS=[{key:'request',label:'Solicitud'},{key:'actions',label:'Acciones'}];
+const LINKS_TEMPLATE='grid-cols-[minmax(18rem,2.4fr)_15rem]';
+const LINKS_COLUMNS=[{key:'link',label:'Enlace'},{key:'actions',label:'Acciones'}];
+
+const joinedText=(users:LinkRow['joined_users'])=>users.map(person=>`${person.actor_name||person.full_name||person.email}${person.joined_at?` (${listDateShort(person.joined_at)})`:''}`).join(', ');
+const linkState=(link:LinkRow)=>link.revoked_at?{tone:'bad' as const,label:'Revocado'}:link.used_at?{tone:'info' as const,label:'Utilizado'}:{tone:'ok' as const,label:`Vence ${listDateShort(link.expires_at)||'sin fecha'}`};
+
 export function InviteLinks({role}:{role:string}){
  const [links,setLinks]=useState<LinkRow[]>([]),[requests,setRequests]=useState<RequestRow[]>([]),[created,setCreated]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[copied,setCopied]=useState('');
- async function load(){try{const [a,b]=await Promise.all([api<{links:LinkRow[]}>('/api/agency/invite-links'),api<{requests:RequestRow[]}>('/api/agency/access-requests')]);setLinks(a.links);setRequests(b.requests);setError('');}catch(e){setError(e instanceof Error?e.message:'No se pudo cargar');}}
+ const [loading,setLoading]=useState(true);
+ async function load(){try{const [a,b]=await Promise.all([api<{links:LinkRow[]}>('/api/agency/invite-links'),api<{requests:RequestRow[]}>('/api/agency/access-requests')]);setLinks(a.links);setRequests(b.requests);setError('');}catch(e){setError(e instanceof Error?e.message:'No se pudo cargar la información de invitaciones.');}finally{setLoading(false);}}
  useEffect(()=>{void load();},[]);
  async function act(path:string,data:unknown,method='POST'){setBusy(true);try{await api(path,data,method);await load();}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar');}finally{setBusy(false);}}
- return <section className="panel ops-stack invite-links">
-  <header className="invite-links-header"><div><p className="invite-links-kicker">Acceso de equipo</p><h2><Link2 size={20} aria-hidden="true"/> Invitaciones y solicitudes</h2><p className="form-note">Atendé las solicitudes pendientes, generá enlaces temporales y limpiá los que ya cumplieron su ciclo.</p></div></header>
-  {error&&<p className="error" role="alert">{error}</p>}
-  <div className="invite-links-section" aria-labelledby="invite-requests-heading">
-   <div className="invite-links-section-heading"><div className="invite-links-section-title"><h3 id="invite-requests-heading"><UserCheck size={18} aria-hidden="true"/> Solicitudes</h3><p className="form-note">Aprobá solo los accesos disponibles.</p></div><span className={`invite-links-count${requests.length?' invite-links-count-live':''}`} aria-label={`${requests.length} solicitudes pendientes`}>{requests.length}</span></div>
-   {!requests.length&&<p className="invite-links-empty">No hay solicitudes pendientes.</p>}{requests.length?<div className="invite-link-head" aria-hidden="true"><span>Solicitud</span><span>Acciones</span></div>:null}{requests.map(r=><article className="payment-row invite-link-row" key={r.id}><div className="invite-link-person"><ActorIdentity name={r.actor_name||r.full_name||r.email} photoUrl={r.actor_photo_url} verified={r.actor_verified===true} timestamp={r.created_at}/><p>{r.email} · {teamRoleLabels[r.role]}</p>{r.status!=='pending'&&<p role="status">Solicitud no disponible. {unavailableLabels[r.unavailableReason||'']||'Actualizá la lista para comprobar la invitación.'}</p>}</div><div className="actions invite-link-actions">{r.status==='pending'&&<button className="secondary" disabled={busy||(r.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${r.id}`,{action:'approve'},'PATCH')}>Aprobar acceso</button>}<button className="text-button danger" disabled={busy||(r.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${r.id}`,{action:'reject'},'PATCH')}><X size={14}/>Rechazar</button></div></article>)}
-  </div>
-  <div className="invite-link-create"><div className="invite-links-section-title"><h3><Link2 size={18} aria-hidden="true"/> Crear enlace</h3><p className="form-note">Elegí el permiso y el tipo. El enlace vence a los 7 días o al primer uso, según el modo.</p></div><Editor columns fields={[{key:'role',label:'Permiso del enlace',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))},{key:'mode',label:'Tipo de invitación',choices:[{value:'single',label:'Una persona · un solo uso'},{value:'approval',label:'Varias personas · requiere aprobación'}]}]} defaults={{role:'viewer',mode:'single'}} label="Generar enlace" save={async values=>{const result=await api<{url:string}>('/api/agency/invite-links',values);setCreated(result.url);setCopied('');await load();}}/></div>
-  {created&&<div className="invite-link-created" role="status"><label>Enlace generado<input readOnly value={created} onFocus={e=>e.target.select()}/></label><button className="secondary" onClick={async()=>{try{await navigator.clipboard.writeText(created);setCopied(created);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={16} aria-hidden="true"/>{copied===created?'Copiado':'Copiar enlace'}</button></div>}
-  <div className="invite-links-recent"><div className="invite-links-section-heading"><div className="invite-links-section-title"><h3><Link2 size={18} aria-hidden="true"/> Enlaces recientes</h3><p className="form-note">Los enlaces agotados o revocados se pueden eliminar; los que tuvieron ingresos conservan su historial.</p></div><span className="invite-links-count">{links.length}</span></div>{!links.length&&<p className="invite-links-empty">Todavía no creaste enlaces. Generá uno cuando necesites sumar a alguien.</p>}{links.length?<div className="invite-link-head" aria-hidden="true"><span>Enlace</span><span>Acciones</span></div>:null}{links.map(l=><article className="payment-row invite-link-row" key={l.id}><div className="invite-link-person"><strong title={`${teamRoleLabels[l.role]} · ${l.mode==='single'?'Un solo uso':'Con aprobación'}`}>{teamRoleLabels[l.role]} · {l.mode==='single'?'Un solo uso':'Con aprobación'}</strong><p title={`${l.revoked_at?'Revocado':l.used_at?'Utilizado':`Vence ${listDateShort(l.expires_at)||'sin fecha'}`} · ${l.click_count} clics · ${l.account_count} cuentas creadas · Creado por ${l.actor_name||l.created_by_email||'el equipo'} · ${l.joined_users?.length?`Se unieron ${l.joined_users.map(j=>`${j.actor_name||j.full_name||j.email}${j.joined_at?` (${listDateShort(j.joined_at)})`:''}`).join(', ')}`:'Nadie se unió todavía'}`}>{l.revoked_at?'Revocado':l.used_at?'Utilizado':`Vence ${listDateShort(l.expires_at)}`} · {l.click_count} clics · {l.account_count} cuentas</p><ActorIdentity name={l.actor_name||l.created_by_email} photoUrl={l.actor_photo_url} verified={l.actor_verified===true}/>{l.joined_users?.length?<span className="invite-link-joined-chip" title={`Se unieron ${l.joined_users.map(j=>`${j.actor_name||j.full_name||j.email}${j.joined_at?` (${listDateShort(j.joined_at)})`:''}`).join(', ')}`}>{l.joined_users.length} unidos</span>:null}</div><div className="actions invite-link-actions">{l.url&&<button className="secondary" disabled={busy} onClick={async()=>{try{await navigator.clipboard.writeText(l.url!);setCopied(l.url!);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={16} aria-hidden="true"/>{copied===l.url?'Copiado':'Copiar enlace'}</button>}{!l.joined_users?.length&&(l.revoked_at||l.used_at?<button className="text-button invite-link-delete" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${l.id}?permanent=1`,{},'DELETE')}><Trash2 size={16} aria-hidden="true"/>Eliminar</button>:<button className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${l.id}`,{},'DELETE')}><X size={16} aria-hidden="true"/>Revocar</button>)}</div></article>)}</div></section>;
+ const activeLinks=useMemo(()=>links.filter(link=>!link.revoked_at&&!link.used_at).length,[links]);
+ const joined=useMemo(()=>links.reduce((total,link)=>total+(link.joined_users?.length||0),0),[links]);
+ const pending=requests.filter(request=>request.status==='pending').length;
+ return <section className="grid gap-4" aria-label="Invitaciones y solicitudes">
+  <PageHeader eyebrow="Equipo" title="Invitaciones y solicitudes" subtitle="Atendé las solicitudes pendientes, generá enlaces temporales y limpiá los que ya cumplieron su ciclo."/>
+  {error?<ErrorBlock title="No pudimos completar la operación" description={error} onRetry={()=>void load()}/>:null}
+  <KpiStrip>
+   <Kpi label="Solicitudes pendientes" valor={pending} hint="Esperan aprobación o rechazo" destacado/>
+   <Kpi label="Enlaces activos" valor={activeLinks} hint="Sin revocar ni usar"/>
+   <Kpi label="Personas unidas" valor={joined} hint="Ingresaron con un enlace"/>
+  </KpiStrip>
+  {loading?<LoadingBlock label="Cargando invitaciones…" lines={3}/>:<>
+   <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="invite-requests-heading">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+     <div className="min-w-0"><h3 id="invite-requests-heading" className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><UserCheck size={18} aria-hidden="true"/> Solicitudes</h3><p className="mt-1 text-xs text-mute">Aprobá solo los accesos disponibles; el estado actual lo confirma el API.</p></div>
+     <span className="whitespace-nowrap text-xs tabular-nums text-mute">{pending} de {requests.length} pendientes</span>
+    </div>
+    {!requests.length?<EmptyBlock compact title="No hay solicitudes pendientes" description="Cuando alguien pida acceso con un enlace de aprobación, aparece acá."/>:
+     <ListGrid label="Solicitudes de acceso" template={REQUESTS_TEMPLATE} columns={REQUESTS_COLUMNS} minWidthClass="min-w-[36rem]">
+      {requests.map(request=><article role="row" key={request.id} className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-3 last:border-0 md:min-h-11 ${REQUESTS_TEMPLATE}`}>
+       <div className="min-w-0">
+        <ActorIdentity name={request.actor_name||request.full_name||request.email} photoUrl={request.actor_photo_url} verified={request.actor_verified===true} timestamp={request.created_at}/>
+        <p className="mt-1 whitespace-nowrap text-[11.5px] text-mute">{request.email} · {teamRoleLabels[request.role]||request.role}</p>
+        {request.status!=='pending'?<p role="status" className="mt-1 flex flex-wrap items-center gap-2 text-[11.5px] text-mute"><StateChip tone="mute">No disponible</StateChip><span>{unavailableLabels[request.unavailableReason||'']||'Actualizá la lista para comprobar la invitación.'}</span></p>:null}
+       </div>
+       <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
+        {request.status==='pending'&&<button className="secondary" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'approve'},'PATCH')}>Aprobar acceso</button>}
+        <button className="text-button danger" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'reject'},'PATCH')}><X size={14} aria-hidden="true"/>Rechazar</button>
+       </div>
+      </article>)}
+     </ListGrid>}
+   </div>
+   <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+    <div className="min-w-0"><h3 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><Link2 size={18} aria-hidden="true"/> Crear enlace</h3><p className="mt-1 text-xs text-mute">Elegí el permiso y el tipo. El enlace vence a los 7 días o al primer uso, según el modo.</p></div>
+    <Editor columns fields={[{key:'role',label:'Permiso del enlace',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))},{key:'mode',label:'Tipo de invitación',choices:[{value:'single',label:'Una persona · un solo uso'},{value:'approval',label:'Varias personas · requiere aprobación'}]}]} defaults={{role:'viewer',mode:'single'}} label="Generar enlace" save={async values=>{const result=await api<{url:string}>('/api/agency/invite-links',values);setCreated(result.url);setCopied('');await load();}}/>
+    {created?<div role="status" className="grid gap-2 rounded-lg border border-ink-600 px-3 py-2"><label className="grid gap-1.5 text-xs text-mute">Enlace generado<input readOnly className="rounded-md border border-ink-600 bg-ink-900 px-3 py-2 font-mono text-xs text-fore" value={created} onFocus={e=>e.target.select()}/></label><button className="secondary" onClick={async()=>{try{await navigator.clipboard.writeText(created);setCopied(created);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={16} aria-hidden="true"/>{copied===created?'Copiado':'Copiar enlace'}</button></div>:null}
+   </div>
+   <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+     <div className="min-w-0"><h3 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><Link2 size={18} aria-hidden="true"/> Enlaces recientes</h3><p className="mt-1 text-xs text-mute">Los enlaces agotados o revocados se pueden eliminar; los que tuvieron ingresos conservan su historial.</p></div>
+     <span className="whitespace-nowrap text-xs tabular-nums text-mute">{links.length} enlace{links.length===1?'':'s'}</span>
+    </div>
+    {!links.length?<EmptyBlock compact title="Todavía no creaste enlaces" description="Generá uno cuando necesites sumar a alguien."/>:
+     <ListGrid label="Enlaces de invitación" template={LINKS_TEMPLATE} columns={LINKS_COLUMNS} minWidthClass="min-w-[38rem]">
+      {links.map(link=>{const state=linkState(link);return <div role="row" key={link.id} className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-3 last:border-0 md:min-h-11 ${LINKS_TEMPLATE}`}>
+       <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+         <strong className="text-[13.5px] font-semibold text-fore" title={`${teamRoleLabels[link.role]||link.role} · ${link.mode==='single'?'Un solo uso':'Con aprobación'}`}>{teamRoleLabels[link.role]||link.role} · {link.mode==='single'?'Un solo uso':'Con aprobación'}</strong>
+         <StateChip tone={state.tone}>{state.label}</StateChip>
+        </div>
+        <p className="mt-1 text-[11.5px] text-mute" title={`${link.click_count} clics · ${link.account_count} cuentas creadas · Creado por ${link.actor_name||link.created_by_email||'el equipo'} · ${link.joined_users?.length?`Se unieron ${joinedText(link.joined_users)}`:'Nadie se unió todavía'}`}>
+         <span className="whitespace-nowrap tabular-nums">{link.click_count} clics · {link.account_count} cuentas creadas</span>
+         {link.joined_users?.length?<span className="ml-2 whitespace-nowrap text-info">{link.joined_users.length} unidos</span>:<span className="ml-2">Nadie se unió todavía</span>}
+        </p>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11.5px] text-mute">
+         <ActorIdentity name={link.actor_name||link.created_by_email} photoUrl={link.actor_photo_url} verified={link.actor_verified===true}/>
+        </div>
+       </div>
+       <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
+        {link.url?<button className="secondary" disabled={busy} onClick={async()=>{try{await navigator.clipboard.writeText(link.url!);setCopied(link.url!);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={16} aria-hidden="true"/>{copied===link.url?'Copiado':'Copiar enlace'}</button>:null}
+        {!link.joined_users?.length&&(link.revoked_at||link.used_at?<button className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}?permanent=1`,{},'DELETE')}><Trash2 size={16} aria-hidden="true"/>Eliminar</button>:<button className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}`,{},'DELETE')}><X size={16} aria-hidden="true"/>Revocar</button>)}
+       </div>
+      </div>;})}
+     </ListGrid>}
+   </div>
+  </>}
+ </section>;
 }
