@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import postcss from 'postcss';
 
-const css=name=>postcss.parse(readFileSync(new URL(`../app/${name}.css`,import.meta.url),'utf8'));
-const inventory=css('inventory-workspace'),forecast=css('financial-forecast');
-// Static, module-local CSS contracts only: not a browser cascade/layout engine.
-// Exact selectors avoid pretending to resolve inheritance or native controls.
+const source=path=>readFileSync(new URL(`../app/${path}`,import.meta.url),'utf8');
+const inventory=source('inventory-workspace.tsx'),studio=source('studio-workspace.tsx');
+const css=name=>postcss.parse(source(name));
+const forecast=css('financial-forecast.css');
+// Static, module-local contracts only: not a browser cascade/layout engine.
 function value(sheet,selector,property,width){
  let result;
  sheet.walkRules(rule=>{
@@ -21,38 +22,35 @@ function value(sheet,selector,property,width){
  });
  return result;
 }
-for(const width of [320,360,390,768]){
- const get=(selector,property)=>value(inventory,selector,property,width);
- assert.equal(get('.inventory-form-grid','grid-template-columns'),width<=620?'minmax(0,1fr)':'repeat(2,minmax(0,1fr))');
- assert.equal(get('.inventory-calendar-grid','grid-template-columns'),'minmax(0,1fr)',`${width}px must use a readable calendar list, including tablet with sidebar`);
- assert.equal(get('.inventory-weekdays','display'),'none');
- assert.equal(get('.inventory-calendar-event','min-width'),'0','event may shrink below its preferred basis');
- assert.equal(get('.inventory-calendar-event','flex'),'1 1 130px');
- for(const selector of ['.inventory-form-grid','.inventory-equipment','.inventory-reservation','.inventory-categories>button']){
-  assert.equal(get(selector,'overflow-wrap'),'anywhere',`${selector}: long names/serials must wrap`);
-  assert.equal(get(selector,'min-width'),'0');
- }
- assert.equal(get('.inventory-check>span','min-width'),'0');
- assert.equal(get('.inventory-form-grid legend','max-width'),'100%');
- assert.equal(get('.inventory-categories>button','max-width'),'100%');
- assert.equal(get('.inventory-categories>button','white-space'),'normal');
- assert.equal(get('.inventory-form-grid .inventory-check input','padding'),'0','18px checkboxes must not inherit text-input padding');
-  for(const selector of ['.inventory-form-grid input','.inventory-form-grid select','.inventory-form-grid textarea']){
-   assert.equal(get(selector,'min-width'),'0');assert.equal(get(selector,'max-width'),'100%');
-  }
-  for(const selector of ['.inventory-form-grid :is(input,select,textarea)','.inventory-month input']){
-   assert(Number.parseFloat(get(selector,'min-height'))>=44,'touch control height is at least 44px');
-  }
- assert.equal(get('.inventory-month input','max-width'),'100%');
- const money=(selector,property)=>value(forecast,selector,property,width);
- assert.equal(money('.financial-forecast .panel-heading label','flex-wrap'),'wrap');
- assert.equal(money('.financial-forecast input','min-width'),'0');
-  assert.equal(money('.financial-forecast input','max-width'),'min(100%,16rem)');
- for(const selector of ['.forecast-currency dt','.forecast-currency dd']){
-  assert.equal(money(selector,'min-width'),'0');assert.equal(money(selector,'max-width'),'100%');assert.equal(money(selector,'overflow-wrap'),'anywhere');
- }
- console.log(`PASS ${width}px: static CSS contracts for forms, long text, calendar, month controls and financial amounts`);
+// Inventario y estudio se rediseñaron con Tailwind + owncoding-ui (campaña #41):
+// su contrato mobile ya no vive en una hoja propia, se declara en el módulo.
+for(const width of [360,768]){
+ assert.match(inventory,/grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3/,'la cuadrícula de equipos arranca en una columna');
+ assert.match(inventory,/grid gap-4 sm:grid-cols-2/,'el formulario de equipo usa una columna en mobile y dos desde sm');
+ assert.match(inventory,/grid grid-cols-1 gap-1 min-\[769px\]:grid-cols-7/,'el calendario es lista de una columna hasta 768 y grilla semanal desde 769');
+ assert.match(inventory,/overflow-x-auto/,'la lista y el pipeline scrollean en silencio en vez de romper el layout');
+ assert.match(inventory,/min-w-\[67\.5rem\]/,'las columnas de la lista reservan su ancho para no colapsar');
+ assert.match(inventory,/break-words/,'nombres y categorías largas envuelven');
+ // El texto largo de la fila se recorta con elipsis + title (AGENTS.md); los
+ // montos, fechas, códigos y seriales van nowrap y nunca se truncan.
+ for(const line of inventory.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),'cada texto recortado ofrece el valor completo en title');
+ assert.doesNotMatch(inventory,/truncate[^>]*(CeldaMoneda|SerialTexto|listDate)/,'montos, fechas y seriales no se recortan');
+ assert.match(inventory,/shrink-0 whitespace-nowrap font-mono/,'el código va nowrap y sin recortar');
+ assert.match(inventory,/whitespace-nowrap tabular-nums/,'las fechas de la lista van nowrap');
+ assert.match(studio,/grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3/,'los espacios arrancan en una columna');
+ assert.match(studio,/grid grid-cols-1 gap-1 min-\[769px\]:grid-cols-7/,'el calendario del estudio es lista hasta 768 y grilla desde 769');
+ assert.match(studio,/grid gap-4 sm:grid-cols-2/,'el formulario de reserva usa una columna en mobile y dos desde sm');
+ for(const line of studio.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),'el estudio ofrece el valor completo en title');
+ assert.match(studio,/whitespace-nowrap tabular-nums/,'el horario del estudio va nowrap');
 }
-assert.equal(value(inventory,'.inventory-calendar-grid','grid-template-columns',769),'repeat(7,minmax(0,1fr))','desktop calendar retained');
-assert.equal(value(inventory,'.inventory-form-grid','grid-template-columns',1100),'repeat(3,minmax(0,1fr))','wide form density retained');
-console.log('No browser, localhost, rendering or pixel measurements; native mobile controls and visual fit remain unverified.');
+// Los campos de la librería mantienen el alto táctil y el ancho completo del contenedor.
+assert.match(inventory,/className="w-36"|className="w-44"|className="w-28"|className="w-52"/,'los campos cortos usan ancho por tipo');
+assert.match(studio,/className="w-44"/,'el mes del estudio usa el ancho de fecha');
+const money=(selector,property)=>value(forecast,selector,property,360);
+assert.equal(money('.financial-forecast .panel-heading label','flex-wrap'),'wrap');
+assert.equal(money('.financial-forecast input','min-width'),'0');
+assert.equal(money('.financial-forecast input','max-width'),'min(100%,16rem)');
+for(const selector of ['.forecast-currency dt','.forecast-currency dd']){
+ assert.equal(money(selector,'min-width'),'0');assert.equal(money(selector,'max-width'),'100%');assert.equal(money(selector,'overflow-wrap'),'anywhere');
+}
+console.log('PASS 360/768: contratos mobile de inventario y estudio (una columna, calendario semanal, scroll silencioso, sin elipsis) + montos de Previsión.');

@@ -142,11 +142,17 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(clients,/\.client-hub-grid \.client-hub-card\{min-height:200px\}/,'client cards keep a big grid height');
   const team=read('app/operations.css');
   assert.match(team,/\.person-hub-card\.is-list\{display:grid;grid-template-columns:var\(--person-cols\)[\s\S]*?min-height:48px/,'team rows stay thin');
-  const inventory=read('app/inventory-workspace.css');
-  assert.match(inventory,/\.inventory-equipment-list \.inventory-item-facts\{display:contents\}\.inventory-equipment-list \.inventory-facts-inline\{grid-column:4;grid-row:1;display:flex/,'inventory facts go inline');
-  assert.match(inventory,/\.inventory-equipment-list \.inventory-fact-location\{grid-column:6;grid-row:1/,'the location fact keeps its own column');
-  assert.match(inventory,/--reservation-cols:[\s\S]*?\.inventory-reservation\{display:grid;grid-template-columns:var\(--reservation-cols\)/,'reservation rows share the template');
-  assert.match(inventory,/\.inventory-equipment-grid:not\(\.inventory-equipment-list\) \.inventory-equipment\{min-height:210px\}/,'inventory cards keep a big grid height');
+  // Inventario y reservas se rediseñaron a la v2 (campaña #41): ya no tienen
+  // hoja propia y su plantilla se declara una sola vez en el módulo. El detalle
+  // de esa lista lo cubre `tests/ops-v2-contract.test.ts`.
+  const inventory=read('app/inventory-workspace.tsx');
+  assert.match(inventory,/const EQUIPMENT_COLS='\[--eq-cols:[\s\S]*?const EQUIPMENT_GRID='grid grid-cols-\[var\(--eq-cols\)\] items-center gap-x-2'/,'inventory declares one list template');
+  assert.match(inventory,/const RESERVATION_COLS='\[--rsv-cols:[\s\S]*?const RESERVATION_GRID='grid grid-cols-\[var\(--rsv-cols\)\] items-center gap-x-2'/,'reservation rows share their template');
+  assert.equal((inventory.match(/\$\{EQUIPMENT_GRID\}/g)||[]).length,2,'the equipment header and rows share the template');
+  assert.equal((inventory.match(/\$\{RESERVATION_GRID\}/g)||[]).length,2,'the reservation header and rows share the template');
+  assert.match(inventory,/min-h-\[200px\][\s\S]*?flex-col/,'inventory cards keep a big grid height');
+  for(const line of inventory.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),'inventory offers the full value for every truncated text');
+  assert.doesNotMatch(inventory,/truncate[^>]*(CeldaMoneda|SerialTexto|listDate)/,'inventory never truncates amounts, dates or serials');
   const projects=read('app/project-card.css');
   assert.match(projects,/\.project-grid>\.project-entry\{min-height:200px\}/,'project cards keep a big grid height');
   const agents=read('AGENTS.md');
