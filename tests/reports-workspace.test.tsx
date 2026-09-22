@@ -2,12 +2,13 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
-import type {ReportMonth,ReportsData} from '../app/reports-workspace';
+import type {ReportMonth,ReportsData} from '../app/reports-data';
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
-const {ReportsWorkspace,reportMoney,reportDelta}=require('../app/reports-workspace') as typeof import('../app/reports-workspace');
+const {ReportsWorkspace}=require('../app/reports-workspace') as typeof import('../app/reports-workspace');
+const {reportMoney,reportDelta}=require('../app/reports-data') as typeof import('../app/reports-data');
 type Request={url:string;init:RequestInit;resolve:(response:Response)=>void};
 const requests:Request[]=[];
 globalThis.fetch=(input,init)=>new Promise<Response>(resolve=>requests.push({url:String(input),init:init||{},resolve}));

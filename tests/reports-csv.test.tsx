@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {reportsCsv} from '../app/reports-csv';
-import type {ReportMonth,ReportsData} from '../app/reports-workspace';
+import type {ReportMonth,ReportsData} from '../app/reports-data';
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 function row(month:string):ReportMonth{return {month,isPartial:true,clients:{active:null,added:0,lost:1,retentionPercent:null,averageTenureDays:12.5,tenureKnown:2,types:[],plans:[]},financial:[

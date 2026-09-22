@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import type {ReportMonth,ReportsData} from '../app/reports-workspace';
+import type {ReportMonth,ReportsData} from '../app/reports-data';
 require.extensions['.css']=()=>{};
 const {printReportsPdf}=require('../app/reports-print') as typeof import('../app/reports-print');
 

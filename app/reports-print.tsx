@@ -1,7 +1,7 @@
 "use client";
 import {notify} from './feedback';
 import {listDateFull,listDateShort} from './list-format';
-import {count,hasMonthData,reportComparison,reportMoney,type ReportMonth,type ReportsData} from './reports-workspace';
+import {count,hasMonthData,reportComparison,reportMoney,type ReportMonth,type ReportsData} from './reports-data';
 
 function escapeHtml(value:string){return value.replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]!));}
 function monthLabel(value:string){return escapeHtml(listDateShort(`${value}-01`)||value);}
