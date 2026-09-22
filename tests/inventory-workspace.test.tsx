@@ -39,7 +39,9 @@ function MockDialog({children,close,busy=false}:{children:React.ReactNode;close:
 require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(n:string,c:string)=>`${c} ${n}`,Dialog:MockDialog,Editor:MockEditor}} as NodeModule;
 const dialogPath=require.resolve('../app/dialog');
 require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:(value:boolean)=>{pendingStates.push(value);}}} as NodeModule;
-const {InventoryWorkspace,InventoryItemForm,InventoryReservationForm,InventoryTransitionForm,InventoryCalendar,inventoryUtcTime,inventoryLocalTime,inventoryMonthRange,inventoryLocation,inventoryCanReturn,inventoryCanManageReservation}=require('../app/inventory-workspace') as typeof import('../app/inventory-workspace');
+const {InventoryWorkspace,InventoryItemForm,InventoryReservationForm,InventoryTransitionForm,InventoryCalendar}=require('../app/inventory-workspace') as typeof import('../app/inventory-workspace');
+const {inventoryLocation,inventoryCanReturn,inventoryCanManageReservation}=require('../app/inventory-data') as typeof import('../app/inventory-data');
+const {opsUtcTime,opsLocalTime,opsMonthRange}=require('../app/ops-time') as typeof import('../app/ops-time');
 let renderer:ReactTestRenderer,done=0;
 function text(node:ReactTestInstance|string):string{return typeof node==='string'?node:node.children.map(text).join('');}
 const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label)!;
@@ -50,10 +52,10 @@ const check=(label:string)=>act(()=>renderer.root.findAllByType('label').find(no
 const tree=()=>JSON.stringify(renderer.toJSON());
 const submit=()=>act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){}});});
 async function run(){
- assert.equal(inventoryUtcTime('2026-09-10T09:00'),'2026-09-10T12:00:00.000Z');
- assert.equal(inventoryLocalTime('2026-10-01T02:59:00Z'),'2026-09-30T23:59');
- assert.equal(inventoryMonthRange('2026-12').to,'2027-01-01T03:00:00.000Z');
- assert.throws(()=>inventoryUtcTime('2026-02-30T09:00'));
+ assert.equal(opsUtcTime('2026-09-10T09:00'),'2026-09-10T12:00:00.000Z');
+ assert.equal(opsLocalTime('2026-10-01T02:59:00Z'),'2026-09-30T23:59');
+ assert.equal(opsMonthRange('2026-12').to,'2027-01-01T03:00:00.000Z');
+ assert.throws(()=>opsUtcTime('2026-02-30T09:00'));
  assert.equal(inventoryLocation(equipment[0]),'Estante A · fila 2');
  assert.match(inventoryLocation({...equipment[0],location_type:'checked_out',current_custodian_name:'Sonido',production_name:'Rodaje'}),/Con Sonido · Rodaje/);
  assert.match(inventoryLocation({...equipment[0],storage_shelf:'',storage_row:''}),/sin registrar/);

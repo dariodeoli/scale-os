@@ -12,36 +12,25 @@ import {preparePhoto,PHOTO_ACCEPT,PHOTO_FORMATS} from './profile-photo';
 import {normalizeSerial} from './field-rules';
 import {roleCan,BATCH_LIMITS,limitSelection} from './capabilities';
 import {notify} from './feedback';
-import {InventoryBarcode,inventoryCode,printInventoryLabel} from './inventory-label';
+import {InventoryBarcode,printInventoryLabel} from './inventory-label';
 import {DndContext,DragOverlay,useDraggable,useDroppable,pointerWithin,type DragEndEvent} from '@dnd-kit/core';
 import {Archive,ArrowUpRight,BadgeCheck,BatteryCharging,Camera,CheckCircle2,CircleX,ClipboardCheck,Columns3,Eye,Grid2X2,HardDrive,Home,Lamp,Laptop,Lightbulb,List,Lock,Mic,Monitor,Package,Pencil,Plus,RefreshCw,RotateCcw,Speaker,Tag,Trash2,TriangleAlert,Video,X,type LucideIcon} from 'lucide-react';
+import {buildInventoryPipelineColumns,depreciationFacts,depreciationValidation,depreciationMethodLabel,depreciationMethods,equipmentStatusLabel,filterInventoryItems,inventoryCanManageReservation,inventoryCanReturn,inventoryLocation,inventoryTotals,itemCode,itemStatuses,pipelineDropColumn,statusLabels,traceLabel,verificationLabel,type Category,type Context,type InventoryItem,type InventoryMaintenance,type InventoryReservation,type InventoryTrace,type InventoryVerification,type ItemReference,type Person,type PipelineColumn,type StorageTemplate} from './inventory-data';
+import {OPS_TIME_ZONE,opsLocalTime,opsUtcTime} from './ops-time';
+import {useInventoryCatalog,useInventoryRecord} from './use-inventory-data';
 import './inventory-workspace.css';
 
-type Person={id:string;name:string;photo_url?:string|null};
-type Category={id:string;name:string;active:boolean;icon?:string|null};
-export type StorageTemplate={id:string;name:string;active:boolean;item_count:number;responsible_user_id?:string|null;responsible_name?:string|null;responsible_photo_url?:string|null};
-export type InventoryItem={id:string;name:string;inventory_code?:string;category:string;category_id:string|null;category_name?:string;category_icon?:string|null;serial_number:string|null;photo_url?:string|null;value:string;currency:string;status:string;storage_shelf:string;storage_row:string;storage_location_id?:string|null;storage_location_name?:string|null;location_changed_at?:string|null;custodian_user_id:string|null;location_type?:string;current_custodian_name?:string;production_name?:string;project_name?:string;return_user_name?:string;expected_return_at?:string;last_verified_at?:string|null;last_verified_by_user_id?:string|null;last_verification_result?:'confirmed'|'difference'|'missing'|null;last_verification_differences?:string;last_verifier_name?:string|null;last_verifier_photo_url?:string|null;purchase_value?:string|null;purchase_date?:string|null;depreciation_method?:'none'|'linear'|string;useful_life_months?:number|null;residual_value?:string|null;current_value?:string|null;accumulated_depreciation?:string|null;monthly_depreciation?:string|null;[key:string]:unknown};
-type ItemReference={id:string;name:string;inventory_code?:string;storage_shelf:string;storage_row:string};
-type ReservationActors={actor_name?:string;actor_photo_url?:string;actor_verified?:boolean;checkout_actor_name?:string;checkout_actor_photo_url?:string;checkout_actor_verified?:boolean;return_actor_name?:string;return_actor_photo_url?:string;return_actor_verified?:boolean};
-export type InventoryReservation=ReservationActors&{id:string;title:string;project_id:string;project_name:string;starts_at:string;ends_at:string;status:'reserved'|'checked_out'|'returned'|'cancelled';created_by_user_id:string;return_user_id:string;return_user_name:string;custodian_user_id:string|null;custodian_name:string|null;responsible_members:Person[];items:ItemReference[];notes:string;version:number};
-type Context={user_id:string;role:string;time_zone:string;can_manage:boolean;can_reserve:boolean;members:Person[];projects:Person[]};
-type InventoryVerification={id:string;result:'confirmed'|'difference'|'missing';differences?:string;note?:string;verified_at:string;verifier_name?:string;verifier_photo_url?:string|null};
-export type InventoryMaintenance={id:string;inventory_id:string;inventory_code?:string;inventory_name?:string;maintenance_date:string;kind:string;description?:string|null;cost:string|number;currency:string;responsible_user_id?:string|null;responsible_name?:string|null;responsible_photo_url?:string|null;voided_at?:string|null;voided_by_user_id?:string|null;voided_by_name?:string|null;created_by_user_id?:string|null;created_at?:string;updated_at?:string};
-type InventoryTrace={id:string;event_type:string;event_at:string;actor_name?:string;event_data?:Record<string,unknown>};
+// El contrato de datos y las funciones puras viven en `inventory-data.ts`; acá
+// se re-exportan los tipos para quien ya los importaba de este módulo.
+export type {Category,Context,InventoryItem,InventoryMaintenance,InventoryReservation,InventoryTrace,InventoryVerification,ItemReference,Person,PipelineColumn,StorageTemplate} from './inventory-data';
+
 const errorMessage=(error:unknown)=>error instanceof Error?error.message:'No se pudo completar la operación';
 // A successful save closes the dialog that hosts these forms; keep the local
 // busy flag from updating a form that is already unmounted.
 function useMountedRef(){const mounted=useRef(true);useEffect(()=>()=>{mounted.current=false;},[]);return mounted;}
-const statusLabels={reserved:'Reservado',checked_out:'Retirado',returned:'Devuelto',cancelled:'Cancelado'};
-const itemStatuses=[{value:'available',label:'Disponible'},{value:'maintenance',label:'Mantenimiento'},{value:'retired',label:'Dado de baja'}];
-const depreciationMethods=[{value:'none',label:'Sin depreciación'},{value:'linear',label:'Lineal'}];
-const depreciationMethodLabel=(method?:string|null)=>method==='linear'?'Lineal':'Sin depreciación';
-const zone='America/Asuncion';
 const dateTime=(value:string)=>listDateFull(value)||'';
-const itemCode=(item:Pick<InventoryItem,'id'|'inventory_code'>)=>item.inventory_code||inventoryCode(item.id);
 export const categoryIconMap:Record<string,LucideIcon>={'camera':Camera,'video':Video,'mic':Mic,'lamp':Lamp,'lightbulb':Lightbulb,'monitor':Monitor,'laptop':Laptop,'speaker':Speaker,'hard-drive':HardDrive,'battery-charging':BatteryCharging,'package':Package,'home':Home};
 export function CategoryIcon({name}:{name?:string|null}){const Icon=name?categoryIconMap[name]:undefined;return Icon?<Icon size={14} aria-hidden="true"/>:null;}
-const verificationLabel=(result:InventoryItem['last_verification_result'])=>({confirmed:'Confirmado',difference:'Con diferencias',missing:'No encontrado'} as Record<string,string>)[result||'']||'Sin control';
 const verificationIcons:Record<string,LucideIcon>={confirmed:BadgeCheck,difference:TriangleAlert,missing:CircleX};
 const firstName=(name?:string|null)=>(name||'').trim().split(/\s+/)[0]||'';
 /** Shared control stamp: verified icon, author photo, first name and 24-hour date in that order. */
@@ -56,7 +45,6 @@ function VerificationStamp({item,className,empty}:{item:InventoryItem;className:
   <time className="inventory-verify-time" dateTime={item.last_verified_at}>{dateTime(item.last_verified_at)}</time>
  </span>;
 }
-const equipmentStatusLabel=(status:string)=>(({available:'Disponible',in_use:'En uso',maintenance:'Mantenimiento',retired:'Dado de baja'} as Record<string,string>)[status]||status);
 function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,onDetail,onVerify,onVerifyDetail,onEdit,onArchive}:{
  item:InventoryItem;selectable:boolean;selected:boolean;onSelect:()=>void;canManage:boolean;verifying:boolean;
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
@@ -93,85 +81,22 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
   </div>
  </article>;
 }
-export function inventoryLocalTime(value:string|Date){
- const parts=new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(value));
- const part=(type:string)=>parts.find(p=>p.type===type)!.value;
- return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
-}
-// Resolve local wall time using the IANA zone; do not assume the browser's zone.
-export function inventoryUtcTime(local:string){
- if(!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(local))throw new Error('Completá fecha y hora');
- const base=new Date(local+'Z').getTime();if(!Number.isFinite(base))throw new Error('Fecha inválida');
- let candidate=base;
- for(let i=0;i<3;i++)candidate+=base-new Date(inventoryLocalTime(new Date(candidate))+'Z').getTime();
- if(inventoryLocalTime(new Date(candidate))!==local)throw new Error('Esa hora no existe en la zona de Asunción');
- return new Date(candidate).toISOString();
-}
-export function inventoryMonthRange(month:string){
- const [year,m]=month.split('-').map(Number);
- const next=new Date(Date.UTC(year,m,1)).toISOString().slice(0,7);
- return {from:inventoryUtcTime(`${month}-01T00:00`),to:inventoryUtcTime(`${next}-01T00:00`)};
-}
-export function inventoryLocation(item:InventoryItem){
- if(item.location_type==='checked_out')return `Con ${item.current_custodian_name||'custodio registrado'} · ${item.production_name||'Producción'}${item.project_name?` · ${item.project_name}`:''}`;
- if(item.location_type==='legacy_in_use')return `En uso · ${item.current_custodian_name||'Custodio sin registrar'} · sin reserva vinculada`;
- return item.storage_shelf?`${item.storage_shelf}${item.storage_row?` · fila ${item.storage_row}`:''}`:'Ubicación sin registrar';
-}
-export function inventoryCanManageReservation(context:Pick<Context,'user_id'|'role'|'can_manage'|'can_reserve'>,row:InventoryReservation){return context.can_manage||context.can_reserve&&String(row.created_by_user_id)===String(context.user_id);}
-/** El API habilita la devolución con inventory.book a quien gestiona la reserva y al encargado de devolver o custodio. */
-export function inventoryCanReturn(context:Pick<Context,'user_id'|'role'|'can_manage'|'can_reserve'>,row:InventoryReservation){return context.can_reserve&&(inventoryCanManageReservation(context,row)||[row.return_user_id,row.custodian_user_id].some(id=>String(id)===String(context.user_id)));}
-
 function InventorySummary({items}:{items:InventoryItem[]}){
- const totals=new Map<string,number>();
- let inUse=0,maintenance=0,available=0;
- for(const item of items){
-  const value=Number(item.value);
-  if(Number.isFinite(value)&&value>0)totals.set(item.currency,totals.has(item.currency)?totals.get(item.currency)!+value:value);
-  if(item.status==='in_use'||item.location_type==='checked_out')inUse+=1;
-  else if(item.status==='maintenance')maintenance+=1;
-  else if(item.status==='available')available+=1;
- }
-  const format=(value:number,currency:string)=>money(value,currency);
-  return <div className="kpi-strip" aria-label="Métricas de inventario">
-   <article className="kpi-card tone-brand"><p className="eyebrow">VALOR TOTAL</p><strong>{items.length} equipos</strong><div className="kpi-amounts">{totals.size?Array.from(totals).map(([currency,value])=><span key={currency}>{format(value,currency)}</span>):<span>Sin valores registrados</span>}</div></article>
-   <article className="kpi-card tone-blue"><p className="eyebrow">EN USO</p><strong>{inUse}</strong><small>Retirados o en rodaje</small></article>
-   <article className="kpi-card tone-warning"><p className="eyebrow">MANTENIMIENTO</p><strong>{maintenance}</strong><small>No asignables a rodaje</small></article>
-   <article className="kpi-card tone-green"><p className="eyebrow">DISPONIBLES</p><strong>{available}</strong><small>Listos para reservar</small></article>
-  </div>;
+ const {currencyTotals,inUse,maintenance,available}=inventoryTotals(items);
+ const format=(value:number,currency:string)=>money(value,currency);
+ return <div className="kpi-strip" aria-label="Métricas de inventario">
+  <article className="kpi-card tone-brand"><p className="eyebrow">VALOR TOTAL</p><strong>{items.length} equipos</strong><div className="kpi-amounts">{currencyTotals.length?currencyTotals.map(({currency,total})=><span key={currency}>{format(total,currency)}</span>):<span>Sin valores registrados</span>}</div></article>
+  <article className="kpi-card tone-blue"><p className="eyebrow">EN USO</p><strong>{inUse}</strong><small>Retirados o en rodaje</small></article>
+  <article className="kpi-card tone-warning"><p className="eyebrow">MANTENIMIENTO</p><strong>{maintenance}</strong><small>No asignables a rodaje</small></article>
+  <article className="kpi-card tone-green"><p className="eyebrow">DISPONIBLES</p><strong>{available}</strong><small>Listos para reservar</small></article>
+ </div>;
 }
 
-type PipelineColumn={key:string;title:string;readOnly:boolean;locationId:string|null;shelf:string;responsibleName?:string|null;responsiblePhoto?:string|null;rows:InventoryItem[]};
 function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVerify,verifyingId}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onDetail:(item:InventoryItem)=>void;onMoved:()=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null}){
  const [dragged,setDragged]=useState<InventoryItem|null>(null);
  const [moveError,setMoveError]=useState('');
  const [hideUnassigned,setHideUnassigned]=useState(false);
- const columns=useMemo<PipelineColumn[]>(()=>{
-  const map=new Map<string,PipelineColumn>();
-  const ensure=(key:string,column:Omit<PipelineColumn,'rows'>)=>{let current=map.get(key);if(!current){current={...column,rows:[]};map.set(key,current);}return current;};
-  for(const item of items){
-   if(item.location_type==='checked_out'){
-    const key=`cust-${item.current_custodian_name||'sin-custodio'}`;
-    ensure(key,{key,title:`Con ${item.current_custodian_name||'custodio registrado'}`,readOnly:true,locationId:null,shelf:''}).rows.push(item);
-   }else if(item.location_type==='legacy_in_use'){
-    ensure('legacy-in-use',{key:'legacy-in-use',title:'En uso',readOnly:true,locationId:null,shelf:''}).rows.push(item);
-   }else if(item.storage_location_id){
-    const location=locations.find(candidate=>String(candidate.id)===String(item.storage_location_id));
-    const title=location?.name||item.storage_location_name||'Ubicación';
-    ensure(`loc-${item.storage_location_id}`,{key:`loc-${item.storage_location_id}`,title,readOnly:false,locationId:String(item.storage_location_id),shelf:title,responsibleName:location?.responsible_name||null,responsiblePhoto:safePhoto(location?.responsible_photo_url)}).rows.push(item);
-   }else if(item.storage_shelf){
-    const matching=locations.find(candidate=>candidate.name===item.storage_shelf);
-    if(matching)ensure(`loc-${matching.id}`,{key:`loc-${matching.id}`,title:matching.name,readOnly:false,locationId:String(matching.id),shelf:matching.name,responsibleName:matching.responsible_name||null,responsiblePhoto:safePhoto(matching.responsible_photo_url)}).rows.push(item);
-    else ensure(`shelf-${item.storage_shelf}`,{key:`shelf-${item.storage_shelf}`,title:item.storage_shelf,readOnly:false,locationId:null,shelf:item.storage_shelf}).rows.push(item);
-   }else{
-    ensure('sin-ubicacion',{key:'sin-ubicacion',title:'Sin ubicación',readOnly:false,locationId:null,shelf:''}).rows.push(item);
-   }
-  }
-  // Every active location appears even with no equipment; archived ones only when occupied.
-  for(const location of locations.filter(candidate=>candidate.active||candidate.item_count>0))ensure(`loc-${location.id}`,{key:`loc-${location.id}`,title:location.name,readOnly:false,locationId:String(location.id),shelf:location.name,responsibleName:location.responsible_name||null,responsiblePhoto:safePhoto(location.responsible_photo_url)});
-  // The unassigned column always exists so items can move back out of a location.
-  ensure('sin-ubicacion',{key:'sin-ubicacion',title:'Sin ubicación',readOnly:false,locationId:null,shelf:''});
-  return [...map.values()].sort((a,b)=>{if(a.readOnly!==b.readOnly)return a.readOnly?-1:1;if(a.key==='sin-ubicacion')return 1;if(b.key==='sin-ubicacion')return -1;return a.title.localeCompare(b.title,'es');});
- },[items,locations]);
+ const columns=useMemo(()=>buildInventoryPipelineColumns(items,locations),[items,locations]);
  async function moveItem(itemId:string,target:PipelineColumn){
   if(target.readOnly)return;
   const item=items.find(candidate=>String(candidate.id)===itemId);if(!item)return;
@@ -182,13 +107,8 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
  }
  function onDragEnd(event:DragEndEvent){
   const id=String(event.active.id),over=String(event.over?.id||'');if(!over)return;
-  let column=columns.find(candidate=>candidate.key===over);
-  if(!column){
-   // Dropping over a card resolves to the column that contains it.
-   const item=items.find(candidate=>String(candidate.id)===over);
-   if(!item)return;
-   column=columns.find(candidate=>candidate.rows.some(row=>String(row.id)===String(item.id)));
-  }
+  // Dropping over a card resolves to the column that contains it.
+  const column=pipelineDropColumn(columns,items,over);
   if(!column)return;void moveItem(id,column);
  }
  return <div className={`inventory-pipeline${dragged?' is-dragging':''}`}>
@@ -204,7 +124,7 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
 function PipelineColumn({column,canManage,onDetail,onQuickVerify,verifyingId,onHide}:{column:PipelineColumn;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onHide?:()=>void}){
  const droppable=useDroppable({id:column.key,disabled:column.readOnly});
  return <section ref={droppable.setNodeRef} className={`inventory-pipeline-column${droppable.isOver?' drop-over':''}${column.readOnly?' is-readonly':''}`}>
-  <header className="inventory-pipeline-header">{column.readOnly?<Lock size={12} aria-label="Solo lectura: la ubicación se cambia al devolver"/>:<span className="inventory-pipeline-column-dot" aria-hidden="true"/>}<h3>{column.title}</h3>{column.responsibleName?<span className="inventory-pipeline-responsible" title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={column.responsiblePhoto??''}/></span>:null}<span className="inventory-pipeline-count">{column.rows.length}</span>{onHide?<button type="button" className="icon-button inventory-pipeline-hide" title="Ocultar columna Sin ubicación" aria-label="Ocultar columna Sin ubicación" onClick={onHide}><X size={14}/></button>:null}</header>
+  <header className="inventory-pipeline-header">{column.readOnly?<Lock size={12} aria-label="Solo lectura: la ubicación se cambia al devolver"/>:<span className="inventory-pipeline-column-dot" aria-hidden="true"/>}<h3>{column.title}</h3>{column.responsibleName?<span className="inventory-pipeline-responsible" title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={safePhoto(column.responsiblePhoto)}/></span>:null}<span className="inventory-pipeline-count">{column.rows.length}</span>{onHide?<button type="button" className="icon-button inventory-pipeline-hide" title="Ocultar columna Sin ubicación" aria-label="Ocultar columna Sin ubicación" onClick={onHide}><X size={14}/></button>:null}</header>
   <div className="inventory-pipeline-column-body">
    {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
    {!column.rows.length?<p className="empty-copy">{column.readOnly?'':canManage?'Arrastrá equipos hasta acá':'Sin equipos'}</p>:null}
@@ -223,7 +143,7 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
   </button>
   <VerificationStamp item={item} className="inventory-pipeline-verified" empty={<span>Sin verificación física</span>}/>
   <small className="inventory-pipeline-since">{item.location_type==='checked_out'?'En préstamo: devolvelo para cambiar su ubicación':item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación'}</small>
-  <div className="inventory-pipeline-footer"><span className="inventory-status">{({available:'Disponible',in_use:'En uso',maintenance:'Mantenimiento',retired:'Dado de baja'} as Record<string,string>)[item.status]||item.status}</span>{!disabled&&<span className="inventory-pipeline-actions">{canManage&&<button type="button" className="icon-button positive" disabled={verifying} title={verifying?'Verificando…':'Marcar verificado'} aria-label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={event=>{event.stopPropagation();onQuickVerify(item);}}><CheckCircle2 size={16}/></button>}<button type="button" className="icon-button" title={`Mover ${item.name}`} aria-label={`Mover ${item.name}`} onPointerDown={event=>event.stopPropagation()} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button></span>}</div>
+  <div className="inventory-pipeline-footer"><span className="inventory-status">{equipmentStatusLabel(item.status)}</span>{!disabled&&<span className="inventory-pipeline-actions">{canManage&&<button type="button" className="icon-button positive" disabled={verifying} title={verifying?'Verificando…':'Marcar verificado'} aria-label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={event=>{event.stopPropagation();onQuickVerify(item);}}><CheckCircle2 size={16}/></button>}<button type="button" className="icon-button" title={`Mover ${item.name}`} aria-label={`Mover ${item.name}`} onPointerDown={event=>event.stopPropagation()} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button></span>}</div>
  </article>;
 }
 
@@ -232,11 +152,13 @@ export function InventoryWorkspace({role}:{role:string}){
  return roleCan(role,'inventory.view')?<InventoryPanel key={role}/>:null;
 }
 function InventoryPanel(){
- const [context,setContext]=useState<Context|null>(null),[items,setItems]=useState<InventoryItem[]>([]),[categories,setCategories]=useState<Category[]>([]),[storageTemplates,setStorageTemplates]=useState<StorageTemplate[]>([]),[reservations,setReservations]=useState<InventoryReservation[]>([]);
- const [month,setMonth]=useState(()=>inventoryLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[selectedItems,setSelectedItems]=useState<string[]>([]),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState('');
- const [error,setError]=useState(''),[notice,setNotice]=useState(''),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
- const [refreshError,setRefreshError]=useState(''),[lastUpdated,setLastUpdated]=useState<Date|null>(null);
- const hasData=useRef(false);
+ const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[selectedItems,setSelectedItems]=useState<string[]>([]),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState('');
+ const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0);
+ const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate}=useInventoryCatalog(month,refresh);
+ // El error del catálogo sólo existe cuando nunca hubo datos; el de acciones se limpia al reintentar.
+ const error=actionError||loadError;
+ // Keep the selection bounded to the records the API still returns.
+ useEffect(()=>{const ids=new Set(items.map(record=>String(record.id)));setSelectedItems(current=>current.filter(id=>ids.has(id)));},[items]);
  const [editItem,setEditItem]=useState<InventoryItem|'new'|null>(null),[editReservation,setEditReservation]=useState<InventoryReservation|'new'|null>(null),[editCategory,setEditCategory]=useState<Category|'new'|null>(null),[editStorageTemplate,setEditStorageTemplate]=useState<StorageTemplate|'new'|null>(null),[verification,setVerification]=useState<InventoryItem|null>(null),[detail,setDetail]=useState<InventoryItem|null>(null);
  const [action,setAction]=useState<{kind:'checkout'|'return'|'cancel';row:InventoryReservation}|null>(null);
  const [archive,setArchive]=useState<InventoryItem|null>(null),[busy,setBusy]=useState(false),[archiveError,setArchiveError]=useState('');
@@ -276,39 +198,15 @@ function InventoryPanel(){
   const data=await api<{moved:number}>('/api/agency/inventory/batch',{ids,change:{location}},'POST');
   setBatchLocation(null);setSelectedItems([]);refreshed(`Ubicación actualizada en ${data.moved??ids.length} equipo${(data.moved??ids.length)===1?'':'s'}.`);
  }
- useEffect(()=>{
-  let active=true,running=false;
-  const {from,to}=inventoryMonthRange(month);
-  async function load(background=false){
-   if(!active||running||background&&document.visibilityState==='hidden')return;
-   running=true;if(!hasData.current)setLoading(true);
-   try{
-    // Wait for every request to settle before permitting another polling cycle.
-    const results=await Promise.allSettled([api<Context>('/api/agency/inventory-context'),api<{records:InventoryItem[]}>('/api/agency/inventory'),api<{categories:Category[]}>('/api/agency/inventory-categories'),api<{locations:StorageTemplate[]}>('/api/agency/inventory-locations'),api<{reservations:InventoryReservation[]}>(`/api/agency/inventory-reservations?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)]);
-    if(!active)return;
-    const [c,i,cat,templates,r]=results;
-    if(c.status==='rejected')throw c.reason;if(i.status==='rejected')throw i.reason;if(cat.status==='rejected')throw cat.reason;if(templates.status==='rejected')throw templates.reason;if(r.status==='rejected')throw r.reason;
-    setContext(c.value);setItems(i.value.records);setCategories(cat.value.categories);setStorageTemplates(templates.value.locations);setReservations(r.value.reservations);
-    setSelectedItems(current=>{const ids=new Set(i.value.records.map(record=>String(record.id)));return current.filter(id=>ids.has(id));});
-    hasData.current=true;setLastUpdated(new Date());setError('');setRefreshError('');
-   }catch(error){if(active){if(hasData.current)setRefreshError(errorMessage(error));else setError(errorMessage(error));}}
-   finally{running=false;if(active)setLoading(false);}
-  }
-  void load();
-  const timer=window.setInterval(()=>{void load(true);},30000);
-  const visible=()=>{if(document.visibilityState==='visible')void load(true);};
-  document.addEventListener('visibilitychange',visible);
-  return ()=>{active=false;window.clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
- },[month,refresh]);
  function saved(message='Cambios guardados.'){setEditItem(null);setEditReservation(null);setEditCategory(null);setEditStorageTemplate(null);setVerification(null);setAction(null);setArchive(null);setSelectedItems([]);setReserveIds([]);setNotice(message);setRefresh(n=>n+1);}
  // Editors own their successful close so their footer form association is
  // released before the same dialog can be opened again. This only refreshes
  // the workspace after a persisted inventory/category mutation.
  function refreshed(message:string){setNotice(message);setRefresh(n=>n+1);}
- const visible=items.filter(item=>(!categoryFilter||String(item.category_id)===categoryFilter)&&`${itemCode(item)} ${item.name} ${item.serial_number||''} ${item.category_name||item.category} ${inventoryLocation(item)}`.toLowerCase().includes(search.toLowerCase()));
+ const visible=filterInventoryItems(items,{search,categoryId:categoryFilter});
  return <div className="ops-stack inventory-workspace">
   <section className="panel"><div className="inventory-toolbar"><div className="panel-heading inventory-title-block"><div><h2>Inventario y reservas</h2><p className="form-note">Ubicación registrada y préstamo de equipos por producción.</p></div></div><div className="inline-actions inventory-header-actions">{context?.can_manage?<button className="secondary" onClick={()=>setEditItem('new')}>Agregar equipo</button>:null}{context?.can_reserve&&!selectedItems.length?<button className="primary" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</button>:null}</div>
-   <div className="inventory-toolbar-meta"><div className="inline-actions inventory-tabs" role="group" aria-label="Vistas de inventario"><button className={view==='equipment'?'secondary':'text-button'} aria-pressed={view==='equipment'} onClick={()=>setView('equipment')}>Equipos</button><button className={view==='reservations'?'secondary':'text-button'} aria-pressed={view==='reservations'} onClick={()=>setView('reservations')}>Calendario y reservas</button></div><p className="form-note inventory-refresh-note" role="status">Sincroniza cada 30 s mientras esta pestaña esté visible.{lastUpdated?` Actualizado ${lastUpdated.toLocaleTimeString('es-PY',{timeZone:zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}`:''}</p></div>
+   <div className="inventory-toolbar-meta"><div className="inline-actions inventory-tabs" role="group" aria-label="Vistas de inventario"><button className={view==='equipment'?'secondary':'text-button'} aria-pressed={view==='equipment'} onClick={()=>setView('equipment')}>Equipos</button><button className={view==='reservations'?'secondary':'text-button'} aria-pressed={view==='reservations'} onClick={()=>setView('reservations')}>Calendario y reservas</button></div><p className="form-note inventory-refresh-note" role="status">Sincroniza cada 30 s mientras esta pestaña esté visible.{lastUpdated?` Actualizado ${lastUpdated.toLocaleTimeString('es-PY',{timeZone:OPS_TIME_ZONE,hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}`:''}</p></div>
    {view!=='reservations'?<div className="inventory-toolbar-controls"><div className="inventory-form-grid inventory-filters"><SearchField label="Buscar equipo o ubicación" value={search} onChange={setSearch} placeholder="Memoria, DJI Mic, estante…"/><SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/></div><div className="inventory-collection-toolbar"><p className="directory-summary" aria-live="polite">{visible.length} equipo{visible.length===1?'':'s'} visibles</p><div className="inventory-view-options" role="group" aria-label="Vista de inventario"><button type="button" className={equipmentView==='grid'?'active':undefined} aria-label="Ver como cuadrícula" aria-pressed={equipmentView==='grid'} title="Ver como cuadrícula" onClick={()=>setEquipmentView('grid')}><Grid2X2 size={18}/></button><button type="button" className={equipmentView==='list'?'active':undefined} aria-label="Ver como lista" aria-pressed={equipmentView==='list'} title="Ver como lista" onClick={()=>setEquipmentView('list')}><List size={18}/></button><button type="button" className={equipmentView==='pipeline'?'active':undefined} aria-label="Ver como pipeline de ubicaciones" aria-pressed={equipmentView==='pipeline'} title="Ver como pipeline de ubicaciones" onClick={()=>setEquipmentView('pipeline')}><Columns3 size={18}/></button></div>{selectionEnabled&&visible.length?<button type="button" className="text-button inventory-select-visible" onClick={selectVisible}>Seleccionar visibles</button>:null}</div>{selectedItems.length?<div className="inventory-bulk-bar" role="status" aria-live="polite"><span className="inventory-bulk-count"><b>{selectedItems.length}</b> de {BATCH_LIMITS.inventory} seleccionado{selectedItems.length===1?'':'s'}</span><div className="inline-actions inventory-bulk-actions">{context?.can_reserve?<button type="button" className="secondary" disabled={!reservableSelected.length} onClick={()=>{setReserveIds(reservableSelected);setEditReservation('new');}}>Reservar</button>:null}{context?.can_manage?<button type="button" className="secondary" disabled={batchBusy} onClick={()=>void batchVerify()}>{batchBusy?'Verificando…':'Verificar'}</button>:null}{context?.can_manage?<button type="button" className="secondary" onClick={()=>setBatchLocation(selectedItems)}>Mover ubicación</button>:null}<button type="button" className="text-button" onClick={()=>setSelectedItems([])}>Limpiar</button></div></div>:null}</div>:null}</div>
    {refreshError?<p role="status" className="inventory-late">No se pudo actualizar: {refreshError}. Se muestra la última información recibida.</p>:null}
    {notice?<p role="status">{notice}</p>:null}{error?<p className="error" role="alert">{error} <button className="text-button" onClick={()=>setRefresh(n=>n+1)}><RefreshCw size={14}/>Reintentar</button></p>:null}
@@ -323,7 +221,7 @@ function InventoryPanel(){
   </section>
   {context?.can_manage?<section className="panel inventory-manager"><details><summary>Ubicaciones de guardado</summary><p className="form-note">Las ubicaciones archivadas dejan de estar disponibles para equipos nuevos. No se puede eliminar una ubicación con equipos asociados.</p><div className="inventory-template-list">{storageTemplates.map(template=><div className="inventory-template-row" key={template.id}><div><b>{template.name}</b><small>{template.item_count} equipo{template.item_count===1?'':'s'}{template.active?'':' · archivada'}</small></div><div className="inline-actions"><button className="text-button" onClick={()=>setEditStorageTemplate(template)}><Pencil size={14}/>Renombrar</button>{template.active?<button className="text-button warn" onClick={async()=>{try{await api(`/api/agency/inventory-locations/${template.id}`,{name:template.name,active:false},'PATCH');refreshed('Ubicación archivada.');}catch(error){setError(errorMessage(error));}}}><Archive size={14}/>Archivar</button>:null}<button className="text-button danger" disabled={template.item_count>0} title={template.item_count>0?'No se puede eliminar: hay equipos asociados.':'Eliminar ubicación'} onClick={async()=>{if(template.item_count>0)return;try{await api(`/api/agency/inventory-locations/${template.id}`,undefined,'DELETE');refreshed('Ubicación eliminada.');}catch(error){setError(errorMessage(error));}}}><Trash2 size={14}/>Eliminar</button></div></div>)}{!storageTemplates.length?<p className="form-note">Todavía no hay ubicaciones guardadas.</p>:null}<button className="text-button" onClick={()=>setEditStorageTemplate('new')}><Plus size={14}/>Crear ubicación</button></div></details></section>:null}
   {context?.can_manage?<section className="panel"><details><summary>Categorías de equipos</summary><p className="form-note">Renombrar actualiza la categoría de sus equipos. Archivar la quita de nuevas selecciones.</p><div className="inventory-categories">{categories.map(c=><button className="secondary" key={c.id} onClick={()=>setEditCategory(c)}><CategoryIcon name={c.icon}/>{c.name}{c.active?'':' · archivada'}</button>)}<button className="text-button" onClick={()=>setEditCategory('new')}><Plus size={14}/>Agregar categoría</button></div></details></section>:null}
-  {editItem&&context?.can_manage?<Dialog title={editItem==='new'?'Nuevo equipo':'Editar equipo'} close={()=>setEditItem(null)}><InventoryItemForm item={editItem==='new'?null:editItem} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage={context.can_manage} createStorageTemplate={async name=>{const result=await api<{location:StorageTemplate}>('/api/agency/inventory-locations',{name},'POST');setStorageTemplates(current=>[...current,result.location]);setRefresh(current=>current+1);return result.location;}} done={()=>refreshed('Equipo guardado.')}/></Dialog>:null}
+  {editItem&&context?.can_manage?<Dialog title={editItem==='new'?'Nuevo equipo':'Editar equipo'} close={()=>setEditItem(null)}><InventoryItemForm item={editItem==='new'?null:editItem} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage={context.can_manage} createStorageTemplate={async name=>{const result=await api<{location:StorageTemplate}>('/api/agency/inventory-locations',{name},'POST');addStorageTemplate(result.location);setRefresh(current=>current+1);return result.location;}} done={()=>refreshed('Equipo guardado.')}/></Dialog>:null}
   {editStorageTemplate&&context?.can_manage?<Dialog title={editStorageTemplate==='new'?'Nueva ubicación':'Editar ubicación'} close={()=>setEditStorageTemplate(null)}><StorageTemplateForm template={editStorageTemplate==='new'?null:editStorageTemplate} members={context.members} done={message=>saved(message)}/></Dialog>:null}
    {verification&&context?.can_manage?<Dialog title={`Verificar con detalle · ${verification.name}`} close={()=>setVerification(null)}><InventoryVerificationForm item={verification} done={()=>saved('Verificación física registrada.')}/></Dialog>:null}
   {batchLocation?<Dialog title={`Mover ${batchLocation.length} equipo${batchLocation.length===1?'':'s'} de ubicación`} close={()=>setBatchLocation(null)}>{storageTemplates.some(template=>template.active)?<Editor columns fields={[{key:'location',label:'Ubicación',choices:storageTemplates.filter(template=>template.active).map(template=>({value:String(template.id),label:template.name}))},{key:'storage_row',label:'Fila / posición',optional:true}]} defaults={{location:String(storageTemplates.find(template=>template.active)?.id||''),storage_row:''}} label="Mover" save={async values=>{await batchMoveLocation(values.location,values.storage_row);}}/>:<Editor columns fields={[{key:'storage_shelf',label:'Ubicación',help:'Sin lugares configurados: escribí dónde se guardan.'},{key:'storage_row',label:'Fila / posición',optional:true}]} defaults={{storage_shelf:'',storage_row:''}} label="Mover" save={async values=>{await batchMoveLocation('',values.storage_row,values.storage_shelf);}}/>}</Dialog>:null}
@@ -346,7 +244,7 @@ export function InventoryItemForm({item,categories,members,storageTemplates,canM
  async function pickPhoto(file:File){setPhotoBusy(true);setError('');try{const photo=await preparePhoto(file,true);change('photo_url',photo);}catch(cause){setError(errorMessage(cause));}finally{setPhotoBusy(false);}}
  async function createPlace(){const name=newPlace.trim();if(!name||creatingPlace)return;setCreatingPlace(true);setError('');try{const template=await createStorageTemplate(name);setTemplateId(template.id);change('storage_shelf',template.name);setNewPlace('');}catch(error){setError(errorMessage(error));}finally{setCreatingPlace(false);}}
   // Mirrors the server rules before calling the API: linear needs purchase value, date and life 1..600.
-  function validateValue(){const linear=values.depreciation_method==='linear',purchase=Number(values.purchase_value||0),residual=Number(values.residual_value||0);if(!values.purchase_value&&residual>0){setError('Cargá primero el valor de compra para registrar un valor residual.');return false;}if(values.purchase_value&&Math.round(residual*100)>Math.round(purchase*100)){setError('El valor residual no puede superar el valor de compra.');return false;}if(linear&&!values.purchase_value){setError('Para depreciación lineal indicá el valor de compra.');return false;}if(linear&&!values.purchase_date){setError('Para depreciación lineal indicá la fecha de compra.');return false;}if(linear){const life=Number(values.useful_life_months);if(!Number.isInteger(life)||life<1||life>600){setError('La vida útil debe estar entre 1 y 600 meses.');return false;}}return true;}
+  function validateValue(){const check=depreciationValidation(values);if(!check.ok){setError(check.error);return false;}return true;}
   async function submit(event:FormEvent){event.preventDefault();if(busy)return;if(!values.value){setError('Ingresá el valor del equipo.');return;}if(!validateValue())return;setBusy(true);setError('');try{await api(`/api/agency/inventory${item?`/${item.id}`:''}`,{...values,storage_location_id:templateId||null,purchase_value:values.purchase_value||null,purchase_date:values.purchase_date||null,useful_life_months:values.depreciation_method==='linear'?Number(values.useful_life_months):null,residual_value:values.residual_value||'0'},item?'PATCH':'POST');done();}catch(error){setError(errorMessage(error));}finally{setBusy(false);}}
  return <form className="inventory-form-grid inventory-item-form" onSubmit={submit}><p className="form-note inventory-wide">Un registro por unidad reservable. Al guardar se asigna un código único Scale OS, imprimible como etiqueta. Para un kit, indicá sus componentes en el nombre o las notas.</p>{item?<p className="form-note inventory-wide">Código de inventario: <code className="inventory-code">{itemCode(item)}</code></p>:null}
   <label className="inventory-wide">Nombre del equipo<input value={values.name} onChange={event=>change('name',event.target.value)} required minLength={2} maxLength={160}/></label>
@@ -386,17 +284,13 @@ function CategoryForm({category,done}:{category:Category|null;done:(message:stri
  </form>;
 }
 
-const traceLabel=(event:string)=>({
- 'inventory.created':'Equipo registrado','inventory.updated':'Ficha actualizada','stock.verified':'Verificación física','reservation.reserved':'Reserva creada','reservation.updated':'Reserva actualizada','reservation.cancelled':'Reserva cancelada','loan.checked_out':'Retiro registrado','loan.checked_in':'Devolución registrada'
-} as Record<string,string>)[event]||event.replace(/[._]/g,' ');
 export function InventoryDetail({item,members=[],canManage=false,onChanged}:{item:InventoryItem;members?:Person[];canManage?:boolean;onChanged?:()=>void}){
- const [data,setData]=useState<{record:InventoryItem;verifications:InventoryVerification[];trace:InventoryTrace[];maintenance?:InventoryMaintenance[]}|null>(null),[error,setError]=useState('');
  const [maintenance,setMaintenance]=useState<InventoryMaintenance|'new'|null>(null),[confirmVoid,setConfirmVoid]=useState(''),[voiding,setVoiding]=useState(''),[voidError,setVoidError]=useState(''),[reload,setReload]=useState(0);
- useEffect(()=>{let alive=true;void api<{record:InventoryItem;verifications:InventoryVerification[];trace:InventoryTrace[];maintenance?:InventoryMaintenance[]}>(`/api/agency/inventory/${item.id}`).then(result=>{if(alive)setData(result);}).catch(cause=>{if(alive)setError(errorMessage(cause));});return()=>{alive=false;};},[item.id,reload]);
+ const {data,error}=useInventoryRecord<{record:InventoryItem;verifications:InventoryVerification[];trace:InventoryTrace[];maintenance?:InventoryMaintenance[]}>(`/api/agency/inventory/${item.id}`,reload);
  function maintenanceSaved(){setMaintenance(null);setReload(n=>n+1);onChanged?.();}
  async function voidMaintenance(row:InventoryMaintenance){if(voiding)return;setVoiding(String(row.id));setVoidError('');try{await api(`/api/agency/inventory-maintenance/${row.id}`,{},'DELETE');setConfirmVoid('');setReload(n=>n+1);onChanged?.();}catch(cause){setVoidError(errorMessage(cause));}finally{setVoiding('');}}
- const record=data?.record||item,code=itemCode(record),maintenanceRows=data?.maintenance||[];
- return <div className="inventory-detail"><section className="inventory-code-payload">{record.photo_url?<img className="inventory-detail-photo" src={record.photo_url} alt={`Foto de ${record.name}`}/>:null}<div><p className="eyebrow">IDENTIFICACIÓN FÍSICA</p><code className="inventory-code">{code}</code><p>{record.name} · {record.serial_number||'Sin serie registrada'}</p><p className="form-note">{inventoryLocation(record)}</p></div><InventoryBarcode code={code}/></section>{error?<p className="error" role="alert">{error}</p>:null}{!data&&!error?<p role="status">Cargando trazabilidad…</p>:<><section><h3>Valor y depreciación</h3>{record.purchase_value==null?<p>Sin valor de compra registrado.</p>:<dl className="inventory-value-facts"><div><dt>Valor de compra</dt><dd className="list-amount">{money(record.purchase_value,record.currency)}</dd></div><div><dt>Fecha de compra</dt><dd>{listDateShort(String(record.purchase_date||'').slice(0,10))||'—'}</dd></div><div><dt>Método</dt><dd>{depreciationMethodLabel(record.depreciation_method)}</dd></div>{record.depreciation_method==='linear'?<div><dt>Vida útil</dt><dd>{record.useful_life_months?`${record.useful_life_months} meses`:'—'}</dd></div>:null}<div><dt>Valor residual</dt><dd className="list-amount">{money(record.residual_value||0,record.currency)}</dd></div><div><dt>Valor actual</dt><dd className="list-amount">{record.current_value==null?'—':money(record.current_value,record.currency)}</dd></div><div><dt>Depreciación acumulada</dt><dd className="list-amount">{record.accumulated_depreciation==null?'—':money(record.accumulated_depreciation,record.currency)}</dd></div>{record.monthly_depreciation!=null?<div><dt>Depreciación mensual</dt><dd className="list-amount">{money(record.monthly_depreciation,record.currency)}</dd></div>:null}</dl>}</section><section><h3>Mantenimiento</h3>{voidError?<p className="error" role="alert">{voidError}</p>:null}{canManage?<div className="inline-actions inventory-maintenance-actions"><button type="button" className="secondary" onClick={()=>setMaintenance('new')}><Plus size={14}/>Agregar mantenimiento</button></div>:null}{maintenanceRows.length?maintenanceRows.map(row=><article className="inventory-trace-row inventory-maintenance-row" key={row.id} data-voided={row.voided_at?'true':undefined}><b>{row.kind}{row.voided_at?<span className="inventory-maintenance-voided">Anulado</span>:null}</b><span>{listDateShort(String(row.maintenance_date||'').slice(0,10))||row.maintenance_date} · {money(row.cost,row.currency)}</span>{row.responsible_name?<span className="inventory-maintenance-person"><ActorAvatar name={row.responsible_name} photo={safePhoto(row.responsible_photo_url)}/>{row.responsible_name}</span>:null}{row.description?<p>{row.description}</p>:null}{row.voided_at&&row.voided_by_name?<span>Anulado por {row.voided_by_name}</span>:null}{canManage&&!row.voided_at?<div className="inline-actions inventory-maintenance-row-actions"><button type="button" className="text-button" onClick={()=>setMaintenance(row)}><Pencil size={14}/>Editar</button>{confirmVoid===String(row.id)?<><span role="alert">¿Anular este mantenimiento?</span><button type="button" className="secondary danger" disabled={Boolean(voiding)} onClick={()=>void voidMaintenance(row)}>{voiding===String(row.id)?'Anulando…':'Confirmar'}</button><button type="button" className="secondary" disabled={Boolean(voiding)} onClick={()=>setConfirmVoid('')}>Cancelar</button></>:<button type="button" className="text-button danger" onClick={()=>setConfirmVoid(String(row.id))}><X size={14}/>Anular</button>}</div>:null}</article>):<p>Sin mantenimientos registrados.</p>}</section><section><h3>Verificación física</h3>{record.last_verified_at?<p><b>{verificationLabel(record.last_verification_result)}</b> · {dateTime(record.last_verified_at)}{record.last_verifier_name?` · ${record.last_verifier_name}`:''}</p>:<p>Sin verificación física registrada.</p>}{data?.verifications.map(row=><article className="inventory-trace-row" key={`verification-${row.id}`}><b>{verificationLabel(row.result)}</b><span>{dateTime(row.verified_at)} · {row.verifier_name||'Usuario registrado'}</span>{row.differences?<p>{row.differences}</p>:null}{row.note?<p>{row.note}</p>:null}</article>)}</section><section><h3>Rastro de préstamo y cambios</h3>{data?.trace.map(row=><article className="inventory-trace-row" key={row.id}><b>{traceLabel(row.event_type)}</b><span>{dateTime(row.event_at)} · {row.actor_name||'Sistema'}</span>{row.event_data?.title?<p>{String(row.event_data.title)}</p>:null}</article>)}{!data?.trace.length?<p>Sin eventos registrados todavía.</p>:null}</section></>}{maintenance&&<Dialog title={maintenance==='new'?'Agregar mantenimiento':`Editar mantenimiento · ${maintenance.kind}`} close={()=>setMaintenance(null)}><InventoryMaintenanceForm item={record} record={maintenance==='new'?null:maintenance} members={members} done={maintenanceSaved}/></Dialog>}</div>;
+ const record=data?.record||item,code=itemCode(record),maintenanceRows=data?.maintenance||[],facts=depreciationFacts(record);
+ return <div className="inventory-detail"><section className="inventory-code-payload">{record.photo_url?<img className="inventory-detail-photo" src={record.photo_url} alt={`Foto de ${record.name}`}/>:null}<div><p className="eyebrow">IDENTIFICACIÓN FÍSICA</p><code className="inventory-code">{code}</code><p>{record.name} · {record.serial_number||'Sin serie registrada'}</p><p className="form-note">{inventoryLocation(record)}</p></div><InventoryBarcode code={code}/></section>{error?<p className="error" role="alert">{error}</p>:null}{!data&&!error?<p role="status">Cargando trazabilidad…</p>:<><section><h3>Valor y depreciación</h3>{record.purchase_value==null?<p>Sin valor de compra registrado.</p>:<dl className="inventory-value-facts"><div><dt>Valor de compra</dt><dd className="list-amount">{money(record.purchase_value,record.currency)}</dd></div><div><dt>Fecha de compra</dt><dd>{listDateShort(String(record.purchase_date||'').slice(0,10))||'—'}</dd></div><div><dt>Método</dt><dd>{depreciationMethodLabel(record.depreciation_method)}</dd></div>{record.depreciation_method==='linear'?<div><dt>Vida útil</dt><dd>{record.useful_life_months?`${record.useful_life_months} meses`:'—'}</dd></div>:null}<div><dt>Valor residual</dt><dd className="list-amount">{money(record.residual_value||0,record.currency)}</dd></div><div><dt>Valor actual</dt><dd className="list-amount">{facts.currentValue==null?'—':money(facts.currentValue,record.currency)}</dd></div><div><dt>Depreciación acumulada</dt><dd className="list-amount">{facts.accumulatedDepreciation==null?'—':money(facts.accumulatedDepreciation,record.currency)}</dd></div>{facts.monthlyDepreciation!=null?<div><dt>Depreciación mensual</dt><dd className="list-amount">{money(facts.monthlyDepreciation,record.currency)}</dd></div>:null}</dl>}</section><section><h3>Mantenimiento</h3>{voidError?<p className="error" role="alert">{voidError}</p>:null}{canManage?<div className="inline-actions inventory-maintenance-actions"><button type="button" className="secondary" onClick={()=>setMaintenance('new')}><Plus size={14}/>Agregar mantenimiento</button></div>:null}{maintenanceRows.length?maintenanceRows.map(row=><article className="inventory-trace-row inventory-maintenance-row" key={row.id} data-voided={row.voided_at?'true':undefined}><b>{row.kind}{row.voided_at?<span className="inventory-maintenance-voided">Anulado</span>:null}</b><span>{listDateShort(String(row.maintenance_date||'').slice(0,10))||row.maintenance_date} · {money(row.cost,row.currency)}</span>{row.responsible_name?<span className="inventory-maintenance-person"><ActorAvatar name={row.responsible_name} photo={safePhoto(row.responsible_photo_url)}/>{row.responsible_name}</span>:null}{row.description?<p>{row.description}</p>:null}{row.voided_at&&row.voided_by_name?<span>Anulado por {row.voided_by_name}</span>:null}{canManage&&!row.voided_at?<div className="inline-actions inventory-maintenance-row-actions"><button type="button" className="text-button" onClick={()=>setMaintenance(row)}><Pencil size={14}/>Editar</button>{confirmVoid===String(row.id)?<><span role="alert">¿Anular este mantenimiento?</span><button type="button" className="secondary danger" disabled={Boolean(voiding)} onClick={()=>void voidMaintenance(row)}>{voiding===String(row.id)?'Anulando…':'Confirmar'}</button><button type="button" className="secondary" disabled={Boolean(voiding)} onClick={()=>setConfirmVoid('')}>Cancelar</button></>:<button type="button" className="text-button danger" onClick={()=>setConfirmVoid(String(row.id))}><X size={14}/>Anular</button>}</div>:null}</article>):<p>Sin mantenimientos registrados.</p>}</section><section><h3>Verificación física</h3>{record.last_verified_at?<p><b>{verificationLabel(record.last_verification_result)}</b> · {dateTime(record.last_verified_at)}{record.last_verifier_name?` · ${record.last_verifier_name}`:''}</p>:<p>Sin verificación física registrada.</p>}{data?.verifications.map(row=><article className="inventory-trace-row" key={`verification-${row.id}`}><b>{verificationLabel(row.result)}</b><span>{dateTime(row.verified_at)} · {row.verifier_name||'Usuario registrado'}</span>{row.differences?<p>{row.differences}</p>:null}{row.note?<p>{row.note}</p>:null}</article>)}</section><section><h3>Rastro de préstamo y cambios</h3>{data?.trace.map(row=><article className="inventory-trace-row" key={row.id}><b>{traceLabel(row.event_type)}</b><span>{dateTime(row.event_at)} · {row.actor_name||'Sistema'}</span>{row.event_data?.title?<p>{String(row.event_data.title)}</p>:null}</article>)}{!data?.trace.length?<p>Sin eventos registrados todavía.</p>:null}</section></>}{maintenance&&<Dialog title={maintenance==='new'?'Agregar mantenimiento':`Editar mantenimiento · ${maintenance.kind}`} close={()=>setMaintenance(null)}><InventoryMaintenanceForm item={record} record={maintenance==='new'?null:maintenance} members={members} done={maintenanceSaved}/></Dialog>}</div>;
 }
 function InventoryMaintenanceForm({item,record,members,done}:{item:InventoryItem;record:InventoryMaintenance|null;members:Person[];done:()=>void}){
  const {currency}=useCompanyCurrency();
@@ -417,12 +311,12 @@ function InventoryVerificationForm({item,done}:{item:InventoryItem;done:()=>void
 
 export function InventoryReservationForm({context,items,record,done,initialSelected=[]}:{context:Context;items:InventoryItem[];record:InventoryReservation|null;done:()=>void;initialSelected?:string[]}){
  const mounted=useMountedRef();
- const [title,setTitle]=useState(record?.title||''),[project,setProject]=useState(String(record?.project_id||'')),[start,setStart]=useState(record?inventoryLocalTime(record.starts_at):''),[end,setEnd]=useState(record?inventoryLocalTime(record.ends_at):'');
+ const [title,setTitle]=useState(record?.title||''),[project,setProject]=useState(String(record?.project_id||'')),[start,setStart]=useState(record?opsLocalTime(record.starts_at):''),[end,setEnd]=useState(record?opsLocalTime(record.ends_at):'');
  const [selected,setSelected]=useState<string[]>(record?.items.map(i=>String(i.id))||initialSelected),[responsibles,setResponsibles]=useState<string[]>(record?.responsible_members.map(p=>String(p.id))||(context.role==='production'?[context.user_id]:[])),[returnPerson,setReturnPerson]=useState(String(record?.return_user_id||'')),[notes,setNotes]=useState(record?.notes||''),[search,setSearch]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const toggle=(id:string,list:string[],set:(list:string[])=>void)=>set(list.includes(id)?list.filter(value=>value!==id):[...list,id]);
  async function submit(event:FormEvent){event.preventDefault();if(busy)return;setError('');setBusy(true);try{
   if(!selected.length)throw new Error('Elegí al menos un equipo');if(!responsibles.length)throw new Error('Elegí al menos un responsable');if(!responsibles.includes(returnPerson))throw new Error('Elegí quién se encarga de devolver los equipos');if(!project)throw new Error('Elegí un proyecto activo');
-  const starts=inventoryUtcTime(start),ends=inventoryUtcTime(end);if(ends<=starts)throw new Error('La devolución prevista debe ser posterior al inicio');
+  const starts=opsUtcTime(start),ends=opsUtcTime(end);if(ends<=starts)throw new Error('La devolución prevista debe ser posterior al inicio');
   await api(`/api/agency/inventory-reservations${record?`/${record.id}`:''}`,{title,project_id:project,starts_at:starts,ends_at:ends,inventory_ids:selected,responsible_user_ids:responsibles,return_user_id:returnPerson,notes,...(record?{expected_version:record.version}:{})},record?'PATCH':'POST');done();
  }catch(error){setError(errorMessage(error));}finally{if(mounted.current)setBusy(false);}}
  return <form className="inventory-form-grid" onSubmit={submit}>
@@ -452,7 +346,7 @@ export function InventoryTransitionForm({action,record,done}:{action:'checkout'|
 export function InventoryCalendar({month,reservations}:{month:string;reservations:InventoryReservation[]}){
  const [year,m]=month.split('-').map(Number),days=new Date(Date.UTC(year,m,0)).getUTCDate(),offset=(new Date(Date.UTC(year,m-1,1)).getUTCDay()+6)%7;
  return <div className="inventory-calendar" aria-label="Calendario mensual de reservas"><div className="inventory-weekdays" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day}>{day}</span>)}</div><div className="inventory-calendar-grid">{Array.from({length:offset},(_,index)=><div className="inventory-calendar-blank" key={`blank-${index}`}/>)}{Array.from({length:days},(_,index)=>{
-  const day=`${month}-${String(index+1).padStart(2,'0')}`,start=inventoryUtcTime(day+'T00:00'),nextDay=new Date(Date.UTC(year,m-1,index+2)).toISOString().slice(0,10),end=inventoryUtcTime(nextDay+'T00:00');
+  const day=`${month}-${String(index+1).padStart(2,'0')}`,start=opsUtcTime(day+'T00:00'),nextDay=new Date(Date.UTC(year,m-1,index+2)).toISOString().slice(0,10),end=opsUtcTime(nextDay+'T00:00');
   const rows=reservations.filter(r=>r.status!=='cancelled'&&r.starts_at<end&&r.ends_at>start);
   return <div className="inventory-calendar-day" key={day} aria-label={day}><time dateTime={day}>{index+1}</time>{rows.map(r=><div className={`inventory-calendar-event inventory-status-${r.status}`} key={r.id}><b>{r.title}</b><small>{r.items.length} equipo(s) · {statusLabels[r.status]}</small></div>)}</div>;
  })}</div></div>;

@@ -63,10 +63,13 @@ test('the client directory keeps one template, ordered row actions and shared da
 });
 
 test('every visible clock is 24-hour and the trash list carries its columns',()=>{
-  for(const file of ['app/account-security.tsx','app/deletion-danger-zone.tsx','app/studio-workspace.tsx']){
+  for(const file of ['app/account-security.tsx','app/deletion-danger-zone.tsx','app/studio-workspace.tsx','app/studio-data.ts']){
     const source=read(file);
-    assert.doesNotMatch(source,/timeStyle:\s*'short'/,'no 12-hour timeStyle survives');
-    assert.match(source,/hourCycle:\s*'h23'/,`${file} keeps the 24-hour clock`);
+    assert.doesNotMatch(source,/timeStyle:\s*'short'/,`no 12-hour timeStyle survives in ${file}`);
+  }
+  // El reloj compartido del OPS vive ahora en la capa de datos (spec #44).
+  for(const file of ['app/account-security.tsx','app/deletion-danger-zone.tsx','app/ops-time.ts']){
+    assert.match(read(file),/hourCycle:\s*'h23'/,`${file} keeps the 24-hour clock`);
   }
   const archive=read('app/archive-controls.tsx');
   assert.match(archive,/trash-head[\s\S]*?Tipo[\s\S]*?Registro[\s\S]*?Acciones/,'the trash list shows its column header');
