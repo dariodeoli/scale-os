@@ -10,6 +10,17 @@ function rule(text,selector){
  while((match=re.exec(text)))last=match[1];
  return last||'';
 }
+// Última regla del selector que declara la propiedad pedida: una regla posterior
+// que sólo repite el padding (p. ej. el ajuste de escritorio de la fila) no debe
+// invalidar la comparación de gap-x/padding entre encabezado y fila.
+function ruleDeclaring(text,selector,property){
+ const pattern=selector.split(' ').map(part=>part.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s*');
+ const re=new RegExp(pattern+'\\s*\\{([^}]*)\\}','g');
+ const declares=new RegExp(`(?:^|[;{])\\s*${property}\\s*:`);
+ let match,last=null;
+ while((match=re.exec(text)))if(declares.test(match[1]))last=match[1];
+ return last||'';
+}
 function tracks(value){
  const declaration=value.match(/--[a-z-]+-cols:([^;}]+)/);
  if(!declaration)return [];
@@ -56,8 +67,8 @@ for(const list of lists){
   }
  });
  test(`${list.name}: mismo gap-x y padding lateral en encabezado y fila`,()=>{
-  assert.equal(xGap(head),xGap(row),`${list.name}: gap-x del encabezado y de la fila`);
-  assert.equal(xPadding(head),xPadding(row),`${list.name}: padding lateral del encabezado y de la fila`);
+  assert.equal(xGap(ruleDeclaring(file,list.head,'gap')),xGap(ruleDeclaring(file,list.row,'gap')),`${list.name}: gap-x del encabezado y de la fila`);
+  assert.equal(xPadding(ruleDeclaring(file,list.head,'padding')),xPadding(ruleDeclaring(file,list.row,'padding')),`${list.name}: padding lateral del encabezado y de la fila`);
  });
  test(`${list.name}: la última columna (acciones) alinea a la derecha en el encabezado`,()=>{
   const headPattern=list.head.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');

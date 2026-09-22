@@ -25,7 +25,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "test:docker-build-secrets": "node tests/docker-build-secrets.test.mjs",
-    "test:release-regression": "node tests/release-version.test.mjs && tsx tests/data-loading-cache.test.ts && tsx tests/workspace-access.test.ts && tsx tests/collaborator-role.test.ts && tsx tests/experience.test.ts && tsx tests/production-layout.test.ts && tsx tests/collaborator-access-compact.test.ts && tsx tests/team-directory.test.ts && tsx tests/superadmin.test.tsx && tsx tests/plt-hardening.test.ts && tsx tests/mobile-workspace-layout.test.ts && tsx tests/mobile-navigation.test.tsx && tsx tests/landing-routing.test.ts && node tests/landing-sales.test.mjs && tsx tests/workspace-footer.test.tsx && tsx tests/founder-pricing.test.ts && node tests/registration-flow.test.mjs && node tests/release-regression-audit.test.mjs && node tests/web-presence.test.mjs && tsx tests/control-center.test.ts && node tests/mora-kpi-mobile.test.mjs && tsx tests/plan-comparison.test.tsx && tsx tests/commercial-gates.test.tsx && tsx tests/capability-gates.test.ts && tsx tests/client-commercial-lifecycle.test.tsx && tsx tests/release-hardening.test.ts && npm run test:docker-build-secrets"
+    "test:release-regression": "node tests/release-version.test.mjs && tsx tests/data-loading-cache.test.ts && tsx tests/workspace-access.test.ts && tsx tests/collaborator-role.test.ts && tsx tests/experience.test.ts && tsx tests/production-layout.test.ts && tsx tests/collaborator-access-compact.test.ts && tsx tests/team-directory.test.ts && tsx tests/superadmin.test.tsx && tsx tests/plt-hardening.test.ts && tsx tests/mobile-workspace-layout.test.ts && tsx tests/mobile-navigation.test.tsx && tsx tests/landing-routing.test.ts && node tests/landing-sales.test.mjs && tsx tests/workspace-footer.test.tsx && tsx tests/founder-pricing.test.ts && node tests/registration-flow.test.mjs && node tests/release-regression-audit.test.mjs && node tests/web-presence.test.mjs && tsx tests/control-center.test.ts && node tests/mora-kpi-mobile.test.mjs && tsx tests/plan-comparison.test.tsx && tsx tests/commercial-gates.test.tsx && tsx tests/capability-gates.test.ts && tsx tests/client-commercial-lifecycle.test.tsx && tsx tests/release-hardening.test.ts && node tests/ui-system.test.mjs && tsx tests/ux-consistency.test.ts && node tests/list-alignment.test.mjs && tsx tests/list-format.test.tsx && tsx tests/field-adoption.test.ts && tsx tests/ui-v2.test.tsx && npm run test:docker-build-secrets"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -49,8 +49,11 @@
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@types/react-test-renderer": "18.3.1",
+    "autoprefixer": "^10.6.1",
+    "postcss": "8.5.28",
     "prisma": "^6.19.2",
     "react-test-renderer": "18.3.1",
+    "tailwindcss": "^3.4.19",
     "tsx": "^4.23.13",
     "typescript": "5.7.2"
   }

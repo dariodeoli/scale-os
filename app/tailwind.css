@@ -1,0 +1,122 @@
+/* ============================================================================
+   Sistema v2 — Tailwind + owncoding-ui (decisión 22-09-2026, campaña #41).
+   Hoja única del sistema: utilidades Tailwind, tokens de marca mapeados a la
+   paleta de Scale OS y la base mínima que necesitan las utilidades.
+
+   Orden de carga (app/layout.tsx): globals.css → hojas legadas →
+   owncoding-ui/styles.css → app/tailwind.css. Las reglas de acá salen después
+   del CSS legado: las utilidades de Tailwind ganan cuando el marcador nuevo y
+   el viejo conviven en el mismo elemento; las hojas de módulo legadas siguen
+   mandando dentro de sus pantallas sin cambios.
+
+   `preflight` está desactivado (ver DESIGN-SYSTEM.md §Sistema v2): el reset
+   global de Tailwind rompería las 53 hojas actuales (márgenes, tipografía de
+   títulos, listas y bordes). En su lugar va una base mínima que habilita las
+   utilidades de borde sin tocar el resto.
+
+   Tema oscuro: `html[data-theme="dark"]` (script inline del layout). El preset
+   usa `dark:` con el selector configurado en tailwind.config.mjs, así que los
+   componentes de la librería siguen el tema legado sin la clase `dark`.
+   ============================================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base mínima (sustituto acotado del preflight) ──────────────────────────
+   Tailwind espera `border-style: solid` y ancho 0 global para sus utilidades
+   `border*`: sin el ancho 0, cualquier elemento sin borde declarado hereda el
+   ancho inicial (`medium` = 3px) y cambia todas las métricas legadas. El CSS
+   legado fija `button{border:0}`, así que los botones se re-declaran acá:
+   cualquier `<button>` con clase `border` vuelve a dibujar el borde, mientras
+   que los botones legados (sin utilidad de borde) siguen sin borde. */
+*,
+::before,
+::after {
+  border-width: 0;
+  border-style: solid;
+  border-color: rgb(var(--c-ink-600));
+}
+button {
+  border-width: 0;
+  border-style: solid;
+  border-color: rgb(var(--c-ink-600));
+}
+
+/* ── Convivencia con la base de la librería ─────────────────────────────────
+   `owncoding-ui/styles.css` entra primero (tokens `--c-*` y base del grupo) y
+   ScaleOS carga después sus hojas legadas + esta. Su base de elementos usa la
+   identidad del grupo (Space Grotesk, titulares balanceados, mono en campos
+   numéricos); para no cambiar métricas del CSS legado se neutraliza SOLO eso.
+   Los tokens, los objetos y las utilidades de la librería no se tocan. */
+h1,
+h2,
+h3,
+nav,
+button,
+label {
+  font-family: inherit;
+}
+h1,
+h2,
+h3 {
+  text-wrap: inherit;
+}
+input[inputmode="numeric"] {
+  font-family: inherit;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+body {
+  min-height: 0;
+}
+
+/* ── Paleta Scale OS → tokens de la librería (`--c-*`, canales RGB) ─────────
+   Claro (default). Valores tomados de globals.css (brand plum + semánticos). */
+:root {
+  --c-paper: 247 246 248; /* canvas #F7F6F8 */
+  --c-fore: 29 21 32; /* text-strong #1d1520 */
+  --c-ink: 255 255 255; /* surface #FFFFFF */
+  --c-ink-950: 243 240 244; /* surface-sunken #F3F0F4 */
+  --c-ink-900: 251 250 252; /* surface-subtle #FBFAFC */
+  --c-ink-800: 255 255 255; /* surface-raised #FFFFFF */
+  --c-ink-700: 251 250 252; /* superficies suaves de hover */
+  --c-ink-600: 232 227 234; /* line #E8E3EA */
+  --c-ink-500: 217 208 221; /* line-strong #D9D0DD */
+  --c-mute: 98 90 102; /* text-subtle #625a66 */
+  --c-fono: 77 6 91; /* brand-700 #4D065B */
+  --c-fono-dark: 56 2 67; /* interactive-pressed #380243 */
+  --c-fono-light: 143 17 132; /* brand-600 #8F1184 */
+  --c-fono-glow: 77 6 91;
+  --c-ok: 29 122 98; /* success #1D7A62 */
+  --c-bad: 180 59 76; /* danger #B43B4C */
+  --c-warn: 167 120 9; /* warning #A77809 */
+  --c-info: 54 93 178; /* info #365DB2 */
+  --c-onbrand: 255 255 255; /* texto sobre marca */
+}
+
+/* Oscuro (mismo contrato que globals.css). */
+html[data-theme="dark"] {
+  --c-paper: 18 18 22; /* canvas #121216 */
+  --c-fore: 245 239 247; /* text #f5eff7 */
+  --c-ink: 27 27 33; /* surface #1b1b21 */
+  --c-ink-950: 14 14 18; /* surface-sunken #0e0e12 */
+  --c-ink-900: 23 23 28; /* canvas-elevated #17171c */
+  --c-ink-800: 39 39 48; /* surface-raised #272730 */
+  --c-ink-700: 33 33 40; /* surface-subtle #212128 */
+  --c-ink-600: 62 62 76; /* line #3e3e4c */
+  --c-ink-500: 90 90 108; /* line-strong #5a5a6c */
+  --c-mute: 167 162 173; /* text-muted #a7a2ad */
+  --c-fono: 192 107 208; /* brand-700 #c06bd0 */
+  --c-fono-dark: 160 79 175; /* brand-600 #a04faf */
+  --c-fono-light: 209 138 217; /* interactive-hover #d18ad9 */
+  --c-fono-glow: 192 107 208;
+  --c-ok: 79 181 150; /* success #4fb596 */
+  --c-bad: 224 106 128; /* danger #e06a80 */
+  --c-warn: 224 165 58; /* warning #e0a53a */
+  --c-info: 143 168 232; /* info #8fa8e8 */
+  --c-onbrand: 29 21 32; /* tinta oscura sobre marca clara */
+  color-scheme: dark;
+}
