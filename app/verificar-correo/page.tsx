@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
+import {esToken} from 'owncoding-ui';
 import {WorkspaceBrand} from '../workspace-brand';
 import {WorkspaceFooter} from '../workspace-footer';
 import {api} from '../operations';
@@ -23,7 +24,7 @@ export default function VerifyEmailPage(){
  }
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),token=params.get('verifyToken')||'';
-  if(!/^[a-f0-9]{64}$/.test(token)){setState('missing');setMessage('Este enlace no es válido o ya venció. Pedí uno nuevo con tu correo acá abajo.');return;}
+  if(!esToken(token)){setState('missing');setMessage('Este enlace no es válido o ya venció. Pedí uno nuevo con tu correo acá abajo.');return;}
   let active=true;
   void (async()=>{
    try{

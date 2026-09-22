@@ -51,6 +51,7 @@
 - **Componentes canónicos**: `Dialog`/`Editor`/`FormActions`/`SaveActions`, `SelectCustom`, `SearchField`, `PhoneField`, `EmailField`, `AmountInput`, `PasswordField`, `PersonContainer`, `ActorIdentity`, `SerialTexto` y utilidades de `list-format`, `notify()` + notification-center, clases `panel`/`ops-card`/`kpi-strip`/`hub-chip`. Un diseño por tipo; si el caso no existe se crea UNA vez en `app/` y se adopta en todos lados. Prohibido crear variantes paralelas o componentes muertos.
 - **Valores por defecto**: país `+595`; moneda de la empresa (`useCompanyCurrency`); zona `America/Asuncion`; hora siempre 24 h (`hourCycle:'h23'`); PYG sin decimales y el resto 2; fechas con `type="date"` y horas con `type="time"`; límites por tipo (nombres 120, direcciones 400, notas 2000); sin máscaras que rompan pegado/autofill.
 - **Guardado vs. mostrado**: se guarda normalizado (número, teléfono `+<código> <dígitos>`, serial mayúsculas sin separadores, correo en minúsculas); el símbolo/separador lo dibuja el campo.
+- **Librería compartida**: la lógica pura y las reglas de interfaz del grupo viven en `owncoding-ui` (tag fijo; hoy `v0.12.0`); ScaleOS la importa y no mantiene copias locales de esas reglas.
 
 ## Issues (backlog)
 - Cada pedido se trabaja desde un issue del **backlog único** de este repositorio (`dariodeoli/scale-os`), sin importar si el cambio vive en el front o en `backend/`.
@@ -155,7 +156,7 @@
 12. Documento fiscal: patrón configurable por país; consulta externa con confirmación.
 13. Búsquedas: campo libre con `q`; en escaneos, normalizar a mayúsculas sin separadores.
 
-**Utilidades puras (testeables)**: `digitsOnly`, `phoneValid`, `internationalPhone`, `normalizePhone`, `normalizeSerial`, `emailSuggestions` (`app/field-rules.ts`); `normalizeAmount`/`displayAmount`/`caretAfterDigits` (`app/amount-format.ts`). Las nuevas reglas van al mismo módulo con su test en `tests/field-rules.test.ts`. Un solo mensaje de error por regla, en el módulo compartido.
+**Utilidades puras (testeables)**: la lógica compartida del grupo —teléfono, serial, token y nombres— vive en `owncoding-ui` (tag fijo) y se importa desde ahí; lo propio de ScaleOS vive en `app/field-rules.ts` (`phoneValid`, `phoneNational`, `normalizeSerial`, `emailSuggestions`) y `app/amount-format.ts` (`normalizeAmount`/`displayAmount`/`caretAfterDigits`). Las nuevas reglas van al mismo módulo con su test en `tests/field-rules.test.ts`. Un solo mensaje de error por regla, en el módulo compartido.
 
 **Interacción y accesibilidad**: `inputMode` correcto por tipo (numeric/decimal/tel/email); `autoComplete` real (email/tel/current-password/new-password/one-time-code); las sugerencias no abren con pegado/autofill, cierran con Escape/blur y Enter no envía si el desplegable está abierto; `label htmlFor`, errores `role="alert"`, `aria-describedby` y `aria-invalid`.
 

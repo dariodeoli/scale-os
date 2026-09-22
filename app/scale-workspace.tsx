@@ -68,7 +68,7 @@ import {filterProductionOrders} from './production-filter';
 import {defaultWorkspacePreferences,startupChoices,workspacePreferenceKey,type StartupPreference} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {RemoveRecord,TrashWorkspace} from './archive-controls';
-import {whatsappUrl} from './client-links';
+import {clientWhatsappUrl} from './client-links';
 import {clientPortfolioStats,clientSince,moneyKpi} from './client-format';
 import {listDateShort} from './list-format';
 import {statuses,type Status,KanbanColumn} from './production-board';
@@ -285,7 +285,7 @@ function ClientHubCard({client,pay,stat,canSeeBilling,canManage,canManageTerms,a
   selected?:boolean;
   onSelect?:()=>void;
 }) {
-  const state=clientState(client),tel=whatsappUrl(client.phone||undefined),since=clientSince(client.created_at);
+  const state=clientState(client),tel=clientWhatsappUrl(client.phone||undefined),since=clientSince(client.created_at);
   const portfolio=stat?[
     stat.projects?{key:'projects',text:`${stat.projects} proyecto${stat.projects===1?'':'s'} activo${stat.projects===1?'':'s'}`,node:<><b>{stat.projects}</b> proyecto{stat.projects===1?'':'s'} activo{stat.projects===1?'':'s'}</>}:null,
     stat.pieces?{key:'pieces',text:`${stat.pieces} pieza${stat.pieces===1?'':'s'} en curso`,node:<><b>{stat.pieces}</b> pieza{stat.pieces===1?'':'s'} en curso</>}:null,

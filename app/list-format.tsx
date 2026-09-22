@@ -1,6 +1,7 @@
 'use client';
 // Shared list formats. Every list view uses these instead of hand-rolling
 // serials, short dates or due emphasis, so the dense tables stay consistent.
+import {partirSerial, serialEnmascarado} from 'owncoding-ui';
 import './list-format.css';
 
 const timeZone = 'America/Asuncion';
@@ -41,8 +42,7 @@ export function dueTone(value: string | null | undefined, days = 7) {
 export function SerialTexto({ value, mask = false }: { value: string | null | undefined; mask?: boolean }) {
   const raw = String(value || '').trim();
   if (!raw) return null;
-  const tail = raw.slice(-4);
-  if (mask) return <span className="serial-text" title={raw}>••••{tail}</span>;
-  const head = raw.slice(0, -4);
-  return <span className="serial-text" title={raw}>{head}<b>{tail}</b></span>;
+  if (mask) return <span className="serial-text" title={raw}>{serialEnmascarado(raw)}</span>;
+  const {cabeza, cola} = partirSerial(raw);
+  return <span className="serial-text" title={raw}>{cabeza}<b>{cola}</b></span>;
 }

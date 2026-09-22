@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect,useId,useRef,useState} from 'react';
+import {whatsappUrl} from 'owncoding-ui';
 import {daysUntil} from './client-format';
 import {listDateFull} from './list-format';
 import {founderPricingNote} from './founder-pricing';
@@ -40,7 +41,7 @@ const transferAccount={holder:'SCALE STRATEGY GROUP E.A.S.',taxId:'80168807-8',b
 function activationRequestUrl(organizationName?:string){
  const name=(organizationName||'').trim().replace(/\s+/g,' ').slice(0,120);
  const text=`Hola, quiero activar la suscripción mensual de Scale OS${name?` para la agencia "${name}"`:''} (US$ 10 o Gs. 50.000 por mes, todos los integrantes y módulos incluidos). El cobro en línea no está habilitado en esta instalación; quiero coordinar la transferencia y enviar el comprobante.`;
- return `https://wa.me/${activationWhatsApp}?text=${encodeURIComponent(text)}`;
+ return whatsappUrl(activationWhatsApp, text);
 }
 const titles={unmanaged:'Sin suscripción gestionada',demo:'Demo · sin cobros',trialing:'Prueba gratuita',active:'Suscripción activa',grace:'Pago pendiente · período de gracia',suspended:'Acceso suspendido'};
 const managed=(state:SubscriptionState)=>!['unmanaged','demo'].includes(state.status);
