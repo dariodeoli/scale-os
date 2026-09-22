@@ -30,7 +30,8 @@ test('icon-only actions explain themselves on hover',()=>{
 
 test('every list view carries the same column-header and alignment contract',()=>{
   const workspace=workspaceSource();
-  assert.match(workspace,/client-hub-head-row[\s\S]*?Cliente[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Acciones/,'the client list shows its column header');
+  assert.match(workspace,/CLIENT_COLUMNS: Column\[\] = \[[\s\S]*?Cliente[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Cobros[\s\S]*?Actividad[\s\S]*?Acciones/,'the client list declares its column header');
+  assert.match(workspace,/ListGrid label="Clientes" template=\{CLIENT_TEMPLATE\}/,'header and rows share one client template');
   assert.match(workspace,/project-entry-head[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables/,'the project list shows its column header');
   const operations=read('app/operations.tsx');
   assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
@@ -57,7 +58,7 @@ test('the client directory keeps one template, ordered row actions and shared da
   assert.doesNotMatch(clients,/\.client-hub-list \.client-hub-card\{grid-template-columns:1fr\}/,'the thin list never collapses into stacked cards');
   assert.match(clients,/@media\(max-width:760px\)\{\.client-hub-list\{overflow-x:auto/,'small screens scroll the thin list horizontally');
   const workspace=workspaceSource();
-  assert.match(workspace,/archived-capsule[\s\S]*?clientHeadRow/,'the archived list carries the same column header');
+  assert.match(workspace,/archived-capsule[\s\S]*?ListGrid label="Clientes archivados" template=\{CLIENT_TEMPLATE\}/,'the archived list carries the same column header');
   assert.match(workspace,/listDateShort\(stat\.nextDue\)/,'client due dates use the shared short format');
   assert.doesNotMatch(workspace,/client-hub-balance[^\n]*moneyKpi/,'row balances use the shared money formatter');
 });
