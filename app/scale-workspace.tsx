@@ -816,12 +816,12 @@ export default function Home() {
 
   const sidebarContent=<>
         <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
-        <p className="nav-caption">Espacio de trabajo</p>
-        <nav aria-label="Menú principal">
+        <p className="nav-caption font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
+        <nav aria-label="Menú principal" className="grid gap-0.5">
           {visibleNav.map(([label, Icon]) => (
             <Link
               key={label}
-              className={activeParent === label ? "active" : ""}
+              className={`${activeParent === label ? "active" : ""} flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium`}
               aria-current={activeParent===label?'page':undefined}
               title={label}
               aria-label={label}
@@ -833,7 +833,7 @@ export default function Home() {
               <span className="nav-label">{label}</span>
             </Link>
           ))}
-          <button type="button" className="nav-logout" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/><span className="nav-label">Cerrar sesión</span></button>
+          <button type="button" className="nav-logout flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/><span className="nav-label">Cerrar sesión</span></button>
         </nav>
         <div className="sidebar-bottom">
           <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
@@ -856,7 +856,7 @@ export default function Home() {
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
-        <div className="workspace-topbar" role="toolbar" aria-label="Controles del espacio de trabajo">
+        <div className="workspace-topbar border-b border-ink-600" role="toolbar" aria-label="Controles del espacio de trabajo">
           <div className="topbar-primary">
             <div className="topbar-identity">
               <MobileNavigation>{sidebarContent}</MobileNavigation>
@@ -899,9 +899,9 @@ export default function Home() {
             totalCount={clients.length}
             view={clientView as 'grid'|'list'}
           ><WorkspaceGuide {...guideProps}/></ClientDirectoryToolbar> : <>
-            <div className="page-heading">
+            <div className="page-heading min-w-0">
               <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
-              {active==='Proyectos'&&<span className="page-count">{projects.length} proyectos</span>}
+              {active==='Proyectos'&&<span className="page-count tabular-nums">{projects.length} proyectos</span>}
             </div>
             <div className="header-actions">
               {active==='Proyectos'&&<div className="workspace-view-controls"><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>}
@@ -944,7 +944,7 @@ export default function Home() {
         {active === "Resumen" && <ResumenSection guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail}/>}
         {active==='Producción'&&<ProduccionSection productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraBuckets={moraBuckets} moraDso={moraDso} visibleMoraClients={visibleMoraClients} moneyMora={moneyMora}/>}
-        {active==='Clientes'&&<ClientesSection user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} setToast={setToast} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail}/>}
+        {active==='Clientes'&&<ClientesSection user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail}/>}
         {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry}/>}
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={loadBudgets} setBudgets={setBudgets}/>}
         {active==='Informes'&&<InformesSection user={user}/>}
