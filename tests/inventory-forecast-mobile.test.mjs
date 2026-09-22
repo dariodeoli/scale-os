@@ -1,27 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import postcss from 'postcss';
 
 const source=path=>readFileSync(new URL(`../app/${path}`,import.meta.url),'utf8');
 const inventory=source('inventory-workspace.tsx'),studio=source('studio-workspace.tsx');
-const css=name=>postcss.parse(source(name));
-const forecast=css('financial-forecast.css');
 // Static, module-local contracts only: not a browser cascade/layout engine.
-function value(sheet,selector,property,width){
- let result;
- sheet.walkRules(rule=>{
-  if(!rule.selectors.includes(selector))return;
-  for(let parent=rule.parent;parent;parent=parent.parent){
-   if(parent.type!=='atrule')continue;
-   assert.equal(parent.name,'media','extend this test explicitly for new at-rules');
-   const match=parent.params.match(/^\((min|max)-width:\s*(\d+)px\)$/);
-   assert(match,`Unsupported media query: ${parent.params}`);
-   if(match[1]==='max'?width>Number(match[2]):width<Number(match[2]))return;
-  }
-  rule.walkDecls(property,decl=>{result=decl.value;});
- });
- return result;
-}
 // Inventario y estudio se rediseñaron con Tailwind + owncoding-ui (campaña #41):
 // su contrato mobile ya no vive en una hoja propia, se declara en el módulo.
 for(const width of [360,768]){
@@ -46,11 +28,13 @@ for(const width of [360,768]){
 // Los campos de la librería mantienen el alto táctil y el ancho completo del contenedor.
 assert.match(inventory,/className="w-36"|className="w-44"|className="w-28"|className="w-52"/,'los campos cortos usan ancho por tipo');
 assert.match(studio,/className="w-44"/,'el mes del estudio usa el ancho de fecha');
-const money=(selector,property)=>value(forecast,selector,property,360);
-assert.equal(money('.financial-forecast .panel-heading label','flex-wrap'),'wrap');
-assert.equal(money('.financial-forecast input','min-width'),'0');
-assert.equal(money('.financial-forecast input','max-width'),'min(100%,16rem)');
-for(const selector of ['.forecast-currency dt','.forecast-currency dd']){
- assert.equal(money(selector,'min-width'),'0');assert.equal(money(selector,'max-width'),'100%');assert.equal(money(selector,'overflow-wrap'),'anywhere');
-}
-console.log('PASS 360/768: contratos mobile de inventario y estudio (una columna, calendario semanal, scroll silencioso, sin elipsis) + montos de Previsión.');
+// Previsión e Informes (FIN, refs #45) también viven en Tailwind + primitivas v2:
+// se verifica la fuente del módulo, no una hoja plana.
+const forecast=source('financial-forecast.tsx'),informes=source('reports-workspace.tsx');
+assert(!/financial-forecast\.css/.test(forecast),'la previsión ya no depende de una hoja plana');
+assert(/className="w-44"/.test(forecast),'el mes de la previsión usa ancho de fecha por tipo');
+assert(/min-h-11/.test(forecast),'las filas finitas de la previsión conservan 44 px');
+assert(/overflow-x-auto/.test(forecast),'las listas de la previsión scrollean en silencio cuando no entran');
+assert(/overflow-x-auto/.test(informes),'el gráfico de informes conserva su scroll horizontal');
+assert(/tabular-nums/.test(forecast)&&/tabular-nums/.test(informes),'montos y cifras van tabulares en Previsión e Informes');
+console.log('PASS 360/768: contratos mobile de inventario y estudio (una columna, calendario semanal, scroll silencioso, sin elipsis) + Previsión/Informes en Tailwind.');
