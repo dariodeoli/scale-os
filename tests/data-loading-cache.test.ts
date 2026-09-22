@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {clearDataCache,dataFetch,setDataScope} from '../app/data-cache';
 import {prefetchSectionData} from '../app/data-prefetch';
+import {workspaceSource} from './workspace-source';
 
 const endpoint='/core-api/api/agency/leads';
 const response=(value=1,status=200)=>new Response(JSON.stringify({value}),{status});
@@ -73,7 +74,7 @@ test('prefetch stays in the current scope and excludes fresh or unrelated endpoi
 
 test('a 200 with a non-JSON body never becomes empty workspace state',async()=>{
  const {readFileSync}=await import('node:fs');
- const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ const workspace=workspaceSource();
  assert(workspace.includes('if (text.trim()) throw new Error("El servidor devolvió una respuesta inválida. Reintentá.");'),'a non-empty non-JSON 200 must throw instead of returning an empty object');
  assert(workspace.includes("if(!Array.isArray(clientData?.clients)||!Array.isArray(projectData?.projects)||!Array.isArray(orderData?.workOrders)||!summaryData?.summary)throw new Error('El servidor devolvió datos incompletos. Reintentá.');"),'the main load validates every array before setting state');
  assert(workspace.includes('const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];'),'secondary loaders coerce non-arrays');

@@ -5,6 +5,7 @@ import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
 import {defaultWorkspacePreferences,parseWorkspacePreferences,startupChoices,startupDestination,workspacePreferenceKey} from '../app/workspace-preferences';
 import {useStartupPreference,useWorkspacePreferences} from '../app/use-workspace-preferences';
+import {workspaceSource} from './workspace-source';
 
 const origin='https://workspace.invalid';
 function environment(href=origin+'/') {
@@ -108,7 +109,7 @@ test('render capture survives auth cleanup and strict-like setup/cleanup/setup r
  }finally{runtime.useEffect=originalEffect;}
 });
 test('Home wiring gates startup on current operational data and preserves explicit views',()=>{
- const home=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ const home=workspaceSource();
  assert(home.includes('startupDataScope===preferenceScope'));
  assert(home.includes('enabled:operationalAccess'));
  assert(home.includes('preferencesReady&&!loading'));

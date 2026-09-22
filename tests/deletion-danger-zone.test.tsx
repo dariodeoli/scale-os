@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {afterEach,test} from 'node:test';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestInstance,type ReactTestRenderer} from 'react-test-renderer';
+import {workspaceSource} from './workspace-source';
 
 require.extensions['.css']=()=>{};
 const {DeletionDangerZone,DELETION_PREVIEW_STORAGE_KEY}=require('../app/deletion-danger-zone') as typeof import('../app/deletion-danger-zone');
@@ -86,7 +87,7 @@ async function staleAccount(){
 afterEach(()=>{renderer?.unmount();renderer=null;});
 
 test('Settings owns permanent deletion and the legacy recoverable closure action is neutralized',()=>{
- const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ const workspace=workspaceSource();
  const security=readFileSync(new URL('../app/account-security.tsx',import.meta.url),'utf8');
  assert.match(workspace,/active==='Configuración'[\s\S]*?<DeletionDangerZone/);
  assert.match(workspace,/onAccountDeleted=\{deletionSignedOut\} onOrganizationDeleted=\{deletionSignedOut\}/);
@@ -117,7 +118,7 @@ test('demo simulation replaces deletion controls and delegates exit to the landi
  assert.equal(button('Revisar eliminación de mi cuenta'),undefined);assert.equal(button('Revisar eliminación de Scale Lab'),undefined);
  act(()=>button('Salir y reiniciar simulación')!.props.onClick());
  assert.equal(demoExited,1);assert.equal(requests.length,0,'The demo exit control delegates cleanup to its workspace owner.');
- const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ const workspace=workspaceSource();
  assert.match(workspace,/async function exitDemoSimulation\(\)[\s\S]*?request\("\/api\/auth\/logout", \{ method: "POST" \}\)[\s\S]*?window\.location\.assign\('\/'\)/);
  assert.match(workspace,/<DeletionDangerZone[\s\S]*?demo=\{!!user\.demo_owner_user_id\|\|user\.organization_slug==='scale-demo-controles-20260908'\}[\s\S]*?onDemoExit=\{exitDemoSimulation\}/);
 });

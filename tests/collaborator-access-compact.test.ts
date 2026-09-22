@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import {visibleModule} from '../app/workspace-access';
+import {workspaceSource} from './workspace-source';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const operations=read('app/operations.tsx');
@@ -11,7 +12,7 @@ const suite=read('app/suite.tsx');
 const production=read('app/production-board.tsx');
 const composer=read('app/quote-composer.tsx');
 const whatsapp=read('app/whatsapp-button.tsx');
-const workspace=read('app/scale-workspace.tsx');
+const workspace=workspaceSource();
 const access=read('app/team-access.tsx');
 const accessCss=read('app/team-access.css');
 const photo=read('app/profile-photo.tsx');

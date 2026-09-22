@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
+import {workspaceSource} from './workspace-source';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 
@@ -28,7 +29,7 @@ test('icon-only actions explain themselves on hover',()=>{
 });
 
 test('every list view carries the same column-header and alignment contract',()=>{
-  const workspace=read('app/scale-workspace.tsx');
+  const workspace=workspaceSource();
   assert.match(workspace,/client-hub-head-row[\s\S]*?Cliente[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Acciones/,'the client list shows its column header');
   assert.match(workspace,/project-entry-head[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables/,'the project list shows its column header');
   const operations=read('app/operations.tsx');
@@ -55,7 +56,7 @@ test('the client directory keeps one template, ordered row actions and shared da
   assert.match(clients,/\.client-hub-list \.client-hub-actions \.icon-button\{width:32px/,'dense row action icons keep the 32px contract');
   assert.doesNotMatch(clients,/\.client-hub-list \.client-hub-card\{grid-template-columns:1fr\}/,'the thin list never collapses into stacked cards');
   assert.match(clients,/@media\(max-width:760px\)\{\.client-hub-list\{overflow-x:auto/,'small screens scroll the thin list horizontally');
-  const workspace=read('app/scale-workspace.tsx');
+  const workspace=workspaceSource();
   assert.match(workspace,/archived-capsule[\s\S]*?clientHeadRow/,'the archived list carries the same column header');
   assert.match(workspace,/listDateShort\(stat\.nextDue\)/,'client due dates use the shared short format');
   assert.doesNotMatch(workspace,/client-hub-balance[^\n]*moneyKpi/,'row balances use the shared money formatter');
@@ -78,7 +79,7 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
 });
 
 test('clients, projects and trash support bulk operations',()=>{
-  const workspace=read('app/scale-workspace.tsx');
+  const workspace=workspaceSource();
   assert.match(workspace,/batchClients[\s\S]*?\/api\/agency\/clients\/batch/,'clients archive in one batch call');
   assert.match(workspace,/batchProjects[\s\S]*?\/api\/agency\/projects\/batch/,'projects archive in one batch call');
   assert.match(workspace,/selectVisibleClients/,'clients can select the visible set');
@@ -93,7 +94,7 @@ test('clients, projects and trash support bulk operations',()=>{
 });
 
 test('finance panels use column headers and the shared money formatter',()=>{
-  const workspace=read('app/scale-workspace.tsx');
+  const workspace=workspaceSource();
   assert.match(workspace,/finance-row-head[\s\S]*?Transferencia[\s\S]*?Factura[\s\S]*?Cobro/,'each finance list shows its header');
   assert.doesNotMatch(workspace,/Intl\.NumberFormat\("es-PY"/,'amounts go through money(), not inline formatters');
   const styles=read('app/operations.css');
@@ -180,7 +181,7 @@ test('the rail navigation keeps one geometry for links and the logout button',()
   assert.match(desktop,/nav>button:hover\{/,'the logout button keeps the rail hover state');
   const mobile=read('app/mobile-navigation.css');
   assert.match(mobile,/\.mobile-sidebar nav>a,\.mobile-sidebar nav>button\{/,'the mobile drawer styles the logout button with the link geometry');
-  const workspace=read('app/scale-workspace.tsx');
+  const workspace=workspaceSource();
   assert.match(workspace,/nav-logout/,'the logout button keeps its rail slot');
 });
 
