@@ -2,10 +2,8 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {esToken} from 'owncoding-ui';
-import {WorkspaceBrand} from '../workspace-brand';
-import {WorkspaceFooter} from '../workspace-footer';
+import {AccessLayout} from '../access-layout';
 import {api} from '../operations';
-import '../registro/registration.css';
 
 type State='checking'|'done'|'error'|'missing';
 export default function VerifyEmailPage(){
@@ -39,15 +37,16 @@ export default function VerifyEmailPage(){
   })();
   return()=>{active=false;};
  },[]);
- return <main className="registration-page"><section className="registration-card" aria-busy={state==='checking'}>
-  <WorkspaceBrand/><p className="eyebrow">SCALE OS · ACCESO SEGURO</p><h1>{state==='done'?'Correo verificado':'Verificación de correo'}</h1>
-  <p role="status" className={state==='error'||state==='missing'?'error':'success'}>{message}</p>
-  {(state==='error'||state==='missing')&&<form className="registration-links" onSubmit={resendVerification}>
-   <label htmlFor="verify-email">Correo de la cuenta<input id="verify-email" type="email" value={email} autoComplete="email" maxLength={200} disabled={resending} onChange={event=>setEmail(event.target.value)}/></label>
-   <button className="primary" type="submit" disabled={!email||resending}>{resending?'Enviando…':'Reenviar correo de verificación'}</button>
-   {resendMessage?<p role="status">{resendMessage}</p>:null}
-   <span><Link href="/registro">Volver al registro</Link><Link href="/">Ir al inicio de sesión</Link></span>
-  </form>}
-  <WorkspaceFooter/>
- </section></main>;
+ return <AccessLayout eyebrow="Scale OS · acceso seguro">
+  <div className="grid gap-3">
+   <h1 className="text-2xl font-bold tracking-tight text-fore">{state==='done'?'Correo verificado':'Verificación de correo'}</h1>
+   <p role="status" className={state==='error'||state==='missing'?'text-sm text-bad':'text-sm text-ok'} aria-live="polite">{message}</p>
+   {state==='error'||state==='missing'?<form className="grid gap-3" onSubmit={resendVerification}>
+    <label htmlFor="verify-email" className="grid gap-1.5 text-xs text-mute">Correo de la cuenta<input id="verify-email" type="email" value={email} autoComplete="email" maxLength={200} disabled={resending} onChange={event=>setEmail(event.target.value)} className="rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm h-11"/></label>
+    <button className="primary" type="submit" disabled={!email||resending}>{resending?'Enviando…':'Reenviar correo de verificación'}</button>
+    {resendMessage?<p role="status" className="text-xs text-mute">{resendMessage}</p>:null}
+    <p className="flex flex-wrap gap-3 text-[11.5px] text-mute"><Link href="/registro">Volver al registro</Link><Link href="/">Ir al inicio de sesión</Link></p>
+   </form>:null}
+  </div>
+ </AccessLayout>;
 }

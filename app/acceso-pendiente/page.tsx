@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import {teamRoleLabels} from '../team-directory';
-import {WorkspaceFooter} from '../workspace-footer';
+import {AccessLayout} from '../access-layout';
 async function withDeadline<T>(controller:AbortController,operation:(signal:AbortSignal)=>Promise<T>):Promise<T>{
  const transport=new AbortController();let timeout:ReturnType<typeof setTimeout>|undefined;
  let cancel=()=>{};
@@ -48,5 +48,15 @@ export default function PendingAccess(){
   finally{if(logoutRequest.current===controller)logoutRequest.current=null;if(!controller.signal.aborted)setLoggingOut(false);}
  }
  const statusTitle=error?'No pudimos comprobar tu acceso':!data?'Comprobando tu solicitud…':data.status==='approved'?'Tu acceso está listo':['rejected','unavailable'].includes(data.status)?'Acceso no habilitado':'Acceso pendiente de aprobación';
- return <main className="login-page"><section className="login-card"><img src="/brand/icon-192.png" width={56} height={56} alt="Scale OS"/><div role="status" aria-live="polite" aria-atomic="true"><h1>{statusTitle}</h1></div><h2>{data?.organization_name||'Tu equipo en Scale OS'}</h2>{data&&<p>{data.email}<br/>Permiso {data.status==='approved'?'habilitado':'solicitado'}: <strong>{teamRoleLabels[data.role]||data.role}</strong></p>}{data?.status==='approved'?<a className="primary" href="/produccion">Entrar a Scale OS</a>:<p>{data?.status==='unavailable'?'La invitación ya no está disponible o tu acceso dejó de estar habilitado. Esta solicitud no puede aprobarse. Pedí al administrador que revise tu acceso y, si corresponde, te envíe un enlace nuevo.':data?.status==='rejected'?'Tu solicitud no fue aprobada. Contactá al administrador de la empresa.':'Una vez que la administración apruebe tu solicitud, podrás utilizar Scale OS según el permiso autorizado. Esta pantalla comprueba el estado automáticamente.'}</p>}{error&&<p role="alert">{error}</p>}{logoutError&&<p role="alert">{logoutError}</p>}<button className="secondary" disabled={loggingOut} onClick={logout}>{loggingOut?'Cerrando sesión…':'Cerrar sesión'}</button><WorkspaceFooter/></section></main>;
+ return <AccessLayout eyebrow="Acceso de equipo">
+  <div className="grid gap-3">
+   <h2 className="text-[17px] font-semibold tracking-tight text-fore">{data?.organization_name||'Tu equipo en Scale OS'}</h2>
+   <div role="status" aria-live="polite" aria-atomic="true"><h1 className="text-2xl font-bold tracking-tight text-fore">{statusTitle}</h1></div>
+   {data&&<p className="break-words text-sm text-mute">{data.email}<br/>Permiso {data.status==='approved'?'habilitado':'solicitado'}: <strong className="text-fore">{teamRoleLabels[data.role]||data.role}</strong></p>}
+   {data?.status==='approved'?<a className="primary" href="/produccion">Entrar a Scale OS</a>:<p className="text-sm text-mute">{data?.status==='unavailable'?'La invitación ya no está disponible o tu acceso dejó de estar habilitado. Esta solicitud no puede aprobarse. Pedí al administrador que revise tu acceso y, si corresponde, te envíe un enlace nuevo.':data?.status==='rejected'?'Tu solicitud no fue aprobada. Contactá al administrador de la empresa.':'Una vez que la administración apruebe tu solicitud, podrás utilizar Scale OS según el permiso autorizado. Esta pantalla comprueba el estado automáticamente.'}</p>}
+   {error?<p role="alert" className="text-sm text-bad">{error}</p>:null}
+   {logoutError?<p role="alert" className="text-sm text-bad">{logoutError}</p>:null}
+   <button className="secondary" disabled={loggingOut} onClick={logout}>{loggingOut?'Cerrando sesión…':'Cerrar sesión'}</button>
+  </div>
+ </AccessLayout>;
 }

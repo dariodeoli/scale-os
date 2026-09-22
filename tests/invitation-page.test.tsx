@@ -4,6 +4,10 @@ import {afterEach,test} from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 
 // Isolate the shared footer, which is maintained independently of this page.
+// Doble local del formateador de fechas: el contrato de esta pantalla es el
+// estado de la invitación, no el formato (que ya cubre tests de list-format).
+const listFormatId=require.resolve('../app/list-format');
+require.cache[listFormatId]={id:listFormatId,filename:listFormatId,loaded:true,exports:{listDateShort:(value:unknown)=>String(value??''),listDateFull:(value:unknown)=>String(value??''),dueTone:()=>undefined,SerialTexto:()=>null}} as NodeModule;
 const footerId=require.resolve('../app/workspace-footer');
 require.cache[footerId]={id:footerId,filename:footerId,loaded:true,exports:{WorkspaceFooter:()=>null}} as NodeModule;
 Object.assign(globalThis,{React});
