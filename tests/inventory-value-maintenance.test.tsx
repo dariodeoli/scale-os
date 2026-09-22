@@ -38,9 +38,15 @@ const {InventoryItemForm,InventoryDetail}=require('../app/inventory-workspace') 
 let renderer:ReactTestRenderer,formDone=0,changed=0;
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
 const labelNode=(value:string)=>renderer.root.findAllByType('label').find(node=>text(node).includes(value))!;
-const field=(value:string,tag:'input'|'textarea'='input')=>labelNode(value).findByType(tag);
+// Campos v2: `<Label htmlFor>` + control con `id` (los montos son `AmountInput`).
+const control=(value:string,tag:'input'|'textarea'|'select'='input')=>{
+ const label=labelNode(value);
+ const htmlFor=label.props.htmlFor;
+ if(htmlFor){const found=renderer.root.findAll(node=>node.props?.id===htmlFor&&typeof node.type==='string');if(found.length)return found[0];}
+ return label.findAllByType(tag)[0];
+};
 const select=(name:string)=>renderer.root.findAllByType(SelectCustom).find(node=>node.props.label===name)!;
-const change=(name:string,value:string)=>act(()=>{field(name).props.onChange({target:{value}});});
+const change=(name:string,value:string)=>act(()=>{const node=control(name);node.props.onChange({target:{value},currentTarget:{value,selectionStart:String(value).length}});});
 const submit=()=>act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){}});});
 const button=(name:string)=>renderer.root.findAllByType('button').find(node=>text(node)===name)!;
 const itemForm=(item:InventoryItem|null)=>create(<InventoryItemForm item={item} categories={categories} members={members} storageTemplates={[]} canManageStorage={false} createStorageTemplate={async name=>({id:'x',name,active:true,item_count:0})} done={()=>{formDone++;}}/>);
@@ -76,7 +82,7 @@ async function run(){
  // Detail renders the computed depreciation and the maintenance history.
  await act(async()=>{renderer=create(<InventoryDetail item={baseItem} members={members} canManage onChanged={()=>{changed++;}}/>);});
  assert.equal(reads.at(-1),'/api/agency/inventory/1');
- assert.match(text(renderer.root),/Valor y depreciación/);assert.match(text(renderer.root),/PYG 800/);assert.match(text(renderer.root),/PYG 200/);assert.match(text(renderer.root),/PYG 41.67/);
+ assert.match(text(renderer.root),/Valor y depreciación/);assert.match(text(renderer.root),/Gs 800/);assert.match(text(renderer.root),/Gs 200/);assert.match(text(renderer.root),/Gs 42/,'el monto sale del formateador compartido (PYG sin decimales)');
  assert.match(text(renderer.root),/Lineal/);assert.match(text(renderer.root),/24 meses/);assert.match(text(renderer.root),/10-sept/);assert.match(text(renderer.root),/PYG 50000/);
  assert.match(text(renderer.root),/Anulado/);assert.match(text(renderer.root),/Anulado por Ana/);assert.match(text(renderer.root),/Sonido/);
  // Creating a maintenance row posts the contract payload, reloads the detail and notifies the workspace.

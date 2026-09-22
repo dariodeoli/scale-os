@@ -43,9 +43,11 @@ const lists=[
  {name:'clientes',vars:'client-directory.css',source:'client-directory.css',head:'.client-hub-head-row',row:'.client-hub-list .client-hub-card',decl:'.client-hub-list'},
  {name:'equipo',vars:'operations.css',source:'operations.css',head:'.person-hub-head-row',row:'.person-hub-card.is-list',decl:'.ops-grid-list'},
  {name:'proyectos',vars:'project-card.css',source:'project-card.css',head:'.project-entry-head',row:'.project-list>.project-entry',decl:'.project-list'},
- {name:'inventario',vars:'inventory-workspace.css',source:'inventory-workspace.css',head:'.inventory-equipment-head',row:'.inventory-equipment-list .inventory-equipment',decl:'.inventory-equipment-list'},
- {name:'reservas',vars:'inventory-workspace.css',source:'inventory-workspace.css',head:'.inventory-reservation-head',row:'.inventory-reservation',decl:'.inventory-reservation-list'},
 ];
+// Inventario y reservas se rediseñaron con Tailwind + owncoding-ui (campaña #41,
+// spec #44): su plantilla ya no vive en una hoja CSS. El contrato v2 de esas
+// listas se verifica en `tests/ops-v2-contract.test.ts` (una sola plantilla por
+// lista, compartida entre encabezado y filas, sin truncar datos).
 
 for(const list of lists){
  const file=css(list.source);
@@ -80,8 +82,6 @@ const cells={
  clientes:{file:'client-directory.css',selectors:['.client-hub-facts','.client-hub-chips','.client-hub-stats','.client-hub-actions','.client-status']},
  equipo:{file:'operations.css',selectors:['.person-hub-facts','.person-hub-state','.person-hub-chips','.person-hub-actions','.team-access']},
  proyectos:{file:'project-card.css',selectors:['.project-entry-meta','.project-entry-facts','.project-entry-assignees','.project-entry-actions']},
- inventario:{file:'inventory-workspace.css',selectors:['.inventory-item-facts','.inventory-state','.inventory-fact-location','.inventory-card-control','.inventory-item-actions']},
- reservas:{file:'inventory-workspace.css',selectors:['.inventory-reservation-cell','.inventory-reservation-actions']},
 };
 for(const [name,{file,selectors}] of Object.entries(cells)){
  test(`${name}: ninguna celda no-identidad se fuerza a la columna 1`,()=>{

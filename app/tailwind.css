@@ -41,6 +41,12 @@ button {
   border-width: 0;
   border-style: solid;
   border-color: rgb(var(--c-ink-600));
+  /* Sin preflight, el `<button>` conserva el fondo nativo del navegador
+     (`buttonface`, el gris #efefef): los objetos de la librería que no declaran
+     fondo (IconAction, paginadores) se veían como cajas. La base lo deja
+     transparente, como haría el preflight; las clases legadas (`.primary`,
+     `.secondary`, `.icon-button`) y las utilidades (`bg-*`) siguen mandando. */
+  background-color: transparent;
 }
 
 /* Scroll horizontal silencioso de las listas densas v2 (`ListGrid`): el
