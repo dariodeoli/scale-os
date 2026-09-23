@@ -22,7 +22,8 @@ test('platform manual subscription wrapper uses the proxy and UTC expiry',()=>{
  const wrapper=readFileSync(new URL('../app/platform-admin-api.ts',import.meta.url),'utf8');
  assert.match(wrapper,/platformApiBase='\/core-api'/);
  const page=readFileSync(new URL('../app/superadmin/page.tsx',import.meta.url),'utf8');
- assert.match(page,/\/agencies\/\$\{subscriptionAgency\.id\}\/subscription/);assert.match(page,/Guardar estado manual/);assert.doesNotMatch(page,/Stripe/);
+ const dialog=readFileSync(new URL('../app/superadmin/subscription-dialog.tsx',import.meta.url),'utf8');
+ assert.match(page,/\/agencies\/\$\{subscriptionAgency\.id\}\/subscription/);assert.match(dialog,/Guardar estado manual/);assert.doesNotMatch(page+dialog,/Stripe/);
 });
 
 test('inventory, RUC, work-order links and recipient notifications use the Core API contracts',()=>{

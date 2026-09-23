@@ -116,7 +116,12 @@ test('single-flight mutation retries failures, refresh failure reports saved and
  h.failReads=true;await act(async()=>h.deferredWrites.splice(0).forEach(resolve=>resolve()));assert(h.copy().includes('Cambio guardado. No se pudo actualizar'));
  const writes=h.calls.filter(c=>c.method==='PATCH').length;h.failReads=false;await h.click('Actualizar');assert.equal(h.calls.filter(c=>c.method==='PATCH').length,writes);
 });
-test('bell styles scope mobile wrapping and 44px actions without truncating notification content',()=>{
- const css=readFileSync(new URL('../app/notifications.css',import.meta.url),'utf8');
- assert(css.includes('.notification-inbox button'));assert(css.includes('min-height:44px'));assert(css.includes('overflow-wrap:anywhere'));assert(css.includes('white-space:pre-wrap'));assert(css.includes('flex-wrap:wrap'));assert(!/line-clamp|text-overflow:ellipsis/.test(css));
+test('bell styles keep stacked cards, mobile wrapping and 44px actions without truncating content',()=>{
+ const source=readFileSync(new URL('../app/notification-inbox.tsx',import.meta.url),'utf8');
+ assert(source.includes('notification-trigger'));
+ assert(source.includes('data.notifications.map(notice=><article'),'cada aviso sigue siendo una tarjeta article (excepción documentada)');
+ assert(!/role="row"/.test(source),'la bandeja no se convierte en lista de filas finas');
+ assert(source.includes('!h-11 !w-11'),'las acciones de la bandeja conservan 44 px');
+ assert(source.includes('whitespace-pre-wrap')&&source.includes('[overflow-wrap:anywhere]')&&source.includes('flex-wrap'),'el contenido del aviso envuelve sin recortarse');
+ assert(!/line-clamp|text-overflow:ellipsis|truncate/.test(source),'el contenido de un aviso nunca se recorta');
 });
