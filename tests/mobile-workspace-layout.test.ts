@@ -4,7 +4,7 @@ import postcss from 'postcss';
 
 // Source-level CSS contracts, not a browser layout or visual verification.
 const read=(file:string)=>readFileSync(new URL('../app/'+file,import.meta.url),'utf8');
-const sheets=Object.fromEntries(['actor-identity.css','production-focus.css','work-checklist.css'].map(file=>[file,postcss.parse(read(file))]));
+const sheets=Object.fromEntries(['actor-identity.css','work-checklist.css','tailwind.css'].map(file=>[file,postcss.parse(read(file))]));
 
 // Inspect a particular selector's declarations in source order at a viewport.
 // This deliberately does not emulate the full CSS cascade or font metrics.
@@ -55,9 +55,9 @@ for(const width of [320,360,390,768]){
  assert.equal(at('work-checklist.css','.work-checklist-check span','overflow-wrap'),'anywhere');
  assert.equal(at('work-checklist.css','.work-checklist input:not([type=checkbox])','min-width'),'0');
  if(width<=760){
-  assert.equal(at('production-focus.css','.control-shell .production-toolbar','flex-direction'),'column');
-  assert.equal(at('production-focus.css','.control-shell .production-toolbar .production-filters','width'),'100%');
-  assert.equal(at('production-focus.css','.control-shell .production-toolbar .production-filters .ops-select','min-width'),'0');
+  // El modo Producción del shell (página con scroll, topbar pegada) vive ahora en tailwind.css.
+  assert.equal(at('tailwind.css','.control-shell.production-board-mode>.content','padding'),'12px',`el tablero conserva el padding mobile al ancho ${width}px`);
+  assert.equal(at('tailwind.css','.control-shell.production-mode .header-actions>.secondary','display'),'none',`el header de Producción esconde el secundario al ancho ${width}px`);
   assert.equal(at('work-checklist.css','.work-checklist-item','flex-wrap'),'wrap');
   assert.equal(at('work-checklist.css','.work-checklist-add-row','flex-wrap'),'wrap');
  }
