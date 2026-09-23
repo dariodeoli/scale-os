@@ -39,19 +39,19 @@ const dueDate = (text, overdue = false) => `<span class="due-date${overdue ? ' o
 const assignedPeople = (people) => !people ? '<span class="assigned-people muted">Responsables no disponibles</span>' : people.length === 0 ? '<span class="assigned-people">Sin responsables</span>' : `<span class="assigned-people"><span class="assigned-people-list">${people.map((person) => `<span class="assigned-person" title="${person.name}${person.primary ? ' · Principal' : ''}">${person.primary ? '★' : ''}${person.initials}</span>`).join('')}</span></span>`;
 const iconAction = ({icon, label, tone = 'mute'}) => {
   const tones = {mute: 'border-transparent text-mute hover:bg-ink-700 hover:text-fore', ok: 'border-ok/30 text-ok hover:bg-ok/10', warn: 'border-warn/30 text-warn hover:bg-warn/10', bad: 'border-bad/30 text-bad hover:bg-bad/10', fono: 'border-fono/30 text-fono-light hover:bg-fono/10'};
-  return `<button type="button" title="${label}" aria-label="${label}" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border transition ${tones[tone]}">${svg(ICON[icon] || ICON.eye, 16, 'h-4 w-4')}</button>`;
+  return `<button type="button" title="${label}" aria-label="${label}" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border transition md:h-8 md:w-8 ${tones[tone]}">${svg(ICON[icon] || ICON.eye, 16, 'h-4 w-4')}</button>`;
 };
 const button = (label, variant = 'primary') => {
   const variants = {primary: 'bg-fono text-onbrand', outline: 'bg-transparent text-fore border border-ink-500', ghost: 'bg-transparent text-mute'};
   return `<button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition md:h-9 ${variants[variant]}">${label}</button>`;
 };
-const segmented = (label, options, active) => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${label}">${options.map(([id, text, icon]) => `<button type="button" aria-pressed="${id === active}" aria-label="${text}" title="${text}" class="inline-flex min-h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${id === active ? 'bg-fono/15 text-fono-light' : 'text-mute'}">${svg(ICON[icon] || ICON.grid, 16, 'h-4 w-4 shrink-0')}<span class="min-w-0 truncate">${text}</span></button>`).join('')}</div>`;
+const segmented = (label, options, active) => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${label}">${options.map(([id, text, icon]) => `<button type="button" aria-pressed="${id === active}" aria-label="${text}" title="${text}" class="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 md:min-h-8 text-sm font-medium transition ${id === active ? 'bg-fono/15 text-fono-light' : 'text-mute'}">${svg(ICON[icon] || ICON.grid, 16, 'h-4 w-4 shrink-0')}<span class="min-w-0 truncate">${text}</span></button>`).join('')}</div>`;
 const kpi = (label, value, hint) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${value}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="text-mute">${hint}</span></div>` : ''}</div>`;
 
 /* --------------------------------------------------------------- tablero */
 const orderCard = (order) => `
 <article class="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3" data-order="${order.id}">
- <div class="flex items-start justify-between gap-2"><button type="button" class="min-w-0 text-left text-[13px] font-semibold text-fore">${order.title}</button><button type="button" class="shrink-0 cursor-grab touch-none text-mute" title="Mover ${order.title}" aria-label="Mover ${order.title}">⋮⋮</button></div>
+ <div class="flex items-start justify-between gap-2"><button type="button" class="min-w-0 text-left text-[13px] font-semibold text-fore">${order.title}</button><button type="button" class="flex h-11 w-11 shrink-0 cursor-grab touch-none items-center justify-center text-mute md:h-7 md:w-7" title="Mover ${order.title}" aria-label="Mover ${order.title}">⋮⋮</button></div>
  <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] text-mute">${clientIdentity(order.client, order.color)}<span aria-hidden="true">·</span><span class="min-w-0 truncate" title="${order.project}">${order.project}</span></div>
  <div class="flex flex-wrap items-center gap-1">${chip(order.status.label, order.status.tone)}${urgencyBadge(order.urgency)}${chip(order.workType, 'info')}${order.approval ? chip(`Aprobaciones: ${order.approval}`, 'ok') : ''}</div>
  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">${order.links ? `<span class="whitespace-nowrap">${order.links === 1 ? '1 enlace' : `${order.links} enlaces`}</span>` : '<span>Sin enlace</span>'}<span class="whitespace-nowrap">${order.hours}</span>${order.checklist ? `<span class="whitespace-nowrap">☑ ${order.checklist.done}/${order.checklist.total} pasos</span>` : ''}</div>
@@ -96,7 +96,7 @@ const PLANNER_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.1fr)_7re
 const plannerHead = `<div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PLANNER_TEMPLATE}"><span role="columnheader">Pieza</span><span role="columnheader">Vence</span><span role="columnheader">Estado</span><span role="columnheader">Tipo</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Checklist</span><span role="columnheader">Horas</span></div>`;
 const plannerRow = (order) => `
 <div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-1 ${PLANNER_TEMPLATE}" data-status="${order.status.id}">
- <span class="flex min-w-0 items-center gap-2"><input type="checkbox" class="h-4 w-4 p-0 accent-fono" aria-label="Seleccionar ${order.title}"><button type="button" class="min-w-0 text-left"><b class="block truncate text-[13px] font-semibold text-fore" title="${order.title}">${order.title}</b><small class="block truncate text-[11px] text-mute" title="${order.client} · ${order.project}">${order.client} · ${order.project}</small></button></span>
+ <span class="flex min-w-0 items-center gap-2"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${order.title}"></label><button type="button" class="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0"><b class="block truncate text-[13px] font-semibold text-fore" title="${order.title}">${order.title}</b><small class="block truncate text-[11px] text-mute" title="${order.client} · ${order.project}">${order.client} · ${order.project}</small></button></span>
  <span class="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute">${order.dueShort || 'Sin fecha'}</span>
  <span class="min-w-0">${chip(order.status.label, order.status.tone)}</span>
  <span class="min-w-0">${chip(order.workType, 'mute')}</span>
@@ -123,7 +123,7 @@ const projectRows = [
 const projectRow = (project) => `
 <article id="project-${project.id}" tabindex="-1" class="project-entry group/project flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1">
  <div class="flex min-w-0 items-start gap-2 [.project-list_&]:items-center">
-  ${project.selectable ? `<label class="select-check" title="Seleccionar proyecto"><input type="checkbox" class="h-4 w-4 p-0 accent-fono" aria-label="Seleccionar ${project.name}"></label>` : ''}
+  ${project.selectable ? `<label class="select-check flex h-11 min-w-11 items-center justify-center md:h-6 md:min-w-6" title="Seleccionar proyecto"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${project.name}"></label>` : ''}
   <div class="min-w-0 [.project-list_&]:flex [.project-list_&]:items-center [.project-list_&]:gap-2">
    <h3 class="break-words text-sm font-semibold text-fore [.project-list_&]:min-w-0 [.project-list_&]:truncate" title="${project.name}">${project.name}</h3>
    <span class="mt-0.5 min-w-0 text-left text-[11.5px] text-mute [.project-list_&]:hidden">${clientIdentity(project.client.name, project.client.color)}</span>
@@ -143,16 +143,16 @@ const projectRow = (project) => `
  <div class="min-w-0 [.project-list_&]:hidden">${assignedPeople(project.people, project.inherited)}</div>
  <span class="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:block" title="${(project.people||[]).map(p=>p.name).join(', ')}">${(project.people||[]).map(p=>p.name).join(', ') || (project.inherited ? 'Responsables no disponibles' : 'Sin responsables')}</span>
  <p class="text-[10.5px] text-mute [.project-list_&]:hidden">Actualizado ${project.updated}</p>
- <div class="mt-auto flex min-w-0 flex-wrap items-center gap-2 border-t border-ink-600 pt-2 [.project-list_&]:mt-0 [.project-list_&]:flex-nowrap [.project-list_&]:overflow-x-auto [.project-list_&]:border-t-0 [.project-list_&]:pt-0">${project.links ? `<a class="whitespace-nowrap text-[11.5px] font-semibold text-fono-light" href="#drive">Abrir Drive${project.links > 1 ? ` (${project.links})` : ''} ↗</a>` : '<small class="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>'}${iconAction({icon: 'eye', label: `Ver detalle del proyecto: ${project.name}`, tone: 'fono'})}<button type="button" class="text-button">Comentarios</button>${project.manageable ? '<button type="button" class="text-button">Archivar</button>' : ''}${project.manageable ? iconAction({icon: 'pencil', label: `Editar proyecto: ${project.name}`}) : ''}</div>
+ <div class="mt-auto flex min-w-0 flex-wrap items-center gap-2 border-t border-ink-600 pt-2 [.project-list_&]:mt-0 [.project-list_&]:flex-nowrap [.project-list_&]:overflow-x-auto [.project-list_&]:border-t-0 [.project-list_&]:pt-0">${project.links ? `<a class="inline-flex min-h-11 items-center whitespace-nowrap text-[11.5px] font-semibold text-fono-light md:min-h-0" href="#drive">Abrir Drive${project.links > 1 ? ` (${project.links})` : ''} ↗</a>` : '<small class="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>'}${iconAction({icon: 'eye', label: `Ver detalle del proyecto: ${project.name}`, tone: 'fono'})}<button type="button" class="text-button">Comentarios</button>${project.manageable ? '<button type="button" class="text-button">Archivar</button>' : ''}${project.manageable ? iconAction({icon: 'pencil', label: `Editar proyecto: ${project.name}`}) : ''}</div>
 </article>`;
 const projectCard = (project) => `
 <article class="project-entry group/project flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
- <div class="flex min-w-0 items-start gap-2">${project.selectable ? `<label class="select-check" title="Seleccionar proyecto"><input type="checkbox" class="h-4 w-4 p-0 accent-fono" aria-label="Seleccionar ${project.name}"></label>` : ''}<div class="min-w-0"><h3 class="break-words text-sm font-semibold text-fore" title="${project.name}">${project.name}</h3><span class="mt-0.5 block text-[11.5px] text-mute">${clientIdentity(project.client.name, project.client.color)}</span></div></div>
+ <div class="flex min-w-0 items-start gap-2">${project.selectable ? `<label class="select-check flex h-11 min-w-11 items-center justify-center md:h-6 md:min-w-6" title="Seleccionar proyecto"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${project.name}"></label>` : ''}<div class="min-w-0"><h3 class="break-words text-sm font-semibold text-fore" title="${project.name}">${project.name}</h3><span class="mt-0.5 block text-[11.5px] text-mute">${clientIdentity(project.client.name, project.client.color)}</span></div></div>
  <div class="flex min-w-0 flex-wrap items-center gap-1">${chip(project.status.label, project.status.tone)}${urgencyBadge(project.urgency)}</div>
  <dl class="grid gap-1 text-[11.5px]"><div class="flex items-center gap-1.5"><dt class="text-mute">Inicio</dt><dd class="list-date whitespace-nowrap">${project.start || 'Sin fecha'}</dd></div><div class="flex items-center gap-1.5"><dt class="text-mute">Entrega</dt><dd class="list-date whitespace-nowrap">${project.due || 'Sin fecha'}</dd></div><div class="flex items-center gap-1.5"><dt class="text-mute">Piezas</dt><dd class="tabular-nums">${project.pieces}</dd></div></dl>
  <div class="min-w-0">${assignedPeople(project.people, project.inherited)}</div>
  <p class="text-[10.5px] text-mute">Actualizado ${project.updated}</p>
- <div class="mt-auto flex min-w-0 flex-wrap items-center gap-2 border-t border-ink-600 pt-2">${project.links ? `<a class="whitespace-nowrap text-[11.5px] font-semibold text-fono-light" href="#drive">Abrir Drive${project.links > 1 ? ` (${project.links})` : ''} ↗</a>` : '<small class="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>'}${iconAction({icon: 'eye', label: `Ver detalle del proyecto: ${project.name}`, tone: 'fono'})}<button type="button" class="text-button">Comentarios</button></div>
+ <div class="mt-auto flex min-w-0 flex-wrap items-center gap-2 border-t border-ink-600 pt-2">${project.links ? `<a class="inline-flex min-h-11 items-center whitespace-nowrap text-[11.5px] font-semibold text-fono-light md:min-h-0" href="#drive">Abrir Drive${project.links > 1 ? ` (${project.links})` : ''} ↗</a>` : '<small class="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>'}${iconAction({icon: 'eye', label: `Ver detalle del proyecto: ${project.name}`, tone: 'fono'})}<button type="button" class="text-button">Comentarios</button></div>
 </article>`;
 const projectsBody = (asGrid) => `
 <section class="grid min-w-0 gap-4" aria-label="Proyectos">
@@ -163,6 +163,22 @@ const projectsBody = (asGrid) => `
    : `<div role="table" aria-label="Proyectos" class="project-list silent-scroll min-w-0 overflow-x-auto [--project-cols:minmax(14rem,1.6fr)_7rem_minmax(13rem,1.1fr)_minmax(10rem,1fr)_10rem]"><div class="min-w-[64rem]"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-3 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PROJECT_TEMPLATE}"><span role="columnheader">Proyecto</span><span role="columnheader">Estado</span><span role="columnheader">Fechas y piezas</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Acciones</span></div><div role="rowgroup">${projectRows.map(projectRow).join('')}</div></div></div>`}
 </section>`;
 
+
+/* ------------------------------------------------------------ calendario */
+const CAL_DAYS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const calHead = `<div class="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">${CAL_DAYS.map(day => `<span class="text-center text-[10px] font-bold uppercase tracking-wider text-mute">${day}</span>`).join('')}</div>`;
+const calPiece = (order, time) => `<button type="button" class="grid min-h-11 gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-left text-[11px] text-fono-light min-[769px]:min-h-0"><b class="break-words">${order.title}</b><span class="text-mute">${order.client} · ${time}</span></button>`;
+const calDay = (day, rows) => `<div class="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1" aria-label="2026-09-${String(day).padStart(2,'0')}"><time class="text-[11px] tabular-nums text-mute" datetime="2026-09-${String(day).padStart(2,'0')}">${day}</time>${rows.join('')}</div>`;
+const calByDay = new Map([[3, [[orders[0], '14:00']]], [8, [[orders[1], '09:30']]], [15, [[orders[2], '16:45']]], [22, [[orders[3], '11:15']]], [25, [[orders[0], '10:00']]]]);
+const calendarBody = `
+<div class="grid min-w-0 gap-4" aria-label="Planificador de producción">
+ <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-lg font-bold text-fore">Calendario</h2><div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 [&>button]:min-h-11 md:[&>button]:min-h-9" role="group" aria-label="Vista del planificador"><button type="button" class="rounded-lg px-3 py-1 text-[12.5px] font-semibold text-mute">Mi día</button><button type="button" class="rounded-lg bg-fono px-3 py-1 text-[12.5px] font-semibold text-onbrand" aria-pressed="true">Calendario</button><button type="button" class="rounded-lg px-3 py-1 text-[12.5px] font-semibold text-mute">Lista y lotes</button></div></div>
+ <label class="grid w-44 gap-1.5"><span class="text-[12px] font-semibold text-mute">Mes de entrega</span><input type="month" value="2026-09" class="min-h-11"></label>
+ <div class="grid gap-2" aria-label="Calendario de entregas del mes">${calHead}
+  <div class="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">${Array.from({length: 1}, (_, index) => `<div class="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" aria-hidden="true"></div>`).join('')}${Array.from({length: 30}, (_, index) => {const day = index + 1;return calDay(day, (calByDay.get(day) || []).map(([order, time]) => calPiece(order, time)));}).join('')}</div>
+ </div>
+</div>`;
+
 /* ------------------------------------------------------------------ export */
 export default [
   {
@@ -172,7 +188,16 @@ export default [
     kind: 'workspace',
     lists: [],
     grids: [],
-    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción"><div class="flex snap-x gap-3 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Tablero de Producción, desplazable horizontalmente">${productionColumns.map(column => kanbanColumn(column.status, column.orders)).join('')}</div><p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p></section></div>`,
+    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción"><div class="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Tablero de Producción, desplazable horizontalmente">${productionColumns.map(column => kanbanColumn(column.status, column.orders)).join('')}</div><p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p></section></div>`,
+  },
+  {
+    id: 'produccion-calendario',
+    section: 'Producción',
+    surface: 'Calendario de entregas',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: calendarBody,
   },
   {
     id: 'produccion-mi-dia',

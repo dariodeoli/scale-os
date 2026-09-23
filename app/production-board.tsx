@@ -85,7 +85,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
     >
       <div className="flex items-start justify-between gap-2">
         <button type="button" className="min-w-0 text-left text-[13px] font-semibold text-fore hover:text-fono-light" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
-        {canMove?<button type="button" className="shrink-0 cursor-grab touch-none text-mute" title={`Mover ${order.title}`} aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>:null}
+        {canMove?<button type="button" className="flex h-11 w-11 shrink-0 cursor-grab touch-none items-center justify-center text-mute md:h-7 md:w-7" title={`Mover ${order.title}`} aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>:null}
       </div>
       <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] text-mute">
         <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/>
@@ -132,7 +132,7 @@ export function KanbanColumn({
   return (
     <section
       ref={droppable.setNodeRef}
-      className={`flex min-w-0 w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-2.5 transition ${droppable.isOver ? "border-fono bg-fono/10" : "border-ink-600 bg-ink-800/60"}`}
+      className={`flex min-w-0 w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver ? "border-fono bg-fono/10" : "border-ink-600 bg-ink-800/60"}`}
       data-column={status.id}
     >
       <div className="flex items-center gap-2">

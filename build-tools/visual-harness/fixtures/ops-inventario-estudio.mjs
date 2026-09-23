@@ -43,15 +43,17 @@ const badge = (label, tone) => {
   const tones = {ok: 'bg-ok/15 text-ok border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn border-warn/25', bad: 'bg-bad/15 text-bad border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
   return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${tones[tone]}">${label}</span>`;
 };
-const iconAction = ({icon, label, tone = 'mute', disabled = false}) => {
+const iconAction = ({icon, label, tone = 'mute', disabled = false, dense = false}) => {
   const tones = {mute: 'border-transparent text-mute hover:bg-ink-700 hover:text-fore', ok: 'border-ok/30 text-ok hover:bg-ok/10', warn: 'border-warn/30 text-warn hover:bg-warn/10', bad: 'border-bad/30 text-bad hover:bg-bad/10'};
-  return `<button type="button" title="${label}" aria-label="${label}"${disabled ? ' disabled' : ''} class="inline-flex h-7 w-7 items-center justify-center rounded-lg border transition ${tones[tone]}">${svg(ICON[icon], 16, 'h-4 w-4')}</button>`;
+  // Targets táctiles: 44 px en móvil; 28 px en filas densas y 32 px en tarjetas.
+  const size = dense ? 'md:h-7 md:w-7' : 'md:h-8 md:w-8';
+  return `<button type="button" title="${label}" aria-label="${label}"${disabled ? ' disabled' : ''} class="inline-flex h-11 w-11 items-center justify-center rounded-lg border transition ${size} ${tones[tone]}">${svg(ICON[icon], 16, 'h-4 w-4')}</button>`;
 };
 const button = (label, variant = 'primary') => {
   const variants = {primary: 'bg-fono text-onbrand hover:bg-fono-light', outline: 'bg-transparent text-fore border border-ink-500 hover:border-fono hover:bg-fono/10', ghost: 'bg-transparent text-mute hover:bg-ink-700 hover:text-fore'};
   return `<button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition md:h-9 ${variants[variant]}">${label}</button>`;
 };
-const segmented = (label, options, active) => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${label}">${options.map(([id, text, icon]) => `<button type="button" aria-pressed="${id === active}" aria-label="${text}" title="${text}" class="inline-flex min-h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${id === active ? 'bg-fono/15 text-fono-light' : 'text-mute hover:bg-fore/5 hover:text-fore'}">${svg(ICON[icon], 16, 'h-4 w-4 shrink-0')}<span class="min-w-0 truncate">${text}</span></button>`).join('')}</div>`;
+const segmented = (label, options, active) => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${label}">${options.map(([id, text, icon]) => `<button type="button" aria-pressed="${id === active}" aria-label="${text}" title="${text}" class="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 md:min-h-8 text-sm font-medium transition ${id === active ? 'bg-fono/15 text-fono-light' : 'text-mute hover:bg-fore/5 hover:text-fore'}">${svg(ICON[icon], 16, 'h-4 w-4 shrink-0')}<span class="min-w-0 truncate">${text}</span></button>`).join('')}</div>`;
 const searchField = (label, placeholder) => `<div class="relative min-w-0">${svg(ICON.search, 16, 'pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mute')}<input type="search" value="" placeholder="${placeholder}" aria-label="${label}" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 pl-9 pr-9 text-base text-fore outline-none transition placeholder:text-mute/60 focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"></div>`;
 const fieldLabel = (text, id) => `<label class="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-mute" for="${id}">${text}</label>`;
 const kpi = (label, value, hint, moneda = false) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${moneda ? money(value) : value}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="text-mute">${hint}</span></div>` : ''}</div>`;
@@ -68,8 +70,8 @@ const equipment = [
   {name: 'Grabador de audio de 32 canales', code: 'SC-000501', photo: true, status: 'in_use', statusLabel: 'En uso', statusTone: 'info', category: 'Audio', serial: 'REC32-2022-0000000000007788', value: 'USD 3.250,00', location: 'Con Ana Paula Benítez · En uso · sin reserva vinculada', verification: {result: 'confirmed', label: 'Confirmado', tone: 'ok', verifier: 'Rita Mical Herrera', time: '15 sept 26 · 07:00'}},
 ];
 const equipmentRow = (item) => `
-<article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[48px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-2">
- <span class="flex items-center"><input type="checkbox" class="h-4 w-4 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></span>
+<article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[48px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
+ <span class="flex h-11 items-center md:h-auto"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label></span>
  <span class="flex items-center">${item.photo ? '<img class="h-8 w-8 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : `<span class="grid h-8 w-8 place-items-center rounded-lg border border-ink-600 text-mute">${svg(ICON.camera, 14)}</span>`}</span>
  <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${item.name}">${item.name}</b><code class="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></span>
  <span class="flex min-w-0 items-center gap-x-1.5 text-[13px] leading-5 text-mute"><span class="min-w-0 truncate" title="${item.category}">${item.category}</span><span aria-hidden="true">·</span><span class="inline-flex items-center whitespace-nowrap">${item.serial ? `••••${item.serial.slice(-4)}` : 'Sin serie'}</span></span>
@@ -77,12 +79,12 @@ const equipmentRow = (item) => `
  <span class="flex justify-start">${badge(item.statusLabel, item.statusTone)}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${item.location}">${item.location}</span>
  <span class="min-w-0">${item.verification ? `<span class="inline-flex min-w-0 items-center gap-1.5"><span role="img" title="Control: ${item.verification.label}" aria-label="Control: ${item.verification.label}" class="${item.verification.tone === 'ok' ? 'text-ok' : item.verification.tone === 'warn' ? 'text-warn' : 'text-bad'}">${item.verification.tone === 'ok' ? '✓' : item.verification.tone === 'warn' ? '!' : '×'}</span>${avatar(item.verification.verifier)}<span class="min-w-0 text-xs text-mute">${item.verification.verifier.split(' ')[0]}</span><time class="whitespace-nowrap text-[11px] tabular-nums text-mute">${item.verification.time}</time></span>` : '<span class="text-xs text-mute">Sin verificación física</span>'}</span>
- <span class="flex flex-wrap items-center justify-end gap-1">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`})}</span>
+ <span class="flex flex-wrap items-center justify-end gap-1">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense: true})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense: true})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense: true})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense: true})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense: true})}</span>
 </article>`;
 const equipmentCard = (item) => `
 <article data-grid-card="equipment" data-status="${item.status}" class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
  <div class="flex items-start justify-between gap-3"><div class="flex min-w-0 items-start gap-2">
-  <label class="mt-0.5 inline-flex shrink-0 items-center" title="Seleccionar para operar en lote"><input type="checkbox" class="h-4 w-4 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
+  <label class="mt-0.5 flex h-11 shrink-0 items-center justify-center md:h-6" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
   ${item.photo ? '<img class="h-11 w-11 shrink-0 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : ''}
   <div class="min-w-0"><h3 class="break-words text-sm font-semibold text-fore">${item.name}</h3><code class="whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></div>
  </div>${badge(item.statusLabel, item.statusTone)}</div>
@@ -116,10 +118,10 @@ const pipeline = [
   {title: 'Sin ubicación', readonly: false, responsible: '', rows: [equipment[3]], note: 'Sin registro de ingreso a esta ubicación'},
 ];
 const pipelineCard = (item) => `
-<article data-board-card class="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-2.5">
+<article data-board-card class="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3">
  <button type="button" title="Abrir detalle: ${item.name}" class="flex min-w-0 items-center gap-2 text-left">${item.photo ? '<img class="h-9 w-9 shrink-0 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : `<span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute">${svg(ICON.camera, 14)}</span>`}<span class="min-w-0"><b class="block break-words text-[13px] font-semibold text-fore">${item.name}</b><code class="whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code><small class="flex items-center gap-1 text-[11px] text-mute">${item.category}</small></span></button>
  <small class="text-[11px] text-mute">${item.note || 'Sin registro de ingreso a esta ubicación'}</small>
- <div class="flex items-center justify-between gap-2">${badge(item.statusLabel, item.statusTone)}<span class="flex items-center gap-1">${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`})}<button type="button" class="cursor-grab touch-none text-mute" title="Mover ${item.name}" aria-label="Mover ${item.name}">⋮⋮</button></span></div>
+ <div class="flex items-center justify-between gap-2">${badge(item.statusLabel, item.statusTone)}<span class="flex items-center gap-1">${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense: true})}<button type="button" class="flex h-11 w-11 cursor-grab touch-none items-center justify-center text-mute md:h-7 md:w-7" title="Mover ${item.name}" aria-label="Mover ${item.name}">⋮⋮</button></span></div>
 </article>`;
 const pipelineBoard = `
 <div data-board="locations" class="flex snap-x gap-3 overflow-x-auto pb-1" role="region" aria-label="Pipeline de ubicaciones">
@@ -138,14 +140,14 @@ const reservations = [
 ];
 const reservationHead = `<div data-list-head="reservations" class="grid grid-cols-[var(--rsv-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span>Producción</span><span>Proyecto</span><span>Fechas</span><span>Equipos</span><span>Responsables</span><span>Devuelve</span><span class="text-right">Acciones</span></div>`;
 const reservationRow = (row) => `
-<div data-list-row="reservations" data-status="${row.status}" class="grid min-h-[48px] grid-cols-[var(--rsv-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-2">
+<div data-list-row="reservations" data-status="${row.status}" class="grid min-h-[48px] grid-cols-[var(--rsv-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
  <span class="flex min-w-0 items-center gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${row.title}">${row.title}</b>${badge(row.statusLabel, row.status === 'reserved' ? 'info' : row.status === 'checked_out' ? 'warn' : row.status === 'returned' ? 'ok' : 'mute')}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.project}">${row.project}</span>
  <span class="min-w-0 whitespace-nowrap text-[13px] leading-5 tabular-nums text-mute">${row.dates}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.items}">${row.items}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.responsibles}">${row.responsibles}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.returns}">${row.returns}</span>
- <span class="flex flex-wrap items-center justify-end gap-1">${row.status === 'reserved' ? iconAction({icon: 'edit', label: `Editar reserva: ${row.title}`}) + iconAction({icon: 'package', tone: 'ok', label: `Registrar retiro: ${row.title}`}) + iconAction({icon: 'close', tone: 'warn', label: `Cancelar reserva: ${row.title}`}) : row.status === 'checked_out' ? iconAction({icon: 'refresh', tone: 'ok', label: `Registrar devolución: ${row.title}`}) : ''}</span>
+ <span class="flex flex-wrap items-center justify-end gap-1">${row.status === 'reserved' ? iconAction({icon: 'edit', label: `Editar reserva: ${row.title}`, dense: true}) + iconAction({icon: 'package', tone: 'ok', label: `Registrar retiro: ${row.title}`, dense: true}) + iconAction({icon: 'close', tone: 'warn', label: `Cancelar reserva: ${row.title}`, dense: true}) : row.status === 'checked_out' ? iconAction({icon: 'refresh', tone: 'ok', label: `Registrar devolución: ${row.title}`, dense: true}) : ''}</span>
  ${row.audit ? `<p class="col-span-full flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">${row.audit}</p>` : ''}
 </div>`;
 const calendar = (events) => `<div class="grid gap-2" aria-label="Calendario mensual de reservas"><div class="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => `<span class="text-center text-[10px] font-bold uppercase tracking-wider text-mute">${day}</span>`).join('')}</div><div class="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">${Array.from({length: 2}, (_, index) => `<div class="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key="blank-${index}"></div>`).join('')}${Array.from({length: 30}, (_, index) => {const day = index + 1; const rows = events[day] || []; return `<div class="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1" aria-label="2026-09-${String(day).padStart(2, '0')}"><time class="text-[11px] tabular-nums text-mute">${day}</time>${rows.map((event) => `<div class="grid gap-0.5 rounded-md border px-1.5 py-1 text-[11px] ${event.tone}"><b class="break-words">${event.title}</b><small class="text-mute">${event.count} equipo(s) · ${event.label}</small></div>`).join('')}</div>`;}).join('')}</div></div>`;
@@ -169,7 +171,7 @@ const studioReservations = [
 ];
 const studioReservationHead = `<div data-list-head="studio-reservations" class="grid grid-cols-[var(--studio-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span class="text-right">Acciones</span></div>`;
 const studioReservationRow = (row) => `
-<div data-list-row="studio-reservations" class="grid min-h-[48px] grid-cols-[var(--studio-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-2">
+<div data-list-row="studio-reservations" class="grid min-h-[48px] grid-cols-[var(--studio-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
  <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${row.title}">${row.title}</b><small class="truncate text-[11px] text-mute" title="${row.place}">${row.place}</small></span>
  <span class="min-w-0 whitespace-nowrap text-[13px] leading-5 tabular-nums text-mute">${row.dates}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.project}">${row.project}</span>

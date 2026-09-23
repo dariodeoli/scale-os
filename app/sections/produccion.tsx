@@ -46,7 +46,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
     <>
       <PageHeader eyebrow="Producción" title={productionView==='Tablero'?'Tablero por etapas':productionView==='Mi día'?'Trabajo diario':productionView} subtitle="Órdenes de trabajo por etapa, con sus responsables, entrega y checklist." actions={<button className="text-button" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button>}/>
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <SegmentedField ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/>
+        <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/>
         {productionView==="Tablero"&&<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
           <label className="grid w-full gap-1.5 sm:w-64">
             <span className="text-[12px] font-semibold text-mute">Filtrar por cliente</span>
@@ -69,7 +69,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
       <section className="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción">
         {hasProductionFilters && productionOrders.length === 0 ? <EmptyBlock title="No hay órdenes que coincidan con estos filtros." description="Restablecé los filtros guardados del tablero para ver todas las piezas." icon="filter"/> : null}
         <BoardPresence key={String(user?.organization_id)} projectIds={productionOrders.map(order=>String(order.project_id))}><DndContext onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
-          <div className="flex snap-x gap-3 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
+          <div className="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
             {statuses.map((status: (typeof statuses)[number]) => (
               <KanbanColumn
                 openOrder={(id,edit)=>setDetail({kind:'order',id,...(edit?{edit:true}:{})})}

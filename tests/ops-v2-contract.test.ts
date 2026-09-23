@@ -130,4 +130,43 @@ assert(!existsSync(new URL('../app/work-history.css',import.meta.url)),'la hoja 
 // InternalTasks (Resumen) no se toca en esta tanda.
 assert.match(history,/export function InternalTasks/,'InternalTasks sigue en el módulo');
 
+// ── Pasada mobile (360/390/430): recortes con title, targets táctiles, scroll
+// contenido, toolbars que envuelven y hojas con la geometría real del diálogo.
+for(const [name,source] of [['inventario',inventory],['estudio',studio],['tablero',board],['planificador',planner],['proyectos',projects],['ficha de proyecto',projectCard],['producción',productionSection],['historial',history]] as const){
+ for(const line of source.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),`${name}: cada texto recortado lleva title en mobile`);
+}
+for(const [name,source] of [['inventario',inventory],['estudio',studio],['ficha de proyecto',projectCard]] as const){
+ assert.match(source,/const ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:/,`${name}: acciones de ícono de 44 px en mobile`);
+}
+assert.match(inventory,/const ROW_ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:\[&>button\]:h-7 md:\[&>button\]:w-7'/,'las filas de inventario son táctiles en mobile');
+assert.match(studio,/const ROW_ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:\[&>button\]:h-7 md:\[&>button\]:w-7'/,'las filas del estudio son táctiles en mobile');
+assert.match(board,/flex h-11 w-11 shrink-0 cursor-grab touch-none/,'el handle de arrastre del tablero es táctil de 44 px');
+assert.match(planner,/Subtabs[^>]*\[&>button\]:min-h-11 md:\[&>button\]:min-h-9/,'los subtabs del planificador son táctiles en mobile');
+assert.match(planner,/\[&_a\]:inline-flex \[&_a\]:min-h-11/,'los enlaces de Drive de la pieza son táctiles');
+assert.match(projectCard,/\[&_a\]:inline-flex \[&_a\]:min-h-11/,'los enlaces de Drive de la ficha de proyecto son táctiles');
+// Scroll contenido: el documento no scrollea de costado; las listas y el tablero sí, dentro de su caja.
+assert.match(uiV2,/silent-scroll min-w-0 overflow-x-auto/,'las listas v2 contienen su scroll horizontal');
+assert.match(productionSection,/silent-scroll flex snap-x gap-3 overflow-x-auto/,'el tablero contiene su scroll horizontal');
+// Toolbars que envuelven y campos a ancho completo en mobile.
+assert.match(uiV2,/mb-4 flex flex-wrap items-end gap-3/,'la toolbar de filtros envuelve en mobile');
+assert.match(productionSection,/mb-4 flex flex-col gap-3 lg:flex-row/,'la barra de producción apila en mobile');
+assert.match(projects,/grid w-full gap-1\.5 sm:w-64/,'el filtro de proyectos ocupa el ancho en mobile');
+// Hojas mobile: el harness mide la geometría real del diálogo (cabe y scrollea adentro).
+const fixtures=read('build-tools/visual-harness/fixtures/ops-detalles-formularios.mjs');
+assert.match(fixtures,/const sheet = \(heading, body\) =>/,'el harness mide la hoja mobile');
+assert.match(fixtures,/class="dialog-body"/,'la hoja usa el cuerpo desplazable del diálogo');
+assert.match(fixtures,/class="dialog-actions"/,'las acciones de la hoja salen del diálogo');
+for(const id of ['ops-sheet-inventario','ops-sheet-pieza','ops-sheet-form-equipo'])assert(fixtures.includes(`'${id}'`),`el fixture ${id} está registrado en el harness`);
+// Selección en lote: el checkbox (24 px) vive en un label táctil de 44 en mobile.
+assert((inventory.match(/title="Seleccionar para operar en lote"/g)||[]).length>=2,'las dos variantes del inventario (tarjeta y fila) ofrecen el label táctil');
+assert.match(inventory,/label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0"/,'la celda de selección de fila es un label de 44 px en mobile');
+assert.match(planner,/label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0"/,'la selección del planificador también es un label táctil');
+// Calendario del planificador: piezas con target táctil en mobile y densidad de grilla desde 769.
+assert.match(planner,/flex min-h-11 min-w-0 flex-col justify-center text-left/,'abrir una pieza desde la lista es táctil en mobile');
+assert.match(projectCard,/inline-flex min-h-11 items-center whitespace-nowrap text-\[11\.5px\] font-semibold text-fono-light hover:underline md:min-h-0/,'el enlace «Abrir Drive» del listado es táctil en mobile');
+assert.match(planner,/grid min-h-11 gap-0\.5 rounded-md border border-fono\/30[^"]*min-\[769px\]:min-h-0/,'las piezas del calendario son táctiles en mobile');
+assert.match(planner,/<input type="month"[\s\S]{0,200}?className="min-h-11"/,'el selector de mes mide 44 px');
+const prodFixtures=read('build-tools/visual-harness/fixtures/ops-produccion-proyectos.mjs');
+assert.match(prodFixtures,/id: 'produccion-calendario'/,'el calendario del planificador tiene fixture propio');
+
 console.log('PASS contrato v2 OPS: inventario, estudio, producción, proyectos e historial con Tailwind + owncoding-ui, una plantilla por lista, estados y sin recortar datos.');

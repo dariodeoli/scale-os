@@ -28,7 +28,7 @@ function barcodeMarkup(value:string){
 
 export function InventoryBarcode({code}:{code:string}){
  const bits=code39Bits(code),width=bits.length+20;
- return <svg className="inventory-barcode" viewBox={`0 0 ${width} 64`} role="img" aria-label={`Código de barras ${code}`}><g fill="currentColor">{Array.from(bits).map((bit,index)=>bit==='1'?<rect key={index} x={index+10} y="0" width="1" height="48"/>:null)}</g><text x={width/2} y="60" textAnchor="middle">{code}</text></svg>;
+ return <svg className="inventory-barcode block h-16 w-full max-w-[250px] rounded-lg border border-ink-600 bg-ink-800 p-1 text-fore [&_text]:font-mono [&_text]:text-[8px] [&_text]:font-bold [&_text]:tracking-[1px]" viewBox={`0 0 ${width} 64`} role="img" aria-label={`Código de barras ${code}`}><g fill="currentColor">{Array.from(bits).map((bit,index)=>bit==='1'?<rect key={index} x={index+10} y="0" width="1" height="48"/>:null)}</g><text x={width/2} y="60" textAnchor="middle">{code}</text></svg>;
 }
 
 export function printInventoryLabel({code,name,category,serial,location}:{code:string;name:string;category:string;serial?:string|null;location:string}){
