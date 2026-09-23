@@ -2,6 +2,13 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.116
+
+### Rendimiento y datos
+
+- **Producción quedó con una sola fuente de datos**: el shell ya no pide la lista de órdenes para esa pantalla — las columnas las carga el tablero con sus conteos exactos y “Ver más” — y se retiró el código superado, así no quedan lecturas duplicadas.
+- El buscador y la presencia en Producción operan con lo que aporta el tablero (compromiso documentado).
+
 ## v1.0.115
 
 ### Rendimiento y datos
