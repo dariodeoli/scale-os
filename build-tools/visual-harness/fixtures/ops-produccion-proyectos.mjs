@@ -50,8 +50,8 @@ const kpi = (label, value, hint) => `<div class="relative overflow-hidden rounde
 
 /* --------------------------------------------------------------- tablero */
 const orderCard = (order) => `
-<article class="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3" data-order="${order.id}">
- <div class="flex items-start justify-between gap-2"><button type="button" class="min-w-0 text-left text-[13px] font-semibold text-fore">${order.title}</button><button type="button" class="flex h-11 w-11 shrink-0 cursor-grab touch-none items-center justify-center text-mute md:h-7 md:w-7" title="Mover ${order.title}" aria-label="Mover ${order.title}">⋮⋮</button></div>
+<article class="flex min-w-0 cursor-grab flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3" data-order="${order.id}">
+ <div class="flex items-start justify-between gap-2"><button type="button" class="min-w-0 text-left text-[13px] font-semibold text-fore">${order.title}</button><span class="flex h-11 w-11 shrink-0 select-none items-center justify-center text-mute md:h-7 md:w-7" role="img" aria-label="Mover ${order.title}" title="Mover ${order.title}">⋮⋮</span></div>
  <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] text-mute">${clientIdentity(order.client, order.color)}<span aria-hidden="true">·</span><span class="min-w-0 truncate" title="${order.project}">${order.project}</span></div>
  <div class="flex flex-wrap items-center gap-1">${chip(order.status.label, order.status.tone)}${urgencyBadge(order.urgency)}${chip(order.workType, 'info')}${order.approval ? chip(`Aprobaciones: ${order.approval}`, 'ok') : ''}</div>
  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">${order.links ? `<span class="whitespace-nowrap">${order.links === 1 ? '1 enlace' : `${order.links} enlaces`}</span>` : '<span>Sin enlace</span>'}<span class="whitespace-nowrap">${order.hours}</span>${order.checklist ? `<span class="whitespace-nowrap">☑ ${order.checklist.done}/${order.checklist.total} pasos</span>` : ''}</div>

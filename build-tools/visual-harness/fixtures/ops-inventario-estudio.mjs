@@ -60,6 +60,28 @@ const kpi = (label, value, hint, moneda = false) => `<div class="relative overfl
 const filaDato = (etiqueta, valor, valorClass = 'shrink break-words text-right') => `<div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">${etiqueta}</dt><dd class="${valorClass} font-semibold tabular-nums">${valor}</dd></div>`;
 const emptyState = (title, description) => `<div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p></div>`;
 
+const aviso = (tono, text) => {
+ const tones = {error: 'border-bad/30 bg-bad/10 text-bad', ok: 'border-ok/30 bg-ok/10 text-ok', warn: 'border-warn/30 bg-warn/10 text-warn'};
+ return `<p role="${tono === 'error' ? 'alert' : 'status'}" class="rounded-lg border px-3 py-2 text-sm ${tones[tono]}">${text}</p>`;
+};
+const errorState = (title, description) => `<div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-bad/25 bg-bad/10 text-bad">${svg(ICON.alert, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p><button type="button" class="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore transition hover:border-fono hover:bg-fono/10 md:h-9">Reintentar</button></div>`;
+/* Estado de error y reintento del catálogo (orden del dueño, #44): sin datos
+   (pantalla completa) y con datos (aviso de refresco que no borra la lista). */
+const inventoryError = `<div class="grid min-w-0 gap-4">
+ <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
+  <div class="mb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="text-sm font-semibold text-fore">Inventario · sin datos</h2><span class="text-[11px] text-mute">reintento automático + botón</span></div>
+  ${errorState('No se pudo cargar el inventario.','El catálogo de equipos tardó más de 45 s en responder con los datos. Reintentá; si sigue igual, avisá a soporte.')}
+ </div>
+ <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
+  <div class="mb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="text-sm font-semibold text-fore">Inventario · con datos en pantalla</h2><span class="text-[11px] text-mute">el refresco avisa, no borra</span></div>
+  <div class="grid min-w-0 gap-4">
+   ${aviso('warn','No se pudo actualizar: El servidor devolvió una respuesta inesperada al pedir las reservas del mes. Reintentá; si sigue igual, avisá a soporte. Se muestra la última información recibida.')}
+   ${aviso('error','Las categorías de inventario: Tu rol no permite esta operación')}
+   <div class="grid gap-2"><div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-fore"><b>Lente 1</b><code class="whitespace-nowrap font-mono text-[11px] text-mute">INV-00001</code><span class="text-mute">Cámaras · Depósito central</span></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-fore"><b>Cámara 2</b><code class="whitespace-nowrap font-mono text-[11px] text-mute">INV-00002</code><span class="text-mute">Lentes · Estudio A</span></div></div>
+  </div>
+ </div>
+</div>`;
+
 /* ------------------------------------------------------------- equipo (datos) */
 const equipment = [
   {name: 'Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido)', code: 'SC-000128', photo: true, status: 'in_use', statusLabel: 'En uso', statusTone: 'info', category: 'Almacenamiento', serial: 'SD128GB-UHSII-SANDISK-2024-000123456789', value: 'Gs 1.234.567.890', current: 'Gs 987.654.312', location: 'Con Fabrizio Dellacasa Reyes · Rodaje de contenidos · Campaña Primavera 2026 · Banco Atlas', verification: {result: 'confirmed', label: 'Confirmado', tone: 'ok', verifier: 'Fabrizio Dellacasa Reyes', time: '17 sept 26 · 09:48'}, returning: 'Devuelve María José Fernández de la Vega y Rivarola · previsto 21 sept 26 · 18:00'},
@@ -110,22 +132,22 @@ const kpiStrip = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols
 
 /* -------------------------------------------------------- pipeline (datos) */
 const pipeline = [
-  {title: 'Con Fabrizio Dellacasa Reyes', readonly: true, responsible: '', rows: [equipment[0]], note: 'En préstamo: devolvelo para cambiar su ubicación'},
-  {title: 'En uso', readonly: true, responsible: '', rows: [equipment[5]], note: 'En préstamo: devolvelo para cambiar su ubicación'},
-  {title: 'Depósito anterior', readonly: false, responsible: 'Ana Paula Benítez', rows: [equipment[4]], note: 'Aquí desde 12 sept 26 · 15:10'},
-  {title: 'Estante A', readonly: false, responsible: 'Carlos Ortiz', rows: [], note: ''},
-  {title: 'Estante B', readonly: false, responsible: '', rows: [equipment[1]], note: 'Aquí desde 14 sept 26 · 08:05'},
-  {title: 'Sin ubicación', readonly: false, responsible: '', rows: [equipment[3]], note: 'Sin registro de ingreso a esta ubicación'},
+  {key: 'cust-Fabrizio Dellacasa Reyes', title: 'Con Fabrizio Dellacasa Reyes', readonly: true, responsible: '', rows: [equipment[0]], note: 'En préstamo: devolvelo para cambiar su ubicación'},
+  {key: 'legacy-in-use', title: 'En uso', readonly: true, responsible: '', rows: [equipment[5]], note: 'En préstamo: devolvelo para cambiar su ubicación'},
+  {key: 'loc-3', title: 'Depósito anterior', readonly: false, responsible: 'Ana Paula Benítez', rows: [equipment[4]], note: 'Aquí desde 12 sept 26 · 15:10'},
+  {key: 'shelf-Estante A', title: 'Estante A', readonly: false, responsible: 'Carlos Ortiz', rows: [], note: ''},
+  {key: 'shelf-Estante B', title: 'Estante B', readonly: false, responsible: '', rows: [equipment[1]], note: 'Aquí desde 14 sept 26 · 08:05'},
+  {key: 'sin-ubicacion', title: 'Sin ubicación', readonly: false, responsible: '', rows: [equipment[3]], note: 'Sin registro de ingreso a esta ubicación'},
 ];
 const pipelineCard = (item) => `
-<article data-board-card class="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3">
+<article data-board-card class="grid cursor-grab gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3">
  <button type="button" title="Abrir detalle: ${item.name}" class="flex min-w-0 items-center gap-2 text-left">${item.photo ? '<img class="h-9 w-9 shrink-0 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : `<span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute">${svg(ICON.camera, 14)}</span>`}<span class="min-w-0"><b class="block break-words text-[13px] font-semibold text-fore">${item.name}</b><code class="whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code><small class="flex items-center gap-1 text-[11px] text-mute">${item.category}</small></span></button>
  <small class="text-[11px] text-mute">${item.note || 'Sin registro de ingreso a esta ubicación'}</small>
- <div class="flex items-center justify-between gap-2">${badge(item.statusLabel, item.statusTone)}<span class="flex items-center gap-1">${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense: true})}<button type="button" class="flex h-11 w-11 cursor-grab touch-none items-center justify-center text-mute md:h-7 md:w-7" title="Mover ${item.name}" aria-label="Mover ${item.name}">⋮⋮</button></span></div>
+ <div class="flex items-center justify-between gap-2">${badge(item.statusLabel, item.statusTone)}<span class="flex items-center gap-1">${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense: true})}<span class="flex h-11 w-11 select-none items-center justify-center text-mute md:h-7 md:w-7" role="img" aria-label="Mover ${item.name}" title="Mover ${item.name}">⋮⋮</span></span></div>
 </article>`;
 const pipelineBoard = `
 <div data-board="locations" class="flex snap-x gap-3 overflow-x-auto pb-1" role="region" aria-label="Pipeline de ubicaciones">
-${pipeline.map((column) => `<section data-board-column class="flex w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-3">
+${pipeline.map((column) => `<section data-board-column data-column-key="${column.key}" class="flex w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 ${column.title === 'Estudio A' ? 'border-fono bg-fono/10' : 'border-ink-600 bg-ink-800/60'}">
  <header class="flex items-center gap-2">${column.readonly ? `<span class="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">${svg(ICON.lock, 14)}</span>` : '<span class="h-2 w-2 rounded-full bg-fono" aria-hidden="true"></span>'}<h3 class="min-w-0 break-words text-sm font-semibold text-fore">${column.title}</h3>${column.responsible ? avatar(column.responsible) : ''}<span class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">${column.rows.length}</span>${column.title === 'Sin ubicación' ? iconAction({icon: 'close', label: 'Ocultar columna Sin ubicación'}) : ''}</header>
  <div class="grid gap-2">${column.rows.map((item) => pipelineCard({...item, note: column.note})).join('')}${column.rows.length ? '' : '<p class="py-3 text-center text-xs text-mute">Arrastrá equipos hasta acá</p>'}</div>
 </section>`).join('')}
@@ -272,6 +294,15 @@ export default [
     lists: [],
     grids: [],
     body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${emptyState('No hay equipos que coincidan.', 'Probá otra búsqueda.')}</div></div>`,
+  },
+  {
+    id: 'inventario-error',
+    section: 'Inventario',
+    surface: 'Estado de error y reintento',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: inventoryError,
   },
   {
     id: 'estudio-espacios-cuadricula',
