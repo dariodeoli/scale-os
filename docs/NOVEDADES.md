@@ -2,6 +2,13 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.108
+
+### Navegación y sistema visual
+
+- **Corrección de contraste del riel**: en tema claro vuelve el violeta de marca con el wordmark, el usuario, el caption y los enlaces en blanco (antes quedaba blanco sobre blanco); en oscuro se mantiene el casi negro aprobado.
+- El fondo del riel pasa a una única sección del sistema visual, sin reglas viejas que puedan pisarlo, y la marca duplicada ya no aparece dentro del riel de escritorio.
+
 ## v1.0.107
 
 ### Navegación y sistema visual
