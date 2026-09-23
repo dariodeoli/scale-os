@@ -72,7 +72,7 @@ const CAPABILITIES = [
   {label: 'Administrar clientes', description: 'Alta, edición, archivo y términos comerciales largos para probar el ajuste de línea sin recortes.', overrides: 0},
 ];
 
-const roleToggle = (label, checked) => h('span', {key: label, className: 'flex items-center gap-2 whitespace-nowrap'},
+const roleToggle = (label, checked) => h('label', {key: label, className: "relative flex items-center gap-2 whitespace-nowrap after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-['']"},
   h(Switch, {checked, disabled: false, ariaLabel: label, onChange: noop}),
   h('span', {className: 'text-[11.5px] text-mute'}, label));
 
@@ -167,7 +167,7 @@ const TRASHED = [
 ];
 
 const trashRow = (record) => {
-  const check = h('label', {className: 'flex items-center', title: 'Seleccionar registro'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${record.name}`}));
+  const check = h('label', {className: "relative flex items-center after:absolute after:-inset-3.5 after:content-['']", title: 'Seleccionar registro'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${record.name}`}));
   const kind = h('span', {className: 'whitespace-nowrap text-[11.5px] text-mute'}, record.kind);
   const identity = h('div', {className: 'flex min-w-0 items-baseline gap-2'},
     h('b', {className: 'min-w-0 truncate text-[13.5px] font-semibold leading-[1.2] text-fore', title: record.name}, record.name),

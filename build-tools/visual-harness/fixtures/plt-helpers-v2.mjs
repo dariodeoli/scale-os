@@ -44,7 +44,7 @@ const bandeja = h('div', {className: 'grid min-w-0 max-w-full gap-3 [overflow-wr
       h('button', {key: 'refresh', type: 'button', className: ICON_ACTION, title: 'Actualizar'}, '↻'))),
   h('p', {className: 'whitespace-pre-wrap text-[12px] leading-[1.45] text-mute'}, 'Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.'),
   h('div', {role: 'group', 'aria-label': 'Filtrar notificaciones', className: 'flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1'},
-    ['Todas', 'Sin leer', 'Pendientes', 'Resueltas'].map((label, index) => h('button', {key: label, type: 'button', 'aria-pressed': index === 0, title: label, className: `inline-flex min-h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${index === 0 ? 'bg-fono/15 text-fono-light' : 'text-mute'}`}, label))),
+    ['Todas', 'Sin leer', 'Pendientes', 'Resueltas'].map((label, index) => h('button', {key: label, type: 'button', 'aria-pressed': index === 0, title: label, className: `inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${index === 0 ? 'bg-fono/15 text-fono-light' : 'text-mute'}`}, label))),
   h('div', {className: 'grid gap-2'}, NOTICES.map(noticeCard)),
   h(Button, {variant: 'outline'}, 'Ver avisos anteriores'));
 
@@ -146,6 +146,21 @@ const peligro = h('section', {className: 'grid gap-4'},
           h('p', {className: 'mt-1 text-xs leading-5 text-mute'}, 'El Demo no elimina cuentas ni empresas. Salir borra el estado local, cierra la sesión de simulación y vuelve al inicio público.'))),
       h('button', {type: 'button', className: 'secondary justify-self-start max-md:w-full'}, 'Salir y reiniciar simulación'))));
 
+/* ── Diálogos de PLT dentro de la superficie modal (dialog.css) ───────────── */
+const DIALOG = (id, title, body) => h('div', {className: 'ops-overlay'},
+  h('section', {className: 'ops-dialog unified-dialog', 'data-dialog-size': 'default', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': id, tabIndex: -1},
+    h('div', {className: 'dialog-heading'}, h('h2', {id}, title), h('button', {className: 'icon-button', type: 'button', title: 'Cerrar', 'aria-label': 'Cerrar'}, '✕')),
+    h('div', {className: 'dialog-body'}, body),
+    h('div', {className: 'dialog-footer'}, h('div', {className: 'dialog-actions'}, h('button', {className: 'secondary', type: 'button'}, 'Cancelar'), h('button', {className: 'primary ops-wide', type: 'button'}, 'Eliminar definitivamente')))));
+
+const confirmacion = DIALOG('confirm-title', 'Eliminar agencia', h('div', {className: 'grid gap-3'},
+  h('p', {className: 'text-sm text-mute'}, 'Se eliminará la agencia Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima con todos sus datos. Esta acción es irreversible.'),
+  h('label', {className: 'platform-admin-confirm grid gap-2 text-[12px] font-semibold text-mute'}, 'Escribí ', h('strong', null, 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima'), ' para confirmar', h('input', {className: 'h-11 rounded-lg border border-ink-500 bg-ink-800 px-3', readOnly: true, value: ''})),
+  h('label', {className: 'platform-admin-confirm grid gap-2 text-[12px] font-semibold text-mute'}, 'Confirmá tu identidad con tu contraseña actual', h('input', {type: 'password', className: 'h-11 rounded-lg border border-ink-500 bg-ink-800 px-3', readOnly: true, value: 'secreto'})),
+  h('button', {type: 'button', className: 'text-button'}, 'No tengo contraseña (usar código por correo)')));
+
+const bandejaDialogo = DIALOG('inbox-title', 'Notificaciones', bandeja);
+
 export default [
   {
     id: 'v2-notificaciones',
@@ -153,6 +168,20 @@ export default [
     surface: 'Bandeja de notificaciones v2',
     kind: 'plain',
     body: renderToStaticMarkup(bandeja),
+  },
+  {
+    id: 'v2-notificaciones-dialogo',
+    section: 'Notificaciones',
+    surface: 'Bandeja dentro del diálogo v2',
+    kind: 'plain',
+    body: renderToStaticMarkup(bandejaDialogo),
+  },
+  {
+    id: 'v2-superadmin-confirmar',
+    section: 'Superadmin',
+    surface: 'Confirmación destructiva en diálogo v2',
+    kind: 'plain',
+    body: renderToStaticMarkup(confirmacion),
   },
   {
     id: 'v2-suscripcion',

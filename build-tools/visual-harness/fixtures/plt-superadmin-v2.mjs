@@ -92,5 +92,5 @@ export default [
     body: renderToStaticMarkup(audit),
   },
   {id: 'v2-plt-superadmin-estados', section: 'Configuración', surface: 'Estados del panel global v2', kind: 'plain', body: renderToStaticMarkup(states)},
-  {id: 'v2-plt-perfil-seguridad', section: 'Equipo', surface: 'Seguridad de cuenta v2', kind: 'plain', body: renderToStaticMarkup(h('div', {className: 'grid grid-cols-[minmax(0,1fr)] gap-4'}, profileScope, security))},
+  {id: 'v2-plt-perfil-seguridad', section: 'Equipo', surface: 'Seguridad de cuenta v2', kind: 'workspace', body: renderToStaticMarkup(h('div', {className: 'grid grid-cols-[minmax(0,1fr)] gap-4'}, profileScope, security))},
 ];
