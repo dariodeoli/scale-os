@@ -273,4 +273,67 @@ test('métricas: acceso por rol y estados sin eventos',async()=>{
  act(()=>renderer.unmount());
 });
 
+test('recorte de payload: la ventana de 300 órdenes no alcanza a las secciones COM',async()=>{
+ const {ORDER_WINDOW,shellDataUrl,sectionScope}=await import('../app/shell-data');
+ assert.equal(ORDER_WINDOW,300,'la ventana del shell es explícita');
+ assert.equal(shellDataUrl('orders',{limit:ORDER_WINDOW}),'/core-api/api/agency/work-orders?limit=300','la URL lleva el recorte');
+ assert.equal(shellDataUrl('orders'),'/core-api/api/agency/work-orders','sin recorte pide la lista completa');
+ for(const section of ['Pipeline','Presupuestos','Métricas']){
+  const scope=sectionScope(section);
+  assert.equal(scope.orders?.limit,ORDER_WINDOW,`${section} pide la ventana de órdenes`);
+  assert.ok(scope.clients&&scope.projects,`${section} conserva clientes y proyectos para el buscador y la presencia`);
+ }
+ assert.equal(sectionScope('Producción').orders?.limit,undefined,'Producción lista órdenes y conserva la lista completa');
+ assert.equal(sectionScope('Resumen').orders?.limit,undefined,'Resumen agrega sobre todas las órdenes');
+ // Las secciones COM no leen órdenes: listas, KPIs y totales salen de sus propios recursos.
+ for(const file of ['app/sections/pipeline.tsx','app/sections/presupuestos.tsx','app/sections/metricas.tsx']){
+  const source=read(file);
+  assert.doesNotMatch(source,/\bwork-orders\b|\borders\b/ ,`${file} no lee órdenes`);
+  assert.doesNotMatch(source,/shellDataUrl|sectionScope|ORDER_WINDOW/,`${file} no depende del recorte del shell`);
+ }
+ const pipeline=read('app/sections/pipeline.tsx');
+ assert.match(pipeline,/api<\{records:Row\[\]\}>\('\/api\/agency\/leads'\)/,'el tablero lee todas las oportunidades');
+ assert.match(pipeline,/api<\{stages:RawRow\[\]\}>\('\/api\/agency\/pipeline-stages'\)/,'y todas las etapas');
+ const presupuestos=read('app/sections/presupuestos.tsx');
+ assert.match(presupuestos,/\/api\/agency\/budgets/,'la lista de presupuestos sale del endpoint completo');
+});
+
+test('más de 300 ítems: listas, KPIs y totales siguen completos',async()=>{
+ // Pipeline: 350 oportunidades repartidas en dos etapas activas.
+ const {pipelineSummary,stageTotals}=await import('../app/pipeline-summary');
+ const leads=Array.from({length:350},(_,index)=>({id:String(index+1),name:`Lead ${index+1}`,stage:index%2===0?'lead':'contacted',amount:'1000',currency:index%3===0?'USD':'PYG',probability:50}));
+ const summary=pipelineSummary(leads as never);
+ assert.equal(summary.open,350,'ninguna oportunidad se pierde en el resumen');
+ assert.equal(summary.amounts.PYG+summary.amounts.USD,350*1000,'los montos abiertos suman completo');
+ const stages=[{slug:'lead',label:'Lead',position:0,active:true,kind:'open' as const},{slug:'contacted',label:'Contactado',position:1,active:true,kind:'open' as const}];
+ const totals=stageTotals(leads as never,stages);
+ assert.equal(totals.reduce((count,entry)=>count+entry.count,0),350,'las columnas cuentan las 350 filas');
+ assert.equal(totals[0].weighted.USD+totals[0].weighted.PYG+totals[1].weighted.USD+totals[1].weighted.PYG,350*1000*0.5,'los ponderados no se truncan');
+ // Tablero: monta con 350 oportunidades y conserva los conteos de las columnas.
+ requests=[];let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<PipelineSection user={user('owner')} metrics={[]}/>);});
+ await flush({records:leads});
+ await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'},{id:'2',slug:'contacted',label:'Contactado',position:1,active:true,kind:'open'}]});
+ const board=text(renderer.root);
+ assert.match(board,/350/,'los KPIs cuentan las 350 oportunidades');
+ const columns=renderer.root.findAll(node=>String(node.props?.['aria-label']||'').startsWith('Lead ·'));
+ assert.match(String(columns[0].props['aria-label']),/175 oportunidades/,'la columna conserva su conteo completo');
+ act(()=>renderer.unmount());
+ // Métricas: 310 eventos dentro de la ventana suman completo.
+ const {growthSeries}=await import('../app/growth-dashboard-data');
+ const today=new Date(2026,8,22);
+ const events=Array.from({length:310},()=>({name:'page_view',event_date:'2026-09-20',count:1}));
+ const series=growthSeries(events as never,30,today);
+ assert.equal(series.sum('page_view'),310,'los eventos de la ventana suman completo');
+ assert.equal(series.points.length,30,'la serie conserva todos los días');
+ // Presupuestos: 350 filas renderizadas con sus KPIs.
+ const budgets=Array.from({length:350},(_,index)=>({id:String(index+1),number:`P-2026-${String(index+1).padStart(3,'0')}`,title:`Presupuesto ${index+1}`,client_name:'Cooperativa del Sur',status:'sent',item_count:1,valid_until:'2026-10-30',subtotal:'1000',total:'1100',currency:'PYG'}));
+ await act(async()=>{renderer=create(<PresupuestosSection loading={false} user={user('owner')} budgetsState="ready" budgets={budgets as never} invoices={[] as never} budgetKpis={{totals:new Map([['PYG',350*1100]]),drafts:0,accepted:0,expiring:350}} summary={{} as never} loadBudgets={()=>{}} setBudgets={()=>{}}/>);});
+ assert.equal(renderer.root.findAllByProps({role:'rowgroup'})[0].children.length,350,'la lista renderiza las 350 filas');
+ assert.match(text(renderer.root),/350/,'el KPI usa la lista completa');
+ assert.match(text(renderer.root),/Total sin IVA/,'el total agregado sigue presente');
+ assert.equal(renderer.root.findAllByProps({role:'table'}).length,1,'una sola tabla accesible');
+ act(()=>renderer.unmount());
+});
+
 console.log('PASS: secciones comerciales v2 — planes, pipeline, presupuestos y métricas con estados, roles, datos reales y móvil sin colapsar');
