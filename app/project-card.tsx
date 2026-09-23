@@ -80,7 +80,7 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Enlaces de archivo o carpeta de Drive</h4>
-        {links.length?<DriveLinks value={links} legacy={legacy}/>:legacy?<DriveLinks value={legacy}/>:<p className="text-[13px] text-mute">Sin enlaces registrados.</p>}
+        <div className="[&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center md:[&_a]:min-h-0">{links.length?<DriveLinks value={links} legacy={legacy}/>:legacy?<DriveLinks value={legacy}/>:<p className="text-[13px] text-mute">Sin enlaces registrados.</p>}</div>
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Piezas del proyecto</h4>

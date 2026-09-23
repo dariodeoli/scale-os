@@ -69,7 +69,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
       <section className="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción">
         {hasProductionFilters && productionOrders.length === 0 ? <EmptyBlock title="No hay órdenes que coincidan con estos filtros." description="Restablecé los filtros guardados del tablero para ver todas las piezas." icon="filter"/> : null}
         <BoardPresence key={String(user?.organization_id)} projectIds={productionOrders.map(order=>String(order.project_id))}><DndContext onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
-          <div className="flex snap-x gap-3 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
+          <div className="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
             {statuses.map((status: (typeof statuses)[number]) => (
               <KanbanColumn
                 openOrder={(id,edit)=>setDetail({kind:'order',id,...(edit?{edit:true}:{})})}
