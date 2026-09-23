@@ -48,6 +48,31 @@ button {
      `.secondary`, `.icon-button`) y las utilidades (`bg-*`) siguen mandando. */
   background-color: transparent;
 }
+/* Sin preflight, el navegador subraya todo `<a>` (`a:-webkit-any-link`): los
+   ítems del riel y del drawer salían subrayados en reposo, hover y activo. La
+   base apaga el subrayado y cada superficie lo vuelve a declarar cuando el
+   diseño lo pide (`.workspace-footer a`, `.comment-body a`, la utilidad
+   `underline`). El nav además lo fija en sus clases (`no-underline`), que es el
+   contrato explícito de los ítems. */
+a {
+  text-decoration: none;
+}
+/* ── Pantalla de carga: barra sobria, sin movimiento si el sistema lo pide ── */
+@keyframes loading-bar {
+  0% { transform: translateX(-105%); }
+  100% { transform: translateX(320%); }
+}
+.loading-bar-fill {
+  animation: loading-bar 1.15s cubic-bezier(.4, 0, .2, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar-fill {
+    animation: none;
+    transform: none;
+    width: 42%;
+    margin-inline: auto;
+  }
+}
 
 /* ── Riel: fuente única del fondo y los textos ──────────────────────────────
    Lila de marca en claro y casi negro aprobado en oscuro; marca y usuario
