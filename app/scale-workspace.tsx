@@ -32,7 +32,9 @@ const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 import {setDataScope, clearDataCache, dataFetch} from './data-cache';
 import {request} from './workspace-request';
-import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,type ShellResource,type ShellScope} from './shell-data';
+import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,boardColumnUrl,boardCountsUrl,boardColumnSignature,BOARD_COUNTS_SIGNATURE,type ShellResource,type ShellScope} from './shell-data';
+import {BoardCountsProvider,type BoardCounts} from './board-counts';
+import {statuses} from './production-board';
 import {prefetchSectionData} from './data-prefetch';
 import './control-center.css';
 import './production-focus.css';
@@ -402,6 +404,7 @@ export default function Home() {
   const liveProjects = visibleProjects.filter(project => project.active !== false);
   const archivedProjects = visibleProjects.filter(project => project.active === false);
   const financeEmpty = !accounts.length && !invoices.length && !transfers.length && !payments.length;
+  const [boardCounts,setBoardCounts]=useState<BoardCounts|null>(null);
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
     active_projects: 0,
@@ -439,11 +442,31 @@ export default function Home() {
     }
     return { alDia, porVencer, enMora, sinFactura };
   }, [paymentStatuses]);
+  // Tablero por columna (contrato #57): una ventana por etapa en paralelo más
+  // una respuesta mínima con los conteos exactos de todas las etapas.
+  async function loadBoardColumns():Promise<{workOrders:WorkOrder[]}>{
+    const [countsResult, ...columns] = await Promise.all([
+      request<{stage_counts?:Record<string,number>}>(boardCountsUrl()).catch(()=>({} as {stage_counts?:Record<string,number>})),
+      ...statuses.map(status=>request<{workOrders:WorkOrder[]}>(boardColumnUrl(status.id)).catch(()=>({workOrders:[] as WorkOrder[]}))),
+    ]);
+    if(countsResult.stage_counts){setBoardCounts(countsResult.stage_counts);dataFreshness.current[BOARD_COUNTS_SIGNATURE]=Date.now();}
+    statuses.forEach(status=>{dataFreshness.current[boardColumnSignature(status.id)]=Date.now();});
+    const merged=new Map<string,WorkOrder>();
+    for(const column of columns)for(const order of column.workOrders)merged.set(String(order.id),order);
+    return {workOrders:Array.from(merged.values())};
+  }
   async function load(identity:User|null=user,scope:ShellScope=sectionScope(requestedSection)) {
     if(!identity||identity.subscription?.hasAccess===false)return;
     const sequence=++dataLoadSequence.current;
     const guideScope=workspaceGuideScope({userId:String(identity.id),organizationId:String(identity.organization_id),role:identity.role,demo:!!identity.demo_owner_user_id});
-    const scopeReady=(next:ShellScope)=>scopeResources(next).every(resource=>dataFreshness.current[shellSignature(resource,next[resource])]>0);
+    const scopeReady=(next:ShellScope)=>scopeResources(next).every(resource=>{
+      const request=next[resource];
+      if(resource===String.fromCharCode(111,114,100,101,114,115)&&request?.byStatus){
+        if(!statuses.every(status=>dataFreshness.current[boardColumnSignature(status.id)]>0))return false;
+        return !request.counts||dataFreshness.current[BOARD_COUNTS_SIGNATURE]>0;
+      }
+      return dataFreshness.current[shellSignature(resource,request)]>0;
+    });
     setGuideData({scope:guideScope,status:'loading'});
     const loadedScope=workspacePreferenceKey(String(identity?.id||''),String(identity?.organization_id||''));
     // Una fase del alcance: pide lo que corresponde, valida y aplica el contrato.
@@ -451,7 +474,9 @@ export default function Home() {
       const needs=(resource:ShellResource)=>Boolean(next[resource]);
       const ordersPromise = !needs('orders')
         ? Promise.resolve({workOrders:orders})
-        : request<{ workOrders: WorkOrder[] }>(shellDataUrl('orders',next.orders));
+        : next.orders?.byStatus
+          ? loadBoardColumns()
+          : request<{ workOrders: WorkOrder[] }>(shellDataUrl('orders',next.orders));
       const [clientData, projectData, orderData, summaryData] = await Promise.all(
         [
           needs('clients')?request<{ clients: Client[] }>(shellDataUrl('clients',next.clients)):{clients},
@@ -511,7 +536,9 @@ export default function Home() {
     for(const resource of scopeResources(scope)){
       const request=scope[resource];
       const signature=shellSignature(resource,request);
-      const loaded=dataFreshness.current[signature]>0;
+      const loaded=resource===String.fromCharCode(111,114,100,101,114,115)&&request?.byStatus
+        ? statuses.every(status=>dataFreshness.current[boardColumnSignature(status.id)]>0)&&(!request.counts||dataFreshness.current[BOARD_COUNTS_SIGNATURE]>0)
+        : dataFreshness.current[signature]>0;
       if(resource==='orders'&&!loaded)setOrders(current=>current.length?[]:current);
       if(!loaded||Date.now()-dataFreshness.current[signature]>DATA_FRESH_MS)stale[resource]=request;
     }
@@ -985,7 +1012,7 @@ export default function Home() {
         {active==='Preferencias'&&<PreferenciasSection user={user} preferencesReady={preferencesReady} preferences={preferences} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences}/>}
         {active==='Papelera'&&<PapeleraSection load={load}/>}
         {active === "Resumen" && <ResumenSection dataState={shellDataState} guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail}/>}
-        {active==='Producción'&&<ProduccionSection productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
+        {active==='Producción'&&<BoardCountsProvider counts={boardCounts}><ProduccionSection productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/></BoardCountsProvider>}
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso}/>}
         {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail}/>}
         {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry}/>}
