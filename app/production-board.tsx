@@ -69,23 +69,20 @@ const hoursLabel = (order: WorkOrderCard) => {
 function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard;role:string;refresh:()=>Promise<void>;openOrder:(id:string,edit?:boolean)=>void }) {
   const canMove=roleCan(role,'work-orders.edit');
   const draggable = useDraggable({ id: order.id,disabled:!canMove });
-  const style = draggable.transform
-    ? {
-        transform: `translate3d(${draggable.transform.x}px, ${draggable.transform.y}px, 0)`,
-      }
-    : undefined;
   const links = (order.drive_links || []).filter(link => link?.url);
   const hours = hoursLabel(order);
   return (
     <article
       ref={draggable.setNodeRef}
-      style={style}
-      className={`flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging ? "opacity-60" : ""}`}
+      {...draggable.listeners}
+      {...draggable.attributes}
+      className={`flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging ? "opacity-60" : ""} ${canMove ? "cursor-grab" : ""}`}
       data-order={order.id}
+      data-status={order.status}
     >
       <div className="flex items-start justify-between gap-2">
         <button type="button" className="min-w-0 text-left text-[13px] font-semibold text-fore hover:text-fono-light" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
-        {canMove?<button type="button" className="flex h-11 w-11 shrink-0 cursor-grab touch-none items-center justify-center text-mute md:h-7 md:w-7" title={`Mover ${order.title}`} aria-label={`Mover ${order.title}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>:null}
+        {canMove?<span className="flex h-11 w-11 shrink-0 select-none items-center justify-center text-mute md:h-7 md:w-7" role="img" aria-label={`Mover ${order.title}`} title={`Mover ${order.title}`}>⋮⋮</span>:null}
       </div>
       <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] text-mute">
         <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/>
