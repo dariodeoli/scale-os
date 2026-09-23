@@ -6,22 +6,34 @@ export async function enrichWorkOrderAssignees(c,org,records){
  const list=(Array.isArray(records)?records:[records]).filter(Boolean);
  if(!list.length)return;
  const ids=[...new Set(list.map(row=>String(row.id)))];
- const rows=(await c.query(`with orders as (
-  select o.id,o.project_id from agency_work_orders o
-  join agency_projects p on p.id=o.project_id and p.organization_id=o.organization_id
-  join agency_clients cl on cl.id=p.client_id and cl.organization_id=p.organization_id
-  where o.organization_id=$1 and o.id=any($2::bigint[])
-   and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('cl','clients')}
- ), assignments as (
-  select o.id as work_order_id,a.user_id,a.is_primary,'direct'::text as source
-  from orders o join agency_record_assignees a on a.organization_id=$1 and a.kind='work-orders' and a.record_id=o.id
-  union all
-  select o.id,a.user_id,a.is_primary,'project'::text
-  from orders o join agency_record_assignees a on a.organization_id=$1 and a.kind='projects' and a.record_id=o.project_id
- ) select a.work_order_id::text,a.user_id::text as id,a.is_primary,a.source,
-  coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url
- from assignments a join organization_person_identity i on i.organization_id=$1 and i.user_id=a.user_id
- order by a.work_order_id,a.source,a.is_primary desc,a.user_id`,[org,ids])).rows;
+  const rows=(await c.query(`with orders as (
+   select o.id,o.project_id from agency_work_orders o
+   join agency_projects p on p.id=o.project_id and p.organization_id=o.organization_id
+   join agency_clients cl on cl.id=p.client_id and cl.organization_id=p.organization_id
+   where o.organization_id=$1 and o.id=any($2::bigint[])
+    and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('cl','clients')}
+  ), raw as (
+   select a.work_order_id,a.user_id,false as is_primary,'direct'::text as source
+   from agency_work_order_assignees a join orders o on o.id=a.work_order_id where a.organization_id=$1
+   union all
+   select o.id,w.assigned_user_id,true,'direct' from orders o join agency_work_orders w on w.id=o.id where w.assigned_user_id is not null
+   union all
+   select o.id,a.user_id,false,'project'::text
+   from agency_project_assignees a join orders o on o.project_id=a.project_id where a.organization_id=$1
+   union all
+   select o.id,p.assigned_user_id,true,'project' from orders o join agency_projects p on p.id=o.project_id where p.assigned_user_id is not null
+  ), assignments as (
+   select r.work_order_id,r.user_id,r.source,bool_or(r.is_primary) as is_primary
+   from raw r group by r.work_order_id,r.user_id,r.source
+  ), people as materialized (
+   -- La identidad se materializa una sola vez: expandir la vista por fila desviaba
+   -- el plan a un nested loop que descartaba millones de filas.
+   select i.user_id,i.email,i.full_name,i.photo_url from organization_person_identity i
+   where i.organization_id=$1 and i.user_id in (select user_id from assignments)
+  ) select a.work_order_id::text,a.user_id::text as id,a.is_primary,a.source,
+   coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url
+  from assignments a join people i on i.user_id=a.user_id
+  order by a.work_order_id,a.source,a.is_primary desc,a.user_id`,[org,ids])).rows;
  const byOrder=new Map();
  for(const {work_order_id,...person} of rows){
   if(!byOrder.has(work_order_id))byOrder.set(work_order_id,{direct:[],project:[]});
