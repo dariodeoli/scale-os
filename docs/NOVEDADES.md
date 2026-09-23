@@ -2,6 +2,14 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.114
+
+### Rendimiento y datos
+
+- **El API comprime sus respuestas** (brotli o gzip según lo que pida el navegador): las listas grandes bajan hasta **−97/−99 % de bytes transferidos** (piezas 1,5 MB → 43 KB; clientes 281 KB → 3 KB), con cabeceras correctas para cachés y sin tocar PDF ni binarios.
+- **Tablero de Producción por columna**: cada columna pide solo su ventana de 50 piezas y los totales exactos viajan aparte; el badge muestra el total real, “Ver más” completa la columna sin perder piezas y el arrastre sigue siendo inmediato con reversión si falla. −87 % de bytes y 3,1× más rápido en 4G.
+- **Facturas**: el saldo por moneda (receivables) viaja siempre con la lista, aunque la ventana deje afuera facturas viejas.
+
 ## v1.0.113
 
 ### Corrección del shell y el marco
