@@ -4,6 +4,7 @@ import {sectionSource} from './workspace-source';
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const pre=read('app/financial-forecast.tsx'),informes=read('app/reports-workspace.tsx'),weekly=read('app/weekly-automatic.tsx'),treasury=read('app/daily-controls.tsx');
 const uiV2=read('app/ui-v2.tsx');
+const finanzas=sectionSource('finanzas.tsx'),mora=sectionSource('mora.tsx'),comisiones=sectionSource('comisiones.tsx'),informesSection=sectionSource('informes.tsx'),previsionSection=sectionSource('prevision.tsx');
 
 // ── Contrato v2 de FIN (campaña #41, spec #45): Tailwind + owncoding-ui +
 // primitivas de app/ui-v2.tsx. Reemplaza al contrato del rediseño anterior.
@@ -48,9 +49,11 @@ assert.match(treasury,/min-w-0 overflow-x-auto/,'el extracto scrollea en silenci
 assert.match(pre,/const LIST_ROW='grid min-h-11 items-center gap-x-2/,'las filas finitas de la previsión conservan 44 px');
 assert.match(treasury,/const STATEMENT_ROW='grid min-h-11 items-center gap-x-2/,'la fila del extracto conserva 44 px');
 
-// ── Nada de elipsis sobre montos, fechas, códigos ni nombres.
-for(const [name,source] of [['previsión',pre],['informes',informes],['producción semanal',weekly],['conciliación',treasury]] as const){
- assert.doesNotMatch(source,/truncate|line-clamp/,'${name} no recorta con elipsis'.replace('${name}',name));
+// ── Fila finita: el texto libre se recorta con ellipsis + `title`; montos,
+// fechas y códigos nunca se recortan (van nowrap + tabular-nums).
+for(const [name,source] of [['previsión',pre],['informes',informes],['producción semanal',weekly],['conciliación',treasury],['finanzas',finanzas],['mora',mora],['comisiones',comisiones]] as const){
+ for(const line of source.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),`${name}: cada texto recortado ofrece el valor completo en title`);
+ assert.doesNotMatch(source,/truncate[^>]{0,90}>\s*\{(money\(|reportMoney\(|formatWholeMoney\(|formatSignedMoney\(|listDate|CeldaMoneda)/,'${name}: montos, fechas y códigos no se recortan'.replace('${name}',name));
 }
 assert.match(pre,/whitespace-nowrap[^>]*tabular-nums|tabular-nums[^>]*whitespace-nowrap/,'las cifras de la previsión no se cortan');
 assert.match(informes,/whitespace-nowrap/,'el histórico y la comparativa no cortan cifras ni meses');
@@ -70,11 +73,9 @@ assert.match(pre,/className="w-44"/);assert.match(informes,/className="w-44"/);a
 
 // ── Secciones FIN (campaña #41): ui-v2, una plantilla por lista, montos por
 // contexto y fechas por list-format; Informes/Previsión montan los módulos v2.
-const finanzas=sectionSource('finanzas.tsx'),mora=sectionSource('mora.tsx'),comisiones=sectionSource('comisiones.tsx'),informesSection=sectionSource('informes.tsx'),previsionSection=sectionSource('prevision.tsx');
 for(const [name,source] of [['finanzas',finanzas],['mora',mora],['comisiones',comisiones]] as const){
  assert.match(source,/from '\.\.\/ui-v2'/,'${name} usa las primitivas v2'.replace('${name}',name));
  for(const primitive of ['ListGrid','EmptyBlock']) assert.match(source,new RegExp(primitive),`${name} usa ${primitive}`);
- assert.doesNotMatch(source,/truncate|line-clamp/,'${name} no recorta montos, fechas, códigos ni nombres'.replace('${name}',name));
  assert.match(source,/\bmoney\(/,'${name} formatea montos con money()'.replace('${name}',name));
  assert.match(source,/listDate(Short|Full)/,'${name} usa list-format'.replace('${name}',name));
  assert.doesNotMatch(source,/toLocaleString|toLocaleDateString/,'${name} no formatea fechas a mano'.replace('${name}',name));

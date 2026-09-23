@@ -50,7 +50,7 @@ function ClientLine({client}: {client: ClientPaymentStatus}) {
   const due = client.next_due_on;
   return <ListRow template={MORA_TEMPLATE}>
     <div className="min-w-0">
-      <strong className="block text-[13.5px] font-semibold text-fore">{client.client_name}</strong>
+      <strong className="block text-[13.5px] font-semibold leading-snug text-fore">{client.client_name}</strong>
       <small className="block text-[11px] text-mute">{client.currency || 'Sin moneda de cobro'}</small>
     </div>
     <div className="min-w-0"><StateChip tone={STATUS_TONE[client.payment_status]} title={statusLabel(client)}>{statusLabel(client)}</StateChip></div>

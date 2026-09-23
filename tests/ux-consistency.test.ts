@@ -143,7 +143,7 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/forecast-person-who/,'avatar and name share the first column');
   assert.match(forecast,/forecast-person-override is-empty/,'a missing adjustment reserves its column');
-  assert.match(forecast,/const PERSON_COLS='grid-cols-\[minmax\(10rem,1\.2fr\)_minmax\(7rem,\.9fr\)_minmax\(8rem,\.9fr\)_minmax\(8rem,\.9fr\)_6\.5rem\]'/,'the payroll list declares one shared template');
+  assert.match(forecast,/const PERSON_COLS='grid-cols-\[minmax\(16rem,1\.2fr\)_minmax\(7rem,\.9fr\)_minmax\(8rem,\.9fr\)_minmax\(8rem,\.9fr\)_6\.5rem\]'/,'the payroll list declares one shared template');
   assert.match(forecast,/cn\(LIST_ROW,PERSON_COLS,'forecast-person-row'\)/,'payroll rows share the header template');
 });
 
@@ -170,7 +170,7 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   const agents=read('AGENTS.md');
   assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
   const forecast=read('app/financial-forecast.tsx');
-  assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(0,1fr\)_9rem_9rem_9rem\]'/,'contracted clients declare one shared template');
+  assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(22rem,1fr\)_9rem_9rem_9rem\]'/,'contracted clients declare one shared template');
   assert.match(forecast,/cn\(LIST_HEAD,CONTRACT_COLS\)[^>]*><span>Cliente<\/span><span className="text-right">Contratado<\/span><span className="text-right">Facturado<\/span>/,'contracted clients show their header');
   assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-1 last:border-0'/,'list rows keep the thin row contract');
   assert.match(team,/\.team-directory-card\{[^}]*min-height:190px/,'the directory keeps big grid cards');
