@@ -5,7 +5,7 @@ import {ArrowUpRight} from 'lucide-react';
 import {ControlCenter} from '../control-center';
 import {WorkspaceGuide} from '../workspace-guide';
 import {statuses} from '../production-board';
-import {Kpi, KpiStrip, StateChip, type ChipTone} from '../ui-v2';
+import {Kpi, KpiStrip, LoadingBlock, StateChip, type ChipTone} from '../ui-v2';
 import type {ComponentProps} from 'react';
 import type {Project,Summary,User,WorkOrder} from '../workspace-types';
 const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner));
@@ -16,6 +16,7 @@ const InternalTasks=dynamic(()=>import('../work-history').then(m=>m.InternalTask
 // stageCounts de las órdenes. ControlCenter, WorkPlanner e InternalTasks se
 // embeben tal como están hasta su fase de dominio.
 type ResumenSectionProps = {
+  dataState?: 'loading' | 'ready' | 'error';
   guideProps: ComponentProps<typeof WorkspaceGuide>;
   user: User | null;
   orders: WorkOrder[];
@@ -27,8 +28,10 @@ type ResumenSectionProps = {
   setDetail: (value: {kind: "client" | "order"; id: string; anchor?: string; edit?: boolean} | null) => void;
 };
 const STAGE_TONE: Record<string, ChipTone> = {red: 'bad', yellow: 'warn', green: 'ok', blue: 'info', teal: 'info', purple: 'info'};
-export function ResumenSection({guideProps, user, orders, load, setActive, summary, stageCounts, projects, setDetail}: ResumenSectionProps){
+export function ResumenSection({dataState = 'ready', guideProps, user, orders, load, setActive, summary, stageCounts, projects, setDetail}: ResumenSectionProps){
   const enRevision = orders.filter(order => order.status === 'review').length;
+  // Primer dato en camino: esqueleto por bloque, sin pantalla vacía.
+  if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <LoadingBlock label="Cargando el panel…" lines={5}/>;
   return <div className="grid gap-5">
     <WorkspaceGuide {...guideProps} variant="card"/>
     <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary}/>
