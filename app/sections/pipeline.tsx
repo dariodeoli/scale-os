@@ -1,7 +1,7 @@
 "use client";
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
-import {DndContext,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type DragEndEvent} from '@dnd-kit/core';
+import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {Eye,GripVertical,Plus,Settings2,Target} from 'lucide-react';
 import {Button,Input,Label,Select} from 'owncoding-ui';
 import {api,Dialog,Editor,type Field} from '../operations';
@@ -38,6 +38,10 @@ const fallbackStages:Stage[]=[['lead','Nuevo lead'],['contacted','Contactado'],[
 const normalizeStage=(row:RawRow):Stage=>({id:String(row.id??''),value:String(row.slug??''),label:String(row.label??''),position:Number(row.position)||0,active:row.active!==false,kind:row.kind==='won'||row.kind==='lost'?row.kind:'open'});
 const stageKindLabels:Record<Stage['kind'],string>={open:'Abierta',won:'Ganada',lost:'Perdida'};
 const stageKindChoices=[{value:'open',label:'Abierta (oportunidad en curso)'},{value:'won',label:'Ganada'},{value:'lost',label:'Perdida'}];
+// La columna bajo el puntero gana la colisión (con `rectIntersection`, una
+// tarjeta alta que toca dos columnas podía caer en la vecina); el teclado, que
+// no tiene puntero, cae al rectángulo que se cruza.
+const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(args);return within.length?within:rectIntersection(args);};
 
 function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:string;canMove:boolean;refresh:()=>Promise<void>}){
   const drag=useDraggable({id:String(row.id),disabled:!canMove});
@@ -45,7 +49,7 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
   return <article ref={drag.setNodeRef} style={{opacity:drag.isDragging?.4:1}} className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
     <header className="flex items-start justify-between gap-2">
       <b className="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title={str(row,'name')}>{str(row,'name')}</b>
-      {canMove?<button type="button" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
+      {canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
     </header>
     <MoneyText valor={str(row,'amount')||'0'} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
     <div className="flex flex-wrap items-center gap-2 text-[11px]">
@@ -86,7 +90,9 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
   const role=user?.role||'viewer';
   const canEdit=roleCan(role,'commercial.manage');
-  const canMove=['owner','admin','management','finance','sales'].includes(role);
+  // El asa de arrastre comparte la capacidad del PATCH: nadie ve un asa que no
+  // pueda soltar (antes `finance`/`sales`/`collaborator` divergían de la matriz).
+  const canMove=canEdit;
   const canSeeGrowth=['owner','admin'].includes(role);
 
   async function load(){
@@ -129,17 +135,28 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
   const defaults:Record<string,string>=row?Object.fromEntries(fields.map(field=>[field.key,str(row,field.key)])):{currency:'PYG',stage:defaultStage,amount:'0',probability:'10',name:'',email:'',phone:'',notes:''};
 
   // Solo las etapas activas aceptan drops: ganar fija 100% y perder 0%; el resto
-  // conserva la probabilidad cargada.
+  // conserva la probabilidad cargada. El movimiento es optimista: la tarjeta
+  // cambia de columna al soltar, no vuelve si la recarga falla y se revierte
+  // solo si el PATCH falla.
   async function move(event:DragEndEvent){
     const value=String(event.over?.id||'').replace('stage-','');
     const stage=activeStages.find(candidate=>candidate.value===value);
-    if(!canEdit||busy||!stage)return;
+    const id=String(event.active.id||'');
+    if(!canEdit||busy||!stage||!id)return;
+    const previous=rows;
+    const probability=stage.kind==='won'?100:stage.kind==='lost'?0:null;
+    setRows(current=>current.map(item=>String(item.id)===id?{...item,stage:value,...(probability===null?{}:{probability})}:item));
     setBusy(true);setError('');
     try{
-      await api(`/api/agency/leads/${event.active.id}`,stage.kind==='won'?{stage:value,probability:100}:stage.kind==='lost'?{stage:value,probability:0}:{stage:value},'PATCH');
-      await load();
-    }catch(reason){setError(err(reason));}
-    finally{setBusy(false);}
+      await api(`/api/agency/leads/${id}`,probability===null?{stage:value}:{stage:value,probability},'PATCH');
+    }catch(reason){
+      setRows(previous);
+      setError(err(reason));
+      setBusy(false);
+      return;
+    }
+    await load();
+    setBusy(false);
   }
 
   return (
@@ -181,7 +198,7 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
 
       {rows.length?<div className="grid gap-2">
         <div className="flex items-center gap-2 text-[11px] text-mute"><Target size={14}/>Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%.</div>
-        <DndContext sensors={sensors} onDragEnd={move}>
+        <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move}>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label}} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load}/>)}
             {looseSlugs.map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} rows={rows.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} readOnly/>)}
