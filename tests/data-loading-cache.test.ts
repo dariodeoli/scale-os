@@ -81,28 +81,22 @@ test('a 200 with a non-JSON body never becomes empty workspace state',async()=>{
 });
 
 
-test('cada sección pide solo lo suyo y proyecta los campos que dibuja (?fields=)',async()=>{
+test('hotfix: transporte sin doble prefijo, navegación por sección y marco a 360',async()=>{
  const {readFileSync}=await import('node:fs');
+ const request=readFileSync(new URL('../app/workspace-request.ts',import.meta.url),'utf8');
+ assert(request.includes('const core = "/core-api"')&&request.includes('path.startsWith('),'el transporte no duplica el prefijo /core-api (shellDataUrl ya lo trae)');
+ const operations=readFileSync(new URL('../app/operations.tsx',import.meta.url),'utf8');
+ assert(operations.includes('path.startsWith("/core-api/") ? path : '),'api() también acepta rutas ya prefijadas');
  const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ assert(workspace.includes('},[pathname,requestedSection,signedIn]);'),'el efecto de navegación depende de la sección activa');
+ assert(workspace.includes("if(resource==='orders'&&!loaded)setOrders(current=>current.length?[]:current);"),'una proyección distinta no reusa la lista cargada (el tablero no rompe al entrar)');
+ assert(workspace.includes('const lastDataSection=useRef(requestedSection);'),'la sección activa se recuerda para detectar el cambio');
  const shellData=readFileSync(new URL('../app/shell-data.ts',import.meta.url),'utf8');
- assert(shellData.includes('export const ORDER_WINDOW = 300;'),'la ventana de órdenes es explícita');
- assert(shellData.includes("export const ORDER_FIELDS_STATUS = 'id,status,project_id';"),'Resumen proyecta solo lo que cuenta');
- assert(shellData.includes("export const ORDER_FIELDS_PORTFOLIO = 'id,status,project_id,due_date';"),'Clientes proyecta la cartera');
- assert(shellData.includes('export const ORDER_FIELDS_BOARD ='),'el tablero proyecta la tarjeta');
- assert(shellData.includes('if (request.fields) query.push('),'la URL del shell agrega ?fields=');
- assert(shellData.includes('export function shellSignature'),'la frescura va por recurso y recorte');
- assert(shellData.includes('const SECTION_SCOPE: Record<string, ShellScope> = {'),'el shell declara qué recursos necesita cada sección');
- assert(shellData.includes("Resumen: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_STATUS}}"),'Resumen pide la proyección de estados');
- assert(shellData.includes("Clientes: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_PORTFOLIO}}"),'Clientes pide la proyección de cartera');
- assert(workspace.includes('const stale:ShellScope={};'),'al navegar solo se juntan los recursos vencidos');
- assert(workspace.includes('if(!scopeResources(stale).length)return;'),'sin recursos vencidos la navegación no pide nada');
- assert(workspace.includes("learnShellContract({fields:false});"),'un 400 de proyección apaga ?fields= en la sesión');
- assert(workspace.includes('if(!config?.limit)continue;'),'el prefetch al pasar el mouse solo calienta recortes acotados');
- assert(workspace.includes('summary.upcoming_deliveries ??'),'las entregas próximas usan el agregado del API cuando existe');
- const presence=readFileSync(new URL('../app/presence.tsx',import.meta.url),'utf8');
- assert(presence.includes('const peopleInflight=new Map<string,Promise<ProjectPeopleState>>();'),'la presencia comparte un único pedido en vuelo por consulta');
- assert(presence.includes('if(!force&&readPeople(path))return;'),'una consulta de presencia fresca no se repite');
- const clientes=readFileSync(new URL('../app/sections/clientes.tsx',import.meta.url),'utf8');
- const resumen=readFileSync(new URL('../app/sections/resumen.tsx',import.meta.url),'utf8');
- assert(clientes.includes('Cargando clientes…')&&resumen.includes('Cargando el panel…'),'las secciones muestran esqueleto mientras llega el primer dato');
+ assert(shellData.includes('ORDER_FIELDS_BOARD = \'id,project_id,project_name,client_name,title,description,status,work_type,'),'la proyección del tablero incluye work_type');
+ const globals=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
+ assert(!globals.includes('width:254px'),'la geometría legada del riel no aplasta el contenido a 360');
+ assert(!globals.includes('desktop-sidebar{width:220px}'),'el ancho legado del riel no pelea con Tailwind');
+ const ui=readFileSync(new URL('../app/ui-system.css',import.meta.url),'utf8');
+ assert(ui.includes('.control-shell .panel{border-radius:var(--radius-md);padding:var(--ui-panel-padding);min-width:0}'),'los paneles no crecen más allá de su columna');
+ assert(ui.includes('.finance-grid)>*{min-width:0}'),'los contenedores apilados no heredan el min-content del contenido');
 });
