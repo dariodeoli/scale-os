@@ -77,7 +77,7 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
    {loading?<LoadingBlock label="Cargando papelera…" lines={3}/>:!records.length?<EmptyBlock compact title="No hay registros en la papelera" description="Lo que se mueva a la papelera queda acá hasta que lo restaures."/>:
     <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]">
      {records.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
-      <label className="flex items-center" title="Seleccionar registro"><input type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={selected.includes(keyOf(record))} onChange={()=>toggleSelected(keyOf(record))}/></label>
+      <label className="relative flex items-center after:absolute after:-inset-3.5 after:content-['']" title="Seleccionar registro"><input type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={selected.includes(keyOf(record))} onChange={()=>toggleSelected(keyOf(record))}/></label>
       <span className="whitespace-nowrap text-[11.5px] text-mute">{labels[record.kind]||record.kind}</span>
       <div className="flex min-w-0 items-baseline gap-2">
        <b className="min-w-0 truncate text-[13.5px] font-semibold leading-[1.2] text-fore" title={record.name}>{record.name}</b>

@@ -45,7 +45,7 @@ export default function VerifyEmailPage(){
     <label htmlFor="verify-email" className="grid gap-1.5 text-xs text-mute">Correo de la cuenta<input id="verify-email" type="email" value={email} autoComplete="email" maxLength={200} disabled={resending} onChange={event=>setEmail(event.target.value)} className="rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm h-11"/></label>
     <button className="primary" type="submit" disabled={!email||resending}>{resending?'Enviando…':'Reenviar correo de verificación'}</button>
     {resendMessage?<p role="status" className="text-xs text-mute">{resendMessage}</p>:null}
-    <p className="flex flex-wrap gap-3 text-[11.5px] text-mute"><Link href="/registro">Volver al registro</Link><Link href="/">Ir al inicio de sesión</Link></p>
+    <p className="flex flex-wrap gap-3 text-[11.5px] text-mute"><Link className="inline-flex min-h-11 items-center" href="/registro">Volver al registro</Link><Link className="inline-flex min-h-11 items-center" href="/">Ir al inicio de sesión</Link></p>
    </form>:null}
   </div>
  </AccessLayout>;

@@ -1007,6 +1007,8 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
  .platform-admin-list li.platform-admin-list-head{display:none}
  .platform-admin-list li>span:first-child{min-width:0}
  .platform-admin-user-actions,.platform-admin-list-actions{flex-wrap:wrap;overflow:visible;max-width:100%;justify-content:flex-start}
+ /* En mobile las acciones de la lista también son targets de 44 px. */
+ .platform-admin-list li .platform-admin-user-actions .text-button,.platform-admin-list-actions .text-button{min-height:44px}
 }
 
 /* Shared Dialog mounts here without dialog.css on this route: restore overlay */

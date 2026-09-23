@@ -112,10 +112,10 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
        {manual?<small className="whitespace-nowrap text-[10.5px] text-info tabular-nums" title={`${manual} ajuste${manual===1?'':'s'} manual${manual===1?'':'es'}`}>· {manual} ajuste{manual===1?'':'s'}</small>:null}
       </div>
       <div className="flex min-w-0 items-center gap-x-4 whitespace-nowrap">
-       {data.roles.map(roleId=>{const checked=effective(row,roleId);return <span key={roleId} className="flex items-center gap-2 whitespace-nowrap">
+       {data.roles.map(roleId=>{const checked=effective(row,roleId);return <label key={roleId} className="relative flex items-center gap-2 whitespace-nowrap after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-['']">
         <Switch checked={checked} disabled={!owner||busy} ariaLabel={`${row.label} · ${teamRoleLabels[roleId]||roleId}`} onChange={(event:ChangeEvent<HTMLInputElement>)=>void toggle(row.id,roleId,event.target.checked)}/>
         <span className="text-[11.5px] text-mute">{teamRoleLabels[roleId]||roleId}</span>
-       </span>;})}
+       </label>;})}
       </div>
      </ListRow>;})}
     </div>)}
