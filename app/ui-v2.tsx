@@ -75,7 +75,7 @@ export function LoadingBlock({label = 'Cargando…', lines = 3, className}: {lab
 }
 
 /** Superficie común de los estados de panel v2. */
-const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-4';
+const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4';
 
 /**
  * Vacío de panel: `EmptyState` de la librería sobre la superficie v2 y con

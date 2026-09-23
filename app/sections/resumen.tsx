@@ -32,7 +32,7 @@ export function ResumenSection({guideProps, user, orders, load, setActive, summa
   return <div className="grid gap-5">
     <WorkspaceGuide {...guideProps} variant="card"/>
     <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary}/>
-    <section className="rounded-xl border border-ink-600 bg-ink-800 p-5" aria-label="Piezas por etapa">
+    <section className="rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" aria-label="Piezas por etapa">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-ink-600 pb-3">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Producción</p>

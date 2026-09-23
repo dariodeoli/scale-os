@@ -98,7 +98,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
   const state = clientState(client);
   const since = clientSince(client.created_at);
   const tel = clientWhatsappUrl(client.phone || undefined);
-  return <article className="client-hub-card flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" data-archived={client.active===false||undefined}>
+  return <article className="client-hub-card flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" data-archived={client.active===false||undefined}>
     <header className="flex items-start justify-between gap-3">
       <div className="flex min-w-0 items-start gap-2">
         {selectable ? <label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}

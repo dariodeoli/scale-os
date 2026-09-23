@@ -17,6 +17,7 @@ import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 import {GoogleSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
+import {LoadingScreen} from './loading-screen';
 import type {ReportsData} from './reports-workspace';
 const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const DemoWelcome=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoWelcome));
@@ -742,15 +743,7 @@ export default function Home() {
   const selectedProductionClient = clients.some(client => String(client.id) === productionClientId) ? productionClientId : "";
   const productionOrders = filterProductionOrders(orders, projects, selectedProductionClient,{...preferences.production,userId:String(user?.id||''),today:productionToday});
   const hasProductionFilters=!!productionClientId||preferences.production.mine||preferences.production.week;
-  if (loading) return (
-    <div className="loading-page" role="status" aria-live="polite">
-      <div className="loading-frame">
-        <div className="loading-orb"><img src="/brand/icon-192.png" width={46} height={46} alt="Scale OS"/></div>
-        <span className="workspace-wordmark">scale<span>OS</span></span>
-        <p className="loading-caption">Cargando tu espacio…</p>
-      </div>
-    </div>
-  );
+  if (loading) return <LoadingScreen name={signedIn?(user?.full_name||user?.email||''):''} photoUrl={signedIn?(user?.photo_url??undefined):undefined} roleLabel={signedIn?assignableRoles.find(role=>role.id===user?.role)?.label:undefined}/>;
   if (!signedIn)
     return (
       <div className="login-page">
@@ -806,8 +799,8 @@ export default function Home() {
     : (active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore')}`;
   const sidebarContent=(tone:'rail'|'light')=><>
         <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
-        <p className="nav-caption mt-4 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
-        <nav aria-label="Menú principal" className="grid gap-0.5 px-2">
+        <p className="nav-caption mt-1 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
+        <nav aria-label="Menú principal" className={`grid gap-1 [&_a]:no-underline ${tone==='rail'?'min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden':''}`}>
           {visibleNav.map(([label, Icon]) => (
             <Link
               key={label}
@@ -825,8 +818,8 @@ export default function Home() {
           ))}
           <button type="button" className={`nav-logout ${navItemClass(false,tone)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18} className="shrink-0"/><span className="nav-label">Cerrar sesión</span></button>
         </nav>
-        <div className="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 p-2">
-          <div className="profile-footer min-w-0"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
+        <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t pt-3 ${tone==='rail'?'border-white/15':'border-ink-600'}`}>
+          <div className="profile-footer min-w-0"><button className={`user w-full min-w-0 justify-start rounded-lg text-left transition ${tone==='rail'?'hover:bg-white/10':'hover:bg-ink-700'}`} aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
       </>;
   return (
@@ -836,7 +829,7 @@ export default function Home() {
         <div className="sidebar-brand"><WorkspaceBrand/></div>
         {sidebarContent('rail')}
       </DesktopSidebar>
-      <section className="content min-w-0 min-[761px]:!w-[calc(100%-192px)]">
+      <section className="content flex min-h-dvh max-w-[1600px] min-w-0 flex-col min-[761px]:!w-[calc(100%-192px)]">
         {demoWelcome&&user?.demo_owner_user_id&&<DemoWelcome close={()=>setDemoWelcome(false)}/>}
         {active==='Producción'&&productionView==='Tablero'&&productionFiltersDialogScope===preferenceScope&&productionFiltersDialogScope&&preferencesReady&&<Dialog title="Filtros guardados del tablero" close={()=>setProductionFiltersDialogScope('')}><div className="ops-stack">
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
@@ -846,13 +839,13 @@ export default function Home() {
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
-        <div className="workspace-topbar sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
+        <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 md:px-6 lg:px-8 xl:px-12 motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
           <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3">
             <div className="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2">
               <MobileNavigation>{sidebarContent('light')}</MobileNavigation>
             </div>
             <div className="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
-              <div className="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden">
+              <div className="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden">
                 <CompanySelector name={companyLabel}/>
               </div>
               <div className="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio">
@@ -876,7 +869,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-3 max-md:grid max-md:grid-cols-1">
+        <div className="flex min-w-0 flex-1 flex-col px-4 pb-8 pt-5 md:px-6 lg:px-8 xl:px-12">
+        <header className="workspace-page-header mb-5 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 max-md:grid max-md:grid-cols-1">
           {active==='Clientes' ? <ClientDirectoryToolbar
             canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
             onCreate={()=>setModal('client')}
@@ -890,10 +884,10 @@ export default function Home() {
             view={clientView as 'grid'|'list'}
           ><WorkspaceGuide {...guideProps}/></ClientDirectoryToolbar> : <>
             <div className="page-heading flex min-w-0 items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-fore">{active==='Resumen'?'Centro de control':activeParent}</h1>
+              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{active==='Resumen'?'Centro de control':activeParent}</h1>
               {active==='Proyectos'&&<span className="page-count rounded-full bg-ink-700 px-2 py-0.5 text-[11px] tabular-nums text-mute">{projects.length} proyectos</span>}
             </div>
-            <div className="header-actions flex flex-wrap items-center gap-2">
+            <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
               {active==='Proyectos'&&<div className="workspace-view-controls"><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>}
               <WorkspaceGuide {...guideProps}/>
               {(['Proyectos','Resumen','Producción','Presupuestos'].includes(active)&&canCreateRecord(active)) && (
@@ -915,7 +909,7 @@ export default function Home() {
             </div>
           </>}
         </header>
-        {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
+        {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
         {active==='Sin acceso'&&<SinAccesoSection/>}
         {active==='Equipo'&&<EquipoSection user={user}/>}
         {active==='Roles y permisos'&&<PermisosSection user={user}/>}
@@ -940,7 +934,8 @@ export default function Home() {
         {active==='Informes'&&<InformesSection user={user}/>}
         {active==='Finanzas'&&<FinanzasSection user={user} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} setModal={setModal} openPayment={openPayment} setToast={setToast}/>}
         {active==='Previsión'&&<PrevisionSection user={user}/>}
-        <WorkspaceFooter/>
+        <div className="mt-auto pt-6"><WorkspaceFooter/></div>
+        </div>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
       {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
