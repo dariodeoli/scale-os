@@ -189,9 +189,7 @@
 .control-shell :is(button.secondary,button.choice,a.secondary,.ops-select-trigger){border-radius:var(--ui-radius-control)}
 .control-shell :is(button.icon-button,.icon-button){border-radius:var(--ui-radius-control)}
 .control-shell .header-actions{gap:8px}
-.control-shell .header-actions :is(.primary,.secondary){min-height:38px}
 .control-shell .header-actions .primary{padding-inline:12px}
-.control-shell .page-heading h1{font-size:clamp(25px,2.4vw,31px);font-weight:700;letter-spacing:-.052em}
 .control-shell .page-count{padding:3px 7px;border-radius:999px;background:var(--surface-sunken);font-size:11px}
 @media(max-width:760px){
  .control-shell .section-tabs{width:100%;margin-bottom:var(--ui-space-3)}
