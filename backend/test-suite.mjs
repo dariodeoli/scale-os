@@ -17,7 +17,7 @@ await pg.exec(await fs.readFile('migrations/20260910_client_links.sql','utf8'));
 for(const file of ['20260908_google_oauth.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260914_role_permissions.sql','20260918_collaborator_role_and_project_archive.sql','20260919_collaborator_role_member_checks.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
 await pg.exec(await fs.readFile('migrations/20260911_drive_links.sql','utf8'));
 await pg.exec(await fs.readFile('migrations/20260910_project_assignees.sql','utf8'));
-for(const file of ['20260914_salary_forecast.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260910_work_checklists.sql','20260910_notifications.sql','20260913_ruc_collaboration.sql','20260914_production_traceability.sql','20260915_planned_expense_kind.sql','20260915_inventory_photos.sql','20260915_salary_override_signed.sql','20260919_pipeline_stages.sql','20260920_currency_widening.sql','20260923_agency_core_perf.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
+for(const file of ['20260914_salary_forecast.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260910_work_checklists.sql','20260910_notifications.sql','20260913_ruc_collaboration.sql','20260914_production_traceability.sql','20260915_planned_expense_kind.sql','20260915_inventory_photos.sql','20260915_salary_override_signed.sql','20260919_pipeline_stages.sql','20260920_currency_widening.sql','20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260923_agency_core_perf.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const serverSource=await fs.readFile(new URL('./server.js',import.meta.url),'utf8');
 assert(serverSource.indexOf('inventoryReservations({')<serverSource.indexOf('suite({'),'inventory routes are handled before the suite in server.js');
@@ -30,7 +30,7 @@ let resetToken='',sent=0;const grantedEmails=[];
 async function call(path,method='GET',payload={},as=user,form=''){
  let result={status:0};const req={method,socket:{remoteAddress:'127.0.0.1'},async *[Symbol.asyncIterator](){yield form;}};
  const args={req,res:{writeHead(status,headers){result={status,headers};},end(content){result.content=content;}},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{result={status,...data};},sendInvitation:async()=>true,sendAccessGranted:async(email,organizationName,role)=>{grantedEmails.push({email,organizationName,role});return true;},sendReset:async(_,token)=>{resetToken=token;sent++;return true;}};
- const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
+ const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects|summary)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
 }
 const client=(await query("insert into agency_clients(organization_id,name) values($1,'Client') returning id",[org])).rows[0].id;
 const project=(await query("insert into agency_projects(organization_id,client_id,name,approval_levels) values($1,$2,'Project',2) returning id",[org,client])).rows[0].id;
@@ -236,4 +236,38 @@ assert.equal(projectList.status,200);assert(projectList.projects.length>=1);
 for(const removed of ['organization_id','created_at','assigned_user_id','assignee_version'])
  assert.equal(Object.hasOwn(projectList.projects[0],removed),false,`la lista de proyectos ya no manda ${removed}`);
 assert.equal(Object.hasOwn(projectList.projects[0],'drive_links'),true,'los enlaces del proyecto se siguen sirviendo');
+// Perf3 (#57): agregados que desbloquean Resumen, Clientes y el tablero de Producción.
+const visibleOrdersWhere=`not exists(select 1 from agency_archived_records ar where ar.organization_id=o.organization_id and ar.kind='work-orders' and ar.record_id=o.id) and not exists(select 1 from agency_archived_records ar where ar.organization_id=p.organization_id and ar.kind='projects' and ar.record_id=p.id) and not exists(select 1 from agency_archived_records ar where ar.organization_id=c.organization_id and ar.kind='clients' and ar.record_id=c.id)`;
+const visibleOrderCount=async statuses=>(await query(`select count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleOrdersWhere}${statuses?" and o.status=any($2::text[])":''}`,[org,...(statuses?[statuses]:[])])).rows[0].total;
+const day=value=>value==null?null:(value instanceof Date?value.toISOString().slice(0,10):String(value).slice(0,10));
+const stageKeys=['approved','blocked','editing','published','recorded','review','to_record'];
+const summaryResult=await call('/api/agency/summary');
+assert.equal(summaryResult.status,200);
+assert.deepEqual(Object.keys(summaryResult.summary.stage_counts).sort(),stageKeys);
+for(const status of stageKeys)assert.equal(summaryResult.summary.stage_counts[status],await visibleOrderCount([status]),`stage_counts.${status} coincide con la base`);
+const openFromStages=['blocked','to_record','recorded','editing','review'].reduce((total,status)=>total+summaryResult.summary.stage_counts[status],0);
+assert.equal(openFromStages,summaryResult.summary.open_orders,'la suma de las etapas abiertas coincide con open_orders');
+const countsPage=await call('/api/agency/work-orders?limit=1&counts=1');
+assert.equal(countsPage.status,200);assert.equal(countsPage.workOrders.length,1);
+assert.deepEqual(countsPage.stage_counts,summaryResult.summary.stage_counts,'mismo conteo por estado que el resumen');
+const filteredCounts=await call('/api/agency/work-orders?status=review&counts=1');
+assert.equal(filteredCounts.workOrders.every(order=>order.status==='review'),true,'el filtro ?status= acota las filas');
+assert.deepEqual(filteredCounts.stage_counts,summaryResult.summary.stage_counts,'los conteos siguen cubriendo todas las etapas');
+const reviewOnly=await call('/api/agency/work-orders?status=review');
+assert.equal(reviewOnly.workOrders.length,await visibleOrderCount(['review']));
+const multiStatus=await call('/api/agency/work-orders?status=blocked,review');
+assert.equal(multiStatus.workOrders.every(order=>['blocked','review'].includes(order.status)),true);
+assert.equal(multiStatus.workOrders.length,await visibleOrderCount(['blocked','review']));
+assert.equal((await call('/api/agency/work-orders?status=nope')).status,400);
+assert.equal((await call('/api/agency/work-orders?status=')).status,400);
+for(const project of projectList.projects){
+ const [expected]=(await query(`select count(*) filter (where o.status not in ('approved','published'))::int as open_orders, min(o.due_date) filter (where o.status not in ('approved','published')) as next_due_date from agency_work_orders o where o.organization_id=$1 and o.project_id=$2 and not exists(select 1 from agency_archived_records ar where ar.organization_id=o.organization_id and ar.kind='work-orders' and ar.record_id=o.id)`,[org,project.id])).rows;
+ assert.equal(project.open_orders,expected.open_orders,`open_orders del proyecto ${project.id}`);
+ assert.equal(day(project.next_due_date),day(expected.next_due_date),`next_due_date del proyecto ${project.id}`);
+}
+const searchProjects=await call('/api/agency/projects?fields=id,name,client_id,status');
+assert.equal(searchProjects.status,200);
+assert.deepEqual(Object.keys(searchProjects.projects[0]).sort(),['client_id','id','name','status']);
+assert.equal((await call('/api/agency/projects?fields=id,inexistente')).status,400);
+assert.equal((await call('/api/agency/projects?fields=')).status,400);
 await pg.close();console.log('PASS: approvals, member suspension, tenant isolation, pipeline conversion, plans, inventory, dashboard permissions, public quotes, invoice idempotency, audit and password reset');

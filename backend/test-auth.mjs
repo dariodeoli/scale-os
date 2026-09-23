@@ -88,7 +88,7 @@ assert.equal((await request(`/api/agency/work-orders/${order}/assignees`)).statu
 r=await request('/api/agency/clients',{cookie:ownerCookie});if(!JSON.parse(r.body).clients)console.log('CLIENTS BODY',r.body);assert.equal(JSON.parse(r.body).clients.length,1);
 assert.equal((await request(`/api/agency/clients/${client}`,{cookie:ownerCookie,method:'DELETE'})).status,200);
 for(const [path,key] of [['clients','clients'],['projects','projects'],['work-orders','workOrders']]){r=await request('/api/agency/'+path,{cookie:ownerCookie});assert.equal(r.status,200);assert.equal(JSON.parse(r.body)[key].length,0);}
-r=await request('/api/agency/summary',{cookie:ownerCookie});assert.deepEqual(JSON.parse(r.body).summary,{active_clients:0,active_projects:0,open_orders:0,unanswered_budgets:0,unverified_inventory:0,upcoming_deliveries:0});
+r=await request('/api/agency/summary',{cookie:ownerCookie});assert.deepEqual(JSON.parse(r.body).summary,{active_clients:0,active_projects:0,open_orders:0,unanswered_budgets:0,unverified_inventory:0,upcoming_deliveries:0,stage_counts:{blocked:0,to_record:0,recorded:0,editing:0,review:0,approved:0,published:0}});
 assert.equal((await request(`/api/agency/clients/${client}/restore`,{cookie:ownerCookie,method:'POST'})).status,200);
 r=await request('/api/agency/projects',{cookie:ownerCookie});assert.equal(JSON.parse(r.body).projects[0].work_order_count,1);
 // Pending applicants can see only the waiting screen, never agency data.

@@ -25,6 +25,12 @@ const memberRoles=roles;
 // (sin lectores) ni el `assignee_email` legado (Re #57).
 const workOrderListFields=['id','project_id','project_name','client_name','title','description','description_preview','status','urgency','work_type','approval_step','due_date','due_time','drive_url','drive_links','estimated_hours','actual_hours','updated_at','assigned_user_id','assigned_user_ids','effective_assignees','assignee_source','checklist_total','checklist_completed'];
 
+// Estados del tablero de producción (fuente única para validar PATCH, filtros y conteos).
+const workOrderStatuses=['blocked','to_record','recorded','editing','review','approved','published'];
+
+// Campos que expone la lista de proyectos; `?fields=` proyecta sobre esta lista.
+const projectListFields=['id','client_id','name','status','drive_url','drive_links','start_date','due_date','urgency','approval_levels','active','updated_at','client_name','assignees','work_order_count','open_orders','next_due_date'];
+
 // Legacy operational endpoints extracted from the server entrypoint. Handlers
 // keep their original behavior and responses; the dispatcher returns true when
 // a path is handled so the server router can fall through to newer modules.
@@ -164,23 +170,44 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/projects' && req.method === 'GET') {
       const user=await session(req); if(!user) return send(res,401,{error:'No autenticado'});
-      // Asignados y conteo en dos pasadas únicas (antes: una subconsulta agregada
+      // Proyección opcional `?fields=` para el chrome/buscador: si no se piden
+      // asignados ni conteos, esas pasadas ni se ejecutan.
+      const fieldsRaw=url.searchParams.get('fields');
+      let projection=null;
+      if(fieldsRaw!==null){
+        const requested=[...new Set(fieldsRaw.split(',').map(field=>field.trim()).filter(Boolean))];
+        const invalid=requested.filter(field=>!projectListFields.includes(field));
+        if(!requested.length||invalid.length)return send(res,400,{error:invalid.length?`Campos inválidos: ${invalid.slice(0,6).join(', ')}`:'Elegí al menos un campo'});
+        projection=requested.includes('id')?requested:['id',...requested];
+      }
+      const wants=field=>projection===null||projection.includes(field);
+      // Asignados y conteos en pasadas únicas (antes: una subconsulta agregada
       // correlacionada por proyecto, que repetía la vista expandida 500 veces).
+      // `open_orders`/`next_due_date` son las piezas abiertas y su vencimiento más
+      // próximo, para que Clientes no tenga que pedir la lista de órdenes.
       const r=await db.query(`with assignees as (
         select a.record_id,jsonb_agg(jsonb_build_object('id',a.user_id::text,'full_name',coalesce(nullif(i.full_name,''),i.email),'photo_url',i.photo_url,'is_primary',a.is_primary) order by a.is_primary desc,a.user_id) as assignees
         from agency_record_assignees a join organization_person_identity i on i.organization_id=a.organization_id and i.user_id=a.user_id
         where a.organization_id=$1 and a.kind='projects' group by a.record_id
       ), counts as (
-        select o.project_id,count(*)::int as work_order_count from agency_work_orders o
+        select o.project_id,count(*)::int as work_order_count,
+          count(*) filter (where o.status not in ('approved','published'))::int as open_orders,
+          min(o.due_date) filter (where o.status not in ('approved','published')) as next_due_date
+        from agency_work_orders o
         where o.organization_id=$1 and ${visibleRecord('o','work-orders')} group by o.project_id
-      ) select p.*,c.name as client_name,coalesce(ag.assignees,'[]'::jsonb) as assignees,coalesce(cnt.work_order_count,0) as work_order_count
+      ) select p.*,c.name as client_name,coalesce(ag.assignees,'[]'::jsonb) as assignees,coalesce(cnt.work_order_count,0) as work_order_count,coalesce(cnt.open_orders,0) as open_orders,cnt.next_due_date as next_due_date
       from agency_projects p join agency_clients c on c.id=p.client_id
       left join assignees ag on ag.record_id=p.id
       left join counts cnt on cnt.project_id=p.id
       where p.organization_id=$1 and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by p.active desc,p.created_at desc`,[user.organization_id]);
       // Mismo recorte que en órdenes: columnas sin lectores fuera del payload.
       for(const row of r.rows){delete row.organization_id;delete row.created_at;delete row.assigned_user_id;delete row.assignee_version;}
-      return send(res,200,{projects:r.rows});
+      const rows=projection===null?r.rows:r.rows.map(row=>{
+        const out={id:row.id};
+        for(const field of projection)if(Object.hasOwn(row,field))out[field]=row[field];
+        return out;
+      });
+      return send(res,200,{projects:rows});
     }
     if (url.pathname === '/api/agency/projects' && req.method === 'POST') {
       const user = await session(req); if (!roleCan(user,'projects.manage')) return send(res,403,{error:'Sin permiso'});
@@ -212,10 +239,25 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         projection=requested.includes('id')?requested:['id',...requested];
       }
       const wants=field=>projection===null||projection.includes(field);
+      // Filtro opcional `?status=`: sirve el tablero por columna (uno o varios
+      // estados separados por coma) sin cambiar la respuesta por defecto.
+      const statusRaw=url.searchParams.get('status');
+      let statusFilter=null;
+      if(statusRaw!==null){
+        const requested=[...new Set(statusRaw.split(',').map(status=>status.trim()).filter(Boolean))];
+        const invalid=requested.filter(status=>!workOrderStatuses.includes(status));
+        if(!requested.length||invalid.length)return send(res,400,{error:invalid.length?`Estados inválidos: ${invalid.slice(0,6).join(', ')}`:'Elegí al menos un estado'});
+        statusFilter=requested;
+      }
+      const conditions=[`o.organization_id=$1`,visibleRecord('o','work-orders'),visibleRecord('p','projects'),visibleRecord('c','clients')];
+      const params=[user.organization_id];
+      if(statusFilter){params.push(statusFilter);conditions.push(`o.status=any($${params.length}::text[])`);}
+      let pageClause='';
+      if(paginated){params.push(limit+1);const limitPlaceholder=`$${params.length}`;params.push(offset);pageClause=` limit ${limitPlaceholder} offset $${params.length}`;}
       // La lista no trae columnas sin lectores (organización, alta, versión de
       // asignación) ni el correo legado del asignado: se recortan acá, después de
       // la consulta, para no depender de que el esquema tenga todas las columnas.
-      const r=await db.query(`select o.*,p.name as project_name,c.name as client_name from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by o.updated_at desc,o.id desc${paginated?' limit $2 offset $3':''}`,paginated?[user.organization_id,limit+1,offset]:[user.organization_id]);
+      const r=await db.query(`select o.*,p.name as project_name,c.name as client_name from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where ${conditions.join(' and ')} order by o.updated_at desc,o.id desc${pageClause}`,params);
       for(const row of r.rows){delete row.organization_id;delete row.created_at;delete row.assignee_version;}
       const hasMore=paginated&&r.rows.length>limit;
       if(hasMore)r.rows.length=limit;
@@ -228,6 +270,15 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
           for(const row of r.rows){const counts=byId.get(String(row.id));row.checklist_total=counts?.checklist_total||0;row.checklist_completed=counts?.checklist_completed||0;}
         } else for(const row of r.rows){row.checklist_total=0;row.checklist_completed=0;}
       }
+      // `?counts=1`: totales por estado (todas las etapas, misma visibilidad que la
+      // lista) para el tablero de Producción; sin el parámetro no cambia nada.
+      let stageCounts=null;
+      if(url.searchParams.get('counts')==='1'){
+        const counted=(await db.query(`select o.status,count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} group by o.status`,[user.organization_id])).rows;
+        const byStatus=new Map(counted.map(row=>[row.status,row.total]));
+        stageCounts={};
+        for(const status of workOrderStatuses)stageCounts[status]=Number(byStatus.get(status)||0);
+      }
       const rows=projection===null?r.rows:r.rows.map(row=>{
         const out={id:row.id};
         for(const field of projection){
@@ -236,7 +287,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         }
         return out;
       });
-      return send(res,200,paginated?{workOrders:rows,page:{limit,offset,hasMore}}:{workOrders:rows});
+      return send(res,200,{workOrders:rows,...(paginated?{page:{limit,offset,hasMore}}:{}),...(stageCounts?{stage_counts:stageCounts}:{})});
     }
     if (url.pathname === '/api/agency/work-orders' && req.method === 'POST') {
       const user = await session(req); if (!roleCan(user,'work-orders.edit')) return send(res,403,{error:'Sin permiso'});
@@ -398,18 +449,22 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     if (orderMatch && req.method === 'PATCH') {
       const user = await session(req); if (!roleCan(user,'work-orders.edit')) return send(res,403,{error:'Sin permiso'});
       const { status } = await body(req);
-      const allowedStatuses=['blocked','to_record','recorded','editing','review','approved','published'];
-      if (!allowedStatuses.includes(status)) return send(res,400,{error:'Estado inválido'});
+      if (!workOrderStatuses.includes(status)) return send(res,400,{error:'Estado inválido'});
       const r=await db.query('update agency_work_orders set status=$1,updated_at=now() where id=$2 and organization_id=$3 returning *',[status,Number(orderMatch[1]),user.organization_id]);
       if (!r.rows[0]) return send(res,404,{error:'Orden no encontrada'});
       return send(res,200,{workOrder:r.rows[0]});
     }
     if (url.pathname === '/api/agency/summary' && req.method === 'GET') {
       const user=await session(req); if(!user) return send(res,401,{error:'No autenticado'});
-      const r=await db.query(`select (select count(*)::int from agency_clients c where organization_id=$1 and active=true and ${visibleRecord('c','clients')}) as active_clients, (select count(*)::int from agency_projects p join agency_clients c on c.id=p.client_id where p.organization_id=$1 and p.status='active' and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as active_projects, (select count(*)::int from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and o.status not in ('approved','published') and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as open_orders, (select count(*)::int from agency_budgets b where b.organization_id=$1 and b.status='sent' and ${visibleRecord('b','budgets')}) as unanswered_budgets, (select count(*)::int from agency_inventory i where i.organization_id=$1 and coalesce(i.status,'available')<>'retired' and (i.last_verified_at is null or i.last_verified_at<current_date-30) and ${visibleRecord('i','inventory')}) as unverified_inventory, (select count(*)::int from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and o.due_date>=current_date and o.due_date<current_date+7 and o.status not in ('approved','published') and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as upcoming_deliveries`,[user.organization_id]);
+      const r=await db.query(`select (select count(*)::int from agency_clients c where organization_id=$1 and active=true and ${visibleRecord('c','clients')}) as active_clients, (select count(*)::int from agency_projects p join agency_clients c on c.id=p.client_id where p.organization_id=$1 and p.status='active' and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as active_projects, (select count(*)::int from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and o.status not in ('approved','published') and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as open_orders, (select count(*)::int from agency_budgets b where b.organization_id=$1 and b.status='sent' and ${visibleRecord('b','budgets')}) as unanswered_budgets, (select count(*)::int from agency_inventory i where i.organization_id=$1 and coalesce(i.status,'available')<>'retired' and (i.last_verified_at is null or i.last_verified_at<current_date-30) and ${visibleRecord('i','inventory')}) as unverified_inventory, (select count(*)::int from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and o.due_date>=current_date and o.due_date<current_date+7 and o.status not in ('approved','published') and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as upcoming_deliveries, (select coalesce(jsonb_object_agg(stage.status,stage.total),'{}'::jsonb) from (select o.status,count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} group by o.status) stage) as stage_counts`,[user.organization_id]);
       // Operational signals respect the same visibility as their modules: a
       // role that cannot open the source list receives null, never a number.
-      const summary={...r.rows[0]};
+      // `stage_counts` es solo conteo (igual que `open_orders`): cubre todas las
+      // etapas visibles y la suma de las abiertas coincide con `open_orders`.
+      const rawStages=r.rows[0].stage_counts||{};
+      const stage_counts={};
+      for(const status of workOrderStatuses)stage_counts[status]=Number(rawStages[status]||0);
+      const summary={...r.rows[0],stage_counts};
       if(!roleCan(user,'budgets.manage'))summary.unanswered_budgets=null;
       if(!roleCan(user,'inventory.view'))summary.unverified_inventory=null;
       return send(res,200,{summary});
