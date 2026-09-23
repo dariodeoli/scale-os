@@ -32,7 +32,8 @@ test('every list view carries the same column-header and alignment contract',()=
   const workspace=workspaceSource();
   assert.match(workspace,/CLIENT_COLUMNS: Column\[\] = \[[\s\S]*?Cliente[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Cobros[\s\S]*?Actividad[\s\S]*?Acciones/,'the client list declares its column header');
   assert.match(workspace,/ListGrid label="Clientes" template=\{CLIENT_TEMPLATE\}/,'header and rows share one client template');
-  assert.match(workspace,/project-entry-head[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables/,'the project list shows its column header');
+  assert.match(workspace,/PROJECT_COLUMNS: Column\[\] = \[[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables[\s\S]*?Acciones/,'the project list declares its column header');
+  assert.match(workspace,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'the project header consumes the shared template');
   const operations=read('app/operations.tsx');
   assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
   const clients=read('app/client-directory.css');
@@ -40,13 +41,11 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(clients,/\.client-hub-actions\{grid-column:6/,'client actions sit in their own column');
   const team=read('app/operations.css');
   assert.match(team,/\.person-hub-head-row\{display:grid/);
-  const projects=read('app/project-card.css');
-  assert.match(projects,/\.project-entry-head\{display:grid/);
   // Encabezado y filas comparten UNA plantilla por lista (variable CSS).
   assert.match(clients,/--client-cols:[\s\S]*?grid-template-columns:var\(--client-cols\)[\s\S]*?\.client-hub-head-row\{display:grid;grid-template-columns:var\(--client-cols\)/,'client header and rows share --client-cols');
   assert.match(team,/--person-cols:[\s\S]*?grid-template-columns:var\(--person-cols\)[\s\S]*?\.person-hub-head-row\{display:grid;grid-template-columns:var\(--person-cols\)/,'team header and rows share --person-cols');
-  assert.match(projects,/--project-cols:[\s\S]*?\.project-entry-head\{display:grid;grid-template-columns:var\(--project-cols\)/,'the project header shares --project-cols');
-  assert.match(projects,/\.project-list>\.project-entry\{display:grid;grid-template-columns:var\(--project-cols\)/,'project rows consume --project-cols');
+  const projectCard=read('app/project-card.tsx');
+  assert.match(projectCard,/\[\.project-list_&\]:grid-cols-\[var\(--project-cols\)\]/,'project rows consume --project-cols');
 });
 
 test('the client directory keeps one template, ordered row actions and shared date formats',()=>{
@@ -156,8 +155,8 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(inventory,/min-h-\[200px\][\s\S]*?flex-col/,'inventory cards keep a big grid height');
   for(const line of inventory.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),'inventory offers the full value for every truncated text');
   assert.doesNotMatch(inventory,/truncate[^>]*(CeldaMoneda|SerialTexto|listDate)/,'inventory never truncates amounts, dates or serials');
-  const projects=read('app/project-card.css');
-  assert.match(projects,/\.project-grid>\.project-entry\{min-height:200px\}/,'project cards keep a big grid height');
+  const projectCards=read('app/project-card.tsx');
+  assert.match(projectCards,/min-h-\[200px\][\s\S]*?flex-col/,'project cards keep a big grid height');
   const agents=read('AGENTS.md');
   assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
   const forecast=read('app/financial-forecast.tsx');

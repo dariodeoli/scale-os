@@ -9,7 +9,8 @@
 .client-summary-grid small{display:block;margin-top:2px;font-size:11px;color:var(--text-subtle,var(--text-muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .quick-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
 .activity-line{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
-.activity-line small{color:var(--text-muted)}.activity-line p{white-space:pre-wrap;margin:0}
+.activity-line small{color:var(--text-muted)}
+.activity-line p{white-space:pre-wrap;margin:0}
 /* Listas dentro de la ficha: fila finita con encabezado y plantilla compartida.
    La segunda columna es fija para que encabezado y filas midan igual en todos los
    anchos; el dato que no entra se recorta con elipsis y su title viene del JSX. */
@@ -23,61 +24,46 @@
 .drawer-list .payment-cell small{white-space:nowrap;color:var(--text-subtle,var(--text-muted))}
 .drawer-list .work-list-row{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:44px;padding:8px 4px}
 .drawer-list .work-list-row>span{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media(max-width:560px){.drawer-list{--drawer-cols:minmax(0,1fr) 6.5rem}}
+@media(max-width:560px){.drawer-list{--drawer-cols:minmax(0,1fr) 6.5rem}
+}
 /* La celda de identidad de las listas del drawer recorta en una linea con title. */
 .drawer-list :is(.activity-line,.work-list-row)>b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.work-detail-toolbar{display:flex;justify-content:flex-end;min-height:0}.work-detail-toolbar .icon-button{width:34px;min-height:34px;padding:0}.work-detail-description{white-space:pre-wrap;line-height:1.55}.work-detail-toolbar+.record-assignees,.work-detail-toolbar+.work-detail-description{margin-top:0}
-.work-planner{margin-bottom:18px}.work-planner-list{max-height:360px;overflow:auto}
 /* Work planner: fila finita con encabezado y plantilla compartida. */
-.work-planner-list{--work-cols:minmax(0,1fr) auto auto}
-.work-planner-head{display:grid;grid-template-columns:var(--work-cols);gap:0 8px;padding:0 4px 4px;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
-.work-planner-head span:last-child{justify-self:end}
-.work-planner-list .work-list-row{display:grid;grid-template-columns:var(--work-cols);align-items:center;gap:4px 8px;padding:8px 4px}
-.work-list-main{display:flex;align-items:center;gap:12px;min-width:0}
-.work-list-main>.text-button{flex:1;min-width:0;text-align:left;font-size:13px}
-.work-planner-list .work-list-row>time{justify-self:end}
-.work-planner-list .work-list-row>.work-list-state{justify-self:end;white-space:nowrap}
-.work-list-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 4px;border-bottom:1px solid var(--line);background:transparent;text-align:left}
-.work-list-row>input[type=checkbox]{width:20px;height:20px;flex:none}
-.work-list-row>.text-button{flex:1;min-width:0;text-align:left;font-size:13px}
-.work-list-row small{display:block;font-weight:400;color:var(--text-muted);font-size:11px}
-.work-list-row time,.work-list-row>span{font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
-.ops-select-options [role=listbox]{display:grid}.ops-select-options input{position:sticky;top:0;background:var(--surface)}
-@media(max-width:760px){.detail-drawer-overlay .ops-dialog.unified-dialog{border-radius:0}.work-list-row{flex-wrap:wrap;gap:8px}.work-list-row>.text-button{flex-basis:70%}.work-planner .panel-heading{flex-wrap:wrap}.work-planner .choice{min-height:44px}}
-
+.drawer-list .work-list-row{--work-cols:minmax(0,1fr) auto auto}
+.ops-select-options [role=listbox]{display:grid}
+.ops-select-options input{position:sticky;top:0;background:var(--surface)}
+@media(max-width:760px){.detail-drawer-overlay .ops-dialog.unified-dialog{border-radius:0}
+}
 /* Detail work remains the focal surface inside the compact side drawer. */
-.detail-drawer-overlay .ops-dialog.unified-dialog{border-left:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay)}.detail-drawer-overlay .dialog-body{gap:var(--ui-space-4,16px)}.quick-actions{padding-bottom:var(--ui-space-3,12px);border-bottom:1px solid var(--border-subtle,var(--line))}.activity-line{padding:var(--ui-space-3,12px);border-color:var(--border-subtle,var(--line));transition:background var(--ease)}.activity-line:hover{background:color-mix(in srgb,var(--violet-soft) 36%,transparent)}.work-detail-toolbar .icon-button{width:44px;min-height:44px;border-color:var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface))}.work-detail-description{padding:var(--ui-space-3,12px);border-left:3px solid var(--brand-600);background:var(--surface-sunken,var(--surface-subtle));border-radius:0 var(--radius-sm) var(--radius-sm) 0}.work-list-row{min-height:56px;padding-inline:var(--ui-space-2,8px);border-color:var(--border-subtle,var(--line));border-radius:var(--radius-sm);transition:background var(--ease)}.work-list-row:hover{background:var(--surface-subtle)}.work-list-row>input[type=checkbox]{accent-color:var(--brand-700)}
-@media(max-width:760px){.work-detail-toolbar .icon-button{width:44px;min-height:44px}.work-list-row{min-height:64px}}
-.work-order-links{display:grid;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-subtle,var(--line))}.work-order-links h3{margin:0;font-size:14px}.work-order-link-list{display:flex;flex-wrap:wrap;gap:6px}.work-order-link-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:8px;align-items:end}.work-order-link-form label{display:grid;gap:4px;min-width:0;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}.work-order-link-form input{min-width:0;min-height:38px;padding:8px 10px;border:1px solid var(--border-interactive,var(--line-strong));border-radius:var(--radius-sm);background:var(--surface);color:var(--text)}.work-order-link-form button{min-height:38px;white-space:nowrap}@media(max-width:620px){.work-order-link-form{grid-template-columns:1fr}.work-order-link-form button{min-height:44px}}
-
+.detail-drawer-overlay .ops-dialog.unified-dialog{border-left:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay)}
+.detail-drawer-overlay .dialog-body{gap:var(--ui-space-4,16px)}
+.quick-actions{padding-bottom:var(--ui-space-3,12px);border-bottom:1px solid var(--border-subtle,var(--line))}
+.activity-line{padding:var(--ui-space-3,12px);border-color:var(--border-subtle,var(--line));transition:background var(--ease)}
+.activity-line:hover{background:color-mix(in srgb,var(--violet-soft) 36%,transparent)}
+.work-order-links{display:grid;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-subtle,var(--line))}
+.work-order-links h3{margin:0;font-size:14px}
+.work-order-link-list{display:flex;flex-wrap:wrap;gap:6px}
+.work-order-link-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:8px;align-items:end}
+.work-order-link-form label{display:grid;gap:4px;min-width:0;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}
+.work-order-link-form input{min-width:0;min-height:38px;padding:8px 10px;border:1px solid var(--border-interactive,var(--line-strong));border-radius:var(--radius-sm);background:var(--surface);color:var(--text)}
+.work-order-link-form button{min-height:38px;white-space:nowrap}
+@media(max-width:620px){.work-order-link-form{grid-template-columns:1fr}
+.work-order-link-form button{min-height:44px}
+}
 /* Client ficha: resumen comercial en grilla estable y acciones en barra. */
-@media(min-width:900px){.client-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:900px){.client-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 .client-summary-grid article{transition:border-color var(--ease)}
 .client-summary-grid article:hover{border-color:var(--line-strong,var(--border-subtle))}
 .quick-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-
 /* Pieza: hero con estado, secciones en cápsulas y acciones agrupadas. */
 .work-hero{display:grid;gap:10px;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:14px;background:var(--surface-sunken,var(--surface-subtle))}
-.work-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.work-hero-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-
-.work-state[data-status=blocked]{border-color:color-mix(in srgb,var(--danger) 24%,var(--line));background:var(--danger-soft);color:var(--danger)}
-.work-state[data-status=to_record],.work-state[data-status=recorded]{border-color:color-mix(in srgb,var(--info) 24%,var(--line));background:var(--info-soft);color:var(--info)}
-.work-state[data-status=editing]{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
-.work-state[data-status=review]{border-color:color-mix(in srgb,var(--brand-600) 26%,var(--line));background:var(--violet-soft);color:var(--brand-700)}
-.work-state[data-status=approved],.work-state[data-status=published]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
-.work-tabs{margin-block:4px}
-.work-detail-stack{display:grid;gap:12px}
-.work-section{display:grid;gap:10px;padding:14px;border:1px solid var(--border-subtle,var(--line));border-radius:14px;background:var(--surface-raised,var(--surface))}
-.work-section-title{margin:0;font-size:10.5px;font-weight:750;letter-spacing:.07em;text-transform:uppercase;color:var(--text-subtle,var(--text-muted))}
-.work-section .work-detail-description{margin:0}
 .quick-actions.work-section{gap:10px}
-
 /* Producción: toolbar compacto en cápsula. */
 .production-toolbar{gap:10px}
 .production-toolbar .production-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-raised,var(--surface))}
-@media(max-width:760px){.production-toolbar .production-filters{border-radius:14px;width:100%}}
-
+@media(max-width:760px){.production-toolbar .production-filters{border-radius:14px;width:100%}
+}
 /* Vista previa del cliente: réplica del enlace público de revisión. */
 .client-review-preview{display:grid;gap:12px;padding:18px;border:1px solid var(--border-subtle,var(--line));border-radius:16px;background:var(--surface-sunken,var(--surface-subtle))}
 .client-review-preview h3{margin:0;font-size:19px;overflow-wrap:anywhere}

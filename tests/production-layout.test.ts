@@ -2,14 +2,16 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {sectionPath,parentSection,childSections} from '../app/navigation';
 import {visibleModule} from '../app/workspace-access';
-const css=readFileSync('app/production-focus.css','utf8');
-const kanban=css.slice(css.indexOf('.control-shell .production-focus .kanban{')).split('}')[0];
-assert(kanban.includes('height:auto'));
-const column=css.slice(css.indexOf('.control-shell .production-focus .column{')).split('}')[0];
-assert(column.includes('max-height:none;overflow:visible'));
-assert(css.includes('overflow-x:auto;overflow-y:hidden'));
-const columnTitle=css.slice(css.indexOf('.control-shell .production-focus .column-title{')).split('}')[0];
-assert(columnTitle.includes('border-radius'));
+// El tablero v2 vive en app/production-board.tsx + app/sections/produccion.tsx.
+// `production-focus.css` sigue importada por el shell (limpieza pendiente), pero
+// ya no estiliza la pantalla: el contrato real se mide sobre la fuente v2.
+const board=readFileSync('app/production-board.tsx','utf8');
+const section=readFileSync('app/sections/produccion.tsx','utf8');
+assert(section.includes('flex snap-x gap-3 overflow-x-auto'),'el tablero scrollea horizontalmente');
+assert(section.includes('role="region" aria-label="Tablero de Producción, desplazable horizontalmente"'),'el tablero es una región desplazable etiquetada');
+assert(board.includes('w-72 shrink-0'),'las columnas conservan su ancho (nada de auto por tarjeta)');
+assert(!board.includes('max-h-')&&!board.includes('overflow-y-auto'),'las columnas no scrollean por dentro: la página es el scroll');
+assert(board.includes('flex-col gap-2 rounded-xl border'),'las columnas tienen contenedor redondeado propio');
 const ui=readFileSync('app/scale-workspace.tsx','utf8')+readFileSync('app/production-board.tsx','utf8');
 assert(!ui.includes('Enlace directo a Producción'));
 assert(!ui.includes('<summary>Detalles y acciones</summary>'));
