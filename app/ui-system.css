@@ -12,11 +12,11 @@
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(p,label,legend){overflow-wrap:anywhere}
 
 /* A page surface, an inset card and a disclosure share one spacing scale. */
-.control-shell .panel{border-radius:var(--radius-md);padding:var(--ui-panel-padding)}
+.control-shell .panel{border-radius:var(--radius-md);padding:var(--ui-panel-padding);min-width:0}
 .control-shell .panel .panel{padding:0;border:0;box-shadow:none}
 .control-shell .production-panel,.control-shell .production-focus{padding:0;border:0;background:transparent}
 .control-shell :is(.ops-card,.project-card,.inventory-equipment,.inventory-reservation,.reports-distribution,.reports-tiles article){padding:var(--ui-card-padding);border-radius:var(--radius-md);background:var(--surface)}
-.control-shell :is(.ops-stack,.finance-grid){gap:var(--ui-space-4)}
+.control-shell :is(.ops-stack,.finance-grid){gap:var(--ui-space-4)}.control-shell :is(.ops-stack,.finance-grid)>*{min-width:0}
 .control-shell :is(.ops-grid,.project-grid,.inventory-equipment-grid,.reports-tiles,.reports-distributions){gap:var(--ui-space-3)}
 .control-shell .panel-heading{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-3);margin-bottom:var(--ui-space-4)}
 .control-shell .panel-heading>*{min-width:0;max-width:100%}

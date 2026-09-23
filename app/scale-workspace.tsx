@@ -32,7 +32,7 @@ const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 import {setDataScope, clearDataCache, dataFetch} from './data-cache';
 import {request} from './workspace-request';
-import {sectionScope,scopeResources,shellDataUrl,shellSignature,type ShellResource,type ShellScope} from './shell-data';
+import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,type ShellResource,type ShellScope} from './shell-data';
 import {prefetchSectionData} from './data-prefetch';
 import './control-center.css';
 import './production-focus.css';
@@ -193,6 +193,7 @@ export default function Home() {
   }
   const lastDataPath=useRef(pathname);
   const requestedSection=sectionLabel(pathname);
+  const lastDataSection=useRef(requestedSection);
   function setActive(label:string){router.push(sectionPath(label));}
   const [toast, setToast] = useState("");
   const [modal, setModal] = useState<ModalKind>(null);
@@ -217,6 +218,7 @@ export default function Home() {
   const [guideData,setGuideData]=useState<WorkspaceGuideData>({scope:null,status:'unknown'});
   const dataLoadSequence=useRef(0);
   const dataFreshness=useRef<Record<string,number>>({});
+  const contractKnown=useRef(false);
   const [projectsState,setProjectsState]=useState<'loading'|'ready'|'error'>('loading');
   useEffect(()=>{setProjectsState(guideData.status==='error'?'error':guideData.status==='ready'?'ready':'loading');},[guideData.status]);
   // Estado de los datos compartidos: lo consume el chrome y lo exponen las
@@ -400,11 +402,6 @@ export default function Home() {
   const liveProjects = visibleProjects.filter(project => project.active !== false);
   const archivedProjects = visibleProjects.filter(project => project.active === false);
   const financeEmpty = !accounts.length && !invoices.length && !transfers.length && !payments.length;
-  const stageCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const order of orders) counts.set(order.status, (counts.get(order.status) || 0) + 1);
-    return counts;
-  }, [orders]);
   const [summary, setSummary] = useState<Summary>({
     active_clients: 0,
     active_projects: 0,
@@ -413,6 +410,11 @@ export default function Home() {
     unverified_inventory: null,
     upcoming_deliveries: null,
   });
+  const stageCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const order of orders) counts.set(order.status, (counts.get(order.status) || 0) + 1);
+    return counts;
+  }, [orders]);
   const directoryKpis = useMemo(() => {
     const active = clients.filter(client => client.active).length;
     const paused = clients.length - active;
@@ -440,28 +442,45 @@ export default function Home() {
   async function load(identity:User|null=user,scope:ShellScope=sectionScope(requestedSection)) {
     if(!identity||identity.subscription?.hasAccess===false)return;
     const sequence=++dataLoadSequence.current;
-    const wants=(resource:ShellResource)=>Boolean(scope[resource]);
     const guideScope=workspaceGuideScope({userId:String(identity.id),organizationId:String(identity.organization_id),role:identity.role,demo:!!identity.demo_owner_user_id});
     const scopeReady=(next:ShellScope)=>scopeResources(next).every(resource=>dataFreshness.current[shellSignature(resource,next[resource])]>0);
     setGuideData({scope:guideScope,status:'loading'});
     const loadedScope=workspacePreferenceKey(String(identity?.id||''),String(identity?.organization_id||''));
+    // Una fase del alcance: pide lo que corresponde, valida y aplica el contrato.
+    const applyScope=async(next:ShellScope)=>{
+      const needs=(resource:ShellResource)=>Boolean(next[resource]);
+      const ordersPromise = !needs('orders')
+        ? Promise.resolve({workOrders:orders})
+        : request<{ workOrders: WorkOrder[] }>(shellDataUrl('orders',next.orders));
+      const [clientData, projectData, orderData, summaryData] = await Promise.all(
+        [
+          needs('clients')?request<{ clients: Client[] }>(shellDataUrl('clients',next.clients)):{clients},
+          needs('projects')?request<{ projects: Project[] }>(shellDataUrl('projects',next.projects)):{projects},
+          ordersPromise,
+          needs('summary')?request<{ summary: Summary }>(shellDataUrl('summary',next.summary)):{summary},
+        ],
+      );
+      if(sequence!==dataLoadSequence.current)return null;
+      if(!Array.isArray(clientData?.clients)||!Array.isArray(projectData?.projects)||!Array.isArray(orderData?.workOrders)||!summaryData?.summary)throw new Error('El servidor devolvió datos incompletos. Reintentá.');
+      if(needs('clients')){setClients(clientData.clients);dataFreshness.current[shellSignature('clients',next.clients)]=Date.now();}
+      if(needs('projects')){setProjects(projectData.projects);dataFreshness.current[shellSignature('projects',next.projects)]=Date.now();}
+      if(needs('orders')){setOrders(orderData.workOrders);dataFreshness.current[shellSignature('orders',next.orders)]=Date.now();}
+      if(needs('summary')){setSummary(summaryData.summary);dataFreshness.current[shellSignature('summary',next.summary)]=Date.now();}
+      return {clientData,projectData,orderData,summaryData};
+    };
     try{
-    const [clientData, projectData, orderData, summaryData] = await Promise.all(
-      [
-        wants('clients')?request<{ clients: Client[] }>(shellDataUrl('clients',scope.clients)):{clients},
-        wants('projects')?request<{ projects: Project[] }>(shellDataUrl('projects',scope.projects)):{projects},
-        wants('orders')?request<{ workOrders: WorkOrder[] }>(shellDataUrl('orders',scope.orders)):{workOrders:orders},
-        wants('summary')?request<{ summary: Summary }>(shellDataUrl('summary',scope.summary)):{summary},
-      ],
-    );
-    if(sequence!==dataLoadSequence.current)return;
-    if(!Array.isArray(clientData?.clients)||!Array.isArray(projectData?.projects)||!Array.isArray(orderData?.workOrders)||!summaryData?.summary)throw new Error('El servidor devolvió datos incompletos. Reintentá.');
-    if(wants('clients')){setClients(clientData.clients);dataFreshness.current[shellSignature('clients',scope.clients)]=Date.now();}
-    if(wants('projects')){setProjects(projectData.projects);dataFreshness.current[shellSignature('projects',scope.projects)]=Date.now();}
-    if(wants('orders')){setOrders(orderData.workOrders);dataFreshness.current[shellSignature('orders',scope.orders)]=Date.now();}
-    if(wants('summary')){setSummary(summaryData.summary);dataFreshness.current[shellSignature('summary',scope.summary)]=Date.now();}
+    const first=await applyScope(scope).catch(async(cause:unknown)=>{
+      // Un 400 de proyección apaga `?fields=` en la sesión y reintenta sin recorte.
+      if(scopeResources(scope).some(resource=>scope[resource]?.fields)&&cause instanceof Error&&/Campos inválidos/i.test(cause.message)){
+        learnShellContract({fields:false});
+        if(sequence!==dataLoadSequence.current)return null;
+        return applyScope(sectionScope(requestedSection));
+      }
+      throw cause;
+    });
+    if(!first)return;
     setStartupDataScope(loadedScope);
-    if(scopeReady(sectionScope(requestedSection)))setGuideData({scope:guideScope,status:'ready',counts:{clients:clientData.clients.length,projects:projectData.projects.length,orders:orderData.workOrders.length}});
+    if(scopeReady(sectionScope(requestedSection,shellContract())))setGuideData({scope:guideScope,status:'ready',counts:{clients:first.clientData.clients.length,projects:first.projectData.projects.length,orders:first.orderData.workOrders.length}});
     }catch(cause){
       if(sequence!==dataLoadSequence.current)return;
       if(guideData.status!=='ready')setGuideData({scope:guideScope,status:'error'});
@@ -478,20 +497,27 @@ export default function Home() {
     previousBillingAccess.current=next;
   },[user?.subscription?.hasAccess]);
   useEffect(()=>{
-    if(lastDataPath.current===pathname)return;
+    // Navegar cambia la sección y su proyección: la firma cargada manda. Si la
+    // sección nueva pide otro recorte, la lista vieja no se reusa (el tablero
+    // rompía al pintar tarjetas proyectadas para Resumen).
+    const pathChanged=lastDataPath.current!==pathname;
+    const sectionChanged=lastDataSection.current!==requestedSection;
     lastDataPath.current=pathname;
-    // Keep the mounted shell and session. Al navegar solo se refresca lo que la
-    // sección activa necesita y ya venció: lo que está en memoria no se repite.
+    lastDataSection.current=requestedSection;
+    if(!pathChanged&&!sectionChanged)return;
     if(!signedIn||!user||user.subscription?.hasAccess===false)return;
     const scope=sectionScope(requestedSection);
     const stale:ShellScope={};
     for(const resource of scopeResources(scope)){
       const request=scope[resource];
-      if(Date.now()-(dataFreshness.current[shellSignature(resource,request)]||0)>DATA_FRESH_MS)stale[resource]=request;
+      const signature=shellSignature(resource,request);
+      const loaded=dataFreshness.current[signature]>0;
+      if(resource==='orders'&&!loaded)setOrders(current=>current.length?[]:current);
+      if(!loaded||Date.now()-dataFreshness.current[signature]>DATA_FRESH_MS)stale[resource]=request;
     }
     if(!scopeResources(stale).length)return;
     void load(user,stale).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron actualizar los datos.'));
-  },[pathname,signedIn]);
+  },[pathname,requestedSection,signedIn]);
   useEffect(()=>{if(signedIn&&toast){notify({tone:'error',message:toast});setToast('');}},[signedIn,toast]);
   useEffect(() => {
     const authError = new URLSearchParams(window.location.search).get("authError");
