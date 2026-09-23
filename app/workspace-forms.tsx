@@ -594,18 +594,21 @@ export function PaymentForm({
   custodians,
   request,
   done,
+  preselectInvoiceId = "",
 }: {
   invoices: Invoice[];
   accounts: Account[];
   custodians: Member[];
   request: WorkspaceRequest;
   done: () => void;
+  /** Factura elegida desde la lista: el modal abre con esa factura marcada. */
+  preselectInvoiceId?: string;
 }) {
   const [requestId]=useState(()=>crypto.randomUUID());
   const form = useForm<PaymentValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
-      invoiceId: "",
+      invoiceId: preselectInvoiceId,
       accountId: "",
       amount: "0",
       receivedOn: new Date().toISOString().slice(0, 10),

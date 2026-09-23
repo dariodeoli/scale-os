@@ -72,6 +72,16 @@ const superadmin = read('app/superadmin/page.tsx');
 assert.match(superadmin, /\/api\/platform\/users\?limit=50/, 'el panel global vivo es el de superadmin');
 assert.doesNotMatch(superadmin, /platform-access-panel/, 'superadmin no importa el componente retirado');
 
+// Cobro preseleccionado (pedido de FIN, #45): la fila de factura abre el modal
+// de “Registrar cobro” con esa factura ya marcada.
+const workspace=read('app/scale-workspace.tsx');
+assert.match(workspace,/const openPayment = \(invoiceId = ''\) => \{setPaymentInvoice\(invoiceId\);setModal\('payment'\);\}/, 'el shell expone openPayment con la factura elegida');
+assert.match(workspace,/preselectInvoiceId=\{paymentInvoice\}/, 'el modal de cobro recibe la factura preseleccionada');
+const forms=read('app/workspace-forms.tsx');
+assert.match(forms,/preselectInvoiceId\?: string/, 'PaymentForm declara la factura preseleccionada');
+assert.match(forms,/defaultValues:\s*\{\s*invoiceId: preselectInvoiceId,/, 'el formulario arranca con esa factura');
+assert.match(read('app/sections/finanzas.tsx'),/openPayment\(invoice\.id\)/, 'la fila abre el cobro con su factura');
+
 console.log(
-  'PASS: retirados con reinvitación y lote resiliente, portal con invitaciones y reenvío de verificación, y rutas/componentes muertos eliminados',
+  'PASS: retirados con reinvitación y lote resiliente, portal con invitaciones y reenvío de verificación, rutas/componentes muertos eliminados y cobro preseleccionado',
 );

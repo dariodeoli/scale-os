@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 // Fuente concatenada del panel global (issue #46): la pantalla se descompuso en
 // page + model (tipos y helpers) + states + audit, y los contratos siguen valiendo.
-const page = ["page.tsx", "model.tsx", "states.tsx", "audit.tsx", "agencies.tsx", "subscription-dialog.tsx", "access.tsx", "catalog.tsx"]
+const page = ["page.tsx", "model.tsx", "states.tsx", "audit.tsx", "agencies.tsx", "subscription-dialog.tsx", "access.tsx", "catalog.tsx", "confirm.tsx"]
   .map((file) => readFileSync(new URL(`../app/superadmin/${file}`, import.meta.url), "utf8"))
   .join("\n");
 const styles = readFileSync(
