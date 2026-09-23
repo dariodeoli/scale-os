@@ -31,15 +31,15 @@ export default {
 
 ```js
 lists: [{
-  container: '.client-hub-list',   // contenedor de la lista
-  head: '.client-hub-head-row',    // fila de encabezado (o null)
-  row: '.client-hub-card',         // selector de fila dentro del contenedor
+  container: '[role="table"]',     // contenedor de la lista
+  head: '[role="row"]',            // fila de encabezado (o null)
+  row: '[role="rowgroup"] [role="row"]', // selector de fila dentro del contenedor
   label: 'Clientes · lista',
-  template: '--client-cols',       // variable CSS que deben compartir head y fila
+  template: '--client-cols',       // variable CSS que comparten head y fila; se omite si la plantilla v2 es una clase Tailwind
   rowHeight: [44, 52],             // contrato de altura de fila
   exemptBelow: 960,                // opcional: no medir altura por debajo de este ancho (lista apilada)
 }],
-grids: [{container: '.client-hub-grid', card: '.client-hub-card', label: '…', minHeight: 200}]
+grids: [{container: '[data-grid="clientes"]', card: 'article.client-hub-card', label: '…', minHeight: 200}]
 ```
 
 ## Reglas de fidelidad

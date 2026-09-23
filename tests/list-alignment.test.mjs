@@ -40,13 +40,14 @@ function xPadding(padding){
 }
 
 const lists=[
- {name:'clientes',vars:'client-directory.css',source:'client-directory.css',head:'.client-hub-head-row',row:'.client-hub-list .client-hub-card',decl:'.client-hub-list'},
  {name:'equipo',vars:'operations.css',source:'operations.css',head:'.person-hub-head-row',row:'.person-hub-card.is-list',decl:'.ops-grid-list'},
 ];
 // Inventario y reservas se rediseñaron con Tailwind + owncoding-ui (campaña #41,
 // spec #44): su plantilla ya no vive en una hoja CSS. El contrato v2 de esas
 // listas se verifica en `tests/ops-v2-contract.test.ts` (una sola plantilla por
 // lista, compartida entre encabezado y filas, sin truncar datos).
+// Clientes (issue #43) siguió el mismo camino: la fila finita es ListGrid/ListRow
+// con plantilla Tailwind y el contrato lo cubre `tests/ux-consistency.test.ts`.
 
 for(const list of lists){
  const file=css(list.source);
@@ -78,7 +79,6 @@ for(const list of lists){
 }
 
 const cells={
- clientes:{file:'client-directory.css',selectors:['.client-hub-facts','.client-hub-chips','.client-hub-stats','.client-hub-actions','.client-status']},
  equipo:{file:'operations.css',selectors:['.person-hub-facts','.person-hub-state','.person-hub-chips','.person-hub-actions','.team-access']},
 };
 for(const [name,{file,selectors}] of Object.entries(cells)){

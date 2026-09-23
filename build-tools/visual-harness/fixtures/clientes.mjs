@@ -1,158 +1,223 @@
 /*
- * Reference fixture: Clientes directory (list + grid).
- * Markup mirrors app/scale-workspace.tsx:
- *   - ClientHubCard + clientHeadRow (lines ~270-333)
- *   - app/client-identity.tsx (ClientIdentity)
- *   - app/client-directory-toolbar.tsx (rediseño v2: SearchField, Select, ListGridToggle, Button)
- * and the real classes in app/client-directory.css / client-identity.css.
+ * Fixture: Clientes · directorio en lista y en cuadrícula (SOS-COM, campaña #41 / #43).
  *
- * Stress values are deliberate: long names, long emails, big amounts, empty
- * fields ("Sin email registrado" / "Sin proyectos activos") and an archived
- * card. In list view the cartera is one line in a silent horizontal scroll
- * with the full value in the container title (SOS-COM issue #25); facts carry
- * a title even for empty placeholders so a squeezed cell always has an exit.
+ * Re-sincronizado al markup v2 tras la auditoría de SOS-DSN (23-09): el fixture
+ * anterior medía `.client-hub-list` (markup legacy retirado con el rediseño) y
+ * reportaba filas de 68.7–136.2 px. La lista viva es `ListGrid`/`ListRow`
+ * (app/ui-v2.tsx) con la plantilla compartida en clase Tailwind:
+ *   - app/sections/clientes.tsx (ClientLine/ClientTile, columnas y plantilla)
+ *   - app/ui-v2.tsx (ListGrid/ListRow: misma plantilla en encabezado y filas)
+ *   - app/client-directory-toolbar.tsx (barra del directorio en el shell)
+ *   - app/client-identity.tsx (ClientIdentity) y app/archive-controls.tsx (acciones)
+ * Los objetos compartidos (Badge/IconAction/CeldaMoneda/SearchField/Select/
+ * ListGridToggle/Button) se renderizan con `renderToStaticMarkup` sobre
+ * owncoding-ui, como en referencias-v2.mjs.
  *
- * The view toggle carries the CSS-module class emitted by the build the
- * harness serves (view-toggle.module.css -> view-toggle_toggle__ybg7L in the
- * shipped .next/static/css); refresh the hash with `next build` if that
- * module changes.
+ * Datos de estrés deliberados: nombre y correo largos, montos grandes en PYG y
+ * USD, cliente sin datos de cobro/cartera y tarjeta archivada. Cada texto
+ * recortado lleva `title` (contrato de listas densas).
  */
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {Badge, Button, CeldaMoneda, IconAction, Label, ListGridToggle, SearchField, Select} from 'owncoding-ui';
 
-const svg = (name, size, paths, extra = '') =>
-  `<svg class="lucide lucide-${name}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${extra}>${paths}</svg>`;
+const h = React.createElement;
+const noop = () => {};
 
-const eye14 = svg('eye', 14, '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>');
-const pencil16 = svg('pencil', 16, '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>');
-const trash16 = svg('trash-2', 16, '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>');
-const priceMissing14 = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Sin precio definido"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>`;
-const whatsapp14 = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
+/* ── Réplica de app/ui-v2.tsx (ListGrid/ListRow: mismas clases) ─────────────── */
+const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_16rem]';
+const CLIENT_COLUMNS = [
+  {key: 'client', label: 'Cliente'},
+  {key: 'facts', label: 'Datos'},
+  {key: 'status', label: 'Estado'},
+  {key: 'billing', label: 'Cobros'},
+  {key: 'activity', label: 'Actividad'},
+  {key: 'actions', label: 'Acciones'},
+];
 
-const projectPart = (n) => `${n} proyecto${n === 1 ? '' : 's'} activo${n === 1 ? '' : 's'}`;
-const piecePart = (n) => `${n} pieza${n === 1 ? '' : 's'} en curso`;
+const ListGrid = ({label, template, columns, minWidthClass = 'min-w-[48rem]', children}) => h('div', {role: 'table', 'aria-label': label, className: 'silent-scroll min-w-0 overflow-x-auto'},
+  h('div', {className: minWidthClass},
+    h('div', {role: 'row', className: `grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`},
+      columns.map((column, index) => h('span', {key: column.key, role: 'columnheader', className: `${index === columns.length - 1 ? 'text-right' : 'text-left'} whitespace-nowrap`}, column.label))),
+    h('div', {role: 'rowgroup'}, children)));
 
-const clientCard = ({name, initials, status, email, phone, tax, since, projects, pieces, due, chip, balance, missingPrice = false, archived = false, billing = true}) => {
-  const portfolio = [];
-  if (projects) portfolio.push({key: 'projects', text: projectPart(projects), node: `<b>${projects}</b> proyecto${projects === 1 ? '' : 's'} activo${projects === 1 ? '' : 's'}`});
-  if (pieces) portfolio.push({key: 'pieces', text: piecePart(pieces), node: `<b>${pieces}</b> pieza${pieces === 1 ? '' : 's'} en curso`});
-  if (due) portfolio.push({key: 'due', text: `Próxima entrega ${due}`, node: `Próxima entrega <b>${due}</b>`});
-  const stats = portfolio.length
-    ? `<span class="client-hub-stat" title="${portfolio.map(part => part.text).join(' · ')}">${portfolio.map((part, index) => `<span class="client-hub-stat-part">${index ? '<span class="client-hub-sep" aria-hidden="true"> · </span>' : ''}${part.node}</span>`).join('')}</span>`
-    : '<span class="client-hub-stat muted">Sin proyectos activos</span>';
-  return `
-<article class="client-hub-card"${archived ? ' data-archived="true"' : ''}>
- <header class="client-hub-head">
-  <div class="client-hub-identity">
-   <label class="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label="Seleccionar ${name}"></label>
-   <button type="button" class="client-hub-open" aria-label="Abrir ficha de ${name}">
-    <span class="client-identity identity-violet"><span class="identity-avatar" aria-hidden="true">${initials}</span><span class="identity-name" title="${name}">${name}</span></span>
-   </button>
-  </div>
-  <span class="client-status" data-status="${status.key}">${status.label}</span>
- </header>
- <dl class="client-hub-facts">
-  <div><dt>Correo</dt><dd title="${email || 'Sin email registrado'}">${email || 'Sin email registrado'}</dd></div>
-  <div><dt>Teléfono</dt><dd title="${phone || 'Sin teléfono'}">${phone || 'Sin teléfono'}</dd></div>
-  <div><dt>RUC</dt><dd title="${tax || 'Sin RUC registrado'}">${tax || 'Sin RUC registrado'}</dd></div>
-  <div><dt>Cliente desde</dt><dd title="${since || 'Sin fecha de alta'}">${since || 'Sin fecha de alta'}</dd></div>
- </dl>
- <div class="client-hub-stats" aria-label="Cartera del cliente"${portfolio.length ? ` title="${portfolio.map(part => part.text).join(' · ')}"` : ''}>${stats}</div>
- ${billing ? `<div class="client-hub-chips">
-  <span class="mora-chip ${chip.tone}">${chip.label}</span>
-  ${balance ? `<span class="client-hub-balance" title="Pendiente ${balance}">Pendiente ${balance}</span>` : ''}
-  ${missingPrice ? `<span class="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago.">${priceMissing14}</span>` : ''}
- </div>` : ''}
- <footer class="client-hub-actions">
-  <button type="button" class="text-button">${eye14}Abrir ficha</button>
-  ${phone ? `<a class="text-button whatsapp-button" href="#whatsapp" target="_blank" rel="noopener noreferrer">${whatsapp14}WhatsApp</a>` : ''}
-  <button type="button" class="text-button">${archived ? 'Reactivar' : 'Archivar'}</button>
-  <div class="client-record-actions">
-   <button class="icon-button" type="button" title="Editar" aria-label="Editar ${name}">${pencil16}</button>
-   <button class="icon-button record-remove" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: ${name}">${trash16}</button>
-  </div>
- </footer>
-</article>`;
-};
+/* ── Réplica de app/client-status + ui-v2.StateChip ────────────────────────── */
+const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
+const StateChip = ({tone = 'mute', title, children}) => h(Badge, {color: CHIP[tone], title, className: 'whitespace-nowrap'}, children);
 
-const headRow = '<div class="client-hub-head-row" aria-hidden="true"><span>Cliente</span><span>Datos</span><span>Estado</span><span>Cobros</span><span>Actividad</span><span>Acciones</span></div>';
+const Pencil = h('svg', {width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true'},
+  h('path', {d: 'M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'}),
+  h('path', {d: 'm15 5 4 4'}));
+const Trash = h('svg', {width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true'},
+  h('path', {d: 'M3 6h18'}),
+  h('path', {d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6'}),
+  h('path', {d: 'M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'}),
+  h('path', {d: 'M10 11v6'}),
+  h('path', {d: 'M14 11v6'}));
+const WhatsAppIcon = h('svg', {width: 14, height: 14, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': 'true', focusable: 'false'},
+  h('path', {d: 'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'}));
+const PriceMissing = h('span', {className: 'client-price-missing', title: 'Sin precio definido: editá el cliente y completá Plan y pago.'},
+  h('svg', {width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', role: 'img', 'aria-label': 'Sin precio definido'},
+    h('circle', {cx: 12, cy: 12, r: 10}),
+    h('path', {d: 'M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8'}),
+    h('path', {d: 'M12 18V6'})));
+const Plus = h('svg', {width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true'},
+  h('path', {d: 'M5 12h14'}),
+  h('path', {d: 'M12 5v14'}));
 
-const cards = [
+/* ── app/client-identity.tsx (ClientIdentity) ───────────────────────────────── */
+const Identity = ({name, initials}) => h('span', {className: 'client-identity identity-violet inline-flex min-w-0 items-center gap-2.5 text-fore'},
+  h('span', {className: 'identity-avatar overflow-hidden', 'aria-hidden': 'true'}, initials),
+  h('span', {className: 'identity-name min-w-0 font-bold leading-snug', title: name}, name));
+
+const recordActions = (name) => h('span', {className: 'client-record-actions'},
+  h('button', {type: 'button', className: 'icon-button', title: 'Editar', 'aria-label': `Editar ${name}`}, Pencil),
+  h('button', {type: 'button', className: 'icon-button record-remove', title: 'Mover a la papelera', 'aria-label': `Mover a la papelera: ${name}`}, Trash));
+
+const clients = [
   {
     name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima',
     initials: 'EC',
-    status: {key: 'active', label: 'Activo'},
+    status: ['ok', 'Activo'],
     email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py',
     phone: '+595 981 123 456',
     tax: '80012345-6',
-    since: '14-sept-2024',
+    since: 'sept 2024',
     projects: 12,
     pieces: 148,
     due: '17-sept',
-    chip: {tone: 'mora-medium', label: '23 días de mora'},
-    balance: 'Gs 1.234.567.890',
+    mora: ['warn', '23 días de mora'],
+    balance: [1234567890, 'PYG'],
     missingPrice: true,
   },
   {
     name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada',
     initials: 'CM',
-    status: {key: 'paused', label: 'Pausado'},
+    status: ['warn', 'Pausado'],
     email: 'compras@coopservicios.com.py',
     phone: '+595 21 555 000',
     tax: '80098765-4',
-    since: '02-ene-2023',
+    since: 'ene 2023',
     projects: 3,
     pieces: 9,
     due: '30-oct',
-    chip: {tone: 'mora-early', label: 'Vence 30-oct'},
-    balance: 'USD 12.345,67',
+    mora: ['warn', 'Vence 30-oct'],
+    balance: [12345.67, 'USD'],
   },
   {
     name: 'Fundación Niñez y Comunidad',
     initials: 'FN',
-    status: {key: 'cancelled', label: 'Cancelado'},
+    status: ['bad', 'Cancelado'],
     email: 'contacto@ninezcomunidad.org.py',
     phone: '+595 971 000 111',
     tax: '80055555-1',
-    since: '18-jul-2025',
+    since: 'jul 2025',
     projects: 1,
     pieces: 2,
     due: '05-nov',
-    chip: {tone: 'mora-clear', label: 'Al día'},
-    balance: 'Gs 0',
+    mora: ['ok', 'Al día'],
+    balance: null,
     archived: true,
   },
   {
     name: 'Cliente nuevo sin cartera ni plan cargado',
     initials: 'CN',
-    status: {key: 'inactive', label: 'Inactivo'},
+    status: ['mute', 'Inactivo'],
     email: '',
-    phone: null,
-    tax: null,
+    phone: '',
+    tax: '',
     since: null,
     projects: 0,
     pieces: 0,
     due: null,
-    chip: null,
+    mora: null,
     balance: null,
-    billing: false,
     missingPrice: true,
   },
 ];
 
-const search16 = svg('search', 16, '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>');
-const chevron16 = svg('chevron-down', 16, '<path d="m6 9 6 6 6-6"/>');
-const plus18 = svg('plus', 18, '<path d="M5 12h14"/><path d="M12 5v14"/>');
-const gridToggle20 = svg('grid-2x2', 20, '<path d="M12 3v18"/><path d="M3 12h18"/><rect x="3" y="3" width="18" height="18" rx="2"/>', ' stroke-width="2.25"');
-const listToggle20 = svg('list', 20, '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>', ' stroke-width="2.25"');
+/* ── app/sections/clientes.tsx · ClientLine (fila finita) ───────────────────── */
+const clientRow = (client) => h('div', {
+  key: client.name,
+  role: 'row',
+  'data-archived': client.archived ? 'true' : undefined,
+  className: `grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${CLIENT_TEMPLATE} client-hub-row`,
+},
+  h('div', {className: 'flex min-w-0 items-center gap-2'},
+    h('label', {className: 'select-check', title: 'Seleccionar cliente'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${client.name}`})),
+    h('button', {type: 'button', className: 'min-w-0 text-left', 'aria-label': `Abrir ficha de ${client.name}`},
+      h(Identity, {name: client.name, initials: client.initials}))),
+  h('div', {className: 'min-w-0 text-[11.5px] text-mute'},
+    h('span', {className: 'block truncate', title: client.email || 'Sin email registrado'}, client.email || 'Sin email registrado'),
+    h('span', {className: 'block truncate', title: `${client.phone || 'Sin teléfono'} · RUC ${client.tax || 'sin registrar'} · Cliente desde ${client.since || 'sin fecha de alta'}`}, `${client.phone || 'Sin teléfono'} · RUC ${client.tax || 'sin registrar'} · desde ${client.since || 'sin fecha'}`)),
+  h('div', {className: 'min-w-0'}, h(StateChip, {tone: client.status[0], title: client.status[1]}, client.status[1])),
+  h('div', {className: 'flex min-w-0 items-center justify-between gap-2'},
+    client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : h('span', {className: 'text-[11px] text-mute'}, 'Sin datos de cobro'),
+    client.balance ? h(CeldaMoneda, {valor: client.balance[0], currency: client.balance[1]}) : h('span', {className: 'whitespace-nowrap text-[11px] text-mute'}, 'Sin saldo')),
+  h('div', {className: 'min-w-0 text-[11.5px] text-mute'},
+    h('span', {className: 'block truncate', title: `${client.projects} proyectos activos · ${client.pieces} piezas en curso`},
+      client.projects || client.pieces
+        ? [h('b', {key: 'projects', className: 'tabular-nums text-fore'}, client.projects), ' proyectos · ', h('b', {key: 'pieces', className: 'tabular-nums text-fore'}, client.pieces), ' piezas']
+        : 'Sin proyectos activos'),
+    client.due ? h('span', {className: 'block whitespace-nowrap'}, 'Próxima entrega ', h('b', {className: 'tabular-nums text-fore'}, client.due)) : null),
+  h('div', {className: 'silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]'},
+    h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),
+    client.phone ? h('a', {className: 'text-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer'}, WhatsAppIcon, 'WhatsApp') : null,
+    client.missingPrice ? PriceMissing : null,
+    h('button', {type: 'button', className: 'text-button'}, client.archived ? 'Reactivar' : 'Archivar'),
+    recordActions(client.name)));
 
-const toolbar = `
-<div class="flex flex-wrap items-end gap-3" aria-label="Controles del directorio de clientes">
- <div class="min-w-0 flex-1 basis-52"><h1 class="text-xl font-bold text-fore">Clientes</h1><p class="mt-0.5 text-xs text-mute" role="status" aria-atomic="true">Mostrando 4 clientes de 4 clientes</p></div>
- <div class="min-w-0 flex-1 basis-64"><div class="relative min-w-0"><span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mute" aria-hidden="true">${search16}</span><input class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 pl-9 pr-9 text-base text-fore outline-none transition placeholder:text-mute/60 focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm" type="search" placeholder="Buscar por nombre, correo o teléfono" aria-label="Buscar clientes" value=""/></div></div>
- <div class="flex flex-col gap-1"><label class="block text-[11px] font-medium uppercase tracking-wider text-mute" for="clientes-estado">Estado</label><select id="clientes-estado" class="h-11 w-44 cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"><option>Todos los estados</option><option>Activo</option><option>Pausado</option><option>Cancelado</option><option>Servicio vencido</option><option>Inactivo</option></select></div>
- <div class="flex overflow-hidden rounded-lg border border-ink-600 bg-ink-800" role="group" aria-label="Cambiar vista"><button type="button" title="Ver como lista" aria-label="Ver como lista" aria-pressed="true" class="grid h-9 w-9 place-items-center bg-fono/15 text-fono-light">${listToggle20}</button><button type="button" title="Ver como cuadrícula" aria-label="Ver como cuadrícula" aria-pressed="false" class="grid h-9 w-9 place-items-center text-mute">${gridToggle20}</button></div>
- <button type="button" class="secondary">Guía del panel</button>
- <button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-fono px-4 text-sm font-semibold text-onbrand transition hover:bg-fono-light md:h-9">${plus18} Nuevo cliente</button>
-</div>`;
+/* ── app/sections/clientes.tsx · ClientTile (tarjeta grande) ────────────────── */
+const clientTile = (client) => h('article', {
+  key: client.name,
+  'data-archived': client.archived ? 'true' : undefined,
+  className: 'client-hub-card flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4',
+},
+  h('header', {className: 'flex items-start justify-between gap-3'},
+    h('div', {className: 'flex min-w-0 items-start gap-2'},
+      h('label', {className: 'select-check', title: 'Seleccionar cliente'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${client.name}`})),
+      h('button', {type: 'button', className: 'min-w-0 text-left', 'aria-label': `Abrir ficha de ${client.name}`},
+        h(Identity, {name: client.name, initials: client.initials}))),
+    h(StateChip, {tone: client.status[0], title: client.status[1]}, client.status[1])),
+  h('dl', {className: 'grid grid-cols-2 gap-2 text-[11.5px]'},
+    h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Correo'), h('dd', {className: 'mt-0.5 truncate text-fore', title: client.email || 'Sin email registrado'}, client.email || 'Sin email registrado')),
+    h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Teléfono'), h('dd', {className: 'mt-0.5 text-fore'}, client.phone || 'Sin teléfono')),
+    h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'RUC'), h('dd', {className: 'mt-0.5 text-fore'}, client.tax || 'Sin RUC registrado')),
+    h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cliente desde'), h('dd', {className: 'mt-0.5 text-fore'}, client.since || 'Sin fecha de alta')),
+    h('div', {className: 'col-span-2'}, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cartera'), h('dd', {className: 'mt-0.5 text-fore'}, client.projects || client.pieces ? `${client.projects} proyectos · ${client.pieces} piezas${client.due ? ` · próxima entrega ${client.due}` : ''}` : 'Sin proyectos activos'))),
+  h('div', {className: 'flex flex-wrap items-center gap-2'},
+    client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : null,
+    client.balance ? h(CeldaMoneda, {valor: client.balance[0], currency: client.balance[1]}) : h('span', {className: 'text-[11px] text-mute'}, 'Sin saldo pendiente'),
+    client.missingPrice ? PriceMissing : null),
+  h('footer', {className: 'silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]'},
+    h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),
+    client.phone ? h('a', {className: 'text-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer'}, WhatsAppIcon, 'WhatsApp') : null,
+    h('button', {type: 'button', className: 'text-button'}, client.archived ? 'Reactivar' : 'Archivar'),
+    recordActions(client.name)));
+
+/* ── app/client-directory-toolbar.tsx (barra del directorio en el shell) ────── */
+const toolbar = h('div', {className: 'client-directory-toolbar flex flex-wrap items-end gap-3', 'aria-label': 'Controles del directorio de clientes'},
+  h('div', {className: 'client-directory-toolbar-title min-w-0'},
+    h('h1', {className: 'text-2xl font-bold tracking-tight text-fore'}, 'Clientes'),
+    h('p', {className: 'directory-summary text-xs tabular-nums text-mute', role: 'status', 'aria-atomic': 'true'}, 'Mostrando 4 clientes de 4 clientes')),
+  h(SearchField, {className: 'client-directory-search w-full sm:w-72', type: 'search', ariaLabel: 'Buscar clientes', value: '', onChange: noop, onClear: noop, placeholder: 'Buscar por nombre, correo o teléfono'}),
+  h('div', {className: 'grid gap-1.5'},
+    h(Label, {htmlFor: 'clientes-estado'}, 'Estado'),
+    h(Select, {id: 'clientes-estado', value: '', onChange: noop, className: 'min-w-[11rem]'},
+      h('option', {value: ''}, 'Todos los estados'),
+      h('option', {value: 'active'}, 'Activo'),
+      h('option', {value: 'paused'}, 'Pausado'),
+      h('option', {value: 'cancelled'}, 'Cancelado'),
+      h('option', {value: 'expired'}, 'Servicio vencido'),
+      h('option', {value: 'inactive'}, 'Inactivo'))),
+  h(ListGridToggle, {value: 'list', onChange: noop}),
+  h(Button, {type: 'button', className: 'client-directory-create ml-auto', onClick: noop}, Plus, 'Nuevo cliente'));
+
+const listPage = h('div', {className: 'grid gap-4'},
+  toolbar,
+  h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[71rem]'}, clients.map(clientRow)));
+
+const gridPage = h('div', {className: 'grid gap-3 md:grid-cols-2 xl:grid-cols-3', 'data-grid': 'clientes'}, clients.map(clientTile));
 
 export default [
   {
@@ -160,25 +225,21 @@ export default [
     section: 'Clientes',
     surface: 'Directorio en lista',
     kind: 'workspace',
-    lists: [
-      {
-        container: '.client-hub-list',
-        head: '.client-hub-head-row',
-        row: '.client-hub-list .client-hub-card',
-        label: 'Clientes · lista',
-        template: '--client-cols',
-        rowHeight: [44, 52],
-      },
-    ],
-    body: `${toolbar}
-<div class="client-hub-list">${headRow}${cards.map(clientCard).join('')}</div>`,
+    lists: [{
+      container: '[role="table"]',
+      head: '[role="row"]',
+      row: '[role="rowgroup"] [role="row"]',
+      label: 'Clientes · lista',
+      rowHeight: [44, 52],
+    }],
+    body: renderToStaticMarkup(listPage),
   },
   {
     id: 'clientes-cuadricula',
     section: 'Clientes',
     surface: 'Directorio en cuadrícula',
     kind: 'workspace',
-    grids: [{container: '.client-hub-grid', card: '.client-hub-card', label: 'Clientes · cuadrícula', minHeight: 200}],
-    body: `<div class="client-hub-grid">${cards.map(clientCard).join('')}</div>`,
+    grids: [{container: '[data-grid="clientes"]', card: 'article.client-hub-card', label: 'Clientes · cuadrícula', minHeight: 200}],
+    body: renderToStaticMarkup(gridPage),
   },
 ];

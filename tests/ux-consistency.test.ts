@@ -36,30 +36,28 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(workspace,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'the project header consumes the shared template');
   const operations=read('app/operations.tsx');
   assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
-  const clients=read('app/client-directory.css');
-  assert.match(clients,/\.client-hub-head-row\{display:grid/);
-  assert.match(clients,/\.client-hub-actions\{grid-column:6/,'client actions sit in their own column');
+  const clientes=sectionSource('clientes.tsx');
+  assert.match(clientes,/ListRow template=\{CLIENT_TEMPLATE\} className="client-hub-row"/,'client rows consume the shared template');
   const team=read('app/operations.css');
   assert.match(team,/\.person-hub-head-row\{display:grid/);
-  // Encabezado y filas comparten UNA plantilla por lista (variable CSS).
-  assert.match(clients,/--client-cols:[\s\S]*?grid-template-columns:var\(--client-cols\)[\s\S]*?\.client-hub-head-row\{display:grid;grid-template-columns:var\(--client-cols\)/,'client header and rows share --client-cols');
+  // Encabezado y filas comparten UNA plantilla por lista (variable CSS o clase Tailwind).
   assert.match(team,/--person-cols:[\s\S]*?grid-template-columns:var\(--person-cols\)[\s\S]*?\.person-hub-head-row\{display:grid;grid-template-columns:var\(--person-cols\)/,'team header and rows share --person-cols');
   const projectCard=read('app/project-card.tsx');
   assert.match(projectCard,/\[\.project-list_&\]:grid-cols-\[var\(--project-cols\)\]/,'project rows consume --project-cols');
 });
 
 test('the client directory keeps one template, ordered row actions and shared date formats',()=>{
-  const clients=read('app/client-directory.css');
-  assert.match(clients,/\.client-hub-list \.client-hub-stats\{grid-column:5/,'the portfolio keeps its own column');
-  assert.doesNotMatch(clients,/\.client-hub-list \.client-hub-stats\{grid-column:1\}/,'no later rule drags the portfolio into the identity column');
-  assert.match(clients,/\.client-hub-list \.client-hub-actions\{grid-column:6[\s\S]*?flex-wrap:nowrap/,'row actions stay in one line');
-  assert.match(clients,/\.client-hub-list \.client-hub-actions \.icon-button\{width:32px/,'dense row action icons keep the 32px contract');
-  assert.doesNotMatch(clients,/\.client-hub-list \.client-hub-card\{grid-template-columns:1fr\}/,'the thin list never collapses into stacked cards');
-  assert.match(clients,/@media\(max-width:760px\)\{\.client-hub-list\{overflow-x:auto/,'small screens scroll the thin list horizontally');
+  const clientes=sectionSource('clientes.tsx');
+  assert.match(clientes,/const CLIENT_TEMPLATE = 'grid-cols-\[minmax\(13rem,1\.6fr\)_minmax\(11rem,1\.15fr\)_7rem_15rem_9rem_16rem\]'/,'la lista de clientes declara una sola plantilla');
+  assert.match(clientes,/ListRow template=\{CLIENT_TEMPLATE\} className="client-hub-row"/,'la fila finita usa la plantilla del encabezado y no viste la clase de tarjeta');
+  assert.match(clientes,/silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto/,'las acciones de la fila scrollean en silencio y cierran a la derecha');
+  assert.match(clientes,/IconAction icon="eye"[\s\S]*?client-record-actions/,'la fila conserva el orden de acciones compartido');
+  assert.match(clientes,/client-hub-card flex min-h-\[200px\]/,'la tarjeta conserva su cápsula grande');
+  assert.match(clientes,/MoneyText/,'los saldos de la fila salen del formateador compartido v2');
   const workspace=workspaceSource();
   assert.match(workspace,/archived-capsule[\s\S]*?ListGrid label="Clientes archivados" template=\{CLIENT_TEMPLATE\}/,'the archived list carries the same column header');
   assert.match(workspace,/listDateShort\(stat\.nextDue\)/,'client due dates use the shared short format');
-  assert.doesNotMatch(workspace,/client-hub-balance[^\n]*moneyKpi/,'row balances use the shared money formatter');
+  assert.doesNotMatch(workspace,/client-hub-balance/,'row balances use the shared money formatter');
 });
 
 test('every visible clock is 24-hour and the trash list carries its columns',()=>{
@@ -148,10 +146,10 @@ test('statement rows and projected payroll keep fixed columns',()=>{
 });
 
 test('lists are thin rows and grids are big distributed cards',()=>{
-  const clients=read('app/client-directory.css');
-  assert.match(clients,/\.client-hub-list \.client-hub-card\{display:grid;grid-template-columns:var\(--client-cols\)[\s\S]*?min-height:48px/,'client rows stay under a thin height');
-  assert.match(clients,/\.client-hub-list \.client-hub-facts\{[\s\S]*?display:flex/,'secondary client data goes inline');
-  assert.match(clients,/\.client-hub-grid \.client-hub-card\{min-height:200px\}/,'client cards keep a big grid height');
+  const uiV2=read('app/ui-v2.tsx');
+  assert.match(uiV2,/export function ListRow[\s\S]*?min-h-12[\s\S]*?md:min-h-11/,'las filas v2 mantienen el contrato de altura fina');
+  const clientes=sectionSource('clientes.tsx');
+  assert.match(clientes,/min-h-\[200px\][\s\S]*?flex-col/,'client cards keep a big grid height');
   const team=read('app/operations.css');
   assert.match(team,/\.person-hub-card\.is-list\{display:grid;grid-template-columns:var\(--person-cols\)[\s\S]*?min-height:48px/,'team rows stay thin');
   // Inventario y reservas se rediseñaron a la v2 (campaña #41): ya no tienen
@@ -186,8 +184,10 @@ test('dense list templates keep a silent horizontal escape hatch',()=>{
   const team=read('app/operations.css');
   assert.match(team,/\.control-shell \.ops-grid\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none/,'the team list wins over the card grid and scrolls instead of spilling out of its panel');
   assert.match(team,/\.ops-grid-list::-webkit-scrollbar\{display:none\}/,'the team list keeps the scroll silent');
-  const clients=read('app/client-directory.css');
-  assert.match(clients,/\.client-hub-list\{overflow-x:auto;scrollbar-width:none\}/,'the client list keeps its scroll escape hatch');
+  const uiV2=read('app/ui-v2.tsx');
+  assert.match(uiV2,/silent-scroll min-w-0 overflow-x-auto/,'la lista v2 conserva el scroll horizontal silencioso');
+  const tailwind=read('app/tailwind.css');
+  assert.match(tailwind,/\.silent-scroll::-webkit-scrollbar \{\n  display: none;\n\}/,'the client list keeps its scroll escape hatch silent');
 });
 
 test('the client portal styles every list it renders',()=>{
