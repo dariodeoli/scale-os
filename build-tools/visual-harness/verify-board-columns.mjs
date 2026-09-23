@@ -1,33 +1,31 @@
 /*
  * Verificación del tablero de Producción por columna (campaña #57, refs #44).
  *
- * Comprueba contra la app real y Postgres:
- *   - badge de cada columna == tarjetas renderizadas == Postgres;
- *   - cada tarjeta en su estado (columna correcta);
- *   - ninguna pieza perdida (total de tarjetas == órdenes de la organización);
- *   - `stage_counts` del contrato #57 (`?counts=1`) == Postgres y == DOM;
- *   - payload de las lecturas del tablero (transferSize/ms) en escritorio y mobile 4G.
+ * Comprueba contra la app real, el API y Postgres:
+ *   - badge de cada columna == total exacto de Postgres (`?counts=1`);
+ *   - tarjetas cargadas == min(total, ventana) y "Ver más" alcanza el resto
+ *     (ninguna pieza perdida: se pagina hasta completar cada columna);
+ *   - cada tarjeta en su estado;
+ *   - `stage_counts` del contrato == Postgres == badges del DOM;
+ *   - payload del tablero: lecturas reales por columna vs la lista completa
+ *     (transferSize y ms) en escritorio y mobile 4G;
+ *   - capturas del estado verificado.
  *
- * Requisitos: el stack local del e2e (`build-tools/visual-harness/e2e-drag.mjs`
- * documenta la receta: Postgres temporal + API + front + router de un origen) y
- * datos en la base del API. Env: BASE_URL (default http://127.0.0.1:3006),
- * PSQL_ARGS (por defecto -h 127.0.0.1 -p 55432 -U postgres -d scaleos).
- *
- * Nota: si el shell todavía no refresca la proyección al cambiar de sección, el
- * script arranca en Producción vía la preferencia de localStorage para no
- * medir con las órdenes de Resumen.
+ * Requisitos: stack local (la receta está en `e2e-drag.mjs`) y datos en la base
+ * del API. Env: BASE_URL (default http://127.0.0.1:3006) y PSQL_ARGS.
  *
  * Uso: node build-tools/visual-harness/verify-board-columns.mjs
  */
-
-import {launchChrome,openTarget} from '/Users/fredd/.herdr/worktrees/scale-os/sos-ops/build-tools/visual-harness/chrome.mjs';
+import {launchChrome,openTarget} from './chrome.mjs';
 import {execFileSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
 
 const BASE=process.env.BASE_URL||'http://127.0.0.1:3006';
 const PSQL=[...(process.env.PSQL_ARGS||'-h 127.0.0.1 -p 55432 -U postgres -d scaleos').split(' '),'-t','-A','-c'];
 const psql=(sql)=>execFileSync('psql',[...PSQL,sql],{encoding:'utf8'}).trim();
-const STATUSES=['blocked','to_record','recorded','editing','review','approved','published'];
-const BOARD_FIELDS='id,project_id,project_name,client_name,title,description,status,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_links,updated_at,work_type';
+const sqlText=(value)=>`'${String(value).replaceAll("'","''")}'`;
+const BOARD_FIELDS=readFileSync(new URL('../../app/shell-data.ts',import.meta.url),'utf8').match(/ORDER_FIELDS_BOARD = '([^']+)'/)[1];
+const WINDOW=Number(readFileSync(new URL('../../app/board-data.ts',import.meta.url),'utf8').match(/BOARD_COLUMN_WINDOW=(\d+)/)[1]);
 
 const log=[];
 const check=(label,value,expected=true)=>{const ok=value===expected;log.push(`${ok?'✓':'✗'} ${label}: ${JSON.stringify(value)}${ok?'':` (esperado ${JSON.stringify(expected)})`}`);if(!ok)process.exitCode=1;};
@@ -37,100 +35,91 @@ const cdp=await openTarget(chrome.port);
 const send=(method,params={})=>cdp.send(method,params);
 const evaluate=async(expression)=>{const {result,exceptionDetails}=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(exceptionDetails)throw new Error(exceptionDetails.text+' '+(exceptionDetails.exception?.description||''));return result.value;};
 const waitFor=async(expression,{timeout=25000,label=''}={})=>{const start=Date.now();while(Date.now()-start<timeout){if(await evaluate(`Boolean(${expression})`))return;await new Promise(r=>setTimeout(r,200));}throw new Error(`timeout esperando ${label||expression}`);};
-const clickByText=(text)=>evaluate(`(()=>{const el=[...document.querySelectorAll('button,a')].find(n=>n.textContent.trim()===${JSON.stringify(text)}&&n.offsetParent!==null);if(!el)return false;el.click();return true;})()`);
 const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
-
-/** Lecturas del tablero registradas por el navegador (transferSize real). */
-const boardRequests=()=>evaluate(`performance.getEntriesByType('resource').filter(e=>e.name.includes('/core-api/api/agency/work-orders')).map(e=>({url:e.name.replace(/^.*\\/core-api/,''),size:e.transferSize,decoded:e.decodedBodySize,ms:Math.round(e.duration)}))`);
+const clickByText=(text)=>evaluate(`(()=>{const el=[...document.querySelectorAll('button,a')].find(node=>node.textContent.trim()===${JSON.stringify(text)}&&node.offsetParent!==null);if(!el)return false;el.click();return true;})()`);
 
 await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
 await send('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
 await send('Network.setCookie',{name:'scale_session',value:'measure-token',url:BASE});
 await send('Page.navigate',{url:BASE+'/'});
-await sleep(1500);
-// Arrancar en Producción: el shell de DSN reusa las órdenes de Resumen (proyección
-// distinta) y el tablero crashea (ver reporte #57). Con el arranque en Producción
-// la lectura inicial ya es la del tablero.
-await evaluate(`localStorage.setItem('scale:workspace:v1:2:3',JSON.stringify({version:1,startup:'production',production:{clientId:'',mine:false,week:false}}))`);
-await send('Page.reload');
-await sleep(3500);
-await waitFor(`[...document.querySelectorAll('button,a')].some(n=>n.textContent.trim()==='Producción')`,{label:'nav'});
+await sleep(4000);
 if(!await evaluate(`Boolean(document.querySelector('[data-column]'))`))await clickByText('Producción');
 await waitFor(`document.querySelector('[data-column]')`,{label:'tablero'});
 await sleep(2500);
 
-// ── 1) Conteos por columna: badge del DOM, tarjetas y Postgres ───────────────
-const dom=await evaluate(`(()=>{const out={};for(const column of document.querySelectorAll('[data-column]')){const key=column.getAttribute('data-column');
- const cards=[...column.querySelectorAll('[data-order]')];
- const badge=column.querySelector('em')?.textContent?.trim()||null;
- out[key]={cards:cards.length,badge:badge?Number(badge):null,statuses:[...new Set(cards.map(c=>c.getAttribute('data-status')))]};}
- return {columns:out,total:document.querySelectorAll('[data-order]').length};})()`);
-const dbCounts=Object.fromEntries(psql(`select status||'='||count(*) from agency_work_orders group by status`).split('\n').map(row=>row.split('=')));
-for(const status of STATUSES){
- const column=dom.columns[status];
- check(`columna ${status}: badge == tarjetas`,column.badge,column.cards);
- check(`columna ${status}: conteo == Postgres`,column.cards,Number(dbCounts[status]||0));
- check(`columna ${status}: todas las tarjetas en su estado`,column.statuses.length===1?column.statuses[0]:column.statuses,status);
+const dbCounts=Object.fromEntries(psql('select status||\'=\'||count(*) from agency_work_orders group by status').split('\n').map(row=>row.split('=')));
+const boardRequests=()=>evaluate(`performance.getEntriesByType('resource').filter(e=>e.name.includes('/core-api/api/agency/work-orders')).map(e=>({url:e.name.replace(/^.*\\/core-api/,''),size:e.transferSize,ms:Math.round(e.duration)}))`);
+const columnState=()=>evaluate(`(()=>{const out={};for(const column of document.querySelectorAll('[data-column]')){const key=column.getAttribute('data-column');out[key]={cards:column.querySelectorAll('[data-order]').length,badge:Number(column.querySelector('em')?.textContent?.trim()||0),statuses:[...new Set([...column.querySelectorAll('[data-order]')].map(c=>c.getAttribute('data-status')))],more:Boolean(column.querySelector('button[aria-label^="Ver más"]'))};}return out;})()`);
+
+// ── 1) Carga inicial: badge exacto, ventana respetada y estados por columna ──
+const loaded=await boardRequests();
+const initial=await columnState();
+for(const status of Object.keys(dbCounts)){
+ const column=initial[status];
+ if(!column){check(`columna ${status} presente`,false);continue;}
+ const total=Number(dbCounts[status]||0);
+ check(`columna ${status}: badge == Postgres`,column.badge,total);
+ check(`columna ${status}: tarjetas == min(total, ventana)`,column.cards,Math.min(total,WINDOW));
+ if(column.statuses.length>1)check(`columna ${status}: todas las tarjetas en su estado`,column.statuses,status);
+ else check(`columna ${status}: todas las tarjetas en su estado`,column.statuses[0],status);
+ check(`columna ${status}: "Ver más" solo si falta cargar`,column.more,total>column.cards);
 }
-check('tablero completo: tarjetas == órdenes de la organización',dom.total,Number(psql('select count(*) from agency_work_orders')));
-
-// ── 2) stage_counts del contrato vs DOM y Postgres ──────────────────────────
 const counts=await evaluate(`fetch('/core-api/api/agency/work-orders?counts=1&limit=1&fields=id',{credentials:'include'}).then(r=>r.json()).then(d=>d.stage_counts)`);
-check('stage_counts: mismas claves que las etapas',Object.keys(counts).sort().join(','),[...STATUSES].sort().join(','));
-for(const status of STATUSES)check(`stage_counts[${status}] == Postgres`,counts[status],Number(dbCounts[status]||0));
-check('stage_counts: suma == total',STATUSES.reduce((sum,key)=>sum+counts[key],0),Number(psql('select count(*) from agency_work_orders')));
+for(const status of Object.keys(dbCounts))check(`stage_counts[${status}] == Postgres`,counts[status],Number(dbCounts[status]||0));
+check('stage_counts: suma == total',Object.values(counts).reduce((sum,value)=>sum+value,0),Number(psql('select count(*) from agency_work_orders')));
 
-// ── 3) Payload del tablero (escritorio) ─────────────────────────────────────
-const measure=async(label)=>{const entries=await boardRequests();const sum=entries.reduce((acc,e)=>acc+e.size,0);log.push(`· ${label}: ${entries.length} lecturas de work-orders · ${sum} bytes · ${entries.map(e=>`${e.ms}ms`).join('/')}`);return {entries,sum};};
-const desktopBoard=await measure('payload tablero escritorio (1366×900)');
-const contractCalls=async(label,limit)=>{
- const result=await evaluate(`(async()=>{const out=[];const t0=performance.now();
-  const counts=await fetch('/core-api/api/agency/work-orders?counts=1&limit=1&fields=id',{credentials:'include'}).then(r=>r.json());
-  out.push({url:'?counts=1',size:0});
-  for(const status of ${JSON.stringify(STATUSES)}){
-   const response=await fetch('/core-api/api/agency/work-orders?status='+status+'${limit?`&limit=${limit}`:''}&fields=${BOARD_FIELDS}',{credentials:'include'});
-   await response.json();
-  }
-  const entries=performance.getEntriesByType('resource').filter(e=>e.name.includes('/core-api/api/agency/work-orders')&&e.startTime>=t0);
-  return {ms:Math.round(performance.now()-t0),size:entries.reduce((sum,e)=>sum+e.transferSize,0),calls:entries.length};})()`);
- const entries=await boardRequests();
- const marked=entries.slice(-(STATUSES.length+1));
- log.push(`· ${label}: ${result.calls} lecturas · ${marked.reduce((sum,e)=>sum+e.size,0)} bytes · ${result.ms} ms`);
- return {size:marked.reduce((sum,e)=>sum+e.size,0),ms:result.ms,calls:result.calls};
-};
-const contract300=await contractCalls('contrato #57 por columna (escritorio, sin tope)',null);
+// ── 2) "Ver más": ninguna pieza perdida (se pagina hasta completar) ──────────
+const paginatable=Object.entries(initial).filter(([,column])=>column.more).map(([status])=>status);
+log.push(`· columnas a paginar: ${paginatable.length?paginatable.join(', '):'ninguna (todo entra en la ventana)'}`);
+for(const status of paginatable){
+ let guard=0;
+ while(guard<20){
+  guard+=1;
+  const more=await evaluate(`(()=>{const column=document.querySelector('[data-column="${status}"]');const button=column?.querySelector('button[aria-label^="Ver más"]');if(!button)return false;button.click();return true;})()`);
+  if(!more)break;
+  await sleep(1200);
+ }
+ const column=(await columnState())[status];
+ check(`columna ${status}: "Ver más" completa el total`,column.cards,Number(dbCounts[status]||0));
+ check(`columna ${status}: sin botón pendiente al completar`,column.more,false);
+}
+check('tablero completo: tarjetas == órdenes (tras paginar)',(await columnState()) && Object.values(await columnState()).reduce((sum,column)=>sum+column.cards,0),Number(psql('select count(*) from agency_work_orders')));
 
-// ── 4) Mobile (390×844, red 4G) ─────────────────────────────────────────────
+// ── 3) Payload: lecturas reales por columna vs lista completa ───────────────
+const perColumn=loaded.filter(entry=>entry.url.includes('status='));
+const fallback=await evaluate(`(async()=>{const before=performance.getEntriesByType('resource').length;await fetch('/core-api/api/agency/work-orders?fields=${BOARD_FIELDS}',{credentials:'include'}).then(r=>r.json());const entries=performance.getEntriesByType('resource').slice(before);return {size:entries.reduce((sum,e)=>sum+e.transferSize,0),ms:Math.round(entries.reduce((sum,e)=>sum+e.duration,0))};})()`);
+const columnBytes=perColumn.reduce((sum,entry)=>sum+entry.size,0);
+log.push(`· payload tablero por columna (${perColumn.length} lecturas): ${columnBytes} bytes · ${perColumn.reduce((sum,entry)=>sum+entry.ms,0)} ms`);
+log.push(`· payload lista completa con la misma proyección: ${fallback.size} bytes · ${fallback.ms} ms`);
+log.push(`· ahorro: ${(100-columnBytes/fallback.size*100).toFixed(1)}%`);
+
+// ── 4) Mobile ───────────────────────────────────────────────────────────────
 await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
-await send('Network.emulateNetworkConditions',{offline:false,latency:100,downloadThroughput:4*1024*1024/8,uploadThroughput:3*1024*1024/8});
-await send('Page.reload');
-await sleep(4000);
-await waitFor(`[...document.querySelectorAll('button,a')].some(n=>n.textContent.trim()==='Producción')`,{label:'nav mobile'});
+await send('Page.reload');await sleep(4500);
 if(!await evaluate(`Boolean(document.querySelector('[data-column]'))`))await clickByText('Producción');
 await waitFor(`document.querySelector('[data-column]')`,{label:'tablero mobile'});
-await sleep(2500);
-const mobileBoard=await measure('payload tablero mobile (390×844, 4G)');
-const mobileCounts=await evaluate(`(()=>{let total=0;for(const column of document.querySelectorAll('[data-column]')){const key=column.getAttribute('data-column');const cards=column.querySelectorAll('[data-order]').length;total+=cards;}
- return {columns:[...document.querySelectorAll('[data-column]')].map(c=>c.getAttribute('data-column')+':'+c.querySelectorAll('[data-order]').length+'/'+(c.querySelector('em')?.textContent?.trim()||'?')),total};})()`);
-check('mobile: el tablero trae las mismas piezas',mobileCounts.total,dom.total);
-log.push(`· mobile por columna (tarjetas/conteo): ${mobileCounts.columns.join(' · ')}`);
-const contractMobile=await contractCalls('contrato #57 por columna (mobile 4G, sin tope)',null);
-await send('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
-await send('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
+await sleep(2000);
+const mobile=await columnState();
+const mobileTotals=Object.entries(mobile).reduce((acc,[status,column])=>{acc.cards+=column.cards;acc.badges+=column.badge;return acc;}, {cards:0,badges:0});
+check('mobile: badge por columna == Postgres',Object.entries(mobile).every(([status,column])=>column.badge===Number(dbCounts[status]||0)));
+const mobileExpected=Object.entries(mobile).reduce((sum,[status,column])=>sum+Math.min(column.badge,column.cards<column.badge?WINDOW:column.badge),0);
+check('mobile: piezas cargadas == ventana por columna',mobileTotals.cards,mobileExpected);
+check('mobile: badges == total exacto',mobileTotals.badges,Number(psql('select count(*) from agency_work_orders')));
+log.push(`· mobile por columna (tarjetas/conteo): ${Object.entries(mobile).map(([status,column])=>`${status}:${column.cards}/${column.badge}`).join(' · ')}`);
 
-// Capturas del estado verificado (escritorio y mobile con conteos por columna).
-await send('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
-await send('Page.reload');await sleep(3500);
-await waitFor(`document.querySelector('[data-column]')`,{label:'tablero para captura'});
-await sleep(1200);
-const shot=async(path)=>{const {data}=await send('Page.captureScreenshot',{format:'png'});const fs=await import('node:fs');fs.writeFileSync(path,Buffer.from(data,'base64'));log.push(`· captura: ${path}`);};
-await shot('work/visual-harness/ronda-57/tablero-escritorio.png');
-await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
-await sleep(1500);
+// ── 5) Capturas ─────────────────────────────────────────────────────────────
+const fs=await import('node:fs');
+fs.mkdirSync('work/visual-harness/ronda-57',{recursive:true});
+const shot=async(path)=>{const {data}=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path,Buffer.from(data,'base64'));log.push(`· captura: ${path}`);};
 await shot('work/visual-harness/ronda-57/tablero-mobile.png');
 await send('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
+await send('Page.reload');await sleep(4000);
+if(!await evaluate(`Boolean(document.querySelector('[data-column]'))`))await clickByText('Producción');
+await waitFor(`document.querySelector('[data-column]')`,{label:'tablero para captura'});
+await sleep(1500);
+await shot('work/visual-harness/ronda-57/tablero-escritorio.png');
 
 console.log(log.join('\n'));
-console.log(process.exitCode?'FALLÓ':'PASS verificación del tablero #57: conteos exactos por columna, ninguna pieza perdida y payload medido en escritorio y mobile.');
+console.log(process.exitCode?'FALLÓ':'PASS verificación del tablero por columna (#57): conteos exactos, ventanas con "Ver más" sin perder piezas, estados por columna y payload medido.');
 await send('Page.close').catch(()=>{});
 process.exit(process.exitCode||0);

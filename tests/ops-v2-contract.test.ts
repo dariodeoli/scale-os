@@ -4,6 +4,7 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 const inventory=read('app/inventory-workspace.tsx'),studio=read('app/studio-workspace.tsx');
 const board=read('app/production-board.tsx'),planner=read('app/productivity-ui.tsx'),projects=read('app/sections/proyectos.tsx'),projectCard=read('app/project-card.tsx'),productionSection=read('app/sections/produccion.tsx'),history=read('app/work-history.tsx');
 const uiV2=read('app/ui-v2.tsx');
+const boardData=read('app/board-data.ts'),boardHook=read('app/use-board-data.ts');
 
 // ── Contrato v2 de OPS (campaña #41, spec #44): Tailwind + owncoding-ui +
 // primitivas de app/ui-v2.tsx. Reemplaza al contrato del rediseño anterior.
@@ -95,6 +96,28 @@ assert.match(productionSection,/<DragOverlay>/,'el overlay de arrastre se conser
 assert.match(productionSection,/onDragCancel/,'cancelar el arrastre limpia el estado');
 assert.match(productionSection,/initialView=\{productionView\}/,'el planificador conserva la API que consume Resumen');
 assert.match(productionSection,/productionView==="Tablero"&&\s*<section/,'el tablero es una sección propia');
+// ── Tablero por columna (campaña #57): contrato `?status=` + `?counts=1`.
+assert.match(boardData,/boardCountsUrl='\/api\/agency\/work-orders\?counts=1&limit=1&fields=id'/,'los totales exactos salen del contrato');
+assert.match(boardData,/status=\$\{encodeURIComponent\(status\)\}/,'cada columna pide su etapa');
+assert.match(boardData,/limit=\$\{window\+1\}/,'la columna pide la ventana +1 para saber si hay más');
+assert.match(boardHook,/filtered\?\{orders:rows,hasMore:false\}/,'con filtros la columna va completa');
+assert.match(boardHook,/api<CountsResponse>\(boardCountsUrl\)/,'el tablero pide los totales exactos');
+assert.match(boardHook,/statuses\.map\(async status=>/,'las siete columnas se piden por etapa');
+assert.match(boardHook,/const filtered=boardFiltersActive\(filters\)/,'los filtros deciden ventana o columna completa');
+assert.match(boardHook,/void api<CountsResponse>\(boardCountsUrl\)\.then/,'tras mover se refrescan los conteos exactos');
+assert.match(boardHook,/moveOrderInColumns\(before,id,toStatus\)/,'el movimiento entre columnas es optimista');
+assert.match(boardHook,/setColumns\(before\)/,'si el PATCH falla la tarjeta vuelve');
+assert.match(boardHook,/versions\.current/,'el movimiento conserva la cola y la versión por orden');
+assert.match(productionSection,/const boardData=useBoardData\(/,'la sección es dueña de los datos del tablero');
+assert.match(productionSection,/counts=\{boardData\.counts\[status\.id\]\}/,'cada columna recibe su total exacto');
+assert.match(productionSection,/hasMore=\{boardData\.hasMore\[status\.id\]\}/,'la columna sabe si quedan piezas');
+assert.match(productionSection,/onLoadMore=\{\(\)=>boardData\.loadMore\(status\.id\)\}/,'"Ver más" extiende la columna');
+assert.match(productionSection,/boardData\.move\(id,target\)/,'soltar mueve con el estado optimista del tablero');
+assert.match(productionSection,/orders=\{boardData\.plannerOrders\}/,'el planificador usa la ventana del tablero');
+assert.match(board,/counts \?\? orders\.length/,'el badge prefiere el total exacto del contrato');
+assert.match(board,/aria-label=\{`Ver más piezas en \$\{status\.label\}`\}/,'"Ver más" se anuncia con la etapa');
+assert.doesNotMatch(productionSection,/productionOrders\.map/,'el tablero ya no filtra una lista global');
+assert.match(productionSection,/Legado del shell/,'los props legados quedan documentados para la limpieza (#57)');
 for(const source of [board,planner])assert.doesNotMatch(source,/truncate[^>]*(CeldaMoneda|SerialTexto|listDate)/,'producción no recorta montos, fechas ni seriales');
 // ── Planificador: Mi día, calendario y lista y lotes.
 assert.match(planner,/PLANNER_COLUMNS:Column\[\]/,'el planificador declara sus columnas');

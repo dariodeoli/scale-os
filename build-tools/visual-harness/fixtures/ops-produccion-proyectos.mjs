@@ -61,10 +61,13 @@ const orderCard = (order) => `
  <p class="text-[10.5px] text-mute">Actualizada ${order.updated}</p>
  <div class="flex flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2"><button class="text-button">Editar</button>${iconAction({icon: 'trash', label: `Archivar pieza: ${order.title}`})}</div>
 </article>`;
-const kanbanColumn = (status, orders) => `
+// El badge muestra el total EXACTO de la etapa (`?counts=1`); si la ventana de la
+// columna tiene más piezas, aparece "Ver más" (contrato #57).
+const kanbanColumn = (status, orders, {count, hasMore} = {}) => `
 <section class="flex min-w-0 w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-2.5" data-column="${status.id}">
- <div class="flex items-center gap-2">${chip(status.label, status.tone)}<em class="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-medium not-italic tabular-nums text-mute">${orders.length}</em></div>
+ <div class="flex items-center gap-2">${chip(status.label, status.tone)}<em class="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-medium not-italic tabular-nums text-mute" title="${count ?? orders.length} piezas en ${status.label}">${count ?? orders.length}</em></div>
  ${orders.map(orderCard).join('')}
+ ${hasMore ? `<button type="button" class="text-button justify-center" aria-label="Ver más piezas en ${status.label}">Ver más</button>` : ''}
  ${orders.length ? '' : '<p class="py-3 text-center text-[11px] text-mute">Sin piezas en esta etapa</p>'}
 </section>`;
 const productionToolbar = `
@@ -188,7 +191,7 @@ export default [
     kind: 'workspace',
     lists: [],
     grids: [],
-    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción"><div class="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Tablero de Producción, desplazable horizontalmente">${productionColumns.map(column => kanbanColumn(column.status, column.orders)).join('')}</div><p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p></section></div>`,
+    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción"><div class="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Tablero de Producción, desplazable horizontalmente">${productionColumns.map(column => kanbanColumn(column.status, column.orders, column.status.id === 'to_record' ? {count: 430, hasMore: true} : {})).join('')}</div><p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p></section></div>`,
   },
   {
     id: 'produccion-calendario',
