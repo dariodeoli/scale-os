@@ -80,17 +80,17 @@ if (filtered.length === 0) {
   process.exit(1);
 }
 
-const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none transition';
+const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none no-underline transition hover:no-underline focus-visible:no-underline';
 const shellAside = (active) => `
-<aside class="desktop-sidebar hidden shrink-0 flex-col border-r border-white/10 p-3 text-white/80 min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh min-[761px]:!w-48 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:px-3 [&_.sidebar-brand]:!pb-2">
+<aside class="desktop-sidebar hidden shrink-0 flex-col overflow-hidden border-r border-white/10 text-white/80 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:!px-3 [&_.sidebar-brand]:!pb-2 min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh min-[761px]:transition-[width] min-[761px]:duration-200 min-[761px]:ease-out motion-reduce:!transition-none p-3 min-[761px]:!w-48">
  <div class="flex justify-end pb-1"><button type="button" class="sidebar-collapse grid h-11 w-11 place-items-center rounded-lg text-white/70 transition hover:bg-white/10 hover:text-white" aria-label="Colapsar barra lateral" title="Colapsar barra lateral" aria-expanded="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg></button></div>
  <div class="sidebar-brand"><span class="workspace-brand"><span class="workspace-wordmark">Scale<span>OS</span></span></span></div>
  <p class="nav-caption mt-1 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
- <nav class="grid gap-1" aria-label="Secciones">
+ <nav class="[&_a]:no-underline min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Secciones">
   ${['Resumen','Pipeline','Clientes','Presupuestos','Proyectos','Producción','Inventario','Estudio','Finanzas','Informes','Equipo','Configuración'].map((label) => `<a href="#" class="${RAIL_ITEM} ${label === active ? 'active bg-white/15 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}"${label === active ? ' aria-current="page"' : ''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><rect x="3" y="3" width="18" height="18" rx="4"/></svg><span class="nav-label min-w-0 break-words">${label}</span></a>`).join('')}
   <button type="button" class="nav-logout  text-white/80 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span class="nav-label">Cerrar sesión</span></button>
  </nav>
- <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-white/15 pt-3"><div class="profile-footer min-w-0"><button class="user" aria-label="Abrir mi perfil"><span class="person-container"><span class="person-identity"><span class="person-avatar" aria-hidden="true">FD</span><span class="person-text"><b>Fredd D.</b><small>Propietario</small></span></span></span></button></div></div>
+ <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-white/15 pt-3"><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-lg text-left transition hover:bg-white/10" aria-label="Abrir mi perfil"><span class="person-container"><span class="person-identity"><span class="person-avatar" aria-hidden="true">FD</span><span class="person-text"><b>Fredd D.</b><small>Propietario</small></span></span></span></button></div></div>
 </aside>`;
 
 function fixtureSection(fixture) {

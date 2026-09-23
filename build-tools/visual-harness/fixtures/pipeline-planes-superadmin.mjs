@@ -572,18 +572,19 @@ const navItems = [
   ['Proyectos', false], ['Producción', false], ['Inventario', false], ['Estudio', false],
   ['Finanzas', false], ['Informes', false], ['Equipo', false], ['Configuración', false],
 ];
-const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none transition';
+const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none no-underline transition hover:no-underline focus-visible:no-underline';
 const navLink = ([label, active], tone = 'rail') =>
   `<a href="#" class="${RAIL_ITEM} ${tone === 'rail' ? (active ? 'active bg-white/15 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white') : (active ? 'active bg-fono/10 text-fono-light' : 'text-mute hover:bg-ink-700 hover:text-fore')}"${active ? ' aria-current="page"' : ''} title="${label}" aria-label="${label}">${svg(I.target, 18)}<span class="nav-label min-w-0 break-words">${label}</span></a>`;
 
+const RAIL_COLLAPSED='is-collapsed p-2 min-[761px]:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.person-container-details]:hidden [&_.mobile-sidebar-brand]:justify-center [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:!px-0 [&_nav>a]:h-11 [&_nav>a]:w-11 [&_nav>a]:justify-center [&_nav>a]:!px-0 [&_nav>button]:h-11 [&_nav>button]:w-11 [&_nav>button]:justify-center [&_nav>button]:!px-0 [&_.profile-footer]:justify-items-center [&_.user]:!m-0 [&_.user]:!border-0 [&_.user]:!p-0 [&_.user]:justify-center [&_.user_.person-container]:justify-center';
 const sidebar = ({collapsed = false, active = 'Resumen'} = {}) => `
-<aside class="desktop-sidebar ${collapsed ? 'is-collapsed' : ''} hidden shrink-0 flex-col border-r border-white/10 p-3 text-white/80 min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh ${collapsed ? 'min-[761px]:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.person-container-details]:hidden [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:px-0' : 'min-[761px]:!w-48'} [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:px-3 [&_.sidebar-brand]:!pb-2">
+<aside class="desktop-sidebar hidden shrink-0 flex-col overflow-hidden border-r border-white/10 text-white/80 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:!px-3 [&_.sidebar-brand]:!pb-2 min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh min-[761px]:transition-[width] min-[761px]:duration-200 min-[761px]:ease-out motion-reduce:!transition-none ${collapsed ? RAIL_COLLAPSED : 'p-3 min-[761px]:!w-48'}">
  <div class="flex pb-1 ${collapsed ? 'justify-center' : 'justify-end'}"><button type="button" class="sidebar-collapse grid h-11 w-11 place-items-center rounded-lg text-white/70 transition hover:bg-white/10 hover:text-white" aria-label="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" title="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" aria-expanded="${collapsed ? 'false' : 'true'}">${collapsed ? svg(I.panelLeftOpen, 18) : svg(I.panelLeftClose, 18)}</button></div>
  <div class="sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
  <div class="mobile-sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
  <p class="nav-caption mt-1 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
- <nav aria-label="Menú principal" class="grid gap-1">${navItems.map((item) => navLink([item[0], item[0] === active || item[1]])).join('')}<button type="button" class="nav-logout  text-white/80 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
- <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-white/15 pt-3"><div class="profile-footer min-w-0"><button class="user" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
+ <nav aria-label="Menú principal" class="grid gap-1 [&_a]:no-underline min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">${navItems.map((item) => navLink([item[0], item[0] === active || item[1]])).join('')}<button type="button" class="nav-logout  text-white/80 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
+ <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-white/15 pt-3"><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-lg text-left transition hover:bg-white/10" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
 </aside>`;
 
 const workspaceShell = ({collapsed = false, active = 'Resumen', topbar: topbarHtml = '', content}) => `
@@ -615,16 +616,18 @@ const topbar = `
 </div>`;
 
 const mobileDrawer = `
-<div class="mobile-sidebar-backdrop fixed inset-0 z-40 grid bg-black/50 motion-reduce:transition-none">
+<div class="relative min-h-[100dvh]">
+<div class="mobile-sidebar-backdrop fixed inset-0 z-40 grid bg-black/50 motion-reduce:!transition-none">
  <section class="mobile-sidebar flex h-[100dvh] w-72 max-w-[85vw] flex-col gap-4 overflow-y-auto bg-ink-800 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] [&_.mobile-sidebar-brand]:flex [&_.mobile-sidebar-brand]:items-center [&_.mobile-sidebar-brand]:pb-1" role="dialog" aria-modal="true" aria-label="Menú de Scale OS" tabindex="-1">
   <div class="mobile-sidebar-heading flex items-center justify-between gap-3"><strong class="text-sm font-semibold text-fore">Menú principal</strong><button type="button" class="icon-button" title="Cerrar menú" aria-label="Cerrar menú">${svg(I.x, 20)}</button></div>
   <div class="mobile-sidebar-body grid min-h-0 content-start gap-1 [&_a]:min-h-11 [&_button]:min-h-11">
    <div class="mobile-sidebar-brand flex items-center px-3 pt-2"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
-   <p class="nav-caption mt-4 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
-   <nav aria-label="Menú principal" class="grid gap-0.5">${navItems.map((item) => navLink([item[0], item[0] === 'Pipeline' || item[1]], 'light')).join('')}<button type="button" class="nav-logout  text-white/80 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
-   <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 p-2"><div class="profile-footer min-w-0"><button class="user" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
+   <p class="nav-caption mt-1 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
+   <nav aria-label="Menú principal" class="grid gap-1 [&_a]:no-underline">${navItems.map((item) => navLink([item[0], item[0] === 'Pipeline' || item[1]], 'light')).join('')}<button type="button" class="nav-logout  text-white/80 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
+   <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 pt-3"><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-lg text-left transition hover:bg-ink-700" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
   </div>
  </section>
+</div>
 </div>`;
 
 /* ================================================ 10. NOTIFICACIONES ======

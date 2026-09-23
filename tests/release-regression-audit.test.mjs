@@ -17,6 +17,17 @@ assert(platformCss.includes('@media(max-width:760px)'),'global panel must keep a
 // Ronda 20-09 (SOS-PLT) migrada a v2 (SOS-DSN, #42): el riel, el encabezado y las listas viven en Tailwind.
 const rail=file('../app/desktop-sidebar.tsx');
 assert(rail.includes("export const RAIL_ITEM='")&&rail.includes('min-h-11')&&rail.includes('font-semibold'),'rail logout button shares the link geometry');
+assert(rail.includes('no-underline'),'los ítems del nav no se subrayan: contrato explícito en RAIL_ITEM (el navegador subraya todo <a> sin preflight)');
+assert(rail.includes('[&_nav>a]:w-11')&&rail.includes('p-2'),'el riel colapsado deja 44 px de contenido y centra ítems de 44 sin recortes');
+assert(rail.includes('transition-[width]')&&rail.includes('motion-reduce:!transition-none'),'el colapso del riel transiciona el ancho y se apaga con prefers-reduced-motion');
+assert(workspace.includes('min-h-0 flex-1 overflow-y-auto'),'el nav del riel scrollea cuando no entra, en vez de cortar ítems');
+assert(workspace.includes('[&_a]:no-underline'),'el nav (riel y drawer) fija el no-underline en sus clases');
+assert(!file('../app/globals.css').includes('.user{margin-top:10px'),'la regla legada de .user (padding !important y borde claro) no recorta el pie del riel');
+const loadingScreen=file('../app/loading-screen.tsx');
+assert(loadingScreen.includes('Cargando tu espacio…')&&loadingScreen.includes('Un momento, estamos preparando todo…'),'la pantalla de carga tiene variante con sesión y variante neutra');
+assert(loadingScreen.includes('PersonContainer')&&loadingScreen.includes('roleLabel'),'la carga con sesión muestra nombre, rol y avatar');
+assert(file('../app/tailwind.css').includes('text-decoration: none'),'la base del sistema apaga el subrayado del navegador para los <a>');
+assert(file('../app/workspace-footer.css').includes('text-decoration:underline'),'el footer declara su subrayado explícito tras el reset');
 assert(rail.includes('sidebar-collapse')&&!rail.includes('absolute'),'the collapsed rail keeps the toggle out of the brand');
 assert(workspace.includes('[&_.company-name]:truncate'),'long company names truncate in the topbar');
 assert(workspace.includes('[&>*]:min-h-10 [&>*]:min-w-10')&&workspace.includes('max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11'),'topbar utilities keep 40px desktop and 44px mobile targets');
