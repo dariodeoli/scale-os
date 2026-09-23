@@ -7,7 +7,8 @@ import {notifyMutation} from './feedback';
 const core = "/core-api";
 
 export async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await dataFetch(`${core}${path}`, {
+  // `shellDataUrl` ya devuelve la ruta con `/core-api`: el prefijo es idempotente.
+  const response = await dataFetch(path.startsWith(`${core}/`) ? path : `${core}${path}`, {
     ...init,
     credentials: "include",
     headers: {

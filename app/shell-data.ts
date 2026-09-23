@@ -22,7 +22,7 @@ export const ORDER_FIELDS_STATUS = 'id,status,project_id';
 /** Clientes: cartera por cliente (piezas abiertas y próximo vencimiento). */
 export const ORDER_FIELDS_PORTFOLIO = 'id,status,project_id,due_date';
 /** Producción: la tarjeta del tablero completa (asignados y checklist incluidos). */
-export const ORDER_FIELDS_BOARD = 'id,project_id,project_name,client_name,title,description,status,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at';
+export const ORDER_FIELDS_BOARD = 'id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at';
 /** Buscador: lo que muestra el resultado. */
 export const ORDER_FIELDS_SEARCH = 'id,title,status,project_id,project_name,client_name,due_date';
 

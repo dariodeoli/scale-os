@@ -37,7 +37,7 @@ export async function api<T>(
   body?: unknown,
   method = "POST",
 ): Promise<T> {
-  const r = await dataFetch(`/core-api${path}`, {
+  const r = await dataFetch(path.startsWith("/core-api/") ? path : `/core-api${path}`, {
     credentials: "include",
     method: body === undefined ? "GET" : method,
     headers: body === undefined ? {} : { "Content-Type": "application/json" },

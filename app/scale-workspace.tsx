@@ -193,6 +193,7 @@ export default function Home() {
   }
   const lastDataPath=useRef(pathname);
   const requestedSection=sectionLabel(pathname);
+  const lastDataSection=useRef(requestedSection);
   function setActive(label:string){router.push(sectionPath(label));}
   const [toast, setToast] = useState("");
   const [modal, setModal] = useState<ModalKind>(null);
@@ -496,20 +497,27 @@ export default function Home() {
     previousBillingAccess.current=next;
   },[user?.subscription?.hasAccess]);
   useEffect(()=>{
-    if(lastDataPath.current===pathname)return;
+    // Navegar cambia la sección y su proyección: la firma cargada manda. Si la
+    // sección nueva pide otro recorte, la lista vieja no se reusa (el tablero
+    // rompía al pintar tarjetas proyectadas para Resumen).
+    const pathChanged=lastDataPath.current!==pathname;
+    const sectionChanged=lastDataSection.current!==requestedSection;
     lastDataPath.current=pathname;
-    // Keep the mounted shell and session. Al navegar solo se refresca lo que la
-    // sección activa necesita y ya venció: lo que está en memoria no se repite.
+    lastDataSection.current=requestedSection;
+    if(!pathChanged&&!sectionChanged)return;
     if(!signedIn||!user||user.subscription?.hasAccess===false)return;
     const scope=sectionScope(requestedSection);
     const stale:ShellScope={};
     for(const resource of scopeResources(scope)){
       const request=scope[resource];
-      if(Date.now()-(dataFreshness.current[shellSignature(resource,request)]||0)>DATA_FRESH_MS)stale[resource]=request;
+      const signature=shellSignature(resource,request);
+      const loaded=dataFreshness.current[signature]>0;
+      if(resource==='orders'&&!loaded)setOrders(current=>current.length?[]:current);
+      if(!loaded||Date.now()-dataFreshness.current[signature]>DATA_FRESH_MS)stale[resource]=request;
     }
     if(!scopeResources(stale).length)return;
     void load(user,stale).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron actualizar los datos.'));
-  },[pathname,signedIn]);
+  },[pathname,requestedSection,signedIn]);
   useEffect(()=>{if(signedIn&&toast){notify({tone:'error',message:toast});setToast('');}},[signedIn,toast]);
   useEffect(() => {
     const authError = new URLSearchParams(window.location.search).get("authError");
