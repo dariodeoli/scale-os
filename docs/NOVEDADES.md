@@ -2,6 +2,33 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.107
+
+### Navegación y sistema visual
+
+- **Menú reordenado por flujo de trabajo** (resumen → captar y cerrar → ejecutar → cobrar y medir → equipo → administrar) con iconos propios por sección, aprobado por el dueño.
+- **Riel con la marca en claro**: wordmark blanco con acento dorado y el bloque del usuario (nombre y rol) legible sobre el fondo lila; el ancho del riel ya no afecta a otros paneles.
+- **Dinero y moneda v2**: un solo objeto de dinero formatea las 6 monedas de la empresa y el selector de moneda ofrece exactamente ese catálogo.
+
+### Comercial
+
+- **Clientes**: la fila finita cumple el contrato (48–51 px), con los cobros y la actividad sin superponerse, las acciones en una línea con desplazamiento silencioso y la ficha con la cápsula grande; se retiró el CSS del directorio viejo.
+
+### Operaciones
+
+- **Historial de trabajo** rediseñado al sistema v2: bloques apilados con autor, título y la acción (“Creó/Actualizó/Eliminó · estado → estado”), filtros por persona, tamaño de página y paginación contra el mismo API; el historial importado de Trello sigue disponible.
+- El fixture de proyectos ahora mide el markup real de la fila (incluidas las variantes por lista), cerrando un punto ciego del harness.
+
+### Finanzas
+
+- **Finanzas, Mora y Previsión**: todas las listas quedan en una línea por fila (44–52 px), con actores compactos, importes y fechas sin cortes, y los textos largos recortados con su valor completo disponible al pasar el cursor.
+
+### Plataforma y acceso
+
+- **Auditoría v2 cerrada**: Equipo, Invitaciones, Papelera, Roles y permisos, Superadmin, Estado y Configuración alineados al contrato (filas finitas, scroll contenido, encabezados y acciones alineados).
+- **Ayudas v2**: bandeja de notificaciones, zona de peligro, panel de suscripción y confirmación destructiva del panel global, sin hojas de estilo propias.
+- **Registrar cobro desde la fila**: el modal abre con la factura ya elegida; además, los tipos compartidos de Finanzas y la limpieza de datos de Mora en el shell.
+
 ## v1.0.106
 
 ### Comercial
