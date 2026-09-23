@@ -665,14 +665,14 @@ const notices = [
 ];
 
 const noticeArticle = (notice) => `
- <article class="${notice.unread ? 'notice unread' : 'notice'}">
-  <div class="notice-identity"><h3>${notice.title}</h3><span class="notice-kind-chip">${notice.kind}</span></div>
-  <p class="notice-body">${notice.body}</p>
-  <time datetime="2026-09-18T17:42:00-03:00">${notice.time}</time>
-  <p class="notification-state">${notice.state}</p>
-  <div class="notification-actions">
-   ${notice.actions ? `<button type="button" class="icon-button" title="Ver pieza" aria-label="Ver pieza: ${notice.title}">${svg(I.externalLink, 17)}</button>` : ''}
-   ${notice.unread ? `<button type="button" class="icon-button notification-action-icon is-confirm" title="Marcar como leída" aria-label="Marcar como leída: ${notice.title}">${svg(I.check, 18)}</button>` : ''}
+ <article class="${notice.unread ? 'grid min-w-0 gap-2 rounded-xl border border-ink-600 border-l-4 border-l-fono bg-ink-700 p-4' : 'grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4'}">
+  <div class="flex min-w-0 flex-wrap items-baseline gap-2"><h3 class="min-w-0 whitespace-pre-wrap text-sm font-semibold leading-[1.3] text-fore [overflow-wrap:anywhere]">${notice.title}</h3><span class="state-chip uppercase tracking-[.05em]">${notice.kind}</span></div>
+  <p class="min-w-0 whitespace-pre-wrap text-[12.5px] leading-[1.45] text-mute [overflow-wrap:anywhere]">${notice.body}</p>
+  <time class="whitespace-nowrap text-[11px] tabular-nums text-mute" datetime="2026-09-18T17:42:00-03:00">${notice.time}</time>
+  <p class="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[.075em] text-mute">${notice.state}</p>
+  <div class="flex flex-wrap items-center gap-1 border-t border-ink-600 pt-2">
+   ${notice.actions ? `<button type="button" class="icon-button !h-11 !w-11" title="Ver pieza" aria-label="Ver pieza: ${notice.title}">${svg(I.externalLink, 17)}</button>` : ''}
+   ${notice.unread ? `<button type="button" class="icon-button !h-11 !w-11 notification-action-icon is-confirm" title="Marcar como leída" aria-label="Marcar como leída: ${notice.title}">${svg(I.check, 18)}</button>` : ''}
    <button type="button" class="icon-button notification-action-icon is-confirm" title="Resolver aviso" aria-label="Resolver aviso: ${notice.title}">${svg(I.circleCheck, 18)}</button>
   </div>
  </article>`;

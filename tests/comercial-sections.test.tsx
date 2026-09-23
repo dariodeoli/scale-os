@@ -283,7 +283,9 @@ test('recorte de payload: la ventana de 300 órdenes no alcanza a las secciones 
   assert.equal(scope.orders?.limit,ORDER_WINDOW,`${section} pide la ventana de órdenes`);
   assert.ok(scope.clients&&scope.projects,`${section} conserva clientes y proyectos para el buscador y la presencia`);
  }
- assert.equal(sectionScope('Producción').orders?.limit,undefined,'Producción lista órdenes y conserva la lista completa');
+ assert.equal(sectionScope('Producción').orders?.byStatus,true,'Producción carga por columna (ventana de 50 por etapa) y no la lista completa');
+ assert.equal(sectionScope('Producción').orders?.limit,50,'la ventana por columna es explícita');
+ assert.ok(sectionScope('Producción').orders?.counts,'el tablero pide los conteos exactos por etapa');
  assert.equal(sectionScope('Resumen').orders?.limit,undefined,'Resumen agrega sobre todas las órdenes');
  // Las secciones COM no leen órdenes: listas, KPIs y totales salen de sus propios recursos.
  for(const file of ['app/sections/pipeline.tsx','app/sections/presupuestos.tsx','app/sections/metricas.tsx']){

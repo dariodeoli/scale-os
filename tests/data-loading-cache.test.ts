@@ -100,3 +100,24 @@ test('hotfix: transporte sin doble prefijo, navegación por sección y marco a 3
  assert(ui.includes('.control-shell .panel{border-radius:var(--radius-md);padding:var(--ui-panel-padding);min-width:0}'),'los paneles no crecen más allá de su columna');
  assert(ui.includes('.finance-grid)>*{min-width:0}'),'los contenedores apilados no heredan el min-content del contenido');
 });
+
+test('tablero de Producción por columna: ?status= por etapa y ?counts=1 para los totales',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const shellData=readFileSync(new URL('../app/shell-data.ts',import.meta.url),'utf8');
+ const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ assert(shellData.includes('export const BOARD_COLUMN_LIMIT = 50;'),'la ventana por columna es explícita');
+ assert(shellData.includes('export function boardColumnUrl(status: string, limit: number = BOARD_COLUMN_LIMIT)'),'la URL de columna existe');
+ assert(shellData.includes('&status=${encodeURIComponent(status)}'),'la columna se filtra por etapa');
+ assert(shellData.includes('export function boardCountsUrl()'),'la respuesta de conteos es una sola');
+ assert(shellData.includes("&counts=1"),'los totales exactos vienen de ?counts=1');
+ assert(shellData.includes('export function boardColumnSignature(status: string'),'la frescura es por columna');
+ assert(shellData.includes(":by-status"),'el alcance por estado no comparte frescura con la ventana plana');
+ assert(shellData.includes('orders: {limit: BOARD_COLUMN_LIMIT, fields: ORDER_FIELDS_BOARD, byStatus: true, counts: true}'),'Producción declara el alcance por columna');
+ assert(shellData.includes("ORDER_FIELDS_BOARD = 'id,project_id,project_name,client_name,title,description,status,work_type,"),'la proyección de la tarjeta incluye work_type');
+ assert(workspace.includes('async function loadBoardColumns():Promise<{workOrders:WorkOrder[]}>'),'el shell une las ventanas por etapa');
+ assert(workspace.includes('dataFreshness.current[boardColumnSignature(status.id)]=Date.now();'),'cada columna marca su frescura al llegar');
+ assert(workspace.includes('if(countsResult.stage_counts){setBoardCounts(countsResult.stage_counts);'),'los conteos exactos entran al estado del shell');
+ assert(workspace.includes('<BoardCountsProvider counts={boardCounts}>'),'el tablero recibe los conteos por contexto');
+ const counts=readFileSync(new URL('../app/board-counts.tsx',import.meta.url),'utf8');
+ assert(counts.includes('export function useBoardCounts(): BoardCounts | null'),'el tablero lee los conteos con useBoardCounts()');
+});

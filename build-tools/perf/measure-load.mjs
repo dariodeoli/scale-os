@@ -24,6 +24,7 @@ const width = Number(option('--width', '1440'));
 const gapMs = Number(option('--gap', '16000'));
 const only = option('--only', '');
 const bootOnly = args.includes('--boot-only');
+const network = option('--network', 'wifi');
 const contractMode = option('--contract', 'new');
 const hardOnly = args.includes('--hard');
 const here = resolve(process.cwd());
@@ -51,7 +52,9 @@ const latencyFor = (url, rows) => (/\/work-orders/.test(url) ? 30 + rows * 0.6 :
 
 // Órdenes ~1,4 KB por fila (mismo perfil que producción: o.* + proyecto/cliente
 // + asignados + checklist). La respuesta escalada reproduce 2 MB sin `?limit=`.
-const ORDER_ROWS = 1450;
+const ORDER_ROWS = 3000;
+// Totales por etapa (contrato #57, `?counts=1`): suman 3.000.
+const STATUS_TOTALS = {to_record: 120, blocked: 8, recorded: 240, editing: 180, review: 65, approved: 900, published: 1487};
 const client = (index) => ({id: String(index), name: `Cliente Demo ${String(index).padStart(2, '0')}`, active: index % 9 !== 0, status: index % 9 === 0 ? 'paused' : 'active', email: `cliente${index}@demo.test`, phone: '+595 981 000 000', ruc: `80012345-${index}`, address: `Av. Demo ${index}, Asunción`, created_at: '2026-01-15T10:00:00.000Z', payment_status: index % 3 === 0 ? 'late' : 'up_to_date', has_invoice: index % 4 !== 0, work_orders: index % 7});
 const project = (index) => ({id: String(index), title: `Proyecto Demo ${String(index).padStart(2, '0')}`, client_id: String((index % 240) + 1), client_name: client((index % 240) + 1).name, status: index % 5 === 0 ? 'completed' : 'active', active: index % 11 !== 0, due_date: '2026-11-30', start_date: '2026-10-01', urgency: index % 3 === 0 ? 'high' : null, drive_url: `https://drive.demo/proyecto-${index}`, description: `Proyecto de producción audiovisual ${index} con entregables mensuales y revisiones del cliente.`, work_order_count: index % 12, work_orders: index % 12, assignees: [{id: String(index % 9), full_name: `Responsable ${index % 9}`, photo_url: null, is_primary: true}, {id: String((index + 3) % 9), full_name: `Responsable ${(index + 3) % 9}`, photo_url: null, is_primary: false}]});
 const ORDER_DEFAULT = (index) => ({id: String(index), project_id: String((index % 500) + 1), project_name: `Proyecto Demo ${String((index % 500) + 1).padStart(2, '0')}`, client_name: client((index % 400) + 1).name, title: `Orden Demo ${String(index).padStart(4, '0')}`, description: `Orden de trabajo ${index}: armado, edición y entrega con revisión del cliente, ajustes de color, musicalización y exportaciones para redes y archivo. Incluye notas de la reunión de producción y pendientes de la revisión anterior del cliente.`, status: ['to_record', 'in_progress', 'review', 'approved', 'published', 'paused'][index % 6], urgency: index % 5 === 0 ? 'high' : null, work_type: ['video', 'reedicion', 'foto', 'produccion'][index % 4], approval_step: index % 3, due_date: `2026-11-${String((index % 27) + 1).padStart(2, '0')}`, due_time: '15:00', drive_url: `https://drive.demo/orden-${index}`, drive_links: [{label: 'Carpeta', url: `https://drive.demo/orden-${index}`}], estimated_hours: index % 12, actual_hours: index % 9, updated_at: `2026-11-0${(index % 9) + 1}T12:00:00.000Z`});
@@ -72,9 +75,15 @@ const fixtures = (rawUrl) => {
   const statusFilter = url.searchParams.get('status');
   const fieldsParam = url.searchParams.get('fields');
   if (path.includes('/agency/work-orders')) {
-    if (statusFilter && contractMode === 'new') {
-      const count = Math.min(limit === null ? 200 : limit, 200);
-      return {workOrders: rows(count).map((index) => ({...ORDER_DEFAULT(index), status: statusFilter})), page: {limit: limit ?? count, offset: 0, hasMore: false}};
+    if (statusFilter) {
+      const wanted = statusFilter.split(',').map((value) => value.trim()).filter(Boolean);
+      const total = wanted.reduce((sum, status) => sum + (STATUS_TOTALS[status] || 0), 0);
+      const count = limit === null ? total : Math.min(limit, total);
+      return {workOrders: rows(count).map((index) => ({...ORDER_DEFAULT(index), status: wanted[index % wanted.length]})), page: {limit: limit ?? count, offset: 0, hasMore: count < total}};
+    }
+    // `?counts=1`: respuesta mínima con los totales exactos de todas las etapas.
+    if (url.searchParams.get('counts') === '1') {
+      return {workOrders: rows(limit === null ? ORDER_ROWS : Math.min(limit, ORDER_ROWS)).map((index) => ({id: String(index)})), stage_counts: {...STATUS_TOTALS}};
     }
     const count = limit === null ? ORDER_ROWS : Math.min(limit, ORDER_ROWS);
     const build = (index) => {
@@ -116,12 +125,15 @@ cdp.on('Fetch.requestPaused', (params) => {
   const rows = /work-orders/.test(request.url) ? ((JSON.parse(body).workOrders || []).length) : 0;
   const delay = latencyFor(request.url, rows);
   const bytes = Buffer.byteLength(body);
+  const record={method: request.method, url: request.url.replace(/^https?:\/\/[^/]+/, ''), started, delay, bytes, done: Infinity};
+  requests.push(record);
   setTimeout(() => {
-    requests.push({method: request.method, url: request.url.replace(/^https?:\/\/[^/]+/, ''), started, delay, bytes, done: started + delay});
+    record.done = started + delay;
     cdp.send('Fetch.fulfillRequest', {requestId, responseCode: 200, responseHeaders: [{name: 'Content-Type', value: 'application/json'}], body: Buffer.from(body).toString('base64')}).catch(() => {});
   }, delay);
 });
 await cdp.send('Emulation.setDeviceMetricsOverride', {width, height: width < 768 ? 780 : 900, deviceScaleFactor: 1, mobile: width < 768});
+if (network === '4g') await cdp.send('Network.enable').then(() => cdp.send('Network.emulateNetworkConditions', {offline: false, latency: 70, downloadThroughput: 9 * 1024 * 1024 / 8, uploadThroughput: 9 * 1024 * 1024 / 8})).catch(() => {});
 await cdp.send('Fetch.enable', {patterns: [{urlPattern: '*/core-api/api/*'}, {urlPattern: '*/api/auth/*'}]});
 
 const results = [];
@@ -194,7 +206,7 @@ if (hardOnly) {
   }
 }
 
-const suffix = `${label}${width === 1440 ? '' : `-${width}`}`;
+const suffix = `${label}${width === 1440 ? '' : `-${width}`}${network === 'wifi' ? '' : `-${network}`}`;
 writeFileSync(join(outDir, `${suffix}.json`), JSON.stringify({label, width, at: new Date().toISOString(), routes: results}, null, 2));
 const table = ['| Fase | Ruta | Llamadas API | Duplicadas | Payload (KB) | API ms (suma) | Último dato (ms) | Más pesado |', '|---|---|---|---|---|---|---|---|',
   ...results.map((item) => `| ${item.nav} | ${item.route} | ${item.api} | ${item.duplicates} | ${item.payloadKB} | ${item.apiMs} | ${item.ttLast} | ${item.heaviest.join(' · ')} |`)].join('\n');
