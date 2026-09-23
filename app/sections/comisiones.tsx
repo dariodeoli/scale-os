@@ -39,11 +39,11 @@ const DISCOUNT_TONE: Record<ReferralDiscount['status'], ChipTone> = {applied: 'o
 /** Plantillas únicas por lista (encabezado y filas comparten la grilla). */
 const SETTLEMENT_TEMPLATE = 'grid-cols-[minmax(12rem,1.6fr)_9rem_9rem_9rem_9rem_9rem]';
 const SETTLEMENT_COLUMNS: Column[] = [{key: 'person', label: 'Colaborador'}, {key: 'expected', label: 'Esperado', align: 'end'}, {key: 'recorded', label: 'Registrado', align: 'end'}, {key: 'approved', label: 'Aprobado', align: 'end'}, {key: 'paid', label: 'Pagado', align: 'end'}, {key: 'pending', label: 'Pendiente', align: 'end'}];
-const COMMISSION_TEMPLATE = 'grid-cols-[minmax(13rem,1.5fr)_7rem_11rem_minmax(11rem,1.2fr)_11rem]';
+const COMMISSION_TEMPLATE = 'grid-cols-[minmax(26rem,1.5fr)_7rem_20rem_minmax(17rem,1.2fr)_11rem]';
 const COMMISSION_COLUMNS: Column[] = [{key: 'beneficiary', label: 'Beneficiario'}, {key: 'status', label: 'Estado'}, {key: 'amount', label: 'Importe', align: 'end'}, {key: 'reference', label: 'Factura y vencimiento'}, {key: 'actions', label: 'Acciones'}];
-const DISCOUNT_TEMPLATE = 'grid-cols-[minmax(12rem,1.4fr)_minmax(13rem,1.5fr)_7rem_9rem_9rem]';
+const DISCOUNT_TEMPLATE = 'grid-cols-[minmax(16rem,1.4fr)_minmax(22rem,1.5fr)_7rem_9rem_9rem]';
 const DISCOUNT_COLUMNS: Column[] = [{key: 'referrer', label: 'Referido'}, {key: 'invoice', label: 'Factura y cliente'}, {key: 'amount', label: 'Monto', align: 'end'}, {key: 'status', label: 'Estado'}, {key: 'actions', label: 'Acciones'}];
-const PAYOUT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_6.5rem_minmax(10rem,1.2fr)_minmax(10rem,1.1fr)_8.5rem]';
+const PAYOUT_TEMPLATE = 'grid-cols-[minmax(24rem,1.6fr)_6.5rem_minmax(10rem,1.2fr)_minmax(10rem,1.1fr)_8.5rem]';
 const PAYOUT_COLUMNS: Column[] = [{key: 'egress', label: 'Egreso'}, {key: 'date', label: 'Fecha'}, {key: 'account', label: 'Cuenta'}, {key: 'actor', label: 'Registró'}, {key: 'amount', label: 'Monto', align: 'end'}];
 
 const moneyCell = (value: string | number, currency: string) => <span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(Number(value), currency)}</span>;
@@ -134,7 +134,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         {monthly.length
           ? <ListGrid label="Comisiones del mes por colaborador" template={SETTLEMENT_TEMPLATE} columns={SETTLEMENT_COLUMNS} minWidthClass="min-w-[62rem]">
             {monthly.map(row => <ListRow key={`${row.recipient_id ?? `unlinked-${row.name ?? ''}`}-${row.currency}`} template={SETTLEMENT_TEMPLATE}>
-              <div className="min-w-0"><b className="block text-[13.5px] font-semibold text-fore" title={row.name || 'Sin colaborador vinculado'}>{row.name || 'Sin colaborador vinculado'}</b><small className="block text-[11px] text-mute">{row.currency}</small></div>
+              <div className="min-w-0"><b className="block text-[13.5px] font-semibold leading-snug text-fore" title={row.name || 'Sin colaborador vinculado'}>{row.name || 'Sin colaborador vinculado'}</b><small className="block text-[11px] text-mute">{row.currency}</small></div>
               <div className="min-w-0 text-right">{moneyCell(row.expected_amount, row.currency)}</div>
               <div className="min-w-0 text-right">{moneyCell(row.recorded_amount, row.currency)}</div>
               <div className="min-w-0 text-right">{moneyCell(row.approved_amount, row.currency)}</div>
@@ -151,24 +151,23 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
           <div className="flex flex-wrap gap-1">{COMMISSION_FILTERS.map(value => <button key={value} type="button" className={filter === value ? 'choice active' : 'choice'} onClick={() => setFilter(value)}>{value === 'all' ? 'Todas' : commissionStatusLabel(value)}</button>)}</div>
         </div>
         {visible.length
-          ? <ListGrid label="Comisiones y referidos" template={COMMISSION_TEMPLATE} columns={COMMISSION_COLUMNS} minWidthClass="min-w-[60rem]">
+          ? <ListGrid label="Comisiones y referidos" template={COMMISSION_TEMPLATE} columns={COMMISSION_COLUMNS} minWidthClass="min-w-[78rem]">
             {visible.map(commission => {
               const actions = commissionActions(commission.status);
               return <ListRow key={commission.id} template={COMMISSION_TEMPLATE}>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2"><b className="text-[13.5px] font-semibold text-fore" title={commission.beneficiary_name}>{commission.beneficiary_name}</b><StateChip tone="mute" title={commissionKindLabel(commission.kind)}>{commissionKindLabel(commission.kind)}</StateChip></div>
-                  <small className="block text-[11px] text-mute">{commission.collaborator_name ? `Vinculada a ${commission.collaborator_name}` : 'Sin colaborador vinculado'}{commission.created_at ? ` · alta ${listDateShort(commission.created_at)}` : ''}</small>
+                <div className="flex min-w-0 items-center gap-2">
+                  <b className="truncate text-[13.5px] font-semibold leading-snug text-fore" title={commission.beneficiary_name}>{commission.beneficiary_name}</b>
+                  <StateChip tone="mute" title={commissionKindLabel(commission.kind)}>{commissionKindLabel(commission.kind)}</StateChip>
+                  <small className="truncate text-[11px] text-mute" title={`${commission.collaborator_name ? `Vinculada a ${commission.collaborator_name}` : 'Sin colaborador vinculado'}${commission.created_at ? ` · alta ${listDateShort(commission.created_at)}` : ''}`}>{commission.collaborator_name ? `Vinculada a ${commission.collaborator_name}` : 'Sin colaborador vinculado'}{commission.created_at ? ` · alta ${listDateShort(commission.created_at)}` : ''}</small>
                 </div>
-                <div className="min-w-0"><StateChip tone={STATUS_TONE[commission.status]} title={commissionStatusLabel(commission.status)}>{commissionStatusLabel(commission.status)}</StateChip></div>
-                <div className="min-w-0 text-right">
+                <div className="min-w-0"><StateChip tone={STATUS_TONE[commission.status]} title={`${commissionStatusLabel(commission.status)}${commission.paid_on ? ` · pagada ${listDateShort(commission.paid_on)}` : ''}`}>{commissionStatusLabel(commission.status)}</StateChip></div>
+                <div className="flex min-w-0 items-baseline justify-end gap-2">
                   {moneyCell(commission.amount, commission.currency)}
-                  <small className="block text-[11px] text-mute">{commissionBasisText(commission, (value, currency) => money(Number(value), currency))}</small>
-                  {commission.paid_on ? <small className="block whitespace-nowrap text-[11px] text-mute">Pagada {listDateShort(commission.paid_on)}</small> : null}
+                  <small className="truncate text-[11px] text-mute" title={commissionBasisText(commission, (value, currency) => money(Number(value), currency))}>{commissionBasisText(commission, (value, currency) => money(Number(value), currency))}</small>
                 </div>
-                <div className="min-w-0 text-[11.5px] text-mute">
-                  <span className="block text-fore" title={commission.invoice_number || 'Sin factura vinculada'}>{commission.invoice_number || 'Sin factura vinculada'}</span>
-                  {commission.due_on ? <span className={`block whitespace-nowrap tabular-nums ${dueTone(commission.due_on) ? 'font-semibold text-warn' : ''}`} title={listDateFull(commission.due_on) || undefined}>Vence {listDateShort(commission.due_on)}</span> : null}
-                  {commission.notes ? <span className="block" title={commission.notes}>{commission.notes}</span> : null}
+                <div className="flex min-w-0 items-baseline gap-2 text-[11.5px] text-mute">
+                  <span className="truncate text-fore" title={`${commission.invoice_number || 'Sin factura vinculada'}${commission.notes ? ` · ${commission.notes}` : ''}`}>{commission.invoice_number || 'Sin factura vinculada'}</span>
+                  {commission.due_on ? <span className={`whitespace-nowrap tabular-nums ${dueTone(commission.due_on) ? 'font-semibold text-warn' : ''}`} title={listDateFull(commission.due_on) || undefined}>Vence {listDateShort(commission.due_on)}</span> : null}
                 </div>
                 <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
                   {actions.approve ? <button className="text-button positive" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/commissions/${commission.id}`, {status: 'approved'}, 'PATCH'); }, 'Comisión aprobada.')}>Aprobar</button> : null}
@@ -188,10 +187,10 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
           {canManage ? <button className="secondary" onClick={() => setNewDiscount(true)} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
         </div>
         {discounts.length
-          ? <ListGrid label="Descuentos por referido" template={DISCOUNT_TEMPLATE} columns={DISCOUNT_COLUMNS} minWidthClass="min-w-[56rem]">
+          ? <ListGrid label="Descuentos por referido" template={DISCOUNT_TEMPLATE} columns={DISCOUNT_COLUMNS} minWidthClass="min-w-[64rem]">
             {discounts.map(discount => <ListRow key={discount.id} template={DISCOUNT_TEMPLATE}>
-              <div className="min-w-0"><b className="block text-[13.5px] font-semibold text-fore">{discount.referrer}</b><small className="block text-[11px] text-mute">{discount.created_at ? `Alta ${listDateShort(discount.created_at)}` : 'Sin fecha de alta'}</small></div>
-              <div className="min-w-0 text-[11.5px] text-mute"><span className="block text-fore">{discount.invoice_number}</span><span className="block">{discount.client_name} · {discount.reason}</span></div>
+              <div className="min-w-0"><b className="block text-[13.5px] font-semibold leading-snug text-fore">{discount.referrer}</b><small className="block text-[11px] text-mute">{discount.created_at ? `Alta ${listDateShort(discount.created_at)}` : 'Sin fecha de alta'}</small></div>
+              <div className="min-w-0 truncate text-[11.5px] text-mute" title={`${discount.invoice_number} · ${discount.client_name} · ${discount.reason}`}><span className="text-fore">{discount.invoice_number}</span><span> · {discount.client_name} · {discount.reason}</span></div>
               <div className="min-w-0 text-right">{moneyCell(discount.amount, discount.currency)}</div>
               <div className="min-w-0"><StateChip tone={DISCOUNT_TONE[discount.status]}>{referralDiscountStatusLabel(discount.status)}</StateChip></div>
               <div className="flex min-w-0 items-center justify-end gap-1">
@@ -205,9 +204,9 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       {canSeePayouts ? <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-payouts-title">
         <div className="min-w-0"><h3 id="commissions-payouts-title" className="text-[17px] font-semibold tracking-tight text-fore">Pagos registrados</h3><p className="mt-1 text-xs text-mute">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
         {payouts.length
-          ? <ListGrid label="Pagos registrados" template={PAYOUT_TEMPLATE} columns={PAYOUT_COLUMNS} minWidthClass="min-w-[58rem]">
+          ? <ListGrid label="Pagos registrados" template={PAYOUT_TEMPLATE} columns={PAYOUT_COLUMNS} minWidthClass="min-w-[70rem]">
             {payouts.map(payout => <ListRow key={payout.id} template={PAYOUT_TEMPLATE}>
-              <div className="min-w-0"><b className="block text-[13.5px] font-semibold text-fore">{payout.collaborator_name || payout.beneficiary_name || 'Sin beneficiario'}</b>{payout.reference ? <small className="block text-[11px] text-mute" title={payout.reference}>{payout.reference}</small> : null}</div>
+              <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={payout.collaborator_name || payout.beneficiary_name || 'Sin beneficiario'}>{payout.collaborator_name || payout.beneficiary_name || 'Sin beneficiario'}</b>{payout.reference ? <small className="block truncate text-[11px] text-mute" title={payout.reference}>{payout.reference}</small> : null}</div>
               <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(payout.paid_on) || undefined}>{listDateShort(payout.paid_on) || '—'}</span></div>
               <div className="min-w-0 text-[11.5px] text-fore">{payout.account_name}</div>
               <div className="min-w-0 text-[11.5px] text-mute">{payout.created_by_email || 'Sin registrar'}</div>

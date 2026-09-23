@@ -51,8 +51,8 @@ import {
 import {LoadingBlock,StateChip} from './ui-v2';
 
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
-const PERSON_COLS='grid-cols-[minmax(10rem,1.2fr)_minmax(7rem,.9fr)_minmax(8rem,.9fr)_minmax(8rem,.9fr)_6.5rem]';
-const CONTRACT_COLS='grid-cols-[minmax(0,1fr)_9rem_9rem_9rem]';
+const PERSON_COLS='grid-cols-[minmax(16rem,1.2fr)_minmax(7rem,.9fr)_minmax(8rem,.9fr)_minmax(8rem,.9fr)_6.5rem]';
+const CONTRACT_COLS='grid-cols-[minmax(22rem,1fr)_9rem_9rem_9rem]';
 const EXPENSE_COLS='grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
 const LIST_HEAD='grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-mute';
@@ -180,10 +180,10 @@ function ForecastPanel() {
    </Card>}
    {data.contracted_clients?<Card className="grid gap-3">
     <h3 className="text-sm font-semibold text-fore">Contratos vs facturación del mes</h3>
-    {contractedRows.length?<div className="min-w-0 overflow-x-auto" role="table" aria-label="Contratos vigentes contra facturación"><div className="min-w-[44rem]">
+    {contractedRows.length?<div className="min-w-0 overflow-x-auto" role="table" aria-label="Contratos vigentes contra facturación"><div className="min-w-[56rem]">
      <div className={cn(LIST_HEAD,CONTRACT_COLS)} aria-hidden="true"><span>Cliente</span><span className="text-right">Contratado</span><span className="text-right">Facturado</span><span className="text-right">Estado</span></div>
      {contractedRows.map(row=><div role="row" className={cn(LIST_ROW,CONTRACT_COLS)} key={`${row.client_id}-${row.currency}`}>
-      <span className="min-w-0 text-sm"><b className="font-semibold text-fore">{row.client_name}</b><small className="ml-2 text-xs text-mute">{row.currency}{row.ends_on?` · hasta ${listDateFull(row.ends_on)}`:''}{row.invoice_required?' · factura requerida':' · sin factura requerida'}</small></span>
+      <span className="min-w-0 truncate text-sm leading-snug" title={`${row.client_name} · ${row.currency}${row.ends_on?` · hasta ${listDateFull(row.ends_on)}`:''}${row.invoice_required?' · factura requerida':' · sin factura requerida'}`}><b className="font-semibold text-fore">{row.client_name}</b><small className="ml-2 whitespace-nowrap text-xs text-mute">{row.currency}{row.ends_on?` · hasta ${listDateFull(row.ends_on)}`:''}</small></span>
       <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.contracted_amount,row.currency)}</span></span>
       <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.invoiced_amount,row.currency)}</span></span>
       <span className={cn('min-w-0','flex justify-end')}>{row.missing_invoice?<StateChip tone="bad" title="Contrato con facturación requerida y sin factura emitida en el mes">Sin factura</StateChip>:<StateChip tone="ok" title={row.invoice_required?'Factura emitida en el mes':'El contrato no requiere factura'}>Al día</StateChip>}</span>
@@ -207,10 +207,10 @@ function ForecastPanel() {
         <span>Salario base ({count(row.base_count)}): <b className="font-semibold tabular-nums text-fore">{formatWholeMoney(row.base_amount,row.currency)}</b></span>
         {count(row.override_count)>0?<span>Ajustes del mes ({count(row.override_count)}): <b className="font-semibold tabular-nums text-fore">{formatSignedMoney(row.override_amount,row.currency)}</b></span>:null}
        </div>
-       <div className="forecast-person-list min-w-0 overflow-x-auto"><div className="min-w-[46rem]">
+       <div className="forecast-person-list min-w-0 overflow-x-auto"><div className="min-w-[56rem]">
         <div className={cn(LIST_HEAD,PERSON_COLS)} aria-hidden="true"><span>Persona</span><span>Salario base</span><span>Ajuste del mes</span><span>Cierre del mes</span><span className="text-right">Acciones</span></div>
         {row.members.map(member=>{const {adjustment,total}=personnelAmounts(member);return <div className={cn(LIST_ROW,PERSON_COLS,'forecast-person-row')} key={String(member.collaborator_id)}>
-         <span className="min-w-0"><span className="forecast-person-who flex min-w-0 items-center gap-2"><span className="grid h-6 w-6 flex-none place-items-center overflow-hidden rounded-full"><ActorAvatar name={member.name} photo={safePhoto(member.photo_url)}/></span><span className="min-w-0 text-sm font-semibold text-fore">{member.name}{member.base_amount===0?<small className="ml-2 text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>:null}</span></span></span>
+         <span className="min-w-0"><span className="forecast-person-who flex min-w-0 items-center gap-2"><span className="grid h-6 w-6 flex-none place-items-center overflow-hidden rounded-full"><ActorAvatar name={member.name} photo={safePhoto(member.photo_url)}/></span><span className="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title={member.name}>{member.name}</span>{member.base_amount===0?<small className="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>:null}</span></span>
          <span className={cn('min-w-0','forecast-person-base')}><strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(member.base_amount,member.currency)}</strong></span>
          {adjustment!==null&&adjustment!==0?<span className="min-w-0"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-warn">{formatSignedMoney(member.override_amount,member.currency)}</span></span>:<span className="forecast-person-override is-empty hidden md:block" aria-hidden="true"/>}
          <span className={cn('min-w-0','forecast-person-total')}><strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',total!==null&&total<0?'text-bad':'text-fore')}>{total===null?'Sin dato':total<0?formatSignedMoney(total,member.currency):formatWholeMoney(total,member.currency)}</strong></span>
@@ -253,7 +253,7 @@ function ForecastPanel() {
     {plannedExpenses?.records.length?<div className="min-w-0 overflow-x-auto" role="table" aria-label="Gastos planificados del mes"><div className="min-w-[44rem]">
      <div className={cn(LIST_HEAD,PLANNED_COLS)} aria-hidden="true"><span>Gasto</span><span>Cadencia</span><span className="text-right">Monto</span><span className="text-right">Acciones</span></div>
      {plannedExpenses.records.map(record=><div role="row" className={cn(LIST_ROW,PLANNED_COLS)} key={record.id}>
-      <span className="min-w-0 text-sm"><b className="font-semibold text-fore">{record.category}</b>{record.kind?<span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-mute">{record.kind==='fixed'?'Fijo':'Variable'}</span>:null}<small className="ml-2 text-xs text-mute">{record.note||'Sin nota'}</small></span>
+      <span className="min-w-0 truncate text-sm leading-snug" title={`${record.category}${record.note?` · ${record.note}`:''}`}><b className="font-semibold text-fore">{record.category}</b>{record.kind?<span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-mute">{record.kind==='fixed'?'Fijo':'Variable'}</span>:null}<small className="ml-2 text-xs text-mute">{record.note||'Sin nota'}</small></span>
       <span className="min-w-0"><span className="text-sm text-fore">{record.cadence==='recurring'?'Recurrente':'Solo este mes'}</span></span>
       <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(record.amount,record.currency)}</span></span>
       <span className={cn('min-w-0','flex justify-end')}><IconAction icon="trash" tone="bad" label={`Quitar gasto planificado: ${record.category}`} disabled={plannedDeleting===record.id} onClick={()=>void removePlannedExpense(record.id)}/></span>
@@ -279,7 +279,7 @@ function ForecastPanel() {
     {realExpenses.length?<div className="min-w-0 overflow-x-auto" role="table" aria-label="Gastos reales del mes"><div className="min-w-[40rem]">
      <div className={cn(LIST_HEAD,EXPENSE_COLS)} aria-hidden="true"><span>Gasto</span><span className="text-right">Monto</span><span className="text-right">Acciones</span></div>
      {realExpenses.map(row=><div role="row" className={cn(LIST_ROW,EXPENSE_COLS)} key={String(row.id)}>
-      <span className="min-w-0 text-sm"><b className="font-semibold text-fore">{row.category}{row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''}</b><small className="ml-2 text-xs text-mute">{listDateShort(row.paid_on)} · {row.account_name}{row.reference?` · ${row.reference}`:''}{row.created_by_email?` · registró ${row.created_by_email}`:''}</small></span>
+      <span className="min-w-0 truncate text-sm leading-snug" title={`${row.category}${row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''} · ${listDateShort(row.paid_on)} · ${row.account_name}${row.reference?` · ${row.reference}`:''}${row.created_by_email?` · registró ${row.created_by_email}`:''}`}><b className="font-semibold text-fore">{row.category}{row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''}</b><small className="ml-2 whitespace-nowrap text-xs text-mute">{listDateShort(row.paid_on)} · {row.account_name}{row.reference?` · ${row.reference}`:''}${row.created_by_email?` · registró ${row.created_by_email}`:''}</small></span>
       <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.amount,row.currency)}</span></span>
       <span className={cn('min-w-0','flex justify-end')}><IconAction icon="refresh" tone="bad" label={`Revertir gasto real: ${row.category}`} disabled={realDeleting===String(row.id)} onClick={()=>void removeRealExpense(row.id)}/></span>
      </div>)}

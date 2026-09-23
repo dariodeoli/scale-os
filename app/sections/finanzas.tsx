@@ -1,7 +1,7 @@
 "use client";
 import {useMemo, useState, type Dispatch, type SetStateAction} from 'react';
 import {ArrowLeftRight, Plus, Search} from 'lucide-react';
-import {ActorIdentity} from '../actor-identity';
+import {ActorAvatar, safePhoto} from '../actor-identity';
 import {ReceiptReversal, ReconciliationWorkspace} from '../daily-controls';
 import {RemoveRecord} from '../archive-controls';
 import {moneyKpi} from '../client-format';
@@ -39,11 +39,11 @@ const INVOICE_TONE: Record<string, ChipTone> = {issued: 'info', partial: 'warn',
 const INVOICE_FILTERS: [string, string][] = [['all', 'Todas'], ['open', 'Con saldo'], ['overdue', 'Vencidas'], ['soon', 'Vencen en 7 días'], ['draft', 'Borradoras'], ['cancelled', 'Canceladas']];
 
 /** Plantillas únicas: encabezado y filas comparten una grilla por lista. */
-const TRANSFER_TEMPLATE = 'grid-cols-[minmax(14rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(8rem,1fr)_10rem]';
+const TRANSFER_TEMPLATE = 'grid-cols-[minmax(20rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(9rem,1fr)_10rem]';
 const TRANSFER_COLUMNS: Column[] = [{key: 'route', label: 'Transferencia'}, {key: 'date', label: 'Fecha'}, {key: 'actor', label: 'Recibió'}, {key: 'reference', label: 'Referencia'}, {key: 'amount', label: 'Monto', align: 'end'}];
-const INVOICE_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_8rem]';
+const INVOICE_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_8rem]';
 const INVOICE_COLUMNS: Column[] = [{key: 'invoice', label: 'Factura'}, {key: 'state', label: 'Estado'}, {key: 'due', label: 'Vence'}, {key: 'pending', label: 'Pendiente', align: 'end'}, {key: 'total', label: 'Total', align: 'end'}, {key: 'actions', label: 'Acciones'}];
-const PAYMENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_6.5rem_minmax(9rem,1.1fr)_minmax(9rem,1.1fr)_minmax(7rem,1fr)_8.5rem_8rem]';
+const PAYMENT_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_6.5rem_minmax(9rem,1.1fr)_minmax(9rem,1.1fr)_minmax(8rem,1fr)_8.5rem_8rem]';
 const PAYMENT_COLUMNS: Column[] = [{key: 'payment', label: 'Cobro'}, {key: 'date', label: 'Fecha'}, {key: 'account', label: 'Cuenta'}, {key: 'actor', label: 'Recibió'}, {key: 'reference', label: 'Referencia'}, {key: 'amount', label: 'Monto', align: 'end'}, {key: 'actions', label: 'Acciones'}];
 
 const amount = (value: string | number, currency: string) => <span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(Number(value), currency)}</span>;
@@ -115,7 +115,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
         {accounts.length ? <div className="grid gap-3 sm:grid-cols-2">
           {accounts.map(account => <article key={account.id} className="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4" data-archived={account.active === false || undefined}>
             <header className="flex items-start justify-between gap-2">
-              <b className="min-w-0 text-[13.5px] font-semibold text-fore" title={account.name}>{account.name}</b>
+              <b className="min-w-0 text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
               <StateChip tone="mute" title={`${ACCOUNT_TYPES[account.account_type] || account.account_type} · ${account.currency}`}>{ACCOUNT_TYPES[account.account_type] || account.account_type} · {account.currency}</StateChip>
             </header>
             <strong className="text-xl font-semibold tabular-nums text-fore">{money(Number(account.balance), account.currency)}</strong>
@@ -138,16 +138,16 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
           <span className="whitespace-nowrap text-xs tabular-nums text-mute">{transfers.length} movimiento{transfers.length === 1 ? '' : 's'}</span>
         </div>
         {transfers.length
-          ? <ListGrid label="Transferencias entre cuentas" template={TRANSFER_TEMPLATE} columns={TRANSFER_COLUMNS} minWidthClass="min-w-[58rem]">
+          ? <ListGrid label="Transferencias entre cuentas" template={TRANSFER_TEMPLATE} columns={TRANSFER_COLUMNS} minWidthClass="min-w-[64rem]">
             {transfers.map(transfer => {
               const row = transfer as TransferRow;
               const fromCurrency = row.from_currency || accounts.find(account => account.id === row.from_account_id)?.currency || 'PYG';
               const received = row.to_currency && row.to_currency !== fromCurrency ? Number(row.received_amount || row.amount) : null;
               return <ListRow key={row.id} template={TRANSFER_TEMPLATE}>
-                <div className="min-w-0"><b className="block text-[13.5px] font-semibold text-fore">{row.from_account_name} → {row.to_account_name}</b>{row.notes ? <small className="block text-[11px] text-mute" title={row.notes}>{row.notes}</small> : null}</div>
+                <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${row.from_account_name} → ${row.to_account_name}`}>{row.from_account_name} → {row.to_account_name}</b>{row.notes ? <small className="block truncate text-[11px] text-mute" title={row.notes}>{row.notes}</small> : null}</div>
                 <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(row.transferred_on) || undefined}>{listDateShort(row.transferred_on) || '—'}</span></div>
-                <div className="min-w-0"><ActorIdentity name={row.actor_name || row.created_by_email || 'Sin asignar'} photoUrl={row.actor_photo_url} verified={row.actor_verified === true}/></div>
-                <div className="min-w-0 text-[11.5px] text-mute">{row.reference ? <span title={row.reference}>{row.reference}</span> : 'Sin referencia'}</div>
+                <div className="flex min-w-0 items-center gap-1.5 text-xs text-mute"><ActorAvatar name={row.actor_name || row.created_by_email || 'Sin asignar'} photo={safePhoto(row.actor_photo_url)}/><span className="truncate" title={row.actor_name || row.created_by_email || 'Sin asignar'}>{row.actor_name || row.created_by_email || 'Sin asignar'}</span></div>
+                <div className="min-w-0 truncate text-[11.5px] text-mute" title={row.reference || 'Sin referencia'}>{row.reference || 'Sin referencia'}</div>
                 <div className="min-w-0 text-right">
                   {amount(row.amount, fromCurrency)}
                   {received !== null && row.to_currency ? <small className="ml-2 whitespace-nowrap tabular-nums text-mute">→ {money(received, row.to_currency)}</small> : null}
@@ -180,9 +180,9 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
         </label>
       </FilterToolbar>
       {visibleInvoices.length
-        ? <ListGrid label="Cobros pendientes" template={INVOICE_TEMPLATE} columns={INVOICE_COLUMNS} minWidthClass="min-w-[54rem]">
+        ? <ListGrid label="Cobros pendientes" template={INVOICE_TEMPLATE} columns={INVOICE_COLUMNS} minWidthClass="min-w-[60rem]">
           {visibleInvoices.map(invoice => <ListRow key={invoice.id} template={INVOICE_TEMPLATE}>
-            <div className="min-w-0"><b className="block text-[13.5px] font-semibold text-fore" title={`${invoice.number} · ${invoice.client_name}`}>{invoice.number} · {invoice.client_name}</b></div>
+            <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${invoice.number} · ${invoice.client_name}`}>{invoice.number} · {invoice.client_name}</b></div>
             <div className="min-w-0"><StateChip tone={INVOICE_TONE[invoice.status] || 'mute'} title={INVOICE_STATES[invoice.status] || invoice.status}>{INVOICE_STATES[invoice.status] || invoice.status}</StateChip></div>
             <div className="min-w-0">{invoice.due_on ? <span className={`whitespace-nowrap tabular-nums ${dueTone(invoice.due_on) ? 'font-semibold text-warn' : 'text-fore'}`} title={listDateFull(invoice.due_on) || undefined}>{listDateShort(invoice.due_on)}</span> : <span className="text-[11px] text-mute">Sin fecha</span>}</div>
             <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? amount(pendingOf(invoice), invoice.currency) : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
@@ -199,13 +199,13 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
     <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-payments-title">
       <div className="min-w-0"><h3 id="finance-payments-title" className="text-[17px] font-semibold tracking-tight text-fore">Quién cobró y dónde quedó</h3><p className="mt-1 text-xs text-mute">Cada cobro queda en la cuenta elegida y conserva su reversión en el historial.</p></div>
       {payments.length
-        ? <ListGrid label="Cobros registrados" template={PAYMENT_TEMPLATE} columns={PAYMENT_COLUMNS} minWidthClass="min-w-[64rem]">
+        ? <ListGrid label="Cobros registrados" template={PAYMENT_TEMPLATE} columns={PAYMENT_COLUMNS} minWidthClass="min-w-[68rem]">
           {payments.map(payment => <ListRow key={payment.id} template={PAYMENT_TEMPLATE}>
-            <div className="min-w-0"><b className="block text-[13.5px] font-semibold text-fore">{payment.client_name} · {payment.invoice_number}</b>{payment.reversal_id ? <small className="block text-[11px] text-warn" title={payment.reversal_reason || undefined}>Revertido{payment.reversal_reason ? ` · ${payment.reversal_reason}` : ''}</small> : null}</div>
+            <div className="flex min-w-0 items-center gap-2"><b className="truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${payment.client_name} · ${payment.invoice_number}`}>{payment.client_name} · {payment.invoice_number}</b>{payment.reversal_id ? <StateChip tone="warn" title={payment.reversal_reason || 'Cobro revertido'}>Revertido</StateChip> : null}</div>
             <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(payment.received_on) || undefined}>{listDateShort(payment.received_on) || '—'}</span></div>
-            <div className="min-w-0 text-[11.5px] text-fore">{payment.account_name} · {ACCOUNT_TYPES[payment.account_type] || payment.account_type}</div>
-            <div className="min-w-0"><ActorIdentity name={payment.actor_name || payment.received_by_email || 'Sin asignar'} photoUrl={payment.actor_photo_url} verified={payment.actor_verified === true}/></div>
-            <div className="min-w-0 text-[11.5px] text-mute">{payment.reference ? <span title={payment.reference}>{payment.reference}</span> : 'Sin referencia'}</div>
+            <div className="min-w-0 truncate text-[11.5px] text-fore" title={`${payment.account_name} · ${ACCOUNT_TYPES[payment.account_type] || payment.account_type}`}>{payment.account_name} · {ACCOUNT_TYPES[payment.account_type] || payment.account_type}</div>
+            <div className="flex min-w-0 items-center gap-1.5 text-xs text-mute"><ActorAvatar name={payment.actor_name || payment.received_by_email || 'Sin asignar'} photo={safePhoto(payment.actor_photo_url)}/><span className="truncate" title={payment.actor_name || payment.received_by_email || 'Sin asignar'}>{payment.actor_name || payment.received_by_email || 'Sin asignar'}</span></div>
+            <div className="min-w-0 truncate text-[11.5px] text-mute" title={payment.reference || 'Sin referencia'}>{payment.reference || 'Sin referencia'}</div>
             <div className="min-w-0 text-right">{amount(payment.amount, payment.currency)}</div>
             <div className="flex min-w-0 items-center justify-end gap-1"><ReceiptReversal payment={payment} refresh={loadFinance}/></div>
           </ListRow>)}
