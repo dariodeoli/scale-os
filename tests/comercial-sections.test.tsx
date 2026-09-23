@@ -1,7 +1,10 @@
 import React from 'react';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import {act,create,type ReactTestInstance,type ReactTestRenderer} from 'react-test-renderer';
+
+const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
@@ -22,12 +25,15 @@ const growthPath=require.resolve('../app/growth-dashboard');
 require.cache[growthPath]={id:growthPath,filename:growthPath,loaded:true,exports:{GrowthDashboard:({events}:{events:{count:number}[]})=><div data-events={events.length}>Tablero de crecimiento</div>}} as NodeModule;
 const visitorsPath=require.resolve('../app/live-visitors');
 require.cache[visitorsPath]={id:visitorsPath,filename:visitorsPath,loaded:true,exports:{LiveVisitors:()=><div>Viendo ahora</div>}} as NodeModule;
-// DnD: el contexto expone el arrastre como un botón para poder dispararlo.
+// DnD: el contexto expone el arrastre como un botón para poder dispararlo; el
+// evento es configurable por test (etapa destino u `over: null`).
+let dragEvent:unknown={active:{id:'10'},over:{id:'stage-won'}};
 const dndPath=require.resolve('@dnd-kit/core');
 require.cache[dndPath]={id:dndPath,filename:dndPath,loaded:true,exports:{
- DndContext:({children,onDragEnd}:{children:React.ReactNode;onDragEnd:(event:unknown)=>void})=><div>{children}<button type="button" data-drag onClick={()=>onDragEnd({active:{id:'10'},over:{id:'stage-won'}})}>arrastrar</button></div>,
+ DndContext:({children,onDragEnd}:{children:React.ReactNode;onDragEnd:(event:unknown)=>void})=><div>{children}<button type="button" data-drag onClick={()=>onDragEnd(dragEvent)}>arrastrar</button></div>,
  useDraggable:()=>({setNodeRef(){},attributes:{},listeners:{},isDragging:false}),
  useDroppable:()=>({setNodeRef(){},isOver:false}),useSensor:()=>({}),useSensors:()=>[],PointerSensor(){},KeyboardSensor(){},
+ pointerWithin:()=>[],rectIntersection:()=>[],
 }} as NodeModule;
 
 const {PlanesSection}=require('../app/sections/planes') as typeof import('../app/sections/planes');
@@ -134,6 +140,90 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
  assert.equal(viewerCopy.includes('Etapas'),false,'viewer no administra etapas');
  const handles=renderer.root.findAll(node=>String(node.props?.title||'').startsWith('Mover '));assert.equal(handles.length,0,`viewer no recibe la manija (${handles.map(handle=>String(handle.props?.title)).join(',')})`);
  act(()=>renderer.unmount());
+});
+
+test('pipeline: el arrastre es optimista, no revierte con la recarga caída y respeta capacidades',async()=>{
+ requests=[];let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<PipelineSection user={user('owner')} metrics={[]}/>);});
+ await flush({records:[{id:'10',name:'Cliente activo',stage:'contacted',amount:'3000000',currency:'PYG',probability:50}]});
+ await flush({stages:[
+  {id:'1',slug:'lead',label:'Nuevo lead',position:0,active:true,kind:'open'},
+  {id:'2',slug:'contacted',label:'Contactado',position:1,active:true,kind:'open'},
+  {id:'3',slug:'won',label:'Ganado',position:2,active:true,kind:'won'},
+  {id:'4',slug:'lost',label:'Perdido',position:3,active:true,kind:'lost'},
+  {id:'5',slug:'vieja',label:'Vieja',position:4,active:false,kind:'open'},
+ ]});
+ const column=(label:string)=>renderer.root.findAll(node=>String(node.props?.['aria-label']||'').startsWith(`${label} ·`));
+ const drag=async()=>{await act(async()=>{renderer.root.findAllByProps({'data-drag':true})[0].props.onClick();});};
+
+ // Optimista: la tarjeta cambia de columna al soltar, antes de la respuesta.
+ dragEvent={active:{id:'10'},over:{id:'stage-won'}};
+ await drag();
+ assert.match(text(column('Ganado')[0]),/Cliente activo/,'la tarjeta se mueve al soltar, sin esperar al API');
+ const move=pending();
+ assert.equal(move.url,'/core-api/api/agency/leads/10');
+ assert.deepEqual(JSON.parse(String(move.init.body)),{stage:'won',probability:100});
+ await act(async()=>{move.resolve(new Response(JSON.stringify({}),{status:200}));});
+ await act(async()=>{});
+ const failedReload=pending();
+ assert.equal(failedReload.url,'/core-api/api/agency/leads');
+ await act(async()=>{failedReload.resolve(new Response(JSON.stringify({}),{status:500}));});
+ await act(async()=>{});
+ assert.match(text(column('Ganado')[0]),/Cliente activo/,'el movimiento local no revierte si la recarga falla');
+
+ // Perdido fija 0% y un PATCH caído revierte la tarjeta a su columna previa.
+ dragEvent={active:{id:'10'},over:{id:'stage-lost'}};
+ await drag();
+ const lostPatch=pending();
+ assert.deepEqual(JSON.parse(String(lostPatch.init.body)),{stage:'lost',probability:0});
+ await act(async()=>{lostPatch.resolve(new Response(JSON.stringify({}),{status:200}));});
+ await act(async()=>{pending().resolve(new Response(JSON.stringify({records:[{id:'10',name:'Cliente activo',stage:'lost',amount:'3000000',currency:'PYG',probability:0}]}),{status:200}));});
+ await act(async()=>{});
+ assert.match(text(column('Perdido')[0]),/Cliente activo/,'la recarga confirma el movimiento');
+ dragEvent={active:{id:'10'},over:{id:'stage-lead'}};
+ await drag();
+ assert.match(text(column('Nuevo lead')[0]),/Cliente activo/,'optimista hacia una etapa abierta');
+ const openPatch=pending();
+ assert.deepEqual(JSON.parse(String(openPatch.init.body)),{stage:'lead'},'una etapa abierta conserva la probabilidad cargada');
+ await act(async()=>{openPatch.resolve(new Response(JSON.stringify({}),{status:500}));});
+ await act(async()=>{});
+ assert.match(text(column('Perdido')[0]),/Cliente activo/,'un PATCH caído devuelve la tarjeta a su columna');
+
+ // Etapas inactivas y sueltas fuera del tablero no operan.
+ const before=requests.length;
+ dragEvent={active:{id:'10'},over:{id:'stage-vieja'}};
+ await drag();
+ dragEvent={active:{id:'10'},over:null};
+ await drag();
+ assert.equal(requests.length,before,'ni la etapa inactiva ni soltar afuera llaman al API');
+ act(()=>renderer.unmount());
+
+ // collaborator tiene `commercial.manage`: ve el asa y puede mover.
+ requests=[];
+ await act(async()=>{renderer=create(<PipelineSection user={user('collaborator')} metrics={[]}/>);});
+ await flush({records:[{id:'20',name:'Lead colaborador',stage:'lead',amount:'1',currency:'PYG',probability:10}]});
+ await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'},{id:'2',slug:'contacted',label:'Contactado',position:1,active:true,kind:'open'}]});
+ const handles=renderer.root.findAll(node=>String(node.props?.title||'').startsWith('Mover '));
+ assert.equal(handles.length,1,'collaborator ve el asa porque tiene la capacidad del PATCH');
+ dragEvent={active:{id:'20'},over:{id:'stage-contacted'}};
+ await drag();
+ const collaboratorPatch=pending();
+ assert.equal(collaboratorPatch.url,'/core-api/api/agency/leads/20');
+ assert.deepEqual(JSON.parse(String(collaboratorPatch.init.body)),{stage:'contacted'});
+ act(()=>renderer.unmount());
+});
+
+test('arrastre: colisión por puntero, touch-action y una sola capacidad',()=>{
+ const pipeline=read('app/sections/pipeline.tsx');
+ assert.match(pipeline,/collisionDetection=\{detectCollision\}/,'el tablero usa la detección compuesta');
+ assert.match(pipeline,/pointerWithin\(args\)/,'la columna bajo el puntero gana la colisión');
+ assert.match(pipeline,/rectIntersection\(args\)/,'el teclado mantiene el fallback por rectángulo');
+ assert.match(pipeline,/touchAction:'none'/,'el asa cancela el gesto del navegador para poder arrastrar en táctil');
+ assert.match(pipeline,/const canMove=canEdit/,'el asa y el PATCH comparten la capacidad');
+ assert.doesNotMatch(pipeline,/canMove=\['owner','admin','management','finance','sales'\]/,'no vuelve la lista de roles paralela');
+ const composer=read('app/quote-composer.tsx');
+ assert.match(composer,/collisionDetection=\{detectCollision\}/,'los ítems y las secciones usan la detección compuesta');
+ assert.match(composer,/touchAction:'none'/,'el asa del compositor también es táctil');
 });
 
 test('presupuestos: KPIs, filas con encabezado, moneda distinta y estados',async()=>{

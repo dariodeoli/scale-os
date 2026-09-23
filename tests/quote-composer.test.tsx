@@ -33,9 +33,14 @@ require.cache[controlsPath]={id:controlsPath,filename:controlsPath,loaded:true,e
 }} as NodeModule;
 const dndPath=require.resolve('@dnd-kit/core');
 require.cache[dndPath]={id:dndPath,filename:dndPath,loaded:true,exports:{
- DndContext:({children}:{children:React.ReactNode})=><div>{children}</div>,
+ DndContext:({children,onDragEnd}:{children:React.ReactNode;onDragEnd:(event:{active:{id:string};over:{id:string}})=>void})=>{
+  const items=React.Children.toArray(children) as React.ReactElement<{id?:string}>[];
+  const ids=items.map(item=>item?.props?.id).filter((id):id is string=>Boolean(id));
+  return <div>{children}{ids.length>1?<button type="button" data-item-drag onClick={()=>onDragEnd({active:{id:ids[0]},over:{id:ids[1]}})}>reordenar</button>:null}</div>;
+ },
  useDraggable:()=>({setNodeRef(){},attributes:{},listeners:{},isDragging:false}),
  useDroppable:()=>({setNodeRef(){},isOver:false}),useSensor:()=>({}),useSensors:()=>[],PointerSensor(){},KeyboardSensor(){},
+ pointerWithin:()=>[],rectIntersection:()=>[],
 }} as NodeModule;
 const {QuoteComposer}=require('../app/quote-composer') as typeof import('../app/quote-composer');
 let renderer!:ReactTestRenderer;
@@ -77,7 +82,22 @@ async function run(){
   assert.equal(writes.length,before);assert.match(text(renderer.root.findByProps({role:'alert'})),/Elegí un cliente/);
   assert.equal(pendingStates.at(-1),false);assert.equal(button('Cancelar').props.disabled,false);
   act(()=>button('Cancelar').props.onClick());assert.equal(closed,1);act(()=>renderer.unmount());
-  console.log('PASS: QuoteComposer create/budget/plan real form validation and SaveActions; pending through API + completion, disabled cancellation, retained save error/draft, retry, idle missing-client dismissal. API, drag/portal controls mocked; no HTTP/browser.');
+  // Reordenar ítems: el arrastre reordena el formulario y el guardado persiste el orden.
+  let reorderClosed=0;const beforeReorder=writes.length;
+  await act(async()=>{renderer=create(<CloseContext.Provider value={()=>{reorderClosed++;}}><QuoteComposer mode="create" record={{...record,items:[{description:'Primero',quantity:1,unitPrice:'100'},{description:'Segundo',quantity:2,unitPrice:'200'}]}} done={()=>{}}/></CloseContext.Provider>);});
+  const preview=()=>text(renderer.root.findByProps({'aria-label':'Vista previa del documento'}));
+  assert(preview().indexOf('Primero')<preview().indexOf('Segundo'),'la vista previa arranca en el orden guardado');
+  const drag=renderer.root.findAllByProps({'data-item-drag':true})[0];
+  assert(drag,'el compositor expone el asa de arrastre');
+  await act(async()=>{drag.props.onClick();});
+  assert(preview().indexOf('Segundo')<preview().indexOf('Primero'),'el arrastre reordena los ítems en la vista previa');
+  let savingReorder!:Promise<void>;
+  await act(async()=>{savingReorder=renderer.root.findByType('form').props.onSubmit({preventDefault(){},persist(){}});});
+  await act(async()=>{releaseWrite!();await savingReorder;});
+  assert.equal(writes.length,beforeReorder+1,'el reordenar no dispara escrituras extra');
+  assert.deepEqual((writes.at(-1)!.body as {items:{description:string}[]}).items.map(item=>item.description),['Segundo','Primero'],'el orden guardado es el reordenado');
+  act(()=>button('Cancelar').props.onClick());assert.equal(reorderClosed,1);act(()=>renderer.unmount());
+  console.log('PASS: QuoteComposer create/budget/plan real form validation and SaveActions; pending through API + completion, disabled cancellation, retained save error/draft, retry, idle missing-client dismissal, item reorder persisted. API, drag/portal controls mocked; no HTTP/browser.');
  }finally{globalThis.fetch=originalFetch;act(()=>renderer?.unmount());}
 }
 void run();

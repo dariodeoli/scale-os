@@ -105,7 +105,7 @@ const planesSection = `<section class="directory grid gap-4" aria-label="Planes 
 
 /* ---- Pipeline: KPIs, totales por etapa y tablero kanban ----------------- */
 const leadCard = ({name, amount, probability, email, tone}) => `<article class="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
- <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title="${name}">${name}</b><button type="button" class="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute md:h-7 md:w-7" title="Mover ${name}" aria-label="Mover ${name}">⠿</button></header>
+ <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title="${name}">${name}</b><button type="button" class="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute active:cursor-grabbing md:h-7 md:w-7" style="touch-action:none" title="Mover ${name}" aria-label="Mover ${name}">⠿</button></header>
  ${moneyText(amount, 'text-sm text-fore')}
  <div class="flex flex-wrap items-center gap-2 text-[11px]">${stateChip(tone, `${probability}%`)}<span class="min-w-0 text-mute [overflow-wrap:anywhere]">${email}</span></div>
  <p class="text-[11px] leading-4 text-mute [overflow-wrap:anywhere]">Próximo paso: enviar la propuesta ajustada y confirmar fecha de rodaje.</p>
