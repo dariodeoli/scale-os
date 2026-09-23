@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const inventory=read('app/inventory-workspace.tsx'),studio=read('app/studio-workspace.tsx');
+const board=read('app/production-board.tsx'),planner=read('app/productivity-ui.tsx'),projects=read('app/sections/proyectos.tsx'),projectCard=read('app/project-card.tsx'),productionSection=read('app/sections/produccion.tsx');
 const uiV2=read('app/ui-v2.tsx');
 
 // ── Contrato v2 de OPS (campaña #41, spec #44): Tailwind + owncoding-ui +
@@ -79,4 +80,41 @@ assert.match(inventory,/ariaLabel="Vistas de inventario"/);
 assert.match(studio,/studioCanManageReservation/,'los permisos de la reserva siguen en la capa de datos');
 assert.match(studio,/\^\\d\{4\}-\(0\[1-9\]\|1\[0-2\]\)\$/,'el mes del estudio se valida antes de aplicarlo');
 
-console.log('PASS contrato v2 OPS: Tailwind + owncoding-ui + primitivas, una plantilla por lista sin elipsis, acciones y estados en inventario y estudio.');
+// ── Producción (tablero, Mi día, calendario, lista y lotes).
+assert.match(board,/export const statuses/,'el diccionario de etapas sigue siendo la fuente única');
+assert.match(board,/roleCan\(role,'work-orders\.edit'\)/,'el arrastre depende de la capacidad de editar piezas');
+assert.match(board,/title=\{`Mover \$\{order\.title\}`\}/,'la acción de mover se anuncia con el nombre de la pieza');
+assert.match(board,/StateChip/,'las tarjetas usan el chip único');
+assert.match(board,/work_type/,'la tarjeta muestra el tipo de trabajo del API');
+assert.match(board,/estimated_hours/,'la tarjeta muestra las horas estimadas/reales');
+assert.match(board,/approval_step/,'la tarjeta muestra el nivel de aprobación');
+assert.match(board,/drive_links/,'la tarjeta cuenta los enlaces múltiples');
+assert.match(board,/listDateFull/,'la auditoría de la pieza sale de list-format');
+assert.match(productionSection,/productionView==="Tablero"/,'la vista Tablero sigue cableada al shell');
+assert.match(productionSection,/<DragOverlay>/,'el overlay de arrastre se conserva');
+assert.match(productionSection,/onDragCancel/,'cancelar el arrastre limpia el estado');
+assert.match(productionSection,/initialView=\{productionView\}/,'el planificador conserva la API que consume Resumen');
+assert.match(productionSection,/productionView==="Tablero"&&\s*<section/,'el tablero es una sección propia');
+for(const source of [board,planner])assert.doesNotMatch(source,/truncate[^>]*(CeldaMoneda|SerialTexto|listDate)/,'producción no recorta montos, fechas ni seriales');
+// ── Planificador: Mi día, calendario y lista y lotes.
+assert.match(planner,/PLANNER_COLUMNS:Column\[\]/,'el planificador declara sus columnas');
+assert.match(planner,/PLANNER_TEMPLATE=/,'una sola plantilla para el planificador');
+assert.match(planner,/<ListGrid label=\{view==='Lista y lotes'\?'Piezas en lista y lotes':'Piezas'\} template=\{PLANNER_TEMPLATE\}/,'encabezado y filas comparten la plantilla del planificador');
+assert.match(planner,/min-\[769px\]:grid-cols-7/,'el calendario es lista en mobile y grilla desde 769');
+assert.match(planner,/workStatusLabel/,'el estado nunca se muestra crudo');
+assert.match(planner,/<SelectCustom label="Qué cambiar"/,'el lote conserva su editor');
+// ── Proyectos: lista con plantilla compartida, KPIs y tarjeta con detalle.
+assert.match(projects,/PROJECT_COLUMNS: Column\[\]/,'la lista de proyectos declara sus columnas');
+assert.match(projects,/PROJECT_COLS = '\[--project-cols:/,'la sección declara la plantilla compartida');
+assert.match(projects,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'encabezado y filas comparten --project-cols');
+assert.match(projects,/de \{BATCH_LIMITS\.projects\} seleccionado/,'el lote muestra el tope del API');
+assert.match(projectCard,/\[\.project-list_&\]:grid-cols-\[var\(--project-cols\)\]/,'la tarjeta consume la plantilla en modo lista');
+assert.match(projectCard,/min-h-\[200px\]/,'la cuadrícula mantiene tarjetas de 200 px');
+assert.match(projectCard,/variant="drawer"/,'el detalle del proyecto abre en drawer');
+assert.match(projectCard,/\/api\/agency\/projects\/\$\{project\.id\}/,'el detalle lee la ficha real del API');
+assert.match(projectCard,/approval_levels/,'el detalle muestra los niveles de aprobación');
+assert.match(projectCard,/drive_links/,'el detalle muestra todos los enlaces');
+assert.match(projectCard,/Piezas del proyecto/,'el detalle lista las piezas del proyecto');
+for(const source of [projects,projectCard])assert.doesNotMatch(source,/truncate[^>]*(CeldaMoneda|listDate(Short|Full))\b/,'proyectos no recorta montos ni fechas');
+
+console.log('PASS contrato v2 OPS: inventario, estudio, producción y proyectos con Tailwind + owncoding-ui, una plantilla por lista, estados y sin recortar datos.');
