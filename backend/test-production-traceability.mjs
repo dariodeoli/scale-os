@@ -41,9 +41,10 @@ for(const name of ['20260910_notifications','20260912_comment_mentions','2026091
 await pg.exec(await fs.readFile('migrations/20260911_weekly_reports.sql','utf8'));
 const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
 const insert=async(sql,args)=>(await query(sql+' returning id',args)).rows[0].id;
-const postOrder=new Function('db','crypto','externalLink','visibleRecord','normalizeUrgency','roleCan','ensurePersonalIdentity',`${helpers}
+import {compressionPlan} from './response-compression.js';
+const postOrder=new Function('db','crypto','externalLink','visibleRecord','normalizeUrgency','roleCan','ensurePersonalIdentity','compressionPlan',`${helpers}
  return async function(req,res){const url=new URL(req.url,'https://test.invalid');${route}
-  throw new Error('Unexpected route in traceability test');};`)(db,crypto,externalLink,visibleRecord,normalizeUrgency,roleCan,ensurePersonalIdentity);
+  throw new Error('Unexpected route in traceability test');};`)(db,crypto,externalLink,visibleRecord,normalizeUrgency,roleCan,ensurePersonalIdentity,compressionPlan);
 
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const other=await insert("insert into organizations(slug,name) values('trace-other','Other')");

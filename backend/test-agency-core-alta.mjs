@@ -8,6 +8,7 @@ import {roleCan} from './permissions.js';
 import {ensurePersonalIdentity} from './identity-session.js';
 import {visibleRecord} from './record-lifecycle.js';
 import {suite} from './agency-suite.js';
+import {compressionPlan} from './response-compression.js';
 import {currencies} from './currencies.js';
 import {amount,date as validDate,email as normalizedEmail,fail,items as validItems,option,phone as normalizedPhone,text} from './suite-validation.js';
 import {clientColor,clientLogo} from './client-identity.js';
@@ -36,9 +37,9 @@ try{
  await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
  for(const name of ['20260908_treasury_ledger.sql','20260908_google_oauth.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_productivity.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_client_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260919_pipeline_stages.sql','20260914_client_commercial_lifecycle.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
  const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
- const {post,session}=new Function('db','budgetSections','crypto','visibleRecord','ensurePersonalIdentity','demoOrganization','currencies','roleCan','amount','validDate','fail','validItems','option','text','normalizedEmail','normalizedPhone','clientLogo','clientColor','assertUniqueClientRuc',`${helpers}
+ const {post,session}=new Function('db','budgetSections','crypto','visibleRecord','ensurePersonalIdentity','demoOrganization','currencies','roleCan','amount','validDate','fail','validItems','option','text','normalizedEmail','normalizedPhone','clientLogo','clientColor','assertUniqueClientRuc','compressionPlan',`${helpers}
   return {session,post:async function(req,res){const url=new URL(req.url,'https://test.invalid');${routes}
-   throw new Error('Unexpected route in isolated POST test');}};`)(db,budgetSections,crypto,visibleRecord,ensurePersonalIdentity,()=>{throw new Error('Demo setup is outside this test');},currencies,roleCan,amount,validDate,fail,validItems,option,text,normalizedEmail,normalizedPhone,clientLogo,clientColor,assertUniqueClientRuc);
+   throw new Error('Unexpected route in isolated POST test');}};`)(db,budgetSections,crypto,visibleRecord,ensurePersonalIdentity,()=>{throw new Error('Demo setup is outside this test');},currencies,roleCan,amount,validDate,fail,validItems,option,text,normalizedEmail,normalizedPhone,clientLogo,clientColor,assertUniqueClientRuc,compressionPlan);
  const userId=(await query("insert into users(email,password_hash) values('alta-validacion@example.invalid','unused') returning id")).rows[0].id;
  const otherUserId=(await query("insert into users(email,password_hash) values('alta-otro@example.invalid','unused') returning id")).rows[0].id;
  const org=(await query("insert into organizations(slug,name) values('alta-validacion','Alta validación') returning id")).rows[0].id;

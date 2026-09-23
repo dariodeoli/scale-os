@@ -2,7 +2,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 import bcrypt from 'bcryptjs';
 import pg from 'pg';
 import { operations } from './operations.js';
@@ -27,6 +27,7 @@ import {pipelineStages} from './pipeline-stages.js';
 import {studioReservations} from './studio-reservations.js';
 import {workChecklists} from './work-checklists.js';
 import {ensurePersonalIdentity,ensurePersonalIdentityInTransaction} from './identity-session.js';
+import {compressionPlan} from './response-compression.js';
 import {googleProfilePhoto,rememberGooglePhoto} from './google-profile-photo.js';
 import {liveVisitors,startLiveVisitorCleanup} from './live-visitors.js';
 import { productivity } from './productivity.js';
@@ -78,7 +79,21 @@ allowedOrigins.add('https://sistema.scaleparaguay.com');
 allowedOrigins.add('https://cliente.scaleparaguay.com');
 let databaseReady = false;
 
-const send = (res, status, body, headers = {}) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', ...headers }); res.end(JSON.stringify(body)); return true; };
+const send = (res, status, body, headers = {}) => {
+  const merged = { 'Content-Type': 'application/json; charset=utf-8', ...headers };
+  const text = JSON.stringify(body);
+  // Compresión (#57): brotli si el cliente lo acepta, gzip como respaldo; nunca
+  // para binarios ni cuerpos chicos. Ver response-compression.js.
+  const plan = compressionPlan(res.req, text, merged['Content-Type'], status);
+  if (plan.vary) merged.Vary = merged.Vary || 'Accept-Encoding';
+  if (!plan.run) { res.writeHead(status, merged); res.end(text); return true; }
+  plan.run().then(compressed => {
+    res.writeHead(status, { ...merged, 'Content-Encoding': plan.encoding, 'Content-Length': String(compressed.length) });
+    res.end(compressed);
+  }).catch(() => { res.writeHead(status, merged); res.end(text); });
+  return true;
+};
+
 const cookie = (name, value, maxAge) => `${name}=${value}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=.scaleparaguay.com`;
 // The OAuth state cookie must cross hosts: it is issued through the app/portal
 // proxy and consumed at the admin-host callback. Domain-scoped with the same
