@@ -2,6 +2,28 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.109
+
+### Comercial
+
+- **Montos y monedas unificados**: presupuestos, pipeline, ficha de reportes y ciclo comercial usan el objeto de dinero v2 (las 6 monedas de la empresa, sin recortes) y el selector de moneda con el catálogo real; el indicador multi-moneda del pipeline ya no se corta en el celular.
+- **Vista y limpieza**: el cambio lista/cuadrícula sale del objeto compartido y se retiró el CSS muerto del directorio de clientes.
+
+### Operaciones
+
+- **Inventario** pasa al mismo objeto de dinero para sus importes, sin cambiar los datos que muestra.
+- Se retiraron las reglas muertas de `production-focus.css` (la pantalla ya vive en el sistema v2).
+
+### Finanzas
+
+- **Finanzas, Mora, Previsión y Comisiones** adoptan el dinero y el selector de moneda compartidos, con importes y fechas siempre completos.
+- Se retiró el CSS legacy de las listas de cobranza (`.mora-list`, `.client-list`), que ya no emitía ningún módulo.
+
+### Plataforma y API
+
+- **Tests del API con PostgreSQL real** ejecutables con un solo comando (`npm --prefix backend run test:postgres`), con el entorno documentado para cualquier máquina.
+- **Manual operativo del API** en `backend/OPERATIONS.md` y reglas de onboarding/deploy actualizadas en el monorepo.
+
 ## v1.0.108
 
 ### Navegación y sistema visual
