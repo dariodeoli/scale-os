@@ -71,7 +71,7 @@ const equipment = [
 ];
 const equipmentRow = (item) => `
 <article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[48px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
- <span class="flex h-11 items-center md:h-auto"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></span>
+ <span class="flex h-11 items-center md:h-auto"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label></span>
  <span class="flex items-center">${item.photo ? '<img class="h-8 w-8 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : `<span class="grid h-8 w-8 place-items-center rounded-lg border border-ink-600 text-mute">${svg(ICON.camera, 14)}</span>`}</span>
  <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${item.name}">${item.name}</b><code class="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></span>
  <span class="flex min-w-0 items-center gap-x-1.5 text-[13px] leading-5 text-mute"><span class="min-w-0 truncate" title="${item.category}">${item.category}</span><span aria-hidden="true">·</span><span class="inline-flex items-center whitespace-nowrap">${item.serial ? `••••${item.serial.slice(-4)}` : 'Sin serie'}</span></span>
@@ -84,7 +84,7 @@ const equipmentRow = (item) => `
 const equipmentCard = (item) => `
 <article data-grid-card="equipment" data-status="${item.status}" class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
  <div class="flex items-start justify-between gap-3"><div class="flex min-w-0 items-start gap-2">
-  <label class="mt-0.5 inline-flex shrink-0 items-center" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
+  <label class="mt-0.5 flex h-11 shrink-0 items-center justify-center md:h-6" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
   ${item.photo ? '<img class="h-11 w-11 shrink-0 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : ''}
   <div class="min-w-0"><h3 class="break-words text-sm font-semibold text-fore">${item.name}</h3><code class="whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></div>
  </div>${badge(item.statusLabel, item.statusTone)}</div>

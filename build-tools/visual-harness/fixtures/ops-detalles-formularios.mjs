@@ -35,9 +35,17 @@ const input = (id, value, extra = '') => `<input id="${id}" value="${value}" cla
 const select = (id, label) => `<select id="${id}" class="h-11 w-full cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition md:h-9 md:text-sm"><option>${label}</option></select>`;
 const textarea = (id, value) => `<textarea id="${id}" class="min-h-20 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition md:text-sm">${value}</textarea>`;
 const drawer = (body) => `<div class="grid min-w-0 gap-4"><div class="mx-auto w-full max-w-[560px] min-w-0 rounded-2xl border border-ink-600 bg-ink-800 p-4 md:p-5">${body}</div></div>`;
+// Hoja mobile (dialog.css ≤540): ancho completo, 88dvh, cuerpo con scroll y acciones en una columna.
+const sheet = (heading, body) => `<div class="grid min-w-0 gap-4">
+ <div class="mx-auto flex w-full min-w-0 flex-col overflow-hidden rounded-[20px] border border-ink-600 bg-ink-800" style="max-height:min(88dvh,calc(100dvh - env(safe-area-inset-top)))">
+  <div class="dialog-heading"><h2 class="min-w-0">${heading}</h2><button type="button" class="icon-button" title="Cerrar" aria-label="Cerrar">×</button></div>
+  <div class="dialog-body">${body}</div>
+  <div class="dialog-footer"><div class="dialog-actions"><button type="button" class="secondary">Cancelar</button><button type="button" class="primary">Guardar</button></div></div>
+ </div>
+</div>`;
 
 /* ------------------------------------------- detalle de inventario (drawer) */
-const inventoryDetail = drawer(`
+const inventoryDetailBody = `
  <div class="grid gap-4">
   <section class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800/60 p-3 sm:grid-cols-[auto_minmax(0,1fr)]">
    <img class="h-28 w-28 rounded-xl object-cover" src="/brand/icon-192.png" alt="Foto de Memoria SD">
@@ -75,10 +83,10 @@ const inventoryDetail = drawer(`
    <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Retiro registrado</b><span class="text-xs text-mute">17 sept 26 · 08:05 · Fabrizio Dellacasa Reyes</span><p class="text-xs text-mute">Campaña Aniversario 2026</p></article>
    <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Ubicación actualizada</b><span class="text-xs text-mute">14 sept 26 · 12:00 · Ana Paula Benítez</span></article>
   </section>
- </div>`);
+ </div>`;
 
 /* ----------------------------------------------------- pieza (drawer) */
-const pieceDetail = drawer(`
+const pieceDetailBody = `
  <div class="grid min-w-0 gap-4">
   <section class="grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
    <div class="flex min-w-0 flex-wrap items-center justify-between gap-2"><span class="client-identity identity-teal"><span class="identity-avatar">CM</span><span class="actor-identity-name" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span><span class="urgency-badge">5 · Crítica</span></div>
@@ -91,21 +99,21 @@ const pieceDetail = drawer(`
    </dl>
    <span class="project-presence">Viendo ahora: ${avatar('Fabrizio Dellacasa Reyes')}</span>
   </section>
-  <div class="mb-5 flex flex-wrap gap-2 rounded-2xl border border-fore/10 bg-ink p-2" role="tablist"><button type="button" role="tab" aria-selected="true" class="rounded-xl bg-fono px-3 py-2 text-sm font-medium text-onbrand">Detalle</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Comentarios (2)</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Historial</button></div>
+  <div class="mb-5 flex flex-wrap gap-2 rounded-2xl border border-fore/10 bg-ink p-2 [&>button]:min-h-11 md:[&>button]:min-h-9" role="tablist"><button type="button" role="tab" aria-selected="true" class="rounded-xl bg-fono px-3 py-2 text-sm font-medium text-onbrand">Detalle</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Comentarios (2)</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Historial</button></div>
   <div class="grid gap-4">
    <div class="flex flex-wrap items-center gap-2"><button class="secondary">${svg(ICON.pencil, 14)}Editar pieza</button></div>
    <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Descripción</h4><p class="whitespace-pre-line text-[13px] text-mute">Reel de lanzamiento para la nueva línea de productos — corte final con subtítulos, corrección de color y mezcla. Falta la aprobación del cliente sobre la música.</p></section>
    <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Responsables</h4><section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><ul class="assigned-people-list"><li class="assigned-person">${actorIdentity('María Renée Ayala Benítez', '18 sept 26 · 16:20')}<span class="assigned-person-primary">Principal</span></li><li class="assigned-person">${actorIdentity('Juan Carlos Villalba', '17 sept 26 · 09:48')}</li></ul></section></section>
    <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Archivos y enlaces</h4>
-    <div class="drive-links"><span class="drive-links-label">Enlaces</span><ul class="drive-links-list"><li><a href="#drive">Corte final · Drive ↗</a></li><li><a href="#drive">Música aprobada · Drive ↗</a></li></ul></div>
+    <div class="drive-links [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center md:[&_a]:min-h-0"><span class="drive-links-label">Enlaces</span><ul class="drive-links-list"><li><a href="#drive">Corte final · Drive ↗</a></li><li><a href="#drive">Música aprobada · Drive ↗</a></li></ul></div>
     <div class="work-order-links"><h3>Enlaces de la pieza</h3><ul class="work-order-link-list"><li><span>Previsualización para el cliente</span><button type="button" class="text-button">Copiar</button></li></ul></div>
    </section>
-   <section><div class="work-checklist"><h3>Checklist</h3><label class="work-checklist-item"><input type="checkbox" checked><span>Subtítulos revisados</span></label><label class="work-checklist-item"><input type="checkbox"><span>Mezcla final de audio aprobada por el cliente</span></label></div></section>
+   <section><div class="work-checklist"><div class="work-checklist-heading"><h3>Checklist</h3><small>1 de 2 completados</small></div><ul class="work-checklist-items"><li class="is-complete"><div class="work-checklist-item"><label class="work-checklist-check"><input type="checkbox" checked><span>Subtítulos revisados</span></label><span class="work-checklist-actor" title="Quién completó este ítem">Completado por ${actorIdentity('Ana Paula Benítez', '16 sept 26 · 15:10')}</span></div></li><li><div class="work-checklist-item"><label class="work-checklist-check"><input type="checkbox"><span>Mezcla final de audio aprobada por el cliente</span></label></div></li></ul></div></section>
   </div>
- </div>`);
+ </div>`;
 
 /* --------------------------------------------------- proyecto (drawer) */
-const projectDetail = drawer(`
+const projectDetailBody = `
  <div class="grid min-w-0 gap-4">
   <section class="grid min-w-0 gap-2">
    <div class="flex flex-wrap items-center gap-2">${chip('Activo', 'ok')}<span class="urgency-badge">4 · Alta</span>${chip('3 niveles de aprobación', 'info')}</div>
@@ -119,17 +127,17 @@ const projectDetail = drawer(`
    </dl>
   </section>
   <section class="grid min-w-0 gap-2"><h4 class="text-sm font-semibold text-fore">Responsables</h4><section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><ul class="assigned-people-list"><li class="assigned-person">${actorIdentity('María Renée Ayala Benítez', '18 sept 26 · 16:20')}<span class="assigned-person-primary">Principal</span></li><li class="assigned-person">${actorIdentity('Juan Carlos Villalba', '17 sept 26 · 09:48')}</li><li class="assigned-person">${actorIdentity('Lucía Paredes', '16 sept 26 · 15:10')}</li></ul></section></section>
-  <section class="grid min-w-0 gap-2"><h4 class="text-sm font-semibold text-fore">Enlaces de archivo o carpeta de Drive</h4><div class="drive-links"><ul class="drive-links-list"><li><a href="#drive">Campaña Aniversario 2026 · Drive ↗</a></li><li><a href="#drive">Entregables aprobados · Drive ↗</a></li></ul></div></section>
+  <section class="grid min-w-0 gap-2"><h4 class="text-sm font-semibold text-fore">Enlaces de archivo o carpeta de Drive</h4><div class="drive-links [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center md:[&_a]:min-h-0"><ul class="drive-links-list"><li><a href="#drive">Campaña Aniversario 2026 · Drive ↗</a></li><li><a href="#drive">Entregables aprobados · Drive ↗</a></li></ul></div></section>
   <section class="grid min-w-0 gap-2"><h4 class="text-sm font-semibold text-fore">Piezas del proyecto</h4>
    <ul class="grid gap-1.5">
     <li class="flex min-w-0 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px]"><span class="min-w-0 truncate font-semibold text-fore" title="Reel de lanzamiento para la nueva línea de productos — corte final con subtítulos, corrección de color y mezcla">Reel de lanzamiento para la nueva línea de productos — corte final con subtítulos, corrección de color y mezcla</span><span class="ml-auto flex shrink-0 items-center gap-2"><span class="list-date tabular-nums text-mute" data-tone="warn" title="Entrega 28-ago · 09:30 h">28-ago · 09:30</span>${chip('Revisión', 'warn')}</span></li>
     <li class="flex min-w-0 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px]"><span class="min-w-0 truncate font-semibold text-fore" title="Spots de 15 s y 30 s para radio, televisión abierta y redes sociales">Spots de 15 s y 30 s para radio, televisión abierta y redes sociales</span><span class="ml-auto flex shrink-0 items-center gap-2"><span class="list-date tabular-nums text-mute" title="Entrega 23-sept · 07:00 h">23-sept · 07:00</span>${chip('Por grabar', 'warn')}</span></li>
    </ul>
   </section>
- </div>`);
+ </div>`;
 
 /* ------------------------------------------------- formulario de equipo */
-const itemForm = drawer(`
+const itemFormBody = `
  <form class="grid gap-4 sm:grid-cols-2">
   <p class="text-xs text-mute sm:col-span-2">Un registro por unidad reservable. Al guardar se asigna un código único Scale OS, imprimible como etiqueta.</p>
   <div class="sm:col-span-2">${fieldLabel('Nombre del equipo', 'f-name')}${input('f-name', 'Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido)')}</div>
@@ -137,7 +145,7 @@ const itemForm = drawer(`
   <div>${fieldLabel('Serie, IMEI o identificador', 'f-serial')}${input('f-serial', 'SD128GB-UHSII-SANDISK-2024-000123456789')}</div>
   <fieldset class="grid gap-2 sm:col-span-2"><legend class="text-[11px] font-medium uppercase tracking-wider text-mute">Foto del equipo</legend>
    <span class="flex flex-wrap items-center gap-3"><img class="h-24 w-24 rounded-xl object-cover" src="/brand/icon-192.png" alt="Vista previa"><button type="button" class="text-button">${svg(ICON.trash, 14)}Quitar foto</button></span>
-   <div class="grid gap-2 sm:grid-cols-2"><div>${fieldLabel('Enlace a la imagen', 'f-photo')}${input('f-photo', 'https://cdn.example/Memoria-SD-128GB-UHS-II-Sandisk-2024-000123456789.webp')}</div><label class="flex items-end gap-2 text-sm text-mute"><span class="flex-1">Cámara o subir foto<input class="mt-1 block w-full text-xs" type="file" aria-label="Elegir foto"></span></label></div>
+   <div class="grid gap-2 sm:grid-cols-2"><div>${fieldLabel('Enlace a la imagen', 'f-photo')}${input('f-photo', 'https://cdn.example/Memoria-SD-128GB-UHS-II-Sandisk-2024-000123456789.webp')}</div><label class="flex items-end gap-2 text-sm text-mute"><span class="flex-1">Cámara o subir foto<input class="mt-1 block h-11 w-full text-xs md:h-auto" type="file" aria-label="Elegir foto"></span></label></div>
   </fieldset>
   <fieldset class="grid gap-2 sm:col-span-2"><legend class="text-[11px] font-medium uppercase tracking-wider text-mute">Ubicación de guardado</legend>
    <div class="grid gap-2 sm:grid-cols-3"><div>${fieldLabel('Ubicación', 'f-loc')}${select('f-loc', 'Estante B · fila 1 · Depósito central')}</div><p class="self-end text-xs text-mute">Se guarda como Estante B · fila 1 · Depósito central.</p><div>${fieldLabel('Fila / posición', 'f-row')}<input id="f-row" value="1" class="h-11 w-36 rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore md:h-9 md:text-sm"></div></div>
@@ -156,10 +164,10 @@ const itemForm = drawer(`
   <div>${fieldLabel('Fecha de adquisición', 'f-acquired')}<input id="f-acquired" type="date" value="2024-01-15" class="h-11 w-44 rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore md:h-9 md:text-sm"></div>
   <div class="sm:col-span-2">${fieldLabel('Notas', 'f-notes')}${textarea('f-notes', 'Incluye estuche rígido y funda. Se usa en rodajes de exteriores; guardar con la tapa hacia arriba.')}</div>
   <div class="sm:col-span-2"><div class="dialog-actions"><button type="button" class="secondary">Cancelar</button><button type="button" class="primary">Guardar equipo</button></div></div>
- </form>`);
+ </form>`;
 
 /* ------------------------------------------------ formulario de reserva */
-const reservationForm = drawer(`
+const reservationFormBody = `
  <form class="grid gap-4 sm:grid-cols-2">
   <div class="sm:col-span-2">${fieldLabel('Producción o uso previsto', 'r-title')}${input('r-title', 'Rodaje de contenidos · Banco Atlas (estudio y exteriores)')}</div>
   <div class="sm:col-span-2">${fieldLabel('Proyecto', 'r-project')}${select('r-project', 'Campaña Aniversario 2026 · Temporada de verano')}</div>
@@ -181,10 +189,10 @@ const reservationForm = drawer(`
   <div class="sm:col-span-2">${fieldLabel('Notas', 'r-notes')}${textarea('r-notes', 'Se retiran en la mañana; incluir baterías cargadas y tarjetas formateadas.')}</div>
   <p class="text-xs text-mute sm:col-span-2">Reservar no registra el retiro. Al retirar se indica quién lleva físicamente los equipos; al devolver se registra dónde quedan.</p>
   <div class="sm:col-span-2"><div class="dialog-actions"><button type="button" class="secondary">Cancelar</button><button type="button" class="primary">Guardar reserva</button></div></div>
- </form>`);
+ </form>`;
 
 /* -------------------------------------------- formulario de verificación */
-const verificationForm = drawer(`
+const verificationFormBody = `
  <form class="grid gap-4">
   <p class="text-xs text-mute">Código: <code class="whitespace-nowrap font-mono text-[11px] text-fore">SC-000128</code>. El control queda fechado, asociado a tu usuario y no cambia reservas existentes.</p>
   <div>${fieldLabel('Resultado', 'v-result')}${select('v-result', 'Hay una diferencia')}</div>
@@ -193,14 +201,21 @@ const verificationForm = drawer(`
   <label class="flex min-h-11 items-start gap-2 text-sm text-fore md:min-h-0"><input type="checkbox" class="mt-0.5 h-6 w-6 p-0 accent-fono"><span>Ajustar estado o ubicación registrada</span></label>
   <div class="grid gap-4 sm:grid-cols-3"><div>${fieldLabel('Estado real', 'v-status')}${select('v-status', 'Disponible')}</div><div>${fieldLabel('Ubicación real', 'v-shelf')}${input('v-shelf', 'Estante B')}</div><div>${fieldLabel('Fila / posición', 'v-row')}<input id="v-row" value="1" class="h-11 w-36 rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore md:h-9 md:text-sm"></div></div>
   <div class="dialog-actions"><button type="button" class="secondary">Cancelar</button><button type="button" class="primary">Registrar verificación</button></div>
- </form>`);
+ </form>`;
 
 /* ------------------------------------------------------------------ export */
+const inventorySheet = sheet('Detalle y trazabilidad', inventoryDetailBody);
+const pieceSheet = sheet('Pieza · Reel de lanzamiento', pieceDetailBody);
+const itemSheet = sheet('Nuevo equipo', itemFormBody);
+
 export default [
-  {id: 'ops-detalle-inventario', section: 'Inventario', surface: 'Detalle y trazabilidad (drawer)', kind: 'workspace', lists: [], grids: [], body: inventoryDetail},
-  {id: 'ops-detalle-pieza', section: 'Producción', surface: 'Pieza (drawer)', kind: 'workspace', lists: [], grids: [], body: pieceDetail},
-  {id: 'ops-detalle-proyecto', section: 'Proyectos', surface: 'Detalle de proyecto (drawer)', kind: 'workspace', lists: [], grids: [], body: projectDetail},
-  {id: 'ops-form-equipo', section: 'Inventario', surface: 'Formulario de equipo (modal)', kind: 'workspace', lists: [], grids: [], body: itemForm},
-  {id: 'ops-form-reserva', section: 'Inventario', surface: 'Formulario de reserva (modal)', kind: 'workspace', lists: [], grids: [], body: reservationForm},
-  {id: 'ops-form-verificacion', section: 'Inventario', surface: 'Formulario de verificación (modal)', kind: 'workspace', lists: [], grids: [], body: verificationForm},
+  {id: 'ops-detalle-inventario', section: 'Inventario', surface: 'Detalle y trazabilidad (drawer)', kind: 'workspace', lists: [], grids: [], body: drawer(inventoryDetailBody)},
+  {id: 'ops-detalle-pieza', section: 'Producción', surface: 'Pieza (drawer)', kind: 'workspace', lists: [], grids: [], body: drawer(pieceDetailBody)},
+  {id: 'ops-detalle-proyecto', section: 'Proyectos', surface: 'Detalle de proyecto (drawer)', kind: 'workspace', lists: [], grids: [], body: drawer(projectDetailBody)},
+  {id: 'ops-form-equipo', section: 'Inventario', surface: 'Formulario de equipo (modal)', kind: 'workspace', lists: [], grids: [], body: drawer(itemFormBody)},
+  {id: 'ops-form-reserva', section: 'Inventario', surface: 'Formulario de reserva (modal)', kind: 'workspace', lists: [], grids: [], body: drawer(reservationFormBody)},
+  {id: 'ops-form-verificacion', section: 'Inventario', surface: 'Formulario de verificación (modal)', kind: 'workspace', lists: [], grids: [], body: drawer(verificationFormBody)},
+  {id: 'ops-sheet-inventario', section: 'Inventario', surface: 'Hoja mobile · detalle de inventario', kind: 'workspace', lists: [], grids: [], body: inventorySheet},
+  {id: 'ops-sheet-pieza', section: 'Producción', surface: 'Hoja mobile · pieza', kind: 'workspace', lists: [], grids: [], body: pieceSheet},
+  {id: 'ops-sheet-form-equipo', section: 'Inventario', surface: 'Hoja mobile · formulario de equipo', kind: 'workspace', lists: [], grids: [], body: itemSheet},
 ];

@@ -96,7 +96,7 @@ const PLANNER_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.1fr)_7re
 const plannerHead = `<div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PLANNER_TEMPLATE}"><span role="columnheader">Pieza</span><span role="columnheader">Vence</span><span role="columnheader">Estado</span><span role="columnheader">Tipo</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Checklist</span><span role="columnheader">Horas</span></div>`;
 const plannerRow = (order) => `
 <div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-1 ${PLANNER_TEMPLATE}" data-status="${order.status.id}">
- <span class="flex min-w-0 items-center gap-2"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${order.title}"><button type="button" class="min-w-0 text-left"><b class="block truncate text-[13px] font-semibold text-fore" title="${order.title}">${order.title}</b><small class="block truncate text-[11px] text-mute" title="${order.client} · ${order.project}">${order.client} · ${order.project}</small></button></span>
+ <span class="flex min-w-0 items-center gap-2"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${order.title}"></label><button type="button" class="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0"><b class="block truncate text-[13px] font-semibold text-fore" title="${order.title}">${order.title}</b><small class="block truncate text-[11px] text-mute" title="${order.client} · ${order.project}">${order.client} · ${order.project}</small></button></span>
  <span class="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute">${order.dueShort || 'Sin fecha'}</span>
  <span class="min-w-0">${chip(order.status.label, order.status.tone)}</span>
  <span class="min-w-0">${chip(order.workType, 'mute')}</span>
@@ -163,6 +163,22 @@ const projectsBody = (asGrid) => `
    : `<div role="table" aria-label="Proyectos" class="project-list silent-scroll min-w-0 overflow-x-auto [--project-cols:minmax(14rem,1.6fr)_7rem_minmax(13rem,1.1fr)_minmax(10rem,1fr)_10rem]"><div class="min-w-[64rem]"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-3 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PROJECT_TEMPLATE}"><span role="columnheader">Proyecto</span><span role="columnheader">Estado</span><span role="columnheader">Fechas y piezas</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Acciones</span></div><div role="rowgroup">${projectRows.map(projectRow).join('')}</div></div></div>`}
 </section>`;
 
+
+/* ------------------------------------------------------------ calendario */
+const CAL_DAYS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const calHead = `<div class="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">${CAL_DAYS.map(day => `<span class="text-center text-[10px] font-bold uppercase tracking-wider text-mute">${day}</span>`).join('')}</div>`;
+const calPiece = (order, time) => `<button type="button" class="grid min-h-11 gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-left text-[11px] text-fono-light min-[769px]:min-h-0"><b class="break-words">${order.title}</b><span class="text-mute">${order.client} · ${time}</span></button>`;
+const calDay = (day, rows) => `<div class="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1" aria-label="2026-09-${String(day).padStart(2,'0')}"><time class="text-[11px] tabular-nums text-mute" datetime="2026-09-${String(day).padStart(2,'0')}">${day}</time>${rows.join('')}</div>`;
+const calByDay = new Map([[3, [[orders[0], '14:00']]], [8, [[orders[1], '09:30']]], [15, [[orders[2], '16:45']]], [22, [[orders[3], '11:15']]], [25, [[orders[0], '10:00']]]]);
+const calendarBody = `
+<div class="grid min-w-0 gap-4" aria-label="Planificador de producción">
+ <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-lg font-bold text-fore">Calendario</h2><div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 [&>button]:min-h-11 md:[&>button]:min-h-9" role="group" aria-label="Vista del planificador"><button type="button" class="rounded-lg px-3 py-1 text-[12.5px] font-semibold text-mute">Mi día</button><button type="button" class="rounded-lg bg-fono px-3 py-1 text-[12.5px] font-semibold text-onbrand" aria-pressed="true">Calendario</button><button type="button" class="rounded-lg px-3 py-1 text-[12.5px] font-semibold text-mute">Lista y lotes</button></div></div>
+ <label class="grid w-44 gap-1.5"><span class="text-[12px] font-semibold text-mute">Mes de entrega</span><input type="month" value="2026-09" class="min-h-11"></label>
+ <div class="grid gap-2" aria-label="Calendario de entregas del mes">${calHead}
+  <div class="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">${Array.from({length: 1}, (_, index) => `<div class="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" aria-hidden="true"></div>`).join('')}${Array.from({length: 30}, (_, index) => {const day = index + 1;return calDay(day, (calByDay.get(day) || []).map(([order, time]) => calPiece(order, time)));}).join('')}</div>
+ </div>
+</div>`;
+
 /* ------------------------------------------------------------------ export */
 export default [
   {
@@ -172,7 +188,16 @@ export default [
     kind: 'workspace',
     lists: [],
     grids: [],
-    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción"><div class="flex snap-x gap-3 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Tablero de Producción, desplazable horizontalmente">${productionColumns.map(column => kanbanColumn(column.status, column.orders)).join('')}</div><p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p></section></div>`,
+    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción"><div class="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Tablero de Producción, desplazable horizontalmente">${productionColumns.map(column => kanbanColumn(column.status, column.orders)).join('')}</div><p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p></section></div>`,
+  },
+  {
+    id: 'produccion-calendario',
+    section: 'Producción',
+    surface: 'Calendario de entregas',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: calendarBody,
   },
   {
     id: 'produccion-mi-dia',
