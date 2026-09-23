@@ -20,6 +20,11 @@ import {ensurePipelineStages} from './pipeline-stages.js';
 // Fuente única de roles: la lista canónica vive en permissions.js.
 const memberRoles=roles;
 
+// Campos que expone la lista de órdenes; `?fields=` proyecta sobre esta lista.
+// Todo lo que no esté acá no viaja: sin `organization_id`/`created_at`/`assignee_version`
+// (sin lectores) ni el `assignee_email` legado (Re #57).
+const workOrderListFields=['id','project_id','project_name','client_name','title','description','description_preview','status','urgency','work_type','approval_step','due_date','due_time','drive_url','drive_links','estimated_hours','actual_hours','updated_at','assigned_user_id','assigned_user_ids','effective_assignees','assignee_source','checklist_total','checklist_completed'];
+
 // Legacy operational endpoints extracted from the server entrypoint. Handlers
 // keep their original behavior and responses; the dispatcher returns true when
 // a path is handled so the server router can fall through to newer modules.
@@ -173,6 +178,8 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       left join assignees ag on ag.record_id=p.id
       left join counts cnt on cnt.project_id=p.id
       where p.organization_id=$1 and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by p.active desc,p.created_at desc`,[user.organization_id]);
+      // Mismo recorte que en órdenes: columnas sin lectores fuera del payload.
+      for(const row of r.rows){delete row.organization_id;delete row.created_at;delete row.assigned_user_id;delete row.assignee_version;}
       return send(res,200,{projects:r.rows});
     }
     if (url.pathname === '/api/agency/projects' && req.method === 'POST') {
@@ -194,17 +201,42 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       if(limitRaw!==null&&(!Number.isSafeInteger(limit)||limit<1||limit>2000))return send(res,400,{error:'Paginación inválida'});
       if(offsetRaw!==null&&(limitRaw===null||!Number.isSafeInteger(offset)||offset<0))return send(res,400,{error:'Paginación inválida'});
       const paginated=limit!==null;
-      const r=await db.query(`select o.*,p.name as project_name,c.name as client_name,u.email as assignee_email from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id left join users u on u.id=o.assigned_user_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by o.updated_at desc,o.id desc${paginated?' limit $2 offset $3':''}`,paginated?[user.organization_id,limit+1,offset]:[user.organization_id]);
+      // Proyección opcional `?fields=`: las páginas que no necesitan el detalle
+      // (pickers de estudio/presupuestos/inventario) piden solo lo que dibujan.
+      const fieldsRaw=url.searchParams.get('fields');
+      let projection=null;
+      if(fieldsRaw!==null){
+        const requested=[...new Set(fieldsRaw.split(',').map(field=>field.trim()).filter(Boolean))];
+        const invalid=requested.filter(field=>!workOrderListFields.includes(field));
+        if(!requested.length||invalid.length)return send(res,400,{error:invalid.length?`Campos inválidos: ${invalid.slice(0,6).join(', ')}`:'Elegí al menos un campo'});
+        projection=requested.includes('id')?requested:['id',...requested];
+      }
+      const wants=field=>projection===null||projection.includes(field);
+      // La lista no trae columnas sin lectores (organización, alta, versión de
+      // asignación) ni el correo legado del asignado: se recortan acá, después de
+      // la consulta, para no depender de que el esquema tenga todas las columnas.
+      const r=await db.query(`select o.*,p.name as project_name,c.name as client_name from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by o.updated_at desc,o.id desc${paginated?' limit $2 offset $3':''}`,paginated?[user.organization_id,limit+1,offset]:[user.organization_id]);
+      for(const row of r.rows){delete row.organization_id;delete row.created_at;delete row.assignee_version;}
       const hasMore=paginated&&r.rows.length>limit;
       if(hasMore)r.rows.length=limit;
-      await enrichWorkOrderAssignees(db,user.organization_id,r.rows);
-      const ids=[...new Set(r.rows.map(row=>String(row.id)))];
-      if(ids.length){
-        const checklists=(await db.query(`select work_order_id,count(*)::int as checklist_total,count(*) filter(where completed)::int as checklist_completed from agency_work_checklist_items where organization_id=$1 and work_order_id=any($2::bigint[]) group by work_order_id`,[user.organization_id,ids])).rows;
-        const byId=new Map(checklists.map(row=>[String(row.work_order_id),row]));
-        for(const row of r.rows){const counts=byId.get(String(row.id));row.checklist_total=counts?.checklist_total||0;row.checklist_completed=counts?.checklist_completed||0;}
-      } else for(const row of r.rows){row.checklist_total=0;row.checklist_completed=0;}
-      return send(res,200,paginated?{workOrders:r.rows,page:{limit,offset,hasMore}}:{workOrders:r.rows});
+      if(wants('effective_assignees')||wants('assignee_source')||wants('assigned_user_ids'))await enrichWorkOrderAssignees(db,user.organization_id,r.rows);
+      if(wants('checklist_total')||wants('checklist_completed')){
+        const ids=[...new Set(r.rows.map(row=>String(row.id)))];
+        if(ids.length){
+          const checklists=(await db.query(`select work_order_id,count(*)::int as checklist_total,count(*) filter(where completed)::int as checklist_completed from agency_work_checklist_items where organization_id=$1 and work_order_id=any($2::bigint[]) group by work_order_id`,[user.organization_id,ids])).rows;
+          const byId=new Map(checklists.map(row=>[String(row.work_order_id),row]));
+          for(const row of r.rows){const counts=byId.get(String(row.id));row.checklist_total=counts?.checklist_total||0;row.checklist_completed=counts?.checklist_completed||0;}
+        } else for(const row of r.rows){row.checklist_total=0;row.checklist_completed=0;}
+      }
+      const rows=projection===null?r.rows:r.rows.map(row=>{
+        const out={id:row.id};
+        for(const field of projection){
+          if(field==='description_preview'){out.description_preview=row.description?String(row.description).slice(0,240):null;continue;}
+          if(Object.hasOwn(row,field))out[field]=row[field];
+        }
+        return out;
+      });
+      return send(res,200,paginated?{workOrders:rows,page:{limit,offset,hasMore}}:{workOrders:rows});
     }
     if (url.pathname === '/api/agency/work-orders' && req.method === 'POST') {
       const user = await session(req); if (!roleCan(user,'work-orders.edit')) return send(res,403,{error:'Sin permiso'});
