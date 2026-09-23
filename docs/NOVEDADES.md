@@ -2,6 +2,18 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.112
+
+### Rendimiento y datos
+
+- **Las pantallas piden solo lo que necesitan**: las que no listan órdenes usan una ventana de 300 piezas recientes en lugar de la lista completa (hasta −72 % de datos por pantalla) y la frescura se controla por recurso y recorte, sin que una ventana tape una lista completa.
+- **API con proyección de campos** (`?fields=`): las listas pueden pedir solo las columnas necesarias y el payload por defecto queda recortado.
+- **Medidor de carga por pantalla** para comparar antes/después y verificar mejoras (incluye mobile).
+
+### Notas para el equipo
+
+- Resumen y Clientes mantienen la lista completa hasta que existan los agregados por etapa/cliente propuestos; Producción conserva la lista completa por ser tablero.
+
 ## v1.0.111
 
 ### Rendimiento y datos
