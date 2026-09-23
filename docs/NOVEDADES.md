@@ -2,6 +2,18 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.115
+
+### Rendimiento y datos
+
+- **Producción deja de pedir la lista completa**: el shell carga el tablero por columnas (ventanas por etapa) y comparte con el tablero los totales exactos de cada columna; el buscador y la presencia usan esas ventanas en esa pantalla.
+- El medidor de carga y los contratos del modo por columna quedan como verificación permanente.
+
+### Marco y sistema visual
+
+- Se retiraron reglas de estilo muertas (avisos y chips viejos) y se actualizó su clon del harness para medir el markup real.
+- Nuevos fixtures de suscripción y zona de peligro; contraste del riel, topbar, drawer y pantalla de carga verificado en claro y oscuro (todo por encima de AA, 0 hallazgos).
+
 ## v1.0.114
 
 ### Rendimiento y datos
