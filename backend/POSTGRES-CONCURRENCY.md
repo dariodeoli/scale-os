@@ -1,39 +1,53 @@
-# Concurrencia de inventario en PostgreSQL real
+# Concurrencia de PostgreSQL real (inventario y tesorería)
 
-Desde un checkout **Git** de `scale-os`, dentro de `backend/`, con Node, dependencias locales y
-PostgreSQL 16 ya instalados (`.git` accesible; también admite worktrees):
-
-```sh
-node test-inventory-postgres.mjs
-```
-
-Opcionalmente, indicar otro directorio de binarios (no una base de datos):
+Desde un checkout **Git** de `scale-os`, dentro de `backend/`, con Node, dependencias
+locales (`npm ci`) y PostgreSQL 16 o 17 ya instalados (`.git` accesible; también admite
+worktrees). Los binarios `initdb`, `pg_ctl` y `postgres` deben ser ejecutables.
 
 ```sh
-SCALE_TEST_PG_BIN=/opt/homebrew/opt/postgresql@16/bin node test-inventory-postgres.mjs
+npm run test:postgres              # inventario + tesorería, en serie
+node test-treasury-concurrency.mjs # solo tesorería
+node test-inventory-postgres.mjs   # solo inventario
 ```
 
-**Runner del export limpio sin `.git`: excluir `test-inventory-postgres.mjs` del
-glob `test-*.mjs`.** Ejecutar esta prueba aparte en el checkout Git original.
-No es un test portable al export ni hace fallback al schema del filesystem:
-esa restricción evita incluir silenciosamente cambios ajenos o mezclar versiones.
+Resolución de los binarios de PostgreSQL (en este orden):
 
-El script no instala nada ni usa servicios de Homebrew. Ejecuta `initdb` y `pg_ctl`
-en un directorio aleatorio propio bajo `/tmp/scale-inventory-pg-*`, modo 700.
-Deshabilita TCP (`listen_addresses=''`) y usa solo un socket Unix privado, también
-modo 700, con autenticación local `trust` y rol exclusivo de la fixture.
-No usa `DATABASE_URL`, configuraciones `PG*`, archivos `.env`, HTTP ni UI.
-Las variables `PG*`/`DATABASE_URL` se descartan solo dentro del proceso de prueba,
-sin leer ni imprimir sus valores. Referencias oficiales de las opciones:
-[initdb de PostgreSQL 16](https://www.postgresql.org/docs/16/app-initdb.html) y
-[pg_ctl de PostgreSQL 16](https://www.postgresql.org/docs/16/app-pg-ctl.html).
+1. `SCALE_TEST_PG_BIN=/ruta/al/bin` (explícita; no es una base de datos).
+2. El `PATH` del proceso (Homebrew enlaza `initdb`/`pg_ctl` al instalar el keg).
+3. Los kegs de Homebrew/Linux: `postgresql@16` y `postgresql@17` en
+   `/opt/homebrew/opt/`, `/usr/local/opt/` y `/usr/lib/postgresql/`.
 
-Lee `schema.sql`, `server.js` y las migraciones del mismo commit `HEAD`; respeta
-el orden de registro del servidor y excluye Dadoo. No lee el `schema.sql` sucio
-del working tree. Importa el handler real `inventoryReservations` del checkout,
-sin arrancar `server.js`. La salida identifica el commit de SQL y la versión PG.
+```sh
+brew install postgresql@16         # o postgresql@17; no hace falta iniciar el servicio
+SCALE_TEST_PG_BIN=/opt/homebrew/opt/postgresql@17/bin node test-inventory-postgres.mjs
+```
 
-## Evidencia que debe producir
+**Runner del export limpio sin `.git`: excluir `test-inventory-postgres.mjs` y
+`test-treasury-concurrency.mjs` del glob `test-*.mjs`.** Ejecutar estas pruebas aparte en
+el checkout Git original. No son tests portables al export ni hacen fallback al schema del
+filesystem: esa restricción evita incluir silenciosamente cambios ajenos o mezclar
+versiones. Tampoco entran en `npm run test:release` (ni en CI ni en el deploy): requieren
+binarios de PostgreSQL reales.
+
+Los scripts no instalan nada ni usan servicios de Homebrew. Ejecutan `initdb` y `pg_ctl`
+en un directorio aleatorio propio bajo el temporal del sistema (`scale-inventory-pg-*` /
+`scale-treasury-pg-*`), modo 700 (inventario). Inventario deshabilita TCP
+(`listen_addresses=''`) y usa solo un socket Unix privado, también modo 700, con
+autenticación local `trust` y rol exclusivo de la fixture; tesorería usa `127.0.0.1` en un
+puerto fijo de fixture. Ninguno usa `DATABASE_URL`, configuraciones `PG*`, archivos
+`.env`, HTTP ni UI. Las variables `PG*`/`DATABASE_URL` se descartan solo dentro del
+proceso de prueba, sin leer ni imprimir sus valores. Referencias oficiales de las opciones:
+[initdb](https://www.postgresql.org/docs/current/app-initdb.html) y
+[pg_ctl](https://www.postgresql.org/docs/current/app-pg-ctl.html).
+
+Los scripts leen `schema.sql`, `server.js` y las migraciones del mismo commit `HEAD`; en el
+monorepo (scale-os#34) el API vive en `backend/`, así que resuelven el prefijo del worktree
+(`git rev-parse --show-prefix`) antes de pedir los archivos por `git show`. Inventario
+respeta el orden de registro del servidor y excluye Dadoo; no lee el `schema.sql` sucio del
+working tree. Importa el handler real `inventoryReservations` del checkout, sin arrancar
+`server.js`. La salida identifica el commit de SQL y la versión PG.
+
+## Inventario — evidencia que debe producir
 
 - Pool de seis conexiones. Cada carrera registra dos `pg_backend_pid()` distintos.
 - Barrera antes del primer bloqueo de escritura del handler; una tercera conexión
@@ -60,10 +74,27 @@ puede confirmar la parada, conserva la carpeta y avisa. SIGKILL o un apagado del
 sistema no pueden interceptarse: conservar la ruta `TEMP` impresa para revisar
 ese clúster concreto; nunca usar borrados amplios ni detener otros servicios PG.
 
-Esto complementa PGlite: solo un resultado PASS de este script constituye
-evidencia de concurrencia multiconexión PostgreSQL real.
+## Tesorería — evidencia que debe producir
 
-Validación local: dos ejecuciones PASS en PostgreSQL 16.15, SQL HEAD
-`0555520e27b215478444a94a60e29d45696c9706` (28 migraciones). Pares PID
-`49937/49938` y `50157/50158`, incluidas esperas reales y `23P01` directo.
-Ambos clústeres temporales fueron detenidos y eliminados.
+Levanta su propio clúster efímero (puerto `55433`, usuario `scale_treasury_fixture`),
+aplica el schema y las migraciones *committed* de `HEAD` y llama a los handlers reales de
+`finance-controls.js` con sesión y empresa de fixture:
+
+- Dos cobros concurrentes de 60 contra una factura de 100: exactamente uno gana
+  (`201` + `400`); la factura nunca queda sobrepagada.
+- Dos transferencias concurrentes de 40 desde una cuenta con 50: una gana y la otra se
+  rechaza por fondos (`201` + `409`); la cuenta de origen nunca queda negativa y el
+  destino recibe exactamente una transferencia.
+
+## Validación local
+
+- **2026-09-23 — PostgreSQL 17.11 (Homebrew), monorepo `scale-os`**: PASS de
+  `test-treasury-concurrency.mjs` y de `test-inventory-postgres.mjs`; SQL HEAD
+  `5c05154` (v1.0.107, 86 migraciones registradas), pares PID `52017/52016` con esperas
+  reales, `201/409` en solapes, `23P01` directo y ambos clústeres temporales detenidos y
+  eliminados. Se corrigió la resolución de rutas `git show` para el prefijo `backend/`.
+- **Histórico — PostgreSQL 16.15, repo API standalone**: dos ejecuciones PASS, SQL
+  `0555520e` (28 migraciones), pares PID `49937/49938` y `50157/50158`.
+
+Esto complementa PGlite: solo un resultado PASS de estos scripts constituye evidencia de
+concurrencia multiconexión PostgreSQL real.

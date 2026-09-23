@@ -10,10 +10,19 @@ import {financeControls} from './finance-controls.js';
 // without reading or printing their values; this affects this standalone process.
 for(const name of Object.keys(process.env))if(name.startsWith('PG')||name==='DATABASE_URL')delete process.env[name];
 const repo=path.dirname(fileURLToPath(import.meta.url));
-const bin=path.resolve(process.env.SCALE_TEST_PG_BIN||'/opt/homebrew/opt/postgresql@16/bin');
+// Binarios de PostgreSQL: `SCALE_TEST_PG_BIN` manda; si no, el `initdb`/`pg_ctl`
+// del PATH (Homebrew los enlaza) y, como respaldo, el keg de postgresql@16/17.
+function resolvePgBin(){
+ const candidates=[...String(process.env.PATH||'').split(path.delimiter).filter(Boolean),'/opt/homebrew/opt/postgresql@17/bin','/opt/homebrew/opt/postgresql@16/bin','/usr/local/opt/postgresql@17/bin','/usr/local/opt/postgresql@16/bin','/usr/lib/postgresql/17/bin','/usr/lib/postgresql/16/bin'];
+ return candidates.find(dir=>existsSync(path.join(dir,'initdb'))&&existsSync(path.join(dir,'pg_ctl')))||'/opt/homebrew/opt/postgresql@16/bin';
+}
+const bin=process.env.SCALE_TEST_PG_BIN?path.resolve(process.env.SCALE_TEST_PG_BIN):resolvePgBin();
 const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024});
 const revision=git('rev-parse','HEAD').trim();
-const committed=file=>git('show',`${revision}:${file}`);
+// Monorepo (scale-os#34): el API vive bajo `backend/` en este mismo repositorio,
+// así que `git show` necesita el prefijo del worktree además de la revisión.
+const prefix=git('rev-parse','--show-prefix').trim();
+const committed=file=>git('show',`${revision}:${prefix}${file}`);
 const server=committed('server.js');
 const start=server.indexOf('async function init()'),end=server.indexOf("await migration.query('commit')",start);
 assert(start>=0&&end>start,'Cannot identify HEAD migration transaction');
@@ -23,11 +32,11 @@ assert.equal(migrations.length,new Set(migrations).size,'Duplicate migration reg
 // other tasks are not required to exercise treasury concurrency.
 const sources=[['schema.sql',committed('schema.sql')]];
 for(const name of migrations){
- try{execFileSync('git',['cat-file','-e',`HEAD:migrations/${name}`],{cwd:repo,stdio:'ignore'});sources.push([`migrations/${name}`,committed(`migrations/${name}`)]);}
+ try{execFileSync('git',['cat-file','-e',`HEAD:${prefix}migrations/${name}`],{cwd:repo,stdio:'ignore'});sources.push([`migrations/${name}`,committed(`migrations/${name}`)]);}
  catch{/* Uncommitted migration from another task; skip for this focused test. */}
 }
 
-let temporary=null,cleaned=false;
+let temporary=null,cleaned=false,pool=null;
 const port=55433,user='scale_treasury_fixture';
 const localEnv={PATH:`${bin}:/usr/bin:/bin:/usr/sbin:/sbin`,LANG:'C',LC_ALL:'C',TZ:'UTC'};
 const pgTool=(name,args,timeout=30000)=>execFileSync(path.join(bin,name),args,{env:localEnv,encoding:'utf8',timeout,maxBuffer:4*1024*1024});
@@ -56,7 +65,7 @@ try{
  const data=path.join(temporary,'data');
  pgTool('initdb',['-D',data,'-U',user,'--no-locale','-E','UTF8']);
  pgTool('pg_ctl',['-D',data,'-l',path.join(temporary,'postgres.log'),'-o',`-p ${port} -h 127.0.0.1 -F -c max_connections=40 -c listen_addresses=127.0.0.1`,'-w','-t','60','start'],60000);
- const pool=new pg.Pool({host:'127.0.0.1',port,user,database:'postgres'});
+ pool=new pg.Pool({host:'127.0.0.1',port,user,database:'postgres'});
  pool.on('error',()=>{});
  const query=(sql,args)=>pool.query(sql,args);
  const db={query,connect:async()=>{const client=await pool.connect();return{query:(sql,args)=>client.query(sql,args),release:()=>client.release()};}};
@@ -99,4 +108,4 @@ try{
  assert.equal(Number(balances.find(row=>Number(row.id)===Number(accountB)).balance),40,'destination receives exactly one transfer');
  console.log('PASS: concurrent payments cannot overpay an invoice and concurrent transfers cannot overdraw an account');
 }catch(error){console.error(error);process.exitCode=1;}
-finally{try{await pool.end();}catch{/* pool may already be closed */}cleanupCluster();}
+finally{try{await pool?.end();}catch{/* pool may already be closed */}cleanupCluster();}

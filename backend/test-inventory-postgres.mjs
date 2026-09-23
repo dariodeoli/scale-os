@@ -11,10 +11,19 @@ import {inventoryReservations} from './inventory-reservations.js';
 // without reading or printing their values; this affects this standalone process.
 for(const name of Object.keys(process.env))if(name.startsWith('PG')||name==='DATABASE_URL')delete process.env[name];
 const repo=path.dirname(fileURLToPath(import.meta.url));
-const bin=path.resolve(process.env.SCALE_TEST_PG_BIN||'/opt/homebrew/opt/postgresql@16/bin');
+// Binarios de PostgreSQL: `SCALE_TEST_PG_BIN` manda; si no, el `initdb`/`pg_ctl`
+// del PATH (Homebrew los enlaza) y, como respaldo, el keg de postgresql@16/17.
+function resolvePgBin(){
+ const candidates=[...String(process.env.PATH||'').split(path.delimiter).filter(Boolean),'/opt/homebrew/opt/postgresql@17/bin','/opt/homebrew/opt/postgresql@16/bin','/usr/local/opt/postgresql@17/bin','/usr/local/opt/postgresql@16/bin','/usr/lib/postgresql/17/bin','/usr/lib/postgresql/16/bin'];
+ return candidates.find(dir=>existsSync(path.join(dir,'initdb'))&&existsSync(path.join(dir,'pg_ctl')))||'/opt/homebrew/opt/postgresql@16/bin';
+}
+const bin=process.env.SCALE_TEST_PG_BIN?path.resolve(process.env.SCALE_TEST_PG_BIN):resolvePgBin();
 const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024});
 const revision=git('rev-parse','HEAD').trim();
-const committed=file=>git('show',`${revision}:${file}`);
+// Monorepo (scale-os#34): el API vive bajo `backend/` en este mismo repositorio,
+// así que `git show` necesita el prefijo del worktree además de la revisión.
+const prefix=git('rev-parse','--show-prefix').trim();
+const committed=file=>git('show',`${revision}:${prefix}${file}`);
 const schema=committed('schema.sql'),server=committed('server.js');
 const start=server.indexOf('async function init()'),end=server.indexOf("await migration.query('commit')",start);
 assert(start>=0&&end>start,'Cannot identify HEAD migration transaction');
