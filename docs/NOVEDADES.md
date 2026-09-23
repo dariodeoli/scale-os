@@ -2,6 +2,26 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.111
+
+### Rendimiento y datos
+
+- **El shell dejó de repetir lecturas**: cada sección pide solo lo suyo y muestra esqueleto de carga mientras espera, con un medidor de carga para verificar mejoras.
+- **API más rápida en listas grandes**: índices nuevos para piezas, proyectos e inventario, agregados en una sola consulta y paginación opcional; el panel responde mejor con volúmenes altos.
+- Bench opcional del API (`npm run bench:agency`) para medir estas listas cuando haga falta.
+
+### Comercial
+
+- **Pipeline y presupuestos**: el arrastre de oportunidades y el reordenar ítems del compositor funcionan de forma confiable, con targets táctiles en el celular y la fila densa de Presupuestos.
+
+### Operaciones
+
+- **Producción e inventario**: se corrigió el arrastre del tablero y del pipeline (zonas, sensores y actualización inmediata); el inventario ahora muestra errores accionables, con tiempo límite por sección y reintento del catálogo.
+
+### Finanzas
+
+- **Comisiones**: carga más liviana (catálogos diferidos) tras la auditoría de carga de la vertical financiera.
+
 ## v1.0.110
 
 ### Marco y sistema visual
