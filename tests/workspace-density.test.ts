@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=(name:string)=>readFileSync('app/'+name,'utf8');
-const workspace=read('scale-workspace.tsx'),toolbar=read('demo-toolbar.tsx'),sidebar=read('desktop-sidebar.css'),personContainer=read('person-container.css');
+const workspace=read('scale-workspace.tsx'),toolbar=read('demo-toolbar.tsx'),personContainer=read('person-container.css');
 assert.equal((workspace.match(/<DemoToolbar/g)||[]).length,1);
-assert(workspace.indexOf('<div className="workspace-context">')<workspace.indexOf('<DemoToolbar'));
+assert(workspace.indexOf('topbar-workspace-context')<workspace.indexOf('<DemoToolbar'),'the demo toolbar lives in the topbar workspace context');
 assert(!toolbar.includes('demo-session-note'));
 assert(toolbar.includes('aria-label="Información de la demo"'));
 assert(toolbar.includes('Sin dinero real'));
 assert(toolbar.includes('disabled={busy}'));
-assert(sidebar.includes('grid-template-columns:minmax(0,1fr)'));
+assert(workspace.includes('grid-cols-[minmax(0,1fr)]'),'the sidebar footer keeps one bounded column');
 assert(personContainer.includes('overflow:hidden;text-overflow:ellipsis;white-space:nowrap'));
 assert(workspace.includes('aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}'));
 assert(workspace.includes('onClick={logout} aria-label="Cerrar sesión"'));

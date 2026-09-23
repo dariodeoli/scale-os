@@ -4,7 +4,7 @@ import postcss from 'postcss';
 
 // Source-level CSS contracts, not a browser layout or visual verification.
 const read=(file:string)=>readFileSync(new URL('../app/'+file,import.meta.url),'utf8');
-const sheets=Object.fromEntries(['actor-identity.css','workspace-density.css','desktop-sidebar.css','mobile-navigation.css','production-focus.css','work-checklist.css'].map(file=>[file,postcss.parse(read(file))]));
+const sheets=Object.fromEntries(['actor-identity.css','production-focus.css','work-checklist.css'].map(file=>[file,postcss.parse(read(file))]));
 
 // Inspect a particular selector's declarations in source order at a viewport.
 // This deliberately does not emulate the full CSS cascade or font metrics.
@@ -29,10 +29,15 @@ assert(workspace.includes("import {ProjectCard} from './project-card'"),'workspa
 assert(workspace.includes('<ProjectCard key={project.id} project={project}'),'directory passes each project into the shared card');
 assert(/<h3 className="break-words[^"]*" title=\{project\.name\}>\{project\.name\}<\/h3>/.test(read('project-card.tsx')),'project name is rendered as a card heading with its full title (v2)');
 assert(operations.includes('<ActorIdentity name={c.actor_name||c.author_email'),'project comments render the shared author identity with email fallback');
+// Riel y drawer v2: la geometría del marco vive en las clases (Tailwind), no en hojas propias.
+const sidebarSource=read('desktop-sidebar.tsx');
+assert(sidebarSource.includes('desktop-sidebar hidden')&&sidebarSource.includes('min-[761px]:flex'),'the rail hides on mobile and shows from 761px');
+assert(sidebarSource.includes('min-[761px]:!w-48')&&sidebarSource.includes('min-[761px]:!w-[60px]'),'the rail keeps its expanded and collapsed widths');
+const drawerSource=read('mobile-navigation.tsx');
+assert(drawerSource.includes('mobile-menu-trigger hidden')&&drawerSource.includes('max-md:grid'),'the menu trigger hides on desktop and shows on mobile');
 
 for(const width of [320,360,390,768]){
  const at=(file:string,selector:string,property:string)=>declaration(file,selector,property,width);
- assert.equal(at('workspace-density.css','.control-shell .project-card h3','overflow-wrap'),'anywhere',`project identifiers must wrap at ${width}px`);
  // Tarjeta de proyecto v2 (app/project-card.tsx): el nombre envuelve, la fila
  // comparte plantilla, las acciones no se envuelven y las celdas pueden encoger.
  const projectCard=read('project-card.tsx'),board=read('production-board.tsx'),section=read('sections/produccion.tsx');
@@ -50,17 +55,11 @@ for(const width of [320,360,390,768]){
  assert.equal(at('work-checklist.css','.work-checklist-check span','overflow-wrap'),'anywhere');
  assert.equal(at('work-checklist.css','.work-checklist input:not([type=checkbox])','min-width'),'0');
  if(width<=760){
-  assert.equal(at('desktop-sidebar.css','.control-shell .desktop-sidebar','display'),'none');
-  assert.equal(at('mobile-navigation.css','.control-shell .mobile-menu-trigger','display'),'grid');
   assert.equal(at('production-focus.css','.control-shell .production-toolbar','flex-direction'),'column');
   assert.equal(at('production-focus.css','.control-shell .production-toolbar .production-filters','width'),'100%');
   assert.equal(at('production-focus.css','.control-shell .production-toolbar .production-filters .ops-select','min-width'),'0');
   assert.equal(at('work-checklist.css','.work-checklist-item','flex-wrap'),'wrap');
   assert.equal(at('work-checklist.css','.work-checklist-add-row','flex-wrap'),'wrap');
- }else{
-  assert.equal(at('desktop-sidebar.css','.control-shell .desktop-sidebar','width'),'192px');
-  assert.equal(at('desktop-sidebar.css','.control-shell .desktop-sidebar.is-collapsed','width'),'60px');
-  assert.equal(at('mobile-navigation.css','.control-shell .mobile-menu-trigger','display'),'none');
  }
 }
 console.log('PASS: source CSS contracts at 320/360/390/768px; project text wrapping, responsive sidebar/checklist and intentional board scrolling. Not visual QA.');

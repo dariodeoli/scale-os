@@ -36,8 +36,8 @@ assert.equal(dialog.props['aria-modal'],'true');assert.equal(button().props['ari
 assert.equal(renderer!.root.findByType('a').props.href,'/equipo');
 act(()=>renderer.root.findByProps({'aria-label':'Cerrar menú'}).props.onClick());closed();assert.equal(restored,1);
 open();act(()=>{keyboard.forEach(fn=>fn({key:'Escape',defaultPrevented:false,preventDefault(){},stopImmediatePropagation(){}}));});closed();
-open();act(()=>{const backdrop=renderer.root.findByProps({className:'mobile-sidebar-backdrop'});const target={};backdrop.props.onClick({target,currentTarget:target});});closed();
-open();act(()=>renderer.root.findByProps({className:'mobile-sidebar-body'}).props.onClick({target:{closest:()=>({})}}));closed();
+open();act(()=>{const backdrop=renderer.root.findAll(node=>String(node.props?.className||'').includes('mobile-sidebar-backdrop'))[0];const target={};backdrop.props.onClick({target,currentTarget:target});});closed();
+open();act(()=>renderer.root.findAll(node=>String(node.props?.className||'').includes('mobile-sidebar-body'))[0].props.onClick({target:{closest:()=>({})}}));closed();
 open();act(()=>renderer.update(tree('/equipo')));closed();
 open();act(()=>{media.matches=true;resize.forEach(fn=>fn());});closed();
 act(()=>renderer.unmount());assert.equal(resize.size,0);assert.equal(keyboard.size,0);
@@ -49,7 +49,8 @@ assert.equal((source.match(/visibleNav.map/g)||[]).length,1,'one permission-filt
 assert(!source.includes('className="topbar-logo"'),'the content topbar must not duplicate the brand');
 assert(source.includes('<div className="sidebar-brand"><WorkspaceBrand/></div>'),'desktop navigation retains the canonical brand');
 assert(source.includes('<div className="mobile-sidebar-brand"><WorkspaceBrand/></div>'),'mobile navigation retains the canonical brand');
-const css=readFileSync(new URL('../app/mobile-navigation.css',import.meta.url),'utf8');
-assert(css.includes('height:100dvh'));assert(css.includes('prefers-reduced-motion'));assert(css.includes('z-index:40'));assert(css.includes('min-height:44px'));
-assert(!css.match(/#[0-9a-f]{3,8}\b/i));
+const drawer=readFileSync(new URL('../app/mobile-navigation.tsx',import.meta.url),'utf8');
+assert(drawer.includes('h-[100dvh]')&&drawer.includes('min-h-11'),'the drawer covers the viewport and preserves touch targets');
+assert(drawer.includes('z-40')&&drawer.includes('motion-reduce:'),'the drawer keeps its overlay layer and reduced motion');
+assert(!drawer.match(/#[0-9a-f]{3,8}\b/i),'the drawer uses tokens, never raw hex colors');
 console.log('PASS: mobile drawer starts closed; opens/closes by button, Escape, backdrop, link, route and desktop resize; focus/scroll/inert restored; shared permission-filtered menu and canonical navigation brand');

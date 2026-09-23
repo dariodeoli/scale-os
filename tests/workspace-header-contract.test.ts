@@ -6,12 +6,16 @@ const source = readFileSync(
   new URL("../app/scale-workspace.tsx", import.meta.url),
   "utf8",
 );
-const density = readFileSync(
-  new URL("../app/workspace-density.css", import.meta.url),
+const drawer = readFileSync(
+  new URL("../app/mobile-navigation.tsx", import.meta.url),
   "utf8",
 );
-const mobileNavigation = readFileSync(
-  new URL("../app/mobile-navigation.css", import.meta.url),
+const globals = readFileSync(
+  new URL("../app/globals.css", import.meta.url),
+  "utf8",
+);
+const uiSystem = readFileSync(
+  new URL("../app/ui-system.css", import.meta.url),
   "utf8",
 );
 const superadmin = readFileSync(
@@ -26,9 +30,9 @@ function order(haystack: string, first: string, second: string) {
 }
 
 test("workspace header groups company, presence, status, search, and notifications without changing return handling", () => {
-  order(source, 'className="topbar-workspace-context"', 'className="topbar-utilities"');
-  order(source, 'className="topbar-company"', 'className="topbar-presence"');
-  order(source, 'className="topbar-status"', 'className="topbar-utility-actions"');
+  order(source, 'topbar-workspace-context', 'topbar-utilities');
+  order(source, 'topbar-company', 'topbar-presence');
+  order(source, 'topbar-status', 'topbar-utility-actions');
   order(source, '<WorkspaceSearch', '<NotificationBell');
   assert.match(source, /postLoginDestination\(search:string\)/);
   assert.match(source, /scaleBilling'\)\|\|query\.get\('billing/);
@@ -37,34 +41,34 @@ test("workspace header groups company, presence, status, search, and notificatio
 test("workspace header shows the signed-in company once and the sidebar keeps only the profile", () => {
   assert.doesNotMatch(source, /className="sidebar-company"/);
   assert.match(source, /<WorkspacePresence compact/);
-  assert.doesNotMatch(mobileNavigation, /sidebar-company/);
+  assert.doesNotMatch(drawer, /sidebar-company/);
 });
 
 test("workspace header retains visible focus, 40px desktop controls, 44px mobile targets, and reduced motion", () => {
-  assert.match(density, /\.workspace-topbar :is\(button,a\):focus-visible\{outline:3px/);
-  assert.match(density, /topbar-utility-actions>\.workspace-search-trigger\{min-width:min\(220px,28vw\);min-height:40px/);
-  assert.match(density, /topbar-utility-actions>\.notification-trigger\{width:40px;min-width:40px;min-height:40px/);
-  assert.match(density, /@media\(max-width:760px\)\{[\s\S]*?\.control-shell \.topbar-utility-actions>\.workspace-search-trigger,\.control-shell \.topbar-utility-actions>\.notification-trigger,\.control-shell \.topbar-utility-actions>\.theme-toggle\{width:44px;min-width:44px;min-height:44px/);
-  assert.match(density, /@media\(max-width:520px\)\{[\s\S]*?\.control-shell \.topbar-presence\{display:none\}/);
-  assert.match(density, /@media\(prefers-reduced-motion:reduce\)/);
-  assert.doesNotMatch(mobileNavigation, /\.workspace-topbar/);
+  // El foco visible vive en la hoja global; el v2 no lo pisa.
+  assert.match(globals, /button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible\{outline:3px solid var\(--focus-ring\)/);
+  assert.match(source, /\[&>\*\]:min-h-10 \[&>\*\]:min-w-10/, "topbar utilities keep 40px desktop targets");
+  assert.match(source, /max-md:\[&>\*\]:min-h-11 max-md:\[&>\*\]:min-w-11/, "topbar utilities keep 44px mobile targets");
+  assert.match(source, /topbar-presence min-w-0 shrink-0 max-\[520px\]:hidden/, "presence hides on the smallest screens");
+  assert.match(source, /motion-reduce:\[&_\*\]:transition-none/, "the header honors reduced motion");
+  assert.match(uiSystem, /prefers-reduced-motion:reduce/, "the shared sheet keeps a reduced-motion block");
+  assert.doesNotMatch(drawer, /\.workspace-topbar/);
 });
 
 test("mobile workspace header keeps the subscription notice visible in the compact status row", () => {
   assert.match(
-    density,
-    /@media\(max-width:760px\)\{[\s\S]*?\.control-shell \.workspace-topbar \.topbar-status\{display:flex;grid-column:1\/-1;grid-row:2/,
+    source,
+    /topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2/,
+    "the status takes its own row on mobile",
   );
-  assert.doesNotMatch(
-    mobileNavigation,
-    /@media\(max-width:760px\)\{[\s\S]*?\.workspace-topbar \.subscription-notice[^}]*display:none/,
-  );
+  assert.match(source, /topbar-status[\s\S]*?SubscriptionNotice/, "the compact row keeps the subscription notice");
+  assert.doesNotMatch(drawer, /subscription-notice[\s\S]*?hidden/);
 });
 
 test("the company name truncates in the topbar and wraps inside the switcher", () => {
   assert.match(
-    density,
-    /\.topbar-company>\.workspace \.company-name\{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\}/,
+    source,
+    /topbar-company min-w-0 \[&_\.company-name\]:truncate/,
     "a long company name truncates in the topbar instead of widening the shell",
   );
   const operations = readFileSync(new URL("../app/operations.tsx", import.meta.url), "utf8");

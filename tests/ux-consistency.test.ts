@@ -73,12 +73,15 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
   }
   const archive=read('app/archive-controls.tsx');
   assert.match(archive,/TRASH_COLUMNS=\[\{key:'select',label:''\},\{key:'kind',label:'Tipo'\},\{key:'record',label:'Registro'\},\{key:'actions',label:'Acciones'\}\]/,'the trash list shows its column header');
+  assert.match(archive,/TRASH_TEMPLATE='grid-cols-\[2rem_7rem_minmax\(16rem,2\.4fr\)_7rem\]'/,'the trash rows share the v2 template literal with their header');
   assert.match(archive,/ListGrid label="Papelera" template=\{TRASH_TEMPLATE\}/,'the trash list uses the shared v2 template');
   const integrations=read('app/suite.tsx');
   assert.match(integrations,/settings-integration-head[\s\S]*?Integración[\s\S]*?Estado/,'the integrations list shows its header');
   const invites=read('app/invite-links.tsx');
   assert.match(invites,/REQUESTS_COLUMNS=\[\{key:'request',label:'Solicitud'\}/,'invite requests show their column header');
   assert.match(invites,/LINKS_COLUMNS=\[\{key:'link',label:'Enlace'\}/,'invite links show their column header');
+  assert.match(invites,/REQUESTS_TEMPLATE='grid-cols-\[minmax\(16rem,2\.4fr\)_15rem\]'/,'invite requests share the v2 template literal with their header');
+  assert.match(invites,/LINKS_TEMPLATE='grid-cols-\[minmax\(18rem,2\.4fr\)_15rem\]'/,'invite links share the v2 template literal with their header');
   assert.match(invites,/ListGrid label="Solicitudes de acceso"[\s\S]*?ListGrid label="Enlaces de invitación"/,'both lists use the shared v2 ListGrid');
 });
 
@@ -194,12 +197,13 @@ test('the client portal styles every list it renders',()=>{
 });
 
 test('the rail navigation keeps one geometry for links and the logout button',()=>{
-  const desktop=read('app/desktop-sidebar.css');
-  assert.match(desktop,/\.control-shell \.desktop-sidebar nav>a,\.control-shell \.desktop-sidebar nav>button\{/,'the desktop rail styles the logout button with the link geometry');
-  assert.match(desktop,/nav>button:hover\{/,'the logout button keeps the rail hover state');
-  const mobile=read('app/mobile-navigation.css');
-  assert.match(mobile,/\.mobile-sidebar nav>a,\.mobile-sidebar nav>button\{/,'the mobile drawer styles the logout button with the link geometry');
+  const rail=read('app/desktop-sidebar.tsx');
+  assert.match(rail,/export const RAIL_ITEM='[^']*min-h-11[^']*font-semibold[^']*'/,'the rail exposes one item geometry for links and buttons');
+  assert.match(rail,/hover:bg-ink-700 hover:text-fore/,'the rail keeps its hover state');
+  const drawer=read('app/mobile-navigation.tsx');
+  assert.match(drawer,/\[&_a\]:min-h-11 \[&_button\]:min-h-11/,'the mobile drawer styles the logout button with the link geometry');
   const workspace=workspaceSource();
+  assert.match(workspace,/navItemClass\(false\)/,'the logout button keeps its rail slot');
   assert.match(workspace,/nav-logout/,'the logout button keeps its rail slot');
 });
 
