@@ -10,7 +10,7 @@ const TEMPLATE = "grid-cols-[11rem_minmax(10rem,1fr)_minmax(12rem,1.2fr)_minmax(
 const COLUMNS = [{key: "date", label: "Fecha"}, {key: "actor", label: "Actor"}, {key: "action", label: "Acción"}, {key: "target", label: "Destino"}];
 
 export function PlatformAudit({audit}: {audit: AuditAction[]}) {
-  return <section className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-5" aria-labelledby="platform-audit-title">
+  return <section className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="platform-audit-title">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="min-w-0">
         <p className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Auditoría</p>

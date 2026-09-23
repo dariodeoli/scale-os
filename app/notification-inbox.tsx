@@ -20,8 +20,8 @@ const kindLabel=(kind:Notice['kind'])=>({assignment:'Asignación',comment:'Menci
 function dateLabel(value:string){return listDateFull(value)||'Fecha no disponible';}
 /** Acción de la bandeja: target de 44 px en mobile y geometría estable. */
 const ICON_ACTION='icon-button !h-11 !w-11';
-const CARD='grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3.5';
-const CARD_UNREAD='grid min-w-0 gap-2 rounded-xl border border-ink-600 border-l-4 border-l-fono bg-ink-700 p-3.5';
+const CARD='grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4';
+const CARD_UNREAD='grid min-w-0 gap-2 rounded-xl border border-ink-600 border-l-4 border-l-fono bg-ink-700 p-4';
 
 export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:string,anchor?:string)=>void;openPreferences:()=>void}){
  const router=useRouter();

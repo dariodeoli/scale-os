@@ -57,11 +57,13 @@ function RoleExplorer({data}:{data:MatrixData}){
    const denied=data.capabilities.filter(row=>!effective(row,roleId));
    const all=granted.length===data.capabilities.length;
    return <details className="group rounded-xl border border-ink-600 bg-ink-800" key={roleId}>
-    <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 p-4">
+    <summary className="flex cursor-pointer flex-col items-start gap-2 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-2">
      <span className="text-sm font-semibold text-fore">{teamRoleLabels[roleId]}</span>
      <span className="min-w-0 flex-1 text-xs text-mute">{roleDescriptions[roleId]||teamRoleLabels[roleId]}</span>
-     <StateChip tone={all?'ok':'mute'} title={`${granted.length} de ${data.capabilities.length} capacidades`}>{all?'Todos los permisos':`${granted.length} de ${data.capabilities.length}`}</StateChip>
-     <ChevronDown className="shrink-0 text-mute transition-transform group-open:rotate-180" size={16} aria-hidden="true"/>
+     <span className="flex items-center gap-2 sm:contents">
+      <StateChip tone={all?'ok':'mute'} title={`${granted.length} de ${data.capabilities.length} capacidades`}>{all?'Todos los permisos':`${granted.length} de ${data.capabilities.length}`}</StateChip>
+      <ChevronDown className="shrink-0 text-mute transition-transform group-open:rotate-180" size={16} aria-hidden="true"/>
+     </span>
     </summary>
     <div className="grid gap-4 border-t border-ink-600 p-4 sm:grid-cols-2">
      <div className="min-w-0">
