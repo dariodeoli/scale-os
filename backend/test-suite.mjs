@@ -30,7 +30,7 @@ let resetToken='',sent=0;const grantedEmails=[];
 async function call(path,method='GET',payload={},as=user,form=''){
  let result={status:0};const req={method,socket:{remoteAddress:'127.0.0.1'},async *[Symbol.asyncIterator](){yield form;}};
  const args={req,res:{writeHead(status,headers){result={status,headers};},end(content){result.content=content;}},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{result={status,...data};},sendInvitation:async()=>true,sendAccessGranted:async(email,organizationName,role)=>{grantedEmails.push({email,organizationName,role});return true;},sendReset:async(_,token)=>{resetToken=token;sent++;return true;}};
- const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects|summary)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
+ const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects|summary|invoices)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
 }
 const client=(await query("insert into agency_clients(organization_id,name) values($1,'Client') returning id",[org])).rows[0].id;
 const project=(await query("insert into agency_projects(organization_id,client_id,name,approval_levels) values($1,$2,'Project',2) returning id",[org,client])).rows[0].id;
@@ -270,4 +270,10 @@ assert.equal(searchProjects.status,200);
 assert.deepEqual(Object.keys(searchProjects.projects[0]).sort(),['client_id','id','name','status']);
 assert.equal((await call('/api/agency/projects?fields=id,inexistente')).status,400);
 assert.equal((await call('/api/agency/projects?fields=')).status,400);
+// FIN (#57): el saldo por moneda no depende de la ventana de la lista de facturas.
+const invoicesPage=await call('/api/agency/invoices');
+assert.equal(invoicesPage.status,200);
+assert.equal(Array.isArray(invoicesPage.receivables),true);
+const dbReceivables=(await query("select currency,sum(total-paid_amount) as total from agency_invoices where organization_id=$1 and status not in ('draft','cancelled') group by currency order by currency",[org])).rows;
+assert.deepEqual(invoicesPage.receivables,dbReceivables,'receivables coincide con el agregado de la base');
 await pg.close();console.log('PASS: approvals, member suspension, tenant isolation, pipeline conversion, plans, inventory, dashboard permissions, public quotes, invoice idempotency, audit and password reset');

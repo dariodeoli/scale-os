@@ -424,12 +424,15 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     if (url.pathname === '/api/agency/invoices' && req.method === 'GET') {
       const user=await session(req); if(!roleCan(user,'invoices.manage')) return send(res,403,{error:'Sin permiso'});
       const requested=new URL(url,'https://scale.local').searchParams.get('limit');
+      // La ventana de la lista no puede dejar afuera impagas viejas: el saldo por
+      // moneda viaja siempre (mismo agregado que /dashboard), no derivado de la página.
+      const receivables=(await db.query("select currency,sum(total-paid_amount) as total from agency_invoices where organization_id=$1 and status not in ('draft','cancelled') group by currency order by currency",[user.organization_id])).rows;
       if(requested==='all'){
         const r=await db.query('select i.*,c.name as client_name from agency_invoices i join agency_clients c on c.id=i.client_id where i.organization_id=$1 order by i.created_at desc',[user.organization_id]);
-        return send(res,200,{invoices:r.rows,hasMore:false});
+        return send(res,200,{invoices:r.rows,hasMore:false,receivables});
       }
       const r=await db.query('select i.*,c.name as client_name from agency_invoices i join agency_clients c on c.id=i.client_id where i.organization_id=$1 order by i.created_at desc limit 21',[user.organization_id]);
-      return send(res,200,{invoices:r.rows.slice(0,20),hasMore:r.rows.length>20});
+      return send(res,200,{invoices:r.rows.slice(0,20),hasMore:r.rows.length>20,receivables});
     }
     if (url.pathname === '/api/agency/invoices' && req.method === 'POST') {
       const user=await session(req); if(!roleCan(user,'invoices.manage')) return send(res,403,{error:'Sin permiso'});
