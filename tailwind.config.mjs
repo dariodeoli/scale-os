@@ -19,6 +19,7 @@ const config = {
   presets: [preset],
   content: [
     './app/**/*.{ts,tsx}',
+    './build-tools/visual-harness/*.mjs',
     './build-tools/visual-harness/fixtures/**/*.mjs',
     // El preset ya declara el bundle; se repite para no depender del merge.
     './node_modules/owncoding-ui/dist/**/*.js',

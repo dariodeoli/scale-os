@@ -26,9 +26,9 @@
  *    (0 of the 24 built chunks) because PlatformAccessPanel has no route, so the
  *    harness would measure unstyled markup. Kept as a named export ready to
  *    register once the component is wired (see `platformAccessFixture`).
- *  - app/desktop-sidebar.tsx lines 10-13 + app/desktop-sidebar.css
- *  - app/scale-workspace.tsx topbar lines 997-1026 + app/workspace-density.css
- *  - app/mobile-navigation.tsx lines 17-22/36-37 + app/mobile-navigation.css
+ *  - app/desktop-sidebar.tsx (riel v2 con RAIL_ITEM; sin hoja propia)
+ *  - app/scale-workspace.tsx topbar (clases v2; sin hoja propia)
+ *  - app/mobile-navigation.tsx (drawer v2; sin hoja propia)
  *  - app/notification-inbox.tsx lines 66-83 + app/notification-center.tsx 12/18
  *    (+ app/notifications.css / app/toast.css)
  *  - app/workspace-footer.tsx lines 4-6 + app/workspace-footer.css
@@ -573,23 +573,24 @@ const navItems = [
   ['Planes', false], ['Inventario', false], ['Estudio', false], ['Equipo', false], ['Actividad', false],
   ['Configuración', false], ['Preferencias', false], ['Papelera', false],
 ];
+const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none transition';
 const navLink = ([label, active]) =>
-  `<a href="#"${active ? ' class="active" aria-current="page"' : ''} title="${label}" aria-label="${label}">${svg(I.target, 18)}<span class="nav-label">${label}</span></a>`;
+  `<a href="#" class="${RAIL_ITEM} ${active ? 'active bg-fono/10 text-fono-light' : 'text-mute hover:bg-ink-700 hover:text-fore'}"${active ? ' aria-current="page"' : ''} title="${label}" aria-label="${label}">${svg(I.target, 18)}<span class="nav-label min-w-0 break-words">${label}</span></a>`;
 
 const sidebar = ({collapsed = false, active = 'Resumen'} = {}) => `
-<aside class="desktop-sidebar${collapsed ? ' is-collapsed' : ''}">
- <button type="button" class="sidebar-collapse" aria-label="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" title="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" aria-expanded="${collapsed ? 'false' : 'true'}">${collapsed ? svg(I.panelLeftOpen, 18) : svg(I.panelLeftClose, 18)}</button>
+<aside class="desktop-sidebar ${collapsed ? 'is-collapsed' : ''} hidden shrink-0 flex-col border-r border-ink-600 bg-ink-800 min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh ${collapsed ? 'min-[761px]:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.person-container-details]:hidden [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:px-0' : 'min-[761px]:!w-48'} [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:px-3 [&_.sidebar-brand]:pt-2 [&_.sidebar-brand]:!mb-4">
+ <div class="flex p-2 ${collapsed ? 'justify-center' : 'justify-end'}"><button type="button" class="sidebar-collapse grid h-10 w-10 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore" aria-label="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" title="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" aria-expanded="${collapsed ? 'false' : 'true'}">${collapsed ? svg(I.panelLeftOpen, 18) : svg(I.panelLeftClose, 18)}</button></div>
  <div class="sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
  <div class="mobile-sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
- <p class="nav-caption">Espacio de trabajo</p>
- <nav aria-label="Menú principal">${navItems.map((item) => navLink([item[0], item[0] === active || item[1]])).join('')}<button type="button" class="nav-logout" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
- <div class="sidebar-bottom"><div class="profile-footer"><button class="user" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
+ <p class="nav-caption mt-4 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
+ <nav aria-label="Menú principal" class="grid gap-0.5 px-2">${navItems.map((item) => navLink([item[0], item[0] === active || item[1]])).join('')}<button type="button" class="nav-logout ${RAIL_ITEM} text-mute hover:bg-ink-700 hover:text-fore" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
+ <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 p-2"><div class="profile-footer min-w-0"><button class="user" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
 </aside>`;
 
 const workspaceShell = ({collapsed = false, active = 'Resumen', content}) => `
-<main class="shell control-shell">
+<main class="shell control-shell${collapsed ? ' min-[761px]:has-[>.desktop-sidebar.is-collapsed]:[&>.content]:!w-[calc(100%-60px)]' : ''}">
  ${sidebar({collapsed, active})}
- <section class="content">${content}</section>
+ <section class="content min-w-0 min-[761px]:!w-[calc(100%-192px)]">${content}</section>
 </main>`;
 
 /* ==================================================== 9. TOPBAR / MOBILE ==
@@ -597,18 +598,17 @@ const workspaceShell = ({collapsed = false, active = 'Resumen', content}) => `
  * app/mobile-navigation.tsx lines 17-22 + 36-37 (drawer + trigger).
  * ========================================================================= */
 const topbar = `
-<div class="workspace-topbar" role="toolbar" aria-label="Controles del espacio de trabajo">
- <div class="topbar-primary">
-  <div class="topbar-identity"><button class="icon-button mobile-menu-trigger" type="button" title="Abrir menú" aria-label="Abrir menú" aria-expanded="false" aria-haspopup="dialog">${svg(I.menu, 22)}</button></div>
-  <div class="topbar-workspace-context">
-   <div class="topbar-company"><button class="workspace" title="Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima">${svg(I.building, 16)}<span class="company-name">Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima</span></button></div>
-   <div class="topbar-presence" role="group" aria-label="Personas activas en el espacio"><div class="workspace-presence workspace-presence-compact" title="Fredd D., Ana Giménez, Marcos Rojas, Sofía Benítez, Daniela Ayala, Carlos Núñez, Lucía Ortega · 7 en línea" aria-label="Fredd D., Ana Giménez, Marcos Rojas, Sofía Benítez, Daniela Ayala, Carlos Núñez, Lucía Ortega · 7 en línea"><span class="presence-avatars"><span class="presence-person" title="Fredd D. · Activo en este proyecto" aria-label="Fredd D. · Activo en este proyecto"><span aria-hidden="true">FD</span><i data-active="true"></i></span><span class="presence-person" title="Ana Giménez · Viendo este proyecto" aria-label="Ana Giménez · Viendo este proyecto"><span aria-hidden="true">AG</span><i data-active="false"></i></span><span class="presence-person" title="Marcos Rojas · Activo en este proyecto" aria-label="Marcos Rojas · Activo en este proyecto"><span aria-hidden="true">MR</span><i data-active="true"></i></span><span class="presence-person" title="Sofía Benítez · Activo en este proyecto" aria-label="Sofía Benítez · Activo en este proyecto"><span aria-hidden="true">SB</span><i data-active="true"></i></span><span class="presence-more" title="Daniela Ayala, Carlos Núñez, Lucía Ortega">+3</span></span></div></div>
+<div class="workspace-topbar sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
+ <div class="topbar-primary flex min-w-0 flex-1 items-center gap-3">
+  <div class="topbar-identity flex min-w-0 items-center gap-2"><button class="icon-button mobile-menu-trigger hidden h-11 w-11 place-items-center max-md:grid" type="button" title="Abrir menú" aria-label="Abrir menú" aria-expanded="false" aria-haspopup="dialog">${svg(I.menu, 22)}</button></div>
+  <div class="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
+   <div class="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden"><button class="workspace" title="Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima">${svg(I.building, 16)}<span class="company-name">Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima</span></button></div>
+   <div class="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio"><div class="workspace-presence workspace-presence-compact" title="Fredd D., Ana Giménez, Marcos Rojas, Sofía Benítez, Daniela Ayala, Carlos Núñez, Lucía Ortega · 7 en línea" aria-label="Fredd D., Ana Giménez, Marcos Rojas, Sofía Benítez, Daniela Ayala, Carlos Núñez, Lucía Ortega · 7 en línea"><span class="presence-avatars"><span class="presence-person" title="Fredd D. · Activo en este proyecto" aria-label="Fredd D. · Activo en este proyecto"><span aria-hidden="true">FD</span><i data-active="true"></i></span><span class="presence-person" title="Ana Giménez · Viendo este proyecto" aria-label="Ana Giménez · Viendo este proyecto"><span aria-hidden="true">AG</span><i data-active="false"></i></span><span class="presence-person" title="Marcos Rojas · Activo en este proyecto" aria-label="Marcos Rojas · Activo en este proyecto"><span aria-hidden="true">MR</span><i data-active="true"></i></span><span class="presence-person" title="Sofía Benítez · Activo en este proyecto" aria-label="Sofía Benítez · Activo en este proyecto"><span aria-hidden="true">SB</span><i data-active="true"></i></span><span class="presence-more" title="Daniela Ayala, Carlos Núñez, Lucía Ortega">+3</span></span></div></div>
   </div>
  </div>
- <div class="topbar-utilities">
-  <div class="topbar-status"></div>
-  <div class="topbar-utility-actions">
-   <button type="button" class="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">${svg(I.moon, 18)}</button>
+ <div class="topbar-utilities flex min-w-0 items-center gap-3 max-md:contents">
+  <div class="topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2"></div>
+  <div class="topbar-utility-actions flex min-w-0 items-center gap-2 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">   <button type="button" class="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">${svg(I.moon, 18)}</button>
    <button class="workspace-search-trigger" aria-label="Buscar clientes, proyectos y órdenes">${svg(I.search, 17)}<span>Buscar cliente, proyecto u orden</span></button>
    <button type="button" class="icon-button notification-trigger" title="Notificaciones" aria-haspopup="dialog" aria-expanded="false" aria-label="Notificaciones, 99+ sin leer">${svg(I.bell, 19)}<span class="notification-badge" aria-hidden="true">99+</span></button>
   </div>
@@ -616,14 +616,14 @@ const topbar = `
 </div>`;
 
 const mobileDrawer = `
-<div class="mobile-sidebar-backdrop">
- <section class="mobile-sidebar" role="dialog" aria-modal="true" aria-label="Menú de Scale OS" tabindex="-1">
-  <div class="mobile-sidebar-heading"><strong>Menú principal</strong><button type="button" class="icon-button" title="Cerrar menú" aria-label="Cerrar menú">${svg(I.x, 20)}</button></div>
-  <div class="mobile-sidebar-body">
-   <div class="mobile-sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
-   <p class="nav-caption">Espacio de trabajo</p>
-   <nav aria-label="Menú principal">${navItems.map((item) => navLink([item[0], item[0] === 'Pipeline' || item[1]])).join('')}<button type="button" class="nav-logout" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
-   <div class="sidebar-bottom"><div class="profile-footer"><button class="user" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
+<div class="mobile-sidebar-backdrop fixed inset-0 z-40 grid bg-black/50 motion-reduce:transition-none">
+ <section class="mobile-sidebar flex h-[100dvh] w-72 max-w-[85vw] flex-col gap-4 overflow-y-auto bg-ink-800 p-4" role="dialog" aria-modal="true" aria-label="Menú de Scale OS" tabindex="-1">
+  <div class="mobile-sidebar-heading flex items-center justify-between gap-3"><strong class="text-sm font-semibold text-fore">Menú principal</strong><button type="button" class="icon-button" title="Cerrar menú" aria-label="Cerrar menú">${svg(I.x, 20)}</button></div>
+  <div class="mobile-sidebar-body grid min-h-0 content-start gap-1 [&_a]:min-h-11 [&_button]:min-h-11">
+   <div class="mobile-sidebar-brand flex items-center px-3 pt-2"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
+   <p class="nav-caption mt-4 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
+   <nav aria-label="Menú principal" class="grid gap-0.5">${navItems.map((item) => navLink([item[0], item[0] === 'Pipeline' || item[1]])).join('')}<button type="button" class="nav-logout ${RAIL_ITEM} text-mute hover:bg-ink-700 hover:text-fore" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
+   <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 p-2"><div class="profile-footer min-w-0"><button class="user" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
   </div>
  </section>
 </div>`;

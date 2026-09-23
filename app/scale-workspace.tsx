@@ -9,7 +9,7 @@ import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
 import {ThemeToggle} from './theme-toggle';
 import {MobileNavigation} from './mobile-navigation';
-import {DesktopSidebar} from './desktop-sidebar';
+import {DesktopSidebar, RAIL_ITEM} from './desktop-sidebar';
 import {roleCan,BATCH_LIMITS,limitSelection} from './capabilities';
 import './client-directory.css';
 import dynamic from 'next/dynamic';
@@ -34,8 +34,6 @@ import {request} from './workspace-request';
 import {prefetchSectionData} from './data-prefetch';
 import './control-center.css';
 import './production-focus.css';
-import './mobile-navigation.css';
-import './workspace-density.css';
 import {Dialog} from './dialog';
 import {completeSave} from './save-completion';
 import {ProjectComments, CompanySelector, money} from './operations';
@@ -814,14 +812,15 @@ export default function Home() {
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 
+  const navItemClass=(active:boolean)=>`${active?'active ':''}${RAIL_ITEM} ${active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore'}`;
   const sidebarContent=<>
         <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
-        <p className="nav-caption font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
-        <nav aria-label="Menú principal" className="grid gap-0.5">
+        <p className="nav-caption mt-4 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
+        <nav aria-label="Menú principal" className="grid gap-0.5 px-2">
           {visibleNav.map(([label, Icon]) => (
             <Link
               key={label}
-              className={`${activeParent === label ? "active" : ""} flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium`}
+              className={navItemClass(activeParent === label)}
               aria-current={activeParent===label?'page':undefined}
               title={label}
               aria-label={label}
@@ -829,24 +828,24 @@ export default function Home() {
               onMouseEnter={()=>prefetchSection(allowedChildren(label)[0])}
               onFocus={()=>prefetchSection(allowedChildren(label)[0])}
             >
-              <Icon size={18} />
-              <span className="nav-label">{label}</span>
+              <Icon size={18} className="shrink-0"/>
+              <span className="nav-label min-w-0 break-words">{label}</span>
             </Link>
           ))}
-          <button type="button" className="nav-logout flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium" onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18}/><span className="nav-label">Cerrar sesión</span></button>
+          <button type="button" className={`nav-logout ${navItemClass(false)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18} className="shrink-0"/><span className="nav-label">Cerrar sesión</span></button>
         </nav>
-        <div className="sidebar-bottom">
-          <div className="profile-footer"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
+        <div className="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 p-2">
+          <div className="profile-footer min-w-0"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
       </>;
   return (
-    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
+    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main className={`shell control-shell min-[761px]:has-[>.desktop-sidebar.is-collapsed]:[&>.content]:!w-[calc(100%-60px)] ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
       <DesktopSidebar>
         <div className="sidebar-brand"><WorkspaceBrand/></div>
         {sidebarContent}
       </DesktopSidebar>
-      <section className="content">
+      <section className="content min-w-0 min-[761px]:!w-[calc(100%-192px)]">
         {demoWelcome&&user?.demo_owner_user_id&&<DemoWelcome close={()=>setDemoWelcome(false)}/>}
         {active==='Producción'&&productionView==='Tablero'&&productionFiltersDialogScope===preferenceScope&&productionFiltersDialogScope&&preferencesReady&&<Dialog title="Filtros guardados del tablero" close={()=>setProductionFiltersDialogScope('')}><div className="ops-stack">
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
@@ -856,26 +855,26 @@ export default function Home() {
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
-        <div className="workspace-topbar border-b border-ink-600" role="toolbar" aria-label="Controles del espacio de trabajo">
-          <div className="topbar-primary">
-            <div className="topbar-identity">
+        <div className="workspace-topbar sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
+          <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3">
+            <div className="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2">
               <MobileNavigation>{sidebarContent}</MobileNavigation>
             </div>
-            <div className="topbar-workspace-context">
-              <div className="topbar-company">
+            <div className="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
+              <div className="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden">
                 <CompanySelector name={companyLabel}/>
               </div>
-              <div className="topbar-presence" role="group" aria-label="Personas activas en el espacio">
+              <div className="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio">
                 <WorkspacePresence compact projectIds={projects.map(project=>String(project.id))} role={user?.role||'viewer'}/>
               </div>
             </div>
           </div>
-          <div className="topbar-utilities">
-            <div className="topbar-status">
+          <div className="topbar-utilities flex min-w-0 items-center gap-3 max-md:contents">
+            <div className="topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2">
               {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
             </div>
-            <div className="topbar-utility-actions">
+            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
               <ThemeToggle/>
               <WorkspaceSearch key={workspaceScope} navigate={setActive} records={[
                 ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
@@ -886,7 +885,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <header className="workspace-page-header">
+        <header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-3 max-md:grid max-md:grid-cols-1">
           {active==='Clientes' ? <ClientDirectoryToolbar
             canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
             onCreate={()=>setModal('client')}
@@ -899,11 +898,11 @@ export default function Home() {
             totalCount={clients.length}
             view={clientView as 'grid'|'list'}
           ><WorkspaceGuide {...guideProps}/></ClientDirectoryToolbar> : <>
-            <div className="page-heading min-w-0">
-              <h1>{active==='Resumen'?'Centro de control':activeParent}</h1>
-              {active==='Proyectos'&&<span className="page-count tabular-nums">{projects.length} proyectos</span>}
+            <div className="page-heading flex min-w-0 items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-fore">{active==='Resumen'?'Centro de control':activeParent}</h1>
+              {active==='Proyectos'&&<span className="page-count rounded-full bg-ink-700 px-2 py-0.5 text-[11px] tabular-nums text-mute">{projects.length} proyectos</span>}
             </div>
-            <div className="header-actions">
+            <div className="header-actions flex flex-wrap items-center gap-2">
               {active==='Proyectos'&&<div className="workspace-view-controls"><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>}
               <WorkspaceGuide {...guideProps}/>
               {(['Proyectos','Resumen','Producción','Presupuestos'].includes(active)&&canCreateRecord(active)) && (

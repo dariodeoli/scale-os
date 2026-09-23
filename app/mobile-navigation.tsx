@@ -14,10 +14,10 @@ function MobileDrawer({id,close,children}:{id:string;close:()=>void;children:Rea
   return()=>{if(shell)shell.inert=wasInert??false;};
  },[]);
  useOverlay(panel,close);
- return createPortal(<div className="mobile-sidebar-backdrop" onClick={event=>{if(event.target===event.currentTarget)close();}}>
-  <section id={id} className="mobile-sidebar" ref={panel} role="dialog" aria-modal="true" aria-label="Menú de Scale OS" tabIndex={-1}>
-   <div className="mobile-sidebar-heading"><strong>Menú principal</strong><button type="button" className="icon-button" title="Cerrar menú" onClick={close} aria-label="Cerrar menú"><X size={20}/></button></div>
-   <div className="mobile-sidebar-body" onClick={event=>{if((event.target as HTMLElement).closest('a[href]'))close();}}>{children}</div>
+ return createPortal(<div className="mobile-sidebar-backdrop fixed inset-0 z-40 grid bg-black/50 motion-reduce:transition-none" onClick={event=>{if(event.target===event.currentTarget)close();}}>
+  <section id={id} className="mobile-sidebar flex h-[100dvh] w-72 max-w-[85vw] flex-col gap-4 overflow-y-auto bg-ink-800 p-4" ref={panel} role="dialog" aria-modal="true" aria-label="Menú de Scale OS" tabIndex={-1}>
+   <div className="mobile-sidebar-heading flex items-center justify-between gap-3"><strong className="text-sm font-semibold text-fore">Menú principal</strong><button type="button" className="icon-button" title="Cerrar menú" onClick={close} aria-label="Cerrar menú"><X size={20}/></button></div>
+   <div className="mobile-sidebar-body grid min-h-0 content-start gap-1 [&_a]:min-h-11 [&_button]:min-h-11" onClick={event=>{if((event.target as HTMLElement).closest('a[href]'))close();}}>{children}</div>
   </section>
  </div>,document.body);
 }
@@ -33,7 +33,7 @@ export function MobileNavigation({children}:{children:ReactNode}){
   return()=>desktop.removeEventListener('change',resized);
  },[]);
  return <>
-  <button className="icon-button mobile-menu-trigger" type="button" title="Abrir menú" aria-label="Abrir menú" aria-expanded={open} aria-controls={open?id:undefined} aria-haspopup="dialog" onClick={()=>setOpen(v=>!v)}><Menu size={22}/></button>
+  <button className="icon-button mobile-menu-trigger hidden h-11 w-11 place-items-center max-md:grid" type="button" title="Abrir menú" aria-label="Abrir menú" aria-expanded={open} aria-controls={open?id:undefined} aria-haspopup="dialog" onClick={()=>setOpen(v=>!v)}><Menu size={22}/></button>
   {open&&<MobileDrawer id={id} close={()=>setOpen(false)}>{children}</MobileDrawer>}
  </>;
 }

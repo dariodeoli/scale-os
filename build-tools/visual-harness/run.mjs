@@ -80,24 +80,25 @@ if (filtered.length === 0) {
   process.exit(1);
 }
 
+const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none transition';
 const shellAside = (active) => `
-<aside class="desktop-sidebar">
- <button type="button" class="sidebar-collapse" aria-label="Colapsar barra lateral" title="Colapsar barra lateral" aria-expanded="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg></button>
+<aside class="desktop-sidebar hidden shrink-0 flex-col border-r border-ink-600 bg-ink-800 min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh min-[761px]:!w-48 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:px-3 [&_.sidebar-brand]:pt-2 [&_.sidebar-brand]:!mb-4">
+ <div class="flex justify-end p-2"><button type="button" class="sidebar-collapse grid h-10 w-10 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore" aria-label="Colapsar barra lateral" title="Colapsar barra lateral" aria-expanded="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg></button></div>
  <div class="sidebar-brand"><span class="workspace-brand"><span class="workspace-wordmark">Scale<span>OS</span></span></span></div>
- <div class="sidebar-scroll">
-  <nav class="sidebar-nav" aria-label="Secciones">
-   ${['Resumen','Producción','Clientes','Proyectos','Presupuestos','Finanzas','Mora','Previsión','Informes','Pipeline','Planes','Inventario','Estudio','Equipo'].map((label) => `<a href="#"${label === active ? ' class="active" aria-current="page"' : ''}><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg></span><span class="nav-label">${label}</span></a>`).join('')}
-  </nav>
- </div>
- <div class="profile-footer"><button class="user" aria-label="Abrir mi perfil"><span class="person-container"><span class="person-identity"><span class="person-avatar" aria-hidden="true">FD</span><span class="person-text"><b>Fredd D.</b><small>Propietario</small></span></span></span></button></div>
+ <p class="nav-caption mt-4 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
+ <nav class="grid gap-0.5 px-2" aria-label="Secciones">
+  ${['Resumen','Producción','Clientes','Proyectos','Presupuestos','Finanzas','Mora','Previsión','Informes','Pipeline','Planes','Inventario','Estudio','Equipo'].map((label) => `<a href="#" class="${RAIL_ITEM} ${label === active ? 'active bg-fono/10 text-fono-light' : 'text-mute hover:bg-ink-700 hover:text-fore'}"${label === active ? ' aria-current="page"' : ''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><rect x="3" y="3" width="18" height="18" rx="4"/></svg><span class="nav-label min-w-0 break-words">${label}</span></a>`).join('')}
+  <button type="button" class="nav-logout ${RAIL_ITEM} text-mute hover:bg-ink-700 hover:text-fore" aria-label="Cerrar sesión" title="Cerrar sesión"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span class="nav-label">Cerrar sesión</span></button>
+ </nav>
+ <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 p-2"><div class="profile-footer min-w-0"><button class="user" aria-label="Abrir mi perfil"><span class="person-container"><span class="person-identity"><span class="person-avatar" aria-hidden="true">FD</span><span class="person-text"><b>Fredd D.</b><small>Propietario</small></span></span></span></button></div></div>
 </aside>`;
 
 function fixtureSection(fixture) {
   const dataLists = JSON.stringify(fixture.lists || []).replace(/'/g, '&#39;');
   const dataGrids = JSON.stringify(fixture.grids || []).replace(/'/g, '&#39;');
   const body = fixture.kind === 'workspace'
-    ? `<main class="shell control-shell">${shellAside(fixture.section)}<section class="content">
-       <div class="workspace-topbar" role="toolbar" aria-label="Controles del espacio de trabajo"><div class="topbar-primary"><div class="topbar-workspace-context"><div class="topbar-company">Empresa de prueba</div></div></div><div class="topbar-utilities"><div class="topbar-utility-actions"><span class="icon-button" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span></div></div></div>
+    ? `<main class="shell control-shell">${shellAside(fixture.section)}<section class="content min-w-0 min-[761px]:!w-[calc(100%-192px)]">
+       <div class="workspace-topbar sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo"><div class="topbar-primary flex min-w-0 items-center gap-3"><div class="topbar-identity flex min-w-0 items-center gap-2"></div><div class="topbar-workspace-context flex min-w-0 items-center gap-3"><div class="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden">Empresa de prueba</div></div></div><div class="topbar-utilities flex min-w-0 items-center gap-3 max-md:contents"><div class="topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2"></div><div class="topbar-utility-actions flex min-w-0 items-center gap-2 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11"><span class="icon-button" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span></div></div></div>
        ${fixture.body}
        </section></main>`
     : fixture.body;
