@@ -168,3 +168,24 @@ html[data-theme="dark"] {
   --c-onbrand: 29 21 32; /* tinta oscura sobre marca clara */
   color-scheme: dark;
 }
+
+/* ── Modo Producción del shell ──────────────────────────────────────────────
+   Reglas movidas desde `app/production-focus.css` (23-09): son las únicas
+   vivas de esa hoja, porque el shell marca `production-mode` y
+   `production-board-mode` al abrir Producción (página con scroll, sin scroll
+   anidado). Viven acá hasta que PLT retire la hoja y su importación: no
+   dependen del marcado de la sección v2 ni de clases `production-*`.
+   Se copian literalmente para no cambiar métricas ni comportamiento. */
+.control-shell.production-mode>.content>header{margin-bottom:10px;flex-wrap:nowrap;align-items:center}
+.control-shell.production-mode>.content>header h1{font-size:24px}
+.control-shell.production-mode .header-actions{width:auto;flex-wrap:nowrap}
+.control-shell.production-mode .workspace-topbar{margin-bottom:12px;padding-bottom:10px}
+.control-shell.production-board-mode>.content{height:auto;min-height:100dvh;display:block;overflow:visible;padding-top:12px;padding-bottom:16px}
+.production-board-mode .workspace-footer{margin-top:8px;padding:6px 0 0;gap:3px 12px;font-size:10px}
+.production-board-mode .workspace-footer .usage-disclosure{margin:0;font-size:9px;line-height:1.4}
+@media(max-width:760px){
+.control-shell.production-board-mode>.content{padding:12px}
+.control-shell.production-mode .workspace-topbar{margin:-12px -12px 10px;padding:10px 12px 8px}
+.control-shell.production-mode .header-actions>.secondary{display:none}
+.production-board-mode .workspace-footer{font-size:9px}
+}
