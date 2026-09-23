@@ -1,7 +1,6 @@
 "use client";
 import {FormEvent,useEffect,useMemo,useState,type ReactNode} from 'react';
 import {ActorAvatar,safePhoto} from './actor-identity';
-import {currencyChoices} from './currencies';
 import {formatWholeMoney,formatSignedMoney} from './amount-format';
 import {listDateFull,listDateShort} from './list-format';
 import {Dialog,api} from './operations';
@@ -48,7 +47,7 @@ import {
   SegmentedField,
   cn,
 } from 'owncoding-ui';
-import {LoadingBlock,StateChip} from './ui-v2';
+import {CurrencyField,LoadingBlock,StateChip} from './ui-v2';
 
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
 const PERSON_COLS='grid-cols-[minmax(16rem,1.2fr)_minmax(7rem,.9fr)_minmax(8rem,.9fr)_minmax(8rem,.9fr)_6.5rem]';
@@ -236,7 +235,7 @@ function ForecastPanel() {
       <FormField label="Categoría"><SelectCustom label="Categoría" choices={['Operación','Herramientas','Marketing','Administración','Otro'].map(category=>({value:category,label:category}))} value={expense.category} disabled={expenseSaving} onChange={value=>setExpense(current=>({...current,category:value}))}/></FormField>
       <FormField label="Tipo"><SelectCustom label="Tipo" choices={[{value:'variable',label:'Variable'},{value:'fixed',label:'Fijo'}]} value={expense.kind} disabled={expenseSaving} onChange={value=>setExpense(current=>({...current,kind:value==='fixed'?'fixed':'variable'}))}/></FormField>
       <FormField label="Monto entero"><Input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={16} value={expense.amount} disabled={expenseSaving} placeholder="Sin separadores" onChange={(event:FormEvent<HTMLInputElement>)=>setExpense(current=>({...current,amount:soloDigitos((event.target as HTMLInputElement).value)}))}/></FormField>
-      <FormField label="Moneda"><SelectCustom label="Moneda" choices={currencyChoices} value={expense.currency} disabled={expenseSaving} onChange={value=>setExpense(current=>({...current,currency:isCurrency(value)?value:'PYG'}))}/></FormField>
+      <CurrencyField id="forecast-expense-currency" label="Moneda" value={expense.currency} disabled={expenseSaving} onChange={value=>setExpense(current=>({...current,currency:isCurrency(value)?value:'PYG'}))}/>
       <FormField label="Nota opcional"><Input type="text" maxLength={280} value={expense.note} disabled={expenseSaving} onChange={(event:FormEvent<HTMLInputElement>)=>setExpense(current=>({...current,note:(event.target as HTMLInputElement).value}))}/></FormField>
       <Button type="submit" disabled={expenseSaving} className="w-full sm:w-auto">{expenseSaving?'Guardando…':'Agregar gasto planificado'}</Button>
      </form>

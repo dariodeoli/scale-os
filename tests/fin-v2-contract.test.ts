@@ -61,7 +61,7 @@ assert.match(informes,/whitespace-nowrap/,'el histórico y la comparativa no cor
 // ── Montos por contexto y fechas por list-format.
 assert.match(pre,/formatWholeMoney/);assert.match(pre,/formatSignedMoney/);
 assert.match(informes,/reportMoney/);
-assert.match(treasury,/\bmoney\(/);
+assert.match(treasury,/MoneyText/,'la conciliación muestra montos con MoneyText');
 for(const [name,source] of [['previsión',pre],['informes',informes],['producción semanal',weekly],['conciliación',treasury]] as const){
  assert.match(source,/listDate(Short|Full)/,'${name} usa list-format'.replace('${name}',name));
  assert.doesNotMatch(source,/toLocaleString|toLocaleDateString/,'${name} no formatea fechas a mano'.replace('${name}',name));
@@ -76,7 +76,7 @@ assert.match(pre,/className="w-44"/);assert.match(informes,/className="w-44"/);a
 for(const [name,source] of [['finanzas',finanzas],['mora',mora],['comisiones',comisiones]] as const){
  assert.match(source,/from '\.\.\/ui-v2'/,'${name} usa las primitivas v2'.replace('${name}',name));
  for(const primitive of ['ListGrid','EmptyBlock']) assert.match(source,new RegExp(primitive),`${name} usa ${primitive}`);
- assert.match(source,/\bmoney\(/,'${name} formatea montos con money()'.replace('${name}',name));
+ assert.match(source,/MoneyText|\bmoney\(/,'${name} formatea montos con MoneyText (money())'.replace('${name}',name));
  assert.match(source,/listDate(Short|Full)/,'${name} usa list-format'.replace('${name}',name));
  assert.doesNotMatch(source,/toLocaleString|toLocaleDateString/,'${name} no formatea fechas a mano'.replace('${name}',name));
 }
@@ -98,5 +98,18 @@ assert.match(comisiones,/from '\.\.\/commission-data'/,'comisiones adopta su cap
 assert.match(informesSection,/ReportsWorkspace/,'informes monta el módulo v2');
 assert.match(previsionSection,/FinancialForecast/,'previsión monta el módulo v2');
 assert.match(finanzas,/ReconciliationWorkspace/,'finanzas conserva la conciliación v2');
+
+
+// ── Objetos v2 de DSN adoptados (MoneyText/CurrencyField/ViewSwitch).
+for(const [name,source] of [['finanzas',finanzas],['mora',mora],['comisiones',comisiones],['conciliación',treasury]] as const){
+ assert.match(source,/MoneyText/,'${name} usa MoneyText para montos'.replace('${name}',name));
+}
+assert.match(pre,/CurrencyField/,'previsión usa el campo de moneda v2');
+assert.match(pre,/forecast-expense-currency/,'el campo de moneda declara su id accesible');
+assert.doesNotMatch(pre,/currencyChoices/,'el catálogo de monedas sale de CurrencyField, no se duplica');
+for(const [name,source] of [['finanzas',finanzas],['conciliación',treasury]] as const){
+ const code=source.split('\n').filter(line=>!line.trim().startsWith('//')&&!line.trim().startsWith('*')).join('\n');
+ assert.equal((code.match(/\bmoney\(/g)||[]).length,0,`${name}: los montos simples van por MoneyText (money() directo ya no se usa)`);
+}
 
 console.log('PASS: contrato v2 FIN — librería + primitivas, estados, una plantilla por lista sin `auto`, sin elipsis, montos por contexto, fechas por list-format y anchos por tipo');

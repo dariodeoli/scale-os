@@ -22,7 +22,7 @@ import {
   type ReferralDiscount,
 } from '../commission-data';
 import {Aviso} from 'owncoding-ui';
-import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {User} from '../workspace-types';
 
 // Comisiones y referidos (dominio FIN). La sección es dueña de sus datos: liquidación
@@ -46,7 +46,6 @@ const DISCOUNT_COLUMNS: Column[] = [{key: 'referrer', label: 'Referido'}, {key: 
 const PAYOUT_TEMPLATE = 'grid-cols-[minmax(24rem,1.6fr)_6.5rem_minmax(10rem,1.2fr)_minmax(10rem,1.1fr)_8.5rem]';
 const PAYOUT_COLUMNS: Column[] = [{key: 'egress', label: 'Egreso'}, {key: 'date', label: 'Fecha'}, {key: 'account', label: 'Cuenta'}, {key: 'actor', label: 'Registró'}, {key: 'amount', label: 'Monto', align: 'end'}];
 
-const moneyCell = (value: string | number, currency: string) => <span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(Number(value), currency)}</span>;
 const CHOICE_EMPTY: Choice = {value: '', label: 'Sin vincular'};
 
 export function ComisionesSection({user}: ComisionesSectionProps) {
@@ -102,7 +101,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const totals = useMemo(() => monthlyCommissionTotals(monthly), [monthly]);
   const visible = useMemo(() => filterCommissions(commissions, filter), [commissions, filter]);
   const totalFor = (key: 'expected' | 'paid' | 'pending') => totals.length
-    ? <span className="flex flex-wrap items-baseline gap-2">{totals.map(row => <span key={row.currency}>{money(row[key], row.currency)}</span>)}</span>
+    ? <span className="flex flex-wrap items-baseline gap-2">{totals.map(row => <MoneyText key={row.currency} valor={row[key]} currency={row.currency}/>)}</span>
     : null;
   const monthLabel = listDateShort(`${month}-01`) || month;
   const run = async (fn: () => Promise<void>, ok: string) => {
@@ -135,11 +134,11 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
           ? <ListGrid label="Comisiones del mes por colaborador" template={SETTLEMENT_TEMPLATE} columns={SETTLEMENT_COLUMNS} minWidthClass="min-w-[62rem]">
             {monthly.map(row => <ListRow key={`${row.recipient_id ?? `unlinked-${row.name ?? ''}`}-${row.currency}`} template={SETTLEMENT_TEMPLATE}>
               <div className="min-w-0"><b className="block text-[13.5px] font-semibold leading-snug text-fore" title={row.name || 'Sin colaborador vinculado'}>{row.name || 'Sin colaborador vinculado'}</b><small className="block text-[11px] text-mute">{row.currency}</small></div>
-              <div className="min-w-0 text-right">{moneyCell(row.expected_amount, row.currency)}</div>
-              <div className="min-w-0 text-right">{moneyCell(row.recorded_amount, row.currency)}</div>
-              <div className="min-w-0 text-right">{moneyCell(row.approved_amount, row.currency)}</div>
-              <div className="min-w-0 text-right">{moneyCell(row.paid_amount, row.currency)}</div>
-              <div className="min-w-0 text-right">{moneyCell(row.pending_amount, row.currency)}</div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.expected_amount} currency={row.currency}/></div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.recorded_amount} currency={row.currency}/></div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.approved_amount} currency={row.currency}/></div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.paid_amount} currency={row.currency}/></div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.pending_amount} currency={row.currency}/></div>
             </ListRow>)}
           </ListGrid>
           : <EmptyBlock compact title="Sin comisiones ni acuerdos comerciales para este mes." description="Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada)."/>}
@@ -162,7 +161,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
                 </div>
                 <div className="min-w-0"><StateChip tone={STATUS_TONE[commission.status]} title={`${commissionStatusLabel(commission.status)}${commission.paid_on ? ` · pagada ${listDateShort(commission.paid_on)}` : ''}`}>{commissionStatusLabel(commission.status)}</StateChip></div>
                 <div className="flex min-w-0 items-baseline justify-end gap-2">
-                  {moneyCell(commission.amount, commission.currency)}
+                  <MoneyText valor={commission.amount} currency={commission.currency}/>
                   <small className="truncate text-[11px] text-mute" title={commissionBasisText(commission, (value, currency) => money(Number(value), currency))}>{commissionBasisText(commission, (value, currency) => money(Number(value), currency))}</small>
                 </div>
                 <div className="flex min-w-0 items-baseline gap-2 text-[11.5px] text-mute">
@@ -191,7 +190,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
             {discounts.map(discount => <ListRow key={discount.id} template={DISCOUNT_TEMPLATE}>
               <div className="min-w-0"><b className="block text-[13.5px] font-semibold leading-snug text-fore">{discount.referrer}</b><small className="block text-[11px] text-mute">{discount.created_at ? `Alta ${listDateShort(discount.created_at)}` : 'Sin fecha de alta'}</small></div>
               <div className="min-w-0 truncate text-[11.5px] text-mute" title={`${discount.invoice_number} · ${discount.client_name} · ${discount.reason}`}><span className="text-fore">{discount.invoice_number}</span><span> · {discount.client_name} · {discount.reason}</span></div>
-              <div className="min-w-0 text-right">{moneyCell(discount.amount, discount.currency)}</div>
+              <div className="min-w-0 text-right"><MoneyText valor={discount.amount} currency={discount.currency}/></div>
               <div className="min-w-0"><StateChip tone={DISCOUNT_TONE[discount.status]}>{referralDiscountStatusLabel(discount.status)}</StateChip></div>
               <div className="flex min-w-0 items-center justify-end gap-1">
                 {discount.status === 'applied' && canManage ? <button className="text-button warn" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/referral-discounts/${discount.id}`, {}, 'PATCH'); }, 'Descuento revertido.')}><Undo2 size={14} aria-hidden="true"/>Revertir</button> : null}
@@ -210,7 +209,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(payout.paid_on) || undefined}>{listDateShort(payout.paid_on) || '—'}</span></div>
               <div className="min-w-0 text-[11.5px] text-fore">{payout.account_name}</div>
               <div className="min-w-0 text-[11.5px] text-mute">{payout.created_by_email || 'Sin registrar'}</div>
-              <div className="min-w-0 text-right">{moneyCell(payout.amount, payout.currency)}</div>
+              <div className="min-w-0 text-right"><MoneyText valor={payout.amount} currency={payout.currency}/></div>
             </ListRow>)}
           </ListGrid>
           : <EmptyBlock compact title="Todavía no hay egresos registrados." description="Al pagar una comisión o un sueldo, el egreso aparece acá con su cuenta."/>}

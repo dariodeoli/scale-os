@@ -6,15 +6,14 @@ import {ReceiptReversal, ReconciliationWorkspace} from '../daily-controls';
 import {RemoveRecord} from '../archive-controls';
 import {moneyKpi} from '../client-format';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
-import {money} from '../operations';
 import {Aviso} from 'owncoding-ui';
-import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {FilterToolbar} from '../ui-v2';
 import type {Account, AccountTransfer, Invoice, ModalKind, PaymentRecord, User} from '../workspace-types';
 
 // Finanzas (arquetipo dashboard + listas): disponibilidad, cuentas, transferencias,
 // cobros pendientes, cobros registrados y conciliación por extracto.
-// Los importes salen de `money()`/`moneyKpi()`; las fechas, de `list-format`.
+// Los importes salen de `MoneyText` (money()) y `moneyKpi()` para agregados; las fechas, de `list-format`.
 type FinanzasSectionProps = {
   user: User | null;
   financeState: 'loading'|'ready'|'error';
@@ -48,7 +47,6 @@ const INVOICE_COLUMNS: Column[] = [{key: 'invoice', label: 'Factura'}, {key: 'st
 const PAYMENT_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_6.5rem_minmax(9rem,1.1fr)_minmax(9rem,1.1fr)_minmax(8rem,1fr)_8.5rem_8rem]';
 const PAYMENT_COLUMNS: Column[] = [{key: 'payment', label: 'Cobro'}, {key: 'date', label: 'Fecha'}, {key: 'account', label: 'Cuenta'}, {key: 'actor', label: 'Recibió'}, {key: 'reference', label: 'Referencia'}, {key: 'amount', label: 'Monto', align: 'end'}, {key: 'actions', label: 'Acciones'}];
 
-const amount = (value: string | number, currency: string) => <span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(Number(value), currency)}</span>;
 const pendingOf = (invoice: Invoice) => Number(invoice.total) - Number(invoice.paid_amount);
 const dueWithinWeek = (due: string | null) => Boolean(due) && dueTone(due!) === 'warn';
 
@@ -120,7 +118,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
               <b className="min-w-0 text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
               <StateChip tone="mute" title={`${ACCOUNT_TYPES[account.account_type] || account.account_type} · ${account.currency}`}>{ACCOUNT_TYPES[account.account_type] || account.account_type} · {account.currency}</StateChip>
             </header>
-            <strong className="text-xl font-semibold tabular-nums text-fore">{money(Number(account.balance), account.currency)}</strong>
+            <MoneyText valor={account.balance} currency={account.currency} className="text-xl"/>
             <dl className="grid gap-1 text-[11.5px]">
               {account.institution ? <div className="flex items-baseline justify-between gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd className="min-w-0 text-right text-fore" title={account.institution}>{account.institution}</dd></div> : null}
               {account.account_number ? <div className="flex items-baseline justify-between gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd className="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title={account.account_number}>{account.account_number}</dd></div> : null}
@@ -151,8 +149,8 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
                 <div className="flex min-w-0 items-center gap-1.5 text-xs text-mute"><ActorAvatar name={row.actor_name || row.created_by_email || 'Sin asignar'} photo={safePhoto(row.actor_photo_url)}/><span className="truncate" title={row.actor_name || row.created_by_email || 'Sin asignar'}>{row.actor_name || row.created_by_email || 'Sin asignar'}</span></div>
                 <div className="min-w-0 truncate text-[11.5px] text-mute" title={row.reference || 'Sin referencia'}>{row.reference || 'Sin referencia'}</div>
                 <div className="min-w-0 text-right">
-                  {amount(row.amount, fromCurrency)}
-                  {received !== null && row.to_currency ? <small className="ml-2 whitespace-nowrap tabular-nums text-mute">→ {money(received, row.to_currency)}</small> : null}
+                  <MoneyText valor={row.amount} currency={fromCurrency}/>
+                  {received !== null && row.to_currency ? <span className="ml-2 inline-flex items-baseline gap-1 text-mute">→ <MoneyText valor={received} currency={row.to_currency}/></span> : null}
                 </div>
               </ListRow>;
             })}
@@ -187,8 +185,8 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
             <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${invoice.number} · ${invoice.client_name}`}>{invoice.number} · {invoice.client_name}</b></div>
             <div className="min-w-0"><StateChip tone={INVOICE_TONE[invoice.status] || 'mute'} title={INVOICE_STATES[invoice.status] || invoice.status}>{INVOICE_STATES[invoice.status] || invoice.status}</StateChip></div>
             <div className="min-w-0">{invoice.due_on ? <span className={`whitespace-nowrap tabular-nums ${dueTone(invoice.due_on) ? 'font-semibold text-warn' : 'text-fore'}`} title={listDateFull(invoice.due_on) || undefined}>{listDateShort(invoice.due_on)}</span> : <span className="text-[11px] text-mute">Sin fecha</span>}</div>
-            <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? amount(pendingOf(invoice), invoice.currency) : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
-            <div className="min-w-0 text-right">{amount(invoice.total, invoice.currency)}</div>
+            <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? <MoneyText valor={pendingOf(invoice)} currency={invoice.currency}/> : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
+            <div className="min-w-0 text-right"><MoneyText valor={invoice.total} currency={invoice.currency}/></div>
             <div className="flex min-w-0 items-center justify-end gap-1">
               {pendingOf(invoice) > 0 ? <button className="text-button" onClick={() => openPayment(invoice.id)}><Plus size={14} aria-hidden="true"/>Registrar cobro</button> : null}
             </div>
@@ -208,7 +206,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
             <div className="min-w-0 truncate text-[11.5px] text-fore" title={`${payment.account_name} · ${ACCOUNT_TYPES[payment.account_type] || payment.account_type}`}>{payment.account_name} · {ACCOUNT_TYPES[payment.account_type] || payment.account_type}</div>
             <div className="flex min-w-0 items-center gap-1.5 text-xs text-mute"><ActorAvatar name={payment.actor_name || payment.received_by_email || 'Sin asignar'} photo={safePhoto(payment.actor_photo_url)}/><span className="truncate" title={payment.actor_name || payment.received_by_email || 'Sin asignar'}>{payment.actor_name || payment.received_by_email || 'Sin asignar'}</span></div>
             <div className="min-w-0 truncate text-[11.5px] text-mute" title={payment.reference || 'Sin referencia'}>{payment.reference || 'Sin referencia'}</div>
-            <div className="min-w-0 text-right">{amount(payment.amount, payment.currency)}</div>
+            <div className="min-w-0 text-right"><MoneyText valor={payment.amount} currency={payment.currency}/></div>
             <div className="flex min-w-0 items-center justify-end gap-1"><ReceiptReversal payment={payment} refresh={loadFinance}/></div>
           </ListRow>)}
         </ListGrid>

@@ -15,7 +15,7 @@ import {movementValue,matchingMovements,reconciliationPending,transferPreview,ty
 import {useReconciliation} from './use-reconciliation';
 import {todayInAsuncion} from './field-rules';
 import {Aviso,Button,Card,EmptyState,ErrorState,FormField,IconAction,Input,Nota,cn} from 'owncoding-ui';
-import {LoadingBlock,StateChip} from './ui-v2';
+import {LoadingBlock,MoneyText,StateChip} from './ui-v2';
 import {Copy,Eye,Link2,Link2Off,Undo2,Unlink} from 'lucide-react';
 type Account={id:string;name:string;currency:string;active:boolean};
 type Row={id:string;[key:string]:unknown};
@@ -50,7 +50,7 @@ export function FXTransferForm({accounts,done}:{accounts:Account[];done:()=>void
   <FormField label={`Llega (${to?.currency||'moneda de destino'})`}><AmountInput disabled={pending} value={v.receivedAmount} currency={to?.currency||'PYG'} onChange={value=>form.setValue('receivedAmount',value)}/></FormField>
   <FormField label="Fecha"><Input type="date" className="w-40" disabled={pending} {...form.register('transferredOn')}/></FormField>
   <FormField label="Referencia"><Input maxLength={120} disabled={pending} {...form.register('reference')}/></FormField>
-  {from&&to&&Number(v.amount)>0&&Number(v.receivedAmount)>0?<Nota tono="info" className="sm:col-span-2"><span className="tabular-nums">{money(v.amount,from.currency)} → {money(v.receivedAmount,to.currency)}{transfer.rate!==null?` · Cambio: 1 ${from.currency} = ${new Intl.NumberFormat('es-PY',{maximumFractionDigits:8}).format(transfer.rate)} ${to.currency}`:''}</span></Nota>:null}
+  {from&&to&&Number(v.amount)>0&&Number(v.receivedAmount)>0?<Nota tono="info" className="sm:col-span-2"><span className="inline-flex flex-wrap items-baseline gap-1"><MoneyText valor={v.amount} currency={from.currency}/> → <MoneyText valor={v.receivedAmount} currency={to.currency}/>{transfer.rate!==null?` · Cambio: 1 ${from.currency} = ${new Intl.NumberFormat('es-PY',{maximumFractionDigits:8}).format(transfer.rate)} ${to.currency}`:''}</span></Nota>:null}
   {Object.keys(form.formState.errors).length>0?<Aviso tono="error" className="sm:col-span-2">Elegí ambas cuentas, fecha e importes positivos.</Aviso>:null}
   {error?<Aviso tono="error" className="sm:col-span-2">{error}</Aviso>:null}
   <SaveActions pending={pending}><Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending?'Guardando…':'Registrar transferencia'}</Button></SaveActions>
@@ -58,7 +58,7 @@ export function FXTransferForm({accounts,done}:{accounts:Account[];done:()=>void
 }
 export function ReceiptReversal({payment,refresh}:{payment:{id:string;amount:string;currency:string;reversal_id?:string|null;reversal_reason?:string|null};refresh:()=>Promise<void>}){
  const [open,setOpen]=useState(false);if(payment.reversal_id)return <small>Revertido · {payment.reversal_reason}</small>;
- return <><button className="text-button warn" onClick={()=>setOpen(true)}><Undo2 size={14}/>Revertir cobro</button>{open&&<Dialog title="Revertir cobro" close={()=>setOpen(false)}><p>Se descontarán {money(payment.amount,payment.currency)} de la cuenta original y volverá a quedar pendiente en la factura. El cobro y esta corrección permanecerán en el historial.</p><Editor fields={[{key:'reason',label:'Motivo',type:'textarea'},{key:'confirmation',label:'Escribí REVERTIR para confirmar'}]} defaults={{reason:'',confirmation:''}} save={async v=>{if(v.confirmation!=='REVERTIR')throw new Error('Escribí REVERTIR para confirmar');await api(`/api/agency/payments/${payment.id}/reverse`,{reason:v.reason});await completeSave(()=>setOpen(false),refresh);}}/></Dialog>}</>;
+ return <><button className="text-button warn" onClick={()=>setOpen(true)}><Undo2 size={14}/>Revertir cobro</button>{open&&<Dialog title="Revertir cobro" close={()=>setOpen(false)}><p>Se descontarán <MoneyText valor={payment.amount} currency={payment.currency}/> de la cuenta original y volverá a quedar pendiente en la factura. El cobro y esta corrección permanecerán en el historial.</p><Editor fields={[{key:'reason',label:'Motivo',type:'textarea'},{key:'confirmation',label:'Escribí REVERTIR para confirmar'}]} defaults={{reason:'',confirmation:''}} save={async v=>{if(v.confirmation!=='REVERTIR')throw new Error('Escribí REVERTIR para confirmar');await api(`/api/agency/payments/${payment.id}/reverse`,{reason:v.reason});await completeSave(()=>setOpen(false),refresh);}}/></Dialog>}</>;
 }
 export function ClientReviewControl({orderId}:{orderId:string}){
  const [open,setOpen]=useState(false),[rows,setRows]=useState<Row[]>([]),[url,setUrl]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[confirming,setConfirming]=useState('');
@@ -130,7 +130,7 @@ export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
     {lines.map(l=><div role="row" className={cn(STATEMENT_ROW,STATEMENT_COLS)} key={l.id}>
      <span className="min-w-0 text-sm"><b className="font-semibold text-fore">{listDateShort(l.booked_on)||'—'}</b><small className="ml-2 text-xs text-mute">{l.reference||l.external_id}</small></span>
      <span className="min-w-0"><StateChip tone={l.match_id?'ok':'warn'}>{l.match_id?'Conciliado':'Pendiente'}</StateChip></span>
-     <span className={cn('min-w-0','text-right')}><strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{money(l.amount,currency)}</strong></span>
+     <span className={cn('min-w-0','text-right')}><MoneyText valor={l.amount} currency={currency}/></span>
      <span className={cn('min-w-0','flex justify-end')}>{l.match_id
       ?<IconAction icon="close" tone="bad" label={`Desvincular movimiento: ${l.reference||l.external_id}`} disabled={busy} onClick={()=>void perform(async()=>{await api(`/api/agency/reconciliation/${l.id}/unmatch`,{});await load(accountId);})}/>
       :<IconAction icon="check" tone="ok" label={`Conciliar ${l.reference||l.external_id}`} disabled={busy} onClick={()=>setMatching(l)}/>}</span>
@@ -141,6 +141,6 @@ export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
   {error&&!lines.length?<ErrorState title="No se pudo cargar el extracto" description={error} onRetry={()=>void perform(()=>load(accountId))}/>:null}
   {error&&lines.length?<Aviso tono="error">{error}</Aviso>:null}
   {importing&&<Dialog title="Importar extracto CSV" close={()=>setImporting(false)}><p>Copiá el CSV con encabezado <code>id,fecha,importe,referencia</code>. Fecha YYYY-MM-DD; importe positivo para ingresos y negativo para egresos, sin miles y con punto decimal. El ID debe ser único por cuenta.</p><div className="grid gap-3"><FormField label="Archivo CSV"><Input type="file" accept=".csv,text/csv" onChange={async (e:ChangeEvent<HTMLInputElement>)=>{const file=e.target.files?.[0];if(!file)return;if(file.size>800000){setError('El archivo supera 800 KB');return;}setCsv(await file.text());}}/></FormField></div><Editor key={csv} fields={[{key:'csv',label:'Contenido del CSV',type:'textarea'}]} defaults={{csv}} save={async v=>{const d=await api<{imported:number}>('/api/agency/reconciliation',{accountId,lines:parseStatementCsv(v.csv)});setNotice(`${d.imported} filas nuevas importadas.`);await load(accountId);setImporting(false);}}/></Dialog>}
-  {matching&&<Dialog title="Vincular movimiento" close={()=>setMatching(null)}><p className="tabular-nums">{money(matching.amount,currency)} · {matching.reference}</p><Editor fields={[{key:'movement',label:'Movimiento registrado del mismo importe',choices:matchingMovements(matching,movements).map(m=>({value:movementValue(m),label:`${listDateShort(m.booked_on)} · ${m.movement_type} · ${m.reference}`}))}]} defaults={{movement:''}} save={async v=>{const [movement_type,movement_id]=v.movement.split(':');await api(`/api/agency/reconciliation/${matching.id}/match`,{movement_type,movement_id});await load(accountId);setMatching(null);}}/></Dialog>}
+  {matching&&<Dialog title="Vincular movimiento" close={()=>setMatching(null)}><p><MoneyText valor={matching.amount} currency={currency}/> · {matching.reference}</p><Editor fields={[{key:'movement',label:'Movimiento registrado del mismo importe',choices:matchingMovements(matching,movements).map(m=>({value:movementValue(m),label:`${listDateShort(m.booked_on)} · ${m.movement_type} · ${m.reference}`}))}]} defaults={{movement:''}} save={async v=>{const [movement_type,movement_id]=v.movement.split(':');await api(`/api/agency/reconciliation/${matching.id}/match`,{movement_type,movement_id});await load(accountId);setMatching(null);}}/></Dialog>}
  </Card>;
 }

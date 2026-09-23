@@ -2,15 +2,17 @@
  * Fixtures: Finanzas (/pagos), Mora (/pagos/mora), Previsión (/pagos/prevision),
  * Informes (/informes) y Comisiones (/equipo/comisiones).
  *
- * El markup espeja el JSX real (sin clases inventadas):
- *  - app/scale-workspace.tsx 1490-1686 · Finanzas: kpi-strip, cuentas, transferencias,
- *    cobros pendientes y cobros registrados.
- *  - app/scale-workspace.tsx 1185-1292 · Mora: kpi-strip, toolbar y mora-list.
- *  - app/financial-forecast.tsx 73-74 · Previsión (mes, proyección, contratos);
+ * El markup espeja el JSX real (sin clases inventadas), ya migrado a v2:
+ *  - app/sections/finanzas.tsx · KPIs, cuentas, transferencias, cobros y conciliación
+ *    (ListGrid/ListRow + MoneyText; la lista scrollea en silencio).
+ *  - app/sections/mora.tsx · semáforo, buckets, DSO y cobranza con ListGrid/ListRow
+ *    (los cálculos viven en app/mora-data.ts).
+ *  - app/financial-forecast.tsx · Previsión (mes, proyección, contratos, personal);
  *    sin salary.view los importes por persona llegan en null: salario y cierre
  *    muestran "Sin dato" y la fila no dibuja acciones de salario.
- *  - app/reports-workspace.tsx 67-205 · Informes (tiles, chart, tablas, distribución).
- *  - app/operations.tsx 500-750 modo commissions · liquidación, tarjetas y egresos.
+ *  - app/reports-workspace.tsx + app/weekly-automatic.tsx · Informes (tiles, chart,
+ *    tablas, distribución) y producción semanal.
+ *  - app/sections/comisiones.tsx · liquidación, comisiones, descuentos y pagos.
  *
  * Datos de estrés deliberados: montos PYG/USD grandes y negativos, nombres y
  * referencias largas, estados con dato y columnas sin dato (moneda nula,

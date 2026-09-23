@@ -1,9 +1,8 @@
 "use client";
 import type {Dispatch, SetStateAction} from 'react';
-import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {SegmentedField} from 'owncoding-ui';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
-import {money} from '../operations';
 import {roleCan} from '../capabilities';
 import {buildMoraBuckets, filterMoraClients, moraAgeKey, moraKpis, MORA_AGE_LABELS, type ClientPaymentStatus, type MoraFilter} from '../mora-data';
 import type {User} from '../workspace-types';
@@ -64,7 +63,7 @@ function ClientLine({client}: {client: ClientPaymentStatus}) {
     </div>
     <div className="min-w-0 text-right">
       {client.currency && Number(client.outstanding_amount) > 0
-        ? <span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(Number(client.outstanding_amount), client.currency)}</span>
+        ? <MoneyText valor={client.outstanding_amount} currency={client.currency}/>
         : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo pendiente</span>}
     </div>
   </ListRow>;
@@ -98,7 +97,7 @@ export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, m
         key={bucket.key}
         label={bucket.label}
         destacado={bucket.key === 'critical' && bucket.clients > 0}
-        valor={bucket.amounts.length ? <span className="flex flex-wrap items-baseline gap-2">{bucket.amounts.map(item => <span key={item.currency}>{money(item.amount, item.currency)}</span>)}</span> : null}
+        valor={bucket.amounts.length ? <span className="flex flex-wrap items-baseline gap-2">{bucket.amounts.map(item => <MoneyText key={item.currency} valor={item.amount} currency={item.currency}/>)}</span> : null}
         hint={bucket.clients ? `${bucket.clients} cliente${bucket.clients === 1 ? '' : 's'} con saldo vencido` : 'Sin saldos vencidos'}
       />)}
       <Kpi
