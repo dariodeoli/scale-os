@@ -32,7 +32,7 @@ const budgetRow = ({number, title, client, tone, state, items, valid, due, subto
  <span class="list-date min-w-0 whitespace-nowrap text-[11px] text-mute"${due ? ' data-tone="warn"' : ''} title="${valid}">${valid}</span>
  <span class="text-right">${moneyText(subtotal, 'text-fore')}</span>
  <span class="text-right">${moneyText(total, 'text-[13.5px] text-fore')}</span>
- <span class="flex min-w-0 items-center justify-end gap-2"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="h-7 w-7 rounded-lg border border-transparent text-mute" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
+ <span class="flex min-w-0 items-center justify-end gap-2 [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
 </div>`;
 const presupuestosSection = `<section class="directory grid gap-4" aria-label="Presupuestos">
  ${kpiStrip([
@@ -63,7 +63,7 @@ const planHeader = (plan) => `<th scope="col" class="sticky top-0 z-[1] border-b
  <h3 class="whitespace-normal text-sm font-bold leading-snug text-fore">${plan.name}</h3>
  <span class="mt-1 block text-[11px] font-medium leading-4 text-mute">${plan.currency} · ${plan.items.length} ítems</span>
  ${plan.archived ? '<span class="mt-1 block text-[11px] font-medium leading-4 text-mute">Archivado</span>' : ''}
- <div class="mt-2 flex flex-wrap gap-1.5"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute md:h-9">Editar</button><button type="button" class="h-7 w-7 rounded-lg border border-transparent text-mute" aria-label="Mover a la papelera: ${plan.name}">🗑</button></div>
+ <div class="mt-2 flex flex-wrap gap-1.5"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute md:h-9">Editar</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${plan.name}" title="Mover a la papelera">🗑</button></div>
 </th>`;
 const planesSection = `<section class="directory grid gap-4" aria-label="Planes reutilizables">
  ${kpiStrip([

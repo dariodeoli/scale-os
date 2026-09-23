@@ -160,7 +160,7 @@ const composerSheet = `
   <section class="grid gap-3" aria-label="Secciones del documento">
    <div><h3 class="text-sm font-bold text-fore">Secciones del documento</h3><p class="mt-1 text-xs leading-5 text-mute">Arrastrá o usá Subir/Bajar. Detalle y totales son obligatorios; podés ocultar las otras secciones.</p></div>
    <div class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3"><div class="flex items-start gap-2"><button type="button" class="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button><div class="grid min-w-0 flex-1 gap-3"><b class="text-sm font-bold text-fore">Detalle de ítems</b><p class="text-xs font-medium text-mute">Siempre visible</p></div></div></div>
-   <div class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3"><div class="flex items-start gap-2"><button type="button" class="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button><div class="grid min-w-0 flex-1 gap-3"><b class="text-sm font-bold text-fore">Texto personalizado</b>${field('Título', `<input class="${input}" value="Sobre esta propuesta">`)}${field('Contenido', `<textarea class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" rows="4">La propuesta incluye cesión de derechos y música licenciada.</textarea>`)}<div class="flex items-center gap-3"><span class="relative inline-flex h-5 w-9 shrink-0 items-center"><input type="checkbox" role="switch" aria-checked="true" aria-label="Mostrar sección Texto personalizado" checked class="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none rounded-full opacity-0"><span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-full border border-fono bg-fono transition-colors"></span><span aria-hidden="true" class="pointer-events-none absolute left-0.5 h-4 w-4 translate-x-4 rounded-full bg-white shadow transition-transform"></span></span><label class="${label} mb-0">Mostrar sección</label></div></div></div></div>
+   <div class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3"><div class="flex items-start gap-2"><button type="button" class="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button><div class="grid min-w-0 flex-1 gap-3"><b class="text-sm font-bold text-fore">Texto personalizado</b>${field('Título', `<input class="${input}" value="Sobre esta propuesta">`)}${field('Contenido', `<textarea class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" rows="4">La propuesta incluye cesión de derechos y música licenciada.</textarea>`)}<label for="quote-section-enabled-1" class="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-0"><span class="relative inline-flex h-5 w-9 shrink-0 items-center"><input type="checkbox" role="switch" aria-checked="true" aria-label="Mostrar sección Texto personalizado" checked class="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none rounded-full opacity-0"><span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-full border border-fono bg-fono transition-colors"></span><span aria-hidden="true" class="pointer-events-none absolute left-0.5 h-4 w-4 translate-x-4 rounded-full bg-white shadow transition-transform"></span></span><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Mostrar sección</span></label></div></div></div>
   </section>
  </div>
  <section class="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4" aria-label="Vista previa del documento">
@@ -192,6 +192,62 @@ const appearanceSheet = `
  </form>
 </section>`;
 
+/* app/dialog.tsx + app/quote-composer.tsx — modal de alta con el compositor.
+   La carcasa es la real (`ops-overlay` + `unified-dialog`); se ancla con
+   `position:static` para que el harness pueda medirla y capturarla, igual que
+   el override del sidebar. Las acciones viven en el footer (portal de
+   FormActions). */
+const composerActionsStart = composerSheet.indexOf('<div class="lg:col-span-2"><div class="flex flex-wrap items-center justify-end gap-2">');
+const composerBody = composerActionsStart >= 0 ? `${composerSheet.slice(0, composerActionsStart)}</form>` : composerSheet;
+const modalSheet = `
+<div class="ops-overlay" style="position:static">
+ <section class="ops-dialog unified-dialog" data-dialog-size="default" role="dialog" aria-label="Nuevo presupuesto">
+  <div class="dialog-heading"><h2>Nuevo presupuesto</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
+  <div class="dialog-body">${composerBody}</div>
+  <div class="dialog-footer"><div class="dialog-actions"><button type="button" class="${buttonOutline}">Cancelar</button><button type="submit" class="${button}">Guardar</button></div></div>
+ </section>
+</div>`;
+
+/* app/productivity-ui.tsx — drawer de la ficha de cliente (ClientDetail).
+   Carcasa real (`detail-drawer-overlay`, anclada para medir) con el resumen
+   comercial, las acciones rápidas, las pestañas y las listas del drawer; las
+   secciones embebidas (reportes y ciclo) tienen sus propios fixtures. */
+const drawerSheet = `
+<div class="ops-overlay detail-drawer-overlay" style="position:static">
+ <section class="ops-dialog unified-dialog" data-dialog-size="default" role="dialog" aria-label="Ficha de cliente">
+  <div class="dialog-heading"><h2>Cooperativa Multiactiva de Servicios Múltiples Limitada</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
+  <div class="dialog-body">
+   <section class="grid gap-4 rounded-xl border border-ink-600 bg-ink-800 p-4 md:grid-cols-2 md:p-5" aria-label="Apariencia del cliente">
+    <div class="md:col-span-2"><span class="client-identity identity-teal inline-flex min-w-0 items-center gap-2.5 text-fore"><span class="identity-avatar overflow-hidden" aria-hidden="true">CM</span><span class="identity-name min-w-0 font-bold leading-snug" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span></div>
+    <section class="profile-photo-section"><h3 class="text-sm font-bold text-fore">Logo o foto del cliente</h3><p class="mt-1 text-xs text-mute">Se guarda normalizado a WebP.</p></section>
+    <form class="grid content-start gap-3" novalidate><fieldset class="min-w-0 border-0 p-0"><legend class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Color identificador</legend><div class="flex flex-wrap gap-2">${palette('Violeta', 'violet', false)}${palette('Azul', 'blue', false)}${palette('Turquesa', 'teal', true)}${palette('Verde', 'green', false)}${palette('Dorado', 'gold', false)}${palette('Rosa', 'rose', false)}${palette('Gris', 'slate', false)}</div></fieldset></form>
+   </section>
+   <p>compras@coopservicios.com.py · +595 21 555 000</p><a class="text-button whatsapp-button min-h-11 md:min-h-8" href="#whatsapp">WhatsApp</a>
+   <p>Renovación anual con facturación mensual; coordinar entregas con producción.</p>
+   <section class="client-summary" aria-label="Resumen comercial del cliente">
+    <div class="client-summary-grid">
+     <article><span>Estado del servicio</span><strong>Activo</strong></article>
+     <article><span>Cobros</span><strong>Vence 30-oct</strong><small title="Pendiente Gs. 1.234.567.890">Pendiente Gs. 1.234.567.890</small></article>
+     <article><span>Plan</span><strong title="Retainer mensual de contenidos y campañas">Retainer mensual de contenidos y campañas</strong></article>
+     <article><span>Pago mensual</span><strong title="Gs. 1.234.567.890">Gs. 1.234.567.890</strong></article>
+     <article><span>Recurrencia</span><strong>Mensual</strong></article>
+     <article><span>Cliente desde</span><strong>Hace 2 años</strong><small>29 feb 2024 · 00:00</small></article>
+     <article><span>Factura</span><strong>Pide factura</strong></article>
+     <article><span>RUC</span><strong title="80098765-4">80098765-4</strong><small title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</small></article>
+    </div>
+   </section>
+   <div class="quick-actions"><button class="primary min-h-11 md:min-h-10" type="button">Nuevo proyecto para este cliente</button><button class="secondary min-h-11 md:min-h-10" type="button">Portal del cliente</button></div>
+   <div class="choice-list"><button class="choice active min-h-11 md:min-h-10" type="button">Producción</button><button class="choice min-h-11 md:min-h-10" type="button">Presupuestos</button><button class="choice min-h-11 md:min-h-10" type="button">Cobros</button></div>
+   <h3>Proyectos (1)</h3>
+   <div class="drawer-list"><div class="drawer-list-head" aria-hidden="true"><span>Proyecto</span><span>Enlaces</span></div><article class="activity-line"><b title="Campaña de lanzamiento regional · producción audiovisual integral">Campaña de lanzamiento regional · producción audiovisual integral</b><span>2 enlaces</span></article></div>
+   <h3>Piezas recientes</h3>
+   <div class="drawer-list"><div class="drawer-list-head" aria-hidden="true"><span>Pieza</span><span>Estado</span></div><button class="work-list-row" type="button"><b title="Spot 30s para redes">Spot 30s para redes</b><span>Aprobado</span></button><button class="work-list-row" type="button"><b title="Cobertura del evento anual">Cobertura del evento anual</b><span>En edición</span></button></div>
+   <p class="form-note">Historial de hasta 100 registros por categoría. Los movimientos financieros solo aparecen con permiso.</p>
+  </div>
+  <div class="dialog-footer"></div>
+ </section>
+</div>`;
+
 export default [
   {
     id: 'comercial-reportes',
@@ -220,5 +276,19 @@ export default [
     surface: 'Apariencia del cliente',
     kind: 'plain',
     body: `<div data-fixture="comercial-apariencia" class="p-4">${appearanceSheet}</div>`,
+  },
+  {
+    id: 'comercial-modal',
+    section: 'Presupuestos',
+    surface: 'Modal de alta (carcasa + compositor)',
+    kind: 'plain',
+    body: `<div data-fixture="comercial-modal">${modalSheet}</div>`,
+  },
+  {
+    id: 'comercial-drawer',
+    section: 'Clientes',
+    surface: 'Drawer de la ficha de cliente',
+    kind: 'plain',
+    body: `<div data-fixture="comercial-drawer">${drawerSheet}</div>`,
   },
 ];
