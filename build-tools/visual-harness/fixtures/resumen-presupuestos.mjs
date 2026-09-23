@@ -1,42 +1,15 @@
 /*
- * Fixtures: Resumen (centro de control), Producción (tablero), Proyectos y Presupuestos.
+ * Fixtures: Resumen (centro de control) y Presupuestos.
  *
- * Markup mirrors the real JSX (file + lines):
- *  - app/control-center.tsx (ControlCenter) líneas 36-40 → .control-signals/.control-signal,
- *    41-48 (resumen comercial), 49-61 (.financial-summary/.section-caption, .financial-strip/
- *    .financial-stat/.financial-amounts, .commercial-bars, .finance-compare, .inventory-summary)
- *    y 62-68 (.due-alert/.due-details/.due-group).
- *    CSS: app/control-center.css (líneas 39-43, 68-71).
- *  - app/scale-workspace.tsx líneas 1139-1156 → toolbar .production-view-menu.production-toolbar
- *    (SelectCustom de app/profile-controls.tsx: .ops-select/.ops-label/.ops-select-trigger),
- *    .production-filters, .production-filter-summary, .form-note.
- *  - app/scale-workspace.tsx líneas 1159-1183 → .panel.production-panel.production-focus,
- *    .kanban, .board-note.
- *  - app/production-board.tsx líneas 42-85 → DraggableOrder (.work-card/.card-top/.card-meta/
- *    .order-actions) y 86-115 → KanbanColumn (.column/.column-title/.dot).
- *    CSS: app/globals.css (línea 11) + app/production-focus.css (líneas 3, 11).
- *  - app/scale-workspace.tsx líneas 1401-1403 + app/project-card.tsx líneas 24-34 →
- *    .project-list/.project-entry-head/.project-entry y .project-grid/.project-entry.
- *    CSS: app/project-card.css (10-13, 22-31) + app/ui-system.css (272-344, 356-361).
- *  - app/scale-workspace.tsx líneas 1457-1473 → .budget-hub-grid + article.ops-card.budget-hub-card
- *    con app/suite.tsx (BudgetActions, línea 136) y app/archive-controls.tsx (RemoveRecord, 22-37).
- *    CSS: app/operations.css (406-425) + app/ui-system.css (219, 272-344).
+ * Producción y Proyectos viven en `ops-produccion-proyectos.mjs` (rediseño v2 de
+ * OPS, campaña #41): esas pantallas ya no usan las hojas production-focus.css ni
+ * project-card.css.
  *
- * Notas de medición:
- *  - `.kanban` es un scroll horizontal intencional (7 carriles de 252-286 px,
- *    overflow-x:auto en app/production-focus.css): NO se declara como lista ni
- *    cuadrícula; su desborde interno sale como 'scrollable' y queda excluido.
- *  - `.project-list` declara template `--project-cols`, rowHeight 44-52 y
- *    exemptBelow 1240: la tabla completa sólo se muestra cuando entra (≥1241 px);
- *    por debajo el CSS apila la fila a propósito y la altura no se mide.
- *  - `.project-grid` y `.budget-hub-grid` se declaran como cuadrículas (≥200 px).
- *  - Los <details> de vencimientos van `open`: el detalle sólo es medible abierto
- *    (es un estado real de uso).
- *  - La tarjeta de presupuesto lleva el importe sin IVA en `.budget-hub-fact-amount`
- *    (ocupa las dos columnas de la ficha) y con `title`: es el contrato vigente.
- *  - Datos de estrés: nombres largos, Gs 1.234.567.890 / USD 12.345,67, fechas
- *    reales y estados vacíos (Sin Drive, Sin responsables, Responsables no
- *    disponibles, carriles vacíos, all-clear).
+ * Espeja el JSX real de app/control-center.tsx (ControlCenter) y de la tarjeta de
+ * presupuestos (app/suite.tsx, BudgetActions).
+ * CSS: app/control-center.css, app/suite.css y los primitivos de app/ui-system.css.
+ *
+ * Datos de estrés deliberados: nombres largos, montos grandes y fechas vencidas.
  */
 
 /* Iconos lucide-like recortados para el fixture (misma forma que usa la app). */
