@@ -20,7 +20,7 @@ assert(rail.includes("export const RAIL_ITEM='")&&rail.includes('min-h-11')&&rai
 assert(rail.includes('sidebar-collapse')&&!rail.includes('absolute'),'the collapsed rail keeps the toggle out of the brand');
 assert(workspace.includes('[&_.company-name]:truncate'),'long company names truncate in the topbar');
 assert(workspace.includes('[&>*]:min-h-10 [&>*]:min-w-10')&&workspace.includes('max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11'),'topbar utilities keep 40px desktop and 44px mobile targets');
-assert(file('../app/control-center.css').includes('@media(max-width:760px){.control-shell>.content{padding:16px 16px 28px}'),'mobile content padding matches the pulled topbar');
+assert(workspace.includes('flex min-w-0 flex-1 flex-col px-4 pb-8 pt-5 md:px-6 lg:px-8 xl:px-12')&&!file('../app/control-center.css').includes('.control-shell>.content{'),'el contenedor del marco posee su único gutter (Tailwind) y el topbar comparte la misma medida');
 const operationsCss=file('../app/operations.css');
 assert(operationsCss.includes('.control-shell .ops-grid.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto'),'the team list wins over the card grid and scrolls instead of overflowing its panel');
 assert(operationsCss.includes('.company-choice-row{display:flex'),'the company switcher row wraps instead of overflowing the dialog');

@@ -37,7 +37,7 @@ const h = React.createElement;
 const noop = () => {};
 
 /* ── Réplica de app/ui-v2.tsx (mismas clases) ─────────────────────────────── */
-const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-4';
+const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4 max-md:p-4';
 const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
 
 const Kpi = ({label, valor, currency, hint, destacado}) => h(Stat, {
@@ -93,7 +93,7 @@ const panelPage = h('div', {className: 'grid gap-5'},
     h(Kpi, {key: 'clients', label: 'Clientes activos', valor: 38, hint: 'Con relación comercial activa'}),
     h(Kpi, {key: 'prospects', label: 'Prospectos activos', valor: 143, hint: 'Leads que todavía no están ganados'}),
     h(Kpi, {key: 'collect', label: 'Por cobrar', valor: h('span', {className: 'flex flex-wrap items-baseline gap-2'}, money(2345678901, 'PYG'), h('span', {className: 'text-base font-medium'}, money(45678.9, 'USD'))), hint: 'Facturas pendientes'})),
-  h('section', {className: 'rounded-xl border border-ink-600 bg-ink-800 p-5', 'aria-label': 'Piezas por etapa'},
+  h('section', {className: 'rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4', 'aria-label': 'Piezas por etapa'},
     h('div', {className: 'mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-ink-600 pb-3'},
       h('div', null, h('p', {className: 'font-mono text-[10px] uppercase tracking-[.13em] text-mute'}, 'Producción'), h('h2', {className: 'text-[17px] font-semibold tracking-tight text-fore'}, 'Piezas por etapa')),
       h('button', {type: 'button', className: 'text-button'}, 'Abrir Producción')),
