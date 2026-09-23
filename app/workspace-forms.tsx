@@ -526,13 +526,14 @@ export function InvoiceForm({
               type="button"
               className={
                 form.watch("clientId") === client.id
-                  ? "choice active"
-                  : "choice"
+                  ? "choice active max-w-full !whitespace-normal break-words text-left"
+                  : "choice max-w-full !whitespace-normal break-words text-left"
               }
               onClick={() =>
                 form.setValue("clientId", client.id, { shouldValidate: true })
               }
               key={client.id}
+              title={client.name}
             >
               {client.name}
             </button>
@@ -649,8 +650,8 @@ export function PaymentForm({
                 type="button"
                 className={
                   form.watch("invoiceId") === invoice.id
-                    ? "choice active"
-                    : "choice"
+                    ? "choice active max-w-full !whitespace-normal break-words text-left"
+                    : "choice max-w-full !whitespace-normal break-words text-left"
                 }
                 onClick={() =>
                   form.setValue("invoiceId", invoice.id, {
@@ -658,6 +659,7 @@ export function PaymentForm({
                   })
                 }
                 key={invoice.id}
+                title={`${invoice.number} · ${invoice.client_name}`}
               >
                 {invoice.number} · {invoice.client_name}
               </button>
@@ -691,13 +693,14 @@ export function PaymentForm({
               type="button"
               className={
                 form.watch("accountId") === account.id
-                  ? "choice active"
-                  : "choice"
+                  ? "choice active max-w-full !whitespace-normal break-words text-left"
+                  : "choice max-w-full !whitespace-normal break-words text-left"
               }
               onClick={() =>
                 form.setValue("accountId", account.id, { shouldValidate: true })
               }
               key={account.id}
+              title={`${account.name} · ${account.currency}`}
             >
               {account.name} · {account.currency}
             </button>
