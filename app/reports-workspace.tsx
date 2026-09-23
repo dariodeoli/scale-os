@@ -68,7 +68,7 @@ function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
 }
 function Distribution({title,rows,total}:{title:string;rows:{name:string;count:number}[];total:number|null}){
  return <div className="grid gap-2">
-  <h4 className="text-sm font-semibold text-fore">{title}</h4>
+  <h4 className="text-[15px] font-semibold tracking-tight text-fore">{title}</h4>
   <p className="text-xs text-mute">Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p>
   {rows.length?<ul className="grid gap-2">{rows.map((row,index)=>{const share=distributionShare(row.count,total);return <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs" key={`${row.name}-${index}`}>
    <span className="min-w-0 text-fore">{row.name}</span>
@@ -94,7 +94,7 @@ function LiveVisitorsWidget(){
  const changePercent=prior&&visitors&&prior!==0?Math.round(((visitors-prior)/prior)*100):null;
  return <Card className="flex flex-wrap items-center justify-between gap-4" role="region" aria-label="Visitantes en vivo del landing">
   <div className="grid gap-1">
-   <h3 className="text-sm font-semibold text-fore">Visitantes en vivo</h3>
+   <h3 className="text-[17px] font-semibold tracking-tight text-fore">Visitantes en vivo</h3>
    <p className="text-xs text-mute">Personas actualmente en el landing de Scale OS</p>
   </div>
   <div className="text-right">
@@ -134,7 +134,7 @@ function ReportsPanel({organizationName}:{organizationName:string}){
    <FormField label="Mes a consultar"><Input type="month" className="w-44" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
    <div className="grid gap-1.5">
     <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>
-    <SegmentedField ariaLabel="Meses de histórico" value={String(months)} options={HISTORY_OPTIONS} onChange={(value:string)=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/>
+    <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Meses de histórico" value={String(months)} options={HISTORY_OPTIONS} onChange={(value:string)=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/>
    </div>
    <FormField label="Moneda"><div className="w-40"><SelectCustom label="Moneda" choices={currencies.length?currencies.map(value=>({value,label:value})):[{value:'',label:'Sin datos monetarios'}]} value={selectedCurrency} disabled={!currencies.length} onChange={setCurrency}/></div></FormField>
   </div>
@@ -157,8 +157,8 @@ function ReportsPanel({organizationName}:{organizationName:string}){
    <p className="text-xs text-mute">Exporta los meses cargados de la moneda seleccionada. CSV UTF-8, separado por punto y coma; decimales con punto, sin separador de miles. Celdas vacías: sin datos. Para conservar todos los dígitos, importá los importes como texto en tu planilla.</p>
    {exportError?<Aviso tono="error">{exportError}</Aviso>:null}
    {partial?<Nota tono="warn">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
-   {rows.length?<Card className="grid gap-3">
-    <h3 className="text-sm font-semibold text-fore">Comparativa del período visible contra el anterior</h3>
+   {rows.length?<Card className="grid gap-3 p-4">
+    <h3 className="text-[17px] font-semibold tracking-tight text-fore">Comparativa del período visible contra el anterior</h3>
     <p className="text-xs text-mute">Período visible: {monthLabel(comparison!.currentStart)} – {monthLabel(comparison!.currentEnd)} · período anterior: {comparison!.previousStart&&comparison!.previousEnd?`${monthLabel(comparison!.previousStart)} – ${monthLabel(comparison!.previousEnd)}`:'sin período anterior disponible'} ({months} meses por período).</p>
     {comparison!.available?<DataTable
      columns={[{key:'label',label:'Métrica'},{key:'current',label:'Período visible'},{key:'previous',label:'Período anterior'},{key:'change',label:'Variación'}]}

@@ -104,7 +104,7 @@ function ForecastPanel() {
     <FormField label="Mes"><Input type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/></FormField>
     <div className="grid gap-1.5">
      <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Horizonte</span>
-     <SegmentedField ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
+     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
     </div>
    </div>
   </div>
@@ -113,9 +113,9 @@ function ForecastPanel() {
   :!data?<LoadingBlock label="Cargando previsión…" lines={4}/>
   :<>
    {horizon==='1'&&!data.records.length?<EmptyState compact title="Sin facturas emitidas ni presupuestos aceptados pendientes para este mes."/>:null}
-   {horizon==='1'?<Card className="grid gap-3">
+   {horizon==='1'?<Card className="grid gap-3 p-4">
     <div className="grid gap-1">
-     <h3 className="text-sm font-semibold text-fore">Ingresos vs gastos del mes</h3>
+     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Ingresos vs gastos del mes</h3>
      <p className="text-xs text-mute">Ingresos = emitido más aceptado sin factura. Gastos = personal, comisiones, gastos planificados y gastos reales. Resultado = ingresos menos gastos.</p>
     </div>
     {financialCurrenciesInMonth.length?<div className="grid gap-3 lg:grid-cols-2">
@@ -139,8 +139,8 @@ function ForecastPanel() {
      </article>)}
     </div>:<EmptyState compact title="Sin datos financieros para este mes."/>}
    </Card>:null}
-   {horizon==='1'?<Card className="grid gap-3">
-    <h3 className="text-sm font-semibold text-fore">Resumen por moneda</h3>
+   {horizon==='1'?<Card className="grid gap-3 p-4">
+    <h3 className="text-[17px] font-semibold tracking-tight text-fore">Resumen por moneda</h3>
     {financialCurrenciesInMonth.length?<div className="grid gap-3 lg:grid-cols-2">
      {financialCurrenciesInMonth.map(currency=>{const row=data.records.find(item=>item.currency===currency),personnel=data.personnel.records.find(item=>item.currency===currency),opening=amountFor(openingBalance,currency);return <article className="forecast-currency grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-4" key={currency}>
       <span className="text-xs font-bold uppercase tracking-wider text-mute">{currency} · planificación del mes</span>
@@ -155,8 +155,8 @@ function ForecastPanel() {
       <FilaDato etiqueta={`Aceptado sin factura (${count(row?.budget_count)} presupuestos${count(row?.undated_budget_count)>0?` · ${count(row?.undated_budget_count)} sin fecha`:''})`} valor={moneyNowrap(formatWholeMoney(row?.accepted_uninvoiced_total,currency))}/>
      </article>;})}
     </div>:<EmptyState compact title="Sin datos financieros para este mes."/>}
-   </Card>:<Card className="grid gap-3">
-    <h3 className="text-sm font-semibold text-fore">Proyección de caja y resultado · {horizon} meses</h3>
+   </Card>:<Card className="grid gap-3 p-4">
+    <h3 className="text-[17px] font-semibold tracking-tight text-fore">Proyección de caja y resultado · {horizon} meses</h3>
     {projectionCurrenciesInHorizon.length?<div className="grid gap-4">
      {projectionCurrenciesInHorizon.map(currency=><div className="grid gap-2" key={currency}>
       <span className="text-xs font-bold uppercase tracking-wider text-mute">{currency} · proyección acumulada</span>
@@ -177,8 +177,8 @@ function ForecastPanel() {
      </div>)}
     </div>:<EmptyState compact title="Sin datos financieros para el horizonte."/>}
    </Card>}
-   {data.contracted_clients?<Card className="grid gap-3">
-    <h3 className="text-sm font-semibold text-fore">Contratos vs facturación del mes</h3>
+   {data.contracted_clients?<Card className="grid gap-3 p-4">
+    <h3 className="text-[17px] font-semibold tracking-tight text-fore">Contratos vs facturación del mes</h3>
     {contractedRows.length?<div className="min-w-0 overflow-x-auto" role="table" aria-label="Contratos vigentes contra facturación"><div className="min-w-[56rem]">
      <div className={cn(LIST_HEAD,CONTRACT_COLS)} aria-hidden="true"><span>Cliente</span><span className="text-right">Contratado</span><span className="text-right">Facturado</span><span className="text-right">Estado</span></div>
      {contractedRows.map(row=><div role="row" className={cn(LIST_ROW,CONTRACT_COLS)} key={`${row.client_id}-${row.currency}`}>
@@ -189,9 +189,9 @@ function ForecastPanel() {
      </div>)}
     </div></div>:<EmptyState compact title="Sin contratos vigentes para este mes." description="Activá un contrato desde la ficha comercial del cliente, con su plan y monto mensual."/>}
    </Card>:null}
-   {data&&horizon==='1'?<Card className="grid gap-3">
+   {data&&horizon==='1'?<Card className="grid gap-3 p-4">
     <div className="grid gap-1">
-     <h3 className="text-sm font-semibold text-fore">Personal proyectado</h3>
+     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Personal proyectado</h3>
      <p className="text-xs text-mute">Gasto esperado al cierre de {dateLabel(data.personnel.month)}, sin pagos ni comisiones registrados.</p>
     </div>
     {data.personnel.records.length?<>
@@ -224,10 +224,10 @@ function ForecastPanel() {
      </div>
     </>:<EmptyState compact title="Sin salarios fijos mensuales incluidos para este mes."/>}
    </Card>:null}
-   {data&&horizon==='1'?<Card className="grid gap-4">
+   {data&&horizon==='1'?<Card className="grid gap-4 p-4">
     <div className="grid gap-3">
      <div className="grid gap-1">
-      <h3 className="text-sm font-semibold text-fore">Gastos planificados · {dateLabel(month)}</h3>
+      <h3 className="text-[17px] font-semibold tracking-tight text-fore">Gastos planificados · {dateLabel(month)}</h3>
       <p className="text-xs text-mute">Esto es planificación interna; no registra un pago, una factura ni una cuenta por pagar.</p>
      </div>
      <form className="grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-[9rem_10rem_7rem_9rem_9rem_auto]" onSubmit={saveExpense} noValidate aria-busy={expenseSaving}>
@@ -259,10 +259,10 @@ function ForecastPanel() {
      </div>)}
     </div></div>:null}
    </Card>:null}
-   {data&&horizon==='1'?<Card className="grid gap-4">
+   {data&&horizon==='1'?<Card className="grid gap-4 p-4">
     <div className="grid gap-3">
      <div className="grid gap-1">
-      <h3 className="text-sm font-semibold text-fore">Gastos reales del mes · {dateLabel(month)}</h3>
+      <h3 className="text-[17px] font-semibold tracking-tight text-fore">Gastos reales del mes · {dateLabel(month)}</h3>
       <p className="text-xs text-mute">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p>
      </div>
      <form className="grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-[11rem_10rem_7rem_9rem_9rem_12rem_auto]" onSubmit={saveRealExpense} noValidate aria-busy={realSaving}>

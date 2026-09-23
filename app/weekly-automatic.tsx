@@ -41,9 +41,9 @@ export function WeeklyAutomatic({role}:{role:string}){
  },[week,scope,reload]);
  const rows=result?.automatic??[];
  const projectsCell=(entry:AutomaticEntry)=>entry.projects?.length?<span className="grid gap-0.5 text-xs text-mute">{entry.projects.map(project=><span key={project.project_id}>{projectLabel(project)} · {project.count}{project.orders>0?` · ${project.orders} órdenes`:''}</span>)}</span>:'—';
- return <Card className="grid gap-3" aria-label="Producción semanal automática">
+ return <Card className="grid gap-3 p-4" aria-label="Producción semanal automática">
   <div className="grid gap-1">
-   <h2 className="text-lg font-semibold tracking-tight text-fore">Producción semanal</h2>
+   <h2 className="text-[17px] font-semibold tracking-tight text-fore">Producción semanal</h2>
    <p className="text-xs text-mute">Terminadas de la semana, calculadas automáticamente desde los cambios de estado. Cada pieza cuenta una sola vez, en la semana en que pasó a terminada, atribuida a quien ejecutó el cambio. Sin horas: se cuentan piezas, no tiempo trabajado. Órdenes: piezas en las que se trabajó durante la semana, terminadas o no. Proyectos: distribución de las piezas terminadas por proyecto.</p>
   </div>
   <div className="flex flex-wrap items-end gap-3">

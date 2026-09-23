@@ -121,7 +121,7 @@ const moraRow = ({initial, tone, name, statusText, chip, invoices, amount}) => `
    conciliación (app/daily-controls.tsx) y producción semanal (app/weekly-automatic.tsx):
    tarjetas, KPIs, chips, barras y listas de fila finita con plantilla compartida
    (scroll horizontal silencioso cuando la plantilla no entra). */
-const CARD = 'rounded-xl border border-fono/30 bg-ink-800 p-5';
+const CARD = 'rounded-xl border border-fono/30 bg-ink-800 p-4';
 const BUTTON_OUTLINE = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold transition h-11 md:h-9 text-sm bg-transparent text-fore border border-ink-500';
 const INPUT = 'w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore h-11 md:h-9 text-base md:text-sm outline-none transition';
 const LIST_HEAD = 'grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-mute';
@@ -139,7 +139,7 @@ const barra = (valor, max, tono = 'fono', etiqueta = '') => {
   return `<div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(porcentaje)}" aria-label="${etiqueta}" class="overflow-hidden rounded-full bg-fore/10 h-1.5"><span class="block h-full rounded-full ${BAR_TONES[tono]}" style="width:${porcentaje}%"></span></div>`;
 };
 const field = (label, control) => `<div><label class="block text-[11px] font-medium uppercase tracking-wider text-mute mb-1.5">${label}</label>${control}</div>`;
-const segmented = (items, activeIndex = 0, aria = 'Horizonte de proyección') => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${aria}">${items.map((label, index) => `<button type="button" class="inline-flex min-h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${index === activeIndex ? 'bg-fono/15 text-fono-light' : 'text-mute'}">${label}</button>`).join('')}</div>`;
+const segmented = (items, activeIndex = 0, aria = 'Horizonte de proyección') => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${aria}">${items.map((label, index) => `<button type="button" class="inline-flex min-h-11 md:min-h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${index === activeIndex ? 'bg-fono/15 text-fono-light' : 'text-mute'}">${label}</button>`).join('')}</div>`;
 const iconAction = (path, label, tone = 'mute') => {
   const tones = {ok: 'border-ok/30 text-ok', warn: 'border-warn/30 text-warn', bad: 'border-bad/30 text-bad', mute: 'border-transparent text-mute'};
   return `<button type="button" title="${label}" aria-label="${label}" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border ${tones[tone] || tones.mute}">${icon(16, path)}</button>`;
@@ -164,7 +164,7 @@ const tableBlock = (labels, rows) => `<div class="hidden max-h-[70vh] overflow-a
 const v2Card = 'grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4';
 const v2Kpi = (label, valor, hint = '', destacado = false) => `<div class="relative overflow-hidden rounded-xl border p-4 ${destacado ? 'border-fono/30 bg-gradient-to-br from-fono-dark via-fono to-fono' : 'border-ink-600 bg-ink-800'}"><div class="text-[11px] font-medium uppercase tracking-wider ${destacado ? 'text-onbrand/75' : 'text-mute'}">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight md:text-3xl ${destacado ? 'text-onbrand' : 'text-fore'}">${valor}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="${destacado ? 'text-onbrand/75' : 'text-mute'}">${hint}</span></div>` : ''}</div>`;
 const v2KpiStrip = (items) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${items.join('')}</div>`;
-const v2Grid = ({label, template, columns, rows, minWidth = 'min-w-[58rem]'}) => `<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto"><div class="${minWidth}"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">${columns.map((column, index) => `<span role="columnheader" class="${index === columns.length - 1 ? 'text-right ' : ''}whitespace-nowrap">${column}</span>`).join('')}</div><div role="rowgroup">${rows}</div></div></div>`;
+const v2Grid = ({label, template, columns, rows, minWidth = 'min-w-[58rem]'}) => `<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto"><div class="${minWidth}"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">${columns.map((column, index) => `<span role="columnheader" class="${index === columns.length - 1 ? 'text-right ' : ''}whitespace-nowrap">${column}</span>`).join('')}</div><div role="rowgroup">${Array.isArray(rows) ? rows.join('') : rows}</div></div></div>`;
 const v2Row = (template, cells) => `<div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${template}">${cells}</div>`;
 const v2Empty = (title, description = '') => `<div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="flex flex-col items-center justify-center px-6 py-6 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${icon(20, '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p>${description ? `<p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>` : ''}</div></div>`;
 const actorCompact = (initials, name) => `<span class="inline-flex min-w-0 items-center gap-1.5 text-xs text-mute"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="truncate" title="${name}">${name}</span></span>`;
@@ -306,7 +306,7 @@ const finanzasConciliacion = {
   body: `
 <div class="${CARD} grid gap-3">
  <div class="grid gap-1">
-  <h3 class="text-sm font-semibold text-fore">Conciliación por extracto</h3>
+  <h3 class="text-[17px] font-semibold tracking-tight text-fore">Conciliación por extracto</h3>
   <p class="text-xs text-mute">Compará el extracto con los movimientos registrados. Importar y conciliar no modifica saldos. El cruce automático exige fecha, importe y referencia exactos, sin coincidencias ambiguas.</p>
  </div>
  ${field('Cuenta a conciliar', `<div class="w-full sm:w-72">${selectCustom('Cuenta a conciliar', 'Banco Regional — Operativa · PYG', 'conc-account')}</div>`)}
@@ -339,7 +339,7 @@ const moraCobranzas = {
   body: `
 <section class="grid gap-4" aria-label="Cobranza y mora">
  <header class="flex flex-wrap items-end justify-between gap-3">
-  <div class="min-w-0"><p class="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Finanzas · cobranzas</p><h2 class="text-lg font-semibold tracking-tight text-fore">Estado de pagos</h2><p class="mt-1 text-xs text-mute">Saldo pendiente por antigüedad y días en calle por moneda.</p></div>
+  <div class="min-w-0"><p class="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Finanzas · cobranzas</p><h2 class="text-[17px] font-semibold tracking-tight text-fore">Estado de pagos</h2><p class="mt-1 text-xs text-mute">Saldo pendiente por antigüedad y días en calle por moneda.</p></div>
   <span class="whitespace-nowrap text-xs tabular-nums text-mute">Actualizado 22-sept-26 · 09:30</span>
  </header>
  ${v2KpiStrip([v2Kpi('AL DÍA', '86', 'Sin saldo vencido'), v2Kpi('POR VENCER', '12', 'Vencen en los próximos días'), v2Kpi('EN MORA', '9', 'Tarde o mora grave', true), v2Kpi('SIN FACTURA', '4', 'Sin facturas registradas')])}
@@ -397,7 +397,7 @@ const previsionResumen = {
   body: `
 <section class="grid gap-4" aria-label="Previsión financiera">
  <div class="flex flex-wrap items-end justify-between gap-3">
-  <div><p class="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Planificación mensual</p><h2 class="text-lg font-semibold tracking-tight text-fore">Previsión financiera</h2></div>
+  <div><p class="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Planificación mensual</p><h2 class="text-[17px] font-semibold tracking-tight text-fore">Previsión financiera</h2></div>
   <div class="flex flex-wrap items-end gap-3">
    ${field('Mes', `<input type="month" class="${INPUT} w-44" value="2026-09">`)}
    <div class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Horizonte</span>${segmented(['1 mes', '3 meses', '6 meses', '12 meses'], 0)}</div>
@@ -405,7 +405,7 @@ const previsionResumen = {
  </div>
  ${nota('neutro', 'Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.')}
  <div class="${CARD} grid gap-3">
-  <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Ingresos vs gastos del mes</h3><p class="text-xs text-mute">Ingresos = emitido más aceptado sin factura. Gastos = personal, comisiones, gastos planificados y gastos reales. Resultado = ingresos menos gastos.</p></div>
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Ingresos vs gastos del mes</h3><p class="text-xs text-mute">Ingresos = emitido más aceptado sin factura. Gastos = personal, comisiones, gastos planificados y gastos reales. Resultado = ingresos menos gastos.</p></div>
   <div class="grid gap-3 lg:grid-cols-2">
    <article class="forecast-balance-card grid gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4">
     <span class="text-xs font-bold uppercase tracking-wider text-mute">PYG</span>
@@ -422,7 +422,7 @@ const previsionResumen = {
   </div>
  </div>
  <div class="${CARD} grid gap-3">
-  <h3 class="text-sm font-semibold text-fore">Resumen por moneda</h3>
+  <h3 class="text-[17px] font-semibold tracking-tight text-fore">Resumen por moneda</h3>
   <div class="grid gap-3 lg:grid-cols-2">
    <article class="forecast-currency grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-4">
     <span class="text-xs font-bold uppercase tracking-wider text-mute">PYG · planificación del mes</span>
@@ -435,7 +435,7 @@ const previsionResumen = {
   </div>
  </div>
  <div class="${CARD} grid gap-3">
-  <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Personal proyectado</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Personal proyectado</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
   <p role="status" class="text-xs text-mute">4 colaborador(es) activo(s) incluido(s).</p>
   <div class="grid gap-4">
    <div class="forecast-personnel-card grid gap-2">
@@ -453,7 +453,7 @@ const previsionResumen = {
  </div>
  <div class="${CARD} grid gap-4">
   <div class="grid gap-3">
-   <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Gastos planificados · 01-sept</h3><p class="text-xs text-mute">Esto es planificación interna; no registra un pago, una factura ni una cuenta por pagar.</p></div>
+   <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos planificados · 01-sept</h3><p class="text-xs text-mute">Esto es planificación interna; no registra un pago, una factura ni una cuenta por pagar.</p></div>
    <div class="grid gap-3 sm:grid-cols-2">
     <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="text-xs font-bold uppercase tracking-wider text-mute">PYG · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">Gs. 12.000.000</strong><small class="planned-expenses-kinds text-xs text-mute">2 fijos · 2 variables</small></article>
     <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="text-xs font-bold uppercase tracking-wider text-mute">USD · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">USD 4.300</strong><small class="planned-expenses-kinds text-xs text-mute">1 fijos · 1 variables</small></article>
@@ -468,7 +468,7 @@ const previsionResumen = {
  </div>
  <div class="${CARD} grid gap-4">
   <div class="grid gap-3">
-   <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Gastos reales del mes · 01-sept</h3><p class="text-xs text-mute">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p></div>
+   <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos reales del mes · 01-sept</h3><p class="text-xs text-mute">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p></div>
   </div>
   ${listWrap('40rem', `<div role="table" aria-label="Gastos reales del mes">
    <div class="${LIST_HEAD} ${EXPENSE_COLS}" aria-hidden="true"><span>Gasto</span><span class="text-right">Monto</span><span class="text-right">Acciones</span></div>
@@ -499,7 +499,7 @@ const previsionContratos = {
   ],
   body: `
 <div class="${CARD} grid gap-3">
- <h3 class="text-sm font-semibold text-fore">Contratos vs facturación del mes</h3>
+ <h3 class="text-[17px] font-semibold tracking-tight text-fore">Contratos vs facturación del mes</h3>
  ${listWrap('56rem', `<div role="table" aria-label="Contratos vigentes contra facturación">
   <div class="${LIST_HEAD} ${CONTRACT_COLS}" aria-hidden="true"><span>Cliente</span><span class="text-right">Contratado</span><span class="text-right">Facturado</span><span class="text-right">Estado</span></div>
   ${contractedRow({name: 'Industrias del Sur Sociedad Anónima', currency: 'PYG', endsOn: '31-dic-26', invoiceRequired: true, contracted: 'Gs. 45.000.000', invoiced: 'Gs. 90.000.000', missing: false})}
@@ -522,7 +522,7 @@ const previsionProyeccion = {
   kind: 'workspace',
   body: `
 <div class="${CARD} grid gap-3">
- <h3 class="text-sm font-semibold text-fore">Proyección de caja y resultado · 6 meses</h3>
+ <h3 class="text-[17px] font-semibold tracking-tight text-fore">Proyección de caja y resultado · 6 meses</h3>
  <div class="grid gap-4">
   ${projectionTable('PYG', [['01-sept', 'Gs. 620.000.000', 'Gs. 45.000.000'], ['01-oct', 'Gs. 650.000.000', '−Gs. 30.000.000'], ['01-nov', 'Gs. 700.000.000', 'Gs. 50.000.000'], ['01-dic', 'Gs. 1.100.000.000', 'Gs. 400.000.000'], ['01-ene', 'Gs. 1.250.000.000', 'Gs. 150.000.000'], ['01-feb', 'Gs. 1.260.000.000', '−Gs. 90.000.000']])}
   ${projectionTable('USD', [['01-sept', 'USD 21.400', '−USD 3.905'], ['01-oct', 'USD 18.200', '−USD 3.200'], ['01-nov', 'USD 22.000', 'USD 3.800'], ['01-dic', 'USD 26.500', 'USD 4.500'], ['01-ene', 'USD 27.100', 'USD 600'], ['01-feb', 'USD 27.100', '']])}
@@ -538,9 +538,9 @@ const informesIndicadores = {
   kind: 'workspace',
   body: `
 <section class="grid gap-4" aria-label="Reportes de la agencia">
- <div class="grid gap-1"><p class="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Informes</p><h2 class="text-lg font-semibold tracking-tight text-fore">Evolución mensual</h2><p class="text-xs text-mute">Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado.</p></div>
+ <div class="grid gap-1"><p class="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Informes</p><h2 class="text-[17px] font-semibold tracking-tight text-fore">Evolución mensual</h2><p class="text-xs text-mute">Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado.</p></div>
  <div class="${CARD} flex flex-wrap items-center justify-between gap-4" role="region" aria-label="Visitantes en vivo del landing">
-  <div class="grid gap-1"><h3 class="text-sm font-semibold text-fore">Visitantes en vivo</h3><p class="text-xs text-mute">Personas actualmente en el landing de Scale OS</p></div>
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Visitantes en vivo</h3><p class="text-xs text-mute">Personas actualmente en el landing de Scale OS</p></div>
   <div class="text-right"><strong class="block text-2xl font-semibold tabular-nums text-ok">128</strong><span class="inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-ok"><span class="h-2 w-2 rounded-full bg-ok" aria-hidden="true"></span>↑ +12%</span></div>
  </div>
  <div class="flex flex-wrap items-end gap-3">
@@ -578,7 +578,7 @@ const informesTablas = {
   body: `
 <section class="grid gap-4" aria-label="Reportes de la agencia">
  <div class="${CARD} grid gap-3">
-  <h3 class="text-sm font-semibold text-fore">Comparativa del período visible contra el anterior</h3>
+  <h3 class="text-[17px] font-semibold tracking-tight text-fore">Comparativa del período visible contra el anterior</h3>
   <p class="text-xs text-mute">Período visible: 01-oct – 01-sept · período anterior: 01-oct – 01-sept (12 meses por período).</p>
   ${tableBlock([['Métrica'], ['Período visible'], ['Período anterior'], ['Variación']], [
     [['Clientes activos (último mes con datos)'], ['128'], ['116'], ['+12 · +10,34 %']],
@@ -591,7 +591,7 @@ const informesTablas = {
  </div>
  <div class="grid gap-4 lg:grid-cols-2">
   <div class="${CARD} grid gap-2">
-   <h4 class="text-sm font-semibold text-fore">Tipos de clientes activos</h4>
+   <h4 class="text-[15px] font-semibold tracking-tight text-fore">Tipos de clientes activos</h4>
    <p class="text-xs text-mute">Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p>
    <ul class="grid gap-2">
     <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs"><span class="min-w-0 text-fore">Empresa</span><strong class="whitespace-nowrap tabular-nums text-fore">96 · 75,0 %</strong>${barra(75, 100, 'fono', 'Empresa: 75,0 %')}</li>
@@ -599,7 +599,7 @@ const informesTablas = {
    </ul>
   </div>
   <div class="${CARD} grid gap-2">
-   <h4 class="text-sm font-semibold text-fore">Planes por cantidad de clientes activos</h4>
+   <h4 class="text-[15px] font-semibold tracking-tight text-fore">Planes por cantidad de clientes activos</h4>
    <p class="text-xs text-mute">Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p>
    <ul class="grid gap-2">
     <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs"><span class="min-w-0 text-fore">Plan Integral de Producción Audiovisual</span><strong class="whitespace-nowrap tabular-nums text-fore">74 · 57,8 %</strong>${barra(57.8, 100, 'fono', 'Plan Integral: 57,8 %')}</li>
