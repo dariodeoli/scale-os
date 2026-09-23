@@ -34,7 +34,7 @@ assert(notifications.includes('StateChip'),'notification kind stays a chip besid
 console.log('PASS notification feed keeps stacked cards per the documented exception');
 assert(css.includes('.person-hub-card:not(.is-list) .ops-person small'),'team cards show the role as a chip beside the name');
 assert(css.includes('.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-code'),'inventory cards show the code as a chip beside the title');
-assert(/:is\(\.person-hub-card:not\(\.is-list\),\.notice\) :is\(\.ops-person h3,\.notice-identity h3\)\{font-size:14px/.test(css),'team and notification titles share one size');
+assert(/\.person-hub-card:not\(\.is-list\) \.ops-person h3\{font-size:14px/.test(css),'team titles keep one size (the notification clone retired its own classes)');
 console.log('PASS team and inventory cards follow the notification card anatomy');
 assert(css.includes('.project-grid>.project-entry .project-entry-title h3{font-size:14px'),'project grid cards keep the shared title size');
 assert(css.includes('.project-grid>.project-entry>.project-entry-actions{justify-content:space-between}'),'project grid cards separate the drive meta from the action buttons');
