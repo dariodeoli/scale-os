@@ -118,12 +118,22 @@ export function KanbanColumn({
   role,
   refresh,
   openOrder,
+  counts,
+  hasMore,
+  loadingMore,
+  onLoadMore,
 }: {
   status: (typeof statuses)[number];
   orders: WorkOrderCard[];
   role:string;
   refresh:()=>Promise<void>;
   openOrder:(id:string,edit?:boolean)=>void;
+  /** Total exacto de la etapa (`?counts=1`); si falta, se usa lo cargado. */
+  counts?:number;
+  /** La ventana de la columna tiene más piezas para pedir. */
+  hasMore?:boolean;
+  loadingMore?:boolean;
+  onLoadMore?:()=>void;
 }) {
   const droppable = useDroppable({ id: `status-${status.id}` });
   return (
@@ -134,11 +144,12 @@ export function KanbanColumn({
     >
       <div className="flex items-center gap-2">
         <StateChip tone={STATUS_TONE[status.id] || 'mute'}>{status.label}</StateChip>
-        <em className="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-medium not-italic tabular-nums text-mute">{orders.length}</em>
+        <em className="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-medium not-italic tabular-nums text-mute" title={`${counts ?? orders.length} piezas en ${status.label}`}>{counts ?? orders.length}</em>
       </div>
       {orders.map((order) => (
         <DraggableOrder key={order.id} order={order} role={role} refresh={refresh} openOrder={openOrder}/>
       ))}
+      {hasMore && onLoadMore ? <button type="button" className="text-button justify-center" disabled={loadingMore} aria-label={`Ver más piezas en ${status.label}`} onClick={onLoadMore}>{loadingMore ? 'Trayendo…' : 'Ver más'}</button> : null}
       {!orders.length ? <p className="py-3 text-center text-[11px] text-mute">Sin piezas en esta etapa</p> : null}
     </section>
   );

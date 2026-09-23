@@ -16,9 +16,11 @@
 import {launchChrome,openTarget} from '/Users/fredd/.herdr/worktrees/scale-os/sos-ops/build-tools/visual-harness/chrome.mjs';
 
 const BASE=process.env.BASE_URL||'http://127.0.0.1:3006';
-const LIMIT=Number((process.argv.find(a=>a.startsWith('--limit='))||'--limit=50').split('=')[1]);
 const STATUSES=['blocked','to_record','recorded','editing','review','approved','published'];
 const BOARD='id,project_id,project_name,client_name,title,description,status,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at,work_type';
+const WINDOW=Number((await import('node:fs')).readFileSync(new URL('../../app/board-data.ts',import.meta.url),'utf8').match(/BOARD_COLUMN_WINDOW=(\d+)/)[1]);
+const LIMIT_DEFAULT=WINDOW;
+const LIMIT=Number((process.argv.find(a=>a.startsWith('--limit='))||`--limit=${LIMIT_DEFAULT}`).split('=')[1]);
 
 const chrome=await launchChrome();
 const cdp=await openTarget(chrome.port);
@@ -44,25 +46,25 @@ async function batch(label,{counts,perColumn}){
    return {size,status:response.status,count:Array.isArray(body.workOrders)?body.workOrders.length:null,counts:body.stage_counts||null};};
   const out=[];
   ${counts?`out.push(await measure('/core-api/api/agency/work-orders?counts=1&limit=1&fields=id'));`:''}
-  ${perColumn?`for(const status of ${JSON.stringify(STATUSES)})out.push(await measure('/core-api/api/agency/work-orders?status='+status+'&limit='+LIMIT+'&fields='+${JSON.stringify(BOARD)}));`:
+  ${perColumn?`for(const status of ${JSON.stringify(STATUSES)})out.push(await measure('/core-api/api/agency/work-orders?status='+status+'&limit=${LIMIT}&fields='+${JSON.stringify(BOARD)}));`:
    `out.push(await measure('/core-api/api/agency/work-orders?fields='+${JSON.stringify(BOARD)}));`}
   return {ms:Math.round(performance.now()-t0),calls,size:out.reduce((sum,r)=>sum+r.size,0),detail:out.map(r=>({size:r.size,count:r.count,status:r.status})),counts:out.map(r=>r.counts).find(Boolean)||null};})()`);
  console.log(`${label}: ${result.size} bytes · ${result.calls} lecturas · ${result.ms} ms  (${result.detail.map(d=>d.count!==null?`${d.count} filas`:`${d.size}B`).join(' · ')})`);
  return result;
 }
 
-console.log('=== 3000 órdenes · escritorio (sin throttling)');
-const current=await batch('modo actual (lista completa + proyección)',{counts:false,perColumn:false});
-const perColumn=await batch('modo por columna (counts + 7 × status&limit=50)',{counts:true,perColumn:true});
+console.log(`=== escritorio (sin throttling) · ventana por columna ${LIMIT}`);
+const current=await batch('antes: lista completa con la proyección del tablero',{counts:false,perColumn:false});
+const perColumn=await batch('después: conteos + 7 columnas por ?status con ventana',{counts:true,perColumn:true});
 const counts=perColumn.counts;
 console.log('stage_counts (contract):',JSON.stringify(counts));
 console.log(`ahorro por columna vs modo actual: ${(100-perColumn.size/current.size*100).toFixed(1)}%`);
 
 await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
 await send('Network.emulateNetworkConditions',{offline:false,latency:100,downloadThroughput:4*1024*1024/8,uploadThroughput:3*1024*1024/8});
-console.log('=== 3000 órdenes · mobile 390×844 · 4G (4 Mbps, 100 ms RTT)');
-const currentMobile=await batch('modo actual (lista completa + proyección)',{counts:false,perColumn:false});
-const perColumnMobile=await batch('modo por columna (counts + 7 × status&limit=50)',{counts:true,perColumn:true});
+console.log('=== mobile 390×844 · 4G (4 Mbps, 100 ms RTT)');
+const currentMobile=await batch('antes: lista completa con la proyección del tablero',{counts:false,perColumn:false});
+const perColumnMobile=await batch('después: conteos + 7 columnas por ?status con ventana',{counts:true,perColumn:true});
 console.log(`ahorro por columna vs modo actual (4G): ${(100-perColumnMobile.size/currentMobile.size*100).toFixed(1)}%`);
 await send('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
 
