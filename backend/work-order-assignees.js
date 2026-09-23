@@ -35,14 +35,14 @@ export async function enrichWorkOrderAssignees(c,org,records){
   from assignments a join people i on i.user_id=a.user_id
   order by a.work_order_id,a.source,a.is_primary desc,a.user_id`,[org,ids])).rows;
  const byOrder=new Map();
- for(const {work_order_id,...person} of rows){
-  if(!byOrder.has(work_order_id))byOrder.set(work_order_id,{direct:[],project:[]});
-  byOrder.get(work_order_id)[person.source].push(person);
- }
+  for(const {work_order_id,source,...person} of rows){
+   if(!byOrder.has(work_order_id))byOrder.set(work_order_id,{direct:[],project:[]});
+   byOrder.get(work_order_id)[source].push(person);
+  }
   for(const record of list){
    const assigned=byOrder.get(String(record.id))||{direct:[],project:[]};
-   record.assignees=assigned.direct;
-   record.project_assignees=assigned.project;
+   // El detalle directo/proyecto no se duplica en el payload: la respuesta lleva
+   // la lista efectiva, su origen y los ids directos, que es lo que consume la UI.
    record.effective_assignees=assigned.direct.length?assigned.direct:assigned.project;
    record.assignee_source=assigned.direct.length?'direct':assigned.project.length?'project':null;
    record.assigned_user_ids=assigned.direct.map(person=>person.id);

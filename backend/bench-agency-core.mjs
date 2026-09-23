@@ -75,13 +75,18 @@ try{
   times.sort((a,b)=>a-b);
   console.log(`${label}: mediana ${times[Math.floor(samples/2)].toFixed(0)} ms (min ${times[0].toFixed(0)} / max ${times[samples-1].toFixed(0)})`);
  }
- let listResponse,pageResponse,inventoryResponse;
+ // Proyección recomendada para pickers/tarjetas: sin descripción completa ni enlaces.
+ const PROJECTED_FIELDS='id,title,status,project_id,project_name,client_name,urgency,work_type,due_date,due_time,updated_at,effective_assignees,assignee_source,description_preview';
+ let listResponse,pageResponse,leanResponse,projectsResponse,inventoryResponse;
  await timed('GET /api/agency/work-orders',async()=>{listResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders'),send:(_,status,data)=>{listResponse=data;}});});
  await timed('GET /api/agency/work-orders?limit=300',async()=>{pageResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders?limit=300'),send:(_,status,data)=>{pageResponse=data;}});});
- await timed('GET /api/agency/projects',async()=>{await agencyCore({...coreArgs('/api/agency/projects'),send:()=>{}});});
+ await timed('GET /api/agency/work-orders?fields=<preset>',async()=>{leanResponse=null;await agencyCore({...coreArgs(`/api/agency/work-orders?fields=${PROJECTED_FIELDS}`),send:(_,status,data)=>{leanResponse=data;}});});
+ await timed('GET /api/agency/projects',async()=>{projectsResponse=null;await agencyCore({...coreArgs('/api/agency/projects'),send:(_,status,data)=>{projectsResponse=data;}});});
  await timed('GET /api/agency/inventory',async()=>{inventoryResponse=null;await inventoryReservations({req:{method:'GET',socket:{}},res:{},url:new URL('https://bench.invalid/api/agency/inventory'),db:pool,session,body:async()=>({}),send:(_,status,data)=>{inventoryResponse=data;}});});
  const size=value=>(JSON.stringify(value||{}).length/1024).toFixed(0);
  console.log(`Payload work-orders: ${listResponse.workOrders.length} filas · ${size(listResponse)} KB`);
  console.log(`Payload work-orders?limit=300: ${pageResponse.workOrders.length} filas · ${size(pageResponse)} KB · page ${JSON.stringify(pageResponse.page)}`);
+ console.log(`Payload work-orders?fields=<preset>: ${leanResponse.workOrders.length} filas · ${size(leanResponse)} KB`);
+ console.log(`Payload projects: ${projectsResponse.projects.length} filas · ${size(projectsResponse)} KB`);
  console.log(`Payload inventario: ${(inventoryResponse?.records||[]).length} filas · ${size(inventoryResponse)} KB`);
 }finally{try{await pool?.end();}catch{}cleanup();}

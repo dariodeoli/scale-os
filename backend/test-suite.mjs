@@ -30,7 +30,7 @@ let resetToken='',sent=0;const grantedEmails=[];
 async function call(path,method='GET',payload={},as=user,form=''){
  let result={status:0};const req={method,socket:{remoteAddress:'127.0.0.1'},async *[Symbol.asyncIterator](){yield form;}};
  const args={req,res:{writeHead(status,headers){result={status,headers};},end(content){result.content=content;}},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{result={status,...data};},sendInvitation:async()=>true,sendAccessGranted:async(email,organizationName,role)=>{grantedEmails.push({email,organizationName,role});return true;},sendReset:async(_,token)=>{resetToken=token;sent++;return true;}};
- const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):path.startsWith('/api/agency/work-orders')&&method==='GET'&&!path.includes('/work-orders/')?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
+ const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
 }
 const client=(await query("insert into agency_clients(organization_id,name) values($1,'Client') returning id",[org])).rows[0].id;
 const project=(await query("insert into agency_projects(organization_id,client_id,name,approval_levels) values($1,$2,'Project',2) returning id",[org,client])).rows[0].id;
@@ -204,7 +204,7 @@ assert.equal(firstPage.status,200);
 assert.equal(firstPage.workOrders.length,Math.min(2,allOrders.length));
 assert.deepEqual(firstPage.page,{limit:2,offset:0,hasMore:allOrders.length>2});
 assert.equal(String(firstPage.workOrders[0].id),String(allOrders[0].id),'el orden por updated_at,id se mantiene al paginar');
-assert.equal(firstPage.workOrders.every(row=>Array.isArray(row.assignees)&&Array.isArray(row.effective_assignees)&&Number.isInteger(row.checklist_total)),true,'la página conserva asignados y checklist');
+assert.equal(firstPage.workOrders.every(row=>Array.isArray(row.effective_assignees)&&Number.isInteger(row.checklist_total)),true,'la página conserva responsables y checklist');
 const lastOffset=Math.max(0,allOrders.length-1);
 const tailPage=await call(`/api/agency/work-orders?limit=2&offset=${lastOffset}`);
 assert.equal(tailPage.status,200);
@@ -216,4 +216,24 @@ assert.equal((await call('/api/agency/work-orders?limit=abc')).status,400);
 assert.equal((await call('/api/agency/work-orders?limit=2001')).status,400);
 assert.equal((await call('/api/agency/work-orders?offset=1')).status,400,'offset exige limit');
 assert.equal((await call('/api/agency/work-orders?limit=2&offset=-1')).status,400);
+// Recorte de payload (#57): la lista no manda columnas sin lectores ni duplica
+// los asignados directos/de proyecto; `?fields=` proyecta si el front lo pide.
+const lean=firstPage.workOrders[0];
+for(const removed of ['assignees','project_assignees','assignee_email','created_at','organization_id','assignee_version'])
+ assert.equal(Object.hasOwn(lean,removed),false,`la lista ya no manda ${removed}`);
+assert.equal(Object.hasOwn(lean,'effective_assignees'),true,'la lista sigue mandando los responsables efectivos');
+assert.equal(Object.hasOwn(lean,'assignee_source'),true);
+const projected=await call('/api/agency/work-orders?limit=2&fields=id,title,description_preview');
+assert.equal(projected.status,200);
+assert.deepEqual(Object.keys(projected.workOrders[0]).sort(),['description_preview','id','title']);
+const withoutEnrich=await call('/api/agency/work-orders?limit=2&fields=id,title');
+assert.equal(withoutEnrich.status,200);
+assert.equal(Object.hasOwn(withoutEnrich.workOrders[0],'effective_assignees'),false,'la proyección sin asignados no los calcula');
+assert.equal((await call('/api/agency/work-orders?limit=2&fields=id,inexistente')).status,400);
+assert.equal((await call('/api/agency/work-orders?limit=2&fields=')).status,400);
+const projectList=await call('/api/agency/projects');
+assert.equal(projectList.status,200);assert(projectList.projects.length>=1);
+for(const removed of ['organization_id','created_at','assigned_user_id','assignee_version'])
+ assert.equal(Object.hasOwn(projectList.projects[0],removed),false,`la lista de proyectos ya no manda ${removed}`);
+assert.equal(Object.hasOwn(projectList.projects[0],'drive_links'),true,'los enlaces del proyecto se siguen sirviendo');
 await pg.close();console.log('PASS: approvals, member suspension, tenant isolation, pipeline conversion, plans, inventory, dashboard permissions, public quotes, invoice idempotency, audit and password reset');
