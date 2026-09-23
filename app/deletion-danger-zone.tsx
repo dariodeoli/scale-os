@@ -1,8 +1,8 @@
 'use client';
-
+// Zona de peligro v2 (issue #46): Tailwind + primitivas, sin hoja propia.
+// La lógica de vista previa, re-autenticación y confirmación tipada se conserva.
 import {useEffect,useId,useRef,useState} from 'react';
 import {Building2,KeyRound,Send,ShieldAlert,Trash2,UserRoundX} from 'lucide-react';
-import './deletion-danger-zone.css';
 
 type DeletionAction='account.delete'|'organization.delete';
 type DeletionErrorCode=
@@ -97,36 +97,45 @@ function formatExpiry(value:string){
  return Number.isNaN(date.getTime())?'por unos minutos':`hasta ${new Intl.DateTimeFormat('es-PY',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(date)}`;
 }
 
+/* Superficies v2 de la zona de peligro (una sola pieza por tipo). */
+const FLOW='grid min-w-0 gap-3.5 rounded-xl border border-bad/25 bg-ink-800 p-4 shadow-xs';
+const DETAILS='grid gap-2.5 rounded-lg border border-ink-600 bg-ink-700 p-3';
+const STEP='flex items-start gap-2.5 pt-1';
+const STEP_MARK='grid size-6 shrink-0 place-items-center rounded-full bg-bad/15 text-[11px] font-extrabold text-bad';
+const INPUT='h-11 w-full min-w-0 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none md:text-sm';
+const FIELD_ACTION='secondary max-md:w-full';
+const NOTICE='m-0 rounded-lg border border-ink-600 bg-ink-700 px-3 py-2.5 text-xs leading-5 text-mute';
+const ALERT='m-0 rounded-lg border-l-[3px] border-bad bg-bad/10 px-3 py-2.5 text-xs leading-5 text-fore';
+
 function AccountConsequences({preview}:{preview:AccountDeletionPreview}){
  const account=preview.account;
- return <div className="deletion-preview-details">
-  <h4>Qué pasará con tu cuenta</h4>
-  <ul className="deletion-consequence-list">
+ return <div className={DETAILS}>
+  <h4 className="text-[13px] font-semibold text-fore">Qué pasará con tu cuenta</h4>
+  <ul className="grid list-disc gap-1.5 pl-5 text-xs leading-[1.45] text-mute">
    <li>{account.willBeAnonymized?'Tu identidad personal será anonimizada.':'Tu identidad personal no será anonimizada.'}</li>
    <li>{account.sessionsWillBeRevoked?'Todas tus sesiones serán cerradas.':'Tus sesiones no serán cerradas.'}</li>
    <li>{account.tenantDataWillBeRetained?'Los datos de las empresas se conservarán.':'Los datos de las empresas no se conservarán.'}</li>
   </ul>
-  <h4>Impacto en tus empresas</h4>
-  <div className="deletion-memberships" role="list">
-   {preview.memberships.map(membership=><article key={membership.organizationId} role="listitem">
-    <strong>{membership.name}</strong>
-    <p>{roleLabels[membership.role]||membership.role} · {membership.activeMemberCount} miembros activos · {membership.activeOwnerCount} dueños activos</p>
-    <p>{consequenceLabels[membership.consequence]||membership.consequence}</p>
+  <h4 className="text-[13px] font-semibold text-fore">Impacto en tus empresas</h4>
+  <div className="grid gap-2" role="list">
+   {preview.memberships.map(membership=><article className="grid gap-0.5 rounded-lg border border-ink-600 bg-ink-800 p-2.5" key={membership.organizationId} role="listitem">
+    <strong className="text-xs text-fore">{membership.name}</strong>
+    <p className="m-0 text-[11px] leading-[1.45] text-mute [overflow-wrap:anywhere]">{roleLabels[membership.role]||membership.role} · {membership.activeMemberCount} miembros activos · {membership.activeOwnerCount} dueños activos</p>
+    <p className="m-0 text-[11px] leading-[1.45] text-mute [overflow-wrap:anywhere]">{consequenceLabels[membership.consequence]||membership.consequence}</p>
    </article>)}
-   {!preview.memberships.length&&<p>La vista previa no informó accesos activos a empresas.</p>}
+   {!preview.memberships.length&&<p className="m-0 text-xs text-mute">La vista previa no informó accesos activos a empresas.</p>}
   </div>
-  {!!preview.blockers.length&&<div className="deletion-blockers" role="alert"><strong>No se puede continuar</strong><ul>{preview.blockers.map(blocker=><li key={`${blocker.code}:${blocker.organizationId}`}><b>{blocker.organizationName}</b>: {blocker.message}</li>)}</ul></div>}
+  {!!preview.blockers.length&&<div className="grid gap-1.5 rounded-lg border-l-[3px] border-bad bg-bad/10 p-2.5 text-fore" role="alert"><strong className="text-xs">No se puede continuar</strong><ul className="grid list-disc gap-1.5 pl-5 text-xs leading-[1.45]">{preview.blockers.map(blocker=><li key={`${blocker.code}:${blocker.organizationId}`}><b>{blocker.organizationName}</b>: {blocker.message}</li>)}</ul></div>}
  </div>;
 }
 
 function OrganizationConsequences({preview}:{preview:OrganizationDeletionPreview}){
  const consequences=preview.consequences;
- return <div className="deletion-preview-details">
-  <h4>{preview.organization.name}</h4>
-  <p>{preview.organization.activeMemberCount} miembros activos según la vista previa del servidor.</p>
-  <ul className="deletion-consequence-list">
+ return <div className={DETAILS}>
+  <h4 className="text-[13px] font-semibold text-fore">{preview.organization.name}</h4>
+  <p className="m-0 text-xs leading-[1.45] text-mute">{preview.organization.activeMemberCount} miembros activos según la vista previa del servidor.</p>
+  <ul className="grid list-disc gap-1.5 pl-5 text-xs leading-[1.45] text-mute">
    <li>{consequences.organizationWillBeSoftDeleted?'La empresa se desactivará; sus datos quedarán inaccesibles.':'La empresa no será desactivada.'}</li>
-
    <li>{consequences.allMemberAccessWillBeDeactivated?'Se desactivará el acceso de todos sus miembros.':'No se desactivará el acceso de todos sus miembros.'}</li>
    <li>{consequences.organizationSessionsWillBeRevoked?'Se cerrarán las sesiones vinculadas a esta empresa.':'No se cerrarán las sesiones vinculadas a esta empresa.'}</li>
    <li>{consequences.tenantDataWillBeRetained?'Los datos de la empresa se conservarán.':'Los datos de la empresa no se conservarán.'}</li>
@@ -256,38 +265,40 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
   }catch(cause){handleFailure(cause);}finally{setBusy('');}
  }
  const title=kind==='account'?'Eliminar mi cuenta':'Eliminar esta empresa';
- return <article className="deletion-flow" aria-labelledby={headingId} aria-busy={Boolean(busy)}>
-  <div className="deletion-flow-heading"><span aria-hidden="true">{kind==='account'?<UserRoundX size={20}/>:<Building2 size={20}/>}</span><div><h3 id={headingId}>{title}</h3><p>{kind==='account'?'Esta acción es irreversible: perderás tu acceso personal y se cerrarán todas tus sesiones.':'Esta acción es irreversible: la empresa se desactivará, todos perderán acceso y sus datos quedarán inaccesibles.'}</p></div></div>
-  {!preview&&<button type="button" className="secondary deletion-review" disabled={busy==='preview'} onClick={()=>void fetchPreview()}>{busy==='preview'?'Preparando vista previa…':kind==='account'?'Revisar eliminación de mi cuenta':`Revisar eliminación de ${organizationName}`}</button>}
-  {preview&&<div className="deletion-progress" ref={previewFocus} tabIndex={-1}>
-   <div className="deletion-step"><span>1</span><div><strong>Revisá la vista previa del servidor</strong><small>Válida {formatExpiry(preview.expiresAt)}.</small></div></div>
+ return <article className={FLOW} aria-labelledby={headingId} aria-busy={Boolean(busy)}>
+  <div className="flex items-start gap-2.5"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-bad/15 text-bad" aria-hidden="true">{kind==='account'?<UserRoundX size={20}/>:<Building2 size={20}/>}</span><div><h3 id={headingId} className="text-[15px] font-semibold text-fore">{title}</h3><p className="mt-1 text-xs leading-5 text-mute">{kind==='account'?'Esta acción es irreversible: perderás tu acceso personal y se cerrarán todas tus sesiones.':'Esta acción es irreversible: la empresa se desactivará, todos perderán acceso y sus datos quedarán inaccesibles.'}</p></div></div>
+  {!preview&&<button type="button" className={`secondary deletion-review justify-self-start max-md:w-full ${busy==='preview'?'':''}`} disabled={busy==='preview'} onClick={()=>void fetchPreview()}>{busy==='preview'?'Preparando vista previa…':kind==='account'?'Revisar eliminación de mi cuenta':`Revisar eliminación de ${organizationName}`}</button>}
+  {preview&&<div className="grid min-w-0 gap-3 outline-none" ref={previewFocus} tabIndex={-1}>
+   <div className={STEP}><span className={STEP_MARK}>1</span><div className="grid gap-0.5"><strong className="text-[13px] text-fore">Revisá la vista previa del servidor</strong><small className="text-[11px] leading-[1.45] text-mute">Válida {formatExpiry(preview.expiresAt)}.</small></div></div>
    {preview.action==='account.delete'?<AccountConsequences preview={preview}/>:<OrganizationConsequences preview={preview}/>}
-   {stale&&<button ref={refreshFocus} type="button" className="secondary" disabled={busy==='preview'} onClick={()=>void fetchPreview()}>{busy==='preview'?'Actualizando…':'Actualizar vista previa'}</button>}
+   {stale&&<button ref={refreshFocus} type="button" className={`secondary justify-self-start max-md:w-full`} disabled={busy==='preview'} onClick={()=>void fetchPreview()}>{busy==='preview'?'Actualizando…':'Actualizar vista previa'}</button>}
    {preview.executable&&!stale&&<>
-    <div className="deletion-step"><span>2</span><div><strong>Confirmá tu identidad</strong><small>La verificación queda vinculada únicamente a esta vista previa.</small></div></div>
-    {!auth&&!googleOnly&&<form className="deletion-auth-form" onSubmit={confirmPassword}><label htmlFor={passwordId}>Contraseña actual</label><div className="deletion-inline-field"><input ref={passwordFocus} id={passwordId} type="password" autoComplete="current-password" value={password} disabled={busy==='auth'} onChange={event=>setPassword(event.target.value)} required/><button className="secondary" disabled={busy==='auth'||!password}>{busy==='auth'?'Verificando…':'Verificar contraseña'}</button></div></form>}
-    {!auth&&googleOnly&&<button ref={googleFocus} type="button" className="secondary deletion-google" disabled={Boolean(busy)} onClick={()=>void startGoogle()}><KeyRound size={17} aria-hidden="true"/>{busy==='auth'?'Iniciando Google…':'Confirmar con Google'}</button>}
-    {!auth&&!emailRequested&&<button type="button" className="secondary deletion-email-request" disabled={Boolean(busy)} onClick={()=>void requestEmailCode()}>{busy==='auth'?'Enviando código…':'Recibir código por correo'}</button>}
-    {!auth&&emailRequested&&<form className="deletion-auth-form deletion-email-form" onSubmit={verifyEmailCode}><label htmlFor={emailCodeId}>Código enviado a tu correo</label><div className="deletion-inline-field"><input ref={emailCodeFocus} id={emailCodeId} inputMode="numeric" autoComplete="one-time-code" value={emailCode} disabled={busy==='auth'} onChange={event=>setEmailCode(event.target.value)} required/><button className="secondary" disabled={busy==='auth'||!emailCode}>{busy==='auth'?'Verificando…':'Verificar código'}</button></div><button type="button" className="text-button" disabled={busy==='auth'} onClick={()=>void requestEmailCode()}><Send size={14}/>Reenviar código</button></form>}
-    {auth&&<><p className="deletion-auth-ok" role="status"><KeyRound size={16} aria-hidden="true"/>Identidad confirmada con {authMethodLabel(auth.method)}.</p>{confirmationWait>0&&<p className="deletion-countdown" role="timer" aria-label={`Cuenta regresiva de seguridad: ${confirmationWait} segundos`}><span aria-hidden="true">Por seguridad, esperá {confirmationWait} s para eliminar.</span><span className="sr-only">Podrás confirmar la eliminación en {confirmationWait} segundos.</span></p>}</>}
-    <div className="deletion-step"><span>3</span><div><strong>Escribí la confirmación exacta</strong><small>El botón final solo se habilita cuando el texto coincide.</small></div></div>
+    <div className={STEP}><span className={STEP_MARK}>2</span><div className="grid gap-0.5"><strong className="text-[13px] text-fore">Confirmá tu identidad</strong><small className="text-[11px] leading-[1.45] text-mute">La verificación queda vinculada únicamente a esta vista previa.</small></div></div>
+    {!auth&&!googleOnly&&<form className="deletion-auth-form" onSubmit={confirmPassword}><div className="grid gap-2"><label htmlFor={passwordId} className="block text-xs font-bold text-fore">Contraseña actual</label><div className="deletion-inline-field grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 max-md:grid-cols-1"><input ref={passwordFocus} id={passwordId} type="password" autoComplete="current-password" className={INPUT} value={password} disabled={busy==='auth'} onChange={event=>setPassword(event.target.value)} required/><button className={FIELD_ACTION} disabled={busy==='auth'||!password}>{busy==='auth'?'Verificando…':'Verificar contraseña'}</button></div></div></form>}
+    {!auth&&googleOnly&&<button ref={googleFocus} type="button" className="deletion-google secondary inline-flex items-center justify-center gap-2 justify-self-start max-md:w-full" disabled={Boolean(busy)} onClick={()=>void startGoogle()}><KeyRound size={17} aria-hidden="true"/>{busy==='auth'?'Iniciando Google…':'Confirmar con Google'}</button>}
+    {!auth&&!emailRequested&&<button type="button" className={`secondary deletion-email-request justify-self-start max-md:w-full`} disabled={Boolean(busy)} onClick={()=>void requestEmailCode()}>{busy==='auth'?'Enviando código…':'Recibir código por correo'}</button>}
+    {!auth&&emailRequested&&<form className="deletion-auth-form deletion-email-form" onSubmit={verifyEmailCode}><div className="grid gap-2"><label htmlFor={emailCodeId} className="block text-xs font-bold text-fore">Código enviado a tu correo</label><div className="deletion-inline-field grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 max-md:grid-cols-1"><input ref={emailCodeFocus} id={emailCodeId} inputMode="numeric" autoComplete="one-time-code" className={INPUT} value={emailCode} disabled={busy==='auth'} onChange={event=>setEmailCode(event.target.value)} required/><button className={FIELD_ACTION} disabled={busy==='auth'||!emailCode}>{busy==='auth'?'Verificando…':'Verificar código'}</button></div><button type="button" className="text-button" disabled={busy==='auth'} onClick={()=>void requestEmailCode()}><Send size={14}/>Reenviar código</button></div></form>}
+    {auth&&<><p className="flex items-center gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-xs text-ok" role="status"><KeyRound size={16} aria-hidden="true"/>Identidad confirmada con {authMethodLabel(auth.method)}.</p>{confirmationWait>0&&<p className="m-0 rounded-lg border border-ink-600 bg-ink-700 px-3 py-2.5 text-xs tabular-nums text-mute" role="timer" aria-label={`Cuenta regresiva de seguridad: ${confirmationWait} segundos`}><span aria-hidden="true">Por seguridad, esperá {confirmationWait} s para eliminar.</span><span className="sr-only">Podrás confirmar la eliminación en {confirmationWait} segundos.</span></p>}</>}
+    <div className={STEP}><span className={STEP_MARK}>3</span><div className="grid gap-0.5"><strong className="text-[13px] text-fore">Escribí la confirmación exacta</strong><small className="text-[11px] leading-[1.45] text-mute">El botón final solo se habilita cuando el texto coincide.</small></div></div>
     <form className="deletion-confirm-form" onSubmit={execute}>
-     <label htmlFor={confirmationId}>Escribí <strong>{DELETION_CONFIRMATION}</strong></label>
-     <input ref={confirmationFocus} id={confirmationId} value={confirmation} disabled={!auth||busy==='delete'} aria-describedby={`${confirmationId}-help`} autoComplete="off" onChange={event=>setConfirmation(event.target.value)} required/>
-     <small id={`${confirmationId}-help`}>Se respetan mayúsculas, espacios y acentos.</small>
-     <button className="danger deletion-execute" disabled={!auth||confirmationWait>0||busy==='delete'||confirmation!==DELETION_CONFIRMATION}><Trash2 size={17} aria-hidden="true"/>{busy==='delete'?'Eliminando…':title}</button>
+     <div className="grid gap-2">
+      <label htmlFor={confirmationId} className="block text-xs font-bold text-fore">Escribí <strong>{DELETION_CONFIRMATION}</strong></label>
+      <input ref={confirmationFocus} id={confirmationId} className={INPUT} value={confirmation} disabled={!auth||busy==='delete'} aria-describedby={`${confirmationId}-help`} autoComplete="off" onChange={event=>setConfirmation(event.target.value)} required/>
+      <small id={`${confirmationId}-help`} className="block text-[11px] text-mute">Se respetan mayúsculas, espacios y acentos.</small>
+      <button className="danger deletion-execute inline-flex min-h-11 items-center justify-center gap-2 justify-self-start rounded-lg bg-bad px-3.5 text-[13px] font-bold text-onbrand disabled:cursor-not-allowed disabled:opacity-50 max-md:w-full" disabled={!auth||confirmationWait>0||busy==='delete'||confirmation!==DELETION_CONFIRMATION}><Trash2 size={17} aria-hidden="true"/>{busy==='delete'?'Eliminando…':title}</button>
+     </div>
     </form>
    </>}
   </div>}
-  {notice&&<p className="deletion-notice" role="status">{notice}</p>}
-  {error&&<p className="deletion-error" role="alert">{error}</p>}
+  {notice&&<p className={NOTICE} role="status">{notice}</p>}
+  {error&&<p className={ALERT} role="alert">{error}</p>}
  </article>;
 }
 
 function DemoExitSimulation({onExit}:{onExit:()=>void|Promise<void>}){
- return <article className="deletion-flow deletion-demo-simulation" aria-labelledby="demo-exit-title">
-  <div className="deletion-flow-heading"><span aria-hidden="true"><ShieldAlert size={20}/></span><div><h3 id="demo-exit-title">Salir del Demo</h3><p>El Demo no elimina cuentas ni empresas. Salir borra el estado local, cierra la sesión de simulación y vuelve al inicio público.</p></div></div>
-  <button type="button" className="secondary" onClick={()=>void onExit()}>Salir y reiniciar simulación</button>
+ return <article className={`${FLOW} deletion-demo-simulation`} aria-labelledby="demo-exit-title">
+  <div className="flex items-start gap-2.5"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-warn/15 text-warn" aria-hidden="true"><ShieldAlert size={20}/></span><div><h3 id="demo-exit-title" className="text-[15px] font-semibold text-fore">Salir del Demo</h3><p className="mt-1 text-xs leading-5 text-mute">El Demo no elimina cuentas ni empresas. Salir borra el estado local, cierra la sesión de simulación y vuelve al inicio público.</p></div></div>
+  <button type="button" className="secondary justify-self-start max-md:w-full" onClick={()=>void onExit()}>Salir y reiniciar simulación</button>
  </article>;
 }
 
@@ -312,12 +323,12 @@ export function DeletionDangerZone({organizationId,organizationName,onAccountDel
   }).catch(cause=>{if(active)setResumeError(cause instanceof Error?cause.message:'No se pudo completar la verificación con Google.');}).finally(()=>{if(active)setResumeBusy(false);});
   return()=>{active=false;};
  },[demo,organizationId]);
- return <section className="panel settings-card deletion-danger-zone" aria-labelledby="deletion-danger-title" aria-busy={resumeBusy}>
-  <div className="settings-card-heading deletion-zone-heading"><span className="settings-card-icon" aria-hidden="true"><ShieldAlert size={18}/></span><div><h2 id="deletion-danger-title">{demo?'Simulación Demo':'Zona de peligro'}</h2><p>{demo?'El Demo solo permite salir o reiniciar la simulación; no genera pruebas ni acciones de eliminación.':'Estas acciones son irreversibles: perderás acceso. Scale OS prepara una vista previa del servidor antes de pedir tu identidad y la confirmación final.'}</p></div></div>
-  {demo?<div className="deletion-flow-grid"><DemoExitSimulation onExit={onDemoExit}/></div>:<>
-   {resumeBusy&&<p className="deletion-resume" role="status">Completando la verificación con Google…</p>}
-   {resumeError&&<p className="deletion-error" role="alert">{resumeError}</p>}
-   <div className="deletion-flow-grid">
+ return <section className="deletion-danger-zone grid gap-4 rounded-xl border border-bad/30 bg-ink-800 p-4" aria-labelledby="deletion-danger-title" aria-busy={resumeBusy}>
+  <div className="flex items-start gap-3"><span className="deletion-zone-heading grid size-10 shrink-0 place-items-center rounded-lg border border-bad/30 bg-bad/10 text-bad" aria-hidden="true"><ShieldAlert size={18}/></span><div><h2 id="deletion-danger-title" className="text-[17px] font-semibold tracking-tight text-fore">{demo?'Simulación Demo':'Zona de peligro'}</h2><p className="mt-1 text-xs leading-5 text-mute">{demo?'El Demo solo permite salir o reiniciar la simulación; no genera pruebas ni acciones de eliminación.':'Estas acciones son irreversibles: perderás acceso. Scale OS prepara una vista previa del servidor antes de pedir tu identidad y la confirmación final.'}</p></div></div>
+  {demo?<div className="deletion-flow-grid grid items-start gap-3 lg:grid-cols-2"><DemoExitSimulation onExit={onDemoExit}/></div>:<>
+   {resumeBusy&&<p className={NOTICE} role="status">Completando la verificación con Google…</p>}
+   {resumeError&&<p className={ALERT} role="alert">{resumeError}</p>}
+   <div className="deletion-flow-grid grid items-start gap-3 lg:grid-cols-2">
     <DeletionFlow kind="organization" organizationId={organizationId} organizationName={organizationName} resume={resume} onSuccess={onOrganizationDeleted}/>
     <DeletionFlow kind="account" organizationId={organizationId} organizationName={organizationName} resume={resume} onSuccess={onAccountDeleted}/>
    </div>
