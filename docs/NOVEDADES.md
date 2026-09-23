@@ -2,6 +2,30 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.110
+
+### Marco y sistema visual
+
+- **Riel, encabezado y topbar consolidados** en una sola fuente: nav sin subrayado, riel colapsado sin recortes y la pantalla de carga con la identidad de marca.
+- Los espacios y márgenes del contenido quedan parejos en todos los anchos.
+
+### Comercial
+
+- **Pasada de responsividad 360–1440** en clientes, presupuestos, planes, pipeline y métricas: barras de filtro, indicadores y botones con targets táctiles de 44 px en el celular; nada se corta ni se superpone.
+
+### Operaciones
+
+- **Inventario y estudio**: targets táctiles de 44 px, filas y código de barras, con scroll contenido dentro de cada panel.
+- **Producción y proyectos**: calendario y tarjetas legibles en mobile, acciones sin desbordes y enlaces de Drive tocables.
+
+### Finanzas
+
+- **Finanzas, mora, previsión e informes**: targets, paddings y títulos ajustados al celular, chips largos sin cortes y modales medidos para que nada quede fuera de pantalla.
+
+### Plataforma y acceso
+
+- **Plataforma, acceso y superadmin**: diálogos y páginas de acceso sin cortes en 360, con targets de 44 px y los hallazgos de la auditoría de Papelera cerrados.
+
 ## v1.0.109
 
 ### Comercial
