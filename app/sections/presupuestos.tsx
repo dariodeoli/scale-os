@@ -1,15 +1,19 @@
 "use client";
+import {Aviso} from 'owncoding-ui';
 import {money} from '../operations';
 import {moneyKpi} from '../client-format';
-import {listDateShort} from '../list-format';
+import {listDateShort,dueTone} from '../list-format';
 import {roleCan} from '../capabilities';
 import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip,type ChipTone,type Column} from '../ui-v2';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
-// Presupuestos (listado de propuestas).
-// Extraído de app/scale-workspace.tsx (issue #47): misma lógica y JSX, sin cambios.
+// Presupuestos (SOS-COM, campaña #41 / spec #43 §4).
+// Rediseño v2: KPIs, lista finita con encabezado y plantilla compartida,
+// estados de carga/vacío/error con reintento. Los datos y callbacks siguen
+// llegando del shell (misma API y mismas acciones).
 type PresupuestosSectionProps = {
   loading: boolean;
   user: User|null;
@@ -21,67 +25,85 @@ type PresupuestosSectionProps = {
   loadBudgets: ()=>Promise<void>|void;
   setBudgets: (value: Budget[]) => void;
 };
+
+const BUDGET_COLUMNS: Column[] = [
+  {key:'budget',label:'Presupuesto'},
+  {key:'client',label:'Cliente'},
+  {key:'status',label:'Estado'},
+  {key:'items',label:'Ítems',align:'end'},
+  {key:'valid',label:'Vigencia'},
+  {key:'subtotal',label:'Sin IVA',align:'end'},
+  {key:'total',label:'Total · IVA incl.',align:'end'},
+  {key:'actions',label:'Acciones',align:'end'},
+];
+const BUDGET_TEMPLATE = 'grid-cols-[minmax(26rem,2.2fr)_minmax(16rem,1.4fr)_7rem_4rem_7rem_9rem_9rem_15rem]';
+const BUDGET_STATE: Record<string,{label:string;tone:ChipTone}> = {
+  draft: {label:'Borrador', tone:'mute'},
+  sent: {label:'Enviado', tone:'info'},
+  accepted: {label:'Aceptado', tone:'ok'},
+  rejected: {label:'Rechazado', tone:'bad'},
+  expired: {label:'Vencido', tone:'warn'},
+};
+// CeldaMoneda solo formatea PYG/USD (reporte #43): los montos de las seis
+// monedas se pintan con el formateador compartido de la app, sin recortes.
+const amount = (value: unknown, currency: string) => <span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(Number(value), currency)}</span>;
+
 export function PresupuestosSection({loading, user, budgetsState, budgets, invoices, budgetKpis, summary, loadBudgets, setBudgets}: PresupuestosSectionProps){
+  const canManage = roleCan(user?.role,'budgets.manage');
+  const totals = Array.from(budgetKpis.totals);
+  const reload = async () => { setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets); };
+  const row = (budget: Budget) => {
+    const state = BUDGET_STATE[budget.status] || {label: budget.status, tone: 'mute' as ChipTone};
+    const valid = listDateShort(budget.valid_until);
+    const tone = dueTone(budget.valid_until);
+    return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
+      <div className="flex min-w-0 items-baseline gap-2">
+        <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
+        <span className="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title={budget.title}>{budget.title}</span>
+      </div>
+      <span className="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title={budget.client_name}>{budget.client_name}</span>
+      <span className="min-w-0"><StateChip tone={state.tone}>{state.label}</StateChip></span>
+      <span className="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">{budget.item_count}</span>
+      <span className="list-date min-w-0 whitespace-nowrap text-[11px] text-mute" data-tone={tone||undefined} title={valid?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid||'Sin fecha'}</span>
+      <span className="text-right">{amount(budget.subtotal,budget.currency)}</span>
+      <span className="text-right"><b className="whitespace-nowrap text-[13.5px] font-bold tabular-nums text-fore">{money(budget.total,budget.currency)}</b></span>
+      <span className="flex min-w-0 items-center justify-end gap-2">
+        <BudgetActions id={budget.id} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={reload}/>
+        <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={reload}/>
+      </span>
+    </ListRow>;
+  };
+
   return (
-    <section className="panel directory">
-            <div className="kpi-strip" aria-label="Métricas de presupuestos">
-              <article className="kpi-card tone-brand">
-                <p className="eyebrow">PROPUESTAS</p>
-                <strong>{budgets.length}</strong>
-                <div className="kpi-amounts">
-                  {budgetKpis.totals.size ? Array.from(budgetKpis.totals).map(([currency, amount]) => (
-                    <span key={currency}>{moneyKpi(amount, currency)}</span>
-                  )) : <span>Sin propuestas</span>}
-                </div>
-              </article>
-              <article className="kpi-card tone-warning">
-                <p className="eyebrow">BORRADORES</p>
-                <strong>{budgetKpis.drafts}</strong>
-                <small>Sin enviar al cliente</small>
-              </article>
-              <article className="kpi-card tone-green">
-                <p className="eyebrow">ACEPTADAS</p>
-                <strong>{budgetKpis.accepted}</strong>
-                <small>Con aprobación del cliente</small>
-              </article>
-              <article className="kpi-card tone-blue">
-                <p className="eyebrow">VENCEN ESTA SEMANA</p>
-                <strong>{budgetKpis.expiring}</strong>
-                <small>Vigencia en los próximos 7 días</small>
-              </article>
-            </div>
-            <p className="directory-summary">{budgets.length} presupuestos · Propuestas y aprobaciones</p>
-            {budgetsState === 'error' && budgets.length ? <p className="error" role="alert">No se pudieron actualizar los presupuestos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={()=>void loadBudgets()}>Reintentar</button></p> : null}
-            <div className="budget-hub-grid">
-              {budgets.length ? (
-                budgets.map((budget) => (
-                  <article className="ops-card budget-hub-card" key={budget.id}>
-                    <header className="budget-hub-head">
-                      <span className="budget-number">{budget.number}</span>
-                      <span className="budget-state" data-status={budget.status}>{{draft:'Borrador',sent:'Enviado',accepted:'Aceptado',rejected:'Rechazado',expired:'Vencido'}[budget.status]||budget.status}</span>
-                    </header>
-                    <h3>{budget.title}</h3>
-                    <p className="budget-client">{budget.client_name}</p>
-                    <dl className="budget-hub-facts">
-                      <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
-                      <div><dt>Vigencia</dt><dd>{budget.valid_until?listDateShort(budget.valid_until)||'Sin fecha':'Sin fecha'}</dd></div>
-                      <div className="budget-hub-fact-amount"><dt>Sin IVA</dt><dd title={money(Number(budget.subtotal),budget.currency)}>{money(Number(budget.subtotal),budget.currency)}</dd></div>
-                    </dl>
-                    <strong className="budget-hub-total">{money(Number(budget.total),budget.currency)}<small>IVA incl.</small></strong>
-                    <footer className="budget-hub-actions"><BudgetActions id={budget.id} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/><RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={async()=>setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets)}/></footer>
-                  </article>
-                ))
-              ) : budgetsState === 'loading' ? (
-                <p role="status">Cargando presupuestos…</p>
-              ) : budgetsState === 'error' ? (
-                <p className="error" role="alert">No se pudieron cargar los presupuestos. <button type="button" className="text-button" onClick={()=>void loadBudgets()}>Reintentar</button></p>
-              ) : (
-                <p className="empty-copy">
-                  Todavía no hay presupuestos. Creá el primero con un valor sin
-                  IVA.
-                </p>
-              )}
-            </div>
-          </section>
+    <section className="directory grid gap-4" aria-label="Presupuestos">
+      <KpiStrip className="kpi-strip" aria-label="Métricas de presupuestos">
+        <Kpi label="Presupuestos" valor={budgets.length} destacado hint={totals.length ? `Total sin IVA: ${totals.map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}` : 'Sin propuestas cargadas'}/>
+        <Kpi label="Borradores" valor={budgetKpis.drafts} hint="Sin enviar al cliente"/>
+        <Kpi label="Aceptadas" valor={budgetKpis.accepted} hint="Con aprobación del cliente"/>
+        <Kpi label="Vencen esta semana" valor={budgetKpis.expiring} hint="Vigencia en los próximos 7 días"/>
+      </KpiStrip>
+
+      {budgetsState==='error' && budgets.length ? (
+        <Aviso tono="error" como="div" role="alert">No se pudieron actualizar los presupuestos. Se muestra la última lista cargada.{' '}
+          <button type="button" className="underline" onClick={()=>void loadBudgets()}>Reintentar</button>
+        </Aviso>
+      ) : null}
+
+      {budgets.length ? (
+        <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[90rem]">
+          {budgets.map(row)}
+        </ListGrid>
+      ) : budgetsState==='loading' || loading ? (
+        <LoadingBlock label="Cargando presupuestos…" lines={4}/>
+      ) : budgetsState==='error' ? (
+        <ErrorBlock title="No se pudieron cargar los presupuestos." description="Revisá la conexión y volvé a intentar; no se inventan totales." onRetry={()=>void loadBudgets()}/>
+      ) : (
+        <EmptyBlock
+          icon="receipt"
+          title="Todavía no hay presupuestos."
+          description={canManage ? 'Creá el primero con «Nuevo presupuesto»: el valor se carga sin IVA y el IVA se define en el documento.' : 'Cuando el equipo cree una propuesta, vas a verla acá con su estado y vigencia.'}
+        />
+      )}
+    </section>
   );
 }
