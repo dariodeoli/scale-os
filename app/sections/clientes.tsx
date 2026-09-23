@@ -61,7 +61,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
   return <ListRow template={CLIENT_TEMPLATE} className="client-hub-row" data-archived={client.active===false||undefined}>
     <div className="flex min-w-0 items-center gap-2">
       {selectable ? <label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
-      <button type="button" className="min-w-0 text-left" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
+      <button type="button" className="min-h-11 min-w-0 text-left md:min-h-0" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
         <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
       </button>
     </div>
@@ -84,7 +84,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
       </span>
       {stat?.nextDue ? <span className="block whitespace-nowrap">Próxima entrega <b className="tabular-nums text-fore">{listDateShort(stat.nextDue)}</b></span> : null}
     </div>
-    <div className="silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]">
+    <div className="client-row-actions silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
       {client.has_recurring_price !== true ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
@@ -102,7 +102,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
     <header className="flex items-start justify-between gap-3">
       <div className="flex min-w-0 items-start gap-2">
         {selectable ? <label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
-        <button type="button" className="min-w-0 text-left" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
+        <button type="button" className="min-h-11 min-w-0 text-left md:min-h-0" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
           <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
         </button>
       </div>
@@ -122,7 +122,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
         : <span className="text-[11px] text-mute">Sin saldo pendiente</span>}
       {client.has_recurring_price !== true ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
     </div> : null}
-    <footer className="silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]">
+    <footer className="client-card-actions silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
       {canManage ? <button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button> : null}

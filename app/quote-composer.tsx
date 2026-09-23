@@ -5,14 +5,14 @@
 // ./quote-composer-data (puros); el guardado sigue con SaveActions legado.
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button,FormField,Input,Label,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
+import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {useEffect,useState} from 'react';
 import {useForm,useFieldArray} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {DndContext,useDraggable,useDroppable,DragEndEvent,PointerSensor,KeyboardSensor,useSensor,useSensors} from '@dnd-kit/core';
+import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,DragEndEvent,PointerSensor,KeyboardSensor,useSensor,useSensors,type CollisionDetection} from '@dnd-kit/core';
 import {ArrowDown,ArrowUp,GripVertical,Plus,X} from 'lucide-react';
 import {api} from './operations';
 import {SECTION_TYPE_LABELS,TAX_RATE_CHOICES,initialQuoteSections,normalizeQuoteItems,quoteRequest,quoteSchema,quoteTotals,type QuoteClientOption,type QuoteMode,type QuotePlanRecord,type QuoteSection,type QuoteValues} from './quote-composer-data';
@@ -23,11 +23,15 @@ export type {QuoteItemDraft,QuoteSection,QuoteValues,QuoteMode} from './quote-co
 
 type Row={id:string;[key:string]:unknown};
 
+// Ítem/columna bajo el puntero (predecible al arrastrar); el teclado, sin
+// puntero, cae al rectángulo que se cruza.
+const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(args);return within.length?within:rectIntersection(args);};
+
 function ItemShell({id,title,canReorder=true,children}:{id:string;title?:string;canReorder?:boolean;children:React.ReactNode}){
  const drag=useDraggable({id,disabled:!canReorder}),drop=useDroppable({id});
  return <div ref={node=>{drag.setNodeRef(node);drop.setNodeRef(node);}} className={`grid gap-3 rounded-xl border bg-ink-800 p-3 ${drop.isOver?'border-fono/60':'border-ink-600'}`} style={{opacity:drag.isDragging?.5:1}}>
   <div className="flex items-start gap-2">
-   {canReorder&&<button type="button" className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem" {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button>}
+   {canReorder&&<button type="button" className="mt-0.5 grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem" style={{touchAction:'none'}} {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button>}
    <div className="grid min-w-0 flex-1 gap-3">{title?<b className="text-sm font-bold text-fore">{title}</b>:null}{children}</div>
   </div>
  </div>;
@@ -61,7 +65,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    </div>
   </section>
   <section className="grid gap-3" aria-label="Ítems del documento">
-   <DndContext sensors={sensors} onDragEnd={move}>{array.fields.map((field,index)=><ItemShell key={field.id} id={field.id} canReorder={canReorder}>
+   <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move}>{array.fields.map((field,index)=><ItemShell key={field.id} id={field.id} canReorder={canReorder}>
     <FormField label="Descripción" htmlFor={`quote-item-description-${index}`}><Input id={`quote-item-description-${index}`} {...form.register(`items.${index}.description`)}/></FormField>
     <div className="flex flex-wrap gap-3">
      <FormField label="Cantidad" htmlFor={`quote-item-quantity-${index}`}><Input id={`quote-item-quantity-${index}`} className="w-24" inputMode="decimal" autoComplete="off" {...form.register(`items.${index}.quantity`)}/></FormField>
@@ -81,11 +85,11 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
   </section>
   {mode!=='plan'&&<section className="grid gap-3" aria-label="Secciones del documento">
    <div><h3 className="text-sm font-bold text-fore">Secciones del documento</h3><p className="mt-1 text-xs leading-5 text-mute">Arrastrá o usá Subir/Bajar. Detalle y totales son obligatorios; podés ocultar las otras secciones.</p></div>
-   <DndContext sensors={sensors} onDragEnd={e=>{const from=sections.fields.findIndex(f=>f.id===e.active.id),to=sections.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0)sections.move(from,to);}}>{sections.fields.map((field,index)=><ItemShell key={field.id} id={field.id} title={SECTION_TYPE_LABELS[field.type]} canReorder={canReorder}>
+   <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={e=>{const from=sections.fields.findIndex(f=>f.id===e.active.id),to=sections.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0)sections.move(from,to);}}>{sections.fields.map((field,index)=><ItemShell key={field.id} id={field.id} title={SECTION_TYPE_LABELS[field.type]} canReorder={canReorder}>
     {field.type==='text'&&<><FormField label="Título" htmlFor={`quote-section-title-${index}`}><Input id={`quote-section-title-${index}`} {...form.register(`sections.${index}.title`)}/></FormField><FormField label="Contenido" htmlFor={`quote-section-body-${index}`}><Textarea id={`quote-section-body-${index}`} rows={4} {...form.register(`sections.${index}.body`)}/></FormField></>}
     {['items','totals'].includes(field.type)
      ?<p className="text-xs font-medium text-mute">Siempre visible</p>
-     :<div className="flex min-h-11 items-center gap-3 md:min-h-0"><Switch id={`quote-section-enabled-${index}`} checked={Boolean(v.sections[index]?.enabled)} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>form.setValue(`sections.${index}.enabled`,event.target.checked)} ariaLabel={`Mostrar sección ${SECTION_TYPE_LABELS[field.type]}`}/><Label htmlFor={`quote-section-enabled-${index}`}>Mostrar sección</Label></div>}
+     :<label htmlFor={`quote-section-enabled-${index}`} className="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-0"><Switch id={`quote-section-enabled-${index}`} checked={Boolean(v.sections[index]?.enabled)} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>form.setValue(`sections.${index}.enabled`,event.target.checked)} ariaLabel={`Mostrar sección ${SECTION_TYPE_LABELS[field.type]}`}/><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mostrar sección</span></label>}
     <div className="flex flex-wrap gap-2">
      <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===0} onClick={()=>sections.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>
      <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===sections.fields.length-1} onClick={()=>sections.move(index,index+1)}><ArrowDown size={14}/>Bajar</Button>
