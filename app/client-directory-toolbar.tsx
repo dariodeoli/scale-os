@@ -4,7 +4,8 @@
 // librería, con la lógica pura centralizada en ./client-directory-data.
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
-import {Button, Label, ListGridToggle, SearchField, Select} from 'owncoding-ui';
+import {Button, Label, SearchField, Select} from 'owncoding-ui';
+import {ViewSwitch} from './ui-v2';
 import { clientStatuses } from "./client-status";
 import type { CollectionView } from "./view-toggle";
 import {directorySummaryText} from "./client-directory-data";
@@ -60,7 +61,7 @@ export function ClientDirectoryToolbar({
           {clientStatuses.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
         </Select>
       </div>
-      <ListGridToggle value={view} onChange={onViewChange}/>
+      <ViewSwitch value={view} onChange={onViewChange}/>
       {children}
       {canCreate && (
         <Button

@@ -151,7 +151,7 @@ test("client toolbar protects touch targets and small-screen layout with the v2 
   const source = readFileSync("app/client-directory-toolbar.tsx", "utf8");
   assert.match(source, /from ['"]owncoding-ui['"]/, "el toolbar usa los objetos compartidos");
   assert.match(source, /SearchField/, "la búsqueda es el campo compartido");
-  assert.match(source, /ListGridToggle/, "el selector de vista es el objeto compartido, sin variantes");
+  assert.match(source, /ViewSwitch/, "el selector de vista es el wrapper v2 del objeto compartido, sin variantes");
   assert.match(source, /flex-wrap/, "los controles bajan de fila a 360 px");
   assert.match(source, /aria-label="Controles del directorio de clientes"/);
   assert.doesNotMatch(source, /SelectCustom|ViewToggle|search-field'|search-field"/, "los objetos legados quedaron atrás; las clases de la referencia de Clientes se conservan");

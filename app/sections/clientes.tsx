@@ -1,7 +1,7 @@
 "use client";
 import type {Dispatch, SetStateAction} from 'react';
 import {CircleDollarSign, Eye, X} from 'lucide-react';
-import {CeldaMoneda, IconAction} from 'owncoding-ui';
+import {IconAction} from 'owncoding-ui';
 import {BATCH_LIMITS, roleCan} from '../capabilities';
 import {clientState} from '../client-status';
 import {clientWhatsappUrl} from '../client-links';
@@ -10,7 +10,7 @@ import {listDateShort} from '../list-format';
 import {ClientIdentity} from '../client-identity';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
-import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {CommercialDashboard} from '../control-center-data';
 import type {Client, ClientPaymentStatus, User} from '../workspace-types';
 
@@ -75,7 +75,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
       {canSeeBilling ? <>
         {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : <span className="text-[11px] text-mute">Sin datos de cobro</span>}
         {pay && pay.currency && Number(pay.outstanding_amount) > 0
-          ? <CeldaMoneda valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
+          ? <MoneyText valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
           : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}
       </> : <span className="text-[11px] text-mute">Sin acceso a cobros</span>}
     </div>
@@ -119,7 +119,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
     {canSeeBilling ? <div className="flex flex-wrap items-center gap-2">
       {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : null}
       {pay && pay.currency && Number(pay.outstanding_amount) > 0
-        ? <CeldaMoneda valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
+        ? <MoneyText valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
         : <span className="text-[11px] text-mute">Sin saldo pendiente</span>}
       {client.has_recurring_price !== true ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
     </div> : null}
