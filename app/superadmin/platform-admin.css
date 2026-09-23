@@ -558,6 +558,12 @@
 
 .platform-admin-agency-cards {
   display: none;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* El nombre largo trunca dentro de la tarjeta: la primera celda puede encogerse. */
+.platform-admin-agency-card > div:first-child {
+  min-width: 0;
 }
 
 /* Catalog and access controls */
@@ -595,8 +601,8 @@
   justify-content: space-between;
   gap: 4px 12px;
   min-width: 0;
-  min-height: 48px;
-  padding: 8px 0;
+  min-height: 44px;
+  padding: 4px 12px;
   border-bottom: 1px solid var(--platform-line);
 }
 
@@ -629,7 +635,7 @@
   display: grid;
   grid-template-columns: var(--platform-admin-cols);
   min-height: 0;
-  column-gap: 8px;
+  column-gap: 12px;
   align-items: center;
   padding: 2px 12px 6px;
   color: var(--platform-muted);
@@ -640,7 +646,7 @@
 }
 
 .platform-admin-list li.platform-admin-list-head span:last-child {
-  justify-self: end;
+  text-align: right;
 }
 
 .platform-admin-empty {
@@ -898,7 +904,7 @@
   }
 
   .platform-admin-list li {
-    padding-block: 8px;
+    padding-block: 4px;
   }
 
   .platform-admin-list-actions {
@@ -986,7 +992,8 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 /* Global access actions per user and destructive confirmations. */
 .platform-admin-user-actions{display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-end;gap:2px 8px;flex:none;max-width:55%;min-width:0;overflow-x:auto;scrollbar-width:none}
 .platform-admin-user-actions::-webkit-scrollbar{display:none}
-.platform-admin-list li .platform-admin-user-actions .text-button{min-height:34px}
+.platform-admin-list li .platform-admin-user-actions .text-button{min-height:34px;white-space:nowrap;flex:none}
+.platform-admin-user-actions .platform-admin-badge{flex:none}
 .platform-admin-danger{color:var(--danger)!important}
 .platform-admin-danger:hover{color:var(--danger)!important}
 .platform-admin-confirm{display:grid;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)}
@@ -1016,7 +1023,7 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 .platform-admin-stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-card);border-color:color-mix(in srgb,var(--platform-plum-700) 30%,var(--border-subtle,var(--line)))}
 .platform-admin-stat-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--platform-plum-100);color:var(--platform-plum-700)}
 .platform-admin-list{padding:8px 20px 16px}
-.platform-admin-list li{display:grid;grid-template-columns:var(--platform-admin-cols);align-items:center;justify-content:space-between;gap:4px 8px;min-height:48px;padding:6px 12px;border-radius:12px;border:0;transition:background 150ms ease-out,border-color 150ms ease-out}
+.platform-admin-list li{display:grid;grid-template-columns:var(--platform-admin-cols);align-items:center;justify-content:space-between;gap:4px 12px;min-height:44px;padding:4px 12px;border-radius:12px;border:0;transition:background 150ms ease-out,border-color 150ms ease-out}
 .platform-admin-list li+li{margin-top:4px}
 .platform-admin-list li:hover{background:var(--platform-surface-muted);border-color:color-mix(in srgb,var(--platform-line) 70%,transparent)}
 .platform-admin-list small{color:var(--platform-muted)}

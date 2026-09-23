@@ -26,7 +26,7 @@ const AUDIT = [
   {date: '12 sept 26 · 18:47', actor: 'otro.admin@estudiodecomunicacion.com.py', action: 'agency.platform_access.grant', target: 'platform_access #3', metadata: null},
 ];
 
-const auditRow = (entry) => h('div', {role: 'row', key: entry.action + entry.date, className: `grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-1 py-1.5 last:border-0 md:min-h-10 ${AUDIT_TEMPLATE}`},
+const auditRow = (entry) => h('div', {role: 'row', key: entry.action + entry.date, className: `grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-1 py-1.5 last:border-0 ${AUDIT_TEMPLATE}`},
   h('span', {className: 'whitespace-nowrap text-[11.5px] tabular-nums text-mute'}, entry.date),
   h('span', {className: 'min-w-0 break-words text-[12.5px] text-fore'}, entry.actor),
   h('span', {className: 'min-w-0'}, h(StateChip, {tone: 'info'}, entry.action)),

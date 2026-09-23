@@ -74,11 +74,15 @@ const estado = h(Frame, {wide: true, eyebrow: 'Comunicación de respaldo'},
       h(StateChip, {tone: 'ok'}, 'API y base de datos disponibles'),
       h(Button, {variant: 'outline'}, 'Volver a comprobar'))),
   h('ul', {className: 'grid', 'aria-label': 'Componentes supervisados'},
-    [['Aplicación', 'Disponible por HTTPS', 'Operativo'], ['Autenticación', 'Protegida por sesión', 'Configurado'], ['Correo transaccional', 'Supervisado mediante WEEM', 'Supervisado']].map(([name, detail, chip]) =>
+    [['Aplicación', 'Disponible por HTTPS', 'Operativo'], ['Autenticación', 'Protegida por sesión', 'Configurado'], ['Correo transaccional', 'Supervisado mediante WEEM', 'Supervisado'], ['API y base de datos', 'Responde a la comprobación en vivo', 'Operativo']].map(([name, detail, chip]) =>
       h('li', {key: name, className: 'flex flex-wrap items-center gap-3 border-b border-ink-600/60 py-3 last:border-0'},
         h('span', {className: 'grid size-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute'}, '·'),
         h('div', {className: 'min-w-0 flex-1'}, h('b', {className: 'block text-[13.5px] font-semibold text-fore'}, name), h('small', {className: 'block text-[11.5px] text-mute'}, detail)),
-        h(StateChip, {tone: 'ok'}, chip)))));
+        h(StateChip, {tone: 'ok'}, chip)))),
+  h('p', {className: 'text-[11.5px] text-mute'}, 'El estado de la API se comprueba en este momento. Los demás componentes se indican por configuración; esta pantalla se mantiene disponible como comunicación de respaldo.'),
+  h('div', {className: 'flex flex-wrap items-center gap-2'},
+    h('a', {className: 'secondary', href: 'https://sistema.scaleparaguay.com/'}, 'Landing'),
+    h('a', {className: 'secondary', href: '/'}, 'Abrir Scale OS')));
 
 /* Verificación: enlace inválido con reenvío. */
 const verificacion = h(Frame, {eyebrow: 'Scale OS · acceso seguro'},

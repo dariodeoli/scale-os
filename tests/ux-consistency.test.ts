@@ -76,10 +76,10 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
   const integrations=read('app/suite.tsx');
   assert.match(integrations,/settings-integration-head[\s\S]*?Integración[\s\S]*?Estado/,'the integrations list shows its header');
   const invites=read('app/invite-links.tsx');
-  assert.match(invites,/REQUESTS_COLUMNS=\[\{key:'request',label:'Solicitud'\}/,'invite requests show their column header');
+  assert.match(invites,/REQUESTS_COLUMNS=\[\{key:'person',label:'Persona'\}/,'invite requests show their column header');
   assert.match(invites,/LINKS_COLUMNS=\[\{key:'link',label:'Enlace'\}/,'invite links show their column header');
-  assert.match(invites,/REQUESTS_TEMPLATE='grid-cols-\[minmax\(16rem,2\.4fr\)_15rem\]'/,'invite requests share the v2 template literal with their header');
-  assert.match(invites,/LINKS_TEMPLATE='grid-cols-\[minmax\(18rem,2\.4fr\)_15rem\]'/,'invite links share the v2 template literal with their header');
+  assert.match(invites,/REQUESTS_TEMPLATE='grid-cols-\[minmax\(11rem,1\.5fr\)_minmax\(12rem,1\.5fr\)_6\.5rem_7\.5rem_5\.5rem_14rem\]'/,'invite requests share the v2 template literal with their header');
+  assert.match(invites,/LINKS_TEMPLATE='grid-cols-\[minmax\(12rem,1\.6fr\)_8rem_minmax\(11rem,1\.2fr\)_minmax\(10rem,1\.2fr\)_12rem\]'/,'invite links share the v2 template literal with their header');
   assert.match(invites,/ListGrid label="Solicitudes de acceso"[\s\S]*?ListGrid label="Enlaces de invitación"/,'both lists use the shared v2 ListGrid');
 });
 
@@ -113,7 +113,7 @@ test('finance panels use column headers and the shared money formatter',()=>{
   assert.match(styles,/\.finance-row-head\{display:grid/);
   assert.match(styles,/\.finance-grid :is\(\.finance-transfer-row,.finance-invoice-row,.finance-payment-row\)\{display:grid/);
   const operations=read('app/operations.tsx');
-  assert.match(operations,/finance-row-head[\s\S]*?Egreso[\s\S]*?Referido/,'payouts and referral discounts show their headers');
+  assert.doesNotMatch(operations,/finance-row-head|ReferralDiscounts/,'los pagos y descuentos a colaboradores viven en Finanzas, no en Equipo');
   assert.match(styles,/\.control-shell :is\(\.finance-payout-row,.finance-referral-row\)\{display:grid/);
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const EXPENSE_COLS='grid-cols-\[minmax\(0,1fr\)_8\.5rem_5rem\]'/,'real expenses declare one shared template');
@@ -151,7 +151,7 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   const clientes=sectionSource('clientes.tsx');
   assert.match(clientes,/min-h-\[200px\][\s\S]*?flex-col/,'client cards keep a big grid height');
   const team=read('app/operations.css');
-  assert.match(team,/\.person-hub-card\.is-list\{display:grid;grid-template-columns:var\(--person-cols\)[\s\S]*?min-height:48px/,'team rows stay thin');
+  assert.match(team,/\.control-shell \.ops-grid\.ops-grid-list>\.person-hub-card\.is-list\{display:grid;grid-template-columns:var\(--person-cols\)[\s\S]*?min-height:44px/,'team rows stay thin');
   // Inventario y reservas se rediseñaron a la v2 (campaña #41): ya no tienen
   // hoja propia y su plantilla se declara una sola vez en el módulo. El detalle
   // de esa lista lo cubre `tests/ops-v2-contract.test.ts`.

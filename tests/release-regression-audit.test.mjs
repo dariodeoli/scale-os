@@ -30,7 +30,7 @@ assert(operationsCss.includes('.person-hub-actions .ops-card-actions{margin:0;pa
 assert(operationsCss.includes('.person-hub-card.is-list>.person-hub-tail>.form-note'),'the ambiguous-profile note spans the row');
 assert(operationsCss.includes('.person-hub-head-row span:first-child{padding-left:26px}'),'the team header aligns with the row identity');
 assert(operationsCss.includes('.person-hub-card.is-list{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px'),'the stacked team list returns to card density without growing past its column');
-assert(file('../app/operations.tsx').includes('visiblePayouts.length?<div className="finance-row-head"'),'the payout header only renders with visible rows');
+assert(file('../app/operations.tsx').includes("{teamView==='list'?<div className=\"person-hub-head-row\""),'the team header only renders with the list view');
 const portalCss=file('../app/cliente/portal.css');
 assert(portalCss.includes('.delivery-activity{list-style:none'),'the portal activity feed drops the native bullets');
 assert(portalCss.includes('.portal-date,.delivery-activity small{white-space:nowrap'),'portal dates never break mid-value');

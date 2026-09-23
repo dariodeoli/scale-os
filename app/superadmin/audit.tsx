@@ -24,7 +24,7 @@ export function PlatformAudit({audit}: {audit: AuditAction[]}) {
           {COLUMNS.map((column, index) => <span key={column.key} role="columnheader" className={`whitespace-nowrap ${index === COLUMNS.length - 1 ? "text-left" : ""}`}>{column.label}</span>)}
         </div>
         <div role="rowgroup">
-          {audit.length ? audit.map((entry) => <div role="row" key={entry.id} className={`grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-1 py-1.5 last:border-0 md:min-h-10 ${TEMPLATE}`}>
+          {audit.length ? audit.map((entry) => <div role="row" key={entry.id} className={`grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-1 py-1.5 last:border-0 ${TEMPLATE}`}>
             <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{listDateFull(entry.created_at)}</span>
             <span className="min-w-0 break-words text-[12.5px] text-fore">{entry.actor_email || "Sistema"}</span>
             <span className="min-w-0"><StateChip tone="info" title={entry.action}>{entry.action}</StateChip></span>

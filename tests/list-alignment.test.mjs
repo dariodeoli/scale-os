@@ -74,7 +74,7 @@ for(const list of lists){
  });
  test(`${list.name}: la última columna (acciones) alinea a la derecha en el encabezado`,()=>{
   const headPattern=list.head.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  assert.match(file,new RegExp(headPattern+' span:last-child\\{justify-self:end\\}'),`${list.name}: el encabezado de acciones cierra a la derecha como la fila`);
+  assert.match(file,new RegExp(headPattern+' span:last-child\\{(?:justify-self:end|text-align:right)\\}'),`${list.name}: el encabezado de acciones cierra a la derecha como la fila`);
  });
 }
 

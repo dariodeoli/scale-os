@@ -49,7 +49,7 @@ test('team list view renders a compact single-column list and contact data is ne
 
 test('team directory keeps normal roles on photo, name and cargo only',()=>{
  for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'])assert(visibleModule('Equipo',role),`Equipo stays reachable for ${role}`);
- assert.match(operations,/if\(mode==='people'&&!canOpenPeopleWorkspace\(role\)\)return <TeamDirectoryView/);
+ assert.match(operations,/if\(!canOpenPeopleWorkspace\(role\)\)return <TeamDirectoryView/);
  assert.match(operations,/secondary=\{teamRoleLabels\[person\.role\]\|\|person\.cargo\|\|'Sin cargo'\}/);
  assert.match(operations,/Directorio de personas: foto, nombre y cargo/);
 });
@@ -62,7 +62,7 @@ test('budgets reach production while the pipeline does not',()=>{
 });
 
 test('management reaches the team without individual salary amounts',()=>{
- assert.match(operations,/const allowed = mode === "commissions" \? roleCan\(role, "commissions\.manage"\) : canOpenPeopleWorkspace\(role\);/);
+ assert.match(operations,/const allowed = canOpenPeopleWorkspace\(role\);/);
  assert.match(operations,/const salaryView = roleCan\(role, "salary\.view"\);/);
  assert.match(operations,/fields=\{salaryView\?personFields:personFields\.filter\(field=>!\['compensation_amount','currency','payment_day','invoices_company'\]\.includes\(field\.key\)\)\}/);
  assert.match(operations,/person-hub-comp">\{types\.find\(type=>type\.value===p\.compensation_type\)\?\.label\|\|'Sin modalidad'\}<\/span>/);

@@ -409,7 +409,7 @@ const agencyLedger = `
   <tbody>
    ${agencies.map((agency) => `
    <tr>
-    <td><b>${agency.name}</b><small>${agency.slug}</small></td>
+    <td><b title="${agency.name}">${agency.name}</b><small>${agency.slug}</small></td>
     <td><div class="platform-admin-cell-stack">${badge(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'success' : 'neutral')}${agency.state}</div></td>
     <td>${agency.plan}</td>
     <td>${whole(agency.users)}</td>
@@ -423,7 +423,7 @@ const agencyCards = `
 <div class="platform-admin-agency-cards">
  ${agencies.map((agency) => `
  <article class="platform-admin-agency-card">
-  <div><b>${agency.name}</b><small>${agency.slug}</small></div>
+  <div><b title="${agency.name}">${agency.name}</b><small>${agency.slug}</small></div>
   <div class="platform-admin-card-badges">${badge(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'success' : 'neutral')}${agency.state}</div>
   <dl><div><dt>Plan</dt><dd>${agency.plan}</dd></div><div><dt>Usuarios</dt><dd>${whole(agency.users)}</dd></div><div><dt>Vencimiento</dt><dd>${agency.expiry}</dd></div></dl>
   <button type="button" class="text-button platform-admin-inline-action">Gestionar estado manual</button>

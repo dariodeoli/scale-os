@@ -1,17 +1,17 @@
 /*
- * Fixtures: Equipo, Invitaciones, Roles y permisos, Historial de trabajo,
- * Actividad, Configuración, Preferencias, Mi perfil y Papelera.
+ * Fixtures: Equipo, Historial de trabajo, Actividad y Configuración (las
+ * superficies PLT que todavía viven en markup legacy).
  *
- * Inventario y Estudio viven en `ops-inventario-estudio.mjs` (rediseño v2 de la
- * campaña #41): esas pantallas ya no tienen hojas de componente.
+ * Las pantallas ya migradas a la v2 (Invitaciones, Roles y permisos, Papelera,
+ * Preferencias, Mi perfil, Superadmin, Acceso) se miden en `plt-v2.mjs`,
+ * `plt-superadmin-v2.mjs` y `acceso-v2.mjs`; este archivo no las duplica.
  *
- * Espeja el JSX real de: app/operations.tsx (PeopleWorkspace), app/invite-links.tsx,
- * app/permissions-matrix.tsx, app/work-history.tsx, app/suite.tsx (Activity/Settings),
- * app/presence.tsx UsagePanel, app/archive-controls.tsx TrashWorkspace,
- * app/company-settings.tsx, app/my-profile.tsx y app/scale-workspace.tsx (ajustes).
- * CSS contracts: app/operations.css, app/invite-links.css, app/permissions-matrix.css,
- * app/settings-slice.css, app/company-settings.css,
- * app/my-profile.css, app/dialog.css y los primitivos de app/ui-system.css.
+ * Espeja el JSX real de: app/operations.tsx (PeopleWorkspace), app/work-history.tsx
+ * (historial v2 de OPS: feed de bloques apilados), app/suite.tsx (Activity/Settings),
+ * app/presence.tsx UsagePanel, app/company-settings.tsx y app/scale-workspace.tsx
+ * (ajustes).
+ * CSS contracts: app/operations.css, app/settings-slice.css, app/company-settings.css,
+ * app/dialog.css y los primitivos de app/ui-system.css.
  *
  * Datos de estrés deliberados: nombres/correos largos, montos grandes, fechas con
  * vencimiento y accesos suspendidos. Este archivo no arregla dominio.
@@ -192,110 +192,6 @@ const personCard = (person, list = false) => {
 </article>`;
 };
 
-/* ----------------------------------------------------------- invitaciones */
-/* El encabezado nombra la columna de cada lista: «Solicitud» en solicitudes y
-   «Enlace» en enlaces recientes (invite-links.tsx 22-27). */
-const inviteHead = (label) => `<div class="invite-link-head" aria-hidden="true"><span>${label}</span><span>Acciones</span></div>`;
-const inviteRequests = [
-  {
-    actor: 'Ramón Augusto Villalba de Jesús',
-    email: 'ramon.augusto.villalba.dejesus@estudiocomunicacionparaguay.com.py',
-    role: 'Editor',
-    status: 'pending',
-    timestamp: '2026-09-18T10:24:00-03:00',
-    unavailable: '',
-  },
-  {
-    actor: 'Lucía Fernanda Centurión Aquino',
-    email: 'lucia.fernanda.centurion.aquino@productora-paraguay.com.py',
-    role: 'Solo lectura',
-    status: 'unavailable',
-    timestamp: '2026-09-11T16:02:00-03:00',
-    unavailable: 'Solicitud no disponible. El enlace venció.',
-  },
-];
-const inviteRequestRow = (request) => `
-<article class="payment-row invite-link-row">
- <div class="invite-link-person">${actorIdentity({name: request.actor, photo: '', timestamp: request.timestamp})}<p>${request.email} · ${request.role}</p>${request.status !== 'pending' ? `<p role="status">${request.unavailable}</p>` : ''}</div>
- <div class="actions invite-link-actions">${request.status === 'pending' ? '<button class="secondary">Aprobar acceso</button>' : ''}<button class="text-button danger">${svg(ICON.x, 14)}Rechazar</button></div>
-</article>`;
-
-const inviteLinks = [
-  {
-    role: 'Producción',
-    mode: 'Un solo uso',
-    expires: '2026-09-27',
-    meta: '0 clics · 0 cuentas creadas',
-    actor: 'María José Fernández de la Vega y Rivarola',
-    joined: [],
-  },
-  {
-    role: 'Solo lectura',
-    mode: 'Con aprobación',
-    used: true,
-    meta: '48 clics · 3 cuentas creadas',
-    actor: 'Ana Paula Benítez de la Cruz',
-    joined: [
-      {name: 'Ramón Augusto Villalba de Jesús', email: 'ramon.augusto.villalba.dejesus@estudiocomunicacionparaguay.com.py', timestamp: '2026-08-30T09:12:00-03:00'},
-      {name: 'Lucía Fernanda Centurión Aquino', email: 'lucia.fernanda.centurion.aquino@productora-paraguay.com.py', timestamp: '2026-08-30T09:40:00-03:00'},
-    ],
-  },
-  {
-    role: 'Colaborador',
-    mode: 'Un solo uso',
-    revoked: true,
-    meta: '12 clics · 0 cuentas creadas',
-    actor: 'Fabrizio Dellacasa Reyes',
-    joined: [],
-  },
-];
-const inviteLinkState = (link) => link.revoked ? 'Revocado' : link.used ? 'Utilizado' : `Vence ${listDateShort(link.expires)}`;
-/* Eliminar solo aparece cuando el enlace está agotado o revocado y nadie se unió;
-   los que tuvieron ingresos conservan su historial (invite-links.tsx 27). */
-const inviteLinkRow = (link) => `
-<article class="payment-row invite-link-row">
- <div class="invite-link-person">
-  <strong title="${link.role} · ${link.mode}">${link.role} · ${link.mode}</strong>
-  <p title="${inviteLinkState(link)} · ${link.meta} · Creado por ${link.actor} · ${link.joined.length ? `Se unieron ${link.joined.map((join) => join.name).join(', ')}` : 'Nadie se unió todavía'}">${inviteLinkState(link)} · ${link.meta}</p>
-  ${actorIdentity({name: link.actor, photo: '', verified: false})}${link.joined.length ? `<span class="invite-link-joined-chip" title="Se unieron ${link.joined.map((join) => join.name).join(', ')}">${link.joined.length} unidos</span>` : ''}
- </div>
- <div class="actions invite-link-actions"><button class="secondary">${svg(ICON.copy, 16)}Copiar enlace</button>${!link.joined.length && (link.revoked || link.used) ? `<button class="text-button invite-link-delete">${svg(ICON.trash, 16)}Eliminar</button>` : !link.joined.length ? `<button class="text-button">${svg(ICON.x, 16)}Revocar</button>` : ''}</div>
-</article>`;
-
-/* --------------------------------------------------- roles y permisos */
-const permissionRoles = ['owner', 'admin', 'management', 'finance', 'sales', 'production', 'editor', 'viewer', 'collaborator'];
-/* Etiquetas de app/team-directory.ts (fuente única de cargos). */
-const roleLabels = {owner: 'Dueño', admin: 'Administrador', management: 'Gerencia', finance: 'Finanzas', sales: 'Ventas', production: 'Producción', editor: 'Editor', viewer: 'Solo lectura', collaborator: 'Colaborador'};
-const permissionGroups = [
-  {name: 'Panel', rows: [
-    {id: 'dashboard.view', label: 'Ver el resumen operativo de la empresa', description: 'Tablero con piezas por etapa, señales y control center.', defaults: permissionRoles, allowed: permissionRoles},
-    {id: 'activity.view', label: 'Ver la actividad del equipo', description: 'Auditoría de cambios operativos registrados por el servidor.', defaults: ['owner', 'admin'], allowed: ['owner', 'admin', 'management']},
-    {id: 'preferences.self', label: 'Editar preferencias propias', description: 'Página inicial y perfil personal por navegador.', defaults: permissionRoles, allowed: permissionRoles},
-  ]},
-  {name: 'Comercial', rows: [
-    {id: 'clients.manage', label: 'Gestionar clientes, planes y presupuestos', description: 'Alta, edición, plan contratado y presupuestos del cliente.', defaults: ['owner', 'admin', 'management', 'sales', 'collaborator'], allowed: ['owner', 'admin', 'management', 'sales', 'finance', 'collaborator']},
-    {id: 'budgets.publish', label: 'Publicar el enlace público del presupuesto', description: 'Habilita la aceptación del presupuesto por el cliente.', defaults: ['owner', 'admin', 'management', 'sales'], allowed: ['owner', 'admin', 'management', 'sales']},
-  ]},
-  {name: 'Equipo', rows: [
-    {id: 'team.access', label: 'Invitar y administrar accesos del equipo', description: 'Invitaciones, suspensión y reinvitación de integrantes.', defaults: ['owner', 'admin', 'management'], allowed: ['owner', 'admin', 'management']},
-    {id: 'salary.view', label: 'Ver salarios y remuneraciones', description: 'Montos de compensación, día de pago y facturación del colaborador.', defaults: ['owner', 'admin', 'finance'], allowed: ['owner', 'admin', 'finance']},
-    {id: 'permissions.reset', label: 'Restablecer los permisos por defecto', description: 'Vuelve toda la matriz de permisos a los valores de fábrica.', defaults: ['owner'], allowed: ['owner']},
-  ]},
-];
-const permissionRow = (row) => `<tr>
- <th scope="row"><b>${row.label}</b><small>${row.description}</small></th>
- ${permissionRoles.map((role) => {
-    const checked = row.allowed.includes(role);
-    const isDefault = row.defaults.includes(role);
-    return `<td><label class="permissions-check"><input type="checkbox"${checked ? ' checked' : ''} aria-label="${row.label} · ${roleLabels[role]}"><span class="permissions-state ${checked ? 'is-allowed' : 'is-denied'} ${checked === isDefault ? 'is-default' : 'is-override'}" aria-hidden="true">${checked ? '✓' : '×'}</span></label></td>`;
-  }).join('')}
-</tr>`;
-const permissionsTable = `
-<div class="permissions-scroll"><table>
- <thead><tr><th>Capacidad</th>${permissionRoles.map((role) => `<th>${roleLabels[role]}</th>`).join('')}</tr></thead>
- ${permissionGroups.map((group) => `<tbody>${`<tr class="permissions-domain-row"><th colspan="${permissionRoles.length + 1}" scope="colgroup">${group.name}</th></tr>`}${group.rows.map(permissionRow).join('')}</tbody>`).join('')}
-</table></div>`;
-
 /* ---------------------------------------------------- historial / actividad */
 const historyLine = ({actor, photo = '', timestamp, title, meta}) => `<li class="grid min-w-0 gap-1 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3">
  ${actorIdentity({name: actor, photo, timestamp})}
@@ -344,21 +240,6 @@ const companySettingsRow = (company) => `<article class="company-settings-row${c
  <div class="company-settings-actions">${company.current ? '' : '<button class="secondary company-settings-open">Abrir</button>'}<button class="secondary company-settings-default" aria-label="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}" aria-pressed="${company.preferred}" title="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="${company.preferred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.star}</svg><span class="company-settings-sr-only">${company.preferred ? 'Predeterminada' : 'Usar al iniciar sesión'}</span></button></div>
 </article>`;
 
-/* --------------------------------------------------------------- papelera */
-const trashRecords = [
-  {kind: 'Cliente', name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima', actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-09-18T11:32:00-03:00'},
-  {kind: 'Proyecto', name: 'Campaña Primavera 2026 · Banco Atlas (incluye piezas para redes y vía pública)', actor: 'Fabrizio Dellacasa Reyes', photo: '', timestamp: '2026-09-17T17:04:00-03:00'},
-  {kind: 'Equipo de inventario', name: 'Cámara Sony FX6 Full Frame con montura E, visor OLED y tarjeta CFexpress', actor: 'Carlos Ramón Ovelar Giménez', photo: '', timestamp: '2026-09-12T09:20:00-03:00'},
-  {kind: 'Presupuesto', name: 'Presupuesto N.º 2026-0148 · Producción audiovisual integral y difusión', actor: 'Ana Paula Benítez de la Cruz', photo: '', timestamp: '2026-09-05T14:48:00-03:00'},
-  {kind: 'Colaborador', name: 'Ramón Augusto Villalba de Jesús', actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-08-31T08:10:00-03:00'},
-];
-const trashRow = (record) => `<li class="trash-row">
- <label class="select-check" title="Seleccionar registro"><input type="checkbox" aria-label="Seleccionar ${record.name}"></label>
- <span class="trash-kind">${record.kind}</span>
- <div class="trash-info"><b title="${record.name}">${record.name}</b><small title="Movido a Papelera por ${record.actor} · ${record.timeText}">Movido a Papelera por ${actorIdentity({name: record.actor, photo: record.photo, timestamp: record.timestamp, timeText: record.timeText})}</small></div>
- <button class="secondary trash-restore">Restaurar</button>
-</li>`;
-
 /* -------------------------------------------------------------- export */
 export default [
 
@@ -401,91 +282,8 @@ export default [
     body: `<div class="ops-grid">${people.map((person) => personCard(person, false)).join('')}</div>`,
   },
 
-  {
-    id: 'equipo-invitaciones-solicitudes',
-    section: 'Invitaciones',
-    surface: 'Solicitudes pendientes',
-    kind: 'workspace',
-    lists: [{
-      container: '.invite-links-section',
-      head: '.invite-link-head',
-      row: '.invite-link-row',
-      label: 'Invitaciones · solicitudes',
-      template: '--invite-cols',
-      rowHeight: [44, 52],
-      exemptBelow: 640,
-    }],
-    body: `
-<section class="panel ops-stack invite-links">
- <header class="invite-links-header"><div><p class="invite-links-kicker">Acceso de equipo</p><h2>${svg(ICON.link2, 20)} Invitaciones y solicitudes</h2><p class="form-note">Atendé las solicitudes pendientes, generá enlaces temporales y limpiá los que ya cumplieron su ciclo.</p></div></header>
- <div class="invite-links-section" aria-labelledby="invite-requests-heading">
-  <div class="invite-links-section-heading"><div class="invite-links-section-title"><h3 id="invite-requests-heading">${svg(ICON.userCheck, 18)} Solicitudes</h3><p class="form-note">Aprobá solo los accesos disponibles.</p></div><span class="invite-links-count invite-links-count-live" aria-label="2 solicitudes pendientes">2</span></div>
-  ${inviteHead('Solicitud')}
-  ${inviteRequests.map(inviteRequestRow).join('')}
- </div>
-</section>`,
-  },
 
-  {
-    id: 'equipo-invitaciones-enlaces',
-    section: 'Invitaciones',
-    surface: 'Enlaces recientes',
-    kind: 'workspace',
-    lists: [{
-      container: '.invite-links-recent',
-      head: '.invite-link-head',
-      row: '.invite-link-row',
-      label: 'Invitaciones · enlaces',
-      template: '--invite-cols',
-      rowHeight: [44, 52],
-      exemptBelow: 640,
-    }],
-    body: `
-<section class="panel ops-stack invite-links">
- <div class="invite-links-recent">
-  <div class="invite-links-section-heading"><div class="invite-links-section-title"><h3>${svg(ICON.link2, 18)} Enlaces recientes</h3><p class="form-note">Los enlaces agotados o revocados se pueden eliminar; los que tuvieron ingresos conservan su historial.</p></div><span class="invite-links-count">3</span></div>
-  ${inviteHead('Enlace')}
-  ${inviteLinks.map(inviteLinkRow).join('')}
- </div>
-</section>`,
-  },
 
-  {
-    id: 'equipo-permisos',
-    section: 'Roles y permisos',
-    surface: 'Matriz de permisos',
-    kind: 'workspace',
-    lists: [],
-    grids: [],
-    body: `
-<section class="panel" aria-labelledby="roles-permissions-title">
- <div class="panel-heading"><div><p class="eyebrow">EQUIPO</p><h2 id="roles-permissions-title">Roles y permisos</h2></div></div>
- <div class="permissions-matrix" aria-busy="false">
-  <p class="form-note">${svg(ICON.shield, 16)} Definí qué puede hacer cada cargo. El Dueño siempre conserva todos los permisos. Los cambios se guardan por empresa y se auditan.</p>
-  <p role="status" class="permissions-notice">Permiso guardado. Los cambios se aplican desde la próxima acción de esa persona.</p>
-  <div class="permissions-explorer">
-   <details class="permissions-role-card" open>
-    <summary><span class="permissions-role-name">Gerencia</span><span class="permissions-role-description">Gerencia: dirige clientes, proyectos, producción y la operación comercial.</span><span class="permissions-role-count">7 de 9</span><svg class="permissions-role-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.chevron}</svg></summary>
-    <div class="permissions-role-lists">
-     <div><h4>Qué puede hacer</h4><ul>
-      <li><b>Gestionar clientes, planes y presupuestos</b><small>Alta, edición, plan contratado y presupuestos del cliente.</small></li>
-      <li><b>Invitar y administrar accesos del equipo</b><small>Invitaciones, suspensión y reinvitación de integrantes.</small></li>
-      <li><b>Ver el resumen operativo de la empresa</b><small>Tablero con piezas por etapa, señales y control center.</small></li>
-     </ul></div>
-     <div><h4>Qué no puede</h4><ul>
-      <li><b>Ver salarios y remuneraciones</b><small>Montos de compensación, día de pago y facturación del colaborador.</small></li>
-      <li><b>Restablecer los permisos por defecto</b><small>Vuelve toda la matriz de permisos a los valores de fábrica.</small></li>
-     </ul></div>
-    </div>
-   </details>
-   <details class="permissions-role-card"><summary><span class="permissions-role-name">Finanzas</span><span class="permissions-role-description">Finanzas: administra pagos, informes, Equipo y comisiones.</span><span class="permissions-role-count">6 de 9</span><svg class="permissions-role-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.chevron}</svg></summary></details>
-   <details class="permissions-role-card"><summary><span class="permissions-role-name">Colaborador</span><span class="permissions-role-description">Colaborador: trabaja clientes, proyectos, producción, presupuestos, pipeline, estudio e inventario sin ver finanzas, salarios, accesos ni actividad.</span><span class="permissions-role-count">4 de 9</span><svg class="permissions-role-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.chevron}</svg></summary></details>
-  </div>
-  ${permissionsTable}
-  <div class="inline-actions permissions-reset"><button type="button" class="text-button">Restablecer todos los permisos por defecto</button></div>
- </div>
-</section>`,
-  },
 
   {
     id: 'equipo-historial',
@@ -641,93 +439,6 @@ export default [
 </div></div>`,
   },
 
-  {
-    id: 'preferencias-espacio',
-    section: 'Preferencias',
-    surface: 'Tarjeta de preferencias',
-    kind: 'workspace',
-    lists: [],
-    grids: [],
-    body: `
-<section class="panel settings-card preferences-card" aria-labelledby="workspace-preferences-title">
- <div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.settings, 18)}</span><div><h2 id="workspace-preferences-title">Preferencias del espacio</h2><p>Se guardan solo para vos en Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima, en este navegador.</p></div></div>
- <div class="preferences-row">${selectCustom({label: 'Al entrar a Scale OS', value: 'Resumen'})}<p class="form-note">Se aplica en tu próxima entrada al inicio. Los enlaces a secciones, piezas y otros destinos conservan su destino.</p></div>
- <p role="status" class="settings-notice">Se guardó la preferencia para este navegador.</p>
-</section>`,
-  },
 
-  {
-    id: 'mi-perfil',
-    section: 'Preferencias',
-    surface: 'Diálogo Mi perfil',
-    kind: 'workspace',
-    lists: [],
-    grids: [],
-    body: `
-<div class="ops-overlay">
- <section class="ops-dialog unified-dialog" data-dialog-size="default" role="dialog" aria-modal="true" aria-labelledby="my-profile-title" tabindex="-1">
-  <div class="dialog-heading"><h2 id="my-profile-title">Mi perfil</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${svg(ICON.x, 18)}</button></div>
-  <div class="dialog-body"><div class="my-profile-content my-profile-editor">
-   <section class="my-profile-identity">
-    <p class="my-profile-kicker">Identidad</p>
-    <dl class="my-profile-login"><dt>Correo de acceso</dt><dd>maria.jose.fernandez.delavega@estudiocomunicacionparaguay.com.py</dd></dl>
-    <p class="my-profile-help">Tu correo de acceso no se modifica desde acá.</p>
-   </section>
-   <details class="my-profile-optional"><summary>Foto de perfil <span>Opcional</span></summary><div class="my-profile-photo">
-    <section class="ops-profile-section profile-photo-section" aria-label="Foto de perfil">
-     <div class="profile-photo-section-heading"><strong>Foto de perfil</strong><small>Seleccioná la foto para reemplazarla; después podés ajustar el encuadre.</small></div>
-     <form class="form-stack profile-photo-form" novalidate>
-      <div class="profile-photo-summary">
-       <button type="button" class="editable-photo" aria-label="Cambiar foto de María José Fernández de la Vega y Rivarola"><img src="/brand/icon-192.png" referrerpolicy="no-referrer" alt="Foto de María José Fernández de la Vega y Rivarola"></button>
-       <div class="profile-photo-controls">
-        <label class="photo-upload">Cambiar foto<input aria-label="Elegir foto (JPG, PNG, WebP o HEIC; hasta 4 MB)" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"></label>
-        <button type="button" class="text-button">${svg(ICON.link2, 14)}Usar enlace de imagen</button>
-       </div>
-      </div>
-      <p class="form-note">JPG, PNG, WebP o HEIC · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
-      <div class="inline-actions"><button type="button" class="text-button danger">${svg(ICON.trash, 14)}Quitar foto</button></div>
-     </form>
-    </section>
-   </div></details>
-   <section class="my-profile-name" aria-labelledby="my-profile-data-title">
-    <h4 id="my-profile-data-title">Datos personales</h4>
-    <form class="form-stack" id="my-profile-name-form" novalidate aria-busy="false">
-     <div><label for="my-profile-full-name"><span>Nombre completo</span><input id="my-profile-full-name" type="text" value="María José Fernández de la Vega y Rivarola"></label></div>
-     <span hidden></span>
-    </form>
-    <p class="my-profile-help">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
-   </section>
-   <div class="my-profile-google"><strong>Acceso con Google</strong><p>Podés usar Google para entrar a esta misma cuenta si elegís el mismo correo. Google también puede actualizar tu nombre y foto.</p><p class="my-profile-google-state" role="status">Conectado con Google</p></div>
-   <details class="my-profile-optional my-profile-access"><summary>Seguridad de cuenta <span>Opcional</span></summary></details>
-   <div class="my-profile-scope"><strong>Identidad personal</strong><p>Tu nombre y foto personales se comparten entre tus empresas. El cargo, sueldo y acceso se mantienen separados en cada empresa.</p></div>
-  </div></div>
-  <div class="dialog-footer"><div class="dialog-actions"><button type="submit" class="primary ops-wide" form="my-profile-name-form">Guardar nombre</button></div></div>
- </section>
-</div>`,
-  },
 
-  {
-    id: 'papelera',
-    section: 'Papelera',
-    surface: 'Registros recuperables',
-    kind: 'workspace',
-    lists: [{
-      container: '.trash-list',
-      head: '.trash-head',
-      row: '.trash-row',
-      label: 'Papelera · registros',
-      template: '--trash-cols',
-      rowHeight: [44, 52],
-      exemptBelow: 640,
-    }],
-    body: `
-<section class="panel settings-card" aria-labelledby="trash-workspace-title">
- <div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.trash, 18)}</span><div><h2 id="trash-workspace-title">Papelera de esta empresa</h2><p>Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva. Los accesos retirados se devuelven con una nueva invitación desde Equipo.</p></div></div>
- <div class="bulk-bar" role="status" aria-live="polite"><span class="bulk-count"><b>2</b> seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button">Seleccionar todos</button><button type="button" class="secondary">Restaurar</button><button type="button" class="text-button">Limpiar</button></div></div>
- <ul class="trash-list">
-  <li class="trash-head" aria-hidden="true"><span></span><span>Tipo</span><span>Registro</span><span>Acciones</span></li>
-  ${trashRecords.map(trashRow).join('')}
- </ul>
-</section>`,
-  },
 ];

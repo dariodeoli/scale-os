@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import {api,Dialog} from './operations';
 import {notify} from './feedback';
 import {listDateFull} from './list-format';
-import {Trash2} from 'lucide-react';
+import {RotateCcw,Trash2} from 'lucide-react';
 import {ARCHIVE_KIND_CAPABILITIES,roleCan,type Capability} from './capabilities';
 import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,PageHeader} from './ui-v2';
 
@@ -79,12 +79,12 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
      {records.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
       <label className="flex items-center" title="Seleccionar registro"><input type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={selected.includes(keyOf(record))} onChange={()=>toggleSelected(keyOf(record))}/></label>
       <span className="whitespace-nowrap text-[11.5px] text-mute">{labels[record.kind]||record.kind}</span>
-      <div className="min-w-0">
-       <b className="block break-words text-[13.5px] font-semibold leading-[1.2] text-fore" title={record.name}>{record.name}</b>
-       <small className="mt-1 block text-[11.5px] text-mute" title={`Movido a Papelera por ${record.actor_name||'Sistema'}${listDateFull(record.removed_at)?` · ${listDateFull(record.removed_at)}`:''}`}><span className="whitespace-nowrap">Movido a Papelera por {record.actor_name||'Sistema'}</span>{listDateFull(record.removed_at)?<span className="ml-2 whitespace-nowrap">· {listDateFull(record.removed_at)}</span>:null}</small>
+      <div className="flex min-w-0 items-baseline gap-2">
+       <b className="min-w-0 truncate text-[13.5px] font-semibold leading-[1.2] text-fore" title={record.name}>{record.name}</b>
+       <small className="min-w-0 truncate text-[11.5px] text-mute" title={`Movido a Papelera por ${record.actor_name||'Sistema'}${listDateFull(record.removed_at)?` · ${listDateFull(record.removed_at)}`:''}`}><span className="whitespace-nowrap">Movido a Papelera por {record.actor_name||'Sistema'}</span>{listDateFull(record.removed_at)?<span className="ml-2 whitespace-nowrap">· {listDateFull(record.removed_at)}</span>:null}</small>
       </div>
       <div className="flex justify-end">
-       <button className="secondary" disabled={Boolean(busy)||bulkBusy} onClick={async()=>{setBusy(keyOf(record));setError('');try{await api(`/api/agency/${record.kind}/${record.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}>{busy===keyOf(record)?'Restaurando…':'Restaurar'}</button>
+       <button className="text-button" disabled={Boolean(busy)||bulkBusy} onClick={async()=>{setBusy(keyOf(record));setError('');try{await api(`/api/agency/${record.kind}/${record.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}><RotateCcw size={14} aria-hidden="true"/>{busy===keyOf(record)?'Restaurando…':'Restaurar'}</button>
       </div>
      </ListRow>)}
     </ListGrid>}
