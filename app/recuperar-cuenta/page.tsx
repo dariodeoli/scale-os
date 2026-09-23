@@ -23,7 +23,7 @@ export default function RecoverAccount(){
      <button className="primary" disabled={busy}>{busy?'Recuperando…':'Recuperar cuenta'}</button>
     </form>
     {error?<p className="error" role="alert">{error}</p>:null}
-    <p className="text-[11.5px] text-mute"><a href="/">Volver al inicio de sesión</a></p>
+    <p className="text-[11.5px] text-mute"><a className="inline-flex min-h-11 items-center" href="/">Volver al inicio de sesión</a></p>
    </>}
   </div>
  </AccessLayout>;

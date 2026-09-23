@@ -92,7 +92,7 @@ const STATUS_TONE:Record<SubscriptionState['status'],string>={
 };
 const PRIMARY='subscription-primary inline-flex min-h-11 min-w-11 max-w-full items-center justify-center gap-2 whitespace-normal rounded-lg border border-fono bg-fono px-4 py-2 text-center text-[13px] font-bold leading-5 text-onbrand transition-colors [overflow-wrap:anywhere] hover:bg-fono-dark disabled:cursor-not-allowed disabled:border-ink-600 disabled:bg-ink-700 disabled:text-mute';
 const SECONDARY='subscription-secondary inline-flex min-h-11 min-w-11 max-w-full items-center justify-center gap-2 whitespace-normal rounded-lg border border-ink-600 bg-ink-800 px-4 py-2 text-center text-[13px] font-bold leading-5 text-fore transition-colors [overflow-wrap:anywhere] hover:bg-ink-700 disabled:cursor-not-allowed disabled:text-mute';
-const STATE_BOX='rounded-lg border border-warn/40 border-l-[3px] bg-warn/10 px-3 py-2.5 text-[13px] text-fore';
+const STATE_BOX='rounded-lg border border-warn/40 border-l-[3px] bg-warn/10 p-3 text-[13px] text-fore';
 
 // Main owns GET /api/billing/subscription and the suspended workspace gate.
 // Mount with key={organizationId}; never reuse in-flight billing across tenants.
@@ -180,12 +180,12 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
  }
  return <section className="subscription-panel min-w-0 max-w-full [overflow-wrap:anywhere]" data-embedded={embedded||undefined} aria-labelledby={heading} aria-busy={busy}>
   <h2 id={heading} hidden={embedded}>Suscripción de Scale OS</h2>
-  {loading?<div className="subscription-panel-state grid gap-1 rounded-lg border border-ink-600 bg-ink-700 p-3.5" role="status" aria-live="polite" aria-atomic="true"><strong className="text-[13.5px] text-fore">Cargando suscripción…</strong><span className="text-[13px] leading-[1.45] text-mute">Consultando el estado autorizado por el servidor.</span></div>:error||!state?<div className="subscription-panel-state subscription-panel-state--error grid gap-1 rounded-lg border border-bad/40 border-l-[3px] bg-bad/10 p-3.5" role="alert"><strong className="text-[13.5px] text-bad">{error||'No se pudo cargar la suscripción. No se confirmó ningún pago.'}</strong>{onRefresh?<span className="text-[13px] leading-[1.45] text-mute">Podés reintentar la actualización.</span>:null}</div>:<div className="grid gap-4">
-   <header className={`subscription-status subscription-status--${state.status} grid grid-cols-[auto_minmax(0,1fr)] items-start gap-2.5 rounded-lg border border-l-[3px] p-3.5 max-md:grid-cols-1 ${STATUS_TONE[state.status]}`}>
+  {loading?<div className="subscription-panel-state grid gap-1 rounded-lg border border-ink-600 bg-ink-700 p-4" role="status" aria-live="polite" aria-atomic="true"><strong className="text-[13.5px] text-fore">Cargando suscripción…</strong><span className="text-[13px] leading-[1.45] text-mute">Consultando el estado autorizado por el servidor.</span></div>:error||!state?<div className="subscription-panel-state subscription-panel-state--error grid gap-1 rounded-lg border border-bad/40 border-l-[3px] bg-bad/10 p-4" role="alert"><strong className="text-[13.5px] text-bad">{error||'No se pudo cargar la suscripción. No se confirmó ningún pago.'}</strong>{onRefresh?<span className="text-[13px] leading-[1.45] text-mute">Podés reintentar la actualización.</span>:null}</div>:<div className="grid gap-4">
+   <header className={`subscription-status subscription-status--${state.status} grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-lg border border-l-[3px] p-4 max-md:grid-cols-1 ${STATUS_TONE[state.status]}`}>
     <span className="subscription-badge inline-flex min-h-6 items-center rounded-full border border-current/30 px-2 py-0.5 text-[11px] font-bold leading-tight [white-space:nowrap]" role="status">Estado actual</span>
     <div className="grid min-w-0 gap-1"><h3 className="text-[17px] font-semibold tracking-tight">{titles[state.status]}</h3><p className="text-[13px] leading-[1.5]">{description(state)}</p></div>
    </header>
-   {!state.hasAccess&&state.status!=='suspended'?<p className="subscription-error rounded-lg border-l-[3px] border-bad bg-bad/10 px-3 py-2.5 text-[13px] text-bad" role="alert">El servidor informa que el acceso está bloqueado.</p>:null}
+   {!state.hasAccess&&state.status!=='suspended'?<p className="subscription-error rounded-lg border-l-[3px] border-bad bg-bad/10 p-3 text-[13px] text-bad" role="alert">El servidor informa que el acceso está bloqueado.</p>:null}
    {managed(state)?<>
     <dl className="subscription-dates grid gap-2 sm:grid-cols-2 xl:grid-cols-3" aria-label="Fechas de la suscripción">
      <div className="grid min-w-0 gap-0.5 rounded-lg border border-ink-600 bg-ink-700 px-3 py-2"><dt className="text-[11px] font-bold uppercase tracking-[.035em] text-mute">Plan</dt><dd className="text-sm font-bold tabular-nums text-fore">{monthlyLabels[currency]}</dd></div>
@@ -209,11 +209,11 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
     </fieldset>
     {!state.canManage?<p className={`subscription-owner-help ${STATE_BOX}`}>Contactá al dueño de esta empresa para gestionar la suscripción.</p>:<>
      {!state.checkoutReady?<p className={`subscription-setup ${STATE_BOX}`} role="status" data-billing-readiness={state.billingReadiness||'unknown'}>{readinessMessage(state.billingReadiness)}</p>:null}
-     <div className="subscription-actions grid gap-2.5">
-     {showCheckout?(state.checkoutReady?<div className="subscription-checkout grid gap-2.5">
-      <label className="subscription-consent flex min-h-11 min-w-0 items-start gap-2.5 py-1 text-[13px] leading-[1.5]"><input type="checkbox" className="!m-0 !h-5 !w-5 !min-h-5 appearance-auto !p-0 accent-fono" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en el checkout seguro.</span></label>
+     <div className="subscription-actions grid gap-3">
+     {showCheckout?(state.checkoutReady?<div className="subscription-checkout grid gap-3">
+      <label className="subscription-consent flex min-h-11 min-w-0 items-start gap-3 py-1 text-[13px] leading-[1.5]"><input type="checkbox" className="!m-0 !h-5 !w-5 !min-h-5 appearance-auto !p-0 accent-fono" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en el checkout seguro.</span></label>
       <button type="button" className={PRIMARY} disabled={busy||!canCheckout||!accepted} onClick={()=>redirect('checkout')}>{pending==='checkout'?'Abriendo checkout…':'Activar suscripción mensual'}</button>
-     </div>:<div className="subscription-manual grid gap-2.5 rounded-lg border border-ink-600 bg-ink-700 p-3">
+     </div>:<div className="subscription-manual grid gap-3 rounded-lg border border-ink-600 bg-ink-700 p-3">
       <p><strong className="text-fore">Activación con pago coordinado.</strong> El cobro en línea no está disponible en esta instalación, pero podés activar la suscripción igual:</p>
       <ol className="subscription-manual-steps grid list-decimal gap-1 pl-5 text-[13px] leading-[1.5]">
        <li>Si tenés un cupón, canjealo en Configuración → Cupones: suma tiempo gratis al instante.</li>
@@ -221,11 +221,11 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
        <li>Enviá el comprobante por WhatsApp: administración verifica el pago y libera el mes en tu suscripción.</li>
       </ol>
       <dl className="subscription-transfer grid gap-1 rounded-lg border border-ink-600 bg-ink-800 p-3" aria-label="Datos para la transferencia">
-       <div className="flex items-baseline justify-between gap-2.5"><dt className="shrink-0 text-xs text-mute">Titular</dt><dd className="min-w-0 text-right text-[12.5px] font-semibold tabular-nums [overflow-wrap:anywhere]">{transferAccount.holder}</dd></div>
-       <div className="flex items-baseline justify-between gap-2.5"><dt className="shrink-0 text-xs text-mute">RUC</dt><dd className="subscription-transfer-code min-w-0 whitespace-nowrap text-right text-[12.5px] font-semibold tabular-nums">{transferAccount.taxId}</dd></div>
-       <div className="flex items-baseline justify-between gap-2.5"><dt className="shrink-0 text-xs text-mute">Banco</dt><dd className="min-w-0 text-right text-[12.5px] font-semibold tabular-nums [overflow-wrap:anywhere]">{transferAccount.bank}</dd></div>
-       <div className="flex items-baseline justify-between gap-2.5"><dt className="shrink-0 text-xs text-mute">Cuenta</dt><dd className="subscription-transfer-code min-w-0 whitespace-nowrap text-right text-[12.5px] font-semibold tabular-nums">{transferAccount.number}</dd></div>
-       <div className="flex items-baseline justify-between gap-2.5"><dt className="shrink-0 text-xs text-mute">Monto</dt><dd className="min-w-0 text-right text-[12.5px] font-semibold tabular-nums [overflow-wrap:anywhere]">{prices[currency]} por mes, por agencia</dd></div>
+       <div className="flex items-baseline justify-between gap-3"><dt className="shrink-0 text-xs text-mute">Titular</dt><dd className="min-w-0 text-right text-[12.5px] font-semibold tabular-nums [overflow-wrap:anywhere]">{transferAccount.holder}</dd></div>
+       <div className="flex items-baseline justify-between gap-3"><dt className="shrink-0 text-xs text-mute">RUC</dt><dd className="subscription-transfer-code min-w-0 whitespace-nowrap text-right text-[12.5px] font-semibold tabular-nums">{transferAccount.taxId}</dd></div>
+       <div className="flex items-baseline justify-between gap-3"><dt className="shrink-0 text-xs text-mute">Banco</dt><dd className="min-w-0 text-right text-[12.5px] font-semibold tabular-nums [overflow-wrap:anywhere]">{transferAccount.bank}</dd></div>
+       <div className="flex items-baseline justify-between gap-3"><dt className="shrink-0 text-xs text-mute">Cuenta</dt><dd className="subscription-transfer-code min-w-0 whitespace-nowrap text-right text-[12.5px] font-semibold tabular-nums">{transferAccount.number}</dd></div>
+       <div className="flex items-baseline justify-between gap-3"><dt className="shrink-0 text-xs text-mute">Monto</dt><dd className="min-w-0 text-right text-[12.5px] font-semibold tabular-nums [overflow-wrap:anywhere]">{prices[currency]} por mes, por agencia</dd></div>
       </dl>
       <a className={`${PRIMARY} subscription-manual-link no-underline`} href={activationRequestUrl(organizationName)} target="_blank" rel="noopener noreferrer">Enviar comprobante por WhatsApp</a>
       <p className="text-xs leading-[1.45] text-mute">Este enlace abre WhatsApp con el mensaje ya escrito; no realiza ningún cobro. La cuenta recibe guaraníes; si tu plan está en dólares, coordinamos el equivalente al enviar el comprobante. Cuando administración verifique el pago, esta pantalla mostrará “Suscripción activa”.</p>
@@ -236,7 +236,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
     </>}
    </>:null}
   </div>}
-  {actionError?<p className="subscription-error mt-3 rounded-lg border-l-[3px] border-bad bg-bad/10 px-3 py-2.5 text-[13px] text-bad" role="alert">{actionError}</p>:null}
+  {actionError?<p className="subscription-error mt-3 rounded-lg border-l-[3px] border-bad bg-bad/10 p-3 text-[13px] text-bad" role="alert">{actionError}</p>:null}
   {verification?<p className="subscription-feedback mt-3 border-l-2 border-fono px-3 text-xs leading-[1.45] text-mute" role="status" aria-live="polite" aria-atomic="true">{verification}</p>:null}
   {onRefresh?<div className="subscription-refresh mt-3 flex justify-start"><button type="button" className={SECONDARY} disabled={busy} onClick={refresh}>{pending==='refresh'?'Actualizando…':error||!state||actionError?'Reintentar':'Actualizar estado'}</button></div>:null}
  </section>;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import {ArrowLeft, CircleAlert, KeyRound, RefreshCw, ShieldAlert} from "lucide-react";
 import {appHome, type BootstrapStatus, type State} from "./model";
 
-const SURFACE = "grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-5";
+const SURFACE = "grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4";
 const ICON = "grid size-10 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute";
 
 export function PlatformRedirecting() {

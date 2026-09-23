@@ -60,128 +60,6 @@ export default [
 </div></div>`,
   },
   {
-    id: 'auth-registro',
-    section: 'Acceso',
-    surface: 'Registro · paso agencia',
-    kind: 'plain',
-    body: `
-<main class="registration-page access-layout"><div class="access-layout-shell"><section class="login-card registration-card" aria-label="TU AGENCIA, TU ESPACIO">
- <header class="access-layout-header"><a class="access-layout-brand" href="https://sistema.scaleparaguay.com/" aria-label="Scale OS · Volver al sitio">${brand}</a><p class="eyebrow">TU AGENCIA, TU ESPACIO</p></header>
- <ol class="registration-progress" aria-label="Progreso del registro">
-  <li class="done"><span>1</span><b>Identidad</b></li>
-  <li class="active" aria-current="step"><span>2</span><b>Agencia</b></li>
-  <li><span>3</span><b>Acceso</b></li>
- </ol>
- <section class="registration-step">
-  <h1>Configurá tu agencia.</h1>
-  <p>Esto se puede editar más adelante desde Configuración.</p>
-  <label>Nombre de tu agencia<input value="${longOrg}" autocomplete="organization" minlength="2" maxlength="160" placeholder="Tu agencia" autofocus/></label>
-  <div class="ops-select"><span class="ops-label" id="registro-moneda-label">Moneda de la suscripción</span><button type="button" class="ops-select-trigger" title="US$10 al mes" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="registro-moneda-label registro-moneda-value"><span id="registro-moneda-value">US$10 al mes</span>${svg('chevron-down', 16, '<path d="m6 9 6 6 6-6"/>')}</button></div>
-  <p class="registration-terms" id="founder-conditions"><strong>Precio de lanzamiento por agencia.</strong> Todos los integrantes están incluidos. ${founderNote}</p>
-  <details class="registration-details"><summary>Ver condiciones de la prueba</summary><p id="trial-conditions">Los 30 días empiezan al crear la agencia, sin tarjeta. Después se aplica la moneda elegida. Hay 2 días de gracia; al tercer día sin pago se suspende el uso sin borrar los datos. Volver a registrarte no reinicia la prueba.</p></details>
-  <label class="registration-consent"><input type="checkbox" checked aria-describedby="trial-conditions founder-conditions"/><span>Acepto estas condiciones de la prueba y suscripción.</span></label>
-  <button class="primary" type="button">Continuar con correo</button>
-  <button class="back-link" type="button">← Volver al inicio</button>
- </section>
- <p class="registration-links"><a href="/">Ya tengo cuenta</a><a href="https://sistema.scaleparaguay.com/demo">Explorar la demo primero</a></p>
- ${footer}
-</section></div></main>`,
-  },
-  {
-    id: 'auth-verificar',
-    section: 'Acceso',
-    surface: 'Verificación de correo',
-    kind: 'plain',
-    body: `
-<main class="registration-page"><section class="registration-card" aria-busy="false">
- ${brand}<p class="eyebrow">SCALE OS · ACCESO SEGURO</p><h1>Correo verificado</h1>
- <p role="status" class="success">Correo verificado. Tu acceso ya está listo.</p>
- ${footer}
-</section></main>`,
-  },
-  {
-    id: 'auth-recuperar',
-    section: 'Acceso',
-    surface: 'Recuperar cuenta',
-    kind: 'plain',
-    body: `
-<main class="login-page"><section class="login-card">
- <img src="/brand/icon-192.png" width="56" height="56" alt="Scale OS"/><h1>Recuperar cuenta</h1>
- <p>Si solicitaste el cierre hace menos de 30 días, confirmá tus credenciales para recuperarla.</p>
- <form>
-  <label>Correo${emailField(longEmail, 'nombre@dominio.com')}</label>
-  ${passwordField('Contraseña', 'password', 'una-clave-larga-de-prueba-123', 'current-password')}
-  <button class="primary" disabled>Recuperando…</button>
- </form>
- <p><a href="/">Volver al inicio de sesión</a></p>
- ${footer}
-</section></main>`,
-  },
-  {
-    id: 'auth-invitacion',
-    section: 'Acceso',
-    surface: 'Invitación de equipo',
-    kind: 'plain',
-    // Ready state with the password form open (passwordOpen=true in page.tsx):
-    // the Google link and the form share .invite-actions, and the
-    // "Crear cuenta con correo" button is not rendered at the same time.
-    body: `
-<main class="login-page invite-page"><section class="login-card invite-card" aria-busy="false">
- <div class="login-brand"><img src="/brand/icon-192.png" width="56" height="56" alt="Scale OS"/></div>
- <p class="invite-eyebrow">Scale OS · Acceso de equipo</p>
- <h1>Invitación al equipo</h1>
- <p class="invite-link-status" data-state="ready" role="status" aria-live="polite"><span aria-hidden="true">✓</span> Enlace activo</p>
- <p class="invite-expiration">Vence: <time datetime="2026-09-30T12:00:00.000Z">30-sept, 08:00</time> · hora de Asunción</p>
- <p class="login-copy">Te invitaron a trabajar en este espacio.</p>
- <div class="invite-summary"><strong>${longOrg}</strong><span>Permiso asignado: <b>Gerencia</b></span></div>
- <p class="login-copy">Este enlace habilita una sola cuenta.</p>
- <p class="invite-helper">Elegí cómo querés verificar tu correo para continuar.</p>
- <div class="invite-actions"><a class="primary login-button" referrerpolicy="no-referrer" href="#invite-google">Continuar con Google</a>
-  <form class="invite-password-form" novalidate>
-   <label>Nombre y apellido <input name="full_name" maxlength="120" autocomplete="name" placeholder="Cómo te llamamos" value="María Fernanda Ortellado de la Cruz"/></label>
-   <label>Correo${emailField(longEmail, 'tu@correo.com')}</label>
-   ${passwordField('Contraseña', 'password', '', 'new-password', '8+ caracteres')}
-   ${passwordField('Repetí tu contraseña', 'confirm', '', 'new-password', 'Repetí la contraseña')}
-   <p class="password-hint">8+ caracteres; sin requisitos de mayúsculas, números ni símbolos.</p>
-   <button class="primary login-button">Verificar mi correo y continuar</button>
-   <p class="error" role="alert">Las contraseñas no coinciden.</p>
-  </form>
- </div>
- <p class="invite-footer"><a href="https://app.scaleparaguay.com/" referrerpolicy="no-referrer">Ir al inicio de sesión</a></p>
- ${footer}
-</section></main>`,
-  },
-  {
-    id: 'auth-acceso-pendiente',
-    section: 'Acceso',
-    surface: 'Acceso pendiente',
-    kind: 'plain',
-    body: `
-<main class="login-page"><section class="login-card">
- <img src="/brand/icon-192.png" width="56" height="56" alt="Scale OS"/>
- <div role="status" aria-live="polite" aria-atomic="true"><h1>Acceso pendiente de aprobación</h1></div>
- <h2>${longOrg}</h2>
- <p>${longEmail}<br/>Permiso solicitado: <strong>Gerencia</strong></p>
- <p>Una vez que la administración apruebe tu solicitud, podrás utilizar Scale OS según el permiso autorizado. Esta pantalla comprueba el estado automáticamente.</p>
- <button class="secondary">Cerrar sesión</button>
- ${footer}
-</section></main>`,
-  },
-  {
-    id: 'auth-demo',
-    section: 'Acceso',
-    surface: 'Inicio del Demo',
-    kind: 'plain',
-    // Error state after the automatic start failed (busy=false).
-    body: `
-<main class="demo-start-page" aria-busy="false"><section class="demo-start-status">
- <img src="/brand/icon-192.png" width="42" height="42" alt="Scale OS"/>
- <p>No pudimos abrir el Demo.</p>
- <p role="alert" class="error">No pudimos abrir el Demo: intentá nuevamente en unos segundos.</p>
- <button class="primary" type="button">Reintentar</button>
-</section></main>`,
-  },
-  {
     id: 'portal-ingresar',
     section: 'Portal del cliente',
     surface: 'Ingreso',
@@ -225,7 +103,7 @@ export default [
  <header><div><p class="portal-status">${longClient} · Campaña Fin de Año 2026</p><h1>Spot institucional 60 segundos · versión final aprobada</h1><p class="portal-muted">Versión 4 · Entrega <span class="portal-date">17-sept, 14:30</span></p></div><a class="button" href="#">Volver</a></header>
  <p>Revisión final con correcciones de color, locución y música original. Incluye versiones de 15 y 30 segundos para redes.</p>
  <p><a class="button" href="#" aria-label="Abrir spot-institucional-final-v4.mp4 en una pestaña nueva">spot-institucional-final-v4.mp4 <span aria-hidden="true">↗</span></a></p>
- <section class="delivery"><h2>Archivos de esta entrega</h2><p><a href="#">Guion final con cambios marcados <span aria-hidden="true">↗</span></a></p><p><a href="#">Miniaturas y placas de cierre <span aria-hidden="true">↗</span></a></p></section>
+ <section class="delivery delivery-links"><h2>Archivos de esta entrega</h2><p><a href="#">Guion final con cambios marcados <span aria-hidden="true">↗</span></a></p><p><a href="#">Miniaturas y placas de cierre <span aria-hidden="true">↗</span></a></p></section>
  <section class="delivery"><h2>Tu revisión</h2><p class="portal-status">Decisión registrada: Cambios solicitados</p>
   <label>Comentario para la agencia<textarea maxlength="2000" placeholder="Opcional al aprobar; obligatorio si pedís cambios.">La música del cierre tapa la locución final; subir un 15% la voz sobre los últimos cinco segundos.</textarea></label>
   <div class="delivery-actions"><button>Aprobar entrega</button><button class="secondary">Pedir cambios</button></div>

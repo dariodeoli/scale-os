@@ -90,7 +90,31 @@ const verificacion = h(Frame, {eyebrow: 'Scale OS · acceso seguro'},
   h('p', {role: 'status', className: 'text-sm text-bad'}, 'Este enlace no es válido o ya venció. Pedí uno nuevo con tu correo acá abajo.'),
   h('form', {className: 'grid gap-3'},
     Field('Correo de la cuenta', h('span', {className: 'min-w-0 break-words text-mute'}, 'persona@estudiocomunicacion.com.py')),
-    h(Button, null, 'Reenviar correo de verificación')));
+    h(Button, null, 'Reenviar correo de verificación')),
+  h('p', {className: 'flex flex-wrap gap-3 text-[11.5px] text-mute'},
+    h('a', {key: 'registro', className: 'inline-flex min-h-11 items-center underline', href: '/registro'}, 'Volver al registro'),
+    h('a', {key: 'login', className: 'inline-flex min-h-11 items-center underline', href: '/'}, 'Ir al inicio de sesión')));
+
+/* Recuperar cuenta: cierre cancelado o formulario con credenciales. */
+const recuperar = h(Frame, {eyebrow: 'Cuenta'},
+  h('div', {className: 'grid gap-3'},
+    h('h1', {className: 'text-2xl font-bold tracking-tight text-fore'}, 'Recuperar cuenta'),
+    h('p', {className: 'text-sm text-mute'}, 'Si solicitaste el cierre hace menos de 30 días, confirmá tus credenciales para recuperarla.'),
+    h('form', {className: 'grid gap-3'},
+      Field('Correo', h('span', {className: 'min-w-0 break-words text-mute'}, 'persona@estudiodecomunicacion.com.py')),
+      Field('Contraseña', h('span', {className: 'min-w-0 break-words text-mute'}, '••••••••••••')),
+      h(Button, null, 'Recuperar cuenta')),
+    h('p', {className: 'text-sm text-bad', role: 'alert'}, 'Credenciales inválidas.'),
+    h('p', {className: 'text-[11.5px] text-mute'}, h('a', {className: 'inline-flex min-h-11 items-center underline', href: '/'}, 'Volver al inicio de sesión'))));
+
+/* Demo guiada: preparando o error con reintento. */
+const demo = h(Frame, {eyebrow: 'Demo guiada'},
+  h('div', {className: 'grid gap-3', 'aria-busy': 'true'},
+    h('h1', {className: 'text-2xl font-bold tracking-tight text-fore'}, 'Preparando tu Demo…'),
+    h('div', {role: 'status', 'aria-busy': 'true', 'aria-label': 'Preparando tu Demo…', className: 'grid gap-2'},
+      h('div', {className: 'h-4 w-1/3 animate-pulse rounded bg-ink-700'}),
+      h('div', {className: 'h-10 w-full animate-pulse rounded bg-ink-700'})),
+    h('p', {className: 'text-[11.5px] text-mute'}, 'La Demo usa datos de ejemplo y no crea accesos externos. Al terminar podés volver a tu empresa real desde la barra superior.')));
 
 export default [
   {id: 'v2-acceso-registro', section: 'Acceso', surface: 'Registro v2 (paso 1)', kind: 'plain', body: renderToStaticMarkup(registro)},
@@ -98,4 +122,6 @@ export default [
   {id: 'v2-acceso-pendiente', section: 'Acceso', surface: 'Acceso pendiente v2', kind: 'plain', body: renderToStaticMarkup(pendiente)},
   {id: 'v2-acceso-estado', section: 'Acceso', surface: 'Estado del servicio v2', kind: 'plain', body: renderToStaticMarkup(estado)},
   {id: 'v2-acceso-verificacion', section: 'Acceso', surface: 'Verificación v2', kind: 'plain', body: renderToStaticMarkup(verificacion)},
+  {id: 'v2-acceso-recuperar', section: 'Acceso', surface: 'Recuperar cuenta v2', kind: 'plain', body: renderToStaticMarkup(recuperar)},
+  {id: 'v2-acceso-demo', section: 'Acceso', surface: 'Demo guiada v2', kind: 'plain', body: renderToStaticMarkup(demo)},
 ];

@@ -72,7 +72,7 @@ const CAPABILITIES = [
   {label: 'Administrar clientes', description: 'Alta, edición, archivo y términos comerciales largos para probar el ajuste de línea sin recortes.', overrides: 0},
 ];
 
-const roleToggle = (label, checked) => h('span', {key: label, className: 'flex items-center gap-2 whitespace-nowrap'},
+const roleToggle = (label, checked) => h('label', {key: label, className: "relative flex items-center gap-2 whitespace-nowrap after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-['']"},
   h(Switch, {checked, disabled: false, ariaLabel: label, onChange: noop}),
   h('span', {className: 'text-[11.5px] text-mute'}, label));
 
@@ -87,10 +87,12 @@ const capabilityRow = (capability) => {
 };
 
 const roleSummary = h('details', {className: 'group rounded-xl border border-ink-600 bg-ink-800'},
-  h('summary', {className: 'flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 p-4'},
+  h('summary', {className: 'flex cursor-pointer flex-col items-start gap-2 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-2'},
     h('span', {className: 'text-sm font-semibold text-fore'}, 'Colaborador'),
     h('span', {className: 'min-w-0 flex-1 text-xs text-mute'}, 'Colaborador: trabaja clientes, proyectos, producción, presupuestos, pipeline, estudio e inventario sin ver finanzas, salarios, accesos ni actividad.'),
-    h(StateChip, {tone: 'mute'}, '24 de 42')));
+    h('span', {className: 'flex items-center gap-2 sm:contents'},
+      h(StateChip, {tone: 'mute'}, '24 de 42'),
+      h('svg', {className: 'shrink-0 text-mute', width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': 'true'}, h('path', {d: 'm6 9 6 6 6-6'})))));
 
 const permisosPage = h('section', {className: 'grid gap-4'},
   h(Header, {eyebrow: 'Equipo', title: 'Roles y permisos', subtitle: 'Un permiso por capacidad y cargo; el Dueño conserva todo.'}),
@@ -165,12 +167,13 @@ const TRASHED = [
 ];
 
 const trashRow = (record) => {
-  const check = h('label', {className: 'flex items-center', title: 'Seleccionar registro'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${record.name}`}));
+  const check = h('label', {className: "relative flex items-center after:absolute after:-inset-3.5 after:content-['']", title: 'Seleccionar registro'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${record.name}`}));
   const kind = h('span', {className: 'whitespace-nowrap text-[11.5px] text-mute'}, record.kind);
-  const audit = `Movido a Papelera por ${record.by} · ${record.when}`;
   const identity = h('div', {className: 'flex min-w-0 items-baseline gap-2'},
     h('b', {className: 'min-w-0 truncate text-[13.5px] font-semibold leading-[1.2] text-fore', title: record.name}, record.name),
-    h('small', {className: 'min-w-0 truncate text-[11.5px] text-mute', title: audit}, h('span', {className: 'whitespace-nowrap'}, `Movido a Papelera por ${record.by}`), h('span', {className: 'ml-2 whitespace-nowrap'}, `· ${record.when}`)));
+    h('small', {className: 'flex min-w-0 flex-1 items-baseline gap-2 text-[11.5px] text-mute'},
+      h('span', {className: 'min-w-0 truncate', title: `Movido a Papelera por ${record.by}`}, `Movido a Papelera por ${record.by}`),
+      h('span', {className: 'shrink-0 whitespace-nowrap'}, `· ${record.when}`)));
   const actions = h('div', {className: 'flex justify-end'}, h('button', {className: 'text-button'}, 'Restaurar'));
   return h(ListRow, {key: record.name, template: TRASH_TEMPLATE}, check, kind, identity, actions);
 };

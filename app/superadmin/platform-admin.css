@@ -1000,7 +1000,16 @@ html[data-theme="dark"] .platform-admin-ledger tbody tr:hover{background:var(--s
 .platform-admin-confirm input{display:block;margin-top:6px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text)}
 .platform-admin-status-note{position:fixed;z-index:120;right:24px;bottom:24px;max-width:min(420px,calc(100vw - 48px));padding:13px 16px;border-radius:var(--radius-sm);background:var(--success-soft);color:var(--success);box-shadow:var(--shadow-md);font-size:13px}
 .platform-admin-status-note.error{background:var(--danger-soft);color:var(--danger)}
-@media(max-width:760px){.platform-admin-user-actions{max-width:100%;justify-content:flex-start}}
+@media(max-width:760px){.platform-admin-user-actions{max-width:100%;justify-content:flex-start}
+ /* La lista se apila: identidad en una línea propia y acciones debajo, sin columna 0 px. */
+ .platform-admin-list{--platform-admin-cols:minmax(0,1fr)}
+ .platform-admin-list li{grid-template-columns:minmax(0,1fr);gap:6px}
+ .platform-admin-list li.platform-admin-list-head{display:none}
+ .platform-admin-list li>span:first-child{min-width:0}
+ .platform-admin-user-actions,.platform-admin-list-actions{flex-wrap:wrap;overflow:visible;max-width:100%;justify-content:flex-start}
+ /* En mobile las acciones de la lista también son targets de 44 px. */
+ .platform-admin-list li .platform-admin-user-actions .text-button,.platform-admin-list-actions .text-button{min-height:44px}
+}
 
 /* Shared Dialog mounts here without dialog.css on this route: restore overlay */
 .ops-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:color-mix(in srgb,var(--canvas,#1c1b22) 62%,transparent);backdrop-filter:blur(8px);overflow:auto}

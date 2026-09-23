@@ -22,7 +22,7 @@ export default function StatusPage(){
   {icon:<Globe size={17}/>,name:'API y base de datos',detail:state==='available'?'Responde a la comprobación en vivo':state==='unavailable'?'Sin respuesta en esta comprobación':'Comprobando ahora…',tone,chip:state==='available'?'Operativo':state==='unavailable'?'Sin respuesta':'Comprobando'},
  ];
  return <AccessLayout wide eyebrow="Comunicación de respaldo">
-  <div className="grid gap-2">
+  <div className="grid gap-3">
    <h1 className="text-2xl font-bold tracking-tight text-fore">Estado de Scale OS</h1>
    <p aria-live="polite" className="flex flex-wrap items-center gap-2 text-sm text-mute">
     <StateChip tone={tone} title="Comprobación en vivo del API">{state==='available'?<CheckCircle2 size={14} aria-hidden="true"/>:state==='unavailable'?<TriangleAlert size={14} aria-hidden="true"/>:<Clock3 size={14} aria-hidden="true"/>} {label}</StateChip>

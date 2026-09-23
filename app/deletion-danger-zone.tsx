@@ -98,14 +98,14 @@ function formatExpiry(value:string){
 }
 
 /* Superficies v2 de la zona de peligro (una sola pieza por tipo). */
-const FLOW='grid min-w-0 gap-3.5 rounded-xl border border-bad/25 bg-ink-800 p-4 shadow-xs';
-const DETAILS='grid gap-2.5 rounded-lg border border-ink-600 bg-ink-700 p-3';
-const STEP='flex items-start gap-2.5 pt-1';
+const FLOW='grid min-w-0 gap-3 rounded-xl border border-bad/25 bg-ink-800 p-4 shadow-xs';
+const DETAILS='grid gap-3 rounded-lg border border-ink-600 bg-ink-700 p-3';
+const STEP='flex items-start gap-3 pt-1';
 const STEP_MARK='grid size-6 shrink-0 place-items-center rounded-full bg-bad/15 text-[11px] font-extrabold text-bad';
 const INPUT='h-11 w-full min-w-0 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none md:text-sm';
 const FIELD_ACTION='secondary max-md:w-full';
-const NOTICE='m-0 rounded-lg border border-ink-600 bg-ink-700 px-3 py-2.5 text-xs leading-5 text-mute';
-const ALERT='m-0 rounded-lg border-l-[3px] border-bad bg-bad/10 px-3 py-2.5 text-xs leading-5 text-fore';
+const NOTICE='m-0 rounded-lg border border-ink-600 bg-ink-700 p-3 text-xs leading-5 text-mute';
+const ALERT='m-0 rounded-lg border-l-[3px] border-bad bg-bad/10 p-3 text-xs leading-5 text-fore';
 
 function AccountConsequences({preview}:{preview:AccountDeletionPreview}){
  const account=preview.account;
@@ -266,7 +266,7 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
  }
  const title=kind==='account'?'Eliminar mi cuenta':'Eliminar esta empresa';
  return <article className={FLOW} aria-labelledby={headingId} aria-busy={Boolean(busy)}>
-  <div className="flex items-start gap-2.5"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-bad/15 text-bad" aria-hidden="true">{kind==='account'?<UserRoundX size={20}/>:<Building2 size={20}/>}</span><div><h3 id={headingId} className="text-[15px] font-semibold text-fore">{title}</h3><p className="mt-1 text-xs leading-5 text-mute">{kind==='account'?'Esta acción es irreversible: perderás tu acceso personal y se cerrarán todas tus sesiones.':'Esta acción es irreversible: la empresa se desactivará, todos perderán acceso y sus datos quedarán inaccesibles.'}</p></div></div>
+  <div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-bad/15 text-bad" aria-hidden="true">{kind==='account'?<UserRoundX size={20}/>:<Building2 size={20}/>}</span><div><h3 id={headingId} className="text-[15px] font-semibold text-fore">{title}</h3><p className="mt-1 text-xs leading-5 text-mute">{kind==='account'?'Esta acción es irreversible: perderás tu acceso personal y se cerrarán todas tus sesiones.':'Esta acción es irreversible: la empresa se desactivará, todos perderán acceso y sus datos quedarán inaccesibles.'}</p></div></div>
   {!preview&&<button type="button" className={`secondary deletion-review justify-self-start max-md:w-full ${busy==='preview'?'':''}`} disabled={busy==='preview'} onClick={()=>void fetchPreview()}>{busy==='preview'?'Preparando vista previa…':kind==='account'?'Revisar eliminación de mi cuenta':`Revisar eliminación de ${organizationName}`}</button>}
   {preview&&<div className="grid min-w-0 gap-3 outline-none" ref={previewFocus} tabIndex={-1}>
    <div className={STEP}><span className={STEP_MARK}>1</span><div className="grid gap-0.5"><strong className="text-[13px] text-fore">Revisá la vista previa del servidor</strong><small className="text-[11px] leading-[1.45] text-mute">Válida {formatExpiry(preview.expiresAt)}.</small></div></div>
@@ -278,7 +278,7 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
     {!auth&&googleOnly&&<button ref={googleFocus} type="button" className="deletion-google secondary inline-flex items-center justify-center gap-2 justify-self-start max-md:w-full" disabled={Boolean(busy)} onClick={()=>void startGoogle()}><KeyRound size={17} aria-hidden="true"/>{busy==='auth'?'Iniciando Google…':'Confirmar con Google'}</button>}
     {!auth&&!emailRequested&&<button type="button" className={`secondary deletion-email-request justify-self-start max-md:w-full`} disabled={Boolean(busy)} onClick={()=>void requestEmailCode()}>{busy==='auth'?'Enviando código…':'Recibir código por correo'}</button>}
     {!auth&&emailRequested&&<form className="deletion-auth-form deletion-email-form" onSubmit={verifyEmailCode}><div className="grid gap-2"><label htmlFor={emailCodeId} className="block text-xs font-bold text-fore">Código enviado a tu correo</label><div className="deletion-inline-field grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 max-md:grid-cols-1"><input ref={emailCodeFocus} id={emailCodeId} inputMode="numeric" autoComplete="one-time-code" className={INPUT} value={emailCode} disabled={busy==='auth'} onChange={event=>setEmailCode(event.target.value)} required/><button className={FIELD_ACTION} disabled={busy==='auth'||!emailCode}>{busy==='auth'?'Verificando…':'Verificar código'}</button></div><button type="button" className="text-button" disabled={busy==='auth'} onClick={()=>void requestEmailCode()}><Send size={14}/>Reenviar código</button></div></form>}
-    {auth&&<><p className="flex items-center gap-2 rounded-lg bg-ok/10 px-3 py-2.5 text-xs text-ok" role="status"><KeyRound size={16} aria-hidden="true"/>Identidad confirmada con {authMethodLabel(auth.method)}.</p>{confirmationWait>0&&<p className="m-0 rounded-lg border border-ink-600 bg-ink-700 px-3 py-2.5 text-xs tabular-nums text-mute" role="timer" aria-label={`Cuenta regresiva de seguridad: ${confirmationWait} segundos`}><span aria-hidden="true">Por seguridad, esperá {confirmationWait} s para eliminar.</span><span className="sr-only">Podrás confirmar la eliminación en {confirmationWait} segundos.</span></p>}</>}
+    {auth&&<><p className="flex items-center gap-2 rounded-lg bg-ok/10 p-3 text-xs text-ok" role="status"><KeyRound size={16} aria-hidden="true"/>Identidad confirmada con {authMethodLabel(auth.method)}.</p>{confirmationWait>0&&<p className="m-0 rounded-lg border border-ink-600 bg-ink-700 p-3 text-xs tabular-nums text-mute" role="timer" aria-label={`Cuenta regresiva de seguridad: ${confirmationWait} segundos`}><span aria-hidden="true">Por seguridad, esperá {confirmationWait} s para eliminar.</span><span className="sr-only">Podrás confirmar la eliminación en {confirmationWait} segundos.</span></p>}</>}
     <div className={STEP}><span className={STEP_MARK}>3</span><div className="grid gap-0.5"><strong className="text-[13px] text-fore">Escribí la confirmación exacta</strong><small className="text-[11px] leading-[1.45] text-mute">El botón final solo se habilita cuando el texto coincide.</small></div></div>
     <form className="deletion-confirm-form" onSubmit={execute}>
      <div className="grid gap-2">
@@ -297,7 +297,7 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
 
 function DemoExitSimulation({onExit}:{onExit:()=>void|Promise<void>}){
  return <article className={`${FLOW} deletion-demo-simulation`} aria-labelledby="demo-exit-title">
-  <div className="flex items-start gap-2.5"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-warn/15 text-warn" aria-hidden="true"><ShieldAlert size={20}/></span><div><h3 id="demo-exit-title" className="text-[15px] font-semibold text-fore">Salir del Demo</h3><p className="mt-1 text-xs leading-5 text-mute">El Demo no elimina cuentas ni empresas. Salir borra el estado local, cierra la sesión de simulación y vuelve al inicio público.</p></div></div>
+  <div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-warn/15 text-warn" aria-hidden="true"><ShieldAlert size={20}/></span><div><h3 id="demo-exit-title" className="text-[15px] font-semibold text-fore">Salir del Demo</h3><p className="mt-1 text-xs leading-5 text-mute">El Demo no elimina cuentas ni empresas. Salir borra el estado local, cierra la sesión de simulación y vuelve al inicio público.</p></div></div>
   <button type="button" className="secondary justify-self-start max-md:w-full" onClick={()=>void onExit()}>Salir y reiniciar simulación</button>
  </article>;
 }

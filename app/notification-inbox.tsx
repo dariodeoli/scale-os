@@ -20,8 +20,8 @@ const kindLabel=(kind:Notice['kind'])=>({assignment:'Asignación',comment:'Menci
 function dateLabel(value:string){return listDateFull(value)||'Fecha no disponible';}
 /** Acción de la bandeja: target de 44 px en mobile y geometría estable. */
 const ICON_ACTION='icon-button !h-11 !w-11';
-const CARD='grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3.5';
-const CARD_UNREAD='grid min-w-0 gap-2 rounded-xl border border-ink-600 border-l-4 border-l-fono bg-ink-700 p-3.5';
+const CARD='grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4';
+const CARD_UNREAD='grid min-w-0 gap-2 rounded-xl border border-ink-600 border-l-4 border-l-fono bg-ink-700 p-4';
 
 export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:string,anchor?:string)=>void;openPreferences:()=>void}){
  const router=useRouter();
@@ -84,7 +84,7 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
     </div>
    </div>
    <p className="whitespace-pre-wrap text-[12px] leading-[1.45] text-mute">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
-   <SegmentedField value={filter} onChange={(value:string)=>changeFilter(value as Filter)} ariaLabel="Filtrar notificaciones" options={filters.map(option=>[option.value,option.label] as [string,string])}/>
+   <SegmentedField value={filter} onChange={(value:string)=>changeFilter(value as Filter)} ariaLabel="Filtrar notificaciones" className="[&_button]:min-h-11" options={filters.map(option=>[option.value,option.label] as [string,string])}/>
    {message&&<p role="alert" className="rounded-lg border-l-[3px] border-bad bg-bad/10 px-3 py-2 text-[13px] text-fore">{message}</p>}
    <div aria-busy={loading||busy} className="grid gap-2">
     {loading?<LoadingBlock label="Cargando avisos…" lines={3}/>:!data.notifications.length?<EmptyBlock compact title={message?'No se pudo mostrar la lista':'No tenés notificaciones'} description={message?'Intentá actualizar.':filter==='all'?'Acá aparecerán tus avisos de asignaciones, comentarios y entregas.':'No hay notificaciones para este filtro.'}/>:<div className="grid gap-2">

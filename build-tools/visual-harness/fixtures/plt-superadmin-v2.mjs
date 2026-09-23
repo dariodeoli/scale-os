@@ -14,8 +14,8 @@ import {Badge} from 'owncoding-ui';
 const h = React.createElement;
 const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
 const StateChip = ({tone = 'mute', children}) => h(Badge, {color: CHIP[tone], className: 'whitespace-nowrap'}, children);
-const CARD = 'grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-5';
-const SURFACE = 'grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-5 sm:grid-cols-[auto_minmax(0,1fr)]';
+const CARD = 'grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4';
+const SURFACE = 'grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4 sm:grid-cols-[auto_minmax(0,1fr)]';
 const ICON = 'grid size-10 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute';
 
 const AUDIT_TEMPLATE = 'grid-cols-[11rem_minmax(10rem,1fr)_minmax(12rem,1.2fr)_minmax(12rem,1.4fr)]';
@@ -92,5 +92,5 @@ export default [
     body: renderToStaticMarkup(audit),
   },
   {id: 'v2-plt-superadmin-estados', section: 'Configuración', surface: 'Estados del panel global v2', kind: 'plain', body: renderToStaticMarkup(states)},
-  {id: 'v2-plt-perfil-seguridad', section: 'Equipo', surface: 'Seguridad de cuenta v2', kind: 'plain', body: renderToStaticMarkup(h('div', {className: 'grid grid-cols-[minmax(0,1fr)] gap-4'}, profileScope, security))},
+  {id: 'v2-plt-perfil-seguridad', section: 'Equipo', surface: 'Seguridad de cuenta v2', kind: 'workspace', body: renderToStaticMarkup(h('div', {className: 'grid grid-cols-[minmax(0,1fr)] gap-4'}, profileScope, security))},
 ];
