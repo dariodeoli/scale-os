@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
-import {workspaceSource} from './workspace-source';
+import {workspaceSource,sectionSource} from './workspace-source';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 
@@ -100,8 +100,15 @@ test('clients, projects and trash support bulk operations',()=>{
 
 test('finance panels use column headers and the shared money formatter',()=>{
   const workspace=workspaceSource();
-  assert.match(workspace,/finance-row-head[\s\S]*?Transferencia[\s\S]*?Factura[\s\S]*?Cobro/,'each finance list shows its header');
   assert.doesNotMatch(workspace,/Intl\.NumberFormat\("es-PY"/,'amounts go through money(), not inline formatters');
+  const finanzas=sectionSource('finanzas.tsx');
+  assert.match(finanzas,/ListGrid label="Transferencias entre cuentas"/,'la lista de transferencias trae su encabezado');
+  assert.match(finanzas,/ListGrid label="Cobros pendientes"/,'la lista de cobros pendientes trae su encabezado');
+  assert.match(finanzas,/ListGrid label="Cobros registrados"/,'la lista de cobros registrados trae su encabezado');
+  for(const template of ['TRANSFER_TEMPLATE','INVOICE_TEMPLATE','PAYMENT_TEMPLATE'])assert.match(finanzas,new RegExp(`const ${template}\\s*=\\s*'grid-cols-\\[`),`${template} declara su plantilla`);
+  const mora=sectionSource('mora.tsx');
+  assert.match(mora,/ListGrid label="Cobranza por cliente"/,'la lista de cobranza trae su encabezado');
+  assert.match(mora,/const MORA_TEMPLATE\s*=\s*'grid-cols-\[/,'la cobranza declara su plantilla');
   const styles=read('app/operations.css');
   assert.match(styles,/\.finance-row-head\{display:grid/);
   assert.match(styles,/\.finance-grid :is\(\.finance-transfer-row,.finance-invoice-row,.finance-payment-row\)\{display:grid/);

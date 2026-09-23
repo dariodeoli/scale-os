@@ -1,12 +1,16 @@
 "use client";
 import type {Dispatch, SetStateAction} from 'react';
-import {SearchField} from '../search-field';
+import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {SegmentedField} from 'owncoding-ui';
+import {listDateFull, listDateShort, dueTone} from '../list-format';
 import {money} from '../operations';
-import {listDateShort} from '../list-format';
-import type {ClientPaymentStatus, User} from '../workspace-types';
+import {roleCan} from '../capabilities';
+import {buildMoraBuckets, filterMoraClients, moraAgeKey, moraKpis, MORA_AGE_LABELS, type ClientPaymentStatus, type MoraFilter} from '../mora-data';
+import type {User} from '../workspace-types';
 
-// Mora y cobranzas (dominio FIN; CRM de cobranzas).
-// Extraído de app/scale-workspace.tsx (issue #47): misma lógica y JSX, sin cambios.
+// Cobranza y mora (dominio FIN): semáforo por antigüedad, DSO por moneda y lista
+// de clientes con saldo. Los cálculos salen de app/mora-data.ts (una sola fuente);
+// el shell sigue pasando sus props históricos y solo se usan los vigentes.
 type MoraSectionProps = {
   user: User | null;
   paymentStatuses: ClientPaymentStatus[];
@@ -16,118 +20,109 @@ type MoraSectionProps = {
   setMoraSearch: Dispatch<SetStateAction<string>>;
   moraUpdated: Date | null;
   moraReportsError: boolean;
-  moraBuckets: {key:string;label:string;min:number;max:number;clients:number;amounts:Map<string,number>}[];
-  moraDso: {currency:string;days:number}[] | null;
+  moraBuckets: {key: string; label: string; min: number; max: number; clients: number; amounts: Map<string, number>}[];
+  moraDso: {currency: string; days: number}[] | null;
   visibleMoraClients: ClientPaymentStatus[];
   moneyMora: typeof money;
 };
-export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, moraSearch, setMoraSearch, moraUpdated, moraReportsError, moraBuckets, moraDso, visibleMoraClients, moneyMora}: MoraSectionProps){
-  return (
-    <section className="panel directory">
-            <div className="panel-heading">
-              <div>
-                <p className="eyebrow">CRM · COBRANZAS</p>
-                <h2>Estado de pagos</h2>
-              </div>
-              {moraUpdated?<span>Actualizado {moraUpdated.toLocaleTimeString('es-PY',{timeZone:'America/Asuncion',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}</span>:null}
-            </div>
-            <div className="kpi-strip" aria-label="Semáforo de mora por antigüedad">
-              {moraBuckets.map(bucket => (
-                <article className={`kpi-card ${bucket.key === "early" ? "tone-blue" : bucket.key === "medium" ? "tone-warning" : "tone-danger"}`} key={bucket.key}>
-                  <p className="eyebrow">{bucket.label}</p>
-                  <strong>{bucket.clients} cliente{bucket.clients === 1 ? "" : "s"}</strong>
-                  <div className="kpi-amounts">
-                    {bucket.amounts.size ? Array.from(bucket.amounts).map(([currency, amount]) => (
-                      <span key={currency}>{moneyMora(amount, currency)}</span>
-                    )) : <span>Sin saldos vencidos</span>}
-                  </div>
-                </article>
-              ))}
-              <article className="kpi-card tone-brand">
-                <p className="eyebrow">DSO · DÍAS EN CALLE</p>
-                {["owner", "admin", "finance"].includes(user?.role || "") ? (
-                  <>
-                    {moraReportsError ? (
-                      <strong>Sin datos</strong>
-                    ) : moraDso === null ? (
-                      <strong>Calculando…</strong>
-                    ) : moraDso.length ? (
-                      <strong>{moraDso.map(row => `${row.currency} ${row.days} días`).join(" · ")}</strong>
-                    ) : (
-                      <strong>Sin datos</strong>
-                    )}
-                    <small>Saldo pendiente sobre lo facturado del mes, por moneda.</small>
-                  </>
-                ) : (
-                  <>
-                    <strong>—</strong>
-                    <small>Visible para administración y finanzas.</small>
-                  </>
-                )}
-              </article>
-            </div>
-            <div className="mora-toolbar">
-              <div className="choice-list compact" aria-label="Filtrar estado de cobro">
-                {[
-                  ["", "Todos"],
-                  ["up_to_date", "Al día"],
-                  ["due_soon", "Por vencer"],
-                  ["late", "En mora"],
-                  ["severe", "Mora grave"],
-                  ["no_invoice", "Sin factura"],
-                ].map(([value, label]) => (
-                  <button
-                    type="button"
-                    className={moraFilter === value ? "choice active" : "choice"}
-                    onClick={() => setMoraFilter(value)}
-                    key={value || "all"}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <SearchField className="mora-search" hideLabel label="Buscar cliente en cobranza" value={moraSearch} onChange={setMoraSearch} placeholder="Buscar cliente…"/>
-            </div>
-            <div className="client-list mora-list">
-              <div className="mora-list-head" aria-hidden="true"><span></span><span>Cliente</span><span>Pendiente</span></div>
-              {visibleMoraClients.length ? (
-                visibleMoraClients.map((client, index) => (
-                  <div
-                    className="client-row"
-                    key={`${client.client_id}-${client.currency || "none"}`}
-                  >
-                    <div
-                      className={`client-avatar ${["green", "yellow", "purple", "blue"][index % 4]}`}
-                    >
-                      {client.client_name[0]}
-                    </div>
-                    <div>
-                      <b>{client.client_name}</b>
-                      <small>
-                        {client.payment_status === "up_to_date"
-                          ? "Al día"
-                          : client.payment_status === "due_soon"
-                            ? `Vence ${listDateShort(client.next_due_on) || "próximamente"}`
-                            : `${client.days_overdue} días de mora`}
-                        {client.days_overdue > 0 && (
-                          <span className={`mora-chip ${client.days_overdue > 30 ? "mora-critical" : client.days_overdue > 15 ? "mora-medium" : "mora-early"}`}>
-                            {client.days_overdue > 30 ? "+30 días" : client.days_overdue > 15 ? "16–30 días" : "1–15 días"}
-                          </span>
-                        )}
-                        {client.has_invoice ? ` · ${client.invoice_count} factura${client.invoice_count === 1 ? "" : "s"}` : " · Sin facturas"}
-                      </small>
-                    </div>
-                    <span className="client-row-amount">
-                      {client.currency
-                        ? money(Number(client.outstanding_amount), client.currency)
-                        : "Sin saldo pendiente"}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p className="empty-copy">{paymentStatuses.length ? "No hay clientes en esta categoría." : "Sin registros de cobranza todavía."}</p>
-              )}
-            </div>
-          </section>
-  );
+
+/** Plantilla única de la lista de cobranza (encabezado y filas la comparten). */
+const MORA_TEMPLATE = 'grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]';
+const MORA_COLUMNS: Column[] = [
+  {key: 'client', label: 'Cliente'},
+  {key: 'state', label: 'Estado'},
+  {key: 'due', label: 'Vence'},
+  {key: 'age', label: 'Antigüedad'},
+  {key: 'invoices', label: 'Facturas'},
+  {key: 'amount', label: 'Pendiente', align: 'end'},
+];
+
+const STATUS_TONE: Record<ClientPaymentStatus['payment_status'], ChipTone> = {up_to_date: 'ok', due_soon: 'warn', late: 'warn', severe: 'bad'};
+
+function statusLabel(client: ClientPaymentStatus) {
+  if (client.payment_status === 'up_to_date') return 'Al día';
+  if (client.payment_status === 'due_soon') return `Vence ${listDateShort(client.next_due_on) || 'próximamente'}`;
+  return `${client.days_overdue} días de mora`;
+}
+
+function ClientLine({client}: {client: ClientPaymentStatus}) {
+  const ageKey = moraAgeKey(client.days_overdue);
+  const due = client.next_due_on;
+  return <ListRow template={MORA_TEMPLATE}>
+    <div className="min-w-0">
+      <strong className="block text-[13.5px] font-semibold text-fore">{client.client_name}</strong>
+      <small className="block text-[11px] text-mute">{client.currency || 'Sin moneda de cobro'}</small>
+    </div>
+    <div className="min-w-0"><StateChip tone={STATUS_TONE[client.payment_status]} title={statusLabel(client)}>{statusLabel(client)}</StateChip></div>
+    <div className="min-w-0">
+      {due ? <span className={`whitespace-nowrap tabular-nums ${dueTone(due) ? 'font-semibold text-warn' : 'text-fore'}`} title={listDateFull(due) || undefined}>{listDateShort(due)}</span> : <span className="text-[11px] text-mute">Sin fecha</span>}
+    </div>
+    <div className="min-w-0">
+      {ageKey ? <StateChip tone={ageKey === 'critical' ? 'bad' : 'warn'} title={`${client.days_overdue} días de mora`}>{MORA_AGE_LABELS[ageKey]}</StateChip> : <span className="text-[11px] text-mute">Sin mora</span>}
+    </div>
+    <div className="min-w-0">
+      {client.has_invoice
+        ? <span className="whitespace-nowrap tabular-nums text-fore" title={`${client.invoice_count} factura${client.invoice_count === 1 ? '' : 's'}`}>{client.invoice_count}</span>
+        : <span className="text-[11px] text-mute">Sin facturas</span>}
+    </div>
+    <div className="min-w-0 text-right">
+      {client.currency && Number(client.outstanding_amount) > 0
+        ? <span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(Number(client.outstanding_amount), client.currency)}</span>
+        : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo pendiente</span>}
+    </div>
+  </ListRow>;
+}
+
+export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, moraSearch, setMoraSearch, moraUpdated, moraReportsError, moraDso}: MoraSectionProps) {
+  const kpis = moraKpis(paymentStatuses);
+  const buckets = buildMoraBuckets(paymentStatuses);
+  const visible = filterMoraClients(paymentStatuses, moraFilter as MoraFilter, moraSearch);
+  const canSeeDso = roleCan(user?.role, 'reports.view');
+  const updated = moraUpdated ? listDateFull(moraUpdated.toISOString()) : null;
+  return <section className="grid gap-4" aria-label="Cobranza y mora">
+    <header className="flex flex-wrap items-end justify-between gap-3">
+      <div className="min-w-0">
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Finanzas · cobranzas</p>
+        <h2 className="text-lg font-semibold tracking-tight text-fore">Estado de pagos</h2>
+        <p className="mt-1 text-xs text-mute">Saldo pendiente por antigüedad y días en calle por moneda.</p>
+      </div>
+      {updated ? <span className="whitespace-nowrap text-xs tabular-nums text-mute">Actualizado {updated}</span> : null}
+    </header>
+
+    <KpiStrip>
+      <Kpi label="Al día" valor={kpis.alDia} hint="Sin saldo vencido"/>
+      <Kpi label="Por vencer" valor={kpis.porVencer} hint="Vencen en los próximos días"/>
+      <Kpi label="En mora" valor={kpis.enMora} hint="Tarde o mora grave" destacado={kpis.enMora > 0}/>
+      <Kpi label="Sin factura" valor={kpis.sinFactura} hint="Sin facturas registradas"/>
+    </KpiStrip>
+
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {buckets.map(bucket => <Kpi
+        key={bucket.key}
+        label={bucket.label}
+        destacado={bucket.key === 'critical' && bucket.clients > 0}
+        valor={bucket.amounts.length ? <span className="flex flex-wrap items-baseline gap-2">{bucket.amounts.map(item => <span key={item.currency}>{money(item.amount, item.currency)}</span>)}</span> : null}
+        hint={bucket.clients ? `${bucket.clients} cliente${bucket.clients === 1 ? '' : 's'} con saldo vencido` : 'Sin saldos vencidos'}
+      />)}
+      <Kpi
+        label="DSO · días en calle"
+        valor={!canSeeDso ? '—' : moraReportsError ? 'Sin datos' : moraDso === null ? 'Calculando…' : moraDso.length ? <span className="flex flex-wrap items-baseline gap-2">{moraDso.map(row => <span key={row.currency} className="whitespace-nowrap tabular-nums">{row.currency} {row.days} días</span>)}</span> : 'Sin datos'}
+        hint={canSeeDso ? 'Saldo pendiente sobre lo facturado del mes, por moneda' : 'Requiere Informes (reports.view)'}
+      />
+    </div>
+
+    <FilterToolbar summary={`${visible.length} de ${paymentStatuses.length}`}>
+      <SegmentedField ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Al día'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
+      <label className="grid w-full gap-1.5 sm:w-72">
+        <span className="sr-only">Buscar cliente en cobranza</span>
+        <input type="search" value={moraSearch} onChange={event => setMoraSearch(event.target.value)} placeholder="Buscar cliente…" autoComplete="off" className="w-full"/>
+      </label>
+    </FilterToolbar>
+
+    {visible.length
+      ? <ListGrid label="Cobranza por cliente" template={MORA_TEMPLATE} columns={MORA_COLUMNS} minWidthClass="min-w-[58rem]">
+        {visible.map(client => <ClientLine key={`${client.client_id}-${client.currency || 'none'}`} client={client}/>)}
+      </ListGrid>
+      : <EmptyBlock title={paymentStatuses.length ? 'No hay clientes en esta categoría.' : 'Sin registros de cobranza todavía.'} description={paymentStatuses.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Cuando existan facturas con saldo, aparecen acá.'}/>}
+  </section>;
 }
