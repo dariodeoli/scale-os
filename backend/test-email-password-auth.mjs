@@ -9,7 +9,9 @@ import {PGlite} from '@electric-sql/pglite';
 import {emailPasswordAuth} from './email-password-auth.js';
 
 const root=new URL('.',import.meta.url),pg=new PGlite();
-await pg.exec(execFileSync('git',['show','HEAD:schema.sql'],{cwd:root,encoding:'utf8'}));
+// Monorepo (scale-os#34): el API vive bajo `backend/`; `git show` necesita el prefijo del worktree.
+const gitPrefix=execFileSync('git',['rev-parse','--show-prefix'],{cwd:root,encoding:'utf8'}).trim();
+await pg.exec(execFileSync('git',['show','HEAD:'+gitPrefix+'schema.sql'],{cwd:root,encoding:'utf8'}));
 const source=await fs.readFile(new URL('./server.js',import.meta.url),'utf8');
 const init=source.slice(source.indexOf('async function init()'),source.indexOf('async function provisionOwner('));
 const migrations=[...init.matchAll(/['"](?:migrations\/)?(\d{8}_[\w-]+\.sql)['"]/g)].map(m=>m[1]).filter(f=>f!=='20260908_dadoo_hub.sql');

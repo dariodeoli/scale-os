@@ -20,7 +20,9 @@ const migrations=[
 
 async function fixture(){
  const pg=new PGlite();
- await pg.exec(execFileSync('git',['show','HEAD:schema.sql'],{cwd:new URL('.',import.meta.url),encoding:'utf8'}));
+// Monorepo (scale-os#34): el API vive bajo `backend/`; `git show` necesita el prefijo del worktree.
+ const gitPrefix=execFileSync('git',['rev-parse','--show-prefix'],{cwd:new URL('.',import.meta.url),encoding:'utf8'}).trim();
+ await pg.exec(execFileSync('git',['show','HEAD:'+gitPrefix+'schema.sql'],{cwd:new URL('.',import.meta.url),encoding:'utf8'}));
  for(const file of migrations)await pg.exec(await fs.readFile(new URL('./migrations/'+file,import.meta.url),'utf8'));
  const query=(sql,values)=>pg.query(sql,values),db={query,connect:async()=>({query,release(){}})};
  const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
