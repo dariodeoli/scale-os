@@ -2,7 +2,7 @@
 import dynamic from 'next/dynamic';
 import type {Dispatch, SetStateAction} from 'react';
 import {ArrowUpRight, RotateCcw, SlidersHorizontal} from 'lucide-react';
-import {DndContext, DragOverlay, type DragEndEvent} from '@dnd-kit/core';
+import {DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
 import {SegmentedField, Select} from 'owncoding-ui';
 import {EmptyBlock, PageHeader} from '../ui-v2';
 import {BoardPresence} from '../presence';
@@ -42,6 +42,9 @@ type ProduccionSectionProps = {
 const VIEW_OPTIONS: [string, string, string][] = [['Tablero','Tablero','grid'],['Mi día','Mi día','clock'],['Calendario','Calendario','calendar'],['Lista y lotes','Lista y lotes','list']];
 export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, updatePreferences, productionOrders, orders, projects, user, setActive, setDetail, draggedOrderId, setDraggedOrderId, onDragEnd, load}: ProduccionSectionProps){
   const dragged=orders.find(order=>String(order.id)===String(draggedOrderId));
+  // Mouse con 6 px de margen (no roba el clic de los botones de la tarjeta), touch
+  // con pulsación sostenida (no pelea con el scroll del tablero) y teclado.
+  const sensors=useSensors(useSensor(MouseSensor,{activationConstraint:{distance:6}}),useSensor(TouchSensor,{activationConstraint:{delay:250,tolerance:8}}),useSensor(KeyboardSensor));
   return (
     <>
       <PageHeader eyebrow="Producción" title={productionView==='Tablero'?'Tablero por etapas':productionView==='Mi día'?'Trabajo diario':productionView} subtitle="Órdenes de trabajo por etapa, con sus responsables, entrega y checklist." actions={<button className="text-button" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button>}/>
@@ -68,7 +71,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
       {productionView==="Tablero"&&
       <section className="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción">
         {hasProductionFilters && productionOrders.length === 0 ? <EmptyBlock title="No hay órdenes que coincidan con estos filtros." description="Restablecé los filtros guardados del tablero para ver todas las piezas." icon="filter"/> : null}
-        <BoardPresence key={String(user?.organization_id)} projectIds={productionOrders.map(order=>String(order.project_id))}><DndContext onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
+        <BoardPresence key={String(user?.organization_id)} projectIds={productionOrders.map(order=>String(order.project_id))}><DndContext sensors={sensors} onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={event=>{setDraggedOrderId(null);void onDragEnd(event);}}>
           <div className="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
             {statuses.map((status: (typeof statuses)[number]) => (
               <KanbanColumn

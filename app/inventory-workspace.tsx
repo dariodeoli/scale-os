@@ -27,7 +27,7 @@ import {normalizeSerial} from './field-rules';
 import {roleCan,BATCH_LIMITS,limitSelection} from './capabilities';
 import {notify} from './feedback';
 import {InventoryBarcode,printInventoryLabel} from './inventory-label';
-import {DndContext,DragOverlay,useDraggable,useDroppable,pointerWithin,type DragEndEvent} from '@dnd-kit/core';
+import {DndContext,DragOverlay,KeyboardSensor,MouseSensor,TouchSensor,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {BatteryCharging,Camera,HardDrive,Home,Lamp,Laptop,Lightbulb,Mic,Monitor,Package,Pencil,Plus,Speaker,Trash2,Video,X,type LucideIcon} from 'lucide-react';
 import {buildInventoryPipelineColumns,depreciationFacts,depreciationValidation,depreciationMethodLabel,depreciationMethods,equipmentStatusLabel,filterInventoryItems,inventoryCanManageReservation,inventoryCanReturn,inventoryLocation,inventoryTotals,itemCode,itemStatuses,pipelineDropColumn,statusLabels,traceLabel,verificationLabel,type Category,type Context,type InventoryItem,type InventoryMaintenance,type InventoryReservation,type InventoryTrace,type InventoryVerification,type Person,type PipelineColumn,type StorageTemplate} from './inventory-data';
 import {OPS_TIME_ZONE,opsLocalTime,opsUtcTime} from './ops-time';
@@ -135,18 +135,26 @@ function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onD
  </article>;
 }
 
-function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVerify,verifyingId}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onDetail:(item:InventoryItem)=>void;onMoved:()=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null}){
+function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVerify,verifyingId,onMoveLocally}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onDetail:(item:InventoryItem)=>void;onMoved:()=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onMoveLocally:(id:string,storageLocationId:string|null,shelf:string)=>void}){
  const [dragged,setDragged]=useState<InventoryItem|null>(null);
  const [moveError,setMoveError]=useState('');
  const [hideUnassigned,setHideUnassigned]=useState(false);
  const columns=useMemo(()=>buildInventoryPipelineColumns(items,locations),[items,locations]);
+ // Mouse desde cualquier punto de la tarjeta (6 px de margen para no robar el clic)
+ // y touch con pulsación sostenida, para no pelear con el scroll del tablero.
+ const sensors=useSensors(useSensor(MouseSensor,{activationConstraint:{distance:6}}),useSensor(TouchSensor,{activationConstraint:{delay:250,tolerance:8}}),useSensor(KeyboardSensor));
+ // `pointerWithin` para mouse/touch y `rectIntersection` de respaldo para el teclado.
+ const collisionDetection:CollisionDetection=args=>{const pointer=pointerWithin(args);return pointer.length?pointer:rectIntersection(args);};
  async function moveItem(itemId:string,target:PipelineColumn){
   if(target.readOnly)return;
   const item=items.find(candidate=>String(candidate.id)===itemId);if(!item)return;
   if(String(item.storage_location_id||'')===String(target.locationId||'')&&(item.storage_shelf||'')===target.shelf)return;
   setMoveError('');setDragged(null);
+  // Optimista: la tarjeta cambia de columna ya; el refresco confirma o revierte.
+  const previous={locationId:item.storage_location_id??null,shelf:item.storage_shelf};
+  onMoveLocally(itemId,target.locationId,target.shelf);
   try{await api(`/api/agency/inventory/${itemId}`,{storage_location_id:target.locationId,storage_shelf:target.shelf},'PATCH');onMoved();}
-  catch(reason){setMoveError(errorMessage(reason));}
+  catch(reason){onMoveLocally(itemId,previous.locationId,previous.shelf);setMoveError(errorMessage(reason));}
  }
  function onDragEnd(event:DragEndEvent){
   const id=String(event.active.id),over=String(event.over?.id||'');if(!over)return;
@@ -157,21 +165,9 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
  const visibleColumns=columns.filter(column=>!hideUnassigned||column.key!=='sin-ubicacion');
  return <div className="grid gap-3">
   {moveError?<Aviso tono="error">{moveError}</Aviso>:null}
-  <DndContext collisionDetection={pointerWithin} onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
+  <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
    <div data-board="locations" className="flex snap-x gap-3 overflow-x-auto pb-1" role="region" aria-label="Pipeline de ubicaciones">
-    {visibleColumns.map(column=><section key={column.key} data-board-column className="flex w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-3" data-readonly={column.readOnly?'true':undefined}>
-     <header className="flex items-center gap-2">
-      {column.readOnly?<span className="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">🔒</span>:<span className="h-2 w-2 rounded-full bg-fono" aria-hidden="true"/>}
-      <h3 className="min-w-0 break-words text-sm font-semibold text-fore">{column.title}</h3>
-      {column.responsibleName?<span title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={safePhoto(column.responsiblePhoto)}/></span>:null}
-      <span className="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">{column.rows.length}</span>
-      {column.key==='sin-ubicacion'?<span className={ICON_TARGETS}><IconAction icon="close" label="Ocultar columna Sin ubicación" onClick={()=>setHideUnassigned(true)}/></span>:null}
-     </header>
-     <div className="grid gap-2">
-      {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
-      {!column.rows.length?<p className="py-3 text-center text-xs text-mute">{column.readOnly?'':canManage?'Arrastrá equipos hasta acá':'Sin equipos'}</p>:null}
-     </div>
-    </section>)}
+    {visibleColumns.map(column=><PipelineColumn key={column.key} column={column} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId} onHideUnassigned={()=>setHideUnassigned(true)}/>)}
    </div>
    <DragOverlay>{dragged?<article className="rounded-xl border border-fono/40 bg-ink-800 p-3 shadow-2xl"><b className="text-sm text-fore">{dragged.name}</b><code className="block whitespace-nowrap font-mono text-[11px] text-mute">{itemCode(dragged)}</code><small className="text-xs text-mute">{dragged.category_name||dragged.category||'Sin categoría'}</small></article>:null}</DragOverlay>
   </DndContext>
@@ -179,13 +175,30 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
   {!items.length?<EmptyState icon="box" title="No hay equipos para mostrar en el pipeline."/>:null}
  </div>;
 }
+function PipelineColumn({column,canManage,onDetail,onQuickVerify,verifyingId,onHideUnassigned}:{column:PipelineColumn;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onHideUnassigned:()=>void}){
+ // La columna es el destino del arrastre (id = clave de la columna, la que resuelve
+ // `pipelineDropColumn`); las de solo lectura no aceptan drops ni se resaltan.
+ const droppable=useDroppable({id:column.key,disabled:column.readOnly});
+ return <section ref={droppable.setNodeRef} data-board-column data-column-key={column.key} className={`flex w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver?'border-fono bg-fono/10':'border-ink-600 bg-ink-800/60'}`} data-readonly={column.readOnly?'true':undefined}>
+  <header className="flex items-center gap-2">
+   {column.readOnly?<span className="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">🔒</span>:<span className="h-2 w-2 rounded-full bg-fono" aria-hidden="true"/>}
+   <h3 className="min-w-0 break-words text-sm font-semibold text-fore">{column.title}</h3>
+   {column.responsibleName?<span title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={safePhoto(column.responsiblePhoto)}/></span>:null}
+   <span className="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">{column.rows.length}</span>
+   {column.key==='sin-ubicacion'?<span className={ICON_TARGETS}><IconAction icon="close" label="Ocultar columna Sin ubicación" onClick={onHideUnassigned}/></span>:null}
+  </header>
+  <div className="grid gap-2">
+   {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
+   {!column.rows.length?<p className="py-3 text-center text-xs text-mute">{column.readOnly?'':canManage?'Arrastrá equipos hasta acá':'Sin equipos'}</p>:null}
+  </div>
+ </section>;
+}
 function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:InventoryItem;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null}){
  const disabled=!canManage||item.location_type==='checked_out';
  const draggable=useDraggable({id:item.id,disabled});
- const style=draggable.transform?{transform:`translate3d(${draggable.transform.x}px, ${draggable.transform.y}px, 0)`}:undefined;
  const verifying=verifyingId===String(item.id);
  const code=itemCode(item);
- return <article ref={draggable.setNodeRef} style={style} data-board-card data-status={item.status} className={`grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging?'opacity-60':''}`}>
+ return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab'}`}>
   <button type="button" className="flex min-w-0 items-center gap-2 text-left" title={`Abrir detalle: ${item.name}`} onClick={()=>onDetail(item)}>
    {item.photo_url?<img className="h-9 w-9 shrink-0 rounded-lg object-cover" src={item.photo_url} alt={`Foto de ${item.name}`}/>:<span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute"><CategoryIcon name={item.category_icon}/></span>}
    <span className="min-w-0"><b className="block break-words text-[13px] font-semibold text-fore">{item.name}</b><code className="whitespace-nowrap font-mono text-[11px] text-mute">{code}</code><small className="flex items-center gap-1 text-[11px] text-mute"><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</small></span>
@@ -196,7 +209,7 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
    <StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip>
    {!disabled?<span className={`flex items-center gap-1 ${ROW_ICON_TARGETS}`}>
     {canManage?<IconAction icon="check" tone="ok" disabled={verifying} label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={()=>onQuickVerify(item)}/>:null}
-    <button type="button" className="cursor-grab touch-none text-mute" title={`Mover ${item.name}`} aria-label={`Mover ${item.name}`} {...draggable.listeners} {...draggable.attributes}>⋮⋮</button>
+    <span className="select-none text-mute" role="img" aria-label={`Mover ${item.name}`} title={`Mover ${item.name}`}>⋮⋮</span>
    </span>:null}
   </div>
  </article>;
@@ -219,7 +232,7 @@ export function InventoryWorkspace({role}:{role:string}){
 function InventoryPanel(){
  const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[selectedItems,setSelectedItems]=useState<string[]>([]),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState('');
  const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0);
- const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate}=useInventoryCatalog(month,refresh);
+ const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate,moveItemLocally}=useInventoryCatalog(month,refresh);
  // El error del catálogo sólo existe cuando nunca hubo datos; el de acciones se limpia al reintentar.
  const error=actionError||loadError;
  // Keep the selection bounded to the records the API still returns.
@@ -358,7 +371,7 @@ function InventoryPanel(){
    {notice?<Aviso tono="ok">{notice}</Aviso>:null}
    {error?<ErrorState title="No se pudo cargar el inventario." description={error} onRetry={()=>setRefresh(n=>n+1)}/>:null}
    {loading&&!error?<LoadingBlock label="Cargando inventario…" lines={6}/>:null}
-   {!loading&&!error&&equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onDetail={setDetail} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId}/>:null}
+   {!loading&&!error&&equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onDetail={setDetail} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally}/>:null}
    {!loading&&!error&&equipmentView!=='pipeline'?<>
     <InventorySummary items={items}/>
     {equipmentView==='list'?<div data-list="equipment" className="min-w-0 overflow-x-auto">
