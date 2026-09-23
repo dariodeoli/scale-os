@@ -17,9 +17,7 @@ const access=read('app/team-access.tsx');
 const accessCss=read('app/team-access.css');
 const photo=read('app/profile-photo.tsx');
 const photoCss=read('app/photo-cropper.css');
-const density=read('app/workspace-density.css');
 const control=read('app/control-center.css');
-const mobile=read('app/mobile-navigation.css');
 
 test('collaborator identity is rendered by its card, while access keeps only state and actions',()=>{
  assert.match(operations,/person-hub-facts/);
@@ -102,10 +100,11 @@ test('the team access block renders only when it has actions',()=>{
 });
 
 test('workspace density owns the header geometry across desktop and mobile',()=>{
- assert.match(density,/Canonical workspace header geometry/);
- assert.match(density,/\.control-shell \.workspace-topbar\{display:flex;align-items:center;justify-content:space-between/);
- assert.match(density,/@media\(max-width:760px\)\{\.control-shell \.workspace-topbar\{z-index:30;display:grid/);
- assert.match(density,/topbar-status\{display:flex;grid-column:1\/-1;grid-row:2/);
+ const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ const drawer=readFileSync(new URL('../app/mobile-navigation.tsx',import.meta.url),'utf8');
+ assert.match(source,/workspace-topbar sticky top-0 z-20[\s\S]*?max-md:z-30 max-md:grid/,'the workspace header owns its desktop and mobile geometry');
+ assert.match(source,/topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2/,'the compact status keeps its own row on mobile');
+ assert.match(source,/topbar-presence min-w-0 shrink-0 max-\[520px\]:hidden/,'presence hides on the smallest screens');
  assert.doesNotMatch(control,/\.workspace-topbar/);
- assert.doesNotMatch(mobile,/\.workspace-topbar/);
+ assert.doesNotMatch(drawer,/workspace-topbar/);
 });

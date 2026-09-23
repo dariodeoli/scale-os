@@ -7,5 +7,6 @@ for(const state of clientStatuses)assert.equal(clientState({active:false,lifecyc
 const history=readFileSync('app/work-history.tsx','utf8');
 assert(history.includes("useState('10')"));assert(history.includes('new URLSearchParams({limit,offset:String(offset)})'));assert(history.includes('[who,source,limit,offset,identityVersion]'));assert(!history.includes('Últimos 100'));
 const sidebar=readFileSync('app/desktop-sidebar.tsx','utf8');assert(sidebar.includes('aria-expanded={!collapsed}'));assert(sidebar.includes('localStorage.setItem'));assert(sidebar.includes('Expandir barra lateral'));
-const css=readFileSync('app/desktop-sidebar.css','utf8');assert(css.includes('width:calc(100% - 60px)'));assert(css.includes('@media(max-width:760px)'));
+assert(sidebar.includes('min-[761px]:!w-[60px]')&&sidebar.includes('min-[761px]:!w-48'),'the rail keeps its collapsed and expanded widths');
+const shell=readFileSync('app/scale-workspace.tsx','utf8');assert(shell.includes('[&>.content]:!w-[calc(100%-60px)]'),'the collapsed rail hands the width back to the content');assert(shell.includes('min-[761px]:!w-[calc(100%-192px)]'),'the content keeps the expanded rail offset');
 console.log('PASS: client state labels/fallbacks, server pagination wiring, persistent accessible sidebar and mobile guard');
