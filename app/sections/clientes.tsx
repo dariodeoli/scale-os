@@ -10,7 +10,7 @@ import {listDateShort} from '../list-format';
 import {ClientIdentity} from '../client-identity';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
-import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {CommercialDashboard} from '../control-center-data';
 import type {Client, ClientPaymentStatus, User} from '../workspace-types';
 
@@ -186,7 +186,7 @@ export function ClientesSection({user, clientView, clientStatusFilter, setClient
   });
 
   return <section className="directory grid gap-4" aria-label="Directorio de clientes">
-    <KpiStrip className="kpi-strip">
+    <KpiStrip>
       <Kpi label="Clientes activos" valor={directoryKpis.active} hint="Con servicio en curso" destacado/>
       <Kpi label="Cobros al día" valor={cobrosKpis.alDia} hint={`${cobrosKpis.enMora} en mora · ${cobrosKpis.porVencer} por vencer · ${cobrosKpis.sinFactura} sin factura`}/>
       <Kpi
@@ -207,30 +207,14 @@ export function ClientesSection({user, clientView, clientStatusFilter, setClient
       <Kpi label="Entregas esta semana" valor={directoryKpis.deliveries} hint="Piezas con vencimiento en 7 días"/>
     </KpiStrip>
 
-    <FilterToolbar summary={`${displayedClients.length} de ${clients.length}`}>
-      <label className="grid w-full gap-1.5 sm:w-72">
-        <span className="sr-only">Buscar clientes</span>
-        <input type="search" value={clientSearch} onChange={event => setClientSearch(event.target.value)} placeholder="Buscar por nombre, correo o teléfono" autoComplete="off" className="w-full"/>
-      </label>
-      <label className="grid gap-1.5">
-        <span className="text-[12px] font-semibold text-mute">Estado</span>
-        <select value={clientStatusFilter} onChange={event => setClientStatusFilter(event.target.value)} className="min-h-10">
-          <option value="">Todos los estados</option>
-          <option value="active">Activos</option>
-          <option value="inactive">Inactivos</option>
-        </select>
-      </label>
-      {clientSearch || clientStatusFilter ? <button type="button" className="text-button" onClick={() => {setClientSearch(''); setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button> : null}
-    </FilterToolbar>
-
     {canManageClients && liveClients.length ? <div className="bulk-bar" role="status" aria-live="polite">
       <span className="bulk-count">{selectedClients.length ? <><b>{selectedClients.length}</b> de {BATCH_LIMITS.clients} seleccionado{selectedClients.length === 1 ? '' : 's'}</> : <span className="bulk-hint">Seleccioná varios para operar en lote · máximo {BATCH_LIMITS.clients}</span>}</span>
       <div className="inline-actions bulk-actions">
-        <button type="button" className="text-button" onClick={selectVisibleClients}>Seleccionar visibles</button>
+        <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisibleClients}>Seleccionar visibles</button>
         {selectedClients.length ? <>
-          <button type="button" className="secondary" disabled={bulkBusy} onClick={() => void batchClients(true)}>Archivar</button>
-          <button type="button" className="secondary" disabled={bulkBusy} onClick={() => void batchClients(false)}>Reactivar</button>
-          <button type="button" className="text-button" onClick={() => setSelectedClients([])}>Limpiar</button>
+          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void batchClients(true)}>Archivar</button>
+          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void batchClients(false)}>Reactivar</button>
+          <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setSelectedClients([])}>Limpiar</button>
         </> : null}
       </div>
     </div> : null}
@@ -245,7 +229,7 @@ export function ClientesSection({user, clientView, clientStatusFilter, setClient
       clients.length===0 ? (
         <EmptyBlock title="Todavía no hay clientes. Creá el primero para empezar." description="Cargá la ficha con RUC o de forma manual; después podés sumar proyectos y piezas."/>
       ) : (
-        <EmptyBlock title={clientSearch.trim() ? 'No hay clientes que coincidan con tu búsqueda y filtros.' : 'No hay clientes con este estado.'} description="Probá con otro término o restablecé los filtros." action={<button className="text-button" type="button" onClick={() => {setClientSearch(''); setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>}/>
+        <EmptyBlock title={clientSearch.trim() ? 'No hay clientes que coincidan con tu búsqueda y filtros.' : 'No hay clientes con este estado.'} description="Probá con otro término o restablecé los filtros." action={<button className="text-button min-h-11 md:min-h-8" type="button" onClick={() => {setClientSearch(''); setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>}/>
       )
     ) : null}
 

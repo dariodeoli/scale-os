@@ -72,7 +72,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
 
   return (
     <section className="directory grid gap-4" aria-label="Presupuestos">
-      <KpiStrip className="kpi-strip" aria-label="Métricas de presupuestos">
+      <KpiStrip aria-label="Métricas de presupuestos">
         <Kpi label="Presupuestos" valor={budgets.length} destacado hint={totals.length ? `Total sin IVA: ${totals.map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}` : 'Sin propuestas cargadas'}/>
         <Kpi label="Borradores" valor={budgetKpis.drafts} hint="Sin enviar al cliente"/>
         <Kpi label="Aceptadas" valor={budgetKpis.accepted} hint="Con aprobación del cliente"/>

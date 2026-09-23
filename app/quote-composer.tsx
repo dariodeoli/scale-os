@@ -27,7 +27,7 @@ function ItemShell({id,title,canReorder=true,children}:{id:string;title?:string;
  const drag=useDraggable({id,disabled:!canReorder}),drop=useDroppable({id});
  return <div ref={node=>{drag.setNodeRef(node);drop.setNodeRef(node);}} className={`grid gap-3 rounded-xl border bg-ink-800 p-3 ${drop.isOver?'border-fono/60':'border-ink-600'}`} style={{opacity:drag.isDragging?.5:1}}>
   <div className="flex items-start gap-2">
-   {canReorder&&<button type="button" className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore" title="Reordenar ítem" aria-label="Reordenar ítem" {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button>}
+   {canReorder&&<button type="button" className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem" {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button>}
    <div className="grid min-w-0 flex-1 gap-3">{title?<b className="text-sm font-bold text-fore">{title}</b>:null}{children}</div>
   </div>
  </div>;
@@ -56,7 +56,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    <div className="flex flex-wrap items-end gap-3">
     {mode==='create'&&<div className="min-w-0 flex-1 basis-64"><FormField label="Cliente" htmlFor="quote-client"><Select id="quote-client" value={v.clientId} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>form.setValue('clientId',event.target.value)}><option value="">Elegí un cliente</option>{clients.map(client=><option key={String(client.id)} value={String(client.id)}>{String(client.name)}</option>)}</Select></FormField></div>}
     {mode!=='plan'&&plans.length>0&&<div className="min-w-0 flex-1 basis-64"><FormField label="Usar un plan como base (reemplaza los ítems actuales)" htmlFor="quote-plan-base"><Select id="quote-plan-base" value="" onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{const plan=plans.find(item=>String(item.id)===event.target.value);if(plan){array.replace(normalizeQuoteItems(plan.items));form.setValue('currency',validCurrency(plan.currency));form.setValue('title',String(plan.name));form.setValue('notes',String(plan.notes||''));}}}><option value="">Sin plan base</option>{plans.map(plan=><option key={String(plan.id)} value={String(plan.id)}>{String(plan.name)}</option>)}</Select></FormField></div>}
-    <CurrencyField id="quote-currency" label="Moneda" className="w-40" value={v.currency} onChange={value=>form.setValue('currency',validCurrency(value))}/>
+    <CurrencyField id="quote-currency" label="Moneda" value={v.currency} onChange={value=>form.setValue('currency',validCurrency(value))}/>
     <div className="w-24"><FormField label="IVA" htmlFor="quote-tax"><Select id="quote-tax" value={String(Number(v.tax_rate))} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>form.setValue('tax_rate',event.target.value)}>{TAX_RATE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
    </div>
   </section>
@@ -68,9 +68,9 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
      <FormField label="Precio sin IVA" htmlFor={`quote-item-price-${index}`}><MoneyInput id={`quote-item-price-${index}`} className="w-44" currency={v.currency} value={v.items[index]?.unitPrice||''} onValueChange={(value: unknown)=>form.setValue(`items.${index}.unitPrice`,String(value))}/></FormField>
     </div>
     <div className="flex flex-wrap gap-2">
-     <Button type="button" variant="ghost" className="h-9 px-2 text-xs" disabled={index===0} onClick={()=>array.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>
-     <Button type="button" variant="ghost" className="h-9 px-2 text-xs" disabled={index===array.fields.length-1} onClick={()=>array.move(index,index+1)}><ArrowDown size={14}/>Bajar</Button>
-     <Button type="button" variant="ghost" className="h-9 px-2 text-xs text-bad hover:bg-bad/10 hover:text-bad" disabled={array.fields.length===1} onClick={()=>array.remove(index)}><X size={12}/>Quitar</Button>
+     <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===0} onClick={()=>array.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>
+     <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===array.fields.length-1} onClick={()=>array.move(index,index+1)}><ArrowDown size={14}/>Bajar</Button>
+     <Button type="button" variant="ghost" className="h-11 px-2 text-xs text-bad hover:bg-bad/10 hover:text-bad md:h-9" disabled={array.fields.length===1} onClick={()=>array.remove(index)}><X size={12}/>Quitar</Button>
     </div>
    </ItemShell>)}</DndContext>
    <div><Button type="button" variant="outline" onClick={()=>array.append({description:'',quantity:'1',unitPrice:'0'})}><Plus size={14}/>Agregar ítem</Button></div>
@@ -85,11 +85,11 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
     {field.type==='text'&&<><FormField label="Título" htmlFor={`quote-section-title-${index}`}><Input id={`quote-section-title-${index}`} {...form.register(`sections.${index}.title`)}/></FormField><FormField label="Contenido" htmlFor={`quote-section-body-${index}`}><Textarea id={`quote-section-body-${index}`} rows={4} {...form.register(`sections.${index}.body`)}/></FormField></>}
     {['items','totals'].includes(field.type)
      ?<p className="text-xs font-medium text-mute">Siempre visible</p>
-     :<div className="flex items-center gap-3"><Switch id={`quote-section-enabled-${index}`} checked={Boolean(v.sections[index]?.enabled)} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>form.setValue(`sections.${index}.enabled`,event.target.checked)} ariaLabel={`Mostrar sección ${SECTION_TYPE_LABELS[field.type]}`}/><Label htmlFor={`quote-section-enabled-${index}`}>Mostrar sección</Label></div>}
+     :<div className="flex min-h-11 items-center gap-3 md:min-h-0"><Switch id={`quote-section-enabled-${index}`} checked={Boolean(v.sections[index]?.enabled)} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>form.setValue(`sections.${index}.enabled`,event.target.checked)} ariaLabel={`Mostrar sección ${SECTION_TYPE_LABELS[field.type]}`}/><Label htmlFor={`quote-section-enabled-${index}`}>Mostrar sección</Label></div>}
     <div className="flex flex-wrap gap-2">
-     <Button type="button" variant="ghost" className="h-9 px-2 text-xs" disabled={index===0} onClick={()=>sections.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>
-     <Button type="button" variant="ghost" className="h-9 px-2 text-xs" disabled={index===sections.fields.length-1} onClick={()=>sections.move(index,index+1)}><ArrowDown size={14}/>Bajar</Button>
-     {field.type==='text'&&<Button type="button" variant="ghost" className="h-9 px-2 text-xs text-bad hover:bg-bad/10 hover:text-bad" onClick={()=>sections.remove(index)}><X size={14}/>Quitar</Button>}
+     <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===0} onClick={()=>sections.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>
+     <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===sections.fields.length-1} onClick={()=>sections.move(index,index+1)}><ArrowDown size={14}/>Bajar</Button>
+     {field.type==='text'&&<Button type="button" variant="ghost" className="h-11 px-2 text-xs text-bad hover:bg-bad/10 hover:text-bad md:h-9" onClick={()=>sections.remove(index)}><X size={14}/>Quitar</Button>}
     </div>
    </ItemShell>)}</DndContext>
    <div><Button type="button" variant="outline" disabled={sections.fields.length>=24} onClick={()=>sections.append({type:'text',title:'Nueva sección',body:'',enabled:true})}>Agregar sección de texto</Button></div>
