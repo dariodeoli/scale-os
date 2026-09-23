@@ -2,13 +2,6 @@
 .client-status[data-status=paused],.client-status[data-status=expired]{border-color:color-mix(in srgb,var(--warning) 24%,var(--line));color:var(--warning);background:var(--warning-soft)}
 .client-status[data-status=cancelled]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));color:var(--danger);background:var(--danger-soft)}
 .client-record-actions{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;align-items:center;justify-content:flex-end;gap:var(--ui-space-2);min-width:max-content}
-.client-list{gap:0}
-.client-list .client-row{position:relative;gap:var(--ui-space-3);flex-wrap:nowrap;align-items:center;padding:var(--ui-space-3) var(--ui-space-2);border-radius:var(--radius-sm);transition:background var(--ease),box-shadow var(--ease)}
-.client-list .client-row>div:first-child{min-width:0;flex:1.2}
-.client-list .client-row>span{min-width:110px}
-.client-list .client-row>span.client-status{min-width:max-content}
-.client-list .client-row:hover{background:color-mix(in srgb,var(--violet-soft) 42%,transparent)}
-.client-list .client-row:focus-within{background:var(--violet-soft);box-shadow:inset 3px 0 0 var(--brand-600)}
 .project-list{display:grid;gap:0}
 .project-list .project-card{display:grid;grid-template-columns:minmax(170px,1.1fr) minmax(150px,1fr) minmax(110px,.7fr) auto;align-items:center;gap:var(--ui-space-3);padding:var(--ui-space-3) var(--ui-space-4);border-width:1px;background:var(--surface)}
 .project-list .project-card>:is(.identity-slate,h3,p,a,span,.project-comments,.text-button){min-width:0;margin:0}
@@ -16,21 +9,15 @@
 .project-list .project-card>:is(a,span){justify-self:start}
 .project-list .project-card>:is(.project-comments,.text-button){justify-self:end}
 @media (max-width:760px){.project-list .project-card{grid-template-columns:1fr;gap:var(--ui-space-2)}.project-list .project-card>:is(.project-comments,.text-button){justify-self:start}}
-@media (max-width:620px){.client-list .client-row{align-items:flex-start;flex-wrap:wrap}.client-list .client-row>span{min-width:0;flex:1 1 130px}.client-list .client-record-actions{width:100%;justify-content:flex-start;padding-top:var(--ui-space-2);border-top:1px solid var(--line)}}
 
-/* Client and project directories share a dense, comparison-friendly record surface. */
-.client-list{border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
-.client-list .client-row{min-height:64px;padding:11px 12px;border-bottom-color:var(--border-subtle,var(--line));transition:background var(--ease)}
-.client-list .client-row:hover{background:color-mix(in srgb,var(--violet-soft) 45%,transparent)}
+/* Dense controls shared by the client directory and the team/trash surfaces. */
 .client-record-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .client-status{display:inline-flex;align-items:center;width:max-content;white-space:nowrap;border-radius:999px}
-@media(max-width:700px){.client-list .client-row{min-height:72px;padding:12px}.client-record-actions{justify-content:flex-start}}
+@media(max-width:700px){.client-record-actions{justify-content:flex-start}}
 
+/* Mora (FIN): toolbar y fila finita con su propio encabezado y plantilla. */
 .mora-toolbar{display:flex;flex-wrap:wrap;gap:var(--ui-space-3);align-items:center;justify-content:space-between;margin-block:var(--ui-space-3)}
 .mora-search{min-width:min(280px,100%)}
-
-.client-list .client-row>span.client-row-amount{min-width:max-content;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-/* Mora: fila finita con su propio encabezado y plantilla compartida. */
 .mora-list{--mora-cols:2.25rem minmax(0,1fr) 8.5rem;border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
 /* El gap-x del encabezado iguala la fila (ui-system fija 12 px en .client-row). */
 .mora-list-head{display:grid;grid-template-columns:var(--mora-cols);gap:12px;padding:8px 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
@@ -39,15 +26,15 @@
 .mora-list .client-row:last-child{border-bottom:0}
 .mora-list .client-row>div{min-width:0}
 .mora-list .client-row .client-row-amount{justify-self:end}
-@media(max-width:620px){.mora-toolbar{gap:var(--ui-space-2)}.mora-search{min-width:100%}.client-list .client-row>span.client-row-amount{min-width:0;text-align:left}}
+@media(max-width:620px){.mora-toolbar{gap:var(--ui-space-2)}.mora-search{min-width:100%}}
 
 /* Directorio de clientes v2 (campaña #41 / issue #43): la tarjeta y la fila finita
    viven en `app/sections/clientes.tsx` con ListGrid/ListRow (Tailwind + objetos de
    owncoding-ui). La fila usa el hook `client-hub-row` y NO la clase de tarjeta:
    `.client-hub-card` (ui-system.css) es una cápsula flex column y pisaba la
    grilla de la fila. El CSS legacy del directorio anterior (toolbar,
-   `.client-hub-list`, `.client-hub-card` propio) no lo emite ningún módulo v2 y
-   se retiró en la ronda `al`. */
+   `.client-hub-list`, `.client-list` y las reglas propias de `.client-hub-card`)
+   no lo emite ningún módulo v2 y se retiró en la ronda `al`/`al-2`. */
 .archived-capsule{margin-top:var(--ui-space-4);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--ui-space-3);background:color-mix(in srgb,var(--violet-soft) 16%,transparent)}
 .archived-capsule summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:var(--ui-space-2)}
 .archived-capsule[open] summary{margin-bottom:var(--ui-space-3)}

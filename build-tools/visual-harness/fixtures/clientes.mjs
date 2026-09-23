@@ -9,7 +9,7 @@
  *   - app/ui-v2.tsx (ListGrid/ListRow: misma plantilla en encabezado y filas)
  *   - app/client-directory-toolbar.tsx (barra del directorio en el shell)
  *   - app/client-identity.tsx (ClientIdentity) y app/archive-controls.tsx (acciones)
- * Los objetos compartidos (Badge/IconAction/CeldaMoneda/SearchField/Select/
+ * Los objetos compartidos (Badge/IconAction/MoneyText/SearchField/Select/
  * ListGridToggle/Button) se renderizan con `renderToStaticMarkup` sobre
  * owncoding-ui, como en referencias-v2.mjs.
  *
@@ -19,10 +19,17 @@
  */
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {Badge, Button, CeldaMoneda, IconAction, Label, ListGridToggle, SearchField, Select} from 'owncoding-ui';
+import {Badge, Button, IconAction, Label, ListGridToggle, SearchField, Select} from 'owncoding-ui';
 
 const h = React.createElement;
 const noop = () => {};
+
+/* app/operations.tsx money(): el mismo formateador que usa app/ui-v2.tsx. */
+const money = (value, currency = 'PYG') => new Intl.NumberFormat('es-PY', {style: 'currency', currency, maximumFractionDigits: currency === 'PYG' ? 0 : 2}).format(Number(value));
+
+/* ── Réplica de app/ui-v2.tsx MoneyText (única celda de dinero v2) ─────────── */
+const MONEY_TONE = {ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', mute: 'text-mute', info: 'text-info'};
+const MoneyText = ({valor, currency = 'PYG', tono = '', className = ''}) => h('span', {className: `inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className}`.trim()}, money(valor, currency));
 
 /* ── Réplica de app/ui-v2.tsx (ListGrid/ListRow: mismas clases) ─────────────── */
 const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_16rem]';
@@ -88,6 +95,7 @@ const clients = [
     due: '17-sept',
     mora: ['warn', '23 días de mora'],
     balance: [1234567890, 'PYG'],
+    balanceTone: 'bad',
     missingPrice: true,
   },
   {
@@ -153,7 +161,7 @@ const clientRow = (client) => h('div', {
   h('div', {className: 'min-w-0'}, h(StateChip, {tone: client.status[0], title: client.status[1]}, client.status[1])),
   h('div', {className: 'flex min-w-0 items-center justify-between gap-2'},
     client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : h('span', {className: 'text-[11px] text-mute'}, 'Sin datos de cobro'),
-    client.balance ? h(CeldaMoneda, {valor: client.balance[0], currency: client.balance[1]}) : h('span', {className: 'whitespace-nowrap text-[11px] text-mute'}, 'Sin saldo')),
+    client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone}) : h('span', {className: 'whitespace-nowrap text-[11px] text-mute'}, 'Sin saldo')),
   h('div', {className: 'min-w-0 text-[11.5px] text-mute'},
     h('span', {className: 'block truncate', title: `${client.projects} proyectos activos · ${client.pieces} piezas en curso`},
       client.projects || client.pieces
@@ -187,7 +195,7 @@ const clientTile = (client) => h('article', {
     h('div', {className: 'col-span-2'}, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cartera'), h('dd', {className: 'mt-0.5 text-fore'}, client.projects || client.pieces ? `${client.projects} proyectos · ${client.pieces} piezas${client.due ? ` · próxima entrega ${client.due}` : ''}` : 'Sin proyectos activos'))),
   h('div', {className: 'flex flex-wrap items-center gap-2'},
     client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : null,
-    client.balance ? h(CeldaMoneda, {valor: client.balance[0], currency: client.balance[1]}) : h('span', {className: 'text-[11px] text-mute'}, 'Sin saldo pendiente'),
+    client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone}) : h('span', {className: 'text-[11px] text-mute'}, 'Sin saldo pendiente'),
     client.missingPrice ? PriceMissing : null),
   h('footer', {className: 'silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]'},
     h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),

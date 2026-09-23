@@ -152,7 +152,7 @@ test('presupuestos: KPIs, filas con encabezado, moneda distinta y estados',async
  assert.match(copy,/Total sin IVA/);
  assert.equal(renderer.root.findAllByProps({role:'table'}).length,1,'la lista declara su tabla accesible');
  for(const column of ['Presupuesto','Cliente','Estado','Ítems','Vigencia','Sin IVA','Total','Acciones'])assert.match(copy,new RegExp(column),`encabezado ${column}`);
- assert.match(copy,/BRL[^0-9]*1\.000,00/,'un presupuesto en BRL conserva su moneda (CeldaMoneda solo cubre PYG/USD)');
+ assert.match(copy,/BRL[^0-9]*1\.000,00/,'un presupuesto en BRL conserva su moneda con la celda de dinero v2');
  assert.match(copy,/Aceptado/);assert.match(copy,/Enviado/);
  act(()=>renderer.unmount());
 

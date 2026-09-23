@@ -7,6 +7,8 @@
  */
 
 const label = (text) => `<div class="text-[11px] font-medium uppercase tracking-wider text-mute">${text}</div>`;
+/* app/ui-v2.tsx MoneyText: la celda de dinero v2 (mismas clases que el markup real). */
+const moneyText = (text, extra = '') => `<span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums${extra ? ` ${extra}` : ''}">${text}</span>`;
 const kpi = (text, value, hint, destacado = false) => `<div class="relative overflow-hidden rounded-xl border ${destacado ? 'border-fono/30 bg-gradient-to-br from-fono-dark via-fono to-fono' : 'border-ink-600 bg-ink-800'} p-4">
  <div class="text-[11px] font-medium uppercase tracking-wider ${destacado ? 'text-onbrand/75' : 'text-mute'}">${text}</div>
  <div class="mt-1.5 text-2xl font-semibold tracking-tight md:text-3xl ${destacado ? 'text-onbrand' : 'text-fore'}">${value}</div>
@@ -28,8 +30,8 @@ const budgetRow = ({number, title, client, tone, state, items, valid, due, subto
  <span class="min-w-0">${stateChip(tone, state)}</span>
  <span class="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">${items}</span>
  <span class="list-date min-w-0 whitespace-nowrap text-[11px] text-mute"${due ? ' data-tone="warn"' : ''} title="${valid}">${valid}</span>
- <span class="text-right"><span class="whitespace-nowrap font-semibold tabular-nums text-fore">${subtotal}</span></span>
- <span class="text-right"><b class="whitespace-nowrap text-[13.5px] font-bold tabular-nums text-fore">${total}</b></span>
+ <span class="text-right">${moneyText(subtotal, 'text-fore')}</span>
+ <span class="text-right">${moneyText(total, 'text-[13.5px] text-fore')}</span>
  <span class="flex min-w-0 items-center justify-end gap-2"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="h-7 w-7 rounded-lg border border-transparent text-mute" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
 </div>`;
 const presupuestosSection = `<section class="directory grid gap-4" aria-label="Presupuestos">
@@ -104,14 +106,14 @@ const planesSection = `<section class="directory grid gap-4" aria-label="Planes 
 /* ---- Pipeline: KPIs, totales por etapa y tablero kanban ----------------- */
 const leadCard = ({name, amount, probability, email, tone}) => `<article class="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
  <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title="${name}">${name}</b><button type="button" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-mute" title="Mover ${name}" aria-label="Mover ${name}">⠿</button></header>
- <span class="whitespace-nowrap text-sm font-bold tabular-nums text-fore">${amount}</span>
+ ${moneyText(amount, 'text-sm text-fore')}
  <div class="flex flex-wrap items-center gap-2 text-[11px]">${stateChip(tone, `${probability}%`)}<span class="min-w-0 text-mute [overflow-wrap:anywhere]">${email}</span></div>
  <p class="text-[11px] leading-4 text-mute [overflow-wrap:anywhere]">Próximo paso: enviar la propuesta ajustada y confirmar fecha de rodaje.</p>
  <footer class="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2"><button type="button" class="inline-flex h-8 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute">Ver oportunidad</button></footer>
 </article>`;
 const leadColumn = (name, count, weighted, cards, readOnly = false) => `<section aria-label="${name} · ${count} oportunidades" class="grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3">
  <header class="flex items-baseline justify-between gap-2"><h3 class="text-sm font-bold text-fore">${name}${readOnly ? ' · desactivada' : ''}</h3><span class="text-xs tabular-nums text-mute">${count}</span></header>
- ${weighted ? `<div class="grid gap-0.5 text-[11px] tabular-nums text-mute"><span class="whitespace-nowrap">${weighted}</span></div>` : ''}
+ ${weighted ? `<div class="grid gap-0.5 text-[11px] tabular-nums text-mute"><span class="whitespace-nowrap">${moneyText(weighted)} ponderado</span></div>` : ''}
  ${cards || '<p class="text-xs text-mute">Sin oportunidades.</p>'}
 </section>`;
 const pipelineSection = `<section class="grid gap-4" aria-label="Pipeline comercial">
@@ -119,21 +121,21 @@ const pipelineSection = `<section class="grid gap-4" aria-label="Pipeline comerc
    kpi('Oportunidades abiertas', '6', 'Sin ganar ni perder', true),
    kpi('Ganadas', '2', 'Conversiones cerradas'),
    kpi('Consultas web', '3', 'Origen: landing Scale OS'),
-   kpi('Valor abierto', 'Gs. 44.000.000 · US$ 1.200', 'Sin convertir monedas'),
+   kpi('Valor abierto', `<span class="silent-scroll flex flex-wrap items-baseline gap-2 overflow-x-auto">${moneyText('Gs. 44.000.000')}${moneyText('US$ 1.200,00')}</span>`, 'Sin convertir monedas'),
  ].join(''))}
  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Totales por etapa">
-  <article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><h3 class="text-sm font-bold text-fore">Contactado</h3><p class="mt-1 text-2xl font-semibold tabular-nums text-fore">3</p><p class="text-[11px] text-mute">oportunidades</p><div class="mt-2 grid gap-0.5 text-[11px] tabular-nums"><span class="whitespace-nowrap text-fore">Gs. 12.500.000 ponderado</span><span class="whitespace-nowrap text-mute">Gs. 25.000.000 abierto</span></div></article>
-  <article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><h3 class="text-sm font-bold text-fore">Propuesta</h3><p class="mt-1 text-2xl font-semibold tabular-nums text-fore">2</p><p class="text-[11px] text-mute">oportunidades</p><div class="mt-2 grid gap-0.5 text-[11px] tabular-nums"><span class="whitespace-nowrap text-fore">US$ 840,00 ponderado</span><span class="whitespace-nowrap text-mute">US$ 1.200,00 abierto</span></div></article>
+  <article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><h3 class="text-sm font-bold text-fore">Contactado</h3><p class="mt-1 text-2xl font-semibold tabular-nums text-fore">3</p><p class="text-[11px] text-mute">oportunidades</p><div class="mt-2 grid gap-0.5 text-[11px] tabular-nums"><span class="whitespace-nowrap text-fore">${moneyText('Gs. 12.500.000')} ponderado</span><span class="whitespace-nowrap text-mute">${moneyText('Gs. 25.000.000')} abierto</span></div></article>
+  <article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><h3 class="text-sm font-bold text-fore">Propuesta</h3><p class="mt-1 text-2xl font-semibold tabular-nums text-fore">2</p><p class="text-[11px] text-mute">oportunidades</p><div class="mt-2 grid gap-0.5 text-[11px] tabular-nums"><span class="whitespace-nowrap text-fore">${moneyText('US$ 840,00')} ponderado</span><span class="whitespace-nowrap text-mute">${moneyText('US$ 1.200,00')} abierto</span></div></article>
   <article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><h3 class="text-sm font-bold text-fore">Ganado</h3><p class="mt-1 text-2xl font-semibold tabular-nums text-fore">2</p><p class="text-[11px] text-mute">oportunidades</p><div class="mt-2 grid gap-0.5 text-[11px] tabular-nums"><span class="whitespace-nowrap text-mute">Sin montos cargados</span></div></article>
  </div>
  <div class="flex flex-wrap items-center justify-end gap-2"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg border border-ink-500 px-4 text-sm font-semibold text-fore md:h-9">Etapas</button><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg bg-fono px-4 text-sm font-semibold text-onbrand md:h-9">+ Nueva oportunidad</button></div>
  <div class="grid gap-2">
   <div class="flex items-center gap-2 text-[11px] text-mute">Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%.</div>
   <div class="flex gap-3 overflow-x-auto pb-2">
-   ${leadColumn('Nuevo lead', 1, 'Gs. 6.000.000 ponderado', leadCard({name: 'Consultorio Dental Sonrisa', amount: 'Gs. 6.000.000', probability: 30, email: 'contacto@sonrisa.com.py', tone: 'mute'}))}
-   ${leadColumn('Contactado', 2, 'Gs. 12.500.000 ponderado', leadCard({name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', amount: 'Gs. 25.000.000', probability: 50, email: 'compras@coopservicios.com.py', tone: 'warn'}) + leadCard({name: 'Estudio Ñandú', amount: 'Gs. 4.000.000', probability: 40, email: 'hola@arbol.example', tone: 'warn'}))}
-   ${leadColumn('Propuesta', 1, 'US$ 840,00 ponderado', leadCard({name: 'Fundación Niñez y Comunidad', amount: 'US$ 1.200,00', probability: 70, email: 'contacto@ninezcomunidad.org.py', tone: 'ok'}))}
-   ${leadColumn('propuesta-vieja', 1, 'US$ 20,00 ponderado', leadCard({name: 'Cliente histórico sin etapa activa', amount: 'US$ 100,00', probability: 20, email: 'histórico@ejemplo.com', tone: 'mute'}), true)}
+   ${leadColumn('Nuevo lead', 1, 'Gs. 6.000.000', leadCard({name: 'Consultorio Dental Sonrisa', amount: 'Gs. 6.000.000', probability: 30, email: 'contacto@sonrisa.com.py', tone: 'mute'}))}
+   ${leadColumn('Contactado', 2, 'Gs. 12.500.000', leadCard({name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', amount: 'Gs. 25.000.000', probability: 50, email: 'compras@coopservicios.com.py', tone: 'warn'}) + leadCard({name: 'Estudio Ñandú', amount: 'Gs. 4.000.000', probability: 40, email: 'hola@arbol.example', tone: 'warn'}))}
+   ${leadColumn('Propuesta', 1, 'US$ 840,00', leadCard({name: 'Fundación Niñez y Comunidad', amount: 'US$ 1.200,00', probability: 70, email: 'contacto@ninezcomunidad.org.py', tone: 'ok'}))}
+   ${leadColumn('propuesta-vieja', 1, 'US$ 20,00', leadCard({name: 'Cliente histórico sin etapa activa', amount: 'US$ 100,00', probability: 20, email: 'histórico@ejemplo.com', tone: 'mute'}), true)}
   </div>
  </div>
 </section>`;
