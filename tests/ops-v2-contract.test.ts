@@ -140,7 +140,7 @@ for(const [name,source] of [['inventario',inventory],['estudio',studio],['ficha 
 }
 assert.match(inventory,/const ROW_ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:\[&>button\]:h-7 md:\[&>button\]:w-7'/,'las filas de inventario son táctiles en mobile');
 assert.match(studio,/const ROW_ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:\[&>button\]:h-7 md:\[&>button\]:w-7'/,'las filas del estudio son táctiles en mobile');
-assert.match(board,/flex h-11 w-11 shrink-0 cursor-grab touch-none/,'el handle de arrastre del tablero es táctil de 44 px');
+assert.match(board,/role="img" aria-label=\{`Mover \$\{order\.title\}`\}/,'el ⋮⋮ se anuncia como señal de movimiento (la tarjeta entera arrastra)');
 assert.match(planner,/Subtabs[^>]*\[&>button\]:min-h-11 md:\[&>button\]:min-h-9/,'los subtabs del planificador son táctiles en mobile');
 assert.match(planner,/\[&_a\]:inline-flex \[&_a\]:min-h-11/,'los enlaces de Drive de la pieza son táctiles');
 assert.match(projectCard,/\[&_a\]:inline-flex \[&_a\]:min-h-11/,'los enlaces de Drive de la ficha de proyecto son táctiles');
