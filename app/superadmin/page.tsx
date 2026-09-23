@@ -7,19 +7,10 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Building2,
-  CircleAlert,
   CircleCheck,
-  Eye,
-  KeyRound,
-  PauseCircle,
-  PlayCircle,
   RefreshCw,
-  ShieldAlert,
-  ShieldCheck,
   Ticket,
-  Trash2,
   Users,
-  X,
 } from "lucide-react";
 import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
@@ -40,6 +31,7 @@ import {
   type Agency,
   type AuditAction,
   type BootstrapStatus,
+  type ConfirmRequest,
   type Coupon,
   type Overview,
   type Person,
@@ -52,10 +44,10 @@ import {PlatformAccess} from "./access";
 import {PlatformCatalog} from "./catalog";
 import {SubscriptionDialog} from "./subscription-dialog";
 import {PlatformAudit} from "./audit";
+import {PlatformConfirmDialog} from "./confirm";
 import { soloDigitos } from "owncoding-ui";
 import { decimalInput } from "../field-rules";
 import { SelectCustom } from "../profile-controls";
-import { Dialog } from "../dialog";
 import { SaveActions } from "../save-actions";
 
 
@@ -90,9 +82,7 @@ export default function PlatformAdmin() {
   const [extendKey, setExtendKey] = useState("");
   const [myRole, setMyRole] = useState<"admin" | "viewer" | null>(null);
   const [myUserId, setMyUserId] = useState("");
-  const [confirming, setConfirming] = useState<
-    { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null
-  >(null);
+  const [confirming, setConfirming] = useState<ConfirmRequest>(null);
   const [typed, setTyped] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [authMethod, setAuthMethod] = useState<"password" | "email">("password");
@@ -179,6 +169,7 @@ export default function PlatformAdmin() {
 
   const writable = myRole === "admin";
   const selfRow = (person: Person) => String(person.id) === myUserId;
+  const confirmingSelf = confirming?.kind === "user" && selfRow(confirming.person);
   async function setPlatformAccess(
     person: Person,
     platform_access: "admin" | "viewer" | "none",
@@ -601,16 +592,25 @@ export default function PlatformAdmin() {
       {actionNotice && <p className="platform-admin-status-note" role="status">{actionNotice}</p>}
       {actionError && <p className="platform-admin-status-note error" role="alert">{actionError}</p>}
       {confirming && writable && (
-        <Dialog
-          title={
-            confirming.kind === "user"
-              ? selfRow(confirming.person)
-                ? "Eliminar mi cuenta"
-                : "Eliminar usuario"
-              : "Eliminar agencia"
-          }
+        <PlatformConfirmDialog
+          request={confirming}
           busy={busy}
-          close={() => {
+          self={confirmingSelf}
+          emailSending={emailSending}
+          typed={typed}
+          setTyped={setTyped}
+          confirmPassword={confirmPassword}
+          setConfirmPassword={setConfirmPassword}
+          authMethod={authMethod}
+          onSwitchAuth={() => {
+            setAuthMethod(authMethod === "password" ? "email" : "password");
+            setActionError("");
+            setActionNotice("");
+          }}
+          emailSent={emailSent}
+          emailCode={emailCode}
+          setEmailCode={setEmailCode}
+          onClose={() => {
             if (busy) return;
             setConfirming(null);
             setTyped("");
@@ -620,110 +620,9 @@ export default function PlatformAdmin() {
             setEmailSent(false);
             setEmailCode("");
           }}
-        >
-          <p className="form-note">
-            {confirming.kind === "user"
-              ? selfRow(confirming.person)
-                ? "Se eliminará tu usuario y las agencias que poseas. Solo vos podés eliminar tu propia cuenta. Esta acción es irreversible."
-                : `Se eliminará ${confirming.person.email} y, si es dueño, sus agencias completas. Esta acción es irreversible.`
-              : `Se eliminará la agencia ${confirming.agency.name} con todos sus datos. Esta acción es irreversible.`}
-          </p>
-          <label className="platform-admin-confirm">
-            Escribí{" "}
-            <strong>
-              {confirming.kind === "user"
-                ? confirming.person.email
-                : confirming.agency.name}
-            </strong>{" "}
-            para confirmar
-            <input
-              value={typed}
-              disabled={busy}
-              autoComplete="off"
-              onChange={(event) => setTyped(event.target.value)}
-            />
-          </label>
-          {authMethod === "password" ? (
-            <label className="platform-admin-confirm">
-              Confirmá tu identidad con tu contraseña actual
-              <input
-                type="password"
-                value={confirmPassword}
-                disabled={busy}
-                autoComplete="current-password"
-                maxLength={128}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-              />
-            </label>
-          ) : (
-            <div className="form-stack">
-              <p className="form-note">
-                Para cuentas sin contraseña (Google): te enviamos un código de 8 dígitos al correo registrado.
-              </p>
-              {emailSent ? (
-                <label className="platform-admin-confirm">
-                  Código recibido
-                  <input
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={8}
-                    value={emailCode}
-                    disabled={busy}
-                    onChange={(event) =>
-                      setEmailCode(event.target.value.replace(/\D/g, "").slice(0, 8))
-                    }
-                  />
-                </label>
-              ) : (
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={
-                    busy ||
-                    emailSending ||
-                    typed !==
-                      (confirming.kind === "user"
-                        ? confirming.person.email
-                        : confirming.agency.name)
-                  }
-                  onClick={() => void requestEmailCode()}
-                >
-                  {emailSending ? "Enviando…" : "Enviar código a mi correo"}
-                </button>
-              )}
-            </div>
-          )}
-          <button
-            type="button"
-            className="text-button"
-            disabled={busy}
-            onClick={() => {
-              setAuthMethod(authMethod === "password" ? "email" : "password");
-              setActionError("");
-              setActionNotice("");
-            }}
-          >
-            {authMethod === "password"
-              ? "No tengo contraseña (usar código por correo)"
-              : "Usar mi contraseña"}
-          </button>
-          <div className="inline-actions">
-            <button
-              className="primary"
-              disabled={
-                busy ||
-                (authMethod === "password" ? !confirmPassword : emailCode.length !== 8) ||
-                typed !==
-                  (confirming.kind === "user"
-                    ? confirming.person.email
-                    : confirming.agency.name)
-              }
-              onClick={() => void removeConfirmed()}
-            >
-              {busy ? "Eliminando…" : "Eliminar definitivamente"}
-            </button>
-          </div>
-        </Dialog>
+          onRequestEmailCode={() => void requestEmailCode()}
+          onRemove={() => void removeConfirmed()}
+        />
       )}
       <WorkspaceFooter />
     </main>
