@@ -159,7 +159,20 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/projects' && req.method === 'GET') {
       const user=await session(req); if(!user) return send(res,401,{error:'No autenticado'});
-      const r=await db.query(`select p.*,c.name as client_name,coalesce((select jsonb_agg(jsonb_build_object('id',a.user_id::text,'full_name',coalesce(nullif(i.full_name,''),i.email),'photo_url',i.photo_url,'is_primary',a.is_primary) order by a.is_primary desc,a.user_id) from agency_record_assignees a join organization_person_identity i on i.organization_id=a.organization_id and i.user_id=a.user_id where a.organization_id=p.organization_id and a.kind='projects' and a.record_id=p.id),'[]'::jsonb) as assignees,count(o.id)::int as work_order_count from agency_projects p join agency_clients c on c.id=p.client_id left join agency_work_orders o on o.project_id=p.id and ${visibleRecord('o','work-orders')} where p.organization_id=$1 and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} group by p.id,c.name order by p.active desc,p.created_at desc`,[user.organization_id]);
+      // Asignados y conteo en dos pasadas únicas (antes: una subconsulta agregada
+      // correlacionada por proyecto, que repetía la vista expandida 500 veces).
+      const r=await db.query(`with assignees as (
+        select a.record_id,jsonb_agg(jsonb_build_object('id',a.user_id::text,'full_name',coalesce(nullif(i.full_name,''),i.email),'photo_url',i.photo_url,'is_primary',a.is_primary) order by a.is_primary desc,a.user_id) as assignees
+        from agency_record_assignees a join organization_person_identity i on i.organization_id=a.organization_id and i.user_id=a.user_id
+        where a.organization_id=$1 and a.kind='projects' group by a.record_id
+      ), counts as (
+        select o.project_id,count(*)::int as work_order_count from agency_work_orders o
+        where o.organization_id=$1 and ${visibleRecord('o','work-orders')} group by o.project_id
+      ) select p.*,c.name as client_name,coalesce(ag.assignees,'[]'::jsonb) as assignees,coalesce(cnt.work_order_count,0) as work_order_count
+      from agency_projects p join agency_clients c on c.id=p.client_id
+      left join assignees ag on ag.record_id=p.id
+      left join counts cnt on cnt.project_id=p.id
+      where p.organization_id=$1 and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by p.active desc,p.created_at desc`,[user.organization_id]);
       return send(res,200,{projects:r.rows});
     }
     if (url.pathname === '/api/agency/projects' && req.method === 'POST') {
@@ -174,7 +187,16 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/work-orders' && req.method === 'GET') {
       const user=await session(req); if(!user) return send(res,401,{error:'No autenticado'});
-      const r=await db.query(`select o.*,p.name as project_name,c.name as client_name,u.email as assignee_email from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id left join users u on u.id=o.assigned_user_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by o.updated_at desc`,[user.organization_id]);
+      // Paginación opcional (sin cambiar el contrato por defecto): `limit`/`offset`
+      // dejan acotar la respuesta más pesada del panel; el front decide cuándo usarla.
+      const limitRaw=url.searchParams.get('limit'),offsetRaw=url.searchParams.get('offset');
+      const limit=limitRaw===null?null:Number(limitRaw),offset=offsetRaw===null?0:Number(offsetRaw);
+      if(limitRaw!==null&&(!Number.isSafeInteger(limit)||limit<1||limit>2000))return send(res,400,{error:'Paginación inválida'});
+      if(offsetRaw!==null&&(limitRaw===null||!Number.isSafeInteger(offset)||offset<0))return send(res,400,{error:'Paginación inválida'});
+      const paginated=limit!==null;
+      const r=await db.query(`select o.*,p.name as project_name,c.name as client_name,u.email as assignee_email from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id left join users u on u.id=o.assigned_user_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by o.updated_at desc,o.id desc${paginated?' limit $2 offset $3':''}`,paginated?[user.organization_id,limit+1,offset]:[user.organization_id]);
+      const hasMore=paginated&&r.rows.length>limit;
+      if(hasMore)r.rows.length=limit;
       await enrichWorkOrderAssignees(db,user.organization_id,r.rows);
       const ids=[...new Set(r.rows.map(row=>String(row.id)))];
       if(ids.length){
@@ -182,7 +204,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         const byId=new Map(checklists.map(row=>[String(row.work_order_id),row]));
         for(const row of r.rows){const counts=byId.get(String(row.id));row.checklist_total=counts?.checklist_total||0;row.checklist_completed=counts?.checklist_completed||0;}
       } else for(const row of r.rows){row.checklist_total=0;row.checklist_completed=0;}
-      return send(res,200,{workOrders:r.rows});
+      return send(res,200,paginated?{workOrders:r.rows,page:{limit,offset,hasMore}}:{workOrders:r.rows});
     }
     if (url.pathname === '/api/agency/work-orders' && req.method === 'POST') {
       const user = await session(req); if (!roleCan(user,'work-orders.edit')) return send(res,403,{error:'Sin permiso'});

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {suite} from './agency-suite.js';
+import {agencyCore} from './agency-core.js';
 import {pipelineStages} from './pipeline-stages.js';
 import {passwordAccess} from './password-access.js';
 import {collaboratorAccess} from './collaborator-access.js';
@@ -16,7 +17,7 @@ await pg.exec(await fs.readFile('migrations/20260910_client_links.sql','utf8'));
 for(const file of ['20260908_google_oauth.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260914_role_permissions.sql','20260918_collaborator_role_and_project_archive.sql','20260919_collaborator_role_member_checks.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
 await pg.exec(await fs.readFile('migrations/20260911_drive_links.sql','utf8'));
 await pg.exec(await fs.readFile('migrations/20260910_project_assignees.sql','utf8'));
-for(const file of ['20260914_salary_forecast.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260910_work_checklists.sql','20260910_notifications.sql','20260913_ruc_collaboration.sql','20260914_production_traceability.sql','20260915_planned_expense_kind.sql','20260915_inventory_photos.sql','20260915_salary_override_signed.sql','20260919_pipeline_stages.sql','20260920_currency_widening.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
+for(const file of ['20260914_salary_forecast.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260910_work_checklists.sql','20260910_notifications.sql','20260913_ruc_collaboration.sql','20260914_production_traceability.sql','20260915_planned_expense_kind.sql','20260915_inventory_photos.sql','20260915_salary_override_signed.sql','20260919_pipeline_stages.sql','20260920_currency_widening.sql','20260923_agency_core_perf.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const serverSource=await fs.readFile(new URL('./server.js',import.meta.url),'utf8');
 assert(serverSource.indexOf('inventoryReservations({')<serverSource.indexOf('suite({'),'inventory routes are handled before the suite in server.js');
@@ -29,7 +30,7 @@ let resetToken='',sent=0;const grantedEmails=[];
 async function call(path,method='GET',payload={},as=user,form=''){
  let result={status:0};const req={method,socket:{remoteAddress:'127.0.0.1'},async *[Symbol.asyncIterator](){yield form;}};
  const args={req,res:{writeHead(status,headers){result={status,headers};},end(content){result.content=content;}},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{result={status,...data};},sendInvitation:async()=>true,sendAccessGranted:async(email,organizationName,role)=>{grantedEmails.push({email,organizationName,role});return true;},sendReset:async(_,token)=>{resetToken=token;sent++;return true;}};
- const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):await suite(args);assert.equal(handled,true);return result;
+ const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):path.startsWith('/api/agency/work-orders')&&method==='GET'&&!path.includes('/work-orders/')?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
 }
 const client=(await query("insert into agency_clients(organization_id,name) values($1,'Client') returning id",[org])).rows[0].id;
 const project=(await query("insert into agency_projects(organization_id,client_id,name,approval_levels) values($1,$2,'Project',2) returning id",[org,client])).rows[0].id;
@@ -194,4 +195,25 @@ assert.equal((await call('/api/agency/clients/batch','POST',{ids:['abc'],archive
 assert.equal((await call('/api/agency/projects/batch','POST',{ids:[batchProject],archived:true},{...user,role:'editor',capabilities:{'projects.edit':true,'work-orders.manage':false}})).status,200,'projects.edit authorizes the project batch');
 assert.equal((await call('/api/agency/projects/batch','POST',{ids:[batchProject],archived:false},{...user,role:'editor',capabilities:{'projects.edit':false,'work-orders.manage':true}})).status,403,'work-orders.manage cannot archive projects');
 assert.equal((await call('/api/agency/projects/batch','POST',{ids:[batchProject],archived:false},{...user,role:'editor',capabilities:{'projects.edit':true,'work-orders.manage':true}})).status,200);
+// Rendimiento (#46): la lista de órdenes acepta paginación opcional sin cambiar
+// el contrato por defecto (sin `limit` responde igual que siempre).
+const allOrders=(await call('/api/agency/work-orders')).workOrders;
+assert.equal(allOrders.length>=1,true,'hay órdenes visibles para paginar');
+const firstPage=await call('/api/agency/work-orders?limit=2');
+assert.equal(firstPage.status,200);
+assert.equal(firstPage.workOrders.length,Math.min(2,allOrders.length));
+assert.deepEqual(firstPage.page,{limit:2,offset:0,hasMore:allOrders.length>2});
+assert.equal(String(firstPage.workOrders[0].id),String(allOrders[0].id),'el orden por updated_at,id se mantiene al paginar');
+assert.equal(firstPage.workOrders.every(row=>Array.isArray(row.assignees)&&Array.isArray(row.effective_assignees)&&Number.isInteger(row.checklist_total)),true,'la página conserva asignados y checklist');
+const lastOffset=Math.max(0,allOrders.length-1);
+const tailPage=await call(`/api/agency/work-orders?limit=2&offset=${lastOffset}`);
+assert.equal(tailPage.status,200);
+assert.equal(tailPage.workOrders.length,Math.min(2,allOrders.length-lastOffset));
+assert.equal(tailPage.page.hasMore,false);
+assert.equal(String(tailPage.workOrders[0].id),String(allOrders[lastOffset].id),'la última página no repite ni omite filas');
+assert.equal((await call('/api/agency/work-orders?limit=0')).status,400);
+assert.equal((await call('/api/agency/work-orders?limit=abc')).status,400);
+assert.equal((await call('/api/agency/work-orders?limit=2001')).status,400);
+assert.equal((await call('/api/agency/work-orders?offset=1')).status,400,'offset exige limit');
+assert.equal((await call('/api/agency/work-orders?limit=2&offset=-1')).status,400);
 await pg.close();console.log('PASS: approvals, member suspension, tenant isolation, pipeline conversion, plans, inventory, dashboard permissions, public quotes, invoice idempotency, audit and password reset');

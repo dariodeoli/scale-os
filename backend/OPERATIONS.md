@@ -63,9 +63,12 @@ y `../VERSIONING.md`.
 | Plataforma | `npm --prefix backend run test:platform` | PGlite |
 | Migraciones (runner) | `npm --prefix backend run test:migrations-runner` | PGlite |
 | PostgreSQL real | `npm --prefix backend run test:postgres` | binarios `initdb`/`pg_ctl` (ver `POSTGRES-CONCURRENCY.md`) |
+| Benchmark de listas | `npm --prefix backend run bench:agency` | binarios `initdb`/`pg_ctl`; levanta un clúster temporal |
 
 La suite de PostgreSQL real no entra en `test:release` ni en CI: se corre al tocar
-inventario, tesorería o concurrencia de saldos.
+inventario, tesorería o concurrencia de saldos. El benchmark de listas tampoco:
+mide `work-orders`, `projects` e `inventario` con una semilla fija y sirve para
+comparar antes/después de un cambio de consultas o índices.
 
 ## Incidentes
 

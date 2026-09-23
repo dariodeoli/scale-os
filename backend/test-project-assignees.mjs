@@ -135,7 +135,7 @@ const inactiveOrder=(await query('select * from agency_work_orders where id=$1',
 assert.equal((await detail('work-orders',order,{title:'Replace inactive primary',expected_updated_at:inactiveOrder.updated_at,assignees:{assigned_user_ids:[user.id],assigned_user_id:user.id,expected_version:String(inactiveOrder.assignee_version)}})).status,200,'unified edit can remove inactive legacy primary');
 // Run the real list query with the production identity view and a foreign project.
 const server=await fs.readFile(new URL('server.js',import.meta.url),'utf8')+await fs.readFile(new URL('agency-core.js',import.meta.url),'utf8');
-const listSQL=server.match(/const r=await db.query\(`(select p\.\*,c\.name as client_name[^`]+)`/)[1].replaceAll("${visibleRecord('o','work-orders')}",'true').replaceAll("${visibleRecord('p','projects')}",'true').replaceAll("${visibleRecord('c','clients')}",'true');
+const listSQL=server.match(/const r=await db\.query\(`(with assignees as \([\s\S]+?)`,\[user\.organization_id\]\)/)[1].replaceAll("${visibleRecord('o','work-orders')}",'true').replaceAll("${visibleRecord('p','projects')}",'true').replaceAll("${visibleRecord('c','clients')}",'true');
 const listed=(await query(listSQL,[org])).rows;
 assert.ok(listed.every(row=>String(row.organization_id)===org),'project directory remains tenant scoped');
 assert.ok(!listed.some(row=>String(row.id)===foreignProject));

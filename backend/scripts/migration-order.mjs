@@ -86,4 +86,5 @@ export const migrationOrder = [
   '20260921_users_role_default.sql',
   '20260921_role_permissions_audit.sql',
   '20260921_platform_extend_idempotency.sql',
+  '20260923_agency_core_perf.sql',
 ];
