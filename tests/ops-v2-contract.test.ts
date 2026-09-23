@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const inventory=read('app/inventory-workspace.tsx'),studio=read('app/studio-workspace.tsx');
-const board=read('app/production-board.tsx'),planner=read('app/productivity-ui.tsx'),projects=read('app/sections/proyectos.tsx'),projectCard=read('app/project-card.tsx'),productionSection=read('app/sections/produccion.tsx');
+const board=read('app/production-board.tsx'),planner=read('app/productivity-ui.tsx'),projects=read('app/sections/proyectos.tsx'),projectCard=read('app/project-card.tsx'),productionSection=read('app/sections/produccion.tsx'),history=read('app/work-history.tsx');
 const uiV2=read('app/ui-v2.tsx');
 
 // ── Contrato v2 de OPS (campaña #41, spec #44): Tailwind + owncoding-ui +
@@ -117,4 +117,17 @@ assert.match(projectCard,/drive_links/,'el detalle muestra todos los enlaces');
 assert.match(projectCard,/Piezas del proyecto/,'el detalle lista las piezas del proyecto');
 for(const source of [projects,projectCard])assert.doesNotMatch(source,/truncate[^>]*(CeldaMoneda|listDate(Short|Full))\b/,'proyectos no recorta montos ni fechas');
 
-console.log('PASS contrato v2 OPS: inventario, estudio, producción y proyectos con Tailwind + owncoding-ui, una plantilla por lista, estados y sin recortar datos.');
+// ── Historial de trabajo (feed de auditoría, tomado de PLT).
+assert.match(history,/from 'owncoding-ui'/,'el historial usa la librería');
+assert.match(history,/from '\.\/ui-v2'/,'el historial usa las primitivas v2 (carga/vacío/error/aviso)');
+assert.match(history,/LoadingBlock/);assert.match(history,/EmptyBlock/);assert.match(history,/ErrorBlock/);
+assert.match(history,/const managers=roleCan\('role','work-orders\.manage'\)|const managers=roleCan\(role,'work-orders\.manage'\)/,'el historial completo sigue gateado por capacidad');
+assert.match(history,/useState\('10'\)/,'el paginado arranca en 10');
+assert.match(history,/URLSearchParams\({limit,offset:String\(offset\)}\)/,'el historial pagina contra el API');
+assert.match(history,/imported=\{source\}/,'la fuente importada no atribuye la acción a una cuenta de Scale OS');
+assert.doesNotMatch(history,/-history\.css'/,'no queda hoja propia del historial');
+assert(!existsSync(new URL('../app/work-history.css',import.meta.url)),'la hoja del historial se retiró');
+// InternalTasks (Resumen) no se toca en esta tanda.
+assert.match(history,/export function InternalTasks/,'InternalTasks sigue en el módulo');
+
+console.log('PASS contrato v2 OPS: inventario, estudio, producción, proyectos e historial con Tailwind + owncoding-ui, una plantilla por lista, estados y sin recortar datos.');

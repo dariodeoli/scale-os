@@ -10,7 +10,7 @@
  * app/presence.tsx UsagePanel, app/archive-controls.tsx TrashWorkspace,
  * app/company-settings.tsx, app/my-profile.tsx y app/scale-workspace.tsx (ajustes).
  * CSS contracts: app/operations.css, app/invite-links.css, app/permissions-matrix.css,
- * app/work-history.css, app/settings-slice.css, app/company-settings.css,
+ * app/settings-slice.css, app/company-settings.css,
  * app/my-profile.css, app/dialog.css y los primitivos de app/ui-system.css.
  *
  * Datos de estrés deliberados: nombres/correos largos, montos grandes, fechas con
@@ -297,11 +297,11 @@ const permissionsTable = `
 </table></div>`;
 
 /* ---------------------------------------------------- historial / actividad */
-const historyLine = ({actor, photo = '', timestamp, title, meta}) => `<article class="activity-line">
- <div class="history-author">${actorIdentity({name: actor, photo, timestamp})}</div>
- <p title="${title}">${title}</p>
- <small>${meta}</small>
-</article>`;
+const historyLine = ({actor, photo = '', timestamp, title, meta}) => `<li class="grid min-w-0 gap-1 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3">
+ ${actorIdentity({name: actor, photo, timestamp})}
+ <p class="break-words text-[13px] text-fore" title="${title}">${title}</p>
+ <p class="text-xs text-mute">${meta}</p>
+</li>`;
 
 const activityDay = ({label, count, rows}) => `<section class="activity-day">
  <h3 class="activity-day-title">${label} <span>${count}</span></h3>
@@ -493,29 +493,34 @@ export default [
     surface: 'Auditoría operativa',
     kind: 'workspace',
     lists: [{
-      container: '.work-history',
+      container: '[aria-label="Historial de trabajo"]',
       head: null,
-      row: '.activity-line',
+      row: 'li',
       label: 'Historial · actividad',
       template: null,
-      rowHeight: [44, 52],
-      exemptBelow: 760,
+      // El historial es un feed de bloques apilados (excepción de AGENTS.md),
+      // no una lista de filas finitas: se mide el rango del bloque.
+      rowHeight: [120, 260],
+      exemptBelow: 0,
     }],
     body: `
-<section class="panel work-history">
- <div class="panel-heading"><h2>Historial de trabajo</h2><button class="text-button">${svg(ICON.history, 14)}Ver historial importado de Trello</button></div>
- <p class="form-note">Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.</p>
- <div class="history-filters">
-  ${selectCustom({label: 'Persona', value: 'Todo el equipo'})}
-  ${selectCustom({label: 'Registros por página', value: '100'})}
+<section class="grid min-w-0 gap-4 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Historial de trabajo">
+ <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+  <div class="min-w-0"><h2 class="text-lg font-bold text-fore">Historial de trabajo</h2><p class="mt-1 text-xs leading-5 text-mute">Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.</p></div>
+  <button class="text-button shrink-0">${svg(ICON.history, 14)}Ver historial importado de Trello</button>
  </div>
- <div aria-busy="false">
+ <div class="mb-4 flex flex-wrap items-end gap-3">
+  <div class="w-full sm:w-72">${selectCustom({label: 'Persona', value: 'Todo el equipo'})}</div>
+  <div class="w-44">${selectCustom({label: 'Registros por página', value: '100'})}</div>
+  <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">1–4</p>
+ </div>
+ <ol class="grid min-w-0 gap-2">
   ${historyLine({actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-09-18T16:20:00-03:00', title: 'Rodaje campaña Primavera 2026 · Banco Atlas (estudio y exteriores)', meta: 'Creó ·  → reservado'})}
   ${historyLine({actor: 'Fabrizio Dellacasa Reyes', timestamp: '2026-09-17T09:48:00-03:00', title: 'Cámara Sony FX6 Full Frame con montura E, visor OLED y tarjeta CFexpress de 512 GB', meta: 'Actualizó · disponible → en uso'})}
-  ${historyLine({actor: 'Ana Paula Benítez de la Cruz', photo: '/brand/icon-192.png', timestamp: '2026-09-16T15:10:00-03:00', title: 'Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido)', meta: 'Actualizó · en uso → mantenimiento'})}
+  ${historyLine({actor: 'Ana Paula Benítez de la Cruz', photo: '/brand/icon-192.png', timestamp: '2026-09-16T15:10:00-03:00', title: 'Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido)', meta: 'Actualizó · en uso → disponible'})}
   ${historyLine({actor: 'Carlos Ramón Ovelar Giménez', timestamp: '2026-09-15T11:02:00-03:00', title: 'Presupuesto N.º 2026-0148 · Producción audiovisual integral y difusión en vía pública', meta: 'Eliminó'})}
- </div>
- <div class="history-pagination"><span role="status">1–4</span><button class="secondary" disabled>Anterior</button><button class="secondary">Siguiente</button></div>
+ </ol>
+ <div class="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3"><span class="mr-auto text-xs tabular-nums text-mute" role="status">1–4</span><button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore md:h-9" disabled>Anterior</button><button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore md:h-9">Siguiente</button></div>
 </section>`,
   },
 
