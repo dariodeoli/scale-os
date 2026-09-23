@@ -1,8 +1,9 @@
 # Despliegue — monorepo Scale OS
 
 Un repositorio (`dariodeoli/scale-os`), dos servicios en Coolify. El API vive en `backend/`
-desde la migración scale-os#34; su historial llegó con `git subtree` y su repo original
-(`dariodeoli/scale-core-api`) se archiva. No hay dos pushes por release ni dos backlogs.
+desde la migración scale-os#34; su historial llegó con `git subtree`, el servicio de Coolify
+ya construye desde este repositorio y el repo original (`dariodeoli/scale-core-api`) quedó
+**archivado**. No hay dos pushes por release ni dos backlogs.
 
 ## Servicios
 
@@ -20,13 +21,11 @@ desde la migración scale-os#34; su historial llegó con `git subtree` y su repo
   `schema.sql` y la lista curada de `server.js`; no hay paso manual de migración en el
   deploy. `/health` responde `{ok, database, release:{version}}` (503 mientras la base
   inicializa). El `release.version` sale de `backend/release-version.json`, sincronizado
-  con la versión central.
-- **Fase 2 (cambio de base del servicio API — lo hace Dario)**: el servicio API de Coolify
-  hoy construye desde el repo `dariodeoli/scale-core-api`; en la ventana coordinada se
-  cambia a repositorio `dariodeoli/scale-os` con **base directory `backend/`**, el mismo
-  dominio, las mismas variables de entorno y el Dockerfile `backend/Dockerfile`. Hasta ese
-  cambio, el API sigue desplegándose desde el repo viejo: no tocar la configuración del
-  servicio en Fase 1.
+  con la versión central. Manual operativo del servicio: `backend/OPERATIONS.md`.
+- **Estado de la migración**: completada (Refs #34). La Fase 2 cambió el servicio API a
+  repositorio `dariodeoli/scale-os` con base directory `backend/`, mismo dominio, mismas
+  variables y Dockerfile `backend/Dockerfile`; la Fase 3 archivó el repo viejo. Si Coolify
+  se reconfigura, esos son los valores que deben conservarse.
 
 ## Disparo del deploy
 
@@ -52,9 +51,14 @@ Comprobar además que `/health` del API devuelve `release.version` nueva y que l
 muestra el footer con esa versión. La protección de `main` en GitHub exige CI strict
 (front + backend) y no admite force-push.
 
-## Checklist de Fase 2 (ventana coordinada)
+Si la rama tocó inventario, tesorería o concurrencia de saldos, sumar
+`npm --prefix backend run test:postgres` (binarios `initdb`/`pg_ctl`; ver
+`backend/POSTGRES-CONCURRENCY.md`): esa suite no entra en `release:patch` ni en CI.
 
-1. Dario cambia el servicio API de Coolify a `dariodeoli/scale-os` con base `backend/`.
-2. El integrador mergea `SOS-MIG` y corre `npm run release:patch` (v1.0.103) + smoke.
-3. Confirmar que ambos servicios sirven la versión nueva antes de archivar
-   `dariodeoli/scale-core-api` (Fase 3).
+## Verificación de la migración (23-09-2026)
+
+- `api.scaleparaguay.com/health` → HTTP 200 con `release.version` `1.0.107` y
+  `database: "ready"`; la web responde 200 en `/status`.
+- `dariodeoli/scale-core-api` figura archivado en GitHub.
+- El rollout de la migración quedó registrado en las releases v1.0.106/v1.0.107; no hay
+  pasos pendientes de Fase 2 ni de Fase 3.

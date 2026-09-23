@@ -34,6 +34,15 @@ Reemplazar gradualmente el tablero de Trello por una plataforma que conecte clie
 4. Los movimientos financieros requieren permiso explícito y quedan auditados.
 5. Los precios comerciales vigentes se mantienen en una configuración versionada; no se codifican como texto fijo.
 
-## Próximo paso técnico
+## Estado actual y onboarding técnico
 
-Implementar la base Node.js/Express + Next.js/PostgreSQL/Prisma en este directorio y conectar el despliegue al proyecto correspondiente del hub de Owncoding después de validar el destino exacto.
+El sistema está implementado y desplegado en dos servicios (web y API) desde este monorepo:
+
+- `app/`: web Next.js (App Router) — panel, portal del cliente, demo y superficies públicas.
+- `backend/`: API Express + PostgreSQL (`server.js`, `migrations/`); onboarding en
+  `backend/AGENTS.md` y manual operativo en `backend/OPERATIONS.md`.
+- `prisma/`: utilidades locales de base (`db:generate`, `db:migrate`, `db:seed`); el API
+  opera con SQL directo sobre `pg`.
+- Checks de entrega: `npm run test:release-regression` y `npx next build` (front);
+  `npm --prefix backend run test:release` (API). Deploy, versiones y smoke: `DEPLOYMENT.md`
+  y `VERSIONING.md`.
