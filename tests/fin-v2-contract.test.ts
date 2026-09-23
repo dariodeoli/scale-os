@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
+import {sectionSource} from './workspace-source';
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const pre=read('app/financial-forecast.tsx'),informes=read('app/reports-workspace.tsx'),weekly=read('app/weekly-automatic.tsx'),treasury=read('app/daily-controls.tsx');
 const uiV2=read('app/ui-v2.tsx');
@@ -65,5 +66,36 @@ for(const [name,source] of [['previsión',pre],['informes',informes],['producci�
 
 // ── Anchos de campo por tipo.
 assert.match(pre,/className="w-44"/);assert.match(informes,/className="w-44"/);assert.match(treasury,/className="w-40"/);
+
+
+// ── Secciones FIN (campaña #41): ui-v2, una plantilla por lista, montos por
+// contexto y fechas por list-format; Informes/Previsión montan los módulos v2.
+const finanzas=sectionSource('finanzas.tsx'),mora=sectionSource('mora.tsx'),comisiones=sectionSource('comisiones.tsx'),informesSection=sectionSource('informes.tsx'),previsionSection=sectionSource('prevision.tsx');
+for(const [name,source] of [['finanzas',finanzas],['mora',mora],['comisiones',comisiones]] as const){
+ assert.match(source,/from '\.\.\/ui-v2'/,'${name} usa las primitivas v2'.replace('${name}',name));
+ for(const primitive of ['ListGrid','EmptyBlock']) assert.match(source,new RegExp(primitive),`${name} usa ${primitive}`);
+ assert.doesNotMatch(source,/truncate|line-clamp/,'${name} no recorta montos, fechas, códigos ni nombres'.replace('${name}',name));
+ assert.match(source,/\bmoney\(/,'${name} formatea montos con money()'.replace('${name}',name));
+ assert.match(source,/listDate(Short|Full)/,'${name} usa list-format'.replace('${name}',name));
+ assert.doesNotMatch(source,/toLocaleString|toLocaleDateString/,'${name} no formatea fechas a mano'.replace('${name}',name));
+}
+for(const [name,source,templates] of [
+ ['finanzas',finanzas,['TRANSFER_TEMPLATE','INVOICE_TEMPLATE','PAYMENT_TEMPLATE']],
+ ['mora',mora,['MORA_TEMPLATE']],
+ ['comisiones',comisiones,['SETTLEMENT_TEMPLATE','COMMISSION_TEMPLATE','DISCOUNT_TEMPLATE','PAYOUT_TEMPLATE']],
+] as const){
+ for(const template of templates){
+  assert.match(source,new RegExp(`const ${template}\\s*=\\s*'grid-cols-\\[`),`${name}: ${template} declara la plantilla`);
+  assert.match(source,new RegExp(`template=\\{${template}\\}`),`${name}: ${template} se usa en la lista`);
+ }
+}
+assert.match(finanzas,/ErrorBlock/,'finanzas muestra el error de carga con reintento');
+assert.match(comisiones,/ErrorBlock/,'comisiones muestra el error de carga con reintento');
+assert.match(mora,/moraReportsError/,'mora informa el estado del DSO');
+assert.match(mora,/from '\.\.\/mora-data'/,'mora adopta su capa de datos');
+assert.match(comisiones,/from '\.\.\/commission-data'/,'comisiones adopta su capa de datos');
+assert.match(informesSection,/ReportsWorkspace/,'informes monta el módulo v2');
+assert.match(previsionSection,/FinancialForecast/,'previsión monta el módulo v2');
+assert.match(finanzas,/ReconciliationWorkspace/,'finanzas conserva la conciliación v2');
 
 console.log('PASS: contrato v2 FIN — librería + primitivas, estados, una plantilla por lista sin `auto`, sin elipsis, montos por contexto, fechas por list-format y anchos por tipo');

@@ -157,278 +157,130 @@ const kpi = (label, valor, hint = '') => `<div class="relative overflow-hidden r
 const tableBlock = (labels, rows) => `<div class="hidden max-h-[70vh] overflow-auto md:block"><table class="w-full text-sm"><thead class="sticky top-0 z-10 bg-ink-800"><tr class="border-b border-ink-600 text-left text-xs uppercase tracking-wider text-mute">${labels.map(([label, align]) => `<th class="px-2.5 py-1.5 font-medium${align === 'right' ? ' text-right' : ''}">${label}</th>`).join('')}</tr></thead><tbody>${rows.map(cells => `<tr class="border-b border-ink-600/60 last:border-0">${cells.map(([value, align]) => `<td class="px-2.5 py-1.5 text-fore${align === 'right' ? ' text-right' : ''}">${value}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 
 
-/* --------------- Finanzas: cuentas (cuadrícula) ---------------------- */
+/* Secciones FIN (app/sections/{finanzas,mora,comisiones}.tsx): ui-v2 + Tailwind.
+   Estas helpers espejan `ListGrid`/`ListRow`/`Kpi` de app/ui-v2.tsx. */
+const v2Card = 'grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4';
+const v2Kpi = (label, valor, hint = '', destacado = false) => `<div class="relative overflow-hidden rounded-xl border p-4 ${destacado ? 'border-fono/30 bg-gradient-to-br from-fono-dark via-fono to-fono' : 'border-ink-600 bg-ink-800'}"><div class="text-[11px] font-medium uppercase tracking-wider ${destacado ? 'text-onbrand/75' : 'text-mute'}">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight md:text-3xl ${destacado ? 'text-onbrand' : 'text-fore'}">${valor}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="${destacado ? 'text-onbrand/75' : 'text-mute'}">${hint}</span></div>` : ''}</div>`;
+const v2KpiStrip = (items) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${items.join('')}</div>`;
+const v2Grid = ({label, template, columns, rows, minWidth = 'min-w-[58rem]'}) => `<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto"><div class="${minWidth}"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">${columns.map((column, index) => `<span role="columnheader" class="${index === columns.length - 1 ? 'text-right ' : ''}whitespace-nowrap">${column}</span>`).join('')}</div><div role="rowgroup">${rows}</div></div></div>`;
+const v2Row = (template, cells) => `<div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${template}">${cells}</div>`;
+const v2Empty = (title, description = '') => `<div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="flex flex-col items-center justify-center px-6 py-6 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${icon(20, '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p>${description ? `<p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>` : ''}</div></div>`;
+const moneyCell = (text) => `<span class="whitespace-nowrap font-semibold tabular-nums text-fore">${text}</span>`;
+const chipMute = (text) => chip('mute', text);
+
+/* --------------- Finanzas: KPIs y cuentas (sección v2) ----------------- */
 const finanzasCuentas = {
   id: 'finanzas-cuentas',
   section: 'Finanzas',
-  surface: 'Cuentas por moneda (cuadrícula)',
+  surface: 'KPIs, cuentas y saldos (sección v2)',
   kind: 'workspace',
-  grids: [{container: '.finance-account-grid', card: '.finance-account-card', label: 'Finanzas · cuentas', minHeight: 200}],
+  grids: [{container: 'section[aria-labelledby="finance-accounts-title"] .grid', card: 'article', label: 'Finanzas · cuentas', minHeight: 200}],
   body: `
-<div class="kpi-strip" aria-label="Resumen financiero">
- <article class="kpi-card tone-brand">
-  <p class="eyebrow">DISPONIBLE</p>
-  <div class="kpi-amounts"><span>Gs. 1.987.654.321</span><span>USD 987.654</span></div>
-  <small>Saldo actual de cuentas activas por moneda</small>
- </article>
- <article class="kpi-card tone-warning">
-  <p class="eyebrow">POR COBRAR</p>
-  <div class="kpi-amounts"><span>Gs. 1.234.567.890</span><span>USD 12.345</span></div>
-  <small>Facturas emitidas o parciales con saldo pendiente</small>
- </article>
- <article class="kpi-card tone-blue">
-  <p class="eyebrow">FACTURAS CON SALDO</p>
-  <strong>12</strong>
-  <small>18 facturas cargadas</small>
- </article>
-</div>
-<section class="finance-grid">
- <section class="panel">
-  ${financePanelHeading('DISPONIBILIDAD', 'Cuentas', `<div class="inline-actions"><button class="text-button" type="button">${plusIcon(14)}+ Cuenta</button><button class="text-button" type="button">${transferIcon(14)}Transferir</button></div>`)}
-  <div class="finance-account-grid">
-   ${financeAccountCard({
-     name: 'Banco Continental S.A.E.C.A. · Cuenta corriente operativa',
-     type: 'Bancaria',
-     currency: 'PYG',
-     balance: 'Gs. 1.987.654.321',
-     number: '0012-34567890-01',
-     holder: 'Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.',
-   })}
-   ${financeAccountCard({name: 'Caja Chica Estudio', type: 'Efectivo', currency: 'PYG', balance: 'Gs. 12.345.678', holder: 'Administración'})}
-   ${financeAccountCard({
-     name: 'Wise Business · Cuenta internacional USD',
-     type: 'Digital',
-     currency: 'USD',
-     balance: 'USD 987.654,32',
-     number: '8310-2299-4410',
-     custodian: 'tesoreria.internacional@estudiocomunicacionparaguay.com.py',
-   })}
-   ${financeAccountCard({
-     name: 'Fondo de inversión a plazo fijo · Banco Atlas',
-     type: 'Inversión',
-     currency: 'PYG',
-     balance: 'Gs. 0',
-     number: '7890-11223344-00',
-     active: false,
-   })}
+<section class="grid gap-4" aria-label="Finanzas">
+ ${v2KpiStrip([
+   v2Kpi('DISPONIBLE', '<span class="flex flex-wrap items-baseline gap-2"><span>Gs. 1.234.567.890</span><span>USD 45.678</span></span>', 'Saldo actual de cuentas activas por moneda', true),
+   v2Kpi('POR COBRAR', '<span class="flex flex-wrap items-baseline gap-2"><span>Gs. 987.654.321</span><span>USD 12.500</span></span>', 'Facturas emitidas o parciales con saldo pendiente'),
+   v2Kpi('FACTURAS CON SALDO', '7', '24 facturas cargadas'),
+ ])}
+ <section class="${v2Card}" aria-labelledby="finance-accounts-title">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+   <div class="min-w-0"><h3 id="finance-accounts-title" class="text-[17px] font-semibold tracking-tight text-fore">Cuentas</h3><p class="mt-1 text-xs text-mute">Disponibilidad por cuenta y custodia.</p></div>
+   <div class="flex flex-wrap items-center gap-1"><button class="text-button" type="button">+ Cuenta</button><button class="text-button" type="button">Transferir</button></div>
+  </div>
+  <div class="grid gap-3 sm:grid-cols-2">
+   <article class="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4">
+    <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Banco Regional — Operativa">Banco Regional — Operativa</b>${chipMute('Bancaria · PYG')}</header>
+    <strong class="text-xl font-semibold tabular-nums text-fore">Gs. 1.100.000.000</strong>
+    <dl class="grid gap-1 text-[11.5px]">
+     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd class="min-w-0 text-right text-fore" title="Banco Regional S.A.">Banco Regional S.A.</dd></div>
+     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="0012-3456789-00">0012-3456789-00</dd></div>
+     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd class="min-w-0 text-right text-fore">Estudio Scale S.A.</dd></div>
+     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 text-right text-fore">finanzas@estudio.com.py</dd></div>
+    </dl>
+    <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Banco Regional — Operativa">${trashIcon(16)}</button></footer>
+   </article>
+   <article class="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4">
+    <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Caja Chica Estudio">Caja Chica Estudio</b>${chipMute('Efectivo · PYG')}</header>
+    <strong class="text-xl font-semibold tabular-nums text-fore">Gs. 134.567.890</strong>
+    <dl class="grid gap-1 text-[11.5px]">
+     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 text-right text-fore">caja@estudio.com.py</dd></div>
+    </dl>
+    <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Caja Chica Estudio">${trashIcon(16)}</button></footer>
+   </article>
+   <article class="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4">
+    <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Tarjeta corporativa USD">Tarjeta corporativa USD</b>${chipMute('Digital · USD')}</header>
+    <strong class="text-xl font-semibold tabular-nums text-fore">USD 45.678</strong>
+    <dl class="grid gap-1 text-[11.5px]">
+     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="**** 4821">**** 4821</dd></div>
+    </dl>
+    <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Tarjeta corporativa USD">${trashIcon(16)}</button></footer>
+   </article>
   </div>
  </section>
 </section>`,
 };
 
-/* --------------- Finanzas: movimientos (listas) ---------------------- */
-const finanzasMovimientos = {
+/* --------------- Finanzas: transferencias (sección v2) ----------------- */
+const finanzasTransferencias = {
   id: 'finanzas-movimientos',
   section: 'Finanzas',
-  surface: 'Movimientos y cobros (listas)',
+  surface: 'Transferencias entre cuentas (sección v2)',
   kind: 'workspace',
   lists: [
-    {
-      container: 'section.finance-grid > section.panel:nth-of-type(1) .client-list',
-      head: '.finance-row-head',
-      row: '.finance-transfer-row',
-      label: 'Finanzas · transferencias',
-      template: '--finance-cols',
-      rowHeight: [44, 52],
-    },
-    {
-      container: 'section.finance-grid > section.panel:nth-of-type(2) > .client-list:nth-of-type(2)',
-      head: '.finance-row-head',
-      row: '.finance-invoice-row',
-      label: 'Finanzas · cobros pendientes',
-      template: '--finance-cols',
-      rowHeight: [44, 52],
-    },
-    {
-      container: 'section.finance-grid > section.panel:nth-of-type(2) > .client-list:nth-of-type(4)',
-      head: '.finance-row-head',
-      row: '.finance-payment-row',
-      label: 'Finanzas · cobros registrados',
-      template: '--finance-cols',
-      rowHeight: [44, 52],
-    },
+    {container: '[role="table"][aria-label="Transferencias entre cuentas"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Finanzas · transferencias', rowHeight: [44, 52]},
   ],
   body: `
-<section class="finance-grid">
- <section class="panel">
-  <div class="section-caption"><div><p class="eyebrow">TRAZABILIDAD</p><h3>Transferencias recientes</h3></div></div>
-  <div class="client-list">
-   <div class="finance-row-head" aria-hidden="true"><span>Transferencia</span><span>Monto</span></div>
-   ${transferRow({
-     from: 'Banco Continental S.A.E.C.A. · Cuenta corriente operativa',
-     to: 'Caja Chica Estudio',
-     date: '17-sept',
-     actor: 'Fredd Deoli',
-     initials: 'FD',
-     reference: 'REF-2026-0091',
-     amount: 'Gs. 98.765.432',
-   })}
-   ${transferRow({
-     from: 'Wise Business · Cuenta internacional USD',
-     to: 'Banco Atlas · Caja de ahorro en dólares',
-     date: '04-sept',
-     actor: 'María del Carmen Rojas Villalba',
-     initials: 'MR',
-     amount: 'USD 12.345,67',
-     received: 'Gs. 90.123.456',
-   })}
-  </div>
- </section>
- <section class="panel">
-  ${financePanelHeading('FACTURACIÓN', 'Cobros pendientes', `<div class="inline-actions"><button class="text-button" type="button">${plusIcon(14)}+ Factura</button><button class="primary" type="button">${plusIcon(16)} Registrar cobro</button></div>`)}
-  <div class="client-list">
-   <div class="finance-row-head" aria-hidden="true"><span>Factura</span><span>Total</span></div>
-   ${invoiceRow({
-     number: 'F-2026-001234',
-     client: 'Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.',
-     status: 'overdue',
-     statusLabel: 'Vencida',
-     pending: 'Gs. 1.234.567.890',
-     total: 'Gs. 1.234.567.890',
-   })}
-   ${invoiceRow({
-     number: 'F-2026-001187',
-     client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada',
-     status: 'partial',
-     statusLabel: 'Parcial',
-     pending: 'USD 12.345,67',
-     total: 'USD 24.691,34',
-   })}
-   ${invoiceRow({
-     number: 'F-2026-001102',
-     client: 'Fundación Niñez y Comunidad',
-     status: 'issued',
-     statusLabel: 'Emitida',
-     pending: 'Gs. 0',
-     total: 'Gs. 12.345.678',
-   })}
-  </div>
-  <div class="section-caption"><div><p class="eyebrow">COBROS REGISTRADOS</p><h3>Quién cobró y dónde quedó</h3></div></div>
-  <div class="client-list">
-   <div class="finance-row-head" aria-hidden="true"><span>Cobro</span><span>Monto</span></div>
-   ${paymentRow({
-     client: 'Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.',
-     invoice: 'F-2026-001091',
-     date: '17-sept',
-     account: 'Banco Continental S.A.E.C.A. · Cuenta corriente operativa',
-     accountType: 'bank',
-     actor: 'María del Carmen Rojas Villalba',
-     initials: 'MR',
-     reference: 'REF-88123',
-     amount: 'Gs. 987.654.321',
-   })}
-   ${paymentRow({
-     client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada',
-     invoice: 'F-2026-001044',
-     date: '04-sept',
-     account: 'Wise Business · Cuenta internacional USD',
-     accountType: 'digital',
-     actor: 'Fredd Deoli',
-     initials: 'FD',
-     amount: 'USD 12.345,67',
-     reversed: 'Cobro duplicado en la conciliación bancaria',
-   })}
-  </div>
- </section>
+<section class="${v2Card}" aria-labelledby="finance-transfers-title">
+ <div class="flex flex-wrap items-center justify-between gap-2">
+  <div class="min-w-0"><h3 id="finance-transfers-title" class="text-[17px] font-semibold tracking-tight text-fore">Transferencias</h3><p class="mt-1 text-xs text-mute">Movimientos entre cuentas con su tipo de cambio real.</p></div>
+  <span class="whitespace-nowrap text-xs tabular-nums text-mute">4 movimientos</span>
+ </div>
+ ${v2Grid({label: 'Transferencias entre cuentas', template: 'grid-cols-[minmax(14rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(8rem,1fr)_10rem]', columns: ['Transferencia', 'Fecha', 'Recibió', 'Referencia', 'Monto'], minWidth: 'min-w-[58rem]', rows: [
+  v2Row('grid-cols-[minmax(14rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(8rem,1fr)_10rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Banco Regional — Operativa → Tarjeta corporativa USD</b><small class="block text-[11px] text-mute" title="Compra de dólares para campaña internacional">Compra de dólares para campaña internacional</small></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="17-sept-26 · 10:00">17-sept</span></div><div class="min-w-0">${actorIdentity('FD', 'Fredd D.')}</div><div class="min-w-0 text-[11.5px] text-mute"><span title="TRF-2026-0917">TRF-2026-0917</span></div><div class="min-w-0 text-right">${moneyCell('Gs. 7.300.000')}<small class="ml-2 whitespace-nowrap tabular-nums text-mute">→ USD 1.000</small></div>`),
+  v2Row('grid-cols-[minmax(14rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(8rem,1fr)_10rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Caja Chica Estudio → Banco Regional — Operativa</b></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="15-sept-26 · 16:40">15-sept</span></div><div class="min-w-0">${actorIdentity('MG', 'María González')}</div><div class="min-w-0 text-[11.5px] text-mute">Sin referencia</div><div class="min-w-0 text-right">${moneyCell('Gs. 45.000.000')}</div>`),
+  v2Row('grid-cols-[minmax(14rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(8rem,1fr)_10rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Banco Regional — Operativa → Caja Chica Estudio</b></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="12-sept-26 · 09:15">12-sept</span></div><div class="min-w-0">${actorIdentity('FD', 'Fredd D.')}</div><div class="min-w-0 text-[11.5px] text-mute"><span title="Reposición de caja">Reposición de caja</span></div><div class="min-w-0 text-right">${moneyCell('Gs. 12.000.000')}</div>`),
+  v2Row('grid-cols-[minmax(14rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(8rem,1fr)_10rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Tarjeta corporativa USD → Banco Regional — Operativa</b></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="10-sept-26 · 11:05">10-sept</span></div><div class="min-w-0">${actorIdentity('LG', 'Luis Giménez')}</div><div class="min-w-0 text-[11.5px] text-mute"><span title="Venta de excedente">Venta de excedente</span></div><div class="min-w-0 text-right">${moneyCell('USD 2.500')}<small class="ml-2 whitespace-nowrap tabular-nums text-mute">→ Gs. 18.250.000</small></div>`),
+ ]})}
 </section>`,
 };
 
-/* --------------- Mora ------------------------------------------------ */
-const moraCobranzas = {
-  id: 'mora-cobranzas',
-  section: 'Mora',
-  surface: 'Semáforo y lista de cobranzas',
+/* --------------- Finanzas: cobros pendientes y registrados (v2) -------- */
+const finanzasCobros = {
+  id: 'finanzas-cobros',
+  section: 'Finanzas',
+  surface: 'Cobros pendientes y registrados (sección v2)',
   kind: 'workspace',
   lists: [
-    {
-      container: '.mora-list',
-      head: '.mora-list-head',
-      row: '.mora-list .client-row',
-      label: 'Mora · clientes en cobranza',
-      template: '--mora-cols',
-      rowHeight: [44, 52],
-    },
+    {container: '[role="table"][aria-label="Cobros pendientes"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Finanzas · cobros pendientes', rowHeight: [44, 52]},
+    {container: '[role="table"][aria-label="Cobros registrados"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Finanzas · cobros registrados', rowHeight: [44, 52]},
   ],
   body: `
-<section class="panel directory">
- <div class="panel-heading">
-  <div><p class="eyebrow">CRM · COBRANZAS</p><h2>Estado de pagos</h2></div>
-  <span>Actualizado 14:32</span>
- </div>
- <div class="kpi-strip" aria-label="Semáforo de mora por antigüedad">
-  <article class="kpi-card tone-blue">
-   <p class="eyebrow">Mora 1–15 días</p>
-   <strong>4 clientes</strong>
-   <div class="kpi-amounts"><span>Gs. 98.765.432</span><span>USD 4.500</span></div>
-  </article>
-  <article class="kpi-card tone-warning">
-   <p class="eyebrow">Mora 16–30 días</p>
-   <strong>2 clientes</strong>
-   <div class="kpi-amounts"><span>Gs. 234.567.890</span></div>
-  </article>
-  <article class="kpi-card tone-danger">
-   <p class="eyebrow">Mora crítica (+30 días)</p>
-   <strong>3 clientes</strong>
-   <div class="kpi-amounts"><span>Gs. 12.543.210.790</span><span>USD 12.345</span></div>
-  </article>
-  <article class="kpi-card tone-brand">
-   <p class="eyebrow">DSO · DÍAS EN CALLE</p>
-   <strong>PYG 41 días · USD 12 días</strong>
-   <small>Saldo pendiente sobre lo facturado del mes, por moneda.</small>
-  </article>
- </div>
- <div class="mora-toolbar">
-  <div class="choice-list compact" aria-label="Filtrar estado de cobro">
-   <button type="button" class="choice active">Todos</button>
-   <button type="button" class="choice">Al día</button>
-   <button type="button" class="choice">Por vencer</button>
-   <button type="button" class="choice">En mora</button>
-   <button type="button" class="choice">Mora grave</button>
-   <button type="button" class="choice">Sin factura</button>
+<section class="grid gap-4">
+ <section class="${v2Card}" aria-labelledby="finance-invoices-title">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+   <div class="min-w-0"><h3 id="finance-invoices-title" class="text-[17px] font-semibold tracking-tight text-fore">Cobros pendientes</h3><p class="mt-1 text-xs text-mute">Facturas con saldo; el cobro descuenta la cuenta elegida.</p></div>
+   <div class="flex flex-wrap items-center gap-1"><button class="text-button" type="button">+ Factura</button><button class="primary" type="button">+ Registrar cobro</button></div>
   </div>
-  ${searchField('mora-search', 'Buscar cliente en cobranza', 'Buscar cliente…', 'mora-search-input', true)}
- </div>
- <div class="client-list mora-list">
-  <div class="mora-list-head" aria-hidden="true"><span></span><span>Cliente</span><span>Pendiente</span></div>
-  ${moraRow({
-    initial: 'E',
-    tone: 'green',
-    name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima',
-    statusText: '45 días de mora',
-    chip: moraChip('mora-critical', '+30 días'),
-    invoices: ' · 3 facturas',
-    amount: 'Gs. 1.234.567.890',
-  })}
-  ${moraRow({
-    initial: 'C',
-    tone: 'yellow',
-    name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada',
-    statusText: '23 días de mora',
-    chip: moraChip('mora-medium', '16–30 días'),
-    invoices: ' · 1 factura',
-    amount: 'USD 12.345,67',
-  })}
-  ${moraRow({
-    initial: 'M',
-    tone: 'purple',
-    name: 'Municipalidad de Asunción · Dirección de Cultura y Turismo',
-    statusText: 'Vence 30-oct',
-    chip: '',
-    invoices: ' · 4 facturas',
-    amount: 'Gs. 987.654.321',
-  })}
-  ${moraRow({initial: 'F', tone: 'blue', name: 'Fundación Niñez y Comunidad', statusText: 'Al día', chip: '', invoices: ' · 2 facturas', amount: 'Gs. 0'})}
-  ${moraRow({
-    initial: 'G',
-    tone: 'green',
-    name: 'Grupo Inversor del Sur Sociedad Anónima · División Medios',
-    statusText: '180 días de mora',
-    chip: moraChip('mora-critical', '+30 días'),
-    invoices: ' · 7 facturas',
-    amount: 'Gs. 12.345.678.900',
-  })}
-  ${moraRow({initial: 'S', tone: 'yellow', name: 'Servicios Integrales del Este S.A.', statusText: '8 días de mora', chip: moraChip('mora-early', '1–15 días'), invoices: ' · Sin facturas', amount: 'Sin saldo pendiente'})}
- </div>
+  <div class="mb-4 flex flex-wrap items-end gap-3">
+   <div class="flex flex-wrap gap-1"><button class="choice active" type="button">Todas</button><button class="choice" type="button">Con saldo</button><button class="choice" type="button">Vencidas</button><button class="choice" type="button">Vencen en 7 días</button><button class="choice" type="button">Borradoras</button><button class="choice" type="button">Canceladas</button></div>
+   <label class="grid w-full gap-1.5 sm:w-64"><span class="sr-only">Buscar factura o cliente</span><span class="relative"><input type="search" class="w-full pl-7" placeholder="Número o cliente…" autocomplete="off"></span></label>
+   <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">5 de 24</p>
+  </div>
+  ${v2Grid({label: 'Cobros pendientes', template: 'grid-cols-[minmax(13rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_8rem]', columns: ['Factura', 'Estado', 'Vence', 'Pendiente', 'Total', 'Acciones'], minWidth: 'min-w-[54rem]', rows: [
+   v2Row('grid-cols-[minmax(13rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_8rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="F-2026-0417 · Industrias del Sur Sociedad Anónima">F-2026-0417 · Industrias del Sur Sociedad Anónima</b></div><div class="min-w-0">${chip('warn', 'Parcial')}</div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums font-semibold text-warn" title="18-sept-26">18-sept</span></div><div class="min-w-0 text-right">${moneyCell('Gs. 45.678.900')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 90.000.000')}</div><div class="flex min-w-0 items-center justify-end gap-1"><button class="text-button" type="button">+ Registrar cobro</button></div>`),
+   v2Row('grid-cols-[minmax(13rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_8rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="F-2026-0412 · Grupo Comercial del Este SRL">F-2026-0412 · Grupo Comercial del Este SRL</b></div><div class="min-w-0">${chip('bad', 'Vencida')}</div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums font-semibold text-warn" title="05-sept-26">05-sept</span></div><div class="min-w-0 text-right">${moneyCell('USD 12.500')}</div><div class="min-w-0 text-right">${moneyCell('USD 12.500')}</div><div class="flex min-w-0 items-center justify-end gap-1"><button class="text-button" type="button">+ Registrar cobro</button></div>`),
+   v2Row('grid-cols-[minmax(13rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_8rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="F-2026-0420 · Fundación Cultural Paraguaya">F-2026-0420 · Fundación Cultural Paraguaya</b></div><div class="min-w-0">${chip('info', 'Emitida')}</div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="30-sept-26">30-sept</span></div><div class="min-w-0 text-right">${moneyCell('Gs. 8.500.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 8.500.000')}</div><div class="flex min-w-0 items-center justify-end gap-1"><button class="text-button" type="button">+ Registrar cobro</button></div>`),
+   v2Row('grid-cols-[minmax(13rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_8rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="F-2026-0399 · Cliente sin factura emitida">F-2026-0399 · Cliente sin factura emitida</b></div><div class="min-w-0">${chipMute('Borrador')}</div><div class="min-w-0"><span class="text-[11px] text-mute">Sin fecha</span></div><div class="min-w-0 text-right"><span class="whitespace-nowrap text-[11px] text-mute">Sin saldo</span></div><div class="min-w-0 text-right">${moneyCell('Gs. 1.000.000')}</div><div class="flex min-w-0 items-center justify-end gap-1"></div>`),
+  ]})}
+  <div class="flex justify-end"><button class="secondary" type="button">Ver todas las facturas</button></div>
+ </section>
+ <section class="${v2Card}" aria-labelledby="finance-payments-title">
+  <div class="min-w-0"><h3 id="finance-payments-title" class="text-[17px] font-semibold tracking-tight text-fore">Quién cobró y dónde quedó</h3><p class="mt-1 text-xs text-mute">Cada cobro queda en la cuenta elegida y conserva su reversión en el historial.</p></div>
+  ${v2Grid({label: 'Cobros registrados', template: 'grid-cols-[minmax(13rem,1.6fr)_6.5rem_minmax(9rem,1.1fr)_minmax(9rem,1.1fr)_minmax(7rem,1fr)_8.5rem_8rem]', columns: ['Cobro', 'Fecha', 'Cuenta', 'Recibió', 'Referencia', 'Monto', 'Acciones'], minWidth: 'min-w-[64rem]', rows: [
+   v2Row('grid-cols-[minmax(13rem,1.6fr)_6.5rem_minmax(9rem,1.1fr)_minmax(9rem,1.1fr)_minmax(7rem,1fr)_8.5rem_8rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Industrias del Sur Sociedad Anónima · F-2026-0417</b></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="16-sept-26 · 15:20">16-sept</span></div><div class="min-w-0 text-[11.5px] text-fore">Banco Regional — Operativa · Bancaria</div><div class="min-w-0">${actorIdentity('MG', 'María González')}</div><div class="min-w-0 text-[11.5px] text-mute"><span title="Transferencia 8842">Transferencia 8842</span></div><div class="min-w-0 text-right">${moneyCell('Gs. 44.321.100')}</div><div class="flex min-w-0 items-center justify-end gap-1"><button class="text-button warn" type="button">${undoIcon(14)}Revertir cobro</button></div>`),
+   v2Row('grid-cols-[minmax(13rem,1.6fr)_6.5rem_minmax(9rem,1.1fr)_minmax(9rem,1.1fr)_minmax(7rem,1fr)_8.5rem_8rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Grupo Comercial del Este SRL · F-2026-0390</b><small class="block text-[11px] text-warn" title="Cobro imputado a la cuenta equivocada">Revertido · Cobro imputado a la cuenta equivocada</small></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="09-sept-26 · 11:40">09-sept</span></div><div class="min-w-0 text-[11.5px] text-fore">Tarjeta corporativa USD · Digital</div><div class="min-w-0">${actorIdentity('FD', 'Fredd D.')}</div><div class="min-w-0 text-[11.5px] text-mute">Sin referencia</div><div class="min-w-0 text-right">${moneyCell('USD 3.250,75')}</div><div class="flex min-w-0 items-center justify-end gap-1"></div>`),
+  ]})}
+ </section>
 </section>`,
 };
 
@@ -469,6 +321,42 @@ const finanzasConciliacion = {
  </div>`)}
  ${aviso('ok', '3 coincidencias conciliadas.')}
 </div>`,
+};
+
+
+/* --------------- Mora: cobranza y mora (sección v2) -------------------- */
+const moraCobranzas = {
+  id: 'mora-cobranzas',
+  section: 'Finanzas',
+  surface: 'Semáforo, DSO y lista de cobranza (sección v2)',
+  kind: 'workspace',
+  lists: [
+    {container: '[role="table"][aria-label="Cobranza por cliente"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Mora · cobranza por cliente', rowHeight: [44, 52]},
+  ],
+  body: `
+<section class="grid gap-4" aria-label="Cobranza y mora">
+ <header class="flex flex-wrap items-end justify-between gap-3">
+  <div class="min-w-0"><p class="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Finanzas · cobranzas</p><h2 class="text-lg font-semibold tracking-tight text-fore">Estado de pagos</h2><p class="mt-1 text-xs text-mute">Saldo pendiente por antigüedad y días en calle por moneda.</p></div>
+  <span class="whitespace-nowrap text-xs tabular-nums text-mute">Actualizado 22-sept-26 · 09:30</span>
+ </header>
+ ${v2KpiStrip([v2Kpi('AL DÍA', '86', 'Sin saldo vencido'), v2Kpi('POR VENCER', '12', 'Vencen en los próximos días'), v2Kpi('EN MORA', '9', 'Tarde o mora grave', true), v2Kpi('SIN FACTURA', '4', 'Sin facturas registradas')])}
+ <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  ${v2Kpi('MORA 1–15 DÍAS', '<span class="flex flex-wrap items-baseline gap-2"><span>Gs. 45.678.900</span><span>USD 1.250</span></span>', '4 clientes con saldo vencido')}
+  ${v2Kpi('MORA 16–30 DÍAS', '<span>Gs. 12.345.600</span>', '3 clientes con saldo vencido')}
+  ${v2Kpi('MORA CRÍTICA (+30 DÍAS)', '<span>Gs. 89.000.000</span>', '2 clientes con saldo vencido', true)}
+  ${v2Kpi('DSO · DÍAS EN CALLE', '<span class="flex flex-wrap items-baseline gap-2"><span class="whitespace-nowrap tabular-nums">PYG 23 días</span><span class="whitespace-nowrap tabular-nums">USD 47 días</span></span>', 'Saldo pendiente sobre lo facturado del mes, por moneda')}
+ </div>
+ <div class="mb-4 flex flex-wrap items-end gap-3">
+  <div class="flex flex-wrap gap-1" role="group" aria-label="Filtrar estado de cobro"><button class="choice active" type="button">Todos</button><button class="choice" type="button">Al día</button><button class="choice" type="button">Por vencer</button><button class="choice" type="button">En mora</button><button class="choice" type="button">Mora grave</button><button class="choice" type="button">Sin factura</button></div>
+  <label class="grid w-full gap-1.5 sm:w-72"><span class="sr-only">Buscar cliente en cobranza</span><input type="search" class="w-full" placeholder="Buscar cliente…" autocomplete="off"></label>
+  <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">9 de 111</p>
+ </div>
+ ${v2Grid({label: 'Cobranza por cliente', template: 'grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', columns: ['Cliente', 'Estado', 'Vence', 'Antigüedad', 'Facturas', 'Pendiente'], minWidth: 'min-w-[58rem]', rows: [
+  v2Row('grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', `<div class="min-w-0"><strong class="block text-[13.5px] font-semibold text-fore">Industrias del Sur Sociedad Anónima</strong><small class="block text-[11px] text-mute">PYG</small></div><div class="min-w-0">${chip('bad', '45 días de mora')}</div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums font-semibold text-warn" title="18-sept-26">18-sept</span></div><div class="min-w-0">${chip('bad', '+30 días')}</div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="3 facturas">3</span></div><div class="min-w-0 text-right"><span class="whitespace-nowrap font-semibold tabular-nums text-fore">Gs. 45.678.900</span></div>`),
+  v2Row('grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', `<div class="min-w-0"><strong class="block text-[13.5px] font-semibold text-fore">Grupo Comercial del Este SRL</strong><small class="block text-[11px] text-mute">USD</small></div><div class="min-w-0">${chip('warn', 'Vence 24-sept')}</div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="24-sept-26">24-sept</span></div><div class="min-w-0"><span class="text-[11px] text-mute">Sin mora</span></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="1 factura">1</span></div><div class="min-w-0 text-right"><span class="whitespace-nowrap font-semibold tabular-nums text-fore">USD 12.500</span></div>`),
+  v2Row('grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', `<div class="min-w-0"><strong class="block text-[13.5px] font-semibold text-fore">Fundación Cultural Paraguaya</strong><small class="block text-[11px] text-mute">PYG</small></div><div class="min-w-0">${chip('ok', 'Al día')}</div><div class="min-w-0"><span class="text-[11px] text-mute">Sin fecha</span></div><div class="min-w-0"><span class="text-[11px] text-mute">Sin mora</span></div><div class="min-w-0"><span class="text-[11px] text-mute">Sin facturas</span></div><div class="min-w-0 text-right"><span class="whitespace-nowrap text-[11px] text-mute">Sin saldo pendiente</span></div>`),
+ ]})}
+</section>`,
 };
 
 /* --------------- Previsión: resumen del mes (v2) ---------------------- */
@@ -729,178 +617,96 @@ const informesTablas = {
 </section>`,
 };
 
-/* --------------- Comisiones: liquidación del mes ---------------------- */
+/* --------------- Comisiones: liquidación (sección v2) ------------------ */
 const comisionesLiquidacion = {
   id: 'comisiones-liquidacion',
-  section: 'Equipo',
-  surface: 'Comisiones · liquidación por colaborador',
+  section: 'Finanzas',
+  surface: 'Liquidación del mes por colaborador (sección v2)',
   kind: 'workspace',
   lists: [
-    {
-      container: '.settlement-table',
-      head: '.settlement-head',
-      row: '.settlement-row',
-      label: 'Comisiones · liquidación del mes',
-      template: '--settlement-cols',
-      rowHeight: [44, 52],
-    },
+    {container: '[role="table"][aria-label="Comisiones del mes por colaborador"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Comisiones · liquidación', rowHeight: [44, 52]},
   ],
   body: `
-<div class="ops-stack">
- <section class="panel">
-  <div class="panel-heading">
-   <div><p class="eyebrow">VENTAS Y RECOMENDACIONES</p><h2>Comisiones y referidos</h2></div>
-   <div class="inline-actions"><button class="primary" type="button">${plusIcon(16)}Comisión</button></div>
+<section class="grid gap-4" aria-label="Comisiones y referidos">
+ <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div class="min-w-0"><p class="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Finanzas</p><h1 class="text-2xl font-bold tracking-tight text-fore">Comisiones y referidos</h1><p class="mt-1 text-sm text-mute">Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados.</p></div>
+  <div class="flex flex-wrap items-center gap-2"><button class="primary" type="button">+ Comisión</button></div>
+ </header>
+ ${v2KpiStrip([v2Kpi('ESPERADO · 01-sept', '<span class="flex flex-wrap items-baseline gap-2"><span>Gs. 250.000.000</span><span>USD 12.500</span></span>', 'Acuerdos comerciales vigentes con comisión asignada'), v2Kpi('PAGADO · 01-sept', '<span>Gs. 45.678.900</span>', 'Comisiones pagadas del mes'), v2Kpi('PENDIENTE · 01-sept', '<span>Gs. 12.000.000</span>', 'Registradas o aprobadas sin pagar', true)])}
+ <section class="${v2Card}" aria-labelledby="commissions-settlement-title">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+   <div class="min-w-0"><h3 id="commissions-settlement-title" class="text-[17px] font-semibold tracking-tight text-fore">Liquidación del mes</h3><p class="mt-1 text-xs text-mute">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
+   <label class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Mes</span><input type="month" class="w-44" value="2026-09"></label>
   </div>
-  <div class="commission-settlement">
-   <div class="panel-heading">
-    <h3>Comisiones del mes por colaborador</h3>
-    <label>Mes<input type="month" value="2026-09" min="1900-01" max="9998-12"></label>
-   </div>
-   <p class="form-note">Esperado: acuerdos comerciales vigentes con comisión asignada. Registrado, aprobado, pagado y pendiente: comisiones del mes según la fecha de la factura vinculada.</p>
-   <div class="settlement-table" aria-label="Comisiones del mes por colaborador">
-    <div class="settlement-head" aria-hidden="true"><span>Colaborador</span><span>Esperado</span><span>Registrado</span><span>Aprobado</span><span>Pagado</span><span>Pendiente</span></div>
-    <div class="settlement-row">
-     <div class="settlement-name"><b title="María del Carmen Rojas Villalba">María del Carmen Rojas Villalba</b><small>PYG</small></div>
-     <strong data-label="Esperado" class="settlement-value">Gs. 12.500.000</strong>
-     <strong data-label="Registrado" class="settlement-value">Gs. 9.800.000</strong>
-     <strong data-label="Aprobado" class="settlement-value">Gs. 7.400.000</strong>
-     <strong data-label="Pagado" class="settlement-value">Gs. 5.200.000</strong>
-     <strong data-label="Pendiente" class="settlement-value">Gs. 4.600.000</strong>
-    </div>
-    <div class="settlement-row">
-     <div class="settlement-name"><b title="Juan Carlos Benítez Ocampos">Juan Carlos Benítez Ocampos</b><small>PYG</small></div>
-     <strong data-label="Esperado" class="settlement-value">Gs. 8.000.000</strong>
-     <strong data-label="Registrado" class="settlement-value">Gs. 8.000.000</strong>
-     <strong data-label="Aprobado" class="settlement-value">Gs. 8.000.000</strong>
-     <strong data-label="Pagado" class="settlement-value">Gs. 8.000.000</strong>
-     <strong data-label="Pendiente" class="settlement-value">Gs. 0</strong>
-    </div>
-    <div class="settlement-row">
-     <div class="settlement-name"><b title="Sin colaborador vinculado">Sin colaborador vinculado</b><small>USD</small></div>
-     <strong data-label="Esperado" class="settlement-value">USD 1.250,00</strong>
-     <strong data-label="Registrado" class="settlement-value">USD 640,00</strong>
-     <strong data-label="Aprobado" class="settlement-value">USD 0,00</strong>
-     <strong data-label="Pagado" class="settlement-value">USD 0,00</strong>
-     <strong data-label="Pendiente" class="settlement-value">USD 640,00</strong>
-    </div>
-    <div class="settlement-row">
-     <div class="settlement-name"><b title="Valeria Isabel González Núñez">Valeria Isabel González Núñez</b><small>USD</small></div>
-     <strong data-label="Esperado" class="settlement-value">USD 3.400,00</strong>
-     <strong data-label="Registrado" class="settlement-value">USD 3.400,00</strong>
-     <strong data-label="Aprobado" class="settlement-value">USD 2.100,00</strong>
-     <strong data-label="Pagado" class="settlement-value">USD 2.100,00</strong>
-     <strong data-label="Pendiente" class="settlement-value">USD 1.300,00</strong>
-    </div>
-   </div>
-  </div>
-  <div class="choice-list compact">
-   <button class="choice active" type="button">Todas</button>
-   <button class="choice" type="button">Pendiente</button>
-   <button class="choice" type="button">Aprobada</button>
-   <button class="choice" type="button">Pagada</button>
-   <button class="choice" type="button">Cancelada</button>
-  </div>
+  ${v2Grid({label: 'Comisiones del mes por colaborador', template: 'grid-cols-[minmax(12rem,1.6fr)_9rem_9rem_9rem_9rem_9rem]', columns: ['Colaborador', 'Esperado', 'Registrado', 'Aprobado', 'Pagado', 'Pendiente'], minWidth: 'min-w-[62rem]', rows: [
+   v2Row('grid-cols-[minmax(12rem,1.6fr)_9rem_9rem_9rem_9rem_9rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="Ana López Fernández de la Cruz">Ana López Fernández de la Cruz</b><small class="block text-[11px] text-mute">PYG</small></div><div class="min-w-0 text-right">${moneyCell('Gs. 150.000.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 50.000.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 25.000.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 10.000.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 15.000.000')}</div>`),
+   v2Row('grid-cols-[minmax(12rem,1.6fr)_9rem_9rem_9rem_9rem_9rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="Luis Giménez">Luis Giménez</b><small class="block text-[11px] text-mute">PYG</small></div><div class="min-w-0 text-right">${moneyCell('Gs. 100.000.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 10.000.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 10.000.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 10.000.000')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 0')}</div>`),
+   v2Row('grid-cols-[minmax(12rem,1.6fr)_9rem_9rem_9rem_9rem_9rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="Sin colaborador vinculado">Sin colaborador vinculado</b><small class="block text-[11px] text-mute">USD</small></div><div class="min-w-0 text-right">${moneyCell('USD 300')}</div><div class="min-w-0 text-right">${moneyCell('USD 150')}</div><div class="min-w-0 text-right">${moneyCell('USD 0')}</div><div class="min-w-0 text-right">${moneyCell('USD 0')}</div><div class="min-w-0 text-right">${moneyCell('USD 150')}</div>`),
+  ]})}
  </section>
-</div>`,
+</section>`,
 };
 
-/* --------------- Comisiones: tarjetas --------------------------------- */
-const comisionesTarjetas = {
-  id: 'comisiones-tarjetas',
-  section: 'Equipo',
-  surface: 'Comisiones · tarjetas',
+/* --------------- Comisiones: comisiones y referidos (sección v2) ------- */
+const comisionesLista = {
+  id: 'comisiones-lista',
+  section: 'Finanzas',
+  surface: 'Comisiones por venta o referido (sección v2)',
   kind: 'workspace',
-  grids: [{container: '.ops-grid', card: '.commission-hub-card', label: 'Comisiones · tarjetas', minHeight: 200}],
+  lists: [
+    {container: '[role="table"][aria-label="Comisiones y referidos"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Comisiones · lista', rowHeight: [44, 52]},
+  ],
   body: `
-<div class="ops-stack">
- <section class="panel">
-  <div class="choice-list compact">
-   <button class="choice active" type="button">Todas</button>
-   <button class="choice" type="button">Pendiente</button>
-   <button class="choice" type="button">Aprobada</button>
-   <button class="choice" type="button">Pagada</button>
-   <button class="choice" type="button">Cancelada</button>
-  </div>
-  <div class="ops-grid">
-   <article class="ops-card commission-hub-card">
-    <header class="commission-hub-head"><span class="hub-chip">Venta</span><span class="commission-state" data-status="pending">Pendiente</span></header>
-    <h3>María del Carmen Rojas Villalba</h3>
-    <strong class="commission-hub-amount">Gs. 4.250.000</strong>
-    <dl class="commission-hub-facts"><div><dt>Factura</dt><dd>F-2026-001234</dd></div><div><dt>Vence</dt><dd>30-oct</dd></div></dl>
-    <p class="form-note">5% sobre Gs. 85.000.000 facturados al registrar</p>
-    <div class="commission-hub-actions inline-actions"><button class="text-button positive" type="button">${checkIcon(14)}Aprobar</button><button class="text-button danger" type="button">${xIcon(14)}Cancelar</button></div>
-   </article>
-   <article class="ops-card commission-hub-card">
-    <header class="commission-hub-head"><span class="hub-chip">Referido</span><span class="commission-state" data-status="approved">Aprobada</span></header>
-    <h3>Juan Carlos Benítez Ocampos</h3>
-    <strong class="commission-hub-amount">Gs. 1.500.000</strong>
-    <dl class="commission-hub-facts"><div><dt>Factura</dt><dd title="Sin factura vinculada">Sin factura vinculada</dd></div><div><dt>Vence</dt><dd title="07-nov">07-nov</dd></div></dl>
-    <p class="form-note">Importe fijo</p>
-    <div class="commission-hub-actions inline-actions"><button class="text-button" type="button">${banknoteIcon(14)}Registrar pago</button><button class="text-button danger" type="button">${xIcon(14)}Cancelar</button></div>
-   </article>
-   <article class="ops-card commission-hub-card">
-    <header class="commission-hub-head"><span class="hub-chip">Venta</span><span class="commission-state" data-status="paid">Pagada</span></header>
-    <h3>Valeria Isabel González Núñez</h3>
-    <strong class="commission-hub-amount">USD 1.250,00</strong>
-    <dl class="commission-hub-facts"><div><dt>Factura</dt><dd>F-2026-000987</dd></div><div><dt>Vence</dt><dd>17-sept</dd></div></dl>
-    <p class="form-note">3% sobre USD 41.666,67 cobrados al registrar</p>
-    <div class="commission-hub-actions inline-actions"></div>
-   </article>
-   <article class="ops-card commission-hub-card">
-    <header class="commission-hub-head"><span class="hub-chip">Referido</span><span class="commission-state" data-status="cancelled">Cancelada</span></header>
-    <h3>Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima</h3>
-    <strong class="commission-hub-amount">Gs. 12.345.678.900</strong>
-    <dl class="commission-hub-facts"><div><dt>Factura</dt><dd>F-2026-001102</dd></div><div><dt>Vence</dt><dd>Sin fecha</dd></div></dl>
-    <p class="form-note">2% sobre Gs. 617.283.945.000 facturados al registrar</p>
-    <div class="commission-hub-actions inline-actions"></div>
-   </article>
-  </div>
-  <p class="form-note">Los porcentajes se calculan al registrar la comisión. Los cobros posteriores no modifican acuerdos ya registrados.</p>
- </section>
-</div>`,
+<section class="${v2Card}" aria-labelledby="commissions-list-title">
+ <div class="flex flex-wrap items-center justify-between gap-2">
+  <div class="min-w-0"><h3 id="commissions-list-title" class="text-[17px] font-semibold tracking-tight text-fore">Comisiones y referidos</h3><p class="mt-1 text-xs text-mute">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p></div>
+  <div class="flex flex-wrap gap-1"><button class="choice active" type="button">Todas</button><button class="choice" type="button">Pendiente</button><button class="choice" type="button">Aprobada</button><button class="choice" type="button">Pagada</button><button class="choice" type="button">Cancelada</button></div>
+ </div>
+ ${v2Grid({label: 'Comisiones y referidos', template: 'grid-cols-[minmax(13rem,1.5fr)_7rem_11rem_minmax(11rem,1.2fr)_11rem]', columns: ['Beneficiario', 'Estado', 'Importe', 'Factura y vencimiento', 'Acciones'], minWidth: 'min-w-[60rem]', rows: [
+  v2Row('grid-cols-[minmax(13rem,1.5fr)_7rem_11rem_minmax(11rem,1.2fr)_11rem]', `<div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><b class="text-[13.5px] font-semibold text-fore" title="Ana López Fernández de la Cruz">Ana López Fernández de la Cruz</b>${chipMute('Venta')}</div><small class="block text-[11px] text-mute">Vinculada a Ana López · alta 12-sept</small></div><div class="min-w-0">${chip('warn', 'Pendiente')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 45.678.900')}<small class="block text-[11px] text-mute">10.00% sobre Gs. 456.789.000 facturados al registrar</small></div><div class="min-w-0 text-[11.5px] text-mute"><span class="block text-fore" title="F-2026-0417">F-2026-0417</span><span class="block whitespace-nowrap tabular-nums font-semibold text-warn" title="18-sept-26">Vence 18-sept</span></div><div class="flex min-w-0 flex-wrap items-center justify-end gap-1"><button class="text-button positive" type="button">Aprobar</button><button class="text-button danger" type="button">Cancelar</button></div>`),
+  v2Row('grid-cols-[minmax(13rem,1.5fr)_7rem_11rem_minmax(11rem,1.2fr)_11rem]', `<div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><b class="text-[13.5px] font-semibold text-fore" title="Luis Giménez">Luis Giménez</b>${chipMute('Referido')}</div><small class="block text-[11px] text-mute">Vinculada a Luis Giménez · alta 08-sept</small></div><div class="min-w-0">${chip('info', 'Aprobada')}</div><div class="min-w-0 text-right">${moneyCell('USD 1.250,75')}<small class="block text-[11px] text-mute">Importe fijo</small></div><div class="min-w-0 text-[11.5px] text-mute"><span class="block text-fore" title="F-2026-0390">F-2026-0390</span></div><div class="flex min-w-0 flex-wrap items-center justify-end gap-1"><button class="text-button" type="button">Registrar pago</button><button class="text-button danger" type="button">Cancelar</button></div>`),
+  v2Row('grid-cols-[minmax(13rem,1.5fr)_7rem_11rem_minmax(11rem,1.2fr)_11rem]', `<div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><b class="text-[13.5px] font-semibold text-fore" title="Sofía Benítez">Sofía Benítez</b>${chipMute('Venta')}</div><small class="block text-[11px] text-mute">Sin colaborador vinculado · alta 02-sept</small></div><div class="min-w-0">${chip('ok', 'Pagada')}</div><div class="min-w-0 text-right">${moneyCell('Gs. 12.000.000')}<small class="block text-[11px] text-mute">5% sobre Gs. 240.000.000 cobrados al registrar</small><small class="block whitespace-nowrap text-[11px] text-mute">Pagada 20-sept</small></div><div class="min-w-0 text-[11.5px] text-mute"><span class="block text-fore" title="Sin factura vinculada">Sin factura vinculada</span><span class="block" title="Acuerdo especial de temporada alta">Acuerdo especial de temporada alta</span></div><div class="flex min-w-0 flex-wrap items-center justify-end gap-1"><span class="text-[11px] text-mute">Sin acciones</span></div>`),
+ ]})}
+</section>`,
 };
 
-/* --------------- Comisiones: egresos registrados ---------------------- */
+/* --------------- Comisiones: descuentos y pagos (sección v2) ----------- */
 const comisionesPagos = {
   id: 'comisiones-pagos',
-  section: 'Equipo',
-  surface: 'Comisiones · pagos registrados',
+  section: 'Finanzas',
+  surface: 'Descuentos por referido y pagos registrados (sección v2)',
   kind: 'workspace',
   lists: [
-    {
-      container: 'section.panel',
-      head: '.finance-row-head',
-      row: '.payment-row.finance-payout-row',
-      label: 'Comisiones · egresos registrados',
-      template: '--finance-cols',
-      rowHeight: [44, 52],
-    },
+    {container: '[role="table"][aria-label="Descuentos por referido"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Comisiones · descuentos', rowHeight: [44, 52]},
+    {container: '[role="table"][aria-label="Pagos registrados"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Comisiones · pagos', rowHeight: [44, 52]},
   ],
   body: `
-<section class="panel">
- <h2>Pagos registrados</h2>
- <p class="form-note">Cada pago descuenta el saldo de la cuenta elegida.</p>
- <div class="finance-row-head" aria-hidden="true"><span>Egreso</span><span>Monto</span></div>
- <div class="payment-row finance-payout-row">
-  <div><b>María del Carmen Rojas Villalba</b><small>17-sept · Banco Continental S.A.E.C.A. · Cuenta corriente operativa · REF-2026-0091</small></div>
-  <strong>Gs. 5.200.000</strong>
- </div>
- <div class="payment-row finance-payout-row">
-  <div><b>Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima</b><small>04-sept · Wise Business · Cuenta internacional USD · REF-2026-0087</small></div>
-  <strong>USD 12.345,67</strong>
- </div>
- <div class="payment-row finance-payout-row">
-  <div><b>Valeria Isabel González Núñez</b><small>11-sept · Caja Chica Estudio · Sin referencia</small></div>
-  <strong>Gs. 987.654.321</strong>
- </div>
+<section class="grid gap-4">
+ <section class="${v2Card}" aria-labelledby="commissions-discounts-title">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+   <div class="min-w-0"><h3 id="commissions-discounts-title" class="text-[17px] font-semibold tracking-tight text-fore">Descuentos por referido</h3><p class="mt-1 text-xs text-mute">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
+   <button class="secondary" type="button">+ Nuevo descuento</button>
+  </div>
+  ${v2Grid({label: 'Descuentos por referido', template: 'grid-cols-[minmax(12rem,1.4fr)_minmax(13rem,1.5fr)_7rem_9rem_9rem]', columns: ['Referido', 'Factura y cliente', 'Monto', 'Estado', 'Acciones'], minWidth: 'min-w-[56rem]', rows: [
+   v2Row('grid-cols-[minmax(12rem,1.4fr)_minmax(13rem,1.5fr)_7rem_9rem_9rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Estudio Contable Ramírez</b><small class="block text-[11px] text-mute">Alta 14-sept</small></div><div class="min-w-0 text-[11.5px] text-mute"><span class="block text-fore">F-2026-0417</span><span class="block">Industrias del Sur · recomendación directa</span></div><div class="min-w-0 text-right">${moneyCell('Gs. 2.000.000')}</div><div class="min-w-0">${chip('ok', 'Aplicado')}</div><div class="flex min-w-0 items-center justify-end gap-1"><button class="text-button warn" type="button">${undoIcon(14)}Revertir</button></div>`),
+   v2Row('grid-cols-[minmax(12rem,1.4fr)_minmax(13rem,1.5fr)_7rem_9rem_9rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">María González</b><small class="block text-[11px] text-mute">Sin fecha de alta</small></div><div class="min-w-0 text-[11.5px] text-mute"><span class="block text-fore">F-2026-0390</span><span class="block">Grupo Comercial · acuerdo comercial anual</span></div><div class="min-w-0 text-right">${moneyCell('USD 250')}</div><div class="min-w-0">${chipMute('Revertido')}</div><div class="flex min-w-0 items-center justify-end gap-1"></div>`),
+  ]})}
+ </section>
+ <section class="${v2Card}" aria-labelledby="commissions-payouts-title">
+  <div class="min-w-0"><h3 id="commissions-payouts-title" class="text-[17px] font-semibold tracking-tight text-fore">Pagos registrados</h3><p class="mt-1 text-xs text-mute">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
+  ${v2Grid({label: 'Pagos registrados', template: 'grid-cols-[minmax(13rem,1.6fr)_6.5rem_minmax(10rem,1.2fr)_minmax(10rem,1.1fr)_8.5rem]', columns: ['Egreso', 'Fecha', 'Cuenta', 'Registró', 'Monto'], minWidth: 'min-w-[58rem]', rows: [
+   v2Row('grid-cols-[minmax(13rem,1.6fr)_6.5rem_minmax(10rem,1.2fr)_minmax(10rem,1.1fr)_8.5rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="Ana López Fernández de la Cruz">Ana López Fernández de la Cruz</b><small class="block text-[11px] text-mute" title="Comisión F-2026-0390 · agosto 2026">Comisión F-2026-0390 · agosto 2026</small></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="20-sept-26">20-sept</span></div><div class="min-w-0 text-[11.5px] text-fore">Banco Regional — Operativa</div><div class="min-w-0 text-[11.5px] text-mute">finanzas@estudio.com.py</div><div class="min-w-0 text-right">${moneyCell('Gs. 45.678.900')}</div>`),
+   v2Row('grid-cols-[minmax(13rem,1.6fr)_6.5rem_minmax(10rem,1.2fr)_minmax(10rem,1.1fr)_8.5rem]', `<div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore" title="Luis Giménez">Luis Giménez</b><small class="block text-[11px] text-mute">Sin referencia</small></div><div class="min-w-0"><span class="whitespace-nowrap tabular-nums text-fore" title="18-sept-26">18-sept</span></div><div class="min-w-0 text-[11.5px] text-fore">Tarjeta corporativa USD</div><div class="min-w-0 text-[11.5px] text-mute">Sin registrar</div><div class="min-w-0 text-right">${moneyCell('USD 1.250,75')}</div>`),
+  ]})}
+ </section>
 </section>`,
 };
 
 export default [
   finanzasCuentas,
   finanzasConciliacion,
-  finanzasMovimientos,
+  finanzasTransferencias,
+  finanzasCobros,
   moraCobranzas,
   previsionResumen,
   previsionContratos,
@@ -908,6 +714,6 @@ export default [
   informesIndicadores,
   informesTablas,
   comisionesLiquidacion,
-  comisionesTarjetas,
+  comisionesLista,
   comisionesPagos,
 ];
