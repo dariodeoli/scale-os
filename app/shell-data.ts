@@ -9,7 +9,7 @@
 //     tablero dibuja la tarjeta). Sin proyección, el API ya recorta el payload
 //     por defecto (sin columnas sin lectores ni el correo legado).
 export type ShellResource = 'clients' | 'projects' | 'orders' | 'summary';
-export type ShellResourceRequest = {limit?: number; fields?: string; byStatus?: boolean; counts?: boolean};
+export type ShellResourceRequest = {limit?: number; fields?: string};
 export type ShellScope = Partial<Record<ShellResource, ShellResourceRequest>>;
 
 /** Ventana de órdenes para buscador y presencia en las pantallas que no listan órdenes. */
@@ -26,22 +26,6 @@ export const ORDER_FIELDS_BOARD = 'id,project_id,project_name,client_name,title,
 /** Buscador: lo que muestra el resultado. */
 export const ORDER_FIELDS_SEARCH = 'id,title,status,project_id,project_name,client_name,due_date';
 
-// ── Tablero de Producción por columna (contrato #57) ─────────────────────────
-// `?status=` filtra por etapa y `?counts=1` devuelve `stage_counts` con los
-// totales exactos de todas las etapas en una respuesta mínima. El tablero pide
-// una ventana por columna en paralelo, en vez de la lista completa.
-export const BOARD_COLUMN_LIMIT = 50;
-export function boardColumnUrl(status: string, limit: number = BOARD_COLUMN_LIMIT) {
-  return `${shellDataUrl('orders', {limit, fields: ORDER_FIELDS_BOARD})}&status=${encodeURIComponent(status)}`;
-}
-export function boardCountsUrl() {
-  return `${shellDataUrl('orders', {limit: 1, fields: 'id'})}&counts=1`;
-}
-export function boardColumnSignature(status: string, limit: number = BOARD_COLUMN_LIMIT) {
-  return `orders:col:${status}:${limit}`;
-}
-export const BOARD_COUNTS_SIGNATURE = 'orders:counts';
-
 export function shellDataUrl(resource: ShellResource, request: ShellResourceRequest = {}) {
   const query: string[] = [];
   if (request.limit) query.push(`limit=${request.limit}`);
@@ -51,10 +35,7 @@ export function shellDataUrl(resource: ShellResource, request: ShellResourceRequ
 
 /** El mismo recurso con distinto recorte es otra lectura: la frescura va por firma. */
 export function shellSignature(resource: ShellResource, request: ShellResourceRequest = {}) {
-  const base = `${resource}:${request.limit ?? 'all'}:${request.fields ?? 'full'}`;
-  // Un alcance por estado o con conteos es otra lectura: no comparte frescura
-  // con la ventana plana ni con la lista completa.
-  return request.byStatus ? `${base}:by-status` : request.counts ? `${base}:counts` : base;
+  return `${resource}:${request.limit ?? 'all'}:${request.fields ?? 'full'}`;
 }
 
 export function scopeResources(scope: ShellScope): ShellResource[] {
@@ -76,7 +57,10 @@ export function learnShellContract(patch: Partial<ShellContract>) {
 
 const SECTION_SCOPE: Record<string, ShellScope> = {
   Resumen: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_STATUS}},
-  Producción: {clients: {}, projects: {}, summary: {}, orders: {limit: BOARD_COLUMN_LIMIT, fields: ORDER_FIELDS_BOARD, byStatus: true, counts: true}},
+  // El tablero de Producción es dueño de sus datos por columna
+  // (`app/board-data.ts`: `?status=` + `?counts=1`): el shell no pide órdenes
+  // para esta sección y así no hay lecturas duplicadas.
+  Producción: {clients: {}, projects: {}, summary: {}},
   Clientes: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_PORTFOLIO}},
   Proyectos: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
   Presupuestos: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}, summary: {}},
