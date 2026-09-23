@@ -1,8 +1,9 @@
 export const sections = [
- ['Resumen','resumen'],['Producción','produccion'],['Clientes','clientes'],['Proyectos','proyectos'],
- ['Presupuestos','presupuestos'],['Finanzas','pagos'],['Mora','pagos/mora'],['Informes','informes'],
- ['Métricas','pipeline/metricas'],['Equipo','equipo'],['Invitaciones','equipo/invitaciones'],['Comisiones','equipo/comisiones'],['Roles y permisos','equipo/permisos'],
- ['Pipeline','pipeline'],['Planes','presupuestos/planes'],['Inventario','inventario'],['Estudio','estudio'],
+ ['Resumen','resumen'],['Pipeline','pipeline'],['Clientes','clientes'],['Presupuestos','presupuestos'],
+ ['Proyectos','proyectos'],['Producción','produccion'],['Inventario','inventario'],['Estudio','estudio'],
+ ['Finanzas','pagos'],['Mora','pagos/mora'],['Informes','informes'],['Equipo','equipo'],
+ ['Invitaciones','equipo/invitaciones'],['Comisiones','equipo/comisiones'],['Roles y permisos','equipo/permisos'],
+ ['Métricas','pipeline/metricas'],['Planes','presupuestos/planes'],
   ['Historial de trabajo','equipo/historial'],['Actividad','equipo/actividad'],['Configuración','configuracion'],['Previsión','pagos/prevision'],['Preferencias','configuracion/preferencias'],['Papelera','configuracion/papelera'],
 ] as const;
 export function sectionPath(label:string){if(label==='Tablero de producción')label='Producción';if(label==='Métricas')label='Pipeline';if(label==='Pagos')label='Finanzas';return '/'+(sections.find(([name])=>name===label)?.[1]||'resumen');}

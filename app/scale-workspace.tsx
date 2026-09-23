@@ -99,9 +99,11 @@ import {
   ArrowLeftRight,
   ArrowUpRight,
   BarChart3,
+  Boxes,
   BriefcaseBusiness,
   CalendarDays,
   ChevronDown,
+  Clapperboard,
   Eye,
   FileText,
   FolderKanban,
@@ -114,6 +116,7 @@ import {
   Search,
   Settings,
   SlidersHorizontal,
+  Target,
   Trash2,
   Users,
   WalletCards,
@@ -122,16 +125,16 @@ import {
 
 const nav = [
   ["Resumen", LayoutDashboard],
-  ["Producción", FolderKanban],
+  ["Pipeline", Target],
   ["Clientes", Users],
-  ["Proyectos", FolderKanban],
   ["Presupuestos", FileText],
+  ["Proyectos", FolderKanban],
+  ["Producción", Clapperboard],
+  ["Inventario", Boxes],
+  ["Estudio", CalendarDays],
   ["Finanzas", WalletCards],
   ["Informes", BarChart3],
   ["Equipo", BriefcaseBusiness],
-  ["Pipeline", FolderKanban],
-  ["Inventario", BriefcaseBusiness],
-  ["Estudio", CalendarDays],
   ["Configuración", Settings],
 ] as const;
 function localMonth(){const parts=new Intl.DateTimeFormat('en',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(new Date());return `${parts.find(part=>part.type==='year')!.value}-${parts.find(part=>part.type==='month')!.value}`;}
@@ -812,15 +815,17 @@ export default function Home() {
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 
-  const navItemClass=(active:boolean)=>`${active?'active ':''}${RAIL_ITEM} ${active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore'}`;
-  const sidebarContent=<>
+  const navItemClass=(active:boolean,tone:'rail'|'light')=>`${active?'active ':''}${RAIL_ITEM} ${tone==='rail'
+    ? (active?'bg-white/15 text-white':'text-white/80 hover:bg-white/10 hover:text-white')
+    : (active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore')}`;
+  const sidebarContent=(tone:'rail'|'light')=><>
         <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
         <p className="nav-caption mt-4 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
         <nav aria-label="Menú principal" className="grid gap-0.5 px-2">
           {visibleNav.map(([label, Icon]) => (
             <Link
               key={label}
-              className={navItemClass(activeParent === label)}
+              className={navItemClass(activeParent === label,tone)}
               aria-current={activeParent===label?'page':undefined}
               title={label}
               aria-label={label}
@@ -832,7 +837,7 @@ export default function Home() {
               <span className="nav-label min-w-0 break-words">{label}</span>
             </Link>
           ))}
-          <button type="button" className={`nav-logout ${navItemClass(false)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18} className="shrink-0"/><span className="nav-label">Cerrar sesión</span></button>
+          <button type="button" className={`nav-logout ${navItemClass(false,tone)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18} className="shrink-0"/><span className="nav-label">Cerrar sesión</span></button>
         </nav>
         <div className="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 p-2">
           <div className="profile-footer min-w-0"><button className="user" aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
@@ -843,7 +848,7 @@ export default function Home() {
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
       <DesktopSidebar>
         <div className="sidebar-brand"><WorkspaceBrand/></div>
-        {sidebarContent}
+        {sidebarContent('rail')}
       </DesktopSidebar>
       <section className="content min-w-0 min-[761px]:!w-[calc(100%-192px)]">
         {demoWelcome&&user?.demo_owner_user_id&&<DemoWelcome close={()=>setDemoWelcome(false)}/>}
@@ -858,7 +863,7 @@ export default function Home() {
         <div className="workspace-topbar sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
           <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3">
             <div className="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2">
-              <MobileNavigation>{sidebarContent}</MobileNavigation>
+              <MobileNavigation>{sidebarContent('light')}</MobileNavigation>
             </div>
             <div className="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
               <div className="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden">
