@@ -51,14 +51,14 @@ async function run(){
   await load(reporting(),commercial({...terms,currency:'EUR',recurringAmount:'2500000'}));
   assert.equal(currencyOptions().length,6,'the currency select offers the six company currencies');
   assert.equal(control('client-reporting-currency').props.value,'EUR','an EUR term keeps its currency in the editor');
-  assert.match(plain(),/EUR[^0-9]*2,500,000/,'an EUR term renders its amount');
+  assert.match(plain(),/EUR[^0-9]*2\.500\.000,00/,'an EUR term renders its amount with the shared v2 money cell');
   change('client-reporting-currency','BRL');
   act(()=>{void saveButton().props.onClick();});
   const brlPatch=requests.at(-1)!;
   assert.equal(brlPatch.url,'/core-api/api/agency/clients/1/commercial-terms');
   assert.deepEqual(json(brlPatch),{planId:'7',recurringAmount:'2500000',currency:'BRL',startsOn:'2024-01-15',endsOn:null,invoiceRequired:true,commissionRecipientId:'9',commissionMode:'percentage',commissionValue:'10'},'a terms PATCH carries any of the six currencies');
   await respond(brlPatch,commercial({...terms,currency:'BRL',recurringAmount:'2500000'}));
-  assert.match(plain(),/BRL[^0-9]*2,500,000/,'a BRL term renders its amount');
+  assert.match(plain(),/BRL[^0-9]*2\.500\.000,00/,'a BRL term renders its amount with the shared v2 money cell');
   act(()=>renderer.unmount());
   console.log('PASS client reporting: role safety, financial-only commercial terms, reporting-only sales save, read-only finance, owner editor without terms, exact nine-field terms PATCH with end date, optional commission, preserved reporting version PATCH, and the six company currencies in the terms editor');
 }

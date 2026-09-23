@@ -1,13 +1,12 @@
 "use client";
 import {Aviso} from 'owncoding-ui';
-import {money} from '../operations';
 import {moneyKpi} from '../client-format';
 import {listDateShort,dueTone} from '../list-format';
 import {roleCan} from '../capabilities';
 import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip,type ChipTone,type Column} from '../ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,type ChipTone,type Column} from '../ui-v2';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
 // Presupuestos (SOS-COM, campaña #41 / spec #43 §4).
@@ -44,9 +43,6 @@ const BUDGET_STATE: Record<string,{label:string;tone:ChipTone}> = {
   rejected: {label:'Rechazado', tone:'bad'},
   expired: {label:'Vencido', tone:'warn'},
 };
-// CeldaMoneda solo formatea PYG/USD (reporte #43): los montos de las seis
-// monedas se pintan con el formateador compartido de la app, sin recortes.
-const amount = (value: unknown, currency: string) => <span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(Number(value), currency)}</span>;
 
 export function PresupuestosSection({loading, user, budgetsState, budgets, invoices, budgetKpis, summary, loadBudgets, setBudgets}: PresupuestosSectionProps){
   const canManage = roleCan(user?.role,'budgets.manage');
@@ -65,8 +61,8 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
       <span className="min-w-0"><StateChip tone={state.tone}>{state.label}</StateChip></span>
       <span className="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">{budget.item_count}</span>
       <span className="list-date min-w-0 whitespace-nowrap text-[11px] text-mute" data-tone={tone||undefined} title={valid?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid||'Sin fecha'}</span>
-      <span className="text-right">{amount(budget.subtotal,budget.currency)}</span>
-      <span className="text-right"><b className="whitespace-nowrap text-[13.5px] font-bold tabular-nums text-fore">{money(budget.total,budget.currency)}</b></span>
+      <span className="text-right"><MoneyText valor={budget.subtotal} currency={budget.currency} className="text-fore"/></span>
+      <span className="text-right"><MoneyText valor={budget.total} currency={budget.currency} className="text-[13.5px] text-fore"/></span>
       <span className="flex min-w-0 items-center justify-end gap-2">
         <BudgetActions id={budget.id} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={reload}/>
         <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={reload}/>

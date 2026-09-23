@@ -3,9 +3,7 @@
 // compartida (`DataTable`: tabla en escritorio, tarjetas en móvil) y enmienda
 // con campos por tipo. La lógica vive en ./client-commercial-lifecycle-data.
 import {Button,DataTable,EmptyState,FormField,Input,MoneyInput,Select,Textarea,Aviso} from 'owncoding-ui';
-import {LoadingBlock} from './ui-v2';
-import {money} from './operations';
-import {currencyChoices} from './currencies';
+import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {listDateFull} from './list-format';
 import {todayAsuncion} from './client-format';
 import {DISCOUNT_TYPE_CHOICES,amendmentLabel,useCommercialLifecycleData,validClientId} from './client-commercial-lifecycle-data';
@@ -36,7 +34,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
        {key:'effectiveOn',label:'Vigente desde',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><time dateTime={row.amendment.effectiveOn} className="whitespace-nowrap">{listDateFull(row.amendment.effectiveOn)}</time>},
        {key:'activationDate',label:'Cliente desde',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=>row.amendment.activationDate?<time dateTime={row.amendment.activationDate} className="whitespace-nowrap">{listDateFull(row.amendment.activationDate)}</time>:<span className="text-mute">Sin fecha registrada</span>},
        {key:'plan',label:'Plan',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><div className="grid gap-0.5"><strong className="text-fore">{row.amendment.planName}</strong><small className="text-[11px] text-mute">Versión contratada: {row.amendment.planVersionSnapshot}</small></div>},
-       {key:'monthlyPrice',label:'Mensual',align:'right',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><span className="whitespace-nowrap font-semibold tabular-nums text-fore">{money(row.amendment.monthlyPrice,row.amendment.currency)}</span>},
+       {key:'monthlyPrice',label:'Mensual',align:'right',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><MoneyText valor={row.amendment.monthlyPrice} currency={row.amendment.currency} className="text-fore"/>},
        {key:'discount',label:'Descuento',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><div className="grid gap-0.5"><span className="whitespace-nowrap text-fore">{amendmentLabel(row.amendment)}</span>{row.amendment.discountTerms?<small className="text-[11px] text-mute">{row.amendment.discountTerms}</small>:null}</div>},
        {key:'extras',label:'Extras y entregables',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><span className="text-fore">{row.amendment.extrasDeliverables||'Sin extras registrados'}</span>},
       ]}
@@ -45,7 +43,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
       mobileCard={(row: {id: string; amendment: Parameters<typeof amendmentLabel>[0]})=>{const amendment=row.amendment;return <div className="grid gap-2 rounded-lg border border-ink-600 bg-ink-800 p-3 text-sm">
        <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-mono text-[11px] font-semibold text-mute">{listDateFull(amendment.effectiveOn)}</span>
-        <strong className="tabular-nums text-fore">{money(amendment.monthlyPrice,amendment.currency)}</strong>
+        <MoneyText valor={amendment.monthlyPrice} currency={amendment.currency} className="text-fore"/>
        </div>
        <p className="font-semibold text-fore">{amendment.planName}</p>
        <p className="text-xs text-mute">Versión contratada: {amendment.planVersionSnapshot}</p>
@@ -62,7 +60,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
     <FormField label="Nombre del plan" htmlFor="lifecycle-plan-name"><Input id="lifecycle-plan-name" value={draft.planName} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('planName',event.target.value)}/></FormField>
     <FormField label="Versión contratada" htmlFor="lifecycle-plan-version"><Input id="lifecycle-plan-version" value={draft.planVersionSnapshot} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('planVersionSnapshot',event.target.value)}/></FormField>
     <FormField label="Precio mensual contratado" htmlFor="lifecycle-monthly-price"><MoneyInput id="lifecycle-monthly-price" className="w-44" currency={draft.currency} value={draft.monthlyPrice} disabled={saving} onValueChange={(value: unknown)=>update('monthlyPrice',String(value))}/></FormField>
-    <FormField label="Moneda" htmlFor="lifecycle-currency"><Select id="lifecycle-currency" className="w-40" value={draft.currency} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('currency',event.target.value)}>{currencyChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField>
+    <CurrencyField id="lifecycle-currency" label="Moneda" className="w-40" value={draft.currency} disabled={saving} onChange={value=>update('currency',value)}/>
     <FormField label="Tipo de descuento" htmlFor="lifecycle-discount-type"><Select id="lifecycle-discount-type" value={draft.discountType} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('discountType',event.target.value as typeof draft.discountType)}>{DISCOUNT_TYPE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField>
     {draft.discountType!=='none'?<FormField label="Valor del descuento" htmlFor="lifecycle-discount-value"><Input id="lifecycle-discount-value" type="text" inputMode="decimal" autoComplete="off" className="w-36" value={draft.discountValue} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('discountValue',event.target.value)}/></FormField>:null}
     <FormField label="Términos del descuento (opcional)" htmlFor="lifecycle-discount-terms"><Textarea id="lifecycle-discount-terms" rows={3} value={draft.discountTerms} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('discountTerms',event.target.value)}/></FormField>

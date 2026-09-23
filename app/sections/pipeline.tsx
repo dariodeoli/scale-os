@@ -4,12 +4,12 @@ import {useEffect,useRef,useState} from 'react';
 import {DndContext,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type DragEndEvent} from '@dnd-kit/core';
 import {Eye,GripVertical,Plus,Settings2,Target} from 'lucide-react';
 import {Button,Input,Label,Select} from 'owncoding-ui';
-import {api,Dialog,Editor,money,type Field} from '../operations';
+import {api,Dialog,Editor,type Field} from '../operations';
 import {roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,type LeadOpportunity} from '../pipeline-summary';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock,StateChip} from '../ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip} from '../ui-v2';
 import {useDialogPending} from '../dialog';
 import type {MetricEvent,User} from '../workspace-types';
 
@@ -47,7 +47,7 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
       <b className="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title={str(row,'name')}>{str(row,'name')}</b>
       {canMove?<button type="button" className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore" title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
     </header>
-    <span className="whitespace-nowrap text-sm font-bold tabular-nums text-fore">{money(str(row,'amount')||'0',str(row,'currency')||'PYG')}</span>
+    <MoneyText valor={str(row,'amount')||'0'} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
     <div className="flex flex-wrap items-center gap-2 text-[11px]">
       <StateChip tone={probability>=75?'ok':probability>=40?'warn':'mute'} title={`Probabilidad ${probability}%`}>{probability}%</StateChip>
       {str(row,'email')?<span className="min-w-0 text-mute [overflow-wrap:anywhere]" title={str(row,'email')}>{str(row,'email')}</span>:null}
@@ -68,7 +68,7 @@ function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false}:{stage
       <h3 className="text-sm font-bold text-fore">{stage.label}{readOnly?' · desactivada':''}</h3>
       <span className="text-xs tabular-nums text-mute">{rows.length}</span>
     </header>
-    {currencies.length?<div className="grid gap-0.5 text-[11px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="whitespace-nowrap">{money(rows.filter(row=>(str(row,'currency')||'PYG')===currency).reduce((sum,row)=>sum+Number(row.amount)*Number(row.probability)/100,0),currency)} ponderado</span>)}</div>:null}
+    {currencies.length?<div className="grid gap-0.5 text-[11px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="whitespace-nowrap"><MoneyText valor={rows.filter(row=>(str(row,'currency')||'PYG')===currency).reduce((sum,row)=>sum+Number(row.amount)*Number(row.probability)/100,0)} currency={currency}/> ponderado</span>)}</div>:null}
     {rows.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh}/>)}
     {!rows.length?<p className="text-xs text-mute">Sin oportunidades.</p>:null}
   </section>;
@@ -150,7 +150,7 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
         <Kpi label="Consultas web" valor={overview.web} hint="Origen: landing Scale OS"/>
         <Kpi
           label="Valor abierto"
-          valor={Object.entries(overview.amounts).length?<span className="flex flex-wrap items-baseline gap-2">{Object.entries(overview.amounts).map(([currency,value])=><span key={currency} className="whitespace-nowrap">{money(value,currency)}</span>)}</span>:'Sin oportunidades abiertas'}
+          valor={Object.entries(overview.amounts).length?<span className="silent-scroll flex flex-wrap items-baseline gap-2 overflow-x-auto">{Object.entries(overview.amounts).map(([currency,value])=><MoneyText key={currency} valor={value} currency={currency}/>)}</span>:'Sin oportunidades abiertas'}
           hint="Sin convertir monedas"
         />
       </KpiStrip>
@@ -163,8 +163,8 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
           <p className="mt-1 text-2xl font-semibold tabular-nums text-fore">{entry.count}</p>
           <p className="text-[11px] text-mute">oportunidades</p>
           <div className="mt-2 grid gap-0.5 text-[11px] tabular-nums">
-            {Object.entries(entry.weighted).map(([currency,value])=><span key={`w-${currency}`} className="whitespace-nowrap text-fore">{money(value,currency)} ponderado</span>)}
-            {Object.entries(entry.open).map(([currency,value])=><span key={`o-${currency}`} className="whitespace-nowrap text-mute">{money(value,currency)} abierto</span>)}
+            {Object.entries(entry.weighted).map(([currency,value])=><span key={`w-${currency}`} className="whitespace-nowrap text-fore"><MoneyText valor={value} currency={currency}/> ponderado</span>)}
+            {Object.entries(entry.open).map(([currency,value])=><span key={`o-${currency}`} className="whitespace-nowrap text-mute"><MoneyText valor={value} currency={currency}/> abierto</span>)}
             {!Object.keys(entry.open).length?<span className="text-mute">Sin montos cargados</span>:null}
           </div>
         </article>)}

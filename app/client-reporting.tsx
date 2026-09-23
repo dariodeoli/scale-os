@@ -3,9 +3,7 @@
 // comerciales con objetos de la librería, estados de carga/vacío/error y
 // campos por tipo. La lógica vive en ./client-reporting-data (hook + puros).
 import {Button,EmptyState,FilaDato,FormField,Input,MoneyInput,Nota,Select,Aviso} from 'owncoding-ui';
-import {LoadingBlock} from './ui-v2';
-import {currencyChoices} from './currencies';
-import {formatWholeMoney} from './amount-format';
+import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {soloDigitos} from 'owncoding-ui';
 import {listDateFull} from './list-format';
 import {todayAsuncion} from './client-format';
@@ -39,11 +37,11 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
     <h4 id="client-commercial-terms-title" className="text-sm font-bold text-fore">Términos comerciales efectivos</h4>
     {commercial?<dl className="grid gap-2 text-sm">
      <div className="grid gap-1 sm:flex sm:items-start sm:justify-between sm:gap-3"><dt className="text-mute">Plan</dt><dd className="min-w-0 font-semibold [overflow-wrap:anywhere] sm:text-right">{commercial.planName}</dd></div>
-     <FilaDato etiquetaComo="dt" valorComo="dd" etiqueta="Monto recurrente" valor={formatWholeMoney(commercial.recurringAmount,commercial.currency)}/>
+     <FilaDato etiquetaComo="dt" valorComo="dd" etiqueta="Monto recurrente" valor={<MoneyText valor={commercial.recurringAmount} currency={commercial.currency}/>}/>
      <FilaDato etiquetaComo="dt" valorComo="dd" etiqueta="Inicio comercial" valor={listDateFull(commercial.startsOn)}/>
      <FilaDato etiquetaComo="dt" valorComo="dd" etiqueta="Fin comercial" valor={commercial.endsOn?listDateFull(commercial.endsOn):'Sin fecha de fin'}/>
      <FilaDato etiquetaComo="dt" valorComo="dd" etiqueta="Factura comercial del cliente" valor={commercial.invoiceRequired?'Sí':'No'}/>
-     <div className="grid gap-1 sm:flex sm:items-start sm:justify-between sm:gap-3"><dt className="text-mute">Comisión</dt><dd className="min-w-0 font-semibold [overflow-wrap:anywhere] sm:text-right">{commercial.commissionMode==='none'?'Sin comisión':`${commercial.commissionMode==='percentage'?`${commercial.commissionValue}%`:formatWholeMoney(commercial.commissionValue,commercial.currency)} · ${commercial.commissionRecipientName??''}`.trim()}</dd></div>
+     <div className="grid gap-1 sm:flex sm:items-start sm:justify-between sm:gap-3"><dt className="text-mute">Comisión</dt><dd className="min-w-0 font-semibold [overflow-wrap:anywhere] sm:text-right">{commercial.commissionMode==='none'?'Sin comisión':<>{commercial.commissionMode==='percentage'?`${commercial.commissionValue}%`:<MoneyText valor={commercial.commissionValue} currency={commercial.currency}/>}{' · '}{commercial.commissionRecipientName??''}</>}</dd></div>
     </dl>:<EmptyState compact icon="money" title="Todavía no hay términos comerciales efectivos" description="Completá el editor para registrarlos."/>}
    </section>:null}
    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -71,11 +69,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
      <FormField label="Monto recurrente entero" htmlFor="client-reporting-amount">
       <MoneyInput id="client-reporting-amount" currency={terms.currency} value={terms.recurringAmount} disabled={!termsEditable||saving} onValueChange={(value: unknown)=>setTerms(current=>({...current,recurringAmount:String(value)}))} className="w-44"/>
      </FormField>
-     <FormField label="Moneda" htmlFor="client-reporting-currency">
-      <Select id="client-reporting-currency" className="w-40" value={terms.currency} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,currency:isCurrency(event.target.value)?event.target.value:'PYG'}))}>
-       {currencyChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
-      </Select>
-     </FormField>
+     <CurrencyField id="client-reporting-currency" label="Moneda" className="w-40" value={terms.currency} disabled={!termsEditable||saving} onChange={value=>setTerms(current=>({...current,currency:isCurrency(value)?value:'PYG'}))}/>
      <FormField label="Inicio comercial" htmlFor="client-reporting-starts">
       <Input id="client-reporting-starts" type="date" min="1900-01-01" value={terms.startsOn} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,startsOn:event.target.value}))} className="w-40"/>
      </FormField>

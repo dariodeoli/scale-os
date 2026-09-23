@@ -3,9 +3,10 @@
 // planes con objetos de la librería (Input/Select/MoneyInput/Switch/Button),
 // campos por tipo y vista previa. Esquemas, totales y requests viven en
 // ./quote-composer-data (puros); el guardado sigue con SaveActions legado.
-import {currencyChoices,validCurrency} from "./currencies";
+import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
 import {Button,FormField,Input,Label,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
+import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {useEffect,useState} from 'react';
@@ -13,7 +14,7 @@ import {useForm,useFieldArray} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {DndContext,useDraggable,useDroppable,DragEndEvent,PointerSensor,KeyboardSensor,useSensor,useSensors} from '@dnd-kit/core';
 import {ArrowDown,ArrowUp,GripVertical,Plus,X} from 'lucide-react';
-import {api,money} from './operations';
+import {api} from './operations';
 import {SECTION_TYPE_LABELS,TAX_RATE_CHOICES,initialQuoteSections,normalizeQuoteItems,quoteRequest,quoteSchema,quoteTotals,type QuoteClientOption,type QuoteMode,type QuotePlanRecord,type QuoteSection,type QuoteValues} from './quote-composer-data';
 // Los esquemas, totales y requests viven en ./quote-composer-data (puros); se
 // reexporta lo que otros módulos/tests ya importaban de acá.
@@ -55,7 +56,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    <div className="flex flex-wrap items-end gap-3">
     {mode==='create'&&<div className="min-w-0 flex-1 basis-64"><FormField label="Cliente" htmlFor="quote-client"><Select id="quote-client" value={v.clientId} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>form.setValue('clientId',event.target.value)}><option value="">Elegí un cliente</option>{clients.map(client=><option key={String(client.id)} value={String(client.id)}>{String(client.name)}</option>)}</Select></FormField></div>}
     {mode!=='plan'&&plans.length>0&&<div className="min-w-0 flex-1 basis-64"><FormField label="Usar un plan como base (reemplaza los ítems actuales)" htmlFor="quote-plan-base"><Select id="quote-plan-base" value="" onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{const plan=plans.find(item=>String(item.id)===event.target.value);if(plan){array.replace(normalizeQuoteItems(plan.items));form.setValue('currency',validCurrency(plan.currency));form.setValue('title',String(plan.name));form.setValue('notes',String(plan.notes||''));}}}><option value="">Sin plan base</option>{plans.map(plan=><option key={String(plan.id)} value={String(plan.id)}>{String(plan.name)}</option>)}</Select></FormField></div>}
-    <div className="w-40"><FormField label="Moneda" htmlFor="quote-currency"><Select id="quote-currency" value={v.currency} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>form.setValue('currency',validCurrency(event.target.value))}>{currencyChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
+    <CurrencyField id="quote-currency" label="Moneda" className="w-40" value={v.currency} onChange={value=>form.setValue('currency',validCurrency(value))}/>
     <div className="w-24"><FormField label="IVA" htmlFor="quote-tax"><Select id="quote-tax" value={String(Number(v.tax_rate))} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>form.setValue('tax_rate',event.target.value)}>{TAX_RATE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
    </div>
   </section>
@@ -98,8 +99,8 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
   <p className="text-[11px] font-bold uppercase tracking-[.18em] text-fono-light">Vista previa</p>
   <h2 className="text-lg font-bold text-fore">{v.title||'Tu propuesta'}</h2>
   {v.sections.filter(section=>section.enabled).map((section,index)=><section key={index} className="grid gap-2 text-sm text-fore">
-   {section.type==='items'?v.items.map((item,i)=><div className="flex items-start justify-between gap-3 border-b border-ink-600/60 pb-2" key={i}><span className="min-w-0 [overflow-wrap:anywhere]">{item.description||'Descripción'}<small className="mt-0.5 block text-[11px] text-mute">{item.quantity||0} unidades</small></span><b className="whitespace-nowrap tabular-nums">{money((Number(item.quantity)||0)*(Number(item.unitPrice)||0),v.currency)}</b></div>)
-    :section.type==='totals'?<div className="grid gap-1"><p className="text-xs text-mute">Subtotal: {money(subtotal,v.currency)}</p><p className="text-xs text-mute">IVA: {money(total-subtotal,v.currency)}</p><h3 className="text-base font-bold">Total: {money(total,v.currency)}</h3></div>
+   {section.type==='items'?v.items.map((item,i)=><div className="flex items-start justify-between gap-3 border-b border-ink-600/60 pb-2" key={i}><span className="min-w-0 [overflow-wrap:anywhere]">{item.description||'Descripción'}<small className="mt-0.5 block text-[11px] text-mute">{item.quantity||0} unidades</small></span><MoneyText valor={(Number(item.quantity)||0)*(Number(item.unitPrice)||0)} currency={v.currency}/></div>)
+    :section.type==='totals'?<div className="grid gap-1"><p className="text-xs text-mute">Subtotal: <MoneyText valor={subtotal} currency={v.currency}/></p><p className="text-xs text-mute">IVA: <MoneyText valor={total-subtotal} currency={v.currency}/></p><h3 className="text-base font-bold">Total: <MoneyText valor={total} currency={v.currency}/></h3></div>
     :section.type==='notes'?<p className="whitespace-pre-wrap text-xs leading-5 text-mute">{v.notes}</p>
     :section.type==='meta'?<p className="text-xs text-mute">{clients.find(client=>String(client.id)===v.clientId)?.name as string||record?.client_name as string||''}{v.valid_until?` · Válido hasta ${v.valid_until}`:''}</p>
     :<><h3 className="text-sm font-bold">{section.title}</h3><p className="whitespace-pre-wrap text-xs leading-5 text-mute">{section.body}</p></>}
