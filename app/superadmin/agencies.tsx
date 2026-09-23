@@ -41,7 +41,7 @@ export function PlatformAgencies({busy, state, writable, setConfirming, setTyped
                     state.agencies.map((agency) => (
                       <tr key={agency.id}>
                         <td>
-                          <b>{agency.name || "Agencia sin nombre"}</b>
+                          <b title={agency.name || "Agencia sin nombre"}>{agency.name || "Agencia sin nombre"}</b>
                           <small>{agency.slug || "Sin identificador"}</small>
                         </td>
                         <td>
@@ -125,7 +125,7 @@ export function PlatformAgencies({busy, state, writable, setConfirming, setTyped
                     key={agency.id}
                   >
                     <div>
-                      <b>{agency.name || "Agencia sin nombre"}</b>
+                      <b title={agency.name || "Agencia sin nombre"}>{agency.name || "Agencia sin nombre"}</b>
                       <small>{agency.slug || "Sin identificador"}</small>
                     </div>
                     <div className="platform-admin-card-badges">

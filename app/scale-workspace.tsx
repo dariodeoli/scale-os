@@ -188,6 +188,7 @@ export default function Home() {
   function setActive(label:string){router.push(sectionPath(label));}
   const [toast, setToast] = useState("");
   const [modal, setModal] = useState<ModalKind>(null);
+  const [paymentInvoice,setPaymentInvoice]=useState('');
   const [myProfile,setMyProfile]=useState(false);
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string;anchor?:string;edit?:boolean}|null>(null);
   const [projectClient,setProjectClient]=useState('');
@@ -329,21 +330,6 @@ export default function Home() {
   const [commercialState, setCommercialState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [moraReports, setMoraReports] = useState<ReportsData | null>(null);
   const [moraReportsError, setMoraReportsError] = useState(false);
-  const moraBuckets = useMemo(() => {
-    const buckets = [
-      { key: "early", label: "Mora 1–15 días", min: 1, max: 15, clients: 0, amounts: new Map<string, number>() },
-      { key: "medium", label: "Mora 16–30 días", min: 16, max: 30, clients: 0, amounts: new Map<string, number>() },
-      { key: "critical", label: "Mora crítica (+30 días)", min: 31, max: Infinity, clients: 0, amounts: new Map<string, number>() },
-    ];
-    for (const client of paymentStatuses) {
-      if (!client.currency || Number(client.outstanding_amount) <= 0 || client.days_overdue <= 0) continue;
-      const bucket = buckets.find(b => client.days_overdue >= b.min && client.days_overdue <= b.max);
-      if (!bucket) continue;
-      bucket.clients += 1;
-      bucket.amounts.set(client.currency, (bucket.amounts.get(client.currency) || 0) + Number(client.outstanding_amount));
-    }
-    return buckets;
-  }, [paymentStatuses]);
   const moraDso = useMemo(() => {
     if (!moraReports) return null;
     const current = moraReports.months.find(month => month.month === moraReports.month) || moraReports.months[0];
@@ -362,8 +348,6 @@ export default function Home() {
     }
     return rows;
   }, [moraReports, paymentStatuses]);
-  const visibleMoraClients = (moraFilter === "no_invoice" ? paymentStatuses.filter(client => !client.has_invoice) : moraFilter ? paymentStatuses.filter(client => client.payment_status === moraFilter) : paymentStatuses).filter(client => !moraSearch || client.client_name.toLowerCase().includes(moraSearch.toLowerCase()));
-  const moneyMora = money;
   const budgetKpis = useMemo(() => {
     const totals = new Map<string, number>();
     let drafts = 0, accepted = 0, expiring = 0;
@@ -752,7 +736,9 @@ export default function Home() {
       if(orderMutationQueue.current.get(id)===mutation)orderMutationQueue.current.delete(id);
     }
   }
-  const close = () => {setModal(null);setProjectClient('');};
+  const close = () => {setModal(null);setProjectClient('');setPaymentInvoice('');};
+  /** “Registrar cobro” desde una fila: abre el modal con la factura ya elegida. */
+  const openPayment = (invoiceId = '') => {setPaymentInvoice(invoiceId);setModal('payment');};
   const selectedProductionClient = clients.some(client => String(client.id) === productionClientId) ? productionClientId : "";
   const productionOrders = filterProductionOrders(orders, projects, selectedProductionClient,{...preferences.production,userId:String(user?.id||''),today:productionToday});
   const hasProductionFilters=!!productionClientId||preferences.production.mine||preferences.production.week;
@@ -947,12 +933,12 @@ export default function Home() {
         {active==='Papelera'&&<PapeleraSection load={load}/>}
         {active === "Resumen" && <ResumenSection guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail}/>}
         {active==='Producción'&&<ProduccionSection productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
-        {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraBuckets={moraBuckets} moraDso={moraDso} visibleMoraClients={visibleMoraClients} moneyMora={moneyMora}/>}
+        {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso}/>}
         {active==='Clientes'&&<ClientesSection user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail}/>}
         {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry}/>}
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={loadBudgets} setBudgets={setBudgets}/>}
         {active==='Informes'&&<InformesSection user={user}/>}
-        {active==='Finanzas'&&<FinanzasSection user={user} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} setModal={setModal} setToast={setToast}/>}
+        {active==='Finanzas'&&<FinanzasSection user={user} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} setModal={setModal} openPayment={openPayment} setToast={setToast}/>}
         {active==='Previsión'&&<PrevisionSection user={user}/>}
         <WorkspaceFooter/>
       </section>
@@ -1037,10 +1023,12 @@ export default function Home() {
       {modal === "payment" && (
         <Modal title="Registrar cobro" onClose={close}>
           <PaymentForm
+            key={paymentInvoice||'payment'}
             request={request}
             invoices={invoices}
             accounts={accounts}
             custodians={custodians}
+            preselectInvoiceId={paymentInvoice}
             done={async () => {
               await completeSave(close,loadFinance);
             }}

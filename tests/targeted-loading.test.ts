@@ -14,19 +14,16 @@ function execute(code:string,deps:Record<string,unknown>){
  const js=ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText;
  return new Function(...Object.keys(deps),js)(...Object.values(deps));
 }
-test('actual team loader: people needs 4 parallel reads, commissions retains its 6 reads',async()=>{
+test('actual team loader: one team read feeds people, members and archived profiles',async()=>{
  const {ast,fn}=component('operations.tsx','PeopleWorkspace');
  const load=fn.body!.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='load')!;
- for(const mode of ['people','commissions']){
-  const calls:string[]=[],resolvers:(()=>void)[]=[],state:Record<string,unknown>={};
-  const deps:Record<string,unknown>={mode,api:(path:string)=>{calls.push(path);return new Promise(resolve=>resolvers.push(()=>resolve({collaborators:[],members:[],archivedProfiles:[],commissions:[],accounts:[],invoices:[],payouts:[],roles:[]})));}};
-  for(const setter of ['setPeople','setMembers','setArchivedProfiles','setCommissions','setAccounts','setInvoices','setPayouts','setJobs'])deps[setter]=(value:unknown)=>{state[setter]=value;};
-  const run=execute(load.getText(ast)+';return load;',deps);const finished=run();
-  assert.equal(calls.length,mode==='people'?3:5,'all requests begin before any response');
-  if(mode==='people')assert(!calls.some(path=>/commissions|invoices/.test(path)));
-  assert.equal(Object.keys(state).length,0);resolvers.forEach(resolve=>resolve());await finished;
-  assert.equal(Object.keys(state).length,7);
- }
+ const calls:string[]=[],resolvers:(()=>void)[]=[],state:Record<string,unknown>={};
+ const deps:Record<string,unknown>={api:(path:string)=>{calls.push(path);return new Promise(resolve=>resolvers.push(()=>resolve({collaborators:[{id:'1'}],members:[{id:'2'}],archivedProfiles:[]})))}};
+ for(const setter of ['setPeople','setMembers','setArchivedProfiles'])deps[setter]=(value:unknown)=>{state[setter]=value;};
+ const run=execute(load.getText(ast)+';return load;',deps);const finished=run();
+ assert.deepEqual(calls,['/api/agency/team'],'Equipo reads the team endpoint only');
+ assert.equal(Object.keys(state).length,0);resolvers.forEach(resolve=>resolve());await finished;
+ assert.deepEqual(state,{setPeople:[{id:'1'}],setMembers:[{id:'2'}],setArchivedProfiles:[]});
 });
 
 test('actual company loader renders settings before a slow/failed rate request and ignores unmounted results',async()=>{

@@ -30,7 +30,7 @@ assert(operationsCss.includes('.person-hub-actions .ops-card-actions{margin:0;pa
 assert(operationsCss.includes('.person-hub-card.is-list>.person-hub-tail>.form-note'),'the ambiguous-profile note spans the row');
 assert(operationsCss.includes('.person-hub-head-row span:first-child{padding-left:26px}'),'the team header aligns with the row identity');
 assert(operationsCss.includes('.person-hub-card.is-list{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px'),'the stacked team list returns to card density without growing past its column');
-assert(file('../app/operations.tsx').includes('visiblePayouts.length?<div className="finance-row-head"'),'the payout header only renders with visible rows');
+assert(file('../app/operations.tsx').includes("{teamView==='list'?<div className=\"person-hub-head-row\""),'the team header only renders with the list view');
 const portalCss=file('../app/cliente/portal.css');
 assert(portalCss.includes('.delivery-activity{list-style:none'),'the portal activity feed drops the native bullets');
 assert(portalCss.includes('.portal-date,.delivery-activity small{white-space:nowrap'),'portal dates never break mid-value');
@@ -49,7 +49,7 @@ assert(dialogCss.includes('.ops-overlay{position:fixed;inset:0;z-index:60;displa
 assert(!file('../app/operations.css').includes('.ops-overlay {\n  display: grid'),'no module redefines the overlay centering (the mobile sheet keeps its bottom anchor)');
 assert(dialogCss.includes('@media(max-width:540px){.ops-overlay{align-items:end;padding:0}'),'the mobile dialog stays anchored to the bottom');
 assert(file('../app/phone-field.tsx').includes('phone-input grid grid-cols-[minmax(94px,.42fr)_minmax(0,1fr)] gap-2'),'the phone field lays out inside portaled dialogs too');
-assert(file('../app/subscription-panel.css').includes('.subscription-notice.subscription-status--trialing .subscription-secondary{'),'the trial notice keeps its own tone instead of the danger palette');
+assert(file('../app/subscription-panel.tsx').includes("state.status==='trialing'?'bg-fono/15 text-fono-light'"),'el aviso de prueba conserva su tono propio en vez del de peligro');
 assert(file('../app/access-layout.tsx').includes('max-w-[30rem]')&&file('../app/registro/page.tsx').includes('grid gap-3'),'las superficies de acceso comparten el marco v2 y su ritmo vertical');
 assert(file('../app/superadmin/platform-admin.css').includes('margin-bottom: 0;'),'the global admin header resets the leaking global header margin');
 assert(file('../app/superadmin/audit.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');

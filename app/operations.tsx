@@ -4,15 +4,15 @@ import {ViewToggle} from './view-toggle';
 import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
-import { useEffect, useMemo, useState, useRef, useId } from "react";
+import { useEffect, useState, useRef, useId } from "react";
 import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Banknote, Building2, Check, MessageSquare, Pencil, Plus, RotateCcw, Star, X , CircleDollarSign } from "lucide-react";
+import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star, CircleDollarSign } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
-import {PHONE_ERROR, phoneValid, todayInAsuncion, emailValid, EMAIL_ERROR} from './field-rules';
+import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
 import {PasswordField} from './password-field';
 import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
@@ -57,7 +57,6 @@ export const money = (value: string | number, currency = "PYG") =>
     currency,
     maximumFractionDigits: currency === "PYG" ? 0 : 2,
   }).format(Number(value));
-const day = (v: string | null) => (v ? listDateShort(v) || "—" : "—");
 export {Dialog} from './dialog';
 type Choice = { value: string; label: string };
 export type Field = {
@@ -195,87 +194,23 @@ type Person = {
   user_id: string | null;
   access_email: string | null;
 };
-type Commission = {
-  id: string;
-  beneficiary_name: string;
-  kind: string;
-  status: string;
-  amount: string;
-  currency: string;
-  percentage: string | null;
-  basis: string;
-  base_amount: string | null;
-  invoice_number: string | null;
-  due_on: string | null;
-};
-type MonthlyCommission = {
-  recipient_id: string | null;
-  name: string | null;
-  currency: string;
-  expected_amount: string | number;
-  recorded_amount: string | number;
-  approved_amount: string | number;
-  paid_amount: string | number;
-  pending_amount: string | number;
-};
-type Account = {
-  id: string;
-  name: string;
-  currency: string;
-  active: boolean;
-  balance: string;
-};
-type Invoice = {
-  id: string;
-  number: string;
-  client_name: string;
-  currency: string;
-  total: string;
-  paid_amount: string;
-};
-type Payout = {
-  id: string;
-  collaborator_name: string | null;
-  beneficiary_name: string | null;
-  amount: string;
-  currency: string;
-  account_name: string;
-  paid_on: string;
-  reference: string;
-};
 const types = [
   { value: "fixed", label: "Fijo mensual" },
   { value: "variable", label: "Variable" },
   { value: "hourly", label: "Por hora" },
   { value: "per_project", label: "Por proyecto" },
 ];
-const states: Record<string, string> = {
-  pending: "Pendiente",
-  approved: "Aprobada",
-  paid: "Pagada",
-  cancelled: "Cancelada",
-};
-function salaryMonth(now=new Date()) {
- const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(now);
- return `${parts.find(part=>part.type==='year')!.value}-${parts.find(part=>part.type==='month')!.value}`;
-}
 export function OperationsWorkspace({
-  mode,
   role,
   currentEmail='',
   organizationName='',
-  activeTab='people',
-  onTabChange,
 }: {
-  mode: "people" | "commissions";
   role: string;
   currentEmail?:string;
   organizationName?:string;
-  activeTab?: string;
-  onTabChange?: (tab: string) => void;
 }) {
-  if(mode==='people'&&!canOpenPeopleWorkspace(role))return <TeamDirectoryView organizationName={organizationName}/>;
-  return <PeopleWorkspace mode={mode} role={role} currentEmail={currentEmail} organizationName={organizationName} activeTab={activeTab} onTabChange={onTabChange}/>;
+  if(!canOpenPeopleWorkspace(role))return <TeamDirectoryView organizationName={organizationName}/>;
+  return <PeopleWorkspace role={role} currentEmail={currentEmail} organizationName={organizationName}/>;
 }
 type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
 function TeamDirectoryView({organizationName}:{organizationName:string}){
@@ -293,38 +228,22 @@ function TeamDirectoryView({organizationName}:{organizationName:string}){
   </div>;
 }
 function PeopleWorkspace({
-  mode,
   role,
   currentEmail='',
   organizationName='',
-  activeTab='people',
-  onTabChange,
 }: {
-  mode: "people" | "commissions";
   role: string;
   currentEmail?:string;
   organizationName?:string;
-  activeTab?: string;
-  onTabChange?: (tab: string) => void;
 }) {
   const {currency:defaultCurrency}=useCompanyCurrency();
   const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[seedEmail,setSeedEmail]=useState(''),[search,setSearch]=useState('');
-  const [people, setPeople] = useState<Person[]>([]),
-    [commissions, setCommissions] = useState<Commission[]>([]),
-    [accounts, setAccounts] = useState<Account[]>([]),
-    [invoices, setInvoices] = useState<Invoice[]>([]),
-    [payouts, setPayouts] = useState<Payout[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
   const [permissionsOpen, setPermissionsOpen] = useState(false);
   const [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
-    [edit, setEdit] = useState<Person | "new" | null>(null),
-    [newCommission, setNewCommission] = useState(false),
-    [pay, setPay] = useState<{
-      person?: Person;
-      commission?: Commission;
-    } | null>(null),
-    [filter, setFilter] = useState("all");
+    [edit, setEdit] = useState<Person | "new" | null>(null);
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
   const canManageAccess=roleCan(role,'members.manage');
@@ -352,14 +271,9 @@ function PeopleWorkspace({
     }catch(cause){setError(message(cause));await load().catch(()=>{});}
     finally{setBulkAccessBusy(false);}
   }
-  const [commissionMonth, setCommissionMonth] = useState(() => salaryMonth()),
-    [monthlyCommissions, setMonthlyCommissions] = useState<MonthlyCommission[]>([]),
-    [monthlyLoading, setMonthlyLoading] = useState(false),
-    [monthlyRefresh, setMonthlyRefresh] = useState(0);
-  // Comisiones sigue a `commissions.manage` (scale-core-api#14); Equipo, a quienes
-  // gestionan personas o ven salarios. Sin listas de roles paralelas.
+  // Equipo sigue a quienes gestionan personas o ven salarios (sin listas de roles paralelas).
   const salaryView = roleCan(role, "salary.view");
-  const allowed = mode === "commissions" ? roleCan(role, "commissions.manage") : canOpenPeopleWorkspace(role);
+  const allowed = canOpenPeopleWorkspace(role);
   useEffect(() => {
     if (!allowed) return;
     let alive = true;
@@ -369,63 +283,27 @@ function PeopleWorkspace({
       .catch(() => { if (alive) setCommercial(null); });
     return () => { alive = false; };
   }, [allowed]);
-  useEffect(() => {
-    if (!allowed || mode !== "commissions") return;
-    let alive = true;
-    setMonthlyLoading(true);
-    void api<{ month: string; records: MonthlyCommission[] }>(`/api/agency/commissions/monthly?month=${encodeURIComponent(commissionMonth)}`)
-      .then(value => { if (alive) setMonthlyCommissions(value.records); })
-      .catch(() => { if (alive) setMonthlyCommissions([]); })
-      .finally(() => { if (alive) setMonthlyLoading(false); });
-    return () => { alive = false; };
-  }, [allowed, mode, commissionMonth, monthlyRefresh]);
   async function load() {
-    const [p, c, a, i, x] = await Promise.all([
-      mode === "people"
-        ? api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>("/api/agency/team")
-        : roleCan(role, "members.manage") || roleCan(role, "finance.view")
-          ? api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>("/api/agency/collaborators")
-          : Promise.resolve({ collaborators: [] as Person[], members: [] as TeamMember[], archivedProfiles: [] as ArchivedProfile[] }),
-      mode==='commissions'?api<{ commissions: Commission[] }>("/api/agency/commissions"):Promise.resolve({commissions:[]}),
-      roleCan(role, "accounts.manage")?api<{ accounts: Account[] }>("/api/agency/accounts"):Promise.resolve({accounts:[] as Account[]}),
-      mode==='commissions'&&roleCan(role, "invoices.manage")?api<{ invoices: Invoice[] }>("/api/agency/invoices"):Promise.resolve({invoices:[] as Invoice[]}),
-      roleCan(role, "finance.view")?api<{ payouts: Payout[] }>("/api/agency/payouts"):Promise.resolve({payouts:[] as Payout[]}),
-    ]);
+    const p = await api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>("/api/agency/team");
     setPeople(p.collaborators);
     setMembers(p.members||[]);setArchivedProfiles(p.archivedProfiles||[]);
-    setCommissions(c.commissions);
-    setAccounts(a.accounts);
-    setInvoices(i.invoices);
-    setPayouts(x.payouts);
   }
   useEffect(() => {
     if (allowed)
       load()
         .catch((e) => setError(message(e)))
         .finally(() => setLoading(false));
-  }, [allowed,mode]);
+  }, [allowed]);
   useEffect(()=>{
     if(!allowed)return;
     const refreshIdentity=()=>{void load().catch(e=>setError(message(e)));};
     window.addEventListener('scale:identity-changed',refreshIdentity);
     return()=>window.removeEventListener('scale:identity-changed',refreshIdentity);
-  },[allowed,mode]);
+  },[allowed]);
   async function done() {
     await load();
-    setMonthlyRefresh(value => value + 1);
     setEdit(null);
-    setNewCommission(false);
-    setPay(null);
     setNotice("Guardado correctamente.");
-  }
-  async function state(c: Commission, status: string) {
-    setError("");
-    try {
-      await api(`/api/agency/commissions/${c.id}`, { status }, "PATCH");
-      await load();
-    } catch (e) {
-      setError(message(e));
-    }
   }
   if (!allowed)
     return (
@@ -486,7 +364,6 @@ function PeopleWorkspace({
   const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
   // Un pago sin nombre en el modo activo no se lista: el encabezado de columnas
   // solo aparece cuando hay filas visibles que lo justifiquen.
-  const visiblePayouts=payouts.filter(p=>mode==='people'?p.collaborator_name:p.beneficiary_name);
   const personDefaults: Record<string, string> = {
     full_name: person?.full_name || members.find(member=>member.email===seedEmail)?.full_name || "",
     job_title: person?.job_title || "",
@@ -515,25 +392,17 @@ function PeopleWorkspace({
       <section className="panel">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">
-              {mode === "people"
-                ? "PERSONAS, ACCESOS Y REMUNERACIONES"
-                : "VENTAS Y RECOMENDACIONES"}
-            </p>
-            <h2>
-              {mode === "people" ? `Equipo${organizationName?' de '+organizationName:''}` : "Comisiones y referidos"}
-            </h2>
+            <p className="eyebrow">PERSONAS, ACCESOS Y REMUNERACIONES</p>
+            <h2>Equipo{organizationName?' de '+organizationName:''}</h2>
           </div>
           <div className="inline-actions">
-          {mode==='people'&&roleCan(role,'settings.manage')&&<button className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
+          {roleCan(role,'settings.manage')&&<button className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
           <button
             className="primary"
-            onClick={() =>
-              mode === "people" ? (setSeedEmail(''),setEdit("new")) : setNewCommission(true)
-            }
+            onClick={() => {setSeedEmail('');setEdit("new");}}
           >
             <Plus size={16} />
-            {mode === "people" ? "Agregar persona" : "Comisión"}
+            Agregar persona
           </button>
           </div>
         </div>
@@ -543,14 +412,14 @@ function PeopleWorkspace({
           </p>
         )}
         {notice && <p role="status">{notice}</p>}
-        {mode==='people'&&<div className="kpi-strip" aria-label="Facturación contratada">
+        <div className="kpi-strip" aria-label="Facturación contratada">
           <article className="kpi-card tone-blue">
             <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
             {commercial===null?<strong>Calculando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong>No disponible</strong>:commercial.expectedMonthlyBilling.length?<div className="kpi-amounts">{commercial.expectedMonthlyBilling.map(item=><span key={item.currency}>{money(Number(item.total),item.currency)} / mes</span>)}</div>:<strong>Sin contratos activos</strong>}
             <small>{commercial?.expectedMonthlyBilling===undefined?'No disponible':commercial.expectedMonthlyBilling.length?'Expectativa comercial vigente por moneda':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}</small>
           </article>
-        </div>}
-        {mode==='people'&&<div className="team-filters">
+        </div>
+        <div className="team-filters">
           <SearchField className="team-search" label="Buscar persona" value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
           <div className="choice-list compact">
             <button className={!search?'choice active':'choice'} onClick={()=>setSearch('')}>Todos</button>
@@ -558,10 +427,10 @@ function PeopleWorkspace({
             <button className={search==='inactivo'?'choice active':'choice'} onClick={()=>setSearch('inactivo')}>Inactivos</button>
           </div>
           <div className="workspace-view-controls"><ViewToggle label="Vista del equipo" value={teamView==='list'?'list':'grid'} onChange={value=>setTeamView(value==='list'?'list':'cards')}/></div>
-        </div>}
+        </div>
         {loading ? (
           <p role="status">Cargando…</p>
-        ) : mode === "people" ? (
+        ) : (
           <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
             {canManageAccess&&visiblePeople.some(entry=>entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
             {teamView==='list'?<div className="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>:null}
@@ -576,7 +445,7 @@ function PeopleWorkspace({
                       <span className="avatar">{actorInitials(p.full_name)}</span>
                     )}
                     <div>
-                      <h3 title={p.full_name}>{p.full_name}{salaryView&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
+                      <h3 title={p.notes?`${p.full_name} · ${p.notes}`:p.full_name}>{p.full_name}{salaryView&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
                       <small>{entry.member?teamRoleLabels[entry.member.role]||entry.member.role:(p.job_title||'Sin cargo')}</small>
                     </div>
                   </div>
@@ -616,7 +485,7 @@ function PeopleWorkspace({
                 <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={entry.member!.email||undefined}>{entry.member!.email}</dd></div>
                 <div><dt>Acceso</dt><dd title={`${accessRole} · ${accessState}`}>{accessRole} · {accessState}</dd></div>
               </dl>
-              <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>
+              <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span>{entry.ambiguous?<span className="hub-chip warn" title="Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.">Perfiles ambiguos</span>:null}</div>
               <div className="person-hub-tail"><TeamAccess member={entry.member} email={entry.member!.email} role={role} refresh={load}/>
               <footer className="person-hub-actions">
                 <div className="person-hub-buttons">
@@ -635,130 +504,6 @@ function PeopleWorkspace({
               </div>
             )}
           </div>
-        ) : (
-          <>
-            <div className="commission-settlement">
-              <div className="panel-heading">
-                <h3>Comisiones del mes por colaborador</h3>
-                <label>
-                  Mes
-                  <input type="month" value={commissionMonth} min="1900-01" max="9998-12" onChange={event => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setCommissionMonth(event.target.value); }} />
-                </label>
-              </div>
-              <p className="form-note">
-                Esperado: acuerdos comerciales vigentes con comisión asignada. Registrado, aprobado, pagado y pendiente: comisiones del mes según la fecha de la factura vinculada.
-              </p>
-              {monthlyLoading ? <p role="status">Cargando comisiones del mes…</p> : monthlyCommissions.length ? (
-                <div className="settlement-table" aria-label="Comisiones del mes por colaborador">
-                  <div className="settlement-head" aria-hidden="true"><span>Colaborador</span><span>Esperado</span><span>Registrado</span><span>Aprobado</span><span>Pagado</span><span>Pendiente</span></div>
-                  {monthlyCommissions.map(row => (
-                    <div className="settlement-row" key={`${row.recipient_id ?? `unlinked-${row.name ?? ""}`}-${row.currency}`}>
-                      <div className="settlement-name"><b title={row.name || "Sin colaborador vinculado"}>{row.name || "Sin colaborador vinculado"}</b><small>{row.currency}</small></div>
-                      <strong data-label="Esperado" className="settlement-value">{money(row.expected_amount, row.currency)}</strong>
-                      <strong data-label="Registrado" className="settlement-value">{money(row.recorded_amount, row.currency)}</strong>
-                      <strong data-label="Aprobado" className="settlement-value">{money(row.approved_amount, row.currency)}</strong>
-                      <strong data-label="Pagado" className="settlement-value">{money(row.paid_amount, row.currency)}</strong>
-                      <strong data-label="Pendiente" className="settlement-value">{money(row.pending_amount, row.currency)}</strong>
-                    </div>
-                  ))}
-                </div>
-              ) : <p className="empty-copy">Sin comisiones ni acuerdos comerciales para este mes.</p>}
-            </div>
-            <div className="choice-list compact">
-              {["all", "pending", "approved", "paid", "cancelled"].map((s) => (
-                <button
-                  className={filter === s ? "choice active" : "choice"}
-                  key={s}
-                  onClick={() => setFilter(s)}
-                >
-                  {s === "all" ? "Todas" : states[s]}
-                </button>
-              ))}
-            </div>
-            <div className="ops-grid">
-              {commissions
-                .filter((c) => filter === "all" || c.status === filter)
-                .map((c) => (
-                  <article className="ops-card commission-hub-card" key={c.id}>
-                    <header className="commission-hub-head">
-                      <span className="hub-chip">{c.kind === "sales" ? "Venta" : "Referido"}</span>
-                      <span className="commission-state" data-status={c.status}>{states[c.status]}</span>
-                    </header>
-                    <h3>{c.beneficiary_name}</h3>
-                    <strong className="commission-hub-amount">{money(c.amount, c.currency)}</strong>
-                    <dl className="commission-hub-facts">
-                      <div><dt>Factura</dt><dd title={c.invoice_number || "Sin factura vinculada"}>{c.invoice_number || "Sin factura vinculada"}</dd></div>
-                      <div><dt>Vence</dt><dd title={day(c.due_on)}>{day(c.due_on)}</dd></div>
-                    </dl>
-                    <p className="form-note">
-                      {c.basis === "fixed"
-                        ? "Importe fijo"
-                        : `${c.percentage}% sobre ${money(c.base_amount || 0, c.currency)} ${c.basis === "collected" ? "cobrados" : "facturados"} al registrar`}
-                    </p>
-                    <div className="commission-hub-actions inline-actions">
-                      {c.status === "pending" && (
-                        <button
-                          className="text-button positive"
-                          onClick={() => state(c, "approved")}
-                        >
-                          <Check size={14} />
-                          Aprobar
-                        </button>
-                      )}
-                      {c.status === "approved" && (
-                        <button
-                          className="text-button"
-                          onClick={() => setPay({ commission: c })}
-                        >
-                          <Banknote size={14} />
-                          Registrar pago
-                        </button>
-                      )}
-                      {["pending", "approved"].includes(c.status) && (
-                        <button
-                          className="text-button danger"
-                          onClick={() => state(c, "cancelled")}
-                        >
-                          <X size={14} />
-                          Cancelar
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                ))}
-            </div>
-            {!commissions.length && (
-              <p className="empty-copy">
-                Registrá una comisión por venta o por recomendar un cliente.
-              </p>
-            )}
-            <p className="form-note">
-              Los porcentajes se calculan al registrar la comisión. Los cobros
-              posteriores no modifican acuerdos ya registrados.
-            </p>
-          </>
-        )}
-      </section>
-      {mode === "commissions" && <ReferralDiscounts />}
-      <section className="panel">
-        <h2>Pagos registrados</h2>
-        <p className="form-note">
-          Cada pago descuenta el saldo de la cuenta elegida.
-        </p>
-        {visiblePayouts.length?<div className="finance-row-head" aria-hidden="true"><span>Egreso</span><span>Monto</span></div>:null}
-        {visiblePayouts.map((p) => (
-          <div className="payment-row finance-payout-row" key={p.id}>
-            <div>
-              <b>{p.collaborator_name || p.beneficiary_name}</b>
-              <small>
-                {day(p.paid_on)} · {p.account_name} · {p.reference}
-              </small>
-            </div>
-            <strong>{money(p.amount, p.currency)}</strong>
-          </div>
-        ))}
-        {!visiblePayouts.length && (
-          <p className="empty-copy">Todavía no hay egresos registrados.</p>
         )}
       </section>
       {edit && (
@@ -823,216 +568,10 @@ function PeopleWorkspace({
         </Dialog>
       )}
       {permissionsOpen&&<PermissionsMatrix role={role} close={()=>setPermissionsOpen(false)}/>}
-      {newCommission && (
-        <Dialog
-          title="Nueva comisión o referido"
-          close={() => setNewCommission(false)}
-        >
-          <Editor
-            fields={[
-              { key: "beneficiary_name", label: "Beneficiario" },
-              {
-                key: "kind",
-                label: "Origen",
-                section: 'Qué se comisiona',
-                choices: [
-                  { value: "sales", label: "Venta" },
-                  { value: "referral", label: "Referido" },
-                ],
-              },
-              {
-                key: "basis",
-                label: "Cálculo",
-                section: 'Qué se comisiona',
-                choices: [
-                  { value: "fixed", label: "Importe fijo" },
-                  { value: "invoiced", label: "% facturado" },
-                  { value: "collected", label: "% cobrado" },
-                ],
-              },
-              {
-                key: "amount",
-                label: "Importe (para importe fijo)",
-                type: "money",
-                section: 'Qué se comisiona',
-              },
-              {
-                key: "percentage",
-                label: "Porcentaje (para cálculo %)",
-                type: "number",
-                optional: true,
-                section: 'Qué se comisiona',
-              },
-              {
-                key: "currency",
-                label: "Moneda (se usa la de la factura si se vincula)",
-                choices: currencies,
-                section: 'Qué se comisiona',
-              },
-              {
-                key: "collaborator_id",
-                label: "Vincular colaborador",
-                optional: true,
-                section: 'Referencia',
-                choices: [
-                  empty,
-                  ...people.map((p) => ({ value: p.id, label: p.full_name })),
-                ],
-              },
-              {
-                key: "invoice_id",
-                label: "Factura de referencia",
-                optional: true,
-                section: 'Referencia',
-                choices: [
-                  empty,
-                  ...invoices.map((i) => ({
-                    value: i.id,
-                    label: `${i.number} · ${i.client_name}`,
-                  })),
-                ],
-              },
-              {
-                key: "due_on",
-                label: "Vencimiento",
-                type: "date",
-                optional: true,
-                section: 'Referencia',
-              },
-              {
-                key: "notes",
-                label: "Cliente referido / condiciones",
-                type: "textarea",
-                optional: true,
-                section: 'Referencia',
-              },
-            ]}
-            defaults={{
-              beneficiary_name: "",
-              kind: "sales",
-              collaborator_id: "",
-              invoice_id: "",
-              basis: "fixed",
-              amount: "0",
-              percentage: "",
-              currency: defaultCurrency,
-              due_on: "",
-              notes: "",
-            }}
-            save={async (v) => {
-              await api("/api/agency/commissions", v);
-              await done();
-            }}
-          />
-        </Dialog>
-      )}
-      {pay && (
-        <Dialog
-          title={`Registrar pago · ${pay.person?.full_name || pay.commission?.beneficiary_name}`}
-          close={() => setPay(null)}
-        >
-          <Editor
-            fields={[
-              {
-                key: "account_id",
-                label: "Cuenta de salida",
-                choices: accounts
-                  .filter(
-                    (a) =>
-                      a.active &&
-                      a.currency ===
-                        (pay.person?.currency || pay.commission?.currency),
-                  )
-                  .map((a) => ({
-                    value: a.id,
-                    label: `${a.name} · ${money(a.balance, a.currency)}`,
-                  })),
-              },
-              {
-                key: "amount",
-                label: pay.commission
-                  ? "Importe de la comisión (se conserva el aprobado)"
-                  : "Importe pagado",
-                type: "money",
-                currency: pay.person?.currency || pay.commission?.currency || "PYG",
-              },
-              { key: "paid_on", label: "Fecha", type: "date" },
-              { key: "reference", label: "Comprobante / período / referencia" },
-            ]}
-            defaults={{
-              account_id: "",
-              amount:
-                pay.person?.compensation_amount ||
-                pay.commission?.amount ||
-                "0",
-              paid_on: todayInAsuncion(),
-              reference: "",
-            }}
-            label="Confirmar pago"
-            save={async (v) => {
-              await api("/api/agency/payouts", {
-                ...v,
-                collaborator_id: pay.person?.id,
-                commission_id: pay.commission?.id,
-              });
-              await done();
-            }}
-          />
-        </Dialog>
-      )}
     </div>
   );
 }
 
-
-type ReferralDiscount = {
-  id: string; referrer: string; amount: string; currency: string;
-  reason: string; status: string; invoice_number: string; client_name: string;
-};
-function ReferralDiscounts() {
-  const [items, setItems] = useState<ReferralDiscount[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [open, setOpen] = useState(false);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
-  async function load() {
-    const [discounts, bills] = await Promise.all([
-      api<{ discounts: ReferralDiscount[] }>("/api/agency/referral-discounts"),
-      api<{ invoices: Invoice[] }>("/api/agency/invoices"),
-    ]);
-    setItems(discounts.discounts); setInvoices(bills.invoices);
-  }
-  useEffect(() => { void load().catch(e => setError(message(e))); }, []);
-  return <section className="panel">
-    <div className="panel-heading"><h2>Descuentos por referido</h2>
-      <button className="primary" onClick={() => setOpen(true)}><Plus size={16} /> Nuevo descuento</button>
-    </div>
-    <p className="form-note">Se descuenta del saldo pendiente de la factura. Conservamos el motivo y el historial de reversiones.</p>
-    {error && <p className="error" role="alert">{error}</p>}
-    {!items.length && <p className="empty-copy">Todavía no hay descuentos registrados.</p>}
-    {items.length?<div className="finance-row-head" aria-hidden="true"><span>Referido</span><span>Acciones</span></div>:null}
-    {items.map(item => <article className="payment-row finance-referral-row" key={item.id}>
-      <div><b>{item.referrer} · {money(item.amount, item.currency)}</b>
-        <small>{item.invoice_number} · {item.client_name} · {item.reason} · {item.status === "applied" ? "Aplicado" : "Revertido"}</small>
-      </div>
-      {item.status === "applied" ? <button className="secondary" disabled={busy !== null} onClick={async () => {
-        setBusy(item.id); setError("");
-        try { await api(`/api/agency/referral-discounts/${item.id}`, {}, "PATCH"); await load(); }
-        catch(e) { setError(message(e)); } finally { setBusy(null); }
-      }}>{busy === item.id ? "Revirtiendo…" : "Revertir descuento"}</button> : <span aria-hidden="true"/>}
-    </article>)}
-    {open && <Dialog title="Descuento por referido" close={() => setOpen(false)}>
-      <Editor fields={[
-        { key: "invoice_id", label: "Factura", choices: invoices.filter(i => Number(i.total) > Number(i.paid_amount)).map(i => ({ value: i.id, label: `${i.number} · ${i.client_name} · pendiente ${money(Number(i.total)-Number(i.paid_amount), i.currency)}` })) },
-        { key: "referrer", label: "Quién refirió al cliente" },
-        { key: "amount", label: "Descuento en la moneda de la factura", type: "money", currencyFrom: values => invoices.find(i => String(i.id) === values.invoice_id)?.currency || "PYG" },
-        { key: "reason", label: "Motivo o acuerdo", type: "textarea" },
-      ]} defaults={{invoice_id: "", referrer: "", amount: "", reason: ""}} label="Aplicar descuento" save={async values => {
-        await api("/api/agency/referral-discounts", values); await load(); setOpen(false);
-      }} />
-    </Dialog>}
-  </section>;
-}
 
 export function ProjectComments({
   projectId,

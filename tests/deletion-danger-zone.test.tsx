@@ -120,7 +120,8 @@ test('demo simulation replaces deletion controls and delegates exit to the landi
  assert.equal(demoExited,1);assert.equal(requests.length,0,'The demo exit control delegates cleanup to its workspace owner.');
  const workspace=workspaceSource();
  assert.match(workspace,/async function exitDemoSimulation\(\)[\s\S]*?request\("\/api\/auth\/logout", \{ method: "POST" \}\)[\s\S]*?window\.location\.assign\('\/'\)/);
- assert.match(workspace,/<DeletionDangerZone[\s\S]*?demo=\{!!user\.demo_owner_user_id\|\|user\.organization_slug==='scale-demo-controles-20260908'\}[\s\S]*?onDemoExit=\{exitDemoSimulation\}/);
+ assert.match(workspace,/const demo = !!user\?\.demo_owner_user_id \|\| user\?\.organization_slug === 'scale-demo-controles-20260908';/);
+ assert.match(workspace,/<DeletionDangerZone[\s\S]*?demo=\{demo\}[\s\S]*?onDemoExit=\{exitDemoSimulation\}/);
 });
 
 test('company preview uses server counts/consequences and exact confirmation after password re-auth',async()=>{

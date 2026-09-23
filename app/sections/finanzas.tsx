@@ -27,6 +27,8 @@ type FinanzasSectionProps = {
   loadFinance: () => Promise<void>;
   loadAllInvoices: () => Promise<void>;
   setModal: Dispatch<SetStateAction<ModalKind>>;
+  /** Abre “Registrar cobro”; con una factura, el modal la deja preseleccionada. */
+  openPayment: (invoiceId?: string) => void;
   setToast: Dispatch<SetStateAction<string>>;
 };
 
@@ -50,7 +52,7 @@ const amount = (value: string | number, currency: string) => <span className="wh
 const pendingOf = (invoice: Invoice) => Number(invoice.total) - Number(invoice.paid_amount);
 const dueWithinWeek = (due: string | null) => Boolean(due) && dueTone(due!) === 'warn';
 
-export function FinanzasSection({user, financeState, accounts, invoices, transfers, payments, invoiceHasMore, financeEmpty, loadFinance, loadAllInvoices, setModal, setToast}: FinanzasSectionProps) {
+export function FinanzasSection({user, financeState, accounts, invoices, transfers, payments, invoiceHasMore, financeEmpty, loadFinance, loadAllInvoices, setModal, openPayment, setToast}: FinanzasSectionProps) {
   const [invoiceFilter, setInvoiceFilter] = useState('all');
   const [invoiceSearch, setInvoiceSearch] = useState('');
 
@@ -164,7 +166,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
         <div className="min-w-0"><h3 id="finance-invoices-title" className="text-[17px] font-semibold tracking-tight text-fore">Cobros pendientes</h3><p className="mt-1 text-xs text-mute">Facturas con saldo; el cobro descuenta la cuenta elegida.</p></div>
         <div className="flex flex-wrap items-center gap-1">
           <button className="text-button" onClick={() => setModal('invoice')}><Plus size={14} aria-hidden="true"/>Factura</button>
-          <button className="primary" onClick={() => setModal('payment')}><Plus size={16} aria-hidden="true"/>Registrar cobro</button>
+          <button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button>
         </div>
       </div>
       <FilterToolbar summary={`${visibleInvoices.length} de ${invoices.length}`}>
@@ -188,7 +190,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
             <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? amount(pendingOf(invoice), invoice.currency) : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
             <div className="min-w-0 text-right">{amount(invoice.total, invoice.currency)}</div>
             <div className="flex min-w-0 items-center justify-end gap-1">
-              {pendingOf(invoice) > 0 ? <button className="text-button" onClick={() => setModal('payment')}><Plus size={14} aria-hidden="true"/>Registrar cobro</button> : null}
+              {pendingOf(invoice) > 0 ? <button className="text-button" onClick={() => openPayment(invoice.id)}><Plus size={14} aria-hidden="true"/>Registrar cobro</button> : null}
             </div>
           </ListRow>)}
         </ListGrid>

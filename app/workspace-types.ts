@@ -83,6 +83,8 @@ export type PaymentRecord = {
   actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
   reversal_id?: string | null;
   reversal_reason?: string | null;
+  /** Fecha real de la reversión informada por el API. */
+  reversed_on?: string | null;
 };
 export type Invoice = {
   id: string;
@@ -94,6 +96,9 @@ export type Invoice = {
   total: string;
   paid_amount: string;
   due_on: string | null;
+  /** Emisión de la factura y notas libres del registro. */
+  issued_on?: string | null;
+  notes?: string | null;
 };
 export type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
 export type Budget = {
@@ -120,6 +125,10 @@ export type AccountTransfer = {
   to_currency?: string;
   transferred_on: string;
   reference: string | null;
+  /** Notas, cotización aplicada y fecha de alta informadas por el API. */
+  notes?: string | null;
+  exchange_rate?: string | number | null;
+  created_at?: string;
   created_by_email: string | null;
   actor_name?:string; actor_photo_url?:string; actor_verified?:boolean;
 };

@@ -10,7 +10,7 @@ import type {User} from '../workspace-types';
 
 // Cobranza y mora (dominio FIN): semáforo por antigüedad, DSO por moneda y lista
 // de clientes con saldo. Los cálculos salen de app/mora-data.ts (una sola fuente);
-// el shell sigue pasando sus props históricos y solo se usan los vigentes.
+// el shell solo pasa el estado que la sección usa.
 type MoraSectionProps = {
   user: User | null;
   paymentStatuses: ClientPaymentStatus[];
@@ -20,10 +20,7 @@ type MoraSectionProps = {
   setMoraSearch: Dispatch<SetStateAction<string>>;
   moraUpdated: Date | null;
   moraReportsError: boolean;
-  moraBuckets: {key: string; label: string; min: number; max: number; clients: number; amounts: Map<string, number>}[];
   moraDso: {currency: string; days: number}[] | null;
-  visibleMoraClients: ClientPaymentStatus[];
-  moneyMora: typeof money;
 };
 
 /** Plantilla única de la lista de cobranza (encabezado y filas la comparten). */

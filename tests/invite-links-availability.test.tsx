@@ -20,7 +20,8 @@ Object.assign(globalThis,{React});
 const {InviteLinks}=require('../app/invite-links') as typeof import('../app/invite-links');
 test('invalid requests explain unavailability and have no approval action; valid request keeps role checks',async()=>{
  let r:ReactTestRenderer;await act(async()=>{r=create(<InviteLinks role="admin"/>);});
- const articles=r!.root.findAllByType('article');assert.equal(articles.length,4);
+ const articles=r!.root.findAll(node=>node.props.role==='row'&&!String(node.props.className||'').includes('uppercase'));
+ assert.equal(articles.length,4);
  const approvals=(i:number)=>articles[i].findAllByType('button').filter(b=>b.props.children==='Aprobar acceso');
  assert.equal(approvals(0).length,1);assert.equal(approvals(0)[0].props.disabled,false);
  assert.equal(approvals(1).length,0);assert.equal(approvals(2).length,0);

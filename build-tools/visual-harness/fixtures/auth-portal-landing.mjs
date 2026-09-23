@@ -182,29 +182,6 @@ export default [
 </section></main>`,
   },
   {
-    id: 'status-page',
-    section: 'Estado',
-    surface: 'Comunicación de respaldo',
-    kind: 'plain',
-    body: `
-<main class="login-page status-page"><section class="status-shell">
- <header class="status-hero">
-  <span class="status-brand"><img src="/brand/icon-192.png" width="52" height="52" alt="Scale OS"/></span>
-  <div class="status-hero-copy"><p class="status-eyebrow">Comunicación de respaldo</p><h1>Estado de Scale OS</h1><p class="status-chip is-available" aria-live="polite">${checkCircle14}API y base de datos disponibles</p></div>
-  <button class="secondary status-refresh" type="button">${refresh14}Volver a comprobar</button>
- </header>
- <ul class="status-components" aria-label="Componentes supervisados">
-  <li><span class="status-component-icon is-available" aria-hidden="true">${activity17}</span><div><b>Aplicación</b><small>Disponible por HTTPS</small></div><span class="status-chip sm is-available">Operativo</span></li>
-  <li><span class="status-component-icon is-available" aria-hidden="true">${shieldCheck17}</span><div><b>Autenticación</b><small>Protegida por sesión</small></div><span class="status-chip sm is-available">Configurado</span></li>
-  <li><span class="status-component-icon is-available" aria-hidden="true">${mail17}</span><div><b>Correo transaccional</b><small>Supervisado mediante WEEM</small></div><span class="status-chip sm is-available">Supervisado</span></li>
-  <li><span class="status-component-icon is-available" aria-hidden="true">${globe17}</span><div><b>API y base de datos</b><small>Responde a la comprobación en vivo</small></div><span class="status-chip sm is-available">Operativo</span></li>
- </ul>
- <p class="form-note">El estado de la API se comprueba en este momento. Los demás componentes se indican por configuración; esta pantalla se mantiene disponible como comunicación de respaldo.</p>
- <div class="status-actions"><a class="secondary" href="https://sistema.scaleparaguay.com/">Landing</a><a class="secondary" href="/">Abrir Scale OS</a></div>
- ${footer}
-</section></main>`,
-  },
-  {
     id: 'portal-ingresar',
     section: 'Portal del cliente',
     surface: 'Ingreso',

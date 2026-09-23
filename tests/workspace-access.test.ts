@@ -52,13 +52,13 @@ test('Invitaciones sigue a members.manage como el API', () => {
     assert.equal(visibleModule('Invitaciones', role), roleCan(role, 'members.manage'), `Invitaciones para ${role}`);
 });
 
-test('el panel de comisiones gatea cada endpoint por la capacidad que exige el API', () => {
+test('el panel de equipo gatea el acceso por personas y no consulta comisiones', () => {
   const operations = read('app/operations.tsx');
-  // La capacidad de comisiones gobierna el módulo (posible rol custom con la
-  // capacidad otorgada por la empresa); las consultas siguen sus capacidades.
-  assert.match(operations, /const allowed = mode === "commissions" \? roleCan\(role, "commissions\.manage"\) : canOpenPeopleWorkspace\(role\);/);
-  for (const capability of ['members.manage', 'finance.view', 'accounts.manage', 'invoices.manage'])
-    assert.match(operations, new RegExp(`roleCan\\(role, "${capability.replace('.', '\\.')}"\\)`), `el panel gatea ${capability}`);
+  // Equipo sigue a quienes gestionan personas o ven salarios; Comisiones vive en
+  // su propia sección de Finanzas (issue #45) y este panel ya no consulta sus endpoints.
+  assert.match(operations, /const allowed = canOpenPeopleWorkspace\(role\);/);
+  assert.doesNotMatch(operations, /\/api\/agency\/commissions/, 'Equipo no consulta comisiones');
+  assert.doesNotMatch(operations, /\/api\/agency\/payouts/, 'los pagos a colaboradores viven en Finanzas');
   assert.match(operations, /const canManageAccess=roleCan\(role,'members\.manage'\)/);
   assert.match(read('app/team-access.tsx'), /const manage=roleCan\(role,'members\.manage'\)/);
   assert.match(read('app/archive-controls.tsx'), /const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/);

@@ -273,6 +273,8 @@
 .person-hub-comp em{font-style:normal;color:var(--warning)}
 .hub-chip.warn{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
 .hub-chip.muted{font-weight:600}
+/* Tarjeta de equipo: el chip informativo largo envuelve en vez de estirar la tarjeta. */
+.ops-grid:not(.ops-grid-list)>.person-hub-card .hub-chip{white-space:normal;overflow-wrap:anywhere;max-width:100%}
 .person-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}
 .person-hub-actions::-webkit-scrollbar{display:none}
 .person-hub-buttons{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -327,7 +329,7 @@
 .control-shell .ops-grid.ops-grid-list>.bulk-bar .bulk-actions>*{flex:0 0 auto}
 .control-shell .ops-grid.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;--person-cols:minmax(8rem,1.1fr) minmax(6.5rem,1.2fr) 4.5rem minmax(5.5rem,.9fr) minmax(6.5rem,1fr) 8.5rem}
 .control-shell .ops-grid.ops-grid-list::-webkit-scrollbar{display:none}
-.person-hub-card.is-list{display:grid;grid-template-columns:var(--person-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px}
+.control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list{display:grid;grid-template-columns:var(--person-cols);align-items:center;gap:4px 8px;padding:4px 12px;min-height:44px}
 .person-hub-card.is-list .person-hub-head{display:contents}
 .person-hub-card.is-list .select-check{grid-column:1;grid-row:1;align-self:center;justify-self:start;z-index:1}
 .person-hub-card.is-list .ops-person{grid-column:1;grid-row:1;align-self:center;min-width:0;padding-left:26px}
@@ -336,6 +338,7 @@
 .person-hub-card.is-list .person-hub-facts dt{display:none}
 .person-hub-card.is-list .person-hub-facts dd{margin:0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Las fechas/códigos no se cortan: el texto del correo cede el ancho primero. */
+.person-hub-card.is-list .team-access-actions button,.person-hub-card.is-list .person-hub-buttons .text-button,.person-hub-card.is-list .ops-card-actions button{min-height:32px;padding:4px 8px}
 .person-hub-card.is-list .person-hub-facts>div:has(.list-date){flex:none}
 .person-hub-card.is-list .person-hub-facts>div+div::before{content:'·';flex:none;color:var(--text-subtle,var(--text-muted))}
 .person-hub-card.is-list .person-hub-state{grid-column:3;grid-row:1;justify-self:start;align-self:center}
@@ -346,8 +349,9 @@
 .person-hub-card.is-list .person-hub-tail{display:contents}
 .person-hub-card.is-list .person-hub-actions{grid-column:6;grid-row:1;justify-content:flex-end;margin-top:0;padding-top:0}
 .person-hub-card.is-list :is(.ops-person img,.avatar){width:32px;height:32px;font-size:13px}
-.person-hub-card.is-list .ops-person>div{min-width:0}
+.person-hub-card.is-list .ops-person>div{display:flex;align-items:baseline;gap:6px;min-width:0}
 .person-hub-card.is-list .ops-person h3{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.person-hub-card.is-list .ops-person small{white-space:nowrap}
 /* La fila finita no repite divisores internos ni arrastra el pie de la tarjeta. */
 .person-hub-card.is-list :is(.team-access,.person-hub-actions,.person-hub-buttons,.ops-card-actions){border-top:0;border-bottom:0}
 .person-hub-card.is-list :is(.person-hub-buttons,.ops-card-actions){margin-top:0;padding-top:0}
@@ -357,19 +361,31 @@
    interno y evita que el chip envuelva y estire la fila. */
 .person-hub-card.is-list .team-access-header h3{display:none}
 .person-hub-card.is-list .team-access-status{white-space:nowrap;max-width:100%}
-.person-hub-card.is-list>.ops-note-preview{grid-column:1/-1;grid-row:2;-webkit-line-clamp:1}
+/* La fila finita es de una sola línea: la nota vive en la tarjeta y en el `title`. */
+.person-hub-card.is-list>.ops-note-preview,.person-hub-card.is-list>.person-hub-tail>.form-note{display:none}
 .person-hub-card.is-list>.person-access-panel{grid-column:1/-1;grid-row:2}
-.person-hub-card.is-list>.person-hub-tail>.form-note{grid-column:1/-1;grid-row:3}
 /* En tarjeta, el pie de acciones se ancla al borde inferior aunque el contenido varíe. */
 .person-hub-card:not(.is-list)>.person-hub-tail{display:flex;flex-direction:column;flex:1;min-height:0}
 .person-hub-actions .ops-card-actions{margin:0;padding:0;border:0;display:flex;justify-content:flex-end}
 .person-hub-head-row{grid-column:1/-1;display:none}
-@media(min-width:861px){.person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.person-hub-head-row span:first-child{padding-left:26px}.person-hub-head-row span:last-child{justify-self:end}}
+@media(min-width:861px){.person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;border-inline:1px solid transparent;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.person-hub-head-row span:first-child{padding-left:26px}.person-hub-head-row span:last-child{text-align:right}}
+/* Densidad de la fila finita (≥861 px): celdas de una línea y acciones sin wrap. */
+@media(min-width:861px){
+ .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list .team-access{height:32px}
+ .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list .team-access-header{min-height:0}
+ .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list .person-hub-actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+ .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list .person-hub-actions::-webkit-scrollbar{display:none}
+ .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list .person-hub-buttons{flex-wrap:nowrap;gap:8px}
+ .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list .person-hub-buttons>button{flex:none;white-space:nowrap}
+ .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list .ops-card-actions button{width:32px;min-height:32px}
+}
 /* Hasta 860px la fila se apila: recupera la densidad de tarjeta (16px, 12px de gap). */
-@media(max-width:860px){.person-hub-card.is-list{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px;min-height:0}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}
+@media(max-width:860px){.control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px;min-height:0}.person-hub-card.is-list .person-hub-head{display:flex}.person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}.person-hub-card.is-list .person-hub-facts{display:grid}.person-hub-card.is-list .person-hub-facts dt{display:block}
  .person-hub-card.is-list .person-hub-facts dd{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
  .person-hub-card.is-list .person-hub-facts>div{grid-template-columns:minmax(0,1fr)}
  .person-hub-card.is-list :is(.person-hub-chips,.team-access,.person-hub-actions,.person-hub-buttons){flex-wrap:wrap;overflow:visible}
+ /* Apilada, la fila vuelve a tarjeta: la nota y el aviso de perfiles ambiguos se leen. */
+ .person-hub-card.is-list>.ops-note-preview,.person-hub-card.is-list>.person-hub-tail>.form-note{display:block}
  /* Apilada, cada hecho reserva el ancho de su etiqueta: el `dt` no se recorta. */
  .person-hub-card.is-list .person-hub-facts>div{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px;align-items:baseline}
  .person-hub-card.is-list .person-hub-facts dt{white-space:nowrap}}

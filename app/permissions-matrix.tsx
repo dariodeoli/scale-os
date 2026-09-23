@@ -46,7 +46,7 @@ function groupedRows(capabilities:MatrixRow[]):CapabilityGroup[]{
 /** Superficie v2 de tarjeta: una sola pieza, sin bordes anidados. */
 const CARD='rounded-xl border border-ink-600 bg-ink-800 p-4';
 
-/** Matriz de permisos en v2: encabezado y filas comparten una sola plantilla. */
+/** Matriz de permisos en v2: encabezado y filas comparten una sola plantilla (fila finita 44–52 px). */
 const MATRIX_TEMPLATE='grid-cols-[minmax(15rem,1.4fr)_minmax(0,2.6fr)]';
 const MATRIX_COLUMNS=[{key:'capability',label:'Capacidad'},{key:'roles',label:'Permisos por cargo'}];
 
@@ -100,22 +100,22 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
     </KpiStrip>
     <RoleExplorer data={data}/>
    </>}
-   <ListGrid label="Roles y permisos" template={MATRIX_TEMPLATE} columns={MATRIX_COLUMNS} minWidthClass="min-w-[52rem]">
+   <ListGrid label="Roles y permisos" template={MATRIX_TEMPLATE} columns={MATRIX_COLUMNS} minWidthClass="min-w-[84rem]">
     {groupedRows(data.capabilities).map(group=><div key={group.name} className="contents">
      <p className="mt-3 mb-1 w-full font-mono text-[10px] uppercase tracking-[.13em] text-mute" role="row">{group.name}</p>
-     {group.rows.map(row=><ListRow key={row.id} template={MATRIX_TEMPLATE}>
-      <div className="min-w-0">
-       <b className="block text-[13.5px] font-semibold leading-[1.2] text-fore">{row.label}</b>
-       <small className="block text-[11.5px] text-mute">{row.description}</small>
-       {overrideCount(row)?<small className="mt-1 block text-[10.5px] text-info tabular-nums">{overrideCount(row)} ajuste{overrideCount(row)===1?'':'s'} manual{overrideCount(row)===1?'':'es'}</small>:null}
+     {group.rows.map(row=>{const manual=overrideCount(row);return <ListRow key={row.id} template={MATRIX_TEMPLATE}>
+      <div className="flex min-w-0 items-baseline gap-2">
+       <b className="whitespace-nowrap text-[13.5px] font-semibold leading-[1.2] text-fore">{row.label}</b>
+       <small className="min-w-0 truncate text-[11.5px] text-mute" title={`${row.description}${manual?` · ${manual} ajuste${manual===1?'':'s'} manual${manual===1?'':'es'}`:''}`}>{row.description}</small>
+       {manual?<small className="whitespace-nowrap text-[10.5px] text-info tabular-nums" title={`${manual} ajuste${manual===1?'':'s'} manual${manual===1?'':'es'}`}>· {manual} ajuste{manual===1?'':'s'}</small>:null}
       </div>
-      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="flex min-w-0 items-center gap-x-4 whitespace-nowrap">
        {data.roles.map(roleId=>{const checked=effective(row,roleId);return <span key={roleId} className="flex items-center gap-2 whitespace-nowrap">
         <Switch checked={checked} disabled={!owner||busy} ariaLabel={`${row.label} · ${teamRoleLabels[roleId]||roleId}`} onChange={(event:ChangeEvent<HTMLInputElement>)=>void toggle(row.id,roleId,event.target.checked)}/>
         <span className="text-[11.5px] text-mute">{teamRoleLabels[roleId]||roleId}</span>
        </span>;})}
       </div>
-     </ListRow>)}
+     </ListRow>;})}
     </div>)}
    </ListGrid>
    {owner?<div className="flex justify-end"><button type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</button></div>:<p className="text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
