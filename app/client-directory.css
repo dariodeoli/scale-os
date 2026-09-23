@@ -1,6 +1,3 @@
-.client-directory-toolbar{display:flex;align-items:flex-end;flex-wrap:wrap;gap:var(--ui-space-3);margin-block:var(--ui-space-4)}
-.client-directory-toolbar>.ops-select{min-width:180px;flex:1}
-
 .client-status[data-status=active]{border-color:color-mix(in srgb,var(--success) 22%,var(--line));color:var(--success);background:var(--success-soft)}
 .client-status[data-status=paused],.client-status[data-status=expired]{border-color:color-mix(in srgb,var(--warning) 24%,var(--line));color:var(--warning);background:var(--warning-soft)}
 .client-status[data-status=cancelled]{border-color:color-mix(in srgb,var(--danger) 22%,var(--line));color:var(--danger);background:var(--danger-soft)}
@@ -18,33 +15,16 @@
 .project-list .project-card>.identity-slate{overflow:hidden}
 .project-list .project-card>:is(a,span){justify-self:start}
 .project-list .project-card>:is(.project-comments,.text-button){justify-self:end}
-@media (max-width:760px){.client-directory-toolbar{align-items:center}.client-directory-toolbar>.ops-select{min-width:min(100%,220px)}.project-list .project-card{grid-template-columns:1fr;gap:var(--ui-space-2)}.project-list .project-card>:is(.project-comments,.text-button){justify-self:start}}
+@media (max-width:760px){.project-list .project-card{grid-template-columns:1fr;gap:var(--ui-space-2)}.project-list .project-card>:is(.project-comments,.text-button){justify-self:start}}
 @media (max-width:620px){.client-list .client-row{align-items:flex-start;flex-wrap:wrap}.client-list .client-row>span{min-width:0;flex:1 1 130px}.client-list .client-record-actions{width:100%;justify-content:flex-start;padding-top:var(--ui-space-2);border-top:1px solid var(--line)}}
 
 /* Client and project directories share a dense, comparison-friendly record surface. */
-.client-directory-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:10px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}.directory-summary{margin:0;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}.client-directory-toolbar .ops-select{min-width:180px}.client-directory-toolbar .ops-select-trigger{min-height:36px;border-radius:8px}.client-list{border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}.client-list .client-row{min-height:64px;padding:11px 12px;border-bottom-color:var(--border-subtle,var(--line));transition:background var(--ease)}.client-list .client-row:hover{background:color-mix(in srgb,var(--violet-soft) 45%,transparent)}.client-record-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}.client-status{display:inline-flex;align-items:center;width:max-content;white-space:nowrap;border-radius:999px}.identity-slate{border-radius:8px}.project-comments{border-top-color:var(--border-subtle,var(--line))}
-@media(max-width:700px){.client-directory-toolbar{align-items:stretch}.client-directory-toolbar .ops-select{width:100%}.client-directory-toolbar .ops-select-trigger{min-height:44px}.client-list .client-row{min-height:72px;padding:12px}.client-record-actions{justify-content:flex-start}}
-
-/* Compact client controls keep filtering, view choice, and creation together. */
-.control-shell .client-directory-toolbar{display:grid;grid-template-columns:auto minmax(220px,1fr) minmax(160px,210px) auto auto auto;align-items:center;gap:8px 10px;width:100%;max-width:none;margin:0;padding:10px 12px;border:1px solid var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
-.control-shell .client-directory-toolbar>*{min-width:0}
-.client-directory-toolbar-title{display:grid;gap:3px;min-width:0}
-.client-directory-toolbar-title h1{margin:0;font-size:clamp(25px,2.4vw,31px);font-weight:700;line-height:1;letter-spacing:-.052em}
-.client-directory-toolbar .directory-summary{margin:0;white-space:nowrap}
-
-
-
-
-.client-directory-toolbar .ops-select{min-width:0;width:100%}
-.client-directory-toolbar .ops-select-trigger{min-height:44px}
-.control-shell .client-directory-toolbar .workspace-view-controls>div{min-height:50px;padding:3px}
-.control-shell .client-directory-toolbar .workspace-view-controls button{width:44px;min-width:44px;min-height:44px}
-.client-directory-create{min-height:44px!important;white-space:nowrap}
-/* 761–1100: la toolbar no entra en 5–6 columnas (el buscador quedaba en 26 px
-   contra un select de 210). Pasa a 2 columnas: buscador en su propia fila y el
-   summary puede encogerse. */
-@media(max-width:1100px){.control-shell .client-directory-toolbar{grid-template-columns:minmax(0,1fr) minmax(160px,210px);align-items:end}.client-directory-toolbar-title{grid-column:1/-1}.client-directory-toolbar .directory-summary{white-space:normal}.client-directory-search{grid-column:1/-1}.control-shell .client-directory-toolbar .workspace-view-controls{justify-self:end}.client-directory-create{justify-self:end}}
-@media(max-width:700px){.control-shell .client-directory-toolbar{grid-template-columns:minmax(0,1fr) auto;align-items:end}.client-directory-search{grid-column:1/-1}.client-directory-toolbar .ops-select{grid-column:1/-1}.client-directory-toolbar-title{align-items:start}.client-directory-toolbar .directory-summary{white-space:normal}.client-directory-toolbar>:is(.secondary,.client-directory-create){width:100%}.client-directory-toolbar>.secondary{grid-column:1/-1}.client-directory-create{grid-column:1/-1;justify-self:stretch}.control-shell .client-directory-toolbar .workspace-view-controls{justify-self:end}}
+.client-list{border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
+.client-list .client-row{min-height:64px;padding:11px 12px;border-bottom-color:var(--border-subtle,var(--line));transition:background var(--ease)}
+.client-list .client-row:hover{background:color-mix(in srgb,var(--violet-soft) 45%,transparent)}
+.client-record-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.client-status{display:inline-flex;align-items:center;width:max-content;white-space:nowrap;border-radius:999px}
+@media(max-width:700px){.client-list .client-row{min-height:72px;padding:12px}.client-record-actions{justify-content:flex-start}}
 
 .mora-toolbar{display:flex;flex-wrap:wrap;gap:var(--ui-space-3);align-items:center;justify-content:space-between;margin-block:var(--ui-space-3)}
 .mora-search{min-width:min(280px,100%)}
@@ -61,69 +41,24 @@
 .mora-list .client-row .client-row-amount{justify-self:end}
 @media(max-width:620px){.mora-toolbar{gap:var(--ui-space-2)}.mora-search{min-width:100%}.client-list .client-row>span.client-row-amount{min-width:0;text-align:left}}
 
-/* Redesigned client directory: structured cards with a clear reading order. */
-.client-hub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,292px),1fr));gap:14px}
-.client-hub-grid .client-hub-card{min-height:200px}
-/* Fila finita: la plantilla reserva ancho para las cuatro acciones (Abrir ficha,
-   WhatsApp, Archivar y editar/borrar) y el contenedor scrollea en silencio
-   cuando el viewport no alcanza, en vez de desbordar el panel. */
-.client-hub-list{display:grid;gap:6px;--client-cols:minmax(11rem,1.6fr) minmax(7.5rem,1.1fr) 5.5rem 7.5rem minmax(6.5rem,.8fr) 12.5rem;overflow-x:auto;scrollbar-width:none}
-.client-hub-list::-webkit-scrollbar{display:none}
-.client-hub-card{display:flex;flex-direction:column;gap:12px;min-width:0;padding:16px;border:1px solid var(--border-subtle,var(--line));border-radius:14px;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs);overflow-wrap:anywhere;transition:border-color var(--ease),box-shadow var(--ease),transform var(--ease)}
-.client-hub-card:hover{border-color:var(--line-strong,var(--border-subtle));box-shadow:var(--shadow-md);transform:translateY(-1px)}
-.client-hub-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
-.client-hub-identity{display:flex;align-items:flex-start;gap:8px;min-width:0}
-.client-hub-open{display:flex;align-items:center;min-width:0;padding:0;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
-.client-hub-open:focus-visible{outline:3px solid var(--focus-halo,var(--brand-600));outline-offset:3px}
-
-
-
-.client-hub-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:24px}
-.client-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}
-.client-hub-actions::-webkit-scrollbar{display:none}
-.client-hub-actions>*{flex:none}
-.client-hub-list .client-hub-card{display:grid;grid-template-columns:var(--client-cols);align-items:center;gap:4px 8px;padding:8px 12px;min-height:48px;min-width:min-content}
-.client-hub-list .client-hub-head{display:contents}
-.client-hub-list .client-hub-identity{grid-column:1;grid-row:1;align-items:center;min-width:0}
-.client-hub-list .client-hub-open{grid-column:auto;grid-row:auto;align-self:center;min-width:0}
-.client-hub-list .client-status{grid-column:3;grid-row:1;justify-self:start;align-self:center}
-.client-hub-list .client-hub-facts{grid-column:2;grid-row:1;display:flex;align-items:baseline;gap:12px;padding:0;background:transparent;min-width:0;overflow:hidden}
-.client-hub-list .client-hub-facts>div{display:flex;align-items:baseline;gap:6px;min-width:0}
-.client-hub-list .client-hub-facts dt{display:none}
-.client-hub-list .client-hub-facts dd{margin:0;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.client-hub-list .client-hub-facts>div+div::before{content:'·';flex:none;color:var(--text-subtle,var(--text-muted))}
-.client-hub-list .client-hub-chips{grid-column:4;grid-row:1;justify-content:flex-start;min-height:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-.client-hub-list .client-hub-chips::-webkit-scrollbar{display:none}
-.client-hub-list .client-hub-chips>*{flex:none;max-width:none}
-.client-hub-list .client-hub-stats{grid-column:5;grid-row:1;display:block;min-width:0;min-height:0;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
-.client-hub-list .client-hub-stats::-webkit-scrollbar{display:none}
-/* Identidad compacta en la fila: el avatar de la tarjeta (38/42 px) no cabe en
-   la fila finita de 44–52 px. */
-.client-hub-list .client-identity:not(.compact) .identity-avatar{width:32px;height:32px}
-.client-hub-list .client-hub-actions{grid-column:6;grid-row:1;justify-self:end;display:flex;flex-wrap:nowrap;align-items:center;justify-content:safe flex-end;gap:8px;overflow-x:auto;scrollbar-width:none;margin-top:0;padding-top:0;border-top:0}
-.client-hub-list .client-hub-actions::-webkit-scrollbar{display:none}
-/* Fila finita: acciones en una sola línea y botones de 32 px como el contrato
-   de listas densas; el icono conserva su tamaño en mobile para no engordar la fila. */
-.client-hub-list .client-hub-actions :is(.text-button,.icon-button){min-height:32px}
-.client-hub-list .client-hub-actions .icon-button{width:32px;min-width:32px}
-.client-hub-list :is(.client-identity,.actor-identity){min-width:0}
-.client-hub-list :is(.client-identity-name,.actor-identity-name){white-space:normal;overflow-wrap:anywhere}
-.client-hub-head-row{display:grid;grid-template-columns:var(--client-cols);grid-column:1/-1;gap:0 8px;padding:0 12px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
-.client-hub-head-row span:last-child{justify-self:end}
-.client-hub-list>.empty-copy{grid-column:1/-1}
-/* Los hechos nunca ensanchan su pista: el dd recorta con elipsis y title. */
-.client-hub-facts>div{min-width:0}
-@media(max-width:760px){.client-hub-list{overflow-x:auto;scrollbar-width:none}.client-hub-grid{grid-template-columns:1fr}}
-@media(max-width:480px){.client-hub-facts{grid-template-columns:minmax(0,1fr)}}
-@media(prefers-reduced-motion:reduce){.client-hub-card{transition:none}.client-hub-card:hover{transform:none}}
-
-/* Cartera del cliente: proyectos, piezas y próxima entrega. */
-.client-hub-stats{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-height:20px;color:var(--text-subtle,var(--text-muted));font-size:11.5px}
-.client-hub-stat{display:inline}
-.client-hub-stat b{color:var(--text);font-variant-numeric:tabular-nums}
-.client-hub-stat-part{display:inline}
-.client-hub-balance{display:inline-flex;align-items:center;padding:3px 9px;border:1px solid color-mix(in srgb,var(--warning) 26%,var(--line));border-radius:999px;background:var(--warning-soft);color:var(--warning);font-size:10.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* Directorio de clientes v2 (campaña #41 / issue #43): la tarjeta y la fila finita
+   viven en `app/sections/clientes.tsx` con ListGrid/ListRow (Tailwind + objetos de
+   owncoding-ui). La fila usa el hook `client-hub-row` y NO la clase de tarjeta:
+   `.client-hub-card` (ui-system.css) es una cápsula flex column y pisaba la
+   grilla de la fila. El CSS legacy del directorio anterior (toolbar,
+   `.client-hub-list`, `.client-hub-card` propio) no lo emite ningún módulo v2 y
+   se retiró en la ronda `al`. */
 .archived-capsule{margin-top:var(--ui-space-4);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--ui-space-3);background:color-mix(in srgb,var(--violet-soft) 16%,transparent)}
 .archived-capsule summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:var(--ui-space-2)}
 .archived-capsule[open] summary{margin-bottom:var(--ui-space-3)}
 .client-hub-card[data-archived]{opacity:.75}
+.client-hub-row[data-archived]{opacity:.75}
+
+/* Fila finita del directorio (contrato 44–52 px, DESIGN-SYSTEM v2): identidad y
+   acciones en su variante compacta y nombre en una línea con title. Las
+   cápsulas (`.client-hub-card`) conservan avatar y nombre completos. */
+.client-hub-row :is(.client-identity,.actor-identity){min-width:0;max-width:100%}
+.client-hub-row .client-identity:not(.compact) .identity-avatar{width:32px;height:32px}
+.client-hub-row .identity-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.client-hub-row .client-record-actions :is(.icon-button,.text-button){min-height:32px}
+.client-hub-row .client-record-actions .icon-button{width:32px;min-width:32px}

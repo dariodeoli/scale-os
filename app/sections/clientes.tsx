@@ -26,7 +26,7 @@ const CLIENT_COLUMNS: Column[] = [
   {key: 'activity', label: 'Actividad'},
   {key: 'actions', label: 'Acciones'},
 ];
-const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_13rem_9rem_16rem]';
+const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_16rem]';
 
 const STATE_TONE: Record<string, ChipTone> = {active: 'ok', paused: 'warn', cancelled: 'bad', expired: 'warn', inactive: 'mute'};
 const moraTone = (pay: ClientPaymentStatus): ChipTone => pay.payment_status === 'up_to_date' ? 'ok' : pay.payment_status === 'due_soon' ? 'warn' : pay.days_overdue > 30 ? 'bad' : 'warn';
@@ -58,7 +58,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
   const state = clientState(client);
   const since = clientSince(client.created_at);
   const tel = clientWhatsappUrl(client.phone || undefined);
-  return <ListRow template={CLIENT_TEMPLATE} className="client-hub-card" data-archived={client.active===false||undefined}>
+  return <ListRow template={CLIENT_TEMPLATE} className="client-hub-row" data-archived={client.active===false||undefined}>
     <div className="flex min-w-0 items-center gap-2">
       {selectable ? <label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
       <button type="button" className="min-w-0 text-left" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
@@ -67,8 +67,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
     </div>
     <div className="min-w-0 text-[11.5px] text-mute">
       <span className="block truncate" title={client.email || 'Sin email registrado'}>{client.email || 'Sin email registrado'}</span>
-      <span className="block whitespace-nowrap" title={`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'}`}>{client.phone || 'Sin teléfono'} · RUC {client.tax_id || 'sin registrar'}</span>
-      <span className="block text-[11px]">Cliente desde {since || 'sin fecha de alta'}</span>
+      <span className="block truncate" title={`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'} · Cliente desde ${since || 'sin fecha de alta'}`}>{client.phone || 'Sin teléfono'} · RUC {client.tax_id || 'sin registrar'} · desde {since || 'sin fecha'}</span>
     </div>
     <div className="min-w-0"><StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip></div>
     <div className="flex min-w-0 items-center justify-between gap-2">
@@ -85,7 +84,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
       </span>
       {stat?.nextDue ? <span className="block whitespace-nowrap">Próxima entrega <b className="tabular-nums text-fore">{listDateShort(stat.nextDue)}</b></span> : null}
     </div>
-    <div className="flex min-w-0 items-center justify-end gap-1">
+    <div className="silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
       {client.has_recurring_price !== true ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
@@ -123,7 +122,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
         : <span className="text-[11px] text-mute">Sin saldo pendiente</span>}
       {client.has_recurring_price !== true ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
     </div> : null}
-    <footer className="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3">
+    <footer className="silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
       {canManage ? <button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button> : null}
@@ -238,7 +237,7 @@ export function ClientesSection({user, clientView, clientStatusFilter, setClient
 
     {clientView === 'grid'
       ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(liveClients, true)}</div>
-      : <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[69rem]">{renderClients(liveClients, false)}</ListGrid>}
+      : <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[71rem]">{renderClients(liveClients, false)}</ListGrid>}
 
     {!liveClients.length && archivedClients.length && clientStatusFilter !== 'inactive' ? <p className="text-[13px] text-mute" role="status">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p> : null}
 
@@ -255,7 +254,7 @@ export function ClientesSection({user, clientView, clientStatusFilter, setClient
         <summary>Archivados ({archivedClients.length})</summary>
         {clientView === 'grid'
           ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(archivedClients, true)}</div>
-          : <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[69rem]">{renderClients(archivedClients, false)}</ListGrid>}
+          : <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[71rem]">{renderClients(archivedClients, false)}</ListGrid>}
       </details>
     ) : null}
   </section>;
