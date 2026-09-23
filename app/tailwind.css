@@ -49,6 +49,39 @@ button {
   background-color: transparent;
 }
 
+/* ── Riel: fuente única del fondo y los textos ──────────────────────────────
+   Lila de marca en claro y casi negro aprobado en oscuro; marca y usuario
+   siempre en claro, con acento dorado. Vive en la hoja del sistema para que
+   ninguna regla global vieja pueda pisar el contraste (el bug de v1.0.107:
+   `.shell>aside` de globals ganaba el cascado y dejaba blanco sobre blanco). */
+:is(.shell,.control-shell)>.desktop-sidebar {
+  background: linear-gradient(180deg, rgb(46 0 56) 0%, rgb(37 0 47) 100%);
+  border-right: 1px solid rgb(255 255 255 / .12);
+}
+html[data-theme="dark"] :is(.shell,.control-shell)>.desktop-sidebar {
+  background: linear-gradient(180deg, #0a0a0e 0%, #101016 100%);
+}
+.desktop-sidebar .workspace-wordmark {
+  color: #fff;
+}
+.desktop-sidebar .workspace-wordmark > span {
+  color: var(--gold);
+}
+.desktop-sidebar .nav-caption,
+:is(.shell,.control-shell)>.desktop-sidebar .nav-caption {
+  color: rgb(255 255 255 / .7);
+}
+.desktop-sidebar .person-container-name {
+  color: #fff;
+}
+.desktop-sidebar .person-container-secondary {
+  color: rgb(255 255 255 / .72);
+}
+/* La marca móvil vive solo en el drawer: el riel ya tiene su marca de escritorio. */
+:is(.shell,.control-shell)>.desktop-sidebar .mobile-sidebar-brand {
+  display: none;
+}
+
 /* Scroll horizontal silencioso de las listas densas v2 (`ListGrid`): el
    contenedor conserva las columnas y scrollea sin barra visible. */
 .silent-scroll {

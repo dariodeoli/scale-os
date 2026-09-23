@@ -8,16 +8,14 @@ import {PanelLeftClose,PanelLeftOpen} from 'lucide-react';
 // viven en `scale-workspace.tsx`; acá la pieza del riel.
 export const RAIL_ITEM='flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none transition';
 
-// El riel es la superficie lila de la marca: wordmark y bloque de usuario en
-// claro (el texto oscuro del tema claro no aplica acá), con el acento dorado
-// solo en la sílaba de marca.
-const RAIL_BRANDING='bg-[linear-gradient(180deg,rgb(46_0_56),rgb(37_0_47))] text-white/80 [&_.workspace-wordmark]:!text-white [&_.workspace-wordmark>span]:!text-[color:var(--gold)] [&_.nav-caption]:!text-white/70 [&_.person-container-name]:!text-white [&_.person-container-secondary]:!text-white/70 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:!px-3 [&_.sidebar-brand]:pt-2 [&_.sidebar-brand]:!mb-4';
-
+// El fondo y los textos del riel viven en `app/tailwind.css` (§Riel): una sola
+// fuente con la especificidad correcta, para que una regla global vieja no
+// pueda dejar el riel blanco sobre blanco.
 export function DesktopSidebar({children}:{children:ReactNode}){
  const [collapsed,setCollapsed]=useState(false);
  useEffect(()=>{try{setCollapsed(localStorage.getItem('scale:sidebar-collapsed')==='true');}catch{/* Storage is optional. */}},[]);
  function toggle(){const next=!collapsed;setCollapsed(next);try{localStorage.setItem('scale:sidebar-collapsed',String(next));}catch{/* Keep the current page functional. */}}
- return <aside className={`desktop-sidebar hidden shrink-0 flex-col border-r border-white/10 ${RAIL_BRANDING} min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh ${collapsed?'is-collapsed min-[761px]:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.person-container-details]:hidden [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:!px-0':'min-[761px]:!w-48'}`}>
+ return <aside className={`desktop-sidebar hidden shrink-0 flex-col border-r border-white/10 text-white/80 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:!px-3 [&_.sidebar-brand]:pt-2 [&_.sidebar-brand]:!mb-4 min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh ${collapsed?'is-collapsed min-[761px]:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.person-container-details]:hidden [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:!px-0':'min-[761px]:!w-48'}`}>
   <div className={`flex p-2 ${collapsed?'justify-center':'justify-end'}`}>
    <button type="button" className="sidebar-collapse grid h-10 w-10 place-items-center rounded-lg text-white/70 transition hover:bg-white/10 hover:text-white" aria-label={collapsed?'Expandir barra lateral':'Colapsar barra lateral'} title={collapsed?'Expandir barra lateral':'Colapsar barra lateral'} aria-expanded={!collapsed} onClick={toggle}>{collapsed?<PanelLeftOpen size={18}/>:<PanelLeftClose size={18}/>}</button>
   </div>
