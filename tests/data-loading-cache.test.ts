@@ -79,3 +79,23 @@ test('a 200 with a non-JSON body never becomes empty workspace state',async()=>{
  assert(workspace.includes("if(!Array.isArray(clientData?.clients)||!Array.isArray(projectData?.projects)||!Array.isArray(orderData?.workOrders)||!summaryData?.summary)throw new Error('El servidor devolvió datos incompletos. Reintentá.');"),'the main load validates every array before setting state');
  assert(workspace.includes('const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];'),'secondary loaders coerce non-arrays');
 });
+
+test('navegar no repite datos frescos: el shell pide solo lo que la sección necesita y venció',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
+ assert(workspace.includes("const SECTION_DATA:Record<string,readonly ShellResource[]>={"),'el shell declara qué recursos necesita cada sección');
+ assert(workspace.includes("Resumen:['clients','projects','orders','summary']"),'Resumen declara sus datos compartidos');
+ assert(workspace.includes('const DATA_FRESH_MS=120000;'),'lo ya cargado tiene una ventana de frescura explícita');
+ assert(/async function load\(identity:User\|null=user,resources:readonly ShellResource\[\]=SHELL_RESOURCES\)/.test(workspace),'load acepta un subconjunto de recursos');
+ assert(workspace.includes('dataFreshness.current.clients=Date.now()'),'cada recurso marca su frescura al llegar');
+ assert(workspace.includes('const stale=needed.filter(resource=>Date.now()-dataFreshness.current[resource]>DATA_FRESH_MS);'),'al navegar solo se miran los recursos vencidos');
+ assert(workspace.includes('if(!stale.length)return;'),'sin recursos vencidos la navegación no pide nada');
+ assert(workspace.includes('void load(user,stale)'),'el refresco de navegación queda acotado a lo vencido');
+ const presence=readFileSync(new URL('../app/presence.tsx',import.meta.url),'utf8');
+ assert(presence.includes('const peopleInflight=new Map<string,Promise<ProjectPeopleState>>();'),'la presencia comparte un único pedido en vuelo por consulta');
+ assert(presence.includes('function publishPeople(state:ProjectPeopleState)'),'todas las cápsulas se actualizan desde el mismo resultado');
+ assert(presence.includes('if(!force&&readPeople(path))return;'),'una consulta de presencia fresca no se repite');
+ const clientes=readFileSync(new URL('../app/sections/clientes.tsx',import.meta.url),'utf8');
+ const resumen=readFileSync(new URL('../app/sections/resumen.tsx',import.meta.url),'utf8');
+ assert(clientes.includes('Cargando clientes…')&&resumen.includes('Cargando el panel…'),'las secciones muestran esqueleto mientras llega el primer dato');
+});

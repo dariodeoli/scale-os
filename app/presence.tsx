@@ -9,22 +9,47 @@ const views=new Map<symbol,string>();
 const currentProject=()=>Array.from(views.values()).at(-1)||null;
 export type PresentPerson={id:string;name:string;photo_url?:string|null;active?:boolean;project_id?:string};
 const BoardPeople=createContext<PresentPerson[]>([]);
+type ProjectPeopleState={path:string;people:PresentPerson[];available:boolean};
+// Presencia compartida por consulta: la topbar, el tablero y las tarjetas del
+// mismo proyecto piden lo mismo una sola vez (antes cada cápsula disparaba su
+// propia llamada) y todas se actualizan juntas.
+const PRESENCE_TTL=25000;
+const peopleCache=new Map<string,{at:number;state:ProjectPeopleState}>();
+const peopleInflight=new Map<string,Promise<ProjectPeopleState>>();
+const peopleListeners=new Map<string,Set<()=>void>>();
+const listenersFor=(path:string)=>peopleListeners.get(path)??new Set<()=>void>();
+function subscribePeople(path:string,listener:()=>void){const set=listenersFor(path);set.add(listener);peopleListeners.set(path,set);return()=>{set.delete(listener);if(!set.size)peopleListeners.delete(path);};}
+function readPeople(path:string){const hit=peopleCache.get(path);return hit&&Date.now()-hit.at<PRESENCE_TTL?hit.state:null;}
+function publishPeople(state:ProjectPeopleState){peopleCache.set(state.path,{at:Date.now(),state});listenersFor(state.path).forEach(listener=>listener());}
+async function fetchPeople(path:string,signal?:AbortSignal):Promise<ProjectPeopleState>{
+ const inflight=peopleInflight.get(path);if(inflight)return inflight;
+ const work=request<{people:PresentPerson[]}>(path,undefined,signal).then(data=>{
+  if(!Array.isArray(data.people))throw new Error('Presencia inválida');
+  return {path,people:data.people,available:true};
+ }).finally(()=>{peopleInflight.delete(path);});
+ peopleInflight.set(path,work);return work;
+}
 function useProjectPeople(path:string){
- const [state,setState]=useState<{path:string;people:PresentPerson[];available:boolean}>({path,people:[],available:true});
+ const [state,setState]=useState<ProjectPeopleState>(()=>readPeople(path)||{path,people:[],available:true});
  useEffect(()=>{
+  if(!path){setState({path,people:[],available:true});return;}
   let alive=true,loading=false,lastAttempt=-Infinity,controller:AbortController|undefined;
-  setState({path,people:[],available:true});if(!path)return;
-  const load=async()=>{
-   if(!alive||loading||document.visibilityState!=='visible'||Date.now()-lastAttempt<30000)return;
+  const cached=readPeople(path);setState(cached||{path,people:[],available:true});
+  const unsubscribe=subscribePeople(path,()=>{const shared=readPeople(path);if(shared&&alive)setState(shared);});
+  const load=async(force=false)=>{
+   if(!alive||loading||document.visibilityState!=='visible')return;
+   if(!force&&readPeople(path))return;
+   if(!force&&Date.now()-lastAttempt<PRESENCE_TTL)return;
    loading=true;lastAttempt=Date.now();controller=new AbortController();
    const timeout=setTimeout(()=>controller?.abort(),8000);
-   try{const data=await request<{people:PresentPerson[]}>(path,undefined,controller.signal);if(!Array.isArray(data.people))throw new Error('Presencia inválida');if(alive)setState({path,people:data.people,available:true});}
-   catch{if(alive)setState({path,people:[],available:false});}
+   try{publishPeople(await fetchPeople(path,controller.signal));}
+   catch{if(alive&&!peopleCache.has(path))setState({path,people:[],available:false});}
    finally{clearTimeout(timeout);loading=false;}
   };
+  void load();const timer=setInterval(()=>void load(true),30000);
   const visibility=()=>{if(document.visibilityState==='visible')void load();else controller?.abort();};
-  void load();const timer=setInterval(()=>void load(),30000);document.addEventListener('visibilitychange',visibility);
-  return()=>{alive=false;clearInterval(timer);controller?.abort();document.removeEventListener('visibilitychange',visibility);};
+  document.addEventListener('visibilitychange',visibility);
+  return()=>{alive=false;clearInterval(timer);controller?.abort();document.removeEventListener('visibilitychange',visibility);unsubscribe();};
  },[path]);
  // Never render the previous project's people during the render before effects run.
  return state.path===path?state:{path,people:[],available:true};
@@ -61,9 +86,9 @@ export function WorkspacePresence({projectIds,role,compact=false}:{projectIds:st
 }
 export function PresenceTracker(){
  useEffect(()=>{
-  const tab=crypto.randomUUID();let lastInput=-Infinity,sending=false,stopped=false;
+  const tab=crypto.randomUUID();let lastInput=-Infinity,sending=false,stopped=false,lastPulse=-Infinity;
   const touch=()=>{lastInput=Date.now();};
-  const pulse=async()=>{if(sending||stopped)return;sending=true;try{await request('heartbeat',{tab_id:tab,project_id:currentProject(),visible:document.visibilityState==='visible',active:document.visibilityState==='visible'&&Date.now()-lastInput<60000});}catch{/* Presence must never interrupt work. */}finally{sending=false;}};
+  const pulse=async()=>{if(sending||stopped||Date.now()-lastPulse<2000)return;lastPulse=Date.now();sending=true;try{await request('heartbeat',{tab_id:tab,project_id:currentProject(),visible:document.visibilityState==='visible',active:document.visibilityState==='visible'&&Date.now()-lastInput<60000});}catch{/* Presence must never interrupt work. */}finally{sending=false;}};
   const events=['pointerdown','keydown','scroll','touchstart'] as const;
   events.forEach(event=>window.addEventListener(event,touch,{passive:true}));
   document.addEventListener('visibilitychange',pulse);window.addEventListener('scale:project-view',pulse);

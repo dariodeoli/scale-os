@@ -117,6 +117,11 @@ export class Cdp {
     });
   }
 
+  on(event, listener) {
+    this.listeners.set(event, [...(this.listeners.get(event) || []), listener]);
+    return () => this.listeners.set(event, (this.listeners.get(event) || []).filter((item) => item !== listener));
+  }
+
   once(event) {
     return new Promise((resolve) => {
       const listener = (params) => {

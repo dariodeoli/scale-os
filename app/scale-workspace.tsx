@@ -172,6 +172,24 @@ function Modal({
 }) {
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
+// Datos compartidos del shell: qué recursos necesita cada sección y cuánto vale
+// lo ya cargado. Navegar entre secciones no vuelve a pedir lo que está en
+// memoria; solo se refresca lo que la sección activa necesita y ya venció.
+// (El boot sigue pidiendo el set completo porque el chrome lo usa: buscador,
+// guía y presencia.)
+export type ShellResource='clients'|'projects'|'orders'|'summary';
+const SHELL_RESOURCES:readonly ShellResource[]=['clients','projects','orders','summary'];
+const GUIDE_RESOURCES:readonly ShellResource[]=['clients','projects','orders'];
+const SECTION_DATA:Record<string,readonly ShellResource[]>={
+  Resumen:['clients','projects','orders','summary'],
+  Producción:['clients','projects','orders'],
+  Proyectos:['clients','projects'],
+  Clientes:['clients'],
+  Presupuestos:['clients','summary'],
+  Mora:['clients'],
+  Pipeline:['clients'],
+};
+const DATA_FRESH_MS=120000;
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -205,11 +223,16 @@ export default function Home() {
   function changeProjectView(value:string){setProjectView(value);try{localStorage.setItem('scale:project-view',value);}catch{/* Optional UI preference. */}}
   const [user, setUser] = useState<User | null>(null);
   const userRef=useRef<User|null>(null);
+  const lastIdentityRefresh=useRef(0);
   const [workspaceScope,setWorkspaceScope]=useState('');
   const [guideData,setGuideData]=useState<WorkspaceGuideData>({scope:null,status:'unknown'});
   const dataLoadSequence=useRef(0);
+  const dataFreshness=useRef<Record<ShellResource,number>>({clients:0,projects:0,orders:0,summary:0});
   const [projectsState,setProjectsState]=useState<'loading'|'ready'|'error'>('loading');
   useEffect(()=>{setProjectsState(guideData.status==='error'?'error':guideData.status==='ready'?'ready':'loading');},[guideData.status]);
+  // Estado de los datos compartidos: lo consume el chrome y lo exponen las
+  // secciones para mostrar esqueletos por bloque en vez de pantallas vacías.
+  const shellDataState=guideData.status==='error'?'error':guideData.status==='ready'?'ready':'loading';
   const orderMutationVersions=useRef(new Map<string,number>());
   const orderMutationQueue=useRef(new Map<string,Promise<void>>());
   const guideProps={userId:user?.id,organizationId:user?.organization_id,role:user?.role||'viewer',demo:!!user?.demo_owner_user_id,data:guideData,navigate:setActive};
@@ -267,7 +290,7 @@ export default function Home() {
   },[signedIn,user?.id,user?.organization_id]);
   useEffect(()=>{
     let active=true;
-    const refreshIdentity=()=>{void request<{user:User}>('/api/auth/me').then(d=>{
+    const refreshIdentity=()=>{const now=Date.now();if(now-lastIdentityRefresh.current<15000)return;lastIdentityRefresh.current=now;void request<{user:User}>('/api/auth/me').then(d=>{
       if(!active)return;
       if(!identityScopeChanged(userRef.current,d.user)){setUser(d.user);return;}
       const nextScope=identityScope(d.user);
@@ -415,32 +438,33 @@ export default function Home() {
     unverified_inventory: null,
     upcoming_deliveries: null,
   });
-  async function load(identity:User|null=user) {
+  async function load(identity:User|null=user,resources:readonly ShellResource[]=SHELL_RESOURCES) {
     if(!identity||identity.subscription?.hasAccess===false)return;
     const sequence=++dataLoadSequence.current;
+    const wants=(resource:ShellResource)=>resources.includes(resource);
     const guideScope=workspaceGuideScope({userId:String(identity.id),organizationId:String(identity.organization_id),role:identity.role,demo:!!identity.demo_owner_user_id});
-    setGuideData({scope:guideScope,status:'loading'});
+    if(resources.some(resource=>GUIDE_RESOURCES.includes(resource)))setGuideData({scope:guideScope,status:'loading'});
     const loadedScope=workspacePreferenceKey(String(identity?.id||''),String(identity?.organization_id||''));
     try{
     const [clientData, projectData, orderData, summaryData] = await Promise.all(
       [
-        request<{ clients: Client[] }>("/api/agency/clients"),
-        request<{ projects: Project[] }>("/api/agency/projects"),
-        request<{ workOrders: WorkOrder[] }>("/api/agency/work-orders"),
-        request<{ summary: Summary }>("/api/agency/summary"),
+        wants('clients')?request<{ clients: Client[] }>("/api/agency/clients"):{clients},
+        wants('projects')?request<{ projects: Project[] }>("/api/agency/projects"):{projects},
+        wants('orders')?request<{ workOrders: WorkOrder[] }>("/api/agency/work-orders"):{workOrders:orders},
+        wants('summary')?request<{ summary: Summary }>("/api/agency/summary"):{summary},
       ],
     );
     if(sequence!==dataLoadSequence.current)return;
     if(!Array.isArray(clientData?.clients)||!Array.isArray(projectData?.projects)||!Array.isArray(orderData?.workOrders)||!summaryData?.summary)throw new Error('El servidor devolvió datos incompletos. Reintentá.');
-    setClients(clientData.clients);
-    setProjects(projectData.projects);
-    setOrders(orderData.workOrders);
-    setSummary(summaryData.summary);
+    if(wants('clients')){setClients(clientData.clients);dataFreshness.current.clients=Date.now();}
+    if(wants('projects')){setProjects(projectData.projects);dataFreshness.current.projects=Date.now();}
+    if(wants('orders')){setOrders(orderData.workOrders);dataFreshness.current.orders=Date.now();}
+    if(wants('summary')){setSummary(summaryData.summary);dataFreshness.current.summary=Date.now();}
     setStartupDataScope(loadedScope);
-    setGuideData({scope:guideScope,status:'ready',counts:{clients:clientData.clients.length,projects:projectData.projects.length,orders:orderData.workOrders.length}});
+    if(GUIDE_RESOURCES.every(resource=>dataFreshness.current[resource]>0))setGuideData({scope:guideScope,status:'ready',counts:{clients:clientData.clients.length,projects:projectData.projects.length,orders:orderData.workOrders.length}});
     }catch(cause){
       if(sequence!==dataLoadSequence.current)return;
-      setGuideData({scope:guideScope,status:'error'});
+      if(guideData.status!=='ready')setGuideData({scope:guideScope,status:'error'});
       throw cause;
     }
   }
@@ -456,8 +480,13 @@ export default function Home() {
   useEffect(()=>{
     if(lastDataPath.current===pathname)return;
     lastDataPath.current=pathname;
-    // Keep the mounted shell and session. Refresh records quietly after another module may have changed them.
-    if(signedIn&&user?.subscription?.hasAccess!==false)void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron actualizar los datos.'));
+    // Keep the mounted shell and session. Al navegar solo se refresca lo que la
+    // sección activa necesita y ya venció: lo que está en memoria no se repite.
+    if(!signedIn||!user||user.subscription?.hasAccess===false)return;
+    const needed=SECTION_DATA[requestedSection]||[];
+    const stale=needed.filter(resource=>Date.now()-dataFreshness.current[resource]>DATA_FRESH_MS);
+    if(!stale.length)return;
+    void load(user,stale).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron actualizar los datos.'));
   },[pathname,signedIn]);
   useEffect(()=>{if(signedIn&&toast){notify({tone:'error',message:toast});setToast('');}},[signedIn,toast]);
   useEffect(() => {
@@ -823,7 +852,7 @@ export default function Home() {
         </div>
       </>;
   return (
-    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main className={`shell control-shell min-[761px]:has-[>.desktop-sidebar.is-collapsed]:[&>.content]:!w-[calc(100%-60px)] ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
+    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell min-[761px]:has-[>.desktop-sidebar.is-collapsed]:[&>.content]:!w-[calc(100%-60px)] ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
       <DesktopSidebar>
         <div className="sidebar-brand"><WorkspaceBrand/></div>
@@ -925,10 +954,10 @@ export default function Home() {
         {active==='Configuración'&&<ConfiguracionSection user={user} subscriptionError={subscriptionError} refreshSubscription={refreshSubscription} exitDemoSimulation={exitDemoSimulation} deletionSignedOut={deletionSignedOut}/>}
         {active==='Preferencias'&&<PreferenciasSection user={user} preferencesReady={preferencesReady} preferences={preferences} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences}/>}
         {active==='Papelera'&&<PapeleraSection load={load}/>}
-        {active === "Resumen" && <ResumenSection guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail}/>}
+        {active === "Resumen" && <ResumenSection dataState={shellDataState} guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail}/>}
         {active==='Producción'&&<ProduccionSection productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso}/>}
-        {active==='Clientes'&&<ClientesSection user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail}/>}
+        {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail}/>}
         {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry}/>}
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={loadBudgets} setBudgets={setBudgets}/>}
         {active==='Informes'&&<InformesSection user={user}/>}

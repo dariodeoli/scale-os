@@ -10,7 +10,7 @@ import {listDateShort} from '../list-format';
 import {ClientIdentity} from '../client-identity';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
-import {EmptyBlock, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {CommercialDashboard} from '../control-center-data';
 import type {Client, ClientPaymentStatus, User} from '../workspace-types';
 
@@ -132,6 +132,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
 }
 
 type ClientesSectionProps = {
+  dataState?: 'loading' | 'ready' | 'error';
   user: User | null;
   clientView: string;
   clientStatusFilter: string;
@@ -162,7 +163,7 @@ type ClientesSectionProps = {
   setDetail: Dispatch<SetStateAction<{kind: 'client' | 'order'; id: string; anchor?: string; edit?: boolean} | null>>;
 };
 
-export function ClientesSection({user, clientView, clientStatusFilter, setClientStatusFilter, clientSearch, setClientSearch, archiveBusy, bulkBusy, selectedClients, setSelectedClients, canSeeBilling, canManageClients, clients, displayedClients, liveClients, archivedClients, paymentStatuses, clientHubStats, commercialSummary, commercialState, directoryKpis, cobrosKpis, load, setClientArchive, toggleClientSelected, selectVisibleClients, batchClients, setDetail}: ClientesSectionProps) {
+export function ClientesSection({dataState = 'ready', user, clientView, clientStatusFilter, setClientStatusFilter, clientSearch, setClientSearch, archiveBusy, bulkBusy, selectedClients, setSelectedClients, canSeeBilling, canManageClients, clients, displayedClients, liveClients, archivedClients, paymentStatuses, clientHubStats, commercialSummary, commercialState, directoryKpis, cobrosKpis, load, setClientArchive, toggleClientSelected, selectVisibleClients, batchClients, setDetail}: ClientesSectionProps) {
   const canManageTerms = roleCan(user?.role, 'commercial-terms.manage');
   const billingRole = ['owner', 'admin', 'finance'].includes(user?.role || '');
   const renderClients = (list: Client[], asTile: boolean) => list.map(client => {
@@ -227,7 +228,9 @@ export function ClientesSection({user, clientView, clientStatusFilter, setClient
 
     {!displayedClients.length ? (
       clients.length===0 ? (
-        <EmptyBlock title="Todavía no hay clientes. Creá el primero para empezar." description="Cargá la ficha con RUC o de forma manual; después podés sumar proyectos y piezas."/>
+        dataState === 'loading'
+          ? <LoadingBlock label="Cargando clientes…" lines={5}/>
+          : <EmptyBlock title="Todavía no hay clientes. Creá el primero para empezar." description="Cargá la ficha con RUC o de forma manual; después podés sumar proyectos y piezas."/>
       ) : (
         <EmptyBlock title={clientSearch.trim() ? 'No hay clientes que coincidan con tu búsqueda y filtros.' : 'No hay clientes con este estado.'} description="Probá con otro término o restablecé los filtros." action={<button className="text-button min-h-11 md:min-h-8" type="button" onClick={() => {setClientSearch(''); setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>}/>
       )
