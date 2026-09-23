@@ -1,5 +1,5 @@
 "use client";
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {Plus, Undo2} from 'lucide-react';
 import {api, Dialog, Editor, money} from '../operations';
 import {currencyChoices} from '../currencies';
@@ -86,17 +86,54 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       setLoading(false);
     }
   }
-  useEffect(() => { void load(); }, [month]);
-  // Catálogos de los diálogos: se piden aparte para que un 403 no tumbe la sección.
-  useEffect(() => {
-    if (!canManage) return;
-    void api<{invoices: {id: string; number: string; client_name: string; currency: string; total: string; paid_amount: string}[]}>('/api/agency/invoices').then(data => setInvoices(data.invoices || [])).catch(() => setInvoices([]));
-    void api<{collaborators: CollaboratorChoice[]}>('/api/agency/collaborators').then(data => setCollaborators(data.collaborators || [])).catch(() => setCollaborators([]));
-    if (canSeePayouts) {
-      void api<{accounts: AccountChoice[]}>('/api/agency/accounts').then(data => setAccounts(data.accounts || [])).catch(() => setAccounts([]));
-      void api<{payouts: Payout[]}>('/api/agency/payouts').then(data => setPayouts(data.payouts || [])).catch(() => setPayouts([]));
+  async function loadMonthly() {
+    try {
+      const monthlyData = await api<{month: string; records: MonthlyCommission[]}>(`/api/agency/commissions/monthly?month=${encodeURIComponent(month)}`);
+      setMonthly(monthlyData.records || []);
+      setError('');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudieron cargar las comisiones del mes.');
     }
-  }, [canManage, canSeePayouts, month]);
+  }
+  // Primera carga: listas + consolidado. Al cambiar de mes alcanza con el consolidado
+  // (las listas y los catálogos no dependen del mes).
+  const firstLoad = useRef(true);
+  useEffect(() => {
+    if (firstLoad.current) { firstLoad.current = false; void load(); return; }
+    void loadMonthly();
+  }, [month]);
+  // Egresos registrados: visible en la sección y sin dependencia del mes; se pide una vez.
+  useEffect(() => {
+    if (!canSeePayouts) return;
+    void api<{payouts: Payout[]}>('/api/agency/payouts').then(data => setPayouts(data.payouts || [])).catch(() => setPayouts([]));
+  }, [canSeePayouts]);
+  // Catálogos de los diálogos: se piden al abrir cada modal (una sola vez), así la
+  // pantalla no carga facturas, colaboradores ni cuentas que todavía no se usan.
+  const catalogs = useRef<{loaded: Record<string, boolean>; busy: Record<string, boolean>}>({loaded: {}, busy: {}});
+  async function ensureCatalog(key: 'invoices' | 'collaborators' | 'accounts') {
+    const state = catalogs.current;
+    if (!canManage || (key === 'accounts' && !canSeePayouts) || state.loaded[key] || state.busy[key]) return;
+    state.busy[key] = true;
+    try {
+      if (key === 'invoices') {
+        const data = await api<{invoices: {id: string; number: string; client_name: string; currency: string; total: string; paid_amount: string}[]}>('/api/agency/invoices');
+        setInvoices(data.invoices || []);
+      } else if (key === 'collaborators') {
+        const data = await api<{collaborators: CollaboratorChoice[]}>('/api/agency/collaborators');
+        setCollaborators(data.collaborators || []);
+      } else {
+        const data = await api<{accounts: AccountChoice[]}>('/api/agency/accounts');
+        setAccounts(data.accounts || []);
+      }
+      state.loaded[key] = true;
+    } catch {
+      if (key === 'invoices') setInvoices([]);
+      else if (key === 'collaborators') setCollaborators([]);
+      else setAccounts([]);
+    } finally {
+      state.busy[key] = false;
+    }
+  }
 
   const totals = useMemo(() => monthlyCommissionTotals(monthly), [monthly]);
   const visible = useMemo(() => filterCommissions(commissions, filter), [commissions, filter]);
@@ -115,7 +152,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const payAccounts = pay ? accounts.filter(account => account.active && account.currency === pay.currency) : [];
 
   return <section className="grid gap-4" aria-label="Comisiones y referidos">
-    <PageHeader eyebrow="Finanzas" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." actions={canManage ? <button className="primary" onClick={() => setNewCommission(true)}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>
+    <PageHeader eyebrow="Finanzas" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." actions={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>
     {error ? <ErrorBlock title="No pudimos completar la operación" description={error} onRetry={() => void load()}/> : null}
     {notice ? <Aviso tono="ok">{notice}</Aviso> : null}
     {loading ? <LoadingBlock label="Cargando comisiones…" lines={4}/> : <>
@@ -170,7 +207,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
                 </div>
                 <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
                   {actions.approve ? <button className="text-button positive" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/commissions/${commission.id}`, {status: 'approved'}, 'PATCH'); }, 'Comisión aprobada.')}>Aprobar</button> : null}
-                  {actions.pay ? <button className="text-button" disabled={busy} onClick={() => setPay(commission)}>Registrar pago</button> : null}
+                  {actions.pay ? <button className="text-button" disabled={busy} onClick={() => { setPay(commission); void ensureCatalog('accounts'); }}>Registrar pago</button> : null}
                   {actions.cancel ? <button className="text-button danger" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/commissions/${commission.id}`, {status: 'cancelled'}, 'PATCH'); }, 'Comisión cancelada.')}>Cancelar</button> : null}
                   {!actions.approve && !actions.pay && !actions.cancel ? <span className="text-[11px] text-mute">Sin acciones</span> : null}
                 </div>
@@ -183,7 +220,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-discounts-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0"><h3 id="commissions-discounts-title" className="text-[17px] font-semibold tracking-tight text-fore">Descuentos por referido</h3><p className="mt-1 text-xs text-mute">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
-          {canManage ? <button className="secondary" onClick={() => setNewDiscount(true)} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
+          {canManage ? <button className="secondary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
         </div>
         {discounts.length
           ? <ListGrid label="Descuentos por referido" template={DISCOUNT_TEMPLATE} columns={DISCOUNT_COLUMNS} minWidthClass="min-w-[64rem]">
