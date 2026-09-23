@@ -22,6 +22,12 @@ const buttonOutline = 'inline-flex items-center justify-center gap-2 rounded-lg 
 
 const field = (text, control) => `<div class="grid gap-1"><label class="${label}">${text}</label>${control}</div>`;
 
+/* app/ui-v2.tsx MoneyText: misma celda de dinero v2 que el JSX real. */
+const moneyText = (text, extra = '') => `<span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums${extra ? ` ${extra}` : ''}">${text}</span>`;
+/* app/ui-v2.tsx CurrencyField: Label + Select con el catálogo de la empresa (sin USDT). */
+const currencyOptions = ['Guaraníes (PYG)', 'Dólares (USD)', 'Euros (EUR)', 'Reales (BRL)', 'Pesos argentinos (ARS)', 'Pesos mexicanos (MXN)'];
+const currencyField = (id, selected, extra = '') => `<div class="grid gap-1.5 ${extra}"><label class="${label}" for="${id}">Moneda</label><select class="${select} max-w-[11rem]" id="${id}">${currencyOptions.map(text => `<option${text === selected ? ' selected' : ''}>${text}</option>`).join('')}</select></div>`;
+
 /* app/client-reporting.tsx — ficha de reportes y términos comerciales. */
 const reportingSheet = `
 <section class="grid gap-4" aria-label="Datos comerciales del cliente">
@@ -31,7 +37,7 @@ const reportingSheet = `
   <h4 id="client-commercial-terms-title" class="text-sm font-bold text-fore">Términos comerciales efectivos</h4>
   <dl class="grid gap-2 text-sm">
    <div class="grid gap-1 sm:flex sm:items-start sm:justify-between sm:gap-3"><dt class="text-mute">Plan</dt><dd class="min-w-0 font-semibold [overflow-wrap:anywhere] sm:text-right">Producción audiovisual integral para campaña de lanzamiento regional · 12 meses</dd></div>
-   <div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">Monto recurrente</dt><dd class="shrink-0 font-semibold tabular-nums">PYG 1.234.567.890</dd></div>
+   <div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">Monto recurrente</dt><dd class="shrink-0 font-semibold tabular-nums">${moneyText('Gs. 1.234.567.890')}</dd></div>
    <div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">Inicio comercial</dt><dd class="shrink-0 font-semibold tabular-nums">14 sept 2024 · 00:00</dd></div>
    <div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">Fin comercial</dt><dd class="shrink-0 font-semibold tabular-nums">Sin fecha de fin</dd></div>
    <div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">Factura comercial del cliente</dt><dd class="shrink-0 font-semibold tabular-nums">Sí</dd></div>
@@ -44,7 +50,7 @@ const reportingSheet = `
   ${field('Fecha real de inicio (opcional)', `<input class="${input} w-40" type="date" value="2024-01-15">`)}
   ${field('Plan comercial', `<select class="${select}" aria-label="Plan comercial"><option>Producción audiovisual integral</option></select>`)}
   ${field('Monto recurrente entero', `<div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">Gs.</span><input class="${input} w-44 pl-12 tabular-nums" inputmode="numeric" value="1.234.567.890" aria-label="Monto recurrente entero"></div>`)}
-  ${field('Moneda', `<select class="${select} w-40" aria-label="Moneda"><option>PYG</option></select>`)}
+  ${currencyField('client-reporting-currency', 'Guaraníes (PYG)', 'w-40')}
   ${field('Inicio comercial', `<input class="${input} w-40" type="date" value="2024-01-15">`)}
   ${field('Fin del plan (opcional)', `<input class="${input} w-40" type="date" value="">`)}
   ${field('Factura comercial del cliente', `<select class="${select}" aria-label="Factura comercial del cliente"><option>Sí</option></select>`)}
@@ -68,7 +74,7 @@ const lifecycleSheet = `
      <td class="px-2.5 py-1.5 text-fore"><time class="whitespace-nowrap">14 sept 2024 · 00:00</time></td>
      <td class="px-2.5 py-1.5 text-fore"><time class="whitespace-nowrap">29 feb 2024 · 00:00</time></td>
      <td class="px-2.5 py-1.5"><div class="grid gap-0.5"><strong class="text-fore">Producción audiovisual integral para campaña de lanzamiento regional</strong><small class="text-[11px] text-mute">Versión contratada: v3.2 con anexos de cesión de derechos y música licenciada</small></div></td>
-     <td class="px-2.5 py-1.5 text-right text-fore"><span class="whitespace-nowrap font-semibold tabular-nums">Gs 1.234.567.890</span></td>
+     <td class="px-2.5 py-1.5 text-right text-fore">${moneyText('Gs. 1.234.567.890')}</td>
      <td class="px-2.5 py-1.5"><div class="grid gap-0.5"><span class="whitespace-nowrap text-fore">Porcentaje · 12,5%</span><small class="text-[11px] text-mute">Por seis meses consecutivos</small></div></td>
      <td class="px-2.5 py-1.5"><span class="text-fore">Dos reels extra por mes; Reporte de métricas quincenal</span></td>
     </tr>
@@ -76,7 +82,7 @@ const lifecycleSheet = `
      <td class="px-2.5 py-1.5 text-fore"><time class="whitespace-nowrap">01 ene 2024 · 00:00</time></td>
      <td class="px-2.5 py-1.5 text-fore"><span class="text-mute">Sin fecha registrada</span></td>
      <td class="px-2.5 py-1.5"><div class="grid gap-0.5"><strong class="text-fore">Retainer mensual de contenidos</strong><small class="text-[11px] text-mute">Versión contratada: v1.0</small></div></td>
-     <td class="px-2.5 py-1.5 text-right text-fore"><span class="whitespace-nowrap font-semibold tabular-nums">USD 12.345,67</span></td>
+     <td class="px-2.5 py-1.5 text-right text-fore">${moneyText('USD 12.345,67')}</td>
      <td class="px-2.5 py-1.5"><div class="grid gap-0.5"><span class="whitespace-nowrap text-fore">Importe fijo · USD 1.000</span></div></td>
      <td class="px-2.5 py-1.5"><span class="text-fore">Sin extras registrados</span></td>
     </tr>
@@ -90,7 +96,7 @@ const lifecycleSheet = `
   ${field('Nombre del plan', `<input class="${input}" value="Gestión comercial integral de contenidos y pauta">`)}
   ${field('Versión contratada', `<input class="${input}" value="v4.0 con anexos de cesión de derechos">`)}
   ${field('Precio mensual contratado', `<div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">US$</span><input class="${input} w-44 pl-12 tabular-nums" value="12,345.67" aria-label="Precio mensual contratado"></div>`)}
-  ${field('Moneda', `<select class="${select} w-40" aria-label="Moneda"><option>USD</option></select>`)}
+  ${currencyField('lifecycle-currency', 'Dólares (USD)', 'w-40')}
   ${field('Tipo de descuento', `<select class="${select}" aria-label="Tipo de descuento"><option>Porcentaje</option></select>`)}
   ${field('Valor del descuento', `<input class="${input} w-36 tabular-nums" inputmode="decimal" value="12,5">`)}
   ${field('Términos del descuento (opcional)', `<textarea class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" rows="3">Se aplica sobre el precio de lista durante los primeros seis meses.</textarea>`)}
@@ -107,7 +113,7 @@ const composerSheet = `
    ${field('Título del presupuesto', `<input class="${input}" maxlength="120" value="Campaña de lanzamiento regional · producción audiovisual integral" name="title">`)}
    <div class="flex flex-wrap items-end gap-3">
     <div class="min-w-0 flex-1 basis-64">${field('Cliente', `<select class="${select}" aria-label="Cliente"><option>Cooperativa Multiactiva de Servicios Múltiples Limitada</option></select>`)}</div>
-    <div class="w-40">${field('Moneda', `<select class="${select}" aria-label="Moneda"><option>PYG</option></select>`)}</div>
+    ${currencyField('quote-currency', 'Guaraníes (PYG)', 'w-40')}
     <div class="w-24">${field('IVA', `<select class="${select}" aria-label="IVA"><option>10%</option></select>`)}</div>
    </div>
   </section>
@@ -141,9 +147,9 @@ const composerSheet = `
   <p class="text-[11px] font-bold uppercase tracking-[.18em] text-fono-light">Vista previa</p>
   <h2 class="text-lg font-bold text-fore">Campaña de lanzamiento regional · producción audiovisual integral</h2>
   <section class="grid gap-2 text-sm text-fore">
-   <div class="flex items-start justify-between gap-3 border-b border-ink-600/60 pb-2"><span class="min-w-0 [overflow-wrap:anywhere]">Producción audiovisual integral: dirección creativa, rodaje en locación de tres jornadas<small class="mt-0.5 block text-[11px] text-mute">12 unidades</small></span><b class="whitespace-nowrap tabular-nums">Gs 1.234.567.890</b></div>
+   <div class="flex items-start justify-between gap-3 border-b border-ink-600/60 pb-2"><span class="min-w-0 [overflow-wrap:anywhere]">Producción audiovisual integral: dirección creativa, rodaje en locación de tres jornadas<small class="mt-0.5 block text-[11px] text-mute">12 unidades</small></span>${moneyText('Gs. 1.234.567.890')}</div>
   </section>
-  <section class="grid gap-1"><p class="text-xs text-mute">Subtotal: Gs 1.234.567.890</p><p class="text-xs text-mute">IVA: Gs 123.456.789</p><h3 class="text-base font-bold">Total: Gs 1.358.024.679</h3></section>
+  <section class="grid gap-1"><p class="text-xs text-mute">Subtotal: ${moneyText('Gs. 1.234.567.890')}</p><p class="text-xs text-mute">IVA: ${moneyText('Gs. 123.456.789')}</p><h3 class="text-base font-bold">Total: ${moneyText('Gs. 1.358.024.679')}</h3></section>
  </section>
  <div class="lg:col-span-2"><div class="flex flex-wrap items-center justify-end gap-2"><button type="button" class="${buttonOutline}">Cancelar</button><button type="submit" class="${button}">Guardar</button></div></div>
 </form>`;
