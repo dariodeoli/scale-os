@@ -13,6 +13,7 @@ import {fileURLToPath} from 'node:url';
 import pg from 'pg';
 import {agencyCore} from './agency-core.js';
 import {inventoryReservations} from './inventory-reservations.js';
+import {visibleRecord} from './record-lifecycle.js';
 import {migrationOrder} from './scripts/migration-order.mjs';
 
 for(const name of Object.keys(process.env))if(name.startsWith('PG')||name==='DATABASE_URL')delete process.env[name];
@@ -77,16 +78,43 @@ try{
  }
  // Proyección recomendada para pickers/tarjetas: sin descripción completa ni enlaces.
  const PROJECTED_FIELDS='id,title,status,project_id,project_name,client_name,urgency,work_type,due_date,due_time,updated_at,effective_assignees,assignee_source,description_preview';
- let listResponse,pageResponse,leanResponse,projectsResponse,inventoryResponse;
+ // Proyección del chrome/buscador para proyectos.
+ const PROJECT_SEARCH_FIELDS='id,name,client_id,status,client_name,work_order_count,assignees';
+ let listResponse,pageResponse,leanResponse,projectsResponse,minimalProjectsResponse,searchProjectsResponse,statusResponse,countsResponse,summaryResponse,inventoryResponse;
  await timed('GET /api/agency/work-orders',async()=>{listResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders'),send:(_,status,data)=>{listResponse=data;}});});
  await timed('GET /api/agency/work-orders?limit=300',async()=>{pageResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders?limit=300'),send:(_,status,data)=>{pageResponse=data;}});});
  await timed('GET /api/agency/work-orders?fields=<preset>',async()=>{leanResponse=null;await agencyCore({...coreArgs(`/api/agency/work-orders?fields=${PROJECTED_FIELDS}`),send:(_,status,data)=>{leanResponse=data;}});});
+ await timed('GET /api/agency/work-orders?status=review&limit=300',async()=>{statusResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders?status=review&limit=300'),send:(_,status,data)=>{statusResponse=data;}});});
+ await timed('GET /api/agency/work-orders?counts=1&limit=1&fields=id',async()=>{countsResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders?counts=1&limit=1&fields=id'),send:(_,status,data)=>{countsResponse=data;}});});
  await timed('GET /api/agency/projects',async()=>{projectsResponse=null;await agencyCore({...coreArgs('/api/agency/projects'),send:(_,status,data)=>{projectsResponse=data;}});});
+ await timed('GET /api/agency/projects?fields=<chrome>',async()=>{searchProjectsResponse=null;await agencyCore({...coreArgs(`/api/agency/projects?fields=${PROJECT_SEARCH_FIELDS}`),send:(_,status,data)=>{searchProjectsResponse=data;}});});
+ await timed('GET /api/agency/projects?fields=id,name,client_id,status',async()=>{minimalProjectsResponse=null;await agencyCore({...coreArgs('/api/agency/projects?fields=id,name,client_id,status'),send:(_,status,data)=>{minimalProjectsResponse=data;}});});
+ await timed('GET /api/agency/summary',async()=>{summaryResponse=null;await agencyCore({...coreArgs('/api/agency/summary'),send:(_,status,data)=>{summaryResponse=data;}});});
  await timed('GET /api/agency/inventory',async()=>{inventoryResponse=null;await inventoryReservations({req:{method:'GET',socket:{}},res:{},url:new URL('https://bench.invalid/api/agency/inventory'),db:pool,session,body:async()=>({}),send:(_,status,data)=>{inventoryResponse=data;}});});
  const size=value=>(JSON.stringify(value||{}).length/1024).toFixed(0);
  console.log(`Payload work-orders: ${listResponse.workOrders.length} filas · ${size(listResponse)} KB`);
  console.log(`Payload work-orders?limit=300: ${pageResponse.workOrders.length} filas · ${size(pageResponse)} KB · page ${JSON.stringify(pageResponse.page)}`);
  console.log(`Payload work-orders?fields=<preset>: ${leanResponse.workOrders.length} filas · ${size(leanResponse)} KB`);
+ console.log(`Payload work-orders?status=review&limit=300: ${statusResponse.workOrders.length} filas · ${size(statusResponse)} KB`);
+ console.log(`Payload work-orders?counts=1: ${countsResponse.workOrders.length} fila · ${size(countsResponse)} KB · stage_counts ${JSON.stringify(countsResponse.stage_counts)}`);
  console.log(`Payload projects: ${projectsResponse.projects.length} filas · ${size(projectsResponse)} KB`);
+ console.log(`Payload projects?fields=id,name,client_id,status: ${minimalProjectsResponse.projects.length} filas · ${size(minimalProjectsResponse)} KB`);
+ console.log(`Payload projects?fields=<chrome>: ${searchProjectsResponse.projects.length} filas · ${size(searchProjectsResponse)} KB`);
+ console.log(`Payload summary: ${size(summaryResponse)} KB · stage_counts ${JSON.stringify(summaryResponse.summary.stage_counts)}`);
  console.log(`Payload inventario: ${(inventoryResponse?.records||[]).length} filas · ${size(inventoryResponse)} KB`);
+ // Verificación a escala: los agregados contra el mismo SQL del panel.
+ const vis=alias=>visibleRecord(alias,'work-orders');
+ const dbStages=(await q(`select o.status,count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=7 and ${vis('o')} and not exists(select 1 from agency_archived_records ar where ar.organization_id=p.organization_id and ar.kind='projects' and ar.record_id=p.id) and not exists(select 1 from agency_archived_records ar where ar.organization_id=c.organization_id and ar.kind='clients' and ar.record_id=c.id) group by o.status`)).rows;
+ let aggregateDiffs=0;
+ for(const row of dbStages){
+  if(countsResponse.stage_counts[row.status]!==row.total||summaryResponse.summary.stage_counts[row.status]!==row.total)aggregateDiffs++;
+ }
+ const totalOpen=dbStages.filter(row=>!['approved','published'].includes(row.status)).reduce((total,row)=>total+row.total,0);
+ if(totalOpen!==summaryResponse.summary.open_orders)aggregateDiffs++;
+ for(const project of projectsResponse.projects.slice(0,50)){
+  const [expected]=(await q(`select count(*) filter (where o.status not in ('approved','published'))::int as open_orders, min(o.due_date) filter (where o.status not in ('approved','published')) as next_due_date from agency_work_orders o where o.organization_id=7 and o.project_id=$1 and ${vis('o')}`,[project.id])).rows;
+  const day=value=>value==null?null:(value instanceof Date?value.toISOString().slice(0,10):String(value).slice(0,10));
+  if(project.open_orders!==expected.open_orders||day(project.next_due_date)!==day(expected.next_due_date))aggregateDiffs++;
+ }
+ console.log(`Agregados (bench): ${aggregateDiffs?'DIFF '+aggregateDiffs:'OK'} · stage_counts suma ${Object.values(countsResponse.stage_counts).reduce((total,value)=>total+value,0)} = ${dbStages.reduce((total,row)=>total+row.total,0)} órdenes visibles`);
 }finally{try{await pool?.end();}catch{}cleanup();}
