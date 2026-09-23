@@ -30,8 +30,9 @@ const InventoryWorkspace=dynamic(()=>import('./inventory-workspace').then(m=>m.I
 const StudioWorkspace=dynamic(()=>import('./studio-workspace').then(m=>m.StudioWorkspace));
 const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
-import {setDataScope, clearDataCache} from './data-cache';
+import {setDataScope, clearDataCache, dataFetch} from './data-cache';
 import {request} from './workspace-request';
+import {sectionScope,scopeResources,shellDataUrl,shellSignature,type ShellResource,type ShellScope} from './shell-data';
 import {prefetchSectionData} from './data-prefetch';
 import './control-center.css';
 import './production-focus.css';
@@ -173,22 +174,10 @@ function Modal({
   return <Dialog title={title} close={onClose}>{children}</Dialog>;
 }
 // Datos compartidos del shell: qué recursos necesita cada sección y cuánto vale
-// lo ya cargado. Navegar entre secciones no vuelve a pedir lo que está en
+// Datos compartidos del shell: qué pide cada sección, con qué recorte y cuánto
+// vale lo ya cargado. Navegar entre secciones no vuelve a pedir lo que está en
 // memoria; solo se refresca lo que la sección activa necesita y ya venció.
-// (El boot sigue pidiendo el set completo porque el chrome lo usa: buscador,
-// guía y presencia.)
-export type ShellResource='clients'|'projects'|'orders'|'summary';
-const SHELL_RESOURCES:readonly ShellResource[]=['clients','projects','orders','summary'];
-const GUIDE_RESOURCES:readonly ShellResource[]=['clients','projects','orders'];
-const SECTION_DATA:Record<string,readonly ShellResource[]>={
-  Resumen:['clients','projects','orders','summary'],
-  Producción:['clients','projects','orders'],
-  Proyectos:['clients','projects'],
-  Clientes:['clients'],
-  Presupuestos:['clients','summary'],
-  Mora:['clients'],
-  Pipeline:['clients'],
-};
+// El alcance por sección y el recorte de `work-orders` viven en `shell-data.ts`.
 const DATA_FRESH_MS=120000;
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
@@ -227,7 +216,7 @@ export default function Home() {
   const [workspaceScope,setWorkspaceScope]=useState('');
   const [guideData,setGuideData]=useState<WorkspaceGuideData>({scope:null,status:'unknown'});
   const dataLoadSequence=useRef(0);
-  const dataFreshness=useRef<Record<ShellResource,number>>({clients:0,projects:0,orders:0,summary:0});
+  const dataFreshness=useRef<Record<string,number>>({});
   const [projectsState,setProjectsState]=useState<'loading'|'ready'|'error'>('loading');
   useEffect(()=>{setProjectsState(guideData.status==='error'?'error':guideData.status==='ready'?'ready':'loading');},[guideData.status]);
   // Estado de los datos compartidos: lo consume el chrome y lo exponen las
@@ -259,6 +248,14 @@ export default function Home() {
     // includes Sales) never triggers a denied read.
     if(['Inventario','Estudio'].includes(label)&&!roleCan(user.role,'inventory.view'))return;
     void prefetchSectionData(label,`${user.id}:${user.organization_id}:${user.role}`);
+    // El shell calienta solo los recortes acotados: la lista completa de órdenes
+    // se pide cuando la sección realmente se abre, nunca al pasar el mouse.
+    const scope=sectionScope(label);
+    for(const resource of scopeResources(scope)){
+      const config=scope[resource];
+      if(!config?.limit)continue;
+      void dataFetch(shellDataUrl(resource,config),{credentials:'include'}).catch(()=>{});
+    }
   }
   useStartupPreference({scope:preferenceScope,ready:preferencesReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
   async function refreshSubscription(){
@@ -408,18 +405,28 @@ export default function Home() {
     for (const order of orders) counts.set(order.status, (counts.get(order.status) || 0) + 1);
     return counts;
   }, [orders]);
+  const [summary, setSummary] = useState<Summary>({
+    active_clients: 0,
+    active_projects: 0,
+    open_orders: 0,
+    unanswered_budgets: null,
+    unverified_inventory: null,
+    upcoming_deliveries: null,
+  });
   const directoryKpis = useMemo(() => {
     const active = clients.filter(client => client.active).length;
     const paused = clients.length - active;
     const activeProjects = projects.filter(project => project.status === "active").length;
     const today = new Date(), week = new Date(Date.now() + 7 * 86400000);
-    const deliveries = orders.filter(order => {
+    // El total de entregas próximas sale del agregado del API (exacto también
+    // cuando la sección pide una ventana de órdenes); la lista es el respaldo.
+    const deliveries = summary.upcoming_deliveries ?? orders.filter(order => {
       if (!order.due_date || ["approved", "published"].includes(order.status)) return false;
       const due = new Date(order.due_date);
       return !Number.isNaN(due.getTime()) && due >= today && due <= week;
     }).length;
     return { active, paused, activeProjects, deliveries };
-  }, [clients, projects, orders]);
+  }, [clients, projects, orders, summary.upcoming_deliveries]);
   const cobrosKpis = useMemo(() => {
     let alDia = 0, porVencer = 0, enMora = 0, sinFactura = 0;
     for (const client of paymentStatuses) {
@@ -430,38 +437,31 @@ export default function Home() {
     }
     return { alDia, porVencer, enMora, sinFactura };
   }, [paymentStatuses]);
-  const [summary, setSummary] = useState<Summary>({
-    active_clients: 0,
-    active_projects: 0,
-    open_orders: 0,
-    unanswered_budgets: null,
-    unverified_inventory: null,
-    upcoming_deliveries: null,
-  });
-  async function load(identity:User|null=user,resources:readonly ShellResource[]=SHELL_RESOURCES) {
+  async function load(identity:User|null=user,scope:ShellScope=sectionScope(requestedSection)) {
     if(!identity||identity.subscription?.hasAccess===false)return;
     const sequence=++dataLoadSequence.current;
-    const wants=(resource:ShellResource)=>resources.includes(resource);
+    const wants=(resource:ShellResource)=>Boolean(scope[resource]);
     const guideScope=workspaceGuideScope({userId:String(identity.id),organizationId:String(identity.organization_id),role:identity.role,demo:!!identity.demo_owner_user_id});
-    if(resources.some(resource=>GUIDE_RESOURCES.includes(resource)))setGuideData({scope:guideScope,status:'loading'});
+    const scopeReady=(next:ShellScope)=>scopeResources(next).every(resource=>dataFreshness.current[shellSignature(resource,next[resource])]>0);
+    setGuideData({scope:guideScope,status:'loading'});
     const loadedScope=workspacePreferenceKey(String(identity?.id||''),String(identity?.organization_id||''));
     try{
     const [clientData, projectData, orderData, summaryData] = await Promise.all(
       [
-        wants('clients')?request<{ clients: Client[] }>("/api/agency/clients"):{clients},
-        wants('projects')?request<{ projects: Project[] }>("/api/agency/projects"):{projects},
-        wants('orders')?request<{ workOrders: WorkOrder[] }>("/api/agency/work-orders"):{workOrders:orders},
-        wants('summary')?request<{ summary: Summary }>("/api/agency/summary"):{summary},
+        wants('clients')?request<{ clients: Client[] }>(shellDataUrl('clients',scope.clients)):{clients},
+        wants('projects')?request<{ projects: Project[] }>(shellDataUrl('projects',scope.projects)):{projects},
+        wants('orders')?request<{ workOrders: WorkOrder[] }>(shellDataUrl('orders',scope.orders)):{workOrders:orders},
+        wants('summary')?request<{ summary: Summary }>(shellDataUrl('summary',scope.summary)):{summary},
       ],
     );
     if(sequence!==dataLoadSequence.current)return;
     if(!Array.isArray(clientData?.clients)||!Array.isArray(projectData?.projects)||!Array.isArray(orderData?.workOrders)||!summaryData?.summary)throw new Error('El servidor devolvió datos incompletos. Reintentá.');
-    if(wants('clients')){setClients(clientData.clients);dataFreshness.current.clients=Date.now();}
-    if(wants('projects')){setProjects(projectData.projects);dataFreshness.current.projects=Date.now();}
-    if(wants('orders')){setOrders(orderData.workOrders);dataFreshness.current.orders=Date.now();}
-    if(wants('summary')){setSummary(summaryData.summary);dataFreshness.current.summary=Date.now();}
+    if(wants('clients')){setClients(clientData.clients);dataFreshness.current[shellSignature('clients',scope.clients)]=Date.now();}
+    if(wants('projects')){setProjects(projectData.projects);dataFreshness.current[shellSignature('projects',scope.projects)]=Date.now();}
+    if(wants('orders')){setOrders(orderData.workOrders);dataFreshness.current[shellSignature('orders',scope.orders)]=Date.now();}
+    if(wants('summary')){setSummary(summaryData.summary);dataFreshness.current[shellSignature('summary',scope.summary)]=Date.now();}
     setStartupDataScope(loadedScope);
-    if(GUIDE_RESOURCES.every(resource=>dataFreshness.current[resource]>0))setGuideData({scope:guideScope,status:'ready',counts:{clients:clientData.clients.length,projects:projectData.projects.length,orders:orderData.workOrders.length}});
+    if(scopeReady(sectionScope(requestedSection)))setGuideData({scope:guideScope,status:'ready',counts:{clients:clientData.clients.length,projects:projectData.projects.length,orders:orderData.workOrders.length}});
     }catch(cause){
       if(sequence!==dataLoadSequence.current)return;
       if(guideData.status!=='ready')setGuideData({scope:guideScope,status:'error'});
@@ -483,9 +483,13 @@ export default function Home() {
     // Keep the mounted shell and session. Al navegar solo se refresca lo que la
     // sección activa necesita y ya venció: lo que está en memoria no se repite.
     if(!signedIn||!user||user.subscription?.hasAccess===false)return;
-    const needed=SECTION_DATA[requestedSection]||[];
-    const stale=needed.filter(resource=>Date.now()-dataFreshness.current[resource]>DATA_FRESH_MS);
-    if(!stale.length)return;
+    const scope=sectionScope(requestedSection);
+    const stale:ShellScope={};
+    for(const resource of scopeResources(scope)){
+      const request=scope[resource];
+      if(Date.now()-(dataFreshness.current[shellSignature(resource,request)]||0)>DATA_FRESH_MS)stale[resource]=request;
+    }
+    if(!scopeResources(stale).length)return;
     void load(user,stale).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron actualizar los datos.'));
   },[pathname,signedIn]);
   useEffect(()=>{if(signedIn&&toast){notify({tone:'error',message:toast});setToast('');}},[signedIn,toast]);
@@ -505,7 +509,7 @@ export default function Home() {
         setUser(data.user);
         setSignedIn(true);
         returnToApprovedLoginDestination();
-        if(data.user.subscription?.hasAccess!==false)return load(data.user).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
+        if(data.user.subscription?.hasAccess!==false)return load(data.user,sectionScope(sectionLabel(pathname))).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
       })
       .catch(() => setSignedIn(false))
       .finally(() => setLoading(false));
@@ -690,7 +694,7 @@ export default function Home() {
       setUser(data.user);
       setSignedIn(true);
       returnToApprovedLoginDestination();
-      if(data.user.subscription?.hasAccess!==false)await load(data.user);
+      if(data.user.subscription?.hasAccess!==false)await load(data.user,sectionScope(requestedSection));
     } catch (cause) {
       setToast(
         cause instanceof Error ? cause.message : "No se pudo iniciar sesión.",
