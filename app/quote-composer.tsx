@@ -5,7 +5,7 @@
 // ./quote-composer-data (puros); el guardado sigue con SaveActions legado.
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button,FormField,Input,Label,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
+import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
@@ -85,7 +85,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
     {field.type==='text'&&<><FormField label="Título" htmlFor={`quote-section-title-${index}`}><Input id={`quote-section-title-${index}`} {...form.register(`sections.${index}.title`)}/></FormField><FormField label="Contenido" htmlFor={`quote-section-body-${index}`}><Textarea id={`quote-section-body-${index}`} rows={4} {...form.register(`sections.${index}.body`)}/></FormField></>}
     {['items','totals'].includes(field.type)
      ?<p className="text-xs font-medium text-mute">Siempre visible</p>
-     :<div className="flex min-h-11 items-center gap-3 md:min-h-0"><Switch id={`quote-section-enabled-${index}`} checked={Boolean(v.sections[index]?.enabled)} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>form.setValue(`sections.${index}.enabled`,event.target.checked)} ariaLabel={`Mostrar sección ${SECTION_TYPE_LABELS[field.type]}`}/><Label htmlFor={`quote-section-enabled-${index}`}>Mostrar sección</Label></div>}
+     :<label htmlFor={`quote-section-enabled-${index}`} className="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-0"><Switch id={`quote-section-enabled-${index}`} checked={Boolean(v.sections[index]?.enabled)} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>form.setValue(`sections.${index}.enabled`,event.target.checked)} ariaLabel={`Mostrar sección ${SECTION_TYPE_LABELS[field.type]}`}/><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mostrar sección</span></label>}
     <div className="flex flex-wrap gap-2">
      <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===0} onClick={()=>sections.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>
      <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===sections.fields.length-1} onClick={()=>sections.move(index,index+1)}><ArrowDown size={14}/>Bajar</Button>

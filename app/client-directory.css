@@ -40,3 +40,13 @@
 .client-hub-row .identity-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .client-hub-row .client-record-actions :is(.icon-button,.text-button){min-height:32px}
 .client-hub-row .client-record-actions .icon-button{width:32px;min-width:32px}
+/* Acciones del ojo (objeto de la librería, 28 px) y del resto de la fila densa al
+   contrato de lista: 32 px. En la tarjeta, targets táctiles de 44 en móvil. */
+.client-hub-row .client-row-actions :is(button,a.text-button){min-height:32px}
+.client-hub-row .client-row-actions>button:first-child{width:32px;min-width:32px}
+@media(max-width:767px){
+ .client-hub-row .select-check,.client-hub-card .select-check{min-width:44px;min-height:44px;justify-content:center}
+ .client-hub-card .client-card-actions :is(button,a.text-button){min-height:44px}
+ .client-hub-card .client-card-actions :is(.icon-button,.record-remove){width:44px;min-width:44px;min-height:44px}
+ .client-hub-card .client-card-actions>button:first-child{width:44px;min-width:44px}
+}
