@@ -24,6 +24,7 @@ const width = Number(option('--width', '1440'));
 const gapMs = Number(option('--gap', '16000'));
 const only = option('--only', '');
 const bootOnly = args.includes('--boot-only');
+const contractMode = option('--contract', 'new');
 const hardOnly = args.includes('--hard');
 const here = resolve(process.cwd());
 const outDir = join(here, 'work/medicion');
@@ -46,14 +47,15 @@ const LATENCY = [
   [/\/control-center/, 250],
   [/\/notifications/, 120],
 ];
-const latencyFor = (url) => (LATENCY.find(([pattern]) => pattern.test(url)) || [null, 150])[1];
+const latencyFor = (url, rows) => (/\/work-orders/.test(url) ? 30 + rows * 0.6 : (LATENCY.find(([pattern]) => pattern.test(url)) || [null, 150])[1]);
 
 // Órdenes ~1,4 KB por fila (mismo perfil que producción: o.* + proyecto/cliente
 // + asignados + checklist). La respuesta escalada reproduce 2 MB sin `?limit=`.
 const ORDER_ROWS = 1450;
 const client = (index) => ({id: String(index), name: `Cliente Demo ${String(index).padStart(2, '0')}`, active: index % 9 !== 0, status: index % 9 === 0 ? 'paused' : 'active', email: `cliente${index}@demo.test`, phone: '+595 981 000 000', ruc: `80012345-${index}`, address: `Av. Demo ${index}, Asunción`, created_at: '2026-01-15T10:00:00.000Z', payment_status: index % 3 === 0 ? 'late' : 'up_to_date', has_invoice: index % 4 !== 0, work_orders: index % 7});
 const project = (index) => ({id: String(index), title: `Proyecto Demo ${String(index).padStart(2, '0')}`, client_id: String((index % 240) + 1), client_name: client((index % 240) + 1).name, status: index % 5 === 0 ? 'completed' : 'active', active: index % 11 !== 0, due_date: '2026-11-30', start_date: '2026-10-01', urgency: index % 3 === 0 ? 'high' : null, drive_url: `https://drive.demo/proyecto-${index}`, description: `Proyecto de producción audiovisual ${index} con entregables mensuales y revisiones del cliente.`, work_order_count: index % 12, work_orders: index % 12, assignees: [{id: String(index % 9), full_name: `Responsable ${index % 9}`, photo_url: null, is_primary: true}, {id: String((index + 3) % 9), full_name: `Responsable ${(index + 3) % 9}`, photo_url: null, is_primary: false}]});
-const order = (index) => ({id: String(index), title: `Orden Demo ${String(index).padStart(4, '0')}`, status: ['to_record', 'in_progress', 'review', 'approved', 'published', 'paused'][index % 6], project_id: String((index % 500) + 1), project_name: `Proyecto Demo ${String((index % 500) + 1).padStart(2, '0')}`, client_id: String((index % 400) + 1), client_name: client((index % 400) + 1).name, assignee_email: `equipo${index % 9}@demo.test`, responsible: `Responsable ${index % 9}`, work_type: ['video', 'reedicion', 'foto', 'produccion'][index % 4], description: `Orden de trabajo ${index}: armado, edición y entrega con revisión del cliente y ajustes solicitados en la reunión de producción.`, due_date: '2026-11-20', due_time: '15:00', effective_date: null, created_at: '2026-10-01T09:00:00.000Z', updated_at: `2026-11-0${(index % 9) + 1}T12:00:00.000Z`, urgency: index % 5 === 0 ? 'high' : null, drive_url: `https://drive.demo/orden-${index}`, checklist_total: 6, checklist_completed: index % 5, checklist: Array.from({length: 6}, (_, step) => ({id: (index * 6) + step, label: `Paso ${step + 1} del flujo de producción con revisión interna y del cliente`, completed: step < (index % 5)})), assignees: [{id: String(index % 9), user_id: String(index % 9), full_name: `Responsable ${index % 9}`, photo_url: null, is_primary: true}], project_assignees: [{id: String(index % 9), full_name: `Responsable ${index % 9}`, is_primary: true}], effective_assignees: [{id: String(index % 9), full_name: `Responsable ${index % 9}`, source: 'project', is_primary: true}]});
+const ORDER_DEFAULT = (index) => ({id: String(index), project_id: String((index % 500) + 1), project_name: `Proyecto Demo ${String((index % 500) + 1).padStart(2, '0')}`, client_name: client((index % 400) + 1).name, title: `Orden Demo ${String(index).padStart(4, '0')}`, description: `Orden de trabajo ${index}: armado, edición y entrega con revisión del cliente, ajustes de color, musicalización y exportaciones para redes y archivo. Incluye notas de la reunión de producción y pendientes de la revisión anterior del cliente.`, status: ['to_record', 'in_progress', 'review', 'approved', 'published', 'paused'][index % 6], urgency: index % 5 === 0 ? 'high' : null, work_type: ['video', 'reedicion', 'foto', 'produccion'][index % 4], approval_step: index % 3, due_date: `2026-11-${String((index % 27) + 1).padStart(2, '0')}`, due_time: '15:00', drive_url: `https://drive.demo/orden-${index}`, drive_links: [{label: 'Carpeta', url: `https://drive.demo/orden-${index}`}], estimated_hours: index % 12, actual_hours: index % 9, updated_at: `2026-11-0${(index % 9) + 1}T12:00:00.000Z`});
+const ORDER_ENRICHED = (row, index) => ({...row, effective_assignees: [{id: String(index % 9), full_name: `Responsable ${index % 9}`, source: 'project', is_primary: true}], assignee_source: 'project', checklist_total: 6, checklist_completed: index % 5});
 const user = {id: '1', organization_id: '1', email: 'duenio@demo.test', full_name: 'Duenio Demo', role: 'owner', organization_name: 'Demo SA', organization_slug: 'demo', default_currency: 'PYG', photo_url: null, subscription: {hasAccess: true, status: 'active', plan: 'pro', trial_ends_at: null}, demo_owner_user_id: '1'};
 
 const fixtures = (rawUrl) => {
@@ -67,11 +69,27 @@ const fixtures = (rawUrl) => {
   if (path.includes('/auth/organizations')) return {organizations: [{id: '1', name: 'Demo SA', slug: 'demo', role: 'owner', current: true}]};
   if (path.includes('/agency/clients')) return {clients: rows(400).map(client)};
   if (path.includes('/agency/projects')) return {projects: rows(250).map(project)};
+  const statusFilter = url.searchParams.get('status');
+  const fieldsParam = url.searchParams.get('fields');
   if (path.includes('/agency/work-orders')) {
+    if (statusFilter && contractMode === 'new') {
+      const count = Math.min(limit === null ? 200 : limit, 200);
+      return {workOrders: rows(count).map((index) => ({...ORDER_DEFAULT(index), status: statusFilter})), page: {limit: limit ?? count, offset: 0, hasMore: false}};
+    }
     const count = limit === null ? ORDER_ROWS : Math.min(limit, ORDER_ROWS);
-    return {workOrders: rows(count).map(order), ...(limit === null ? {} : {page: {limit, offset: 0, hasMore: count < ORDER_ROWS}})};
+    const build = (index) => {
+      const base = ORDER_DEFAULT(index);
+      const needsEnrich = !fieldsParam || ['effective_assignees', 'assignee_source', 'assigned_user_ids', 'checklist_total', 'checklist_completed'].some((field) => fieldsParam.includes(field));
+      const row = needsEnrich ? ORDER_ENRICHED(base, index) : base;
+      if (!fieldsParam) return row;
+      const requested = [...new Set(fieldsParam.split(',').map((field) => field.trim()).filter(Boolean))];
+      const out = {id: row.id};
+      for (const field of requested) if (Object.hasOwn(row, field)) out[field] = row[field];
+      return out;
+    };
+    return {workOrders: rows(count).map(build), ...(limit === null ? {} : {page: {limit, offset: 0, hasMore: count < ORDER_ROWS}})};
   }
-  if (path.includes('/agency/summary')) return {summary: {active_clients: 356, active_projects: 210, open_orders: 1180, unanswered_budgets: 7, unverified_inventory: 23, upcoming_deliveries: 41}};
+  if (path.includes('/agency/summary')) return {summary: {active_clients: 356, active_projects: 210, open_orders: 1180, unanswered_budgets: 7, unverified_inventory: 23, upcoming_deliveries: 41, ...(contractMode === 'new' ? {stage_counts: {to_record: 120, in_progress: 340, review: 65, approved: 210, published: 480, paused: 40}} : {})}};
   if (path.includes('/agency/client-payment-status')) return {clients: []};
   if (path.includes('/agency/control-center')) return {active_clients: 356, active_prospects: 12, contracted_billing: {available: false, reason: 'permission'}};
   if (path.includes('/agency/dashboard')) return {cash: [], receivables: [], collections: [], inventory: [], expenses: [], personnel: [], expected: [], alerts: []};
@@ -94,8 +112,9 @@ const requests = [];
 cdp.on('Fetch.requestPaused', (params) => {
   const {requestId, request} = params;
   const started = Date.now();
-  const delay = latencyFor(request.url);
   const body = JSON.stringify(fixtures(request.url));
+  const rows = /work-orders/.test(request.url) ? ((JSON.parse(body).workOrders || []).length) : 0;
+  const delay = latencyFor(request.url, rows);
   const bytes = Buffer.byteLength(body);
   setTimeout(() => {
     requests.push({method: request.method, url: request.url.replace(/^https?:\/\/[^/]+/, ''), started, delay, bytes, done: started + delay});
@@ -127,7 +146,7 @@ async function measure(route, nav, hard) {
     if (landed === route.path && !pending && hasData) break;
     await sleep(250);
   }
-  const entries = JSON.parse(await cdp.evaluate(`JSON.stringify(performance.getEntriesByType('resource').filter(entry=>entry.name.includes('/core-api/api/')).map(entry=>({name:new URL(entry.name).pathname,start:Math.round(entry.startTime),end:Math.round(entry.responseEnd),ms:Math.round(entry.duration)})))`));
+  const entries = JSON.parse(await cdp.evaluate(`JSON.stringify(performance.getEntriesByType('resource').filter(entry=>entry.name.includes('/core-api/api/')).map(entry=>({name:new URL(entry.name).pathname+new URL(entry.name).search,start:Math.round(entry.startTime),end:Math.round(entry.responseEnd),ms:Math.round(entry.duration)})))`));
   const counts = new Map();
   for (const entry of entries) counts.set(entry.name, (counts.get(entry.name) || 0) + 1);
   const duplicates = [...counts.values()].reduce((total, value) => total + Math.max(0, value - 1), 0);

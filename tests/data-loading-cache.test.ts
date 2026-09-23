@@ -81,18 +81,22 @@ test('a 200 with a non-JSON body never becomes empty workspace state',async()=>{
 });
 
 
-test('navegar no repite datos frescos y cada sección pide solo lo suyo (ventana de órdenes)',async()=>{
+test('cada sección pide solo lo suyo y proyecta los campos que dibuja (?fields=)',async()=>{
  const {readFileSync}=await import('node:fs');
  const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
  const shellData=readFileSync(new URL('../app/shell-data.ts',import.meta.url),'utf8');
  assert(shellData.includes('export const ORDER_WINDOW = 300;'),'la ventana de órdenes es explícita');
- assert(shellData.includes('${request.limit ? `?limit=${request.limit}` : \'\'}'),'la URL del shell agrega ?limit= cuando el recorte lo pide');
+ assert(shellData.includes("export const ORDER_FIELDS_STATUS = 'id,status,project_id';"),'Resumen proyecta solo lo que cuenta');
+ assert(shellData.includes("export const ORDER_FIELDS_PORTFOLIO = 'id,status,project_id,due_date';"),'Clientes proyecta la cartera');
+ assert(shellData.includes('export const ORDER_FIELDS_BOARD ='),'el tablero proyecta la tarjeta');
+ assert(shellData.includes('if (request.fields) query.push('),'la URL del shell agrega ?fields=');
+ assert(shellData.includes('export function shellSignature'),'la frescura va por recurso y recorte');
  assert(shellData.includes('const SECTION_SCOPE: Record<string, ShellScope> = {'),'el shell declara qué recursos necesita cada sección');
- assert(shellData.includes('Resumen: {clients: {}, projects: {}, orders: {}, summary: {}}'),'Resumen pide la lista completa mientras el API no exponga los agregados por etapa (#57)');
- assert(shellData.includes('Proyectos: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW}}'),'las pantallas que no listan órdenes piden la ventana');
- assert(workspace.includes('dataFreshness.current[shellSignature('),'la frescura se mide por recurso y recorte (una ventana no tapa una lista completa)');
+ assert(shellData.includes("Resumen: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_STATUS}}"),'Resumen pide la proyección de estados');
+ assert(shellData.includes("Clientes: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_PORTFOLIO}}"),'Clientes pide la proyección de cartera');
  assert(workspace.includes('const stale:ShellScope={};'),'al navegar solo se juntan los recursos vencidos');
  assert(workspace.includes('if(!scopeResources(stale).length)return;'),'sin recursos vencidos la navegación no pide nada');
+ assert(workspace.includes("learnShellContract({fields:false});"),'un 400 de proyección apaga ?fields= en la sesión');
  assert(workspace.includes('if(!config?.limit)continue;'),'el prefetch al pasar el mouse solo calienta recortes acotados');
  assert(workspace.includes('summary.upcoming_deliveries ??'),'las entregas próximas usan el agregado del API cuando existe');
  const presence=readFileSync(new URL('../app/presence.tsx',import.meta.url),'utf8');
