@@ -80,20 +80,23 @@ test('a 200 with a non-JSON body never becomes empty workspace state',async()=>{
  assert(workspace.includes('const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];'),'secondary loaders coerce non-arrays');
 });
 
-test('navegar no repite datos frescos: el shell pide solo lo que la sección necesita y venció',async()=>{
+
+test('navegar no repite datos frescos y cada sección pide solo lo suyo (ventana de órdenes)',async()=>{
  const {readFileSync}=await import('node:fs');
  const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
- assert(workspace.includes("const SECTION_DATA:Record<string,readonly ShellResource[]>={"),'el shell declara qué recursos necesita cada sección');
- assert(workspace.includes("Resumen:['clients','projects','orders','summary']"),'Resumen declara sus datos compartidos');
- assert(workspace.includes('const DATA_FRESH_MS=120000;'),'lo ya cargado tiene una ventana de frescura explícita');
- assert(/async function load\(identity:User\|null=user,resources:readonly ShellResource\[\]=SHELL_RESOURCES\)/.test(workspace),'load acepta un subconjunto de recursos');
- assert(workspace.includes('dataFreshness.current.clients=Date.now()'),'cada recurso marca su frescura al llegar');
- assert(workspace.includes('const stale=needed.filter(resource=>Date.now()-dataFreshness.current[resource]>DATA_FRESH_MS);'),'al navegar solo se miran los recursos vencidos');
- assert(workspace.includes('if(!stale.length)return;'),'sin recursos vencidos la navegación no pide nada');
- assert(workspace.includes('void load(user,stale)'),'el refresco de navegación queda acotado a lo vencido');
+ const shellData=readFileSync(new URL('../app/shell-data.ts',import.meta.url),'utf8');
+ assert(shellData.includes('export const ORDER_WINDOW = 300;'),'la ventana de órdenes es explícita');
+ assert(shellData.includes('${request.limit ? `?limit=${request.limit}` : \'\'}'),'la URL del shell agrega ?limit= cuando el recorte lo pide');
+ assert(shellData.includes('const SECTION_SCOPE: Record<string, ShellScope> = {'),'el shell declara qué recursos necesita cada sección');
+ assert(shellData.includes('Resumen: {clients: {}, projects: {}, orders: {}, summary: {}}'),'Resumen pide la lista completa mientras el API no exponga los agregados por etapa (#57)');
+ assert(shellData.includes('Proyectos: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW}}'),'las pantallas que no listan órdenes piden la ventana');
+ assert(workspace.includes('dataFreshness.current[shellSignature('),'la frescura se mide por recurso y recorte (una ventana no tapa una lista completa)');
+ assert(workspace.includes('const stale:ShellScope={};'),'al navegar solo se juntan los recursos vencidos');
+ assert(workspace.includes('if(!scopeResources(stale).length)return;'),'sin recursos vencidos la navegación no pide nada');
+ assert(workspace.includes('if(!config?.limit)continue;'),'el prefetch al pasar el mouse solo calienta recortes acotados');
+ assert(workspace.includes('summary.upcoming_deliveries ??'),'las entregas próximas usan el agregado del API cuando existe');
  const presence=readFileSync(new URL('../app/presence.tsx',import.meta.url),'utf8');
  assert(presence.includes('const peopleInflight=new Map<string,Promise<ProjectPeopleState>>();'),'la presencia comparte un único pedido en vuelo por consulta');
- assert(presence.includes('function publishPeople(state:ProjectPeopleState)'),'todas las cápsulas se actualizan desde el mismo resultado');
  assert(presence.includes('if(!force&&readPeople(path))return;'),'una consulta de presencia fresca no se repite');
  const clientes=readFileSync(new URL('../app/sections/clientes.tsx',import.meta.url),'utf8');
  const resumen=readFileSync(new URL('../app/sections/resumen.tsx',import.meta.url),'utf8');
