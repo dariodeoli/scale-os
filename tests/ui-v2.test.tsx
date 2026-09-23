@@ -4,7 +4,7 @@ import {test} from 'node:test';
 import {act,create} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
-const {EmptyBlock,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,PageHeader,StateChip}=require('../app/ui-v2') as typeof import('../app/ui-v2');
+const {CurrencyField,EmptyBlock,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,StateChip,ViewSwitch}=require('../app/ui-v2') as typeof import('../app/ui-v2');
 const plain=(node:any):string=>!node?'':typeof node==='string'?node:Array.isArray(node)?node.map(plain).join(''):plain(node.children);
 
 test('un solo chip de estado: tonos semánticos sobre el Badge compartido',async()=>{
@@ -25,7 +25,7 @@ test('un solo KPI: montos por CeldaMoneda, sin truncar y con vacío explícito',
  await act(async()=>{renderer=create(<Kpi label="Facturación contratada" valor={1250000} currency="PYG" hint="Neto mensual"/>);});
  const text=plain(renderer.toJSON());
  assert(text.includes('Facturación contratada')&&text.includes('Neto mensual'));
- assert(text.includes('Gs 1.250.000'),'el monto sale del formateador compartido');
+ assert(text.replace(/\u00a0/g,' ').includes('Gs. 1.250.000'),'el monto sale del formateador compartido de la app');
  assert(!JSON.stringify(renderer.toJSON()).includes('truncate'),'el KPI no trunca el valor');
  await act(async()=>{renderer.update(<Kpi label="Cobrado" valor={null}/>);});
  assert(plain(renderer.toJSON()).includes('—'),'el dato ausente se muestra explícito');
@@ -44,6 +44,21 @@ test('KpiStrip y LoadingBlock: grilla responsive y carga anunciada sin inventar 
 });
 
 console.log('PASS: primitivas v2 — un chip, un KPI y una carga sobre los objetos compartidos');
+
+test('dinero, moneda y vista v2 usan las seis monedas y targets de 44 px',async()=>{
+ let renderer:any;
+ await act(async()=>{renderer=create(<MoneyText valor={1234567} currency="ARS"/>);});
+ const ars=plain(renderer.toJSON());
+ assert(ars.includes('ARS')&&ars.includes('1.234.567'),'ARS se formatea con money() (no cae a guaraní)');
+ await act(async()=>{renderer.update(<MoneyText valor={null} currency="MXN"/>);});
+ assert.equal(plain(renderer.toJSON()),'—','sin dato muestra el vacío explícito');
+ await act(async()=>{renderer=create(<CurrencyField id="moneda" label="Moneda" value="MXN" onChange={()=>{}}/>);});
+ const options=renderer.root.findAllByType('option').map((node:any)=>node.props.value);
+ assert.deepEqual(options,['PYG','USD','EUR','BRL','ARS','MXN'],'el selector ofrece las seis monedas de la empresa, sin USDT');
+ await act(async()=>{renderer=create(<ViewSwitch value="list" onChange={()=>{}}/>);});
+ const view=JSON.stringify(renderer.toJSON());
+ assert(view.includes('h-11')&&view.includes('w-11'),'el selector de vista conserva targets de 44 px');
+});
 
 test('patrones v2: encabezado, toolbar, lista y estados salen de una sola pieza',async()=>{
  let renderer:any;

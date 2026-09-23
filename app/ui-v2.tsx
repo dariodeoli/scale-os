@@ -6,8 +6,10 @@
 // estado (`StateChip` sobre `Badge`) y un solo bloque de carga (`LoadingBlock`
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
-import {Badge, CeldaMoneda, EmptyState, ErrorState, Skeleton, Stat} from 'owncoding-ui';
-import type {HTMLAttributes, ReactNode} from 'react';
+import {Badge, EmptyState, ErrorState, Label, ListGridToggle, Select, Skeleton, Stat} from 'owncoding-ui';
+import {currencyChoices} from './currencies';
+import {money} from './operations';
+import type {ChangeEvent, HTMLAttributes, ReactNode} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -19,13 +21,44 @@ export function StateChip({tone = 'mute', title, className, children}: {tone?: C
 }
 
 /**
- * KPI único de la app v2. El monto se formatea con `CeldaMoneda`/`Money` y el
- * dato ausente se muestra `—`: nunca se inventa un cero ni se corta la cifra.
+ * KPI único de la app v2. El monto se formatea con `MoneyText` y el dato
+ * ausente se muestra `—`: nunca se inventa un cero ni se corta la cifra.
  */
 export function Kpi({label, valor, currency, hint, destacado = false, className}: {label: string; valor: ReactNode | number | string | null | undefined; currency?: string; hint?: ReactNode; destacado?: boolean; className?: string}) {
   const vacio = valor === null || valor === undefined || valor === '';
-  const contenido = vacio ? '—' : currency ? <CeldaMoneda valor={Number(valor)} currency={currency}/> : valor;
+  const monto = typeof valor === 'string' || typeof valor === 'number' ? <MoneyText valor={valor} currency={currency ?? 'PYG'}/> : valor;
+  const contenido = vacio ? '—' : currency ? monto : valor;
   return <Stat label={label} valor={contenido} sub={hint} destacado={destacado} className={className}/>;
+}
+
+const MONEY_TONE: Record<string, string> = {ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', mute: 'text-mute', info: 'text-info'};
+
+/**
+ * Única celda de dinero v2: usa `money()` para las 6 monedas de la empresa
+ * (PYG/USD/EUR/BRL/ARS/MXN), sin recortar ni cambiar de separador. La
+ * generalización de `Money`/`CeldaMoneda` de la librería va en owncoding-ui#2.
+ */
+export function MoneyText({valor, currency = 'PYG', tono = '', className, title}: {valor: number | string | null | undefined; currency?: string; tono?: 'ok' | 'warn' | 'bad' | 'mute' | 'info' | ''; className?: string; title?: string}) {
+  const vacio = valor === null || valor === undefined || valor === '';
+  return <span title={title} className={`inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className ?? ''}`}>{vacio ? '—' : money(Number(valor), currency)}</span>;
+}
+
+/**
+ * Selector lista/cuadrícula v2: conserva el objeto de la librería pero con
+ * targets de 44 px en móvil (36 px en escritorio). Un solo control de vista.
+ */
+export function ViewSwitch({value, onChange, className}: {value: 'list' | 'grid'; onChange: (key: 'list' | 'grid') => void; className?: string}) {
+  return <ListGridToggle value={value} onChange={onChange} className={`[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-9 md:[&>button]:w-9 ${className ?? ''}`}/>;
+}
+
+/** Selector de moneda v2: catálogo de la empresa (sin USDT, que no se usa). */
+export function CurrencyField({id, label, value, onChange, disabled = false, className}: {id: string; label: string; value: string; onChange: (value: string) => void; disabled?: boolean; className?: string}) {
+  return <div className={`grid gap-1.5 ${className ?? ''}`}>
+    <Label htmlFor={id}>{label}</Label>
+    <Select id={id} value={value} disabled={disabled} onChange={(event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value)} className="max-w-[11rem]">
+      {currencyChoices.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
+    </Select>
+  </div>;
 }
 
 /** Grilla de KPIs: 1 columna en móvil, 2 en tablet y 4 en escritorio. */

@@ -20,14 +20,12 @@ import {
   BarraProgreso,
   Button,
   Card,
-  CeldaMoneda,
   EmptyState,
   ErrorState,
   IconAction,
   Input,
   Label,
   ListGridToggle,
-  Money,
   SearchField,
   SegmentedField,
   Select,
@@ -46,7 +44,7 @@ const Kpi = ({label, valor, currency, hint, destacado}) => h(Stat, {
   label,
   destacado,
   sub: hint,
-  valor: currency ? h(CeldaMoneda, {valor: Number(valor), currency}) : valor,
+  valor: currency ? h('span', {className: 'inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums'}, new Intl.NumberFormat('es-PY', {style: 'currency', currency, maximumFractionDigits: currency === 'PYG' ? 0 : 2}).format(Number(valor))) : valor,
 });
 const KpiStrip = ({children}) => h('div', {className: 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'}, children);
 const StateChip = ({tone = 'mute', title, children}) => h(Badge, {color: CHIP[tone], title, className: 'whitespace-nowrap'}, children);
@@ -71,7 +69,7 @@ const LoadingBlock = ({label = 'Cargando…', lines = 3}) => h('div', {role: 'st
   h(Skeleton, {className: 'h-4 w-1/3'}),
   Array.from({length: lines}, (_, index) => h(Skeleton, {key: index, className: 'h-10 w-full'})));
 
-const money = (value, currency) => h(Money, {value, currency});
+const money = (value, currency = 'PYG') => h('span', {className: 'inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums'}, new Intl.NumberFormat('es-PY', {style: 'currency', currency, maximumFractionDigits: currency === 'PYG' ? 0 : 2}).format(Number(value)));
 
 /* ── Panel / Resumen (arquetipo dashboard) ────────────────────────────────── */
 const stageChips = [['Bloqueado', 'bad', 3], ['Por grabar', 'warn', 12], ['Grabado', 'info', 9], ['Editando', 'info', 21], ['Revisión', 'info', 27], ['Aprobado', 'ok', 44], ['Publicado', 'ok', 32]];
@@ -161,7 +159,7 @@ const clientsPage = h('div', {className: 'grid gap-4'},
   h(FilterToolbar, {summary: '4 de 38'},
     h(SearchField, {key: 'search', value: '', onChange: noop, onClear: noop, placeholder: 'Buscar por nombre, correo o teléfono', ariaLabel: 'Buscar clientes', className: 'w-full sm:w-72'}),
     h(SegmentedField, {key: 'status', value: 'all', onChange: noop, ariaLabel: 'Estado del cliente', options: [['all', 'Todos'], ['active', 'Activos'], ['inactive', 'Inactivos']]}),
-    h(ListGridToggle, {key: 'view', value: 'list', onChange: noop})),
+    h(ListGridToggle, {key: 'view', value: 'list', onChange: noop, className: '[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-9 md:[&>button]:w-9'})),
   h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[69rem]'}, clients.map(clientRow)),
   h('div', {className: 'mt-2 flex flex-wrap items-center gap-2'},
     h(Button, {variant: 'outline', onClick: noop}, 'Limpiar filtros'),
@@ -180,7 +178,7 @@ const clientCard = (client) => h(Card, {key: client.name, className: 'flex min-h
     h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cartera'), h('dd', {className: 'mt-0.5 text-fore tabular-nums'}, `${client.projects} proyectos · ${client.pieces} piezas`))),
   h('div', {className: 'flex flex-wrap items-center gap-2'},
     h(StateChip, {tone: client.mora[0]}, client.mora[1]),
-    client.balance ? h(CeldaMoneda, {valor: client.balance[0], currency: client.balance[1]}) : h('span', {className: 'text-[11.5px] text-mute'}, 'Sin saldo pendiente')),
+    client.balance ? money(client.balance[0], client.balance[1]) : h('span', {className: 'text-[11.5px] text-mute'}, 'Sin saldo pendiente')),
   h('div', {className: 'mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3'},
     h(IconAction, {key: 'open', icon: 'eye', label: `Abrir ficha: ${client.name}`, tone: 'fono', onClick: noop}),
     h(IconAction, {key: 'edit', icon: 'edit', label: `Editar cliente: ${client.name}`, onClick: noop})));
@@ -224,7 +222,7 @@ const settingsPage = h('div', {className: 'grid gap-6 lg:grid-cols-[minmax(0,1.6
     h(Card, {key: 'subscription', className: 'grid gap-3'},
       h('div', {className: 'flex items-center justify-between gap-2'}, h('h2', {className: 'text-[17px] font-semibold tracking-tight text-fore'}, 'Suscripción'), h(StateChip, {tone: 'info'}, 'Prueba gratuita')),
       h('p', {className: 'text-xs text-mute'}, '30 días de prueba restantes · vence 10 oct 26.'),
-      h(CeldaMoneda, {valor: 50000, currency: 'PYG'}),
+      money(50000, 'PYG'),
       h('div', {className: 'flex flex-wrap gap-2'}, h(Button, {onClick: noop}, 'Activar suscripción mensual'), h(Button, {variant: 'outline', onClick: noop}, 'Gestionar'))),
     h(Card, {key: 'coupon', className: 'grid gap-3'},
       h('h2', {className: 'text-[17px] font-semibold tracking-tight text-fore'}, 'Cupones'),

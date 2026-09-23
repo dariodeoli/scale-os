@@ -22,6 +22,6 @@ const base=control.slice(start).split('}')[0];
 assert(base.includes('font-weight:700'),'section tabs reserve the same font metrics before selection');
 const state=control.slice(control.indexOf(`${tabs}[aria-current=page]{`)).split('}')[0];
 assert(!/font-weight|font-size|padding|line-height|border-width/.test(state),'tab selection must not change geometry');
-assert(control.includes('nav>a svg{flex:none}'));
+assert(rail.includes('shrink-0'),'rail icons reserve their width');
 assert(read('qa-fixes.css').includes('.choice{font-weight:600}'));
 console.log('PASS: rail, drawer, tabs and choice selection keep stable font metrics');

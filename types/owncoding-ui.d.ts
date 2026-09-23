@@ -18,6 +18,7 @@ declare module 'owncoding-ui' {
   // Objetos de interfaz v2 (campaña #41). El paquete no publica tipos; se
   // declaran permisivos para consumir los componentes desde TSX y la
   // verificación real queda en los contratos de `tests/`.
+  export const Icon: any;
   export const Button: any;
   export const Input: any;
   export const PasswordInput: any;

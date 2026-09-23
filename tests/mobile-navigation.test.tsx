@@ -43,7 +43,7 @@ open();act(()=>{media.matches=true;resize.forEach(fn=>fn());});closed();
 act(()=>renderer.unmount());assert.equal(resize.size,0);assert.equal(keyboard.size,0);
 dom.createPortal=originalPortal;
 const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
-assert(source.includes('<MobileNavigation>{sidebarContent}</MobileNavigation>'));
+assert(source.includes("<MobileNavigation>{sidebarContent('light')}</MobileNavigation>"));
 assert(!source.includes('className="mobile-nav"'));
 assert.equal((source.match(/visibleNav.map/g)||[]).length,1,'one permission-filtered menu shared on both sizes');
 assert(!source.includes('className="topbar-logo"'),'the content topbar must not duplicate the brand');
