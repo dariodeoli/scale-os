@@ -97,7 +97,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
   return <section className="grid gap-4" aria-label="Finanzas">
     <KpiStrip>
       <Kpi label="Disponible" valor={multiCurrency(availability)} hint="Saldo actual de cuentas activas por moneda" destacado/>
-      <Kpi label="Por cobrar" valor={multiCurrency(receivable.totals)} hint="Facturas emitidas o parciales con saldo pendiente"/>
+      <Kpi label="Por cobrar" valor={multiCurrency(receivable.totals)} hint={invoiceHasMore ? `Sobre las ${invoices.length} facturas cargadas; “Ver todas las facturas” completa el total` : 'Facturas emitidas o parciales con saldo pendiente'}/>
       <Kpi label="Facturas con saldo" valor={receivable.pendingCount} hint={invoices.length ? `${invoices.length} facturas cargadas` : 'Todavía no hay facturas registradas'}/>
     </KpiStrip>
 
