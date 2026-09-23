@@ -85,7 +85,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
   return <Dialog variant="drawer" title={heading} close={close}>
    {error?<Aviso tono="error" className="mb-3">{error}</Aviso>:null}
    {!order?<LoadingBlock label="Cargando pieza…" lines={4}/>:<>
-    <section className="mb-4 grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-3">
+    <section className="mb-4 grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/><UrgencyBadge value={order.urgency}/></div>
       <div className="flex flex-wrap items-center gap-1.5">
         <StateChip tone={s(order,'status')==='approved'||s(order,'status')==='published'?'ok':s(order,'status')==='review'?'warn':'info'}>{workStatusLabel(s(order,'status'))}</StateChip>
@@ -100,7 +100,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
       </dl>
       <ProjectPresence projectId={s(order,'project_id')}/>
     </section>
-    <Subtabs value={tab} onChange={setTab} items={[['Detalle','Detalle'],['Comentarios',`Comentarios (${data.comments.length})`],['Historial','Historial']]}/>
+    <Subtabs className="[&>button]:min-h-11 md:[&>button]:min-h-9" value={tab} onChange={setTab} items={[['Detalle','Detalle'],['Comentarios',`Comentarios (${data.comments.length})`],['Historial','Historial']]}/>
     <div hidden={tab!=='Detalle'} className="grid gap-4">
      <div className="flex flex-wrap items-center gap-2">{editable&&!editing?<button className="secondary" type="button" onClick={()=>setEditing(true)}><Pencil size={14}/>Editar pieza</button>:null}</div>
      {editing&&editable?<RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role={role} updatedAt={s(order,'updated_at')} refresh={()=>completeSave(close,refresh)}>{save=><Editor key={s(order,'updated_at')} fields={fields} defaults={Object.fromEntries(fields.map(f=>[f.key,f.key==='due_date'?s(order,f.key).slice(0,10):f.key==='due_time'?s(order,f.key).slice(0,5):f.key==='drive_links'?driveLinksText(order.drive_links,s(order,'drive_url')):s(order,f.key)]))} save={save}/>}</RecordAssignees>:<>
@@ -180,7 +180,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
  return <section className="grid min-w-0 gap-4" aria-label="Planificador de producción">
   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
    <h2 className="text-lg font-bold text-fore">{view==='Mi día'?'Trabajo diario':view}</h2>
-   {!initialView?<Subtabs value={view} onChange={setView} items={[['Mi día','Mi día'],['Calendario','Calendario'],['Lista y lotes','Lista y lotes']]} className="mb-0"/>:null}
+   {!initialView?<Subtabs value={view} onChange={setView} items={[['Mi día','Mi día'],['Calendario','Calendario'],['Lista y lotes','Lista y lotes']]} className="mb-0 [&>button]:min-h-11 md:[&>button]:min-h-9"/>:null}
   </div>
   {view==='Mi día'?<>
    <KpiStrip className="sm:grid-cols-2 xl:grid-cols-2">
@@ -198,7 +198,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
   <ListGrid label={view==='Lista y lotes'?'Piezas en lista y lotes':'Piezas'} template={PLANNER_TEMPLATE} columns={PLANNER_COLUMNS} minWidthClass="min-w-[72rem]">
    {visible.slice(0,100).map(o=><ListRow key={o.id} template={PLANNER_TEMPLATE} data-status={o.status} className="py-0.5 md:py-1">
     <span className="flex min-w-0 items-center gap-2">
-     {view==='Lista y lotes'&&makers.includes(role)?<input type="checkbox" className="h-4 w-4 p-0 accent-fono" aria-label={`Seleccionar ${o.title}`} checked={selected.includes(String(o.id))} disabled={['approved','published'].includes(o.status)} onChange={e=>setSelected(ids=>e.target.checked?[...ids,String(o.id)]:ids.filter(id=>id!==String(o.id)))}/>:null}
+     {view==='Lista y lotes'&&makers.includes(role)?<input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${o.title}`} checked={selected.includes(String(o.id))} disabled={['approved','published'].includes(o.status)} onChange={e=>setSelected(ids=>e.target.checked?[...ids,String(o.id)]:ids.filter(id=>id!==String(o.id)))}/>:null}
      <button type="button" className="min-w-0 text-left" onClick={openPiece(String(o.id))}><b className="block truncate text-[13px] font-semibold text-fore" title={o.title}>{o.title}</b><small className="block truncate text-[11px] text-mute" title={`${o.client_name||''} · ${o.project_name||''}`}>{o.client_name} · {o.project_name}</small></button>
     </span>
     <span className="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute" data-tone={dueTone(o.due_date)||undefined} title={o.due_date?`Entrega ${listDateShort(o.due_date)||''}${o.due_time?` · ${o.due_time.slice(0,5)} h`:''}`:undefined}>{o.due_date?<><span className="list-date">{listDateShort(o.due_date)}</span>{o.due_time?` · ${o.due_time.slice(0,5)}`:''}</>:'Sin fecha'}</span>
