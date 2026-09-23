@@ -15,18 +15,9 @@
 .client-status{display:inline-flex;align-items:center;width:max-content;white-space:nowrap;border-radius:999px}
 @media(max-width:700px){.client-record-actions{justify-content:flex-start}}
 
-/* Mora (FIN): toolbar y fila finita con su propio encabezado y plantilla. */
-.mora-toolbar{display:flex;flex-wrap:wrap;gap:var(--ui-space-3);align-items:center;justify-content:space-between;margin-block:var(--ui-space-3)}
-.mora-search{min-width:min(280px,100%)}
-.mora-list{--mora-cols:2.25rem minmax(0,1fr) 8.5rem;border:1px solid var(--border-subtle,var(--line));border-radius:10px;overflow:hidden;background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs)}
-/* El gap-x del encabezado iguala la fila (ui-system fija 12 px en .client-row). */
-.mora-list-head{display:grid;grid-template-columns:var(--mora-cols);gap:12px;padding:8px 12px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
-.mora-list-head span:last-child{justify-self:end}
-.mora-list .client-row{display:grid;grid-template-columns:var(--mora-cols);align-items:center;gap:4px 8px;min-height:48px;padding:8px 12px;border-bottom:1px solid var(--border-subtle,var(--line))}
-.mora-list .client-row:last-child{border-bottom:0}
-.mora-list .client-row>div{min-width:0}
-.mora-list .client-row .client-row-amount{justify-self:end}
-@media(max-width:620px){.mora-toolbar{gap:var(--ui-space-2)}.mora-search{min-width:100%}}
+/* Cobranza y mora v2 (issue #45): la lista vive en `app/sections/mora.tsx` con
+   ListGrid/ListRow; el CSS legacy de `.mora-list`/`.mora-toolbar` y el bloque
+   `.client-list`/`.client-row` no los emite ningún módulo y se retiraron. */
 
 /* Directorio de clientes v2 (campaña #41 / issue #43): la tarjeta y la fila finita
    viven en `app/sections/clientes.tsx` con ListGrid/ListRow (Tailwind + objetos de
