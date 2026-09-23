@@ -44,8 +44,8 @@ export function FXTransferForm({accounts,done}:{accounts:Account[];done:()=>void
  }
  return <form className="grid gap-3 sm:grid-cols-2" noValidate aria-busy={pending} onSubmit={submit}>
   <Nota tono="neutro" className="sm:col-span-2">Esto registra el movimiento; no ordena una transferencia al banco. Indicá los importes reales de salida y entrada.</Nota>
-  <FormField label="Cuenta de origen"><SelectCustom label="Cuenta de origen" disabled={pending} value={v.fromAccountId} choices={accounts.filter(a=>a.active).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('fromAccountId',value)}/></FormField>
-  <FormField label="Cuenta de destino"><SelectCustom label="Cuenta de destino" disabled={pending} value={v.toAccountId} choices={accounts.filter(a=>a.active&&a.id!==v.fromAccountId).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('toAccountId',value)}/></FormField>
+  <SelectCustom label="Cuenta de origen" disabled={pending} value={v.fromAccountId} choices={accounts.filter(a=>a.active).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('fromAccountId',value)}/>
+  <SelectCustom label="Cuenta de destino" disabled={pending} value={v.toAccountId} choices={accounts.filter(a=>a.active&&a.id!==v.fromAccountId).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('toAccountId',value)}/>
   <FormField label={`Sale (${from?.currency||'moneda de origen'})`}><AmountInput disabled={pending} value={v.amount} currency={from?.currency||'PYG'} onChange={value=>form.setValue('amount',value)}/></FormField>
   <FormField label={`Llega (${to?.currency||'moneda de destino'})`}><AmountInput disabled={pending} value={v.receivedAmount} currency={to?.currency||'PYG'} onChange={value=>form.setValue('receivedAmount',value)}/></FormField>
   <FormField label="Fecha"><Input type="date" className="w-40" disabled={pending} {...form.register('transferredOn')}/></FormField>
@@ -117,7 +117,7 @@ export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
    <h3 className="text-sm font-semibold text-fore">Conciliación por extracto</h3>
    <p className="text-xs text-mute">Compará el extracto con los movimientos registrados. Importar y conciliar no modifica saldos. El cruce automático exige fecha, importe y referencia exactos, sin coincidencias ambiguas.</p>
   </div>
-  <FormField label="Cuenta a conciliar"><div className="w-full sm:w-72"><SelectCustom label="Cuenta a conciliar" value={accountId} choices={accounts.map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>{setAccountId(value);reset();setNotice('');setError('');if(value)void perform(()=>load(value));}}/></div></FormField>
+  <div className="w-full sm:w-72"><SelectCustom label="Cuenta a conciliar" value={accountId} choices={accounts.map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>{setAccountId(value);reset();setNotice('');setError('');if(value)void perform(()=>load(value));}}/></div>
   {accountId?<>
    <div className="flex flex-wrap gap-2">
     <Button variant="outline" disabled={busy} onClick={()=>setImporting(true)}>Importar CSV</Button>

@@ -350,17 +350,27 @@
 
     /* ---- overlaps between atomic leaves ------------------------------- */
     const atomicSelector = 'button,a,input,select,textarea,label,span,b,strong,small,em,time,dt,dd,h1,h2,h3,h4,p,li,th,td,img,output,summary';
+    /* Un nodo recortado por CUALQUIER ancestro con overflow (el body con scroll
+       de un diálogo anidado dentro de una tarjeta con overflow:hidden, por
+       ejemplo) no está visible del todo: se excluye del chequeo de
+       superposiciones. Antes solo miraba el primer ancestro con clip, así que el
+       contenido scrolleado fuera del body contaba como visible y se reportaba
+       como solapado contra el footer del diálogo. */
     const clippedOut = (el) => {
-      const clip = clippingAncestor(el, root);
-      if (!clip) return false;
-      const s = getComputedStyle(clip);
-      const cr = clip.getBoundingClientRect();
-      const left = cr.left + (parseFloat(s.borderLeftWidth) || 0);
-      const right = cr.right - (parseFloat(s.borderRightWidth) || 0);
-      const top = cr.top + (parseFloat(s.borderTopWidth) || 0);
-      const bottom = cr.bottom - (parseFloat(s.borderBottomWidth) || 0);
       const r = el.getBoundingClientRect();
-      return r.left < left - 2 || r.right > right + 2 || r.top < top - 2 || r.bottom > bottom + 2;
+      for (let node = el.parentElement; node && node !== root; node = node.parentElement) {
+        const s = getComputedStyle(node);
+        const clipsX = ['hidden', 'clip', 'auto', 'scroll'].includes(s.overflowX);
+        const clipsY = ['hidden', 'clip', 'auto', 'scroll'].includes(s.overflowY);
+        if (!clipsX && !clipsY) continue;
+        const cr = node.getBoundingClientRect();
+        const left = clipsX ? cr.left + (parseFloat(s.borderLeftWidth) || 0) : -Infinity;
+        const right = clipsX ? cr.right - (parseFloat(s.borderRightWidth) || 0) : Infinity;
+        const top = clipsY ? cr.top + (parseFloat(s.borderTopWidth) || 0) : -Infinity;
+        const bottom = clipsY ? cr.bottom - (parseFloat(s.borderBottomWidth) || 0) : Infinity;
+        if (r.left < left - 2 || r.right > right + 2 || r.top < top - 2 || r.bottom > bottom + 2) return true;
+      }
+      return false;
     };
     const atoms = Array.from(root.querySelectorAll(atomicSelector)).filter((el) => {
       if (!visible(el)) return false;

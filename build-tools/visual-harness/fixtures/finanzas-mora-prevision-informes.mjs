@@ -13,6 +13,10 @@
  *  - app/reports-workspace.tsx + app/weekly-automatic.tsx · Informes (tiles, chart,
  *    tablas, distribución) y producción semanal.
  *  - app/sections/comisiones.tsx · liquidación, comisiones, descuentos y pagos.
+ *  - app/dialog.tsx + app/workspace-forms.tsx + app/daily-controls.tsx ·
+ *    modales mobile (fin-movil-transferencia, fin-movil-comision, fin-movil-cobro):
+ *    overlay/panel reales (heading + body con scroll + footer) medidos sobre el
+ *    viewport en 360/390/430, con el formulario que monta cada flujo FIN.
  *
  * Datos de estrés deliberados: montos PYG/USD grandes y negativos, nombres y
  * referencias largas, estados con dato y columnas sin dato (moneda nula,
@@ -309,7 +313,7 @@ const finanzasConciliacion = {
   <h3 class="text-[17px] font-semibold tracking-tight text-fore">Conciliación por extracto</h3>
   <p class="text-xs text-mute">Compará el extracto con los movimientos registrados. Importar y conciliar no modifica saldos. El cruce automático exige fecha, importe y referencia exactos, sin coincidencias ambiguas.</p>
  </div>
- ${field('Cuenta a conciliar', `<div class="w-full sm:w-72">${selectCustom('Cuenta a conciliar', 'Banco Regional — Operativa · PYG', 'conc-account')}</div>`)}
+ <div class="w-full sm:w-72">${selectCustom('Cuenta a conciliar', 'Banco Regional — Operativa · PYG', 'conc-account')}</div>
  <div class="flex flex-wrap gap-2">
   <button type="button" class="${BUTTON_OUTLINE}">Importar CSV</button>
   <button type="button" class="${BUTTON_OUTLINE}">Conciliar coincidencias exactas</button>
@@ -546,7 +550,7 @@ const informesIndicadores = {
  <div class="flex flex-wrap items-end gap-3">
   ${field('Mes a consultar', `<input type="month" class="${INPUT} w-44" value="2026-09">`)}
   <div class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>${segmented(['Últimos 6 meses', 'Últimos 12 meses', 'Últimos 24 meses'], 1, 'Meses de histórico')}</div>
-  ${field('Moneda', `<div class="w-40">${selectCustom('Moneda', 'PYG', 'informes-currency')}</div>`)}
+  <div class="w-40">${selectCustom('Moneda', 'PYG', 'informes-currency')}</div>
  </div>
  ${nota('neutro', 'Datos al 10 sept 26 · 12:00 (hora de Asunción). Histórico confiable desde: 01 ene 20 · 00:00.')}
  <div class="flex flex-wrap gap-2"><button type="button" class="${BUTTON_OUTLINE}">Exportar histórico CSV · PYG</button><button type="button" class="${BUTTON_OUTLINE}">Exportar PDF · PYG</button></div>
@@ -705,9 +709,110 @@ const comisionesPagos = {
 </section>`,
 };
 
+
+/* --------------- Móvil: modales de FIN (360/390/430) ------------------ */
+/* Los modales usan el overlay real de `dialog.tsx` (position:fixed) + el panel
+   `.ops-dialog.unified-dialog` con heading, body con scroll y footer; el harness
+   muestra cada fixture aislado, así que el panel se mide sobre el viewport. Los
+   formularios espejan el markup real: `Nota`, `FormField`/`SelectCustom`,
+   `AmountInput`, `Editor` (`form-stack ops-form-grid` + `ops-profile-section`),
+   `choice-list` y `SaveActions`. */
+const dialogModal = ({title, body, footer, size = 'formulario'}) => `<div class="ops-overlay"><section class="ops-dialog unified-dialog" role="dialog" aria-modal="true" aria-labelledby="fx-dialog-title" data-dialog-size="${size}" tabindex="-1">
+ <div class="dialog-heading"><h2 id="fx-dialog-title">${title}</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${xIcon(18)}</button></div>
+ <div class="dialog-body">${body}</div>
+ <div class="dialog-footer"><div class="dialog-actions"><button class="secondary" type="button">Cancelar</button>${footer}</div></div>
+</section></div>`;
+const amountInput = (value, currency, mark, placeholder) => `<span class="amount-field" data-currency="${currency}"><span class="amount-currency" aria-hidden="true">${mark}</span><input type="text" inputmode="${currency === 'PYG' ? 'numeric' : 'decimal'}" autocomplete="off" value="${value}" placeholder="${placeholder}"></span>`;
+const modalInput = (attrs, extra = 'w-full') => `<input class="${INPUT.replace('w-full ', '')} ${extra}" ${attrs}>`;
+const legacyLabel = (label, control) => `<label>${label}${control}</label>`;
+const legacyInput = (attrs) => `<input ${attrs}>`;
+
+const finMovilTransferencia = {
+  id: 'fin-movil-transferencia',
+  section: 'Finanzas',
+  surface: 'Modal · transferir entre cuentas (mobile)',
+  kind: 'workspace',
+  body: `
+${dialogModal({
+  title: 'Transferir entre cuentas',
+  body: `<form class="grid gap-3 sm:grid-cols-2" novalidate="" aria-busy="false">
+   <p class="border text-mute rounded-xl p-3 text-sm border-ink-600 bg-ink-800/40 sm:col-span-2">Esto registra el movimiento; no ordena una transferencia al banco. Indicá los importes reales de salida y entrada.</p>
+   ${selectCustom('Cuenta de origen', 'Banco Regional — Operativa · PYG', 'trf-from')}
+   ${selectCustom('Cuenta de destino', 'Tarjeta corporativa USD · USD', 'trf-to')}
+   ${field('Sale (PYG)', amountInput('7.300.000', 'PYG', 'Gs', '1.000.000'))}
+   ${field('Llega (USD)', amountInput('1.000', 'USD', 'US$', '1.250,50'))}
+   ${field('Fecha', modalInput('type="date" value="2026-09-23"', 'w-40'))}
+   ${field('Referencia', modalInput('maxlength="120" value="Compra de dólares para campaña internacional"'))}
+   <p class="border text-mute rounded-xl p-3 text-sm border-info/25 bg-info/10 sm:col-span-2"><span class="inline-flex flex-wrap items-baseline gap-1"><span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums">Gs. 7.300.000</span> → <span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums">US$ 1.000,00</span></span> · Cambio: 1 PYG = 0,00013699 USD</p>
+  </form>`,
+  footer: '<button class="primary w-full sm:w-auto" type="submit">Registrar transferencia</button>',
+})}`,
+};
+
+const finMovilComision = {
+  id: 'fin-movil-comision',
+  section: 'Finanzas',
+  surface: 'Modal · nueva comisión (Editor con secciones, body largo)',
+  kind: 'workspace',
+  body: `
+${dialogModal({
+  title: 'Nueva comisión o referido',
+  body: `<form class="form-stack ops-form-grid" novalidate="" aria-busy="false">
+   <div><label for="com-beneficiary"><span>Beneficiario</span>${legacyInput('id="com-beneficiary" maxlength="120" value="Ana López Fernández de la Cruz"')}</label></div>
+   ${selectCustom('Origen', 'Venta', 'com-kind')}
+   ${selectCustom('Cálculo', '% facturado', 'com-basis')}
+   <div><label for="com-amount"><span>Importe (para importe fijo)</span>${amountInput('0', 'PYG', 'Gs', '1.000.000')}</label></div>
+   <div><label for="com-pct"><span>Porcentaje (para cálculo %)<span class="field-optional"> · Opcional</span></span>${legacyInput('id="com-pct" type="number" inputmode="numeric" step="1" value="10"')}</label></div>
+   ${selectCustom('Moneda (se usa la de la factura si se vincula)', 'PYG', 'com-currency')}
+   <details class="ops-profile-section ops-wide" open=""><summary>Referencia</summary><div class="ops-form-grid">
+    ${selectCustom('Vincular colaborador', 'Sofía Benítez', 'com-collab')}
+    ${selectCustom('Factura de referencia', 'F-2026-0417 · Industrias del Sur Sociedad Anónima', 'com-invoice')}
+    <div><label for="com-due"><span>Vencimiento<span class="field-optional"> · Opcional</span></span>${modalInput('id="com-due" type="date" value="2026-10-18"', 'w-40')}</label></div>
+    <div class="ops-wide"><label for="com-notes"><span>Cliente referido / condiciones<span class="field-optional"> · Opcional</span></span><textarea id="com-notes" rows="3" maxlength="2000">Acuerdo de temporada alta con facturación mensual; revisar el porcentaje contra lo cobrado.</textarea></label></div>
+   </div></details>
+  </form>`,
+  footer: '<button class="primary ops-wide" type="submit">Guardar comisión</button>',
+})}`,
+};
+
+const finMovilCobro = {
+  id: 'fin-movil-cobro',
+  section: 'Finanzas',
+  surface: 'Modal · registrar cobro (choice-list + campos)',
+  kind: 'workspace',
+  body: `
+${dialogModal({
+  title: 'Registrar cobro',
+  body: `<form class="form-stack ops-form-grid" novalidate="">
+   <fieldset><legend>Factura</legend><div class="choice-list">
+    <button type="button" class="choice active max-w-full !whitespace-normal break-words text-left" title="F-2026-0417 · Industrias del Sur Sociedad Anónima">F-2026-0417 · Industrias del Sur Sociedad Anónima</button>
+    <button type="button" class="choice max-w-full !whitespace-normal break-words text-left" title="F-2026-0412 · Grupo Comercial del Este Sociedad Anónima y Servicios">F-2026-0412 · Grupo Comercial del Este Sociedad Anónima y Servicios</button>
+    <button type="button" class="choice max-w-full !whitespace-normal break-words text-left" title="F-2026-0420 · Fundación Cultural Paraguaya de Asistencia Social">F-2026-0420 · Fundación Cultural Paraguaya de Asistencia Social</button>
+   </div></fieldset>
+   <fieldset><legend>Quién recibió el cobro</legend><div class="choice-list">
+    <button type="button" class="choice active">finanzas@estudio.com.py</button>
+    <button type="button" class="choice">produccion@estudio.com.py</button>
+   </div></fieldset>
+   <fieldset><legend>Cuenta de ingreso</legend><div class="choice-list">
+    <button type="button" class="choice active max-w-full !whitespace-normal break-words text-left" title="Banco Regional — Operativa · PYG">Banco Regional — Operativa · PYG</button>
+    <button type="button" class="choice max-w-full !whitespace-normal break-words text-left" title="Caja chica · PYG">Caja chica · PYG</button>
+    <button type="button" class="choice max-w-full !whitespace-normal break-words text-left" title="Tarjeta corporativa USD · USD">Tarjeta corporativa USD · USD</button>
+   </div></fieldset>
+   ${legacyLabel('Importe cobrado', amountInput('45.678.900', 'PYG', 'Gs', '1.000.000'))}
+   ${legacyLabel('Fecha', legacyInput('type="date" value="2026-09-23"'))}
+   ${legacyLabel('Referencia', legacyInput('placeholder="Transferencia / comprobante" maxlength="120" value="Transferencia 8842"'))}
+  </form>`,
+  footer: '<button class="primary" type="submit">Registrar cobro</button>',
+})}`,
+};
+
+
 export default [
   finanzasCuentas,
   finanzasConciliacion,
+  finMovilTransferencia,
+  finMovilComision,
+  finMovilCobro,
   finanzasTransferencias,
   finanzasCobros,
   moraCobranzas,
