@@ -45,7 +45,7 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
   return <article ref={drag.setNodeRef} style={{opacity:drag.isDragging?.4:1}} className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
     <header className="flex items-start justify-between gap-2">
       <b className="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title={str(row,'name')}>{str(row,'name')}</b>
-      {canMove?<button type="button" className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore" title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
+      {canMove?<button type="button" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
     </header>
     <MoneyText valor={str(row,'amount')||'0'} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
     <div className="flex flex-wrap items-center gap-2 text-[11px]">
@@ -54,7 +54,7 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
     </div>
     {str(row,'notes')?<p className="text-[11px] leading-4 text-mute [overflow-wrap:anywhere]">{str(row,'notes')}</p>:null}
     <footer className="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2">
-      <Button type="button" variant="ghost" className="h-8 px-2 text-xs" onClick={edit}><Eye aria-hidden="true" size={14}/> Ver oportunidad</Button>
+      <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-8" onClick={edit}><Eye aria-hidden="true" size={14}/> Ver oportunidad</Button>
       <RemoveRecord kind="leads" id={String(row.id)} name={str(row,'name')} role={role} done={refresh}/>
     </footer>
   </article>;
@@ -144,13 +144,13 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
 
   return (
     <section className="grid gap-4" aria-label="Pipeline comercial">
-      <KpiStrip className="kpi-strip" aria-label="Resumen del pipeline">
+      <KpiStrip aria-label="Resumen del pipeline">
         <Kpi label="Oportunidades abiertas" valor={overview.open} destacado hint="Sin ganar ni perder"/>
         <Kpi label="Ganadas" valor={overview.won} hint="Conversiones cerradas"/>
         <Kpi label="Consultas web" valor={overview.web} hint="Origen: landing Scale OS"/>
         <Kpi
           label="Valor abierto"
-          valor={Object.entries(overview.amounts).length?<span className="silent-scroll flex flex-wrap items-baseline gap-2 overflow-x-auto">{Object.entries(overview.amounts).map(([currency,value])=><MoneyText key={currency} valor={value} currency={currency}/>)}</span>:'Sin oportunidades abiertas'}
+          valor={Object.entries(overview.amounts).length?<span className="flex flex-wrap items-baseline gap-2">{Object.entries(overview.amounts).map(([currency,value])=><MoneyText key={currency} valor={value} currency={currency}/>)}</span>:'Sin oportunidades abiertas'}
           hint="Sin convertir monedas"
         />
       </KpiStrip>

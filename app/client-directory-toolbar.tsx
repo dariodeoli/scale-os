@@ -62,6 +62,7 @@ export function ClientDirectoryToolbar({
         </Select>
       </div>
       <ViewSwitch value={view} onChange={onViewChange}/>
+      {query || status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}}>Limpiar filtros</button> : null}
       {children}
       {canCreate && (
         <Button

@@ -29,7 +29,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
    {!writable?<p className="text-sm text-mute">Solo lectura: Finanzas puede consultar el historial comercial, no modificarlo.</p>:record?.archived?<p className="text-sm text-mute">El cliente está archivado. Esta ficha es de solo lectura.</p>:null}
    {record?.amendments.length
     ?<DataTable
-      className="min-w-0"
+      className="min-w-0 [&_table]:min-w-[52rem]"
       columns={[
        {key:'effectiveOn',label:'Vigente desde',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><time dateTime={row.amendment.effectiveOn} className="whitespace-nowrap">{listDateFull(row.amendment.effectiveOn)}</time>},
        {key:'activationDate',label:'Cliente desde',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=>row.amendment.activationDate?<time dateTime={row.amendment.activationDate} className="whitespace-nowrap">{listDateFull(row.amendment.activationDate)}</time>:<span className="text-mute">Sin fecha registrada</span>},
@@ -60,7 +60,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
     <FormField label="Nombre del plan" htmlFor="lifecycle-plan-name"><Input id="lifecycle-plan-name" value={draft.planName} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('planName',event.target.value)}/></FormField>
     <FormField label="Versión contratada" htmlFor="lifecycle-plan-version"><Input id="lifecycle-plan-version" value={draft.planVersionSnapshot} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('planVersionSnapshot',event.target.value)}/></FormField>
     <FormField label="Precio mensual contratado" htmlFor="lifecycle-monthly-price"><MoneyInput id="lifecycle-monthly-price" className="w-44" currency={draft.currency} value={draft.monthlyPrice} disabled={saving} onValueChange={(value: unknown)=>update('monthlyPrice',String(value))}/></FormField>
-    <CurrencyField id="lifecycle-currency" label="Moneda" className="w-40" value={draft.currency} disabled={saving} onChange={value=>update('currency',value)}/>
+    <CurrencyField id="lifecycle-currency" label="Moneda" value={draft.currency} disabled={saving} onChange={value=>update('currency',value)}/>
     <FormField label="Tipo de descuento" htmlFor="lifecycle-discount-type"><Select id="lifecycle-discount-type" value={draft.discountType} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('discountType',event.target.value as typeof draft.discountType)}>{DISCOUNT_TYPE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField>
     {draft.discountType!=='none'?<FormField label="Valor del descuento" htmlFor="lifecycle-discount-value"><Input id="lifecycle-discount-value" type="text" inputMode="decimal" autoComplete="off" className="w-36" value={draft.discountValue} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('discountValue',event.target.value)}/></FormField>:null}
     <FormField label="Términos del descuento (opcional)" htmlFor="lifecycle-discount-terms"><Textarea id="lifecycle-discount-terms" rows={3} value={draft.discountTerms} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('discountTerms',event.target.value)}/></FormField>

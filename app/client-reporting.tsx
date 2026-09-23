@@ -57,7 +57,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
      </Select>
     </FormField>
     <FormField label="Fecha real de inicio (opcional)" htmlFor="client-reporting-relationship">
-     <Input id="client-reporting-relationship" type="date" min="1900-01-01" max={todayAsuncion()} value={draft.relationshipStartedOn} disabled={disabled} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setDraft(current=>({...current,relationshipStartedOn:event.target.value}))} className="w-40"/>
+     <Input id="client-reporting-relationship" type="date" className="w-40" min="1900-01-01" max={todayAsuncion()} value={draft.relationshipStartedOn} disabled={disabled} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setDraft(current=>({...current,relationshipStartedOn:event.target.value}))}/>
     </FormField>
     {financial&&termData?<>
      <FormField label="Plan comercial" htmlFor="client-reporting-terms-plan">
@@ -69,12 +69,12 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
      <FormField label="Monto recurrente entero" htmlFor="client-reporting-amount">
       <MoneyInput id="client-reporting-amount" currency={terms.currency} value={terms.recurringAmount} disabled={!termsEditable||saving} onValueChange={(value: unknown)=>setTerms(current=>({...current,recurringAmount:String(value)}))} className="w-44"/>
      </FormField>
-     <CurrencyField id="client-reporting-currency" label="Moneda" className="w-40" value={terms.currency} disabled={!termsEditable||saving} onChange={value=>setTerms(current=>({...current,currency:isCurrency(value)?value:'PYG'}))}/>
+     <CurrencyField id="client-reporting-currency" label="Moneda" value={terms.currency} disabled={!termsEditable||saving} onChange={value=>setTerms(current=>({...current,currency:isCurrency(value)?value:'PYG'}))}/>
      <FormField label="Inicio comercial" htmlFor="client-reporting-starts">
-      <Input id="client-reporting-starts" type="date" min="1900-01-01" value={terms.startsOn} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,startsOn:event.target.value}))} className="w-40"/>
+      <Input id="client-reporting-starts" type="date" className="w-40" min="1900-01-01" value={terms.startsOn} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,startsOn:event.target.value}))}/>
      </FormField>
      <FormField label="Fin del plan (opcional)" htmlFor="client-reporting-ends">
-      <Input id="client-reporting-ends" type="date" min="1900-01-01" value={terms.endsOn} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,endsOn:event.target.value}))} className="w-40"/>
+      <Input id="client-reporting-ends" type="date" className="w-40" min="1900-01-01" value={terms.endsOn} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,endsOn:event.target.value}))}/>
      </FormField>
      <FormField label="Factura comercial del cliente" htmlFor="client-reporting-invoice">
       <Select id="client-reporting-invoice" value={terms.invoiceRequired} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,invoiceRequired:event.target.value===''?'':event.target.value==='true'?'true':'false'}))}>

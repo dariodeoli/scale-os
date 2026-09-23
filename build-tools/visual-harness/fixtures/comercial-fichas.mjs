@@ -17,6 +17,8 @@ const iconPlus = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 const label = 'block text-[11px] font-medium uppercase tracking-wider text-mute mb-1.5';
 const input = 'w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-fore h-11 md:h-9 text-base md:text-sm outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40';
 const select = 'w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore h-11 md:h-9 text-base md:text-sm outline-none transition cursor-pointer focus:border-fono focus:ring-1 focus:ring-fono/40';
+// La librería resuelve clases con merge: al pasar un ancho, `w-full` se retira.
+const sized = (base, extra) => `${base.replace('w-full ', '')} ${extra}`;
 const button = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold transition h-11 md:h-9 text-sm bg-fono text-onbrand hover:bg-fono-light';
 const buttonOutline = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold transition h-11 md:h-9 text-sm border border-ink-500 bg-transparent text-fore hover:border-fono hover:bg-fono/10';
 
@@ -47,16 +49,16 @@ const reportingSheet = `
  <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
   ${field('Tipo de cliente', `<select class="${select}" aria-label="Tipo de cliente"><option>Empresa</option></select>`)}
   ${field('Plan de servicio', `<select class="${select}" aria-label="Plan de servicio"><option>Plan integral de contenidos y campañas · 12 meses</option></select>`)}
-  ${field('Fecha real de inicio (opcional)', `<input class="${input} w-40" type="date" value="2024-01-15">`)}
+  ${field('Fecha real de inicio (opcional)', `<input class="${sized(input, 'w-40')}" type="date" value="2024-01-15">`)}
   ${field('Plan comercial', `<select class="${select}" aria-label="Plan comercial"><option>Producción audiovisual integral</option></select>`)}
-  ${field('Monto recurrente entero', `<div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">Gs.</span><input class="${input} w-44 pl-12 tabular-nums" inputmode="numeric" value="1.234.567.890" aria-label="Monto recurrente entero"></div>`)}
-  ${currencyField('client-reporting-currency', 'Guaraníes (PYG)', 'w-40')}
-  ${field('Inicio comercial', `<input class="${input} w-40" type="date" value="2024-01-15">`)}
-  ${field('Fin del plan (opcional)', `<input class="${input} w-40" type="date" value="">`)}
+  ${field('Monto recurrente entero', `<div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">Gs.</span><input class="${sized(input, 'w-44 pl-12 tabular-nums')}" inputmode="numeric" value="1.234.567.890" aria-label="Monto recurrente entero"></div>`)}
+  ${currencyField('client-reporting-currency', 'Guaraníes (PYG)')}
+  ${field('Inicio comercial', `<input class="${sized(input, 'w-40')}" type="date" value="2024-01-15">`)}
+  ${field('Fin del plan (opcional)', `<input class="${sized(input, 'w-40')}" type="date" value="">`)}
   ${field('Factura comercial del cliente', `<select class="${select}" aria-label="Factura comercial del cliente"><option>Sí</option></select>`)}
   ${field('Tipo de comisión', `<select class="${select}" aria-label="Tipo de comisión"><option>Porcentaje</option></select>`)}
   ${field('Destinatario de comisión', `<select class="${select}" aria-label="Destinatario de comisión"><option>María José Fernández de la Cruz</option></select>`)}
-  ${field('Comisión entera (%)', `<input class="${input} w-24 tabular-nums" inputmode="numeric" maxlength="3" value="12" aria-label="Comisión entera (%)">`)}
+  ${field('Comisión entera (%)', `<input class="${sized(input, 'w-24 tabular-nums')}" inputmode="numeric" maxlength="3" value="12" aria-label="Comisión entera (%)">`)}
  </div>
  <div class="flex flex-wrap gap-2"><button type="button" class="${buttonOutline}">Recargar ficha (descarta cambios)</button></div>
 </section>`;
@@ -66,7 +68,7 @@ const lifecycleSheet = `
 <section class="grid gap-4" aria-label="Ciclo comercial del cliente">
  <h3 class="text-base font-bold text-fore">Ciclo comercial</h3>
  <p class="max-w-[76ch] text-xs leading-5 text-mute">Cada cambio se registra como una enmienda nueva. Las condiciones históricas se conservan tal como se contrataron.</p>
- <div class="min-w-0">
+ <div class="min-w-0 [&_table]:min-w-[52rem]">
   <div class="hidden max-h-[70vh] overflow-auto md:block"><table class="w-full text-sm">
    <thead class="sticky top-0 z-10 bg-ink-800"><tr class="border-b border-ink-600 text-left text-xs uppercase tracking-wider text-mute"><th class="px-2.5 py-1.5 font-medium">Vigente desde</th><th class="px-2.5 py-1.5 font-medium">Cliente desde</th><th class="px-2.5 py-1.5 font-medium">Plan</th><th class="px-2.5 py-1.5 text-right font-medium">Mensual</th><th class="px-2.5 py-1.5 font-medium">Descuento</th><th class="px-2.5 py-1.5 font-medium">Extras y entregables</th></tr></thead>
    <tbody>
@@ -88,17 +90,35 @@ const lifecycleSheet = `
     </tr>
    </tbody>
   </table></div>
+   <div class="grid grid-cols-1 gap-2 p-2.5 md:hidden">
+    <div class="grid gap-2 rounded-lg border border-ink-600 bg-ink-800 p-3 text-sm">
+     <div class="flex flex-wrap items-center justify-between gap-2"><span class="font-mono text-[11px] font-semibold text-mute">14 sept 2024 · 00:00</span>${moneyText('Gs. 1.234.567.890', 'text-fore')}</div>
+     <p class="font-semibold text-fore">Producción audiovisual integral para campaña de lanzamiento regional</p>
+     <p class="text-xs text-mute">Versión contratada: v3.2 con anexos de cesión de derechos y música licenciada</p>
+     <p class="text-xs text-mute">Cliente desde: 29 feb 2024 · 00:00</p>
+     <p class="text-xs text-mute">Descuento: Porcentaje · 12,5% · Por seis meses consecutivos</p>
+     <p class="text-xs text-mute">Extras: Dos reels extra por mes; Reporte de métricas quincenal</p>
+    </div>
+    <div class="grid gap-2 rounded-lg border border-ink-600 bg-ink-800 p-3 text-sm">
+     <div class="flex flex-wrap items-center justify-between gap-2"><span class="font-mono text-[11px] font-semibold text-mute">01 ene 2024 · 00:00</span>${moneyText('USD 12.345,67', 'text-fore')}</div>
+     <p class="font-semibold text-fore">Retainer mensual de contenidos</p>
+     <p class="text-xs text-mute">Versión contratada: v1.0</p>
+     <p class="text-xs text-mute">Cliente desde: Sin fecha registrada</p>
+     <p class="text-xs text-mute">Descuento: Importe fijo · USD 1.000</p>
+     <p class="text-xs text-mute">Extras: Sin extras registrados</p>
+    </div>
+   </div>
  </div>
  <div><button type="button" class="${button}">Registrar enmienda comercial</button></div>
  <form class="grid gap-3 md:grid-cols-2 xl:grid-cols-3" novalidate>
-  ${field('Vigente desde', `<input class="${input} w-40" type="date" value="2026-09-14">`)}
-  ${field('Cliente desde (opcional)', `<input class="${input} w-40" type="date" value="2024-02-29">`)}
+  ${field('Vigente desde', `<input class="${sized(input, 'w-40')}" type="date" value="2026-09-14">`)}
+  ${field('Cliente desde (opcional)', `<input class="${sized(input, 'w-40')}" type="date" value="2024-02-29">`)}
   ${field('Nombre del plan', `<input class="${input}" value="Gestión comercial integral de contenidos y pauta">`)}
   ${field('Versión contratada', `<input class="${input}" value="v4.0 con anexos de cesión de derechos">`)}
-  ${field('Precio mensual contratado', `<div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">US$</span><input class="${input} w-44 pl-12 tabular-nums" value="12,345.67" aria-label="Precio mensual contratado"></div>`)}
-  ${currencyField('lifecycle-currency', 'Dólares (USD)', 'w-40')}
+  ${field('Precio mensual contratado', `<div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">US$</span><input class="${sized(input, 'w-44 pl-12 tabular-nums')}" value="12.345,67" aria-label="Precio mensual contratado"></div>`)}
+  ${currencyField('lifecycle-currency', 'Dólares (USD)')}
   ${field('Tipo de descuento', `<select class="${select}" aria-label="Tipo de descuento"><option>Porcentaje</option></select>`)}
-  ${field('Valor del descuento', `<input class="${input} w-36 tabular-nums" inputmode="decimal" value="12,5">`)}
+  ${field('Valor del descuento', `<input class="${sized(input, 'w-36 tabular-nums')}" inputmode="decimal" value="12,5">`)}
   ${field('Términos del descuento (opcional)', `<textarea class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" rows="3">Se aplica sobre el precio de lista durante los primeros seis meses.</textarea>`)}
   ${field('Extras y entregables personalizados (opcional)', `<textarea class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" rows="3">Dos reels extra por mes y reporte quincenal de métricas.</textarea>`)}
   <div class="flex flex-wrap items-end gap-2 md:col-span-2 xl:col-span-3"><button type="button" class="${buttonOutline}">Cancelar</button><button type="submit" class="${button}">Registrar enmienda</button></div>
@@ -113,21 +133,21 @@ const composerSheet = `
    ${field('Título del presupuesto', `<input class="${input}" maxlength="120" value="Campaña de lanzamiento regional · producción audiovisual integral" name="title">`)}
    <div class="flex flex-wrap items-end gap-3">
     <div class="min-w-0 flex-1 basis-64">${field('Cliente', `<select class="${select}" aria-label="Cliente"><option>Cooperativa Multiactiva de Servicios Múltiples Limitada</option></select>`)}</div>
-    ${currencyField('quote-currency', 'Guaraníes (PYG)', 'w-40')}
+    ${currencyField('quote-currency', 'Guaraníes (PYG)')}
     <div class="w-24">${field('IVA', `<select class="${select}" aria-label="IVA"><option>10%</option></select>`)}</div>
    </div>
   </section>
   <section class="grid gap-3" aria-label="Ítems del documento">
    <div class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3">
     <div class="flex items-start gap-2">
-     <button type="button" class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button>
+     <button type="button" class="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button>
      <div class="grid min-w-0 flex-1 gap-3">
       ${field('Descripción', `<input class="${input}" value="Producción audiovisual integral: dirección creativa, rodaje en locación de tres jornadas, edición, color y mezcla final">`)}
       <div class="flex flex-wrap gap-3">
-       <div class="w-24">${field('Cantidad', `<input class="${input} tabular-nums" inputmode="decimal" value="12">`)}</div>
-       <div class="w-44"><div class="grid gap-1"><label class="${label}">Precio sin IVA</label><div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">Gs.</span><input class="${input} w-44 pl-12 tabular-nums" inputmode="numeric" value="102.880.658"></div></div></div>
+       ${field('Cantidad', `<input class="${sized(input, 'w-24 tabular-nums')}" inputmode="decimal" value="12">`)}
+       <div class="grid gap-1"><label class="${label}">Precio sin IVA</label><div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">Gs.</span><input class="${sized(input, 'w-44 pl-12 tabular-nums')}" inputmode="numeric" value="102.880.658"></div></div>
       </div>
-      <div class="flex flex-wrap gap-2"><button type="button" class="inline-flex h-9 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute transition hover:bg-ink-700 hover:text-fore">Subir</button><button type="button" class="inline-flex h-9 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute transition hover:bg-ink-700 hover:text-fore">Bajar</button><button type="button" class="inline-flex h-9 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-bad transition hover:bg-bad/10">Quitar</button></div>
+      <div class="flex flex-wrap gap-2"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute transition hover:bg-ink-700 hover:text-fore md:h-9">Subir</button><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute transition hover:bg-ink-700 hover:text-fore md:h-9">Bajar</button><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-bad transition hover:bg-bad/10 md:h-9">Quitar</button></div>
      </div>
     </div>
    </div>
@@ -139,8 +159,8 @@ const composerSheet = `
   </section>
   <section class="grid gap-3" aria-label="Secciones del documento">
    <div><h3 class="text-sm font-bold text-fore">Secciones del documento</h3><p class="mt-1 text-xs leading-5 text-mute">Arrastrá o usá Subir/Bajar. Detalle y totales son obligatorios; podés ocultar las otras secciones.</p></div>
-   <div class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3"><div class="flex items-start gap-2"><button type="button" class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-mute" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button><div class="grid min-w-0 flex-1 gap-3"><b class="text-sm font-bold text-fore">Detalle de ítems</b><p class="text-xs font-medium text-mute">Siempre visible</p></div></div></div>
-   <div class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3"><div class="flex items-start gap-2"><button type="button" class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-mute" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button><div class="grid min-w-0 flex-1 gap-3"><b class="text-sm font-bold text-fore">Texto personalizado</b>${field('Título', `<input class="${input}" value="Sobre esta propuesta">`)}${field('Contenido', `<textarea class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" rows="4">La propuesta incluye cesión de derechos y música licenciada.</textarea>`)}<div class="flex items-center gap-3"><span class="relative inline-flex h-5 w-9 shrink-0 items-center"><input type="checkbox" role="switch" aria-checked="true" aria-label="Mostrar sección Texto personalizado" checked class="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none rounded-full opacity-0"><span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-full border border-fono bg-fono transition-colors"></span><span aria-hidden="true" class="pointer-events-none absolute left-0.5 h-4 w-4 translate-x-4 rounded-full bg-white shadow transition-transform"></span></span><label class="${label} mb-0">Mostrar sección</label></div></div></div></div>
+   <div class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3"><div class="flex items-start gap-2"><button type="button" class="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button><div class="grid min-w-0 flex-1 gap-3"><b class="text-sm font-bold text-fore">Detalle de ítems</b><p class="text-xs font-medium text-mute">Siempre visible</p></div></div></div>
+   <div class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3"><div class="flex items-start gap-2"><button type="button" class="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem">${iconGrip}</button><div class="grid min-w-0 flex-1 gap-3"><b class="text-sm font-bold text-fore">Texto personalizado</b>${field('Título', `<input class="${input}" value="Sobre esta propuesta">`)}${field('Contenido', `<textarea class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" rows="4">La propuesta incluye cesión de derechos y música licenciada.</textarea>`)}<div class="flex items-center gap-3"><span class="relative inline-flex h-5 w-9 shrink-0 items-center"><input type="checkbox" role="switch" aria-checked="true" aria-label="Mostrar sección Texto personalizado" checked class="peer absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none rounded-full opacity-0"><span aria-hidden="true" class="pointer-events-none absolute inset-0 rounded-full border border-fono bg-fono transition-colors"></span><span aria-hidden="true" class="pointer-events-none absolute left-0.5 h-4 w-4 translate-x-4 rounded-full bg-white shadow transition-transform"></span></span><label class="${label} mb-0">Mostrar sección</label></div></div></div></div>
   </section>
  </div>
  <section class="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4" aria-label="Vista previa del documento">

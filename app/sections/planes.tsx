@@ -47,7 +47,7 @@ export function PlanesSection({user}: PlanesSectionProps){
 
   return (
     <section className="directory grid gap-4" aria-label="Planes reutilizables">
-      <KpiStrip className="kpi-strip" aria-label="Métricas de planes">
+      <KpiStrip aria-label="Métricas de planes">
         <Kpi label="Planes" valor={plans.length} destacado hint={totals.size?`Valor de ítems: ${Array.from(totals).map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}`:'Sin totales guardados'}/>
         <Kpi label="Activos" valor={active.length} hint="Disponibles para presupuestos"/>
         <Kpi label="Archivados" valor={archived.length} hint="Fuera de circulación"/>
@@ -68,7 +68,7 @@ export function PlanesSection({user}: PlanesSectionProps){
         <PlanComparison
           plans={plans}
           actions={(plan)=><>
-            {canEdit?<Button type="button" variant="ghost" className="h-9 px-2 text-xs" onClick={()=>setEdit(plan)}><Pencil aria-hidden="true" size={14}/> Editar</Button>:null}
+            {canEdit?<Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" onClick={()=>setEdit(plan)}><Pencil aria-hidden="true" size={14}/> Editar</Button>:null}
             <RemoveRecord kind="plans" id={plan.id} name={String(plan.name||'')} role={user?.role||'viewer'} done={load}/>
           </>}
         />
