@@ -14,7 +14,7 @@ const kpi = (text, value, hint, destacado = false) => `<div class="relative over
  <div class="mt-1.5 text-2xl font-semibold tracking-tight md:text-3xl ${destacado ? 'text-onbrand' : 'text-fore'}">${value}</div>
  <div class="mt-1.5 flex items-center gap-2 text-xs"><span class="${destacado ? 'text-onbrand/75' : 'text-mute'}">${hint}</span></div>
 </div>`;
-const kpiStrip = (children) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 kpi-strip" aria-label="Métricas">${children}</div>`;
+const kpiStrip = (children) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Métricas">${children}</div>`;
 const stateChip = (tone, text) => {
   const colors = {ok: 'bg-ok/15 text-ok border-ok/40', warn: 'bg-warn/15 text-warn border-warn/40', bad: 'bg-bad/15 text-bad border-bad/40', info: 'bg-info/15 text-info border-info/40', mute: 'bg-ink-600 text-mute border-ink-500'};
   return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${colors[tone]}">${text}</span>`;
@@ -63,7 +63,7 @@ const planHeader = (plan) => `<th scope="col" class="sticky top-0 z-[1] border-b
  <h3 class="whitespace-normal text-sm font-bold leading-snug text-fore">${plan.name}</h3>
  <span class="mt-1 block text-[11px] font-medium leading-4 text-mute">${plan.currency} · ${plan.items.length} ítems</span>
  ${plan.archived ? '<span class="mt-1 block text-[11px] font-medium leading-4 text-mute">Archivado</span>' : ''}
- <div class="mt-2 flex flex-wrap gap-1.5"><button type="button" class="inline-flex h-9 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute">Editar</button><button type="button" class="h-7 w-7 rounded-lg border border-transparent text-mute" aria-label="Mover a la papelera: ${plan.name}">🗑</button></div>
+ <div class="mt-2 flex flex-wrap gap-1.5"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute md:h-9">Editar</button><button type="button" class="h-7 w-7 rounded-lg border border-transparent text-mute" aria-label="Mover a la papelera: ${plan.name}">🗑</button></div>
 </th>`;
 const planesSection = `<section class="directory grid gap-4" aria-label="Planes reutilizables">
  ${kpiStrip([
@@ -105,11 +105,11 @@ const planesSection = `<section class="directory grid gap-4" aria-label="Planes 
 
 /* ---- Pipeline: KPIs, totales por etapa y tablero kanban ----------------- */
 const leadCard = ({name, amount, probability, email, tone}) => `<article class="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
- <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title="${name}">${name}</b><button type="button" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-mute" title="Mover ${name}" aria-label="Mover ${name}">⠿</button></header>
+ <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title="${name}">${name}</b><button type="button" class="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-mute md:h-7 md:w-7" title="Mover ${name}" aria-label="Mover ${name}">⠿</button></header>
  ${moneyText(amount, 'text-sm text-fore')}
  <div class="flex flex-wrap items-center gap-2 text-[11px]">${stateChip(tone, `${probability}%`)}<span class="min-w-0 text-mute [overflow-wrap:anywhere]">${email}</span></div>
  <p class="text-[11px] leading-4 text-mute [overflow-wrap:anywhere]">Próximo paso: enviar la propuesta ajustada y confirmar fecha de rodaje.</p>
- <footer class="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2"><button type="button" class="inline-flex h-8 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute">Ver oportunidad</button></footer>
+ <footer class="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute md:h-8">Ver oportunidad</button></footer>
 </article>`;
 const leadColumn = (name, count, weighted, cards, readOnly = false) => `<section aria-label="${name} · ${count} oportunidades" class="grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3">
  <header class="flex items-baseline justify-between gap-2"><h3 class="text-sm font-bold text-fore">${name}${readOnly ? ' · desactivada' : ''}</h3><span class="text-xs tabular-nums text-mute">${count}</span></header>
@@ -121,7 +121,7 @@ const pipelineSection = `<section class="grid gap-4" aria-label="Pipeline comerc
    kpi('Oportunidades abiertas', '6', 'Sin ganar ni perder', true),
    kpi('Ganadas', '2', 'Conversiones cerradas'),
    kpi('Consultas web', '3', 'Origen: landing Scale OS'),
-   kpi('Valor abierto', `<span class="silent-scroll flex flex-wrap items-baseline gap-2 overflow-x-auto">${moneyText('Gs. 44.000.000')}${moneyText('US$ 1.200,00')}</span>`, 'Sin convertir monedas'),
+   kpi('Valor abierto', `<span class="flex flex-wrap items-baseline gap-2">${moneyText('Gs. 44.000.000')}${moneyText('US$ 1.200,00')}</span>`, 'Sin convertir monedas'),
  ].join(''))}
  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Totales por etapa">
   <article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><h3 class="text-sm font-bold text-fore">Contactado</h3><p class="mt-1 text-2xl font-semibold tabular-nums text-fore">3</p><p class="text-[11px] text-mute">oportunidades</p><div class="mt-2 grid gap-0.5 text-[11px] tabular-nums"><span class="whitespace-nowrap text-fore">${moneyText('Gs. 12.500.000')} ponderado</span><span class="whitespace-nowrap text-mute">${moneyText('Gs. 25.000.000')} abierto</span></div></article>
@@ -141,7 +141,8 @@ const pipelineSection = `<section class="grid gap-4" aria-label="Pipeline comerc
 </section>`;
 
 /* ---- Métricas: tablero de crecimiento (Stat + barras + tabla) ----------- */
-const days = Array.from({length: 30}, (_, index) => `2026-08-${String(index + 21).padStart(2, '0')}`);
+const dayStart = Date.UTC(2026, 7, 22); // 22 ago 2026: 30 días corridos válidos
+const days = Array.from({length: 30}, (_, index) => new Date(dayStart + index * 86_400_000).toISOString().slice(0, 10));
 const counts = [1024, 987, 0, 1540, 2331, 1204, 876, 990, 1105, 1502, 998, 744, 1310, 1622, 1805, 1201, 933, 1010, 1475, 1320, 1188, 902, 1210, 1660, 1902, 1433, 1108, 995, 1215, 1889];
 const max = Math.max(...counts);
 const growthStat = (text, value, change, sub) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${text}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${value}</div><div class="mt-1.5 flex items-center gap-2 text-xs"><span class="font-medium text-ok">${change}</span><span class="text-mute">${sub}</span></div></div>`;

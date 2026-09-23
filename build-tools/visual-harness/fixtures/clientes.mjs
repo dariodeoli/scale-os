@@ -19,7 +19,7 @@
  */
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {Badge, Button, IconAction, Label, ListGridToggle, SearchField, Select} from 'owncoding-ui';
+import {Badge, Button, IconAction, Label, ListGridToggle, SearchField, Select, Stat} from 'owncoding-ui';
 
 const h = React.createElement;
 const noop = () => {};
@@ -223,7 +223,19 @@ const toolbar = h('div', {className: 'client-directory-toolbar flex flex-wrap it
 
 const listPage = h('div', {className: 'grid gap-4'},
   toolbar,
-  h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[71rem]'}, clients.map(clientRow)));
+  h('div', {className: 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'},
+    h(Stat, {label: 'Clientes activos', valor: 38, sub: 'Con servicio en curso', destacado: true}),
+    h(Stat, {label: 'Cobros al día', valor: 31, sub: '3 en mora · 2 por vencer · 1 sin factura'}),
+    h(Stat, {label: 'Facturación contratada', valor: h('span', {className: 'flex flex-wrap items-baseline gap-2'}, h('span', null, 'Gs. 12.345.678 / mes'), h('span', null, 'USD 1.200,00 / mes')), sub: 'Expectativa comercial vigente por moneda'}),
+    h(Stat, {label: 'Entregas esta semana', valor: 9, sub: 'Piezas con vencimiento en 7 días'})),
+  h('div', {className: 'bulk-bar', role: 'status', 'aria-live': 'polite'},
+    h('span', {className: 'bulk-count'}, h('span', {className: 'bulk-hint'}, 'Seleccioná varios para operar en lote · máximo 50')),
+    h('div', {className: 'inline-actions bulk-actions'},
+      h('button', {type: 'button', className: 'text-button'}, 'Seleccionar visibles'))),
+  h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[71rem]'}, clients.filter(client => !client.archived).map(clientRow)),
+  h('details', {className: 'archived-capsule'},
+    h('summary', null, `Archivados (${clients.filter(client => client.archived).length})`),
+    h(ListGrid, {label: 'Clientes archivados', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[71rem]'}, clients.filter(client => client.archived).map(clientRow))));
 
 const gridPage = h('div', {className: 'grid gap-3 md:grid-cols-2 xl:grid-cols-3', 'data-grid': 'clientes'}, clients.map(clientTile));
 
