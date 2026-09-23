@@ -2,7 +2,6 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
-import postcss from 'postcss';
 import type {SubscriptionState,SubscriptionPanelProps} from '../app/subscription-panel';
 import {founderPricingNote} from '../app/founder-pricing';
 require.extensions['.css']=()=>{};
@@ -23,6 +22,7 @@ async function main(){
  let renderer:ReactTestRenderer|undefined,refreshes=0;
  const text=()=>JSON.stringify(renderer!.toJSON());
  const buttons=()=>renderer!.root.findAllByType('button');
+ const byClass=(className:string)=>renderer!.root.findAll(node=>typeof node.props.className==='string'&&node.props.className.split(/\s+/).includes(className))[0];
  const findButton=(label:string)=>buttons().find(b=>b.children.join('').includes(label))!;
  const click=async(label:string)=>{await act(async()=>{await findButton(label).props.onClick();});};
  const render=async(next:SubscriptionState|null,extra:Partial<SubscriptionPanelProps>={})=>{
@@ -39,16 +39,16 @@ async function main(){
   assert.equal(requests.length,0,'Mounting any status, including suspended, must never fetch');
   await render(state,{embedded:true});
   assert.equal(renderer!.root.findByType('h2').props.hidden,true);
-  assert.equal(renderer!.root.findByProps({className:'subscription-panel'}).props['data-embedded'],true);
-  assert.equal(renderer!.root.findByProps({className:'subscription-panel'}).props['aria-labelledby'],renderer!.root.findByType('h2').props.id);
+  assert.equal(byClass('subscription-panel').props['data-embedded'],true);
+  assert.equal(byClass('subscription-panel').props['aria-labelledby'],renderer!.root.findByType('h2').props.id);
   await render(state);assert(text().includes('30 días de prueba restantes'));assert(text().includes('10 oct 26'));
   assert.equal(renderer!.root.findByType('h2').props.hidden,false);
-  const statusBadge=renderer!.root.findByProps({className:'subscription-badge'});assert.equal(statusBadge.props.role,'status');assert.equal(statusBadge.children.join(''),'Estado actual');
+  const statusBadge=byClass('subscription-badge');assert.equal(statusBadge.props.role,'status');assert.equal(statusBadge.children.join(''),'Estado actual');
   assert(text().includes('US$ 10 o Gs. 50.000 por mes, por agencia'));assert(text().includes('no una conversión'));assert(text().includes('2 días de gracia'));
   assert(text().includes(founderPricingNote));
   assert(text().includes('Todos los integrantes y todos los módulos están incluidos'));
   assert(text().includes('No hay cobro por usuario'));assert(text().includes('Los permisos de cada rol se mantienen'));
-  assert(renderer!.root.findByProps({className:'subscription-consent'}).findByType('span').children.join('').includes('sin cobro por usuario'));
+  assert(byClass('subscription-consent').findByType('span').children.join('').includes('sin cobro por usuario'));
   assert(findButton('Activar suscripción mensual'));
   assert(text().includes('USD 10/mes'));assert(text().includes('Gs. 50.000/mes'));
   await render({...state,daysRemaining:0});assert(text().includes('0 días de prueba restantes'));
@@ -64,7 +64,7 @@ async function main(){
    assert.equal(renderer!.root.findAllByProps({type:'checkbox'}).length,0);assert(!findButton('Activar'));assert(!findButton('Gestionar'));
   }
   assert.equal(requests.length,0);
-  await render({...state,checkoutReady:false,billingReadiness:'disabled'},{organizationName:'Agencia Horizonte'});assert(text().includes('cobro en línea todavía no fue habilitado'));assert.equal(renderer!.root.findByProps({className:'subscription-setup'}).props['data-billing-readiness'],'disabled');
+  await render({...state,checkoutReady:false,billingReadiness:'disabled'},{organizationName:'Agencia Horizonte'});assert(text().includes('cobro en línea todavía no fue habilitado'));assert.equal(byClass('subscription-setup').props['data-billing-readiness'],'disabled');
   const manual=renderer!.root.findByType('a');assert(manual.props.href.startsWith('https://wa.me/595993391354?text='));assert(manual.props.href.includes(encodeURIComponent('Agencia Horizonte')));assert.equal(manual.props.target,'_blank');assert.equal(manual.props.rel,'noopener noreferrer');
   assert(text().includes('Activación con pago coordinado'));assert(!findButton('Activar suscripción mensual'),'Assisted activation replaces the dead checkout');
   assert(text().includes('310056630007'));assert(text().includes('SCALE STRATEGY GROUP E.A.S.'));assert(text().includes('80168807-8'));assert(text().includes('Banco Continental'));assert(text().includes('Enviar comprobante por WhatsApp'));
@@ -89,7 +89,7 @@ async function main(){
   await click('Activar');assert.deepEqual(JSON.parse(String(requests.at(-1)!.init!.body)),{currency:'USD'});
   await render({...state,currency:'PYG',amount:50000});
   assert(text().includes('queda fija para esta suscripción'));assert(findButton('Activar suscripción mensual'));
-  assert(renderer!.root.findByProps({className:'subscription-consent'}).findByType('span').children.join('').includes('Gs. 50.000 por mes'));
+  assert(byClass('subscription-consent').findByType('span').children.join('').includes('Gs. 50.000 por mes'));
   const pygSegments=renderer!.root.findAllByProps({type:'radio'});assert.equal(pygSegments.length,2);assert.equal(pygSegments[0].props.checked,false);assert.equal(pygSegments[1].props.checked,true);
   await consent();await click('Activar');
   assert.deepEqual(JSON.parse(String(requests.at(-1)!.init!.body)),{currency:'PYG'});
@@ -204,21 +204,24 @@ async function main(){
   await act(async()=>{renderer!.update(<SubscriptionNotice state={{...state,status:'active',canManage:false}} onOpen={()=>opened++}/>);});assert.equal(renderer!.toJSON(),null);
   await act(async()=>{renderer!.update(<SubscriptionNotice state={{...state,status:'suspended',canManage:false,hasAccess:false}} onOpen={()=>opened++}/>);});
   assert(text().includes('Acceso suspendido'));await click('Acceso suspendido');assert.equal(opened,2);
-  const css=postcss.parse(readFileSync(new URL('../app/subscription-panel.css',import.meta.url),'utf8'));
-  const rules=(selector:string)=>{const result:Record<string,string>={};css.walkRules(rule=>{if(rule.selectors.includes(selector))rule.walkDecls(d=>{result[d.prop]=d.value;});});return result;};
-  for(const selector of ['.subscription-panel .subscription-primary','.subscription-panel .subscription-secondary']){assert.equal(rules(selector)['min-height'],'44px');assert.equal(rules(selector)['min-width'],'44px');assert.equal(rules(selector)['max-width'],'100%');assert.equal(rules(selector)['white-space'],'normal');}
-  assert.equal(rules('.subscription-notice .subscription-secondary')['min-height'],'44px');assert.equal(rules('.subscription-notice .subscription-secondary')['min-width'],'0');assert.equal(rules('.subscription-notice .subscription-secondary')['white-space'],'nowrap');
-  for(const width of [320,360,390])assert(width-28>=44,'Touch target fits inside mobile padding');
-  assert.equal(rules('.subscription-panel input[type=checkbox]').padding,'0');assert.equal(rules('.subscription-currency')['min-width'],'0');assert.equal(rules('.subscription-currency-segments label')['min-height'],'44px');
-  assert.equal(rules('.subscription-manual .subscription-manual-link')['display'],'inline-flex');assert.equal(rules('.subscription-manual .subscription-manual-link')['text-decoration'],'none');
-  assert.equal(rules('.subscription-transfer .subscription-transfer-code')['white-space'],'nowrap');assert.equal(rules('.subscription-transfer dd')['font-variant-numeric'],'tabular-nums');
-  assert(!/transition\s*:\s*all\b/.test(readFileSync(new URL('../app/subscription-panel.css',import.meta.url),'utf8')),'Billing transitions must name the affected properties');
+  const source=readFileSync(new URL('../app/subscription-panel.tsx',import.meta.url),'utf8');
+  const classDecl=(name:string)=>{const match=source.match(new RegExp(`const ${name}='([^']*)'`));return match?match[1]:'';};
+  const primary=classDecl('PRIMARY'),secondary=classDecl('SECONDARY');
+  for(const cls of [primary,secondary]){assert(cls.includes('min-h-11'),'los botones conservan 44 px');assert(cls.includes('min-w-11'));assert(cls.includes('max-w-full'));assert(cls.includes('whitespace-normal'));}
+  assert(source.includes('subscription-secondary inline-flex min-h-11 min-w-0 max-w-full'),'el aviso compacto conserva su target de 44 px y no recorta');
+  assert(source.includes('whitespace-nowrap')&&source.includes('subscription-notice'),'el aviso del encabezado no envuelve su etiqueta');
+  assert(source.includes('!p-0')&&source.includes('!h-5')&&source.includes('!w-5'),'el checkbox de consentimiento conserva su tamaño propio');
+  assert(source.includes("!state.canManage?<p"),'el aviso al dueño se reserva a quien no gestiona');
+  assert(source.includes('min-h-11 min-w-0 items-center justify-center')&&source.includes('subscription-currency-segments'),'los segmentos de moneda conservan 44 px');
+  assert(primary.includes('text-onbrand'),'el botón primario usa el texto sobre marca');
+  assert(classDecl('STATE_BOX').includes('text-fore')&&source.includes("bg-warn/10"),'los avisos de estado usan el token de advertencia con texto legible');
+  assert(source.includes("trialing:'border-fono/30 bg-fono/10 text-fono-light'")&&source.includes("active:'border-ok/30 bg-ok/10 text-ok'")&&source.includes("grace:'border-warn/40 bg-warn/10 text-warn'")&&source.includes("suspended:'border-bad/30 bg-bad/10 text-bad'"),'cada estado usa su token semántico con contraste AA');
+  assert(!/transition\s*:\s*all\b/.test(source),'las transiciones nombran las propiedades afectadas');
   const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
   assert(workspace.includes("query.get('scaleBilling')||query.get('billing')"));assert(workspace.includes("if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true)"));
-  // Contrast of the actual fixed foreground/background pairs used by this panel.
-  const luminance=(hex:string)=>{const channels=hex.match(/[a-f\d]{2}/gi)!.map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*channels[0]+.7152*channels[1]+.0722*channels[2];};
-  for(const [fg,bg] of [['4d065b','ffffff'],['513b09','fff3cf'],['185640','e2f4ed'],['514957','eee9f0'],['8a1830','fff0f3']]){const a=luminance(fg),b=luminance(bg);assert((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5);}
-  console.log('PASS: PagaYa/direct checkout handoff, fixed segmented USD/PYG display, authoritative return polling without client entitlement, expired/idempotent retry, active/owner guards, allowlisted redirects, six states, mobile CSS and contrast');
+  // El contraste de los pares fijos vive en los tokens de `ui-system.test.mjs`;
+  // este panel usa los mismos tokens semánticos (fono/ok/warn/bad) vía Tailwind.
+  console.log('PASS: PagaYa/direct checkout handoff, fixed segmented USD/PYG display, authoritative return polling without client entitlement, expired/idempotent retry, active/owner guards, allowlisted redirects, six states, mobile targets and semantic tokens');
  }finally{if(renderer)await act(async()=>{renderer!.unmount();});globalThis.fetch=originalFetch;if(originalWindow)Object.defineProperty(globalThis,'window',originalWindow);else Reflect.deleteProperty(globalThis,'window');}
 }
 void main().catch(error=>{console.error(error);process.exitCode=1;});

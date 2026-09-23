@@ -49,7 +49,7 @@ assert(dialogCss.includes('.ops-overlay{position:fixed;inset:0;z-index:60;displa
 assert(!file('../app/operations.css').includes('.ops-overlay {\n  display: grid'),'no module redefines the overlay centering (the mobile sheet keeps its bottom anchor)');
 assert(dialogCss.includes('@media(max-width:540px){.ops-overlay{align-items:end;padding:0}'),'the mobile dialog stays anchored to the bottom');
 assert(file('../app/phone-field.tsx').includes('phone-input grid grid-cols-[minmax(94px,.42fr)_minmax(0,1fr)] gap-2'),'the phone field lays out inside portaled dialogs too');
-assert(file('../app/subscription-panel.css').includes('.subscription-notice.subscription-status--trialing .subscription-secondary{'),'the trial notice keeps its own tone instead of the danger palette');
+assert(file('../app/subscription-panel.tsx').includes("state.status==='trialing'?'bg-fono/15 text-fono-light'"),'el aviso de prueba conserva su tono propio en vez del de peligro');
 assert(file('../app/access-layout.tsx').includes('max-w-[30rem]')&&file('../app/registro/page.tsx').includes('grid gap-3'),'las superficies de acceso comparten el marco v2 y su ritmo vertical');
 assert(file('../app/superadmin/platform-admin.css').includes('margin-bottom: 0;'),'the global admin header resets the leaking global header margin');
 assert(file('../app/superadmin/audit.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');
