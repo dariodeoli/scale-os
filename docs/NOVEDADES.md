@@ -2,6 +2,19 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.113
+
+### Corrección del shell y el marco
+
+- **La carga de datos volvió a funcionar**: el prefijo de API se duplicaba en las lecturas del shell y devolvía 404; ahora es idempotente en todo el transporte, así que las secciones cargan sus datos al arrancar y al navegar (incluido el buscador, la presencia y los selectores de los modales).
+- **Cambiar de sección ya no rompe el tablero**: cada pantalla pide su propia proyección y no reutiliza una lista cargada con otro recorte; Producción vuelve a mostrar la clasificación del trabajo.
+- **Marco móvil corregido**: una regla vieja dejaba el riel de 254 px en el celular (578 desbordes medidos, hasta +2584 px); queda retirada y Pipeline/Planes ya no estiran el documento.
+
+### Rendimiento y datos
+
+- **API con agregados por etapa y por proyecto**: Resumen y Clientes dejan de calcular esos números en el navegador y el modo por columna del tablero (`?status=` + `?counts=1`) devuelve conteos exactos.
+- La ventana del buscador y la presencia viajan proyectadas (50 KB en lugar de 254 KB), y el medidor de carga por pantalla quedó como herramienta de verificación.
+
 ## v1.0.112
 
 ### Rendimiento y datos
