@@ -251,6 +251,14 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       }
       const conditions=[`o.organization_id=$1`,visibleRecord('o','work-orders'),visibleRecord('p','projects'),visibleRecord('c','clients')];
       const params=[user.organization_id];
+      // Filtro opcional `?project_id=`: el detalle de proyecto no necesita la lista completa.
+      const projectRaw=url.searchParams.get('project_id');
+      if(projectRaw!==null){
+        const projectId=Number(projectRaw);
+        const valid=Number.isSafeInteger(projectId)&&projectId>0&&String(projectId)===projectRaw.trim();
+        if(!valid)return send(res,400,{error:'Proyecto inválido'});
+        params.push(projectId);conditions.push(`o.project_id=$${params.length}`);
+      }
       if(statusFilter){params.push(statusFilter);conditions.push(`o.status=any($${params.length}::text[])`);}
       let pageClause='';
       if(paginated){params.push(limit+1);const limitPlaceholder=`$${params.length}`;params.push(offset);pageClause=` limit ${limitPlaceholder} offset $${params.length}`;}
@@ -274,7 +282,10 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       // lista) para el tablero de Producción; sin el parámetro no cambia nada.
       let stageCounts=null;
       if(url.searchParams.get('counts')==='1'){
-        const counted=(await db.query(`select o.status,count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} group by o.status`,[user.organization_id])).rows;
+        const countParams=[user.organization_id];
+        let projectCondition='';
+        if(projectRaw!==null){countParams.push(Number(projectRaw));projectCondition=` and o.project_id=$${countParams.length}`;}
+        const counted=(await db.query(`select o.status,count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}${projectCondition} group by o.status`,countParams)).rows;
         const byStatus=new Map(counted.map(row=>[row.status,row.total]));
         stageCounts={};
         for(const status of workOrderStatuses)stageCounts[status]=Number(byStatus.get(status)||0);

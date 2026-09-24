@@ -212,6 +212,7 @@ async function init() {
     await migration.query(await fs.readFile(path.join(root,'migrations/20260921_role_permissions_audit.sql'),'utf8'));
     await migration.query(await fs.readFile(path.join(root,'migrations/20260921_platform_extend_idempotency.sql'),'utf8'));
     await migration.query(await fs.readFile(path.join(root,'migrations/20260923_agency_core_perf.sql'),'utf8'));
+    await migration.query(await fs.readFile(path.join(root,'migrations/20260924_inventory_photo_stamp.sql'),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline'});
     await migration.query('commit');
   }catch(error){await migration.query('rollback');throw error;}finally{migration.release();}

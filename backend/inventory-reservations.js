@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import {attributeActors} from './actor-identity.js';
 import {roleCan} from './permissions.js';
 import {fail,text,amount,date,option,serial} from './suite-validation.js';
@@ -15,7 +16,18 @@ const identifier=value=>{
 };
 const optionalId=value=>value===null||value===undefined||value===''?null:identifier(value);
 const categoryIcons=['camera','video','mic','lamp','lightbulb','monitor','laptop','speaker','hard-drive','battery-charging','package','home'];
-const inventoryPayload=row=>({...row,barcode_payload:`SCALE-INVENTORY:${row.inventory_code}`});
+const inventoryPayload=row=>({...row,photo_url:photoHref(row),barcode_payload:`SCALE-INVENTORY:${row.inventory_code}`});
+// La foto embebida (data URL ~180 KB) queda fuera de listas y fichas: viaja la
+// URL del propio API y la imagen se sirve en `GET inventory/<id>/photo` (#58).
+// Los enlaces externos se respetan tal cual.
+const photoHref=row=>{
+ if(!row.photo_url)return null;
+ const value=String(row.photo_url);
+ if(!value.startsWith('data:'))return value;
+ const stamp=crypto.createHash('sha1').update(value).digest('hex').slice(0,8);
+ return `/api/agency/inventory/${row.id}/photo?v=${stamp}`;
+};
+const isOwnPhotoHref=(value,row)=>String(value||'').split('?')[0]===`/api/agency/inventory/${row.id}/photo`;
 const storageLocationName=value=>text(value||'',100);
 function identifiers(values,label,max=50){
  if(!Array.isArray(values)||!values.length||values.length>max)fail(`Elegí entre 1 y ${max} ${label}`);
@@ -77,7 +89,12 @@ const depotComputed=`case when i.purchase_value is null then null
   else 0.00 end as accumulated_depreciation,
  case when i.purchase_value is not null and i.depreciation_method='linear' and i.useful_life_months>0
   then round((i.purchase_value-coalesce(i.residual_value,0))/i.useful_life_months,2) else null end as monthly_depreciation`;
-const inventorySelect=`select i.*,cat.name as category_name,cat.active as category_active,cat.icon as category_icon,loc.name as storage_location_name,loc.active as storage_location_active,
+// El catálogo lee todas las columnas menos la imagen embebida: el `photo_url`
+// viaja como URL del API (href) calculado en SQL, así la foto no sale de la base
+// en cada listado (#58). Las externas se respetan tal cual.
+const inventoryColumns=`i.id,i.organization_id,i.name,i.serial_number,i.category,i.custodian_user_id,i.value,i.currency,i.status,i.acquired_on,i.notes,i.created_at,i.category_id,i.storage_shelf,i.storage_row,i.inventory_code,i.last_verified_at,i.last_verified_by_user_id,i.last_verification_result,i.last_verification_differences,i.last_verified_counted_quantity,i.storage_location_id,i.location_changed_at,i.purchase_value,i.purchase_date,i.depreciation_method,i.useful_life_months,i.residual_value`;
+const photoExpression=`case when i.photo_url is null or i.photo_url='' then null when i.photo_url like 'data:%' then '/api/agency/inventory/'||i.id||'/photo?v='||coalesce(round(extract(epoch from i.photo_updated_at)*1000)::bigint,0) else i.photo_url end as photo_url`;
+const inventorySelect=`select ${inventoryColumns},${photoExpression},cat.name as category_name,cat.active as category_active,cat.icon as category_icon,loc.name as storage_location_name,loc.active as storage_location_active,
   live.id as active_reservation_id,live.title as production_name,p.name as project_name,
   live.custodian_user_id as current_custodian_user_id,coalesce(nullif(up.full_name,''),u.email) as current_custodian_name,
   live.return_user_id,coalesce(nullif(rp.full_name,''),ru.email) as return_user_name,live.ends_at as expected_return_at,
@@ -294,7 +311,8 @@ async function saveItem(c,user,org,key,payload){
  // Solo se valida la pertenencia cuando el PATCH envía un custodio nuevo.
  if(sent('custodian_user_id')&&custodian)await activeMembers(c,org,[custodian]);
  const location=await storageLocation(c,org,old,payload,key);const shelf=location.shelf,storageRow=sent('storage_row')?text(payload.storage_row,80):old.storage_row??'';
- const photo=Object.hasOwn(payload,'photo_url')?await profilePhoto(payload.photo_url):old.photo_url||null;
+ const incoming=Object.hasOwn(payload,'photo_url')?payload.photo_url:undefined;
+ const photo=incoming===undefined?(old.photo_url||null):((old&&isOwnPhotoHref(incoming,old))?old.photo_url:await profilePhoto(incoming));
  const locationChanged=String(location.id||'')!==String(old.storage_location_id||'')||shelf!==(old.storage_shelf||'');
  if(key){
   const open=(await c.query("select status from agency_inventory_reservation_items where inventory_id=$1 and organization_id=$2 and status in ('reserved','checked_out')",[key,org])).rows;
@@ -318,7 +336,8 @@ async function saveItem(c,user,org,key,payload){
   if(depreciationMethod==='linear'&&(purchaseValue===null||!purchaseDate||usefulLife===null))fail('Para depreciación lineal indicá valor de compra, fecha y vida útil');
  }
  const values=[name,category.name,sent('serial_number')?serial(payload.serial_number||''):old.serial_number??'',custodian,sent('value')?amount(payload.value):old.value??0,sent('currency')?option(payload.currency,currencies):old.currency??await companyCurrency(c,org),status,sent('acquired_on')?date(payload.acquired_on):old.acquired_on??null,sent('notes')?text(payload.notes||''):old.notes??'',category.id,location.id,shelf,storageRow,code,photo,purchaseValue,purchaseDate,depreciationMethod,usefulLife,residual,org];
- const result=key?await c.query(`update agency_inventory set name=$1,category=$2,serial_number=$3,custodian_user_id=$4,value=$5,currency=$6,status=$7,acquired_on=$8,notes=$9,category_id=$10,storage_location_id=$11,storage_shelf=$12,storage_row=$13,inventory_code=$14,photo_url=$15,purchase_value=$16,purchase_date=$17,depreciation_method=$18,useful_life_months=$19,residual_value=$20${locationChanged?',location_changed_at=now()':''} where organization_id=$21 and id=$22 returning *`,[...values,key]):await c.query('insert into agency_inventory(name,category,serial_number,custodian_user_id,value,currency,status,acquired_on,notes,category_id,storage_location_id,storage_shelf,storage_row,inventory_code,photo_url,purchase_value,purchase_date,depreciation_method,useful_life_months,residual_value,organization_id,location_changed_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,now()) returning *',values);
+ const photoChanged=photo!==(old.photo_url||null);
+ const result=key?await c.query(`update agency_inventory set name=$1,category=$2,serial_number=$3,custodian_user_id=$4,value=$5,currency=$6,status=$7,acquired_on=$8,notes=$9,category_id=$10,storage_location_id=$11,storage_shelf=$12,storage_row=$13,inventory_code=$14,photo_url=$15,purchase_value=$16,purchase_date=$17,depreciation_method=$18,useful_life_months=$19,residual_value=$20${locationChanged?',location_changed_at=now()':''}${photoChanged?',photo_updated_at=now()':''} where organization_id=$21 and id=$22 returning *`,[...values,key]):await c.query('insert into agency_inventory(name,category,serial_number,custodian_user_id,value,currency,status,acquired_on,notes,category_id,storage_location_id,storage_shelf,storage_row,inventory_code,photo_url,purchase_value,purchase_date,depreciation_method,useful_life_months,residual_value,organization_id,location_changed_at,photo_updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,now(),case when $15::text is null then null else now() end) returning *',values);
  const saved=(await inventoryRecord(c,org,String(result.rows[0].id)))||inventoryPayload(result.rows[0]);
  await traceInventory(c,org,[String(saved.id)],key?'inventory.updated':'inventory.created',user.id,null,{inventory_code:saved.inventory_code,name:saved.name,status:saved.status});
  if(key&&locationChanged)await traceInventory(c,org,[String(saved.id)],'location.changed',user.id,null,{inventory_code:saved.inventory_code,from_shelf:old.storage_shelf||null,to_shelf:shelf,storage_location_id:location.id});
@@ -400,7 +419,7 @@ async function traceHistory(c,org,key){
 }
 
 export async function inventoryReservations({req,res,url,db,session,body,send}){
- const route=url.pathname.match(/^\/api\/agency\/(inventory|inventory-categories|inventory-locations|inventory-maintenance|inventory-reservations|inventory-context)(?:\/(\d+))?(?:\/(checkout|return|check-out|check-in|cancel|restore|verify|batch))?$/);
+ const route=url.pathname.match(/^\/api\/agency\/(inventory|inventory-categories|inventory-locations|inventory-maintenance|inventory-reservations|inventory-context)(?:\/(\d+))?(?:\/(checkout|return|check-out|check-in|cancel|restore|verify|batch|photo))?$/);
  if(!route)return false;
  let c,transaction=false;
  try{
@@ -463,6 +482,25 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
    else if(!action&&(req.method==='POST'&&!key||req.method==='PATCH'&&key)){result={record:await saveItem(c,user,org,key,await body(req))};status=key?200:201;}
    else if(key&&req.method==='POST'&&action==='verify'){result=await verifyItem(c,user,org,key,await body(req));}
    else if(!key&&req.method==='POST'&&action==='batch'){result=await batchItems(c,user,org,await body(req));}
+   else if(key&&req.method==='GET'&&action==='photo'){
+    // Sirve la foto guardada (data URL) como imagen cacheable. Los enlaces
+    // externos redirigen para no proxear contenido ajeno.
+    const item=(await c.query(`select i.photo_url from agency_inventory i where i.organization_id=$1 and i.id=$2 and ${visibleRecord('i','inventory')}`,[org,key])).rows[0];
+    if(!item?.photo_url)fail('Este equipo no tiene foto',404);
+    const value=String(item.photo_url);
+    const data=value.startsWith('data:')?value.match(/^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/):null;
+    if(value.startsWith('data:')&&!data)fail('La foto de este equipo no es válida',415);
+    await c.query('commit');transaction=false;
+    if(data){
+     const bytes=Buffer.from(data[2],'base64');
+     res.writeHead(200,{'Content-Type':data[1],'Content-Length':String(bytes.length),'Cache-Control':'private, max-age=300'});
+     res.end(bytes);
+    }else{
+     res.writeHead(302,{Location:value,'Cache-Control':'no-store'});
+     res.end();
+    }
+    return true;
+   }
    else if(key&&(req.method==='DELETE'&&!action||req.method==='POST'&&action==='restore')){
     const item=(await c.query('select id from agency_inventory where organization_id=$1 and id=$2 for update',[org,key])).rows[0];if(!item)fail('Equipo no encontrado',404);
     if(action==='restore')await c.query("delete from agency_archived_records where organization_id=$1 and kind='inventory' and record_id=$2",[org,key]);
@@ -481,6 +519,19 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
    else if(req.method==='POST'&&key&&['checkout','return','check-out','check-in','cancel'].includes(action))result=await transition(c,user,org,key,action==='check-out'?'checkout':action==='check-in'?'return':action,await body(req));
    else fail('Método no permitido',405);
   }else fail('Método no permitido',405);
+  // La foto viaja como URL del API: absoluta al host público cuando el pedido
+  // trae host (producción detrás del proxy) y relativa en tests/harness (#58).
+  const photoBase=(()=>{
+   const headers=req.headers||{};
+   const proto=String(headers['x-forwarded-proto']||'').split(',')[0].trim()||'http';
+   const host=(Array.isArray(headers['x-forwarded-host'])?headers['x-forwarded-host'].join(','):String(headers['x-forwarded-host']||headers.host||'')).split(',')[0].trim();
+   return host&&kind==='inventory'?`${proto}://${host}`:'';
+  })();
+  if(photoBase){
+   const absolutize=record=>{if(record&&typeof record==='object'&&typeof record.photo_url==='string'&&record.photo_url.startsWith('/'))record.photo_url=photoBase+record.photo_url;};
+   for(const record of result.records||[])absolutize(record);
+   absolutize(result.record);
+  }
   await attributeActors(c,org,[
    {rows:result.reservations||result.reservation,userId:'created_by_user_id'},
    {rows:result.reservations||result.reservation,userId:'checked_out_by_user_id',prefix:'checkout_actor'},

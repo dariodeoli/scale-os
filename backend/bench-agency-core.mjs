@@ -61,6 +61,8 @@ try{
  await q('insert into agency_work_checklists(organization_id,work_order_id) select 7,id from agency_work_orders');
  await q(`insert into agency_work_checklist_items(organization_id,work_order_id,text,completed,created_by_user_id) select 7,($1::bigint[])[1+(n % array_length($1::bigint[],1))],'Paso '||n,(n%3=0),($2::bigint[])[1+(n % array_length($2::bigint[],1))] from generate_series(1,24000) n`,[orderIds,userIds]);
  await q(`insert into agency_inventory(organization_id,name,serial_number,status,value,currency) select 7,'Equipo '||n,'SN'||lpad(n::text,6,'0'),(array['available','available','in_use','maintenance'])[1+(n%4)],1000+n,'PYG' from generate_series(1,2000) n`);
+ // Foto embebida realista: data URL de ~180 KB por equipo (escenario reportado por OPS).
+ await q("update agency_inventory set photo_url='data:image/webp;base64,'||repeat('A',184320) where organization_id=7");
  const inventoryIds=(await q('select id from agency_inventory where organization_id=7 order by id')).rows.map(r=>Number(r.id));
  const reservations=await q(`insert into agency_inventory_reservations(organization_id,project_id,title,starts_at,ends_at,status,created_by_user_id,return_user_id) select 7,($1::bigint[])[1+(n % array_length($1::bigint[],1))],'Reserva '||n,now() - (n||' hours')::interval,now() + ((n%72)||' hours')::interval,'reserved',($2::bigint[])[1+(n % array_length($2::bigint[],1))],($2::bigint[])[1+(n % array_length($2::bigint[],1))] from generate_series(1,1000) n returning id`,[projectIds,userIds]);
  await q(`insert into agency_inventory_reservation_items(organization_id,reservation_id,inventory_id,starts_at,ends_at,status) select distinct 7,($1::bigint[])[1+(n % array_length($1::bigint[],1))],($2::bigint[])[1+(n % array_length($2::bigint[],1))],now() - (n||' hours')::interval,now() + ((n%72)||' hours')::interval,'checked_out' from generate_series(1,300) n on conflict do nothing`,[reservations.rows.map(r=>Number(r.id)),inventoryIds]);
@@ -80,10 +82,11 @@ try{
  const PROJECTED_FIELDS='id,title,status,project_id,project_name,client_name,urgency,work_type,due_date,due_time,updated_at,effective_assignees,assignee_source,description_preview';
  // Proyección del chrome/buscador para proyectos.
  const PROJECT_SEARCH_FIELDS='id,name,client_id,status,client_name,work_order_count,assignees';
- let listResponse,pageResponse,leanResponse,projectsResponse,minimalProjectsResponse,searchProjectsResponse,statusResponse,countsResponse,summaryResponse,inventoryResponse;
+ let listResponse,pageResponse,leanResponse,projectsResponse,minimalProjectsResponse,searchProjectsResponse,projectResponse,statusResponse,countsResponse,summaryResponse,inventoryResponse;
  await timed('GET /api/agency/work-orders',async()=>{listResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders'),send:(_,status,data)=>{listResponse=data;}});});
  await timed('GET /api/agency/work-orders?limit=300',async()=>{pageResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders?limit=300'),send:(_,status,data)=>{pageResponse=data;}});});
  await timed('GET /api/agency/work-orders?fields=<preset>',async()=>{leanResponse=null;await agencyCore({...coreArgs(`/api/agency/work-orders?fields=${PROJECTED_FIELDS}`),send:(_,status,data)=>{leanResponse=data;}});});
+ await timed('GET /api/agency/work-orders?project_id=<id>&limit=300',async()=>{projectResponse=null;await agencyCore({...coreArgs(`/api/agency/work-orders?project_id=${projectIds[1]}&limit=300`),send:(_,status,data)=>{projectResponse=data;}});});
  await timed('GET /api/agency/work-orders?status=review&limit=300',async()=>{statusResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders?status=review&limit=300'),send:(_,status,data)=>{statusResponse=data;}});});
  await timed('GET /api/agency/work-orders?counts=1&limit=1&fields=id',async()=>{countsResponse=null;await agencyCore({...coreArgs('/api/agency/work-orders?counts=1&limit=1&fields=id'),send:(_,status,data)=>{countsResponse=data;}});});
  await timed('GET /api/agency/projects',async()=>{projectsResponse=null;await agencyCore({...coreArgs('/api/agency/projects'),send:(_,status,data)=>{projectsResponse=data;}});});
@@ -92,15 +95,29 @@ try{
  await timed('GET /api/agency/summary',async()=>{summaryResponse=null;await agencyCore({...coreArgs('/api/agency/summary'),send:(_,status,data)=>{summaryResponse=data;}});});
  await timed('GET /api/agency/inventory',async()=>{inventoryResponse=null;await inventoryReservations({req:{method:'GET',socket:{}},res:{},url:new URL('https://bench.invalid/api/agency/inventory'),db:pool,session,body:async()=>({}),send:(_,status,data)=>{inventoryResponse=data;}});});
  const size=value=>(JSON.stringify(value||{}).length/1024).toFixed(0);
+ // Antes/después del inventario: mismo SQL con y sin la foto embebida.
+ const photoStats=(await q("select count(*)::int as n,coalesce(sum(length(photo_url)),0)::bigint as bytes from agency_inventory where organization_id=7 and photo_url is not null")).rows[0];
+ const legacyStart=performance.now();
+ const legacyRows=(await q('select i.* from agency_inventory i where i.organization_id=7')).rows;
+ const legacyMs=performance.now()-legacyStart;
+ const hrefBytes=Number((await q("select coalesce(sum(length('/api/agency/inventory/'||i.id||'/photo?v='||substr(md5(i.photo_url),1,8))),0)::bigint as bytes from agency_inventory i where organization_id=7 and i.photo_url like 'data:%'")).rows[0].bytes);
  console.log(`Payload work-orders: ${listResponse.workOrders.length} filas · ${size(listResponse)} KB`);
  console.log(`Payload work-orders?limit=300: ${pageResponse.workOrders.length} filas · ${size(pageResponse)} KB · page ${JSON.stringify(pageResponse.page)}`);
  console.log(`Payload work-orders?fields=<preset>: ${leanResponse.workOrders.length} filas · ${size(leanResponse)} KB`);
+ console.log(`Payload work-orders?project_id=<id>&limit=300: ${projectResponse.workOrders.length} filas · ${size(projectResponse)} KB`);
  console.log(`Payload work-orders?status=review&limit=300: ${statusResponse.workOrders.length} filas · ${size(statusResponse)} KB`);
  console.log(`Payload work-orders?counts=1: ${countsResponse.workOrders.length} fila · ${size(countsResponse)} KB · stage_counts ${JSON.stringify(countsResponse.stage_counts)}`);
  console.log(`Payload projects: ${projectsResponse.projects.length} filas · ${size(projectsResponse)} KB`);
  console.log(`Payload projects?fields=id,name,client_id,status: ${minimalProjectsResponse.projects.length} filas · ${size(minimalProjectsResponse)} KB`);
  console.log(`Payload projects?fields=<chrome>: ${searchProjectsResponse.projects.length} filas · ${size(searchProjectsResponse)} KB`);
  console.log(`Payload summary: ${size(summaryResponse)} KB · stage_counts ${JSON.stringify(summaryResponse.summary.stage_counts)}`);
+ console.log(`Inventario con fotos: ${photoStats.n} fotos · ${(Number(photoStats.bytes)/1048576).toFixed(1)} MB en la base · select i.* (antes) ${legacyMs.toFixed(0)} ms`);
+ console.log(`Inventario: payload antes ≈ ${((Number(photoStats.bytes)+1024*1024)/1048576).toFixed(1)} MB (fotos+texto) · después payload+solicitud · hrefs ${(hrefBytes/1024).toFixed(0)} KB`);
+ const photoId=(await q("select id from agency_inventory where organization_id=7 and photo_url is not null order by id limit 1")).rows[0].id;
+ const photoNoop={writeHead(){},end(){}};
+ const photoStart=performance.now();
+ await inventoryReservations({req:{method:'GET',socket:{}},res:photoNoop,url:new URL(`https://bench.invalid/api/agency/inventory/${photoId}/photo`),db:pool,session,body:async()=>({}),send:()=>{}});
+ console.log(`GET /inventory/<id>/photo: ${(performance.now()-photoStart).toFixed(0)} ms (bytes servidos: la foto guardada)`);
  console.log(`Payload inventario: ${(inventoryResponse?.records||[]).length} filas · ${size(inventoryResponse)} KB`);
  // Verificación a escala: los agregados contra el mismo SQL del panel.
  const vis=alias=>visibleRecord(alias,'work-orders');
@@ -116,5 +133,11 @@ try{
   const day=value=>value==null?null:(value instanceof Date?value.toISOString().slice(0,10):String(value).slice(0,10));
   if(project.open_orders!==expected.open_orders||day(project.next_due_date)!==day(expected.next_due_date))aggregateDiffs++;
  }
+ // Equivalencia del catálogo: mismos valores que la base (la foto viaja como URL).
+ const sampleItems=(await q('select * from agency_inventory where organization_id=7 order by id limit 50')).rows;
+ const payloadById=new Map((inventoryResponse?.records||[]).map(row=>[String(row.id),row]));
+ let catalogDiffs=0;
+ for(const item of sampleItems){const row=payloadById.get(String(item.id));for(const [key,value] of Object.entries(item)){if(key==='photo_url'||key==='photo_updated_at')continue;if(JSON.stringify(row?.[key])!==JSON.stringify(value))catalogDiffs++;}}
+ console.log(`Catálogo (bench): ${catalogDiffs?`DIFF ${catalogDiffs}`:'OK'} · ${sampleItems.length} equipos comparados campo a campo`);
  console.log(`Agregados (bench): ${aggregateDiffs?'DIFF '+aggregateDiffs:'OK'} · stage_counts suma ${Object.values(countsResponse.stage_counts).reduce((total,value)=>total+value,0)} = ${dbStages.reduce((total,row)=>total+row.total,0)} órdenes visibles`);
 }finally{try{await pool?.end();}catch{}cleanup();}

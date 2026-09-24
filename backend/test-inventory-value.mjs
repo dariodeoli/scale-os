@@ -9,7 +9,7 @@ import {inventoryReservations} from './inventory-reservations.js';
 const pg=new PGlite();await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
 for(const name of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_currencies.sql','20260910_company_currency.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
 await identitySchema(pg);
-for(const name of ['20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260913_inventory_advanced_traceability.sql','20260914_inventory_storage_locations.sql','20260915_inventory_location_pipeline.sql','20260915_inventory_photos.sql','20260915_inventory_category_icons.sql','20260919_inventory_value_maintenance.sql']){
+for(const name of ['20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260913_inventory_advanced_traceability.sql','20260914_inventory_storage_locations.sql','20260915_inventory_location_pipeline.sql','20260915_inventory_photos.sql','20260915_inventory_category_icons.sql','20260924_inventory_photo_stamp.sql','20260919_inventory_value_maintenance.sql']){
  const migration=await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8');
  await pg.exec(migration);await pg.exec(migration);
 }
