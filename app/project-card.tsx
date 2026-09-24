@@ -34,6 +34,14 @@ const STATUS_TONE:Record<string,ChipTone>={active:'ok',paused:'warn',completed:'
 const statusLabel=(status:string)=>STATUS_LABELS[status]||status;
 // Targets táctiles: en móvil las acciones de ícono crecen a 44 px (32 en escritorio).
 const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7';
+/**
+ * Detalle del proyecto: se mantiene como drawer propio de la tarjeta (decisión
+ * de la ronda 6 del QA). El detalle del shell maneja clientes y piezas con sus
+ * propios datos y estado; unificar exigiría que la cáscara conozca proyectos,
+ * sin ganancia de producto. El patrón visual ya es el canónico (Dialog/Editor).
+ */
+/** Piezas que lista el detalle antes de resumir el resto (proyectos con miles). */
+const PIECES_DETAIL_LIMIT=50;
 const pieceStatusLabel=(status:string)=>statuses.find(state=>state.id===status)?.label||status;
 
 /** Enlaces del proyecto: el API manda `drive_links` (multi) y `drive_url` legado. */
@@ -50,7 +58,9 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
     let alive=true;setData(null);setPieces(null);setError('');
     Promise.all([
       Promise.all([api<{record:ProjectView}>(`/api/agency/projects/${project.id}`),api<{assignees:ProjectAssignee[]}>(`/api/agency/projects/${project.id}/assignees`).catch(()=>({assignees:[]}))]).then(([record,assignees])=>({record:record.record,assignees:assignees.assignees||[]})),
-      api<{workOrders:{id:string;title:string;status:string;due_date?:string|null;due_time?:string|null;project_id:string|number;effective_assignees?:ProjectAssignee[]}[]}>('/api/agency/work-orders').then(result=>result.workOrders.filter(order=>String(order.project_id)===String(project.id))),
+      // El API todavía no acepta `?project_id=` (#57): se pide la proyección mínima
+      // que dibuja el detalle y se filtra por proyecto en el cliente.
+      api<{workOrders:{id:string;title:string;status:string;due_date?:string|null;due_time?:string|null;project_id:string|number}[]}>('/api/agency/work-orders?fields=id,title,status,due_date,due_time,project_id').then(result=>result.workOrders.filter(order=>String(order.project_id)===String(project.id))),
     ]).then(([head,orders])=>{if(!alive)return;setData(head);setPieces(orders);}).catch(cause=>{if(alive)setError(cause instanceof Error?cause.message:'No se pudo cargar el proyecto.');});
     return()=>{alive=false;};
   },[project.id,reload]);
@@ -84,10 +94,11 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Piezas del proyecto</h4>
-        {pieces===null?<LoadingBlock label="Cargando piezas…" lines={2}/>:pieces.length?<ul className="grid gap-1.5">{pieces.map(piece=><li key={piece.id} className="flex min-w-0 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px]">
+        {pieces===null?<LoadingBlock label="Cargando piezas…" lines={2}/>:pieces.length?<ul className="grid gap-1.5">{pieces.slice(0,PIECES_DETAIL_LIMIT).map(piece=><li key={piece.id} className="flex min-w-0 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px]">
           <span className="min-w-0 truncate font-semibold text-fore" title={piece.title}>{piece.title}</span>
           <span className="ml-auto flex shrink-0 items-center gap-2 whitespace-nowrap"><span className="list-date tabular-nums text-mute" data-tone={dueTone(piece.due_date)||undefined} title={piece.due_date?`Entrega ${listDateShort(piece.due_date)||''}${piece.due_time?` · ${piece.due_time.slice(0,5)} h`:``}`:undefined}>{piece.due_date?<>{listDateShort(piece.due_date)}{piece.due_time?` · ${piece.due_time.slice(0,5)}`:``}</>:'Sin fecha'}</span><StateChip tone={piece.status==='published'?'ok':piece.status==='approved'?'info':piece.status==='review'?'warn':'mute'}>{pieceStatusLabel(piece.status)}</StateChip></span>
         </li>)}</ul>:<p className="text-[13px] text-mute">El proyecto todavía no tiene piezas.</p>}
+        {pieces&&pieces.length>PIECES_DETAIL_LIMIT?<p className="text-[12px] text-mute" role="status">y {pieces.length-PIECES_DETAIL_LIMIT} piezas más: el detalle completo está en el tablero de Producción.</p>:null}
       </section>
     </div>
   </Dialog>;

@@ -43,6 +43,14 @@ export function boardColumnUrl(status:Status,fields:string,{window=BOARD_COLUMN_
 /** URL de los totales por etapa (contrato #57). */
 export const boardCountsUrl='/api/agency/work-orders?counts=1&limit=1&fields=id';
 
+/**
+ * Campos del planificador: la tarjeta del tablero más los campos de asignación.
+ * `assigned_user_id`/`assigned_user_ids` son los que arma "Mi día"; sin ellos la
+ * vista queda vacía aunque haya piezas asignadas (#57, QA ronda 6).
+ */
+export const PLANNER_EXTRA_FIELDS='assigned_user_id,assigned_user_ids';
+export const plannerFields=(boardFields:string)=>`${boardFields},${PLANNER_EXTRA_FIELDS}`;
+
 /** URL de la ventana del planificador. */
 export function boardPlannerUrl(fields:string,window=BOARD_PLANNER_WINDOW):string{
  return `/api/agency/work-orders?limit=${window}&fields=${fields}`;

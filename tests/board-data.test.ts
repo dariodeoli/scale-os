@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 // unión de páginas sin duplicados, agrupación y movimiento optimista.
 
 require.extensions['.css']=()=>{};
-const {BOARD_COLUMN_WINDOW,BOARD_PLANNER_WINDOW,adjustCounts,boardColumnUrl,boardCountsUrl,boardFiltersActive,boardPlannerUrl,countsFromOrders,emptyColumns,groupOrdersByStatus,mergeColumnPage,moveOrderInColumns,readColumnPage}=require('../app/board-data') as typeof import('../app/board-data');
+const {BOARD_COLUMN_WINDOW,BOARD_PLANNER_WINDOW,plannerFields,adjustCounts,boardColumnUrl,boardCountsUrl,boardFiltersActive,boardPlannerUrl,countsFromOrders,emptyColumns,groupOrdersByStatus,mergeColumnPage,moveOrderInColumns,readColumnPage}=require('../app/board-data') as typeof import('../app/board-data');
 const {statuses}=require('../app/production-board') as typeof import('../app/production-board');
 
 import type {Status} from '../app/production-board';
@@ -15,6 +15,7 @@ assert.equal(boardColumnUrl('editing','id,status'),`/api/agency/work-orders?stat
 assert.equal(boardColumnUrl('editing','id,status',{offset:BOARD_COLUMN_WINDOW}),`/api/agency/work-orders?status=editing&fields=id,status&limit=${BOARD_COLUMN_WINDOW+1}&offset=${BOARD_COLUMN_WINDOW}`,'"Ver más" pagina con offset sin cambiar el tope');
 assert.equal(boardColumnUrl('editing','id,status',{full:true}),'/api/agency/work-orders?status=editing&fields=id,status','con filtros la columna va completa (el contrato no filtra cliente ni fecha)');
 assert.equal(boardPlannerUrl('id,status'),`/api/agency/work-orders?limit=${BOARD_PLANNER_WINDOW}&fields=id,status`,'el planificador usa una ventana única');
+assert.equal(plannerFields('id,status'),'id,status,assigned_user_id,assigned_user_ids','Mi día necesita los campos de asignación en la ventana');
 assert.equal(boardFiltersActive({clientId:'',mine:false,week:false,userId:'2',today:'2026-09-24'}),false,'sin filtros');
 assert.equal(boardFiltersActive({clientId:'7',mine:false,week:false,userId:'2',today:'2026-09-24'}),true,'el cliente filtra');
 
