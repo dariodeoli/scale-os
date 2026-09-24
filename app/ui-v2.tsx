@@ -69,13 +69,13 @@ export function KpiStrip({className, children, ...props}: {className?: string; c
 /** Carga con esqueleto: anuncia con `role="status"` y no inventa datos. */
 export function LoadingBlock({label = 'Cargando…', lines = 3, className}: {label?: string; lines?: number; className?: string}) {
   return <div role="status" aria-busy="true" aria-label={label} className={`grid gap-2 ${className ?? ''}`}>
-    <Skeleton className="h-4 w-1/3"/>
-    {Array.from({length: Math.max(1, lines)}, (_, index) => <Skeleton key={index} className="h-10 w-full"/>)}
+    <Skeleton className="h-3.5 w-24 rounded-full"/>
+    {Array.from({length: Math.max(1, lines)}, (_, index) => <Skeleton key={index} className="h-11 w-full rounded-xl"/>)}
   </div>;
 }
 
 /** Superficie común de los estados de panel v2. */
-const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4';
+const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4';
 
 /**
  * Vacío de panel: `EmptyState` de la librería sobre la superficie v2 y con
@@ -104,13 +104,13 @@ const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left',
  * nombres); si no cabe, envuelve.
  */
 export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyebrow?: string; title: string; subtitle?: ReactNode; actions?: ReactNode; className?: string}) {
-  return <header className={`mb-4 flex flex-wrap items-start justify-between gap-3 ${className ?? ''}`}>
-    <div className="min-w-0">
-      {eyebrow && <p className="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">{eyebrow}</p>}
-      <h1 className="text-2xl font-bold tracking-tight text-fore">{title}</h1>
-      {subtitle && <p className="mt-1 text-sm text-mute">{subtitle}</p>}
+  return <header className={`mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 ${className ?? ''}`}>
+    <div className="min-w-0 flex-1">
+      {eyebrow && <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute">{eyebrow}</p>}
+      <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{title}</h1>
+      {subtitle && <p className="mt-1.5 text-[13px] leading-[1.5] text-mute">{subtitle}</p>}
     </div>
-    {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+    {actions && <div className="flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">{actions}</div>}
   </header>;
 }
 
@@ -143,5 +143,5 @@ export function ListGrid({label, template, columns, children, minWidthClass = 'm
 
 /** Fila finita v2: misma plantilla que el encabezado; una celda sin dato reserva su lugar. */
 export function ListRow({template, className, children, ...props}: {template: string; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  return <div role="row" {...props} className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{children}</div>;
+  return <div role="row" {...props} className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{children}</div>;
 }
