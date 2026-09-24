@@ -47,9 +47,9 @@ export function ClientDirectoryToolbar({
       className="client-directory-toolbar flex flex-wrap items-end gap-3"
       aria-label="Controles del directorio de clientes"
     >
-      <div className="client-directory-toolbar-title min-w-0">
-        <h1 className="text-2xl font-bold tracking-tight text-fore">Clientes</h1>
-        <p className="directory-summary text-xs tabular-nums text-mute" role="status" aria-atomic="true">
+      <div className="client-directory-toolbar-title min-w-0 flex-1">
+        <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">Clientes</h1>
+        <p className="directory-summary mt-1.5 text-[13px] leading-[1.5] tabular-nums text-mute" role="status" aria-atomic="true">
           {directorySummaryText(resultCount, totalCount)}
         </p>
       </div>
