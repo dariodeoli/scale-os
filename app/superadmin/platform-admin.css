@@ -104,14 +104,19 @@
 .platform-admin-title h1 {
   margin: 0;
   color: var(--text-strong, var(--platform-ink));
-  font-size: clamp(17px, 2vw, 20px);
-  letter-spacing: -0.02em;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
   line-height: 1.15;
+}
+@media (min-width: 768px) {
+  .platform-admin-title h1 { font-size: 24px; }
 }
 
 .platform-admin-title > span {
   color: var(--text-muted, var(--platform-muted));
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .platform-admin-actions {

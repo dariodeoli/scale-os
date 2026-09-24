@@ -10,7 +10,7 @@ import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star, CircleDollarSign } from "lucide-react";
+import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
 import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
 import {PasswordField} from './password-field';
@@ -18,11 +18,12 @@ import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
 import {PersonPhotoField} from './person-photo';
 import {listDateShort} from './list-format';
+import {EmptyBlock,LoadingBlock} from './ui-v2';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
 import {PhotoViewer} from './photo-viewer';
-import {ActorIdentity,actorInitials} from './actor-identity';
+import {ActorIdentity} from './actor-identity';
 import {PersonContainer} from './person-container';
 import {CommentBody,CommentComposer} from './commenting';
 import {notify,notifyMutation} from './feedback';
@@ -218,12 +219,14 @@ function TeamDirectoryView({organizationName}:{organizationName:string}){
   useEffect(()=>{let alive=true;void api<{directory:DirectoryPerson[]}>('/api/agency/team').then(data=>{if(alive){setDirectory(Array.isArray(data?.directory)?data.directory:[]);setLoaded(true);}}).catch(e=>{if(alive)setError(message(e));});return()=>{alive=false;};},[]);
   return <div className="ops-stack">
     <section className="panel">
-      <div className="panel-heading"><div><p className="eyebrow">DIRECTORIO INTERNO</p><h2>Equipo{organizationName?' de '+organizationName:''}</h2></div></div>
-      <p className="form-note">Directorio de personas: foto, nombre y cargo. Los datos personales de cada integrante se administran desde su propio perfil.</p>
+      <div className="mb-4 min-w-0">
+        <h2 className="text-[17px] font-semibold tracking-tight text-fore">Directorio interno</h2>
+        <p className="mt-1 text-[13px] leading-[1.5] text-mute">Foto, nombre y cargo. Los datos personales de cada integrante se administran desde su propio perfil.</p>
+      </div>
       {error&&<p className="error" role="alert">{error}</p>}
       {directory.length?<div className="ops-grid team-directory-grid">
         {directory.map(person=><article className="ops-card team-directory-card" key={person.id}><PersonContainer size="lg" name={person.full_name||'Integrante'} photoUrl={person.photo_url||undefined} secondary={teamRoleLabels[person.role]||person.cargo||'Sin cargo'} verified/></article>)}
-      </div>:!error?<p className="empty-copy">{loaded?'Sin integrantes para mostrar.':'Cargando equipo…'}</p>:null}
+      </div>:error?null:loaded?<EmptyBlock title="Sin integrantes para mostrar" description="Cuando la empresa tenga personas activas vas a verlas acá."/>:<LoadingBlock label="Cargando equipo…" lines={3}/>}
     </section>
   </div>;
 }
@@ -307,12 +310,7 @@ function PeopleWorkspace({
   }
   if (!allowed)
     return (
-      <section className="panel">
-        <h2>Información restringida</h2>
-        <p>
-          Solo administración y finanzas pueden ver remuneraciones y comisiones.
-        </p>
-      </section>
+      <EmptyBlock title="Información restringida" description="Solo administración y finanzas pueden ver remuneraciones y comisiones."/>
     );
   const person = edit && edit !== "new" ? edit : null;
   const empty = { value: "", label: "Sin vincular" };
@@ -390,12 +388,12 @@ function PeopleWorkspace({
   return (
     <div className="ops-stack">
       <section className="panel">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">PERSONAS, ACCESOS Y REMUNERACIONES</p>
-            <h2>Equipo{organizationName?' de '+organizationName:''}</h2>
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2>
+            <p className="mt-1 text-[13px] leading-[1.5] text-mute">Equipo{organizationName?` de ${organizationName}`:''}: directorio, roles y estado de cada integrante.</p>
           </div>
-          <div className="inline-actions">
+          <div className="flex flex-wrap items-center gap-2">
           {roleCan(role,'settings.manage')&&<button className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
           <button
             className="primary"
@@ -429,7 +427,7 @@ function PeopleWorkspace({
           <div className="workspace-view-controls"><ViewToggle label="Vista del equipo" value={teamView==='list'?'list':'grid'} onChange={value=>setTeamView(value==='list'?'list':'cards')}/></div>
         </div>
         {loading ? (
-          <p role="status">Cargando…</p>
+          <LoadingBlock label="Cargando equipo…" lines={4}/>
         ) : (
           <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
             {canManageAccess&&visiblePeople.some(entry=>entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
@@ -439,15 +437,7 @@ function PeopleWorkspace({
                 <header className="person-hub-head">
                   {canManageAccess&&entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                   <div className="ops-person">
-                    {p.photo_url ? (
-                      <PhotoViewer photo={p.photo_url} name={p.full_name} size={teamView==='list'?32:48}/>
-                    ) : (
-                      <span className="avatar">{actorInitials(p.full_name)}</span>
-                    )}
-                    <div>
-                      <h3 title={p.notes?`${p.full_name} · ${p.notes}`:p.full_name}>{p.full_name}{salaryView&&!p.compensation_amount&&p.active?<span className="client-price-missing" title="Sin salario definido: abrí Perfil y completá la remuneración."><CircleDollarSign size={14} aria-label="Sin salario definido"/></span>:null}</h3>
-                      <small>{entry.member?teamRoleLabels[entry.member.role]||entry.member.role:(p.job_title||'Sin cargo')}</small>
-                    </div>
+                    <PersonContainer size={teamView==='list'?'md':'lg'} name={p.full_name} photoUrl={p.photo_url||undefined} secondary={entry.member?teamRoleLabels[entry.member.role]||entry.member.role:(p.job_title||'Sin cargo')} verified/>
                   </div>
                   <span className="person-hub-state" data-state={p.active?'active':'inactive'}>{p.active?'Activo':'Inactivo'}</span>
                 </header>
@@ -457,6 +447,7 @@ function PeopleWorkspace({
                   <div><dt>Ingreso</dt><dd className="list-date">{listDateShort(p.started_on)||'Sin fecha'}</dd></div>
                 </dl>
                 <div className="person-hub-chips">
+                  {salaryView&&!p.compensation_amount&&p.active?<span className="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span>:null}
                   <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}</span>
                   {salaryView&&<span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>}
                   {salaryView&&p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
@@ -498,10 +489,7 @@ function PeopleWorkspace({
               </footer></div>
             </article>;})}
             {!visiblePeople.length && (
-              <div className="empty-copy">
-                <p>{search?'No hay personas que coincidan con la búsqueda.':'Agregá la primera persona del equipo.'}</p>
-                {search?<button type="button" className="text-button" onClick={()=>setSearch('')}>Limpiar búsqueda</button>:null}
-              </div>
+              <EmptyBlock className="[grid-column:1/-1]" title={search?'Sin coincidencias':'Todavía no hay personas'} description={search?'Probá con otro nombre, correo o cargo.':'Agregá la primera persona del equipo para registrar accesos y remuneraciones.'} action={search?<button type="button" className="text-button" onClick={()=>setSearch('')}>Limpiar búsqueda</button>:null}/>
             )}
           </div>
         )}

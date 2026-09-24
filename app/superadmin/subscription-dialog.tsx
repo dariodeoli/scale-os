@@ -6,6 +6,7 @@ import {Dialog} from "../dialog";
 import {formatPlatformMetric, money, platformDate, subscriptionSummary, type Agency, type Subscription} from "./model";
 import {SaveActions} from "../save-actions";
 import {SelectCustom} from "../profile-controls";
+import {LoadingBlock} from '../ui-v2';
 
 type SubscriptionDialogProps = {
   busy: boolean;
@@ -61,7 +62,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
               </button>
             </div>
           ) : !subscriptionLoaded ? (
-            <p role="status">Cargando estado manual…</p>
+            <LoadingBlock label="Cargando estado manual…" lines={2}/>
           ) : subscription === null ? (
             <p className="form-note">
               Esta agencia todavía no tiene una suscripción interna. Podés

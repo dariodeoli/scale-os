@@ -51,7 +51,7 @@ test('team directory keeps normal roles on photo, name and cargo only',()=>{
  for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'])assert(visibleModule('Equipo',role),`Equipo stays reachable for ${role}`);
  assert.match(operations,/if\(!canOpenPeopleWorkspace\(role\)\)return <TeamDirectoryView/);
  assert.match(operations,/secondary=\{teamRoleLabels\[person\.role\]\|\|person\.cargo\|\|'Sin cargo'\}/);
- assert.match(operations,/Directorio de personas: foto, nombre y cargo/);
+ assert.match(operations,/Foto, nombre y cargo\. Los datos personales de cada integrante se administran desde su propio perfil/);
 });
 
 test('budgets reach production while the pipeline does not',()=>{

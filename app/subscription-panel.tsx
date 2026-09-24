@@ -5,6 +5,7 @@ import {useEffect,useId,useRef,useState} from 'react';
 import {whatsappUrl} from 'owncoding-ui';
 import {daysUntil} from './client-format';
 import {listDateFull} from './list-format';
+import {LoadingBlock} from './ui-v2';
 import {founderPricingNote} from './founder-pricing';
 
 export type SubscriptionState={
@@ -180,7 +181,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
  }
  return <section className="subscription-panel min-w-0 max-w-full [overflow-wrap:anywhere]" data-embedded={embedded||undefined} aria-labelledby={heading} aria-busy={busy}>
   <h2 id={heading} hidden={embedded}>Suscripción de Scale OS</h2>
-  {loading?<div className="subscription-panel-state grid gap-1 rounded-lg border border-ink-600 bg-ink-700 p-4" role="status" aria-live="polite" aria-atomic="true"><strong className="text-[13.5px] text-fore">Cargando suscripción…</strong><span className="text-[13px] leading-[1.45] text-mute">Consultando el estado autorizado por el servidor.</span></div>:error||!state?<div className="subscription-panel-state subscription-panel-state--error grid gap-1 rounded-lg border border-bad/40 border-l-[3px] bg-bad/10 p-4" role="alert"><strong className="text-[13.5px] text-bad">{error||'No se pudo cargar la suscripción. No se confirmó ningún pago.'}</strong>{onRefresh?<span className="text-[13px] leading-[1.45] text-mute">Podés reintentar la actualización.</span>:null}</div>:<div className="grid gap-4">
+  {loading?<div className="grid gap-2" role="status" aria-live="polite" aria-atomic="true"><span className="text-[13px] leading-[1.45] text-mute">Cargando suscripción… Consultando el estado autorizado por el servidor.</span><LoadingBlock label="Cargando suscripción…" lines={2}/></div>:error||!state?<div className="subscription-panel-state subscription-panel-state--error grid gap-1 rounded-lg border border-bad/40 border-l-[3px] bg-bad/10 p-4" role="alert"><strong className="text-[13.5px] text-bad">{error||'No se pudo cargar la suscripción. No se confirmó ningún pago.'}</strong>{onRefresh?<span className="text-[13px] leading-[1.45] text-mute">Podés reintentar la actualización.</span>:null}</div>:<div className="grid gap-4">
    <header className={`subscription-status subscription-status--${state.status} grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-lg border border-l-[3px] p-4 max-md:grid-cols-1 ${STATUS_TONE[state.status]}`}>
     <span className="subscription-badge inline-flex min-h-6 items-center rounded-full border border-current/30 px-2 py-0.5 text-[11px] font-bold leading-tight [white-space:nowrap]" role="status">Estado actual</span>
     <div className="grid min-w-0 gap-1"><h3 className="text-[17px] font-semibold tracking-tight">{titles[state.status]}</h3><p className="text-[13px] leading-[1.5]">{description(state)}</p></div>
