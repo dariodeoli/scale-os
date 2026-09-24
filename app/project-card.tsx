@@ -18,6 +18,7 @@ import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {DriveLinks,driveLinksText} from './drive-links';
 import {DueDate} from './due-date';
 import {listDateShort,listDateFull,dueTone} from './list-format';
+import {PROJECT_PIECES_LIMIT,fetchProjectPieces,remainingPiecesLabel,type ProjectPiece} from './project-pieces';
 import {api,Dialog} from './operations';
 import {statuses} from './production-board';
 
@@ -40,8 +41,7 @@ const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>butt
  * propios datos y estado; unificar exigiría que la cáscara conozca proyectos,
  * sin ganancia de producto. El patrón visual ya es el canónico (Dialog/Editor).
  */
-/** Piezas que lista el detalle antes de resumir el resto (proyectos con miles). */
-const PIECES_DETAIL_LIMIT=50;
+
 const pieceStatusLabel=(status:string)=>statuses.find(state=>state.id===status)?.label||status;
 
 /** Enlaces del proyecto: el API manda `drive_links` (multi) y `drive_url` legado. */
@@ -58,13 +58,13 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
     let alive=true;setData(null);setPieces(null);setError('');
     Promise.all([
       Promise.all([api<{record:ProjectView}>(`/api/agency/projects/${project.id}`),api<{assignees:ProjectAssignee[]}>(`/api/agency/projects/${project.id}/assignees`).catch(()=>({assignees:[]}))]).then(([record,assignees])=>({record:record.record,assignees:assignees.assignees||[]})),
-      // El API todavía no acepta `?project_id=` (#57): se pide la proyección mínima
-      // que dibuja el detalle y se filtra por proyecto en el cliente.
-      api<{workOrders:{id:string;title:string;status:string;due_date?:string|null;due_time?:string|null;project_id:string|number}[]}>('/api/agency/work-orders?fields=id,title,status,due_date,due_time,project_id').then(result=>result.workOrders.filter(order=>String(order.project_id)===String(project.id))),
+      fetchProjectPieces(project.id,(url)=>api<{workOrders:ProjectPiece[]}>(url).then(result=>result.workOrders||[])),
     ]).then(([head,orders])=>{if(!alive)return;setData(head);setPieces(orders);}).catch(cause=>{if(alive)setError(cause instanceof Error?cause.message:'No se pudo cargar el proyecto.');});
     return()=>{alive=false;};
   },[project.id,reload]);
   const record=data?.record||project;
+  // El total de piezas viene del registro de la lista; el detalle puede no traerlo.
+  const piecesTotal=Math.max(Number(record.work_order_count||0),Number(project.work_order_count||0),pieces?.length||0);
   const {links,legacy,count}=projectLinks(record);
   return <Dialog variant="drawer" title={record.name} close={onClose}>
     {error?<ErrorBlock title="No se pudo cargar el proyecto." description={error} onRetry={()=>setReload(value=>value+1)}/>:null}
@@ -94,11 +94,11 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Piezas del proyecto</h4>
-        {pieces===null?<LoadingBlock label="Cargando piezas…" lines={2}/>:pieces.length?<ul className="grid gap-1.5">{pieces.slice(0,PIECES_DETAIL_LIMIT).map(piece=><li key={piece.id} className="flex min-w-0 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px]">
+        {pieces===null?<LoadingBlock label="Cargando piezas…" lines={2}/>:pieces.length?<ul className="grid gap-1.5">{pieces.slice(0,PROJECT_PIECES_LIMIT).map(piece=><li key={piece.id} className="flex min-w-0 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px]">
           <span className="min-w-0 truncate font-semibold text-fore" title={piece.title}>{piece.title}</span>
           <span className="ml-auto flex shrink-0 items-center gap-2 whitespace-nowrap"><span className="list-date tabular-nums text-mute" data-tone={dueTone(piece.due_date)||undefined} title={piece.due_date?`Entrega ${listDateShort(piece.due_date)||''}${piece.due_time?` · ${piece.due_time.slice(0,5)} h`:``}`:undefined}>{piece.due_date?<>{listDateShort(piece.due_date)}{piece.due_time?` · ${piece.due_time.slice(0,5)}`:``}</>:'Sin fecha'}</span><StateChip tone={piece.status==='published'?'ok':piece.status==='approved'?'info':piece.status==='review'?'warn':'mute'}>{pieceStatusLabel(piece.status)}</StateChip></span>
         </li>)}</ul>:<p className="text-[13px] text-mute">El proyecto todavía no tiene piezas.</p>}
-        {pieces&&pieces.length>PIECES_DETAIL_LIMIT?<p className="text-[12px] text-mute" role="status">y {pieces.length-PIECES_DETAIL_LIMIT} piezas más: el detalle completo está en el tablero de Producción.</p>:null}
+        {pieces&&piecesTotal>Math.min(pieces.length,PROJECT_PIECES_LIMIT)?<p className="text-[12px] text-mute" role="status">{remainingPiecesLabel(piecesTotal,Math.min(pieces.length,PROJECT_PIECES_LIMIT))}</p>:null}
       </section>
     </div>
   </Dialog>;
