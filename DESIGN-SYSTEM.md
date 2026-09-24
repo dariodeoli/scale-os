@@ -170,6 +170,27 @@ y esta sección se actualiza.
 | `LoadingBlock` | `Skeleton` con `role="status"` y `aria-busy`; reemplaza los “Cargando…” sueltos de las páginas nuevas. |
 | `Kpi`/`KpiStrip`, `StateChip` | Ya descriptos arriba: un solo KPI y un solo chip. |
 
+### Estado de cobro de un cliente (única definición)
+
+El **`payment_status` que devuelve el API** (`/client-payment-status`,
+`/productivity/clients/:id`) es la única fuente del estado de cobro: la
+pantalla no re-deriva con umbrales propios sobre `days_overdue`. El idioma de
+la UI es uno solo:
+
+| `payment_status` | Etiqueta | Tono del chip |
+| --- | --- | --- |
+| `up_to_date` | `Al día` | `ok` |
+| `due_soon` | `Vence {next_due_on}` (si falta, `próximamente`) | `warn` |
+| `late` | `{days_overdue} días de mora` | `warn` |
+| `severe` | `{days_overdue} días de mora` | `bad` |
+
+`days_overdue` se usa **sólo** para el número de días y para el orden/aging de
+la vista de Mora (bucket propio de esa pantalla), nunca para decidir el tono:
+eso lo decide el servidor (así Clientes, Mora y la ficha de una pieza no
+pueden discrepar). Cuando una pantalla lo adopte, el par
+`paymentStatusLabel/paymentStatusTone` se agrega a un módulo compartido
+(`app/client-format.ts`) y se importa desde ahí.
+
 ### Arquetipos
 
 | Arquetipo | Jerarquía | Cabecera y acciones | Densidad y mobile |
