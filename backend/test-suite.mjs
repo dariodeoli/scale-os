@@ -86,7 +86,10 @@ const leadById=async id=>(await call('/api/agency/leads','GET',{},stageUser)).re
 assert.equal((await call(`/api/agency/pipeline-stages/${custom.id}`,'PATCH',{active:false},stageUser)).stage.active,false);
 assert.equal((await leadById(stageLead.id)).stage,'visita-tecnica','historical leads keep their inactive slug');
 assert.equal((await call('/api/agency/leads','POST',{name:'Etapa inactiva',stage:custom.slug},stageUser)).status,400,'inactive stages reject new leads');
+const leadStampBefore=(await leadById(stageLead.id)).updated_at;
+await new Promise(resolve=>setTimeout(resolve,20));
 assert.equal((await call(`/api/agency/leads/${stageLead.id}`,'PATCH',{name:'Sin tocar etapa'},stageUser)).status,200,'a PATCH without stage keeps the stored slug');
+assert.notEqual((await leadById(stageLead.id)).updated_at,leadStampBefore,'el PATCH de una oportunidad actualiza updated_at');
 assert.equal((await call(`/api/agency/pipeline-stages/${custom.id}`,'PATCH',{slug:'otro'},stageUser)).status,409,'the slug is stable');
 assert.equal((await call(`/api/agency/pipeline-stages/${custom.id}`,'PATCH',{label:'Visita a estudio'},stageUser)).stage.label,'Visita a estudio');
 assert.equal((await call(`/api/agency/pipeline-stages/${custom.id}`,'DELETE',{},stageUser)).deactivated,true,'stages with opportunities are deactivated, never deleted');
