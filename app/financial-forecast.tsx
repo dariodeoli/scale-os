@@ -54,7 +54,7 @@ const PERSON_COLS='grid-cols-[minmax(16rem,1.2fr)_minmax(7rem,.9fr)_minmax(8rem,
 const CONTRACT_COLS='grid-cols-[minmax(22rem,1fr)_9rem_9rem_9rem]';
 const EXPENSE_COLS='grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
-const LIST_HEAD='grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-mute';
+const LIST_HEAD='grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-[.06em] text-mute';
 const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700/40';
 
 const moneyNowrap=(text:string,tono?:'bad')=><span className={cn('whitespace-nowrap tabular-nums',tono==='bad'&&'text-bad')}>{text}</span>;
@@ -115,7 +115,7 @@ function ForecastPanel() {
     </div>
     {financialCurrenciesInMonth.length?<div className="grid gap-3 lg:grid-cols-2">
      {balanceRows.map(row=><article className="forecast-balance-card grid gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4" key={row.currency}>
-      <span className="text-xs font-bold uppercase tracking-wider text-mute">{row.currency}</span>
+      <span className="font-mono text-[10px] uppercase tracking-[.14em] text-mute">{row.currency}</span>
       <div className="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2">
        <span className="text-xs font-medium text-mute">Ingresos</span>
        <BarraProgreso valor={row.income} max={row.max} tono="ok" etiqueta={`Ingresos en ${row.currency}`}/>
@@ -138,7 +138,7 @@ function ForecastPanel() {
     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Resumen por moneda</h3>
     {financialCurrenciesInMonth.length?<div className="grid gap-3 lg:grid-cols-2">
      {financialCurrenciesInMonth.map(currency=>{const row=data.records.find(item=>item.currency===currency),personnel=data.personnel.records.find(item=>item.currency===currency),opening=amountFor(openingBalance,currency);return <article className="forecast-currency grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-4" key={currency}>
-      <span className="text-xs font-bold uppercase tracking-wider text-mute">{currency} · planificación del mes</span>
+      <span className="font-mono text-[10px] uppercase tracking-[.14em] text-mute">{currency} · planificación del mes</span>
       <FilaDato etiqueta="Recurrente contratado" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.contracted,currency),currency))}/>
       <FilaDato etiqueta={`Emitido / facturado (${count(row?.invoice_count)} ${count(row?.invoice_count)===1?'factura':'facturas'})`} valor={moneyNowrap(formatWholeMoney(row?.issued_total,currency))}/>
       <FilaDato etiqueta="Cobrado" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.collected,currency),currency))}/>
@@ -154,7 +154,7 @@ function ForecastPanel() {
     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Proyección de caja y resultado · {horizon} meses</h3>
     {projectionCurrenciesInHorizon.length?<div className="grid gap-4">
      {projectionCurrenciesInHorizon.map(currency=><div className="grid gap-2" key={currency}>
-      <span className="text-xs font-bold uppercase tracking-wider text-mute">{currency} · proyección acumulada</span>
+      <span className="font-mono text-[10px] uppercase tracking-[.14em] text-mute">{currency} · proyección acumulada</span>
       <DataTable
        columns={[{key:'month',label:'Mes'},{key:'cash',label:'Proyectado',align:'right'},{key:'result',label:'Resultado',align:'right'}]}
        rows={(data.projection?.records||[]).filter(row=>row.currency===currency).map(row=>({
@@ -194,7 +194,7 @@ function ForecastPanel() {
      <div className="grid gap-4">
       {data.personnel.records.map(row=><div className="forecast-personnel-card grid gap-2" key={row.currency}>
        <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-mute">{row.currency} · gasto esperado al cierre</span>
+        <span className="font-mono text-[10px] uppercase tracking-[.14em] text-mute">{row.currency} · gasto esperado al cierre</span>
         <strong className="whitespace-nowrap text-lg font-semibold tabular-nums text-fore">{formatWholeMoney(row.expected_end_of_month_expense,row.currency)}</strong>
        </div>
        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-mute">
@@ -238,7 +238,7 @@ function ForecastPanel() {
     </div>
     {aggregates?.expenses.length?<div className="grid gap-3 sm:grid-cols-2">
      {aggregates.expenses.map(row=>{const kinds=plannedExpenseCounts(data!.planned_expenses).find(item=>item.currency===row.currency);return <article className="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4" key={row.currency}>
-      <span className="text-xs font-bold uppercase tracking-wider text-mute">{row.currency} · total planificado</span>
+      <span className="font-mono text-[10px] uppercase tracking-[.14em] text-mute">{row.currency} · total planificado</span>
       <strong className="text-xl font-semibold tabular-nums text-fore">{formatWholeMoney(row.amount,row.currency)}</strong>
       {kinds?<small className="planned-expenses-kinds text-xs text-mute">{count(kinds.fixed_count)} fijos · {count(kinds.variable_count)} variables</small>:null}
      </article>;})}

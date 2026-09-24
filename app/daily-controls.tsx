@@ -104,7 +104,7 @@ export function ClientPortalAccess({clientId}:{clientId:string}){
 // Plantilla compartida por el encabezado y las filas del extracto (fila finita,
 // con scroll horizontal silencioso cuando no entra).
 const STATEMENT_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
-const STATEMENT_HEAD='grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-mute';
+const STATEMENT_HEAD='grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-[.06em] text-mute';
 const STATEMENT_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700/40';
 export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
  const [csv,setCsv]=useState('id,fecha,importe,referencia\n');

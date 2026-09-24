@@ -128,7 +128,7 @@ const moraRow = ({initial, tone, name, statusText, chip, invoices, amount}) => `
 const CARD = 'rounded-xl border border-fono/30 bg-ink-800 p-4';
 const BUTTON_OUTLINE = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold transition h-11 md:h-9 text-sm bg-transparent text-fore border border-ink-500';
 const INPUT = 'w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore h-11 md:h-9 text-base md:text-sm outline-none transition';
-const LIST_HEAD = 'grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-mute';
+const LIST_HEAD = 'grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-[.06em] text-mute';
 const LIST_ROW = 'grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700/40';
 const PERSON_COLS = 'grid-cols-[minmax(16rem,1.2fr)_minmax(7rem,.9fr)_minmax(8rem,.9fr)_minmax(8rem,.9fr)_6.5rem]';
 const CONTRACT_COLS = 'grid-cols-[minmax(22rem,1fr)_9rem_9rem_9rem]';
@@ -420,13 +420,13 @@ const previsionResumen = {
   <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Ingresos vs gastos del mes</h3><p class="text-xs text-mute">Ingresos = emitido más aceptado sin factura. Gastos = personal, comisiones, gastos planificados y gastos reales. Resultado = ingresos menos gastos.</p></div>
   <div class="grid gap-3 lg:grid-cols-2">
    <article class="forecast-balance-card grid gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4">
-    <span class="text-xs font-bold uppercase tracking-wider text-mute">PYG</span>
+    <span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG</span>
     <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Ingresos</span>${barra(1691356890, 1691356890, 'ok', 'Ingresos en PYG')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">Gs. 1.691.356.890</strong></div>
     <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Gastos</span>${barra(130894332, 1691356890, 'bad', 'Gastos en PYG')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">Gs. 130.894.332</strong></div>
     <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Resultado</span>${barra(1560462558, 1691356890, 'fono', 'Resultado en PYG')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">Gs. 1.560.462.558</strong></div>
    </article>
    <article class="forecast-balance-card grid gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4">
-    <span class="text-xs font-bold uppercase tracking-wider text-mute">USD</span>
+    <span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">USD</span>
     <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Ingresos</span>${barra(14445, 18350, 'ok', 'Ingresos en USD')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">USD 14.445</strong></div>
     <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Gastos</span>${barra(18350, 18350, 'bad', 'Gastos en USD')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">USD 18.350</strong></div>
     <div class="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2"><span class="text-xs font-medium text-mute">Resultado</span>${barra(3905, 18350, 'bad', 'Resultado en USD')}<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-bad">−USD 3.905</strong></div>
@@ -437,11 +437,11 @@ const previsionResumen = {
   <h3 class="text-[17px] font-semibold tracking-tight text-fore">Resumen por moneda</h3>
   <div class="grid gap-3 lg:grid-cols-2">
    <article class="forecast-currency grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-4">
-    <span class="text-xs font-bold uppercase tracking-wider text-mute">PYG · planificación del mes</span>
+    <span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG · planificación del mes</span>
     ${filaDato('Recurrente contratado', 'Gs. 250.000.000')}${filaDato('Emitido / facturado (12 facturas)', 'Gs. 1.234.567.890')}${filaDato('Cobrado', 'Gs. 987.654.321')}${filaDato('Saldo inicial de caja', 'Gs. 620.000.000')}${filaDato('Personal', 'Gs. 69.765.432')}${filaDato('Comisiones de clientes', 'Gs. 45.678.900')}${filaDato('Gastos planificados (4)', 'Gs. 12.000.000')}${filaDato('Gastos reales', 'Gs. 3.450.000')}${filaDato('Aceptado sin factura (7 presupuestos · 2 sin fecha)', 'Gs. 456.789.000')}
    </article>
    <article class="forecast-currency grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-4">
-    <span class="text-xs font-bold uppercase tracking-wider text-mute">USD · planificación del mes</span>
+    <span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">USD · planificación del mes</span>
     ${filaDato('Recurrente contratado', 'USD 12.500')}${filaDato('Emitido / facturado (3 facturas)', 'USD 14.445')}${filaDato('Cobrado', 'USD 9.800')}${filaDato('Saldo inicial de caja', 'USD 21.400')}${filaDato('Personal', 'USD 8.350')}${filaDato('Comisiones de clientes', 'USD 1.200')}${filaDato('Gastos planificados (2)', 'USD 4.300')}${filaDato('Gastos reales', 'USD 4.500')}${filaDato('Aceptado sin factura (1 presupuesto)', 'USD 2.400')}
    </article>
   </div>
@@ -451,7 +451,7 @@ const previsionResumen = {
   <p role="status" class="text-xs text-mute">4 colaborador(es) activo(s) incluido(s).</p>
   <div class="grid gap-4">
    <div class="forecast-personnel-card grid gap-2">
-    <div class="flex flex-wrap items-baseline justify-between gap-2"><span class="text-xs font-bold uppercase tracking-wider text-mute">PYG · gasto esperado al cierre</span><strong class="whitespace-nowrap text-lg font-semibold tabular-nums text-fore">Gs. 69.765.432</strong></div>
+    <div class="flex flex-wrap items-baseline justify-between gap-2"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG · gasto esperado al cierre</span><strong class="whitespace-nowrap text-lg font-semibold tabular-nums text-fore">Gs. 69.765.432</strong></div>
     <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-mute"><span>Salario base (3): <b class="font-semibold tabular-nums text-fore">Gs. 68.565.432</b></span><span>Ajustes del mes (1): <b class="font-semibold tabular-nums text-fore">Gs. 1.200.000</b></span></div>
     ${listWrap('56rem', `<div class="forecast-person-list" role="table" aria-label="Personal proyectado">
      <div class="${LIST_HEAD} ${PERSON_COLS}" aria-hidden="true"><span>Persona</span><span>Salario base</span><span>Ajuste del mes</span><span>Cierre del mes</span><span class="text-right">Acciones</span></div>
@@ -467,8 +467,8 @@ const previsionResumen = {
   <div class="grid gap-3">
    <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos planificados · 01-sept</h3><p class="text-xs text-mute">Esto es planificación interna; no registra un pago, una factura ni una cuenta por pagar.</p></div>
    <div class="grid gap-3 sm:grid-cols-2">
-    <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="text-xs font-bold uppercase tracking-wider text-mute">PYG · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">Gs. 12.000.000</strong><small class="planned-expenses-kinds text-xs text-mute">2 fijos · 2 variables</small></article>
-    <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="text-xs font-bold uppercase tracking-wider text-mute">USD · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">USD 4.300</strong><small class="planned-expenses-kinds text-xs text-mute">1 fijos · 1 variables</small></article>
+    <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">Gs. 12.000.000</strong><small class="planned-expenses-kinds text-xs text-mute">2 fijos · 2 variables</small></article>
+    <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">USD · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">USD 4.300</strong><small class="planned-expenses-kinds text-xs text-mute">1 fijos · 1 variables</small></article>
    </div>
   </div>
   ${listWrap('44rem', `<div role="table" aria-label="Gastos planificados del mes">
@@ -524,7 +524,7 @@ const previsionContratos = {
 /* --------------- Previsión: proyección multi-mes (v2) ----------------- */
 const projectionTable = (currency, rows) => `
 <div class="grid gap-2">
- <span class="text-xs font-bold uppercase tracking-wider text-mute">${currency} · proyección acumulada</span>
+ <span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">${currency} · proyección acumulada</span>
  ${tableBlock([['Mes'], ['Proyectado', 'right'], ['Resultado', 'right']], rows.map(([month, cash, result]) => [[month], [`<span class="whitespace-nowrap tabular-nums${cash.startsWith('−') ? ' text-bad' : ''}">${cash}</span>`, 'right'], [`<span class="whitespace-nowrap tabular-nums${result.startsWith('−') ? ' text-bad' : ''}">${result}</span>`, 'right']]))}
 </div>`;
 const previsionProyeccion = {
