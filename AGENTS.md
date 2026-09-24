@@ -48,7 +48,7 @@
 - **Estado raro de git** (fetch que falla, refs rotas, `.git/MERGE_HEAD` ajeno): parar y avisar; no reparar por cuenta propia.
 
 ## Objetos y valores predeterminados (fuente única)
-- **Componentes canónicos**: `Dialog`/`Editor`/`FormActions`/`SaveActions`, `SelectCustom`, `SearchField`, `PhoneField`, `EmailField`, `AmountInput`, `PasswordField`, `PersonContainer`, `ActorIdentity`, `SerialTexto` y utilidades de `list-format`, `notify()` + notification-center, clases `panel`/`ops-card`/`kpi-strip`/`hub-chip`. Un diseño por tipo; si el caso no existe se crea UNA vez en `app/` y se adopta en todos lados. Prohibido crear variantes paralelas o componentes muertos.
+- **Componentes canónicos**: `Dialog`/`Editor`/`FormActions`/`SaveActions`, `SelectCustom`, `SearchField`, `PhoneField`, `EmailField`, `AmountInput`, `PasswordField`, `PersonContainer`, `ActorIdentity`, `SerialTexto` y utilidades de `list-format`, `notify()` + notification-center, clases `panel`/`ops-card`/`kpi-strip`/`hub-chip`. Los patrones v2 viven en `app/ui-v2.tsx` (`PageHeader`, `FilterToolbar`, `ListGrid`/`ListRow`, `Kpi`/`KpiStrip`, `StateChip`, `MoneyText`, `CurrencyField`, `ViewSwitch`, `LoadingBlock`, `EmptyBlock`, `ErrorBlock`) y su contrato se detalla en `DESIGN-SYSTEM.md` §Patrones compartidos v2. Un diseño por tipo; si el caso no existe se crea UNA vez en `app/` y se adopta en todos lados. Prohibido crear variantes paralelas o componentes muertos.
 - **Valores por defecto**: país `+595`; moneda de la empresa (`useCompanyCurrency`); zona `America/Asuncion`; hora siempre 24 h (`hourCycle:'h23'`); PYG sin decimales y el resto 2; fechas con `type="date"` y horas con `type="time"`; límites por tipo (nombres 120, direcciones 400, notas 2000); sin máscaras que rompan pegado/autofill.
 - **Guardado vs. mostrado**: se guarda normalizado (número, teléfono `+<código> <dígitos>`, serial mayúsculas sin separadores, correo en minúsculas); el símbolo/separador lo dibuja el campo.
 - **Librería compartida**: la lógica pura y las reglas de interfaz del grupo viven en `owncoding-ui` (tag fijo; hoy `v0.12.0`); ScaleOS la importa y no mantiene copias locales de esas reglas.
@@ -63,7 +63,7 @@
 3. `rg "<<<<<<<" app tests build-tools` sin resultados (nunca commits con marcadores de conflicto).
 4. Si tocaste el API (`backend/`): `npm --prefix backend run test:release` en verde; la migración nueva va **aditiva, idempotente, re-ejecutable y registrada** (ver «Backend (API en `backend/`)»). En el front, no exportar símbolos que no sean handlers de Next en `app/api` ni duplicar slugs dinámicos.
 5. Versión y footer sincronizados en web y backend: `npm run release:check` y `npm run footer:check` verdes.
-6. `npx prisma validate` si tocaste `prisma/`.
+6. `npx prisma validate` si tocaste `prisma/` (sin `.env`, exportá `DATABASE_URL=postgresql://prisma:prisma@localhost:5432/scale-os`: solo valida el schema, no se conecta).
 
 ## Backend (API en `backend/`)
 - El API (Express + Postgres, `server.js`) vive en `backend/` desde la migración a monorepo (scale-os#34). Su historial completo llegó con `git subtree`: es parte de este repositorio, no un checkout aparte; no hagas `subtree pull` ni recrees `backend/.githooks`/`backend/.github`.
