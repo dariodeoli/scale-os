@@ -4,6 +4,7 @@
 import Link from "next/link";
 import {ArrowLeft, CircleAlert, KeyRound, RefreshCw, ShieldAlert} from "lucide-react";
 import {appHome, type BootstrapStatus, type State} from "./model";
+import {Skeleton} from 'owncoding-ui';
 
 const SURFACE = "grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4";
 const ICON = "grid size-10 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute";
@@ -56,6 +57,7 @@ export function PlatformNotices({state, error, busy, bootstrap}: {state: State |
       <div className="min-w-0">
         <h2 className="text-[17px] font-semibold tracking-tight text-fore">Cargando control global</h2>
         <p className="mt-1 text-xs text-mute">Reuniendo indicadores, accesos y catálogo comercial.</p>
+        <div className="mt-3 grid gap-2" aria-hidden="true"><Skeleton className="h-3.5 w-28 rounded-full"/><Skeleton className="h-10 w-full rounded-xl"/></div>
       </div>
     </section> : null}
   </>;

@@ -3,6 +3,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {Building2,Star} from 'lucide-react';
 import {api} from './operations';
+import {EmptyBlock,LoadingBlock} from './ui-v2';
 import './company-settings.css';
 
 type Company={id:string|number;name:string;role:string;isDemo?:boolean};
@@ -30,8 +31,8 @@ export function CompanySettings(){
  }
  return <div className="company-settings" aria-busy={busy}>
   <p className="form-note company-settings-intro">Tus empresas y accesos. Elegí cuál abrir al iniciar sesión; esto no cambia tus permisos ni mezcla los datos.</p>
-  {!data&&!error&&<p className="company-settings-feedback" role="status">Cargando tus empresas…</p>}
-  {data?.organizations.length===0&&<p className="company-settings-empty" role="status">No hay empresas disponibles para esta cuenta.</p>}
+  {!data&&!error&&<LoadingBlock label="Cargando tus empresas…" lines={2}/>}
+  {data?.organizations.length===0&&<EmptyBlock title="No hay empresas disponibles" description="Pedile a la administración de Scale OS que revise tus accesos."/>}
   {data?.organizations.map(company=>{
    const current=String(company.id)===String(data.currentOrganizationId),preferred=String(company.id)===String(data.defaultOrganizationId);
    return <article className={`company-settings-row${current?' is-current':''}${preferred?' is-default':''}`} key={company.id}>
