@@ -2,6 +2,25 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.117
+
+### Comercial
+
+- **Pipeline**: al editar una oportunidad, su fecha de actualización se refleja (PATCH corregido), así el orden por actividad queda al día.
+
+### Operaciones
+
+- **Mi día** quedó completo y el detalle de proyecto acotado, según la ronda de QA con datos reales (piezas y responsables sin cortes).
+
+### Plataforma y acceso
+
+- **Equipo y Papelera** cumplen el contrato de listas en escritorio y celular (filas finas y acciones alineadas).
+- **API**: la negociación de compresión atiende bien `q=0` y el comodín de `Accept-Encoding` (no comprime cuando el cliente lo prohíbe).
+
+### Medición
+
+- El harness mide claro y oscuro por separado y dejó de marcar el falso solape del campo de contraseña.
+
 ## v1.0.116
 
 ### Rendimiento y datos
