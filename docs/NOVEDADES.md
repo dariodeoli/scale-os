@@ -2,6 +2,16 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.121
+
+### Marco y sistema visual
+
+- **Topbar sin desborde**: las utilidades envuelven y el buscador se trunca (o pasa a icono) en pantallas chicas; “Métricas” queda como tab real dentro de Pipeline, con su ruta y redirect alineados, y se retiró una regla legacy de toolbars.
+
+### Finanzas
+
+- **Rótulos al patrón del marco**: toda la familia de eyebrows de la vertical financiera usa el eyebrow canónico (Previsión, Informes y el resto).
+
 ## v1.0.120
 
 ### Marco y sistema visual
