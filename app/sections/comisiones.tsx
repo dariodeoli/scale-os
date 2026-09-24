@@ -152,7 +152,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const payAccounts = pay ? accounts.filter(account => account.active && account.currency === pay.currency) : [];
 
   return <section className="grid gap-4" aria-label="Comisiones y referidos">
-    <PageHeader eyebrow="Finanzas" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." actions={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>
+    <PageHeader eyebrow="Equipo" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." actions={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>
     {error ? <ErrorBlock title="No pudimos completar la operación" description={error} onRetry={() => void load()}/> : null}
     {notice ? <Aviso tono="ok">{notice}</Aviso> : null}
     {loading ? <LoadingBlock label="Cargando comisiones…" lines={4}/> : <>

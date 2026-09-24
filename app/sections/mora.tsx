@@ -1,6 +1,6 @@
 "use client";
 import type {Dispatch, SetStateAction} from 'react';
-import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {SegmentedField} from 'owncoding-ui';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
 import {roleCan} from '../capabilities';
@@ -76,14 +76,12 @@ export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, m
   const canSeeDso = roleCan(user?.role, 'reports.view');
   const updated = moraUpdated ? listDateFull(moraUpdated.toISOString()) : null;
   return <section className="grid gap-4" aria-label="Cobranza y mora">
-    <header className="flex flex-wrap items-end justify-between gap-3">
-      <div className="min-w-0">
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Finanzas · cobranzas</p>
-        <h2 className="text-lg font-semibold tracking-tight text-fore">Estado de pagos</h2>
-        <p className="mt-1 text-xs text-mute">Saldo pendiente por antigüedad y días en calle por moneda.</p>
-      </div>
-      {updated ? <span className="whitespace-nowrap text-xs tabular-nums text-mute">Actualizado {updated}</span> : null}
-    </header>
+    <PageHeader
+      eyebrow="Finanzas"
+      title="Estado de pagos"
+      subtitle="Saldo pendiente por antigüedad y días en calle por moneda."
+      actions={updated ? <span className="whitespace-nowrap text-xs tabular-nums text-mute">Actualizado {updated}</span> : undefined}
+    />
 
     <KpiStrip>
       <Kpi label="Al día" valor={kpis.alDia} hint="Sin saldo vencido"/>

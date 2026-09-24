@@ -170,7 +170,7 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(22rem,1fr\)_9rem_9rem_9rem\]'/,'contracted clients declare one shared template');
   assert.match(forecast,/cn\(LIST_HEAD,CONTRACT_COLS\)[^>]*><span>Cliente<\/span><span className="text-right">Contratado<\/span><span className="text-right">Facturado<\/span>/,'contracted clients show their header');
-  assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-1 last:border-0'/,'list rows keep the thin row contract');
+  assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700\/40'/,'list rows keep the thin row contract with the system hover');
   assert.match(team,/\.team-directory-card\{[^}]*min-height:190px/,'the directory keeps big grid cards');
   const presence=read('app/presence.css');
   assert.match(presence,/\.usage-grid \.ops-card\{[^}]*min-height:180px/,'usage cards keep grid height');

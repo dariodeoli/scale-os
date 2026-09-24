@@ -54,7 +54,7 @@ async function run(){
   const staleInitial=requests.find(r=>r.url?.includes('/reports?'))!;month('2020-06');
  const june=latest();assert.match(june.url,/month=2020-06&months=12/);
  await respond(june,fixture('2020-06'));
-  assert.equal(renderer.root.findAllByType('h2')[0].children[0],'Evolución mensual');
+  assert.equal(renderer.root.findAllByType('h1')[0].children[0],'Evolución mensual');
  assert.match(text(),/Mes a consultar/);
  assert.match(text(),/Datos al 10 sept 26 · 12:00 \(hora de Asunción\)/);
  assert.match(text(),/Histórico confiable desde: 01 ene 20 · 00:00/);

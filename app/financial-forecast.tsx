@@ -47,7 +47,7 @@ import {
   SegmentedField,
   cn,
 } from 'owncoding-ui';
-import {CurrencyField,LoadingBlock,StateChip} from './ui-v2';
+import {CurrencyField,LoadingBlock,PageHeader,StateChip} from './ui-v2';
 
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
 const PERSON_COLS='grid-cols-[minmax(16rem,1.2fr)_minmax(7rem,.9fr)_minmax(8rem,.9fr)_minmax(8rem,.9fr)_6.5rem]';
@@ -55,7 +55,7 @@ const CONTRACT_COLS='grid-cols-[minmax(22rem,1fr)_9rem_9rem_9rem]';
 const EXPENSE_COLS='grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
 const LIST_HEAD='grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-mute';
-const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 last:border-0';
+const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700/40';
 
 const moneyNowrap=(text:string,tono?:'bad')=><span className={cn('whitespace-nowrap tabular-nums',tono==='bad'&&'text-bad')}>{text}</span>;
 
@@ -95,17 +95,12 @@ function ForecastPanel() {
  const plannedFor=(currency:MoneyCurrency)=>plannedExpenseCounts(data!.planned_expenses).find(item=>item.currency===currency);
 
  return <section className="grid gap-4" aria-label="Previsión financiera">
-  <div className="flex flex-wrap items-end justify-between gap-3">
-   <div>
-    <p className="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Planificación mensual</p>
-    <h2 className="text-lg font-semibold tracking-tight text-fore">Previsión financiera</h2>
-   </div>
-   <div className="flex flex-wrap items-end gap-3">
-    <FormField label="Mes"><Input type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/></FormField>
-    <div className="grid gap-1.5">
-     <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Horizonte</span>
-     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
-    </div>
+  <PageHeader eyebrow="Finanzas" title="Previsión financiera"/>
+  <div className="flex flex-wrap items-end gap-3">
+   <FormField label="Mes"><Input type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/></FormField>
+   <div className="grid gap-1.5">
+    <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Horizonte</span>
+    <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
    </div>
   </div>
   <Nota tono="neutro">Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.</Nota>
