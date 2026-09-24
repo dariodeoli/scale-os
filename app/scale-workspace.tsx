@@ -42,6 +42,9 @@ import {ProjectComments, CompanySelector, money} from './operations';
 import './operations.css';
 import './suite.css';
 import {RecordEditor} from './suite';
+import {AssignedPeople} from './assigned-people';
+import {listDateShort,dueTone} from './list-format';
+import {StateChip,ViewSwitch} from './ui-v2';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
@@ -94,9 +97,10 @@ import {
   DragOverlay,
 } from "@dnd-kit/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ViewToggle } from "./view-toggle";
 import {ClientDirectoryToolbar,filterClientDirectory} from "./client-directory-toolbar";
 import {
+  Archive,
+  ArchiveRestore,
   CircleDollarSign,
   ArrowLeftRight,
   ArrowUpRight,
@@ -686,6 +690,36 @@ export default function Home() {
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
     </ProjectCard>;
   }
+  // Fila de la vista lista de Proyectos (contrato v2): una línea por celda,
+  // acciones de ícono propias (archivar/reactivar y editar) para no depender de
+  // los children de la tarjeta — el drawer del proyecto sigue viviendo en la
+  // tarjeta (vista cuadrícula).
+  // Acción de ícono de la fila: targets 44/28 sin el min-height legado de
+  // `.icon-button` (que empujaba la fila a 57px).
+  const ROW_ICON_ACTION='grid h-11 w-11 min-h-0 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7';
+  function projectRowEntry(project:Project){
+    const client=clients.find(c=>String(c.id)===String(project.client_id));
+    const archived=project.active===false;
+    const statusTone=archived?'mute':project.status==='active'?'ok':project.status==='paused'?'warn':project.status==='completed'?'info':'bad';
+    const statusText=archived?'Archivado':project.status==='active'?'Activo':project.status==='paused'?'Pausado':project.status==='completed'?'Completado':'Cancelado';
+    const pieces=Number(project.work_order_count||0);
+    return <>
+      <span className="flex min-w-0 items-center gap-2">
+        {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={selectedProjects.includes(String(project.id))} onChange={()=>toggleProjectSelected(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
+        <span className="flex min-w-0 items-baseline gap-1.5">
+          <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={project.name}>{project.name}</b>
+          <small className="min-w-0 truncate text-[11px] text-mute" title={client?.name||'Sin cliente'}>· {client?.name||'Sin cliente'}</small>
+        </span>
+      </span>
+      <span className="flex items-center"><StateChip tone={statusTone}>{statusText}</StateChip></span>
+      <span className="min-w-0 truncate text-[11.5px] text-mute" title={`Inicio ${listDateShort(project.start_date)||'sin fecha'} · Entrega ${listDateShort(project.due_date)||'sin fecha'} · ${pieces} pieza${pieces===1?'':'s'}`}>{listDateShort(project.start_date)||'Sin inicio'} · <span data-tone={dueTone(project.due_date)}>{listDateShort(project.due_date)||'Sin entrega'}</span> · <b className="tabular-nums">{pieces}</b> pieza{pieces===1?'':'s'}</span>
+      <span className="flex min-w-0 items-center"><AssignedPeople people={project.assignees}/></span>
+      <span className="flex items-center justify-end gap-1">
+        {canManageProjects?<button type="button" className={ROW_ICON_ACTION} disabled={archiveBusy===`project:${project.id}`} title={archived?'Reactivar proyecto':'Archivar proyecto'} aria-label={`${archived?'Reactivar':'Archivar'} proyecto: ${project.name}`} onClick={()=>void setProjectArchive(project.id,archived)}>{archived?<ArchiveRestore size={15}/>:<Archive size={15}/>}</button>:null}
+        <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
+      </span>
+    </>;
+  }
   async function loadAllInvoices(){
     const data=await request<{invoices:Invoice[];hasMore?:boolean}>("/api/agency/invoices?limit=all");
     setInvoices(listOf<Invoice>(data?.invoices));setInvoiceHasMore(false);setAllInvoicesLoaded(true);
@@ -947,7 +981,7 @@ export default function Home() {
               {active==='Proyectos'&&<span className="page-count rounded-full bg-ink-700 px-2 py-0.5 text-[11px] tabular-nums text-mute">{projects.length} proyectos</span>}
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
-              {active==='Proyectos'&&<div className="workspace-view-controls"><ViewToggle label="Vista de proyectos" value={projectView as 'grid'|'list'} onChange={changeProjectView}/></div>}
+              {active==='Proyectos'&&<div className="workspace-view-controls"><ViewSwitch value={projectView as 'list'|'grid'} onChange={changeProjectView}/></div>}
               <WorkspaceGuide {...guideProps}/>
               {(['Proyectos','Resumen','Producción','Presupuestos'].includes(active)&&canCreateRecord(active)) && (
                 <button
@@ -988,7 +1022,7 @@ export default function Home() {
         {active==='Producción'&&<ProduccionSection productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso}/>}
         {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail}/>}
-        {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry}/>}
+        {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectRow={projectRowEntry} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry}/>}
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={loadBudgets} setBudgets={setBudgets}/>}
         {active==='Informes'&&<InformesSection user={user}/>}
         {active==='Finanzas'&&<FinanzasSection user={user} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} setModal={setModal} openPayment={openPayment} setToast={setToast}/>}

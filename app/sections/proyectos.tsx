@@ -2,7 +2,7 @@
 import type {Dispatch, ReactNode, SetStateAction} from 'react';
 import {X} from 'lucide-react';
 import {Select} from 'owncoding-ui';
-import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, LoadingBlock, type Column} from '../ui-v2';
+import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, type Column} from '../ui-v2';
 import {BATCH_LIMITS} from '../capabilities';
 import type {Client, Project} from '../workspace-types';
 
@@ -39,12 +39,14 @@ type ProyectosSectionProps = {
   selectVisibleProjects: () => void;
   batchProjects: (archived: boolean) => Promise<void>;
   projectEntry: (project: Project) => ReactNode;
+  /** Fila de la vista lista (una línea por celda, acciones de ícono). */
+  projectRow: (project: Project) => ReactNode;
 };
-export function ProyectosSection({setToast, bulkBusy, projectView, selectedProjects, setSelectedProjects, projectsState, canManageProjects, clients, projects, projectClientFilter, setProjectClientFilter, projectKpis, visibleProjects, liveProjects, archivedProjects, load, selectVisibleProjects, batchProjects, projectEntry}: ProyectosSectionProps){
+export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, selectedProjects, setSelectedProjects, projectsState, canManageProjects, clients, projects, projectClientFilter, setProjectClientFilter, projectKpis, visibleProjects, liveProjects, archivedProjects, load, selectVisibleProjects, batchProjects, projectEntry}: ProyectosSectionProps){
   const retry=()=>void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los proyectos.'));
   const collection=(list: Project[], label: string)=>projectView==='grid'
     ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{list.map(project => projectEntry(project))}</div>
-    : <ListGrid label={label} template="grid-cols-[var(--project-cols)]" columns={PROJECT_COLUMNS} className={`project-list ${PROJECT_COLS}`} minWidthClass="min-w-[64rem]">{list.map(project => projectEntry(project))}</ListGrid>;
+    : <ListGrid label={label} template="grid-cols-[var(--project-cols)]" columns={PROJECT_COLUMNS} className={`project-list ${PROJECT_COLS}`} minWidthClass="min-w-[64rem]">{list.map(project => <ListRow key={project.id} template="grid-cols-[var(--project-cols)]">{projectRow(project)}</ListRow>)}</ListGrid>;
   const empty = !visibleProjects.length;
   return (
     <section className="grid min-w-0 gap-4" aria-label="Proyectos">
