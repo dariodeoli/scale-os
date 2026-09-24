@@ -157,13 +157,28 @@ const projectCard = (project) => `
  <p class="text-[10.5px] text-mute">Actualizado ${project.updated}</p>
  <div class="mt-auto flex min-w-0 flex-wrap items-center gap-2 border-t border-ink-600 pt-2">${project.links ? `<a class="inline-flex min-h-11 items-center whitespace-nowrap text-[11.5px] font-semibold text-fono-light md:min-h-0" href="#drive">Abrir Drive${project.links > 1 ? ` (${project.links})` : ''} ↗</a>` : '<small class="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>'}${iconAction({icon: 'eye', label: `Ver detalle del proyecto: ${project.name}`, tone: 'fono'})}<button type="button" class="text-button">Comentarios</button></div>
 </article>`;
+const projectListRow = (project) => `
+<div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${PROJECT_TEMPLATE}">
+ <span class="flex min-w-0 items-center gap-2">
+  ${project.selectable ? `<input type="checkbox" class="size-4 shrink-0 accent-fono" aria-label="Seleccionar ${project.name}"${project.selected ? ' checked' : ''}/>` : ''}
+  <span class="flex min-w-0 items-baseline gap-1.5"><b class="min-w-0 truncate text-[13.5px] font-semibold text-fore" title="${project.name}">${project.name}</b><small class="min-w-0 truncate text-[11px] text-mute" title="${project.client.name}">· ${project.client.name}</small></span>
+ </span>
+ <span class="flex items-center">${chip(project.status.label, project.status.tone)}</span>
+ <span class="min-w-0 truncate text-[11.5px] text-mute" title="Inicio ${project.start || 'sin fecha'} · Entrega ${project.due || 'sin fecha'} · ${project.pieces} piezas">${project.start || 'Sin inicio'} · <span class="list-date whitespace-nowrap"${project.dueTone ? ` data-tone="${project.dueTone}"` : ''}>${project.due || 'Sin entrega'}</span> · <b class="tabular-nums">${project.pieces}</b> piezas</span>
+ <span class="flex min-w-0 items-center"><span class="min-w-0 truncate" title="${(project.people || []).map((person) => person.name).join(', ')}">${(project.people || []).map((person) => person.name).join(', ')}</span></span>
+ <span class="flex items-center justify-end gap-1">
+  <button type="button" class="grid h-11 w-11 min-h-0 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" title="Archivar proyecto" aria-label="Archivar proyecto: ${project.name}">${svg(ICON.trash, 15)}</button>
+  <button type="button" class="grid h-11 w-11 min-h-0 shrink-0 place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" title="Editar proyecto" aria-label="Editar proyecto: ${project.name}">${svg(ICON.pencil, 15)}</button>
+ </span>
+</div>`;
+
 const projectsBody = (asGrid) => `
 <section class="grid min-w-0 gap-4" aria-label="Proyectos">
  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Activos', '2', 'Con trabajo en curso')}${kpi('Pausados', '1', 'Sin producción activa')}${kpi('Completados', '1', 'Cerrados en el historial')}${kpi('Piezas totales', '187', 'Órdenes de los proyectos visibles')}</div>
  <div class="mb-4 flex flex-wrap items-end gap-3"><label class="grid w-full gap-1.5 sm:w-64"><span class="text-[12px] font-semibold text-mute">Cliente</span><select class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore md:h-9 md:text-sm"><option>Todos los clientes</option></select></label><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">4 proyectos</p></div>
  ${asGrid
    ? `<div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">${projectRows.map(projectCard).join('')}</div>`
-   : `<div role="table" aria-label="Proyectos" class="project-list silent-scroll min-w-0 overflow-x-auto [--project-cols:minmax(14rem,1.6fr)_7rem_minmax(13rem,1.1fr)_minmax(10rem,1fr)_10rem]"><div class="min-w-[64rem]"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-3 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PROJECT_TEMPLATE}"><span role="columnheader">Proyecto</span><span role="columnheader">Estado</span><span role="columnheader">Fechas y piezas</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Acciones</span></div><div role="rowgroup">${projectRows.map(projectRow).join('')}</div></div></div>`}
+   : `<div role="table" aria-label="Proyectos" class="project-list silent-scroll min-w-0 overflow-x-auto [--project-cols:minmax(14rem,1.6fr)_7rem_minmax(13rem,1.1fr)_minmax(10rem,1fr)_10rem]"><div class="min-w-[64rem]"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PROJECT_TEMPLATE}"><span role="columnheader">Proyecto</span><span role="columnheader">Estado</span><span role="columnheader">Fechas y piezas</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Acciones</span></div><div role="rowgroup">${projectRows.map(projectListRow).join('')}</div></div></div>`}
 </section>`;
 
 
@@ -226,7 +241,7 @@ export default [
     lists: [{
       container: '.project-list',
       head: '[role="row"]',
-      row: '.project-entry',
+      row: '.project-list [role="rowgroup"] > [role="row"]',
       label: 'Proyectos · lista',
       template: '--project-cols',
       rowHeight: [44, 52],

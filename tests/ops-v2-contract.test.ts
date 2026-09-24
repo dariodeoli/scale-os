@@ -196,4 +196,16 @@ assert.match(planner,/<input type="month"[\s\S]{0,200}?className="min-h-11"/,'el
 const prodFixtures=read('build-tools/visual-harness/fixtures/ops-produccion-proyectos.mjs');
 assert.match(prodFixtures,/id: 'produccion-calendario'/,'el calendario del planificador tiene fixture propio');
 
-console.log('PASS contrato v2 OPS: inventario, estudio, producción, proyectos e historial con Tailwind + owncoding-ui, una plantilla por lista, estados y sin recortar datos.');
+
+
+// ── Ronda 7: conmutador v2 y fila con acciones de ícono en Proyectos ─────────
+const shell=read('app/scale-workspace.tsx');
+assert.match(shell,/<ViewSwitch value={projectView as 'list'\|'grid'} onChange={changeProjectView}\/>/,'Proyectos usa el conmutador v2 (ViewSwitch) con la persistencia compartida');
+assert.match(shell,/const ROW_ICON_ACTION='grid h-11 w-11 min-h-0[^']*md:h-7 md:w-7'/,'la acción de ícono de la fila fija 44/28 sin el min-height legado');
+assert.match(shell,/function projectRowEntry\(project:Project\)\{/,'la fila de Proyectos la aporta el shell (no los children de la tarjeta)');
+assert.match(shell,/title=\{archived\?'Reactivar proyecto':'Archivar proyecto'\}/,'la acción de archivar/reactivar describe la acción');
+assert.match(projects,/<ListRow key=\{project\.id\} template="grid-cols-\[var\(--project-cols\)\]">\{projectRow\(project\)\}<\/ListRow>/,'la vista lista usa ListRow con la plantilla compartida');
+assert.match(projects,/projectRow: \(project: Project\) => ReactNode/,'la sección recibe la fila del shell');
+assert.match(prodFixtures,/row: '\.project-list \[role="rowgroup"\] > \[role="row"\]'/,'el fixture de la lista mide las filas del cuerpo');
+assert.match(prodFixtures,/projectListRow/,'y espeja la fila con acciones de ícono');
+console.log('PASS contrato ronda 7: conmutador v2 en Proyectos y fila con acciones de ícono (44-52)');
