@@ -30,6 +30,7 @@ const storageLocationMigration=await fs.readFile(new URL('./migrations/20260914_
 const locationPipelineMigration=await fs.readFile(new URL('./migrations/20260915_inventory_location_pipeline.sql',import.meta.url),'utf8');await pg.exec(locationPipelineMigration);await pg.exec(locationPipelineMigration);
 const photosMigration=await fs.readFile(new URL('./migrations/20260915_inventory_photos.sql',import.meta.url),'utf8');await pg.exec(photosMigration);await pg.exec(photosMigration);
 const categoryIconsMigration=await fs.readFile(new URL('./migrations/20260915_inventory_category_icons.sql',import.meta.url),'utf8');await pg.exec(categoryIconsMigration);await pg.exec(categoryIconsMigration);
+const photoStampMigration=await fs.readFile(new URL('./migrations/20260924_inventory_photo_stamp.sql',import.meta.url),'utf8');await pg.exec(photoStampMigration);await pg.exec(photoStampMigration);
 const valueMaintenanceMigration=await fs.readFile(new URL('./migrations/20260919_inventory_value_maintenance.sql',import.meta.url),'utf8');await pg.exec(valueMaintenanceMigration);await pg.exec(valueMaintenanceMigration);
 assert((await query('select category_id from agency_inventory where id=$1',[legacy])).rows[0].category_id);
 await query("insert into agency_settings(organization_id,default_currency) values($1,'EUR')",[org]);
@@ -39,9 +40,10 @@ let tail=Promise.resolve(),checkoutClock=null,apiCases=0;
 // without sleeping. All storage, locks, constraints and transactions remain real.
 const leaseQuery=(sql,args)=>checkoutClock&&sql==='select now() as now'?Promise.resolve({rows:[{now:checkoutClock}]}):query(sql,args);
 const db={connect:async()=>{let unlock;const prior=tail;tail=new Promise(resolve=>{unlock=resolve;});await prior;return {query:leaseQuery,release(){unlock();}};}};
-async function call(path,method='GET',payload={},user=owner){
- let result;const handled=await inventoryReservations({req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test/api/agency/'+path),db,session:async()=>user,body:async()=>payload,send:(_,status,data)=>{result={status,...data};}});
- assert(handled);apiCases++;return result;
+async function call(path,method='GET',payload={},user=owner,headers={}){
+ let result;const binary={status:0,headers:{},body:null};
+ const handled=await inventoryReservations({req:{method,headers,socket:{remoteAddress:'127.0.0.1'}},res:{writeHead(status,headers){binary.status=status;Object.assign(binary.headers,headers||{});},end(body){binary.body=body||null;}},url:new URL('https://test/api/agency/'+path),db,session:async()=>user,body:async()=>payload,send:(_,status,data)=>{result={status,...data};}});
+ assert(handled);apiCases++;return result??binary;
 }
 const iso=offset=>new Date(Date.now()+offset).toISOString();
 const start=iso(-60000),end=iso(3600000),later=iso(7200000);
@@ -68,6 +70,36 @@ assert.equal(photoItem.photo_url,'https://example.invalid/equipment.png','equipm
 assert.equal((await call(`inventory/${photoItem.id}`,'PATCH',{name:'Monitor renombrado'})).record.photo_url,'https://example.invalid/equipment.png','photo survives unrelated updates');
 assert.equal((await call(`inventory/${photoItem.id}`,'PATCH',{photo_url:''})).record.photo_url,null,'an empty photo clears the image');
 assert.equal((await call(`inventory/${photoItem.id}`,'PATCH',{photo_url:'javascript:alert(1)'})).status,400,'non-HTTPS photo sources are rejected');
+
+// Foto embebida (#58): el payload entrega la URL del API y la imagen viaja aparte.
+const tinyPng='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+const withPhoto=(await call('inventory','POST',{name:'Cámara con foto embebida',category_id:category.id,photo_url:tinyPng})).record;
+const photoId=String(withPhoto.id);
+assert.equal(String(withPhoto.photo_url).startsWith(`/api/agency/inventory/${photoId}/photo?v=`),true,'la ficha entrega la URL con cache-busting, no la imagen embebida');
+const storedPhoto=(await query('select photo_url from agency_inventory where id=$1',[photoId])).rows[0].photo_url;
+assert(storedPhoto.startsWith('data:image/webp;base64,'),'la imagen guardada sigue siendo el data URL normalizado');
+assert.equal((await call('inventory')).records.find(row=>String(row.id)===photoId).photo_url,withPhoto.photo_url,'el catálogo también entrega la URL');
+const absolute=await call('inventory','GET',{},owner,{host:'api.example.com','x-forwarded-proto':'https'});
+assert.equal(absolute.records.find(row=>String(row.id)===photoId).photo_url,`https://api.example.com/api/agency/inventory/${photoId}/photo?v=${String(withPhoto.photo_url).split('?v=')[1]}`,'detrás del proxy la URL es absoluta al host público');
+const itemColumns=(await query("select column_name from information_schema.columns where table_name='agency_inventory' order by ordinal_position")).rows.map(row=>row.column_name);
+const catalogueRow=(await call('inventory')).records.find(row=>String(row.id)===photoId);
+assert.deepEqual(itemColumns.filter(column=>column!=='photo_updated_at'&&!Object.hasOwn(catalogueRow,column)),[],'el catálogo conserva todas las columnas de la tabla (photo_updated_at es el sello interno)');
+const image=await call(`inventory/${photoId}/photo`);
+assert.equal(image.status,200);assert.equal(image.headers['Content-Type'],'image/webp');
+assert.equal(image.headers['Cache-Control'],'private, max-age=300','la imagen se cachea');
+assert.equal(Buffer.from(image.body).toString('base64'),storedPhoto.split(',')[1],'los bytes servidos son la foto guardada');
+assert.equal((await call(`inventory/${photoId}/photo`,'GET',{},viewer)).status,200,'un viewer puede ver la foto del catálogo');
+const renamed=(await call(`inventory/${photoId}`,'PATCH',{name:'Renombrada',photo_url:withPhoto.photo_url})).record;
+assert.equal(String(renamed.photo_url).split('?')[0],`/api/agency/inventory/${photoId}/photo`,'guardar devolviendo la URL del API conserva la foto');
+assert.equal((await query('select photo_url from agency_inventory where id=$1',[photoId])).rows[0].photo_url,storedPhoto,'la imagen guardada no se toca en el round-trip');
+const otherPng='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+const replaced=(await call(`inventory/${photoId}`,'PATCH',{photo_url:otherPng})).record;
+assert.notEqual(replaced.photo_url,renamed.photo_url,'cambiar la foto renueva el sello de cache');
+assert.equal((await query('select photo_url from agency_inventory where id=$1',[photoId])).rows[0].photo_url!==storedPhoto,true,'la imagen guardada cambia');
+const linked=(await call('inventory','POST',{name:'Monitor por enlace',category_id:category.id,photo_url:'https://example.invalid/equipment.png'})).record;
+const redirect=await call(`inventory/${linked.id}/photo`);
+assert.equal(redirect.status,302);assert.equal(redirect.headers.Location,'https://example.invalid/equipment.png','los enlaces externos redirigen sin proxear');
+assert.equal((await call(`inventory/${micId}/photo`)).status,404,'sin foto responde 404');
 assert.equal((await call(`inventory/${card}`,'PATCH',{name:'Memoria SD'})).record.currency,'EUR');
 assert.equal((await call(`inventory/${card}`,'PATCH',{inventory_code:'INV-REASSIGNED'})).status,409,'A physical asset code cannot be reassigned');
 assert.equal((await call(`inventory/${card}`,'PATCH',{serial_number:'  sn-12 34_x '})).record.serial_number,'SN1234X','seriales se guardan normalizados (mayúsculas, sin separadores)');
