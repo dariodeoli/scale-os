@@ -130,6 +130,7 @@ const people = [
     photo: '/brand/icon-192.png',
     role: 'Finanzas',
     state: 'Activo',
+    salaryMissing: true,
     facts: {email: 'ana.paula.benitez.delacruz@estudiocomunicacionparaguay.com.py', accessRole: 'Finanzas', accessState: 'Acceso habilitado', startedOn: '20-jul-2023'},
     chips: '<span class="person-hub-comp">Fijo mensual</span><span class="hub-chip">Día de pago 5</span><span class="hub-chip">Emite factura</span>',
     notes: '',
@@ -162,16 +163,14 @@ const people = [
 
 const personCard = (person, list = false) => {
   const isMember = person.kind === 'member';
-  // En lista la app baja foto y contenedor a 32px (PhotoViewer size / PersonContainer md);
-  // en cuadrícula usa 48px (operations.tsx 561, 599).
-  const avatarSize = list ? 32 : 48;
+  // En lista la app baja el contenedor a 32px (PersonContainer md) y en cuadrícula a 48px (lg).
   const initials = person.name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase();
-  const avatar = `<div class="ops-person">${person.photo ? `<button type="button" class="photo-preview-button" style="width:${avatarSize}px;height:${avatarSize}px" aria-label="Ampliar foto de ${person.name}"><img src="${person.photo}" alt="Foto de ${person.name}" referrerpolicy="no-referrer"><span aria-hidden="true">${svg(ICON.zoomIn, 13)}</span></button>` : `<span class="avatar">${initials}</span>`}<div><h3 title="${person.name}">${person.name}</h3><small>${person.role}</small></div></div>`;
+  const avatar = `<div class="ops-person"><span class="person-container person-container-${list ? 'md' : 'lg'}"><span class="person-container-avatar" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : initials}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span>${person.role ? `<span class="person-container-secondary" title="${person.role}">${person.role}</span>` : ''}</span></span></div>`;
   const stateLabel = isMember ? (person.memberActive ? 'Acceso activo' : 'Acceso suspendido') : person.state;
   const stateAttr = isMember ? (person.memberActive ? 'active' : 'inactive') : (person.state === 'Activo' ? 'active' : 'inactive');
   const chips = isMember
-    ? '<div class="person-hub-chips"><span class="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>'
-    : `<div class="person-hub-chips">${person.chips}</div>`;
+    ? `<div class="person-hub-chips">${person.salaryMissing ? '<span class="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span>' : ''}<span class="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>`
+    : `<div class="person-hub-chips">${person.salaryMissing ? '<span class="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span>' : ''}${person.chips}</div>`;
   // Las notas son hijas directas de la tarjeta: en lista ocupan la fila 2
   // (.person-hub-card.is-list>.ops-note-preview) y nunca viajan dentro del pie.
   const note = person.notes ? `<p class="ops-note-preview" title="${person.notes}">${person.notes}</p>` : '';
@@ -257,7 +256,7 @@ export default [
     }],
     body: `
 <section class="panel">
- <div class="panel-heading"><div><p class="eyebrow">PERSONAS, ACCESOS Y REMUNERACIONES</p><h2>Equipo de Estudio de Comunicación y Producción Audiovisual del Paraguay</h2></div><div class="inline-actions"><button class="secondary">Permisos del panel</button><button class="primary">${svg(ICON.plus, 16)}Agregar persona</button></div></div>
+ <div class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3"><div class="min-w-0 flex-1"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Equipo de Estudio de Comunicación y Producción Audiovisual del Paraguay: directorio, roles y estado de cada integrante.</p></div><div class="flex flex-wrap items-center gap-2"><button class="secondary">Permisos del panel</button><button class="primary">${svg(ICON.plus, 16)}Agregar persona</button></div></div>
  <div class="team-filters">
   ${searchField({label: 'Buscar persona', placeholder: 'Nombre, correo o cargo'})}
   <div class="choice-list compact"><button class="choice active">Todos</button><button class="choice">Activos</button><button class="choice">Inactivos</button></div>
@@ -336,7 +335,7 @@ export default [
     }],
     body: `
 <section class="panel activity-feed">
- <div class="panel-heading"><div><h2>Actividad del equipo</h2><p class="form-note">Últimos 6 cambios registrados por el servidor en esta empresa. Se muestran 6.</p></div></div>
+ <div class="mb-4 min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Actividad del equipo</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Últimos 6 cambios registrados por el servidor en esta empresa. Se muestran 6.</p></div>
  ${activityDay({label: 'jue, 17 sept.', count: 3, rows: [
    {actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-09-17T14:30:00-03:00', table: 'inventory_reservations', operation: 'INSERT', record: '4821'},
    {actor: 'Fabrizio Dellacasa Reyes', timestamp: '2026-09-17T11:12:00-03:00', table: 'inventory', operation: 'UPDATE', record: '341'},
@@ -359,8 +358,7 @@ export default [
     grids: [{container: '.usage-grid', card: '.ops-card', label: 'Actividad · uso del equipo', minHeight: 180}],
     body: `
 <section class="panel usage-panel">
- <h2>Uso del equipo</h2>
- <p class="form-note">Solo para dueños · Últimos 30 días. Se registra desde la activación de esta función; no reconstruye accesos anteriores.</p>
+ <div class="mb-4 min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Uso del equipo</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Solo para dueños · Últimos 30 días. Se registra desde la activación de esta función; no reconstruye accesos anteriores.</p></div>
  <p class="form-note">Tiempo activo estimado: ventana visible e interacción reciente. No equivale a horas trabajadas. Una sesión puede abarcar varios días; recargar no cuenta como otro ingreso.</p>
  <div class="usage-grid">${usageCards.map((card) => `<article class="ops-card"><div class="panel-heading">${actorIdentity({name: card.name, photo: card.photo})}<span class="client-status" data-status="${card.state}">${card.status}</span></div><small>Última conexión: ${card.last}</small><p>${card.summary}</p><button class="text-button">${svg(ICON.eye, 14)}Ver accesos</button></article>`).join('')}</div>
 </section>`,
