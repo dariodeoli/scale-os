@@ -26,6 +26,12 @@
    grilla de la fila. El CSS legacy del directorio anterior (toolbar,
    `.client-hub-list`, `.client-list` y las reglas propias de `.client-hub-card`)
    no lo emite ningún módulo v2 y se retiró en la ronda `al`/`al-2`. */
+
+/* Ronda 9 (consistencia con el marco v2): el toolbar vive dentro del header del
+   shell (`workspace-page-header`, ritmo propio) y ui-system.css le imponía un
+   margen vertical legacy que duplicaba el espacio y bajaba el título 16 px
+   respecto del resto de las secciones. El ritmo lo define el marco. */
+.workspace-page-header .client-directory-toolbar{margin-block:0}
 .archived-capsule{margin-top:var(--ui-space-4);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--ui-space-3);background:color-mix(in srgb,var(--violet-soft) 16%,transparent)}
 .archived-capsule summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:var(--ui-space-2)}
 .archived-capsule[open] summary{margin-bottom:var(--ui-space-3)}

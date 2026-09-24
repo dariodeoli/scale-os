@@ -3,7 +3,7 @@
 // Tailwind y datos diarios con `DataTable` (tabla en escritorio, tarjetas en
 // móvil). La lógica vive en ./growth-dashboard-data.
 import {useState} from 'react';
-import {Card,DataTable,Eyebrow,Nota,Select,Stat} from 'owncoding-ui';
+import {Card,DataTable,Nota,Select,Stat} from 'owncoding-ui';
 import {growthSeries,type GrowthEvent} from './growth-dashboard-data';
 // La lógica de datos vive en ./growth-dashboard-data (funciones puras); se
 // reexporta para no romper imports existentes.
@@ -17,8 +17,8 @@ export function GrowthDashboard({events}:{events:GrowthEvent[]}){
  return <Card className="grid gap-4">
   <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
    <div className="min-w-0">
-    <Eyebrow>Captación digital</Eyebrow>
-    <h2 className="mt-1 text-xl font-bold text-fore">Visitas y crecimiento</h2>
+    <p className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Captación digital</p>
+    <h2 className="mt-1 text-[17px] font-bold tracking-tight text-fore">Visitas y crecimiento</h2>
    </div>
    <label className="flex shrink-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-mute">
     Período

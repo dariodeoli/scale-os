@@ -100,7 +100,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
   </section>}
  </div>
  <section className="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4" aria-label="Vista previa del documento">
-  <p className="text-[11px] font-bold uppercase tracking-[.18em] text-fono-light">Vista previa</p>
+  <p className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Vista previa</p>
   <h2 className="text-lg font-bold text-fore">{v.title||'Tu propuesta'}</h2>
   {v.sections.filter(section=>section.enabled).map((section,index)=><section key={index} className="grid gap-2 text-sm text-fore">
    {section.type==='items'?v.items.map((item,i)=><div className="flex items-start justify-between gap-3 border-b border-ink-600/60 pb-2" key={i}><span className="min-w-0 [overflow-wrap:anywhere]">{item.description||'Descripción'}<small className="mt-0.5 block text-[11px] text-mute">{item.quantity||0} unidades</small></span><MoneyText valor={(Number(item.quantity)||0)*(Number(item.unitPrice)||0)} currency={v.currency}/></div>)

@@ -22,7 +22,7 @@ export function ClientCommercialLifecycle({id,role,onSaved}:{id:string|number;ro
 function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boolean;onSaved?:()=>void|Promise<void>}){
  const {data,record,editable,adding,setAdding,draft,update,error,notice,saving,resetDraft,reload,save}=useCommercialLifecycleData({id,writable,onSaved});
  return <section className="grid gap-4" aria-label="Ciclo comercial del cliente" aria-busy={saving||(!data&&!error)}>
-  <h3 className="text-base font-bold text-fore">Ciclo comercial</h3>
+  <h3 className="text-[17px] font-bold tracking-tight text-fore">Ciclo comercial</h3>
   <p className="max-w-[76ch] text-xs leading-5 text-mute">Cada cambio se registra como una enmienda nueva. Las condiciones históricas se conservan tal como se contrataron.</p>
   {!data&&!error?<LoadingBlock label="Cargando ciclo comercial…" lines={3}/>:null}
   {data?<>
