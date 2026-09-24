@@ -40,7 +40,7 @@ test('KpiStrip y LoadingBlock: grilla responsive y carga anunciada sin inventar 
  const carga=renderer.root.findByProps({role:'status'});
  assert.equal(String(carga.props['aria-busy']),'true');
  assert.equal(carga.props['aria-label'],'Cargando clientes…');
- assert(JSON.stringify(renderer.toJSON()).split('h-10 w-full').length-1===2,'los esqueletos acompañan la carga');
+ assert(JSON.stringify(renderer.toJSON()).split('h-11 w-full rounded-xl').length-1===2,'los esqueletos acompañan la carga con el alto de fila del sistema');
 });
 
 console.log('PASS: primitivas v2 — un chip, un KPI y una carga sobre los objetos compartidos');

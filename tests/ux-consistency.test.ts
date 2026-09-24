@@ -208,3 +208,21 @@ test('the rail navigation keeps one geometry for links and the logout button',()
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');
+
+// ── Rediseño del marco (ronda 8): nav con tiles, acento y pie de usuario ────
+{
+ const shell=read('app/scale-workspace.tsx');
+ assert.match(shell,/const NAV_ICON='nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition'/,'los ítems del nav usan un tile de ícono único');
+ assert.match(shell,/before:bg-gold/,'el ítem activo del riel marca con la barra dorada');
+ assert.match(shell,/focus-visible:ring-2 focus-visible:ring-white\/70/,'el foco del riel es visible sobre el lila');
+ assert.match(shell,/const navIconClass=/,'el tile tiene tono por superficie (riel/drawer)');
+ assert.match(shell,/nav-icon/,'y la clase queda en el DOM para medirla');
+ const drawer=read('app/mobile-navigation.tsx');
+ assert.match(drawer,/mobile-sidebar-heading sticky/,'el encabezado del drawer queda fijo al scrollear');
+ assert.match(drawer,/shadow-2xl/,'el drawer se separa del contenido');
+ assert.match(shell,/rounded-xl px-2 py-1\.5/,'el pie de usuario es una tarjeta con padding propio');
+ const uiV2=read('app/ui-v2.tsx');
+ assert.match(uiV2,/h-11 w-full rounded-xl/,'los esqueletos de carga usan el alto de fila del sistema');
+ assert.match(uiV2,/hover:bg-ink-700\/40/,'las filas de lista tienen hover en ambos temas');
+}
+console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo y estados');

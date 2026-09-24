@@ -887,12 +887,17 @@ export default function Home() {
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 
+  // Ítem de nav (riel y drawer): mismo esqueleto, tono por superficie. El riel
+  // marca el activo con barra dorada y tile de ícono; el drawer usa el tono de
+  // marca sobre superficie clara. Foco visible en ambos y sin subrayado.
+  const NAV_ICON='nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition';
   const navItemClass=(active:boolean,tone:'rail'|'light')=>`${active?'active ':''}${RAIL_ITEM} ${tone==='rail'
-    ? (active?'bg-white/15 text-white':'text-white/80 hover:bg-white/10 hover:text-white')
-    : (active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore')}`;
+    ? `relative ${active?'bg-white/14 text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold':'text-white/75 hover:bg-white/8 hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`
+    : `${active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore'} focus-visible:ring-2 focus-visible:ring-fono/40`}`;
+  const navIconClass=(active:boolean,tone:'rail'|'light')=>`${NAV_ICON} ${tone==='rail'?(active?'bg-white/20 text-white':'bg-white/10 text-white/80'):(active?'bg-fono/15 text-fono-light':'bg-ink-700 text-mute')}`;
   const sidebarContent=(tone:'rail'|'light')=><>
         <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
-        <p className="nav-caption mt-1 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
+        <p className="nav-caption mb-1 mt-2 px-3 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Espacio de trabajo</p>
         <nav aria-label="Menú principal" className={`grid gap-1 [&_a]:no-underline ${tone==='rail'?'min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden':''}`}>
           {visibleNav.map(([label, Icon]) => (
             <Link
@@ -905,14 +910,14 @@ export default function Home() {
               onMouseEnter={()=>prefetchSection(allowedChildren(label)[0])}
               onFocus={()=>prefetchSection(allowedChildren(label)[0])}
             >
-              <Icon size={18} className="shrink-0"/>
+              <span className={navIconClass(activeParent===label,tone)}><Icon size={16}/></span>
               <span className="nav-label min-w-0 break-words">{label}</span>
             </Link>
           ))}
-          <button type="button" className={`nav-logout ${navItemClass(false,tone)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><LogOut size={18} className="shrink-0"/><span className="nav-label">Cerrar sesión</span></button>
+          <button type="button" className={`nav-logout ${navItemClass(false,tone)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><span className={navIconClass(false,tone)}><LogOut size={16}/></span><span className="nav-label">Cerrar sesión</span></button>
         </nav>
-        <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t pt-3 ${tone==='rail'?'border-white/15':'border-ink-600'}`}>
-          <div className="profile-footer min-w-0"><button className={`user w-full min-w-0 justify-start rounded-lg text-left transition ${tone==='rail'?'hover:bg-white/10':'hover:bg-ink-700'}`} aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
+        <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t pt-3 ${tone==='rail'?'border-white/12':'border-ink-600'}`}>
+          <div className="profile-footer min-w-0"><button className={`user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition ${tone==='rail'?'hover:bg-white/10':'hover:bg-ink-700'}`} aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
       </>;
   return (
@@ -932,7 +937,7 @@ export default function Home() {
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
-        <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 md:px-6 lg:px-8 xl:px-12 motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
+        <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 shadow-[0_1px_0_rgb(37_28_41_/_4%)] backdrop-blur md:px-6 lg:px-8 xl:px-12 motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
           <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3">
             <div className="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2">
               <MobileNavigation>{sidebarContent('light')}</MobileNavigation>
