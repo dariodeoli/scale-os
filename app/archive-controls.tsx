@@ -79,9 +79,9 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
      {records.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
       <label className="relative flex items-center after:absolute after:-inset-3.5 after:content-['']" title="Seleccionar registro"><input type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={selected.includes(keyOf(record))} onChange={()=>toggleSelected(keyOf(record))}/></label>
       <span className="whitespace-nowrap text-[11.5px] text-mute">{labels[record.kind]||record.kind}</span>
-      <div className="flex min-w-0 items-baseline gap-2">
+      <div className="flex min-w-0 items-baseline gap-2 overflow-hidden">
        <b className="min-w-0 truncate text-[13.5px] font-semibold leading-[1.2] text-fore" title={record.name}>{record.name}</b>
-       <small className="flex min-w-0 flex-1 items-baseline gap-2 text-[11.5px] text-mute">
+       <small className="flex min-w-0 items-baseline gap-2 text-[11.5px] text-mute">
         <span className="min-w-0 truncate" title={`Movido a Papelera por ${record.actor_name||'Sistema'}`}>Movido a Papelera por {record.actor_name||'Sistema'}</span>
         {listDateFull(record.removed_at)?<span className="shrink-0 whitespace-nowrap">· {listDateFull(record.removed_at)}</span>:null}
        </small>

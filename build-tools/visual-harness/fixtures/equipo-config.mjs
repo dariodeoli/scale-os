@@ -166,9 +166,7 @@ const personCard = (person, list = false) => {
   // en cuadrícula usa 48px (operations.tsx 561, 599).
   const avatarSize = list ? 32 : 48;
   const initials = person.name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase();
-  const avatar = isMember
-    ? `<div class="ops-person"><span class="person-container person-container-${list ? 'md' : 'lg'}"><span class="person-container-avatar" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : initials}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span></span></span></div>`
-    : `<div class="ops-person">${person.photo ? `<button type="button" class="photo-preview-button" style="width:${avatarSize}px;height:${avatarSize}px" aria-label="Ampliar foto de ${person.name}"><img src="${person.photo}" alt="Foto de ${person.name}" referrerpolicy="no-referrer"><span aria-hidden="true">${svg(ICON.zoomIn, 13)}</span></button>` : `<span class="avatar">${initials}</span>`}<div><h3 title="${person.name}">${person.name}</h3><small>${person.role}</small></div></div>`;
+  const avatar = `<div class="ops-person">${person.photo ? `<button type="button" class="photo-preview-button" style="width:${avatarSize}px;height:${avatarSize}px" aria-label="Ampliar foto de ${person.name}"><img src="${person.photo}" alt="Foto de ${person.name}" referrerpolicy="no-referrer"><span aria-hidden="true">${svg(ICON.zoomIn, 13)}</span></button>` : `<span class="avatar">${initials}</span>`}<div><h3 title="${person.name}">${person.name}</h3><small>${person.role}</small></div></div>`;
   const stateLabel = isMember ? (person.memberActive ? 'Acceso activo' : 'Acceso suspendido') : person.state;
   const stateAttr = isMember ? (person.memberActive ? 'active' : 'inactive') : (person.state === 'Activo' ? 'active' : 'inactive');
   const chips = isMember

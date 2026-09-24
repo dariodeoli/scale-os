@@ -343,8 +343,8 @@
  .person-hub-card.is-list .select-check{grid-column:1;grid-row:1;align-self:center;justify-self:start;z-index:1}
  .person-hub-card.is-list .ops-person{grid-column:1;grid-row:1;align-self:center;min-width:0;padding-left:26px}
  .person-hub-card.is-list .ops-person>div{display:flex;align-items:baseline;gap:6px;min-width:0}
- .person-hub-card.is-list .ops-person h3{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- .person-hub-card.is-list .ops-person small{white-space:nowrap}
+ .person-hub-card.is-list .ops-person h3{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;line-height:1.25}
+ .person-hub-card.is-list .ops-person small{margin:0;font-size:11.5px;line-height:1.2;white-space:nowrap}
  .person-hub-card.is-list .person-hub-facts{grid-column:2;grid-row:1;display:flex;align-items:baseline;gap:12px;padding:0;background:transparent;min-width:0;overflow:hidden}
  .person-hub-card.is-list .person-hub-facts>div{display:flex;align-items:baseline;gap:6px;min-width:0}
  .person-hub-card.is-list .person-hub-facts>div:has(.list-date){flex:none}
@@ -382,7 +382,10 @@
 /* Hasta 860 px la fila vuelve a tarjeta: hechos alineados por columna y texto que envuelve. */
 @media(max-width:860px){
  .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px;min-height:0}
- .person-hub-card.is-list .person-hub-head{display:flex}
+ .person-hub-card.is-list .person-hub-head{display:flex;flex-wrap:wrap;gap:8px}
+ .person-hub-card.is-list .person-hub-head .select-check{flex:none}
+ /* Apilada, la identidad usa el ancho completo: el nombre no se parte en una columna angosta. */
+ .person-hub-card.is-list .person-hub-head .ops-person{flex:1 1 100%;min-width:0}
  .person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-facts,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}
  .person-hub-card.is-list .person-hub-facts{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
  .person-hub-card.is-list .person-hub-facts>div,.person-hub-card.is-list .person-hub-facts>div.person-hub-fact-wide{display:grid;grid-template-columns:4.5rem minmax(0,1fr);gap:8px;align-items:baseline}

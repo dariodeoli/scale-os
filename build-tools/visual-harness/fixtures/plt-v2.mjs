@@ -169,9 +169,9 @@ const TRASHED = [
 const trashRow = (record) => {
   const check = h('label', {className: "relative flex items-center after:absolute after:-inset-3.5 after:content-['']", title: 'Seleccionar registro'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${record.name}`}));
   const kind = h('span', {className: 'whitespace-nowrap text-[11.5px] text-mute'}, record.kind);
-  const identity = h('div', {className: 'flex min-w-0 items-baseline gap-2'},
+  const identity = h('div', {className: 'flex min-w-0 items-baseline gap-2 overflow-hidden'},
     h('b', {className: 'min-w-0 truncate text-[13.5px] font-semibold leading-[1.2] text-fore', title: record.name}, record.name),
-    h('small', {className: 'flex min-w-0 flex-1 items-baseline gap-2 text-[11.5px] text-mute'},
+    h('small', {className: 'flex min-w-0 items-baseline gap-2 text-[11.5px] text-mute'},
       h('span', {className: 'min-w-0 truncate', title: `Movido a Papelera por ${record.by}`}, `Movido a Papelera por ${record.by}`),
       h('span', {className: 'shrink-0 whitespace-nowrap'}, `· ${record.when}`)));
   const actions = h('div', {className: 'flex justify-end'}, h('button', {className: 'text-button'}, 'Restaurar'));
