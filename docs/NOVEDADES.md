@@ -2,6 +2,15 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.119
+
+### Marco y sistema visual
+
+- **Nav rediseñado**: cada ítem lleva un tile de ícono; el activo suma barra dorada y pill en el riel (tono de marca en el menú móvil); el foco se ve en claro y oscuro; el pie del usuario es una tarjeta y el menú móvil mantiene su encabezado fijo al scrollear.
+- **Contenido**: encabezado de página unificado (título 22/24, subtítulo 13, acciones que envuelven a ancho completo en el celular) y filas con hover en ambos temas.
+- **Carga y superficies**: los esqueletos usan el alto de fila del sistema (44) y el topbar/estados ganan una sombra sutil; todo por tokens (`ink-*`/marca), con el riel lila en claro y casi negro en oscuro.
+- Evidencia: harness de 121 fixtures con 0 altas/medias y contraste AA+ en los dos temas.
+
 ## v1.0.118
 
 ### Operaciones
