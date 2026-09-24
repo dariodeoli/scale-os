@@ -422,6 +422,15 @@
           return false;
         };
         if ((positioned(a) || positioned(b)) && ratio < 0.4) continue;
+        // Afordancia dentro del campo (ver/ocultar, limpiar): el botón vive en el
+        // padding reservado del input (p. ej. `password-field-control`) y no es un
+        // solape real entre dos objetos.
+        const fieldAffordance = (outer, inner) => {
+          if (inner.tagName !== 'BUTTON') return false;
+          const wrapper = inner.closest('[class*="field-control"],[class*="amount-input"],[class*="phone-input"]');
+          return Boolean(wrapper && wrapper.contains(outer));
+        };
+        if (fieldAffordance(a, b) || fieldAffordance(b, a)) continue;
         out.overlaps.push({
           a: pathOf(a),
           b: pathOf(b),

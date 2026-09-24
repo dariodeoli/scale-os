@@ -36,6 +36,7 @@ const widths = String(option('widths', '360,390,430,768,1024,1440'))
   .map((value) => Number(value.trim()))
   .filter((value) => Number.isFinite(value) && value > 0);
 const only = option('only', '');
+const theme = option('theme', 'light');
 const keep = Boolean(option('keep', false));
 const outDir = resolve(repo, String(option('out', 'work/visual-harness/latest')));
 const chromePath = String(option('chrome', process.env.CHROME_PATH || defaultChromePath));
@@ -174,6 +175,9 @@ async function navigate(url) {
   await cdp.send('Page.navigate', {url});
   await loaded;
   await cdp.evaluate('document.fonts.ready.then(() => true)');
+  await cdp.evaluate(theme === 'dark'
+    ? 'document.documentElement.dataset.theme="dark";document.documentElement.style.background="rgb(10 10 12)"'
+    : 'document.documentElement.dataset.theme="";document.documentElement.style.background="rgb(247 246 248)"');
   await new Promise((resolveWait) => setTimeout(resolveWait, 150));
 }
 
