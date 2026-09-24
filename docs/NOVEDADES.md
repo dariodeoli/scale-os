@@ -2,6 +2,13 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.122
+
+### Documentación y reglas
+
+- La lista de componentes canónicos suma los **patrones v2** (`PageHeader`, `FilterToolbar`, `ListGrid`/`ListRow`, `Kpi`/`KpiStrip`, `StateChip`, `MoneyText`, `CurrencyField`, `ViewSwitch`, estados de carga/vacío/error), con su contrato en `DESIGN-SYSTEM.md`.
+- La validación de Prisma queda documentada para correr sin `.env` (solo valida el schema, no se conecta).
+
 ## v1.0.121
 
 ### Marco y sistema visual
