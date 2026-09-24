@@ -33,7 +33,7 @@ const currencyField = (id, selected, extra = '') => `<div class="grid gap-1.5 ${
 /* app/client-reporting.tsx — ficha de reportes y términos comerciales. */
 const reportingSheet = `
 <section class="grid gap-4" aria-label="Datos comerciales del cliente">
- <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-base font-bold text-fore">Datos comerciales y reportes</h3><span class="rounded-md border border-ink-600 bg-ink-700 px-2 py-0.5 text-xs font-medium text-mute">Solo lectura</span></div>
+ <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-[17px] font-bold tracking-tight text-fore">Datos comerciales y reportes</h3><span class="rounded-md border border-ink-600 bg-ink-700 px-2 py-0.5 text-xs font-medium text-mute">Solo lectura</span></div>
  <p class="rounded-lg border border-info/25 bg-info/10 p-2 text-xs text-mute">Registrá solo información conocida. Estos campos no reconstruyen automáticamente estados pasados. Si no conocés la fecha real de inicio, dejala vacía.</p>
  <section class="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="client-commercial-terms-title">
   <h4 id="client-commercial-terms-title" class="text-sm font-bold text-fore">Términos comerciales efectivos</h4>
@@ -66,7 +66,7 @@ const reportingSheet = `
 /* app/client-commercial-lifecycle.tsx — historial + enmienda. */
 const lifecycleSheet = `
 <section class="grid gap-4" aria-label="Ciclo comercial del cliente">
- <h3 class="text-base font-bold text-fore">Ciclo comercial</h3>
+ <h3 class="text-[17px] font-bold tracking-tight text-fore">Ciclo comercial</h3>
  <p class="max-w-[76ch] text-xs leading-5 text-mute">Cada cambio se registra como una enmienda nueva. Las condiciones históricas se conservan tal como se contrataron.</p>
  <div class="min-w-0 [&_table]:min-w-[52rem]">
   <div class="hidden max-h-[70vh] overflow-auto md:block"><table class="w-full text-sm">
@@ -164,7 +164,7 @@ const composerSheet = `
   </section>
  </div>
  <section class="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4" aria-label="Vista previa del documento">
-  <p class="text-[11px] font-bold uppercase tracking-[.18em] text-fono-light">Vista previa</p>
+  <p class="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Vista previa</p>
   <h2 class="text-lg font-bold text-fore">Campaña de lanzamiento regional · producción audiovisual integral</h2>
   <section class="grid gap-2 text-sm text-fore">
    <div class="flex items-start justify-between gap-3 border-b border-ink-600/60 pb-2"><span class="min-w-0 [overflow-wrap:anywhere]">Producción audiovisual integral: dirección creativa, rodaje en locación de tres jornadas<small class="mt-0.5 block text-[11px] text-mute">12 unidades</small></span>${moneyText('Gs. 1.234.567.890')}</div>

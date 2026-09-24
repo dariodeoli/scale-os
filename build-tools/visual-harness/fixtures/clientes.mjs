@@ -205,9 +205,9 @@ const clientTile = (client) => h('article', {
 
 /* ── app/client-directory-toolbar.tsx (barra del directorio en el shell) ────── */
 const toolbar = h('div', {className: 'client-directory-toolbar flex flex-wrap items-end gap-3', 'aria-label': 'Controles del directorio de clientes'},
-  h('div', {className: 'client-directory-toolbar-title min-w-0'},
-    h('h1', {className: 'text-2xl font-bold tracking-tight text-fore'}, 'Clientes'),
-    h('p', {className: 'directory-summary text-xs tabular-nums text-mute', role: 'status', 'aria-atomic': 'true'}, 'Mostrando 4 clientes de 4 clientes')),
+  h('div', {className: 'client-directory-toolbar-title min-w-0 flex-1'},
+    h('h1', {className: 'text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl'}, 'Clientes'),
+    h('p', {className: 'directory-summary mt-1.5 text-[13px] leading-[1.5] tabular-nums text-mute', role: 'status', 'aria-atomic': 'true'}, 'Mostrando 4 clientes de 4 clientes')),
   h(SearchField, {className: 'client-directory-search w-full sm:w-72', type: 'search', ariaLabel: 'Buscar clientes', value: '', onChange: noop, onClear: noop, placeholder: 'Buscar por nombre, correo o teléfono'}),
   h('div', {className: 'grid gap-1.5'},
     h(Label, {htmlFor: 'clientes-estado'}, 'Estado'),
@@ -221,8 +221,10 @@ const toolbar = h('div', {className: 'client-directory-toolbar flex flex-wrap it
   h('div', {className: '[&_button]:h-11 [&_button]:w-11 md:[&_button]:h-9 md:[&_button]:w-9'}, h(ListGridToggle, {value: 'list', onChange: noop})),
   h(Button, {type: 'button', className: 'client-directory-create ml-auto', onClick: noop}, Plus, 'Nuevo cliente'));
 
+const directoryHeader = h('header', {className: 'workspace-page-header mb-5 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 max-md:grid max-md:grid-cols-1'}, toolbar);
+
 const listPage = h('div', {className: 'grid gap-4'},
-  toolbar,
+  directoryHeader,
   h('div', {className: 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'},
     h(Stat, {label: 'Clientes activos', valor: 38, sub: 'Con servicio en curso', destacado: true}),
     h(Stat, {label: 'Cobros al día', valor: 31, sub: '3 en mora · 2 por vencer · 1 sin factura'}),

@@ -224,7 +224,7 @@ const growthCard = (label, value, change, sub) => `
 const growthDashboard = `
 <section class="grid gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">
  <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-  <div class="min-w-0"><div class="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Captación digital</div><h2 class="mt-1 text-xl font-bold text-fore">Visitas y crecimiento</h2></div>
+  <div class="min-w-0"><p class="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Captación digital</p><h2 class="mt-1 text-[17px] font-bold tracking-tight text-fore">Visitas y crecimiento</h2></div>
   <label class="flex shrink-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Período
    <select aria-label="Período" class="h-11 w-44 cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm">
     <option>Últimos 7 días</option><option selected>Últimos 30 días</option><option>Últimos 90 días</option>
