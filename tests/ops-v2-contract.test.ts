@@ -103,8 +103,14 @@ assert.match(boardData,/limit=\$\{window\+1\}/,'la columna pide la ventana +1 pa
 assert.match(boardHook,/filtered\?\{orders:rows,hasMore:false\}/,'con filtros la columna va completa');
 assert.match(boardData,/PLANNER_EXTRA_FIELDS='assigned_user_id,assigned_user_ids'/,'"Mi día" necesita los campos de asignación en su ventana');
 assert.match(boardHook,/boardPlannerUrl\(plannerFields\(ORDER_FIELDS_BOARD\)/,'el planificador pide su proyección completa');
-assert.match(projectCard,/PIECES_DETAIL_LIMIT/,'el detalle de proyecto resume las piezas (no dibuja miles)');
-assert.match(projectCard,/fields=id,title,status,due_date,due_time,project_id/,'el detalle de proyecto pide la proyección mínima');
+assert.match(projectCard,/PROJECT_PIECES_LIMIT/,'el detalle de proyecto resume las piezas (no dibuja miles)');
+assert.match(projectCard,/fetchProjectPieces\(project\.id,/,'el detalle pide las piezas con el filtro negociado por proyecto (#58)');
+assert.match(projectCard,/remainingPiecesLabel\(piecesTotal/,'el resumen del resto usa el total del proyecto (registro de la lista)');
+assert.match(projectCard,/const piecesTotal=Math\.max\(Number\(record\.work_order_count/,'el total combina el registro del detalle y el de la lista');
+const projectPieces=read('app/project-pieces.ts');
+assert.match(projectPieces,/PROJECT_PIECES_FIELDS='id,title,status,due_date,due_time,project_id'/,'la proyección mínima vive en el módulo de piezas');
+assert.match(projectPieces,/project_id=\$\{encodeURIComponent\(projectId\)\}/,'el filtro por proyecto se manda cuando el API lo soporta');
+assert.match(projectPieces,/projectFilterHonored/,'el soporte se negocia con una prueba real de filas');
 assert.match(boardHook,/api<CountsResponse>\(boardCountsUrl\)/,'el tablero pide los totales exactos');
 assert.match(boardHook,/statuses\.map\(async status=>/,'las siete columnas se piden por etapa');
 assert.match(boardHook,/const filtered=boardFiltersActive\(filters\)/,'los filtros deciden ventana o columna completa');
