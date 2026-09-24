@@ -349,12 +349,12 @@ function InventoryPanel(){
        {row.status==='checked_out'?<IconAction icon="refresh" tone="ok" label={`Registrar devolución: ${row.title}`} onClick={()=>setAction({kind:'return',row})}/>:null}
       </>:null}
      </span>
-     {row.actor_name||row.checkout_actor_name||row.return_actor_name||row.status==='checked_out'&&new Date(row.ends_at)<new Date()?<p className="col-span-full flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">
-      {row.actor_name?<span className="inline-flex items-center gap-1">Reservado por <ActorIdentity name={row.actor_name} photoUrl={row.actor_photo_url} verified={row.actor_verified===true}/></span>:null}
-      {row.checkout_actor_name?<span className="inline-flex items-center gap-1">Retiro por <ActorIdentity name={row.checkout_actor_name} photoUrl={row.checkout_actor_photo_url} verified={row.checkout_actor_verified===true}/></span>:null}
-      {row.return_actor_name?<span className="inline-flex items-center gap-1">Devolución por <ActorIdentity name={row.return_actor_name} photoUrl={row.return_actor_photo_url} verified={row.return_actor_verified===true}/></span>:null}
+     {row.actor_name||row.checkout_actor_name||row.return_actor_name||row.status==='checked_out'&&new Date(row.ends_at)<new Date()?<p className="col-span-full flex min-w-0 flex-nowrap items-center gap-x-3 overflow-hidden text-[11px] text-mute" title={[row.actor_name?`Reservado por ${row.actor_name}`:'',row.checkout_actor_name?`Retiro por ${row.checkout_actor_name}`:'',row.return_actor_name?`Devolución por ${row.return_actor_name}`:'',row.notes?`Notas: ${row.notes}`:''].filter(Boolean).join(' · ')}>
+      {row.actor_name?<span className="truncate" title={`Reservado por ${row.actor_name}`}>Reservado por {row.actor_name}</span>:null}
+      {row.checkout_actor_name?<span className="truncate" title={`Retiro por ${row.checkout_actor_name}`}>Retiro por {row.checkout_actor_name}</span>:null}
+      {row.return_actor_name?<span className="truncate" title={`Devolución por ${row.return_actor_name}`}>Devolución por {row.return_actor_name}</span>:null}
       {row.status==='checked_out'&&new Date(row.ends_at)<new Date()?<span className="font-semibold text-warn">Devolución pendiente desde {dateTime(row.ends_at)}</span>:null}
-      {row.notes?<span>Notas: {row.notes}</span>:null}
+      {row.notes?<span className="truncate" title={`Notas: ${row.notes}`}>Notas: {row.notes}</span>:null}
      </p>:null}
     </div>)}
     {!reservations.length?<EmptyState icon="calendar" title="Sin reservas en este mes." description="Elegí equipos y fechas para planificar una producción."/>:null}
