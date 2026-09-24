@@ -17,7 +17,7 @@ import {notify} from './feedback';
 import {ORDER_FIELDS_BOARD} from './shell-data';
 import {statuses,type Status} from './production-board';
 import type {WorkOrder} from './workspace-types';
-import {BOARD_COLUMN_WINDOW,BOARD_PLANNER_WINDOW,adjustCounts,boardColumnUrl,boardCountsUrl,boardFiltersActive,boardPlannerUrl,countsFromOrders,emptyColumns,groupOrdersByStatus,mergeColumnPage,moveOrderInColumns,readColumnPage,type BoardColumns,type BoardCounts,type BoardFilters,type BoardHasMore} from './board-data';
+import {BOARD_COLUMN_WINDOW,BOARD_PLANNER_WINDOW,adjustCounts,boardColumnUrl,boardCountsUrl,boardFiltersActive,boardPlannerUrl,countsFromOrders,emptyColumns,groupOrdersByStatus,mergeColumnPage,moveOrderInColumns,plannerFields,readColumnPage,type BoardColumns,type BoardCounts,type BoardFilters,type BoardHasMore} from './board-data';
 
 type OrdersResponse={workOrders:WorkOrder[];page?:{limit:number;offset:number;hasMore:boolean}};
 type CountsResponse={stage_counts?:BoardCounts};
@@ -51,7 +51,7 @@ export function useBoardData({board,planner,filters,refresh}:{board:boolean;plan
    try{
     if(!board){
      if(!planner)return;
-     const data=await api<OrdersResponse>(boardPlannerUrl(ORDER_FIELDS_BOARD,BOARD_PLANNER_WINDOW));
+     const data=await api<OrdersResponse>(boardPlannerUrl(plannerFields(ORDER_FIELDS_BOARD),BOARD_PLANNER_WINDOW));
      if(!live)return;
      const orders=data.workOrders||[];
      setPlannerOrders(orders);setColumns(groupOrdersByStatus(orders));setCounts(countsFromOrders(orders));setHasMore({});

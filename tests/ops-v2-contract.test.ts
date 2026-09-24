@@ -101,6 +101,10 @@ assert.match(boardData,/boardCountsUrl='\/api\/agency\/work-orders\?counts=1&lim
 assert.match(boardData,/status=\$\{encodeURIComponent\(status\)\}/,'cada columna pide su etapa');
 assert.match(boardData,/limit=\$\{window\+1\}/,'la columna pide la ventana +1 para saber si hay más');
 assert.match(boardHook,/filtered\?\{orders:rows,hasMore:false\}/,'con filtros la columna va completa');
+assert.match(boardData,/PLANNER_EXTRA_FIELDS='assigned_user_id,assigned_user_ids'/,'"Mi día" necesita los campos de asignación en su ventana');
+assert.match(boardHook,/boardPlannerUrl\(plannerFields\(ORDER_FIELDS_BOARD\)/,'el planificador pide su proyección completa');
+assert.match(projectCard,/PIECES_DETAIL_LIMIT/,'el detalle de proyecto resume las piezas (no dibuja miles)');
+assert.match(projectCard,/fields=id,title,status,due_date,due_time,project_id/,'el detalle de proyecto pide la proyección mínima');
 assert.match(boardHook,/api<CountsResponse>\(boardCountsUrl\)/,'el tablero pide los totales exactos');
 assert.match(boardHook,/statuses\.map\(async status=>/,'las siete columnas se piden por etapa');
 assert.match(boardHook,/const filtered=boardFiltersActive\(filters\)/,'los filtros deciden ventana o columna completa');
