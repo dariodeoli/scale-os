@@ -21,7 +21,7 @@
 .control-shell .panel-heading{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-3);margin-bottom:var(--ui-space-4)}
 .control-shell .panel-heading>*{min-width:0;max-width:100%}
 .control-shell .panel-heading :is(h2,h3){display:flex;align-items:center;gap:var(--ui-space-2)}
-.control-shell .panel-heading h2{font-size:18px}
+.control-shell .panel-heading h2{font-size:17px}
 .control-shell :is(.panel,.ops-card)>.form-note{margin-top:var(--ui-space-2)}
 .control-shell :is(.panel,.ops-card)>.form-stack{margin-top:var(--ui-space-4)}
 .control-shell .panel+.panel{margin-top:var(--ui-space-4)}
@@ -172,7 +172,7 @@
 :root{
  --ui-shell-canvas:linear-gradient(180deg,#fcfbfd 0%,var(--canvas) 360px);
  --ui-surface-raised:var(--surface-raised);--ui-surface-inset:var(--surface-sunken);
- --ui-radius-card:14px;--ui-radius-control:10px;
+ --ui-radius-card:12px;--ui-radius-control:10px;
  --ui-shadow-surface:0 10px 30px rgb(37 28 41 / 6%),0 1px 2px rgb(37 28 41 / 4%);
 }
 .control-shell{background:var(--ui-shell-canvas)}
