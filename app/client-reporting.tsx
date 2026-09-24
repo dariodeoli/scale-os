@@ -26,7 +26,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
  const disabled=!editable||saving;
  return <section className="grid gap-4" aria-label="Datos comerciales del cliente" aria-busy={saving||(!data&&!error)}>
   <div className="flex flex-wrap items-center justify-between gap-2">
-   <h3 className="text-base font-bold text-fore">Datos comerciales y reportes</h3>
+   <h3 className="text-[17px] font-bold tracking-tight text-fore">Datos comerciales y reportes</h3>
    {data&&!editable?<span className="rounded-md border border-ink-600 bg-ink-700 px-2 py-0.5 text-xs font-medium text-mute">Solo lectura</span>:null}
   </div>
   <Nota tono="info" compact>Registrá solo información conocida. Estos campos no reconstruyen automáticamente estados pasados. Si no conocés la fecha real de inicio, dejala vacía.</Nota>
