@@ -40,16 +40,12 @@ function StudioPanel(){
  useEffect(()=>{if(!loading)setError('');},[loading]);
  const error=loadError||actionError;
  const saved=(message:string)=>{setNotice(message);setEditSpace(null);setEditReservation(null);setCancel(null);setRefresh(value=>value+1);};
- if(loading)return <Card className="min-w-0"><h2 className="text-lg font-bold text-fore">Estudio y reservas</h2><LoadingBlock label="Cargando espacios y calendario…" lines={4}/></Card>;
- if(error)return <Card className="min-w-0"><h2 className="text-lg font-bold text-fore">Estudio y reservas</h2><ErrorState title="No se pudo cargar el estudio." description={error} onRetry={()=>setRefresh(value=>value+1)}/></Card>;
+ if(loading)return <Card className="min-w-0"><LoadingBlock label="Cargando espacios y calendario…" lines={4}/></Card>;
+ if(error)return <Card className="min-w-0"><ErrorState title="No se pudo cargar el estudio." description={error} onRetry={()=>setRefresh(value=>value+1)}/></Card>;
  const activeSpaces=spaces.filter(space=>space.active);
  return <div className="grid min-w-0 gap-4">
   <Card className="grid min-w-0 gap-4">
    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-    <div className="min-w-0">
-     <h2 className="text-lg font-bold text-fore">Estudio y reservas</h2>
-     <p className="mt-1 text-sm text-mute">Espacios, escenarios y franjas de producción. No reserva ni retira equipos.</p>
-    </div>
     <div className="flex flex-wrap items-center gap-2">
      {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditSpace('new')}>Agregar espacio</Button>:null}
      {context?.can_reserve?<Button type="button" disabled={!activeSpaces.length} onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:null}
@@ -65,9 +61,9 @@ function StudioPanel(){
   </Card>
   <Card className="grid min-w-0 gap-4">
    <div className="flex flex-wrap items-center justify-between gap-3">
-    <div>
-     <h2 className="text-lg font-bold text-fore">Calendario del estudio</h2>
-     <p className="mt-1 text-sm text-mute">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p>
+    <div className="min-w-0">
+     <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2>
+     <p className="mt-1 text-xs leading-5 text-mute">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p>
     </div>
     <div className="w-44"><Label htmlFor="studio-month">Mes</Label><Input id="studio-month" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
    </div>
@@ -75,14 +71,14 @@ function StudioPanel(){
    <div data-list="studio-reservations" className="min-w-0 overflow-x-auto">
     <div className={`${RESERVATION_COLS} grid min-w-[64rem] gap-2`}>
     {reservations.length?<div data-list-head="studio-reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true"><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span className="text-right">Acciones</span></div>:null}
-    {reservations.map(reservation=><div data-list-row="studio-reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} min-h-[48px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} key={reservation.id}>
+    {reservations.map(reservation=><div data-list-row="studio-reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} min-h-[48px] content-center rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} key={reservation.id}>
      <span className="flex min-w-0 items-baseline gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={reservation.title}>{reservation.title}</b><small className="truncate text-[11px] text-mute" title={`${reservation.space_name}${reservation.space_scenario?` · ${reservation.space_scenario}`:''} · ${studioProductionTypeLabel(reservation.production_type)}`}>{reservation.space_name}{reservation.space_scenario?` · ${reservation.space_scenario}`:''} · {studioProductionTypeLabel(reservation.production_type)}</small></span>
      <span className={`${CELL} whitespace-nowrap tabular-nums text-mute`}>{dateTime(reservation.starts_at)} → {dateTime(reservation.ends_at)}</span>
      <span className={`${CELL} truncate text-mute`} title={reservation.project_name||'Sin proyecto vinculado'}>{reservation.project_name||'Sin proyecto vinculado'}</span>
      <span className={`${CELL} flex min-w-0 items-center gap-1 overflow-hidden text-mute`}><span className="text-[11px]">Responsables:</span><span className="truncate" title={reservation.responsible_members.map(person=>person.name).join(', ')}>{reservation.responsible_members.map(person=>person.name).join(', ')}</span></span>
      <span className="flex"><StateChip tone={reservation.status==='reserved'?'info':'mute'}>{reservation.status==='reserved'?'Reservada':'Cancelada'}</StateChip></span>
      <span className={`flex flex-wrap items-center justify-end gap-1 ${ROW_ICON_TARGETS}`}>{context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved'?<><IconAction icon="edit" label={`Editar reserva: ${reservation.title}`} onClick={()=>setEditReservation(reservation)}/><IconAction icon="close" tone="warn" label={`Cancelar reserva: ${reservation.title}`} onClick={()=>setCancel(reservation)}/></>:null}</span>
-     {reservation.actor_name||reservation.notes?<p className="col-span-full flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">{reservation.actor_name?<span className="inline-flex items-center gap-1">Creada por <ActorIdentity name={reservation.actor_name} photoUrl={reservation.actor_photo_url} verified={reservation.actor_verified===true}/></span>:null}{reservation.notes?<span>{reservation.notes}</span>:null}</p>:null}
+     {reservation.actor_name||reservation.notes?<p className="col-span-full flex min-w-0 flex-nowrap items-center gap-x-3 overflow-hidden text-[11px] text-mute" title={[reservation.actor_name?`Creada por ${reservation.actor_name}`:'',reservation.notes?`Notas: ${reservation.notes}`:''].filter(Boolean).join(' · ')}>{reservation.actor_name?<span className="truncate" title={`Creada por ${reservation.actor_name}`}>Creada por {reservation.actor_name}</span>:null}{reservation.notes?<span className="truncate" title={reservation.notes}>{reservation.notes}</span>:null}</p>:null}
     </div>)}
     {!reservations.length?<EmptyState icon="calendar" title="No hay reservas en este mes."/>:null}
     </div>

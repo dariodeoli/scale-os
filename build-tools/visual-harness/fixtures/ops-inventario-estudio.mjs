@@ -187,19 +187,20 @@ const spaceCard = (space) => `
  <div class="mt-auto flex justify-end">${iconAction({icon: 'edit', label: `Editar espacio: ${space.name}`})}</div>
 </article>`;
 const studioReservations = [
-  {title: 'Grabación de campaña · cliente', place: 'Set principal con fondo infinito y grúa · Fondo blanco · Video / Reels', dates: '24 sept 26 · 08:00 → 24 sept 26 · 13:00', project: 'Campaña Primavera 2026 · Banco Atlas', responsibles: 'Fabrizio Dellacasa Reyes, Carlos Ortiz', status: 'Reservada', tone: 'info'},
+  {actor: 'Fabrizio Dellacasa Reyes de la Torre', notes: 'Coordinada con producción y con el cliente; se retiran equipos de inventario por separado. Confirmar disponibilidad de la grúa y del set antes de la franja.', title: 'Grabación de campaña · cliente', place: 'Set principal con fondo infinito y grúa · Fondo blanco · Video / Reels', dates: '24 sept 26 · 08:00 → 24 sept 26 · 13:00', project: 'Campaña Primavera 2026 · Banco Atlas', responsibles: 'Fabrizio Dellacasa Reyes, Carlos Ortiz', status: 'Reservada', tone: 'info'},
   {title: 'Podcast semanal', place: 'Cabina de podcast insonorizada · Tratamiento acústico completo · Podcast', dates: '25 sept 26 · 18:00 → 25 sept 26 · 20:00', project: 'Sin proyecto vinculado', responsibles: 'María José Fernández de la Vega y Rivarola', status: 'Reservada', tone: 'info'},
   {title: 'Spot publicitario (cancelada por lluvia)', place: 'Estudio B · escenario de ladrillo · Ladrillo visto · Ads', dates: '05 sept 26 · 07:00 → 05 sept 26 · 15:00', project: 'Spot · Visión Banco', responsibles: 'Ana Paula Benítez', status: 'Cancelada', tone: 'mute'},
 ];
 const studioReservationHead = `<div data-list-head="studio-reservations" class="grid grid-cols-[var(--studio-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span class="text-right">Acciones</span></div>`;
 const studioReservationRow = (row) => `
-<div data-list-row="studio-reservations" class="grid min-h-[48px] grid-cols-[var(--studio-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
+<div data-list-row="studio-reservations" class="grid min-h-[48px] content-center grid-cols-[var(--studio-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
  <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${row.title}">${row.title}</b><small class="truncate text-[11px] text-mute" title="${row.place}">${row.place}</small></span>
  <span class="min-w-0 whitespace-nowrap text-[13px] leading-5 tabular-nums text-mute">${row.dates}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.project}">${row.project}</span>
  <span class="flex min-w-0 items-center gap-1 overflow-hidden text-[13px] leading-5 text-mute"><span class="text-[11px]">Responsables:</span><span class="truncate" title="${row.responsibles}">${row.responsibles}</span></span>
  <span class="flex">${badge(row.status, row.tone)}</span>
  <span class="flex flex-wrap items-center justify-end gap-1">${row.status === 'Reservada' ? iconAction({icon: 'edit', label: `Editar reserva: ${row.title}`}) + iconAction({icon: 'close', tone: 'warn', label: `Cancelar reserva: ${row.title}`}) : ''}</span>
+ ${row.actor || row.notes ? `<p class="col-span-full flex min-w-0 flex-nowrap items-center gap-x-3 overflow-hidden text-[11px] text-mute" title="${[row.actor ? `Creada por ${row.actor}` : '', row.notes ? `Notas: ${row.notes}` : ''].filter(Boolean).join(' · ')}">${row.actor ? `<span class="truncate">Creada por ${row.actor}</span>` : ''}${row.notes ? `<span class="truncate">Notas: ${row.notes}</span>` : ''}</p>` : ''}
 </div>`;
 const studioCalendar = `<div class="grid gap-2" aria-label="Calendario mensual del estudio"><div class="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => `<span class="text-center text-[10px] font-bold uppercase tracking-wider text-mute">${day}</span>`).join('')}</div><div class="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">${Array.from({length: 1}, (_, index) => `<div class="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key="blank-${index}"></div>`).join('')}${Array.from({length: 30}, (_, index) => {const day = index + 1; const rows = day === 24 || day === 25 ? [{space: day === 24 ? 'Set principal con fondo infinito y grúa' : 'Cabina de podcast insonorizada', title: day === 24 ? 'Grabación de campaña · cliente' : 'Podcast semanal'}] : []; return `<div class="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1"><time class="text-[11px] tabular-nums text-mute">${day}</time>${rows.map((row) => `<div class="grid gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-[11px] text-fono-light"><b class="break-words">${row.space}</b><span class="text-mute">${row.title}</span></div>`).join('')}</div>`;}).join('')}</div></div>`;
 
@@ -216,6 +217,8 @@ export default [
       row: '[data-list-row="equipment"]',
       label: 'Inventario · equipos',
       template: '--eq-cols',
+      // Las reservas admiten UNA línea muted de auditoría (decisión 17-09): la
+      // línea principal queda en 44–52 y la fila completa no pasa de 78.
       rowHeight: [44, 52],
       exemptBelow: 940,
     }],
@@ -327,7 +330,9 @@ export default [
       row: '[data-list-row="studio-reservations"]',
       label: 'Estudio · reservas',
       template: '--studio-cols',
-      rowHeight: [44, 52],
+      // La fila de reservas admite UNA línea muted de auditoría (decisión 17-09):
+      // la línea principal queda en 44–52 y con la auditoría la fila llega a ~80.
+      rowHeight: [44, 84],
       exemptBelow: 980,
       // Sin línea de auditoría: la fila mide el contrato vigente.
     }],

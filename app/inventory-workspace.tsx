@@ -284,15 +284,9 @@ function InventoryPanel(){
  const visible=filterInventoryItems(items,{search,categoryId:categoryFilter});
  return <div className="grid min-w-0 gap-4">
   <Card className="grid min-w-0 gap-4">
-   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-    <div className="min-w-0">
-     <h2 className="text-lg font-bold text-fore">Inventario y reservas</h2>
-     <p className="mt-1 text-sm text-mute">Ubicación registrada y préstamo de equipos por producción.</p>
-    </div>
-    <div className="flex flex-wrap items-center gap-2">
+   <div className="flex flex-wrap items-center gap-2">
      {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:null}
      {context?.can_reserve&&!selectedItems.length?<Button type="button" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</Button>:null}
-    </div>
    </div>
    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/>
@@ -327,9 +321,9 @@ function InventoryPanel(){
 
   {view==='reservations'?<Card className="grid min-w-0 gap-4">
    <div className="flex flex-wrap items-center justify-between gap-3">
-    <div>
-     <h2 className="text-lg font-bold text-fore">Calendario y reservas</h2>
-     <p className="mt-1 text-sm text-mute">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p>
+    <div className="min-w-0">
+     <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario y reservas</h2>
+     <p className="mt-1 text-xs leading-5 text-mute">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p>
     </div>
     <div className="w-44">
      <Label htmlFor="inventory-calendar-month">Mes del calendario</Label>
@@ -355,12 +349,12 @@ function InventoryPanel(){
        {row.status==='checked_out'?<IconAction icon="refresh" tone="ok" label={`Registrar devolución: ${row.title}`} onClick={()=>setAction({kind:'return',row})}/>:null}
       </>:null}
      </span>
-     {row.actor_name||row.checkout_actor_name||row.return_actor_name||row.status==='checked_out'&&new Date(row.ends_at)<new Date()?<p className="col-span-full flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">
-      {row.actor_name?<span className="inline-flex items-center gap-1">Reservado por <ActorIdentity name={row.actor_name} photoUrl={row.actor_photo_url} verified={row.actor_verified===true}/></span>:null}
-      {row.checkout_actor_name?<span className="inline-flex items-center gap-1">Retiro por <ActorIdentity name={row.checkout_actor_name} photoUrl={row.checkout_actor_photo_url} verified={row.checkout_actor_verified===true}/></span>:null}
-      {row.return_actor_name?<span className="inline-flex items-center gap-1">Devolución por <ActorIdentity name={row.return_actor_name} photoUrl={row.return_actor_photo_url} verified={row.return_actor_verified===true}/></span>:null}
+     {row.actor_name||row.checkout_actor_name||row.return_actor_name||row.status==='checked_out'&&new Date(row.ends_at)<new Date()?<p className="col-span-full flex min-w-0 flex-nowrap items-center gap-x-3 overflow-hidden text-[11px] text-mute" title={[row.actor_name?`Reservado por ${row.actor_name}`:'',row.checkout_actor_name?`Retiro por ${row.checkout_actor_name}`:'',row.return_actor_name?`Devolución por ${row.return_actor_name}`:'',row.notes?`Notas: ${row.notes}`:''].filter(Boolean).join(' · ')}>
+      {row.actor_name?<span className="truncate" title={`Reservado por ${row.actor_name}`}>Reservado por {row.actor_name}</span>:null}
+      {row.checkout_actor_name?<span className="truncate" title={`Retiro por ${row.checkout_actor_name}`}>Retiro por {row.checkout_actor_name}</span>:null}
+      {row.return_actor_name?<span className="truncate" title={`Devolución por ${row.return_actor_name}`}>Devolución por {row.return_actor_name}</span>:null}
       {row.status==='checked_out'&&new Date(row.ends_at)<new Date()?<span className="font-semibold text-warn">Devolución pendiente desde {dateTime(row.ends_at)}</span>:null}
-      {row.notes?<span>Notas: {row.notes}</span>:null}
+      {row.notes?<span className="truncate" title={`Notas: ${row.notes}`}>Notas: {row.notes}</span>:null}
      </p>:null}
     </div>)}
     {!reservations.length?<EmptyState icon="calendar" title="Sin reservas en este mes." description="Elegí equipos y fechas para planificar una producción."/>:null}
