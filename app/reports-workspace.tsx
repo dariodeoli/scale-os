@@ -42,7 +42,7 @@ import {
   SegmentedField,
   cn,
 } from 'owncoding-ui';
-import {Kpi,KpiStrip,LoadingBlock} from './ui-v2';
+import {Kpi,KpiStrip,LoadingBlock,PageHeader} from './ui-v2';
 
 // La descomposición del shell (#47) sigue importando el tipo desde este módulo.
 export type {ReportMonth, ReportsData} from './reports-data';
@@ -124,11 +124,7 @@ function ReportsPanel({organizationName}:{organizationName:string}){
  const partial=!!(selected?.isPartial||prior?.isPartial);
  const tiles=reportTiles(selected,prior,selectedCurrency);
  return <section className="grid gap-4" aria-label="Reportes de la agencia">
-  <div className="grid gap-1">
-   <p className="text-xs font-bold uppercase tracking-[.18em] text-fono-light">Informes</p>
-   <h2 className="text-lg font-semibold tracking-tight text-fore">Evolución mensual</h2>
-   <p className="text-xs text-mute">Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado.</p>
-  </div>
+  <PageHeader eyebrow="Informes" title="Evolución mensual" subtitle="Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado."/>
   <LiveVisitorsWidget/>
   <div className="flex flex-wrap items-end gap-3">
    <FormField label="Mes a consultar"><Input type="month" className="w-44" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
