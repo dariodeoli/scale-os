@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {pipelineSummary,stageTotals} from '../app/pipeline-summary';
-import {childSections,sectionPath} from '../app/navigation';
+import {childSections,legacyDestination,sectionPath} from '../app/navigation';
 const result=pipelineSummary([{stage:'lead',amount:3000000,currency:'PYG',notes:'Origen: landing Scale OS. Autorizó contacto.'},{stage:'proposal',amount:1200,currency:'USD'},{stage:'won',amount:100,currency:'USD'},{stage:'lost',amount:200,currency:'USD'}]);
 assert.deepEqual(result,{open:2,won:1,web:1,amounts:{PYG:3000000,USD:1200}});
 assert.deepEqual(pipelineSummary([]),{open:0,won:0,web:0,amounts:{}});
@@ -20,5 +20,7 @@ assert.deepEqual(totals.find(entry=>entry.stage==='won'),{stage:'won',label:'Gan
 assert.deepEqual(totals.find(entry=>entry.stage==='historica'),{stage:'historica',label:'historica',count:1,weighted:{USD:0},open:{USD:100}},'las etapas desconocidas usan el slug como label');
 assert.deepEqual(stageTotals([{stage:'',amount:999}],stages).find(entry=>entry.stage==='lead')?.count,0,'las filas sin etapa no entran');
 
-assert.deepEqual(childSections('Pipeline'),['Pipeline']);assert.equal(sectionPath('Métricas'),'/pipeline');
+assert.deepEqual(childSections('Pipeline'),['Pipeline','Métricas'],'Métricas es el tab de Pipeline en la única fuente');
+assert.equal(sectionPath('Métricas'),'/pipeline/metricas','Métricas tiene URL propia (deep link sin redirect muerto)');
+assert.equal(legacyDestination('metricas'),'/pipeline/metricas','el slug legacy apunta al tab real');
 console.log('PASS: unified Pipeline, open/won/web counts, isolated currency totals and per-stage weighted/open totals');

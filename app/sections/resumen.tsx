@@ -32,7 +32,7 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
   const enRevision = orders.filter(order => order.status === 'review').length;
   // Primer dato en camino: esqueleto por bloque, sin pantalla vacía.
   if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <LoadingBlock label="Cargando el panel…" lines={5}/>;
-  return <div className="grid gap-5">
+  return <div className="grid gap-5 [&>*]:min-w-0">
     <WorkspaceGuide {...guideProps} variant="card"/>
     <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary}/>
     <section className="rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" aria-label="Piezas por etapa">

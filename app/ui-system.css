@@ -26,7 +26,7 @@
 .control-shell :is(.panel,.ops-card)>.form-stack{margin-top:var(--ui-space-4)}
 .control-shell .panel+.panel{margin-top:var(--ui-space-4)}
 .control-shell :is(.ops-stack,.finance-grid)>.panel+.panel{margin-top:0}
-.control-shell :is(.client-directory-toolbar,.inventory-filters,.work-history-filters){gap:var(--ui-space-3);margin-block:var(--ui-space-4)}
+
 .control-shell .section-tabs{gap:var(--ui-space-5);margin-bottom:var(--ui-space-4)}
 .control-shell .section-tabs>a{min-height:var(--ui-control-height);display:inline-flex;align-items:center}
 

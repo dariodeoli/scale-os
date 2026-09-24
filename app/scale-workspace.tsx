@@ -951,7 +951,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="topbar-utilities flex min-w-0 items-center gap-3 max-md:contents">
+          <div className="topbar-utilities flex min-w-0 flex-wrap items-center justify-end gap-2 max-md:contents">
             <div className="topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2">
               {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}

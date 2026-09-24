@@ -25,8 +25,7 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/actividad', destination: '/equipo/actividad', permanent: false },
-      { source: '/metricas', destination: '/pipeline', permanent: false },
-      { source: '/pipeline/metricas', destination: '/pipeline', permanent: false },
+      { source: '/metricas', destination: '/pipeline/metricas', permanent: false },
       { source: '/mora', destination: '/pagos/mora', permanent: false },
       { source: '/planes', destination: '/presupuestos/planes', permanent: false },
       { source: '/comisiones', destination: '/equipo/comisiones', permanent: false },
