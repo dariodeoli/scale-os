@@ -40,16 +40,12 @@ function StudioPanel(){
  useEffect(()=>{if(!loading)setError('');},[loading]);
  const error=loadError||actionError;
  const saved=(message:string)=>{setNotice(message);setEditSpace(null);setEditReservation(null);setCancel(null);setRefresh(value=>value+1);};
- if(loading)return <Card className="min-w-0"><h2 className="text-lg font-bold text-fore">Estudio y reservas</h2><LoadingBlock label="Cargando espacios y calendario…" lines={4}/></Card>;
- if(error)return <Card className="min-w-0"><h2 className="text-lg font-bold text-fore">Estudio y reservas</h2><ErrorState title="No se pudo cargar el estudio." description={error} onRetry={()=>setRefresh(value=>value+1)}/></Card>;
+ if(loading)return <Card className="min-w-0"><LoadingBlock label="Cargando espacios y calendario…" lines={4}/></Card>;
+ if(error)return <Card className="min-w-0"><ErrorState title="No se pudo cargar el estudio." description={error} onRetry={()=>setRefresh(value=>value+1)}/></Card>;
  const activeSpaces=spaces.filter(space=>space.active);
  return <div className="grid min-w-0 gap-4">
   <Card className="grid min-w-0 gap-4">
    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-    <div className="min-w-0">
-     <h2 className="text-lg font-bold text-fore">Estudio y reservas</h2>
-     <p className="mt-1 text-sm text-mute">Espacios, escenarios y franjas de producción. No reserva ni retira equipos.</p>
-    </div>
     <div className="flex flex-wrap items-center gap-2">
      {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditSpace('new')}>Agregar espacio</Button>:null}
      {context?.can_reserve?<Button type="button" disabled={!activeSpaces.length} onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:null}
@@ -65,9 +61,9 @@ function StudioPanel(){
   </Card>
   <Card className="grid min-w-0 gap-4">
    <div className="flex flex-wrap items-center justify-between gap-3">
-    <div>
-     <h2 className="text-lg font-bold text-fore">Calendario del estudio</h2>
-     <p className="mt-1 text-sm text-mute">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p>
+    <div className="min-w-0">
+     <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2>
+     <p className="mt-1 text-xs leading-5 text-mute">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p>
     </div>
     <div className="w-44"><Label htmlFor="studio-month">Mes</Label><Input id="studio-month" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
    </div>

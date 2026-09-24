@@ -179,7 +179,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
  const openPiece=(id:string)=>()=>openOrder(id);
  return <section className="grid min-w-0 gap-4" aria-label="Planificador de producción">
   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-   <h2 className="text-lg font-bold text-fore">{view==='Mi día'?'Trabajo diario':view}</h2>
+   <h2 className="text-[17px] font-semibold tracking-tight text-fore">{view==='Mi día'?'Trabajo diario':view}</h2>
    {!initialView?<Subtabs value={view} onChange={setView} items={[['Mi día','Mi día'],['Calendario','Calendario'],['Lista y lotes','Lista y lotes']]} className="mb-0 [&>button]:min-h-11 md:[&>button]:min-h-9"/>:null}
   </div>
   {view==='Mi día'?<>
@@ -196,7 +196,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
   </div>:null}
   {view==='Lista y lotes'&&makers.includes(role)?<div className="flex flex-wrap items-center gap-2"><button className="secondary" disabled={!selected.length} onClick={()=>setBatch(true)}>Cambiar {selected.length} piezas</button><button className="text-button" onClick={()=>setSelected([])}><X size={14}/>Quitar selección</button>{managers.includes(role)?<button className="text-button" onClick={()=>setTemplatesOpen(true)}><CalendarRange size={14}/>Plantillas mensuales</button>:null}</div>:null}
   <ListGrid label={view==='Lista y lotes'?'Piezas en lista y lotes':'Piezas'} template={PLANNER_TEMPLATE} columns={PLANNER_COLUMNS} minWidthClass="min-w-[72rem]">
-   {visible.slice(0,100).map(o=><ListRow key={o.id} template={PLANNER_TEMPLATE} data-status={o.status} className="py-0.5 md:py-1">
+   {visible.slice(0,100).map(o=><ListRow key={o.id} template={PLANNER_TEMPLATE} data-status={o.status} className="md:!py-1.5">
     <span className="flex min-w-0 items-center gap-2">
      {view==='Lista y lotes'&&makers.includes(role)?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${o.title}`} checked={selected.includes(String(o.id))} disabled={['approved','published'].includes(o.status)} onChange={e=>setSelected(ids=>e.target.checked?[...ids,String(o.id)]:ids.filter(id=>id!==String(o.id)))}/></label>:null}
      <button type="button" className="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0" onClick={openPiece(String(o.id))}><b className="block truncate text-[13px] font-semibold text-fore" title={o.title}>{o.title}</b><small className="block truncate text-[11px] text-mute" title={`${o.client_name||''} · ${o.project_name||''}`}>{o.client_name} · {o.project_name}</small></button>
