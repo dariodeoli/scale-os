@@ -2,6 +2,28 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.120
+
+### Marco y sistema visual
+
+- **Una sola medida**: el título de panel (17 px) y el radio de tarjeta (12) vuelven a un valor único en toda la app, para que las verticales no divergieran tras el rediseño.
+
+### Comercial
+
+- Encabezado del directorio y títulos de panel (métricas, compositor y ficha) al lenguaje del marco nuevo; clones del harness sincronizados.
+
+### Operaciones
+
+- Un solo encabezado por pantalla, filas del sistema y auditoría en una línea; tablero, planificador y Proyectos alineados al marco.
+
+### Finanzas
+
+- Encabezados canónicos y hover de fila en toda la vertical.
+
+### Plataforma y acceso
+
+- Equipo, Actividad y Uso alineados al sistema v2, con fixtures sincronizados.
+
 ## v1.0.119
 
 ### Marco y sistema visual
