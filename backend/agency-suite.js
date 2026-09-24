@@ -162,7 +162,10 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
      const probability=stageKind==='won'?100:stageKind==='lost'?0:Number(b.probability??10);if(!Number.isInteger(probability)||probability<0||probability>100)fail('Probabilidad de 0 a 100');
      columns=['name','email','phone','stage','amount','currency','probability','notes'];values=[name,email(b.email),Object.hasOwn(incoming,'phone')?phone(b.phone):(b.phone??null),chosen?.slug||requested,amount(b.amount||0),option(b.currency,currencies),probability,text(b.notes||'')];
     }
-    const query=key?`update ${table} set ${columns.map((n,i)=>`${n}=$${i+1}`).join(',')} where id=$${values.length+1} returning *`:`insert into ${table}(${columns.join(',')},organization_id) values(${values.map((_,i)=>`$${i+1}`).join(',')},$${values.length+1}) returning *`;
+    // El PATCH de una oportunidad bumpea updated_at (misma convención que el
+    // resto de los recursos; `agency_plans` no tiene esa columna).
+    const stamp=key&&kind==='leads'?',updated_at=now()':'';
+    const query=key?`update ${table} set ${columns.map((n,i)=>`${n}=$${i+1}`).join(',')}${stamp} where id=$${values.length+1} returning *`:`insert into ${table}(${columns.join(',')},organization_id) values(${values.map((_,i)=>`$${i+1}`).join(',')},$${values.length+1}) returning *`;
     result={record:(await c.query(query,[...values,key||org])).rows[0]};status=key?200:201;
    }else fail('Método no permitido',405);
   }else if(kind==='budgets'){
