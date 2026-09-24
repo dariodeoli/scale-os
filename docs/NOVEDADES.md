@@ -2,6 +2,14 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.118
+
+### Operaciones
+
+- **Inventario más liviano**: la foto de cada equipo dejó de viajar en las listas; ahora se sirve como imagen del API (con sello para cachear) y se carga solo cuando se ve. Con 2.000 equipos la lista pasa de ~18,6 MB a un payload normal.
+- **Piezas por proyecto**: el detalle pide solo las piezas del proyecto (`?project_id=` paginable, negociado automáticamente) y muestra el total real del proyecto aunque la lista esté resumida.
+- **Proyectos**: conmutador lista/cuadrícula del sistema v2 y fila de lista con acciones de ícono (44 px en celular, 28 en escritorio), con “Archivar/Reactivar proyecto” descripto para lectores de pantalla.
+
 ## v1.0.117
 
 ### Comercial
