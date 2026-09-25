@@ -24,8 +24,8 @@ const button = (text, variant = 'primary') => `<button type="button" class="inli
 /* ---- Presupuestos: KpiStrip + ListGrid con encabezado y plantilla ------- */
 const BUDGET_COLUMNS = ['Presupuesto', 'Cliente', 'Estado', 'Ítems', 'Vigencia', 'Sin IVA', 'Total · IVA incl.', 'Acciones'];
 const BUDGET_TEMPLATE = 'grid-cols-[minmax(26rem,2.2fr)_minmax(16rem,1.4fr)_7rem_4rem_7rem_9rem_9rem_15rem]';
-const budgetRow = ({number, title, client, tone, state, items, valid, due, subtotal, total}) => `<div role="row" class="budget-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${BUDGET_TEMPLATE}">
- <div class="flex min-w-0 items-baseline gap-2"><b class="shrink-0 font-mono text-[11px] font-semibold text-mute">${number}</b><span class="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title="${title}">${title}</span></div>
+const budgetRow = ({number, title, client, tone, state, items, valid, due, subtotal, total, selected = false}) => `<div role="row" class="budget-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${BUDGET_TEMPLATE}">
+ <div class="flex min-w-0 items-center gap-2"><label class="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label="Seleccionar ${number} · ${title}"${selected ? ' checked' : ''}/></label><span class="flex min-w-0 items-baseline gap-2"><b class="shrink-0 font-mono text-[11px] font-semibold text-mute">${number}</b><span class="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title="${title}">${title}</span></span></div>
  <span class="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title="${client}">${client}</span>
  <span class="min-w-0">${stateChip(tone, state)}</span>
  <span class="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">${items}</span>
@@ -34,6 +34,20 @@ const budgetRow = ({number, title, client, tone, state, items, valid, due, subto
  <span class="text-right">${moneyText(total, 'text-[13.5px] text-fore')}</span>
  <span class="flex min-w-0 items-center justify-end gap-2 [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
 </div>`;
+/* Ronda 12 (#59): barra de lote, espejo de app/sections/presupuestos.tsx. */
+const budgetBulkBar = (selected = 0) => `<div class="bulk-bar" role="status" aria-live="polite">
+ <span class="bulk-count">${selected ? `<b>${selected}</b> de 50 seleccionados` : '<span class="bulk-hint">Seleccioná varios para operar en lote · máximo 50</span>'}</span>
+ <div class="inline-actions bulk-actions">
+  <button type="button" class="text-button min-h-11 md:min-h-8">Seleccionar visibles</button>
+  ${selected ? '<button type="button" class="secondary danger min-h-11 md:min-h-10">🗑 Mover a la papelera</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button>' : ''}
+ </div>
+</div>`;
+const budgetList = (rows) => `<div role="table" aria-label="Presupuestos" class="silent-scroll min-w-0 overflow-x-auto">
+ <div class="min-w-[90rem]">
+  <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${BUDGET_TEMPLATE}">${BUDGET_COLUMNS.map((column, index) => `<span role="columnheader" class="${index === BUDGET_COLUMNS.length - 1 ? 'text-right' : index >= 3 && index <= 6 ? 'text-right' : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}</div>
+  <div role="rowgroup">${rows.join('')}</div>
+ </div>
+</div>`;
 const presupuestosSection = `<section class="directory grid gap-4" aria-label="Presupuestos">
  ${kpiStrip([
    kpi('Presupuestos', '3', 'Total sin IVA: BRL 1.000 · Gs. 14.500.000 · US$ 2.400', true),
@@ -41,16 +55,27 @@ const presupuestosSection = `<section class="directory grid gap-4" aria-label="P
    kpi('Aceptadas', '1', 'Con aprobación del cliente'),
    kpi('Vencen esta semana', '1', 'Vigencia en los próximos 7 días'),
  ].join(''))}
- <div role="table" aria-label="Presupuestos" class="silent-scroll min-w-0 overflow-x-auto">
-  <div class="min-w-[90rem]">
-   <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${BUDGET_TEMPLATE}">${BUDGET_COLUMNS.map((column, index) => `<span role="columnheader" class="${index === BUDGET_COLUMNS.length - 1 ? 'text-right' : index >= 3 && index <= 6 ? 'text-right' : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}</div>
-   <div role="rowgroup">
-    ${budgetRow({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', due: true, subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00'})}
-    ${budgetRow({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', due: false, subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000'})}
-    ${budgetRow({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'})}
-   </div>
-  </div>
- </div>
+ ${budgetBulkBar(0)}
+ ${budgetList([
+  budgetRow({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', due: true, subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00'}),
+  budgetRow({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', due: false, subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000'}),
+  budgetRow({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'}),
+ ])}
+</section>`;
+/* Estado con selección activa: barra con acciones y casillas marcadas. */
+const presupuestosLote = `<section class="directory grid gap-4" aria-label="Presupuestos">
+ ${kpiStrip([
+   kpi('Presupuestos', '3', 'Total sin IVA: BRL 1.000 · Gs. 14.500.000 · US$ 2.400', true),
+   kpi('Borradores', '1', 'Sin enviar al cliente'),
+   kpi('Aceptadas', '1', 'Con aprobación del cliente'),
+   kpi('Vencen esta semana', '1', 'Vigencia en los próximos 7 días'),
+ ].join(''))}
+ ${budgetBulkBar(2)}
+ ${budgetList([
+  budgetRow({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', due: true, subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00', selected: true}),
+  budgetRow({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', due: false, subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000', selected: true}),
+  budgetRow({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'}),
+ ])}
 </section>`;
 
 /* ---- Planes: KpiStrip + comparador (tabla compartida) ------------------- */
@@ -155,6 +180,7 @@ const metricasSection = `<div class="grid gap-4 rounded-xl border border-fono/30
 
 export default [
   {id: 'seccion-presupuestos', section: 'Presupuestos', surface: 'Sección v2 con lista y KPIs', kind: 'workspace', lists: [{container: '[role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Presupuestos · lista v2', rowHeight: [44, 52]}], body: presupuestosSection},
+  {id: 'seccion-presupuestos-lote', section: 'Presupuestos', surface: 'Sección v2 con lote seleccionado (#59)', kind: 'workspace', lists: [{container: '[role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Presupuestos · lista v2 con lote', rowHeight: [44, 52]}], body: presupuestosLote},
   {id: 'seccion-planes', section: 'Planes', surface: 'Sección v2 con comparador', kind: 'workspace', body: planesSection},
   {id: 'seccion-pipeline', section: 'Pipeline', surface: 'Sección v2 con tablero', kind: 'workspace', body: pipelineSection},
   {id: 'seccion-metricas', section: 'Métricas', surface: 'Sección v2 de crecimiento', kind: 'workspace', body: metricasSection},
