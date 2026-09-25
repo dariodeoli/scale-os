@@ -1,8 +1,12 @@
 "use client";
+import {useEffect,useState} from 'react';
 import {Aviso} from 'owncoding-ui';
+import {Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';
 import {listDateShort,dueTone} from '../list-format';
-import {roleCan} from '../capabilities';
+import {BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
+import {Dialog} from '../dialog';
+import {notify} from '../feedback';
 import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
@@ -13,6 +17,9 @@ import type {Budget,Invoice,Summary,User} from '../workspace-types';
 // Rediseño v2: KPIs, lista finita con encabezado y plantilla compartida,
 // estados de carga/vacío/error con reintento. Los datos y callbacks siguen
 // llegando del shell (misma API y mismas acciones).
+// Ronda 12 (#59): lote con el patrón `bulk-bar` (Equipo/Clientes) — selección
+// por fila, tope por llamada, confirmación antes de mover a la papelera y
+// refresco contra el contrato real de la lista.
 type PresupuestosSectionProps = {
   loading: boolean;
   user: User|null;
@@ -43,19 +50,52 @@ const BUDGET_STATE: Record<string,{label:string;tone:ChipTone}> = {
   rejected: {label:'Rechazado', tone:'bad'},
   expired: {label:'Vencido', tone:'warn'},
 };
+const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudo completar la operación';
 
 export function PresupuestosSection({loading, user, budgetsState, budgets, invoices, budgetKpis, summary, loadBudgets, setBudgets}: PresupuestosSectionProps){
   const canManage = roleCan(user?.role,'budgets.manage');
   const totals = Array.from(budgetKpis.totals);
+  const [selected,setSelected]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false),[confirmOpen,setConfirmOpen]=useState(false),[bulkError,setBulkError]=useState('');
   const reload = async () => { setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets); };
+  // La selección no sobrevive a un presupuesto que ya no está en la lista.
+  useEffect(()=>{setSelected(current=>{const live=new Set(budgets.map(budget=>String(budget.id)));const next=current.filter(id=>live.has(id));return next.length===current.length?current:next;});},[budgets]);
+  function toggleSelected(id:string){
+    if(selected.includes(id)){setSelected(selected.filter(value=>value!==id));return;}
+    if(selected.length>=BATCH_LIMITS.budgets){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.budgets} presupuestos. Quitá alguno para sumar otro.`});return;}
+    setSelected([...selected,id]);
+  }
+  function selectVisible(){
+    const {selection,capped}=limitSelection(budgets.map(budget=>String(budget.id)),BATCH_LIMITS.budgets);
+    setSelected(selection);
+    if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.budgets} presupuestos: se seleccionaron los primeros ${BATCH_LIMITS.budgets}.`});
+  }
+  async function moveToTrash(){
+    if(bulkBusy||!selected.length)return;
+    const total=selected.length;
+    setBulkBusy(true);setBulkError('');
+    try{
+      const response=await request<{updated:number}>('/api/agency/budgets/batch',{method:'POST',body:JSON.stringify({ids:selected})});
+      const moved=Number(response?.updated)||total;
+      setSelected([]);setConfirmOpen(false);
+      let refreshed=true;
+      try{await reload();}catch{refreshed=false;}
+      const label=`presupuesto${total===1?'':'s'} movido${total===1?'':'s'} a la papelera`;
+      notify(!refreshed?{tone:'warning',message:`${moved} ${label}, pero no se pudo actualizar la lista.`}:moved<total?{tone:'warning',message:`${moved} de ${total} ${label}.`}:{tone:'success',message:`${moved} ${label}.`});
+    }catch(cause){setBulkError(errorText(cause));}
+    finally{setBulkBusy(false);}
+  }
+  const selectedTitles = selected.map(id=>budgets.find(budget=>String(budget.id)===id)).filter((budget):budget is Budget=>Boolean(budget)).map(budget=>budget.title);
   const row = (budget: Budget) => {
     const state = BUDGET_STATE[budget.status] || {label: budget.status, tone: 'mute' as ChipTone};
     const valid = listDateShort(budget.valid_until);
     const tone = dueTone(budget.valid_until);
     return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
-      <div className="flex min-w-0 items-baseline gap-2">
-        <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
-        <span className="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title={budget.title}>{budget.title}</span>
+      <div className="flex min-w-0 items-center gap-2">
+        {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected.includes(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
+        <span className="flex min-w-0 items-baseline gap-2">
+          <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
+          <span className="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title={budget.title}>{budget.title}</span>
+        </span>
       </div>
       <span className="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title={budget.client_name}>{budget.client_name}</span>
       <span className="min-w-0"><StateChip tone={state.tone}>{state.label}</StateChip></span>
@@ -79,6 +119,17 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
         <Kpi label="Vencen esta semana" valor={budgetKpis.expiring} hint="Vigencia en los próximos 7 días"/>
       </KpiStrip>
 
+      {canManage && budgets.length ? <div className="bulk-bar" role="status" aria-live="polite">
+        <span className="bulk-count">{selected.length ? <><b>{selected.length}</b> de {BATCH_LIMITS.budgets} seleccionado{selected.length===1?'':'s'}</> : <span className="bulk-hint">Seleccioná varios para operar en lote · máximo {BATCH_LIMITS.budgets}</span>}</span>
+        <div className="inline-actions bulk-actions">
+          <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>
+          {selected.length ? <>
+            <button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setConfirmOpen(true);}}><Trash2 size={14} aria-hidden="true"/>Mover a la papelera</button>
+            <button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setSelected([])}>Limpiar</button>
+          </> : null}
+        </div>
+      </div> : null}
+
       {budgetsState==='error' && budgets.length ? (
         <Aviso tono="error" como="div" role="alert">No se pudieron actualizar los presupuestos. Se muestra la última lista cargada.{' '}
           <button type="button" className="underline" onClick={()=>void loadBudgets()}>Reintentar</button>
@@ -100,6 +151,18 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
           description={canManage ? 'Creá el primero con «Nuevo presupuesto»: el valor se carga sin IVA y el IVA se define en el documento.' : 'Cuando el equipo cree una propuesta, vas a verla acá con su estado y vigencia.'}
         />
       )}
+
+      {confirmOpen && <Dialog title="Mover a la papelera" close={()=>{if(!bulkBusy)setConfirmOpen(false);}}>
+        <p><strong>{selected.length===1 ? selectedTitles[0] : `${selected.length} presupuestos`}</strong></p>
+        {selected.length>1 ? <p>{selectedTitles.slice(0,3).join(' · ')}{selected.length>3 ? ` y ${selected.length-3} más` : ''}</p> : null}
+        <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés restaurarlos después.</p>
+        <p className="form-note">El enlace público dejará de funcionar. Restaurar el presupuesto no volverá a publicarlo automáticamente.</p>
+        {bulkError ? <p className="error" role="alert">{bulkError}</p> : null}
+        <div className="inline-actions">
+          <button className="secondary" disabled={bulkBusy} onClick={()=>setConfirmOpen(false)}>Cancelar</button>
+          <button className="secondary danger" disabled={bulkBusy} onClick={()=>void moveToTrash()}>{bulkBusy?'Procesando…':'Confirmar: mover a papelera'}</button>
+        </div>
+      </Dialog>}
     </section>
   );
 }

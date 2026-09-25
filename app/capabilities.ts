@@ -84,6 +84,7 @@ export function canOpenPeopleWorkspace(role: string | null | undefined){
 
 /** Topes por llamada de los endpoints de lote del dominio. */
 export const BATCH_LIMITS = {
+ budgets: 50,
  clients: 50,
  inventory: 50,
  projects: 50,
