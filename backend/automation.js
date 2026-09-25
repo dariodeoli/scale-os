@@ -3,6 +3,7 @@ import {roleCan} from './permissions.js';
 import {attributeActors} from './actor-identity.js';
 import {templateItems,monthDate} from './productivity.js';
 import {notificationEmail} from './notifications.js';
+import {suspensionEmail} from './billing-email.js';
 import {visibleRecord} from './record-lifecycle.js';
 
 export async function automationApi({req,res,url,db,session,body,send}){
@@ -64,8 +65,33 @@ export async function deliverNotifications(db,mail){
  }
  return sent;
 }
+// Barrido de suspensión por falta de pago (#59): el acceso queda suspendido
+// cuando vence la gracia de 2 días (misma regla que subscription-billing.js) y
+// se avisa una sola vez por ciclo de cobro; el sello se libera si el envío falla.
+export async function sweepSuspensions(db,mail){
+ if(!mail?.status?.available||typeof mail.send!=='function')return 0;
+ const claimed=(await db.query(`with candidates as (
+   select x.organization_id from organization_subscriptions x join organizations o on o.id=x.organization_id
+   where o.active and o.demo_owner_user_id is null and o.demo_source_id is null and o.slug<>'scale-demo-controles-20260908'
+    and x.due_at is not null and now()>=x.due_at+interval '2 days'
+    and (x.paid_through_at is null or x.paid_through_at<now())
+    and (x.suspension_notified_at is null or x.suspension_notified_at<x.due_at)
+    and not exists(select 1 from platform_subscription_states ps where ps.organization_id=x.organization_id and (ps.expires_at is null or ps.expires_at>now()))
+   order by x.organization_id limit 20
+  ) update organization_subscriptions s set suspension_notified_at=now() from candidates c where c.organization_id=s.organization_id returning s.organization_id,s.due_at`)).rows;
+ let sent=0;
+ for(const row of claimed){
+  const owner=(await db.query(`select u.email,o.name from organizations o join organization_members m on m.organization_id=o.id and m.role='owner' and m.active and m.removed_at is null join users u on u.id=m.user_id where o.id=$1 and u.email is not null and u.email not like '%@example.invalid' order by m.created_at limit 1`,[row.organization_id])).rows[0];
+  if(!owner?.email)continue;
+  const accepted=await mail.send({to:owner.email,message:suspensionEmail({organizationName:owner.name,appUrl:mail.status.appUrl}),idempotencyKey:`suspension-${row.organization_id}-${new Date(row.due_at).toISOString().slice(0,10)}`}).catch(()=>false);
+  if(accepted)sent++;
+  else await db.query('update organization_subscriptions set suspension_notified_at=null where organization_id=$1',[row.organization_id]);
+ }
+ return sent;
+}
+
 export function startAutomation(db,mail){
  let running=false;
- const tick=async()=>{if(running)return;running=true;const c=await db.connect();try{await c.query('begin');const lock=(await c.query("select pg_try_advisory_xact_lock(hashtextextended('scale-automation',0)) as locked")).rows[0].locked;if(lock){await runMonthly(c);await enqueueDue(c);}await c.query('commit');await deliverNotifications(db,mail);}catch{await c.query('rollback');console.error(JSON.stringify({event:'automation_tick_error'}));}finally{c.release();running=false;}};
+ const tick=async()=>{if(running)return;running=true;const c=await db.connect();try{await c.query('begin');const lock=(await c.query("select pg_try_advisory_xact_lock(hashtextextended('scale-automation',0)) as locked")).rows[0].locked;if(lock){await runMonthly(c);await enqueueDue(c);}await c.query('commit');await deliverNotifications(db,mail);await sweepSuspensions(db,mail);}catch{await c.query('rollback');console.error(JSON.stringify({event:'automation_tick_error'}));}finally{c.release();running=false;}};
  const timer=setInterval(()=>{void tick().catch(()=>{running=false;});},60000);timer.unref();void tick().catch(()=>{running=false;});return()=>clearInterval(timer);
 }
