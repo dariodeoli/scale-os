@@ -142,7 +142,7 @@ const barra = (valor, max, tono = 'fono', etiqueta = '') => {
   const porcentaje = Math.min(100, Math.max(0, Number(valor) / (Number(max) || 100) * 100));
   return `<div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(porcentaje)}" aria-label="${etiqueta}" class="overflow-hidden rounded-full bg-fore/10 h-1.5"><span class="block h-full rounded-full ${BAR_TONES[tono]}" style="width:${porcentaje}%"></span></div>`;
 };
-const field = (label, control) => `<div><label class="block text-[11px] font-medium uppercase tracking-wider text-mute mb-1.5">${label}</label>${control}</div>`;
+const field = (label, control, id = '') => `<div><label${id ? ` for="${id}"` : ''} class="block text-[11px] font-medium uppercase tracking-wider text-mute mb-1.5">${label}</label>${control}</div>`;
 const segmented = (items, activeIndex = 0, aria = 'Horizonte de proyección') => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${aria}">${items.map((label, index) => `<button type="button" class="inline-flex min-h-11 md:min-h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${index === activeIndex ? 'bg-fono/15 text-fono-light' : 'text-mute'}">${label}</button>`).join('')}</div>`;
 const iconAction = (path, label, tone = 'mute') => {
   const tones = {ok: 'border-ok/30 text-ok', warn: 'border-warn/30 text-warn', bad: 'border-bad/30 text-bad', mute: 'border-transparent text-mute'};
@@ -305,7 +305,7 @@ const finanzasConciliacion = {
   surface: 'Conciliación por extracto (v2)',
   kind: 'workspace',
   lists: [
-    {container: '[role="table"][aria-label="Movimientos del extracto"]', head: '[aria-hidden="true"]', row: '[role="row"]', label: 'Finanzas · conciliación', rowHeight: [44, 52]},
+    {container: '[role="table"][aria-label="Movimientos del extracto"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Finanzas · conciliación', rowHeight: [44, 52]},
   ],
   body: `
 <div class="${CARD} grid gap-3">
@@ -320,11 +320,11 @@ const finanzasConciliacion = {
  </div>
  <p class="text-sm text-mute">2 pendientes de 4 movimientos importados (hasta 1.000 visibles).</p>
  ${listWrap('40rem', `<div role="table" aria-label="Movimientos del extracto">
-  <div class="${LIST_HEAD} ${STATEMENT_COLS}" aria-hidden="true"><span>Extracto</span><span>Estado</span><span class="text-right">Monto</span><span class="text-right">Acciones</span></div>
-  ${statementRow({date: '10-sept', reference: 'TRANSFERENCIA RECIBIDA CLIENTE INDUSTRIAS DEL SUR SA', matched: false, amount: 'Gs. 1.234.567.890'})}
+  <div role="row" class="${LIST_HEAD} ${STATEMENT_COLS}"><span role="columnheader">Extracto</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right">Monto</span><span role="columnheader" class="text-right">Acciones</span></div>
+ <div role="rowgroup">  ${statementRow({date: '10-sept', reference: 'TRANSFERENCIA RECIBIDA CLIENTE INDUSTRIAS DEL SUR SA', matched: false, amount: 'Gs. 1.234.567.890'})}
   ${statementRow({date: '09-sept', reference: 'PAGO PROVEEDOR 8842', matched: true, amount: '-Gs. 45.678.900'})}
   ${statementRow({date: '08-sept', reference: 'COMISION BANCARIA INTERNACIONAL USD', matched: false, amount: '-USD 1.250,75'})}
-  ${statementRow({date: '07-sept', reference: 'COBRO', matched: true, amount: 'Gs. 300.000'})}
+  ${statementRow({date: '07-sept', reference: 'COBRO', matched: true, amount: 'Gs. 300.000'})}</div>
  </div>`)}
  ${aviso('ok', '3 coincidencias conciliadas.')}
 </div>`,
@@ -372,7 +372,7 @@ const moraCobranzas = {
 
 /* --------------- Previsión: resumen del mes (v2) ---------------------- */
 const personnelRow = ({name, initials, base, override, total, negative = false, noBase = false, masked = false}) => `
-<div class="${LIST_ROW} ${PERSON_COLS} forecast-person-row">
+<div role="row" class="${LIST_ROW} ${PERSON_COLS} forecast-person-row">
  ${cell(`<span class="forecast-person-who flex min-w-0 items-center gap-2"><span class="grid h-6 w-6 flex-none place-items-center overflow-hidden rounded-full bg-ink-700 text-[10px] font-semibold">${initials}</span><span class="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title="${name}">${name}</span>${noBase ? '<small class="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>' : ''}</span>`)}
  ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${masked ? 'Sin dato' : base}</strong>`, 'forecast-person-base')}
  ${override ? cell(`<span class="whitespace-nowrap text-sm font-semibold tabular-nums text-warn">${override}</span>`) : '<span class="forecast-person-override is-empty hidden md:block" aria-hidden="true"></span>'}
@@ -398,9 +398,9 @@ const previsionResumen = {
   surface: 'Ingresos vs gastos, resumen por moneda, personal y gastos (v2)',
   kind: 'workspace',
   lists: [
-    {container: '.forecast-person-list', head: '[aria-hidden="true"]', row: '.forecast-person-row', label: 'Previsión · personal proyectado', rowHeight: [44, 52]},
-    {container: '[role="table"][aria-label="Gastos planificados del mes"]', head: '[aria-hidden="true"]', row: '[role="row"]', label: 'Previsión · gastos planificados', rowHeight: [44, 52]},
-    {container: '[role="table"][aria-label="Gastos reales del mes"]', head: '[aria-hidden="true"]', row: '[role="row"]', label: 'Previsión · gastos reales', rowHeight: [44, 52]},
+    {container: '.forecast-person-list', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Previsión · personal proyectado', rowHeight: [44, 52]},
+    {container: '[role="table"][aria-label="Gastos planificados del mes"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Previsión · gastos planificados', rowHeight: [44, 52]},
+    {container: '[role="table"][aria-label="Gastos reales del mes"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Previsión · gastos reales', rowHeight: [44, 52]},
   ],
   body: `
 <section class="grid gap-4" aria-label="Previsión financiera">
@@ -412,7 +412,7 @@ const previsionResumen = {
   </div>
  </header>
  <div class="flex flex-wrap items-end gap-3">
-  ${field('Mes', `<input type="month" class="${INPUT} w-44" value="2026-09">`)}
+  ${field('Mes', `<input id="forecast-month" type="month" class="${INPUT} w-44" value="2026-09">`, 'forecast-month')}
   <div class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Horizonte</span>${segmented(['1 mes', '3 meses', '6 meses', '12 meses'], 0)}</div>
  </div>
  ${nota('neutro', 'Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.')}
@@ -454,11 +454,11 @@ const previsionResumen = {
     <div class="flex flex-wrap items-baseline justify-between gap-2"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG · gasto esperado al cierre</span><strong class="whitespace-nowrap text-lg font-semibold tabular-nums text-fore">Gs. 69.765.432</strong></div>
     <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-mute"><span>Salario base (3): <b class="font-semibold tabular-nums text-fore">Gs. 68.565.432</b></span><span>Ajustes del mes (1): <b class="font-semibold tabular-nums text-fore">Gs. 1.200.000</b></span></div>
     ${listWrap('56rem', `<div class="forecast-person-list" role="table" aria-label="Personal proyectado">
-     <div class="${LIST_HEAD} ${PERSON_COLS}" aria-hidden="true"><span>Persona</span><span>Salario base</span><span>Ajuste del mes</span><span>Cierre del mes</span><span class="text-right">Acciones</span></div>
-     ${personnelRow({name: 'Ana López Fernández de la Cruz', initials: 'AL', base: 'Gs. 24.500.000', override: 'Gs. 1.200.000', total: 'Gs. 25.700.000'})}
+     <div role="row" class="${LIST_HEAD} ${PERSON_COLS}"><span role="columnheader">Persona</span><span role="columnheader">Salario base</span><span role="columnheader">Ajuste del mes</span><span role="columnheader">Cierre del mes</span><span role="columnheader" class="text-right">Acciones</span></div>
+ <div role="rowgroup">     ${personnelRow({name: 'Ana López Fernández de la Cruz', initials: 'AL', base: 'Gs. 24.500.000', override: 'Gs. 1.200.000', total: 'Gs. 25.700.000'})}
      ${personnelRow({name: 'Bruno Villalba', initials: 'BV', base: 'Gs. 32.000.000', override: '', total: 'Gs. 32.000.000'})}
      ${personnelRow({name: 'Salario variable sin base fija', initials: 'SV', base: 'Gs. 0', override: 'Gs. 2.065.432', total: 'Gs. 2.065.432', noBase: true})}
-     ${personnelRow({name: 'Salario enmascarado por salary.view', initials: 'SM', base: '', override: '', total: '', masked: true})}
+     ${personnelRow({name: 'Salario enmascarado por salary.view', initials: 'SM', base: '', override: '', total: '', masked: true})}</div>
     </div>`)}
    </div>
   </div>
@@ -472,10 +472,10 @@ const previsionResumen = {
    </div>
   </div>
   ${listWrap('44rem', `<div role="table" aria-label="Gastos planificados del mes">
-   <div class="${LIST_HEAD} ${PLANNED_COLS}" aria-hidden="true"><span>Gasto</span><span>Cadencia</span><span class="text-right">Monto</span><span class="text-right">Acciones</span></div>
-   ${plannedRow({category: 'Herramientas', kind: 'Fijo', cadence: 'Recurrente', note: 'Licencias de edición y almacenamiento en la nube', amount: 'Gs. 9.000.000'})}
+   <div role="row" class="${LIST_HEAD} ${PLANNED_COLS}"><span role="columnheader">Gasto</span><span role="columnheader">Cadencia</span><span role="columnheader" class="text-right">Monto</span><span role="columnheader" class="text-right">Acciones</span></div>
+ <div role="rowgroup">   ${plannedRow({category: 'Herramientas', kind: 'Fijo', cadence: 'Recurrente', note: 'Licencias de edición y almacenamiento en la nube', amount: 'Gs. 9.000.000'})}
    ${plannedRow({category: 'Marketing', kind: 'Variable', cadence: 'Solo este mes', note: '', amount: 'USD 4.300'})}
-   ${plannedRow({category: 'Administración', kind: 'Fijo', cadence: 'Recurrente', note: 'Honorarios contables mensuales', amount: 'Gs. 3.000.000'})}
+   ${plannedRow({category: 'Administración', kind: 'Fijo', cadence: 'Recurrente', note: 'Honorarios contables mensuales', amount: 'Gs. 3.000.000'})}</div>
   </div>`)}
  </div>
  <div class="${CARD} grid gap-4">
@@ -483,9 +483,9 @@ const previsionResumen = {
    <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos reales del mes · 01-sept</h3><p class="text-xs text-mute">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p></div>
   </div>
   ${listWrap('40rem', `<div role="table" aria-label="Gastos reales del mes">
-   <div class="${LIST_HEAD} ${EXPENSE_COLS}" aria-hidden="true"><span>Gasto</span><span class="text-right">Monto</span><span class="text-right">Acciones</span></div>
-   ${realExpenseRow({category: 'Herramientas', kind: 'Fijo', date: '12-sept', account: 'Banco Regional — Operativa', reference: 'Licencia Adobe Creative Cloud anual', createdBy: 'finanzas@estudio.com.py', amount: 'Gs. 3.450.000'})}
-   ${realExpenseRow({category: 'Marketing', kind: 'Variable', date: '10-sept', account: 'Tarjeta corporativa USD', reference: 'Campaña Meta Ads', createdBy: '', amount: 'USD 4.500'})}
+   <div role="row" class="${LIST_HEAD} ${EXPENSE_COLS}"><span role="columnheader">Gasto</span><span role="columnheader" class="text-right">Monto</span><span role="columnheader" class="text-right">Acciones</span></div>
+ <div role="rowgroup">   ${realExpenseRow({category: 'Herramientas', kind: 'Fijo', date: '12-sept', account: 'Banco Regional — Operativa', reference: 'Licencia Adobe Creative Cloud anual', createdBy: 'finanzas@estudio.com.py', amount: 'Gs. 3.450.000'})}
+   ${realExpenseRow({category: 'Marketing', kind: 'Variable', date: '10-sept', account: 'Tarjeta corporativa USD', reference: 'Campaña Meta Ads', createdBy: '', amount: 'USD 4.500'})}</div>
   </div>`)}
   ${aviso('error', 'No se pudo revertir el gasto real: la cuenta no tiene saldo suficiente para la corrección.')}
  </div>
@@ -507,16 +507,16 @@ const previsionContratos = {
   surface: 'Contratos vs facturación del mes (v2)',
   kind: 'workspace',
   lists: [
-    {container: '[role="table"][aria-label="Contratos vigentes contra facturación"]', head: '[aria-hidden="true"]', row: '[role="row"]', label: 'Previsión · contratos vs facturación', rowHeight: [44, 52]},
+    {container: '[role="table"][aria-label="Contratos vigentes contra facturación"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Previsión · contratos vs facturación', rowHeight: [44, 52]},
   ],
   body: `
 <div class="${CARD} grid gap-3">
  <h3 class="text-[17px] font-semibold tracking-tight text-fore">Contratos vs facturación del mes</h3>
  ${listWrap('56rem', `<div role="table" aria-label="Contratos vigentes contra facturación">
-  <div class="${LIST_HEAD} ${CONTRACT_COLS}" aria-hidden="true"><span>Cliente</span><span class="text-right">Contratado</span><span class="text-right">Facturado</span><span class="text-right">Estado</span></div>
-  ${contractedRow({name: 'Industrias del Sur Sociedad Anónima', currency: 'PYG', endsOn: '31-dic-26', invoiceRequired: true, contracted: 'Gs. 45.000.000', invoiced: 'Gs. 90.000.000', missing: false})}
+  <div role="row" class="${LIST_HEAD} ${CONTRACT_COLS}"><span role="columnheader">Cliente</span><span role="columnheader" class="text-right">Contratado</span><span role="columnheader" class="text-right">Facturado</span><span role="columnheader" class="text-right">Estado</span></div>
+ <div role="rowgroup">  ${contractedRow({name: 'Industrias del Sur Sociedad Anónima', currency: 'PYG', endsOn: '31-dic-26', invoiceRequired: true, contracted: 'Gs. 45.000.000', invoiced: 'Gs. 90.000.000', missing: false})}
   ${contractedRow({name: 'Grupo Comercial del Este SRL', currency: 'USD', endsOn: '', invoiceRequired: true, contracted: 'USD 12.500', invoiced: 'USD 0', missing: true})}
-  ${contractedRow({name: 'Fundación Cultural Paraguaya', currency: 'PYG', endsOn: '30-nov-26', invoiceRequired: false, contracted: 'Gs. 8.500.000', invoiced: 'Gs. 8.500.000', missing: false})}
+  ${contractedRow({name: 'Fundación Cultural Paraguaya', currency: 'PYG', endsOn: '30-nov-26', invoiceRequired: false, contracted: 'Gs. 8.500.000', invoiced: 'Gs. 8.500.000', missing: false})}</div>
  </div>`)}
 </div>`,
 };
@@ -563,7 +563,7 @@ const informesIndicadores = {
   <div class="text-right"><strong class="block text-2xl font-semibold tabular-nums text-ok">128</strong><span class="inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-ok"><span class="h-2 w-2 rounded-full bg-ok" aria-hidden="true"></span>↑ +12%</span></div>
  </div>
  <div class="flex flex-wrap items-end gap-3">
-  ${field('Mes a consultar', `<input type="month" class="${INPUT} w-44" value="2026-09">`)}
+  ${field('Mes a consultar', `<input id="reports-month" type="month" class="${INPUT} w-44" value="2026-09">`, 'reports-month')}
   <div class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>${segmented(['Últimos 6 meses', 'Últimos 12 meses', 'Últimos 24 meses'], 1, 'Meses de histórico')}</div>
   <div class="w-40">${selectCustom('Moneda', 'PYG', 'informes-currency')}</div>
  </div>
@@ -737,8 +737,8 @@ const dialogModal = ({title, body, footer, size = 'formulario'}) => `<div class=
  <div class="dialog-body">${body}</div>
  <div class="dialog-footer"><div class="dialog-actions"><button class="secondary" type="button">Cancelar</button>${footer}</div></div>
 </section></div>`;
-const amountInput = (value, currency, mark, placeholder) => `<span class="amount-field" data-currency="${currency}"><span class="amount-currency" aria-hidden="true">${mark}</span><input type="text" inputmode="${currency === 'PYG' ? 'numeric' : 'decimal'}" autocomplete="off" value="${value}" placeholder="${placeholder}"></span>`;
-const modalInput = (attrs, extra = 'w-full') => `<input class="${INPUT.replace('w-full ', '')} ${extra}" ${attrs}>`;
+const amountInput = (value, currency, mark, placeholder, id = '') => `<span class="amount-field" data-currency="${currency}"><span class="amount-currency" aria-hidden="true">${mark}</span><input${id ? ` id="${id}"` : ''} type="text" inputmode="${currency === 'PYG' ? 'numeric' : 'decimal'}" autocomplete="off" value="${value}" placeholder="${placeholder}"></span>`;
+const modalInput = (attrs, extra = 'w-full', id = '') => `<input${id ? ` id="${id}"` : ''} class="${INPUT.replace('w-full ', '')} ${extra}" ${attrs}>`;
 const legacyLabel = (label, control) => `<label>${label}${control}</label>`;
 const legacyInput = (attrs) => `<input ${attrs}>`;
 
@@ -754,10 +754,10 @@ ${dialogModal({
    <p class="border text-mute rounded-xl p-3 text-sm border-ink-600 bg-ink-800/40 sm:col-span-2">Esto registra el movimiento; no ordena una transferencia al banco. Indicá los importes reales de salida y entrada.</p>
    ${selectCustom('Cuenta de origen', 'Banco Regional — Operativa · PYG', 'trf-from')}
    ${selectCustom('Cuenta de destino', 'Tarjeta corporativa USD · USD', 'trf-to')}
-   ${field('Sale (PYG)', amountInput('7.300.000', 'PYG', 'Gs', '1.000.000'))}
-   ${field('Llega (USD)', amountInput('1.000', 'USD', 'US$', '1.250,50'))}
-   ${field('Fecha', modalInput('type="date" value="2026-09-23"', 'w-40'))}
-   ${field('Referencia', modalInput('maxlength="120" value="Compra de dólares para campaña internacional"'))}
+   ${field('Sale (PYG)', amountInput('7.300.000', 'PYG', 'Gs', '1.000.000', 'transfer-amount'), 'transfer-amount')}
+   ${field('Llega (USD)', amountInput('1.000', 'USD', 'US$', '1.250,50', 'transfer-received'), 'transfer-received')}
+   ${field('Fecha', modalInput('type="date" value="2026-09-23"', 'w-40', 'transfer-date'), 'transfer-date')}
+   ${field('Referencia', modalInput('maxlength="120" value="Compra de dólares para campaña internacional"', 'w-full', 'transfer-reference'), 'transfer-reference')}
    <p class="border text-mute rounded-xl p-3 text-sm border-info/25 bg-info/10 sm:col-span-2"><span class="inline-flex flex-wrap items-baseline gap-1"><span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums">Gs. 7.300.000</span> → <span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums">US$ 1.000,00</span></span> · Cambio: 1 PYG = 0,00013699 USD</p>
   </form>`,
   footer: '<button class="primary w-full sm:w-auto" type="submit">Registrar transferencia</button>',

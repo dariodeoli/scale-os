@@ -127,7 +127,7 @@ function ReportsPanel({organizationName}:{organizationName:string}){
   <PageHeader eyebrow="Informes" title="Evolución mensual" subtitle="Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado."/>
   <LiveVisitorsWidget/>
   <div className="flex flex-wrap items-end gap-3">
-   <FormField label="Mes a consultar"><Input type="month" className="w-44" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
+   <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
    <div className="grid gap-1.5">
     <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>
     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Meses de histórico" value={String(months)} options={HISTORY_OPTIONS} onChange={(value:string)=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/>

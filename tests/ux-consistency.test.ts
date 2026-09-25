@@ -117,7 +117,7 @@ test('finance panels use column headers and the shared money formatter',()=>{
   assert.match(styles,/\.control-shell :is\(\.finance-payout-row,.finance-referral-row\)\{display:grid/);
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const EXPENSE_COLS='grid-cols-\[minmax\(0,1fr\)_8\.5rem_5rem\]'/,'real expenses declare one shared template');
-  assert.match(forecast,/LIST_HEAD,EXPENSE_COLS\)[^>]*><span>Gasto<\/span><span className="text-right">Monto<\/span>/,'real expenses show their header');
+  assert.match(forecast,/LIST_HEAD,EXPENSE_COLS\)[^>]*><span role="columnheader">Gasto<\/span><span role="columnheader" className="text-right">Monto<\/span>/,'real expenses show their header');
   assert.match(forecast,/cn\(LIST_ROW,EXPENSE_COLS\)/,'real expense rows share the header template');
 });
 
@@ -135,7 +135,7 @@ test('the team list can suspend and reactivate access in bulk',()=>{
 test('statement rows and projected payroll keep fixed columns',()=>{
   const controls=read('app/daily-controls.tsx');
   assert.match(controls,/const STATEMENT_COLS='grid-cols-\[minmax\(0,1fr\)_7rem_8\.5rem_5rem\]'/,'the reconciliation list declares one shared template');
-  assert.match(controls,/STATEMENT_HEAD,STATEMENT_COLS\)[^>]*><span>Extracto<\/span><span>Estado<\/span><span className="text-right">Monto<\/span><span className="text-right">Acciones<\/span>/,'the reconciliation list shows its header');
+  assert.match(controls,/role="row" className=\{cn\(STATEMENT_HEAD,STATEMENT_COLS\)\}[^>]*><span role="columnheader">Extracto<\/span><span role="columnheader">Estado<\/span><span role="columnheader" className="text-right">Monto<\/span><span role="columnheader" className="text-right">Acciones<\/span>/,'the reconciliation list shows its header');
   assert.match(controls,/cn\(STATEMENT_ROW,STATEMENT_COLS\)/,'statement rows share the header template');
   assert.doesNotMatch(controls,/payment-row statement-row/,'statement rows left the legacy grid');
   const forecast=read('app/financial-forecast.tsx');
@@ -169,7 +169,7 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(22rem,1fr\)_9rem_9rem_9rem\]'/,'contracted clients declare one shared template');
-  assert.match(forecast,/cn\(LIST_HEAD,CONTRACT_COLS\)[^>]*><span>Cliente<\/span><span className="text-right">Contratado<\/span><span className="text-right">Facturado<\/span>/,'contracted clients show their header');
+  assert.match(forecast,/role="row" className=\{cn\(LIST_HEAD,CONTRACT_COLS\)\}[^>]*><span role="columnheader">Cliente<\/span><span role="columnheader" className="text-right">Contratado<\/span><span role="columnheader" className="text-right">Facturado<\/span>/,'contracted clients show their header');
   assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700\/40'/,'list rows keep the thin row contract with the system hover');
   assert.match(team,/\.team-directory-card\{[^}]*min-height:190px/,'the directory keeps big grid cards');
   const presence=read('app/presence.css');
