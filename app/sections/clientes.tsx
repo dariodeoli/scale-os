@@ -59,18 +59,18 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
   const since = clientSince(client.created_at);
   const tel = clientWhatsappUrl(client.phone || undefined);
   return <ListRow template={CLIENT_TEMPLATE} className="client-hub-row" data-archived={client.active===false||undefined}>
-    <div className="flex min-w-0 items-center gap-2">
+    <div role="cell" className="flex min-w-0 items-center gap-2">
       {selectable ? <label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
       <button type="button" className="min-h-11 min-w-0 text-left md:min-h-0" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
         <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
       </button>
     </div>
-    <div className="min-w-0 text-[11.5px] text-mute">
+    <div role="cell" className="min-w-0 text-[11.5px] text-mute">
       <span className="block truncate" title={client.email || 'Sin email registrado'}>{client.email || 'Sin email registrado'}</span>
       <span className="block truncate" title={`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'} · Cliente desde ${since || 'sin fecha de alta'}`}>{client.phone || 'Sin teléfono'} · RUC {client.tax_id || 'sin registrar'} · desde {since || 'sin fecha'}</span>
     </div>
-    <div className="min-w-0"><StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip></div>
-    <div className="flex min-w-0 items-center justify-between gap-2">
+    <div role="cell" className="min-w-0"><StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip></div>
+    <div role="cell" className="flex min-w-0 items-center justify-between gap-2">
       {canSeeBilling ? <>
         {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : <span className="text-[11px] text-mute">Sin datos de cobro</span>}
         {pay && pay.currency && Number(pay.outstanding_amount) > 0
@@ -78,13 +78,13 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
           : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}
       </> : <span className="text-[11px] text-mute">Sin acceso a cobros</span>}
     </div>
-    <div className="min-w-0 text-[11.5px] text-mute">
+    <div role="cell" className="min-w-0 text-[11.5px] text-mute">
       <span className="block truncate" title={stat ? `${stat.projects} proyectos activos · ${stat.pieces} piezas en curso` : 'Sin proyectos activos'}>
         {stat && (stat.projects || stat.pieces) ? <><b className="tabular-nums text-fore">{stat.projects}</b> proyectos · <b className="tabular-nums text-fore">{stat.pieces}</b> piezas</> : 'Sin proyectos activos'}
       </span>
       {stat?.nextDue ? <span className="block whitespace-nowrap">Próxima entrega <b className="tabular-nums text-fore">{listDateShort(stat.nextDue)}</b></span> : null}
     </div>
-    <div className="client-row-actions silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]">
+    <div role="cell" className="client-row-actions silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
       {client.has_recurring_price !== true ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}

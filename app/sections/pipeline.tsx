@@ -49,7 +49,7 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
   return <article ref={drag.setNodeRef} style={{opacity:drag.isDragging?.4:1}} className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
     <header className="flex items-start justify-between gap-2">
       <b className="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title={str(row,'name')}>{str(row,'name')}</b>
-      {canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
+      {canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
     </header>
     <MoneyText valor={str(row,'amount')||'0'} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
     <div className="flex flex-wrap items-center gap-2 text-[11px]">
@@ -116,6 +116,18 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
   const overview=pipelineSummary(rows);
   const activeStages=[...stages].filter(stage=>stage.active).sort((a,b)=>a.position-b.position||a.value.localeCompare(b.value));
   const stageLabel=(value:string)=>stages.find(stage=>stage.value===value)?.label||value;
+  // dnd-kit anuncia en inglés por defecto; el tablero habla castellano (#60).
+  const leadName=(id:string|number)=>{const found=rows.find(candidate=>String(candidate.id)===String(id));return found?(str(found,'name')||'la oportunidad'):'la oportunidad';};
+  const stageName=(id:string|number)=>stageLabel(String(id).replace('stage-',''));
+  const accessibility={
+    screenReaderInstructions:{draggable:'Para mover una oportunidad con el teclado: enfocá el asa de arrastre, presioná Espacio, elegí la etapa con las flechas y confirmá con Espacio. Escape cancela el movimiento.'},
+    announcements:{
+      onDragStart:({active}:{active:{id:string|number}})=>`Levantaste ${leadName(active.id)}.`,
+      onDragOver:({active,over}:{active:{id:string|number};over:{id:string|number}|null})=>over?`${leadName(active.id)} está sobre ${stageName(over.id)}.`:`${leadName(active.id)} no está sobre una etapa.`,
+      onDragEnd:({active,over}:{active:{id:string|number};over:{id:string|number}|null})=>over?`${leadName(active.id)} se movió a ${stageName(over.id)}.`:`${leadName(active.id)} volvió a su etapa.`,
+      onDragCancel:({active}:{active:{id:string|number}})=>`Se canceló el movimiento de ${leadName(active.id)}.`,
+    },
+  };
   const looseSlugs=[...new Set(rows.map(row=>str(row,'stage')).filter(value=>Boolean(value)&&!activeStages.some(stage=>stage.value===value)))];
   const totals=stageTotals(rows,activeStages.map(stage=>({slug:stage.value,label:stage.label,position:stage.position,active:stage.active,kind:stage.kind})));
   const row=edit&&edit!=='new'?edit:null;
@@ -198,7 +210,7 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
 
       {rows.length?<div className="grid gap-2">
         <div className="flex items-center gap-2 text-[11px] text-mute"><Target size={14}/>Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%.</div>
-        <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move}>
+        <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label}} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load}/>)}
             {looseSlugs.map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} rows={rows.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} readOnly/>)}

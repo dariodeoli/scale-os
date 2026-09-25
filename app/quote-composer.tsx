@@ -12,7 +12,7 @@ import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {useEffect,useState} from 'react';
 import {useForm,useFieldArray} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,DragEndEvent,PointerSensor,KeyboardSensor,useSensor,useSensors,type CollisionDetection} from '@dnd-kit/core';
+import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,DragEndEvent,PointerSensor,KeyboardSensor,useSensor,useSensors,type CollisionDetection,type UniqueIdentifier} from '@dnd-kit/core';
 import {ArrowDown,ArrowUp,GripVertical,Plus,X} from 'lucide-react';
 import {api} from './operations';
 import {SECTION_TYPE_LABELS,TAX_RATE_CHOICES,initialQuoteSections,normalizeQuoteItems,quoteRequest,quoteSchema,quoteTotals,type QuoteClientOption,type QuoteMode,type QuotePlanRecord,type QuoteSection,type QuoteValues} from './quote-composer-data';
@@ -27,11 +27,11 @@ type Row={id:string;[key:string]:unknown};
 // puntero, cae al rectángulo que se cruza.
 const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(args);return within.length?within:rectIntersection(args);};
 
-function ItemShell({id,title,canReorder=true,children}:{id:string;title?:string;canReorder?:boolean;children:React.ReactNode}){
+function ItemShell({id,title,canReorder=true,itemLabel='ítem',children}:{id:string;title?:string;canReorder?:boolean;itemLabel?:'ítem'|'sección';children:React.ReactNode}){
  const drag=useDraggable({id,disabled:!canReorder}),drop=useDroppable({id});
  return <div ref={node=>{drag.setNodeRef(node);drop.setNodeRef(node);}} className={`grid gap-3 rounded-xl border bg-ink-800 p-3 ${drop.isOver?'border-fono/60':'border-ink-600'}`} style={{opacity:drag.isDragging?.5:1}}>
   <div className="flex items-start gap-2">
-   {canReorder&&<button type="button" className="mt-0.5 grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-9 md:w-9" title="Reordenar ítem" aria-label="Reordenar ítem" style={{touchAction:'none'}} {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button>}
+   {canReorder&&<button type="button" className="mt-0.5 grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-9 md:w-9" title={`Reordenar ${itemLabel}`} aria-label={`Reordenar ${itemLabel}`} style={{touchAction:'none'}} {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button>}
    <div className="grid min-w-0 flex-1 gap-3">{title?<b className="text-sm font-bold text-fore">{title}</b>:null}{children}</div>
   </div>
  </div>;
@@ -46,6 +46,26 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
  useEffect(()=>{if(mode!=='plan')void Promise.all([api<{clients:QuoteClientOption[]}>('/api/agency/clients'),api<{records:QuotePlanRecord[]}>('/api/agency/plans')]).then(([c,p])=>{setClients(c.clients);setPlans(p.records.filter(x=>x.active!==false));}).catch(e=>setError(e instanceof Error?e.message:'No se pudieron cargar los planes'));},[mode]);
  const {subtotal,total}=quoteTotals(v.items,v.tax_rate);
+ // dnd-kit anuncia en inglés por defecto; el compositor habla castellano y
+ // recuerda la alternativa por botones (#60).
+ const reorderAccessibility=(kind:'item'|'section')=>{
+  const fields=kind==='item'?array.fields:sections.fields;
+  const sectionType=(id:UniqueIdentifier)=>sections.fields.find(field=>field.id===id)?.type;
+  const nameOf=(id:UniqueIdentifier)=>kind==='item'
+   ?(v.items[array.fields.findIndex(field=>field.id===id)]?.description||'').trim()||`el ítem ${array.fields.findIndex(field=>field.id===id)+1}`
+   :(sectionType(id)?SECTION_TYPE_LABELS[sectionType(id)!]:'')||`la sección ${fields.findIndex(field=>field.id===id)+1}`;
+  const positionOf=(id:UniqueIdentifier)=>fields.findIndex(field=>field.id===id)+1;
+  const targetOf=(id:UniqueIdentifier)=>kind==='item'?`la posición ${positionOf(id)}`:nameOf(id);
+  return {
+   screenReaderInstructions:{draggable:`Para reordenar ${kind==='item'?'un ítem':'una sección'} con el teclado: enfocá el asa de arrastre, presioná Espacio, mové con las flechas y confirmá con Espacio. Escape cancela el movimiento. También podés usar los botones Subir y Bajar.`},
+   announcements:{
+    onDragStart:({active}:{active:{id:UniqueIdentifier}})=>`Levantaste ${nameOf(active.id)}.`,
+    onDragOver:({active,over}:{active:{id:UniqueIdentifier};over:{id:UniqueIdentifier}|null})=>over?`${nameOf(active.id)} está sobre ${targetOf(over.id)}.`:`${nameOf(active.id)} no está sobre otra posición.`,
+    onDragEnd:({active,over}:{active:{id:UniqueIdentifier};over:{id:UniqueIdentifier}|null})=>over?`${nameOf(active.id)} quedó en la posición ${positionOf(over.id)}.`:`${nameOf(active.id)} volvió a su posición.`,
+    onDragCancel:({active}:{active:{id:UniqueIdentifier}})=>`Se canceló el reordenamiento de ${nameOf(active.id)}.`,
+   },
+  };
+ };
  function move(e:DragEndEvent){const from=array.fields.findIndex(f=>f.id===e.active.id),to=array.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0&&from!==to)array.move(from,to);}
  const submission=useSingleFlightSubmit(form.handleSubmit(async values=>{setError('');try{
    if(mode==='create'&&!values.clientId)throw new Error('Elegí un cliente');
@@ -65,7 +85,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    </div>
   </section>
   <section className="grid gap-3" aria-label="Ítems del documento">
-   <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move}>{array.fields.map((field,index)=><ItemShell key={field.id} id={field.id} canReorder={canReorder}>
+   <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={reorderAccessibility('item')}>{array.fields.map((field,index)=><ItemShell key={field.id} id={field.id} canReorder={canReorder}>
     <FormField label="Descripción" htmlFor={`quote-item-description-${index}`}><Input id={`quote-item-description-${index}`} {...form.register(`items.${index}.description`)}/></FormField>
     <div className="flex flex-wrap gap-3">
      <FormField label="Cantidad" htmlFor={`quote-item-quantity-${index}`}><Input id={`quote-item-quantity-${index}`} className="w-24" inputMode="decimal" autoComplete="off" {...form.register(`items.${index}.quantity`)}/></FormField>
@@ -85,7 +105,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
   </section>
   {mode!=='plan'&&<section className="grid gap-3" aria-label="Secciones del documento">
    <div><h3 className="text-sm font-bold text-fore">Secciones del documento</h3><p className="mt-1 text-xs leading-5 text-mute">Arrastrá o usá Subir/Bajar. Detalle y totales son obligatorios; podés ocultar las otras secciones.</p></div>
-   <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={e=>{const from=sections.fields.findIndex(f=>f.id===e.active.id),to=sections.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0)sections.move(from,to);}}>{sections.fields.map((field,index)=><ItemShell key={field.id} id={field.id} title={SECTION_TYPE_LABELS[field.type]} canReorder={canReorder}>
+   <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={e=>{const from=sections.fields.findIndex(f=>f.id===e.active.id),to=sections.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0)sections.move(from,to);}} accessibility={reorderAccessibility('section')}>{sections.fields.map((field,index)=><ItemShell key={field.id} id={field.id} title={SECTION_TYPE_LABELS[field.type]} canReorder={canReorder} itemLabel="sección">
     {field.type==='text'&&<><FormField label="Título" htmlFor={`quote-section-title-${index}`}><Input id={`quote-section-title-${index}`} {...form.register(`sections.${index}.title`)}/></FormField><FormField label="Contenido" htmlFor={`quote-section-body-${index}`}><Textarea id={`quote-section-body-${index}`} rows={4} {...form.register(`sections.${index}.body`)}/></FormField></>}
     {['items','totals'].includes(field.type)
      ?<p className="text-xs font-medium text-mute">Siempre visible</p>

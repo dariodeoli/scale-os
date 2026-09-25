@@ -90,20 +90,20 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
     const valid = listDateShort(budget.valid_until);
     const tone = dueTone(budget.valid_until);
     return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
-      <div className="flex min-w-0 items-center gap-2">
+      <div role="cell" className="flex min-w-0 items-center gap-2">
         {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected.includes(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
         <span className="flex min-w-0 items-baseline gap-2">
           <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
           <span className="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title={budget.title}>{budget.title}</span>
         </span>
       </div>
-      <span className="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title={budget.client_name}>{budget.client_name}</span>
-      <span className="min-w-0"><StateChip tone={state.tone}>{state.label}</StateChip></span>
-      <span className="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">{budget.item_count}</span>
-      <span className="list-date min-w-0 whitespace-nowrap text-[11px] text-mute" data-tone={tone||undefined} title={valid?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid||'Sin fecha'}</span>
-      <span className="text-right"><MoneyText valor={budget.subtotal} currency={budget.currency} className="text-fore"/></span>
-      <span className="text-right"><MoneyText valor={budget.total} currency={budget.currency} className="text-[13.5px] text-fore"/></span>
-      <span className="flex min-w-0 items-center justify-end gap-2 [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8">
+      <span role="cell" className="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title={budget.client_name}>{budget.client_name}</span>
+      <span role="cell" className="min-w-0"><StateChip tone={state.tone}>{state.label}</StateChip></span>
+      <span role="cell" className="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">{budget.item_count}</span>
+      <span role="cell" className="list-date min-w-0 whitespace-nowrap text-[11px] text-mute" data-tone={tone||undefined} title={valid?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid||'Sin fecha'}</span>
+      <span role="cell" className="text-right"><MoneyText valor={budget.subtotal} currency={budget.currency} className="text-fore"/></span>
+      <span role="cell" className="text-right"><MoneyText valor={budget.total} currency={budget.currency} className="text-[13.5px] text-fore"/></span>
+      <span role="cell" className="flex min-w-0 items-center justify-end gap-2 [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8">
         <BudgetActions id={budget.id} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={reload}/>
         <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={reload}/>
       </span>
