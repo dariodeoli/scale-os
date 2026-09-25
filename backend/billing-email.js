@@ -23,6 +23,21 @@ export function trialStartedEmail({email,organizationName,trialEndsOn,appUrl}){
  return{subject,text,html};
 }
 
+export function suspensionEmail({organizationName,appUrl}){
+ const url=appLink(appUrl),organization=line(organizationName);
+ const subject=`Tu acceso a ${organization} quedó suspendido`.slice(0,160);
+ const text=`Tu acceso a ${organization} quedó suspendido\n\nNo registramos el pago del mes y venció la gracia de 2 días. Tus datos siguen guardados: al regularizar el pago el acceso se reactiva solo.\n\nRevisar mi suscripción: ${url.href}\n\nScale OS · Gestión de agencias`;
+ const html=emailShell({
+  eyebrow:organization,
+  title:'Tu acceso quedó suspendido',
+  lead:'No registramos el pago del mes y venció la gracia de 2 días. Tus datos siguen guardados: al regularizar el pago el acceso se reactiva solo.',
+  cta:{label:'Revisar mi suscripción',href:url.href},
+  footer:'Si ya pagaste con otro medio, contactá al administrador para registrar el pago manual.',
+  footerNote:'Scale OS · Gestión de agencias',
+ });
+ return{subject,text,html};
+}
+
 export function paymentFailedEmail({organizationName,appUrl}){
  const url=appLink(appUrl),organization=line(organizationName);
  const subject=`No pudimos cobrar tu suscripción de ${organization}`.slice(0,160);

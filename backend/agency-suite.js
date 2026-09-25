@@ -42,10 +42,21 @@ async function batchArchive(c,user,org,kind,payload){
   const hasLifecycle=(await c.query("select 1 from information_schema.columns where table_name='agency_clients' and column_name='lifecycle_status' limit 1")).rows.length>0;
   if(hasLifecycle)await c.query("update agency_clients set active=$1,lifecycle_status=case when $1 then 'active' else 'inactive' end,updated_at=now() where organization_id=$2 and id = any($3::bigint[])",[!archived,org,ids]);
   else await c.query('update agency_clients set active=$1,updated_at=now() where organization_id=$2 and id = any($3::bigint[])',[!archived,org,ids]);
- }else{
+ }else if(kind==='projects'){
   const rows=(await c.query('select id from agency_projects where organization_id=$1 and id = any($2::bigint[]) order by id for update',[org,ids])).rows;
   if(rows.length!==ids.length)fail('Algún proyecto no pertenece a esta empresa',404);
   await c.query('update agency_projects set active=$1,updated_at=now() where organization_id=$2 and id = any($3::bigint[])',[!archived,org,ids]);
+ }else{
+  // Lote de presupuestos (#59): archivar/restaurar con el mismo camino que la
+  // fila individual (Papelera + share_enabled=false al retirar).
+  const rows=(await c.query('select id from agency_budgets where organization_id=$1 and id = any($2::bigint[]) order by id for update',[org,ids])).rows;
+  if(rows.length!==ids.length)fail('Algún presupuesto no pertenece a esta empresa',404);
+  if(archived){
+   await c.query('update agency_budgets set share_enabled=false where organization_id=$1 and id = any($2::bigint[])',[org,ids]);
+   await c.query("insert into agency_archived_records(organization_id,kind,record_id,removed_by) select $1,'budgets',value,$3 from unnest($2::bigint[]) as value on conflict do nothing",[org,ids,user.id]);
+  }else{
+   await c.query("delete from agency_archived_records where organization_id=$1 and kind='budgets' and record_id = any($2::bigint[])",[org,ids]);
+  }
  }
  return {updated:ids.length,archived};
 }
@@ -93,7 +104,7 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
    if(current.role==='owner'&&(!active||role!=='owner')){const n=await c.query("select count(*)::int as count from organization_members where organization_id=$1 and role='owner' and active=true",[org]);if(n.rows[0].count<=1)fail('Debe quedar al menos un propietario activo');}
    await c.query('update organization_members set role=$1,active=$2 where user_id=$3 and organization_id=$4',[role,active,key,org]);await c.query('delete from sessions where user_id=$1 and organization_id=$2',[key,org]);result={ok:true};
    if(!current.active&&active&&typeof sendAccessGranted==='function')grantedNotify={email:current.email,organizationName:user.organization_name,role};
-  }else if(action==='batch'&&(kind==='clients'||kind==='projects')){result=await batchArchive(c,user,org,kind,await body(req));}
+  }else if(action==='batch'&&(kind==='clients'||kind==='projects'||kind==='budgets')){result=await batchArchive(c,user,org,kind,await body(req));}
   else if(kind==='clients'||kind==='projects'||kind==='work-orders'){
    const table={clients:'agency_clients',projects:'agency_projects','work-orders':'agency_work_orders'}[kind],old=await owned(c,table,key,org);
    if(req.method==='GET'){

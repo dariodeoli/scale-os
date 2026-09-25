@@ -7,4 +7,4 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 chmod +x "$ROOT/.githooks/pre-push"
 git config core.hooksPath .githooks
 echo "Hooks instalados: core.hooksPath = .githooks"
-echo "Pre-push activo: los pushes a main requieren MOBOS_INTEGRATOR=1."
+echo "Pre-push activo: los pushes a main requieren SCALE_INTEGRATOR=1."

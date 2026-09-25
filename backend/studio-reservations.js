@@ -52,6 +52,20 @@ async function studioReservation(connection,organization,id){
  const reservation=(await connection.query('select * from agency_studio_reservations where id=$1 and organization_id=$2 for update',[id,organization])).rows[0];
  if(!reservation)fail('Reserva de estudio no encontrada',404);return reservation;
 }
+// Lote de reservas de Estudio (#59): cancelar varias de una vez con la misma
+// regla que la cancelación individual (studio.manage o la propia reserva) y
+// reportando aparte las que ya estaban canceladas.
+async function batchCancelReservations(c,user,organization,payload){
+ if(payload?.action!=='cancel')fail('Indicá qué hacer con las reservas seleccionadas');
+ const ids=[...new Set((Array.isArray(payload.ids)?payload.ids:[]).map(value=>identifier(value)))];
+ if(!ids.length||ids.length>50)fail('Elegí entre 1 y 50 reservas');
+ const rows=(await c.query('select * from agency_studio_reservations where organization_id=$1 and id=any($2::bigint[]) order by id for update',[organization,ids])).rows;
+ if(rows.length!==ids.length)fail('Alguna reserva no pertenece a esta empresa',404);
+ for(const reservation of rows)ownReservation(user,reservation);
+ const cancellable=rows.filter(reservation=>reservation.status!=='cancelled');
+ for(const reservation of cancellable)await c.query("update agency_studio_reservations set status='cancelled',cancelled_at=now(),cancelled_by_user_id=$1,version=version+1,updated_at=now() where id=$2 and organization_id=$3",[user.id,reservation.id,organization]);
+ return {updated:cancellable.length,cancelled:cancellable.length,skipped:rows.length-cancellable.length};
+}
 function ownReservation(user,reservation){if(!roleCan(user,'studio.manage')&&String(reservation.created_by_user_id)!==String(user.id))fail('Solo podés gestionar tus propias reservas',403);}
 
 async function context(connection,organization,user){
@@ -108,7 +122,7 @@ async function saveReservation(connection,user,organization,payload,id){
 }
 
 export async function studioReservations({req,res,url,db,session,body,send}){
- const route=url.pathname.match(/^\/api\/agency\/(studio-spaces|studio-reservations|studio-context)(?:\/(\d+))?(?:\/(cancel))?$/);
+ const route=url.pathname.match(/^\/api\/agency\/(studio-spaces|studio-reservations|studio-context)(?:\/(\d+))?(?:\/(cancel|batch))?$/);
  if(!route)return false;
  let connection,transaction=false;
  try{
@@ -132,6 +146,7 @@ export async function studioReservations({req,res,url,db,session,body,send}){
     if(to<=from||new Date(to)-new Date(from)>366*86400000)fail('Elegí un intervalo de hasta 366 días');
     const reservations=await listReservations(connection,organization,from,to,id);if(id&&!reservations.length)fail('Reserva de estudio no encontrada',404);result=id?{reservation:reservations[0]}:{reservations};
    }else if(!action&&((req.method==='POST'&&!id)||(req.method==='PATCH'&&id))){result={reservation:await saveReservation(connection,user,organization,await body(req),id)};status=id?200:201;}
+   else if(req.method==='POST'&&!id&&action==='batch'){result=await batchCancelReservations(connection,user,organization,await body(req));}
    else if(req.method==='POST'&&id&&action==='cancel'){
     const reservation=await studioReservation(connection,organization,id);ownReservation(user,reservation);
     if(reservation.status==='cancelled')result={reservation:(await listReservations(connection,organization,null,null,id))[0],alreadyRecorded:true};

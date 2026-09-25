@@ -72,5 +72,19 @@ assert.equal((await call(`studio-spaces/${space.id}`,'PATCH',{name:'Set principa
 assert.equal((await call('studio-reservations','POST',{...payload,space_id:space.id,title:'No new inactive space'},seller)).status,400);
 assert.equal((await call(`studio-reservations/${second.id}`,'GET',{}, {...owner,organization_id:other})).status,404);
 assert.equal((await query('select count(*)::int as count from agency_inventory_reservations')).rows[0].count,0,'studio bookings do not touch inventory reservations');
+// Lote de reservas (#59): cancelar varias con las mismas reglas que la individual.
+const batchSpace=(await call('studio-spaces','POST',{name:'Set para lote'})).space;
+const batchBase={...payload,space_id:batchSpace.id,responsible_user_ids:[producer.id]};
+const batchFirst=(await call('studio-reservations','POST',{...batchBase,title:'Lote 1'},seller)).reservation;
+const batchSecond=(await call('studio-reservations','POST',{...batchBase,title:'Lote 2',starts_at:end,ends_at:adjacentEnd},seller)).reservation;
+assert.equal((await call('studio-reservations/batch','POST',{ids:[batchFirst.id],action:'cancel'},viewer)).status,403,'viewer no cancela en lote');
+assert.equal((await call('studio-reservations/batch','POST',{ids:[batchFirst.id]},seller)).status,400,'el lote exige action');
+assert.equal((await call('studio-reservations/batch','POST',{ids:[],action:'cancel'},seller)).status,400,'el lote exige selección');
+assert.equal((await call('studio-reservations/batch','POST',{ids:Array.from({length:51},(_,index)=>String(index+1)),action:'cancel'},seller)).status,400,'máximo 50 por lote');
+assert.equal((await call('studio-reservations/batch','POST',{ids:[batchFirst.id,'999999'],action:'cancel'},seller)).status,404,'toda reserva debe pertenecer a la empresa');
+assert.deepEqual(await call('studio-reservations/batch','POST',{ids:[batchFirst.id,batchSecond.id],action:'cancel'},seller),{status:200,updated:2,cancelled:2,skipped:0});
+assert.deepEqual(await call('studio-reservations/batch','POST',{ids:[batchFirst.id,batchSecond.id],action:'cancel'},seller),{status:200,updated:0,cancelled:0,skipped:2},'el lote es idempotente');
+const batchListed=(await call('studio-reservations','GET',{},seller)).reservations.filter(row=>[String(batchFirst.id),String(batchSecond.id)].includes(String(row.id)));
+assert.equal(batchListed.length,2);assert.equal(batchListed.every(row=>row.status==='cancelled'),true,'las reservas quedan canceladas en el listado');
 await pg.close();
-console.log('PASS: studio spaces, tenant isolation, permissions (production, sales and management reserve; viewer cannot), optional project, responsible members, exclusion overlap and inventory separation');
+console.log('PASS: studio spaces, tenant isolation, permissions (production, sales and management reserve; viewer cannot), lote de cancelación, optional project, responsible members, exclusion overlap and inventory separation');

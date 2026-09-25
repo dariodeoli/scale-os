@@ -10,7 +10,7 @@ if(existsSync(envFile))for(const line of readFileSync(envFile,'utf8').split(/\r?
 // Un solo bump de versión, un solo commit y un solo push a main; Coolify recibe
 // el push de ambas aplicaciones (base backend/ para el servicio API).
 const backendRoot=path.join(root,'backend');
-const integratorEnv={...process.env,MOBOS_INTEGRATOR:'1'};
+const integratorEnv={...process.env,SCALE_INTEGRATOR:'1'};
 const run=(command,args,cwd=root)=>execFileSync(command,args,{cwd,stdio:'inherit',env:integratorEnv});
 const fail=message=>{throw new Error(`Release cancelado: ${message}`);};
 const succeeds=(command,args,cwd=root)=>{try{execFileSync(command,args,{cwd,stdio:'ignore'});return true;}catch{return false;}};

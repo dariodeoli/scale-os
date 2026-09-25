@@ -88,4 +88,5 @@ export const migrationOrder = [
   '20260921_platform_extend_idempotency.sql',
   '20260923_agency_core_perf.sql',
   '20260924_inventory_photo_stamp.sql',
+  '20260924_subscription_suspension_notice.sql',
 ];
