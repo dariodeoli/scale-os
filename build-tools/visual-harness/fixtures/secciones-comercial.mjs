@@ -25,14 +25,14 @@ const button = (text, variant = 'primary') => `<button type="button" class="inli
 const BUDGET_COLUMNS = ['Presupuesto', 'Cliente', 'Estado', 'Ítems', 'Vigencia', 'Sin IVA', 'Total · IVA incl.', 'Acciones'];
 const BUDGET_TEMPLATE = 'grid-cols-[minmax(26rem,2.2fr)_minmax(16rem,1.4fr)_7rem_4rem_7rem_9rem_9rem_15rem]';
 const budgetRow = ({number, title, client, tone, state, items, valid, due, subtotal, total, selected = false}) => `<div role="row" class="budget-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${BUDGET_TEMPLATE}">
- <div class="flex min-w-0 items-center gap-2"><label class="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label="Seleccionar ${number} · ${title}"${selected ? ' checked' : ''}/></label><span class="flex min-w-0 items-baseline gap-2"><b class="shrink-0 font-mono text-[11px] font-semibold text-mute">${number}</b><span class="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title="${title}">${title}</span></span></div>
- <span class="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title="${client}">${client}</span>
- <span class="min-w-0">${stateChip(tone, state)}</span>
- <span class="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">${items}</span>
- <span class="list-date min-w-0 whitespace-nowrap text-[11px] text-mute"${due ? ' data-tone="warn"' : ''} title="${valid}">${valid}</span>
- <span class="text-right">${moneyText(subtotal, 'text-fore')}</span>
- <span class="text-right">${moneyText(total, 'text-[13.5px] text-fore')}</span>
- <span class="flex min-w-0 items-center justify-end gap-2 [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
+ <div role="cell" class="flex min-w-0 items-center gap-2"><label class="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label="Seleccionar ${number} · ${title}"${selected ? ' checked' : ''}/></label><span class="flex min-w-0 items-baseline gap-2"><b class="shrink-0 font-mono text-[11px] font-semibold text-mute">${number}</b><span class="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title="${title}">${title}</span></span></div>
+ <span role="cell" class="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title="${client}">${client}</span>
+ <span role="cell" class="min-w-0">${stateChip(tone, state)}</span>
+ <span role="cell" class="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">${items}</span>
+ <span role="cell" class="list-date min-w-0 whitespace-nowrap text-[11px] text-mute"${due ? ' data-tone="warn"' : ''} title="${valid}">${valid}</span>
+ <span role="cell" class="text-right">${moneyText(subtotal, 'text-fore')}</span>
+ <span role="cell" class="text-right">${moneyText(total, 'text-[13.5px] text-fore')}</span>
+ <span role="cell" class="flex min-w-0 items-center justify-end gap-2 [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
 </div>`;
 /* Ronda 12 (#59): barra de lote, espejo de app/sections/presupuestos.tsx. */
 const budgetBulkBar = (selected = 0) => `<div class="bulk-bar" role="status" aria-live="polite">
