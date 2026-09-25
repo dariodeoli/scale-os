@@ -88,6 +88,7 @@ export const BATCH_LIMITS = {
  inventory: 50,
  projects: 50,
  reservationItems: 50,
+ studioReservations: 50,
  reservationResponsibles: 30,
  planner: 100,
 } as const;

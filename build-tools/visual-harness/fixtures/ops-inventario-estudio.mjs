@@ -191,9 +191,10 @@ const studioReservations = [
   {title: 'Podcast semanal', place: 'Cabina de podcast insonorizada · Tratamiento acústico completo · Podcast', dates: '25 sept 26 · 18:00 → 25 sept 26 · 20:00', project: 'Sin proyecto vinculado', responsibles: 'María José Fernández de la Vega y Rivarola', status: 'Reservada', tone: 'info'},
   {title: 'Spot publicitario (cancelada por lluvia)', place: 'Estudio B · escenario de ladrillo · Ladrillo visto · Ads', dates: '05 sept 26 · 07:00 → 05 sept 26 · 15:00', project: 'Spot · Visión Banco', responsibles: 'Ana Paula Benítez', status: 'Cancelada', tone: 'mute'},
 ];
-const studioReservationHead = `<div data-list-head="studio-reservations" class="grid grid-cols-[var(--studio-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span class="text-right">Acciones</span></div>`;
+const studioReservationHead = `<div data-list-head="studio-reservations" class="grid grid-cols-[var(--studio-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span/><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span class="text-right">Acciones</span></div>`;
 const studioReservationRow = (row) => `
 <div data-list-row="studio-reservations" class="grid min-h-[48px] content-center grid-cols-[var(--studio-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
+ <span class="flex h-11 items-center md:h-auto">${row.status === 'Reservada' ? `<label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar reserva: ${row.title}"></label>` : ''}</span>
  <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${row.title}">${row.title}</b><small class="truncate text-[11px] text-mute" title="${row.place}">${row.place}</small></span>
  <span class="min-w-0 whitespace-nowrap text-[13px] leading-5 tabular-nums text-mute">${row.dates}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.project}">${row.project}</span>
@@ -339,7 +340,15 @@ export default [
     body: `
 <div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
  ${studioCalendar}
- <div data-list="studio-reservations" class="mt-4 min-w-0 overflow-x-auto"><div class="[--studio-cols:minmax(9.5rem,1.4fr)_minmax(15.5rem,1.2fr)_minmax(7.5rem,1fr)_minmax(8.5rem,1fr)_7rem_9rem] grid min-w-[67.5rem] gap-2">${studioReservationHead}${studioReservations.map(studioReservationRow).join('')}</div></div>
+ <div class="bulk-bar" role="status" aria-live="polite">
+  <span class="bulk-count"><b>1</b> de 50 seleccionada</span>
+  <div class="inline-actions bulk-actions">
+   <button type="button" class="text-button min-h-11 md:min-h-8">Seleccionar visibles</button>
+   <button type="button" class="secondary min-h-11 md:min-h-10">Cancelar</button>
+   <button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button>
+  </div>
+ </div>
+ <div data-list="studio-reservations" class="mt-4 min-w-0 overflow-x-auto"><div class="[--studio-cols:2.25rem_minmax(9.5rem,1.4fr)_minmax(15.5rem,1.2fr)_minmax(7.5rem,1fr)_minmax(8.5rem,1fr)_7rem_9rem] grid min-w-[67.5rem] gap-2">${studioReservationHead}${studioReservations.map(studioReservationRow).join('')}</div></div>
 </div></div>`,
   },
 ];

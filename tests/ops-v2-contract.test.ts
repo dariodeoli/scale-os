@@ -79,6 +79,21 @@ assert.match(inventory,/aria-hidden="true"/,'el encabezado de columnas se anunci
 assert.match(inventory,/ariaLabel="Vista de inventario"/);
 assert.match(inventory,/ariaLabel="Vistas de inventario"/);
 assert.match(studio,/studioCanManageReservation/,'los permisos de la reserva siguen en la capa de datos');
+// ── Lote en Reservas de Estudio (#59): patrón `bulk-bar` de Equipo/Clientes.
+assert.match(studio,/const \[selectedReservations,setSelectedReservations\]=useState<string\[\]>/,'el estudio guarda la selección de reservas');
+assert.match(studio,/const reservationSelectable=\(reservation:StudioReservation\)=>Boolean\(context&&studioCanManageReservation\(context,reservation\)&&reservation\.status==='reserved'\)/,'solo se seleccionan reservas gestionables y vigentes');
+assert.match(studio,/<div className="bulk-bar" role="status" aria-live="polite">/,'la barra de lote es la canónica');
+assert.match(studio,/className="bulk-count"/,'el contador usa la clase compartida');
+assert.match(studio,/Seleccionar visibles/,'la barra ofrece seleccionar visibles');
+assert.match(studio,/limitSelection\(visibleSelectable,BATCH_LIMITS\.studioReservations\)/,'la selección respeta el tope del endpoint');
+assert.match(studio,/\/api\/agency\/studio-reservations\/batch/,'el lote llama al endpoint de batch (#59)');
+assert.match(studio,/\/api\/agency\/studio-reservations\/\$\{id\}\/cancel/,'sin endpoint de lote cae a los cancels unitarios con versión');
+assert.match(studio,/expected_version:row\?\.version/,'el respaldo conserva la versión por fila');
+assert.match(studio,/bulk-bar.*Seleccionar visibles/s,'la barra vive antes de la lista');
+assert.match(studio,/<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote">/,'la celda de selección es táctil de 44 px en mobile');
+assert.match(studio,/\[--studio-cols:2\.25rem_/,'la plantilla compartida suma la columna de selección');
+const capabilities=read('app/capabilities.ts');
+assert.match(capabilities,/studioReservations: 50/,'el tope del lote del estudio queda declarado');
 assert.match(studio,/\^\\d\{4\}-\(0\[1-9\]\|1\[0-2\]\)\$/,'el mes del estudio se valida antes de aplicarlo');
 
 // ── Producción (tablero, Mi día, calendario, lista y lotes).
