@@ -73,7 +73,7 @@
 :is(.control-shell,.unified-dialog) [aria-invalid=true]{border-color:var(--danger)}
 :is(.control-shell,.unified-dialog) :is(.form-error-summary,.form-status){grid-column:1/-1;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);margin:0;font-size:13px;line-height:1.5}
 :is(.control-shell,.unified-dialog) .form-error-summary{border-color:var(--danger);background:var(--danger-soft);color:var(--text)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :focus-visible{outline:2px solid var(--ui-focus);outline-offset:3px}
+:is(.control-shell,.unified-dialog,.photo-dialog) :focus-visible{outline:3px solid var(--focus-ring,var(--brand-700));outline-offset:2px}
 
 /* Lists use dividers, not another full panel around every row. */
 .control-shell :is(.payment-row,.client-list .client-row,.activity-line){padding-block:var(--ui-space-3);gap:var(--ui-space-3)}
@@ -158,7 +158,7 @@
 :is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:inset 0 1px 0 rgb(255 255 255 / 70%)}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(input,textarea,select,.ops-select-trigger):focus{border-color:var(--focus-ring);box-shadow:0 0 0 3px var(--focus-halo)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :focus-visible{outline:3px solid var(--focus-halo);outline-offset:2px}
+
 
 /* Dense tables preserve headers, scan lines and keyboard-visible row context. */
 :is(.control-shell,.unified-dialog) :is(.reports-table-scroll,.growth-table,.plan-comparison-wrap){border-color:var(--border-subtle);border-radius:var(--radius-sm)}

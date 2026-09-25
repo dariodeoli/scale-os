@@ -102,6 +102,10 @@ html[data-theme="dark"] :is(.shell,.control-shell)>.desktop-sidebar {
 .desktop-sidebar .person-container-secondary {
   color: rgb(255 255 255 / .72);
 }
+/* Foco sobre el riel: el outline de marca (#4d065b) no llega a 3:1 contra el
+   lila; en el riel el indicador es blanco (15.9:1 en claro, 19:1 en oscuro). */
+:is(.shell,.control-shell)>.desktop-sidebar :focus-visible{outline-color:#fff}
+
 /* La marca móvil vive solo en el drawer: el riel ya tiene su marca de escritorio. */
 :is(.shell,.control-shell)>.desktop-sidebar .mobile-sidebar-brand {
   display: none;
@@ -165,7 +169,7 @@ body {
   --c-fono-glow: 77 6 91;
   --c-ok: 29 122 98; /* success #1D7A62 */
   --c-bad: 180 59 76; /* danger #B43B4C */
-  --c-warn: 167 120 9; /* warning #A77809 */
+  --c-warn: 138 98 7; /* warning #8A6207 (AA sobre ámbar suave) */
   --c-info: 54 93 178; /* info #365DB2 */
   --c-onbrand: 255 255 255; /* texto sobre marca */
 }
