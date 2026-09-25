@@ -47,7 +47,7 @@ export function WeeklyAutomatic({role}:{role:string}){
    <p className="text-xs text-mute">Terminadas de la semana, calculadas automáticamente desde los cambios de estado. Cada pieza cuenta una sola vez, en la semana en que pasó a terminada, atribuida a quien ejecutó el cambio. Sin horas: se cuentan piezas, no tiempo trabajado. Órdenes: piezas en las que se trabajó durante la semana, terminadas o no. Proyectos: distribución de las piezas terminadas por proyecto.</p>
   </div>
   <div className="flex flex-wrap items-end gap-3">
-   <FormField label="Semana"><Input type="date" className="w-44" value={week} onChange={(event:ChangeEvent<HTMLInputElement>)=>{const monday=weekMonday((event.target as HTMLInputElement).value);if(monday)setWeek(monday);}}/></FormField>
+   <FormField label="Semana" htmlFor="weekly-week"><Input id="weekly-week" type="date" className="w-44" value={week} onChange={(event:ChangeEvent<HTMLInputElement>)=>{const monday=weekMonday((event.target as HTMLInputElement).value);if(monday)setWeek(monday);}}/></FormField>
   </div>
   <Nota tono="neutro">Del {listDateShort(week)||week} al {listDateShort(lastDay(week))||lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</Nota>
   {loading?<LoadingBlock label="Cargando producción semanal…" lines={3}/>:null}
