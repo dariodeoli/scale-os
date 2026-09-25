@@ -2,6 +2,15 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.124
+
+### Accesibilidad y sistema visual
+
+- **Foco visible único**: un solo indicador sólido de 3 px con contraste AA en claro y oscuro; sobre el riel es blanco (el de marca no llegaba al mínimo). Se retiró el halo translúcido que lo hacía casi invisible.
+- **Contraste corregido**: el gris de textos secundarios y el ámbar de avisos pasan a valores ≥4,5:1 (con el mapeo de Tailwind alineado); barrido del marco sin fallos y todo el marco por encima de AA.
+- **Teclado verificado**: abrir el menú con Enter deja el foco adentro (trampa en Tab, Escape cierra y devuelve el foco) y las animaciones se apagan con “reducir movimiento”.
+- Pendiente en la librería: el ámbar del chip de advertencia de `owncoding-ui` mide 3,65:1; quedó el pedido con la propuesta de valor (`#8A6207`).
+
 ## v1.0.123
 
 ### Comercial
