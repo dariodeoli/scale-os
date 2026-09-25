@@ -983,7 +983,7 @@
   }
 }
 
-html[data-theme="dark"] .platform-admin-page{--platform-plum-100:#2c2133;--platform-ink:#f5eff7;--platform-muted:#a7a2ad;--platform-line:#3e3e4c;--platform-surface:#1b1b21;--platform-surface-muted:#212128}
+html[data-theme="dark"] .platform-admin-page{--platform-plum-100:#2c2133;--platform-plum-700:#c06bd0;--platform-ink:#f5eff7;--platform-muted:#a7a2ad;--platform-line:#3e3e4c;--platform-surface:#1b1b21;--platform-surface-muted:#212128}
 html[data-theme="dark"] .platform-admin-stat-card{box-shadow:0 5px 15px rgb(0 0 0 / 30%)}
 html[data-theme="dark"] .platform-admin-stat-icon{background:var(--violet-soft);color:var(--brand-700)}
 html[data-theme="dark"] .platform-admin-stat-card:nth-child(2) .platform-admin-stat-icon{background:#1d3a34;color:#6fc9bb}
