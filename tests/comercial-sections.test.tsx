@@ -261,6 +261,67 @@ test('presupuestos: KPIs, filas con encabezado, moneda distinta y estados',async
  act(()=>renderer.unmount());
 });
 
+test('presupuestos: lote con tope, confirmación y refresco',async()=>{
+ let renderer!:ReactTestRenderer;
+ const feedback:{message:string;tone:string}[]=[];
+ const win=new EventTarget();
+ (globalThis as {window?:unknown}).window=win;
+ win.addEventListener('scale:feedback',event=>feedback.push((event as CustomEvent<{message:string;tone:string}>).detail));
+ const budget=(index:number)=>({id:String(index+1),number:`P-2026-${String(index+1).padStart(3,'0')}`,title:`Propuesta ${index+1}`,client_name:'Cliente de prueba',status:'draft',item_count:1,valid_until:null,subtotal:'100',total:'110',currency:'PYG'});
+ const budgets=Array.from({length:51},(_,index)=>budget(index));
+ const refreshed:unknown[]=[];
+ const mount=(role:string,list:unknown[])=>act(async()=>{renderer=create(<PresupuestosSection loading={false} user={user(role)} budgetsState="ready" budgets={list as never} invoices={[] as never} budgetKpis={{totals:new Map(),drafts:list.length,accepted:0,expiring:0}} summary={{} as never} loadBudgets={()=>{}} setBudgets={value=>refreshed.push(value)}/>);});
+ const copy=()=>text(renderer.root);
+ const button=(label:string)=>renderer.root.findAllByType('button').find(candidate=>text(candidate).includes(label))!;
+ const boxes=()=>renderer.root.findAllByType('input').filter(input=>input.props.type==='checkbox');
+
+ // owner: barra, casillas por fila con target de 44 px y tope por llamada.
+ await mount('owner',budgets);
+ assert.match(copy(),/Seleccioná varios para operar en lote · máximo 50/);
+ assert.equal(boxes().length,51,'una casilla por fila');
+ assert.ok(renderer.root.findAll(node=>typeof node.props.className==='string'&&node.props.className.startsWith('select-check')).every(node=>node.props.className.includes('h-11 w-11')),'las casillas reservan un target de 44 px');
+ act(()=>button('Seleccionar visibles').props.onClick());
+ assert.match(copy(),/50 de 50 seleccionados/,'la selección visible se recorta al tope del endpoint');
+ assert.match(feedback.at(-1)!.message,/hasta 50 presupuestos/);
+ assert.ok(boxes().slice(0,50).every(box=>box.props.checked),'quedan seleccionados los primeros 50');
+ assert.equal(boxes()[50].props.checked,false,'el 51 no entra en el lote');
+ act(()=>boxes()[0].props.onChange());
+ assert.match(copy(),/49 de 50 seleccionados/);
+ act(()=>boxes()[50].props.onChange());
+ assert.match(copy(),/50 de 50 seleccionados/,'se puede sumar otro al liberar un lugar');
+
+ // Confirmación explícita antes de mover y POST al endpoint del lote.
+ act(()=>button('Mover a la papelera').props.onClick());
+ const dialog=renderer.root.findByProps({role:'dialog'});
+ assert.match(text(dialog),/50 presupuestos/);
+ assert.match(text(dialog),/El enlace público dejará de funcionar/);
+ requests=[];
+ await act(async()=>{button('Confirmar: mover a papelera').props.onClick();});
+ const batch=pending();
+ assert.equal(batch.url,'/core-api/api/agency/budgets/batch');
+ assert.equal(String(batch.init.method||'POST').toUpperCase(),'POST');
+ assert.equal((JSON.parse(String(batch.init.body)) as {ids:string[]}).ids.length,50);
+ await act(async()=>{batch.resolve(new Response(JSON.stringify({updated:50}),{status:200}));});
+ const list=pending();
+ assert.equal(list.url,'/core-api/api/agency/budgets','el refresco usa la lista completa del contrato');
+ await act(async()=>{list.resolve(new Response(JSON.stringify({budgets:[budget(50)]}),{status:200}));});
+ assert.equal(refreshed.length,1,'el refresco baja al estado del shell');
+ assert.equal(feedback.at(-1)!.message,'50 presupuestos movidos a la papelera.');
+ assert.equal(feedback.at(-1)!.tone,'success');
+ assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0,'el diálogo se cierra al terminar');
+ assert.match(copy(),/Seleccioná varios para operar en lote/,'la selección se limpia');
+ act(()=>renderer.unmount());
+
+ // viewer: sin barra ni casillas (la capacidad manda).
+ requests=[];
+ await mount('viewer',budgets.slice(0,2));
+ assert.equal(boxes().length,0,'viewer no selecciona');
+ assert.equal(copy().includes('Seleccionar visibles'),false);
+ assert.equal(copy().includes('Mover a la papelera'),false);
+ act(()=>renderer.unmount());
+ delete (globalThis as {window?:unknown}).window;
+});
+
 test('métricas: acceso por rol y estados sin eventos',async()=>{
  let renderer!:ReactTestRenderer;
  for(const role of ['viewer','sales','finance','management','collaborator']){act(()=>{renderer=create(<MetricasSection user={user(role)} metrics={[]}/>);});assert.equal(renderer.toJSON(),null,`${role} no ve métricas`);act(()=>renderer.unmount());}
