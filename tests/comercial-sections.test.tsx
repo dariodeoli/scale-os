@@ -322,6 +322,36 @@ test('presupuestos: lote con tope, confirmación y refresco',async()=>{
  delete (globalThis as {window?:unknown}).window;
 });
 
+test('accesibilidad AA COM: celdas con rol, anuncios en castellano y movimiento reducido (#60)',async()=>{
+ let renderer!:ReactTestRenderer;
+ const clientes=read('app/sections/clientes.tsx');
+ const presupuestos=read('app/sections/presupuestos.tsx');
+ const pipeline=read('app/sections/pipeline.tsx');
+ const composer=read('app/quote-composer.tsx');
+ const dashboard=read('app/growth-dashboard.tsx');
+ // Listas: cada celda declara su rol (axe `aria-required-children`).
+ assert.equal((clientes.match(/role="cell"/g)||[]).length,6,'la fila de clientes declara sus seis celdas');
+ assert.equal((presupuestos.match(/role="cell"/g)||[]).length,8,'la fila de presupuestos declara sus ocho celdas');
+ await act(async()=>{renderer=create(<PresupuestosSection loading={false} user={user('owner')} budgetsState="ready" budgets={[{id:'1',number:'P-1',title:'Propuesta',client_name:'Cliente',status:'sent',item_count:1,valid_until:null,subtotal:'100',total:'110',currency:'PYG'},{id:'2',number:'P-2',title:'Otra',client_name:'Cliente',status:'draft',item_count:1,valid_until:null,subtotal:'100',total:'110',currency:'PYG'}] as never} invoices={[] as never} budgetKpis={{totals:new Map(),drafts:1,accepted:0,expiring:0}} summary={{} as never} loadBudgets={()=>{}} setBudgets={()=>{}}/>);});
+ assert.equal(renderer.root.findAllByProps({role:'cell'}).length,16,'las filas renderizadas exponen celdas, no hijos sueltos');
+ act(()=>renderer.unmount());
+ // Arrastre: anuncios e instrucciones en castellano, con la alternativa por botones.
+ for(const [name,source] of [['pipeline',pipeline],['compositor',composer]] as const){
+  assert.match(source,/accessibility=\{/,`${name}: el DndContext recibe la accesibilidad`);
+  assert.match(source,/screenReaderInstructions/,`${name}: instrucciones para lectores de pantalla`);
+  assert.match(source,/onDragStart[\s\S]*onDragOver[\s\S]*onDragEnd[\s\S]*onDragCancel/,`${name}: anuncia levantar, mover, soltar y cancelar`);
+  assert.match(source,/Levantaste/,'anuncio en castellano');
+  assert.match(source,/motion-reduce:transition-none/,'las transiciones se apagan con movimiento reducido');
+ }
+ assert.match(pipeline,/se movió a \$\{stageName\(over\.id\)\}/,'el tablero nombra la etapa destino');
+ assert.match(composer,/Subir y Bajar/,'el compositor recuerda la alternativa por teclado');
+ assert.match(composer,/itemLabel/,'las asas distinguen ítem de sección');
+ assert.match(dashboard,/motion-reduce:transition-none/,'las barras de crecimiento respetan movimiento reducido');
+ // Targets: casilla de 44 px en móvil y 32 px en la fila densa de escritorio.
+ assert.match(presupuestos,/select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8/,'la casilla del presupuesto reserva el target por densidad');
+ assert.match(read('app/client-directory.css'),/\.client-hub-row \.select-check[^{]*\{min-width:44px;min-height:44px/,'la casilla de clientes reserva 44 px en la fila');
+});
+
 test('métricas: acceso por rol y estados sin eventos',async()=>{
  let renderer!:ReactTestRenderer;
  for(const role of ['viewer','sales','finance','management','collaborator']){act(()=>{renderer=create(<MetricasSection user={user(role)} metrics={[]}/>);});assert.equal(renderer.toJSON(),null,`${role} no ve métricas`);act(()=>renderer.unmount());}

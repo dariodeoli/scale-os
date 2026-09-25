@@ -33,7 +33,7 @@ export function GrowthDashboard({events}:{events:GrowthEvent[]}){
   <section aria-labelledby="growth-evolution">
    <h3 id="growth-evolution" className="text-sm font-bold text-fore">Evolución diaria · páginas vistas</h3>
    <div role="img" aria-label={`Páginas vistas durante ${days} días. ${sum('page_view')} en total.`} className="mt-2 flex h-40 items-end gap-[3px] rounded-t-lg border border-b-ink-500 border-ink-600 bg-ink-900 px-2 pt-2">
-    {points.map(point=><div key={point.day} className="min-w-0 flex-1 rounded-t bg-fono transition hover:brightness-110" style={{height:`${Math.max(1,point.count/max*100)}%`}} title={`${point.day}: ${point.count} vistas`}/>)}
+    {points.map(point=><div key={point.day} className="min-w-0 flex-1 rounded-t bg-fono transition motion-reduce:transition-none hover:brightness-110" style={{height:`${Math.max(1,point.count/max*100)}%`}} title={`${point.day}: ${point.count} vistas`}/>)}
    </div>
    <div className="mt-1 flex justify-between gap-2 text-[11px] tabular-nums text-mute"><span>{points[0]?.day}</span><span>{points.at(-1)?.day}</span></div>
   </section>
