@@ -49,45 +49,7 @@ const clickByText=(text)=>evaluate(`(()=>{const el=[...document.querySelectorAll
 const capture=async(name)=>{mkdirSync(OUT,{recursive:true});const {data}=await send('Page.captureScreenshot',{format:'png'});writeFileSync(`${OUT}/${name}.png`,Buffer.from(data,'base64'));};
 
 /* ── Contraste ────────────────────────────────────────────────────────────── */
-const CONTRAST_JS=`(()=>{
- const parse=(value)=>{const m=value.match(/rgba?\\(([^)]+)\\)/);if(!m)return null;const parts=m[1].split(',').map(v=>Number(v.trim()));const [r,g,b]=parts;const a=parts.length>3?parts[3]:1;return {r,g,b,a};};
- const blend=(front,back)=>{const a=front.a+back.a*(1-front.a);if(a<=0)return {r:0,g:0,b:0,a:0};const mix=(f,b)=>Math.round((f*front.a+b*back.a*(1-front.a))/a);return {r:mix(front.r,back.r),g:mix(front.g,back.g),b:mix(front.b,back.b),a};};
- const lum=({r,g,b})=>{const f=(v)=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)};return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);};
- const ratio=(a,b)=>{const l1=lum(a),l2=lum(b);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);};
- const background=(el)=>{let node=el,acc={r:0,g:0,b:0,a:0};const chain=[];
-  while(node&&node!==document.documentElement.parentElement){const bg=parse(getComputedStyle(node).backgroundColor);if(bg&&bg.a>0){chain.push(bg);if(bg.a>=1)break;}node=node.parentElement;}
-  chain.reverse();for(const layer of chain)acc=blend(layer,acc.a?acc:{r:255,g:255,b:255,a:1});
-  return acc.a?acc:{r:255,g:255,b:255,a:1};};
- const skip=(el,style)=>{if(el.closest('[aria-hidden="true"]'))return true;if(style.display==='none'||style.visibility==='hidden')return true;if(Number(style.opacity)===0)return true;if(el.disabled)return true;if(el.closest('svg'))return true;const r=el.getBoundingClientRect();if(r.width<4||r.height<4)return true;return false;};
- const out=[];
- const inShell=(el)=>Boolean(el.closest('nav,aside,.desktop-sidebar,.sidebar,.workspace-topbar,.workspace-page-header,.mobile-navigation,[aria-label="Menú principal"]'));
- const nodes=[...document.querySelectorAll('main *')].filter(el=>!inShell(el));
- for(const el of nodes){
-  const style=getComputedStyle(el);
-  if(skip(el,style))continue;
-  const own=[...el.childNodes].filter(n=>n.nodeType===3&&n.textContent.trim().length>0);
-  if(!own.length)continue;
-  const size=parseFloat(style.fontSize),weight=Number(style.fontWeight)||400;
-  const large=size>=24||(size>=18.66&&weight>=700);
-  const fg=parse(style.color);if(!fg)continue;
-  const bg=background(el);
-  const text=fg.a<1?blend(fg,bg):fg;
-  const value=Math.round(ratio(text,bg)*100)/100;
-  const threshold=large?3:4.5;
-  if(value<threshold)out.push({text:el.textContent.trim().slice(0,40),tag:el.tagName,cls:String(el.className).slice(0,60),size,weight,ratio:value,threshold,fg:style.color,bg:'rgb('+bg.r+','+bg.g+','+bg.b+')'});
- }
- // Límites interactivos (UI): borde/fondo de controles contra su contorno.
- const controls=[...document.querySelectorAll('main input:not([type=checkbox]):not([type=hidden]),main textarea,main select,main button,main [role="button"]')].filter(el=>!inShell(el)).slice(0,80);
- const uiOut=[];
- for(const el of controls){
-  const style=getComputedStyle(el);
-  if(skip(el,style))continue;
-  const bg=parse(style.backgroundColor);const border=parse(style.borderTopColor);
-  const outer=background(el.parentElement||el);
-  if(bg&&bg.a===0&&border&&border.a>0){const value=Math.round(ratio(border,outer)*100)/100;if(value<3)uiOut.push({tag:el.tagName,cls:String(el.className).slice(0,50),kind:'borde',ratio:value});}
- }
- return {failures:out.slice(0,12),failureCount:out.length,checked:nodes.length,uiFailures:uiOut.slice(0,6),uiFailureCount:uiOut.length,uiChecked:controls.length};})()`;
-
+import {CONTRAST_JS} from './contrast.mjs';
 /* ── Teclado: paradas de foco ─────────────────────────────────────────────── */
 const focusState=()=>evaluate(`(()=>{const el=document.activeElement;if(!el||el===document.body)return {tag:'BODY'};const r=el.getBoundingClientRect();const style=getComputedStyle(el);return {tag:el.tagName,role:el.getAttribute('role')||'',label:(el.getAttribute('aria-label')||el.textContent||'').trim().slice(0,40),outline:style.outlineStyle!=='none'&&parseFloat(style.outlineWidth)>0,shadow:style.boxShadow!=='none',visible:r.width>1&&r.height>1,insideDialog:Boolean(el.closest('[role="dialog"]'))};})()`);
 const pressTab=async(shift=false)=>{await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:shift?8:0});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:shift?8:0});await sleep(120);};
@@ -110,10 +72,10 @@ for(const theme of ['light','dark']){
   await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:BASE+'/'});
   await waitFor(`[...document.querySelectorAll('button,a')].some(n=>n.textContent.trim()==='Producción')`,{timeout:45000,label:`cáscara ${theme}`});
-  await sleep(1200);
-  await evaluate(`(()=>{try{localStorage.setItem('scale-theme',${JSON.stringify(theme)})}catch{};document.documentElement.dataset.theme=${JSON.stringify(theme)};return true;})()`);
   await send('Page.navigate',{url:BASE+screen.route});
-  await sleep(9000);
+  await sleep(1000);
+  await evaluate(`(()=>{try{localStorage.setItem('scale-theme',${JSON.stringify(theme)})}catch{};document.documentElement.dataset.theme=${JSON.stringify(theme)};return true;})()`);
+  await sleep(1200);
   if(screen.route==='/produccion'&&!await evaluate(`Boolean(document.querySelector('[data-column]'))`)){await clickByText('Tablero');await sleep(2000);}
   if(screen.view){await clickByText(screen.view);await sleep(1800);}
   let loaded=await waitFor(screen.marker,{timeout:30000,label:`${screen.name} ${theme}`}).catch(()=>false);
