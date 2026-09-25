@@ -81,7 +81,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
       data-status={order.status}
     >
       <div className="flex items-start justify-between gap-2">
-        <button type="button" className="min-w-0 text-left text-[13px] font-semibold text-fore hover:text-fono-light" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
+        <button type="button" className="min-h-11 min-w-0 text-left text-[13px] font-semibold text-fore hover:text-fono-light md:min-h-0" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
         {canMove?<span className="flex h-11 w-11 shrink-0 select-none items-center justify-center text-mute md:h-7 md:w-7" role="img" aria-label={`Mover ${order.title}`} title={`Mover ${order.title}`}>⋮⋮</span>:null}
       </div>
       <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] text-mute">
@@ -96,7 +96,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
         {order.approval_step ? <StateChip tone="ok" title={`Niveles de aprobación completados: ${order.approval_step}`}>Aprobaciones: {order.approval_step}</StateChip> : null}
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">
-        {links.length ? <span className="whitespace-nowrap" title={links.map(link => link.label || link.url).join(' · ')}>{links.length === 1 ? '1 enlace' : `${links.length} enlaces`}</span> : order.drive_url ? <a className="whitespace-nowrap text-fono-light hover:underline" href={order.drive_url} target="_blank" rel="noreferrer" onPointerDown={(event) => event.stopPropagation()}>Drive ↗</a> : <span>Sin enlace</span>}
+        {links.length ? <span className="whitespace-nowrap" title={links.map(link => link.label || link.url).join(' · ')}>{links.length === 1 ? '1 enlace' : `${links.length} enlaces`}</span> : order.drive_url ? <a className="inline-flex min-h-11 items-center whitespace-nowrap text-fono-light hover:underline md:min-h-0" href={order.drive_url} target="_blank" rel="noreferrer" onPointerDown={(event) => event.stopPropagation()}>Drive ↗</a> : <span>Sin enlace</span>}
         {hours ? <span className="whitespace-nowrap" title={`Horas: ${hours}`}>{hours}</span> : null}
         {order.checklist_total ? <span className="whitespace-nowrap" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</span> : null}
       </div>
@@ -141,6 +141,7 @@ export function KanbanColumn({
       ref={droppable.setNodeRef}
       className={`flex min-w-0 w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver ? "border-fono bg-fono/10" : "border-ink-600 bg-ink-800/60"}`}
       data-column={status.id}
+      aria-label={`${status.label}: ${orders.length} pieza${orders.length === 1 ? "" : "s"}`}
     >
       <div className="flex items-center gap-2">
         <StateChip tone={STATUS_TONE[status.id] || 'mute'}>{status.label}</StateChip>
