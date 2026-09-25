@@ -10,7 +10,7 @@ Estándar del grupo (owncoding-ui `docs/COMANDOS.md`, v0.14.x). Estos comandos l
 | **`ht`** | Ciclo completo | Ordena al integrador: merge → suite de checks → push → `NOVEDADES.md` → release + smoke |
 | **`hd`** | Alias de `ht` | Igual que `ht` |
 
-Reglas generales: nada se mergea, pushea ni despliega fuera de `ht`/`hd` o una ronda ordenada; el único que toca `main` y despliega es el integrador (con `MOBOS_INTEGRATOR=1`); los conflictos se resuelven en el worktree del slot que rebasea (nunca en `main` ni en silencio); si una rama queda superseded (diff neto vacío), se descarta y se avisa; el orquestador no toca código.
+Reglas generales: nada se mergea, pushea ni despliega fuera de `ht`/`hd` o una ronda ordenada; el único que toca `main` y despliega es el integrador (con `SCALE_INTEGRATOR=1`); los conflictos se resuelven en el worktree del slot que rebasea (nunca en `main` ni en silencio); si una rama queda superseded (diff neto vacío), se descarta y se avisa; el orquestador no toca código.
 
 ## hd automático (vigía)
 
