@@ -400,6 +400,8 @@
  .person-hub-card.is-list .person-container-name{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}
  /* Targets táctiles de la tarjeta: selección 44 px y foto con área ampliada. */
  .person-hub-card.is-list .select-check{min-width:44px;min-height:44px;justify-content:center}
+ /* La cuadrícula también selecciona en mobile: misma área táctil de 44 px. */
+ .person-hub-card .select-check{min-width:44px;min-height:44px;justify-content:center}
  .person-hub-card.is-list .photo-preview-button{width:44px!important;height:44px!important}
  /* Apilada, la fila vuelve a tarjeta: la nota y el aviso de perfiles ambiguos se leen. */
  .person-hub-card.is-list>.ops-note-preview,.person-hub-card.is-list>.person-hub-tail>.form-note{display:block}
