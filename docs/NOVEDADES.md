@@ -2,6 +2,17 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.125
+
+### Accesibilidad AA (verticales Comercial, Operaciones, Finanzas y Plataforma)
+
+- **Comercial**: las listas de Clientes y Presupuestos anuncian cada dato en su columna y quedan sin violaciones propias de la vertical; el arrastre del pipeline y del compositor de presupuestos se opera por teclado con instrucciones y anuncios en castellano, y las manijas distinguen “Reordenar ítem” de “Reordenar sección”.
+- **Comercial**: con “reducir movimiento” activo, las transiciones propias (manijas de arrastre y barras del tablero de crecimiento) quedan apagadas.
+- **Operaciones**: los chips de tipo de trabajo del planificador y del detalle se leen correctamente en tema oscuro; los botones de las tarjetas del tablero y el enlace “Drive” ganan área táctil de 44 px en el celular, y cada columna del tablero anuncia su etapa y cantidad.
+- **Finanzas**: 15 campos (mes, montos, fechas, referencias, notas, extracto y semana) pasan a tener etiqueta asociada, y las listas de contratos, personal proyectado y gastos anuncian sus encabezados como columnas.
+- **Plataforma**: el panel de Superadmin recupera contraste en oscuro (1,78:1 → 5,10:1), la selección en la cuadrícula de Equipo llega a 44 px en mobile y el comprobante de eliminación queda etiquetado para lectores de pantalla.
+- **Verificación**: recorrido real de teclado con foco visible, contraste medido en claro y oscuro y harness de las verticales sin hallazgos; sin cambios de datos ni de permisos.
+
 ## v1.0.124
 
 ### Accesibilidad y sistema visual
