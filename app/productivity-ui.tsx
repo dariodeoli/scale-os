@@ -89,7 +89,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/><UrgencyBadge value={order.urgency}/></div>
       <div className="flex flex-wrap items-center gap-1.5">
         <StateChip tone={s(order,'status')==='approved'||s(order,'status')==='published'?'ok':s(order,'status')==='review'?'warn':'info'}>{workStatusLabel(s(order,'status'))}</StateChip>
-        <StateChip tone="mute">{workTypeLabels[s(order,'work_type')]||'Sin clasificar'}</StateChip>
+        <StateChip tone="info">{workTypeLabels[s(order,'work_type')]||'Sin clasificar'}</StateChip>
         <DueDate value={s(order,'due_date')} time={s(order,'due_time')} compact/>
       </div>
       <dl className="grid gap-1 text-xs sm:grid-cols-2">
@@ -203,7 +203,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
     </span>
     <span className="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute" data-tone={dueTone(o.due_date)||undefined} title={o.due_date?`Entrega ${listDateShort(o.due_date)||''}${o.due_time?` · ${o.due_time.slice(0,5)} h`:''}`:undefined}>{o.due_date?<><span className="list-date">{listDateShort(o.due_date)}</span>{o.due_time?` · ${o.due_time.slice(0,5)}`:''}</>:'Sin fecha'}</span>
     <span className="min-w-0"><StateChip tone={o.status==='approved'||o.status==='published'?'ok':o.status==='review'?'warn':o.status==='blocked'?'bad':'info'}>{workStatusLabel(o.status)}</StateChip></span>
-    <span className="min-w-0"><StateChip tone="mute">{workTypeLabels[String(o.work_type||'')]||'Sin clasificar'}</StateChip></span>
+    <span className="min-w-0"><StateChip tone="info">{workTypeLabels[String(o.work_type||'')]||'Sin clasificar'}</StateChip></span>
     <span className="min-w-0 truncate text-[11.5px] text-mute" title={(o.effective_assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||undefined}>{(o.effective_assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||'Sin responsables'}</span>
     <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{o.checklist_total?`☑ ${o.checklist_completed||0}/${o.checklist_total}`:'—'}</span>
     <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{[o.estimated_hours?`${o.estimated_hours} h est.`:'',o.actual_hours?`${o.actual_hours} h reales`:''].filter(Boolean).join(' · ')||'—'}</span>
