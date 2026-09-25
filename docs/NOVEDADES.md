@@ -2,6 +2,25 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.123
+
+### Comercial
+
+- **Presupuestos en lote**: barra de selección con contador, tope del sistema y confirmación; el lote se resuelve en una operación y la lista se refresca al terminar.
+
+### Operaciones
+
+- **Estudio**: selección múltiple de reservas con el mismo patrón de lote (seleccionar visibles, limpiar y confirmar), con el permiso correspondiente.
+
+### Plataforma y acceso
+
+- **Aviso de suspensión por falta de pago**: se envía una sola vez por ciclo de cobro (con sello), después de la gracia.
+- **Gate del integrador**: el hook de push a `main` pasa a `SCALE_INTEGRATOR=1` (hook, script de setup, release y documentación alineados).
+
+### Diseño (documentación)
+
+- Definición única del **estado de cobro del cliente**: etiqueta y tono salen del `payment_status` del API (`days_overdue` solo para el número y la antigüedad de Mora), documentada en `DESIGN-SYSTEM.md` con la adopción propuesta en Clientes y en la ficha de pieza.
+
 ## v1.0.122
 
 ### Documentación y reglas
