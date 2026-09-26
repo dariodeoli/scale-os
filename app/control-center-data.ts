@@ -1,4 +1,4 @@
-export type DueAlert={id:string;type:string;name:string;due:string;context?:string};
+export type DueAlert={id:string;type:string;name?:string|null;due?:string|null;context?:string};
 export type Total={currency:string;total:string};
 export type CommercialDashboard={activeClients:number;activeProspects:number;expectedMonthlyBilling?:Total[]};
 type UnknownRecord=Record<string,unknown>;
@@ -33,13 +33,20 @@ export function normalizeCommercialDashboard(value:unknown):CommercialDashboard{
  summary.expectedMonthlyBilling=Array.from(totals,([currency,total])=>({currency,total:String(total)})).sort((a,b)=>a.currency.localeCompare(b.currency));
  return summary;
 }
-export function normalizeSearch(value:string){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('es');}
-/** Group presentation only. Keep every identity for inspection and editing. */
-export function groupDueAlerts(alerts:DueAlert[]){
+/** Búsqueda sin acentos: la guarda convierte a texto cualquier entrada (issue #65). */
+export function normalizeSearch(value:unknown){return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('es');}
+/** Group presentation only. Keep every identity for inspection and editing.
+ * Un aviso con `name`/`due` faltante del API no puede voltear la pantalla: se
+ * agrupa igual (nombre vacío → "Sin nombre", fecha vacía → "Sin fecha") y el
+ * orden por fecha/nombre se mantiene determinista (issue #65). */
+export function groupDueAlerts(alerts:readonly (DueAlert|null|undefined)[]|null|undefined){
  const groups=new Map<string,{key:string;name:string;due:string;type:string;items:DueAlert[]}>();
- for(const alert of alerts){
-  const due=alert.due.slice(0,10),key=JSON.stringify([alert.type,normalizeSearch(alert.name),due]);
-  const group=groups.get(key)||{key,name:alert.name.trim(),due,type:alert.type,items:[]};
+ for(const value of alerts??[]){
+  if(!isRecord(value))continue;
+  const alert=value as DueAlert;
+  const name=String(alert.name??'').trim(),due=String(alert.due??'').slice(0,10),type=String(alert.type??'');
+  const key=JSON.stringify([type,normalizeSearch(name),due]);
+  const group=groups.get(key)||{key,name:name||'Sin nombre',due,type,items:[]};
   group.items.push(alert);groups.set(key,group);
  }
  return Array.from(groups.values()).sort((a,b)=>a.due.localeCompare(b.due)||a.name.localeCompare(b.name,'es'));

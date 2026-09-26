@@ -7,6 +7,9 @@ import { caretAfterDigits, displayAmount, normalizeAmount } from './amount-forma
 
 const currencyMarks: Record<string, string> = { PYG: 'Gs', USD: 'US$', EUR: '€', BRL: 'R$', ARS: '$', MXN: 'MX$' };
 const currencyMark = (currency: string) => currencyMarks[currency] || currency;
+// Guarda de entrada (issue #65): labels o búsquedas `null`/`undefined` no
+// pueden tirar `normalize`; se pliegan a texto vacío.
+const foldSearch = (value: unknown) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 export function AmountInput({ value, currency, onChange,disabled=false,id,invalid,describedBy,integerOnly=false,required=false }: { value: string|number; currency: string; onChange: (value: string) => void;disabled?:boolean;id?:string;invalid?:boolean;describedBy?:string;integerOnly?:boolean;required?:boolean }) {
   useEffect(() => { if((currency === 'PYG' || integerOnly) && String(value).includes('.')) onChange(String(value).split('.')[0]); }, [currency, value, onChange, integerOnly]);
   const display = integerOnly ? displayAmount(String(value).split('.')[0], currency) : displayAmount(value, currency);
@@ -35,7 +38,7 @@ export function SelectCustom({ label, value, choices, onChange,disabled=false,in
   const [open,setOpen]=useState(false),[query,setQuery]=useState('');const root=useRef<HTMLDivElement>(null);const trigger=useRef<HTMLButtonElement>(null);const id=useId();
   const menu=useRef<HTMLDivElement>(null);
   const [floating,setFloating]=useState<{target:Element;style:ReturnType<typeof selectPosition>}|null>(null);
-  const filtered=choices.filter(c=>c.label.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(query.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()));
+  const filtered=choices.filter(c=>foldSearch(c.label).includes(foldSearch(query)));
   const selectedLabel=choices.find(c=>String(c.value)===String(value))?.label||'Seleccionar…';
   useEffect(()=>{if(!open)setQuery('');},[open]);
   useEffect(()=>{if(disabled)setOpen(false);},[disabled]);
