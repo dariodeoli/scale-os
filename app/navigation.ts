@@ -20,7 +20,7 @@ export function childSections(label:string){return sectionGroups[parentSection(l
 export const navGroups = [
  ['Resumen',['Resumen']],
  ['Flujo',['Pipeline','Clientes','Presupuestos','Proyectos','Producción']],
- ['Recursos',['Inventario','Equipo','Estudio']],
+ ['Recursos',['Inventario','Estudio','Equipo']],
  ['Finanzas',['Finanzas','Informes']],
  ['Configuración',['Configuración']],
 ] as const;
