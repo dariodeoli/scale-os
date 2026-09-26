@@ -106,6 +106,26 @@ html[data-theme="dark"] :is(.shell,.control-shell)>.desktop-sidebar {
    lila; en el riel el indicador es blanco (15.9:1 en claro, 19:1 en oscuro). */
 :is(.shell,.control-shell)>.desktop-sidebar :focus-visible{outline-color:#fff}
 
+/* Botones del nav v3 (grupos y cerrar sesión): el legado `nav button` /
+   `nav button.active` de globals les ganaba color, fondo y hasta el color del
+   SVG (el grupo activo quedaba en `--brand-700` sobre el lila, 1.27:1). La
+   hoja del sistema fija una sola vez los tonos del riel y del drawer
+   (issue #70, QA de marco). */
+:is(.shell,.control-shell)>.desktop-sidebar nav button{color:rgb(255 255 255 / .78)}
+:is(.shell,.control-shell)>.desktop-sidebar nav button.active{background:rgb(255 255 255 / .14);color:#fff}
+:is(.shell,.control-shell)>.desktop-sidebar nav button svg{color:currentColor}
+.mobile-sidebar nav button.active{background:rgb(var(--c-fono) / .1);color:rgb(var(--c-fono-light))}
+.mobile-sidebar nav button svg{color:currentColor}
+
+/* Reduced motion: el riel, el topbar y el drawer no animan nada. Las reglas
+   legadas de los controles (`button.icon-button` en ui-system, `.theme-toggle`)
+   tienen más especificidad que las utilidades `motion-reduce:*`, así que acá se
+   garantiza el contrato con una sola regla (issue #70, QA de marco). */
+@media (prefers-reduced-motion:reduce){
+ :is(.desktop-sidebar,.workspace-topbar,.mobile-sidebar),
+ :is(.desktop-sidebar,.workspace-topbar,.mobile-sidebar) *{transition:none!important;animation:none!important}
+}
+
 /* Pie de usuario: el divisor es uno solo. La legacy `.profile-footer` (de
    `client-identity.css`, pensada para paneles claros) traía su propio borde,
    margen y padding superior; sumada al `border-t` del `.sidebar-bottom` dejaba

@@ -985,7 +985,7 @@ export default function Home() {
               <MobileNavigation>{sidebarContent('light')}</MobileNavigation>
             </div>
             <div className="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
-              <div className="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden">
+              <div className="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden max-md:[&_.workspace]:min-h-11">
                 <CompanySelector name={companyLabel}/>
               </div>
               <div className="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio">

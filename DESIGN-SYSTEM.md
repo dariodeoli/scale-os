@@ -165,7 +165,7 @@ y esta sección se actualiza.
 | `PageHeader` | Eyebrow + título + acciones. El título **no se trunca**: envuelve. Es el encabezado de página de los arquetipos dashboard, lista y ajustes. |
 | `FilterToolbar` | Fila que envuelve con la búsqueda/filtros (objetos de la librería: `SearchField`, `Select`, `SegmentedField`, `ListGridToggle`) y un contador `tabular-nums` al extremo. |
 | `ListGrid` + `ListRow` + `Column` | Encabezado de columnas y filas comparten **una sola** plantilla (`template` con `grid-cols-[…]`, `gap-x-2`); la lista conserva columnas en mobile y scrollea en silencio (`.silent-scroll`); una celda sin dato reserva su lugar y nada se corta con elipsis. |
-| `ListActions` + `pinnedActions` | Columna de acciones **fija** al borde derecho del scroll silencioso (patrón de tablas densas, ronda 14): las acciones nunca quedan fuera del alcance. La última celda de cada fila va en `ListActions` y el `ListGrid` lleva `pinnedActions`; el encabezado se fija con la misma pista. Fondo con `--list-actions-bg` (canvas por defecto; panel → superficie del panel). |
+| `ListActions` + `pinnedActions` | Columna de acciones **fija** al borde derecho del scroll silencioso (patrón de tablas densas, rondas 14/16): las acciones nunca quedan fuera del alcance. La última celda de cada fila va en `ListActions` y el `ListGrid` lleva `pinnedActions`; el encabezado se fija con la misma pista y `z-index` por encima de las filas. Fondo con `--list-actions-bg` (canvas por defecto; panel o cápsula con fondo propio → declara su superficie). **Es la única implementación**: las variantes por vertical se retiran (issue #63). |
 | `EmptyBlock` | `EmptyState` de la librería sobre la superficie v2, con `role="status"`. Nunca inventa datos ni métricas. |
 | `EmptyCta` | CTA canónico de un estado vacío: botón primario con label contextual. Es la llamada a la acción que recibe `EmptyBlock.action`. |
 | `ErrorBlock` | `ErrorState` de la librería con reintento, con `role="alert"`. |
@@ -204,6 +204,24 @@ la adoptan primero (COM)**.
    `nowrap` + `tabular-nums` dentro del scroll; la lista no trunca datos. La
    señal de que hay más columnas es el hairline de la columna fija y el recorte
    visible de la última columna scrolleada.
+
+#### Única implementación (ronda 16, issue #63)
+
+La primitiva es **una sola**, la de `app/ui-v2.tsx`:
+
+- `pinnedActions` en `ListGrid` + `<ListActions>` como última celda de la fila;
+  el encabezado se fija solo (`.list-actions-head`, `z-index` por encima de las
+  filas) y el fondo sale de `--list-actions-bg` (canvas por defecto; una cápsula
+  o panel con fondo propio declara su superficie).
+- El ancho real que decide tarjeta vs tabla lo mide `useDenseTableFit`
+  (`app/use-dense-table.ts`, con `denseTableMinWidth`/`denseTableFits`); es la
+  primitiva compartida del patrón (no se duplica por vertical).
+- Los estados vacíos con CTA usan `EmptyCta` dentro de `EmptyBlock`.
+
+Migración pendiente de COM (Clientes y Presupuestos): `<ListGrid pinnedActions>`
++ `<ListActions>` en la celda de acciones, `useDenseTableFit` como medida,
+`EmptyCta` en los vacíos, y **se retira** `app/com-tables.css` (clase
+`com-table-fixed-actions`) junto con su test/reglas paralelas.
 
 ### CTA primario (ronda 14)
 
@@ -249,6 +267,48 @@ Configuración.
 - `Administración de Scale` (#69) se muestra encima del perfil solo si
   `/api/auth/me` devuelve `platform_role: 'admin'` (nunca por email) y abre
   `https://admin.scaleparaguay.com`.
+
+### QA ola 2 — criterios comunes (ronda 16, issue #70)
+
+Checklist que cada dominio corre sobre sus pantallas antes de entregar. Evidencia
+mínima: capturas en 360/390/430/768/1024/1440 (claro y oscuro), medición de
+overflow, harness 0 altas y `test:release-regression` + `next build` verdes.
+
+**Móvil y tablet**
+- 360/390/430 sin scroll horizontal (`scrollWidth == clientWidth`); en 768/1024 la
+  navegación y el content entran sin cortes ni solapes.
+- Targets ≥44 px en móvil para todo control visible (botones, iconos, enlaces,
+  selects, checkbox); en escritorio ≥40 px para las utilidades del topbar.
+- Tablas densas: si la plantilla no entra, vista tarjeta (`useDenseTableFit`) o
+  columna de acciones fija (`pinnedActions` + `ListActions`); montos, fechas y
+  códigos nunca se cortan.
+- En elementos colapsados, tooltip/`title` que nombra el ítem; el texto largo se
+  recorta con `title` o envuelve, nunca desalinea.
+
+**Dark mode**
+- Sólo tokens (`ink-*`, `--c-*`); sin colores hex nuevos por pantalla.
+- Texto AA (4.5:1 normal, 3:1 grande) y límites de controles ≥3:1; estados con su
+  tono (`ok/warn/bad/info`) y texto sobre marca vía `--c-onbrand`.
+- Superficies, avatares y sombras legibles sobre `surface-raised/sunken`.
+
+**Modales y drawers**
+- Un solo `Dialog`/`Drawer` (`app/dialog.tsx`): `aria-modal`, label accesible,
+  foco atrapado adentro y devuelto al disparador con Escape/backdrop.
+- Scroll interno sin mover la página; acciones al pie (`dialog-actions`).
+
+**Formularios largos**
+- Un componente por tipo (`Editor`, `AmountInput`, `PhoneField`, `EmailField`,
+  `SelectCustom`), límites por campo (nombre 120, dirección 400, notas 2000) e
+  `inputMode`/`autoComplete` reales.
+- Errores inline `role="alert"` + `aria-invalid`; guardado con `SaveActions` y
+  feedback por `notify()`; sin máscaras que rompan pegado/autofill.
+- En diálogos los campos se apilan por contenedor (`@container`); nunca 3+
+  columnas de campos en una fila de móvil.
+
+**Reduced motion y foco**
+- `prefers-reduced-motion` apaga transiciones y animaciones del marco y de la
+  superficie propia (riel, drawer, barra de carga, chevrons).
+- Foco visible en cada parada de teclado del marco y de la pantalla, sin trampas.
 
 ### Estado de cobro de un cliente (única definición)
 
