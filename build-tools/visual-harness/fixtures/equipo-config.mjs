@@ -100,6 +100,60 @@ const actorIdentity = ({name, photo = '', timestamp = '', timeText = '', verifie
 };
 const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" title="${value}" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
 const searchField = ({label, placeholder, className = ''}) => `<label class="search-field${className ? ' ' + className : ''}"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
+/* Diálogo de persona (app/operations.tsx: Dialog + Editor). Formulario largo con
+   identidad, acceso y secciones plegables; en ≤540 el Dialog es hoja inferior
+   (app/dialog.css) con cuerpo scrolleable y acciones al pie. */
+const equipoDialog = () => `<div class="grid min-w-0 gap-4">
+ <div class="mx-auto flex w-full min-w-0 flex-col overflow-hidden rounded-[20px] border border-ink-600 bg-ink-800" style="max-height:min(88dvh,calc(100dvh - env(safe-area-inset-top)))">
+  <div class="dialog-heading"><h2 class="min-w-0">Editar persona</h2><button type="button" class="icon-button" title="Cerrar" aria-label="Cerrar">${svg(ICON.x, 18)}</button></div>
+  <div class="dialog-body">
+   <p class="form-note">Al guardar un colaborador activo con correo, vinculamos su acceso automáticamente. El estado laboral no revoca accesos existentes.</p>
+   <div class="person-identity-panel">
+    <section class="ops-profile-section profile-photo-section is-compact person-photo-field" aria-label="Foto de perfil">
+     <div class="profile-photo-summary">
+      <button type="button" class="editable-photo" aria-label="Cambiar foto de ${people[0].name}"><img src="/brand/icon-192.png" alt="Foto de ${people[0].name}"></button>
+      <div class="profile-photo-controls">
+       <label class="photo-upload">Elegir foto<input type="file" aria-label="Elegir foto (JPG, PNG o WebP; hasta 4 MB)"></label>
+       <button type="button" class="text-button">${svg(ICON.link2, 14)}Usar enlace</button>
+       <button type="button" class="text-button danger">${svg(ICON.trash, 14)}Quitar foto</button>
+      </div>
+     </div>
+     <p class="form-note">JPG, PNG o WebP · Hasta 4 MB. Al subir se guarda automáticamente.</p>
+    </section>
+    <section class="ops-profile-section person-access-panel" aria-label="Acceso al panel">
+     <h3>Acceso al panel</h3>
+     <div class="person-access-body">
+      <p class="form-note"><span class="team-access-status is-active">Acceso habilitado</span></p>
+      <div class="ops-form-grid">
+       ${selectCustom({label: 'Permiso', value: 'Gerencia'})}
+       ${selectCustom({label: 'Acceso', value: 'Activo'})}
+      </div>
+      <p class="form-note">El permiso y el acceso se guardan junto con el perfil. Cambiar permisos o suspender cierra las sesiones de esta persona en esta empresa.</p>
+      <div class="person-access-actions"><button type="button" class="secondary">Reenviar invitación</button>${iconButton({title: 'Quitar acceso', label: 'Quitar acceso', path: ICON.trash, tone: 'record-remove'})}</div>
+     </div>
+    </section>
+   </div>
+   <form class="form-stack ops-form-grid" novalidate>
+    <div><label><span>Nombre completo</span><input value="${people[0].name}" maxlength="120"></label></div>
+    <div><label><span>Correo de contacto<span class="field-optional"> · Opcional</span></span><input type="email" value="${people[0].facts.email}"></label></div>
+    <div>${selectCustom({label: 'Estado laboral', value: 'Activo'})}</div>
+    <details class="ops-profile-section ops-wide" open><summary>Fechas</summary><div class="ops-form-grid">
+     <div><label><span>Fecha de ingreso<span class="field-optional"> · Opcional</span></span><input type="date" value="2023-03-14"></label></div>
+     <div><label><span>Fecha de salida<span class="field-optional"> · Opcional</span></span><input type="date" value=""></label></div>
+    </div></details>
+    <details class="ops-profile-section ops-wide" open><summary>Remuneración y pagos</summary><div class="ops-form-grid">
+     ${selectCustom({label: 'Modalidad', value: 'Fijo mensual'})}
+     <div><label><span>Importe acordado</span><span class="amount-field" data-currency="PYG"><span class="amount-currency" aria-hidden="true">Gs</span><input type="text" inputmode="numeric" value="4.500.000"></span></label></div>
+     ${selectCustom({label: 'Moneda', value: 'Guaraníes (PYG)'})}
+     ${selectCustom({label: 'Día de pago (1–31)', value: '15'})}
+    </div></details>
+    <div class="ops-wide"><label><span>Condiciones y notas<span class="field-optional"> · Opcional</span></span><textarea maxlength="2000">Coordina la planificación trimestral de producción y la relación con los clientes de mayor volumen.</textarea></label></div>
+   </form>
+  </div>
+  <div class="dialog-footer"><div class="dialog-actions"><button type="button" class="secondary">Cancelar</button><button type="button" class="primary">Guardar</button></div></div>
+ </div>
+</div>`;
+
 /* Toolbar del equipo (app/operations.tsx): búsqueda, filtros, contador, vista y
    acciones en la misma fila (`.team-filters`). */
 const teamToolbar = (count = '5 de 5 personas') => `<div class="team-filters" aria-label="Controles del equipo">
@@ -324,6 +378,16 @@ export default [
 
 
 
+
+  {
+    id: 'equipo-dialogo',
+    section: 'Equipo',
+    surface: 'Diálogo de persona (formulario largo)',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: equipoDialog(),
+  },
 
   {
     id: 'equipo-historial',

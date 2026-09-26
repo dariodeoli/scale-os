@@ -25,6 +25,10 @@ export const ORDER_FIELDS_PORTFOLIO = 'id,status,project_id,due_date';
 export const ORDER_FIELDS_BOARD = 'id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at';
 /** Buscador: lo que muestra el resultado. */
 export const ORDER_FIELDS_SEARCH = 'id,title,status,project_id,project_name,client_name,due_date';
+/** #67: chrome mínimo de clientes para el buscador/presencia de las secciones PLT. */
+export const CLIENT_FIELDS_CHROME = 'id,name,email,active,logo_url,color_key';
+/** #67: chrome mínimo de proyectos (nombre, estado y piezas) para esas mismas secciones. */
+export const PROJECT_FIELDS_CHROME = 'id,name,client_id,status,client_name,work_order_count,assignees';
 
 export function shellDataUrl(resource: ShellResource, request: ShellResourceRequest = {}) {
   const query: string[] = [];
@@ -55,6 +59,14 @@ export function learnShellContract(patch: Partial<ShellContract>) {
   return contract;
 }
 
+// #67: las secciones PLT (Equipo, Invitaciones, Roles, Papelera, Configuración,
+// Preferencias y Actividad) solo usan clientes y proyectos como chrome del
+// buscador y la presencia: piden la proyección y no piden resumen.
+const PLT_SCOPE: ShellScope = {
+  clients: {fields: CLIENT_FIELDS_CHROME},
+  projects: {fields: PROJECT_FIELDS_CHROME},
+  orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH},
+};
 const SECTION_SCOPE: Record<string, ShellScope> = {
   Resumen: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_STATUS}},
   // El tablero de Producción es dueño de sus datos por columna
@@ -66,6 +78,13 @@ const SECTION_SCOPE: Record<string, ShellScope> = {
   Presupuestos: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}, summary: {}},
   Pipeline: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
   Mora: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
+  Equipo: PLT_SCOPE,
+  Invitaciones: PLT_SCOPE,
+  'Roles y permisos': PLT_SCOPE,
+  Papelera: PLT_SCOPE,
+  Configuración: PLT_SCOPE,
+  Preferencias: PLT_SCOPE,
+  Actividad: PLT_SCOPE,
 };
 const DEFAULT_SCOPE: ShellScope = {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}};
 

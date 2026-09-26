@@ -6,7 +6,9 @@ const paths:Record<string,readonly string[]>={
  Pipeline:['/leads'],
  Inventario:['/inventory','/inventory-categories'],
  Estudio:['/studio-spaces'],
- Equipo:['/accounts','/payouts','/job-roles'],
+ // Comisiones es quien consume cuentas, pagos y cargos (issue #67): antes la
+ // entrada vivía bajo «Equipo» y gastaba una ronda que esa sección no usaba.
+ Comisiones:['/accounts','/payouts','/job-roles'],
  'Historial de trabajo':['/productivity/history?limit=10&offset=0'],
  'Configuración':['/exchange-rates'],
 };
