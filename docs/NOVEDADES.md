@@ -2,6 +2,25 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.134
+
+### Rediseño de espacios operativos
+
+- **Producción**: las tarjetas destacan **Recursos** y **Capacidad** (con “Sin enlace” / “Sin horas” cuando falta el dato), checklist y “Ver detalle” para la descripción larga; el tablero conserva 4 etapas completas por página con flechas.
+- **Inventario**: nueva fila de **Atención** (valor faltante y control físico pendiente, con el criterio “30 días o sin registro”), toolbar compacta de una línea y tarjetas con checkbox de 44 px en móvil.
+- **Estudio y Proyectos**: tarjetas de reserva propias en móvil (título y estado, espacio y tipo, fechas, proyecto, responsables y acciones), calendario por celdas de día y tarjetas de proyecto con identidad del cliente, fechas/piezas y responsables.
+- **Finanzas, Informes y Previsión**: jerarquía por bloques en cards (período y moneda, comparativa, KPIs, evolución) con las tablas anchas scrolleando dentro de su riel.
+- **Configuración y Perfil**: settings compactos en dos columnas en escritorio y editor de perfil plegado que se monta al desplegar (sin acciones huérfanas).
+- **Superadmin**: panel global reorganizado por secciones, con agencias en ledger, cupones y suscripción en tarjetas.
+- Ajustes compactos de toolbar en Clientes, resumen de Pipeline y buscador en anchos de escritorio.
+
+### Correcciones de la verificación visual (#74)
+
+- **Informes**: sin scroll horizontal del documento en escritorio/tablet; la tarjeta vuelve a una columna y la tabla scrollea solo en su riel.
+- **Previsión**: el selector de horizonte (1/3/6/12 meses) llega a 44 px en mobile.
+- **Estudio, Inventario y Producción**: el selector de mes ya no corta el año en mobile (el texto entra completo).
+- **Perfil y Configuración**: “Guardar nombre” deja de aparecer con la sección plegada, el “Manual de la aplicación” llega a 44 px y los tests de Perfil vuelven a la cadena de release.
+
 ## v1.0.133
 
 ### Comercial y Resumen
