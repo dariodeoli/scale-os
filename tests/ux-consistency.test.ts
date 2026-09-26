@@ -245,5 +245,12 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert(adminIndex>=0&&profileIndex>=0&&adminIndex<profileIndex,'el acceso admin queda encima de la ficha de perfil');
  const rail=read('app/desktop-sidebar.tsx');
  assert.match(rail,/\[&_\.nav-admin\]:h-11 \[&_\.nav-admin\]:w-11/,'el acceso admin respeta el riel colapsado (44 px, sin cortes)');
+ // QA de marco (#70): el legado `nav button*` no pisa los tonos del nav v3 y el
+ // marco apaga motion; el tema móvil conserva targets de 44.
+ const tailwind=read('app/tailwind.css');
+ assert.match(tailwind,/:is\(\.shell,\.control-shell\)>\.desktop-sidebar nav button\.active\{background:rgb\(255 255 255 \/ \.14\);color:#fff\}/,'el grupo activo del riel no hereda fondo/color legacy');
+ assert.match(tailwind,/nav button svg\{color:currentColor\}/,'el SVG del nav hereda el tono del tile (no brand-600 legacy)');
+ assert.match(tailwind,/\(prefers-reduced-motion:reduce\)\{\n :is\(\.desktop-sidebar,\.workspace-topbar,\.mobile-sidebar\),\n :is\(\.desktop-sidebar,\.workspace-topbar,\.mobile-sidebar\) \*\{transition:none!important;animation:none!important\}/,'el marco apaga transiciones y animaciones con reduced motion');
+ assert.match(read('app/theme-toggle.css'),/@media\(max-width:767px\)\{\.theme-toggle\{width:44px/,'el cambio de tema usa target de 44 px en móvil');
 }
 console.log('PASS nav v3: 5 grupos con acordeón y acceso admin gateado por servidor (Issues #68 #69)');
