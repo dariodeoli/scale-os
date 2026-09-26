@@ -244,6 +244,12 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(shell,/setOpenNavGroup\(current=>current===group\?null:group\)/,'un solo grupo abierto a la vez (acordeón)');
  assert.match(shell,/groupTitle=containsActive&&activeParent!==group\?`\$\{group\} · \$\{activeParent\}`:group/,'el tooltip del grupo activo nombra el módulo y el grupo');
  assert.match(shell,/if\(modules\.length===1\|\|collapsed\)/,'los grupos de un módulo y el riel colapsado navegan directo');
+ // #72: el encabezado del grupo navega a su primer módulo (el activo conserva
+ // el acordeón) y el drawer cierra al navegar desde el encabezado.
+ assert.match(shell,/function openNavGroupAt\(group:string,module:string\)\{setOpenNavGroup\(group\);setActive\(allowedChildren\(module\)\[0\]\);\}/,'el encabezado navega al primer módulo del grupo y lo deja expandido');
+ assert.match(shell,/const navigates=!containsActive/,'el grupo activo conserva expandir/contraer y el resto navega');
+ assert.match(shell,/\{\.\.\.\(navigates\?\{'data-nav-navigate':true\}:\{\}\)\}/,'el encabezado navegable se marca para cerrar el drawer');
+ assert.match(read('app/mobile-navigation.tsx'),/closest\('a\[href\],\[data-nav-navigate\]'\)/,'el drawer cierra al navegar desde el encabezado del grupo');
  // #69: Administración de Scale, encima del perfil, sólo si el servidor lo marca.
  assert.match(shell,/user\?\.platform_role==='admin'&&<a className=\{`nav-admin/,'el acceso admin depende de platform_role del servidor');
  assert.match(shell,/href="https:\/\/admin\.scaleparaguay\.com" target="_blank" rel="noopener noreferrer"/,'abre el host de administración en una pestaña segura');

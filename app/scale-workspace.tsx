@@ -902,6 +902,10 @@ export default function Home() {
     ? `relative ${active?'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold':'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`
     : `${active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore'} focus-visible:ring-2 focus-visible:ring-fono/40`}`;
   const navIconClass=(active:boolean,tone:'rail'|'light')=>`${NAV_ICON} ${tone==='rail'?(active?'bg-white/20 text-white':'bg-white/10 text-white/80'):(active?'bg-fono/15 text-fono-light':'bg-ink-700 text-mute')}`;
+  // Encabezado navegable del nav (#72): si el grupo no está activo, el clic va
+  // directo a su primer módulo y el grupo queda expandido con el ítem activo
+  // marcado; si ya es el grupo activo, conserva el acordeón (expandir/contraer).
+  function openNavGroupAt(group:string,module:string){setOpenNavGroup(group);setActive(allowedChildren(module)[0]);}
   const sidebarContent=(tone:'rail'|'light',collapsed=false)=><>
         <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
         <p className="nav-caption mb-1 mt-2 px-3 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Espacio de trabajo</p>
@@ -929,8 +933,13 @@ export default function Home() {
             </Link>;
             const open=openNavGroup===group;
             const panelId=`nav-group-${group.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-')}`;
+            // El encabezado navega al primer módulo del grupo cuando el grupo no
+            // es el activo; el activo mantiene el acordeón como hasta ahora.
+            const firstModule=modules[0];
+            const navigates=!containsActive;
+            const headerTitle=navigates?`${group} · ${firstModule}`:groupTitle;
             return <div className="nav-group grid gap-1" key={group}>
-              <button type="button" className={`nav-group-toggle ${navItemClass(containsActive,tone)}`} aria-expanded={open} aria-controls={open?panelId:undefined} title={groupTitle} onClick={()=>setOpenNavGroup(current=>current===group?null:group)}>
+              <button type="button" className={`nav-group-toggle ${navItemClass(containsActive,tone)}`} aria-expanded={open} aria-controls={open?panelId:undefined} title={headerTitle} aria-label={headerTitle} {...(navigates?{'data-nav-navigate':true}:{})} onClick={()=>navigates?openNavGroupAt(group,firstModule):setOpenNavGroup(current=>current===group?null:group)}>
                 <span className={navIconClass(containsActive,tone)}><GroupIcon size={16}/></span>
                 <span className="nav-label min-w-0 break-words">{group}</span>
                 <ChevronDown size={15} className={`nav-chevron ml-auto shrink-0 transition-transform ${open?'rotate-180':''}`} aria-hidden="true"/>
