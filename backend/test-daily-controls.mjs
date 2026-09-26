@@ -153,4 +153,14 @@ assert.equal((await query("select count(*)::int as n from agency_operation_audit
 // Apply migration again: no balance changes, no duplicate data.
 await pg.exec(await fs.readFile('migrations/20260908_daily_controls.sql','utf8'));
 assert.equal((await query('select balance from bank_accounts where id=$1',[cash])).rows[0].balance,'1000000.00');
-await pg.close();console.log('PASS: partial receipts, FX, reversal idempotency, insufficient funds, tenant/role isolation, reconciliation import/dedup/matches, client review and publication gate, PDF sections, actor audit, migration re-run, and payments/transfers routed to finance-controls (no legacy handlers)');
+// Ventana de cobros (#67): por defecto 20 + hasMore; `?limit=all` trae todo.
+const windowInvoice=(await query("insert into agency_invoices(organization_id,client_id,number,total) values($1,$2,'WINDOW-QA',100000) returning id",[org,client])).rows[0].id;
+for(let index=0;index<23;index++)assert.equal((await call('/api/agency/payments','POST',{invoiceId:windowInvoice,accountId:cash,amount:1000,reference:`WINDOW ${index}`,receivedOn:'2026-09-08'})).status,201);
+const windowed=await call('/api/agency/payments');
+assert.equal(windowed.payments.length,20,'la ventana de cobros devuelve 20');
+assert.equal(windowed.hasMore,true,'la ventana declara que hay más cobros');
+assert(windowed.payments.every((row,index)=>index===0||row.received_on<=windowed.payments[index-1].received_on),'la ventana respeta el orden descendente');
+const complete=await call('/api/agency/payments?limit=all');
+assert.equal(complete.hasMore,false,'limit=all desactiva el hasMore');
+assert(complete.payments.length>20,'limit=all conserva el histórico completo');
+await pg.close();console.log('PASS: partial receipts, FX, reversal idempotency, insufficient funds, tenant/role isolation, reconciliation import/dedup/matches, client review and publication gate, PDF sections, actor audit, migration re-run, payments/transfers routed to finance-controls (no legacy handlers), and the payments window (#67)');

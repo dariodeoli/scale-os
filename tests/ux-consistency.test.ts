@@ -170,7 +170,13 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(22rem,1fr\)_9rem_9rem_9rem\]'/,'contracted clients declare one shared template');
   assert.match(forecast,/role="row" className=\{cn\(LIST_HEAD,CONTRACT_COLS\)\}[^>]*><span role="columnheader">Cliente<\/span><span role="columnheader" className="text-right">Contratado<\/span><span role="columnheader" className="text-right">Facturado<\/span>/,'contracted clients show their header');
-  assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700\/40'/,'list rows keep the thin row contract with the system hover');
+  assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-0\.5 transition-colors last:border-0 hover:bg-ink-700\/40 md:py-2'/,'list rows keep the thin row contract with the system hover');
+  // QA ola 2 (#70): targets táctiles y foco del modal de cuenta en la vertical FIN.
+  const mora=sectionSource('mora.tsx'),finanzas=sectionSource('finanzas.tsx'),forms=read('app/workspace-forms.tsx');
+  assert.match(mora,/\[&>button\]:min-h-11 md:\[&>button\]:min-h-8/,'el filtro de mora tiene target de 44 px en mobile');
+  assert.match(forecast,/const ICON_TARGETS=/,'las acciones de fila de la previsión declaran su target táctil');
+  assert.match(finanzas,/const INVOICE_TEMPLATE = 'grid-cols-\[minmax\(18rem,1\.6fr\)_7rem_6\.5rem_8\.5rem_8\.5rem_9rem\]'/,'la columna de acciones de facturas no envuelve el botón');
+  assert.doesNotMatch(forms,/Nombre de la cuenta[\s\S]{0,120}?autoFocus/,'la cuenta no roba el foco al abrir el modal');
   assert.match(team,/\.team-directory-card\{[^}]*min-height:190px/,'the directory keeps big grid cards');
   const presence=read('app/presence.css');
   assert.match(presence,/\.usage-grid \.ops-card\{[^}]*min-height:180px/,'usage cards keep grid height');

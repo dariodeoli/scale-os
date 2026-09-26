@@ -45,6 +45,10 @@ export function reportingPeriod(month=null,months='12',now=new Date()) {
 // One statement gives clients, payments and invoices the same MVCC snapshot.
 export async function agencyReport(db,organizationId,options={},now=new Date()) {
  const {month,months}=reportingPeriod(options.month,options.months,now);
+ // `previous=1` (#67): la misma consulta genera las dos ventanas y el cliente
+ // arma la comparación sin un segundo viaje.
+ const previous=options.previous===true||options.previous==='1'||options.previous===1;
+ const periods=previous?months*2:months;
  const {rows}=await db.query(`with
  context as (select $1::bigint org,$2::date selected,$3::int n,$4::timestamptz as_of,$5::text tz),
  coverage as (select history_since from agency_reporting_coverage,context where organization_id=org),
@@ -85,10 +89,14 @@ export async function agencyReport(db,organizationId,options={},now=new Date()) 
   ) else jsonb_build_object('active',null,'added',null,'lost',null,'retentionPercent',null,'averageTenureDays',null,'tenureKnown',0,'types','[]'::jsonb,'plans','[]'::jsonb) end clients,
   coalesce((select jsonb_agg(jsonb_build_object('currency',f.currency,'invoiced',f.invoiced,'collected',f.collected,'invoiceCount',f.invoice_count,'billedClients',f.billed_clients,'averageTicket',f.average_ticket,'averageRevenuePerClient',f.average_revenue_per_client) order by f.currency) from financial f where f.start_on=p.start_on),'[]'::jsonb) financial,
   c.history_since
- from periods p left join coverage c on true order by p.start_on`,[organizationId,`${month}-01`,months,now.toISOString(),timezone]);
- return {asOf:now.toISOString(),month,historySince:rows[0]?.history_since?new Date(rows[0].history_since).toISOString():null,
-  months:rows.map(r=>({month:r.month.slice(0,7),isPartial:r.partial,clients:r.clients,
-   financial:r.financial.map(item=>projectMoney(item,['invoiced','collected','averageTicket','averageRevenuePerClient']))}))};
+ from periods p left join coverage c on true order by p.start_on`,[organizationId,`${month}-01`,periods,now.toISOString(),timezone]);
+ const historySince=rows[0]?.history_since?new Date(rows[0].history_since).toISOString():null;
+ const monthsOf=list=>list.map(r=>({month:r.month.slice(0,7),isPartial:r.partial,clients:r.clients,
+  financial:r.financial.map(item=>projectMoney(item,['invoiced','collected','averageTicket','averageRevenuePerClient']))}));
+ if(!previous)return {asOf:now.toISOString(),month,historySince,months:monthsOf(rows)};
+ const currentRows=rows.slice(months),previousRows=rows.slice(0,months);
+ return {asOf:now.toISOString(),month,historySince,months:monthsOf(currentRows),
+  previous:previousRows.length?{asOf:now.toISOString(),month:previousRows[previousRows.length-1].month.slice(0,7),historySince,months:monthsOf(previousRows)}:null};
 }
 
 async function authorize(db,user,capability) {
@@ -201,7 +209,7 @@ export async function reports({req,res,url,db,session,body,send}) {
   await authorize(db,user,aggregate?'reports.view':expenseMatch?'expenses.manage':(match||termsMatch)&&req.method==='PATCH'?'commercial-terms.manage':'billing.view');
   if(aggregate){
    if(req.method!=='GET')fail('Método no permitido',405);
-   send(res,200,await agencyReport(db,user.organization_id,{month:url.searchParams.get('month'),months:url.searchParams.get('months')}));return true;
+   send(res,200,await agencyReport(db,user.organization_id,{month:url.searchParams.get('month'),months:url.searchParams.get('months'),previous:url.searchParams.get('previous')}));return true;
   }
   if(expenseMatch){
    const month=forecastMonth(url.searchParams.get('month'));

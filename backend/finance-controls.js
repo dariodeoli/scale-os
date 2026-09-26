@@ -53,7 +53,14 @@ export async function financeControls({req,res,url,db,session,body,send}){
      result={reversal:(await c.query("insert into agency_expense_reversals(organization_id,expense_id,reason,reversed_on,created_by_user_id) values($1,$2,$3,coalesce($4::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$5) returning *,reversed_on::text as reversed_on",[org,e.id,reason,date(b.reversedOn),user.id])).rows[0]};status=201;}
    }else fail('Método no permitido',405);
   }else if(kind==='payments'){
-   if(req.method==='GET'&&!key)result={payments:(await c.query(`select p.*,i.number as invoice_number,cl.name as client_name,a.name as account_name,a.account_type,a.currency,u.email as received_by_email,r.id as reversal_id,r.reason as reversal_reason,r.created_by_user_id as reversed_by_user_id,${dateText('p','received_on')},r.reversed_on::text as reversed_on from agency_payments p join agency_invoices i on i.id=p.invoice_id join agency_clients cl on cl.id=i.client_id join bank_accounts a on a.id=p.account_id left join users u on u.id=p.received_by_user_id left join agency_payment_reversals r on r.payment_id=p.id where p.organization_id=$1 order by p.received_on desc,p.id desc`,[org])).rows};
+   if(req.method==='GET'&&!key){
+    // Ventana por defecto de 20 cobros + `hasMore` (#67), el mismo patrón que
+    // `/invoices`: `?limit=all` trae el histórico completo a demanda.
+    const requested=url.searchParams.get('limit');
+    const columns=`select p.*,i.number as invoice_number,cl.name as client_name,a.name as account_name,a.account_type,a.currency,u.email as received_by_email,r.id as reversal_id,r.reason as reversal_reason,r.created_by_user_id as reversed_by_user_id,${dateText('p','received_on')},r.reversed_on::text as reversed_on from agency_payments p join agency_invoices i on i.id=p.invoice_id join agency_clients cl on cl.id=i.client_id join bank_accounts a on a.id=p.account_id left join users u on u.id=p.received_by_user_id left join agency_payment_reversals r on r.payment_id=p.id where p.organization_id=$1 order by p.received_on desc,p.id desc`;
+    if(requested==='all')result={payments:(await c.query(columns,[org])).rows,hasMore:false};
+    else{const rows=(await c.query(`${columns} limit 21`,[org])).rows;result={payments:rows.slice(0,20),hasMore:rows.length>20};}
+   }
    else if(req.method==='POST'&&!key){
     const b=await body(req),paid=amount(b.amount);if(!paid)fail('El importe debe ser mayor a cero');
     const retry=await retryRecord(c,'agency_payments',org,b.requestId,'received_on');

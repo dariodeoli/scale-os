@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
-import {sectionSource} from './workspace-source';
+import {sectionSource,workspaceSource} from './workspace-source';
+import {sectionScope,CLIENT_FIELDS_CHROME,PROJECT_FIELDS_CHROME} from '../app/shell-data';
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const pre=read('app/financial-forecast.tsx'),informes=read('app/reports-workspace.tsx'),weekly=read('app/weekly-automatic.tsx'),treasury=read('app/daily-controls.tsx');
 const uiV2=read('app/ui-v2.tsx');
@@ -126,5 +127,18 @@ for(const [name,source,labels] of [
 assert.match(informes,/monthRangeLabel\(comparison!\.currentStart, comparison!\.currentEnd\)/,'Informes muestra el período completo con año (ronda 14, #62)');
 assert.match(informes,/onCreateInvoice\?/,'el vacío de Informes usa la salida del shell sin duplicar el modal');
 assert.match(pre,/\{navigate\?/,'Previsión navega a clientes y equipo desde el vacío');
+
+// ── #67 (ronda 16): ventana de cobros, chrome proyectado y targets táctiles.
+const workspace=workspaceSource();
+assert.match(workspace,/api\/agency\/payments\$\{allPaymentsLoaded \? "\?limit=all" : ""\}/,'la lista de cobros se pide con ventana');
+assert.match(workspace,/async function loadAllPayments\(\)/,'el histórico completo de cobros se pide a demanda');
+assert.match(finanzas,/paymentHasMore/,'finanzas declara si hay más cobros para completar');
+assert.match(finanzas,/Ver todos los cobros/,'la lista de cobros ofrece completar el histórico');
+for(const section of ['Finanzas','Mora','Informes','Previsión','Comisiones']){
+ const scope=sectionScope(section);
+ assert.equal(scope.clients?.fields,CLIENT_FIELDS_CHROME,`${section} pide el chrome de clientes`);
+ assert.equal(scope.projects?.fields,PROJECT_FIELDS_CHROME,`${section} pide el chrome de proyectos`);
+ assert.ok(scope.orders?.limit,`${section} conserva la ventana de órdenes del buscador`);
+}
 
 console.log('PASS: contrato v2 FIN — librería + primitivas, estados, una plantilla por lista sin `auto`, sin elipsis, montos por contexto, fechas por list-format, anchos por tipo y vacíos con salida (#62)');

@@ -96,6 +96,19 @@ await assert.rejects(query('delete from agency_client_reporting_events where id=
 
 // Synthetic fixture inserts only, as in NEW demo seeding; no rewriting existing events.
 await query("update agency_reporting_coverage set history_since='2024-01-01T03:00:00Z' where organization_id=$1",[fresh]);
+// #67: `previous=1` devuelve las dos ventanas en la misma respuesta y sin el
+// parámetro el contrato queda igual (compatibilidad para clientes viejos).
+const singleWindow=await agencyReport(db,fresh,{month:'2024-04',months:2,previous:'1'},fixed);
+assert.equal(singleWindow.month,'2024-04');assert.equal(singleWindow.months.length,2);
+assert.deepEqual(singleWindow.months.map(m=>m.month),['2024-03','2024-04']);
+assert.equal(singleWindow.previous.month,'2024-02');
+assert.deepEqual(singleWindow.previous.months.map(m=>m.month),['2024-01','2024-02']);
+assert.equal(singleWindow.previous.historySince,singleWindow.historySince);
+assert.deepEqual(singleWindow.months,(await agencyReport(db,fresh,{month:'2024-04',months:2},fixed)).months,'la ventana actual no cambia con previous');
+assert.deepEqual(singleWindow.previous.months,(await agencyReport(db,fresh,{month:'2024-02',months:2},fixed)).months,'previous replica la llamada anterior');
+assert.equal((await agencyReport(db,fresh,{month:'2024-04',months:2},fixed)).previous,undefined,'sin previous el payload no cambia');
+assert.equal((await call('/api/agency/reports?month=2024-04&months=2&previous=1')).previous.months.length,2,'la ruta acepta previous=1');
+assert.equal((await call('/api/agency/reports?month=2024-04&months=2')).previous,undefined);
 const c2=(await one("insert into agency_clients(organization_id,name) values($1,'Second') returning id",[fresh])).id;
 const c3=(await one("insert into agency_clients(organization_id,name) values($1,'Leap') returning id",[fresh])).id;
 async function event(id,at,{kind='changed',active=true,archived=false,type='company',plan=p2,start='2024-01-01',status=active?'active':'paused',name='Original plan'}={}){

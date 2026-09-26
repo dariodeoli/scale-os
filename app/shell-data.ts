@@ -25,8 +25,8 @@ export const ORDER_FIELDS_PORTFOLIO = 'id,status,project_id,due_date';
 export const ORDER_FIELDS_BOARD = 'id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at';
 /** Buscador: lo que muestra el resultado. */
 export const ORDER_FIELDS_SEARCH = 'id,title,status,project_id,project_name,client_name,due_date';
-/** #67: chrome mínimo de clientes para el buscador/presencia de las secciones PLT. */
-export const CLIENT_FIELDS_CHROME = 'id,name,email,active,logo_url,color_key';
+/** #67: chrome mínimo de clientes para el buscador/presencia de las secciones que no listan la cartera (contacto y ciclo de vida incluidos para el buscador global). */
+export const CLIENT_FIELDS_CHROME = 'id,name,email,phone,active,lifecycle_status,logo_url,color_key';
 /** #67: chrome mínimo de proyectos (nombre, estado y piezas) para esas mismas secciones. */
 export const PROJECT_FIELDS_CHROME = 'id,name,client_id,status,client_name,work_order_count,assignees';
 
@@ -39,6 +39,7 @@ export const CLIENT_CHROME_FIELDS = 'id,name,email,active,logo_url,color_key';
 export const PROJECT_CHROME_FIELDS = 'id,name,client_id,client_name,work_order_count';
 /** Proyectos de la sección Proyectos: tarjetas, fechas, piezas y responsables. */
 export const PROJECT_LIST_FIELDS = `${PROJECT_CHROME_FIELDS},status,active,urgency,start_date,due_date,drive_links,updated_at,assignees`;
+const CHROME_SCOPE: ShellScope = {clients: {fields: CLIENT_FIELDS_CHROME}, projects: {fields: PROJECT_FIELDS_CHROME}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}};
 
 export function shellDataUrl(resource: ShellResource, request: ShellResourceRequest = {}) {
   const query: string[] = [];
@@ -91,7 +92,13 @@ const SECTION_SCOPE: Record<string, ShellScope> = {
   Estudio: {clients: {fields: CLIENT_CHROME_FIELDS}, projects: {fields: PROJECT_CHROME_FIELDS}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
   Presupuestos: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}, summary: {}},
   Pipeline: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
-  Mora: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
+  // Finanzas, Mora, Informes, Previsión y Comisiones no listan clientes ni
+  // proyectos: piden solo el chrome y recortan ~300 KB por navegación (#67).
+  Mora: CHROME_SCOPE,
+  Finanzas: CHROME_SCOPE,
+  Informes: CHROME_SCOPE,
+  'Previsión': CHROME_SCOPE,
+  Comisiones: CHROME_SCOPE,
   Equipo: PLT_SCOPE,
   Invitaciones: PLT_SCOPE,
   'Roles y permisos': PLT_SCOPE,
