@@ -121,6 +121,7 @@ export function KanbanColumn({
   counts,
   hasMore,
   loadingMore,
+  loading,
   onLoadMore,
 }: {
   status: (typeof statuses)[number];
@@ -133,6 +134,8 @@ export function KanbanColumn({
   /** La ventana de la columna tiene más piezas para pedir. */
   hasMore?:boolean;
   loadingMore?:boolean;
+  /** La primera carga está en curso: ni el badge ni el vacío mienten. */
+  loading?:boolean;
   onLoadMore?:()=>void;
 }) {
   const droppable = useDroppable({ id: `status-${status.id}` });
@@ -141,17 +144,17 @@ export function KanbanColumn({
       ref={droppable.setNodeRef}
       className={`flex min-w-0 w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver ? "border-fono bg-fono/10" : "border-ink-600 bg-ink-800/60"}`}
       data-column={status.id}
-      aria-label={`${status.label}: ${orders.length} pieza${orders.length === 1 ? "" : "s"}`}
+      aria-label={loading&&counts===undefined?`${status.label}: cargando piezas`:`${status.label}: ${orders.length} pieza${orders.length === 1 ? "" : "s"}`}
     >
       <div className="flex items-center gap-2">
         <StateChip tone={STATUS_TONE[status.id] || 'mute'}>{status.label}</StateChip>
-        <em className="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-medium not-italic tabular-nums text-mute" title={`${counts ?? orders.length} piezas en ${status.label}`}>{counts ?? orders.length}</em>
+        <em className="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-medium not-italic tabular-nums text-mute" title={`${counts ?? orders.length} piezas en ${status.label}`}>{loading&&counts===undefined?'…':counts ?? orders.length}</em>
       </div>
       {orders.map((order) => (
         <DraggableOrder key={order.id} order={order} role={role} refresh={refresh} openOrder={openOrder}/>
       ))}
       {hasMore && onLoadMore ? <button type="button" className="text-button justify-center" disabled={loadingMore} aria-label={`Ver más piezas en ${status.label}`} onClick={onLoadMore}>{loadingMore ? 'Trayendo…' : 'Ver más'}</button> : null}
-      {!orders.length ? <p className="py-3 text-center text-[11px] text-mute">Sin piezas en esta etapa</p> : null}
+      {!orders.length ? <p className="py-3 text-center text-[11px] text-mute">{loading?'Cargando piezas…':'Sin piezas en esta etapa'}</p> : null}
     </section>
   );
 }

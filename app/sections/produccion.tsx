@@ -1,14 +1,14 @@
 "use client";
 import dynamic from 'next/dynamic';
-import {useMemo,useState,type Dispatch,type SetStateAction} from 'react';
-import {ArrowUpRight, RotateCcw, SlidersHorizontal} from 'lucide-react';
+import {useCallback,useEffect,useMemo,useRef,useState,type Dispatch,type SetStateAction} from 'react';
+import {ArrowUpRight, ChevronLeft, ChevronRight, Plus, RotateCcw, SlidersHorizontal} from 'lucide-react';
 import {DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
-import {Aviso, SegmentedField, Select} from 'owncoding-ui';
+import {Aviso, Button, SegmentedField, Select} from 'owncoding-ui';
 import {EmptyBlock} from '../ui-v2';
 import {BoardPresence} from '../presence';
 import {KanbanColumn, statuses, type Status, type WorkOrderCard} from '../production-board';
 import {defaultWorkspacePreferences, type WorkspacePreferences} from '../workspace-preferences';
-import {boardFiltersActive} from '../board-data';
+import {boardFiltersActive, boardVisibleWindow, boardWindowLabel} from '../board-data';
 import {useBoardData} from '../use-board-data';
 import {filterProductionOrders} from '../production-filter';
 import {useLocalCalendarDay} from '../use-workspace-preferences';
@@ -38,6 +38,8 @@ type ProduccionSectionProps = {
   user: User | null;
   setActive: (label: string) => void;
   setDetail: Dispatch<SetStateAction<{kind:'client'|'order';id:string;anchor?:string;edit?:boolean} | null>>;
+  /** CTA del estado vacío: la sección no es dueña del modal del shell. */
+  createOrder?: () => void;
   // Legado del shell: el tablero ya no los usa (carga por columna propia). La
   // limpieza del cableado va con el alcance de datos de DSN (#57).
   productionOrders?: WorkOrder[];
@@ -48,7 +50,7 @@ type ProduccionSectionProps = {
   load?: () => Promise<void>;
 };
 const VIEW_OPTIONS: [string, string, string][] = [['Tablero','Tablero','grid'],['Mi día','Mi día','clock'],['Calendario','Calendario','calendar'],['Lista y lotes','Lista y lotes','list']];
-export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, updatePreferences, projects, user, setActive, setDetail}: ProduccionSectionProps){
+export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, updatePreferences, projects, user, setActive, setDetail, createOrder}: ProduccionSectionProps){
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
   const today=useLocalCalendarDay();
   const filters=useMemo(()=>({clientId:selectedProductionClient,mine:preferences.production.mine,week:preferences.production.week,userId:String(user?.id||''),today}),[selectedProductionClient,preferences.production.mine,preferences.production.week,user?.id,today]);
@@ -68,6 +70,38 @@ export function ProduccionSection({productionView, preferences, changeProduction
   const totalOrders=Object.values(boardData.counts).reduce((sum,value)=>sum+value,0);
   const visibleOrders=Object.values(visibleColumns).reduce((sum,rows)=>sum+rows.length,0);
   const dragged=Object.values(visibleColumns).flat().find(order=>String(order.id)===String(draggedOrderId));
+  // Estados honestos: cargando no se dice "0 órdenes", y con el tablero vacío
+  // (sin filtros) no se dibujan siete columnas vacías: va el vacío compacto.
+  const boardEmpty=!boardData.loading&&!boardData.error&&!filtered&&totalOrders===0;
+  const filteredEmpty=!boardData.loading&&!boardData.error&&filtered&&visibleOrders===0;
+  const resetProductionFilters=()=>updatePreferences({production:defaultWorkspacePreferences().production});
+  const counterText=boardData.loading&&!totalOrders&&!visibleOrders?'Cargando órdenes…':filtered?`${visibleOrders} de ${totalOrders} órdenes`:totalOrders?`${totalOrders} órdenes`:'Sin órdenes';
+  // Indicador del riel: cuántas de las 7 etapas entran en el viewport. Sin él,
+  // el tablero parecía no tener más piezas que las de las columnas visibles.
+  const boardScroll=useRef<HTMLDivElement|null>(null);
+  const [boardWindow,setBoardWindow]=useState<{first:number;last:number;count:number;scrollable:boolean;atStart:boolean;atEnd:boolean}>({first:1,last:statuses.length,count:statuses.length,scrollable:false,atStart:true,atEnd:true});
+  const measureBoard=useCallback(()=>{
+    const node=boardScroll.current;if(!node)return;
+    const viewport=node.getBoundingClientRect();
+    const columns=[...node.querySelectorAll<HTMLElement>('[data-column]')].map(column=>column.getBoundingClientRect());
+    const visibleRange=boardVisibleWindow(columns,viewport);
+    setBoardWindow({...visibleRange,scrollable:node.scrollWidth>node.clientWidth+1,atStart:node.scrollLeft<=1,atEnd:node.scrollLeft+node.clientWidth>=node.scrollWidth-1});
+  },[]);
+  useEffect(()=>{
+    measureBoard();
+    const node=boardScroll.current;if(!node)return;
+    node.addEventListener('scroll',measureBoard,{passive:true});
+    const observer=new ResizeObserver(measureBoard);
+    observer.observe(node);
+    return()=>{node.removeEventListener('scroll',measureBoard);observer.disconnect();};
+  },[measureBoard,productionView,boardData.loading,boardEmpty,filteredEmpty]);
+  const scrollBoard=(direction:-1|1)=>{
+    const node=boardScroll.current;if(!node)return;
+    const column=node.querySelector<HTMLElement>('[data-column]');
+    const stride=(column?.getBoundingClientRect().width||288)+12;
+    const reduce=typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    node.scrollBy({left:direction*stride,behavior:reduce?'auto':'smooth'});
+  };
   // Mouse con 6 px de margen (no roba el clic de los botones de la tarjeta), touch
   // con pulsación sostenida (no pelea con el scroll del tablero) y teclado.
   const sensors=useSensors(useSensor(MouseSensor,{activationConstraint:{distance:6}}),useSensor(TouchSensor,{activationConstraint:{delay:250,tolerance:8}}),useSensor(KeyboardSensor));
@@ -93,7 +127,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
           </label>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" className="text-button" disabled={!preferencesReady} onClick={()=>setProductionFiltersDialogScope(preferenceScope)}><SlidersHorizontal size={14}/>Filtros{hasProductionFilters?` · ${Number(!!productionClientId)+Number(preferences.production.mine)+Number(preferences.production.week)}`:''}</button>
-            <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite">{filtered?`${visibleOrders} de ${totalOrders} órdenes`:`${totalOrders||visibleOrders} órdenes`}</p>
+            <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite">{counterText}</p>
             {hasProductionFilters && <button type="button" className="text-button" onClick={() => updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>}
           </div>
         </div>}
@@ -104,9 +138,18 @@ export function ProduccionSection({productionView, preferences, changeProduction
       {productionView==="Tablero"&&
       <section className="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción">
         {boardData.error?<div className="grid gap-2"><Aviso tono="error">No se pudo cargar el tablero: {boardData.error}</Aviso><button type="button" className="text-button justify-self-start" onClick={boardData.reload}>Reintentar</button></div>:null}
-        {filtered && !boardData.error && visibleOrders === 0 ? <EmptyBlock title="No hay órdenes que coincidan con estos filtros." description="Restablecé los filtros guardados del tablero para ver todas las piezas." icon="filter"/> : null}
-        <BoardPresence key={String(user?.organization_id)} projectIds={Object.values(visibleColumns).flat().map(order=>String(order.project_id))}><DndContext sensors={sensors} onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={onDrop}>
-          <div className="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
+        {filteredEmpty?<EmptyBlock compact icon="filter" title="Ninguna orden coincide con los filtros guardados." description={`El tablero tiene ${totalOrders} órdenes. Los filtros de cliente, responsable o semana las dejan fuera.`} action={<Button type="button" variant="outline" onClick={resetProductionFilters}><RotateCcw size={14}/>Restablecer filtros</Button>}/>:null}
+        {boardEmpty?<EmptyBlock compact icon="box" title="Todavía no hay órdenes en producción." description="Creá la primera pieza y seguila por las siete etapas hasta publicarla." action={createOrder?<Button type="button" onClick={createOrder}><Plus size={16}/>Nueva pieza</Button>:undefined}/>:null}
+        {!boardEmpty&&!filteredEmpty&&<BoardPresence key={String(user?.organization_id)} projectIds={Object.values(visibleColumns).flat().map(order=>String(order.project_id))}><DndContext sensors={sensors} onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={onDrop}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p>
+            {boardWindow.scrollable?<div className="flex items-center gap-1" role="group" aria-label="Recorrido del tablero" data-board-window>
+              <button type="button" data-board-prev className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-ink-500 text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas anteriores" title="Etapas anteriores" disabled={boardWindow.atStart} onClick={()=>scrollBoard(-1)}><ChevronLeft size={14}/></button>
+              <span className="whitespace-nowrap text-[11px] tabular-nums text-mute" title={`Se ven las etapas ${boardWindow.first} a ${boardWindow.last} de ${statuses.length}. Usá las flechas o deslizá el tablero.`}>{boardWindowLabel(boardWindow,statuses.length)}</span>
+              <button type="button" data-board-next className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-ink-500 text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas siguientes" title="Etapas siguientes" disabled={boardWindow.atEnd} onClick={()=>scrollBoard(1)}><ChevronRight size={14}/></button>
+            </div>:null}
+          </div>
+          <div ref={boardScroll} className="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
             {statuses.map((status: (typeof statuses)[number]) => (
               <KanbanColumn
                 openOrder={(id,edit)=>setDetail({kind:'order',id,...(edit?{edit:true}:{})})}
@@ -114,7 +157,8 @@ export function ProduccionSection({productionView, preferences, changeProduction
                 refresh={boardData.reload}
                 key={status.id}
                 status={status}
-                counts={boardData.counts[status.id]}
+                loading={boardData.loading}
+                counts={filtered?undefined:boardData.counts[status.id]}
                 hasMore={boardData.hasMore[status.id]}
                 loadingMore={boardData.loadingMore===status.id}
                 onLoadMore={()=>boardData.loadMore(status.id)}
@@ -123,8 +167,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
             ))}
           </div>
           <DragOverlay>{dragged?<article className="rounded-xl border border-fono/40 bg-ink-800 p-3 shadow-2xl"><strong className="text-sm text-fore">{dragged.title}</strong><p className="text-xs text-mute">{dragged.client_name}</p></article>:null}</DragOverlay>
-        </DndContext></BoardPresence>
-        <p className="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p>
+        </DndContext></BoardPresence>}
       </section>}
     </>
   );
