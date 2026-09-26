@@ -5,10 +5,12 @@ import Link from "next/link";
 import {money as formatMoney} from "../operations";
 import { useRouter } from "next/navigation";
 import {
+  Activity,
   ArrowLeft,
   Building2,
   CircleCheck,
   RefreshCw,
+  ShieldCheck,
   Ticket,
   Users,
 } from "lucide-react";
@@ -487,21 +489,33 @@ export default function PlatformAdmin() {
       <PlatformNotices state={state} error={error} busy={busy} bootstrap={bootstrap}/>
       {state ? (
         <>
-          <section className="platform-admin-section platform-admin-context" aria-labelledby="platform-admin-context-title">
-            <div className="platform-admin-section-heading">
-              <div>
-              <p className="eyebrow">CENTRO DE CONTROL</p>
-              <h2 id="platform-admin-context-title">Operación de plataforma</h2>
-              <p>Supervisá la salud comercial, los accesos y la actividad global desde un solo lugar.</p>
+          <section className="platform-admin-section platform-admin-context platform-admin-command-deck" aria-labelledby="platform-admin-context-title">
+            <div className="platform-admin-command-copy">
+              <div className="platform-admin-section-heading">
+                <div>
+                  <p className="eyebrow">NÚCLEO DE PLATAFORMA</p>
+                  <h2 id="platform-admin-context-title">Administración global</h2>
+                  <p>Una vista de mando para organizaciones, permisos, catálogo comercial y trazabilidad.</p>
+                </div>
               </div>
+              <nav className="platform-admin-section-nav platform-admin-actions" aria-label="Secciones de administración global">
+                <Link className="text-button" href="#resumen">Resumen</Link>
+                <Link className="text-button" href="#agencias">Agencias</Link>
+                <Link className="text-button" href="#accesos">Accesos</Link>
+                <Link className="text-button" href="#catalogo">Catálogo</Link>
+                <Link className="text-button" href="#auditoria">Auditoría</Link>
+              </nav>
             </div>
-            <nav className="platform-admin-section-nav platform-admin-actions" aria-label="Secciones de administración global">
-              <Link className="text-button" href="#resumen">Resumen</Link>
-              <Link className="text-button" href="#agencias">Agencias</Link>
-              <Link className="text-button" href="#accesos">Accesos</Link>
-              <Link className="text-button" href="#catalogo">Catálogo</Link>
-              <Link className="text-button" href="#auditoria">Auditoría</Link>
-            </nav>
+            <div className="platform-admin-command-status" aria-label="Estado del centro de control">
+              <span className="platform-admin-command-icon" aria-hidden="true">
+                <ShieldCheck />
+              </span>
+              <div>
+                <span>Ámbito activo</span>
+                <strong>Plataforma Scale OS</strong>
+              </div>
+              <Activity aria-hidden="true" className="platform-admin-command-pulse" />
+            </div>
           </section>
 
           <section id="resumen" className="platform-admin-section platform-admin-overview" aria-labelledby="platform-admin-overview-title">
@@ -593,7 +607,7 @@ export default function PlatformAdmin() {
 
   return (
     <main className="platform-admin-page">
-      <header className="platform-admin-header">
+      <header className="platform-admin-header platform-admin-header--global">
         <Link href={appHome()} aria-label="Scale OS">
           <WorkspaceBrand />
         </Link>
