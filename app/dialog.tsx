@@ -119,6 +119,13 @@ export function FormActions({children}:{children:ReactNode}){
  // The footer is mounted after the form. Re-check when it becomes available so
  // a dialog that closes and reopens immediately never keeps a stale form target.
  useLayoutEffect(()=>{const form=anchor.current?.closest('form');if(!form){setFormId('');return;}if(!form.id)form.id=id;setFormId(form.id);},[id,footer]);
- const actions=<div className="dialog-actions">{Children.map(children,child=>isValidElement<ButtonHTMLAttributes<HTMLButtonElement>>(child)&&child.type==='button'&&!child.props.form?cloneElement(child,{form:formId||undefined}):child)}</div>;
+ const actions=<div className="dialog-actions">{Children.map(children,child=>{
+  if(!isValidElement<ButtonHTMLAttributes<HTMLButtonElement>>(child)||child.props.form)return child;
+  // Los objetos de la librería (`<Button type="submit">`) también se asocian: sin
+  // el atributo `form`, el portal del pie deja el submit fuera del formulario y el
+  // clic no guarda. Los `<button>` crudos conservan el comportamiento anterior.
+  const associate=child.type==='button'||child.props.type==='submit';
+  return associate?cloneElement(child,{form:formId||undefined}):child;
+ })}</div>;
  return <><span hidden ref={anchor}/>{footer?createPortal(actions,footer):actions}</>;
 }
