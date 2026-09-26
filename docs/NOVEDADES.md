@@ -2,6 +2,35 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.126
+
+### Marco y sistema visual
+
+- **El contenido usa todo el ancho**: con el riel normal o colapsado la pantalla se reparte por flex y desaparecen las franjas muertas (hasta 260 px en pantallas anchas y 132 px al colapsar). El riel y el menú móvil cortan en el mismo ancho (768 px): se termina la banda donde se veían los dos menús a la vez.
+- **Pie del riel con un solo divisor** (se retiró la raya duplicada heredada) y el ítem activo/hover del nav recupera sus opacidades reales de Tailwind.
+- **Botón primario legible**: el texto del CTA violeta sale del token de marca y cumple AA en claro (14,07:1) y oscuro (5,30:1).
+
+### Operaciones
+
+- **Tablero de Producción**: indicador “N de 7 etapas” con flechas para recorrer el riel, contadores que respetan los filtros activos y mensajes claros de carga y vacío (“Nueva pieza”, “Restablecer filtros”) en lugar de un “0 órdenes” engañoso.
+- **Inventario**: toolbar en una sola línea (vista, búsqueda, categoría, vista de equipos, selección, contador y acciones) y CTA “Agregar valor” cuando falta el dato monetario.
+- **Estudio y Proyectos**: vacíos compactos con CTA primario (“Agregar espacio”, “Nuevo proyecto”); sin espacios ni reservas ya no se dibuja el calendario vacío.
+
+### Finanzas
+
+- **Informes**: el período visible y el anterior se muestran completos y ordenados, con año y último día de cada mes (p. ej. “1 oct. 2025 — 30 sept. 2026”), igual en pantalla y en el PDF.
+- **Vacíos con salida**: Finanzas, Mora, Previsión, Comisiones e Informes ofrecen el CTA que resuelve el vacío (registrar cuenta, factura, cobro o comisión; transferir; limpiar filtros; ver el último mes con datos); los estados sin acción posible según el rol quedan honestos y sin botón.
+
+### Plataforma
+
+- **Equipo**: búsqueda, filtros, contador, vista y acciones en una sola fila que envuelve sin huecos; los chips Activos/Inactivos ahora filtran de verdad y el nombre completo se lee hasta en dos líneas en las tarjetas.
+- **Vacíos con CTA**: “Agregar primera persona” en Equipo, “Generar enlace” en Invitaciones, reintento en Roles y permisos y “Crear el primer cupón” en Superadmin; donde no hay acción posible, el vacío no ofrece botón.
+
+### Diseño (documentación)
+
+- Publicado el patrón de **tablas densas responsive**: columna de acciones fija por defecto (las acciones no dependen del scroll), menú “⋯” como excepción cuando la fila no entra y vista tarjeta en anchos medios por plantilla.
+- Publicado el patrón de **estados vacíos con CTA contextual**; `DESIGN-SYSTEM.md` y el harness visual quedan sincronizados con el corte md único.
+
 ## v1.0.125
 
 ### Accesibilidad AA (verticales Comercial, Operaciones, Finanzas y Plataforma)
