@@ -71,7 +71,7 @@ const AUDIT_JS=(marker)=>`(()=>{
   if(!r.width||!r.height)return;
   if(r.height<43.5)small.push({tag:el.tagName,label:(el.getAttribute('aria-label')||el.textContent||'').trim().slice(0,44),h:Math.round(r.height*10)/10,cls:String(el.className).slice(0,70)});
  });
- const rows=[...section.querySelectorAll('[role="row"]')].filter(row=>!row.querySelector('[role="columnheader"]')&&(row.querySelector('[role="cell"],[role="gridcell"],span,div')));
+ const rows=[...section.querySelectorAll('[role="row"]')].filter(row=>row.getBoundingClientRect().height>0&&row.offsetParent!==null&&!row.querySelector('[role="columnheader"]')&&(row.querySelector('[role="cell"],[role="gridcell"],span,div')));
  const heights=rows.map(row=>Math.round(row.getBoundingClientRect().height*10)/10);
  const scrollers=[...section.querySelectorAll('*')].filter(el=>{const s=getComputedStyle(el);return el.scrollWidth>el.clientWidth+2&&(s.overflowX==='auto'||s.overflowX==='scroll');}).map(el=>({cls:String(el.className).slice(0,60),sw:el.scrollWidth,cw:el.clientWidth}));
  return {overflow:doc.scrollWidth-doc.clientWidth,small,rowMin:heights.length?Math.min(...heights):null,rowMax:heights.length?Math.max(...heights):null,rows:rows.length,scrollers};
