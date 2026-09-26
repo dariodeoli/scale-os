@@ -73,6 +73,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
     }
     return {totals, pendingCount};
   }, [invoices]);
+  const activeAccounts = accounts.filter(account => account.active !== false).length;
   const visibleInvoices = useMemo(() => invoices.filter(invoice => {
     const query = invoiceSearch.trim().toLowerCase();
     if (query && !`${invoice.number} ${invoice.client_name}`.toLowerCase().includes(query)) return false;
@@ -129,7 +130,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
               <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>
             </footer>
           </article>)}
-        </div> : <EmptyBlock compact title="Creá la primera cuenta para registrar cobros." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<button className="primary" onClick={() => setModal('account')}><Plus size={16} aria-hidden="true"/>Cuenta</button>}/>}
+        </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<button className="primary" onClick={() => setModal('account')}><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</button>}/>}
       </section>
 
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-transfers-title">
@@ -155,7 +156,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
               </ListRow>;
             })}
           </ListGrid>
-          : <EmptyBlock compact title="Aún no hay transferencias entre cuentas." description="Registrá una cuando muevas saldo entre cuentas; el movimiento queda en la traza."/>}
+          : <EmptyBlock compact title="Aún no hay transferencias entre cuentas." description="Registrá una cuando muevas saldo entre cuentas; el movimiento queda en la traza." action={activeAccounts >= 2 ? <button className="secondary" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</button> : undefined}/>}
       </section>
     </div>
 
@@ -192,7 +193,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
             </div>
           </ListRow>)}
         </ListGrid>
-        : <EmptyBlock compact title={invoices.length ? 'No hay facturas con este filtro.' : 'Todavía no hay facturas registradas.'} description={invoices.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Creá la primera factura para registrar cobros.'}/>}
+        : <EmptyBlock compact title={invoices.length ? 'No hay facturas con este filtro.' : 'Todavía no hay facturas registradas.'} description={invoices.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Creá la primera factura para registrar cobros.'} action={invoices.length ? <button className="secondary" onClick={() => { setInvoiceFilter('all'); setInvoiceSearch(''); }}>Limpiar filtros</button> : <button className="primary" onClick={() => setModal('invoice')}><Plus size={16} aria-hidden="true"/>Crear factura</button>}/>}
       {invoiceHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllInvoices()}>Ver todas las facturas</button></div> : null}
     </section>
 
@@ -210,7 +211,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
             <div className="flex min-w-0 items-center justify-end gap-1"><ReceiptReversal payment={payment} refresh={loadFinance}/></div>
           </ListRow>)}
         </ListGrid>
-        : <EmptyBlock compact title="Aún no hay cobros registrados." description="Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial."/>}
+        : <EmptyBlock compact title="Aún no hay cobros registrados." description="Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial." action={receivable.pendingCount ? <button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button> : undefined}/>}
     </section>
 
     <ReconciliationWorkspace accounts={accounts}/>

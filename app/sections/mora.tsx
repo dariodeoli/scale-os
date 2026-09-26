@@ -1,5 +1,6 @@
 "use client";
 import type {Dispatch, SetStateAction} from 'react';
+import {Plus} from 'lucide-react';
 import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {SegmentedField} from 'owncoding-ui';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
@@ -20,6 +21,8 @@ type MoraSectionProps = {
   moraUpdated: Date | null;
   moraReportsError: boolean;
   moraDso: {currency: string; days: number}[] | null;
+  /** Salida del vacío: navega a Finanzas y abre el alta de factura (ronda 14, #62). */
+  onCreateInvoice?: () => void;
 };
 
 /** Plantilla única de la lista de cobranza (encabezado y filas la comparten). */
@@ -69,7 +72,7 @@ function ClientLine({client}: {client: ClientPaymentStatus}) {
   </ListRow>;
 }
 
-export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, moraSearch, setMoraSearch, moraUpdated, moraReportsError, moraDso}: MoraSectionProps) {
+export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, moraSearch, setMoraSearch, moraUpdated, moraReportsError, moraDso, onCreateInvoice}: MoraSectionProps) {
   const kpis = moraKpis(paymentStatuses);
   const buckets = buildMoraBuckets(paymentStatuses);
   const visible = filterMoraClients(paymentStatuses, moraFilter as MoraFilter, moraSearch);
@@ -117,6 +120,6 @@ export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, m
       ? <ListGrid label="Cobranza por cliente" template={MORA_TEMPLATE} columns={MORA_COLUMNS} minWidthClass="min-w-[58rem]">
         {visible.map(client => <ClientLine key={`${client.client_id}-${client.currency || 'none'}`} client={client}/>)}
       </ListGrid>
-      : <EmptyBlock title={paymentStatuses.length ? 'No hay clientes en esta categoría.' : 'Sin registros de cobranza todavía.'} description={paymentStatuses.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Cuando existan facturas con saldo, aparecen acá.'}/>}
+      : <EmptyBlock title={paymentStatuses.length ? 'No hay clientes en esta categoría.' : 'Sin registros de cobranza todavía.'} description={paymentStatuses.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Emití la primera factura para seguir el saldo y la antigüedad de cada cliente.'} action={paymentStatuses.length ? <button className="secondary" onClick={() => { setMoraFilter(''); setMoraSearch(''); }}>Limpiar filtros</button> : onCreateInvoice ? <button className="primary" onClick={() => onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button> : undefined}/>}
   </section>;
 }

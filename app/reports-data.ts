@@ -134,6 +134,29 @@ export function monthLabel(value: string): string {
   return new Intl.DateTimeFormat('es-PY', {timeZone: 'America/Asuncion', day: '2-digit', month: 'short'}).format(date).replace(/\./g, '').replace(/\s+/g, '-');
 }
 
+const monthRangeFormat = new Intl.DateTimeFormat('es-PY', {timeZone: 'America/Asuncion', day: 'numeric', month: 'short', year: 'numeric'});
+const monthTitleFormat = new Intl.DateTimeFormat('es-PY', {timeZone: 'America/Asuncion', month: 'long', year: 'numeric'});
+
+/**
+ * Rango completo y ordenado de meses (`1 oct. 2025 — 30 sept. 2026`): primer
+ * día del mes inicial y último día del mes final, siempre con año. Es la
+ * etiqueta de período del filtro de Informes; nunca abrevia ni deja el año
+ * implícito.
+ */
+export function monthRangeLabel(start: string, end: string): string {
+  const first = new Date(`${start}-01T12:00:00Z`);
+  const [endYear, endMonth] = end.split('-').map(Number);
+  const last = Number.isInteger(endYear) && Number.isInteger(endMonth) ? new Date(Date.UTC(endYear, endMonth, 0, 12)) : new Date(Number.NaN);
+  if (Number.isNaN(first.getTime()) || Number.isNaN(last.getTime())) return `${start} — ${end}`;
+  return `${monthRangeFormat.format(first)} — ${monthRangeFormat.format(last)}`;
+}
+
+/** Mes y año en palabras (`septiembre de 2026`), para ayudas y botones. */
+export function monthTitle(value: string): string {
+  const date = new Date(`${value}-01T12:00:00Z`);
+  return Number.isNaN(date.getTime()) ? value : monthTitleFormat.format(date);
+}
+
 /** Only months with at least one registered figure are shown; an empty month is not zero. */
 export const hasMonthData = (row: ReportMonth) =>
   row.clients.active !== null || row.clients.added !== null || row.clients.lost !== null ||

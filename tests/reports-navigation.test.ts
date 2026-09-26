@@ -13,7 +13,10 @@ for(const role of ['owner','admin','management','finance','sales','production','
 const workspace=workspaceSource();
 assert(workspace.includes("dynamic(()=>import('../reports-workspace')"));
 assert(workspace.includes('["Informes", BarChart3]'));
-assert(workspace.includes("active==='Informes'&&<InformesSection user={user}/>"));
+assert(workspace.includes("active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>"));
+assert(workspace.includes("const openInvoice = () => {setActive('Finanzas');setModal('invoice');}"),'los vacíos FIN abren el alta de factura en Finanzas (ronda 14, #62)');
+assert(workspace.includes('<MoraSection user={user}')&&workspace.includes('onCreateInvoice={openInvoice}'));
+assert(workspace.includes("active==='Previsión'&&<PrevisionSection user={user} navigate={setActive} onCreateInvoice={openInvoice}/>"));
 assert(workspace.includes('<ReportsWorkspace key={user?.organization_id}'));
 assert(workspace.indexOf('if(user?.subscription?.hasAccess===false)return')<workspace.indexOf('<ReportsWorkspace key='));
 const detail=readFileSync(new URL('../app/productivity-ui.tsx',import.meta.url),'utf8');

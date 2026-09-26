@@ -59,8 +59,8 @@ const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px
 
 const moneyNowrap=(text:string,tono?:'bad')=><span className={cn('whitespace-nowrap tabular-nums',tono==='bad'&&'text-bad')}>{text}</span>;
 
-export function FinancialForecast({role,organizationId}:{role:string;organizationId:string|number}) {return ['owner','admin','finance'].includes(role)?<ForecastPanel key={String(organizationId)}/>:null;}
-function ForecastPanel() {
+export function FinancialForecast({role,organizationId,navigate,onCreateInvoice}:{role:string;organizationId:string|number;navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {return ['owner','admin','finance'].includes(role)?<ForecastPanel key={String(organizationId)} navigate={navigate} onCreateInvoice={onCreateInvoice}/>:null;}
+function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {
  const [month,setMonth]=useState(()=>currentForecastMonth()),[horizon,setHorizon]=useState<Horizon>('1');
  const {data,error,reload,version,setError:setForecastError}=useForecast(month,horizon);
  const {accounts,expenses:realExpenses,error:realError,setError:setRealError}=useRealExpenses(month,data);
@@ -107,7 +107,7 @@ function ForecastPanel() {
   {error?<ErrorState title="No se pudo cargar la previsión" description={error} onRetry={()=>reload()}/>
   :!data?<LoadingBlock label="Cargando previsión…" lines={4}/>
   :<>
-   {horizon==='1'&&!data.records.length?<EmptyState compact title="Sin facturas emitidas ni presupuestos aceptados pendientes para este mes."/>:null}
+   {horizon==='1'&&!data.records.length?<EmptyState compact title="Sin facturas emitidas ni presupuestos aceptados pendientes para este mes." description="Cuando emitas una factura o se acepte un presupuesto, la previsión del mes se completa sola." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>:null}
    {horizon==='1'?<Card className="grid gap-3 p-4">
     <div className="grid gap-1">
      <h3 className="text-[17px] font-semibold tracking-tight text-fore">Ingresos vs gastos del mes</h3>
@@ -132,7 +132,7 @@ function ForecastPanel() {
        <strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',row.result<0?'text-bad':'text-fore')}>{formatSignedMoney(row.result,row.currency)}</strong>
       </div>
      </article>)}
-    </div>:<EmptyState compact title="Sin datos financieros para este mes."/>}
+    </div>:<EmptyState compact title="Sin datos financieros para este mes." description="Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
    </Card>:null}
    {horizon==='1'?<Card className="grid gap-3 p-4">
     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Resumen por moneda</h3>
@@ -170,7 +170,7 @@ function ForecastPanel() {
        </div>}
       />
      </div>)}
-    </div>:<EmptyState compact title="Sin datos financieros para el horizonte."/>}
+    </div>:<EmptyState compact title="Sin datos financieros para el horizonte." description="Emití una factura o aceptá un presupuesto para proyectar caja y resultado." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
    </Card>}
    {data.contracted_clients?<Card className="grid gap-3 p-4">
     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Contratos vs facturación del mes</h3>
@@ -182,7 +182,7 @@ function ForecastPanel() {
       <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.invoiced_amount,row.currency)}</span></span>
       <span className={cn('min-w-0','flex justify-end')}>{row.missing_invoice?<StateChip tone="bad" title="Contrato con facturación requerida y sin factura emitida en el mes">Sin factura</StateChip>:<StateChip tone="ok" title={row.invoice_required?'Factura emitida en el mes':'El contrato no requiere factura'}>Al día</StateChip>}</span>
      </div>)}</div>
-    </div></div>:<EmptyState compact title="Sin contratos vigentes para este mes." description="Activá un contrato desde la ficha comercial del cliente, con su plan y monto mensual."/>}
+    </div></div>:<EmptyState compact title="Sin contratos vigentes para este mes." description="Activá un contrato desde la ficha comercial del cliente, con su plan y monto mensual." action={navigate?<button className="secondary" onClick={()=>navigate('Clientes')}>Ver clientes</button>:undefined}/>}
    </Card>:null}
    {data&&horizon==='1'?<Card className="grid gap-3 p-4">
     <div className="grid gap-1">
@@ -217,7 +217,7 @@ function ForecastPanel() {
        </div></div>
       </div>)}
      </div>
-    </>:<EmptyState compact title="Sin salarios fijos mensuales incluidos para este mes."/>}
+    </>:<EmptyState compact title="Sin salarios fijos mensuales incluidos para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo." action={navigate?<button className="secondary" onClick={()=>navigate('Equipo')}>Ver equipo</button>:undefined}/>}
    </Card>:null}
    {data&&horizon==='1'?<Card className="grid gap-4 p-4">
     <div className="grid gap-3">

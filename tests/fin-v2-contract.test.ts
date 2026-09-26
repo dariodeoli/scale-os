@@ -112,4 +112,19 @@ for(const [name,source] of [['finanzas',finanzas],['conciliación',treasury]] as
  assert.equal((code.match(/\bmoney\(/g)||[]).length,0,`${name}: los montos simples van por MoneyText (money() directo ya no se usa)`);
 }
 
-console.log('PASS: contrato v2 FIN — librería + primitivas, estados, una plantilla por lista sin `auto`, sin elipsis, montos por contexto, fechas por list-format y anchos por tipo');
+// ── Estados vacíos con salida (ronda 14, #62): ninguna pantalla FIN queda en
+// punto muerto; cada vacío nombra la acción concreta que lo resuelve.
+for(const [name,source,labels] of [
+ ['finanzas',finanzas,['Registrar primera cuenta','Crear factura','Limpiar filtros']],
+ ['mora',mora,['Registrar primera factura','Limpiar filtros']],
+ ['comisiones',comisiones,['Registrar comisión','Nuevo descuento','Ver comisiones por pagar']],
+ ['previsión',pre,['Registrar factura','Ver clientes','Ver equipo']],
+ ['informes',informes,['Registrar primera factura']],
+] as const){
+ for(const label of labels)assert.match(source,new RegExp(label),`${name}: el vacío ofrece «${label}»`);
+}
+assert.match(informes,/monthRangeLabel\(comparison!\.currentStart, comparison!\.currentEnd\)/,'Informes muestra el período completo con año (ronda 14, #62)');
+assert.match(informes,/onCreateInvoice\?/,'el vacío de Informes usa la salida del shell sin duplicar el modal');
+assert.match(pre,/\{navigate\?/,'Previsión navega a clientes y equipo desde el vacío');
+
+console.log('PASS: contrato v2 FIN — librería + primitivas, estados, una plantilla por lista sin `auto`, sin elipsis, montos por contexto, fechas por list-format, anchos por tipo y vacíos con salida (#62)');
