@@ -17,7 +17,7 @@ await pg.exec(await fs.readFile('migrations/20260910_client_links.sql','utf8'));
 for(const file of ['20260908_google_oauth.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260914_role_permissions.sql','20260918_collaborator_role_and_project_archive.sql','20260919_collaborator_role_member_checks.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
 await pg.exec(await fs.readFile('migrations/20260911_drive_links.sql','utf8'));
 await pg.exec(await fs.readFile('migrations/20260910_project_assignees.sql','utf8'));
-for(const file of ['20260914_salary_forecast.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260910_work_checklists.sql','20260910_notifications.sql','20260913_ruc_collaboration.sql','20260914_production_traceability.sql','20260915_planned_expense_kind.sql','20260915_inventory_photos.sql','20260915_salary_override_signed.sql','20260919_pipeline_stages.sql','20260920_currency_widening.sql','20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260911_subscriptions.sql','20260923_agency_core_perf.sql','20260924_inventory_photo_stamp.sql','20260924_subscription_suspension_notice.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
+for(const file of ['20260914_salary_forecast.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260915_billing_cadence_and_coupons.sql','20260915_client_terms_end_date.sql','20260910_work_checklists.sql','20260910_notifications.sql','20260913_ruc_collaboration.sql','20260914_production_traceability.sql','20260915_planned_expense_kind.sql','20260915_inventory_photos.sql','20260915_salary_override_signed.sql','20260919_pipeline_stages.sql','20260920_currency_widening.sql','20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260911_subscriptions.sql','20260923_agency_core_perf.sql','20260924_inventory_photo_stamp.sql','20260924_subscription_suspension_notice.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const serverSource=await fs.readFile(new URL('./server.js',import.meta.url),'utf8');
 assert(serverSource.indexOf('inventoryReservations({')<serverSource.indexOf('suite({'),'inventory routes are handled before the suite in server.js');
@@ -30,7 +30,7 @@ let resetToken='',sent=0;const grantedEmails=[];
 async function call(path,method='GET',payload={},as=user,form=''){
  let result={status:0};const req={method,socket:{remoteAddress:'127.0.0.1'},async *[Symbol.asyncIterator](){yield form;}};
  const args={req,res:{writeHead(status,headers){result={status,headers};},end(content){result.content=content;}},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{result={status,...data};},sendInvitation:async()=>true,sendAccessGranted:async(email,organizationName,role)=>{grantedEmails.push({email,organizationName,role});return true;},sendReset:async(_,token)=>{resetToken=token;sent++;return true;}};
- const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects|summary|invoices)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
+ const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects|summary|invoices|clients)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
 }
 const client=(await query("insert into agency_clients(organization_id,name) values($1,'Client') returning id",[org])).rows[0].id;
 const project=(await query("insert into agency_projects(organization_id,client_id,name,approval_levels) values($1,$2,'Project',2) returning id",[org,client])).rows[0].id;
@@ -240,6 +240,9 @@ assert.equal(Object.hasOwn(lean,'assignee_source'),true);
 const projected=await call('/api/agency/work-orders?limit=2&fields=id,title,description_preview');
 assert.equal(projected.status,200);
 assert.deepEqual(Object.keys(projected.workOrders[0]).sort(),['description_preview','id','title']);
+const projectedIdentity=await call('/api/agency/work-orders?limit=2&fields=id,project_name,client_name');
+assert.equal(projectedIdentity.status,200);
+assert.deepEqual(Object.keys(projectedIdentity.workOrders[0]).sort(),['client_name','id','project_name'],'la proyección conserva los alias de identidad');
 const withoutEnrich=await call('/api/agency/work-orders?limit=2&fields=id,title');
 assert.equal(withoutEnrich.status,200);
 assert.equal(Object.hasOwn(withoutEnrich.workOrders[0],'effective_assignees'),false,'la proyección sin asignados no los calcula');
@@ -279,11 +282,23 @@ for(const project of projectList.projects){
  assert.equal(project.open_orders,expected.open_orders,`open_orders del proyecto ${project.id}`);
  assert.equal(day(project.next_due_date),day(expected.next_due_date),`next_due_date del proyecto ${project.id}`);
 }
-const searchProjects=await call('/api/agency/projects?fields=id,name,client_id,status');
+const searchProjects=await call('/api/agency/projects?fields=id,name,client_id,status,client_name');
 assert.equal(searchProjects.status,200);
-assert.deepEqual(Object.keys(searchProjects.projects[0]).sort(),['client_id','id','name','status']);
+assert.deepEqual(Object.keys(searchProjects.projects[0]).sort(),['client_id','client_name','id','name','status']);
+const projectedCounts=await call('/api/agency/projects?fields=id,assignees,work_order_count,open_orders');
+assert.equal(projectedCounts.status,200);
+assert.deepEqual(Object.keys(projectedCounts.projects[0]).sort(),['assignees','id','open_orders','work_order_count'],'la proyección conserva los conteos y asignados');
 assert.equal((await call('/api/agency/projects?fields=id,inexistente')).status,400);
 assert.equal((await call('/api/agency/projects?fields=')).status,400);
+// #67: el directorio de clientes también proyecta (el shell pide solo el chrome).
+const clientList=await call('/api/agency/clients');
+assert.equal(clientList.status,200);
+assert.equal(Object.hasOwn(clientList.clients[0],'has_recurring_price'),true,'la lista completa mantiene el indicador de precio recurrente');
+const projectedClients=await call('/api/agency/clients?fields=id,name,has_recurring_price');
+assert.equal(projectedClients.status,200);
+assert.deepEqual(Object.keys(projectedClients.clients[0]).sort(),['has_recurring_price','id','name']);
+assert.equal((await call('/api/agency/clients?fields=id,inexistente')).status,400);
+assert.equal((await call('/api/agency/clients?fields=')).status,400);
 // FIN (#57): el saldo por moneda no depende de la ventana de la lista de facturas.
 const invoicesPage=await call('/api/agency/invoices');
 assert.equal(invoicesPage.status,200);

@@ -25,11 +25,66 @@ const memberRoles=roles;
 // (sin lectores) ni el `assignee_email` legado (Re #57).
 const workOrderListFields=['id','project_id','project_name','client_name','title','description','description_preview','status','urgency','work_type','approval_step','due_date','due_time','drive_url','drive_links','estimated_hours','actual_hours','updated_at','assigned_user_id','assigned_user_ids','effective_assignees','assignee_source','checklist_total','checklist_completed'];
 
+// Expresión SQL de cada campo proyectable (#67): con `?fields=` la consulta trae
+// solo las columnas pedidas (antes se seleccionaba `o.*` y se recortaba en
+// memoria, con la descripción viajando en cada fila). Los campos calculados
+// (asignados y checklist) se resuelven después, como siempre.
+const workOrderColumnSql={
+ id:'o.id',project_id:'o.project_id',project_name:'p.name as project_name',client_name:'c.name as client_name',title:'o.title',
+ description:'o.description',status:'o.status',urgency:'o.urgency',work_type:'o.work_type',
+ approval_step:'o.approval_step',due_date:'o.due_date',due_time:'o.due_time',drive_url:'o.drive_url',
+ drive_links:'o.drive_links',estimated_hours:'o.estimated_hours',actual_hours:'o.actual_hours',
+ updated_at:'o.updated_at',assigned_user_id:'o.assigned_user_id',
+};
+
 // Estados del tablero de producción (fuente única para validar PATCH, filtros y conteos).
 const workOrderStatuses=['blocked','to_record','recorded','editing','review','approved','published'];
 
 // Campos que expone la lista de proyectos; `?fields=` proyecta sobre esta lista.
 const projectListFields=['id','client_id','name','status','drive_url','drive_links','start_date','due_date','urgency','approval_levels','active','updated_at','client_name','assignees','work_order_count','open_orders','next_due_date'];
+
+// Igual que en órdenes (#67): la proyección se resuelve en SQL y los CTE de
+// asignados/conteos solo se arman cuando el campo pedido los necesita.
+const projectColumnSql={
+ id:'p.id',client_id:'p.client_id',name:'p.name',status:'p.status',drive_url:'p.drive_url',
+ drive_links:'p.drive_links',start_date:'p.start_date',due_date:'p.due_date',urgency:'p.urgency',
+ approval_levels:'p.approval_levels',active:'p.active',updated_at:'p.updated_at',
+ client_name:'c.name as client_name',assignees:"coalesce(ag.assignees,'[]'::jsonb) as assignees",work_order_count:'coalesce(cnt.work_order_count,0) as work_order_count',
+ open_orders:'coalesce(cnt.open_orders,0) as open_orders',next_due_date:'cnt.next_due_date as next_due_date',
+};
+
+// Consulta completa del directorio de proyectos (sin `?fields=`): única fuente
+// para el handler y para test-project-assignees, que la corre contra PGlite.
+export function projectDirectorySql(){
+ return `with assignees as (
+        select a.record_id,jsonb_agg(jsonb_build_object('id',a.user_id::text,'full_name',coalesce(nullif(i.full_name,''),i.email),'photo_url',i.photo_url,'is_primary',a.is_primary) order by a.is_primary desc,a.user_id) as assignees
+        from agency_record_assignees a join organization_person_identity i on i.organization_id=a.organization_id and i.user_id=a.user_id
+        where a.organization_id=$1 and a.kind='projects' group by a.record_id
+      ), counts as (
+        select o.project_id,count(*)::int as work_order_count,
+          count(*) filter (where o.status not in ('approved','published'))::int as open_orders,
+          min(o.due_date) filter (where o.status not in ('approved','published')) as next_due_date
+        from agency_work_orders o
+        where o.organization_id=$1 and ${visibleRecord('o','work-orders')} group by o.project_id
+      ) select p.*,c.name as client_name,coalesce(ag.assignees,'[]'::jsonb) as assignees,coalesce(cnt.work_order_count,0) as work_order_count,coalesce(cnt.open_orders,0) as open_orders,cnt.next_due_date as next_due_date
+      from agency_projects p join agency_clients c on c.id=p.client_id
+      left join assignees ag on ag.record_id=p.id
+      left join counts cnt on cnt.project_id=p.id
+      where p.organization_id=$1 and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by p.active desc,p.created_at desc`;
+}
+
+// Campos que expone la lista de clientes; `?fields=` proyecta sobre esta lista
+// (#67) para que el shell no traiga la ficha completa en cada página.
+const clientListFields=['id','name','email','phone','active','notes','legal_name','tax_id','logo_url','color_key','lifecycle_status','customer_kind','service_plan_id','relationship_started_on','reporting_version','social_links','ruc_legal_name','ruc_tax_state','ruc_source','ruc_refreshed_at','created_at','updated_at','has_recurring_price'];
+const clientColumnSql={
+ id:'c.id',name:'c.name',email:'c.email',phone:'c.phone',active:'c.active',notes:'c.notes',
+ legal_name:'c.legal_name',tax_id:'c.tax_id',logo_url:'c.logo_url',color_key:'c.color_key',
+ lifecycle_status:'c.lifecycle_status',customer_kind:'c.customer_kind',service_plan_id:'c.service_plan_id',
+ relationship_started_on:'c.relationship_started_on',reporting_version:'c.reporting_version',social_links:'c.social_links',
+ ruc_legal_name:'c.ruc_legal_name',ruc_tax_state:'c.ruc_tax_state',ruc_source:'c.ruc_source',ruc_refreshed_at:'c.ruc_refreshed_at',
+ created_at:'c.created_at',updated_at:'c.updated_at',
+ has_recurring_price:"exists(select 1 from agency_client_commercial_terms t where t.organization_id=c.organization_id and t.client_id=c.id and t.effective_until is null and (t.cadence='monthly' or t.cadence='interval') and (t.ends_on is null or t.ends_on>=current_date))",
+};
 
 // Legacy operational endpoints extracted from the server entrypoint. Handlers
 // keep their original behavior and responses; the dispatcher returns true when
@@ -141,8 +196,19 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/clients' && req.method === 'GET') {
       const user=await session(req); if(!user) return send(res,401,{error:'No autenticado'});
-      const r = await db.query(`select c.*,exists(select 1 from agency_client_commercial_terms t where t.organization_id=c.organization_id and t.client_id=c.id and t.effective_until is null and (t.cadence='monthly' or t.cadence='interval') and (t.ends_on is null or t.ends_on>=current_date)) as has_recurring_price from agency_clients c where organization_id=$1 and ${visibleRecord('c','clients')} order by active desc,name`,[user.organization_id]);
-      return send(res,200,{clients:r.rows});
+      const fieldsRaw=url.searchParams.get('fields');
+      let projection=null;
+      if(fieldsRaw!==null){
+        const requested=[...new Set(fieldsRaw.split(',').map(field=>field.trim()).filter(Boolean))];
+        const invalid=requested.filter(field=>!clientListFields.includes(field));
+        if(!requested.length||invalid.length)return send(res,400,{error:invalid.length?`Campos inválidos: ${invalid.slice(0,6).join(', ')}`:'Elegí al menos un campo'});
+        projection=requested.includes('id')?requested:['id',...requested];
+      }
+      const selectList=projection===null?`c.*,${clientColumnSql.has_recurring_price} as has_recurring_price`:projection.map(field=>field==='has_recurring_price'?`${clientColumnSql[field]} as has_recurring_price`:clientColumnSql[field]).join(', ');
+      const r = await db.query(`select ${selectList} from agency_clients c where organization_id=$1 and ${visibleRecord('c','clients')} order by active desc,name`,[user.organization_id]);
+      if(projection===null)return send(res,200,{clients:r.rows});
+      const rows=r.rows.map(row=>{const out={id:row.id};for(const field of projection)if(Object.hasOwn(row,field))out[field]=row[field];return out;});
+      return send(res,200,{clients:rows});
     }
     if (url.pathname === '/api/agency/clients' && req.method === 'POST') {
       const user = await session(req); if (!roleCan(user,'clients.manage')) return send(res,403,{error:'Sin permiso'});
@@ -181,25 +247,35 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         projection=requested.includes('id')?requested:['id',...requested];
       }
       const wants=field=>projection===null||projection.includes(field);
-      // Asignados y conteos en pasadas únicas (antes: una subconsulta agregada
-      // correlacionada por proyecto, que repetía la vista expandida 500 veces).
-      // `open_orders`/`next_due_date` son las piezas abiertas y su vencimiento más
-      // próximo, para que Clientes no tenga que pedir la lista de órdenes.
-      const r=await db.query(`with assignees as (
+      // Con `?fields=` solo se arma el CTE que el campo pedido necesita (#67);
+      // sin proyección se usa la consulta completa (misma que corre la suite).
+      let sql;
+      if(projection===null){
+        sql=projectDirectorySql();
+      }else{
+        const wantsAssignees=wants('assignees'),wantsCounts=wants('work_order_count')||wants('open_orders')||wants('next_due_date');
+        const ctes=[];
+        if(wantsAssignees)ctes.push(`assignees as (
         select a.record_id,jsonb_agg(jsonb_build_object('id',a.user_id::text,'full_name',coalesce(nullif(i.full_name,''),i.email),'photo_url',i.photo_url,'is_primary',a.is_primary) order by a.is_primary desc,a.user_id) as assignees
         from agency_record_assignees a join organization_person_identity i on i.organization_id=a.organization_id and i.user_id=a.user_id
         where a.organization_id=$1 and a.kind='projects' group by a.record_id
-      ), counts as (
+      )`);
+        if(wantsCounts)ctes.push(`counts as (
         select o.project_id,count(*)::int as work_order_count,
           count(*) filter (where o.status not in ('approved','published'))::int as open_orders,
           min(o.due_date) filter (where o.status not in ('approved','published')) as next_due_date
         from agency_work_orders o
         where o.organization_id=$1 and ${visibleRecord('o','work-orders')} group by o.project_id
-      ) select p.*,c.name as client_name,coalesce(ag.assignees,'[]'::jsonb) as assignees,coalesce(cnt.work_order_count,0) as work_order_count,coalesce(cnt.open_orders,0) as open_orders,cnt.next_due_date as next_due_date
+      )`);
+        const withClause=ctes.length?`with ${ctes.join(',\n')} `:'';
+        const joins=[wantsAssignees?'left join assignees ag on ag.record_id=p.id':null,wantsCounts?'left join counts cnt on cnt.project_id=p.id':null].filter(Boolean).join(' ');
+        const selectList=[...new Set(projection.filter(field=>projectColumnSql[field]))].map(field=>projectColumnSql[field]).join(', ');
+        sql=`${withClause}select ${selectList}
       from agency_projects p join agency_clients c on c.id=p.client_id
-      left join assignees ag on ag.record_id=p.id
-      left join counts cnt on cnt.project_id=p.id
-      where p.organization_id=$1 and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by p.active desc,p.created_at desc`,[user.organization_id]);
+      ${joins}
+      where p.organization_id=$1 and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by p.active desc,p.created_at desc`;
+      }
+      const r=await db.query(sql,[user.organization_id]);
       // Mismo recorte que en órdenes: columnas sin lectores fuera del payload.
       for(const row of r.rows){delete row.organization_id;delete row.created_at;delete row.assigned_user_id;delete row.assignee_version;}
       const rows=projection===null?r.rows:r.rows.map(row=>{
@@ -265,7 +341,9 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       // La lista no trae columnas sin lectores (organización, alta, versión de
       // asignación) ni el correo legado del asignado: se recortan acá, después de
       // la consulta, para no depender de que el esquema tenga todas las columnas.
-      const r=await db.query(`select o.*,p.name as project_name,c.name as client_name from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where ${conditions.join(' and ')} order by o.updated_at desc,o.id desc${pageClause}`,params);
+      const projectedColumns=projection===null?null:[...new Set([...projection.filter(field=>workOrderColumnSql[field]),(projection.includes('description_preview')&&!projection.includes('description'))?'description':null].filter(Boolean))].map(field=>workOrderColumnSql[field]);
+      const selectList=projection===null?'o.*,p.name as project_name,c.name as client_name':projectedColumns.join(', ');
+      const r=await db.query(`select ${selectList} from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where ${conditions.join(' and ')} order by o.updated_at desc,o.id desc${pageClause}`,params);
       for(const row of r.rows){delete row.organization_id;delete row.created_at;delete row.assignee_version;}
       const hasMore=paginated&&r.rows.length>limit;
       if(hasMore)r.rows.length=limit;
@@ -470,7 +548,13 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/summary' && req.method === 'GET') {
       const user=await session(req); if(!user) return send(res,401,{error:'No autenticado'});
-      const r=await db.query(`select (select count(*)::int from agency_clients c where organization_id=$1 and active=true and ${visibleRecord('c','clients')}) as active_clients, (select count(*)::int from agency_projects p join agency_clients c on c.id=p.client_id where p.organization_id=$1 and p.status='active' and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as active_projects, (select count(*)::int from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and o.status not in ('approved','published') and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as open_orders, (select count(*)::int from agency_budgets b where b.organization_id=$1 and b.status='sent' and ${visibleRecord('b','budgets')}) as unanswered_budgets, (select count(*)::int from agency_inventory i where i.organization_id=$1 and coalesce(i.status,'available')<>'retired' and (i.last_verified_at is null or i.last_verified_at<current_date-30) and ${visibleRecord('i','inventory')}) as unverified_inventory, (select count(*)::int from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and o.due_date>=current_date and o.due_date<current_date+7 and o.status not in ('approved','published') and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as upcoming_deliveries, (select coalesce(jsonb_object_agg(stage.status,stage.total),'{}'::jsonb) from (select o.status,count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} group by o.status) stage) as stage_counts`,[user.organization_id]);
+      // Una sola pasada sobre las órdenes visibles (#67): antes eran cuatro
+      // subconsultas con los mismos joins (conteos, vencimientos y etapas).
+      const r=await db.query(`with visible_orders as materialized (
+        select o.status,o.due_date
+        from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id
+        where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}
+      ) select (select count(*)::int from agency_clients c where organization_id=$1 and active=true and ${visibleRecord('c','clients')}) as active_clients, (select count(*)::int from agency_projects p join agency_clients c on c.id=p.client_id where p.organization_id=$1 and p.status='active' and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}) as active_projects, (select count(*)::int from visible_orders where status not in ('approved','published')) as open_orders, (select count(*)::int from agency_budgets b where b.organization_id=$1 and b.status='sent' and ${visibleRecord('b','budgets')}) as unanswered_budgets, (select count(*)::int from agency_inventory i where i.organization_id=$1 and coalesce(i.status,'available')<>'retired' and (i.last_verified_at is null or i.last_verified_at<current_date-30) and ${visibleRecord('i','inventory')}) as unverified_inventory, (select count(*)::int from visible_orders where due_date>=current_date and due_date<current_date+7 and status not in ('approved','published')) as upcoming_deliveries, (select coalesce(jsonb_object_agg(stage.status,stage.total),'{}'::jsonb) from (select status,count(*)::int as total from visible_orders group by status) stage) as stage_counts`,[user.organization_id]);
       // Operational signals respect the same visibility as their modules: a
       // role that cannot open the source list receives null, never a number.
       // `stage_counts` es solo conteo (igual que `open_orders`): cubre todas las
