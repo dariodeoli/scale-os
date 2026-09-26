@@ -30,6 +30,16 @@ export const CLIENT_FIELDS_CHROME = 'id,name,email,active,logo_url,color_key';
 /** #67: chrome mínimo de proyectos (nombre, estado y piezas) para esas mismas secciones. */
 export const PROJECT_FIELDS_CHROME = 'id,name,client_id,status,client_name,work_order_count,assignees';
 
+// Proyecciones OPS (#67): el chrome (buscador, presencia y filtros) no necesita
+// la ficha completa del cliente ni del proyecto. Medido por PLT: clients
+// 221→63 KB y projects 178→93 KB con la semilla grande.
+/** Cliente para el chrome y las tarjetas: identidad, contacto y color. */
+export const CLIENT_CHROME_FIELDS = 'id,name,email,active,logo_url,color_key';
+/** Proyecto para el chrome, el filtro del tablero y el planificador. */
+export const PROJECT_CHROME_FIELDS = 'id,name,client_id,client_name,work_order_count';
+/** Proyectos de la sección Proyectos: tarjetas, fechas, piezas y responsables. */
+export const PROJECT_LIST_FIELDS = `${PROJECT_CHROME_FIELDS},status,active,urgency,start_date,due_date,drive_links,updated_at,assignees`;
+
 export function shellDataUrl(resource: ShellResource, request: ShellResourceRequest = {}) {
   const query: string[] = [];
   if (request.limit) query.push(`limit=${request.limit}`);
@@ -72,9 +82,13 @@ const SECTION_SCOPE: Record<string, ShellScope> = {
   // El tablero de Producción es dueño de sus datos por columna
   // (`app/board-data.ts`: `?status=` + `?counts=1`): el shell no pide órdenes
   // para esta sección y así no hay lecturas duplicadas.
-  Producción: {clients: {}, projects: {}, summary: {}},
+  Producción: {clients: {fields: CLIENT_CHROME_FIELDS}, projects: {fields: PROJECT_CHROME_FIELDS}, summary: {}},
   Clientes: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_PORTFOLIO}},
-  Proyectos: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
+  Proyectos: {clients: {fields: CLIENT_CHROME_FIELDS}, projects: {fields: PROJECT_LIST_FIELDS}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
+  // Inventario y Estudio usan el chrome (clientes/proyectos) y el buscador;
+  // sus propios recursos viajan por hooks con ventana (use-inventory/-studio).
+  Inventario: {clients: {fields: CLIENT_CHROME_FIELDS}, projects: {fields: PROJECT_CHROME_FIELDS}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
+  Estudio: {clients: {fields: CLIENT_CHROME_FIELDS}, projects: {fields: PROJECT_CHROME_FIELDS}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
   Presupuestos: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}, summary: {}},
   Pipeline: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
   Mora: {clients: {}, projects: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},

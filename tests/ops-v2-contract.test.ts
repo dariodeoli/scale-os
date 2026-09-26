@@ -186,6 +186,15 @@ assert.equal((checklistCss.match(/input\[type=checkbox\]\{width:/g)||[]).length,
 assert.match(orderLinks,/className="h-6 w-6 p-0 accent-fono"/,'el checkbox de visibilidad del enlace usa el mismo control de 24 px');
 assert.match(orderLinks,/min-h-11 items-center gap-2 md:min-h-0/,'el checkbox de enlace tiene target de 44 px en móvil');
 assert.match(planner,/className="h-6 w-6 p-0 accent-fono"/,'la selección de piezas del planificador también es de 24 px');
+// ── Ronda 16 (#70): mobile de OPS sin scroll, targets y checkboxes del formulario.
+assert.match(studio,/className="bulk-hint whitespace-normal"/,'la pista del lote de Estudio envuelve en mobile');
+assert.match(projects,/className="bulk-hint whitespace-normal"/,'la pista del lote de Proyectos envuelve en mobile');
+assert.match(orderLinks,/className="comment-link-chip min-h-11 md:min-h-0"/,'el chip de enlace de la pieza es táctil en mobile');
+assert.match(inventory,/grid h-11 w-11 place-items-center rounded-lg border md:h-9 md:w-9/,'el selector de íconos de categoría es táctil en mobile');
+assert.match(inventory,/className="mt-0\.5 h-6 w-6 p-0 accent-fono"/,'los ítems de reserva usan el checkbox de 24 px');
+assert.match(inventory,/className="h-6 w-6 p-0 accent-fono" checked=\{adjust\}/,'el ajuste de verificación usa el checkbox de 24 px');
+assert.match(inventory,/className="flex min-h-11 items-center gap-2 text-sm text-fore md:min-h-0"/,'los toggles de ubicación y categoría tienen target de 44 px');
+assert.match(studio,/className="h-6 w-6 p-0 accent-fono" checked=\{members\.includes/,'los responsables de estudio usan el checkbox de 24 px');
 // ── Ronda 14 (#62): el vacío de Proyectos también trae su CTA contextual.
 assert.match(projects,/Todavía no hay proyectos\./,'el vacío de Proyectos tiene estado propio');
 assert.match(projects,/>Nuevo proyecto<\/Button>/,'el vacío de Proyectos ofrece crearlo');

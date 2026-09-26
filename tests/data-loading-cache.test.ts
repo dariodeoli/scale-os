@@ -109,6 +109,15 @@ test('Producción no pide órdenes al shell: el tablero las carga por columna',a
  assert.equal(scope.orders,undefined,'el shell no pide órdenes para Producción (sin lecturas duplicadas)');
  assert.ok(scope.clients&&scope.projects,'el tablero conserva clientes y proyectos para filtros y tarjetas');
  assert.ok(scope.summary,'y el resumen para el chrome');
+ assert.match(scope.clients?.fields||'',/logo_url/,'#67: el chrome de Producción proyecta el cliente (identidad y color)');
+ assert.match(scope.projects?.fields||'',/client_id/,'#67: el chrome de Producción proyecta el proyecto');
+ for(const section of ['Inventario','Estudio']){
+  const scoped=sectionScope(section);
+  assert.equal(scoped.clients?.fields,'id,name,email,active,logo_url,color_key',`#67: ${section} proyecta el cliente del chrome`);
+  assert.match(scoped.projects?.fields||'',/work_order_count/,'#67: la proyección de proyectos conserva el buscador');
+  assert.doesNotMatch(scoped.projects?.fields||'',/assignees/,'#67: el chrome no arrastra los asignados (peso del payload)');
+  assert.equal(scoped.orders?.limit,300,`#67: ${section} conserva la ventana de órdenes del buscador`);
+ }
  assert.match(ORDER_FIELDS_BOARD,/work_type/,'la proyección de la tarjeta incluye work_type');
  const board=readFileSync(new URL('../app/board-data.ts',import.meta.url),'utf8');
  assert(board.includes('counts=1'),'el tablero pide los conteos exactos por etapa');
