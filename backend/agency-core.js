@@ -16,6 +16,7 @@ import {enrichWorkOrderAssignees} from './work-order-assignees.js';
 import {startTrial,subscriptionState} from './subscription-billing.js';
 import {throttle} from './password-access.js';
 import {ensurePipelineStages} from './pipeline-stages.js';
+import {parseListFields,parseListLimit,projectionSelect,listResponse,aliasColumns} from './list-projection.js';
 
 // Fuente única de roles: la lista canónica vive en permissions.js.
 const memberRoles=roles;
@@ -85,6 +86,10 @@ const clientColumnSql={
  created_at:'c.created_at',updated_at:'c.updated_at',
  has_recurring_price:"exists(select 1 from agency_client_commercial_terms t where t.organization_id=c.organization_id and t.client_id=c.id and t.effective_until is null and (t.cadence='monthly' or t.cadence='interval') and (t.ends_on is null or t.ends_on>=current_date))",
 };
+
+// `?fields=` de la lista de presupuestos (#71): lista blanca explícita.
+const budgetListFields=['id','client_id','number','title','currency','status','valid_until','subtotal','tax_rate','total','notes','public_token','created_at','updated_at','share_enabled','accepted_by','accepted_at','revision','sections','client_name','item_count'];
+const budgetColumnSql=aliasColumns({id:'b.id',client_id:'b.client_id',number:'b.number',title:'b.title',currency:'b.currency',status:'b.status',valid_until:'b.valid_until',subtotal:'b.subtotal',tax_rate:'b.tax_rate',total:'b.total',notes:'b.notes',public_token:'b.public_token',created_at:'b.created_at',updated_at:'b.updated_at',share_enabled:'b.share_enabled',accepted_by:'b.accepted_by',accepted_at:'b.accepted_at',revision:'b.revision',sections:'b.sections',client_name:'c.name',item_count:'count(i.id)::int'});
 
 // Legacy operational endpoints extracted from the server entrypoint. Handlers
 // keep their original behavior and responses; the dispatcher returns true when
@@ -325,6 +330,22 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         if(!requested.length||invalid.length)return send(res,400,{error:invalid.length?`Estados inválidos: ${invalid.slice(0,6).join(', ')}`:'Elegí al menos un estado'});
         statusFilter=requested;
       }
+      // Filtro opcional `?due=`: alertas/próximas entregas de Resumen (#71): las
+      // etapas cerradas quedan afuera, igual que los avisos del dashboard.
+      const dueRaw=url.searchParams.get('due');
+      let dueFilter=null;
+      if(dueRaw!==null){
+        const requested=[...new Set(dueRaw.split(',').map(value=>value.trim()).filter(Boolean))];
+        const invalid=requested.filter(value=>!['overdue','week'].includes(value));
+        if(!requested.length||invalid.length)return send(res,400,{error:invalid.length?`Períodos inválidos: ${invalid.slice(0,6).join(', ')}`:'Elegí al menos un período'});
+        dueFilter=requested;
+      }
+      const dueCondition=()=>{
+        if(!dueFilter)return null;
+        const overdue=dueFilter.includes('overdue'),week=dueFilter.includes('week');
+        const range=overdue&&week?'o.due_date<current_date+7':overdue?'o.due_date<current_date':'o.due_date>=current_date and o.due_date<current_date+7';
+        return `(${range}) and o.status not in ('approved','published')`;
+      };
       const conditions=[`o.organization_id=$1`,visibleRecord('o','work-orders'),visibleRecord('p','projects'),visibleRecord('c','clients')];
       const params=[user.organization_id];
       // Filtro opcional `?project_id=`: el detalle de proyecto no necesita la lista completa.
@@ -336,6 +357,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         params.push(projectId);conditions.push(`o.project_id=$${params.length}`);
       }
       if(statusFilter){params.push(statusFilter);conditions.push(`o.status=any($${params.length}::text[])`);}
+      const due=dueCondition();if(due)conditions.push(due);
       let pageClause='';
       if(paginated){params.push(limit+1);const limitPlaceholder=`$${params.length}`;params.push(offset);pageClause=` limit ${limitPlaceholder} offset $${params.length}`;}
       // La lista no trae columnas sin lectores (organización, alta, versión de
@@ -363,7 +385,8 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         const countParams=[user.organization_id];
         let projectCondition='';
         if(projectRaw!==null){countParams.push(Number(projectRaw));projectCondition=` and o.project_id=$${countParams.length}`;}
-        const counted=(await db.query(`select o.status,count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}${projectCondition} group by o.status`,countParams)).rows;
+        const countDue=dueCondition();
+        const counted=(await db.query(`select o.status,count(*)::int as total from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')}${projectCondition}${countDue?` and ${countDue}`:''} group by o.status`,countParams)).rows;
         const byStatus=new Map(counted.map(row=>[row.status,row.total]));
         stageCounts={};
         for(const status of workOrderStatuses)stageCounts[status]=Number(byStatus.get(status)||0);
@@ -453,8 +476,12 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/budgets' && req.method === 'GET') {
       const user = await session(req); if (!roleCan(user,'budgets.manage')) return send(res,403,{error:'Sin permiso'});
-      const r = await db.query(`select b.*,c.name as client_name,count(i.id)::int as item_count from agency_budgets b join agency_clients c on c.id=b.client_id left join agency_budget_items i on i.budget_id=b.id where b.organization_id=$1 and ${visibleRecord('b','budgets')} group by b.id,c.name order by b.created_at desc`,[user.organization_id]);
-      return send(res,200,{budgets:r.rows});
+      // Proyección y ventana opcionales (#71): la lista completa queda igual.
+      let fields=null,limit=null;
+      try{fields=parseListFields(url.searchParams.get('fields'),budgetListFields);limit=parseListLimit(url);}
+      catch(error){return send(res,error.status||400,{error:error.message||'Proyección inválida'});}
+      const r = await db.query(`select ${projectionSelect(fields,budgetColumnSql,'b.*,c.name as client_name,count(i.id)::int as item_count')} from agency_budgets b join agency_clients c on c.id=b.client_id left join agency_budget_items i on i.budget_id=b.id where b.organization_id=$1 and ${visibleRecord('b','budgets')} group by b.id,c.name order by b.created_at desc`,[user.organization_id]);
+      return send(res,200,listResponse('budgets',r.rows,fields,limit));
     }
     if (url.pathname === '/api/agency/budgets' && req.method === 'POST') {
       const user = await session(req); if (!roleCan(user,'budgets.manage')) return send(res,403,{error:'Sin permiso'});

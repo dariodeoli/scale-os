@@ -14,8 +14,15 @@ import {setRecordAssignees} from './project-assignees.js';
 import {enrichWorkOrderAssignees} from './work-order-assignees.js';
 import {assertUniqueClientRuc} from './ruc-lookup.js';
 import {roleCan,roles} from './permissions.js';
+import {parseListFields,parseListLimit,projectionSelect,listResponse} from './list-projection.js';
 import {commercialProfile} from './commercial-lifecycle.js';
 import {ensurePipelineStages,defaultLeadStage,wonLeadStage} from './pipeline-stages.js';
+
+// `?fields=` de oportunidades y planes (#71): lista blanca explícita por tabla.
+const leadListFields=['id','name','email','phone','stage','amount','currency','probability','notes','client_id','created_at','updated_at'];
+const leadColumnSql={id:'r.id',name:'r.name',email:'r.email',phone:'r.phone',stage:'r.stage',amount:'r.amount',currency:'r.currency',probability:'r.probability',notes:'r.notes',client_id:'r.client_id',created_at:'r.created_at',updated_at:'r.updated_at'};
+const planListFields=['id','name','currency','items','notes','active','created_at'];
+const planColumnSql={id:'r.id',name:'r.name',currency:'r.currency',items:'r.items',notes:'r.notes',active:'r.active',created_at:'r.created_at'};
 const driveLinks=value=>{if(value===undefined)return undefined;const rows=Array.isArray(value)?value:String(value||'').split(/\r?\n/).filter(Boolean).map(url=>({url}));if(rows.length>10)fail('Podés agregar hasta 10 enlaces');return rows.map(row=>{const url=link(row.url);return url?{url,label:text(row.label||'',80)||'Archivo o carpeta'}:null}).filter(Boolean);};
 const workTypeValue=value=>{if(value===undefined||value===null||value==='')return null;return option(value,['video','reedicion','foto','produccion','entregable']);};
 const dueTimeValue=value=>{if(value===undefined||value===null||value==='')return null;if(!/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(String(value)))fail('Hora de entrega inválida');return String(value).slice(0,5);};
@@ -154,7 +161,14 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
    }else fail('Método no permitido',405);
   }else if(kind==='plans'||kind==='leads'){
    const table={plans:'agency_plans',leads:'agency_leads'}[kind];
-   if(req.method==='GET')result={records:(await c.query(`select r.* from ${table} r where organization_id=$1 and ${visibleRecord('r',kind)} order by id desc`,[org])).rows};
+   if(req.method==='GET'){
+    // Proyección y ventana opcionales (#71): mismas reglas que órdenes/proyectos.
+    const fields=parseListFields(url.searchParams.get('fields'),kind==='leads'?leadListFields:planListFields);
+    const limit=parseListLimit(url);
+    const columns=kind==='leads'?leadColumnSql:planColumnSql;
+    const rows=(await c.query(`select ${projectionSelect(fields,columns,'r.*')} from ${table} r where organization_id=$1 and ${visibleRecord('r',kind)} order by id desc`,[org])).rows;
+    result=listResponse('records',rows,fields,limit);
+   }
    else if(kind==='leads'&&action==='convert'&&key&&req.method==='POST'){const lead=await owned(c,table,key,org);if(lead.client_id)result={clientId:lead.client_id};else{const won=wonLeadStage(await ensurePipelineStages(c,org));const client=(await c.query('insert into agency_clients(organization_id,name,email,phone,notes) values($1,$2,$3,$4,$5) returning id',[org,lead.name,lead.email,lead.phone,lead.notes])).rows[0];await c.query('update agency_leads set stage=$1,probability=100,client_id=$2,updated_at=now() where id=$3',[won,client.id,key]);result={clientId:client.id};}}
    else if((req.method==='POST'&&!key)||(req.method==='PATCH'&&key&&!action)){
     const old=key?await owned(c,table,key,org):{},incoming=await body(req),b={...old,...incoming},name=text(b.name,160);if(name.length<2)fail('Ingresá el nombre');

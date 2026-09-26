@@ -30,7 +30,7 @@ let resetToken='',sent=0;const grantedEmails=[];
 async function call(path,method='GET',payload={},as=user,form=''){
  let result={status:0};const req={method,socket:{remoteAddress:'127.0.0.1'},async *[Symbol.asyncIterator](){yield form;}};
  const args={req,res:{writeHead(status,headers){result={status,headers};},end(content){result.content=content;}},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{result={status,...data};},sendInvitation:async()=>true,sendAccessGranted:async(email,organizationName,role)=>{grantedEmails.push({email,organizationName,role});return true;},sendReset:async(_,token)=>{resetToken=token;sent++;return true;}};
- const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects|summary|invoices|clients)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
+ const handled=path.startsWith('/api/agency/pipeline-stages')?await pipelineStages(args):path.startsWith('/api/auth/password')?await passwordAccess(args):method==='GET'&&/^\/api\/agency\/(work-orders|projects|summary|invoices|clients|budgets)(\?|$)/.test(path)?await agencyCore(args):await suite(args);assert.equal(handled,true);return result;
 }
 const client=(await query("insert into agency_clients(organization_id,name) values($1,'Client') returning id",[org])).rows[0].id;
 const project=(await query("insert into agency_projects(organization_id,client_id,name,approval_levels) values($1,$2,'Project',2) returning id",[org,client])).rows[0].id;
@@ -104,6 +104,16 @@ const wonStage=stages.find(s=>s.kind==='won');
 await call(`/api/agency/pipeline-stages/${wonStage.id}`,'PATCH',{label:'Cerrado ganado'},stageUser);
 const convertLead=(await call('/api/agency/leads','POST',{name:'Convertir',amount:10,currency:'USD'},stageUser)).record;
 assert.equal((await call(`/api/agency/leads/${convertLead.id}/convert`,'POST',{},stageUser)).status,200);
+// #71: `?fields=` (lista blanca) y `?limit=` en oportunidades, con equivalencia.
+const leadsFull=await call('/api/agency/leads','GET',{},stageUser);
+const leadsProjected=await call('/api/agency/leads?fields=id,name,stage,amount','GET',{},stageUser);
+assert.equal(leadsProjected.status,200);
+assert.deepEqual(Object.keys(leadsProjected.records[0]).sort(),['amount','id','name','stage']);
+assert.equal(leadsProjected.records[0].name,leadsFull.records.find(row=>String(row.id)===String(leadsProjected.records[0].id)).name,'la proyección de oportunidades es equivalente');
+assert.equal((await call('/api/agency/leads?fields=id,inexistente')).status,400);
+assert.equal((await call('/api/agency/leads?fields=')).status,400);
+const leadsWindow=await call('/api/agency/leads?limit=1&fields=id,name','GET',{},stageUser);
+assert.equal(leadsWindow.records.length,1);assert.equal(leadsWindow.hasMore,leadsFull.records.length>1);
 const convertedStage=await leadById(convertLead.id);
 assert.equal(convertedStage.stage,wonStage.slug,'conversion follows the company won stage');
 assert.equal(convertedStage.probability,100);
@@ -137,6 +147,18 @@ assert.equal((await call('/api/agency/activity','GET',{},null)).status,401);
 assert.equal((await call('/api/agency/activity','GET',{}, {...user,organization_id:other})).records.length,0);
 const token='a'.repeat(32);const budget=(await query("insert into agency_budgets(organization_id,client_id,number,title,currency,subtotal,total,public_token) values($1,$2,'Q-TEST','Quote','USD',200,220,$3) returning id",[org,client,token])).rows[0].id;
 await query("insert into agency_budget_items(budget_id,position,description,quantity,unit_price,total) values($1,1,'Video',2,100,200)",[budget]);
+// #71: `?fields=` (lista blanca) y `?limit=` en presupuestos, con equivalencia.
+const budgetsFull=await call('/api/agency/budgets','GET',{});
+const budgetsProjected=await call('/api/agency/budgets?fields=id,number,total,client_name,item_count','GET',{});
+assert.equal(budgetsProjected.status,200);
+assert.deepEqual(Object.keys(budgetsProjected.budgets[0]).sort(),['client_name','id','item_count','number','total']);
+const budgetBase=budgetsFull.budgets.find(row=>String(row.id)===String(budgetsProjected.budgets[0].id));
+assert.equal(budgetsProjected.budgets[0].number,budgetBase.number,'la proyección de presupuestos es equivalente');
+assert.equal(budgetsProjected.budgets[0].item_count,budgetBase.item_count,'item_count equivalente');
+assert.equal((await call('/api/agency/budgets?fields=id,inexistente')).status,400);
+assert.equal((await call('/api/agency/budgets?fields=')).status,400);
+const budgetsWindow=await call('/api/agency/budgets?limit=1&fields=id,number');
+assert.equal(budgetsWindow.budgets.length,1);assert.equal(budgetsWindow.hasMore,budgetsFull.budgets.length>1);
 assert.equal((await call('/p/'+token)).status,404);
 assert.equal((await call(`/api/agency/budgets/${budget}/share`,'POST')).status,200);
 r=await call('/p/'+token);assert.equal(r.status,200);assert.ok(r.content.includes('Q-TEST'));
@@ -248,6 +270,22 @@ assert.equal(withoutEnrich.status,200);
 assert.equal(Object.hasOwn(withoutEnrich.workOrders[0],'effective_assignees'),false,'la proyección sin asignados no los calcula');
 assert.equal((await call('/api/agency/work-orders?limit=2&fields=id,inexistente')).status,400);
 assert.equal((await call('/api/agency/work-orders?limit=2&fields=')).status,400);
+// #71: `due=overdue|week` para alertas y próximas entregas de Resumen (etapas cerradas afuera).
+await query("insert into agency_work_orders(organization_id,project_id,title,status,due_date) values($1,$2,'Vencida','review',current_date-1)",[org,project]);
+const overdue=await call('/api/agency/work-orders?due=overdue&limit=50&fields=id,title,status,due_date');
+assert.equal(overdue.status,200);
+assert(overdue.workOrders.some(order=>order.title==='Vencida'),'la orden vencida aparece en overdue');
+assert(!overdue.workOrders.some(order=>['approved','published'].includes(order.status)),'las etapas cerradas no son alertas');
+assert.equal((await call('/api/agency/work-orders?due=raro')).status,400);
+assert.equal((await call('/api/agency/work-orders?due=')).status,400);
+await query("update agency_work_orders set due_date=current_date+2 where title='Vencida'");
+const dueWeek=await call('/api/agency/work-orders?due=week&limit=50&fields=id,title,status,due_date');
+assert.equal(dueWeek.status,200);
+assert(dueWeek.workOrders.some(order=>order.title==='Vencida'),'la orden de la semana aparece en week');
+assert(!(await call('/api/agency/work-orders?due=overdue&limit=50&fields=id,title')).workOrders.some(order=>order.title==='Vencida'),'ya no está vencida');
+const dueCounts=await call('/api/agency/work-orders?due=week&counts=1&limit=1&fields=id');
+assert.equal(dueCounts.status,200);
+assert.equal(dueCounts.stage_counts.review>=1,true,'los conteos por etapa respetan el filtro due');
 const projectList=await call('/api/agency/projects');
 assert.equal(projectList.status,200);assert(projectList.projects.length>=1);
 for(const removed of ['organization_id','created_at','assigned_user_id','assignee_version'])
