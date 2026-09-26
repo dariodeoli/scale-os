@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
 import {Button, Label, SearchField, Select} from 'owncoding-ui';
 import {ViewSwitch} from './ui-v2';
+import {CLIENT_TABLE_MIN_WIDTH,useDenseTableFit} from './use-dense-table';
 import { clientStatuses } from "./client-status";
 import type { CollectionView } from "./view-toggle";
 import {directorySummaryText} from "./client-directory-data";
@@ -42,8 +43,12 @@ export function ClientDirectoryToolbar({
   totalCount,
   view,
 }: ClientDirectoryToolbarProps) {
+  // El selector de vista sólo aplica cuando la tabla densa entra (#62); en
+  // anchos medios la sección muestra tarjetas y el control no tendría efecto.
+  const {ref: toolbarRef, fits: tableFits} = useDenseTableFit<HTMLDivElement>(CLIENT_TABLE_MIN_WIDTH);
   return (
     <div
+      ref={toolbarRef}
       className="client-directory-toolbar flex flex-wrap items-end gap-3"
       aria-label="Controles del directorio de clientes"
     >
@@ -61,7 +66,7 @@ export function ClientDirectoryToolbar({
           {clientStatuses.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
         </Select>
       </div>
-      <ViewSwitch value={view} onChange={onViewChange}/>
+      {tableFits ? <ViewSwitch value={view} onChange={onViewChange}/> : null}
       {query || status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}}>Limpiar filtros</button> : null}
       {children}
       {canCreate && (

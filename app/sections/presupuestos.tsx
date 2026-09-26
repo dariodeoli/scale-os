@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState} from 'react';
-import {Aviso} from 'owncoding-ui';
-import {Trash2} from 'lucide-react';
+import {Aviso,Button} from 'owncoding-ui';
+import {Plus,Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';
 import {listDateShort,dueTone} from '../list-format';
 import {BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
@@ -11,6 +11,7 @@ import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
 import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,type ChipTone,type Column} from '../ui-v2';
+import {BUDGET_TABLE_MIN_WIDTH,useDenseTableFit} from '../use-dense-table';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
 // Presupuestos (SOS-COM, campaña #41 / spec #43 §4).
@@ -30,6 +31,7 @@ type PresupuestosSectionProps = {
   summary: Summary;
   loadBudgets: ()=>Promise<void>|void;
   setBudgets: (value: Budget[]) => void;
+  onCreate?: () => void;
 };
 
 const BUDGET_COLUMNS: Column[] = [
@@ -52,8 +54,41 @@ const BUDGET_STATE: Record<string,{label:string;tone:ChipTone}> = {
 };
 const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudo completar la operación';
 
-export function PresupuestosSection({loading, user, budgetsState, budgets, invoices, budgetKpis, summary, loadBudgets, setBudgets}: PresupuestosSectionProps){
+// Vista tarjeta (anchos medios, #62): mismo contrato que la fila densa
+// (número, estado, cliente, ítems, vigencia, sin IVA, total, acciones) en la
+// cápsula `budget-hub-card` del sistema. Nada se recorta: el total va completo
+// y el pie queda anclado.
+function BudgetTile({budget,user,canManage,selected,onToggle,refresh}:{budget:Budget;user:User|null;canManage:boolean;selected:boolean;onToggle:()=>void;refresh:()=>Promise<void>}){
+  const state=BUDGET_STATE[budget.status]||{label:budget.status,tone:'mute' as ChipTone};
+  const valid=listDateShort(budget.valid_until);
+  const tone=dueTone(budget.valid_until);
+  return <article className="ops-card budget-hub-card">
+    <header className="budget-hub-head">
+      <span className="flex min-w-0 items-center gap-2">
+        {canManage?<label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected} onChange={()=>onToggle()}/></label>:null}
+        <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
+      </span>
+      <StateChip tone={state.tone}>{state.label}</StateChip>
+    </header>
+    <h3 className="text-[15px] font-semibold leading-snug text-fore" title={budget.title}>{budget.title}</h3>
+    <p className="budget-client truncate" title={budget.client_name}>{budget.client_name}</p>
+    <dl className="budget-hub-facts">
+      <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
+      <div><dt>Vigencia</dt><dd className="list-date" data-tone={tone||undefined} title={valid?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid||'Sin fecha'}</dd></div>
+      <div className="budget-hub-fact-amount"><dt>Sin IVA</dt><dd><MoneyText valor={budget.subtotal} currency={budget.currency}/></dd></div>
+    </dl>
+    <strong className="budget-hub-total"><MoneyText valor={budget.total} currency={budget.currency} className="text-fore"/><small>Total · IVA incl.</small></strong>
+    <footer className="budget-hub-actions">
+      <BudgetActions id={budget.id} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={refresh}/>
+      <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={refresh}/>
+    </footer>
+  </article>;
+}
+
+export function PresupuestosSection({loading, user, budgetsState, budgets, invoices, budgetKpis, summary, loadBudgets, setBudgets, onCreate}: PresupuestosSectionProps){
   const canManage = roleCan(user?.role,'budgets.manage');
+  // Tabla densa sólo si entra completa; si no, tarjetas (#62).
+  const {ref: tableRef, fits: tableFits} = useDenseTableFit(BUDGET_TABLE_MIN_WIDTH);
   const totals = Array.from(budgetKpis.totals);
   const [selected,setSelected]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false),[confirmOpen,setConfirmOpen]=useState(false),[bulkError,setBulkError]=useState('');
   const reload = async () => { setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets); };
@@ -111,7 +146,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
   };
 
   return (
-    <section className="directory grid gap-4" aria-label="Presupuestos">
+    <section ref={tableRef} className="directory grid gap-4" aria-label="Presupuestos">
       <KpiStrip aria-label="Métricas de presupuestos">
         <Kpi label="Presupuestos" valor={budgets.length} destacado hint={totals.length ? `Total sin IVA: ${totals.map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}` : 'Sin propuestas cargadas'}/>
         <Kpi label="Borradores" valor={budgetKpis.drafts} hint="Sin enviar al cliente"/>
@@ -137,9 +172,15 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
       ) : null}
 
       {budgets.length ? (
-        <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[90rem]">
-          {budgets.map(row)}
-        </ListGrid>
+        tableFits ? (
+          <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[93rem]" className="com-table-fixed-actions">
+            {budgets.map(row)}
+          </ListGrid>
+        ) : (
+          <div className="budget-hub-grid">
+            {budgets.map(budget=><BudgetTile key={budget.id} budget={budget} user={user} canManage={canManage} selected={selected.includes(String(budget.id))} onToggle={()=>toggleSelected(String(budget.id))} refresh={reload}/>)}
+          </div>
+        )
       ) : budgetsState==='loading' || loading ? (
         <LoadingBlock label="Cargando presupuestos…" lines={4}/>
       ) : budgetsState==='error' ? (
@@ -148,7 +189,8 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
         <EmptyBlock
           icon="receipt"
           title="Todavía no hay presupuestos."
-          description={canManage ? 'Creá el primero con «Nuevo presupuesto»: el valor se carga sin IVA y el IVA se define en el documento.' : 'Cuando el equipo cree una propuesta, vas a verla acá con su estado y vigencia.'}
+          description={canManage ? 'Creá el primero: el valor se carga sin IVA y el IVA se define en el documento.' : 'Cuando el equipo cree una propuesta, vas a verla acá con su estado y vigencia.'}
+          action={canManage&&onCreate ? <Button type="button" onClick={()=>onCreate()}><Plus aria-hidden="true" size={16}/>Nuevo presupuesto</Button> : undefined}
         />
       )}
 

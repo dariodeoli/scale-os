@@ -28,6 +28,7 @@ import {RecordAssignees} from './record-assignees';
 import {WorkChecklist} from './work-checklist';
 import {CommentBody,CommentComposer} from './commenting';
 import {ClientRuc} from './client-ruc';
+import {RecordEditor} from './suite';
 import {DriveLinks,driveLinksText} from './drive-links';
 import {DueDate} from './due-date';
 import {WorkOrderLinks} from './work-order-links';
@@ -148,7 +149,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
    <div className="client-summary-grid">
     <article><span>Estado del servicio</span><strong>{clientState({lifecycle_status:s(data.client,'lifecycle_status'),active:data.client.active!==false}).label}</strong></article>
     <article><span>Cobros</span><strong>{payStatus?payStatus.payment_status==='up_to_date'?'Al día':payStatus.payment_status==='due_soon'?`Vence ${listDateShort(payStatus.next_due_on)||'próximamente'}`:`${payStatus.days_overdue} días de mora`:'Sin datos'}</strong>{payStatus&&payStatus.currency&&Number(payStatus.outstanding_amount)>0?<small title={`Pendiente ${money(Number(payStatus.outstanding_amount),payStatus.currency)}`}>Pendiente {money(Number(payStatus.outstanding_amount),payStatus.currency)}</small>:null}</article>
-    <article><span>Plan</span><strong title={summary.terms?.planName||undefined}>{summary.terms?.planName||'Sin plan registrado'}</strong></article>
+    <article><span>Plan</span><strong title={summary.terms?.planName||undefined}>{summary.terms?.planName||'Sin plan registrado'}</strong>{!summary.terms&&roleCan(role,'commercial-terms.manage')?<RecordEditor kind="clients" recordId={id} name={s(data.client,'name')} role={role} refresh={reload} planCta="text" actions={[]}/>:null}</article>
     <article><span>Pago mensual</span><strong title={summary.terms?money(String(summary.terms.recurringAmount),summary.terms.currency):undefined}>{summary.terms?money(String(summary.terms.recurringAmount),summary.terms.currency):'Sin datos'}</strong></article>
     <article><span>Recurrencia</span><strong>{cadenceLabel(summary.terms)}</strong></article>
     <article><span>Cliente desde</span><strong>{monthsSinceLabel(sinceValue)||'Sin fecha registrada'}</strong>{/^\d{4}-\d{2}-\d{2}$/.test(sinceValue)?<small>{listDateFull(sinceValue)}</small>:null}</article>

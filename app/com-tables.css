@@ -1,0 +1,22 @@
+/* Ronda 14 (#62, refs #43): tablas densas de la vertical comercial.
+   Estrategia común (mientras DSN publica el patrón en #62): la última columna
+   —acciones— queda fija al borde derecho del scroll horizontal silencioso, así
+   nunca se corta aunque la tabla exceda el contenedor; la vista tarjeta en
+   anchos medios la decide `useDenseTableFit` sobre el ancho real. Cuando el
+   patrón suba al sistema de diseño, estas reglas se pliegan ahí. */
+.com-table-fixed-actions{--com-sticky-bg:var(--canvas)}
+.com-table-fixed-actions [role="row"]>:is([role="cell"],[role="columnheader"]):last-child{
+ position:sticky;
+ right:0;
+ z-index:2;
+ background:var(--com-sticky-bg);
+ box-shadow:inset 1px 0 0 var(--border-subtle,var(--line));
+}
+/* El encabezado de acciones manda sobre las filas al hacer scroll. */
+.com-table-fixed-actions [role="row"]>[role="columnheader"]:last-child{z-index:3}
+/* La celda fija acompaña el hover de la fila (`hover:bg-ink-700/40`). */
+.com-table-fixed-actions [role="rowgroup"]>[role="row"]:hover>[role="cell"]:last-child{
+ background:color-mix(in srgb,rgb(var(--c-ink-700)) 40%,var(--com-sticky-bg));
+}
+/* La cápsula de archivados tiene fondo propio: la celda fija lo respeta. */
+.archived-capsule .com-table-fixed-actions{--com-sticky-bg:color-mix(in srgb,var(--violet-soft) 16%,var(--canvas))}
