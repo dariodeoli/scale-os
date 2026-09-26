@@ -22,7 +22,7 @@ export const CONTRAST_JS=`(()=>{
   chain.reverse();for(const layer of chain)acc=blend(layer,acc.a?acc:{r:255,g:255,b:255,a:1});
   return acc.a?acc:{r:255,g:255,b:255,a:1};};
  const skip=(el,style)=>{if(el.closest('[aria-hidden="true"]'))return true;if(style.display==='none'||style.visibility==='hidden')return true;if(Number(style.opacity)===0)return true;if(el.disabled)return true;if(el.closest('svg'))return true;const r=el.getBoundingClientRect();if(r.width<4||r.height<4)return true;return false;};
- const out=[];
+ const out=[];let chipFailures=0;
  const inShell=(el)=>Boolean(el.closest('nav,aside,.desktop-sidebar,.sidebar,.workspace-topbar,.workspace-page-header,.mobile-navigation,[aria-label="Menú principal"]'));
  const nodes=[...document.querySelectorAll('main *')].filter(el=>!inShell(el));
  for(const el of nodes){
@@ -37,7 +37,7 @@ export const CONTRAST_JS=`(()=>{
   const text=fg.a<1?blend(fg,bg):fg;
   const value=Math.round(ratio(text,bg)*100)/100;
   const threshold=large?3:4.5;
-  if(value<threshold)out.push({text:el.textContent.trim().slice(0,40),tag:el.tagName,cls:String(el.className).slice(0,60),size,weight,ratio:value,threshold,fg:style.color,bg:'rgb('+bg.r+','+bg.g+','+bg.b+')'});
+  if(value<threshold){out.push({text:el.textContent.trim().slice(0,40),tag:el.tagName,cls:String(el.className).slice(0,60),size,weight,ratio:value,threshold,fg:style.color,bg:'rgb('+bg.r+','+bg.g+','+bg.b+')'});if(String(el.className).includes('rounded-md border px-2'))chipFailures+=1;}
  }
  // Límites interactivos (UI): borde/fondo de controles contra su contorno.
  const controls=[...document.querySelectorAll('main input:not([type=checkbox]):not([type=hidden]),main textarea,main select,main button,main [role="button"]')].filter(el=>!inShell(el)).slice(0,80);
@@ -45,8 +45,11 @@ export const CONTRAST_JS=`(()=>{
  for(const el of controls){
   const style=getComputedStyle(el);
   if(skip(el,style))continue;
+  // Un borde de 0px no es una affordance visible: el color computado
+  // (currentColor heredado) no puede medirse como límite del control.
+  if(parseFloat(style.borderTopWidth)<=0||style.borderTopStyle==='none')continue;
   const bg=parse(style.backgroundColor);const border=parse(style.borderTopColor);
   const outer=background(el.parentElement||el);
-  if(bg&&bg.a===0&&border&&border.a>0){const value=Math.round(ratio(border,outer)*100)/100;if(value<3)uiOut.push({tag:el.tagName,cls:String(el.className).slice(0,50),kind:'borde',ratio:value});}
+  if(bg&&bg.a===0&&border&&border.a>0){const value=Math.round(ratio(border,outer)*100)/100;if(value<3)uiOut.push({tag:el.tagName,cls:String(el.className).slice(0,50),kind:'borde',ratio:value,label:String(el.getAttribute('aria-label')||el.getAttribute('title')||el.textContent||'').slice(0,30)});}
  }
- return {failures:out.slice(0,12),failureCount:out.length,checked:nodes.length,uiFailures:uiOut.slice(0,6),uiFailureCount:uiOut.length,uiChecked:controls.length};})()`;
+ return {failures:out.slice(0,12),failureCount:out.length,chipFailures,checked:nodes.length,uiFailures:uiOut.slice(0,6),uiFailureCount:uiOut.length,uiChecked:controls.length};})()`;
