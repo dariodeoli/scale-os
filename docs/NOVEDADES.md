@@ -2,6 +2,29 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.128
+
+### Arranque y carga
+
+- **Una sola pantalla de carga**: se retiró el orbe que giraba sobre el logo; queda la marca estática con la identidad (nombre/rol/avatar) y la barra de progreso debajo del nombre, también en la variante sin sesión. Con “reducir movimiento” la barra se apaga.
+- **Esqueletos en las secciones**: al abrir una sección cuyo código todavía está bajando se muestra un esqueleto sobre el panel, en vez de una pantalla en blanco (notorio en el celular).
+- **Arranque más liviano**: la presencia deja de pedir datos de proyectos en paralelo y cada 30 segundos, y el shell se limpia de cargas duplicadas; Resumen pasa de 14 a 13 lecturas de arranque.
+
+### Estabilidad
+
+- **Resumen ya no se rompe con datos incompletos**: la búsqueda normaliza valores ausentes o nulos y los avisos de vencimiento toleran campos faltantes (“Sin nombre”, fecha vacía) sin cambiar la agrupación ni el orden; una respuesta parcial del API tampoco voltea la pantalla.
+
+### Operaciones
+
+- **Tablero de Producción por bloques**: 1 etapa por página en el celular, 2 en tablet y 4 completas en escritorio, con desplazamiento por bloques y flechas que avanzan una página; el indicador dice el rango visible (“Etapas 1–4 de 7”) y ninguna etapa queda cortada.
+- **Tarjetas resumidas**: la descripción se muestra hasta en 2 líneas y “Ver detalle” aparece solo cuando hay texto escondido.
+- **Checkboxes parejos**: el checklist de la pieza, el planificador y el enlace “Visible en el portal” usan el mismo control de 24 px, con área táctil de 44 px en móvil.
+
+### Velocidad del API
+
+- **Consultas más livianas**: la proyección por campos (`?fields=`) de órdenes y proyectos se resuelve en la base y ya no trae columnas que después se descartaban; con la misma semilla de 12.000 órdenes, Resumen baja de 57 a 17 ms de wall y Clientes de 71 a 29 ms. El resumen se calcula en una sola pasada.
+- **Medición reproducible**: nueva herramienta de TTFB por página (`npm --prefix backend run bench:pages`) con PostgreSQL temporal y semilla fija; es opt-in y no corre en CI.
+
 ## v1.0.127
 
 ### Comercial
