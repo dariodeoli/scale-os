@@ -347,7 +347,7 @@ function InventoryPanel(){
      <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario y reservas</h2>
      <p className="mt-1 text-xs leading-5 text-mute">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p>
     </div>
-    <div className="w-44">
+    <div className="w-52">
      <Label htmlFor="inventory-calendar-month">Mes del calendario</Label>
      <Input id="inventory-calendar-month" type="month" value={month} min="1900-01" max="9998-12" onChange={(e:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value);}}/>
     </div>

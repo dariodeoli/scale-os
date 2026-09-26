@@ -196,6 +196,10 @@ assert.match(inventory,/className="mt-0\.5 h-6 w-6 p-0 accent-fono"/,'los ítems
 assert.match(inventory,/className="h-6 w-6 p-0 accent-fono" checked=\{adjust\}/,'el ajuste de verificación usa el checkbox de 24 px');
 assert.match(inventory,/className="flex min-h-11 items-center gap-2 text-sm text-fore md:min-h-0"/,'los toggles de ubicación y categoría tienen target de 44 px');
 assert.match(studio,/className="h-6 w-6 p-0 accent-fono" checked=\{members\.includes/,'los responsables de estudio usan el checkbox de 24 px');
+// ── Ronda 19 (#74): el mes no corta el año en mobile.
+assert.match(studio,/<div className="w-52"><Label htmlFor="studio-month">/,'el mes del estudio tiene ancho completo para el año');
+assert.match(inventory,/className="w-52">\s*<Label htmlFor="inventory-calendar-month">/,'el mes del calendario de inventario no corta el año');
+assert.match(planner,/grid w-52 gap-1\.5/,'el mes del planificador no corta el año');
 // ── Ronda 17 (#71): casilla de la grilla 44×44 y adopción de ?fields=.
 assert.match(inventory,/mt-0\.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6/,'la casilla de la grilla de inventario completa 44×44 en mobile');
 assert.match(inventoryHook,/from '\.\/api-projection'/,'el catálogo de inventario adopta ?fields=');

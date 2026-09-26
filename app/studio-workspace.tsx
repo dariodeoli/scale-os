@@ -98,7 +98,7 @@ function StudioPanel(){
      <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2>
      <p className="mt-1 text-xs leading-5 text-mute">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p>
     </div>
-    <div className="w-44"><Label htmlFor="studio-month">Mes</Label><Input id="studio-month" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
+    <div className="w-52"><Label htmlFor="studio-month">Mes</Label><Input id="studio-month" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
    </div>
    <StudioCalendar month={month} reservations={reservations}/>
   {visibleSelectable.length?<div className="bulk-bar" role="status" aria-live="polite">
