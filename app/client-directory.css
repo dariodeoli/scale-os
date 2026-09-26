@@ -59,3 +59,10 @@
  .client-hub-card .client-card-actions :is(.icon-button,.record-remove){width:44px;min-width:44px;min-height:44px}
  .client-hub-card .client-card-actions>button:first-child{width:44px;min-width:44px}
 }
+
+/* At sidebar-constrained desktop widths, keep the title and live result count on
+   a deliberate toolbar row so the count retains whole-word wrapping. */
+@media (min-width:701px) and (max-width:1280px){
+ .control-shell .client-directory-toolbar .client-directory-toolbar-title{flex:0 0 100%;display:flex;align-items:baseline;gap:var(--ui-space-2)}
+ .control-shell .client-directory-toolbar .directory-summary{min-width:max-content;white-space:nowrap}
+}
