@@ -50,6 +50,11 @@ for(const apartado of ['Mora','Previsión','Métricas','Planes','Invitaciones','
 assert.equal(moduleNavGroup(parentSection('Mora')),'Finanzas');assert.equal(moduleNavGroup(parentSection('Métricas')),'Flujo');assert.equal(moduleNavGroup('Estudio'),'Recursos','Estudio vive en Recursos (agenda de espacios y equipos)');assert.equal(moduleNavGroup(parentSection('Papelera')),'Configuración');assert.equal(moduleNavGroup(parentSection('Invitaciones')),'Recursos');
 const recursos=navGroups.find(([group])=>group==='Recursos');
 assert(recursos&&recursos[1].join(',')==='Inventario,Estudio,Equipo','Recursos agrupa los dos reservables y después Equipo (refine OPS #70)');
+// Contrato del encabezado navegable (#72): el clic de un grupo va a su primer módulo.
+const firstModule=(group:string)=>navGroups.find(([label])=>label===group)?.[1][0];
+assert.equal(firstModule('Flujo'),'Pipeline','clic en Flujo navega a Pipeline');
+assert.equal(firstModule('Recursos'),'Inventario','clic en Recursos navega a Inventario');
+assert.equal(firstModule('Finanzas'),'Finanzas','clic en Finanzas navega a Finanzas');
 assert.equal(moduleNavGroup('Sin acceso'),'','fuera del nav no hay grupo activo');
 assert(ui.indexOf('<ControlCenter')<ui.indexOf('className="metrics operational-metrics"'));assert(ui.indexOf('className="metrics operational-metrics"')<ui.indexOf('id="produccion"'));
 const css=readFileSync(new URL('../app/control-center.css',import.meta.url),'utf8');assert(!/#[0-9a-f]{3,8}\b/i.test(css),'new stylesheet uses color tokens');
