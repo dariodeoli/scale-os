@@ -2,6 +2,12 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.136
+
+### Plataforma
+
+- **Publicación del front corregida**: el build de la web fallaba porque el parche de la librería se ejecutaba antes de copiarse al contenedor; se corrigió el orden y este release publica el rediseño y la fundación owncoding-ui v0.39 (contenido de v1.0.135), que hasta ahora solo había llegado a la API.
+
 ## v1.0.135
 
 ### Librería y sistema de diseño
