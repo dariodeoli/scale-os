@@ -487,74 +487,104 @@ export default function PlatformAdmin() {
       <PlatformNotices state={state} error={error} busy={busy} bootstrap={bootstrap}/>
       {state ? (
         <>
-          <section
-            className="platform-admin-stats"
-            aria-label="Resumen de plataforma"
-          >
-            <article className="platform-admin-stat-card">
-              <span className="platform-admin-stat-icon">
-                <Building2 aria-hidden="true" />
-              </span>
-              <div className="platform-admin-stat-copy">
-                <small>Agencias activas</small>
-                <strong>
-                  {formatPlatformMetric(state.overview.agencies?.active)}{" "}
-                  <span>
-                    / {formatPlatformMetric(state.overview.agencies?.total)}
-                  </span>
-                </strong>
+          <section className="platform-admin-section platform-admin-context" aria-labelledby="platform-admin-context-title">
+            <div className="platform-admin-section-heading">
+              <div>
+              <p className="eyebrow">CENTRO DE CONTROL</p>
+              <h2 id="platform-admin-context-title">Operación de plataforma</h2>
+              <p>Supervisá la salud comercial, los accesos y la actividad global desde un solo lugar.</p>
               </div>
-            </article>
-            <article className="platform-admin-stat-card">
-              <span className="platform-admin-stat-icon">
-                <Users aria-hidden="true" />
-              </span>
-              <div className="platform-admin-stat-copy">
-                <small>Usuarios registrados</small>
-                <strong>
-                  {formatPlatformMetric(state.overview.users?.total)}
-                </strong>
-              </div>
-            </article>
-            <article className="platform-admin-stat-card">
-              <span className="platform-admin-stat-icon">
-                <Ticket aria-hidden="true" />
-              </span>
-              <div className="platform-admin-stat-copy">
-                <small>Cupones activos</small>
-                <strong>
-                  {formatPlatformMetric(state.overview.coupons?.active)}{" "}
-                  <span>
-                    / {formatPlatformMetric(state.overview.coupons?.total)}
-                  </span>
-                </strong>
-              </div>
-            </article>
-            <article className="platform-admin-stat-card">
-              <span className="platform-admin-stat-icon">
-                <CircleCheck aria-hidden="true" />
-              </span>
-              <div className="platform-admin-stat-copy">
-                <small>Suscripciones</small>
-                <strong className="platform-admin-subscription-summary">
-                  {subscriptionSummary(state.overview.subscriptions)}
-                </strong>
-              </div>
-            </article>
+            </div>
+            <nav className="platform-admin-section-nav platform-admin-actions" aria-label="Secciones de administración global">
+              <Link className="text-button" href="#resumen">Resumen</Link>
+              <Link className="text-button" href="#agencias">Agencias</Link>
+              <Link className="text-button" href="#accesos">Accesos</Link>
+              <Link className="text-button" href="#catalogo">Catálogo</Link>
+              <Link className="text-button" href="#auditoria">Auditoría</Link>
+            </nav>
           </section>
 
-          <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/>
+          <section id="resumen" className="platform-admin-section platform-admin-overview" aria-labelledby="platform-admin-overview-title">
+            <div className="platform-admin-section-heading">
+              <div>
+              <p className="eyebrow">PANORAMA ACTUAL</p>
+              <h2 id="platform-admin-overview-title">Resumen de plataforma</h2>
+              </div>
+            </div>
+            <div className="platform-admin-stats">
+              <article className="platform-admin-stat-card">
+                <span className="platform-admin-stat-icon">
+                  <Building2 aria-hidden="true" />
+                </span>
+                <div className="platform-admin-stat-copy">
+                  <small>Agencias activas</small>
+                  <strong>
+                    {formatPlatformMetric(state.overview.agencies?.active)}{" "}
+                    <span>
+                      / {formatPlatformMetric(state.overview.agencies?.total)}
+                    </span>
+                  </strong>
+                </div>
+              </article>
+              <article className="platform-admin-stat-card">
+                <span className="platform-admin-stat-icon">
+                  <Users aria-hidden="true" />
+                </span>
+                <div className="platform-admin-stat-copy">
+                  <small>Usuarios registrados</small>
+                  <strong>
+                    {formatPlatformMetric(state.overview.users?.total)}
+                  </strong>
+                </div>
+              </article>
+              <article className="platform-admin-stat-card">
+                <span className="platform-admin-stat-icon">
+                  <Ticket aria-hidden="true" />
+                </span>
+                <div className="platform-admin-stat-copy">
+                  <small>Cupones activos</small>
+                  <strong>
+                    {formatPlatformMetric(state.overview.coupons?.active)}{" "}
+                    <span>
+                      / {formatPlatformMetric(state.overview.coupons?.total)}
+                    </span>
+                  </strong>
+                </div>
+              </article>
+              <article className="platform-admin-stat-card">
+                <span className="platform-admin-stat-icon">
+                  <CircleCheck aria-hidden="true" />
+                </span>
+                <div className="platform-admin-stat-copy">
+                  <small>Suscripciones</small>
+                  <strong className="platform-admin-subscription-summary">
+                    {subscriptionSummary(state.overview.subscriptions)}
+                  </strong>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <div id="agencias">
+            <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/>
+          </div>
 
           {writable && subscriptionAgency ? (
             <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension}/>
           ) : null}
 
-          <section className="platform-admin-two-columns">
-            <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/>
-            <PlatformCatalog busy={busy} state={state} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/>
+          <section className="platform-admin-two-columns" aria-label="Acceso y catálogo">
+            <div id="accesos">
+              <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/>
+            </div>
+            <div id="catalogo">
+              <PlatformCatalog busy={busy} state={state} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/>
+            </div>
           </section>
 
-          <PlatformAudit audit={state.audit}/>
+          <div id="auditoria">
+            <PlatformAudit audit={state.audit}/>
+          </div>
         </>
       ) : null}
 

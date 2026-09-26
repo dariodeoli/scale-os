@@ -76,7 +76,7 @@ function StudioPanel(){
  return <div className="grid min-w-0 gap-4">
   <Card className="grid min-w-0 gap-3">
    {notice?<Aviso tono="ok">{notice}</Aviso>:null}
-   {!spaces.length?<EmptyState compact icon="store" title="Todavía no hay espacios." description={context?.can_manage?'Creá el set, la cabina o el escenario para reservarlo después.':'Un responsable puede crear el set, la cabina o el escenario antes de reservar.'} action={context?.can_manage?<Button type="button" onClick={()=>setEditSpace('new')}>Agregar espacio</Button>:undefined}/>:<>
+   {!spaces.length?<EmptyState compact icon="store" title="Sin espacios todavía." description={context?.can_manage?'Creá un espacio para reservarlo después.':'Un responsable debe crear un espacio antes de reservar.'} action={context?.can_manage?<Button type="button" onClick={()=>setEditSpace('new')}>Agregar espacio</Button>:undefined}/>:<>
     <div className="flex flex-wrap items-center justify-between gap-2">
      <p className="text-xs text-mute">Los espacios disponibles se reservan por franja horaria; cada reserva bloquea solo su espacio.</p>
      <div className="flex flex-wrap items-center gap-2">
@@ -84,11 +84,11 @@ function StudioPanel(){
       {context?.can_reserve?<Button type="button" disabled={!activeSpaces.length} onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:null}
      </div>
     </div>
-    <div data-grid="studio-spaces" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="flex min-h-[200px] flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4" key={space.id}>
-     <div className="flex items-start justify-between gap-3"><h3 className="break-words text-sm font-semibold text-fore">{space.name}</h3><StateChip tone={space.active?'ok':'mute'}>{space.active?'Disponible':'Inactivo'}</StateChip></div>
-     <p className="text-sm text-mute">{space.scenario||'Escenario sin especificar'}</p>
-     {space.notes?<small className="text-xs text-mute">{space.notes}</small>:null}
-     {context?.can_manage?<div className={`mt-auto flex justify-end ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar espacio: ${space.name}`} onClick={()=>setEditSpace(space)}/></div>:null}
+    <div data-grid="studio-spaces" className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="grid min-w-0 gap-1.5 rounded-xl border border-ink-600 bg-ink-800/60 p-3" key={space.id}>
+     <div className="flex min-w-0 items-center justify-between gap-2"><h3 className="truncate text-sm font-semibold text-fore" title={space.name}>{space.name}</h3><StateChip tone={space.active?'ok':'mute'}>{space.active?'Disponible':'Inactivo'}</StateChip></div>
+     <p className="truncate text-xs text-mute" title={space.scenario||'Escenario sin especificar'}>{space.scenario||'Escenario sin especificar'}</p>
+     {space.notes?<small className="max-h-10 overflow-hidden text-xs leading-5 text-mute">{space.notes}</small>:null}
+     {context?.can_manage?<div className={`mt-1 flex justify-end ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar espacio: ${space.name}`} onClick={()=>setEditSpace(space)}/></div>:null}
     </article>)}</div>
    </>}
   </Card>
@@ -111,7 +111,16 @@ function StudioPanel(){
       </>:null}
     </div>
   </div>:null}
-   <div data-list="studio-reservations" className="min-w-0 overflow-x-auto">
+   <div data-list="studio-reservations" className="grid min-w-0 gap-2 md:hidden">
+    {reservations.map(reservation=><article data-list-row="studio-reservations" className="grid min-w-0 gap-2 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3" key={reservation.id}>
+     <div className="flex min-w-0 items-start justify-between gap-2"><div className="min-w-0"><b className="block truncate text-[13px] font-semibold text-fore" title={reservation.title}>{reservation.title}</b><p className="truncate text-xs text-mute" title={`${reservation.space_name}${reservation.space_scenario?` · ${reservation.space_scenario}`:''} · ${studioProductionTypeLabel(reservation.production_type)}`}>{reservation.space_name}{reservation.space_scenario?` · ${reservation.space_scenario}`:''} · {studioProductionTypeLabel(reservation.production_type)}</p></div><StateChip tone={reservation.status==='reserved'?'info':'mute'}>{reservation.status==='reserved'?'Reservada':'Cancelada'}</StateChip></div>
+     <p className="text-xs leading-5 tabular-nums text-mute">{dateTime(reservation.starts_at)} → {dateTime(reservation.ends_at)}</p>
+     <div className="grid grid-cols-1 gap-1 text-xs text-mute"><p className="truncate" title={reservation.project_name||'Sin proyecto vinculado'}>Proyecto: {reservation.project_name||'Sin proyecto vinculado'}</p><p className="truncate" title={reservation.responsible_members.map(person=>person.name).join(', ')}>Responsables: {reservation.responsible_members.map(person=>person.name).join(', ')}</p></div>
+     {(reservationSelectable(reservation)||context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved')?<div className="flex min-h-11 items-center justify-between gap-2 border-t border-ink-600/60 pt-2"><span>{reservationSelectable(reservation)?<label className="flex min-h-11 items-center gap-2 text-xs text-mute"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar reserva: ${reservation.title}`} checked={selectedReservations.includes(String(reservation.id))} onChange={()=>toggleReservation(String(reservation.id))}/><span>Seleccionar</span></label>:null}</span>{context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved'?<span className={`flex items-center gap-1 ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar reserva: ${reservation.title}`} onClick={()=>setEditReservation(reservation)}/><IconAction icon="close" tone="warn" label={`Cancelar reserva: ${reservation.title}`} onClick={()=>setCancel(reservation)}/></span>:null}</div>:null}
+    </article>)}
+    {!reservations.length?<EmptyState compact icon="calendar" title="No hay reservas en este mes."/>:null}
+   </div>
+   <div data-list="studio-reservations" className="hidden min-w-0 overflow-x-auto md:block">
     <div className={`${RESERVATION_COLS} grid min-w-[64rem] gap-2`}>
     {reservations.length?<div data-list-head="studio-reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true"><span/><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span className="text-right">Acciones</span></div>:null}
     {reservations.map(reservation=><div data-list-row="studio-reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} min-h-[48px] content-center rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} key={reservation.id}>
@@ -152,5 +161,5 @@ function StudioReservationForm({context,spaces,reservations,record,done}:{contex
 }
 function StudioCalendar({month,reservations}:{month:string;reservations:StudioReservation[]}){
  const {blanks,days}=studioMonthGrid(month,reservations);
- return <div className="grid gap-2" aria-label="Calendario mensual del estudio"><div className="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div><div className="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">{Array.from({length:blanks},(_,index)=><div className="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key={`blank-${index}`}/>)}{days.map(({date,day,reservations:rows})=><div className="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1" key={date}><time className="text-[11px] tabular-nums text-mute" dateTime={date}>{day}</time>{rows.map(item=><div className="grid gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-[11px] text-fono-light" key={item.id}><b className="break-words">{item.space_name}</b><span className="text-mute">{item.title}</span></div>)}</div>)}</div></div>;
+ return <div className="grid gap-2" aria-label="Calendario mensual del estudio"><div className="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div><div className="grid grid-cols-2 gap-1 sm:grid-cols-3 min-[769px]:grid-cols-7">{Array.from({length:blanks},(_,index)=><div className="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key={`blank-${index}`}/>)}{days.map(({date,day,reservations:rows})=><div className="grid min-h-[4.25rem] content-start gap-1 rounded-lg border border-ink-600/60 p-2 min-[769px]:min-h-16 min-[769px]:p-1" key={date}><time className="text-[11px] tabular-nums text-mute" dateTime={date} aria-label={date}>{day}</time>{rows.map(item=><div className="grid gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-[11px] text-fono-light" key={item.id}><b className="truncate" title={item.space_name}>{item.space_name}</b><span className="truncate text-mute" title={item.title}>{item.title}</span></div>)}</div>)}</div></div>;
 }

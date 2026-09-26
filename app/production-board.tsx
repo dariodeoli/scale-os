@@ -89,40 +89,46 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
       ref={draggable.setNodeRef}
       {...draggable.listeners}
       {...draggable.attributes}
-      className={`flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging ? "opacity-60" : ""} ${canMove ? "cursor-grab" : ""}`}
+      className={`scroll-mt-24 flex min-w-0 flex-col gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3 shadow-sm transition-colors ${draggable.isDragging ? "opacity-60" : ""} ${canMove ? "cursor-grab" : ""}`}
       data-order={order.id}
       data-status={order.status}
     >
       <div className="flex items-start justify-between gap-2">
-        <button type="button" className="min-h-11 min-w-0 text-left text-[13px] font-semibold text-fore hover:text-fono-light md:min-h-0" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
-        {canMove?<span className="flex h-11 w-11 shrink-0 select-none items-center justify-center text-mute md:h-7 md:w-7" role="img" aria-label={`Mover ${order.title}`} title={`Mover ${order.title}`}>⋮⋮</span>:null}
+        <button type="button" className="min-h-11 min-w-11 flex-1 text-left text-[13px] font-semibold leading-5 text-fore outline-none transition-colors hover:text-fono-light focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
+        {canMove?<span className="flex h-11 w-11 shrink-0 select-none items-center justify-center rounded-md text-mute md:h-7 md:w-7" role="img" aria-label={`Mover ${order.title}`} title={`Mover ${order.title}`}>⋮⋮</span>:null}
       </div>
-      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] text-mute">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 border-l-2 border-ink-600 pl-2 text-[11.5px] leading-4 text-mute">
         <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/>
         <span aria-hidden="true">·</span>
         <span className="min-w-0 truncate" title={order.project_name}>{order.project_name}</span>
       </div>
-      <div className="flex flex-wrap items-center gap-1">
+      <div className="flex flex-wrap items-center gap-1 border-y border-ink-600 py-2">
         <StateChip tone={STATUS_TONE[order.status] || 'mute'}>{statuses.find(state => state.id === order.status)?.label || order.status}</StateChip>
         <UrgencyBadge value={order.urgency}/>
         <StateChip tone="info">{workTypeLabel(order.work_type)}</StateChip>
         {order.approval_step ? <StateChip tone="ok" title={`Niveles de aprobación completados: ${order.approval_step}`}>Aprobaciones: {order.approval_step}</StateChip> : null}
       </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">
-        {links.length ? <span className="whitespace-nowrap" title={links.map(link => link.label || link.url).join(' · ')}>{links.length === 1 ? '1 enlace' : `${links.length} enlaces`}</span> : order.drive_url ? <a className="inline-flex min-h-11 items-center whitespace-nowrap text-fono-light hover:underline md:min-h-0" href={order.drive_url} target="_blank" rel="noreferrer" onPointerDown={(event) => event.stopPropagation()}>Drive ↗</a> : <span>Sin enlace</span>}
-        {hours ? <span className="whitespace-nowrap" title={`Horas: ${hours}`}>{hours}</span> : null}
-        {order.checklist_total ? <span className="whitespace-nowrap" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</span> : null}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] leading-4 text-mute">
+        <div className="min-w-0">
+          <span className="block text-[10px] font-medium uppercase tracking-wide text-mute/80">Recursos</span>
+          {links.length ? <span className="block truncate" title={links.map(link => link.label || link.url).join(' · ')}>{links.length === 1 ? '1 enlace' : `${links.length} enlaces`}</span> : order.drive_url ? <a className="inline-flex min-h-11 min-w-11 items-center text-fono-light outline-none hover:underline focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" href={order.drive_url} target="_blank" rel="noreferrer" onPointerDown={(event) => event.stopPropagation()}>Drive ↗</a> : <span>Sin enlace</span>}
+        </div>
+        <div className="min-w-0">
+          <span className="block text-[10px] font-medium uppercase tracking-wide text-mute/80">Capacidad</span>
+          {hours ? <span className="block truncate" title={`Horas: ${hours}`}>{hours}</span> : <span>Sin horas</span>}
+        </div>
+        {order.checklist_total ? <div className="col-span-2 flex items-center gap-1 border-t border-ink-600 pt-1.5" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}><span aria-hidden="true">☑</span><span>{order.checklist_completed||0}/{order.checklist_total} pasos</span></div> : null}
       </div>
       {order.description ? <div className="grid gap-1">
         <p ref={description} className="line-clamp-2 text-[11.5px] leading-5 text-mute" title={order.description}>{order.description}</p>
-        {clamped?<button type="button" className="text-button min-h-11 justify-self-start md:min-h-0" onClick={()=>openOrder(order.id)} title={`Ver la descripción completa de ${order.title}`}>Ver detalle</button>:null}
+        {clamped?<button type="button" className="text-button min-h-11 min-w-11 justify-self-start rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id)} title={`Ver la descripción completa de ${order.title}`}>Ver detalle</button>:null}
       </div> : null}
       <DueDate value={order.due_date} time={order.due_time} compact/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
       {order.updated_at ? <p className="text-[10.5px] text-mute">Actualizada {listDateFull(order.updated_at)}</p> : null}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2">
-        {canMove?<button className="text-button" onClick={()=>openOrder(order.id,true)}>Editar</button>:<button className="text-button" onClick={()=>openOrder(order.id)}>Ver más</button>}
+        {canMove?<button className="text-button min-h-11 min-w-11 rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id,true)}>Editar</button>:<button className="text-button min-h-11 min-w-11 rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id)}>Ver más</button>}
         {canMove?<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role}/>:null}
       </div>
     </article>
@@ -162,14 +168,17 @@ export function KanbanColumn({
       data-column={status.id}
       aria-label={loading&&counts===undefined?`${status.label}: cargando piezas`:`${status.label}: ${orders.length} pieza${orders.length === 1 ? "" : "s"}`}
     >
-      <div className="flex items-center gap-2">
-        <StateChip tone={STATUS_TONE[status.id] || 'mute'}>{status.label}</StateChip>
-        <em className="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-medium not-italic tabular-nums text-mute" title={`${counts ?? orders.length} piezas en ${status.label}`}>{loading&&counts===undefined?'…':counts ?? orders.length}</em>
+      <div className="sticky top-0 z-10 -mx-3 -mt-3 flex items-center gap-2 rounded-t-xl border-b border-ink-600 bg-ink-800/95 px-3 py-2.5 backdrop-blur-sm">
+        <div className="min-w-0">
+          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-mute">Etapa</p>
+          <h2 className="mt-0.5"><StateChip tone={STATUS_TONE[status.id] || 'mute'}>{status.label}</StateChip></h2>
+        </div>
+        <em className="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-1 text-[10px] font-medium not-italic tabular-nums text-mute" title={`${counts ?? orders.length} piezas en ${status.label}`}>{loading&&counts===undefined?'…':counts ?? orders.length}</em>
       </div>
       {orders.map((order) => (
         <DraggableOrder key={order.id} order={order} role={role} refresh={refresh} openOrder={openOrder}/>
       ))}
-      {hasMore && onLoadMore ? <button type="button" className="text-button justify-center" disabled={loadingMore} aria-label={`Ver más piezas en ${status.label}`} onClick={onLoadMore}>{loadingMore ? 'Trayendo…' : 'Ver más'}</button> : null}
+      {hasMore && onLoadMore ? <button type="button" className="text-button min-h-11 min-w-11 justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" disabled={loadingMore} aria-label={`Ver más piezas en ${status.label}`} onClick={onLoadMore}>{loadingMore ? 'Trayendo…' : 'Ver más'}</button> : null}
       {!orders.length ? <p className="py-3 text-center text-[11px] text-mute">{loading?'Cargando piezas…':'Sin piezas en esta etapa'}</p> : null}
     </section>
   );

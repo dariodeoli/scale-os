@@ -61,6 +61,15 @@ export function CategoryIcon({name}:{name?:string|null}){const Icon=name?categor
 const statusTone=(status:string)=>status==='available'?'ok':status==='in_use'?'info':status==='maintenance'?'warn':status==='retired'?'mute':'mute';
 const reservationTone=(status:InventoryReservation['status'])=>status==='reserved'?'info':status==='checked_out'?'warn':status==='returned'?'ok':'mute';
 const firstName=(name?:string|null)=>(name||'').trim().split(/\s+/)[0]||'';
+const PHYSICAL_VERIFICATION_MAX_AGE_DAYS=30;
+const PHYSICAL_VERIFICATION_MAX_AGE_MS=PHYSICAL_VERIFICATION_MAX_AGE_DAYS*24*60*60*1000;
+type InventoryAttentionFilter='missing_value'|'physical_verification'|'';
+const hasMissingInventoryValue=(item:InventoryItem)=>!(Number(item.value)>0);
+const needsPhysicalVerification=(item:InventoryItem,now=Date.now())=>{
+ if(!item.last_verified_at)return true;
+ const verifiedAt=Date.parse(item.last_verified_at);
+ return !Number.isFinite(verifiedAt)||verifiedAt<now-PHYSICAL_VERIFICATION_MAX_AGE_MS;
+};
 
 /** Sello de control: resultado + foto + primer nombre + fecha 24 h, en ese orden. */
 function VerificationStamp({item,empty}:{item:InventoryItem;empty:ReactNode}){
@@ -232,7 +241,7 @@ export function InventoryWorkspace({role}:{role:string}){
  return roleCan(role,'inventory.view')?<InventoryPanel key={role}/>:null;
 }
 function InventoryPanel(){
- const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[selectedItems,setSelectedItems]=useState<string[]>([]),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState('');
+ const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[selectedItems,setSelectedItems]=useState<string[]>([]),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
  const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0);
  const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate,moveItemLocally}=useInventoryCatalog(month,refresh);
  // El error del catálogo sólo existe cuando nunca hubo datos; el de acciones se limpia al reintentar.
@@ -283,8 +292,20 @@ function InventoryPanel(){
  // released before the same dialog can be opened again. This only refreshes
  // the workspace after a persisted inventory/category mutation.
  function refreshed(message:string){setNotice(message);setRefresh(n=>n+1);}
- const visible=filterInventoryItems(items,{search,categoryId:categoryFilter});
- const itemWithoutValue=useMemo(()=>items.find(item=>!(Number(item.value)>0))||null,[items]);
+ const filteredItems=useMemo(()=>filterInventoryItems(items,{search,categoryId:categoryFilter}),[items,search,categoryFilter]);
+ // Local attention signals mirror the 30-day operational control window and
+ // deliberately leave the catalog/API contract unchanged.
+ const attention=useMemo(()=>{
+  const activeItems=filteredItems.filter(item=>item.status!=='retired');
+  return {missingValue:activeItems.filter(hasMissingInventoryValue).length,physicalVerification:activeItems.filter(item=>needsPhysicalVerification(item)).length};
+ },[filteredItems]);
+ const visible=useMemo(()=>filteredItems.filter(item=>{
+  if(!attentionFilter)return true;
+  if(item.status==='retired')return false;
+  return attentionFilter==='missing_value'?hasMissingInventoryValue(item):needsPhysicalVerification(item);
+ }),[filteredItems,attentionFilter]);
+ const itemWithoutValue=useMemo(()=>items.find(hasMissingInventoryValue)||null,[items]);
+ const attentionFilterLabel=attentionFilter==='missing_value'?'valor faltante':attentionFilter==='physical_verification'?'control físico pendiente':'';
  const updatedAt=lastUpdated?lastUpdated.toLocaleTimeString('es-PY',{timeZone:OPS_TIME_ZONE,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}):'';
  return <div className="grid min-w-0 gap-4">
   <Card className="grid min-w-0 gap-3">
@@ -296,12 +317,19 @@ function InventoryPanel(){
      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
      {selectionEnabled&&visible.length?<Button type="button" variant="ghost" onClick={selectVisible}>Seleccionar visibles</Button>:null}
      <div className="ml-auto flex flex-wrap items-center gap-2">
-      <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite" title={`Mostrando ${visible.length} de ${items.length} equipos. Sincroniza cada 30 s mientras esta pestaña esté visible.${updatedAt?` Actualizado ${updatedAt}.`:''}`}>{visible.length} de {items.length} equipos{updatedAt?` · ${updatedAt}`:''}</p>
+      <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite" title={`Mostrando ${visible.length} de ${items.length} equipos${attentionFilterLabel?` con filtro de ${attentionFilterLabel}`:''}. Sincroniza cada 30 s mientras esta pestaña esté visible.${updatedAt?` Actualizado ${updatedAt}.`:''}`}>{visible.length} de {items.length} equipos{attentionFilterLabel?` · ${attentionFilterLabel}`:''}{updatedAt?` · ${updatedAt}`:''}</p>
       {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:null}
       {context?.can_reserve&&!selectedItems.length?<Button type="button" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</Button>:null}
      </div>
     </>:null}
    </div>
+   {view!=='reservations'?<div className="flex flex-wrap items-center gap-2 border-t border-ink-600/60 pt-3" aria-label="Filtros locales de atención del inventario">
+    <span className="text-[11px] font-bold uppercase tracking-wider text-mute">Atención</span>
+    <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='missing_value'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-ink-500 hover:text-fore'}`} aria-label={`Filtrar equipos con valor faltante: ${attention.missingValue}`} aria-pressed={attentionFilter==='missing_value'} title={`Filtrar ${attention.missingValue} equipo${attention.missingValue===1?'':'s'} con valor faltante`} onClick={()=>setAttentionFilter(current=>current==='missing_value'?'':'missing_value')}><span>Valor faltante</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.missingValue}</span></button>
+    <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='physical_verification'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-ink-500 hover:text-fore'}`} aria-label={`Filtrar equipos con control físico vencido o sin registro: ${attention.physicalVerification}`} aria-pressed={attentionFilter==='physical_verification'} title={`Filtrar ${attention.physicalVerification} equipo${attention.physicalVerification===1?'':'s'} con control físico vencido o sin registro`} onClick={()=>setAttentionFilter(current=>current==='physical_verification'?'':'physical_verification')}><span>Control físico pendiente</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.physicalVerification}</span></button>
+    {attentionFilter?<Button type="button" variant="ghost" className="min-h-11 md:min-h-8" onClick={()=>setAttentionFilter('')}>Limpiar atención</Button>:null}
+    <p className="basis-full text-[11px] leading-4 text-mute">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</p>
+   </div>:null}
    {view!=='reservations'&&selectedItems.length?<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2" role="status" aria-live="polite">
     <span className="text-xs text-mute"><b className="text-fore">{selectedItems.length}</b> de {BATCH_LIMITS.inventory} seleccionado{selectedItems.length===1?'':'s'}</span>
     <div className="flex flex-wrap items-center gap-2">

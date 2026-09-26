@@ -21,7 +21,6 @@ import {EmptyBlock,LoadingBlock,ViewSwitch} from './ui-v2';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
-import {PhotoViewer} from './photo-viewer';
 import {ActorIdentity} from './actor-identity';
 import {PersonContainer} from './person-container';
 import {CommentBody,CommentComposer} from './commenting';
@@ -315,19 +314,13 @@ function PeopleWorkspace({
   const person = edit && edit !== "new" ? edit : null;
   const empty = { value: "", label: "Sin vincular" };
   const personFields: Field[] = [
-    { key: "full_name", label: "Nombre completo", section: 'Datos personales' },
-    {
-      key: "email",
-      label: "Correo de contacto",
-      type: "email",
-      optional: true,
-      section: 'Datos personales',
-    },
+    { key: "full_name", label: "Nombre completo" },
+    { key: "email", label: "Correo de contacto", type: "email", optional: true },
+    { key: "job_title", label: "Cargo", optional: true },
     {
       key: "active", label: "Estado laboral", choices: [
         { value: "true", label: "Activo" }, { value: "false", label: "Inactivo" },
       ],
-      section: 'Datos personales',
     },
     {
       key: "started_on",
@@ -500,58 +493,59 @@ function PeopleWorkspace({
           size="wide"
         >
           <p className="form-note">
-            {['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso automáticamente. Si es nuevo, recibe una invitación con permiso de lectura; los accesos existentes conservan sus permisos.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
-            {person?' El estado laboral no revoca accesos existentes.':seedEmail?' El nombre y la foto se toman de su perfil personal; esta ficha agrega datos laborales.':''}
+            {person ? 'El estado laboral no modifica el acceso al panel.' : ['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso; los permisos existentes se conservan.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
           </p>
-          {!person&&members.find(member=>member.email===seedEmail)?.photo_url&&<PhotoViewer photo={members.find(member=>member.email===seedEmail)!.photo_url!} name={personDefaults.full_name}/>}
-          {(person||(dialogMember&&!dialogMember.removed_at))&&<div className={`person-identity-panel${person?'':' is-single'}`}>
-            <PersonPhotoField
-              key={person?String(person.id):`member-${dialogMember?.id}`}
-              photo={person?person.photo_url:dialogMember?.photo_url??null}
-              name={person?person.full_name:dialogMember?.full_name||dialogMember?.email||'Integrante'}
-              save={async value=>{
-                if(person){const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:value},'PATCH');await load();setEdit(result.collaborator);}
-                else if(dialogMember){await api<{member:{photo_url:string}}>(`/api/agency/members/${dialogMember.id}/photo`,{photo_url:value},'PATCH');await load();}
-              }}
-            />
-            {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section person-access-panel" aria-label="Acceso al panel">
-              <h3>Acceso al panel</h3>
-              <div className="person-access-body">
-                <p className="form-note"><span className={`team-access-status ${dialogMember.active?'is-active':'is-suspended'}`}>{dialogMember.active?'Acceso habilitado':'Acceso suspendido'}</span></p>
-                {accessDraft?<>
-                  <div className="ops-form-grid">
-                    <SelectCustom label="Permiso" choices={[...(role==='owner'?['owner']:[]),'admin','management','finance','sales','production','editor','viewer','collaborator'].map(v=>({value:v,label:teamRoleLabels[v]||v}))} value={accessDraft.role} onChange={value=>setAccessDraft(draft=>({...draft!,role:value}))}/>
-                    <SelectCustom label="Acceso" choices={[{value:'true',label:'Activo'},{value:'false',label:'Suspendido'}]} value={accessDraft.active} onChange={value=>setAccessDraft(draft=>({...draft!,active:value}))}/>
-                  </div>
-                  <p className="form-note">El permiso y el acceso se guardan junto con el perfil. Cambiar permisos o suspender cierra las sesiones de esta persona en esta empresa.</p>
-                  <div className="person-access-actions">
-                    {dialogMember.active!==false&&<button type="button" className="secondary" disabled={accessBusy} onClick={async()=>{setAccessBusy(true);try{const d=await api<{emailSent:boolean}>(`/api/agency/members/${dialogMember.id}/resend`,{});setNotice(d.emailSent?'Invitación enviada.':'El proveedor no pudo enviar el correo.');}catch(e){setError(message(e));}finally{setAccessBusy(false);}}}>Reenviar invitación</button>}
-                    <RemoveRecord kind="members" id={dialogMember.id} name={dialogMember.email} role={role} done={load}/>
-                  </div>
-                </>:<p className="form-note">Tu propio acceso se administra desde Mi perfil; el de otros dueños, desde Equipo.</p>}
-              </div>
-            </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} refresh={load}/>:null}
-          </div>}
-          <Editor
-            columns
-            fields={salaryView?personFields:personFields.filter(field=>!['compensation_amount','currency','payment_day','invoices_company'].includes(field.key))}
-            defaults={personDefaults}
-            save={async (v) => {
-              const result = await api<{access?:{status:string;emailSent?:boolean}}>(
-                `/api/agency/collaborators${person ? `/${person.id}` : ""}`,
-                {
-                  ...v,
-                  ...(person?{invoices_company: v.invoices_company === "true"}:{}),
-                  active: v.active === "true",
-                },
-                person ? "PATCH" : "POST",
-              );
-              if(accessDraft&&dialogMember)await api(`/api/agency/members/${dialogMember.id}`,{role:accessDraft.role,active:accessDraft.active==='true'},'PATCH');
-              await done();
-              if(result.access?.status==='suspended'){setNotice('Perfil guardado. Su acceso sigue suspendido; se administra desde Equipo.');return;}
-              setNotice(result.access?.status==='invited' ? result.access.emailSent ? 'Colaborador guardado. Acceso habilitado e invitación enviada.' : 'Colaborador guardado y acceso habilitado. No se pudo enviar el correo; puede entrar con Google usando el correo registrado.' : result.access?.status==='linked' ? 'Perfil guardado y acceso vinculado.' : result.access?.status==='needs_admin' ? 'Perfil guardado. Administración debe habilitar el acceso.' : 'Perfil guardado.');
-            }}
-          />
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.85fr)]">
+            <div className="min-w-0">
+              <Editor
+                columns
+                fields={salaryView?personFields:personFields.filter(field=>!['compensation_amount','currency','payment_day','invoices_company'].includes(field.key))}
+                defaults={personDefaults}
+                save={async (v) => {
+                  const result = await api<{access?:{status:string;emailSent?:boolean}}>(
+                    `/api/agency/collaborators${person ? `/${person.id}` : ""}`,
+                    {
+                      ...v,
+                      ...(person?{invoices_company: v.invoices_company === "true"}:{}),
+                      active: v.active === "true",
+                    },
+                    person ? "PATCH" : "POST",
+                  );
+                  if(accessDraft&&dialogMember)await api(`/api/agency/members/${dialogMember.id}`,{role:accessDraft.role,active:accessDraft.active==='true'},'PATCH');
+                  await done();
+                  if(result.access?.status==='suspended'){setNotice('Perfil guardado. Su acceso sigue suspendido; se administra desde Equipo.');return;}
+                  setNotice(result.access?.status==='invited' ? result.access.emailSent ? 'Colaborador guardado. Acceso habilitado e invitación enviada.' : 'Colaborador guardado y acceso habilitado. No se pudo enviar el correo; puede entrar con Google usando el correo registrado.' : result.access?.status==='linked' ? 'Perfil guardado y acceso vinculado.' : result.access?.status==='needs_admin' ? 'Perfil guardado. Administración debe habilitar el acceso.' : 'Perfil guardado.');
+                }}
+              />
+            </div>
+            {(person||(dialogMember&&!dialogMember.removed_at))&&<aside className="min-w-0 space-y-3">
+              <PersonPhotoField
+                key={person?String(person.id):`member-${dialogMember?.id}`}
+                photo={person?person.photo_url:dialogMember?.photo_url??null}
+                name={person?person.full_name:dialogMember?.full_name||dialogMember?.email||'Integrante'}
+                save={async value=>{
+                  if(person){const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:value},'PATCH');await load();setEdit(result.collaborator);}
+                  else if(dialogMember){await api<{member:{photo_url:string}}>(`/api/agency/members/${dialogMember.id}/photo`,{photo_url:value},'PATCH');await load();}
+                }}
+              />
+              {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section person-access-panel" aria-label="Acceso al panel">
+                <h3>Acceso al panel</h3>
+                <div className="person-access-body">
+                  {accessDraft?<>
+                    <div className="ops-form-grid">
+                      <SelectCustom label="Permiso" choices={[...(role==='owner'?['owner']:[]),'admin','management','finance','sales','production','editor','viewer','collaborator'].map(v=>({value:v,label:teamRoleLabels[v]||v}))} value={accessDraft.role} onChange={value=>setAccessDraft(draft=>({...draft!,role:value}))}/>
+                      <SelectCustom label="Estado de acceso" choices={[{value:'true',label:'Activo'},{value:'false',label:'Suspendido'}]} value={accessDraft.active} onChange={value=>setAccessDraft(draft=>({...draft!,active:value}))}/>
+                    </div>
+                    <p className="form-note">Cambiar el permiso o suspender el acceso cierra sus sesiones en esta empresa.</p>
+                    <div className="person-access-actions">
+                      {dialogMember.active!==false&&<button type="button" className="secondary" disabled={accessBusy} onClick={async()=>{setAccessBusy(true);try{const d=await api<{emailSent:boolean}>(`/api/agency/members/${dialogMember.id}/resend`,{});setNotice(d.emailSent?'Invitación enviada.':'El proveedor no pudo enviar el correo.');}catch(e){setError(message(e));}finally{setAccessBusy(false);}}}>Reenviar invitación</button>}
+                      <RemoveRecord kind="members" id={dialogMember.id} name={dialogMember.email} role={role} done={load}/>
+                    </div>
+                  </>:<p className="form-note">Tu propio acceso se administra desde Mi perfil; el de otros dueños, desde Equipo.</p>}
+                </div>
+              </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} refresh={load}/>:null}
+            </aside>}
+          </div>
         </Dialog>
       )}
       {permissionsOpen&&<PermissionsMatrix role={role} close={()=>setPermissionsOpen(false)}/>}
