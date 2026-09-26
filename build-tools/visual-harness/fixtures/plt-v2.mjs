@@ -72,7 +72,7 @@ const CAPABILITIES = [
   {label: 'Administrar clientes', description: 'Alta, edición, archivo y términos comerciales largos para probar el ajuste de línea sin recortes.', overrides: 0},
 ];
 
-const roleToggle = (label, checked) => h('label', {key: label, className: "relative flex items-center gap-2 whitespace-nowrap after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-['']"},
+const roleToggle = (label, checked) => h('label', {key: label, className: "relative flex min-h-11 items-center gap-2 whitespace-nowrap md:min-h-0 after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] max-md:after:content-none"},
   h(Switch, {checked, disabled: false, ariaLabel: label, onChange: noop}),
   h('span', {className: 'text-[11.5px] text-mute'}, label));
 

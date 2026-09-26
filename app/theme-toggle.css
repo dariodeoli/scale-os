@@ -4,3 +4,5 @@
 .login-page .login-card{position:relative}
 .login-theme-toggle{position:absolute;top:14px;right:14px;z-index:1;background:var(--surface-subtle);border-color:var(--line)}
 .login-theme-toggle:hover{background:var(--surface)}
+/* Acceso (#70): target táctil de 44 px en móvil para el toggle del login. */
+@media(max-width:760px){.login-theme-toggle{width:44px;min-width:44px;min-height:44px}}
