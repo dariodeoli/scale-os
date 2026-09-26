@@ -1,7 +1,8 @@
 "use client";
 import dynamic from 'next/dynamic';
+import {SectionLoading} from '../ui-v2';
 import type {User} from '../workspace-types';
-const ReportsWorkspace=dynamic(()=>import('../reports-workspace').then(m=>m.ReportsWorkspace));
+const ReportsWorkspace=dynamic(()=>import('../reports-workspace').then(m=>m.ReportsWorkspace),{loading:()=> <SectionLoading label="Cargando informes…"/>});
 
 // Informes mensuales.
 // Extraído de app/scale-workspace.tsx (issue #47): misma lógica y JSX.

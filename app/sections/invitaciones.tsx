@@ -1,8 +1,8 @@
 "use client";
 import dynamic from 'next/dynamic';
 import type {User} from '../workspace-types';
-import {PageHeader} from '../ui-v2';
-const InviteLinks=dynamic(()=>import('../invite-links').then(m=>m.InviteLinks));
+import {PageHeader,SectionLoading} from '../ui-v2';
+const InviteLinks=dynamic(()=>import('../invite-links').then(m=>m.InviteLinks),{loading:()=> <SectionLoading label="Cargando invitaciones…"/>});
 
 // Invitaciones y solicitudes de acceso.
 // Rediseño v2 (issue #46): la empresa real usa InviteLinks; la demo explica el alcance.

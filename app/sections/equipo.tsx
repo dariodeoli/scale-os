@@ -1,7 +1,8 @@
 "use client";
 import dynamic from 'next/dynamic';
+import {SectionLoading} from '../ui-v2';
 import type {User} from '../workspace-types';
-const OperationsWorkspace=dynamic(()=>import('../operations').then(m=>m.OperationsWorkspace));
+const OperationsWorkspace=dynamic(()=>import('../operations').then(m=>m.OperationsWorkspace),{loading:()=> <SectionLoading label="Cargando equipo…"/>});
 
 // Equipo (personas, accesos y remuneraciones).
 // Extraído de app/scale-workspace.tsx (issue #47): misma lógica y JSX, sin cambios.

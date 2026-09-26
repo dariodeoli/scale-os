@@ -27,8 +27,6 @@ const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
 import {WorkspacePresence} from './presence';
 import {CompanyCurrencyProvider} from './currency-provider';
-const InventoryWorkspace=dynamic(()=>import('./inventory-workspace').then(m=>m.InventoryWorkspace));
-const StudioWorkspace=dynamic(()=>import('./studio-workspace').then(m=>m.StudioWorkspace));
 const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 import {setDataScope, clearDataCache, dataFetch} from './data-cache';

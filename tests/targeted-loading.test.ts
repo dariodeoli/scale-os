@@ -58,6 +58,7 @@ test('navigation prefetch requires operational access and visible role, and scop
  for(const operationalAccess of [false,true])for(const visible of [false,true]){
   const run=execute(prefetch.getText(ast)+';return prefetchSection;',{
    operationalAccess,user:{id:'u',organization_id:'o',role:'viewer'},visibleModule:()=>visible,
+   sectionScope:()=>({}),scopeResources:()=>[],
    prefetchSectionData:(...args:unknown[])=>{calls.push(args);},
   });run('Equipo');
  }
@@ -77,6 +78,7 @@ test('Inventory prefetch follows inventory.view: every role warms it, unknown ro
   const calls:unknown[][]=[];
   const run=execute(prefetch.getText(ast)+';return prefetchSection;',{
    operationalAccess:true,user:{id:'u',organization_id:'o',role},visibleModule,roleCan,
+   sectionScope:()=>({}),scopeResources:()=>[],
    prefetchSectionData:(...args:unknown[])=>{calls.push(args);},
   });
   run('Inventario');

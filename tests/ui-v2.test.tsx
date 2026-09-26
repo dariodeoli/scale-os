@@ -4,7 +4,7 @@ import {test} from 'node:test';
 import {act,create} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
-const {CurrencyField,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,StateChip,ViewSwitch}=require('../app/ui-v2') as typeof import('../app/ui-v2');
+const {CurrencyField,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,SectionLoading,StateChip,ViewSwitch}=require('../app/ui-v2') as typeof import('../app/ui-v2');
 const plain=(node:any):string=>!node?'':typeof node==='string'?node:Array.isArray(node)?node.map(plain).join(''):plain(node.children);
 
 test('un solo chip de estado: tonos semánticos sobre el Badge compartido',async()=>{
@@ -41,6 +41,11 @@ test('KpiStrip y LoadingBlock: grilla responsive y carga anunciada sin inventar 
  assert.equal(String(carga.props['aria-busy']),'true');
  assert.equal(carga.props['aria-label'],'Cargando clientes…');
  assert(JSON.stringify(renderer.toJSON()).split('h-11 w-full rounded-xl').length-1===2,'los esqueletos acompañan la carga con el alto de fila del sistema');
+ // #67: el fallback de una sección lazy es el mismo esqueleto sobre el panel.
+ await act(async()=>{renderer=create(<SectionLoading label="Cargando inventario…"/>);});
+ const seccion=renderer.root.findByProps({role:'status'});
+ assert.equal(seccion.props['aria-label'],'Cargando inventario…','el fallback anuncia qué sección está cargando');
+ assert(JSON.stringify(renderer.toJSON()).includes('panel'),'el fallback usa la superficie del sistema');
 });
 
 console.log('PASS: primitivas v2 — un chip, un KPI y una carga sobre los objetos compartidos');

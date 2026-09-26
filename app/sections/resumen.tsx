@@ -5,11 +5,11 @@ import {ArrowUpRight} from 'lucide-react';
 import {ControlCenter} from '../control-center';
 import {WorkspaceGuide} from '../workspace-guide';
 import {statuses} from '../production-board';
-import {Kpi, KpiStrip, LoadingBlock, StateChip, type ChipTone} from '../ui-v2';
+import {Kpi, KpiStrip, LoadingBlock, SectionLoading, StateChip, type ChipTone} from '../ui-v2';
 import type {ComponentProps} from 'react';
 import type {Project,Summary,User,WorkOrder} from '../workspace-types';
-const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner));
-const InternalTasks=dynamic(()=>import('../work-history').then(m=>m.InternalTasks));
+const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner),{loading:()=> <SectionLoading label="Cargando el resumen…"/>});
+const InternalTasks=dynamic(()=>import('../work-history').then(m=>m.InternalTasks),{loading:()=> <SectionLoading label="Cargando el resumen…"/>});
 
 // Resumen / Panel (referencia #42, arquetipo dashboard).
 // Datos reales: control-center (comercial + financiero), summary del shell y

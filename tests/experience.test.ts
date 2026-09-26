@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync} from 'node:fs';
 import {currencyCodes,currencyChoices,validCurrency} from '../app/currencies';
 import {normalizeAmount,displayAmount} from '../app/amount-format';
 import {sectionPath,parentSection} from '../app/navigation';
@@ -14,4 +14,12 @@ assert(visibleModule('Invitaciones','management'),'Invitaciones sigue a members.
 const ui=workspaceSource();assert(ui.includes('productionView==="Tablero"'));assert(ui.includes('<DragOverlay>'));assert(ui.includes('onDragCancel'));assert(ui.includes('initialView={productionView}'));
 const pending=readFileSync('app/acceso-pendiente/page.tsx','utf8');assert(pending.includes('/api/invitations/status'));assert(!pending.includes('/api/agency/'));assert(pending.includes('clearInterval(timer)'));
 const landing=readFileSync('public/scale-os.html','utf8');assert(landing.includes('/core-api/api/public/contact'));assert(landing.includes('button.disabled=true'));assert(landing.includes('consent'));assert(landing.includes('https://sistema.scaleparaguay.com/demo'));
+// #67: cada sección lazy baja con su esqueleto (nada de pantalla en blanco en la
+// transición) y el shell no define workspaces que ya viven en las secciones.
+for(const file of readdirSync('app/sections')){
+ if(!file.endsWith('.tsx'))continue;
+ const source=readFileSync(`app/sections/${file}`,'utf8');
+ for(const line of source.split('\n'))if(line.includes('dynamic('))assert(line.includes('loading:'),`app/sections/${file}: el import dinámico declara su fallback de carga`);
+}
+assert(!ui.includes("dynamic(()=>import('./inventory-workspace')")&&!ui.includes("dynamic(()=>import('./studio-workspace')"),'el shell no define workspaces muertos (los montan las secciones)');
 console.log('PASS: international amount entry, grouped permissions, production view/drag overlay, restricted waiting screen and landing form');

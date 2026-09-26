@@ -74,6 +74,15 @@ export function LoadingBlock({label = 'Cargando…', lines = 3, className}: {lab
   </div>;
 }
 
+/**
+ * Fallback de una sección lazy (chunk de `next/dynamic` en camino): el mismo
+ * esqueleto del sistema sobre el panel de la sección, para que la navegación
+ * muestre progreso en vez de pantalla en blanco (ronda 14, #67).
+ */
+export function SectionLoading({label = 'Cargando la sección…', lines = 4}: {label?: string; lines?: number}) {
+  return <div className="ops-stack"><section className="panel"><LoadingBlock label={label} lines={lines}/></section></div>;
+}
+
 /** Superficie común de los estados de panel v2. */
 const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4';
 
