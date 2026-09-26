@@ -166,7 +166,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
    </Card>
    {exportError?<Aviso tono="error">{exportError}</Aviso>:null}
    {partial?<Nota tono="warn">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
-   {rows.length?<Card className="grid gap-2 p-3 sm:p-4">
+   {rows.length?<Card className="grid grid-cols-1 gap-2 p-3 sm:p-4">
     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Comparativa del período visible contra el anterior</h3>
     <p className="text-xs text-mute">Período visible: {monthRangeLabel(comparison!.currentStart, comparison!.currentEnd)} · período anterior: {comparison!.previousStart&&comparison!.previousEnd?monthRangeLabel(comparison!.previousStart, comparison!.previousEnd):'sin período anterior disponible'} ({months} meses por período).</p>
     {comparison!.available?<DataTable
@@ -194,7 +194,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
     </div>
     <p className="text-xs text-mute">La distribución de planes muestra clientes activos, no nuevas contrataciones. “Sin clasificar” y “Sin plan registrado” identifican datos desconocidos, no categorías supuestas.</p>
    </>}
-   <Card className="grid gap-3 p-3 sm:p-4">
+   <Card className="grid grid-cols-1 gap-3 p-3 sm:p-4">
     <div className="flex flex-wrap items-baseline justify-between gap-1"><h3 className="text-sm font-semibold text-fore">Evolución mensual · {selectedCurrency||'sin moneda disponible'}</h3><p className="text-xs text-mute">“Sin datos” no significa cero.</p></div>
     <DataTable
      columns={[
