@@ -6,6 +6,9 @@ FROM base AS dependencies
 # `git` es necesario para resolver la dependencia git `owncoding-ui` con npm ci.
 RUN apk add --no-cache libc6-compat git
 COPY package*.json ./
+# El `postinstall` raíz parchea el CSS de owncoding-ui; el script debe existir
+# antes de `npm ci` porque esta etapa solo copia los manifiestos (Refs #75).
+COPY build-tools/patch-owncoding-css.mjs build-tools/patch-owncoding-css.mjs
 RUN npm ci --include=dev
 
 FROM base AS build
