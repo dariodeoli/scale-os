@@ -44,7 +44,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
  const array=useFieldArray({control:form.control,name:'items'}),v=form.watch();
  const sections=useFieldArray({control:form.control,name:'sections'});
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
- useEffect(()=>{if(mode!=='plan')void Promise.all([api<{clients:QuoteClientOption[]}>('/api/agency/clients'),api<{records:QuotePlanRecord[]}>('/api/agency/plans')]).then(([c,p])=>{setClients(c.clients);setPlans(p.records.filter(x=>x.active!==false));}).catch(e=>setError(e instanceof Error?e.message:'No se pudieron cargar los planes'));},[mode]);
+ useEffect(()=>{if(mode!=='plan')void Promise.all([api<{clients:QuoteClientOption[]}>('/api/agency/clients?fields=id,name'),api<{records:QuotePlanRecord[]}>('/api/agency/plans')]).then(([c,p])=>{setClients(c.clients);setPlans(p.records.filter(x=>x.active!==false));}).catch(e=>setError(e instanceof Error?e.message:'No se pudieron cargar los planes'));},[mode]);
  const {subtotal,total}=quoteTotals(v.items,v.tax_rate);
  // dnd-kit anuncia en inglés por defecto; el compositor habla castellano y
  // recuerda la alternativa por botones (#60).

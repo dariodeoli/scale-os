@@ -15,12 +15,13 @@ require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports
  useDialogPending:(pending:boolean)=>{pendingStates.push(pending);},
 }} as NodeModule;
 const writes:{path:string;body:unknown;method:string}[]=[];
+const reads:string[]=[];
 let rejectWrite=false,releaseWrite:(()=>void)|undefined;
 const operationsPath=require.resolve('../app/operations');
 require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{
  money:(value:number,currency:string)=>`${currency} ${value}`,
  api:async(path:string,body?:unknown,method='POST')=>{
-  if(body===undefined)return path.endsWith('/clients')?{clients:[{id:'10',name:'Cliente de prueba'}]}:{records:[]};
+  if(body===undefined){reads.push(path);return /\/clients(\?|$)/.test(path)?{clients:[{id:'10',name:'Cliente de prueba'}]}:{records:[]};}
   writes.push({path,body,method});await new Promise<void>(resolve=>{releaseWrite=resolve;});
   if(rejectWrite)throw new Error('No se pudo guardar la propuesta');
   return {};
@@ -97,6 +98,8 @@ async function run(){
   assert.equal(writes.length,beforeReorder+1,'el reordenar no dispara escrituras extra');
   assert.deepEqual((writes.at(-1)!.body as {items:{description:string}[]}).items.map(item=>item.description),['Segundo','Primero'],'el orden guardado es el reordenado');
   act(()=>button('Cancelar').props.onClick());assert.equal(reorderClosed,1);act(()=>renderer.unmount());
+  // La lista de clientes del compositor pide solo id+name (#67).
+  assert(reads.includes('/api/agency/clients?fields=id,name'),'el compositor adopta la proyección ?fields=id,name');
   console.log('PASS: QuoteComposer create/budget/plan real form validation and SaveActions; pending through API + completion, disabled cancellation, retained save error/draft, retry, idle missing-client dismissal, item reorder persisted. API, drag/portal controls mocked; no HTTP/browser.');
  }finally{globalThis.fetch=originalFetch;act(()=>renderer?.unmount());}
 }
