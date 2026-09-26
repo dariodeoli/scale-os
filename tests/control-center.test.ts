@@ -48,7 +48,8 @@ assert.equal(new Set(navModules).size,navModules.length,'cada módulo vive en un
 for(const [label] of sections)if(['Mora','Previsión','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'].includes(label))continue;else assert(navModules.includes(label),`${label} sigue siendo un módulo del menú`);
 for(const apartado of ['Mora','Previsión','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'])assert(!navModules.includes(apartado),`${apartado} es apartado de su módulo, nunca ítem del menú`);
 assert.equal(moduleNavGroup(parentSection('Mora')),'Finanzas');assert.equal(moduleNavGroup(parentSection('Métricas')),'Flujo');assert.equal(moduleNavGroup('Estudio'),'Recursos','Estudio vive en Recursos (agenda de espacios y equipos)');assert.equal(moduleNavGroup(parentSection('Papelera')),'Configuración');assert.equal(moduleNavGroup(parentSection('Invitaciones')),'Recursos');
-assert.deepEqual(navGroups.find(([group])=>group==='Recursos')[1],['Inventario','Estudio','Equipo'],'Recursos agrupa los dos reservables y después Equipo (refine OPS #70)');
+const recursos=navGroups.find(([group])=>group==='Recursos');
+assert(recursos&&recursos[1].join(',')==='Inventario,Estudio,Equipo','Recursos agrupa los dos reservables y después Equipo (refine OPS #70)');
 assert.equal(moduleNavGroup('Sin acceso'),'','fuera del nav no hay grupo activo');
 assert(ui.indexOf('<ControlCenter')<ui.indexOf('className="metrics operational-metrics"'));assert(ui.indexOf('className="metrics operational-metrics"')<ui.indexOf('id="produccion"'));
 const css=readFileSync(new URL('../app/control-center.css',import.meta.url),'utf8');assert(!/#[0-9a-f]{3,8}\b/i.test(css),'new stylesheet uses color tokens');

@@ -256,6 +256,11 @@ Configuración.
 
 - Acordeón: se expande el grupo del módulo activo y uno solo por vez; el ítem
   activo marca al grupo padre (pill + barra dorada) y a su módulo (hoja).
+- El **encabezado de un grupo multi-módulo navega a su primer módulo** cuando el
+  grupo no es el activo (Flujo → Pipeline, Recursos → Inventario, Finanzas →
+  Finanzas) y queda expandido con el ítem activo marcado para elegir el resto
+  con un clic; el grupo activo conserva expandir/contraer (issue #72). En el
+  drawer móvil, navegar desde el encabezado cierra el menú.
 - Riel colapsado: un ícono por grupo con `title` (el grupo activo suma el
   módulo: “Flujo · Clientes”); los grupos de un solo módulo y el riel colapsado
   navegan directo, sin hojas.

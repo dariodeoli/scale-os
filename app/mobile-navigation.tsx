@@ -17,7 +17,7 @@ function MobileDrawer({id,close,children}:{id:string;close:()=>void;children:Rea
  return createPortal(<div className="mobile-sidebar-backdrop fixed inset-0 z-40 grid bg-black/50 motion-reduce:transition-none" onClick={event=>{if(event.target===event.currentTarget)close();}}>
   <section id={id} className="mobile-sidebar flex h-[100dvh] w-72 max-w-[85vw] flex-col gap-3 overflow-y-auto bg-ink-800 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl [&_a]:no-underline [&_.mobile-sidebar-brand]:flex [&_.mobile-sidebar-brand]:items-center [&_.mobile-sidebar-brand]:pb-1" ref={panel} role="dialog" aria-modal="true" aria-label="Menú de Scale OS" tabIndex={-1}>
    <div className="mobile-sidebar-heading sticky -top-4 z-10 -mx-4 flex items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 pb-3 pt-4 backdrop-blur"><strong className="text-sm font-semibold text-fore">Menú principal</strong><button type="button" className="icon-button !h-11 !w-11" title="Cerrar menú" onClick={close} aria-label="Cerrar menú"><X size={20}/></button></div>
-   <div className="mobile-sidebar-body grid min-h-0 content-start gap-1 [&_a]:min-h-11 [&_button]:min-h-11" onClick={event=>{if((event.target as HTMLElement).closest('a[href]'))close();}}>{children}</div>
+   <div className="mobile-sidebar-body grid min-h-0 content-start gap-1 [&_a]:min-h-11 [&_button]:min-h-11" onClick={event=>{if((event.target as HTMLElement).closest('a[href],[data-nav-navigate]'))close();}}>{children}</div>
   </section>
  </div>,document.body);
 }
