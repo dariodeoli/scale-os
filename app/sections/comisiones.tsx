@@ -178,7 +178,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               <div className="min-w-0 text-right"><MoneyText valor={row.pending_amount} currency={row.currency}/></div>
             </ListRow>)}
           </ListGrid>
-          : <EmptyBlock compact title="Sin comisiones ni acuerdos comerciales para este mes." description="Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada)."/>}
+          : <EmptyBlock compact title="Sin comisiones ni acuerdos comerciales para este mes." description="Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada)." action={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Registrar comisión</button> : undefined}/>}
       </section>
 
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-list-title">
@@ -234,7 +234,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               </div>
             </ListRow>)}
           </ListGrid>
-          : <EmptyBlock compact title="Todavía no hay descuentos registrados." description="Aplicá un descuento cuando el saldo de una factura se ajuste por una recomendación."/>}
+          : <EmptyBlock compact title="Todavía no hay descuentos registrados." description="Aplicá un descuento cuando el saldo de una factura se ajuste por una recomendación." action={canManage ? <button className="primary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : undefined}/>}
       </section>
 
       {canSeePayouts ? <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-payouts-title">
@@ -249,7 +249,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               <div className="min-w-0 text-right"><MoneyText valor={payout.amount} currency={payout.currency}/></div>
             </ListRow>)}
           </ListGrid>
-          : <EmptyBlock compact title="Todavía no hay egresos registrados." description="Al pagar una comisión o un sueldo, el egreso aparece acá con su cuenta."/>}
+          : <EmptyBlock compact title="Todavía no hay egresos registrados." description="Al pagar una comisión o un sueldo, el egreso aparece acá con su cuenta." action={commissions.some(item => item.status === 'approved') ? <button className="secondary" onClick={() => setFilter('approved')}>Ver comisiones por pagar</button> : undefined}/>}
       </section> : null}
     </>}
 
