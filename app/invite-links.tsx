@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useMemo,useState} from 'react';
+import {useEffect,useMemo,useRef,useState} from 'react';
 import {api,Editor} from './operations';
 import {teamRoleLabels} from './team-directory';
 import {dueTone,listDateShort} from './list-format';
@@ -27,6 +27,10 @@ function linkState(link:LinkRow){if(link.revoked_at)return{tone:'bad' as const,l
 export function InviteLinks({role}:{role:string}){
  const [links,setLinks]=useState<LinkRow[]>([]),[requests,setRequests]=useState<RequestRow[]>([]),[created,setCreated]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[copied,setCopied]=useState('');
  const [loading,setLoading]=useState(true);
+ // La tarjeta de creación vive arriba de la lista: el vacío de enlaces lleva
+ // hasta ella y enfoca el primer control (CTA contextual, #62).
+ const createCard=useRef<HTMLDivElement|null>(null);
+ const focusCreate=()=>{const card=createCard.current;card?.scrollIntoView({behavior:'smooth',block:'center'});card?.querySelector<HTMLButtonElement>('button.ops-select-trigger')?.focus();};
  async function load(){try{const [a,b]=await Promise.all([api<{links:LinkRow[]}>('/api/agency/invite-links'),api<{requests:RequestRow[]}>('/api/agency/access-requests')]);setLinks(a.links);setRequests(b.requests);setError('');}catch(e){setError(e instanceof Error?e.message:'No se pudo cargar la información de invitaciones.');}finally{setLoading(false);}}
  useEffect(()=>{void load();},[]);
  async function act(path:string,data:unknown,method='POST'){setBusy(true);try{await api(path,data,method);await load();}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar');}finally{setBusy(false);}}
@@ -68,7 +72,7 @@ export function InviteLinks({role}:{role:string}){
        </ListRow>;})}
      </ListGrid>}
    </div>
-   <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+   <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" ref={createCard}>
     <div className="min-w-0"><h3 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><Link2 size={18} aria-hidden="true"/> Crear enlace</h3><p className="mt-1 text-xs text-mute">Elegí el permiso y el tipo. El enlace vence a los 7 días o al primer uso, según el modo.</p></div>
     <Editor columns fields={[{key:'role',label:'Permiso del enlace',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))},{key:'mode',label:'Tipo de invitación',choices:[{value:'single',label:'Una persona · un solo uso'},{value:'approval',label:'Varias personas · requiere aprobación'}]}]} defaults={{role:'viewer',mode:'single'}} label="Generar enlace" save={async values=>{const result=await api<{url:string}>('/api/agency/invite-links',values);setCreated(result.url);setCopied('');await load();}}/>
     {created?<div role="status" className="grid gap-2 rounded-lg border border-ink-600 px-3 py-2"><label className="grid gap-1.5 text-xs text-mute">Enlace generado<input readOnly className="rounded-md border border-ink-600 bg-ink-900 px-3 py-2 font-mono text-xs text-fore" value={created} onFocus={e=>e.target.select()}/></label><button className="secondary" onClick={async()=>{try{await navigator.clipboard.writeText(created);setCopied(created);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={16} aria-hidden="true"/>{copied===created?'Copiado':'Copiar enlace'}</button></div>:null}
@@ -78,7 +82,7 @@ export function InviteLinks({role}:{role:string}){
      <div className="min-w-0"><h3 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><Link2 size={18} aria-hidden="true"/> Enlaces recientes</h3><p className="mt-1 text-xs text-mute">Los enlaces agotados o revocados se pueden eliminar; los que tuvieron ingresos conservan su historial.</p></div>
      <span className="whitespace-nowrap text-xs tabular-nums text-mute">{links.length} enlace{links.length===1?'':'s'}</span>
     </div>
-    {!links.length?<EmptyBlock compact title="Todavía no creaste enlaces" description="Generá uno cuando necesites sumar a alguien."/>:
+    {!links.length?<EmptyBlock compact title="Todavía no creaste enlaces" description="Generá uno cuando necesites sumar a alguien." action={<button type="button" className="secondary" onClick={focusCreate}>Generar enlace</button>}/>:
      <ListGrid label="Enlaces de invitación" template={LINKS_TEMPLATE} columns={LINKS_COLUMNS} minWidthClass="min-w-[56rem]">
       {links.map(link=>{const state=linkState(link);const joinedUsers=link.joined_users||[];const activity=`${link.click_count} clics · ${link.account_count} cuentas creadas · ${joinedUsers.length?`${joinedUsers.length} unidos`:'Nadie se unió todavía'}`;return <ListRow key={link.id} template={LINKS_TEMPLATE} className={ROW_DENSITY}>
        <strong className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={`${teamRoleLabels[link.role]||link.role} · ${link.mode==='single'?'Un solo uso':'Con aprobación'}`}>{teamRoleLabels[link.role]||link.role} · {link.mode==='single'?'Un solo uso':'Con aprobación'}</strong>

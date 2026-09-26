@@ -1,6 +1,7 @@
 "use client";
 // Catálogo comercial (cupones) del panel global.
 // Extraído de superadmin/page.tsx (issue #46): misma JSX y comportamiento.
+import {useRef} from "react";
 import {Ticket} from "lucide-react";
 import {formatPlatformMetric, type Coupon, type CouponDraft, type State} from "./model";
 import {StatusBadge, money} from "./model";
@@ -20,6 +21,8 @@ type PlatformCatalogProps = {
 };
 
 export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggleCoupon, createCoupon}: PlatformCatalogProps){
+  // El vacío de cupones lleva al formulario de creación que vive arriba.
+  const codeRef=useRef<HTMLInputElement|null>(null);
   return (
             <section className="platform-admin-section platform-admin-commercial">
               <div className="platform-admin-section-heading">
@@ -36,6 +39,7 @@ export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggl
                 <label>
                   Código
                   <input
+                    ref={codeRef}
                     value={coupon.code}
                     onChange={(event) =>
                       setCoupon({
@@ -124,7 +128,7 @@ export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggl
                   ))
                 ) : (
                   <li className="platform-admin-empty">
-                    No hay cupones para mostrar.
+                    <span>No hay cupones para mostrar.{writable&&<> <button type="button" className="text-button" onClick={()=>codeRef.current?.focus()}>Crear el primer cupón</button></>}</span>
                   </li>
                 )}
               </ul>
