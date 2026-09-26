@@ -36,7 +36,6 @@ import {request} from './workspace-request';
 import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,type ShellResource,type ShellScope} from './shell-data';
 import {prefetchSectionData} from './data-prefetch';
 import './control-center.css';
-import './production-focus.css';
 import {Dialog} from './dialog';
 import {completeSave} from './save-completion';
 import {ProjectComments, CompanySelector, money} from './operations';
