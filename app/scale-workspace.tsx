@@ -892,7 +892,7 @@ export default function Home() {
   // marca sobre superficie clara. Foco visible en ambos y sin subrayado.
   const NAV_ICON='nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition';
   const navItemClass=(active:boolean,tone:'rail'|'light')=>`${active?'active ':''}${RAIL_ITEM} ${tone==='rail'
-    ? `relative ${active?'bg-white/14 text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold':'text-white/75 hover:bg-white/8 hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`
+    ? `relative ${active?'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold':'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`
     : `${active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore'} focus-visible:ring-2 focus-visible:ring-fono/40`}`;
   const navIconClass=(active:boolean,tone:'rail'|'light')=>`${NAV_ICON} ${tone==='rail'?(active?'bg-white/20 text-white':'bg-white/10 text-white/80'):(active?'bg-fono/15 text-fono-light':'bg-ink-700 text-mute')}`;
   const sidebarContent=(tone:'rail'|'light')=><>
@@ -916,18 +916,22 @@ export default function Home() {
           ))}
           <button type="button" className={`nav-logout ${navItemClass(false,tone)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><span className={navIconClass(false,tone)}><LogOut size={16}/></span><span className="nav-label">Cerrar sesión</span></button>
         </nav>
-        <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t pt-3 ${tone==='rail'?'border-white/12':'border-ink-600'}`}>
+        <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t pt-3 ${tone==='rail'?'border-white/[0.12]':'border-ink-600'}`}>
           <div className="profile-footer min-w-0"><button className={`user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition ${tone==='rail'?'hover:bg-white/10':'hover:bg-ink-700'}`} aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
       </>;
   return (
-    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell min-[761px]:has-[>.desktop-sidebar.is-collapsed]:[&>.content]:!w-[calc(100%-60px)] ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
+    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
       <DesktopSidebar>
         <div className="sidebar-brand"><WorkspaceBrand/></div>
         {sidebarContent('rail')}
       </DesktopSidebar>
-      <section className="content flex min-h-dvh max-w-[1600px] min-w-0 flex-col min-[761px]:!w-[calc(100%-192px)]">
+      {/* El content ocupa el ancho restante por flex (`flex-1`), no por un
+          `width: calc(100% - riel)` atado a cada estado del riel: colapsar o
+          expandir el riel es una sola transición y el content se recalcula
+          solo, sin `max-width` que deje ancho sin usar (issue #61). */}
+      <section className="content flex min-h-dvh min-w-0 flex-1 flex-col">
         {demoWelcome&&user?.demo_owner_user_id&&<DemoWelcome close={()=>setDemoWelcome(false)}/>}
         {active==='Producción'&&productionView==='Tablero'&&productionFiltersDialogScope===preferenceScope&&productionFiltersDialogScope&&preferencesReady&&<Dialog title="Filtros guardados del tablero" close={()=>setProductionFiltersDialogScope('')}><div className="ops-stack">
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>

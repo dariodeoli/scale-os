@@ -564,8 +564,9 @@ const platformAccessPanel = `
 </section>`;
 
 /* ===================================================== 8. SHELL / SIDEBAR =
- * app/scale-workspace.tsx lines 953-984 (sidebarContent + shell) and
- * app/desktop-sidebar.tsx lines 10-13 (collapsed state).
+ * app/scale-workspace.tsx (sidebarContent + shell) y app/desktop-sidebar.tsx:
+ * un solo corte móvil/escritorio (`md`, 768 px), content por flex (sin calc ni
+ * max-width) y pie con un solo divisor (borde del `.sidebar-bottom`).
  * ========================================================================= */
 const navItems = [
   ['Resumen', false], ['Pipeline', false], ['Clientes', false], ['Presupuestos', false],
@@ -573,24 +574,30 @@ const navItems = [
   ['Finanzas', false], ['Informes', false], ['Equipo', false], ['Configuración', false],
 ];
 const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none no-underline transition hover:no-underline focus-visible:no-underline';
-const navLink = ([label, active], tone = 'rail') =>
-  `<a href="#" class="${RAIL_ITEM} ${tone === 'rail' ? (active ? 'active bg-white/15 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white') : (active ? 'active bg-fono/10 text-fono-light' : 'text-mute hover:bg-ink-700 hover:text-fore')}"${active ? ' aria-current="page"' : ''} title="${label}" aria-label="${label}">${svg(I.target, 18)}<span class="nav-label min-w-0 break-words">${label}</span></a>`;
+const navLink = ([label, active], tone = 'rail') => {
+  const item = `${active ? 'active ' : ''}${RAIL_ITEM} ${tone === 'rail'
+    ? `relative ${active ? 'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold' : 'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`
+    : `${active ? 'bg-fono/10 text-fono-light' : 'text-mute hover:bg-ink-700 hover:text-fore'} focus-visible:ring-2 focus-visible:ring-fono/40`}`;
+  const icon = `nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition ${tone === 'rail' ? (active ? 'bg-white/20 text-white' : 'bg-white/10 text-white/80') : (active ? 'bg-fono/15 text-fono-light' : 'bg-ink-700 text-mute')}`;
+  return `<a href="#" class="${item}"${active ? ' aria-current="page"' : ''} title="${label}" aria-label="${label}"><span class="${icon}">${svg(I.target, 16)}</span><span class="nav-label min-w-0 break-words">${label}</span></a>`;
+};
 
-const RAIL_COLLAPSED='is-collapsed p-2 min-[761px]:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.person-container-details]:hidden [&_.mobile-sidebar-brand]:justify-center [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:!px-0 [&_nav>a]:h-11 [&_nav>a]:w-11 [&_nav>a]:justify-center [&_nav>a]:!px-0 [&_nav>button]:h-11 [&_nav>button]:w-11 [&_nav>button]:justify-center [&_nav>button]:!px-0 [&_.profile-footer]:justify-items-center [&_.user]:!m-0 [&_.user]:!border-0 [&_.user]:!p-0 [&_.user]:justify-center [&_.user_.person-container]:justify-center';
+const RAIL_COLLAPSED='is-collapsed p-2 md:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.person-container-details]:hidden [&_.mobile-sidebar-brand]:justify-center [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:!px-0 [&_nav>a]:h-11 [&_nav>a]:w-11 [&_nav>a]:justify-center [&_nav>a]:!px-0 [&_nav>button]:h-11 [&_nav>button]:w-11 [&_nav>button]:justify-center [&_nav>button]:!px-0 [&_.profile-footer]:justify-items-center [&_.user]:!m-0 [&_.user]:!border-0 [&_.user]:!p-0 [&_.user]:justify-center [&_.user_.person-container]:justify-center';
+const sidebarBrand = `<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span>`;
 const sidebar = ({collapsed = false, active = 'Resumen'} = {}) => `
-<aside class="desktop-sidebar hidden shrink-0 flex-col overflow-hidden border-r border-white/10 text-white/80 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:!px-3 [&_.sidebar-brand]:!pb-2 min-[761px]:sticky min-[761px]:top-0 min-[761px]:flex min-[761px]:h-dvh min-[761px]:transition-[width] min-[761px]:duration-200 min-[761px]:ease-out motion-reduce:!transition-none ${collapsed ? RAIL_COLLAPSED : 'p-3 min-[761px]:!w-48'}">
- <div class="flex pb-1 ${collapsed ? 'justify-center' : 'justify-end'}"><button type="button" class="sidebar-collapse grid h-11 w-11 place-items-center rounded-lg text-white/70 transition hover:bg-white/10 hover:text-white" aria-label="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" title="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" aria-expanded="${collapsed ? 'false' : 'true'}">${collapsed ? svg(I.panelLeftOpen, 18) : svg(I.panelLeftClose, 18)}</button></div>
- <div class="sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
- <div class="mobile-sidebar-brand"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
- <p class="nav-caption mt-1 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
- <nav aria-label="Menú principal" class="grid gap-1 [&_a]:no-underline min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">${navItems.map((item) => navLink([item[0], item[0] === active || item[1]])).join('')}<button type="button" class="nav-logout  text-white/80 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
- <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-white/15 pt-3"><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-lg text-left transition hover:bg-white/10" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
+<aside class="desktop-sidebar hidden shrink-0 flex-col overflow-hidden border-r border-white/10 text-white/80 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:!px-3 [&_.sidebar-brand]:!pb-2 md:sticky md:top-0 md:flex md:h-dvh md:transition-[width] md:duration-200 md:ease-out motion-reduce:!transition-none ${collapsed ? RAIL_COLLAPSED : 'p-3 md:!w-48'}">
+ <div class="flex shrink-0 pb-1 ${collapsed ? 'justify-center' : 'justify-end'}"><button type="button" class="sidebar-collapse grid h-11 w-11 place-items-center rounded-lg text-white/70 transition hover:bg-white/10 hover:text-white" aria-label="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" title="${collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}" aria-expanded="${collapsed ? 'false' : 'true'}">${collapsed ? svg(I.panelLeftOpen, 18) : svg(I.panelLeftClose, 18)}</button></div>
+ <div class="sidebar-brand">${sidebarBrand}</div>
+ <div class="mobile-sidebar-brand">${sidebarBrand}</div>
+ <p class="nav-caption mb-1 mt-2 px-3 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Espacio de trabajo</p>
+ <nav aria-label="Menú principal" class="grid gap-1 [&_a]:no-underline min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">${navItems.map((item) => navLink([item[0], item[0] === active || item[1]])).join('')}<button type="button" class="nav-logout ${RAIL_ITEM} text-white/75 hover:bg-white/[0.08] hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión"><span class="nav-icon grid size-7 shrink-0 place-items-center rounded-lg bg-white/10 text-white/80 transition">${svg(I.logout, 16)}</span><span class="nav-label">Cerrar sesión</span></button></nav>
+ <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t border-white/[0.12] pt-3"><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition hover:bg-white/10" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
 </aside>`;
 
 const workspaceShell = ({collapsed = false, active = 'Resumen', topbar: topbarHtml = '', content}) => `
-<main class="shell control-shell${collapsed ? ' min-[761px]:has-[>.desktop-sidebar.is-collapsed]:[&>.content]:!w-[calc(100%-60px)]' : ''}">
+<main class="shell control-shell">
  ${sidebar({collapsed, active})}
- <section class="content flex min-h-dvh max-w-[1600px] min-w-0 flex-col min-[761px]:!w-[calc(100%-192px)]">${topbarHtml}<div class="flex min-w-0 flex-1 flex-col px-4 pb-8 pt-5 md:px-6 lg:px-8 xl:px-12">${content}</div></section>
+ <section class="content flex min-h-dvh min-w-0 flex-1 flex-col">${topbarHtml}<div class="flex min-w-0 flex-1 flex-col px-4 pb-8 pt-5 md:px-6 lg:px-8 xl:px-12">${content}</div></section>
 </main>`;
 
 /* ==================================================== 9. TOPBAR / MOBILE ==

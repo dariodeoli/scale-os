@@ -27,7 +27,9 @@ export function MobileNavigation({children}:{children:ReactNode}){
  const [open,setOpen]=useState(false),pathname=usePathname(),id=useId();
  useEffect(()=>{setOpen(false);},[pathname]);
  useEffect(()=>{
-  const desktop=window.matchMedia('(min-width: 761px)');
+  // El corte es el mismo del marco: `md` (768 px) muestra el riel y oculta el
+  // trigger (`max-md:`); al cruzar a escritorio el drawer se cierra.
+  const desktop=window.matchMedia('(min-width: 768px)');
   const resized=()=>{if(desktop.matches)setOpen(false);};
   desktop.addEventListener('change',resized);
   return()=>desktop.removeEventListener('change',resized);

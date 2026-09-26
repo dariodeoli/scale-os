@@ -20,8 +20,8 @@ export default {
 ```
 
 - `kind: 'workspace'` envuelve el body en el shell real (`main.shell.control-shell`
-  con el riel v2 `.desktop-sidebar` —oculto ≤760 y `min-[761px]:!w-48`— y
-  `section.content min-[761px]:!w-[calc(100%-192px)]`) para que los anchos de
+  con el riel v2 `.desktop-sidebar` —oculto bajo `md` (768 px) y `md:!w-48`— y
+  `section.content flex-1`, sin `calc` ni `max-width`) para que los anchos de
   contenido sean los de la app. `plain` no envuelve (auth, portal, landing,
   primitivas).
 - `kind: 'external'` sirve un documento real del repo y lo instrumenta:

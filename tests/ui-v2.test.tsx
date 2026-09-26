@@ -4,7 +4,7 @@ import {test} from 'node:test';
 import {act,create} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
-const {CurrencyField,EmptyBlock,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,StateChip,ViewSwitch}=require('../app/ui-v2') as typeof import('../app/ui-v2');
+const {CurrencyField,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,StateChip,ViewSwitch}=require('../app/ui-v2') as typeof import('../app/ui-v2');
 const plain=(node:any):string=>!node?'':typeof node==='string'?node:Array.isArray(node)?node.map(plain).join(''):plain(node.children);
 
 test('un solo chip de estado: tonos semánticos sobre el Badge compartido',async()=>{
@@ -58,6 +58,27 @@ test('dinero, moneda y vista v2 usan las seis monedas y targets de 44 px',async(
  await act(async()=>{renderer=create(<ViewSwitch value="list" onChange={()=>{}}/>);});
  const view=JSON.stringify(renderer.toJSON());
  assert(view.includes('h-11')&&view.includes('w-11'),'el selector de vista conserva targets de 44 px');
+});
+
+test('tablas densas y vacíos: acciones fijas y CTA contextual en las primitivas v2',async()=>{
+ let renderer:any;
+ const template='grid-cols-[minmax(11rem,1.6fr)_8rem_12rem]';
+ const columns=[{key:'name',label:'Cliente'},{key:'state',label:'Estado'},{key:'actions',label:'Acciones'}];
+ await act(async()=>{renderer=create(<ListGrid label="Clientes" template={template} columns={columns} pinnedActions><ListRow template={template}><span>Estudio</span><span>Activo</span><ListActions><button>Editar</button></ListActions></ListRow></ListGrid>);});
+ const list=JSON.stringify(renderer.toJSON());
+ assert(list.includes('list-row'),'la fila declara la clase del patrón de tabla densa');
+ assert(list.includes('list-actions'),'la celda de acciones se fija al borde del scroll');
+ assert(list.includes('list-actions-head'),'el encabezado de acciones se fija con la misma pista');
+ assert.equal(renderer.root.findByProps({role:'cell'}).props.className.includes('list-actions'),true,'la celda conserva su rol de tabla');
+ await act(async()=>{renderer=create(<ListGrid label="Clientes" template={template} columns={columns}><ListRow template={template}><span>Estudio</span><span>Activo</span><span>Editar</span></ListRow></ListGrid>);});
+ assert(!JSON.stringify(renderer.toJSON()).includes('list-actions-head'),'sin pinnedActions el encabezado no se fija (no se crean columnas fantasma)');
+
+ let clicks=0;
+ await act(async()=>{renderer=create(<EmptyBlock title="Sin cuentas" description="Registrá la primera cuenta de la empresa" action={<EmptyCta label="Registrar primera cuenta" onClick={()=>{clicks+=1;}}/>}/>);});
+ assert(plain(renderer.toJSON()).includes('Registrar primera cuenta'),'el vacío muestra el CTA contextual');
+ assert(String(renderer.root.findByType('button').props.className).includes('primary'),'el CTA de vacío es el botón primario compartido');
+ await act(async()=>{renderer.root.findByType('button').props.onClick();});
+ assert.equal(clicks,1,'el CTA dispara la acción');
 });
 
 test('patrones v2: encabezado, toolbar, lista y estados salen de una sola pieza',async()=>{

@@ -80,11 +80,24 @@ const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0
 /**
  * Vacío de panel: `EmptyState` de la librería sobre la superficie v2 y con
  * aviso accesible (`role="status"`). No inventa datos ni métricas.
+ * El `action` es el CTA contextual del patrón de estados vacíos (ronda 14):
+ * cuando el rol puede crear el dato, se pasa un `EmptyCta` con el texto que
+ * nombra la acción concreta ("Registrar primera cuenta"), nunca un "Crear"
+ * genérico ni un vacío mudo.
  */
 export function EmptyBlock({title, description, action, icon, compact = false, className}: {title: string; description?: ReactNode; action?: ReactNode; icon?: string; compact?: boolean; className?: string}) {
   return <div role="status" className={`${STATE_SURFACE} ${className ?? ''}`}>
     <EmptyState title={title} description={description} action={action} icon={icon} compact={compact}/>
   </div>;
+}
+
+/**
+ * CTA canónico de un estado vacío: botón primario con label contextual.
+ * Es la única forma de dibujar la llamada a la acción de un `EmptyBlock`
+ * (mismo objeto, mismo target de 44 px en móvil y mismo texto sobre marca).
+ */
+export function EmptyCta({label, onClick, icon, className}: {label: string; onClick: () => void; icon?: ReactNode; className?: string}) {
+  return <button type="button" className={`primary ${className ?? ''}`} onClick={onClick}>{icon}{label}</button>;
 }
 
 /** Error de panel con reintento: `ErrorState` de la librería, anunciado como alerta. */
@@ -127,13 +140,17 @@ export function FilterToolbar({children, summary, className}: {children: ReactNo
  * plantilla (`template`, p. ej. `grid-cols-[minmax(11rem,1.6fr)_minmax(9rem,1.15fr)_7rem_auto]`).
  * En mobile conserva las columnas y el contenedor scrollea en silencio, sin
  * colapsar celdas ni cortar montos, fechas o códigos.
+ * `pinnedActions` fija la última columna (la de acciones) al borde derecho del
+ * scroll: el encabezado y las celdas de `ListActions` quedan siempre a la
+ * vista, mientras el resto de las columnas se desliza (patrón de tablas
+ * densas de la ronda 14). Se usa junto con la `ListActions` de cada fila.
  */
-export function ListGrid({label, template, columns, children, minWidthClass = 'min-w-[48rem]', className}: {label: string; template: string; columns: Column[]; children: ReactNode; minWidthClass?: string; className?: string}) {
+export function ListGrid({label, template, columns, children, minWidthClass = 'min-w-[48rem]', pinnedActions = false, className}: {label: string; template: string; columns: Column[]; children: ReactNode; minWidthClass?: string; pinnedActions?: boolean; className?: string}) {
   return <div role="table" aria-label={label} className={`silent-scroll min-w-0 overflow-x-auto ${className ?? ''}`}>
     <div className={minWidthClass}>
       <div role="row" className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`}>
         {columns.map((column, index) => (
-          <span key={column.key} role="columnheader" className={`${index === columns.length - 1 ? 'text-right' : ALIGN[column.align ?? 'start']} whitespace-nowrap`}>{column.label}</span>
+          <span key={column.key} role="columnheader" className={`${index === columns.length - 1 ? 'text-right' : ALIGN[column.align ?? 'start']} whitespace-nowrap ${pinnedActions && index === columns.length - 1 ? 'list-actions-head' : ''}`}>{column.label}</span>
         ))}
       </div>
       <div role="rowgroup">{children}</div>
@@ -143,5 +160,15 @@ export function ListGrid({label, template, columns, children, minWidthClass = 'm
 
 /** Fila finita v2: misma plantilla que el encabezado; una celda sin dato reserva su lugar. */
 export function ListRow({template, className, children, ...props}: {template: string; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  return <div role="row" {...props} className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{children}</div>;
+  return <div role="row" {...props} className={`list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{children}</div>;
+}
+
+/**
+ * Celda de acciones fija del patrón de tablas densas (ronda 14): se pega al
+ * borde derecho del scroll silencioso (`.list-actions`), así las acciones
+ * nunca dependen del scroll horizontal. Va en la última celda de cada
+ * `ListRow`, con `pinnedActions` en el `ListGrid` para fijar su encabezado.
+ */
+export function ListActions({children, className}: {children: ReactNode; className?: string}) {
+  return <div role="cell" className={`list-actions ${className ?? ''}`}>{children}</div>;
 }

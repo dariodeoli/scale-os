@@ -11,6 +11,30 @@ assert.equal(tokens['--ui-control-height'],'40px');
 assert(css.includes('--ui-control-height:44px'));
 function luminance(hex){const c=hex.replace('#','').match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return c[0]*.2126+c[1]*.7152+c[2]*.0722;}
 for(const background of ['#ffffff','#fbfafc']){const light=luminance(background),dark=luminance(resolveToken(tokens['--ui-field-border']));assert((light+.05)/(dark+.05)>=3,'input boundaries need sufficient contrast');}
+
+// CTA primario (ronda 14, ítem 8): un solo texto sobre marca y AA en ambos temas.
+const themeVars=(file,selector)=>{const out={};postcss.parse(readFileSync(file,'utf8')).walkRules(rule=>{if(!rule.selectors?.includes(selector))return;rule.walkDecls(d=>{out[d.prop]=d.value;});});return out;};
+const rgbOf=value=>{const hex=String(value).trim().match(/^#([0-9a-f]{6})$/i);if(hex)return [0,2,4].map(i=>parseInt(hex[1].slice(i,i+2),16));const match=String(value).match(/(\d+)\s+(\d+)\s+(\d+)/);if(!match)throw Error(`color esperado, llegó ${value}`);return match.slice(1,4).map(Number);};
+const lumChannels=([r,g,b])=>{const f=v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4;};return .2126*f(r)+.7152*f(g)+.0722*f(b);};
+const ratioFor=(a,b)=>{const la=lumChannels(rgbOf(a)),lb=lumChannels(rgbOf(b));return (Math.max(la,lb)+.05)/(Math.min(la,lb)+.05);};
+const lightFoundation=themeVars('app/globals.css',':root'),darkFoundation=themeVars('app/globals.css','html[data-theme="dark"]');
+const lightBrand=themeVars('app/tailwind.css',':root'),darkBrand=themeVars('app/tailwind.css','html[data-theme="dark"]');
+assert(css.includes('color:rgb(var(--c-onbrand))'),'el botón primario declara su texto con el token de marca (no lo hereda)');
+for(const [theme,foundation,brand] of [['claro',lightFoundation,lightBrand],['oscuro',darkFoundation,darkBrand]]){
+ const onbrand=`rgb(${brand['--c-onbrand']})`;
+ for(const token of ['--interactive','--interactive-hover']){
+  const ratio=ratioFor(foundation[token],onbrand);
+  assert(ratio>=4.5,`el CTA primario en ${theme} (${token}) necesita AA: ${ratio.toFixed(2)}:1`);
+ }
+}
+console.log('PASS CTA primario: un texto de marca, AA en claro y oscuro (14.07:1 / 5.30:1 y hover 10.66:1 / 7.07:1)');
+
+// Tabla densa responsive (ronda 14, ítem 1): columna de acciones fija.
+assert(css.includes('.list-actions-head,')&&css.includes('.list-actions{position:sticky;right:0'),'la columna de acciones se fija al borde derecho del scroll');
+assert(css.includes('--list-actions-bg'),'el fondo de la columna fija sale de una variable por superficie');
+assert(css.includes('.list-row:hover .list-actions'),'la columna fija acompaña el hover de la fila');
+console.log('PASS tabla densa: acciones fijas con fondo por superficie y hover de fila');
+
 assert(css.includes('.control-shell .panel .panel{padding:0;border:0;box-shadow:none}'));
 assert(css.includes('.control-shell :is(.ops-stack,.finance-grid)>.panel+.panel{margin-top:0}'));
 assert(css.includes('.control-shell .production-panel,.control-shell .production-focus{padding:0;border:0;background:transparent}'));
