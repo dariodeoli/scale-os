@@ -2,6 +2,19 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.129
+
+### Navegación
+
+- **Menú en 5 grupos**: Resumen · Flujo (Pipeline, Clientes, Presupuestos, Proyectos, Producción) · Recursos (Inventario, Equipo, Estudio) · Finanzas (Finanzas, Informes) · Configuración. Se despliega solo el grupo del módulo activo y el ítem activo marca también a su grupo; las rutas y los apartados (Métricas, Planes, Mora, Previsión, etc.) siguen igual.
+- **Riel colapsado más claro**: un ícono por grupo con tooltip que suma el módulo activo (“Flujo · Clientes”), sin hojas ni flechas; en el celular el drawer abre el grupo del módulo en el que estás.
+- **Guía del panel contextual**: deja de repetirse en cada página; queda como ayuda en la barra de utilidades y la tarjeta “Primeros pasos” sigue en Resumen.
+
+### Plataforma y acceso
+
+- **Acceso directo a la administración**: quien tiene `platform_role=admin` (validado por el servidor, sin correos fijos) ve “Administración de Scale” encima de su perfil y abre el panel global en pestaña nueva; el resto no lo ve. En el riel colapsado queda como ícono de 44 px con tooltip.
+- **Contrato verificado y documentado**: `/api/auth/me` expone `platform_role` (admin / viewer / ninguno) y el correo del dueño queda como admin inicial en cada arranque; otorgar o revocar desde Superadmin se refleja al siguiente refresco de identidad.
+
 ## v1.0.128
 
 ### Arranque y carga
