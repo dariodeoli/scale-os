@@ -2,11 +2,24 @@ import {attributeActors} from './actor-identity.js';
 import {roleCan} from './permissions.js';
 import {fail,text} from './suite-validation.js';
 import {visibleRecord} from './record-lifecycle.js';
-
-
+import {parseListFields,parseListLimit,limitRows,projectRows,aliasColumns} from './list-projection.js';
 
 
 const productionTypes=['video','podcast','ads','fotografia','streaming','otro'];
+
+// `?fields=` de espacios y reservas de Estudio (#71): lista blanca explícita.
+const spaceListFields=['id','name','scenario','notes','active','created_by_user_id','created_at','updated_at'];
+const spaceColumnSql={id:'r.id',name:'r.name',scenario:'r.scenario',notes:'r.notes',active:'r.active',created_by_user_id:'r.created_by_user_id',created_at:'r.created_at',updated_at:'r.updated_at'};
+const studioReservationListFields=['id','organization_id','space_id','project_id','title','production_type','starts_at','ends_at','status','notes','created_by_user_id','cancelled_at','cancelled_by_user_id','version','created_at','updated_at','space_name','space_scenario','project_name','responsible_members','actor_name','actor_photo_url','actor_user_id','actor_verified'];
+const studioReservationColumnSql=aliasColumns({
+ id:'r.id',organization_id:'r.organization_id',space_id:'r.space_id',project_id:'r.project_id',title:'r.title',production_type:'r.production_type',
+ starts_at:'r.starts_at',ends_at:'r.ends_at',status:'r.status',notes:'r.notes',created_by_user_id:'r.created_by_user_id',
+ cancelled_at:'r.cancelled_at',cancelled_by_user_id:'r.cancelled_by_user_id',version:'r.version',created_at:'r.created_at',updated_at:'r.updated_at',
+ space_name:'s.name',space_scenario:'s.scenario',project_name:'p.name',
+ responsible_members:`coalesce((select jsonb_agg(jsonb_build_object('id',m.user_id::text,'name',coalesce(nullif(up.full_name,''),u.email),'photo_url',up.photo_url) order by m.user_id)
+   from agency_studio_reservation_members m join users u on u.id=m.user_id left join agency_user_profiles up on up.user_id=m.user_id and up.organization_id=m.organization_id
+   where m.reservation_id=r.id and m.organization_id=r.organization_id),'[]')`,
+});
 
 const identifier=value=>{
  if(!['string','number'].includes(typeof value)||!/^\d{1,19}$/.test(String(value))||typeof value==='number'&&!Number.isSafeInteger(value))fail('Identificador inválido');
@@ -78,13 +91,20 @@ async function context(connection,organization,user){
   projects:canReserve?(await connection.query(`select p.id::text as id,p.name,coalesce(c.name,'') as client_name from agency_projects p join agency_clients c on c.id=p.client_id and c.organization_id=p.organization_id
    where p.organization_id=$1 and p.status='active' and c.active and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} order by c.name,p.name`,[organization])).rows:[]};
 }
-async function listSpaces(connection,organization){return (await connection.query('select * from agency_studio_spaces where organization_id=$1 order by active desc,name,id',[organization])).rows;}
-async function listReservations(connection,organization,from,to,id=null){
- return (await connection.query(`select r.*,s.name as space_name,s.scenario as space_scenario,p.name as project_name,
-  coalesce((select jsonb_agg(jsonb_build_object('id',m.user_id::text,'name',coalesce(nullif(up.full_name,''),u.email),'photo_url',up.photo_url) order by m.user_id)
-   from agency_studio_reservation_members m join users u on u.id=m.user_id left join agency_user_profiles up on up.user_id=m.user_id and up.organization_id=m.organization_id
-   where m.reservation_id=r.id and m.organization_id=r.organization_id),'[]') as responsible_members
-  from agency_studio_reservations r join agency_studio_spaces s on s.id=r.space_id and s.organization_id=r.organization_id
+async function listSpaces(connection,organization,fields=null){
+ const select=fields===null?'r.*':[...new Set(fields.map(field=>spaceColumnSql[field]).filter(Boolean))].join(', ');
+ return (await connection.query(`select ${select} from agency_studio_spaces r where r.organization_id=$1 order by r.active desc,r.name,r.id`,[organization])).rows;
+}
+function studioReservationSelect(fields){
+ if(fields===null)return `select r.*,${studioReservationColumnSql.space_name},${studioReservationColumnSql.space_scenario},${studioReservationColumnSql.project_name},${studioReservationColumnSql.responsible_members}`;
+ const wanted=new Set(fields);
+ // attributeActors resuelve identidad desde el id aunque no se pida.
+ wanted.add('created_by_user_id');
+ const expressions=[...new Set([...wanted].map(field=>studioReservationColumnSql[field]).filter(Boolean))];
+ return `select ${expressions.join(', ')}`;
+}
+async function listReservations(connection,organization,from,to,id=null,fields=null){
+ return (await connection.query(`${studioReservationSelect(fields)} from agency_studio_reservations r join agency_studio_spaces s on s.id=r.space_id and s.organization_id=r.organization_id
   left join agency_projects p on p.id=r.project_id and p.organization_id=r.organization_id
   where r.organization_id=$1 and ($4::bigint is null or r.id=$4)
    and ($4::bigint is not null or (r.starts_at<$3::timestamptz and r.ends_at>$2::timestamptz))
@@ -135,16 +155,28 @@ export async function studioReservations({req,res,url,db,session,body,send}){
   const organization=await authorize(connection,user,allowed,write);
   if(write)await connection.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket?.remoteAddress||'']);
   let result,status=200;
+  let studioProjection=null;
   if(kind==='studio-context'&&req.method==='GET'&&!id&&!action)result=await context(connection,organization,user);
   else if(kind==='studio-spaces'&&!action){
-   if(req.method==='GET'&&!id)result={spaces:await listSpaces(connection,organization)};
+   if(req.method==='GET'&&!id){
+    // `?fields=`/`?limit=` valen para la lista (#71).
+    const fields=parseListFields(url.searchParams.get('fields'),spaceListFields);
+    const limit=parseListLimit(url);
+    const limited=limitRows(projectRows(await listSpaces(connection,organization,fields),fields),limit);
+    result={spaces:limited.rows,...(limit!==null?{hasMore:limited.hasMore}:{})};
+   }
    else if((req.method==='POST'&&!id)||(req.method==='PATCH'&&id)){result={space:await saveSpace(connection,user,organization,id,await body(req))};status=id?200:201;}
    else fail('Método no permitido',405);
   }else if(kind==='studio-reservations'){
    if(req.method==='GET'&&!action){
     const from=studioTimestamp(url.searchParams.get('from')||new Date(Date.now()-31*86400000).toISOString()),to=studioTimestamp(url.searchParams.get('to')||new Date(Date.now()+62*86400000).toISOString());
     if(to<=from||new Date(to)-new Date(from)>366*86400000)fail('Elegí un intervalo de hasta 366 días');
-    const reservations=await listReservations(connection,organization,from,to,id);if(id&&!reservations.length)fail('Reserva de estudio no encontrada',404);result=id?{reservation:reservations[0]}:{reservations};
+    // `?fields=`/`?limit=` valen para la lista; el detalle puntual viaja completo.
+    const fields=id?null:parseListFields(url.searchParams.get('fields'),studioReservationListFields);
+    const limit=id?null:parseListLimit(url);
+    const reservations=await listReservations(connection,organization,from,to,id,fields);if(id&&!reservations.length)fail('Reserva de estudio no encontrada',404);
+    result=id?{reservation:reservations[0]}:{reservations,...(limit!==null?{hasMore:reservations.length>limit}:{})};
+    if(!id&&fields)studioProjection={fields,limit};
    }else if(!action&&((req.method==='POST'&&!id)||(req.method==='PATCH'&&id))){result={reservation:await saveReservation(connection,user,organization,await body(req),id)};status=id?200:201;}
    else if(req.method==='POST'&&!id&&action==='batch'){result=await batchCancelReservations(connection,user,organization,await body(req));}
    else if(req.method==='POST'&&id&&action==='cancel'){
@@ -154,6 +186,8 @@ export async function studioReservations({req,res,url,db,session,body,send}){
    }else fail('Método no permitido',405);
   }else fail('Método no permitido',405);
   await attributeActors(connection,organization,[{rows:result.reservations||result.reservation,userId:'created_by_user_id'}]);
+  // La lista proyectada se recorta después de atribuir actores (#71).
+  if(studioProjection&&result.reservations)result.reservations=limitRows(projectRows(result.reservations,studioProjection.fields),studioProjection.limit).rows;
   await connection.query('commit');transaction=false;send(res,status,result);
  }catch(error){
   if(transaction)await connection.query('rollback');

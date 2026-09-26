@@ -86,5 +86,23 @@ assert.deepEqual(await call('studio-reservations/batch','POST',{ids:[batchFirst.
 assert.deepEqual(await call('studio-reservations/batch','POST',{ids:[batchFirst.id,batchSecond.id],action:'cancel'},seller),{status:200,updated:0,cancelled:0,skipped:2},'el lote es idempotente');
 const batchListed=(await call('studio-reservations','GET',{},seller)).reservations.filter(row=>[String(batchFirst.id),String(batchSecond.id)].includes(String(row.id)));
 assert.equal(batchListed.length,2);assert.equal(batchListed.every(row=>row.status==='cancelled'),true,'las reservas quedan canceladas en el listado');
+// #71: `?fields=` (lista blanca) y `?limit=` en espacios y reservas, con equivalencia.
+const spacesFull=(await call('studio-spaces')).spaces;
+const spacesProjected=await call('studio-spaces?fields=id,name,scenario,active');
+assert.deepEqual(Object.keys(spacesProjected.spaces[0]).sort(),['active','id','name','scenario']);
+assert.equal(spacesProjected.spaces[0].name,spacesFull.find(space=>String(space.id)===String(spacesProjected.spaces[0].id)).name);
+assert.equal((await call('studio-spaces?fields=id,inexistente')).status,400);
+assert.equal((await call('studio-spaces?fields=')).status,400);
+const spacesWindow=await call('studio-spaces?limit=1&fields=id,name');
+assert.equal(spacesWindow.spaces.length,1);assert.equal(spacesWindow.hasMore,spacesFull.length>1);
+const reservationsFull=await call('studio-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z');
+const reservationsProjected=await call('studio-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z&fields=id,space_name,title,starts_at,status,responsible_members');
+assert.deepEqual(Object.keys(reservationsProjected.reservations[0]).sort(),['id','responsible_members','space_name','starts_at','status','title']);
+const reservationBase=reservationsFull.reservations.find(row=>String(row.id)===String(reservationsProjected.reservations[0].id));
+assert.equal(reservationsProjected.reservations[0].space_name,reservationBase.space_name,'space_name equivalente');
+assert.deepEqual(reservationsProjected.reservations[0].responsible_members,reservationBase.responsible_members,'responsables idénticos a los completos');
+assert.equal((await call('studio-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z&fields=id,inexistente')).status,400);
+const studioWindow=await call('studio-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z&limit=1&fields=id,title');
+assert.equal(studioWindow.reservations.length,1);assert.equal(studioWindow.hasMore,reservationsFull.reservations.length>1);
 await pg.close();
 console.log('PASS: studio spaces, tenant isolation, permissions (production, sales and management reserve; viewer cannot), lote de cancelación, optional project, responsible members, exclusion overlap and inventory separation');

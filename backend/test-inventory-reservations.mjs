@@ -375,5 +375,31 @@ assert.equal((await call(`inventory/${legacyId}`,'PATCH',{custodian_user_id:'999
 assert.equal((await call(`inventory/${legacyId}`,'PATCH',{inventory_code:'OTRO'})).status,409,'the inventory code stays stable');
 assert.equal((await call(`inventory/${legacyId}`)).record.storage_row,'9','failed edits keep the stored row');
 
+// #71: `?fields=` (lista blanca) y `?limit=` en catálogo y reservas, con equivalencia.
+const inventoryFull=(await call('inventory')).records;
+const inventoryProjected=(await call('inventory?fields=id,name,inventory_code,status,category_name,storage_location_name,location_type,current_value,photo_url')).records;
+assert.equal(inventoryProjected.length,inventoryFull.length);
+assert.deepEqual(Object.keys(inventoryProjected[0]).sort(),['category_name','current_value','id','inventory_code','location_type','name','photo_url','status','storage_location_name']);
+const inventoryBase=inventoryFull.find(row=>String(row.id)===String(inventoryProjected[0].id));
+for(const field of ['name','inventory_code','status','category_name','storage_location_name','location_type'])assert.equal(inventoryProjected[0][field],inventoryBase[field],`catálogo: ${field} equivalente`);
+assert.equal(Object.hasOwn(inventoryProjected[0],'notes'),false,'la proyección no manda columnas fuera de la lista blanca');
+assert.equal((await call('inventory?fields=id,inexistente')).status,400);
+assert.equal((await call('inventory?fields=')).status,400);
+assert.equal((await call('inventory?limit=0')).status,400);
+assert.equal((await call('inventory?limit=501')).status,400,'limit fuera de rango');
+const inventoryWindow=await call('inventory?limit=1&fields=id,name');
+assert.equal(inventoryWindow.records.length,1);assert.equal(inventoryWindow.hasMore,inventoryFull.length>1);
+const reservationWindow=await call('inventory-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z');
+const reservationWindowProjected=await call('inventory-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z&fields=id,title,status,starts_at,project_name,items');
+const reservationBase=reservationWindow.reservations.find(row=>String(row.id)===String(reservationWindowProjected.reservations[0].id));
+assert.deepEqual(Object.keys(reservationWindowProjected.reservations[0]).sort(),['id','items','project_name','starts_at','status','title']);
+for(const field of ['title','status','project_name'])assert.equal(reservationWindowProjected.reservations[0][field],reservationBase[field],`reservas: ${field} equivalente`);
+assert.deepEqual(reservationWindowProjected.reservations[0].items,reservationBase.items,'los ítems pedidos son idénticos a los completos');
+const reservationsWithoutItems=await call('inventory-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z&fields=id,title');
+assert.equal(Object.hasOwn(reservationsWithoutItems.reservations[0],'items'),false,'sin pedir ítems no viajan');
+assert.equal((await call('inventory-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z&fields=id,inexistente')).status,400);
+const reservationsWindow=await call('inventory-reservations?from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z&limit=1&fields=id,title');
+assert.equal(reservationsWindow.reservations.length,1);assert.equal(reservationsWindow.hasMore,reservationWindow.reservations.length>1);
+
 await pg.close();
 console.log(`PASS: ${apiCases} API cases; category lifecycle, multi-unit/responsible workflow, conflict rollback, reschedule/cancel releases, physical availability, overdue handover, complete-return atomicity, safe rejection of partial/malformed returns, recorded locations, calendar year/midnight boundaries, tenant/role checks, GiST exclusion, unique checkout and audit. Concurrent API requests use a single-connection PGlite pool; real multi-connection PostgreSQL not run.`);

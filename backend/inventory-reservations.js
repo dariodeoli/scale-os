@@ -6,6 +6,7 @@ import {profilePhoto} from './media-policy.js';
 import {visibleRecord} from './record-lifecycle.js';
 import {currencies} from './currencies.js';
 import {companyCurrency} from './forecast.js';
+import {parseListFields,parseListLimit,limitRows,projectRows,aliasColumns} from './list-projection.js';
 
 
 
@@ -94,13 +95,7 @@ const depotComputed=`case when i.purchase_value is null then null
 // en cada listado (#58). Las externas se respetan tal cual.
 const inventoryColumns=`i.id,i.organization_id,i.name,i.serial_number,i.category,i.custodian_user_id,i.value,i.currency,i.status,i.acquired_on,i.notes,i.created_at,i.category_id,i.storage_shelf,i.storage_row,i.inventory_code,i.last_verified_at,i.last_verified_by_user_id,i.last_verification_result,i.last_verification_differences,i.last_verified_counted_quantity,i.storage_location_id,i.location_changed_at,i.purchase_value,i.purchase_date,i.depreciation_method,i.useful_life_months,i.residual_value`;
 const photoExpression=`case when i.photo_url is null or i.photo_url='' then null when i.photo_url like 'data:%' then '/api/agency/inventory/'||i.id||'/photo?v='||coalesce(round(extract(epoch from i.photo_updated_at)*1000)::bigint,0) else i.photo_url end as photo_url`;
-const inventorySelect=`select ${inventoryColumns},${photoExpression},cat.name as category_name,cat.active as category_active,cat.icon as category_icon,loc.name as storage_location_name,loc.active as storage_location_active,
-  live.id as active_reservation_id,live.title as production_name,p.name as project_name,
-  live.custodian_user_id as current_custodian_user_id,coalesce(nullif(up.full_name,''),u.email) as current_custodian_name,
-  live.return_user_id,coalesce(nullif(rp.full_name,''),ru.email) as return_user_name,live.ends_at as expected_return_at,
-  case when live.id is not null then 'checked_out' when i.status='in_use' then 'legacy_in_use' else 'storage' end as location_type,
-  coalesce(nullif(vp.full_name,''),vu.email) as last_verifier_name,vp.photo_url as last_verifier_photo_url,${depotComputed}
-  from agency_inventory i left join agency_inventory_categories cat on cat.id=i.category_id and cat.organization_id=i.organization_id
+const inventoryFrom=`from agency_inventory i left join agency_inventory_categories cat on cat.id=i.category_id and cat.organization_id=i.organization_id
   left join agency_inventory_storage_locations loc on loc.id=i.storage_location_id and loc.organization_id=i.organization_id
   left join agency_inventory_reservation_items ri on ri.inventory_id=i.id and ri.organization_id=i.organization_id and ri.status='checked_out'
   left join agency_inventory_reservations live on live.id=ri.reservation_id and live.organization_id=i.organization_id
@@ -113,8 +108,40 @@ const inventorySelect=`select ${inventoryColumns},${photoExpression},cat.name as
   left join agency_user_profiles vp on vp.user_id=vu.id and vp.organization_id=i.organization_id
   left join lateral (select greatest((extract(year from age(current_date,i.purchase_date))*12+extract(month from age(current_date,i.purchase_date)))::int,0) as months) el on i.purchase_date is not null
   where i.organization_id=$1`;
-async function catalog(c,org){
- return (await c.query(`${inventorySelect} and ${visibleRecord('i','inventory')} order by i.name,i.id`,[org])).rows.map(inventoryPayload);
+const inventorySelect=`select ${inventoryColumns},${photoExpression},cat.name as category_name,cat.active as category_active,cat.icon as category_icon,loc.name as storage_location_name,loc.active as storage_location_active,
+  live.id as active_reservation_id,live.title as production_name,p.name as project_name,
+  live.custodian_user_id as current_custodian_user_id,coalesce(nullif(up.full_name,''),u.email) as current_custodian_name,
+  live.return_user_id,coalesce(nullif(rp.full_name,''),ru.email) as return_user_name,live.ends_at as expected_return_at,
+  case when live.id is not null then 'checked_out' when i.status='in_use' then 'legacy_in_use' else 'storage' end as location_type,
+  coalesce(nullif(vp.full_name,''),vu.email) as last_verifier_name,vp.photo_url as last_verifier_photo_url,${depotComputed}
+  ${inventoryFrom}`;
+
+// `?fields=` del catálogo (#71): lista blanca explícita con la expresión de cada
+// campo; los alias calculados se recortan al final (projectRows).
+const inventoryListFields=[...inventoryColumns.split(',').map(field=>field.trim().replace(/^i\./,'')),'photo_url','category_name','category_active','category_icon','storage_location_name','storage_location_active','active_reservation_id','production_name','project_name','current_custodian_user_id','current_custodian_name','return_user_id','return_user_name','expected_return_at','location_type','last_verifier_name','last_verifier_photo_url','current_value','accumulated_depreciation','monthly_depreciation','barcode_payload'];
+const inventoryColumnSql=aliasColumns({
+ ...Object.fromEntries(inventoryColumns.split(',').map(field=>field.trim()).map(field=>[field.replace(/^i\./,''),field])),
+ photo_url:photoExpression,category_name:'cat.name',category_active:'cat.active',category_icon:'cat.icon',
+ storage_location_name:'loc.name',storage_location_active:'loc.active',active_reservation_id:'live.id',
+ production_name:'live.title',project_name:'p.name',current_custodian_user_id:'live.custodian_user_id',
+ current_custodian_name:"coalesce(nullif(up.full_name,''),u.email)",return_user_id:'live.return_user_id',
+ return_user_name:"coalesce(nullif(rp.full_name,''),ru.email)",expected_return_at:'live.ends_at',
+ location_type:"case when live.id is not null then 'checked_out' when i.status='in_use' then 'legacy_in_use' else 'storage' end",
+ last_verifier_name:"coalesce(nullif(vp.full_name,''),vu.email)",last_verifier_photo_url:'vp.photo_url',
+ current_value:depotComputed,accumulated_depreciation:depotComputed,monthly_depreciation:depotComputed,
+});
+function inventorySelectFor(fields){
+ if(fields===null)return inventorySelect;
+ const wanted=new Set(fields);
+ // `barcode_payload` se arma en memoria desde el código: se pide la columna igual.
+ if(wanted.has('barcode_payload'))wanted.add('inventory_code');
+ const expressions=[...new Set([...wanted].map(field=>inventoryColumnSql[field]).filter(Boolean))];
+ return `select ${expressions.join(', ')} ${inventoryFrom}`;
+}
+async function catalog(c,org,{fields=null,limit=null}={}){
+ const rows=(await c.query(`${inventorySelectFor(fields)} and ${visibleRecord('i','inventory')} order by i.name,i.id`,[org])).rows.map(inventoryPayload);
+ const limited=limitRows(projectRows(rows,fields),limit);
+ return {rows:limited.rows,hasMore:limited.hasMore};
 }
 async function inventoryRecord(c,org,key){
  const row=(await c.query(`${inventorySelect} and i.id=$2`,[org,key])).rows[0];
@@ -157,15 +184,31 @@ async function voidMaintenance(c,user,org,key){
  await c.query('update agency_inventory_maintenance set voided_at=now(),voided_by_user_id=$1,updated_at=now() where id=$2 and organization_id=$3',[user.id,key,org]);
  return {ok:true};
 }
-async function listReservations(c,org,from,to,key=null){
- return (await c.query(`select r.*,p.name as project_name,
-  coalesce(nullif(rp.full_name,''),ru.email) as return_user_name,
-  coalesce(nullif(cp.full_name,''),cu.email) as custodian_name,
-  coalesce((select jsonb_agg(jsonb_build_object('id',i.id::text,'name',i.name,'inventory_code',i.inventory_code,'storage_location_id',i.storage_location_id::text,'storage_location_name',loc.name,'storage_shelf',i.storage_shelf,'storage_row',i.storage_row) order by i.name)
-   from agency_inventory_reservation_items ri join agency_inventory i on i.id=ri.inventory_id and i.organization_id=ri.organization_id left join agency_inventory_storage_locations loc on loc.id=i.storage_location_id and loc.organization_id=i.organization_id where ri.reservation_id=r.id and ri.organization_id=r.organization_id),'[]') as items,
-  coalesce((select jsonb_agg(jsonb_build_object('id',m.user_id::text,'name',coalesce(nullif(up.full_name,''),u.email)) order by m.user_id)
-   from agency_inventory_reservation_members m join users u on u.id=m.user_id left join agency_user_profiles up on up.user_id=m.user_id and up.organization_id=m.organization_id where m.reservation_id=r.id and m.organization_id=r.organization_id),'[]') as responsible_members
-  from agency_inventory_reservations r join agency_projects p on p.id=r.project_id and p.organization_id=r.organization_id
+// `?fields=` de las reservas de inventario (#71): lista blanca explícita; los
+// jsonb de ítems y responsables solo se calculan cuando el campo se pide.
+const reservationActors=['created_by_user_id','checked_out_by_user_id','returned_by_user_id'];
+const reservationListFields=['id','organization_id','project_id','title','starts_at','ends_at','status','created_by_user_id','return_user_id','custodian_user_id','checked_out_at','returned_at','cancelled_at','checked_out_by_user_id','returned_by_user_id','notes','checkout_note','return_note','version','created_at','updated_at','project_name','return_user_name','custodian_name','items','responsible_members','actor_name','actor_photo_url','actor_user_id','actor_verified','checkout_actor_name','checkout_actor_photo_url','checkout_actor_user_id','checkout_actor_verified','return_actor_name','return_actor_photo_url','return_actor_user_id','return_actor_verified'];
+const reservationColumnSql=aliasColumns({
+ id:'r.id',organization_id:'r.organization_id',project_id:'r.project_id',title:'r.title',starts_at:'r.starts_at',ends_at:'r.ends_at',status:'r.status',
+ created_by_user_id:'r.created_by_user_id',return_user_id:'r.return_user_id',custodian_user_id:'r.custodian_user_id',
+ checked_out_at:'r.checked_out_at',returned_at:'r.returned_at',cancelled_at:'r.cancelled_at',checked_out_by_user_id:'r.checked_out_by_user_id',returned_by_user_id:'r.returned_by_user_id',
+ notes:'r.notes',checkout_note:'r.checkout_note',return_note:'r.return_note',version:'r.version',created_at:'r.created_at',updated_at:'r.updated_at',
+ project_name:'p.name',return_user_name:"coalesce(nullif(rp.full_name,''),ru.email)",custodian_name:"coalesce(nullif(cp.full_name,''),cu.email)",
+ items:`coalesce((select jsonb_agg(jsonb_build_object('id',i.id::text,'name',i.name,'inventory_code',i.inventory_code,'storage_location_id',i.storage_location_id::text,'storage_location_name',loc.name,'storage_shelf',i.storage_shelf,'storage_row',i.storage_row) order by i.name)
+   from agency_inventory_reservation_items ri join agency_inventory i on i.id=ri.inventory_id and i.organization_id=ri.organization_id left join agency_inventory_storage_locations loc on loc.id=i.storage_location_id and loc.organization_id=i.organization_id where ri.reservation_id=r.id and ri.organization_id=r.organization_id),'[]')`,
+ responsible_members:`coalesce((select jsonb_agg(jsonb_build_object('id',m.user_id::text,'name',coalesce(nullif(up.full_name,''),u.email)) order by m.user_id)
+   from agency_inventory_reservation_members m join users u on u.id=m.user_id left join agency_user_profiles up on up.user_id=m.user_id and up.organization_id=m.organization_id where m.reservation_id=r.id and m.organization_id=r.organization_id),'[]')`,
+});
+function reservationSelect(fields){
+ if(fields===null)return `select r.*,${reservationColumnSql.project_name},${reservationColumnSql.return_user_name},${reservationColumnSql.custodian_name},${reservationColumnSql.items},${reservationColumnSql.responsible_members}`;
+ const wanted=new Set(fields);
+ // attributeActors resuelve identidad desde los ids aunque no se pidan: viajan internos.
+ for(const id of reservationActors)wanted.add(id);
+ const expressions=[...new Set([...wanted].map(field=>reservationColumnSql[field]).filter(Boolean))];
+ return `select ${expressions.join(', ')}`;
+}
+async function listReservations(c,org,from,to,key=null,fields=null){
+ return (await c.query(`${reservationSelect(fields)} from agency_inventory_reservations r join agency_projects p on p.id=r.project_id and p.organization_id=r.organization_id
   join users ru on ru.id=r.return_user_id left join agency_user_profiles rp on rp.user_id=ru.id and rp.organization_id=r.organization_id
   left join users cu on cu.id=r.custodian_user_id left join agency_user_profiles cp on cp.user_id=cu.id and cp.organization_id=r.organization_id
   where r.organization_id=$1 and ($4::bigint is null or r.id=$4)
@@ -432,6 +475,7 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
   const org=await authorize(c,user,capability,write);
   if(write)await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket?.remoteAddress||'']);
   let result,status=200;
+  let reservationsProjection=null;
   if(kind==='inventory-context'&&req.method==='GET'&&!key&&!action){
    result={user_id:String(user.id),role:user.role,time_zone:'America/Asuncion',can_manage:roleCan(user,'inventory.manage'),can_reserve:roleCan(user,'inventory.book'),
     // Viewer retains catalogue/calendar access, without gaining the member picker.
@@ -478,7 +522,14 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
    }else if(req.method==='DELETE'&&key){result=await voidMaintenance(c,user,org,key);}
    else fail('Método no permitido',405);
   }else if(kind==='inventory'){
-   if(req.method==='GET'&&!action){const records=await catalog(c,org);if(key){const record=records.find(r=>String(r.id)===key);if(!record)fail('Equipo no encontrado',404);result={record,verifications:await verificationHistory(c,org,key),trace:await traceHistory(c,org,key),maintenance:await maintenanceHistory(c,org,key)};}else result={records};}
+   if(req.method==='GET'&&!action){
+    // `?fields=`/`?limit=` valen para la lista; la ficha puntual viaja completa.
+    const listFields=key?null:parseListFields(url.searchParams.get('fields'),inventoryListFields);
+    const listLimit=key?null:parseListLimit(url);
+    const {rows,hasMore}=await catalog(c,org,{fields:listFields,limit:listLimit});
+    if(key){const record=rows.find(r=>String(r.id)===key);if(!record)fail('Equipo no encontrado',404);result={record,verifications:await verificationHistory(c,org,key),trace:await traceHistory(c,org,key),maintenance:await maintenanceHistory(c,org,key)};}
+    else result={records:rows,...(listLimit!==null?{hasMore}:{})};
+   }
    else if(!action&&(req.method==='POST'&&!key||req.method==='PATCH'&&key)){result={record:await saveItem(c,user,org,key,await body(req))};status=key?200:201;}
    else if(key&&req.method==='POST'&&action==='verify'){result=await verifyItem(c,user,org,key,await body(req));}
    else if(!key&&req.method==='POST'&&action==='batch'){result=await batchItems(c,user,org,await body(req));}
@@ -514,7 +565,12 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
     const from=inventoryTimestamp(url.searchParams.get('from')||new Date(Date.now()-31*86400000).toISOString());
     const to=inventoryTimestamp(url.searchParams.get('to')||new Date(Date.now()+62*86400000).toISOString());
     if(to<=from||new Date(to)-new Date(from)>366*86400000)fail('Elegí un intervalo de hasta 366 días');
-    const records=await listReservations(c,org,from,to,key);if(key&&!records.length)fail('Reserva no encontrada',404);result=key?{reservation:records[0]}:{reservations:records};
+    // `?fields=`/`?limit=` valen para la lista; el detalle puntual viaja completo.
+    const listFields=key?null:parseListFields(url.searchParams.get('fields'),reservationListFields);
+    const listLimit=key?null:parseListLimit(url);
+    const records=await listReservations(c,org,from,to,key,listFields);if(key&&!records.length)fail('Reserva no encontrada',404);
+    result=key?{reservation:records[0]}:{reservations:records,...(listLimit!==null?{hasMore:records.length>listLimit}:{})};
+    if(!key&&listFields){reservationsProjection={fields:listFields,limit:listLimit};}
    }else if(!action&&(req.method==='POST'&&!key||req.method==='PATCH'&&key)){result={reservation:await saveReservation(c,user,org,await body(req),key)};status=key?200:201;}
    else if(req.method==='POST'&&key&&['checkout','return','check-out','check-in','cancel'].includes(action))result=await transition(c,user,org,key,action==='check-out'?'checkout':action==='check-in'?'return':action,await body(req));
    else fail('Método no permitido',405);
@@ -537,6 +593,9 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
    {rows:result.reservations||result.reservation,userId:'checked_out_by_user_id',prefix:'checkout_actor'},
    {rows:result.reservations||result.reservation,userId:'returned_by_user_id',prefix:'return_actor'},
   ]);
+  // La lista proyectada se recorta después de atribuir actores (#71): solo
+  // viajan los campos pedidos, con la ventana aplicada.
+  if(reservationsProjection&&result.reservations)result.reservations=limitRows(projectRows(result.reservations,reservationsProjection.fields),reservationsProjection.limit).rows;
   await c.query('commit');transaction=false;send(res,status,result);
  }catch(error){
   if(transaction)await c.query('rollback');
