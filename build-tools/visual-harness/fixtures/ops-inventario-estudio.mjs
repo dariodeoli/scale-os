@@ -107,7 +107,7 @@ const equipmentRow = (item) => `
 const equipmentCard = (item) => `
 <article data-grid-card="equipment" data-status="${item.status}" class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
  <div class="flex items-start justify-between gap-3"><div class="flex min-w-0 items-start gap-2">
-  <label class="mt-0.5 flex h-11 shrink-0 items-center justify-center md:h-6" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
+  <label class="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
   ${item.photo ? '<img class="h-11 w-11 shrink-0 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : ''}
   <div class="min-w-0"><h3 class="break-words text-sm font-semibold text-fore">${item.name}</h3><code class="whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></div>
  </div>${badge(item.statusLabel, item.statusTone)}</div>

@@ -82,7 +82,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
  return <article data-grid-card="equipment" className="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
   <div className="flex items-start justify-between gap-3">
    <div className="flex min-w-0 items-start gap-2">
-    {selectable?<label className="mt-0.5 flex h-11 shrink-0 items-center justify-center md:h-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
+    {selectable?<label className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
     {item.photo_url?<img className="h-11 w-11 shrink-0 rounded-lg object-cover" src={item.photo_url} alt={`Foto de ${item.name}`}/>:null}
     <div className="min-w-0">
      <h3 className="break-words text-sm font-semibold text-fore">{item.name}</h3>
