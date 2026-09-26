@@ -33,7 +33,7 @@ const capabilityGroups:{name:string;keywords:string[]}[]=[
  {name:'Equipo',keywords:['equipo','team','persona','people','member','invitación','invitacion','invite','acceso','access','permiso','permission','miembro','colaborador','assignee']},
  {name:'Configuración',keywords:['configuración','configuracion','config','settings','empresa','company','papelera','trash','ajuste','admin']},
 ];
-function domainFor(row:MatrixRow){const text=(row.id+' '+row.label).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');return capabilityGroups.find(group=>group.keywords.some(keyword=>text.includes(keyword)))?.name||'Configuración';}
+function domainFor(row:MatrixRow){const text=String(row?.id??'')+' '+String(row?.label??'');const folded=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();return capabilityGroups.find(group=>group.keywords.some(keyword=>folded.includes(keyword)))?.name||'Configuración';}
 type CapabilityGroup={name:string;rows:MatrixRow[]};
 function groupedRows(capabilities:MatrixRow[]):CapabilityGroup[]{
  const groups:CapabilityGroup[]=capabilityGroups.map(group=>({name:group.name,rows:capabilities.filter(row=>domainFor(row)===group.name)})).filter(group=>group.rows.length);

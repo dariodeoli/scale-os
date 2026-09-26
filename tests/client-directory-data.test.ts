@@ -14,6 +14,10 @@ const record:DirectoryClientRecord={id:'9',name:'Cliente nuevo',legal_name:'Clie
 test('search normalization ignores accents, case and padding',()=>{
  assert.equal(normalizeSearch('  Ñandú  '),'nandu');
  assert.equal(normalizeSearch('FACTURACIÓN'),'facturacion');
+ // Issue #65: un valor ausente del API no puede tirar `normalize`.
+ assert.equal(normalizeSearch(undefined as unknown as string),'','undefined se pliega a texto vacío');
+ assert.equal(normalizeSearch(null as unknown as string),'','null se pliega a texto vacío');
+ assert.equal(normalizeSearch(42 as unknown as string),'42','un número se normaliza como texto');
 });
 
 test('client filtering searches name, email and phone and respects lifecycle',()=>{

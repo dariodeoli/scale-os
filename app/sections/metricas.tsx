@@ -1,8 +1,8 @@
 "use client";
 import dynamic from 'next/dynamic';
 import type {MetricEvent,User} from '../workspace-types';
-import {EmptyBlock} from '../ui-v2';
-const GrowthDashboard=dynamic(()=>import('../growth-dashboard').then(m=>m.GrowthDashboard));
+import {EmptyBlock,SectionLoading} from '../ui-v2';
+const GrowthDashboard=dynamic(()=>import('../growth-dashboard').then(m=>m.GrowthDashboard),{loading:()=> <SectionLoading label="Cargando métricas…"/>});
 
 // Métricas y crecimiento (SOS-COM, campaña #41 / spec #43 §3).
 // Rediseño v2: el tablero vive en app/growth-dashboard.tsx (KPIs, serie diaria y

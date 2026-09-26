@@ -1,10 +1,11 @@
 "use client";
 import dynamic from 'next/dynamic';
+import {SectionLoading} from '../ui-v2';
 import {SettingsWorkspace,CouponRedeem} from '../suite';
 import {SubscriptionPanel} from '../subscription-panel';
 import {NewCompany} from '../workspace-guide';
 import type {User} from '../workspace-types';
-const DeletionDangerZone=dynamic(()=>import('../deletion-danger-zone').then(m=>m.DeletionDangerZone));
+const DeletionDangerZone=dynamic(()=>import('../deletion-danger-zone').then(m=>m.DeletionDangerZone),{loading:()=> <SectionLoading label="Cargando la configuración…"/>});
 
 // Configuración de la empresa (referencia #42, arquetipo ajustes).
 // Dos columnas (principal + lateral) con tarjetas por tema y la zona

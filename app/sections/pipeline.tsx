@@ -9,12 +9,12 @@ import {roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,type LeadOpportunity} from '../pipeline-summary';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip} from '../ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
 import {useDialogPending} from '../dialog';
 import type {MetricEvent,User} from '../workspace-types';
 
-const LiveVisitors=dynamic(()=>import('../live-visitors').then(m=>m.LiveVisitors));
-const GrowthDashboard=dynamic(()=>import('../growth-dashboard').then(m=>m.GrowthDashboard));
+const LiveVisitors=dynamic(()=>import('../live-visitors').then(m=>m.LiveVisitors),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
+const GrowthDashboard=dynamic(()=>import('../growth-dashboard').then(m=>m.GrowthDashboard),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
 
 // Pipeline comercial (SOS-COM, campaña #41 / spec #43 §2).
 // Rediseño v2: KPIs y totales por etapa con pipeline-summary (ponderado y

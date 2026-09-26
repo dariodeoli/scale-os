@@ -170,6 +170,7 @@ y esta sección se actualiza.
 | `EmptyCta` | CTA canónico de un estado vacío: botón primario con label contextual. Es la llamada a la acción que recibe `EmptyBlock.action`. |
 | `ErrorBlock` | `ErrorState` de la librería con reintento, con `role="alert"`. |
 | `LoadingBlock` | `Skeleton` con `role="status"` y `aria-busy`; reemplaza los “Cargando…” sueltos de las páginas nuevas. |
+| `SectionLoading` | Fallback de una sección lazy (`next/dynamic`): el esqueleto de `LoadingBlock` sobre el panel del sistema, para que la transición muestre progreso en vez de pantalla en blanco mientras baja el chunk. |
 | `Kpi`/`KpiStrip`, `StateChip` | Ya descriptos arriba: un solo KPI y un solo chip. |
 
 ### Tablas densas responsive — estrategia común (ronda 14)

@@ -4,7 +4,7 @@ import {useCallback,useEffect,useMemo,useRef,useState,type Dispatch,type SetStat
 import {ArrowUpRight, ChevronLeft, ChevronRight, Plus, RotateCcw, SlidersHorizontal} from 'lucide-react';
 import {DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
 import {Aviso, Button, SegmentedField, Select} from 'owncoding-ui';
-import {EmptyBlock} from '../ui-v2';
+import {EmptyBlock,SectionLoading} from '../ui-v2';
 import {BoardPresence} from '../presence';
 import {KanbanColumn, statuses, type Status, type WorkOrderCard} from '../production-board';
 import {defaultWorkspacePreferences, type WorkspacePreferences} from '../workspace-preferences';
@@ -13,7 +13,7 @@ import {useBoardData} from '../use-board-data';
 import {filterProductionOrders} from '../production-filter';
 import {useLocalCalendarDay} from '../use-workspace-preferences';
 import type {Client, Project, User, WorkOrder} from '../workspace-types';
-const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner));
+const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner),{loading:()=> <SectionLoading label="Cargando producción…"/>});
 
 // Producción (tablero kanban, mi día, calendario y lista y lotes) — contenido v2
 // (campaña #41, spec #44). Desde #57 el TABLERO carga por columna con el contrato

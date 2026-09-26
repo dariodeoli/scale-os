@@ -67,8 +67,13 @@ async function request<T>(path:string,body?:unknown,signal?:AbortSignal):Promise
 type UsagePerson={id:string;name:string;actor_name?:string;actor_photo_url?:string|null;online?:boolean;active?:boolean};
 export function WorkspacePresence({projectIds,role,compact=false}:{projectIds:string[];role:string;compact?:boolean}){
  const key=Array.from(new Set(projectIds.filter(Boolean).map(String))).sort().slice(0,100).join(',');
- const projects=useProjectPeople(key?'projects?ids='+encodeURIComponent(key):'');
- const [team,setTeam]=useState<PresentPerson[]|null>(null);
+ const [team,setTeam]=useState<PresentPerson[]|null|undefined>(undefined);
+ const owner=role==='owner';
+ // El dueño ve el estado a nivel empresa (`usage`); la presencia por proyecto
+ // recién se pide si `usage` falla. Antes se pedían las dos cosas en paralelo al
+ // arrancar (una lectura de hasta 100 proyectos que el dueño no usa): menos
+ // lecturas de arranque (issue #67).
+ const projects=useProjectPeople(owner&&team!==null?'':(key?'projects?ids='+encodeURIComponent(key):''));
  // Only the owner endpoint can reveal company-wide online status. Everyone else
  // sees the same limited, project-scoped presence that is already public in work.
  useEffect(()=>{
@@ -77,8 +82,8 @@ export function WorkspacePresence({projectIds,role,compact=false}:{projectIds:st
   const load=async()=>{controller=new AbortController();try{const data=await request<{people:UsagePerson[]}>('usage',undefined,controller.signal);if(alive)setTeam((data.people||[]).filter(person=>person.online).map(person=>({id:String(person.id),name:person.actor_name||person.name,photo_url:person.actor_photo_url,active:person.active})));}catch{if(alive)setTeam(null);}};
   void load();const timer=window.setInterval(load,30000);return()=>{alive=false;controller?.abort();clearInterval(timer);};
  },[role]);
- const people=team??projects.people;
- const exact=team!==null;
+ const people=(owner&&team)||projects.people;
+ const exact=Boolean(owner&&team);
  if(!people.length)return null;
  const names=people.map(person=>person.name).join(', ');
  const label=exact?`${names} · ${people.length} en línea`:`${names} · viendo proyectos ahora`;

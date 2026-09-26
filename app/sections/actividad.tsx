@@ -1,8 +1,9 @@
 "use client";
 import dynamic from 'next/dynamic';
+import {SectionLoading} from '../ui-v2';
 import {ActivityWorkspace} from '../suite';
 import type {User} from '../workspace-types';
-const UsagePanel=dynamic(()=>import('../presence').then(m=>m.UsagePanel));
+const UsagePanel=dynamic(()=>import('../presence').then(m=>m.UsagePanel),{loading:()=> <SectionLoading label="Cargando la actividad…"/>});
 
 // Actividad del equipo (uso del dueño + feed).
 // Extraído de app/scale-workspace.tsx (issue #47): misma lógica y JSX, sin cambios.

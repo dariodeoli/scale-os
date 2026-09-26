@@ -43,8 +43,10 @@ export type DirectoryClientRecord = {
   ruc_refreshed_at?: string | null;
 };
 
-export const normalizeSearch = (value: string) =>
-  value
+// Guarda de entrada (issue #65): un campo `null`/`undefined` del API se
+// normaliza a texto vacío en vez de tirar `normalize` sobre undefined.
+export const normalizeSearch = (value: unknown) =>
+  String(value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
