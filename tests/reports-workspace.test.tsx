@@ -25,6 +25,7 @@ function month(value:string){act(()=>renderer.root.findAllByProps({type:'month'}
 function history(value:number){act(()=>renderer.root.findAllByType('button').find(button=>button.props.title===`Últimos ${value} meses`)!.props.onClick());}
 
 async function run(){
+ let invoiceClicks=0;const createInvoice=()=>{invoiceClicks+=1;};
  assert.equal(reportMoney('9007199254740993.1234','USD'),'USD 9.007.199.254.740.993,1234');
  assert.equal(reportMoney('-0.0100','USD'),'USD -0,0100');
  assert.equal(reportMoney(null,'USD'),'Sin datos');
@@ -50,7 +51,7 @@ async function run(){
   assert.equal(requests.length,before,'invalid and future months never fetch');
   act(()=>renderer.unmount());
  }
-  act(()=>{renderer=create(<ReportsWorkspace key="org1" role="owner" organizationName="Scale"/>);});
+  act(()=>{renderer=create(<ReportsWorkspace key="org1" role="owner" organizationName="Scale" onCreateInvoice={createInvoice}/>);});
   const staleInitial=requests.find(r=>r.url?.includes('/reports?'))!;month('2020-06');
  const june=latest();assert.match(june.url,/month=2020-06&months=12/);
  await respond(june,fixture('2020-06'));
@@ -90,14 +91,22 @@ async function run(){
  assert.match(text(),/Histórico confiable desde: sin fecha confirmada/);
  assert.match(text(),/Sin datos/);assert.match(text(),/Sin porcentaje/);
  assert.equal(renderer.root.findAllByType(SelectCustom)[0].props.disabled,true);
+ assert.match(text(),/Sin importes para comparar todavía/,'el histórico sin monedas explica el vacío');
+ const currencyCta=renderer.root.findAllByType('button').find(button=>text(button).includes('Registrar primera factura'));
+ assert(currencyCta,'sin datos monetarios el vacío ofrece CTA contextual');
+ act(()=>currencyCta!.props.onClick());
+ assert.equal(invoiceClicks,1,'el CTA de Informes abre el alta de factura del shell');
   history(6);const previousTenant=latest();
   const tenantRequests=requests.length;
-  act(()=>renderer.update(<ReportsWorkspace key="org2" role="owner" organizationName="Scale"/>));
+  act(()=>renderer.update(<ReportsWorkspace key="org2" role="owner" organizationName="Scale" onCreateInvoice={createInvoice}/>));
   const newTenant=requests.slice(tenantRequests).find(r=>r.url?.includes('/reports?'))!;assert(renderer.root.findAllByProps({'aria-label':'Cargando reportes…'}).length>0,'la carga se anuncia');
  await respond(previousTenant,fixture('2020-06',[row('2020-06',999)]));
  assert.doesNotMatch(text(),/999/,'integration organization key isolates same-role tenants');
  const newMonth=new URL(newTenant.url,'https://fixture.invalid').searchParams.get('month')!;
  await respond(newTenant,{...fixture(newMonth,[]),asOf:'2026-09-10T01:15:00Z',historySince:'2026-09-01T01:00:00Z'});assert.match(text(),/Sin meses registrados/);
+ const emptySeriesCta=renderer.root.findAllByType('button').find(button=>text(button).includes('Registrar primera factura'));
+ assert(emptySeriesCta,'sin serie mensual el vacío ofrece CTA contextual');
+ act(()=>emptySeriesCta!.props.onClick());assert.equal(invoiceClicks,2,'el CTA reutiliza la misma salida del shell');
  assert.match(text(),/Datos al 09 sept 26 · 22:15/,'cutoff respects the previous local day');
  assert.match(text(),/Histórico confiable desde: 31 ago 26 · 22:00/,'coverage date respects Asuncion rather than UTC');
   act(()=>renderer.update(<ReportsWorkspace key="org2" role="viewer" organizationName="Scale"/>));
@@ -126,7 +135,7 @@ async function run(){
   assert.equal(requests.slice(compareBlockStart).filter(request=>request.url.includes('month=2019-06')).length,1,'the stale initial response never fires a previous window');
   await respond(comparePreviousRequest,comparePrevious);
   const comparisonText=()=>text(renderer.root.findAll(node=>node.type==='div'&&typeof node.props.className==='string'&&node.props.className.includes('rounded-xl')&&text(node).includes('Comparativa del período visible'))[0]);
-  assert.match(comparisonText(),/Período visible: 01-jul – 01-jun · período anterior: 01-jul – 01-jun \(12 meses por período\)/,'both windows are described with dd-MMM dates');
+  assert.match(comparisonText(),/Período visible: 1 jul\. 2019 — 30 jun\. 2020 · período anterior: 1 jul\. 2018 — 30 jun\. 2019 \(12 meses por período\)/,'both windows show the full year-dated range');
   act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange('USD'));
   const usdComparison=comparisonText();
   assert.match(usdComparison,/Clientes activos \(último mes con datos\)/);
@@ -173,6 +182,19 @@ async function run(){
   const beforeEdge=requests.length;
   await respond(edgeRequest,{asOf:'2026-09-10T15:00:00Z',month:'1900-01',historySince:'1900-01-01T03:00:00Z',months:[compareRow('1900-01',{active:1,added:1,lost:0,financial:[moneyEntry('USD','10.00','10.00',1)]})]});
   assert.equal(requests.length,beforeEdge,'no previous window before the supported month range');
+  act(()=>renderer.unmount());
+
+  // Vacío del mes consultado con serie disponible: el CTA vuelve al último mes con datos.
+  act(()=>{renderer=create(<ReportsWorkspace key="org-empty-month" role="owner" organizationName="Scale" onCreateInvoice={createInvoice}/>);});
+  month('2020-06');const emptyMonthRequest=latest();assert.match(emptyMonthRequest.url,/month=2020-06&months=12/);
+  await respond(emptyMonthRequest,{asOf:'2026-09-10T15:00:00Z',month:'2020-06',historySince:'2020-01-01T03:00:00Z',months:[row('2020-05')]});
+  assert.match(text(),/Sin datos para el mes seleccionado/);
+  const seeLast=renderer.root.findAllByType('button').find(button=>text(button).includes('Ver mayo de 2020'));
+  assert(seeLast,'el vacío ofrece volver al último mes con datos');
+  act(()=>seeLast!.props.onClick());
+  const lastMonthRequest=latest();assert.match(lastMonthRequest.url,/month=2020-05&months=12/,'el botón mueve el filtro al mes con datos');
+  await respond(lastMonthRequest,{asOf:'2026-09-10T15:00:00Z',month:'2020-05',historySince:'2020-01-01T03:00:00Z',months:[row('2020-05')]});
+  assert.doesNotMatch(text(),/Sin datos para el mes seleccionado/);
   act(()=>renderer.unmount());
 
   const css=readFileSync(new URL('../app/reports-workspace.css',import.meta.url),'utf8');

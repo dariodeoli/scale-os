@@ -10,6 +10,8 @@ import {
   hasMonthData,
   monthLabel,
   monthOf,
+  monthRangeLabel,
+  monthTitle,
   previousMonth,
   reportComparison,
   reportCurrencies,
@@ -58,6 +60,14 @@ assert.equal(validMonth('2026-13'), false);
 assert.equal(monthOf('2026-09-10T15:00:00Z'), '2026-09');
 assert.equal(monthOf(null), null);
 assert.equal(monthLabel('2026-09'), '01-sept');
+// Rango de período (ronda 14, #62): completo, ordenado y con año visible.
+assert.equal(monthRangeLabel('2025-10', '2026-09'), '1 oct. 2025 — 30 sept. 2026', 'el ejemplo del pedido se arma tal cual');
+assert.equal(monthRangeLabel('2026-04', '2026-09'), '1 abr. 2026 — 30 sept. 2026', 'histórico de 6 meses cierra en el último día');
+assert.equal(monthRangeLabel('2025-02', '2025-02'), '1 feb. 2025 — 28 feb. 2025');
+assert.equal(monthRangeLabel('2028-02', '2028-02'), '1 feb. 2028 — 29 feb. 2028', 'febrero bisiesto cierra el 29');
+assert.equal(monthRangeLabel('2026-12', '2026-12'), '1 dic. 2026 — 31 dic. 2026');
+assert.equal(monthRangeLabel('oops', 'also'), 'oops — also', 'un rango inválido no rompe la etiqueta');
+assert.equal(monthTitle('2026-09'), 'septiembre de 2026');
 assert.match(reportDate('2026-09-10T15:00:00Z', true), /10 de septiembre de 2026/);
 assert.equal(reportDate(null), 'sin fecha confirmada');
 assert.equal(count(null), 'Sin datos');
@@ -127,6 +137,13 @@ assert.equal(comparison.currentStart, '2026-08');
 assert.equal(comparison.currentEnd, '2026-09');
 assert.equal(comparison.previousStart, '2025-08');
 assert.equal(comparison.previousEnd, '2025-09');
+// El rango etiquetado debe corresponder al filtro (mes consultado + histórico).
+assert.equal(monthRangeLabel(comparison.currentStart, '2026-09'), '1 ago. 2026 — 30 sept. 2026', '2 meses de histórico');
+const halfYear = reportComparison(current, previous, 'USD', 6);
+assert.equal(halfYear.currentStart, '2026-04');
+assert.equal(monthRangeLabel(halfYear.currentStart, halfYear.currentEnd), '1 abr. 2026 — 30 sept. 2026', '6 meses de histórico');
+const fullYear = reportComparison(current, previous, 'USD', 12);
+assert.equal(monthRangeLabel(fullYear.currentStart, fullYear.currentEnd), '1 oct. 2025 — 30 sept. 2026', '12 meses de histórico: el ejemplo del pedido');
 assert.deepEqual(comparison.rows.map(row => row.label), [
   'Clientes activos (último mes con datos)',
   'Clientes incorporados (suma del período)',

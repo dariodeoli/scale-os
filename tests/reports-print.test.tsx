@@ -46,9 +46,10 @@ test('popup writes an escaped, currency-separated report and prints on load',()=
  assert(written.includes('&lt;script&gt;alert(1)&lt;/script&gt; &amp; Co'));
  assert(!written.includes('<script>alert(1)</script>'),'injected markup never survives escaping');
  assert(written.includes('<h1>Informes</h1>'));
- assert(written.includes('Período: 01-may a 01-jun'));
+ assert(written.includes('Período: 1 may. 2020 — 30 jun. 2020'),'el PDF declara el rango completo con año');
  assert(written.match(/Generado: \d{2} [a-z]{3,4} \d{2} · \d{2}:\d{2} \(hora de Asunción\)/));
  assert(written.includes('Comparativa del período visible contra el anterior · USD'));
+ assert(written.includes('Período visible: 1 jul. 2019 — 30 jun. 2020 · período anterior: 1 jul. 2018 — 30 jun. 2019'),'la comparación del PDF usa el mismo rango con año');
  assert(written.includes('USD 400,50'));assert(written.includes('USD 200,00'));
  assert(written.includes('Detalle mensual · USD'));
  assert(written.includes('Ticket por factura'));

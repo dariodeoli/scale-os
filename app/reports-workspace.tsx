@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useState,type ChangeEvent} from 'react';
+import {Plus} from 'lucide-react';
 import {downloadReportsCsv} from './reports-csv';
 import {WeeklyAutomatic} from './weekly-automatic';
 import {SelectCustom} from './profile-controls';
@@ -13,7 +14,8 @@ import {
   currentMonth,
   distributionShare,
   hasMonthData,
-  monthLabel,
+  monthRangeLabel,
+  monthTitle,
   previousMonth,
   printed,
   reportComparison,
@@ -42,7 +44,7 @@ import {
   SegmentedField,
   cn,
 } from 'owncoding-ui';
-import {Kpi,KpiStrip,LoadingBlock,PageHeader} from './ui-v2';
+import {Kpi,KpiStrip,EmptyBlock,LoadingBlock,PageHeader} from './ui-v2';
 
 // La descomposición del shell (#47) sigue importando el tipo desde este módulo.
 export type {ReportMonth, ReportsData} from './reports-data';
@@ -79,7 +81,9 @@ function Distribution({title,rows,total}:{title:string;rows:{name:string;count:n
 }
 // Main must key this component by authenticated organization ID. Role changes
 // unmount the authorized view; no GET is issued for an unauthorized role.
-export function ReportsWorkspace({role,organizationName}:{role:string;organizationName:string}){return ['owner','admin','finance','sales'].includes(role)?<><ReportsPanel key={role} organizationName={organizationName}/><WeeklyAutomatic role={role}/></>:<p className="text-sm text-mute">No tenés permiso para consultar reportes.</p>;}
+// `onCreateInvoice` es la salida de los estados vacíos: navega a Finanzas y abre
+// el alta de factura en el shell, que es el único dueño del modal.
+export function ReportsWorkspace({role,organizationName,onCreateInvoice}:{role:string;organizationName:string;onCreateInvoice?:()=>void}){return ['owner','admin','finance','sales'].includes(role)?<><ReportsPanel key={role} organizationName={organizationName} onCreateInvoice={onCreateInvoice}/><WeeklyAutomatic role={role}/></>:<p className="text-sm text-mute">No tenés permiso para consultar reportes.</p>;}
 function LiveVisitorsWidget(){
  const [visitors,setVisitors]=useState<number|null>(null),[prior,setPrior]=useState<number|null>(null),[trend,setTrend]=useState<'up'|'down'|null>(null);
  useEffect(()=>{
@@ -106,7 +110,7 @@ function LiveVisitorsWidget(){
   </div>
  </Card>;
 }
-function ReportsPanel({organizationName}:{organizationName:string}){
+function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:string;onCreateInvoice?:()=>void}){
  const [month,setMonth]=useState(currentMonth),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
  const [retry,setRetry]=useState(0);
  const [exportError,setExportError]=useState('');
@@ -138,6 +142,7 @@ function ReportsPanel({organizationName}:{organizationName:string}){
   :!data?<LoadingBlock label="Cargando reportes…" lines={4}/>
   :<>
    <Nota tono="neutro">Datos al {listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: {listDateFull(data.historySince)||'sin fecha confirmada'}.</Nota>
+   {rows.length&&!currencies.length?<EmptyBlock compact title="Sin importes para comparar todavía." description="El histórico tiene clientes pero ningún importe de facturación o cobro registrado en este período." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:null}
    <div className="flex flex-wrap gap-2">
     <Button variant="outline" disabled={!rows.length} onClick={()=>{
      if(!rows.length)return;
@@ -155,7 +160,7 @@ function ReportsPanel({organizationName}:{organizationName:string}){
    {partial?<Nota tono="warn">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
    {rows.length?<Card className="grid gap-3 p-4">
     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Comparativa del período visible contra el anterior</h3>
-    <p className="text-xs text-mute">Período visible: {monthLabel(comparison!.currentStart)} – {monthLabel(comparison!.currentEnd)} · período anterior: {comparison!.previousStart&&comparison!.previousEnd?`${monthLabel(comparison!.previousStart)} – ${monthLabel(comparison!.previousEnd)}`:'sin período anterior disponible'} ({months} meses por período).</p>
+    <p className="text-xs text-mute">Período visible: {monthRangeLabel(comparison!.currentStart, comparison!.currentEnd)} · período anterior: {comparison!.previousStart&&comparison!.previousEnd?monthRangeLabel(comparison!.previousStart, comparison!.previousEnd):'sin período anterior disponible'} ({months} meses por período).</p>
     {comparison!.available?<DataTable
      columns={[{key:'label',label:'Métrica'},{key:'current',label:'Período visible'},{key:'previous',label:'Período anterior'},{key:'change',label:'Variación'}]}
      rows={comparison!.rows.map((row,index)=>({id:String(index),label:row.label,current:row.current,previous:row.previous,change:row.change}))}
@@ -167,7 +172,7 @@ function ReportsPanel({organizationName}:{organizationName:string}){
      </div>}
     />:<EmptyState compact title="Sin comparación: no hay período anterior con datos."/>}
    </Card>:null}
-   {!selected?<EmptyState compact title="Sin datos para el mes seleccionado."/>:<>
+   {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<button className="secondary" onClick={()=>setMonth(rows[0].month)}>Ver {monthTitle(rows[0].month)}</button>:onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:<>
     <KpiStrip>{tiles.map(tile=><Kpi key={tile.label} label={tile.label} valor={tile.value} hint={tile.change}/>)}</KpiStrip>
     <ReportsChart months={chartMonths} currency={selectedCurrency}/>
     <p className="text-xs text-mute">Barras: facturado (violeta) y cobrado (verde) por mes, en la moneda seleccionada. Los meses parciales se atenúan; la escala es relativa al valor máximo cargado, sin mezclar monedas.</p>
