@@ -33,7 +33,9 @@ import {DriveLinks,driveLinksText} from './drive-links';
 import {DueDate} from './due-date';
 import {WorkOrderLinks} from './work-order-links';
 type Row={id:string;[key:string]:unknown};
-export type WorkItem={id:string;title:string;status:string;project_id:string;due_date?:string|null;due_time?:string|null;assigned_user_id?:string|null;assigned_user_ids?:string[];updated_at?:string;client_name?:string;project_name?:string;work_type?:string|null;urgency?:number|null;checklist_total?:number;checklist_completed?:number;estimated_hours?:string|number|null;actual_hours?:string|number|null;effective_assignees?:AssignedPerson[]};
+export type WorkItem={id:string;title:string;status:string;project_id:string;due_date?:string|null;due_time?:string|null;assigned_user_id?:string|null;assigned_user_ids?:string[];updated_at?:string;client_name?:string;project_name?:string;work_type?:string|null;urgency?:number|null;checklist_total?:number;checklist_completed?:number;estimated_hours?:string|number|null;actual_hours?:string|number|null;effective_assignees?:AssignedPerson[];assignee_names?:string[]};
+/** Nombres de responsables para las listas (#73): `assignee_names` viaja liviano; las órdenes del tablero traen las completas. */
+const assigneeNames=(order:WorkItem)=>order.assignee_names?.length?order.assignee_names:(order.effective_assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean);
 const s=(r:Row,k:string)=>String(r[k]??'');
 type ClientSummaryTerms={planName:string;recurringAmount:string|number;currency:string;cadence:string;intervalMonths:number|null;invoiceRequired:boolean};
 type ClientSummary={relationshipStartedOn:string|null;terms:ClientSummaryTerms|null};
@@ -205,7 +207,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
     <span className="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute" data-tone={dueTone(o.due_date)||undefined} title={o.due_date?`Entrega ${listDateShort(o.due_date)||''}${o.due_time?` · ${o.due_time.slice(0,5)} h`:''}`:undefined}>{o.due_date?<><span className="list-date">{listDateShort(o.due_date)}</span>{o.due_time?` · ${o.due_time.slice(0,5)}`:''}</>:'Sin fecha'}</span>
     <span className="min-w-0"><StateChip tone={o.status==='approved'||o.status==='published'?'ok':o.status==='review'?'warn':o.status==='blocked'?'bad':'info'}>{workStatusLabel(o.status)}</StateChip></span>
     <span className="min-w-0"><StateChip tone="info">{workTypeLabels[String(o.work_type||'')]||'Sin clasificar'}</StateChip></span>
-    <span className="min-w-0 truncate text-[11.5px] text-mute" title={(o.effective_assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||undefined}>{(o.effective_assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||'Sin responsables'}</span>
+    <span className="min-w-0 truncate text-[11.5px] text-mute" title={assigneeNames(o).join(', ')||undefined}>{assigneeNames(o).join(', ')||'Sin responsables'}</span>
     <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{o.checklist_total?`☑ ${o.checklist_completed||0}/${o.checklist_total}`:'—'}</span>
     <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{[o.estimated_hours?`${o.estimated_hours} h est.`:'',o.actual_hours?`${o.actual_hours} h reales`:''].filter(Boolean).join(' · ')||'—'}</span>
    </ListRow>)}

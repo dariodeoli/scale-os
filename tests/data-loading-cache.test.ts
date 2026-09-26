@@ -150,7 +150,8 @@ test('las secciones PLT piden la proyección del shell y conservan el buscador (
  const resumen=sectionScope('Resumen');
  assert.equal(resumen.orders?.limit,300,'Resumen conserva la ventana de órdenes');
  assert.equal(resumen.orders?.fields,ORDER_FIELDS_SUMMARY,'Resumen proyecta lo que dibujan buscador, alertas y planificador');
- for(const field of ['id','title','status','project_id','project_name','client_name','due_date','due_time','work_type','effective_assignees','assigned_user_id','assigned_user_ids','checklist_total','checklist_completed','estimated_hours','actual_hours','updated_at'])assert.match(ORDER_FIELDS_SUMMARY,new RegExp(`(^|,)${field}(,|$)`),`la proyección de Resumen incluye ${field}`);
+ for(const field of ['id','title','status','project_id','project_name','client_name','due_date','due_time','work_type','assignee_names','assigned_user_id','assigned_user_ids','checklist_total','checklist_completed','estimated_hours','actual_hours','updated_at'])assert.match(ORDER_FIELDS_SUMMARY,new RegExp(`(^|,)${field}(,|$)`),`la proyección de Resumen incluye ${field}`);
+ assert.doesNotMatch(ORDER_FIELDS_SUMMARY,/effective_assignees/,'la ventana de Resumen no arrastra las fotos base64 de responsables (#73)');
  assert.ok(resumen.summary,'Resumen pide el resumen (conteos exactos por etapa)');
 });
 

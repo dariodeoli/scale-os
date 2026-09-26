@@ -36,3 +36,29 @@ test('inventory, RUC, work-order links and recipient notifications use the Core 
  const notices=readFileSync(new URL('../app/notification-inbox.tsx',import.meta.url),'utf8');
  assert.match(notices,/cambia solo tu propia bandeja/);assert.match(notices,/kindLabel/);
 });
+
+test('las proyecciones COM viven en las whitelists del API y la ventana de Resumen no trae fotos (#67/#71/#73)',async()=>{
+ const list=(source:string,name:string)=>{const match=source.match(new RegExp(`const ${name}=\\[([^\\]]*)\\]`));return match?[...match[1].matchAll(/'([^']+)'/g)].map(value=>value[1]):null;};
+ const core=readFileSync(new URL('../backend/agency-core.js',import.meta.url),'utf8');
+ const suite=readFileSync(new URL('../backend/agency-suite.js',import.meta.url),'utf8');
+ const orders=list(core,'workOrderListFields'),leads=list(suite,'leadListFields'),budgets=list(core,'budgetListFields');
+ assert.ok(orders&&leads&&budgets,'las whitelists de la API se pueden leer');
+ assert.ok(orders.includes('assignee_names'),'la API expone el nombre liviano de responsables (#73)');
+ assert.ok(orders.includes('due_date')&&orders.includes('client_name')&&orders.includes('project_name'),'la lista de órdenes conserva alertas y buscador');
+ const shellData=await import('../app/shell-data');
+ const projections:[string,string,string[]][]=[
+  ['Resumen',shellData.ORDER_FIELDS_SUMMARY,orders],
+  ['Buscador',shellData.ORDER_FIELDS_SEARCH,orders],
+  ['Cartera',shellData.ORDER_FIELDS_PORTFOLIO,orders],
+  ['Tablero',shellData.ORDER_FIELDS_BOARD,orders],
+  ['Oportunidades',shellData.LEAD_LIST_FIELDS,leads],
+  ['Presupuestos',shellData.BUDGET_LIST_FIELDS,budgets],
+ ];
+ for(const [name,projection,whitelist] of projections){
+  const missing=projection.split(',').map(field=>field.trim()).filter(field=>!whitelist.includes(field));
+  assert.deepEqual(missing,[],`${name}: el API debe aceptar ${missing.join(', ')}`);
+ }
+ assert.doesNotMatch(shellData.ORDER_FIELDS_SUMMARY,/effective_assignees/,'la ventana de Resumen no arrastra las fotos base64 de responsables');
+ const control=readFileSync(new URL('../app/control-center.tsx',import.meta.url),'utf8');
+ assert.match(control,/work-orders\?due=overdue&limit=30&fields=\$\{ORDER_FIELDS_SEARCH\}/,'las alertas sin finanzas salen de los vencidos exactos de la API');
+});
