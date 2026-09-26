@@ -568,21 +568,25 @@ const platformAccessPanel = `
  * un solo corte móvil/escritorio (`md`, 768 px), content por flex (sin calc ni
  * max-width) y pie con un solo divisor (borde del `.sidebar-bottom`).
  * ========================================================================= */
-const navItems = [
-  ['Resumen', false], ['Pipeline', false], ['Clientes', false], ['Presupuestos', false],
-  ['Proyectos', false], ['Producción', false], ['Inventario', false], ['Estudio', false],
-  ['Finanzas', false], ['Informes', false], ['Equipo', false], ['Configuración', false],
-];
+const NAV_GROUPS = [['Resumen',['Resumen']],['Flujo',['Pipeline','Clientes','Presupuestos','Proyectos','Producción']],['Recursos',['Inventario','Equipo','Estudio']],['Finanzas',['Finanzas','Informes']],['Configuración',['Configuración']]];
 const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none no-underline transition hover:no-underline focus-visible:no-underline';
-const navLink = ([label, active], tone = 'rail') => {
-  const item = `${active ? 'active ' : ''}${RAIL_ITEM} ${tone === 'rail'
-    ? `relative ${active ? 'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold' : 'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`
-    : `${active ? 'bg-fono/10 text-fono-light' : 'text-mute hover:bg-ink-700 hover:text-fore'} focus-visible:ring-2 focus-visible:ring-fono/40`}`;
-  const icon = `nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition ${tone === 'rail' ? (active ? 'bg-white/20 text-white' : 'bg-white/10 text-white/80') : (active ? 'bg-fono/15 text-fono-light' : 'bg-ink-700 text-mute')}`;
-  return `<a href="#" class="${item}"${active ? ' aria-current="page"' : ''} title="${label}" aria-label="${label}"><span class="${icon}">${svg(I.target, 16)}</span><span class="nav-label min-w-0 break-words">${label}</span></a>`;
-};
+const navItemClass = (active, tone = 'rail') => `${active ? 'active ' : ''}${RAIL_ITEM} ${tone === 'rail'
+  ? `relative ${active ? 'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold' : 'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`
+  : `${active ? 'bg-fono/10 text-fono-light' : 'text-mute hover:bg-ink-700 hover:text-fore'} focus-visible:ring-2 focus-visible:ring-fono/40`}`;
+const navIconClass = (active, tone = 'rail') => `nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition ${tone === 'rail' ? (active ? 'bg-white/20 text-white' : 'bg-white/10 text-white/80') : (active ? 'bg-fono/15 text-fono-light' : 'bg-ink-700 text-mute')}`;
+const navLink = (label, active, tone = 'rail') => `<a href="#" class="${navItemClass(active, tone)}"${active ? ' aria-current="page"' : ''} title="${label}" aria-label="${label}"><span class="${navIconClass(active, tone)}">${svg(I.target, 16)}</span><span class="nav-label min-w-0 break-words">${label}</span></a>`;
+const navGroupButton = (group, active, tone, title) => `<button type="button" class="nav-group-toggle ${navItemClass(active, tone)}" aria-expanded="${active}" title="${title}"><span class="${navIconClass(active, tone)}">${svg(I.target, 16)}</span><span class="nav-label min-w-0 break-words">${group}</span><svg class="nav-chevron ml-auto shrink-0" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>`;
+// Nav v3 (issue #68): 5 grupos; el grupo activo queda expandido con sus hojas.
+const navItemsHtml = ({active = 'Resumen', tone = 'rail', collapsed = false} = {}) => NAV_GROUPS.map(([group, modules]) => {
+  const containsActive = modules.includes(active);
+  if (modules.length === 1 || collapsed) return navLink(group, containsActive, tone);
+  const title = containsActive && active !== group ? `${group} · ${active}` : group;
+  const leaves = modules.map((module) => navLink(module, module === active, tone)).join('');
+  return `<div class="nav-group grid gap-1">${navGroupButton(group, containsActive, tone, title)}${containsActive ? `<div class="nav-leaves grid gap-1 pl-3">${leaves}</div>` : ''}</div>`;
+}).join('');
+const logoutButton = (tone = 'rail') => `<button type="button" class="nav-logout ${navItemClass(false, tone)}" aria-label="Cerrar sesión" title="Cerrar sesión"><span class="${navIconClass(false, tone)}">${svg(I.logout, 16)}</span><span class="nav-label">Cerrar sesión</span></button>`;
 
-const RAIL_COLLAPSED='is-collapsed p-2 md:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.person-container-details]:hidden [&_.mobile-sidebar-brand]:justify-center [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:!px-0 [&_nav>a]:h-11 [&_nav>a]:w-11 [&_nav>a]:justify-center [&_nav>a]:!px-0 [&_nav>button]:h-11 [&_nav>button]:w-11 [&_nav>button]:justify-center [&_nav>button]:!px-0 [&_.profile-footer]:justify-items-center [&_.user]:!m-0 [&_.user]:!border-0 [&_.user]:!p-0 [&_.user]:justify-center [&_.user_.person-container]:justify-center';
+const RAIL_COLLAPSED='is-collapsed p-2 md:!w-[60px] [&_.workspace-wordmark]:hidden [&_.nav-caption]:hidden [&_.nav-label]:hidden [&_.nav-chevron]:hidden [&_.nav-leaves]:hidden [&_.person-container-details]:hidden [&_.mobile-sidebar-brand]:justify-center [&_.sidebar-brand]:justify-center [&_.sidebar-brand]:!px-0 [&_nav>a]:h-11 [&_nav>a]:w-11 [&_nav>a]:justify-center [&_nav>a]:!px-0 [&_nav>button]:h-11 [&_nav>button]:w-11 [&_nav>button]:justify-center [&_nav>button]:!px-0 [&_.nav-admin]:h-11 [&_.nav-admin]:w-11 [&_.nav-admin]:justify-center [&_.nav-admin]:!px-0 [&_.profile-footer]:justify-items-center [&_.user]:!m-0 [&_.user]:!border-0 [&_.user]:!p-0 [&_.user]:justify-center [&_.user_.person-container]:justify-center';
 const sidebarBrand = `<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span>`;
 const sidebar = ({collapsed = false, active = 'Resumen'} = {}) => `
 <aside class="desktop-sidebar hidden shrink-0 flex-col overflow-hidden border-r border-white/10 text-white/80 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:!px-3 [&_.sidebar-brand]:!pb-2 md:sticky md:top-0 md:flex md:h-dvh md:transition-[width] md:duration-200 md:ease-out motion-reduce:!transition-none ${collapsed ? RAIL_COLLAPSED : 'p-3 md:!w-48'}">
@@ -590,8 +594,8 @@ const sidebar = ({collapsed = false, active = 'Resumen'} = {}) => `
  <div class="sidebar-brand">${sidebarBrand}</div>
  <div class="mobile-sidebar-brand">${sidebarBrand}</div>
  <p class="nav-caption mb-1 mt-2 px-3 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Espacio de trabajo</p>
- <nav aria-label="Menú principal" class="grid gap-1 [&_a]:no-underline min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">${navItems.map((item) => navLink([item[0], item[0] === active || item[1]])).join('')}<button type="button" class="nav-logout ${RAIL_ITEM} text-white/75 hover:bg-white/[0.08] hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión"><span class="nav-icon grid size-7 shrink-0 place-items-center rounded-lg bg-white/10 text-white/80 transition">${svg(I.logout, 16)}</span><span class="nav-label">Cerrar sesión</span></button></nav>
- <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t border-white/[0.12] pt-3"><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition hover:bg-white/10" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
+ <nav aria-label="Menú principal" class="grid content-start gap-1 [&_a]:no-underline min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">${navItemsHtml({active, tone: 'rail', collapsed})}${logoutButton('rail')}</nav>
+ <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t border-white/[0.12] pt-3"><a class="nav-admin ${navItemClass(false, 'rail')}" href="https://admin.scaleparaguay.com" target="_blank" rel="noopener noreferrer" title="Administración de Scale" aria-label="Administración de Scale"><span class="${navIconClass(false, 'rail')}">${svg(I.shieldCheck, 16)}</span><span class="nav-label">Administración de Scale</span></a><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition hover:bg-white/10" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
 </aside>`;
 
 const workspaceShell = ({collapsed = false, active = 'Resumen', topbar: topbarHtml = '', content}) => `
@@ -630,7 +634,7 @@ const mobileDrawer = `
   <div class="mobile-sidebar-body grid min-h-0 content-start gap-1 [&_a]:min-h-11 [&_button]:min-h-11">
    <div class="mobile-sidebar-brand flex items-center px-3 pt-2"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></div>
    <p class="nav-caption mt-1 px-3 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Espacio de trabajo</p>
-   <nav aria-label="Menú principal" class="grid gap-1 [&_a]:no-underline">${navItems.map((item) => navLink([item[0], item[0] === 'Pipeline' || item[1]], 'light')).join('')}<button type="button" class="nav-logout  text-white/80 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión">${svg(I.logout, 18)}<span class="nav-label">Cerrar sesión</span></button></nav>
+   <nav aria-label="Menú principal" class="grid content-start gap-1 [&_a]:no-underline">${navItemsHtml({active: 'Pipeline', tone: 'light'})}${logoutButton('light')}</nav>
    <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-ink-600 pt-3"><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-lg text-left transition hover:bg-ink-700" aria-label="Abrir mi perfil">${peopleContainer({name: 'Fredd D.', secondary: 'Propietario', initials: 'FD'})}</button></div></div>
   </div>
  </section>

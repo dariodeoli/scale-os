@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {groupDueAlerts,normalizeSearch,shortDate,DueAlert} from '../app/control-center-data';
-import {sections,legacyRoutes,legacyDestination,parentSection,childSections,sectionPath,sectionLabel} from '../app/navigation';
+import {sections,legacyRoutes,legacyDestination,parentSection,childSections,sectionPath,sectionLabel,navGroups,moduleNavGroup} from '../app/navigation';
 import {visibleModule} from '../app/workspace-access';
 import {workspaceSource} from './workspace-source';
 const records:DueAlert[]=[{id:'1',type:'invoice',name:'DEMO-PRO-3',due:'2026-08-29'},...Array.from({length:4},(_,i)=>({id:String(i+2),type:'work_order',name:'Reel de lanzamiento',due:'2026-09-07',context:`Cliente ${i}`}))];
@@ -40,7 +40,15 @@ for(const role of ['owner','admin','management','finance','sales','production','
 }
 assert(!visibleModule('Pagos','sales'));assert(visibleModule('Mora','sales'));assert(!visibleModule('Configuración','production'));assert(visibleModule('Papelera','production'));assert(!visibleModule('Comisiones','editor'));assert(visibleModule('Equipo','editor'));
 const ui=workspaceSource();
-for(const hidden of ['Mora','Planes','Comisiones','Papelera'])assert(!ui.slice(ui.indexOf('const nav ='),ui.indexOf('function localMonth')).includes(`"${hidden}"`));
+// Nav v3 (issue #68): 5 grupos desplegables; los apartados siguen dentro de su
+// módulo y las rutas no cambian.
+const navModules=navGroups.flatMap(([,modules])=>modules as readonly string[]);
+assert.deepEqual(navGroups.map(([group])=>group),['Resumen','Flujo','Recursos','Finanzas','Configuración'],'el menú principal tiene 5 grupos');
+assert.equal(new Set(navModules).size,navModules.length,'cada módulo vive en un solo grupo');
+for(const [label] of sections)if(['Mora','Previsión','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'].includes(label))continue;else assert(navModules.includes(label),`${label} sigue siendo un módulo del menú`);
+for(const apartado of ['Mora','Previsión','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'])assert(!navModules.includes(apartado),`${apartado} es apartado de su módulo, nunca ítem del menú`);
+assert.equal(moduleNavGroup(parentSection('Mora')),'Finanzas');assert.equal(moduleNavGroup(parentSection('Métricas')),'Flujo');assert.equal(moduleNavGroup('Estudio'),'Recursos','Estudio vive en Recursos (agenda de espacios y equipos)');assert.equal(moduleNavGroup(parentSection('Papelera')),'Configuración');assert.equal(moduleNavGroup(parentSection('Invitaciones')),'Recursos');
+assert.equal(moduleNavGroup('Sin acceso'),'','fuera del nav no hay grupo activo');
 assert(ui.indexOf('<ControlCenter')<ui.indexOf('className="metrics operational-metrics"'));assert(ui.indexOf('className="metrics operational-metrics"')<ui.indexOf('id="produccion"'));
 const css=readFileSync(new URL('../app/control-center.css',import.meta.url),'utf8');assert(!/#[0-9a-f]{3,8}\b/i.test(css),'new stylesheet uses color tokens');
 for(const block of css.split('}')){const [selector,body]=block.split('{');if(/(?:^|[\s,.])(?:\.ops-card|\.financial-stat|\.metric)\s*$/.test(selector))assert(!body?.includes('min-height'),'no fixed minimum card height');}

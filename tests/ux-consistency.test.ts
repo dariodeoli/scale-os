@@ -226,3 +226,24 @@ console.log('PASS: 24-hour times and hover labels stay wired across the app surf
  assert.match(uiV2,/hover:bg-ink-700\/40/,'las filas de lista tienen hover en ambos temas');
 }
 console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo y estados');
+
+// ── Nav v3 (#68) y acceso a la administración (#69) ─────────────────────────
+{
+ const shell=read('app/scale-workspace.tsx');
+ // Nav v3: 5 grupos, acordeón del grupo activo, hojas sólo cuando está abierto.
+ assert.match(shell,/NAV_GROUP_ICONS/,'el nav v3 define los íconos de los 5 grupos');
+ assert.match(shell,/nav-group-toggle/,'el grupo desplegable es un botón con estado');
+ assert.match(shell,/aria-expanded=\{open\}/,'el grupo anuncia si está expandido');
+ assert.match(shell,/className="nav-leaves grid gap-1 pl-3"/,'las hojas del grupo se renderizan sólo al abrir');
+ assert.match(shell,/setOpenNavGroup\(current=>current===group\?null:group\)/,'un solo grupo abierto a la vez (acordeón)');
+ assert.match(shell,/groupTitle=containsActive&&activeParent!==group\?`\$\{group\} · \$\{activeParent\}`:group/,'el tooltip del grupo activo nombra el módulo y el grupo');
+ assert.match(shell,/if\(modules\.length===1\|\|collapsed\)/,'los grupos de un módulo y el riel colapsado navegan directo');
+ // #69: Administración de Scale, encima del perfil, sólo si el servidor lo marca.
+ assert.match(shell,/user\?\.platform_role==='admin'&&<a className=\{`nav-admin/,'el acceso admin depende de platform_role del servidor');
+ assert.match(shell,/href="https:\/\/admin\.scaleparaguay\.com" target="_blank" rel="noopener noreferrer"/,'abre el host de administración en una pestaña segura');
+ const adminIndex=shell.indexOf('nav-admin'),profileIndex=shell.indexOf('profile-footer');
+ assert(adminIndex>=0&&profileIndex>=0&&adminIndex<profileIndex,'el acceso admin queda encima de la ficha de perfil');
+ const rail=read('app/desktop-sidebar.tsx');
+ assert.match(rail,/\[&_\.nav-admin\]:h-11 \[&_\.nav-admin\]:w-11/,'el acceso admin respeta el riel colapsado (44 px, sin cortes)');
+}
+console.log('PASS nav v3: 5 grupos con acordeón y acceso admin gateado por servidor (Issues #68 #69)');
