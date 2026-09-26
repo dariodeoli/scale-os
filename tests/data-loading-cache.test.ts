@@ -65,8 +65,9 @@ test('401, 402, 403 invalidate cached data; failures can be retried',async t=>{
 test('prefetch stays in the current scope and excludes fresh or unrelated endpoints',async t=>{
  setDataScope('user:agency:owner');clearDataCache();const urls:string[]=[];
  t.mock.method(globalThis,'fetch',async(url:RequestInfo|URL)=>{urls.push(String(url));return response();});
- await prefetchSectionData('Equipo','other:agency:owner');assert.equal(urls.length,0);
- for(const section of ['Equipo','Inventario','Configuración','Historial de trabajo','Pipeline','Invitaciones','Proyectos','Resumen'])await prefetchSectionData(section,'user:agency:owner');
+ await prefetchSectionData('Comisiones','other:agency:owner');assert.equal(urls.length,0);
+ await prefetchSectionData('Equipo','user:agency:owner');assert.equal(urls.length,0,'Equipo no prefetchea data de otro módulo (#67)');
+ for(const section of ['Comisiones','Inventario','Configuración','Historial de trabajo','Pipeline','Invitaciones','Proyectos','Resumen'])await prefetchSectionData(section,'user:agency:owner');
  assert.equal(urls.length,8);
  assert(!urls.some(url=>/members|team|settings|reservations|context|invit|projects|summary|people/.test(url)));
  setDataScope('');await prefetchSectionData('Pipeline','user:agency:owner');assert.equal(urls.length,8);
@@ -116,4 +117,18 @@ test('Producción no pide órdenes al shell: el tablero las carga por columna',a
  const hook=readFileSync(new URL('../app/use-board-data.ts',import.meta.url),'utf8');
  assert(hook.includes("from './shell-data'"),'el tablero usa la proyección compartida de shell-data');
  assert(!readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8').includes('loadBoardColumns'),'el shell no duplica la carga del tablero');
+});
+
+test('las secciones PLT piden la proyección del shell y conservan el buscador (#67)',async()=>{
+ const {sectionScope,CLIENT_FIELDS_CHROME,PROJECT_FIELDS_CHROME,ORDER_WINDOW,ORDER_FIELDS_SEARCH}=await import('../app/shell-data');
+ for(const section of ['Equipo','Invitaciones','Roles y permisos','Papelera','Configuración','Preferencias','Actividad']){
+  const scope=sectionScope(section);
+  assert.equal(scope.clients?.fields,CLIENT_FIELDS_CHROME,`${section} proyecta clientes`);
+  assert.equal(scope.projects?.fields,PROJECT_FIELDS_CHROME,`${section} proyecta proyectos`);
+  assert.equal(scope.orders?.limit,ORDER_WINDOW,`${section} conserva la ventana del buscador`);
+  assert.equal(scope.orders?.fields,ORDER_FIELDS_SEARCH,`${section} conserva la proyección de órdenes`);
+  assert.equal(scope.summary,undefined,`${section} no necesita el resumen`);
+ }
+ assert.equal(sectionScope('Clientes').clients?.fields,undefined,'Clientes conserva la ficha completa para su directorio');
+ assert.equal(sectionScope('Resumen').projects?.fields,undefined,'Resumen conserva los conteos de proyectos');
 });
