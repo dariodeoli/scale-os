@@ -5,13 +5,20 @@
 // llamada que hace el front: TTFB (primer byte), ms totales, KB (JSON real y
 // bytes de red) y codificación; además el "wall" de la carga en paralelo.
 //
+// Cada candidato imprime filas, ids y forma del payload (deterministas con la
+// misma semilla) más un hash del cuerpo: sirven para verificar estabilidad entre
+// versiones. Con `--verify` además corre los chequeos de contrato de las listas
+// (`?fields=`/`?limit=`) y del filtro `due` de Resumen (#73).
+//
 //   npm run bench:pages                 # todas las páginas
 //   npm run bench:pages -- --json       # además imprime el JSON crudo
-//   npm run bench:pages -- --pages Resumen,Equipo
+//   npm run bench:pages -- --verify     # contrato + estabilidad de listas
+//   npm run bench:pages -- --pages Resumen,Equipo --samples 5
 //
 // Requiere `initdb`/`pg_ctl` (igual que `npm run test:postgres`; ver
 // POSTGRES-CONCURRENCY.md). No corre en `test:release` ni en CI.
 import {execFileSync,spawn} from 'node:child_process';
+import crypto from 'node:crypto';
 import {existsSync,mkdtempSync,realpathSync,rmSync,readFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -20,6 +27,7 @@ import pg from 'pg';
 const repo=path.dirname(fileURLToPath(import.meta.url));
 const wantJson=process.argv.includes('--json');
 const keepCluster=process.argv.includes('--keep');
+const verifyMode=process.argv.includes('--verify');
 const sampleCount=(()=>{const i=process.argv.indexOf('--samples');return i>=0&&process.argv[i+1]?Math.max(1,Number(process.argv[i+1])):5;})();
 const pageFilter=(()=>{const i=process.argv.indexOf('--pages');return i>=0&&process.argv[i+1]?process.argv[i+1].split(',').map(v=>v.trim()):null;})();
 
@@ -127,6 +135,19 @@ const PAGES=[
 
 /* --------------------------------------------------------------- measure */
 const median=values=>{const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.floor(sorted.length/2)];};
+/** Filas y forma del payload, deterministas entre corridas: la lista con más
+ *  objetos con `id` del cuerpo, su cantidad y las claves ordenadas de la primera
+ *  fila. Los timestamps del seed no entran, así que sirve para comparar
+ *  versiones con la misma semilla. */
+function payloadStats(text){
+ let body=null;
+ try{body=JSON.parse(text);}catch{return {rows:0,ids:'',shape:''};}
+ const candidates=Array.isArray(body)?body:Object.values(body??{}).filter(value=>Array.isArray(value)&&value.length&&typeof value[0]==='object'&&!Array.isArray(value[0]));
+ const list=candidates.sort((a,b)=>b.length-a.length)[0]||[];
+ const ids=crypto.createHash('sha256').update(list.map(row=>String(row?.id??'')).join(',')).digest('hex').slice(0,12);
+ const shape=crypto.createHash('sha256').update(Object.keys(list[0]??{}).sort().join(',')).digest('hex').slice(0,12);
+ return {rows:list.length,ids,shape};
+}
 async function timedCall(base,cookie,url,samples=5){
  const target=`${base}${url}`;
  const once=async()=>{
@@ -135,18 +156,81 @@ async function timedCall(base,cookie,url,samples=5){
   const ttfb=performance.now()-started;
   const buffer=await response.arrayBuffer();
   const total=performance.now()-started;
-  return{ttfb,total,bytes:buffer.byteLength,wire:Number(response.headers.get('content-length')||buffer.byteLength),encoding:response.headers.get('content-encoding')||'identity',status:response.status};
+  const text=Buffer.from(buffer).toString('utf8');
+  // Hash del cuerpo descomprimido: prueba de estabilidad dentro de la corrida.
+  const hash=crypto.createHash('sha256').update(text).digest('hex').slice(0,12);
+  return{ttfb,total,bytes:buffer.byteLength,wire:Number(response.headers.get('content-length')||buffer.byteLength),encoding:response.headers.get('content-encoding')||'identity',status:response.status,hash,...payloadStats(text)};
  };
  await once();
  const runs=[];
  for(let i=0;i<samples;i++)runs.push(await once());
- return{url,status:runs[0].status,ttfb:median(runs.map(r=>r.ttfb)),total:median(runs.map(r=>r.total)),bytes:runs[0].bytes,wire:runs[0].wire,encoding:runs[0].encoding};
+ // Estabilidad de lectura: todas las muestras del mismo pedido deben ser idénticas.
+ const stable=new Set(runs.map(run=>run.hash)).size===1;
+ return{url,status:runs[0].status,ttfb:median(runs.map(r=>r.ttfb)),total:median(runs.map(r=>r.total)),bytes:runs[0].bytes,wire:runs[0].wire,encoding:runs[0].encoding,hash:runs[0].hash,stable,rows:runs[0].rows,ids:runs[0].ids,shape:runs[0].shape};
 }
 async function timedPage(base,cookie,calls,samples=3){
  const once=async()=>{const started=performance.now();await Promise.all(calls.map(url=>fetch(`${base}${url}`,{headers:{cookie,'accept-encoding':'gzip, deflate, br'}}).then(r=>r.arrayBuffer())));return performance.now()-started;};
  await once();
  const runs=[];for(let i=0;i<samples;i++)runs.push(await once());
  return median(runs);
+}
+/* ------------------------------------------------- estabilidad y contrato */
+async function jsonRequest(base,cookie,url){
+ const response=await fetch(`${base}${url}`,{headers:{cookie,accept:'application/json','accept-encoding':'gzip, deflate, br'}});
+ let body=null;try{body=await response.json();}catch{/* sin JSON */ }
+ return {status:response.status,body};
+}
+/** Verificación #73: contrato de `?fields=`/`?limit=` en las seis listas y la
+ *  proyección/filtros de Resumen. Devuelve la cantidad de chequeos fallidos. */
+async function verifyContract(base,cookie){
+ let failures=0;
+ const check=(label,ok,extra='')=>{if(!ok)failures+=1;console.log(`  ${ok?'OK  ':'FALLA'} ${label}${extra?` · ${extra}`:''}`);};
+ const range=monthRange(),withParam=(url,param)=>`${url}${url.includes('?')?'&':'?'}${param}`;
+ const lists=[
+  {name:'inventory',url:'/api/agency/inventory',key:'records'},
+  {name:'inventory-reservations',url:`/api/agency/inventory-reservations?from=${enc(range.from)}&to=${enc(range.to)}`,key:'reservations'},
+  {name:'studio-spaces',url:'/api/agency/studio-spaces',key:'spaces'},
+  {name:'studio-reservations',url:`/api/agency/studio-reservations?from=${enc(range.from)}&to=${enc(range.to)}`,key:'reservations'},
+  {name:'leads',url:'/api/agency/leads',key:'records'},
+  {name:'budgets',url:'/api/agency/budgets',key:'budgets'},
+ ];
+ for(const list of lists){
+  const full=await jsonRequest(base,cookie,list.url);
+  check(`${list.name}: default 200`,full.status===200,`${full.body?.[list.key]?.length??0} filas`);
+  const idOnly=await jsonRequest(base,cookie,withParam(list.url,'fields=id'));
+  const rows=idOnly.body?.[list.key]??[];
+  check(`${list.name}: fields=id devuelve solo id`,idOnly.status===200&&rows.length>0&&rows.every(row=>Object.keys(row).length===1&&Object.hasOwn(row,'id')));
+  check(`${list.name}: campo inválido → 400`,(await jsonRequest(base,cookie,withParam(list.url,'fields=id,inexistente'))).status===400);
+  const limited=await jsonRequest(base,cookie,withParam(list.url,'limit=1&fields=id'));
+  check(`${list.name}: limit=1 + hasMore`,limited.status===200&&(limited.body?.[list.key]?.length??0)<=1&&typeof limited.body?.hasMore==='boolean');
+  check(`${list.name}: limit inválido → 400`,(await jsonRequest(base,cookie,withParam(list.url,'limit=0'))).status===400);
+ }
+ const derived=[
+  ['inventory','/api/agency/inventory?fields=id,category_name,current_value','records'],
+  ['inventory-reservations',`/api/agency/inventory-reservations?from=${enc(range.from)}&to=${enc(range.to)}&fields=id,items,project_name`,'reservations'],
+  ['studio-reservations',`/api/agency/studio-reservations?from=${enc(range.from)}&to=${enc(range.to)}&fields=id,responsible_members,space_name`,'reservations'],
+  ['budgets','/api/agency/budgets?fields=id,item_count,client_name','budgets'],
+ ];
+ for(const [name,url,key] of derived){
+  const response=await jsonRequest(base,cookie,url),row=response.body?.[key]?.[0];
+  const wanted=[...new URL(url,'https://bench.invalid').searchParams.get('fields').split(',')].sort();
+  check(`${name}: calculados con su nombre`,response.status===200&&row&&JSON.stringify(Object.keys(row).sort())===JSON.stringify(wanted));
+ }
+ const projected=await jsonRequest(base,cookie,'/api/agency/work-orders?fields=id,status,project_id&limit=5');
+ check('work-orders: proyección de Resumen',projected.status===200&&projected.body.workOrders.length<=5&&Object.keys(projected.body.workOrders[0]??{}).sort().join(',')==='id,project_id,status');
+ const week=await jsonRequest(base,cookie,'/api/agency/work-orders?due=week&fields=id,status,due_date');
+ const weekRows=week.body?.workOrders??[];
+ const today=new Date().toISOString().slice(0,10),in7=new Date(Date.now()+7*86400000).toISOString().slice(0,10);
+ check('work-orders: due=week (abiertas, dentro de la semana)',week.status===200&&weekRows.length>0&&weekRows.every(row=>!['approved','published'].includes(row.status)&&String(row.due_date).slice(0,10)>=today&&String(row.due_date).slice(0,10)<in7));
+ const weekCounts=await jsonRequest(base,cookie,'/api/agency/work-orders?counts=1&due=week&limit=1&fields=id');
+ const countsSum=Object.values(weekCounts.body?.stage_counts??{}).reduce((sum,value)=>sum+value,0);
+ check('work-orders: counts respeta el filtro due',weekCounts.status===200&&countsSum===weekRows.length,`${countsSum} vs ${weekRows.length}`);
+ check('work-orders: due inválido → 400',(await jsonRequest(base,cookie,'/api/agency/work-orders?due=raro')).status===400);
+ // Estabilidad de lectura: dos lecturas seguidas del default son idénticas.
+ const first=await jsonRequest(base,cookie,'/api/agency/inventory?fields=id,name');
+ const second=await jsonRequest(base,cookie,'/api/agency/inventory?fields=id,name');
+ check('lectura repetida idéntica (inventory)',JSON.stringify(first.body)===JSON.stringify(second.body));
+ return failures;
 }
 
 /* ------------------------------------------------------------------- run */
@@ -225,12 +309,19 @@ try{
   ['presupuestos · hoy','/api/agency/budgets'],
   ['presupuestos · lista','/api/agency/budgets?fields=id,number,title,status,currency,total,client_name,item_count,valid_until,created_at'],
   ['presupuestos · lista + limit=50','/api/agency/budgets?limit=50&fields=id,number,title,status,currency,total,client_name,item_count'],
+  ['órdenes · Resumen anterior (sin limit, fields mínimos)','/api/agency/work-orders?fields=id,status,project_id'],
   ['órdenes · ventana Resumen (300, buscador+alertas+planificador)','/api/agency/work-orders?limit=300&fields='+ORDER_FIELDS_SUMMARY],
  ];
  console.log('\nCandidatos (front):');
  for(const [label,url] of candidates){
   const call=await timedCall(base,cookie,url,sampleCount);
-  console.log(`  ${call.ttfb.toFixed(0).padStart(5)} ms TTFB · ${(call.bytes/1024).toFixed(0).padStart(5)} KB JSON · ${(call.wire/1024).toFixed(0).padStart(4)} KB red · ${call.encoding.padEnd(8)} · ${label}`);
+  console.log(`  ${call.ttfb.toFixed(0).padStart(5)} ms TTFB · ${(call.bytes/1024).toFixed(0).padStart(5)} KB JSON · ${(call.wire/1024).toFixed(0).padStart(4)} KB red · ${call.encoding.padEnd(8)} · ${String(call.rows).padStart(5)} filas · ids ${call.ids} · shape ${call.shape} · sha ${call.hash}${call.stable?'':' ⚠ inestable'} · ${label}`);
+ }
+ if(verifyMode){
+  console.log('\nVerificación de contrato y estabilidad (#73):');
+  const failures=await verifyContract(base,cookie);
+  console.log(failures?`  ${failures} chequeos fallaron.`:'  Contrato y estabilidad OK.');
+  if(failures)process.exitCode=1;
  }
  const slow=logs.join('').split('\n').filter(line=>line.includes('slow_query'));
  if(slow.length)console.log('\nConsultas >250 ms:\n'+slow.join('\n'));
