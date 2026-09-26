@@ -2,6 +2,14 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.132
+
+### Navegación
+
+- **El encabezado de cada grupo del menú ahora navega**: un clic en Flujo lleva a Pipeline, en Recursos a Inventario y en Finanzas a Finanzas, dejando el grupo expandido y el módulo activo marcado; los grupos de un solo módulo (Resumen, Configuración) siguen igual.
+- **El grupo activo conserva el acordeón**: un clic expande o contrae sin cambiar de ruta, y el encabezado navegable muestra «Grupo · Módulo» en el tooltip (el activo, «Grupo · Módulo activo»).
+- **En el celular**: navegar desde el encabezado del drawer lo cierra, igual que al tocar un enlace.
+
 ## v1.0.131
 
 ### Resumen
