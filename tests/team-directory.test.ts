@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {teamDirectory,TeamMember} from '../app/team-directory';
+import {teamDirectory,filterTeamEntries,TeamMember} from '../app/team-directory';
 const member:TeamMember={id:'7',email:'person@example.invalid',role:'editor',active:true,removed_at:null};
 const person={id:'2',email:member.email,user_id:'7'};
 assert.equal(teamDirectory([person],[member],[]).length,1);
@@ -14,4 +14,19 @@ const ambiguous=teamDirectory([{...person,user_id:null},{...person,id:'3',user_i
 assert.equal(ambiguous.length,3);assert.ok(ambiguous[0].ambiguous);assert.equal(ambiguous[0].member,null);
 assert.equal(teamDirectory([{...person,user_id:'99'}],[member],[]).length,2,'do not relink a different identity by email');
 assert.equal(teamDirectory([person],[],[])[0].member,null,'no inference across agencies');
-console.log('PASS: unified profiles/access, case normalization, retired access with reinvite point, archived profiles, ambiguous identities and tenant boundaries');
+// Ronda 14 (#62): el filtro de estado de la toolbar sigue la etiqueta visible.
+const pActive={id:'2',full_name:'Ana Activa',email:'ana@example.invalid',user_id:null,active:true};
+const pInactive={id:'3',full_name:'Beto Inactivo',email:'beto@example.invalid',user_id:null,active:false};
+const entries=teamDirectory([pActive,pInactive],[],[]);
+assert.equal(filterTeamEntries(entries,'','all').length,2);
+assert.equal(filterTeamEntries(entries,'','active').length,1);
+assert.equal(filterTeamEntries(entries,'','inactive').length,1);
+assert.equal(filterTeamEntries(entries,'beto','active').length,0,'la búsqueda y el estado se combinan');
+assert.equal(filterTeamEntries(entries,'BETO','inactive')[0].profile?.id,'3');
+assert.equal(filterTeamEntries(entries,'correo-largo','all').length,0);
+const memberOnlyActive=teamDirectory([],[member],[]);
+assert.equal(filterTeamEntries(memberOnlyActive,'','active').length,1,'un acceso vigente sin ficha cuenta como activo');
+const memberOnlyRetired=teamDirectory([],[{...member,active:false,removed_at:'2026-09-08'}],[]);
+assert.equal(filterTeamEntries(memberOnlyRetired,'','active').length,0);
+assert.equal(filterTeamEntries(memberOnlyRetired,'','inactive').length,1);
+console.log('PASS: unified profiles/access, case normalization, retired access with reinvite point, archived profiles, ambiguous identities, tenant boundaries and the toolbar status filter (#62)');

@@ -1,6 +1,5 @@
 "use client";
 import {currencyChoices} from "./currencies";
-import {ViewToggle} from './view-toggle';
 import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
@@ -18,7 +17,7 @@ import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
 import {PersonPhotoField} from './person-photo';
 import {listDateShort} from './list-format';
-import {EmptyBlock,LoadingBlock} from './ui-v2';
+import {EmptyBlock,LoadingBlock,ViewSwitch} from './ui-v2';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
@@ -27,7 +26,7 @@ import {ActorIdentity} from './actor-identity';
 import {PersonContainer} from './person-container';
 import {CommentBody,CommentComposer} from './commenting';
 import {notify,notifyMutation} from './feedback';
-import {teamDirectory,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
+import {teamDirectory,filterTeamEntries,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
 import {TeamAccess} from './team-access';
 import {PermissionsMatrix} from './permissions-matrix';
 import {dataFetch} from './data-cache';
@@ -249,6 +248,7 @@ function PeopleWorkspace({
     [edit, setEdit] = useState<Person | "new" | null>(null);
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
+  const [teamFilter,setTeamFilter]=useState<'all'|'active'|'inactive'>('all');
   const canManageAccess=roleCan(role,'members.manage');
   const [selectedAccess,setSelectedAccess]=useState<string[]>([]),[bulkAccessBusy,setBulkAccessBusy]=useState(false);
   function toggleAccessSelected(id:string){setSelectedAccess(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
@@ -359,7 +359,10 @@ function PeopleWorkspace({
     { key: "notes", label: "Condiciones y notas", type: "textarea", optional: true },
   ];
   const directory=teamDirectory(people,members,archivedProfiles);
-  const visiblePeople=directory.filter(entry=>`${entry.profile?.full_name||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(search.trim().toLowerCase()));
+  const query=search.trim().toLowerCase();
+  const visiblePeople=filterTeamEntries(directory,search,teamFilter);
+  const hasFilters=Boolean(query)||teamFilter!=='all';
+  const peopleSummary=`${visiblePeople.length} de ${directory.length} ${directory.length===1?'persona':'personas'}`;
   // Un pago sin nombre en el modo activo no se lista: el encabezado de columnas
   // solo aparece cuando hay filas visibles que lo justifiquen.
   const personDefaults: Record<string, string> = {
@@ -388,21 +391,9 @@ function PeopleWorkspace({
   return (
     <div className="ops-stack">
       <section className="panel">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2>
-            <p className="mt-1 text-[13px] leading-[1.5] text-mute">Equipo{organizationName?` de ${organizationName}`:''}: directorio, roles y estado de cada integrante.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-          {roleCan(role,'settings.manage')&&<button className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
-          <button
-            className="primary"
-            onClick={() => {setSeedEmail('');setEdit("new");}}
-          >
-            <Plus size={16} />
-            Agregar persona
-          </button>
-          </div>
+        <div className="mb-3 min-w-0">
+          <h2 className="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2>
+          <p className="mt-1 text-[13px] leading-[1.5] text-mute">Equipo{organizationName?` de ${organizationName}`:''}: directorio, roles y estado de cada integrante.</p>
         </div>
         {error && (
           <p className="error" role="alert">
@@ -417,14 +408,22 @@ function PeopleWorkspace({
             <small>{commercial?.expectedMonthlyBilling===undefined?'No disponible':commercial.expectedMonthlyBilling.length?'Expectativa comercial vigente por moneda':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}</small>
           </article>
         </div>
-        <div className="team-filters">
+        <div className="team-filters" aria-label="Controles del equipo">
           <SearchField className="team-search" label="Buscar persona" value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
-          <div className="choice-list compact">
-            <button className={!search?'choice active':'choice'} onClick={()=>setSearch('')}>Todos</button>
-            <button className={search==='activo'?'choice active':'choice'} onClick={()=>setSearch('activo')}>Activos</button>
-            <button className={search==='inactivo'?'choice active':'choice'} onClick={()=>setSearch('inactivo')}>Inactivos</button>
+          <div className="choice-list compact" role="group" aria-label="Filtrar por estado laboral">
+            <button type="button" className={teamFilter==='all'?'choice active':'choice'} aria-pressed={teamFilter==='all'} onClick={()=>setTeamFilter('all')}>Todos</button>
+            <button type="button" className={teamFilter==='active'?'choice active':'choice'} aria-pressed={teamFilter==='active'} onClick={()=>setTeamFilter('active')}>Activos</button>
+            <button type="button" className={teamFilter==='inactive'?'choice active':'choice'} aria-pressed={teamFilter==='inactive'} onClick={()=>setTeamFilter('inactive')}>Inactivos</button>
           </div>
-          <div className="workspace-view-controls"><ViewToggle label="Vista del equipo" value={teamView==='list'?'list':'grid'} onChange={value=>setTeamView(value==='list'?'list':'cards')}/></div>
+          <p className="team-count" role="status" aria-atomic="true">{peopleSummary}</p>
+          <div className="workspace-view-controls"><ViewSwitch value={teamView==='list'?'list':'grid'} onChange={value=>setTeamView(value==='list'?'list':'cards')}/></div>
+          <div className="team-actions">
+            {roleCan(role,'settings.manage')&&<button type="button" className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
+            <button type="button" className="primary" onClick={() => {setSeedEmail('');setEdit("new");}}>
+              <Plus size={16} />
+              Agregar persona
+            </button>
+          </div>
         </div>
         {loading ? (
           <LoadingBlock label="Cargando equipo…" lines={4}/>
@@ -436,7 +435,7 @@ function PeopleWorkspace({
               <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
                 <header className="person-hub-head">
                   {canManageAccess&&entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
-                  <div className="ops-person">
+                  <div className="ops-person" title={p.full_name}>
                     <PersonContainer size={teamView==='list'?'md':'lg'} name={p.full_name} photoUrl={p.photo_url||undefined} secondary={entry.member?teamRoleLabels[entry.member.role]||entry.member.role:(p.job_title||'Sin cargo')} verified/>
                   </div>
                   <span className="person-hub-state" data-state={p.active?'active':'inactive'}>{p.active?'Activo':'Inactivo'}</span>
@@ -469,7 +468,7 @@ function PeopleWorkspace({
             ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
               <header className="person-hub-head">
                 {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${entry.member.full_name||entry.member.email}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
-                <div className="ops-person"><PersonContainer size={teamView==='list'?'md':'lg'} name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
+                <div className="ops-person" title={entry.member!.full_name||'Integrante sin ficha'}><PersonContainer size={teamView==='list'?'md':'lg'} name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
                 <span className="person-hub-state" data-state={entry.member!.removed_at||!entry.member!.active?'inactive':'active'}>{entry.member!.removed_at?'Acceso retirado':entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
               </header>
               <dl className="person-hub-facts">
@@ -489,7 +488,7 @@ function PeopleWorkspace({
               </footer></div>
             </article>;})}
             {!visiblePeople.length && (
-              <EmptyBlock className="[grid-column:1/-1]" title={search?'Sin coincidencias':'Todavía no hay personas'} description={search?'Probá con otro nombre, correo o cargo.':'Agregá la primera persona del equipo para registrar accesos y remuneraciones.'} action={search?<button type="button" className="text-button" onClick={()=>setSearch('')}>Limpiar búsqueda</button>:null}/>
+              <EmptyBlock className="[grid-column:1/-1]" title={hasFilters?'Sin coincidencias':'Todavía no hay personas'} description={hasFilters?'Probá con otro nombre, correo o cargo, o cambiá el filtro.':'Agregá la primera persona del equipo para registrar accesos y remuneraciones.'} action={hasFilters?<button type="button" className="text-button" onClick={()=>{setSearch('');setTeamFilter('all');}}>Limpiar filtros</button>:<button type="button" className="primary" onClick={()=>{setSeedEmail('');setEdit("new");}}><Plus size={16} aria-hidden="true"/>Agregar primera persona</button>}/>
             )}
           </div>
         )}
