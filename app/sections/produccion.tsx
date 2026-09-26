@@ -97,8 +97,10 @@ export function ProduccionSection({productionView, preferences, changeProduction
   },[measureBoard,productionView,boardData.loading,boardEmpty,filteredEmpty]);
   const scrollBoard=(direction:-1|1)=>{
     const node=boardScroll.current;if(!node)return;
-    const column=node.querySelector<HTMLElement>('[data-column]');
-    const stride=(column?.getBoundingClientRect().width||288)+12;
+    // Bloque completo: una página = el ancho del riel + el gap entre columnas.
+    // Con 4 columnas fluidas por página, el paso cae justo en la etapa 5 (2.ª
+    // página) o en el tope de scroll (última página alineada al final).
+    const stride=node.clientWidth+12;
     const reduce=typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     node.scrollBy({left:direction*stride,behavior:reduce?'auto':'smooth'});
   };
@@ -149,7 +151,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
               <button type="button" data-board-next className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-ink-500 text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas siguientes" title="Etapas siguientes" disabled={boardWindow.atEnd} onClick={()=>scrollBoard(1)}><ChevronRight size={14}/></button>
             </div>:null}
           </div>
-          <div ref={boardScroll} className="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable horizontalmente">
+          <div ref={boardScroll} className="silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [--board-cols:1] sm:[--board-cols:2] lg:[--board-cols:4]" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable por bloques de etapas">
             {statuses.map((status: (typeof statuses)[number]) => (
               <KanbanColumn
                 openOrder={(id,edit)=>setDetail({kind:'order',id,...(edit?{edit:true}:{})})}

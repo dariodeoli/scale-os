@@ -8,6 +8,7 @@
  * fechas, códigos ni seriales. El diccionario de estados sigue siendo la fuente
  * única del dominio (`statuses`).
  */
+import {useEffect,useRef,useState} from 'react';
 import {useDraggable,useDroppable} from '@dnd-kit/core';
 import {StateChip,type ChipTone} from './ui-v2';
 import {ClientIdentity} from './client-identity';
@@ -71,6 +72,18 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
   const draggable = useDraggable({ id: order.id,disabled:!canMove });
   const links = (order.drive_links || []).filter(link => link?.url);
   const hours = hoursLabel(order);
+  // La descripción de Trello se resume a dos líneas; "Ver detalle" aparece solo
+  // cuando el texto quedó realmente recortado (medido, no supuesto).
+  const description=useRef<HTMLParagraphElement|null>(null);
+  const [clamped,setClamped]=useState(false);
+  useEffect(()=>{
+    const node=description.current;if(!node)return;
+    const measure=()=>setClamped(node.scrollHeight-node.clientHeight>1);
+    measure();
+    const observer=new ResizeObserver(measure);
+    observer.observe(node);
+    return()=>observer.disconnect();
+  },[order.description]);
   return (
     <article
       ref={draggable.setNodeRef}
@@ -100,7 +113,10 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
         {hours ? <span className="whitespace-nowrap" title={`Horas: ${hours}`}>{hours}</span> : null}
         {order.checklist_total ? <span className="whitespace-nowrap" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</span> : null}
       </div>
-      {order.description ? <p className="line-clamp-2 text-[11.5px] leading-5 text-mute" title={order.description}>{order.description}</p> : null}
+      {order.description ? <div className="grid gap-1">
+        <p ref={description} className="line-clamp-2 text-[11.5px] leading-5 text-mute" title={order.description}>{order.description}</p>
+        {clamped?<button type="button" className="text-button min-h-11 justify-self-start md:min-h-0" onClick={()=>openOrder(order.id)} title={`Ver la descripción completa de ${order.title}`}>Ver detalle</button>:null}
+      </div> : null}
       <DueDate value={order.due_date} time={order.due_time} compact/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
@@ -142,7 +158,7 @@ export function KanbanColumn({
   return (
     <section
       ref={droppable.setNodeRef}
-      className={`flex min-w-0 w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver ? "border-fono bg-fono/10" : "border-ink-600 bg-ink-800/60"}`}
+      className={`flex min-w-0 w-[calc((100%-(var(--board-cols)-1)*0.75rem)/var(--board-cols))] shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver ? "border-fono bg-fono/10" : "border-ink-600 bg-ink-800/60"}`}
       data-column={status.id}
       aria-label={loading&&counts===undefined?`${status.label}: cargando piezas`:`${status.label}: ${orders.length} pieza${orders.length === 1 ? "" : "s"}`}
     >

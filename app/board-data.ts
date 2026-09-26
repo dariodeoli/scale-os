@@ -45,9 +45,9 @@ export function boardVisibleWindow(columns:Array<{left:number;right:number}>,vie
  return {first,last,count:last-first+1};
 }
 
-/** Etiqueta del indicador de etapas: "4 de 7 etapas". */
-export function boardWindowLabel(window:{count:number},total:number):string{
- return `${window.count} de ${total} etapas`;
+/** Etiqueta del indicador por bloques: "Etapas 1–4 de 7" (o "Etapa 1 de 7" en mobile). */
+export function boardWindowLabel(window:{first:number;last:number},total:number):string{
+ return window.first===window.last?`Etapa ${window.first} de ${total}`:`Etapas ${window.first}–${window.last} de ${total}`;
 }
 
 
