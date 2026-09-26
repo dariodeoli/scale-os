@@ -54,8 +54,8 @@ for(const width of [320,360,390,768]){
  // Comments live in a portal outside .control-shell: do not scope to the shell.
  assert.equal(at('actor-identity.css','.actor-identity-name','overflow-wrap'),'anywhere',`comment author names must wrap at ${width}px`);
  assert.equal(at('actor-identity.css','.actor-identity','max-width'),'100%');
- assert(section.includes('flex snap-x gap-3 overflow-x-auto'),'board container scrolls horizontally on purpose (v2)');
- assert(board.includes('w-72 shrink-0'),'board columns keep their width (v2)');
+ assert(section.includes('flex snap-x snap-mandatory gap-3 overflow-x-auto'),'board container scrolls by snap blocks on purpose (v2)');
+ assert(board.includes('w-[calc((100%-(var(--board-cols)-1)*0.75rem)/var(--board-cols))] shrink-0'),'board columns keep one fluid width per page (v2)');
  assert(!board.includes('max-h-')&&!board.includes('overflow-y-auto'),'board columns never scroll vertically on their own (v2)');
  assert.equal(at('work-checklist.css','.work-checklist-check span','overflow-wrap'),'anywhere');
  assert.equal(at('work-checklist.css','.work-checklist input:not([type=checkbox])','min-width'),'0');

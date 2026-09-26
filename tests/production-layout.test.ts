@@ -3,13 +3,13 @@ import {readFileSync} from 'node:fs';
 import {sectionPath,parentSection,childSections} from '../app/navigation';
 import {visibleModule} from '../app/workspace-access';
 // El tablero v2 vive en app/production-board.tsx + app/sections/produccion.tsx.
-// `production-focus.css` sigue importada por el shell (limpieza pendiente), pero
-// ya no estiliza la pantalla: el contrato real se mide sobre la fuente v2.
+// La hoja `production-focus.css` se retiró (issue #66): el contrato real se mide
+// sobre la fuente v2.
 const board=readFileSync('app/production-board.tsx','utf8');
 const section=readFileSync('app/sections/produccion.tsx','utf8');
-assert(section.includes('flex snap-x gap-3 overflow-x-auto'),'el tablero scrollea horizontalmente');
-assert(section.includes('role="region" aria-label="Tablero de Producción, desplazable horizontalmente"'),'el tablero es una región desplazable etiquetada');
-assert(board.includes('w-72 shrink-0'),'las columnas conservan su ancho (nada de auto por tarjeta)');
+assert(section.includes('flex snap-x snap-mandatory gap-3 overflow-x-auto'),'el tablero scrollea por bloques con snap');
+assert(section.includes('role="region" aria-label="Tablero de Producción, desplazable por bloques de etapas"'),'el tablero es una región desplazable etiquetada');
+assert(board.includes('w-[calc((100%-(var(--board-cols)-1)*0.75rem)/var(--board-cols))] shrink-0'),'las columnas fluidas conservan su ancho por página (nada de auto por tarjeta)');
 assert(!board.includes('max-h-')&&!board.includes('overflow-y-auto'),'las columnas no scrollean por dentro: la página es el scroll');
 assert(board.includes('flex-col gap-2 rounded-xl border'),'las columnas tienen contenedor redondeado propio');
 const ui=readFileSync('app/scale-workspace.tsx','utf8')+readFileSync('app/production-board.tsx','utf8');

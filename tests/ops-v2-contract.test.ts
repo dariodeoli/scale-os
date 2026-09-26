@@ -5,6 +5,7 @@ const inventory=read('app/inventory-workspace.tsx'),studio=read('app/studio-work
 const board=read('app/production-board.tsx'),planner=read('app/productivity-ui.tsx'),projects=read('app/sections/proyectos.tsx'),projectCard=read('app/project-card.tsx'),productionSection=read('app/sections/produccion.tsx'),history=read('app/work-history.tsx');
 const uiV2=read('app/ui-v2.tsx');
 const boardData=read('app/board-data.ts'),boardHook=read('app/use-board-data.ts');
+const checklistCss=read('app/work-checklist.css'),orderLinks=read('app/work-order-links.tsx');
 
 // ── Contrato v2 de OPS (campaña #41, spec #44): Tailwind + owncoding-ui +
 // primitivas de app/ui-v2.tsx. Reemplaza al contrato del rediseño anterior.
@@ -174,6 +175,17 @@ assert.match(inventory,/>Limpiar búsqueda<\/Button>/,'el filtro sin resultados 
 assert.match(studio,/\{!spaces\.length\?<EmptyState compact icon="store"/,'el estudio vacío usa el vacío compacto');
 assert.match(studio,/\{\(spaces\.length\|\|reservations\.length\)\?<Card/,'sin espacios ni reservas no se dibuja el calendario');
 assert.match(studio,/para reservarlo después/,'el vacío explica para qué crear el espacio');
+assert.match(productionSection,/\[--board-cols:1\] sm:\[--board-cols:2\] lg:\[--board-cols:4\]/,'el tablero muestra 1/2/4 etapas completas por página');
+assert.match(board,/w-\[calc\(\(100%-\(var\(--board-cols\)-1\)\*0\.75rem\)\/var\(--board-cols\)\)\]/,'el ancho de columna reparte la página sin cortar etapas');
+assert.match(productionSection,/node\.clientWidth\+12/,'la flecha avanza una página completa de etapas');
+assert.match(board,/line-clamp-2 text-\[11\.5px\] leading-5 text-mute/,'la descripción se resume a dos líneas');
+assert.match(board,/>Ver detalle<\/button>/,'el recorte de la descripción ofrece "Ver detalle"');
+assert.match(board,/node\.scrollHeight-node\.clientHeight>1/,'"Ver detalle" solo aparece si la descripción quedó recortada');
+assert.match(checklistCss,/\.work-checklist-check input\[type=checkbox\]\{width:24px;height:24px;min-width:24px/,'el checkbox del checklist usa el control de 24 px');
+assert.equal((checklistCss.match(/input\[type=checkbox\]\{width:/g)||[]).length,1,'el checklist declara un solo tamaño de checkbox');
+assert.match(orderLinks,/className="h-6 w-6 p-0 accent-fono"/,'el checkbox de visibilidad del enlace usa el mismo control de 24 px');
+assert.match(orderLinks,/min-h-11 items-center gap-2 md:min-h-0/,'el checkbox de enlace tiene target de 44 px en móvil');
+assert.match(planner,/className="h-6 w-6 p-0 accent-fono"/,'la selección de piezas del planificador también es de 24 px');
 // ── Ronda 14 (#62): el vacío de Proyectos también trae su CTA contextual.
 assert.match(projects,/Todavía no hay proyectos\./,'el vacío de Proyectos tiene estado propio');
 assert.match(projects,/>Nuevo proyecto<\/Button>/,'el vacío de Proyectos ofrece crearlo');
@@ -234,7 +246,7 @@ assert.match(planner,/\[&_a\]:inline-flex \[&_a\]:min-h-11/,'los enlaces de Driv
 assert.match(projectCard,/\[&_a\]:inline-flex \[&_a\]:min-h-11/,'los enlaces de Drive de la ficha de proyecto son táctiles');
 // Scroll contenido: el documento no scrollea de costado; las listas y el tablero sí, dentro de su caja.
 assert.match(uiV2,/silent-scroll min-w-0 overflow-x-auto/,'las listas v2 contienen su scroll horizontal');
-assert.match(productionSection,/silent-scroll flex snap-x gap-3 overflow-x-auto/,'el tablero contiene su scroll horizontal');
+assert.match(productionSection,/silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto/,'el tablero contiene su scroll por bloques');
 // Toolbars que envuelven y campos a ancho completo en mobile.
 assert.match(uiV2,/mb-4 flex flex-wrap items-end gap-3/,'la toolbar de filtros envuelve en mobile');
 assert.match(productionSection,/mb-4 flex flex-col gap-3 lg:flex-row/,'la barra de producción apila en mobile');

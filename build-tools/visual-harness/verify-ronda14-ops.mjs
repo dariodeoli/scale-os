@@ -42,7 +42,7 @@ await go('/produccion',`document.querySelectorAll('[data-column]').length===7`,'
 await waitFor(`(()=>{const em=document.querySelector('[data-column] em');return em&&em.textContent.trim()&&em.textContent.trim()!=='…';})()`,{label:'badges'});
 const board=await evaluate(`(()=>{const columns=[...document.querySelectorAll('[data-column]')];const region=columns[0].parentElement;return {badges:Object.fromEntries(columns.map(c=>[c.getAttribute('data-column'),Number(c.querySelector('em').textContent.trim())])),indicator:document.querySelector('[data-board-window]')?.textContent.trim()||null,scrollWidth:region.scrollWidth,clientWidth:region.clientWidth,scrollLeft:Math.round(region.scrollLeft),overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth};})()`);
 const counts=JSON.parse(await evaluate(`fetch('/core-api/api/agency/work-orders?counts=1&limit=1&fields=id',{credentials:'include'}).then(r=>r.json()).then(d=>JSON.stringify(d.stage_counts||{}))`));
-check('tablero: indicador "N de 7 etapas" visible',/^\d+ de 7 etapas$/.test(board.indicator||''),true);
+check('tablero: indicador de bloques visible',/^Etapas? \d+(–\d+)? de 7$/.test(board.indicator||''),true);
 check('tablero: badges == ?counts=1',JSON.stringify(board.badges),JSON.stringify(counts));
 check('tablero: sin overflow del documento',board.overflow,0);
 check('tablero: el riel scrollea',board.scrollWidth>board.clientWidth,true);

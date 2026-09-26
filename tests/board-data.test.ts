@@ -61,7 +61,9 @@ assert.equal(adjustCounts({blocked:0,editing:1},'blocked','editing').blocked,0,'
 // Indicador del riel: cuenta la columna parcialmente visible del borde.
 const cols=(widths:number[],gap=12)=>widths.map((width,index)=>({left:index*(width+gap),right:index*(width+gap)+width}));
 assert.deepEqual(boardVisibleWindow(cols([288,288,288,288,288,288,288]),{left:0,right:992}),{first:1,last:4,count:4},'a 1280 entran 4 de las 7 etapas');
-assert.equal(boardWindowLabel({count:4},7),'4 de 7 etapas','la etiqueta dice cuántas etapas se ven');
+assert.equal(boardWindowLabel({first:1,last:4},7),'Etapas 1–4 de 7','la etiqueta del bloque dice el rango visible');
+assert.equal(boardWindowLabel({first:4,last:7},7),'Etapas 4–7 de 7','la última página se ancla al final sin cortar etapas');
+assert.equal(boardWindowLabel({first:3,last:3},7),'Etapa 3 de 7','en mobile una sola etapa visible usa singular');
 assert.deepEqual(boardVisibleWindow(cols([288,288,288,288,288,288,288]),{left:600,right:1592}),{first:3,last:6,count:4},'scroll a la derecha: la ventana avanza y cuenta las 4 que entran');
 assert.deepEqual(boardVisibleWindow(cols([288,288,288,288,288,288,288]),{left:1000,right:1992}),{first:4,last:7,count:4},'al final del riel la última etapa entra en la ventana');
 assert.deepEqual(boardVisibleWindow(cols([288,288]),{left:-500,right:10}),{first:1,last:1,count:1},'sin columnas dentro se conserva una ventana válida');
