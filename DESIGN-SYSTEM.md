@@ -227,6 +227,29 @@ la adoptan primero (COM)**.
 - El vacío nunca es mudo cuando el rol puede resolverlo; y nunca ofrece una
   acción que el rol no puede ejecutar (gate de rol primero).
 
+### Nav v3 (issues #68 y #69)
+
+El menú principal son **5 grupos desplegables** (`navGroups` en `app/navigation.ts`):
+Resumen · Flujo (Pipeline, Clientes, Presupuestos, Proyectos, Producción) ·
+Recursos (Inventario, Equipo, Estudio) · Finanzas (Finanzas, Informes) ·
+Configuración.
+
+- Acordeón: se expande el grupo del módulo activo y uno solo por vez; el ítem
+  activo marca al grupo padre (pill + barra dorada) y a su módulo (hoja).
+- Riel colapsado: un ícono por grupo con `title` (el grupo activo suma el
+  módulo: “Flujo · Clientes”); los grupos de un solo módulo y el riel colapsado
+  navegan directo, sin hojas.
+- Los apartados de cada módulo (Métricas, Planes, Mora, Previsión, Invitaciones,
+  Comisiones, Roles, Historial, Actividad, Preferencias, Papelera) siguen en los
+  tabs de la sección (`sectionGroups`/`childSections`); las rutas no cambian.
+- “Nueva orden” (y proyectos/presupuestos) sigue fuera del menú, en el header
+  de la página; “Guía del panel” vive una sola vez como ayuda contextual en la
+  barra de utilidades (variante `help`); el perfil, la empresa y la presencia
+  quedan compactos (perfil al pie del riel/drawer).
+- `Administración de Scale` (#69) se muestra encima del perfil solo si
+  `/api/auth/me` devuelve `platform_role: 'admin'` (nunca por email) y abre
+  `https://admin.scaleparaguay.com`.
+
 ### Estado de cobro de un cliente (única definición)
 
 El **`payment_status` que devuelve el API** (`/client-payment-status`,

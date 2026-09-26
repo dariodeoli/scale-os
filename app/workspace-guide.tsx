@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from 'react';
-import {ArrowUpRight,Building2,EyeOff} from 'lucide-react';
+import {ArrowUpRight,Building2,CircleHelp,EyeOff} from 'lucide-react';
 import {api,Dialog,Editor} from './operations';
 import {founderPricingNote} from './founder-pricing';
 import {CompanySettings} from './company-settings';
@@ -14,7 +14,7 @@ export type {WorkspaceGuideData} from './workspace-guide-data';
 export type WorkspaceGuideProps = WorkspaceGuideIdentity & {
  navigate:(module:string)=>void;
  data?:WorkspaceGuideData;
- variant?:'button'|'card';
+ variant?:'button'|'card'|'help';
 };
 
 function GuideStep({step,navigate}:{step:WorkspaceGuideStep;navigate:(module:string)=>void}){
@@ -48,6 +48,12 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
  };
  const demoNote=demo?<p className="form-note">Datos de ejemplo: explorá la demo. Los registros no indican pasos completados.</p>:null;
  const directory=<details><summary>Todas las herramientas</summary><div className="ops-job-list">{tools.map(([label])=><button type="button" className="choice" key={label} onClick={()=>go(label)}>{label}</button>)}</div></details>;
+ // Ayuda contextual del nav v3 (issue #68): el botón de la guía vive una sola
+ // vez en la barra de utilidades (variante `help`, icono con tooltip) en vez de
+ // repetirse en el encabezado de cada página; la tarjeta de Resumen sigue como
+ // acceso contextual a los primeros pasos.
+ const guideDialog=open?<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}</Dialog>:null;
+ if(variant==='help')return <><button type="button" className="icon-button" title="Guía del panel" aria-label="Guía del panel" onClick={()=>setOpen(true)}><CircleHelp size={18}/></button>{guideDialog}</>;
  if(variant==='card'){
   if(!preference.ready||preference.dismissed)return null;
   return <section className="panel" aria-label="Primeros pasos"><div className="panel-heading"><h2>Primeros pasos</h2><button type="button" className="text-button" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</button></div>
@@ -56,7 +62,7 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
    {open&&<div className="ops-stack">{suggestion&&<GuideStep step={suggestion} navigate={go}/>}{steps.length>1&&<details><summary>Otros pasos disponibles</summary><div className="ops-stack">{steps.filter(step=>step.module!==suggestion?.module).map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div></details>}{!suggestion&&<p className="form-note">Consultá las herramientas disponibles para tu acceso.</p>}{directory}</div>}
   </section>;
  }
- return <><button type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{open&&<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}</Dialog>}</>;
+ return <><button type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{guideDialog}</>;
 }
 export function NewCompany(){
  const [open,setOpen]=useState(false);

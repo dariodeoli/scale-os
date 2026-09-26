@@ -82,25 +82,38 @@ if (filtered.length === 0) {
 }
 
 const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none no-underline transition hover:no-underline focus-visible:no-underline';
-// Espeja app/scale-workspace.tsx + app/desktop-sidebar.tsx vigentes: un solo
-// corte móvil/escritorio (`md`, 768 px), content por flex (sin calc ni
-// max-width) y pie con un solo divisor (el borde del `.sidebar-bottom`).
-const shellAside = (active) => `
+// Espeja app/scale-workspace.tsx + app/desktop-sidebar.tsx vigentes: nav v3 de
+// 5 grupos desplegables (acordeón del grupo activo), corte móvil `md`, content
+// por flex y pie con un solo divisor.
+const NAV_GROUPS = [['Resumen',['Resumen']],['Flujo',['Pipeline','Clientes','Presupuestos','Proyectos','Producción']],['Recursos',['Inventario','Equipo','Estudio']],['Finanzas',['Finanzas','Informes']],['Configuración',['Configuración']]];
+const navItemHtml = (label, isActive) => {
+  const item = `${isActive ? 'active ' : ''}${RAIL_ITEM} relative ${isActive ? 'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold' : 'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`;
+  const icon = `nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition ${isActive ? 'bg-white/20 text-white' : 'bg-white/10 text-white/80'}`;
+  return `<a href="#" class="${item}"${isActive ? ' aria-current="page"' : ''} title="${label}" aria-label="${label}"><span class="${icon}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg></span><span class="nav-label min-w-0 break-words">${label}</span></a>`;
+};
+const shellAside = (active) => {
+  const groupOf = (section) => NAV_GROUPS.find(([, modules]) => modules.includes(section))?.[0] || 'Resumen';
+  const openGroup = groupOf(active);
+  const items = NAV_GROUPS.map(([group, modules]) => {
+    const containsActive = modules.includes(active);
+    if (modules.length === 1) return navItemHtml(group, containsActive);
+    const leaves = modules.map((module) => navItemHtml(module, module === active)).join('');
+    const header = `${containsActive ? 'active ' : ''}${RAIL_ITEM} relative ${containsActive ? 'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold' : 'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`;
+    const icon = `nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition ${containsActive ? 'bg-white/20 text-white' : 'bg-white/10 text-white/80'}`;
+    return `<div class="nav-group grid gap-1"><button type="button" class="nav-group-toggle ${header}" aria-expanded="${openGroup === group}" title="${group}"><span class="${icon}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg></span><span class="nav-label min-w-0 break-words">${group}</span><svg class="nav-chevron ml-auto shrink-0" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>${openGroup === group ? `<div class="nav-leaves grid gap-1 pl-3">${leaves}</div>` : ''}</div>`;
+  }).join('');
+  return `
 <aside class="desktop-sidebar hidden shrink-0 flex-col overflow-hidden border-r border-white/10 text-white/80 [&_.sidebar-brand]:flex [&_.sidebar-brand]:items-center [&_.sidebar-brand]:!px-3 [&_.sidebar-brand]:!pb-2 md:sticky md:top-0 md:flex md:h-dvh md:transition-[width] md:duration-200 md:ease-out motion-reduce:!transition-none p-3 md:!w-48">
  <div class="flex justify-end pb-1"><button type="button" class="sidebar-collapse grid h-11 w-11 place-items-center rounded-lg text-white/70 transition hover:bg-white/10 hover:text-white" aria-label="Colapsar barra lateral" title="Colapsar barra lateral" aria-expanded="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg></button></div>
  <div class="sidebar-brand"><span class="workspace-brand"><span class="workspace-wordmark">Scale<span>OS</span></span></span></div>
  <p class="nav-caption mb-1 mt-2 px-3 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Espacio de trabajo</p>
- <nav class="[&_a]:no-underline grid gap-1 min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Secciones">
-  ${['Resumen','Pipeline','Clientes','Presupuestos','Proyectos','Producción','Inventario','Estudio','Finanzas','Informes','Equipo','Configuración'].map((label) => {
-    const isActive = label === active;
-    const item = `${isActive ? 'active ' : ''}${RAIL_ITEM} relative ${isActive ? 'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold' : 'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`;
-    const icon = `nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition ${isActive ? 'bg-white/20 text-white' : 'bg-white/10 text-white/80'}`;
-    return `<a href="#" class="${item}"${isActive ? ' aria-current="page"' : ''} title="${label}" aria-label="${label}"><span class="${icon}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg></span><span class="nav-label min-w-0 break-words">${label}</span></a>`;
-  }).join('')}
+ <nav class="[&_a]:no-underline grid content-start gap-1 min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Secciones">
+  ${items}
   <button type="button" class="nav-logout ${RAIL_ITEM} text-white/75 hover:bg-white/[0.08] hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión"><span class="nav-icon grid size-7 shrink-0 place-items-center rounded-lg bg-white/10 text-white/80 transition"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></span><span class="nav-label">Cerrar sesión</span></button>
  </nav>
  <div class="sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t border-white/[0.12] pt-3"><div class="profile-footer min-w-0"><button class="user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition hover:bg-white/10" aria-label="Abrir mi perfil"><span class="person-container person-container-md"><span class="person-container-avatar" aria-hidden="true">FD</span><span class="person-container-details"><span class="person-container-name" title="Fredd D.">Fredd D.</span><span class="person-container-secondary" title="Propietario">Propietario</span></span></span></button></div></div>
 </aside>`;
+};
 
 function fixtureSection(fixture) {
   const dataLists = JSON.stringify(fixture.lists || []).replace(/'/g, '&#39;');

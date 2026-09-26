@@ -10,9 +10,9 @@ const drawer=read('mobile-navigation.tsx');
 // El riel y el drawer comparten UNA constante de geometría (RAIL_ITEM) y el
 // estado activo sólo cambia color: la selección nunca cambia métricas.
 assert.match(rail,/export const RAIL_ITEM='[^']*min-h-11[^']*font-semibold[^']*'/,'the rail item reserves touch target and font metrics');
-assert.match(workspace,/navItemClass=\(active:boolean\)=>/,'the shell composes one item class');
+assert.match(workspace,/navItemClass=\(active:boolean,tone:'rail'\|'light'\)=>/,'the shell composes one item class');
 assert.match(workspace,/active\?'bg-fono\/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore'/,'selection changes color only, never geometry');
-assert(workspace.includes('navItemClass(activeParent === label)')&&workspace.includes('navItemClass(false)'),'links and the logout button share the item class');
+assert(workspace.includes('navItemClass(containsActive,tone)')&&workspace.includes('navItemClass(activeParent===module,tone)')&&workspace.includes('navItemClass(false,tone)'),'group header, module leaf and logout share the item class');
 assert.match(drawer,/\[&_a\]:min-h-11 \[&_button\]:min-h-11/,'the mobile drawer keeps 44px targets for links and buttons');
 // Los tabs de apartados conservan su geometría base en la hoja compartida.
 const tabs='.control-shell .section-tabs>a';

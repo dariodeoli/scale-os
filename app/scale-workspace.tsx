@@ -2,7 +2,7 @@
 import {ProjectCard} from './project-card';
 import {Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
-import {sectionLabel,sectionPath,parentSection,childSections,tabLabels} from './navigation';
+import {sectionLabel,sectionPath,parentSection,childSections,tabLabels,navGroups,moduleNavGroup} from './navigation';
 import Link from 'next/link';
 import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {WorkspaceSearch} from './workspace-search';
@@ -119,28 +119,25 @@ import {
   RotateCcw,
   Search,
   Settings,
+  Settings2,
+  ShieldCheck,
   SlidersHorizontal,
   Target,
   Trash2,
   Users,
   WalletCards,
+  Warehouse,
+  Workflow,
   X,
 } from "lucide-react";
 
-const nav = [
-  ["Resumen", LayoutDashboard],
-  ["Pipeline", Target],
-  ["Clientes", Users],
-  ["Presupuestos", FileText],
-  ["Proyectos", FolderKanban],
-  ["Producción", Clapperboard],
-  ["Inventario", Boxes],
-  ["Estudio", CalendarDays],
-  ["Finanzas", WalletCards],
-  ["Informes", BarChart3],
-  ["Equipo", BriefcaseBusiness],
-  ["Configuración", Settings],
-] as const;
+// Nav v3 (issue #68): 5 grupos desplegables (Resumen · Flujo · Recursos ·
+// Finanzas · Configuración); cada grupo lista sus módulos y el ícono del grupo
+// es el que marca al padre cuando el módulo activo vive adentro. Estudio vive
+// en Recursos (agenda de espacios/equipos). Las rutas y los apartados de cada
+// módulo no cambian.
+const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
+const MODULE_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Pipeline:Target,Clientes:Users,Presupuestos:FileText,Proyectos:FolderKanban,Producción:Clapperboard,Inventario:Boxes,Estudio:CalendarDays,Finanzas:WalletCards,Informes:BarChart3,Equipo:BriefcaseBusiness,Configuración:Settings};
 function localMonth(){const parts=new Intl.DateTimeFormat('en',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(new Date());return `${parts.find(part=>part.type==='year')!.value}-${parts.find(part=>part.type==='month')!.value}`;}
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
   return user?`${user.id}:${user.organization_id}:${user.role}`:'';
@@ -312,7 +309,11 @@ export default function Home() {
   },[signedIn,user?.id,user?.organization_id]);
   const activeParent=parentSection(active);
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
-  const visibleNav=nav.filter(([label])=>allowedChildren(label).length>0);
+  const visibleNavGroups=navGroups.map(([group,modules])=>({group,modules:modules.filter(module=>allowedChildren(module).length>0)})).filter(group=>group.modules.length>0);
+  // Acordeón del nav v3: por defecto el grupo del módulo activo y sólo uno
+  // expandido a la vez; al navegar se reabre el grupo de la sección nueva.
+  const [openNavGroup,setOpenNavGroup]=useState<string|null>(()=>moduleNavGroup(activeParent));
+  useEffect(()=>{setOpenNavGroup(moduleNavGroup(activeParent));},[activeParent]);
   useEffect(()=>{setModal(null);setProjectClient('');setDetail(null);},[pathname]);
   useEffect(()=>{
     if(!user?.demo_owner_user_id||new URLSearchParams(window.location.search).get('demoWelcome')!=='1')return;
@@ -895,38 +896,75 @@ export default function Home() {
     ? `relative ${active?'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold':'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`
     : `${active?'bg-fono/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore'} focus-visible:ring-2 focus-visible:ring-fono/40`}`;
   const navIconClass=(active:boolean,tone:'rail'|'light')=>`${NAV_ICON} ${tone==='rail'?(active?'bg-white/20 text-white':'bg-white/10 text-white/80'):(active?'bg-fono/15 text-fono-light':'bg-ink-700 text-mute')}`;
-  const sidebarContent=(tone:'rail'|'light')=><>
+  const sidebarContent=(tone:'rail'|'light',collapsed=false)=><>
         <div className="mobile-sidebar-brand"><WorkspaceBrand/></div>
         <p className="nav-caption mb-1 mt-2 px-3 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Espacio de trabajo</p>
-        <nav aria-label="Menú principal" className={`grid gap-1 [&_a]:no-underline ${tone==='rail'?'min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden':''}`}>
-          {visibleNav.map(([label, Icon]) => (
-            <Link
-              key={label}
-              className={navItemClass(activeParent === label,tone)}
-              aria-current={activeParent===label?'page':undefined}
-              title={label}
-              aria-label={label}
-              href={sectionPath(allowedChildren(label)[0])}
-              onMouseEnter={()=>prefetchSection(allowedChildren(label)[0])}
-              onFocus={()=>prefetchSection(allowedChildren(label)[0])}
+        <nav aria-label="Menú principal" className={`grid content-start gap-1 [&_a]:no-underline ${tone==='rail'?'min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden':''}`}>
+          {visibleNavGroups.map(({group,modules})=>{
+            const GroupIcon=NAV_GROUP_ICONS[group]||LayoutDashboard;
+            const containsActive=(modules as readonly string[]).includes(activeParent);
+            const target=containsActive?activeParent:modules[0];
+            const groupTitle=containsActive&&activeParent!==group?`${group} · ${activeParent}`:group;
+            // Grupo de un módulo o riel colapsado: el ícono navega al módulo del
+            // grupo (en el riel colapsado el tooltip nativo nombra el grupo y el
+            // acordeón no se dibuja: no hay lugar para las hojas).
+            if(modules.length===1||collapsed)return <Link
+              key={group}
+              className={navItemClass(containsActive,tone)}
+              aria-current={containsActive?'page':undefined}
+              title={groupTitle}
+              aria-label={groupTitle}
+              href={sectionPath(target)}
+              onMouseEnter={()=>prefetchSection(allowedChildren(target)[0])}
+              onFocus={()=>prefetchSection(allowedChildren(target)[0])}
             >
-              <span className={navIconClass(activeParent===label,tone)}><Icon size={16}/></span>
-              <span className="nav-label min-w-0 break-words">{label}</span>
-            </Link>
-          ))}
+              <span className={navIconClass(containsActive,tone)}><GroupIcon size={16}/></span>
+              <span className="nav-label min-w-0 break-words">{group}</span>
+            </Link>;
+            const open=openNavGroup===group;
+            const panelId=`nav-group-${group.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-')}`;
+            return <div className="nav-group grid gap-1" key={group}>
+              <button type="button" className={`nav-group-toggle ${navItemClass(containsActive,tone)}`} aria-expanded={open} aria-controls={open?panelId:undefined} title={groupTitle} onClick={()=>setOpenNavGroup(current=>current===group?null:group)}>
+                <span className={navIconClass(containsActive,tone)}><GroupIcon size={16}/></span>
+                <span className="nav-label min-w-0 break-words">{group}</span>
+                <ChevronDown size={15} className={`nav-chevron ml-auto shrink-0 transition-transform ${open?'rotate-180':''}`} aria-hidden="true"/>
+              </button>
+              {open&&<div id={panelId} className="nav-leaves grid gap-1 pl-3">
+                {modules.map(module=>{
+                  const Icon=MODULE_ICONS[module]||GroupIcon;
+                  return <Link
+                    key={module}
+                    className={navItemClass(activeParent===module,tone)}
+                    aria-current={activeParent===module?'page':undefined}
+                    title={module}
+                    aria-label={module}
+                    href={sectionPath(allowedChildren(module)[0])}
+                    onMouseEnter={()=>prefetchSection(allowedChildren(module)[0])}
+                    onFocus={()=>prefetchSection(allowedChildren(module)[0])}
+                  >
+                    <span className={navIconClass(activeParent===module,tone)}><Icon size={16}/></span>
+                    <span className="nav-label min-w-0 break-words">{module}</span>
+                  </Link>;
+                })}
+              </div>}
+            </div>;
+          })}
           <button type="button" className={`nav-logout ${navItemClass(false,tone)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><span className={navIconClass(false,tone)}><LogOut size={16}/></span><span className="nav-label">Cerrar sesión</span></button>
         </nav>
         <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t pt-3 ${tone==='rail'?'border-white/[0.12]':'border-ink-600'}`}>
+          {/* Issue #69: acceso a la administración de la plataforma, sólo si el
+              SERVIDOR marca platform_role=admin en /auth/me (nunca por email). */}
+          {user?.platform_role==='admin'&&<a className={`nav-admin ${navItemClass(false,tone)}`} href="https://admin.scaleparaguay.com" target="_blank" rel="noopener noreferrer" title="Administración de Scale" aria-label="Administración de Scale"><span className={navIconClass(false,tone)}><ShieldCheck size={16}/></span><span className="nav-label">Administración de Scale</span></a>}
           <div className="profile-footer min-w-0"><button className={`user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition ${tone==='rail'?'hover:bg-white/10':'hover:bg-ink-700'}`} aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
       </>;
   return (
     <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
-      <DesktopSidebar>
+      <DesktopSidebar>{(collapsed)=><>
         <div className="sidebar-brand"><WorkspaceBrand/></div>
-        {sidebarContent('rail')}
-      </DesktopSidebar>
+        {sidebarContent('rail',collapsed)}
+      </>}</DesktopSidebar>
       {/* El content ocupa el ancho restante por flex (`flex-1`), no por un
           `width: calc(100% - riel)` atado a cada estado del riel: colapsar o
           expandir el riel es una sola transición y el content se recalcula
@@ -962,6 +1000,7 @@ export default function Home() {
             </div>
             <div className="topbar-utility-actions flex min-w-0 items-center gap-2 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
               <ThemeToggle/>
+              <WorkspaceGuide {...guideProps} variant="help"/>
               <WorkspaceSearch key={workspaceScope} navigate={setActive} records={[
                 ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
                 ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
@@ -984,14 +1023,13 @@ export default function Home() {
             status={clientStatusFilter}
             totalCount={clients.length}
             view={clientView as 'grid'|'list'}
-          ><WorkspaceGuide {...guideProps}/></ClientDirectoryToolbar> : <>
+          /> : <>
             <div className="page-heading flex min-w-0 items-center gap-2">
               <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{active==='Resumen'?'Centro de control':activeParent}</h1>
               {active==='Proyectos'&&<span className="page-count rounded-full bg-ink-700 px-2 py-0.5 text-[11px] tabular-nums text-mute">{projects.length} proyectos</span>}
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
               {active==='Proyectos'&&<div className="workspace-view-controls"><ViewSwitch value={projectView as 'list'|'grid'} onChange={changeProjectView}/></div>}
-              <WorkspaceGuide {...guideProps}/>
               {(['Proyectos','Resumen','Producción','Presupuestos'].includes(active)&&canCreateRecord(active)) && (
                 <button
                   className="primary"
