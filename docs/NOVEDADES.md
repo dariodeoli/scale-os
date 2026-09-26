@@ -2,6 +2,33 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.131
+
+### Resumen
+
+- **Carga mucho más liviana**: la pantalla pide una ventana de 300 órdenes con los campos que el buscador, las alertas y el planificador usan de verdad: la llamada baja de 613 KB a 149 KB (−76 %) y de 60 KB a 7 KB de red (−88 %); el arranque de Resumen pasa de 18 a 13 ms.
+- **Conteos exactos**: los chips de “Piezas por etapa” y el KPI “En revisión” salen del resumen del servidor (todas las órdenes), no de la ventana visible.
+
+### Operaciones
+
+- **Inventario y Estudio piden solo lo que dibujan** (`?fields=`), con vuelta automática al payload completo si el API no acepta la proyección: el catálogo completo de inventario pasa de 2.563 KB a 855 KB y a 11 KB cuando además se pide una página de 50.
+- **Casilla de la grilla de inventario a 44×44 en el celular** (antes 31×44), pareja con la fila y el resto de las listas.
+
+### Comercial
+
+- **Pipeline y Presupuestos** ya mandan proyecciones de oportunidades y presupuestos (con encendido automático y fallback): la lista de oportunidades baja de 169 a 110 KB y la de presupuestos de 151 a 71 KB; con página de 50, a 8 KB.
+- **Contrato optimista**: si el API rechazara una proyección, la lista vuelve sola al payload completo en esa sesión, sin romper la pantalla ni ocultar otros errores.
+
+### Velocidad del API
+
+- **Proyección con lista blanca**: `?fields=` valida los campos (responde 400 si no existen, `id` siempre presente) y `?limit=` pagina con `hasMore`; aplicado a inventario, reservas de inventario, espacios y reservas de estudio, oportunidades y presupuestos, manteniendo la ficha puntual completa.
+- Medición con la misma semilla y banco opt-in: reservas de inventario de 1.242 KB a 5 KB con página de 25; reservas de estudio de 467 a 205 KB.
+
+### Diseño y plataforma
+
+- **Bordes de control con contraste ≥3:1** en ambos temas (el token oscuro pasa a `#867493`), incluidos los controles outline de la librería; el pie del shell gana área táctil de 44 px en móvil y Recursos queda ordenado `Inventario · Estudio · Equipo`.
+- El contraste pendiente de los chips (4,09–4,47:1) quedó reportado a la librería con propuesta de tokens (`owncoding-ui#5`), sin forkear el objeto.
+
 ## v1.0.130
 
 ### Marco y sistema visual
