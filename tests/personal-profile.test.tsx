@@ -39,6 +39,7 @@ async function respond(request:Request,data:unknown,status=200){await act(async(
 async function load(profile=fixture()){await respond(latest(),{profile});}
 async function changeName(value:string){await act(async()=>{await renderer.root.findByProps({name:'full_name'}).props.onChange({target:{name:'full_name',value},type:'change'});});}
 async function startNameSave(){let pending!:Promise<void>;await act(async()=>{pending=renderer.root.findByType('form').props.onSubmit(submitEvent());});return {pending};}
+async function openNameEditor(){await act(async()=>{renderer.root.findByProps({'data-profile-section':'name'}).props.onToggle({currentTarget:{open:true}});});}
 function close(){act(()=>renderer.unmount());}
 
 test('real identity in a private demo is visible but cannot be changed from the demo',async()=>{
@@ -53,22 +54,24 @@ test('canonical name/email header, single photo preview, edit sequence and scope
  await mount();assert.match(content(),/Cargando tu perfil/);assert.doesNotMatch(content(),/Nombre obsoleto/);
  assert.equal(latest().url,'/core-api/api/agency/productivity/profile');assert.equal(latest().init.credentials,'include');
  await load();
- assert.equal(renderer.root.findByType('dd').children[0],'ana@example.invalid');
+ assert.match(content(),/ana@example\.invalid/);
  assert.match(content(),/Ana Personal/);assert.match(content(),/se comparten entre tus empresas/);
- assert.match(content(),/cargo, sueldo y acceso se mantienen separados/);
- assert.equal(renderer.root.findAllByType('input').length,1);assert.equal(renderer.root.findByType('input').props.name,'full_name');
- assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Guardar nombre')));
+ assert.equal(renderer.root.findAllByType('input').length,0,'el editor de nombre vive plegado');
+ assert.equal(renderer.root.findAllByType('button').some(button=>button.children.includes('Guardar nombre')),false,'el pie no ofrece guardar sin editor abierto');
  assert.equal(requests.length,1,'opening the editor never writes');
  assert.match(JSON.stringify(renderer.toJSON()),/"data-profile-section":"identity"[\s\S]*?Identidad/,'la sección de identidad encabeza el perfil');
  assert.equal(renderer.root.findAllByType(PhotoStub).length,1);
- assert.equal(renderer.root.findAllByType('img').length,1,'the header must not duplicate the photo preview');
- assert.equal(renderer.root.findByProps({'data-profile-section':'identity'}).findAllByType('img').length,0,'la identidad no monta fotos');
- assert.match(content(),/Acceso con Google/);const google=renderer.root.findAllByType('a').find(link=>link.children.includes('Conectar Google'))!;assert.equal(google.props.href,'/core-api/api/auth/google/start?connect=1');
+ assert.equal(renderer.root.findAllByType('img').length,2,'avatar de identidad + vista previa de foto');
+ assert.equal(renderer.root.findByProps({'data-profile-section':'identity'}).findAllByType('img').length,1,'la identidad usa su avatar y no duplica la vista previa de la foto');
+ assert.match(content(),/Usá Google para ingresar/);const google=renderer.root.findAllByType('a').find(link=>link.children.includes('Conectar Google'))!;assert.equal(google.props.href,'/core-api/api/auth/google/start?connect=1');
  const rendered=content();assert(rendered.indexOf('"data-profile-section":"photo"')<rendered.indexOf('"data-profile-section":"name"'),'photo controls precede name editing');
+ await openNameEditor();
+ assert.equal(renderer.root.findAllByType('input').length,1);assert.equal(renderer.root.findByType('input').props.name,'full_name');
+ assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Guardar nombre')),'el pie guarda cuando el editor está abierto');
 });
 
 test('name failure retains real Editor draft and dialog; retry closes only after persistence',async()=>{
- await mount();await load();await changeName('Ana Cambiada');
+ await mount();await load();await openNameEditor();await changeName('Ana Cambiada');
  const first=await startNameSave();
  assert.equal(latest().init.method,'PATCH');assert.deepEqual(JSON.parse(String(latest().init.body)),{full_name:'Ana Cambiada'});
  assert.equal(closed,0);assert.match(content(),/Guardando/);
@@ -81,7 +84,7 @@ test('name failure retains real Editor draft and dialog; retry closes only after
 });
 
 test('name closes before session refresh finishes; refresh failure warns without denying persistence',async()=>{
- const refresh=deferred<void>();await mount(()=>refresh.promise);await load();await changeName('Nombre Persistido');
+ const refresh=deferred<void>();await mount(()=>refresh.promise);await load();await openNameEditor();await changeName('Nombre Persistido');
  const save=await startNameSave();await respond(latest(),{profile:fixture({full_name:'Nombre Persistido'})});
  assert.equal(closed,1,'pending refresh must not hold a successfully saved editor open');
  assert.equal(refreshes,1);assert.match(content(),/Editor cerrado/);
@@ -92,7 +95,7 @@ test('name closes before session refresh finishes; refresh failure warns without
 });
 
 test('photo remains partial and separate; refresh failure neither rejects persisted photo nor clears name draft',async()=>{
- await mount(async()=>{throw Error('Refresh unavailable');});await load();await changeName('Borrador sin guardar');
+ await mount(async()=>{throw Error('Refresh unavailable');});await load();await openNameEditor();await changeName('Borrador sin guardar');
  let photoSave!:Promise<void>;
  await act(async()=>{photoSave=renderer.root.findByType(PhotoStub).props.save('https://example.invalid/b.png');});
  assert.equal(renderer.root.findByType(DialogStub).props.busy,true,'photo persistence locks the dialog');
@@ -121,7 +124,7 @@ test('failed photo persistence propagates to photo controls without closing or r
 
 test('demo isolation copy and unchanged missing-name photo fallback',async()=>{
  await mount();await load(fixture({identity_scope:'demo',full_name:null}));
- assert.match(content(),/Solo en este demo/);assert.match(content(),/Los cambios no modifican tu perfil en empresas reales/);
+ assert.match(content(),/Perfil del demo/);assert.match(content(),/no modifican tus empresas reales/);
  assert.doesNotMatch(content(),/se comparten entre tus empresas/);
  let photoSave!:Promise<void>;
  await act(async()=>{photoSave=renderer.root.findByType(PhotoStub).props.save('');});
@@ -135,7 +138,7 @@ test('load retry and late responses cannot close or refresh an abandoned editor'
  assert.equal(renderer.root.findAllByType('form').length,0);assert.match(content(),/No se pudo cargar/);
  act(()=>renderer.root.findAllByType('button').find(button=>button.children.includes('Reintentar carga'))!.props.onClick());
  assert.match(content(),/Cargando tu perfil/);await load();
- await changeName('Nombre pendiente');const save=await startNameSave();const lateSave=latest();close();
+ await openNameEditor();await changeName('Nombre pendiente');const save=await startNameSave();const lateSave=latest();close();
  await respond(lateSave,{profile:fixture({full_name:'Nombre pendiente'})});await save.pending;
  assert.equal(closed,0);assert.equal(refreshes,0);
  await mount();const lateLoad=latest();close();await respond(lateLoad,{profile:fixture()});assert.equal(refreshes,0);
@@ -154,7 +157,7 @@ test('v2 source: wrapping identity, 44px controls and unchanged hidden file inpu
 
 test('a Google-linked account shows the connected state instead of the connect action',async()=>{
  await mount();await load(fixture({google_connected:true}));
- assert.match(content(),/Conectado con Google/,'the linked account shows its state');
+ assert.match(content(),/Conectado/,'the linked account shows its state');
  assert.equal(renderer.root.findAllByType('a').some(link=>link.children.includes('Conectar Google')),false,'a linked account never asks to connect again');
  close();
 });
