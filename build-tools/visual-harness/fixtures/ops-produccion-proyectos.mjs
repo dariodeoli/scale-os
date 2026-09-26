@@ -27,6 +27,9 @@ const ICON = {
   arrowUp: 'M7 17L17 7M8 7h9v9',
   rotate: 'M21 12a9 9 0 1 1-3-6.7M21 4v5h-5',
   filter: 'M3 5h18l-7 8v6l-4-2v-4z',
+  chevronLeft: 'M15 18l-6-6 6-6',
+  chevronRight: 'M9 6l6 6-6 6',
+  box: 'M21 8l-9-5-9 5 9 5 9-5ZM3 8v8l9 5 9-5V8M12 13v8',
 };
 const initials = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 const chip = (label, tone) => {
@@ -78,6 +81,17 @@ const productionToolbar = `
   <div class="flex flex-wrap items-center gap-2"><button type="button" class="text-button">${svg(ICON.sliders, 14)}Filtros · 2</button><p class="whitespace-nowrap text-xs tabular-nums text-mute" role="status">4 de 9 órdenes</p><button type="button" class="text-button">${svg(ICON.rotate, 14)}Restablecer filtros</button></div>
  </div>
 </div>`;
+// Indicador del riel (#62): cuántas de las 7 etapas entran en el viewport.
+const boardWindow = `
+<div class="flex flex-wrap items-center justify-between gap-2">
+ <p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p>
+ <div class="flex items-center gap-1" role="group" aria-label="Recorrido del tablero" data-board-window>
+  <button type="button" data-board-prev class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-ink-500 text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas anteriores" title="Etapas anteriores" disabled>${svg(ICON.chevronLeft, 14)}</button>
+  <span class="whitespace-nowrap text-[11px] tabular-nums text-mute" title="Se ven las etapas 1 a 4 de 7. Usá las flechas o deslizá el tablero.">4 de 7 etapas</span>
+  <button type="button" data-board-next class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-ink-500 text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas siguientes" title="Etapas siguientes">${svg(ICON.chevronRight, 14)}</button>
+ </div>
+</div>`;
+const boardEmpty = `<div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-6 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">Todavía no hay órdenes en producción.</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">Creá la primera pieza y seguila por las siete etapas hasta publicarla.</p><div class="mt-4">${button('Nueva pieza')}</div></div></div>`;
 const orders = [
   {id: 'wo_1', title: 'Reel de lanzamiento para la nueva línea de productos — corte final con subtítulos, corrección de color y mezcla', color: 'teal', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', project: 'Campaña Aniversario 2026 · Temporada de verano · Spots para televisión abierta y redes', urgency: '5 · Crítica', status: {id: 'blocked', label: 'Bloqueado', tone: 'bad'}, workType: 'Video', links: 3, hours: '12 h est. · 4 h reales', checklist: {done: 3, total: 8}, description: 'Falta la aprobación del cliente sobre la música y el cierre con el logo animado de cierre.', due: 'Entrega 28 ago. 2026 · 09:30 h · venció hace 23 días', dueShort: '28-ago · 09:30', people: [{initials: 'MR', name: 'María Renée Ayala Benítez', primary: true}, {initials: 'JC', name: 'Juan Carlos Villalba'}], updated: '17 sept 26 · 09:48', approval: 1},
   {id: 'wo_2', title: 'Spots de 15 s y 30 s para radio, televisión abierta y redes sociales', color: 'violet', client: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima', project: 'Documental institucional del Bicentenario — Investigación, rodaje y postproducción completa', urgency: '2 · Moderada', status: {id: 'to_record', label: 'Por grabar', tone: 'warn'}, workType: 'Producción', links: 1, hours: '8 h est.', checklist: null, description: 'Pendiente confirmar locación y permisos de filmación en el centro histórico.', due: 'Entrega 23 sept. 2026 · 07:00 h · faltan 3 días', dueShort: '23-sept · 07:00', people: [{initials: 'LP', name: 'Lucía Paredes', primary: true}], updated: '18 sept 26 · 15:10', approval: 0},
@@ -206,7 +220,16 @@ export default [
     kind: 'workspace',
     lists: [],
     grids: [],
-    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción"><div class="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Tablero de Producción, desplazable horizontalmente">${productionColumns.map(column => kanbanColumn(column.status, column.orders, column.status.id === 'to_record' ? {count: 430, hasMore: true} : {})).join('')}</div><p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p></section></div>`,
+    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción">${boardWindow}<div class="silent-scroll flex snap-x gap-3 overflow-x-auto pb-2" tabindex="0" role="region" aria-label="Tablero de Producción, desplazable horizontalmente">${productionColumns.map(column => kanbanColumn(column.status, column.orders, column.status.id === 'to_record' ? {count: 430, hasMore: true} : {})).join('')}</div></section></div>`,
+  },
+  {
+    id: 'produccion-vacio',
+    section: 'Producción',
+    surface: 'Tablero sin órdenes',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `<div class="grid min-w-0 gap-4">${productionToolbar}<section class="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción">${boardEmpty}</section></div>`,
   },
   {
     id: 'produccion-calendario',

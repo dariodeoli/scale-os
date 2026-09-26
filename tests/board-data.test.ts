@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 
 // Capa pura del tablero por columna (#57): URLs del contrato, ventanas,
-// unión de páginas sin duplicados, agrupación y movimiento optimista.
+// unión de páginas sin duplicados, agrupación y movimiento optimista. Ronda 14
+// (#62): ventana visible para el indicador "N de 7 etapas".
 
 require.extensions['.css']=()=>{};
-const {BOARD_COLUMN_WINDOW,BOARD_PLANNER_WINDOW,plannerFields,adjustCounts,boardColumnUrl,boardCountsUrl,boardFiltersActive,boardPlannerUrl,countsFromOrders,emptyColumns,groupOrdersByStatus,mergeColumnPage,moveOrderInColumns,readColumnPage}=require('../app/board-data') as typeof import('../app/board-data');
+const {BOARD_COLUMN_WINDOW,BOARD_PLANNER_WINDOW,plannerFields,adjustCounts,boardColumnUrl,boardCountsUrl,boardFiltersActive,boardPlannerUrl,boardVisibleWindow,boardWindowLabel,countsFromOrders,emptyColumns,groupOrdersByStatus,mergeColumnPage,moveOrderInColumns,readColumnPage}=require('../app/board-data') as typeof import('../app/board-data');
 const {statuses}=require('../app/production-board') as typeof import('../app/production-board');
 
 import type {Status} from '../app/production-board';
@@ -57,4 +58,13 @@ assert.equal(adjusted.blocked,1);
 assert.equal(adjusted.editing,2);
 assert.equal(adjustCounts({blocked:0,editing:1},'blocked','editing').blocked,0,'un conteo no baja de cero');
 
-console.log('PASS board-data: contrato por columna (counts + status), ventanas, unión de páginas y movimiento optimista.');
+// Indicador del riel: cuenta la columna parcialmente visible del borde.
+const cols=(widths:number[],gap=12)=>widths.map((width,index)=>({left:index*(width+gap),right:index*(width+gap)+width}));
+assert.deepEqual(boardVisibleWindow(cols([288,288,288,288,288,288,288]),{left:0,right:992}),{first:1,last:4,count:4},'a 1280 entran 4 de las 7 etapas');
+assert.equal(boardWindowLabel({count:4},7),'4 de 7 etapas','la etiqueta dice cuántas etapas se ven');
+assert.deepEqual(boardVisibleWindow(cols([288,288,288,288,288,288,288]),{left:600,right:1592}),{first:3,last:6,count:4},'scroll a la derecha: la ventana avanza y cuenta las 4 que entran');
+assert.deepEqual(boardVisibleWindow(cols([288,288,288,288,288,288,288]),{left:1000,right:1992}),{first:4,last:7,count:4},'al final del riel la última etapa entra en la ventana');
+assert.deepEqual(boardVisibleWindow(cols([288,288]),{left:-500,right:10}),{first:1,last:1,count:1},'sin columnas dentro se conserva una ventana válida');
+assert.deepEqual(boardVisibleWindow(cols([288]),{left:0,right:1}),{first:1,last:1,count:1},'sin nada visible cae a la primera etapa');
+
+console.log('PASS board-data: contrato por columna (counts + status), ventanas, unión de páginas, indicador visible y movimiento optimista.');

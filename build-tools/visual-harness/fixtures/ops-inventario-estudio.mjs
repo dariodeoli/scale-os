@@ -58,7 +58,8 @@ const searchField = (label, placeholder) => `<div class="relative min-w-0">${svg
 const fieldLabel = (text, id) => `<label class="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-mute" for="${id}">${text}</label>`;
 const kpi = (label, value, hint, moneda = false) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${moneda ? money(value) : value}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="text-mute">${hint}</span></div>` : ''}</div>`;
 const filaDato = (etiqueta, valor, valorClass = 'shrink break-words text-right') => `<div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">${etiqueta}</dt><dd class="${valorClass} font-semibold tabular-nums">${valor}</dd></div>`;
-const emptyState = (title, description) => `<div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p></div>`;
+const emptyState = (title, description, action = '', compact = false) => `<div class="flex flex-col items-center justify-center px-6 text-center ${compact ? 'py-6' : 'py-12'}"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>${action ? `<div class="mt-4">${action}</div>` : ''}</div>`;
+const textButton = (label) => `<button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-mute transition hover:bg-ink-700 hover:text-fore md:h-8">${label}</button>`;
 
 const aviso = (tono, text) => {
  const tones = {error: 'border-bad/30 bg-bad/10 text-bad', ok: 'border-ok/30 bg-ok/10 text-ok', warn: 'border-warn/30 bg-warn/10 text-warn'};
@@ -119,16 +120,20 @@ const equipmentCard = (item) => `
 </article>`;
 const equipmentHead = `<div data-list-head="equipment" class="grid min-w-[67.5rem] grid-cols-[var(--eq-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span></span><span>Foto</span><span>Artículo</span><span>Detalles</span><span class="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span class="text-right">Acciones</span></div>`;
 const inventoryToolbar = `
-<div class="grid gap-4">
- <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div class="min-w-0"><h2 class="text-lg font-bold text-fore">Inventario y reservas</h2><p class="mt-1 text-sm text-mute">Ubicación registrada y préstamo de equipos por producción.</p></div><div class="flex flex-wrap items-center gap-2">${button('Agregar equipo', 'outline')}${button('Reservar equipos')}</div></div>
- <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">${segmented('Vistas de inventario', [['equipment', 'Equipos', 'box'], ['reservations', 'Calendario y reservas', 'calendar']], 'equipment')}<p class="text-xs text-mute" role="status">Sincroniza cada 30 s mientras esta pestaña esté visible. Actualizado 15:42</p></div>
- <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-  <div class="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(150px,220px)] lg:max-w-2xl">${searchField('Buscar equipo o ubicación', 'Memoria, DJI Mic, estante…')}<div>${fieldLabel('Categoría', 'inventory-category-filter')}<select id="inventory-category-filter" class="h-11 w-full cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"><option>Todas</option></select></div></div>
-  <div class="flex flex-wrap items-center gap-2"><p class="text-xs text-mute" aria-live="polite">6 equipos visibles</p>${segmented('Vista de inventario', [['grid', 'Cuadrícula', 'grid'], ['list', 'Lista', 'list'], ['pipeline', 'Ubicaciones', 'store']], 'list')}${button('Seleccionar visibles', 'ghost')}</div>
+<div class="grid gap-3">
+ <div class="flex flex-wrap items-end gap-2">
+  ${segmented('Vistas de inventario', [['equipment', 'Equipos', 'box'], ['reservations', 'Calendario y reservas', 'calendar']], 'equipment')}
+  <div class="min-w-[12rem] flex-1 sm:max-w-80">${searchField('Buscar equipo o ubicación', 'Memoria, DJI Mic, estante…')}</div>
+  <div>${fieldLabel('Categoría', 'inventory-category-filter')}<select id="inventory-category-filter" class="h-11 w-full cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"><option>Todas</option></select></div>
+  ${segmented('Vista de inventario', [['grid', 'Cuadrícula', 'grid'], ['list', 'Lista', 'list'], ['pipeline', 'Ubicaciones', 'store']], 'list')}
+  ${button('Seleccionar visibles', 'ghost')}
+  <div class="ml-auto flex flex-wrap items-center gap-2"><p class="whitespace-nowrap text-xs tabular-nums text-mute" role="status" title="Mostrando 6 de 6 equipos. Sincroniza cada 30 s mientras esta pestaña esté visible. Actualizado 15:42.">6 de 6 equipos · 15:42</p>${button('Agregar equipo', 'outline')}${button('Reservar equipos')}</div>
  </div>
  <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2" role="status" aria-live="polite"><span class="text-xs text-mute"><b class="text-fore">1</b> de 50 seleccionado</span><div class="flex flex-wrap items-center gap-2">${button('Reservar', 'outline')}${button('Verificar', 'outline')}${button('Mover ubicación', 'outline')}${button('Limpiar', 'ghost')}</div></div>
 </div>`;
 const kpiStrip = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Valor total', 'Gs 1.249.167.890', '6 equipos', true)}${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
+// Valor total sin datos monetarios (#62): el KPI no inventa cifras y ofrece el CTA.
+const kpiValueEmpty = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"><div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">Valor total</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">—</div><div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs"><span class="text-mute">17 sin valor</span>${textButton('Agregar valor')}</div></div>${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
 
 /* -------------------------------------------------------- pipeline (datos) */
 const pipeline = [
@@ -297,7 +302,25 @@ export default [
     kind: 'workspace',
     lists: [],
     grids: [],
-    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${emptyState('No hay equipos que coincidan.', 'Probá otra búsqueda.')}</div></div>`,
+    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${emptyState('No hay equipos que coincidan con la búsqueda.', 'Probá otra búsqueda o categoría.', button('Limpiar búsqueda', 'ghost'), true)}</div></div>`,
+  },
+  {
+    id: 'inventario-catalogo-vacio',
+    section: 'Inventario',
+    surface: 'Catálogo vacío',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${emptyState('Todavía no hay equipos en el inventario.', 'Registrá el primer equipo para reservarlo, verificarlo y etiquetarlo.', button('Agregar equipo'), true)}</div></div>`,
+  },
+  {
+    id: 'inventario-sin-valor',
+    section: 'Inventario',
+    surface: 'Valor total sin datos',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${kpiValueEmpty}</div></div>`,
   },
   {
     id: 'inventario-error',
@@ -316,9 +339,18 @@ export default [
     grids: [{container: '[data-grid="studio-spaces"]', card: '[data-grid-card="studio-spaces"]', label: 'Estudio · espacios', minHeight: 200}],
     body: `
 <div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
- <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div class="min-w-0"><h2 class="text-lg font-bold text-fore">Estudio y reservas</h2><p class="mt-1 text-sm text-mute">Espacios, escenarios y franjas de producción. No reserva ni retira equipos.</p></div><div class="flex flex-wrap items-center gap-2">${button('Agregar espacio', 'outline')}${button('Nueva reserva')}</div></div>
- <div data-grid="studio-spaces" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">${spaces.map(spaceCard).join('')}</div>
+ <div class="flex flex-wrap items-center justify-between gap-2"><p class="text-xs text-mute">Los espacios disponibles se reservan por franja horaria; cada reserva bloquea solo su espacio.</p><div class="flex flex-wrap items-center gap-2">${button('Agregar espacio', 'outline')}${button('Nueva reserva')}</div></div>
+ <div data-grid="studio-spaces" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">${spaces.map(spaceCard).join('')}</div>
 </div></div>`,
+  },
+  {
+    id: 'estudio-vacio',
+    section: 'Estudio',
+    surface: 'Estudio sin espacios',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${emptyState('Todavía no hay espacios.', 'Creá el set, la cabina o el escenario para reservarlo después.', button('Agregar espacio'), true)}</div></div>`,
   },
   {
     id: 'estudio-reservas-lista',
