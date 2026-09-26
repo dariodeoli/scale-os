@@ -33,6 +33,24 @@ export function boardFiltersActive(filters:BoardFilters):boolean{
  return Boolean(filters.clientId||filters.mine||filters.week);
 }
 
+/**
+ * Ventana visible del tablero: qué columnas entran en el viewport del riel
+ * horizontal (1-based). Cuenta la columna parcialmente visible del borde para
+ * que el indicador "N de 7 etapas" avise que hay más tablero a los costados.
+ */
+export function boardVisibleWindow(columns:Array<{left:number;right:number}>,viewport:{left:number;right:number}):{first:number;last:number;count:number}{
+ const visible=columns.map((rect,index)=>({rect,index})).filter(({rect})=>rect.right>viewport.left+1&&rect.left<viewport.right-1);
+ if(!visible.length)return {first:1,last:Math.min(columns.length,1),count:Math.min(columns.length,1)};
+ const first=visible[0].index+1,last=visible[visible.length-1].index+1;
+ return {first,last,count:last-first+1};
+}
+
+/** Etiqueta del indicador de etapas: "4 de 7 etapas". */
+export function boardWindowLabel(window:{count:number},total:number):string{
+ return `${window.count} de ${total} etapas`;
+}
+
+
 /** URL de una columna: ventana con tope, o completa cuando hay filtros. */
 export function boardColumnUrl(status:Status,fields:string,{window=BOARD_COLUMN_WINDOW,offset=0,full=false}:{window?:number;offset?:number;full?:boolean}={}):string{
  const query=[`status=${encodeURIComponent(status)}`,`fields=${fields}`];

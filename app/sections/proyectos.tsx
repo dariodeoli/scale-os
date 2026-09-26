@@ -1,7 +1,7 @@
 "use client";
 import type {Dispatch, ReactNode, SetStateAction} from 'react';
 import {X} from 'lucide-react';
-import {Select} from 'owncoding-ui';
+import {Button,Select} from 'owncoding-ui';
 import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, type Column} from '../ui-v2';
 import {BATCH_LIMITS} from '../capabilities';
 import type {Client, Project} from '../workspace-types';
@@ -41,8 +41,10 @@ type ProyectosSectionProps = {
   projectEntry: (project: Project) => ReactNode;
   /** Fila de la vista lista (una línea por celda, acciones de ícono). */
   projectRow: (project: Project) => ReactNode;
+  /** CTA del vacío: el modal vive en el shell. */
+  createProject?: () => void;
 };
-export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, selectedProjects, setSelectedProjects, projectsState, canManageProjects, clients, projects, projectClientFilter, setProjectClientFilter, projectKpis, visibleProjects, liveProjects, archivedProjects, load, selectVisibleProjects, batchProjects, projectEntry}: ProyectosSectionProps){
+export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, selectedProjects, setSelectedProjects, projectsState, canManageProjects, clients, projects, projectClientFilter, setProjectClientFilter, projectKpis, visibleProjects, liveProjects, archivedProjects, load, selectVisibleProjects, batchProjects, projectEntry, createProject}: ProyectosSectionProps){
   const retry=()=>void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los proyectos.'));
   const collection=(list: Project[], label: string)=>projectView==='grid'
     ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{list.map(project => projectEntry(project))}</div>
@@ -72,7 +74,7 @@ export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, s
       {projectsState === 'error' && !projects.length ? <ErrorBlock title="No se pudieron cargar los proyectos." onRetry={retry}/> : null}
       {liveProjects.length ? collection(liveProjects, 'Proyectos') : null}
       {empty && projects.length ? <EmptyBlock title={projectClientFilter ? 'Este cliente no tiene proyectos.' : 'No hay proyectos para mostrar.'} description={projectClientFilter ? 'Elegí otro cliente o limpiá el filtro.' : 'Probá con otro filtro.'}/> : null}
-      {empty && !projects.length && (projectsState === 'ready') ? <EmptyBlock title="Creá un proyecto después de cargar un cliente." description="Los proyectos agrupan las piezas y sus niveles de aprobación."/> : null}
+      {empty && !projects.length && (projectsState === 'ready') ? <EmptyBlock compact icon="report" title="Todavía no hay proyectos." description={clients.length?'Creá el primero para agrupar las piezas y sus niveles de aprobación.':'Primero cargá un cliente; después vas a poder crear el proyecto.'} action={createProject&&clients.length?<Button type="button" onClick={createProject}>Nuevo proyecto</Button>:undefined}/> : null}
       {archivedProjects.length ? (
         <details className="archived-capsule">
           <summary>Archivados ({archivedProjects.length})</summary>

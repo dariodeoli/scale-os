@@ -74,22 +74,25 @@ function StudioPanel(){
  if(error)return <Card className="min-w-0"><ErrorState title="No se pudo cargar el estudio." description={error} onRetry={()=>setRefresh(value=>value+1)}/></Card>;
  const activeSpaces=spaces.filter(space=>space.active);
  return <div className="grid min-w-0 gap-4">
-  <Card className="grid min-w-0 gap-4">
-   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-    <div className="flex flex-wrap items-center gap-2">
-     {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditSpace('new')}>Agregar espacio</Button>:null}
-     {context?.can_reserve?<Button type="button" disabled={!activeSpaces.length} onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:null}
-    </div>
-   </div>
+  <Card className="grid min-w-0 gap-3">
    {notice?<Aviso tono="ok">{notice}</Aviso>:null}
-   {!spaces.length?<EmptyState icon="store" title="Todavía no hay espacios." description="Un responsable puede crear el set, cabina o escenario antes de reservar."/>:<div data-grid="studio-spaces" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="flex min-h-[200px] flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4" key={space.id}>
-    <div className="flex items-start justify-between gap-3"><h3 className="break-words text-sm font-semibold text-fore">{space.name}</h3><StateChip tone={space.active?'ok':'mute'}>{space.active?'Disponible':'Inactivo'}</StateChip></div>
-    <p className="text-sm text-mute">{space.scenario||'Escenario sin especificar'}</p>
-    {space.notes?<small className="text-xs text-mute">{space.notes}</small>:null}
-    {context?.can_manage?<div className={`mt-auto flex justify-end ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar espacio: ${space.name}`} onClick={()=>setEditSpace(space)}/></div>:null}
-   </article>)}</div>}
+   {!spaces.length?<EmptyState compact icon="store" title="Todavía no hay espacios." description={context?.can_manage?'Creá el set, la cabina o el escenario para reservarlo después.':'Un responsable puede crear el set, la cabina o el escenario antes de reservar.'} action={context?.can_manage?<Button type="button" onClick={()=>setEditSpace('new')}>Agregar espacio</Button>:undefined}/>:<>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+     <p className="text-xs text-mute">Los espacios disponibles se reservan por franja horaria; cada reserva bloquea solo su espacio.</p>
+     <div className="flex flex-wrap items-center gap-2">
+      {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditSpace('new')}>Agregar espacio</Button>:null}
+      {context?.can_reserve?<Button type="button" disabled={!activeSpaces.length} onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:null}
+     </div>
+    </div>
+    <div data-grid="studio-spaces" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="flex min-h-[200px] flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4" key={space.id}>
+     <div className="flex items-start justify-between gap-3"><h3 className="break-words text-sm font-semibold text-fore">{space.name}</h3><StateChip tone={space.active?'ok':'mute'}>{space.active?'Disponible':'Inactivo'}</StateChip></div>
+     <p className="text-sm text-mute">{space.scenario||'Escenario sin especificar'}</p>
+     {space.notes?<small className="text-xs text-mute">{space.notes}</small>:null}
+     {context?.can_manage?<div className={`mt-auto flex justify-end ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar espacio: ${space.name}`} onClick={()=>setEditSpace(space)}/></div>:null}
+    </article>)}</div>
+   </>}
   </Card>
-  <Card className="grid min-w-0 gap-4">
+  {(spaces.length||reservations.length)?<Card className="grid min-w-0 gap-4">
    <div className="flex flex-wrap items-center justify-between gap-3">
     <div className="min-w-0">
      <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2>
@@ -124,7 +127,7 @@ function StudioPanel(){
     {!reservations.length?<EmptyState icon="calendar" title="No hay reservas en este mes."/>:null}
     </div>
    </div>
-  </Card>
+  </Card>:null}
   {editSpace&&context?.can_manage?<Dialog title={editSpace==='new'?'Nuevo espacio de estudio':'Editar espacio'} close={()=>setEditSpace(null)}><Editor closeOnSave fields={[{key:'name',label:'Nombre del espacio'},{key:'scenario',label:'Escenario o fondo',optional:true},{key:'active',label:'Disponibilidad',choices:[{value:'true',label:'Disponible para reservar'},{value:'false',label:'Inactivo'}]},{key:'notes',label:'Notas',type:'textarea',optional:true}]} defaults={editSpace==='new'?{name:'',scenario:'',active:'true',notes:''}:{name:editSpace.name,scenario:editSpace.scenario,active:String(editSpace.active),notes:editSpace.notes}} save={async values=>{await api(`/api/agency/studio-spaces${editSpace==='new'?'':`/${editSpace.id}`}`,{...values,active:values.active==='true'},editSpace==='new'?'POST':'PATCH');saved('Espacio guardado.');}}/></Dialog>:null}
   {editReservation&&context?.can_reserve?<Dialog title={editReservation==='new'?'Nueva reserva de estudio':'Editar reserva de estudio'} close={()=>setEditReservation(null)}><StudioReservationForm context={context} spaces={spaces} reservations={reservations} record={editReservation==='new'?null:editReservation} done={()=>saved('Reserva guardada.')} /></Dialog>:null}
   {bulkCancel?<Dialog title={`Cancelar ${selectedReservations.length} reserva${selectedReservations.length===1?'':'s'} de estudio`} busy={bulkBusy} close={()=>{if(!bulkBusy)setBulkCancel(false);}}><p className="text-sm text-mute">Se liberan los espacios de esas franjas. No afecta equipos ni otras reservas.</p><SaveActions pending={bulkBusy} cancelLabel="Volver"><Button type="button" disabled={bulkBusy} onClick={()=>void cancelSelectedReservations()}>Cancelar reservas</Button></SaveActions></Dialog>:null}

@@ -215,10 +215,12 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
  </article>;
 }
 
-function InventorySummary({items}:{items:InventoryItem[]}){
+function InventorySummary({items,onAddValue}:{items:InventoryItem[];onAddValue?:()=>void}){
  const {currencyTotals,inUse,maintenance,available}=inventoryTotals(items);
+ const missingValue=items.filter(item=>!(Number(item.value)>0)).length;
+ const equipmentLabel=`${items.length} equipo${items.length===1?'':'s'}`;
  return <section aria-label="Métricas de inventario"><KpiStrip>
-  <Kpi label="Valor total" valor={currencyTotals.length?<span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">{currencyTotals.map(({currency,total})=><CeldaMoneda key={currency} valor={total} currency={currency}/>)}</span>:'—'} hint={`${items.length} equipo${items.length===1?'':'s'}`}/>
+  <Kpi label="Valor total" valor={currencyTotals.length?<span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">{currencyTotals.map(({currency,total})=><CeldaMoneda key={currency} valor={total} currency={currency}/>)}</span>:'—'} hint={currencyTotals.length?equipmentLabel:items.length?<span className="flex flex-wrap items-center gap-x-2 gap-y-1"><span>{missingValue?`${missingValue} sin valor`:'Sin datos monetarios'}</span>{missingValue&&onAddValue?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={onAddValue} title="Completar el valor de un equipo del inventario">Agregar valor</button>:null}</span>:equipmentLabel}/>
   <Kpi label="En uso" valor={inUse} hint="Retirados o en rodaje"/>
   <Kpi label="Mantenimiento" valor={maintenance} hint="No asignables a rodaje"/>
   <Kpi label="Disponibles" valor={available} hint="Listos para reservar"/>
@@ -282,40 +284,32 @@ function InventoryPanel(){
  // the workspace after a persisted inventory/category mutation.
  function refreshed(message:string){setNotice(message);setRefresh(n=>n+1);}
  const visible=filterInventoryItems(items,{search,categoryId:categoryFilter});
+ const itemWithoutValue=useMemo(()=>items.find(item=>!(Number(item.value)>0))||null,[items]);
+ const updatedAt=lastUpdated?lastUpdated.toLocaleTimeString('es-PY',{timeZone:OPS_TIME_ZONE,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}):'';
  return <div className="grid min-w-0 gap-4">
-  <Card className="grid min-w-0 gap-4">
-   <div className="flex flex-wrap items-center gap-2">
-     {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:null}
-     {context?.can_reserve&&!selectedItems.length?<Button type="button" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</Button>:null}
-   </div>
-   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+  <Card className="grid min-w-0 gap-3">
+   <div className="flex flex-wrap items-end gap-2">
     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/>
-    <p className="text-xs text-mute" role="status">Sincroniza cada 30 s mientras esta pestaña esté visible.{lastUpdated?` Actualizado ${lastUpdated.toLocaleTimeString('es-PY',{timeZone:OPS_TIME_ZONE,hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}`:''}</p>
+    {view!=='reservations'?<>
+     <SearchField className="min-w-[12rem] flex-1 sm:max-w-80" ariaLabel="Buscar equipo o ubicación" value={search} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setSearch(event.target.value)} placeholder="Memoria, DJI Mic, estante…"/>
+     <SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/>
+     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
+     {selectionEnabled&&visible.length?<Button type="button" variant="ghost" onClick={selectVisible}>Seleccionar visibles</Button>:null}
+     <div className="ml-auto flex flex-wrap items-center gap-2">
+      <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite" title={`Mostrando ${visible.length} de ${items.length} equipos. Sincroniza cada 30 s mientras esta pestaña esté visible.${updatedAt?` Actualizado ${updatedAt}.`:''}`}>{visible.length} de {items.length} equipos{updatedAt?` · ${updatedAt}`:''}</p>
+      {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:null}
+      {context?.can_reserve&&!selectedItems.length?<Button type="button" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</Button>:null}
+     </div>
+    </>:null}
    </div>
-   {view!=='reservations'?<div className="grid gap-3">
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-     <div className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(150px,220px)] lg:max-w-2xl">
-      <SearchField ariaLabel="Buscar equipo o ubicación" value={search} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setSearch(event.target.value)} placeholder="Memoria, DJI Mic, estante…"/>
-      <div>
-       <Label htmlFor="inventory-category-filter">Categoría</Label>
-       <SelectCustom label="Filtro de categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/>
-      </div>
-     </div>
-     <div className="flex flex-wrap items-center gap-2">
-      <p className="text-xs text-mute" aria-live="polite">{visible.length} equipo{visible.length===1?'':'s'} visibles</p>
-      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
-      {selectionEnabled&&visible.length?<Button type="button" variant="ghost" onClick={selectVisible}>Seleccionar visibles</Button>:null}
-     </div>
+   {view!=='reservations'&&selectedItems.length?<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2" role="status" aria-live="polite">
+    <span className="text-xs text-mute"><b className="text-fore">{selectedItems.length}</b> de {BATCH_LIMITS.inventory} seleccionado{selectedItems.length===1?'':'s'}</span>
+    <div className="flex flex-wrap items-center gap-2">
+     {context?.can_reserve?<Button type="button" variant="outline" disabled={!reservableSelected.length} onClick={()=>{setReserveIds(reservableSelected);setEditReservation('new');}}>Reservar</Button>:null}
+     {context?.can_manage?<Button type="button" variant="outline" disabled={batchBusy} onClick={()=>void batchVerify()}>{batchBusy?'Verificando…':'Verificar'}</Button>:null}
+     {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setBatchLocation(selectedItems)}>Mover ubicación</Button>:null}
+     <Button type="button" variant="ghost" onClick={()=>setSelectedItems([])}>Limpiar</Button>
     </div>
-    {selectedItems.length?<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2" role="status" aria-live="polite">
-     <span className="text-xs text-mute"><b className="text-fore">{selectedItems.length}</b> de {BATCH_LIMITS.inventory} seleccionado{selectedItems.length===1?'':'s'}</span>
-     <div className="flex flex-wrap items-center gap-2">
-      {context?.can_reserve?<Button type="button" variant="outline" disabled={!reservableSelected.length} onClick={()=>{setReserveIds(reservableSelected);setEditReservation('new');}}>Reservar</Button>:null}
-      {context?.can_manage?<Button type="button" variant="outline" disabled={batchBusy} onClick={()=>void batchVerify()}>{batchBusy?'Verificando…':'Verificar'}</Button>:null}
-      {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setBatchLocation(selectedItems)}>Mover ubicación</Button>:null}
-      <Button type="button" variant="ghost" onClick={()=>setSelectedItems([])}>Limpiar</Button>
-     </div>
-    </div>:null}
    </div>:null}
   </Card>
 
@@ -367,7 +361,7 @@ function InventoryPanel(){
    {loading&&!error?<LoadingBlock label="Cargando inventario…" lines={6}/>:null}
    {!loading&&!error&&equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onDetail={setDetail} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally}/>:null}
    {!loading&&!error&&equipmentView!=='pipeline'?<>
-    <InventorySummary items={items}/>
+    <InventorySummary items={items} onAddValue={context?.can_manage&&itemWithoutValue?()=>setEditItem(itemWithoutValue):undefined}/>
     {equipmentView==='list'?<div data-list="equipment" className="min-w-0 overflow-x-auto">
      <div className={`${EQUIPMENT_COLS} grid min-w-[67.5rem] gap-2`}>
      <div data-list-head="equipment" className={`${EQUIPMENT_GRID} px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
@@ -378,7 +372,7 @@ function InventoryPanel(){
     </div>:<div data-grid="equipment" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
      {visible.map(item=><EquipmentCard key={item.id} item={item} selectable={selectionEnabled&&item.status!=='retired'} selected={selectedItems.includes(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} canManage={Boolean(context?.can_manage)} verifying={verifyingId===String(item.id)} onDetail={setDetail} onVerify={quickVerify} onVerifyDetail={setVerification} onEdit={setEditItem} onArchive={setArchive}/>)}
     </div>}
-    {!visible.length?<EmptyState icon="box" title="No hay equipos que coincidan." description={items.length?'Probá otra búsqueda.':'Agregá el equipo disponible antes de reservar.'}/>:null}
+    {!visible.length?<EmptyState icon="box" title={items.length?'No hay equipos que coincidan con la búsqueda.':'Todavía no hay equipos en el inventario.'} description={items.length?'Probá otra búsqueda o categoría.':'Registrá el primer equipo para reservarlo, verificarlo y etiquetarlo.'} action={items.length?<Button type="button" variant="ghost" onClick={()=>{setSearch('');setCategoryFilter('');}}>Limpiar búsqueda</Button>:context?.can_manage?<Button type="button" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:undefined}/>:null}
    </>:null}
   </Card>}
 
