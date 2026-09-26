@@ -296,9 +296,10 @@ overflow, harness 0 altas y `test:release-regression` + `next build` verdes.
 - Sólo tokens (`ink-*`, `--c-*`); sin colores hex nuevos por pantalla.
 - Texto AA (4.5:1 normal, 3:1 grande) y **bordes de control ≥3:1** (WCAG 1.4.11):
   el token interactivo del sistema es `--border-interactive` (claro `#9b84a4`,
-  oscuro `#867493`) y lo usan campos, `.choice`, `.secondary` y los controles
-  de la librería con `border-ink-500`; el tono base de cada semántico se
-  reserva para rellenos y puntos.
+  oscuro `#867493`) y lo usan campos, `.choice`, `.secondary`; los objetos de la
+  librería usan su `border-interactivo`, mapeado al mismo valor. El tono base de
+  cada semántico se reserva para rellenos y puntos, y el texto de los chips sale
+  de la familia `--c-*-text` (owncoding-ui v0.39, AA en ambos temas).
 - Estados con su tono (`ok/warn/bad/info`) y texto sobre marca vía `--c-onbrand`.
 - Superficies, avatares y sombras legibles sobre `surface-raised/sunken`.
 

@@ -44,7 +44,7 @@ export function ClientAppearance({id,name,logo,color,refresh,showIdentity=true}:
    <fieldset disabled={saving} className="min-w-0 border-0 p-0">
     <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Color identificador</legend>
     <div className="flex flex-wrap gap-2">
-     {clientColors.map(([key,label])=>{const active=current===key;return <label key={key} className={`identity-${key} flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition ${active?'border-fono/60 bg-fono/10 text-fore':'border-ink-500 bg-ink-800 text-mute hover:border-fono/40 hover:text-fore'}`}>
+     {clientColors.map(([key,label])=>{const active=current===key;return <label key={key} className={`identity-${key} flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition ${active?'border-fono/60 bg-fono/10 text-fore':'border-interactivo bg-ink-800 text-mute hover:border-fono/40 hover:text-fore'}`}>
       <input type="radio" name="color_key" value={key} checked={active} disabled={saving} className="sr-only" onChange={()=>void saveColor(key)}/>
       <span className="h-3.5 w-3.5 shrink-0 rounded-full" style={{background:'var(--client-accent)'}} aria-hidden="true"/>
       {label}

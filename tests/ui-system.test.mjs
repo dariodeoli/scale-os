@@ -38,7 +38,22 @@ for(const surface of ['#1b1b21','#272730','#212128','#121216','#2c2133']){
  assert(ratio>=3,`el borde interactivo oscuro (${darkBorder}) necesita ≥3:1 sobre ${surface}: ${ratio.toFixed(2)}:1`);
 }
 assert(css.includes(':is(button.secondary,button.choice,a.secondary){border:1px solid var(--ui-field-border)}'),'`.choice`/`.secondary` usan el borde interactivo del sistema');
-assert(css.includes(':is(button,a,label,[role="button"]).border-ink-500{border-color:var(--ui-field-border)}'),'los controles de la librería con border-ink-500 usan el borde del sistema');
+// Fundación owncoding-ui v0.39 (#75): la librería ahora trae `border-interactivo`
+// y la familia de texto AA `--c-*-text`; Scale OS la mapea a su paleta y ya no
+// necesita el override local de `border-ink-500`.
+const blendHex=(hex,alpha,base)=>{const channel=(value)=>parseInt(value,16);const toHex=(value)=>value.toString(16).padStart(2,'0');const [r,g,b]=[1,3,5].map(i=>channel(hex.slice(i,i+2)));const [br,bg,bb]=[1,3,5].map(i=>channel(base.slice(i,i+2)));return `#${[r*alpha+br*(1-alpha),g*alpha+bg*(1-alpha),b*alpha+bb*(1-alpha)].map(value=>toHex(Math.round(value))).join('')}`;};
+const rgbHex=(value)=>`#${String(value).trim().split(/\s+/).map(channel=>Number(channel).toString(16).padStart(2,'0')).join('')}`;
+for(const [theme,brand,base] of [['claro',lightBrand,'#FFFFFF'],['oscuro',darkBrand,'#1b1b21']]){
+  for(const tone of ['ok','warn','bad','info','fono']){
+    const ratio=ratioFor(rgbHex(brand[`--c-${tone}-text`]),blendHex(rgbHex(brand[`--c-${tone}`]),0.15,base));
+    assert(ratio>=4.5,`el texto del chip ${tone} en ${theme} necesita AA: ${ratio.toFixed(2)}:1`);
+  }
+  for(const surface of theme==='claro'?['#FFFFFF','#F7F6F8']:['#1b1b21','#272730','#212128','#121216']){
+    assert(ratioFor(rgbHex(brand['--c-interactivo']),surface)>=3,`el borde interactivo ${theme} necesita ≥3:1 sobre ${surface}`);
+  }
+}
+assert(!css.includes('.border-ink-500{border-color:var(--ui-field-border)}'),'el override local de border-ink-500 quedó retirado');
+console.log('PASS chips AA: familia --c-*-text y border-interactivo de la librería v0.39 mapeados a la paleta (issue #75)');
 console.log(`PASS bordes de control ≥3:1: oscuro ${darkBorder} y controles de la librería con el token del sistema (issue #71)`);
 
 // Tabla densa responsive (ronda 14, ítem 1): columna de acciones fija.

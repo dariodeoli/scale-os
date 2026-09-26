@@ -49,11 +49,6 @@
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,a.secondary){background:var(--surface);color:var(--text)}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary.record-remove,button.secondary.danger){color:var(--danger);border-color:var(--danger)}
 :is(.control-shell,.unified-dialog,.photo-dialog) button.choice.active{border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
-/* Controles de la librería con `border-ink-500` (outline, acciones de ícono,
-   selectores y etiquetas): el borde es la única affordance y medía ~1.4:1 en
-   claro y ~2.8:1 en oscuro (WCAG 1.4.11). Toman el token interactivo del
-   sistema, el mismo de los campos (issue #71). */
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button,a,label,[role="button"]).border-ink-500{border-color:var(--ui-field-border)}
 :is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{width:var(--ui-control-height);min-height:var(--ui-control-height);flex-shrink:0}
 :is(.control-shell,.unified-dialog,.photo-dialog) button:disabled{cursor:not-allowed;opacity:.55}
 :is(.control-shell,.unified-dialog,.photo-dialog) .text-button{display:inline-flex;align-items:center;gap:6px;line-height:1.4;min-height:32px;text-align:left}

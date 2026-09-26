@@ -203,6 +203,18 @@ body {
   --c-bad: 180 59 76; /* danger #B43B4C */
   --c-warn: 138 98 7; /* warning #8A6207 (AA sobre ámbar suave) */
   --c-info: 54 93 178; /* info #365DB2 */
+  /* Familia de TEXTO AA para chips/avisos (owncoding-ui #5): el tono base queda
+     para rellenos, puntos y bordes; estos valores se miden ≥4.5:1 sobre los
+     tintes al 15 % de la paleta Scale OS (claro). */
+  --c-ok-text: 23 107 85; /* #176B55 sobre el tinte ok */
+  --c-warn-text: 126 90 6; /* #7E5A06 sobre el tinte warn */
+  --c-bad-text: 180 59 76; /* danger #B43B4C */
+  --c-info-text: 54 93 178; /* info #365DB2 */
+  --c-fono-text: 143 17 132; /* brand-600 #8F1184 sobre el tinte de marca */
+  --c-pass-text: 29 122 98; /* success #1D7A62 */
+  /* Borde interactivo de los objetos de la librería (Button outline, IconAction):
+     el mismo valor AA del borde de control del sistema. */
+  --c-interactivo: 155 132 164; /* #9b84a4 (≥3:1 sobre las superficies) */
   --c-onbrand: 255 255 255; /* texto sobre marca */
 }
 
@@ -226,6 +238,13 @@ html[data-theme="dark"] {
   --c-bad: 224 106 128; /* danger #e06a80 */
   --c-warn: 224 165 58; /* warning #e0a53a */
   --c-info: 143 168 232; /* info #8fa8e8 */
+  --c-ok-text: 79 181 150; /* success #4fb596 (5.32:1 sobre el tinte) */
+  --c-warn-text: 224 165 58; /* warning #e0a53a (5.92:1) */
+  --c-bad-text: 232 139 158; /* #E88B9E (5.73:1; el danger base queda en 4.35) */
+  --c-info-text: 143 168 232; /* info #8fa8e8 (5.58:1) */
+  --c-fono-text: 209 138 217; /* #d18ad9 (5.27:1) */
+  --c-pass-text: 79 181 150; /* success #4fb596 */
+  --c-interactivo: 134 116 147; /* #867493 (≥3:1 sobre las superficies oscuras) */
   --c-onbrand: 29 21 32; /* tinta oscura sobre marca clara */
   color-scheme: dark;
 }
