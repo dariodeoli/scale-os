@@ -29,6 +29,18 @@ for(const [theme,foundation,brand] of [['claro',lightFoundation,lightBrand],['os
 }
 console.log('PASS CTA primario: un texto de marca, AA en claro y oscuro (14.07:1 / 5.30:1 y hover 10.66:1 / 7.07:1)');
 
+// Bordes de control ≥3:1 (WCAG 1.4.11, issue #71): token interactivo en ambos temas.
+const darkControlTokens=themeVars('app/tailwind.css','html[data-theme="dark"]');
+const darkBorder=darkControlTokens['--border-interactive']||themeVars('app/globals.css','html[data-theme="dark"]')['--border-interactive'];
+assert(darkBorder,'el tema oscuro declara su borde interactivo');
+for(const surface of ['#1b1b21','#272730','#212128','#121216','#2c2133']){
+ const ratio=ratioFor(darkBorder,surface);
+ assert(ratio>=3,`el borde interactivo oscuro (${darkBorder}) necesita ≥3:1 sobre ${surface}: ${ratio.toFixed(2)}:1`);
+}
+assert(css.includes(':is(button.secondary,button.choice,a.secondary){border:1px solid var(--ui-field-border)}'),'`.choice`/`.secondary` usan el borde interactivo del sistema');
+assert(css.includes(':is(button,a,label,[role="button"]).border-ink-500{border-color:var(--ui-field-border)}'),'los controles de la librería con border-ink-500 usan el borde del sistema');
+console.log(`PASS bordes de control ≥3:1: oscuro ${darkBorder} y controles de la librería con el token del sistema (issue #71)`);
+
 // Tabla densa responsive (ronda 14, ítem 1): columna de acciones fija.
 assert(css.includes('.list-actions-head,')&&css.includes('.list-actions{position:sticky;right:0'),'la columna de acciones se fija al borde derecho del scroll');
 assert(css.includes('--list-actions-bg'),'el fondo de la columna fija sale de una variable por superficie');

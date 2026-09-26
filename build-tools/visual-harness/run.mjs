@@ -85,7 +85,7 @@ const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm fo
 // Espeja app/scale-workspace.tsx + app/desktop-sidebar.tsx vigentes: nav v3 de
 // 5 grupos desplegables (acordeón del grupo activo), corte móvil `md`, content
 // por flex y pie con un solo divisor.
-const NAV_GROUPS = [['Resumen',['Resumen']],['Flujo',['Pipeline','Clientes','Presupuestos','Proyectos','Producción']],['Recursos',['Inventario','Equipo','Estudio']],['Finanzas',['Finanzas','Informes']],['Configuración',['Configuración']]];
+const NAV_GROUPS = [['Resumen',['Resumen']],['Flujo',['Pipeline','Clientes','Presupuestos','Proyectos','Producción']],['Recursos',['Inventario','Estudio','Equipo']],['Finanzas',['Finanzas','Informes']],['Configuración',['Configuración']]];
 const navItemHtml = (label, isActive) => {
   const item = `${isActive ? 'active ' : ''}${RAIL_ITEM} relative ${isActive ? 'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold' : 'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`;
   const icon = `nav-icon grid size-7 shrink-0 place-items-center rounded-lg transition ${isActive ? 'bg-white/20 text-white' : 'bg-white/10 text-white/80'}`;

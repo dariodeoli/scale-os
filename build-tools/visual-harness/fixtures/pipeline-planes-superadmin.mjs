@@ -568,7 +568,7 @@ const platformAccessPanel = `
  * un solo corte móvil/escritorio (`md`, 768 px), content por flex (sin calc ni
  * max-width) y pie con un solo divisor (borde del `.sidebar-bottom`).
  * ========================================================================= */
-const NAV_GROUPS = [['Resumen',['Resumen']],['Flujo',['Pipeline','Clientes','Presupuestos','Proyectos','Producción']],['Recursos',['Inventario','Equipo','Estudio']],['Finanzas',['Finanzas','Informes']],['Configuración',['Configuración']]];
+const NAV_GROUPS = [['Resumen',['Resumen']],['Flujo',['Pipeline','Clientes','Presupuestos','Proyectos','Producción']],['Recursos',['Inventario','Estudio','Equipo']],['Finanzas',['Finanzas','Informes']],['Configuración',['Configuración']]];
 const RAIL_ITEM = 'flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none no-underline transition hover:no-underline focus-visible:no-underline';
 const navItemClass = (active, tone = 'rail') => `${active ? 'active ' : ''}${RAIL_ITEM} ${tone === 'rail'
   ? `relative ${active ? 'bg-white/[0.14] text-white before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-gold' : 'text-white/75 hover:bg-white/[0.08] hover:text-white'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70`

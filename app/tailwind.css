@@ -230,6 +230,14 @@ html[data-theme="dark"] {
   color-scheme: dark;
 }
 
+/* Borde interactivo en oscuro (WCAG 1.4.11, issue #71): `#5d4b66` quedaba en
+   2.0–2.4:1 contra las superficies (campos, `.secondary`, `.icon-button`);
+   `#867493` pasa ≥3:1 en surface/raised/ink-700/canvas. Claro ya usa
+   `#9b84a4` (3.1–3.4:1). */
+html[data-theme="dark"] {
+  --border-interactive: #867493;
+}
+
 /* ── Modo Producción del shell ──────────────────────────────────────────────
    Reglas de `app/production-focus.css` (hoja retirada 23-09 y archivo
    eliminado en la ronda del #66): el shell marca `production-mode` y

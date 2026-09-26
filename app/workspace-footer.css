@@ -11,3 +11,6 @@
 /* A quiet closing edge keeps the operational canvas focused without losing trust links. */
 .control-shell .workspace-footer{align-items:center;gap:8px 20px;margin-top:32px;padding:14px 0 max(12px,env(safe-area-inset-bottom));border-top-color:var(--border-subtle);font-size:11px}.control-shell .workspace-footer>span:first-child{font-weight:600;color:var(--text-subtle)}.control-shell .workspace-footer .usage-disclosure{order:3;max-width:96ch;margin:0;color:var(--text-muted);font-size:10px;line-height:1.5}.control-shell .workspace-footer a{color:var(--brand-700);font-weight:600;text-decoration-color:color-mix(in srgb,var(--brand-600) 32%,transparent)}.control-shell .workspace-footer a:hover{color:var(--brand-800,var(--brand-700));text-decoration-color:currentColor}
 @media(max-width:760px){.control-shell .workspace-footer{margin-top:24px;padding-bottom:max(16px,env(safe-area-inset-bottom));gap:6px 12px}.control-shell .workspace-footer .usage-disclosure{font-size:10px}}
+/* Enlaces del pie con target táctil de 44 px en el corte móvil del marco
+   (issue #71: el enlace de Owncoding medía 14 px de alto). */
+@media(max-width:767px){.control-shell .workspace-footer a{display:inline-flex;align-items:center;min-height:44px}}
