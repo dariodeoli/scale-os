@@ -165,10 +165,66 @@ y esta sección se actualiza.
 | `PageHeader` | Eyebrow + título + acciones. El título **no se trunca**: envuelve. Es el encabezado de página de los arquetipos dashboard, lista y ajustes. |
 | `FilterToolbar` | Fila que envuelve con la búsqueda/filtros (objetos de la librería: `SearchField`, `Select`, `SegmentedField`, `ListGridToggle`) y un contador `tabular-nums` al extremo. |
 | `ListGrid` + `ListRow` + `Column` | Encabezado de columnas y filas comparten **una sola** plantilla (`template` con `grid-cols-[…]`, `gap-x-2`); la lista conserva columnas en mobile y scrollea en silencio (`.silent-scroll`); una celda sin dato reserva su lugar y nada se corta con elipsis. |
+| `ListActions` + `pinnedActions` | Columna de acciones **fija** al borde derecho del scroll silencioso (patrón de tablas densas, ronda 14): las acciones nunca quedan fuera del alcance. La última celda de cada fila va en `ListActions` y el `ListGrid` lleva `pinnedActions`; el encabezado se fija con la misma pista. Fondo con `--list-actions-bg` (canvas por defecto; panel → superficie del panel). |
 | `EmptyBlock` | `EmptyState` de la librería sobre la superficie v2, con `role="status"`. Nunca inventa datos ni métricas. |
+| `EmptyCta` | CTA canónico de un estado vacío: botón primario con label contextual. Es la llamada a la acción que recibe `EmptyBlock.action`. |
 | `ErrorBlock` | `ErrorState` de la librería con reintento, con `role="alert"`. |
 | `LoadingBlock` | `Skeleton` con `role="status"` y `aria-busy`; reemplaza los “Cargando…” sueltos de las páginas nuevas. |
 | `Kpi`/`KpiStrip`, `StateChip` | Ya descriptos arriba: un solo KPI y un solo chip. |
+
+### Tablas densas responsive — estrategia común (ronda 14)
+
+Alcance: toda lista de registros con `ListGrid`. El contrato de fila no cambia
+(fila finita, una plantilla compartida, montos/fechas/códigos `nowrap`); lo que
+se fija es cómo responden cuando el ancho no alcanza. **Clientes y Presupuestos
+la adoptan primero (COM)**.
+
+1. **Columna de acciones fija (default).** La última celda de cada fila se
+   envuelve en `ListActions` y el `ListGrid` lleva `pinnedActions`: la columna
+   queda pegada al borde derecho del scroll silencioso, con un hairline que la
+   separa, y el resto de las columnas se desliza por debajo. El encabezado de
+   acciones se fija con la misma pista (`.list-actions-head`) para no
+   desalinearse. El fondo de la columna sale de `--list-actions-bg` (canvas por
+   defecto; una lista dentro de un panel declara la superficie del panel).
+2. **Menú `⋯` (excepción, no default).** Si una fila necesita más de tres
+   acciones de ícono más una de texto, las secundarias pasan a un menú de tres
+   puntos con las mismas etiquetas y targets. No se implementa hasta que la
+   primera pantalla lo necesite: no se crean componentes muertos.
+3. **Vista tarjeta en anchos medios.** Cada pantalla declara el ancho de su
+   plantilla (`minWidthClass`). Cuando el ancho de contenido no alcanza para esa
+   plantilla, la vista por defecto es la **cuadrícula de tarjetas** (misma
+   información, contrato de tarjeta ≥200 px) y el `ViewSwitch` permite volver a
+   la fila. El corte se decide por plantilla, no por un breakpoint global:
+   - Clientes (`min-w-[71rem]`): tarjeta por defecto por debajo de ~1190 px de
+     contenido (≈1280 px de ventana con el riel expandido).
+   - Presupuestos (`min-w-[90rem]`): tarjeta por defecto por debajo de ~1480 px
+     de contenido (≈1670 px de ventana). COM agrega la vista tarjeta.
+4. **Nada se corta para “entrar”.** Los montos, fechas y seriales siguen
+   `nowrap` + `tabular-nums` dentro del scroll; la lista no trunca datos. La
+   señal de que hay más columnas es el hairline de la columna fija y el recorte
+   visible de la última columna scrolleada.
+
+### CTA primario (ronda 14)
+
+- Un solo botón primario en toda la app: `.primary` toma el fondo de
+  `--interactive` y el texto de `--c-onbrand` (blanco sobre el violeta oscuro
+  del tema claro; tinta oscura sobre el violeta claro del oscuro). Ratios
+  medidos: **14.07:1** en claro y **5.30:1** en oscuro (hover 10.66:1 y 7.07:1),
+  AA en ambos temas. El blanco sobre el violeta claro del oscuro daría 3.36:1:
+  por eso el token, no un color fijo por pantalla.
+- Ninguna pantalla declara el color del texto de un `.primary`: sale del token.
+
+### Estados vacíos con CTA contextual (ronda 14)
+
+- Un bloque sin datos se dibuja con `EmptyBlock`. Si el rol puede crear o cargar
+  el dato, lleva `action={<EmptyCta label="…" onClick={…}/>}` y el label nombra
+  la acción concreta, no un “Crear” genérico: “Registrar primera cuenta”
+  (FIN), “Cargar plan del cliente” (COM), “Agregar valor de inventario” (OPS),
+  “Nuevo presupuesto” (COM).
+- Una celda suelta sin dato sigue mostrando `—` (dato honesto); el CTA vive en
+  el estado del bloque que agrupa el vacío, no en la celda.
+- El vacío nunca es mudo cuando el rol puede resolverlo; y nunca ofrece una
+  acción que el rol no puede ejecutar (gate de rol primero).
 
 ### Estado de cobro de un cliente (única definición)
 
