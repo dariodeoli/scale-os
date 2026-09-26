@@ -2,6 +2,25 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.135
+
+### Librería y sistema de diseño
+
+- **Salto a owncoding-ui v0.39**: la app queda pinneada al paquete nuevo (con tipos propios incluidos) y se retiran los parches locales de bordes; un parche temporal de postinstall corrige un comentario CSS roto en la librería (reportado upstream) hasta el tag corregido.
+- **Contraste AA de chips**: la familia de textos de estado (`ok`, `warn`, `bad`, `info`, `fono`) pasa a tokens propios en claro y oscuro; medido en la app, “Activo” sube de 4,27 a **5,24:1** y “En mora” de 4,47 a **5,10:1**. El chip de estado es ahora un envoltorio fino del `Badge` de la librería, sin parches locales.
+- **Bordes de control** con el token interactivo nuevo (≥3:1 en ambos temas), incluidos los controles outline y las acciones de ícono.
+
+### Operaciones
+
+- **Vida útil y serial compartidos**: la barra de vida útil del equipo usa el objeto de la librería (con `progressbar` y valor accesible) y el alta/edición de seriales usa el campo compartido (capitalización y corrección automáticas, con el normalizador de Scale OS inyectado).
+- **Nombre del verificador** sale del helper compartido `primerNombre` (se retira el duplicado local).
+- El contrato de Inventario vuelve a la cadena de release (contador “N de M equipos”, catálogo y reservas por `dataFetch`, proyección `?fields=`).
+
+### Plataforma y acceso
+
+- **Verificación e invitación**: el token se extrae del enlace completo con el helper de la librería (se retira el parseo manual con `URLSearchParams`), con test de adopción ampliado.
+- **Fase 1 documentada**: quedan auditados los puntos de import por vertical (montos con caret, modales, fechas, lotes y chips de negocio) para completar la adopción en la próxima pasada.
+
 ## v1.0.134
 
 ### Rediseño de espacios operativos
