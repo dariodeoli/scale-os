@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from 'react';
-import {Aviso,Button} from 'owncoding-ui';
+import {Aviso} from 'owncoding-ui';
 import {Plus,Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';
 import {listDateShort,dueTone} from '../list-format';
@@ -10,8 +10,7 @@ import {notify} from '../feedback';
 import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,type ChipTone,type Column} from '../ui-v2';
-import {BUDGET_TABLE_MIN_WIDTH,useDenseTableFit} from '../use-dense-table';
+import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,denseTableMinWidth,useDenseTableFit,type ChipTone,type Column} from '../ui-v2';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
 // Presupuestos (SOS-COM, campaña #41 / spec #43 §4).
@@ -45,6 +44,8 @@ const BUDGET_COLUMNS: Column[] = [
   {key:'actions',label:'Acciones',align:'end'},
 ];
 const BUDGET_TEMPLATE = 'grid-cols-[minmax(26rem,2.2fr)_minmax(16rem,1.4fr)_7rem_4rem_7rem_9rem_9rem_15rem]';
+// Ancho mínimo del contrato denso (93rem de pistas + 7 espacios + padding, #63).
+const BUDGET_TABLE_MIN_WIDTH = denseTableMinWidth(93, 8);
 const BUDGET_STATE: Record<string,{label:string;tone:ChipTone}> = {
   draft: {label:'Borrador', tone:'mute'},
   sent: {label:'Enviado', tone:'info'},
@@ -138,10 +139,10 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
       <span role="cell" className="list-date min-w-0 whitespace-nowrap text-[11px] text-mute" data-tone={tone||undefined} title={valid?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid||'Sin fecha'}</span>
       <span role="cell" className="text-right"><MoneyText valor={budget.subtotal} currency={budget.currency} className="text-fore"/></span>
       <span role="cell" className="text-right"><MoneyText valor={budget.total} currency={budget.currency} className="text-[13.5px] text-fore"/></span>
-      <span role="cell" className="flex min-w-0 items-center justify-end gap-2 [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8">
+      <ListActions className="[&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8">
         <BudgetActions id={budget.id} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={reload}/>
         <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={reload}/>
-      </span>
+      </ListActions>
     </ListRow>;
   };
 
@@ -173,7 +174,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
 
       {budgets.length ? (
         tableFits ? (
-          <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[93rem]" className="com-table-fixed-actions">
+          <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[93rem]" pinnedActions>
             {budgets.map(row)}
           </ListGrid>
         ) : (
@@ -190,7 +191,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
           icon="receipt"
           title="Todavía no hay presupuestos."
           description={canManage ? 'Creá el primero: el valor se carga sin IVA y el IVA se define en el documento.' : 'Cuando el equipo cree una propuesta, vas a verla acá con su estado y vigencia.'}
-          action={canManage&&onCreate ? <Button type="button" onClick={()=>onCreate()}><Plus aria-hidden="true" size={16}/>Nuevo presupuesto</Button> : undefined}
+          action={canManage&&onCreate ? <EmptyCta label="Nuevo presupuesto" onClick={()=>onCreate()} icon={<Plus aria-hidden="true" size={16}/>}/> : undefined}
         />
       )}
 

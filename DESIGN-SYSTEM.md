@@ -166,6 +166,7 @@ y esta sección se actualiza.
 | `FilterToolbar` | Fila que envuelve con la búsqueda/filtros (objetos de la librería: `SearchField`, `Select`, `SegmentedField`, `ListGridToggle`) y un contador `tabular-nums` al extremo. |
 | `ListGrid` + `ListRow` + `Column` | Encabezado de columnas y filas comparten **una sola** plantilla (`template` con `grid-cols-[…]`, `gap-x-2`); la lista conserva columnas en mobile y scrollea en silencio (`.silent-scroll`); una celda sin dato reserva su lugar y nada se corta con elipsis. |
 | `ListActions` + `pinnedActions` | Columna de acciones **fija** al borde derecho del scroll silencioso (patrón de tablas densas, rondas 14/16): las acciones nunca quedan fuera del alcance. La última celda de cada fila va en `ListActions` y el `ListGrid` lleva `pinnedActions`; el encabezado se fija con la misma pista y `z-index` por encima de las filas. Fondo con `--list-actions-bg` (canvas por defecto; panel o cápsula con fondo propio → declara su superficie). **Es la única implementación**: las variantes por vertical se retiran (issue #63). |
+| `useDenseTableFit` + `denseTableMinWidth` | Medidor del contrato denso (ronda 14, unificado en `app/ui-v2.tsx` en #63): observa el **contenedor real** con `ResizeObserver` y expone `fits`; la pantalla elige `ListGrid` (`pinnedActions`) cuando entra y su vista tarjeta cuando no. El ancho mínimo es la suma de las pistas `rem` de la plantilla + los `gap-x-2` + el padding lateral. Sin `ResizeObserver` (SSR/tests) conserva la tabla. |
 | `EmptyBlock` | `EmptyState` de la librería sobre la superficie v2, con `role="status"`. Nunca inventa datos ni métricas. |
 | `EmptyCta` | CTA canónico de un estado vacío: botón primario con label contextual. Es la llamada a la acción que recibe `EmptyBlock.action`. |
 | `ErrorBlock` | `ErrorState` de la librería con reintento, con `role="alert"`. |
@@ -214,14 +215,15 @@ La primitiva es **una sola**, la de `app/ui-v2.tsx`:
   filas) y el fondo sale de `--list-actions-bg` (canvas por defecto; una cápsula
   o panel con fondo propio declara su superficie).
 - El ancho real que decide tarjeta vs tabla lo mide `useDenseTableFit`
-  (`app/use-dense-table.ts`, con `denseTableMinWidth`/`denseTableFits`); es la
+  (`app/ui-v2.tsx`, con `denseTableMinWidth`/`denseTableFits`); es la
   primitiva compartida del patrón (no se duplica por vertical).
 - Los estados vacíos con CTA usan `EmptyCta` dentro de `EmptyBlock`.
 
-Migración pendiente de COM (Clientes y Presupuestos): `<ListGrid pinnedActions>`
+Migración de COM aplicada (Clientes y Presupuestos): `<ListGrid pinnedActions>`
 + `<ListActions>` en la celda de acciones, `useDenseTableFit` como medida,
-`EmptyCta` en los vacíos, y **se retira** `app/com-tables.css` (clase
-`com-table-fixed-actions`) junto con su test/reglas paralelas.
+`EmptyCta` en los vacíos; `app/com-tables.css` (clase
+`com-table-fixed-actions`) y `app/use-dense-table.ts` se retiraron junto con sus
+reglas paralelas.
 
 ### CTA primario (ronda 14)
 

@@ -10,7 +10,7 @@ import {comparePlans} from '../plan-comparison-data';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
 import {moneyKpi} from '../client-format';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock} from '../ui-v2';
+import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock} from '../ui-v2';
 import type {ComparablePlan} from '../plan-comparison-data';
 import type {User} from '../workspace-types';
 
@@ -81,7 +81,7 @@ export function PlanesSection({user}: PlanesSectionProps){
           icon="package"
           title="Todavía no hay planes guardados."
           description={canEdit?'Creá un plan reutilizable con sus ítems y precios sin IVA; después podés aplicarlo a un presupuesto con un clic.':'Cuando el equipo guarde un plan, vas a ver acá su comparación de ítems, precios y condiciones.'}
-          action={canEdit?<Button type="button" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nuevo plan</Button>:undefined}
+          action={canEdit?<EmptyCta label="Nuevo plan" onClick={()=>setEdit('new')} icon={<Plus aria-hidden="true" size={16}/>}/>:undefined}
         />
       )}
 

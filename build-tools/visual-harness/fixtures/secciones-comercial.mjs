@@ -5,14 +5,14 @@
  * evidencia del rediseño de sección: KPIs, lista con encabezado y plantilla,
  * tablero kanban (excepción del contrato) y estados con datos reales de estrés.
  *
- * Ronda 14 (#62, refs #43): la tabla densa lleva `com-table-fixed-actions`
- * (cola de acciones fija, app/com-tables.css) y en anchos medios la sección
+ * Ronda 16 (#63, refs #43): la tabla densa usa la primitiva común de ui-v2
+ * (`pinnedActions` + `ListActions`) y en anchos medios la sección
  * muestra su vista tarjeta; por eso están `seccion-presupuestos-cuadricula`
  * (espejo de BudgetTile) y `seccion-presupuestos-vacio` (CTA contextual).
  */
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {Button, EmptyState} from 'owncoding-ui';
+import {EmptyState} from 'owncoding-ui';
 
 const h = React.createElement;
 
@@ -42,7 +42,7 @@ const budgetRow = ({number, title, client, tone, state, items, valid, due, subto
  <span role="cell" class="list-date min-w-0 whitespace-nowrap text-[11px] text-mute"${due ? ' data-tone="warn"' : ''} title="${valid}">${valid}</span>
  <span role="cell" class="text-right">${moneyText(subtotal, 'text-fore')}</span>
  <span role="cell" class="text-right">${moneyText(total, 'text-[13.5px] text-fore')}</span>
- <span role="cell" class="flex min-w-0 items-center justify-end gap-2 [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
+ <span role="cell" class="list-actions [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
 </div>`;
 /* Ronda 12 (#59): barra de lote, espejo de app/sections/presupuestos.tsx. */
 const budgetBulkBar = (selected = 0) => `<div class="bulk-bar" role="status" aria-live="polite">
@@ -52,9 +52,9 @@ const budgetBulkBar = (selected = 0) => `<div class="bulk-bar" role="status" ari
   ${selected ? '<button type="button" class="secondary danger min-h-11 md:min-h-10">🗑 Mover a la papelera</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button>' : ''}
  </div>
 </div>`;
-const budgetList = (rows) => `<div role="table" aria-label="Presupuestos" class="silent-scroll min-w-0 overflow-x-auto com-table-fixed-actions">
+const budgetList = (rows) => `<div role="table" aria-label="Presupuestos" class="silent-scroll min-w-0 overflow-x-auto">
  <div class="min-w-[93rem]">
-  <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${BUDGET_TEMPLATE}">${BUDGET_COLUMNS.map((column, index) => `<span role="columnheader" class="${index === BUDGET_COLUMNS.length - 1 ? 'text-right' : index >= 3 && index <= 6 ? 'text-right' : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}</div>
+  <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${BUDGET_TEMPLATE}">${BUDGET_COLUMNS.map((column, index) => `<span role="columnheader" class="${index === BUDGET_COLUMNS.length - 1 ? 'text-right list-actions-head' : index >= 3 && index <= 6 ? 'text-right' : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}</div>
   <div role="rowgroup">${rows.join('')}</div>
  </div>
 </div>`;
@@ -119,10 +119,10 @@ const presupuestosCuadricula = `<section class="directory grid gap-4" aria-label
   ${budgetCard({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'})}
  </div>
 </section>`;
-/* Vacío con CTA contextual (#62, ítem 9): espeja ui-v2.EmptyBlock + Button. */
+/* Vacío con CTA contextual (#62, ítem 9): espeja ui-v2.EmptyBlock + EmptyCta. */
 const presupuestosVacio = renderToStaticMarkup(h('section', {className: 'directory grid gap-4', 'aria-label': 'Presupuestos'},
  h('div', {role: 'status', className: 'rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4'},
-  h(EmptyState, {icon: 'receipt', title: 'Todavía no hay presupuestos.', description: 'Creá el primero: el valor se carga sin IVA y el IVA se define en el documento.', action: h(Button, {type: 'button'}, 'Nuevo presupuesto')}))));
+  h(EmptyState, {icon: 'receipt', title: 'Todavía no hay presupuestos.', description: 'Creá el primero: el valor se carga sin IVA y el IVA se define en el documento.', action: h('button', {type: 'button', className: 'primary'}, 'Nuevo presupuesto')}))));
 
 /* ---- Planes: KpiStrip + comparador (tabla compartida) ------------------- */
 const PLAN_TEMPLATE = 'min-w-0 max-w-full text-fore';

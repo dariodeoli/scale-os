@@ -76,3 +76,10 @@ export function directorySummaryText(resultCount: number, totalCount: number): s
   const totalLabel = totalCount === 1 ? "cliente" : "clientes";
   return `Mostrando ${resultCount} ${clientLabel} de ${totalCount} ${totalLabel}`;
 }
+
+/**
+ * Ancho mínimo del contrato denso de Clientes (ronda 14, #63): 75rem de pistas
+ * del `CLIENT_TEMPLATE` (13+11+7+15+9+20) + 5 espacios de 8 px + 8 px de
+ * padding. Con menos, la sección usa su vista tarjeta (useDenseTableFit).
+ */
+export const CLIENT_TABLE_MIN_WIDTH = 75 * 16 + 5 * 8 + 8;

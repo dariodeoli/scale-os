@@ -9,7 +9,7 @@
 import {Badge, EmptyState, ErrorState, Label, ListGridToggle, Select, Skeleton, Stat} from 'owncoding-ui';
 import {currencyChoices} from './currencies';
 import {money} from './operations';
-import type {ChangeEvent, HTMLAttributes, ReactNode} from 'react';
+import {useEffect, useRef, useState, type ChangeEvent, type HTMLAttributes, type ReactNode} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -180,4 +180,40 @@ export function ListRow({template, className, children, ...props}: {template: st
  */
 export function ListActions({children, className}: {children: ReactNode; className?: string}) {
   return <div role="cell" className={`list-actions ${className ?? ''}`}>{children}</div>;
+}
+
+/**
+ * Ancho mínimo real de una tabla densa: suma de las pistas `rem` de la
+ * plantilla + los espacios `gap-x-2` (8 px entre columnas) + el padding
+ * lateral de fila y encabezado (8 px). Es la medida con la que cada pantalla
+ * decide si su `ListGrid` entra o si corresponde la vista tarjeta (ronda 14).
+ */
+export function denseTableMinWidth(trackRem: number, columns: number) {
+  return trackRem * 16 + (columns - 1) * 8 + 8;
+}
+
+/** ¿Entra la tabla densa en el ancho medido del contenedor? */
+export function denseTableFits(containerWidth: number, minWidth: number) {
+  return containerWidth >= minWidth;
+}
+
+/**
+ * Medidor del contrato denso: observa el contenedor real (no el viewport, así
+ * el nav colapsado y el padding del shell cuentan) y devuelve si su tabla
+ * entra. La pantalla usa `fits` para elegir entre `ListGrid` y su vista
+ * tarjeta. Sin `ResizeObserver` (SSR y tests) conserva la tabla densa.
+ */
+export function useDenseTableFit<T extends HTMLElement = HTMLElement>(minWidth: number) {
+  const ref = useRef<T | null>(null);
+  const [fits, setFits] = useState(true);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || typeof ResizeObserver === 'undefined') return;
+    const measure = () => setFits(denseTableFits(element.clientWidth, minWidth));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [minWidth]);
+  return {ref, fits};
 }

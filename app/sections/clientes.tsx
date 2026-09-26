@@ -1,6 +1,6 @@
 "use client";
 import type {Dispatch, SetStateAction} from 'react';
-import {CircleDollarSign, Eye, X} from 'lucide-react';
+import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
 import {IconAction} from 'owncoding-ui';
 import {BATCH_LIMITS, roleCan} from '../capabilities';
 import {clientState} from '../client-status';
@@ -10,8 +10,8 @@ import {listDateShort} from '../list-format';
 import {ClientIdentity} from '../client-identity';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
-import {CLIENT_TABLE_MIN_WIDTH,useDenseTableFit} from '../use-dense-table';
-import {EmptyBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {CLIENT_TABLE_MIN_WIDTH} from '../client-directory-data';
+import {EmptyBlock, EmptyCta, Kpi, KpiStrip, ListActions, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, useDenseTableFit, type ChipTone, type Column} from '../ui-v2';
 import type {CommercialDashboard} from '../control-center-data';
 import type {Client, ClientPaymentStatus, User} from '../workspace-types';
 
@@ -85,13 +85,13 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
       </span>
       {stat?.nextDue ? <span className="block whitespace-nowrap">Próxima entrega <b className="tabular-nums text-fore">{listDateShort(stat.nextDue)}</b></span> : null}
     </div>
-    <div role="cell" className="client-row-actions silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]">
+    <ListActions className="client-row-actions silent-scroll">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
       {client.has_recurring_price !== true && !canManageTerms ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
       {canManage ? <button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button> : null}
       <span className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} canManageTerms={canManageTerms} planCta={client.has_recurring_price !== true ? 'icon' : undefined} refresh={refresh}/></span>
-    </div>
+    </ListActions>
   </ListRow>;
 }
 
@@ -162,9 +162,10 @@ type ClientesSectionProps = {
   selectVisibleClients: () => void;
   batchClients: (archived: boolean) => Promise<void>;
   setDetail: Dispatch<SetStateAction<{kind: 'client' | 'order'; id: string; anchor?: string; edit?: boolean} | null>>;
+  onCreate?: () => void;
 };
 
-export function ClientesSection({dataState = 'ready', user, clientView, clientStatusFilter, setClientStatusFilter, clientSearch, setClientSearch, archiveBusy, bulkBusy, selectedClients, setSelectedClients, canSeeBilling, canManageClients, clients, displayedClients, liveClients, archivedClients, paymentStatuses, clientHubStats, commercialSummary, commercialState, directoryKpis, cobrosKpis, load, setClientArchive, toggleClientSelected, selectVisibleClients, batchClients, setDetail}: ClientesSectionProps) {
+export function ClientesSection({dataState = 'ready', user, clientView, clientStatusFilter, setClientStatusFilter, clientSearch, setClientSearch, archiveBusy, bulkBusy, selectedClients, setSelectedClients, canSeeBilling, canManageClients, clients, displayedClients, liveClients, archivedClients, paymentStatuses, clientHubStats, commercialSummary, commercialState, directoryKpis, cobrosKpis, load, setClientArchive, toggleClientSelected, selectVisibleClients, batchClients, setDetail, onCreate}: ClientesSectionProps) {
   const canManageTerms = roleCan(user?.role, 'commercial-terms.manage');
   const billingRole = ['owner', 'admin', 'finance'].includes(user?.role || '');
   // La tabla densa sólo entra con ancho suficiente; si no, tarjetas (#62).
@@ -225,7 +226,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
     </div> : null}
 
     {dense
-      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" className="com-table-fixed-actions">{renderClients(liveClients, false)}</ListGrid>
+      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" pinnedActions>{renderClients(liveClients, false)}</ListGrid>
       : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(liveClients, true)}</div>}
 
     {!liveClients.length && archivedClients.length && clientStatusFilter !== 'inactive' ? <p className="text-[13px] text-mute" role="status">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p> : null}
@@ -234,7 +235,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       clients.length===0 ? (
         dataState === 'loading'
           ? <LoadingBlock label="Cargando clientes…" lines={5}/>
-          : <EmptyBlock title="Todavía no hay clientes. Creá el primero para empezar." description="Cargá la ficha con RUC o de forma manual; después podés sumar proyectos y piezas."/>
+          : <EmptyBlock title="Todavía no hay clientes. Creá el primero para empezar." description="Cargá la ficha con RUC o de forma manual; después podés sumar proyectos y piezas." action={canManageClients&&onCreate ? <EmptyCta label="Nuevo cliente" onClick={()=>onCreate()} icon={<Plus aria-hidden="true" size={16}/>}/> : undefined}/>
       ) : (
         <EmptyBlock title={clientSearch.trim() ? 'No hay clientes que coincidan con tu búsqueda y filtros.' : 'No hay clientes con este estado.'} description="Probá con otro término o restablecé los filtros." action={<button className="text-button min-h-11 md:min-h-8" type="button" onClick={() => {setClientSearch(''); setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>}/>
       )
@@ -244,7 +245,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
         <summary>Archivados ({archivedClients.length})</summary>
         {dense
-          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" className="com-table-fixed-actions">{renderClients(archivedClients, false)}</ListGrid>
+          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" pinnedActions>{renderClients(archivedClients, false)}</ListGrid>
           : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(archivedClients, true)}</div>}
       </details>
     ) : null}

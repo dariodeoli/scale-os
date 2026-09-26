@@ -9,7 +9,7 @@ import {roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,type LeadOpportunity} from '../pipeline-summary';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
+import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
 import {useDialogPending} from '../dialog';
 import type {MetricEvent,User} from '../workspace-types';
 

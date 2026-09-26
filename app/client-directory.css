@@ -33,6 +33,9 @@
    respecto del resto de las secciones. El ritmo lo define el marco. */
 .workspace-page-header .client-directory-toolbar{margin-block:0}
 .archived-capsule{margin-top:var(--ui-space-4);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--ui-space-3);background:color-mix(in srgb,var(--violet-soft) 16%,transparent)}
+/* Columna de acciones fija (#63): la cápsula tiene fondo propio y la celda
+   pegajosa de la lista lo declara para no dejar una franja distinta. */
+.archived-capsule{--list-actions-bg:color-mix(in srgb,var(--violet-soft) 16%,var(--canvas))}
 .archived-capsule summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:var(--ui-space-2)}
 .archived-capsule[open] summary{margin-bottom:var(--ui-space-3)}
 .client-hub-card[data-archived]{opacity:.75}
