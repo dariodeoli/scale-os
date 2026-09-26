@@ -2,6 +2,15 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.127
+
+### Comercial
+
+- **Clientes y Presupuestos ya no se cortan**: la tabla densa se muestra solo si el ancho real del contenedor alcanza para su plantilla (reacciona al colapsar el riel); si no entra, la pantalla pasa a tarjetas. Cuando se muestra la tabla, la columna de acciones queda fija al borde del scroll: editar, archivar y WhatsApp nunca se salen de alcance, y los montos de Presupuestos dejan de recortarse.
+- **Fila densa más usable**: el carril de acciones de Clientes pasa a 20 rem (WhatsApp + Archivar + plan + editar/papelera entran sin scroll interno) y el CTA de plan en la fila es ícono con tooltip para no inflarla.
+- **Vacíos con salida**: Clientes sin plan ofrece “Cargar plan” (abre *Plan y pago*, solo para roles con permiso de términos comerciales; con la ficha abierta aparece junto a “Sin plan registrado”) y el vacío de Presupuestos ofrece “Nuevo presupuesto”; donde el rol no puede operar queda el aviso honesto, sin botón muerto.
+- **Selector lista/cuadrícula coherente**: se oculta cuando la tabla no entra, para no ofrecer un cambio sin efecto.
+
 ## v1.0.126
 
 ### Marco y sistema visual
