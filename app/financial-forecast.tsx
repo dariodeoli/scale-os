@@ -104,7 +104,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
    <FormField label="Mes" htmlFor="forecast-month"><Input id="forecast-month" type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/></FormField>
    <div className="grid min-w-0 gap-1.5">
     <span className="text-[10px] font-bold uppercase tracking-[.08em] text-mute">Horizonte</span>
-    <SegmentedField className="[&>button]:min-h-10 [&>button]:px-3 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
+    <SegmentedField className="[&>button]:min-h-11 [&>button]:px-3 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
    </div>
   </div>
   <Nota tono="neutro">Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.</Nota>
