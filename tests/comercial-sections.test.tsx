@@ -36,6 +36,7 @@ require.cache[dndPath]={id:dndPath,filename:dndPath,loaded:true,exports:{
  pointerWithin:()=>[],rectIntersection:()=>[],
 }} as NodeModule;
 
+const {LEAD_LIST_FIELDS,BUDGET_LIST_FIELDS}=require('../app/shell-data') as typeof import('../app/shell-data');
 const {PlanesSection}=require('../app/sections/planes') as typeof import('../app/sections/planes');
 const {PipelineSection}=require('../app/sections/pipeline') as typeof import('../app/sections/pipeline');
 const {PresupuestosSection}=require('../app/sections/presupuestos') as typeof import('../app/sections/presupuestos');
@@ -99,7 +100,7 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
  requests=[];let renderer!:ReactTestRenderer;
  await act(async()=>{renderer=create(<PipelineSection user={user('owner')} metrics={[]}/>);});
  assert.equal(requests.length,2,'una lectura de oportunidades y una de etapas');
- assert.equal(requests[0].url,'/core-api/api/agency/leads');
+ assert.equal(requests[0].url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`);
  assert.equal(requests[1].url,'/core-api/api/agency/pipeline-stages');
  await flush({records:[
   {id:'10',name:'Cliente activo',stage:'contacted',amount:'3000000',currency:'PYG',probability:50,notes:'Origen: landing Scale OS.',email:'hola@cliente.com'},
@@ -125,7 +126,7 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
  await act(async()=>{move.resolve(new Response(JSON.stringify({}),{status:200}));});
  await act(async()=>{});
  const reload=pending();
- assert.equal(reload.url,'/core-api/api/agency/leads','el movimiento recarga la lista');
+ assert.equal(reload.url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`,'el movimiento recarga la lista proyectada');
  await act(async()=>{reload.resolve(new Response(JSON.stringify({records:[]}),{status:200}));});
  assert.match(text(renderer.root),/Todavía no hay oportunidades/);
  act(()=>renderer.unmount());
@@ -166,7 +167,7 @@ test('pipeline: el arrastre es optimista, no revierte con la recarga caída y re
  await act(async()=>{move.resolve(new Response(JSON.stringify({}),{status:200}));});
  await act(async()=>{});
  const failedReload=pending();
- assert.equal(failedReload.url,'/core-api/api/agency/leads');
+ assert.equal(failedReload.url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`);
  await act(async()=>{failedReload.resolve(new Response(JSON.stringify({}),{status:500}));});
  await act(async()=>{});
  assert.match(text(column('Ganado')[0]),/Cliente activo/,'el movimiento local no revierte si la recarga falla');
@@ -303,7 +304,7 @@ test('presupuestos: lote con tope, confirmación y refresco',async()=>{
  assert.equal((JSON.parse(String(batch.init.body)) as {ids:string[]}).ids.length,50);
  await act(async()=>{batch.resolve(new Response(JSON.stringify({updated:50}),{status:200}));});
  const list=pending();
- assert.equal(list.url,'/core-api/api/agency/budgets','el refresco usa la lista completa del contrato');
+ assert.equal(list.url,`/core-api/api/agency/budgets?fields=${BUDGET_LIST_FIELDS}`,'el refresco usa la lista proyectada del contrato');
  await act(async()=>{list.resolve(new Response(JSON.stringify({budgets:[budget(50)]}),{status:200}));});
  assert.equal(refreshed.length,1,'el refresco baja al estado del shell');
  assert.equal(feedback.at(-1)!.message,'50 presupuestos movidos a la papelera.');
@@ -378,7 +379,10 @@ test('recorte de payload: la ventana de 300 órdenes no alcanza a las secciones 
   assert.ok(scope.clients&&scope.projects,`${section} conserva clientes y proyectos para el buscador y la presencia`);
  }
  assert.equal(sectionScope('Producción').orders,undefined,'Producción no pide órdenes: el tablero las carga por columna (board-data)');
- assert.equal(sectionScope('Resumen').orders?.limit,undefined,'Resumen agrega sobre todas las órdenes');
+ // #71: Resumen usa la ventana del shell para buscador/alertas/planificador y
+ // el resumen para los conteos exactos por etapa.
+ assert.equal(sectionScope('Resumen').orders?.limit,ORDER_WINDOW,'Resumen pide la ventana de órdenes');
+ assert.ok(sectionScope('Resumen').summary,'Resumen pide el resumen con los conteos por etapa');
  // Las secciones COM no leen órdenes: listas, KPIs y totales salen de sus propios recursos.
  for(const file of ['app/sections/pipeline.tsx','app/sections/presupuestos.tsx','app/sections/metricas.tsx']){
   const source=read(file);
@@ -386,10 +390,11 @@ test('recorte de payload: la ventana de 300 órdenes no alcanza a las secciones 
   assert.doesNotMatch(source,/shellDataUrl|sectionScope|ORDER_WINDOW/,`${file} no depende del recorte del shell`);
  }
  const pipeline=read('app/sections/pipeline.tsx');
- assert.match(pipeline,/api<\{records:Row\[\]\}>\('\/api\/agency\/leads'\)/,'el tablero lee todas las oportunidades');
+ assert.match(pipeline,/projectedList\('leads','\/api\/agency\/leads',LEAD_LIST_FIELDS/,'el tablero lee las oportunidades con proyección optimista (#67/#71)');
  assert.match(pipeline,/api<\{stages:RawRow\[\]\}>\('\/api\/agency\/pipeline-stages'\)/,'y todas las etapas');
  const presupuestos=read('app/sections/presupuestos.tsx');
- assert.match(presupuestos,/\/api\/agency\/budgets/,'la lista de presupuestos sale del endpoint completo');
+ assert.match(presupuestos,/projectedList\('budgets','\/api\/agency\/budgets',BUDGET_LIST_FIELDS/,'la lista de presupuestos adopta la proyección (#67/#71)');
+ assert.match(read('app/scale-workspace.tsx'),/projectedList\('budgets',"\/api\/agency\/budgets",BUDGET_LIST_FIELDS/,'el shell también proyecta la carga inicial de presupuestos');
 });
 
 test('más de 300 ítems: listas, KPIs y totales siguen completos',async()=>{
