@@ -67,9 +67,14 @@ test('prefetch stays in the current scope and excludes fresh or unrelated endpoi
  t.mock.method(globalThis,'fetch',async(url:RequestInfo|URL)=>{urls.push(String(url));return response();});
  await prefetchSectionData('Comisiones','other:agency:owner');assert.equal(urls.length,0);
  await prefetchSectionData('Equipo','user:agency:owner');assert.equal(urls.length,0,'Equipo no prefetchea data de otro módulo (#67)');
- for(const section of ['Comisiones','Inventario','Configuración','Historial de trabajo','Pipeline','Invitaciones','Proyectos','Resumen'])await prefetchSectionData(section,'user:agency:owner');
+ for(const section of ['Comisiones','Inventario','Configuración','Historial de trabajo','Pipeline','Invitaciones','Proyectos','Resumen','Finanzas','Previsión'])await prefetchSectionData(section,'user:agency:owner');
  assert.equal(urls.length,8);
  assert(!urls.some(url=>/members|team|settings|reservations|context|invit|projects|summary|people/.test(url)));
+ // Comisiones calienta cuentas, egresos y cargos; Finanzas y Previsión reusan las cuentas (#67).
+ assert.ok(urls.includes('/core-api/api/agency/job-roles'),'Comisiones calienta el carril de cargos');
+ assert.ok(urls.includes('/core-api/api/agency/payouts'),'Comisiones calienta sus egresos');
+ assert.ok(urls.includes('/core-api/api/agency/accounts'),'Finanzas y Previsión calientan las cuentas');
+ assert.equal(urls.filter(url=>url==='/core-api/api/agency/accounts').length,1,'las cuentas se piden una sola vez aunque dos secciones las calienten');
  setDataScope('');await prefetchSectionData('Pipeline','user:agency:owner');assert.equal(urls.length,8);
 });
 

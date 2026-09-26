@@ -44,7 +44,7 @@ async function run(){
  for(const role of ['owner','admin','finance','sales']){
   act(()=>{renderer=create(<ReportsWorkspace role={role} organizationName="Scale"/>);});
    assert.equal(latest().init.credentials,'include');
-  assert.ok(requests.some(r=>/^\/core-api\/api\/agency\/reports\?month=\d{4}-\d{2}&months=12$/.test(r.url)),'monthly report request fires');
+  assert.ok(requests.some(r=>/^\/core-api\/api\/agency\/reports\?month=\d{4}-\d{2}&months=12&previous=1$/.test(r.url)),'monthly report request fires');
   const input=renderer.root.findAllByProps({type:'month'})[0];
   assert.equal(input.props.max,input.props.value,'current Asuncion month is the maximum');
   const before:number=requests.length;month('9998-12');month('2020-13');month('');
@@ -78,8 +78,8 @@ async function run(){
  await respond(staleInitial,fixture(new URL(staleInitial.url,'https://fixture.invalid').searchParams.get('month')!,[row('2020-06',999)]));
  assert.doesNotMatch(text(),/999/,'out-of-order initial response ignored');
 
- history(6);const staleSix=latest();assert.match(staleSix.url,/months=6$/);assert.doesNotMatch(text(),/USD 9/,'old report hidden immediately');
- history(24);const twentyFour=latest();assert.match(twentyFour.url,/months=24$/);
+ history(6);const staleSix=latest();assert.match(staleSix.url,/months=6&previous=1$/);assert.doesNotMatch(text(),/USD 9/,'old report hidden immediately');
+ history(24);const twentyFour=latest();assert.match(twentyFour.url,/months=24&previous=1$/);
  await respond(twentyFour,fixture('2020-06',[row('2020-05',4,true),row('2020-06')]));
  assert.match(text(),/Mes en curso o cobertura incompleta/);
  assert.match(text(),/Sin comparación: mes parcial/,'past incomplete coverage also disables comparisons');
@@ -152,7 +152,7 @@ async function run(){
   const pygComparison=comparisonText();
   assert.match(pygComparison,/PYG 4\.000\.000/);assert.match(pygComparison,/PYG 500\.000/);assert.match(pygComparison,/PYG 2\.000\.000/);
   assert.doesNotMatch(pygComparison,/USD/,'switching currency rebuilds the comparison rows');
-  history(6);const partialCurrentRequest=latest();assert.match(partialCurrentRequest.url,/months=6$/);
+  history(6);const partialCurrentRequest=latest();assert.match(partialCurrentRequest.url,/months=6&previous=1$/);
   await respond(partialCurrentRequest,{...compareCurrent,months:[
    compareRow('2020-05',{active:5,added:2,lost:0,isPartial:true,financial:[moneyEntry('USD','100.00','80.00',2),moneyEntry('PYG','1000000','800000',1)]}),
    compareRow('2020-06',{active:6,added:3,lost:1,financial:[moneyEntry('USD','300.50','200.00',3),moneyEntry('PYG','3000000','2000000',1)]}),
@@ -166,12 +166,12 @@ async function run(){
   assert.match(partialComparison,/\+2 · \+50,00 %/,'the snapshot still compares when the newest month is complete');
   assert.match(partialComparison,/Sin comparación: mes parcial/,'partial months suppress the sums they feed');
   assert.doesNotMatch(partialComparison,/\+400,00 %/);
-  history(24);const emptyCurrentRequest=latest();assert.match(emptyCurrentRequest.url,/months=24$/);
+  history(24);const emptyCurrentRequest=latest();assert.match(emptyCurrentRequest.url,/months=24&previous=1$/);
   await respond(emptyCurrentRequest,{...compareCurrent,historySince:'2015-01-01T03:00:00Z'});
   const emptyPreviousRequest=latest();assert.match(emptyPreviousRequest.url,/month=2018-06&months=24$/);
   await respond(emptyPreviousRequest,{asOf:'2026-09-10T15:00:00Z',month:'2018-06',historySince:'2015-01-01T03:00:00Z',months:[]});
   assert.match(comparisonText(),/Sin comparación: no hay período anterior con datos/,'an empty previous window renders the explicit state');
-  history(12);const historyCurrentRequest=latest();assert.match(historyCurrentRequest.url,/months=12$/);
+  history(12);const historyCurrentRequest=latest();assert.match(historyCurrentRequest.url,/months=12&previous=1$/);
   await respond(historyCurrentRequest,{...compareCurrent,historySince:'2018-07-15T03:00:00Z'});
   const historyPreviousRequest=latest();assert.match(historyPreviousRequest.url,/month=2019-06&months=12$/);
   await respond(historyPreviousRequest,{asOf:'2026-09-10T15:00:00Z',month:'2019-06',historySince:'2018-07-15T03:00:00Z',months:[
@@ -195,6 +195,17 @@ async function run(){
   const lastMonthRequest=latest();assert.match(lastMonthRequest.url,/month=2020-05&months=12/,'el botón mueve el filtro al mes con datos');
   await respond(lastMonthRequest,{asOf:'2026-09-10T15:00:00Z',month:'2020-05',historySince:'2020-01-01T03:00:00Z',months:[row('2020-05')]});
   assert.doesNotMatch(text(),/Sin datos para el mes seleccionado/);
+  act(()=>renderer.unmount());
+
+  // #67: con `previous` en el payload la pantalla resuelve las dos ventanas en
+  // una sola llamada y no dispara el segundo pedido.
+  act(()=>{renderer=create(<ReportsWorkspace key="org-single" role="owner" organizationName="Scale"/>);});
+  month('2020-06');const singleRequest=latest();assert.match(singleRequest.url,/month=2020-06&months=12&previous=1$/,'la llamada pide la ventana anterior en el mismo pedido');
+  const afterSingle=requests.length;
+  await respond(singleRequest,{...compareCurrent,previous:comparePrevious});
+  assert.equal(requests.length,afterSingle,'una respuesta con previous no dispara un segundo pedido');
+  assert.match(comparisonText(),/Período visible: 1 jul\. 2019 — 30 jun\. 2020/,'la comparación se arma con la ventana incluida');
+  assert.match(comparisonText(),/período anterior: 1 jul\. 2018 — 30 jun\. 2019/);
   act(()=>renderer.unmount());
 
   const css=readFileSync(new URL('../app/reports-workspace.css',import.meta.url),'utf8');

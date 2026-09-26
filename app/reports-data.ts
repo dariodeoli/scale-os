@@ -34,6 +34,13 @@ export type ReportMonth = {
 
 export type ReportsData = {asOf: string; month: string; historySince: string | null; months: ReportMonth[]};
 
+/**
+ * Respuesta de `GET /api/agency/reports` con `previous=1` (#67): la ventana
+ * anterior viaja en el mismo payload (`previous.month` es el mes final de esa
+ * ventana). Sin el parámetro el contrato es el mismo de siempre.
+ */
+export type ReportsResponse = ReportsData & {previous?: ReportsData | null};
+
 /** Etiquetas de `clients.types[].kind`; el API puede sumar valores nuevos. */
 export const reportKindLabels: Record<string, string> = {
   unknown: 'Sin clasificar',

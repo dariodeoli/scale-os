@@ -347,6 +347,8 @@ export default function Home() {
   );
   const [invoiceHasMore, setInvoiceHasMore] = useState(false);
   const [allInvoicesLoaded, setAllInvoicesLoaded] = useState(false);
+  const [paymentHasMore, setPaymentHasMore] = useState(false);
+  const [allPaymentsLoaded, setAllPaymentsLoaded] = useState(false);
   const [moraFilter, setMoraFilter] = useState("");
   const [moraSearch, setMoraSearch] = useState("");
   const [moraUpdated, setMoraUpdated] = useState<Date | null>(null);
@@ -596,7 +598,7 @@ export default function Home() {
           request<{ accounts: Account[] }>("/api/agency/accounts"),
           request<{ invoices: Invoice[]; hasMore?: boolean }>(`/api/agency/invoices${allInvoicesLoaded ? "?limit=all" : ""}`),
           request<{ transfers: AccountTransfer[] }>("/api/agency/transfers"),
-          request<{ payments: PaymentRecord[] }>("/api/agency/payments"),
+          request<{ payments: PaymentRecord[]; hasMore?: boolean }>(`/api/agency/payments${allPaymentsLoaded ? "?limit=all" : ""}`),
           request<{ members: Member[] }>("/api/agency/custodians"),
         ]);
       setAccounts(listOf<Account>(accountData?.accounts));
@@ -604,6 +606,7 @@ export default function Home() {
       setInvoiceHasMore(invoiceData?.hasMore===true);
       setTransfers(listOf<AccountTransfer>(transferData?.transfers));
       setPayments(listOf<PaymentRecord>(paymentData?.payments));
+      setPaymentHasMore(paymentData?.hasMore===true);
       setCustodians(listOf<Member>(custodianData?.members));
       setFinanceState('ready');
     } catch (cause) {
@@ -721,6 +724,10 @@ export default function Home() {
   async function loadAllInvoices(){
     const data=await request<{invoices:Invoice[];hasMore?:boolean}>("/api/agency/invoices?limit=all");
     setInvoices(listOf<Invoice>(data?.invoices));setInvoiceHasMore(false);setAllInvoicesLoaded(true);
+  }
+  async function loadAllPayments(){
+    const data=await request<{payments:PaymentRecord[];hasMore?:boolean}>("/api/agency/payments?limit=all");
+    setPayments(listOf<PaymentRecord>(data?.payments));setPaymentHasMore(false);setAllPaymentsLoaded(true);
   }
   useEffect(() => {
     if (
@@ -1071,7 +1078,7 @@ export default function Home() {
         {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectRow={projectRowEntry} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={loadBudgets} setBudgets={setBudgets} onCreate={()=>setModal('budget')}/>}
         {active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>}
-        {active==='Finanzas'&&<FinanzasSection user={user} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} setModal={setModal} openPayment={openPayment} setToast={setToast}/>}
+        {active==='Finanzas'&&<FinanzasSection user={user} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} paymentHasMore={paymentHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} loadAllPayments={loadAllPayments} setModal={setModal} openPayment={openPayment} setToast={setToast}/>}
         {active==='Previsión'&&<PrevisionSection user={user} navigate={setActive} onCreateInvoice={openInvoice}/>}
         <div className="mt-auto pt-6"><WorkspaceFooter/></div>
         </div>

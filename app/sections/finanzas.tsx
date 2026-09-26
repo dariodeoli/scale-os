@@ -22,9 +22,11 @@ type FinanzasSectionProps = {
   transfers: AccountTransfer[];
   payments: PaymentRecord[];
   invoiceHasMore: boolean;
+  paymentHasMore: boolean;
   financeEmpty: boolean;
   loadFinance: () => Promise<void>;
   loadAllInvoices: () => Promise<void>;
+  loadAllPayments: () => Promise<void>;
   setModal: Dispatch<SetStateAction<ModalKind>>;
   /** Abre “Registrar cobro”; con una factura, el modal la deja preseleccionada. */
   openPayment: (invoiceId?: string) => void;
@@ -42,7 +44,7 @@ const INVOICE_FILTERS: [string, string][] = [['all', 'Todas'], ['open', 'Con sal
 /** Plantillas únicas: encabezado y filas comparten una grilla por lista. */
 const TRANSFER_TEMPLATE = 'grid-cols-[minmax(20rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(9rem,1fr)_10rem]';
 const TRANSFER_COLUMNS: Column[] = [{key: 'route', label: 'Transferencia'}, {key: 'date', label: 'Fecha'}, {key: 'actor', label: 'Recibió'}, {key: 'reference', label: 'Referencia'}, {key: 'amount', label: 'Monto', align: 'end'}];
-const INVOICE_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_8rem]';
+const INVOICE_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_9rem]';
 const INVOICE_COLUMNS: Column[] = [{key: 'invoice', label: 'Factura'}, {key: 'state', label: 'Estado'}, {key: 'due', label: 'Vence'}, {key: 'pending', label: 'Pendiente', align: 'end'}, {key: 'total', label: 'Total', align: 'end'}, {key: 'actions', label: 'Acciones'}];
 const PAYMENT_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_6.5rem_minmax(9rem,1.1fr)_minmax(9rem,1.1fr)_minmax(8rem,1fr)_8.5rem_8rem]';
 const PAYMENT_COLUMNS: Column[] = [{key: 'payment', label: 'Cobro'}, {key: 'date', label: 'Fecha'}, {key: 'account', label: 'Cuenta'}, {key: 'actor', label: 'Recibió'}, {key: 'reference', label: 'Referencia'}, {key: 'amount', label: 'Monto', align: 'end'}, {key: 'actions', label: 'Acciones'}];
@@ -50,7 +52,7 @@ const PAYMENT_COLUMNS: Column[] = [{key: 'payment', label: 'Cobro'}, {key: 'date
 const pendingOf = (invoice: Invoice) => Number(invoice.total) - Number(invoice.paid_amount);
 const dueWithinWeek = (due: string | null) => Boolean(due) && dueTone(due!) === 'warn';
 
-export function FinanzasSection({user, financeState, accounts, invoices, transfers, payments, invoiceHasMore, financeEmpty, loadFinance, loadAllInvoices, setModal, openPayment, setToast}: FinanzasSectionProps) {
+export function FinanzasSection({user, financeState, accounts, invoices, transfers, payments, invoiceHasMore, paymentHasMore, financeEmpty, loadFinance, loadAllInvoices, loadAllPayments, setModal, openPayment, setToast}: FinanzasSectionProps) {
   const [invoiceFilter, setInvoiceFilter] = useState('all');
   const [invoiceSearch, setInvoiceSearch] = useState('');
 
@@ -189,7 +191,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
             <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? <MoneyText valor={pendingOf(invoice)} currency={invoice.currency}/> : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
             <div className="min-w-0 text-right"><MoneyText valor={invoice.total} currency={invoice.currency}/></div>
             <div className="flex min-w-0 items-center justify-end gap-1">
-              {pendingOf(invoice) > 0 ? <button className="text-button" onClick={() => openPayment(invoice.id)}><Plus size={14} aria-hidden="true"/>Registrar cobro</button> : null}
+              {pendingOf(invoice) > 0 ? <button className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)}><Plus size={14} aria-hidden="true"/>Registrar cobro</button> : null}
             </div>
           </ListRow>)}
         </ListGrid>
@@ -212,6 +214,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
           </ListRow>)}
         </ListGrid>
         : <EmptyBlock compact title="Aún no hay cobros registrados." description="Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial." action={receivable.pendingCount ? <button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button> : undefined}/>}
+      {paymentHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllPayments()}>Ver todos los cobros</button></div> : null}
     </section>
 
     <ReconciliationWorkspace accounts={accounts}/>

@@ -6,9 +6,12 @@ const paths:Record<string,readonly string[]>={
  Pipeline:['/leads'],
  Inventario:['/inventory','/inventory-categories'],
  Estudio:['/studio-spaces'],
- // Comisiones es quien consume cuentas, pagos y cargos (issue #67): antes la
- // entrada vivía bajo «Equipo» y gastaba una ronda que esa sección no usaba.
+ // Issue #67: Comisiones es quien consume cuentas, pagos y cargos (el prefetch
+ // vivía bajo «Equipo», que no usaba esos datos); Finanzas y Previsión calientan
+ // las cuentas al abrir (misma lectura, una sola vez por sesión).
  Comisiones:['/accounts','/payouts','/job-roles'],
+ Finanzas:['/accounts'],
+ 'Previsión':['/accounts'],
  'Historial de trabajo':['/productivity/history?limit=10&offset=0'],
  'Configuración':['/exchange-rates'],
 };

@@ -1,15 +1,15 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {api} from './operations';
-import {shiftMonth,type ReportsData} from './reports-data';
+import {shiftMonth,type ReportsData,type ReportsResponse} from './reports-data';
 
 /**
  * Ventana de Informes: reporte del mes visible + la ventana anterior equivalente.
  *
- * Contrato de estado (igual al que ya validaba la pantalla): los datos se ocultan
- * al cambiar la consulta, las respuestas fuera de orden se descartan por `queryKey`,
- * la ventana anterior solo se pide cuando la actual llegó y corresponde al mes
- * pedido, y el error pertenece únicamente a la consulta vigente.
+ * Contrato de estado: los datos se ocultan al cambiar la consulta, las respuestas
+ * fuera de orden se descartan por `queryKey`, el error pertenece únicamente a la
+ * consulta vigente y una respuesta sin `previous` cae al segundo pedido (API
+ * anterior a #67): con el campo, la pantalla resuelve todo en una sola llamada.
  */
 export function useReportsWindow(month: string, months: number, retry: number) {
   const [result, setResult] = useState<{key: string; data: ReportsData} | null>(null);
@@ -21,14 +21,20 @@ export function useReportsWindow(month: string, months: number, retry: number) {
     setResult(null);
     setPreviousResult(null);
     setError('');
-    void api<ReportsData>(`/api/agency/reports?month=${month}&months=${months}`).then(data => {
+    const previousWindowMonth = shiftMonth(month, -months);
+    void api<ReportsResponse>(`/api/agency/reports?month=${month}&months=${months}&previous=1`).then(data => {
       if (!data || data.month !== month || !Array.isArray(data.months)) throw Error('La respuesta del reporte no corresponde al mes solicitado.');
       if (alive) setResult({key: queryKey, data});
-      const previousWindowMonth = shiftMonth(month, -months);
-      if (!alive || !previousWindowMonth) return;
-      void api<ReportsData>(`/api/agency/reports?month=${previousWindowMonth}&months=${months}`).then(previous => {
-        if (!previous || previous.month !== previousWindowMonth || !Array.isArray(previous.months)) return;
+      const previous = data.previous;
+      if (previous && previousWindowMonth && previous.month === previousWindowMonth && Array.isArray(previous.months)) {
         if (alive) setPreviousResult({key: queryKey, data: previous});
+        return;
+      }
+      // Compatibilidad: una API sin `previous` sigue usando el segundo pedido.
+      if (!alive || !previousWindowMonth) return;
+      void api<ReportsData>(`/api/agency/reports?month=${previousWindowMonth}&months=${months}`).then(previousData => {
+        if (!previousData || previousData.month !== previousWindowMonth || !Array.isArray(previousData.months)) return;
+        if (alive) setPreviousResult({key: queryKey, data: previousData});
       }).catch(() => {});
     }).catch(cause => {
       if (alive) setError(cause instanceof Error ? cause.message : 'No se pudo cargar el reporte.');
