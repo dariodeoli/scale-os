@@ -21,6 +21,7 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {api} from './operations';
 import {dataFetch} from './data-cache';
+import {INVENTORY_FIELDS,INVENTORY_RESERVATION_FIELDS,projectedPath,projectionRejected} from './api-projection';
 import {opsMonthRange} from './ops-time';
 import type {Category,Context,InventoryItem,InventoryReservation,StorageTemplate} from './inventory-data';
 
@@ -49,23 +50,32 @@ export function inventoryErrorText(reason:unknown,label:string,timeoutMs=DEFAULT
  return capitalize(`no se pudo cargar ${label}. Reintentá en unos segundos.`);
 }
 
-type InventorySection={label:string;timeoutMs:number;path:string};
+type InventorySection={label:string;timeoutMs:number;path:string;fields?:string};
 /**
  * Lectura de una sección. Los endpoints livianos usan `api` (caché de 15 s y
  * aviso de mutaciones); el catálogo —decenas de MB— usa `dataFetch` con su
  * propio timeout y un mensaje que conserva el status del API.
+ * La proyección `?fields=` es optimista: si el API la rechaza, se reintenta sin
+ * ella y queda apagada para la sesión (`api-projection`).
  */
 async function fetchInventorySection<T>(section:InventorySection):Promise<T>{
- if(section.timeoutMs===DEFAULT_TIMEOUT_MS)return api<T>(section.path);
- const response=await dataFetch(`/core-api${section.path}`,{credentials:'include',method:'GET',headers:{},signal:AbortSignal.timeout(section.timeoutMs)});
- const raw=await response.text();
- let data:any={};
- try{data=raw?JSON.parse(raw):{};}catch{throw new SyntaxError('El servidor no devolvió JSON');}
- if(!response.ok){
-  const message=typeof data?.error==='string'&&data.error?data.error:`El servidor respondió ${response.status}`;
-  throw new Error(message);
+ const run=async(path:string):Promise<T>=>{
+  if(section.timeoutMs===DEFAULT_TIMEOUT_MS)return api<T>(path);
+  const response=await dataFetch(`/core-api${path}`,{credentials:'include',method:'GET',headers:{},signal:AbortSignal.timeout(section.timeoutMs)});
+  const raw=await response.text();
+  let data:any={};
+  try{data=raw?JSON.parse(raw):{};}catch{throw new SyntaxError('El servidor no devolvió JSON');}
+  if(!response.ok){
+   const message=typeof data?.error==='string'&&data.error?data.error:`El servidor respondió ${response.status}`;
+   throw new Error(message);
+  }
+  return data as T;
+ };
+ try{return await run(projectedPath(section.path,section.fields||''));}
+ catch(reason){
+  if(section.fields&&projectionRejected(section.path,reason))return await run(section.path);
+  throw reason;
  }
- return data as T;
 }
 
 export type InventoryCatalog={
@@ -90,10 +100,10 @@ export function useInventoryCatalog(month:string,refresh:number):InventoryCatalo
   const {from,to}=opsMonthRange(month);
   const sections:InventorySection[]=[
    {label:'el contexto de inventario',timeoutMs:DEFAULT_TIMEOUT_MS,path:'/api/agency/inventory-context'},
-   {label:'el catálogo de equipos',timeoutMs:CATALOG_TIMEOUT_MS,path:'/api/agency/inventory'},
+   {label:'el catálogo de equipos',timeoutMs:CATALOG_TIMEOUT_MS,path:'/api/agency/inventory',fields:INVENTORY_FIELDS},
    {label:'las categorías de inventario',timeoutMs:DEFAULT_TIMEOUT_MS,path:'/api/agency/inventory-categories'},
    {label:'las ubicaciones de guardado',timeoutMs:DEFAULT_TIMEOUT_MS,path:'/api/agency/inventory-locations'},
-   {label:'las reservas del mes',timeoutMs:RESERVATIONS_TIMEOUT_MS,path:`/api/agency/inventory-reservations?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`},
+   {label:'las reservas del mes',timeoutMs:RESERVATIONS_TIMEOUT_MS,path:`/api/agency/inventory-reservations?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,fields:INVENTORY_RESERVATION_FIELDS},
   ];
   async function load(background=false){
    if(!active||running||background&&document.visibilityState==='hidden')return;

@@ -6,6 +6,7 @@ const board=read('app/production-board.tsx'),planner=read('app/productivity-ui.t
 const uiV2=read('app/ui-v2.tsx');
 const boardData=read('app/board-data.ts'),boardHook=read('app/use-board-data.ts');
 const checklistCss=read('app/work-checklist.css'),orderLinks=read('app/work-order-links.tsx');
+const inventoryHook=read('app/use-inventory-data.ts'),studioHook=read('app/use-studio-data.ts');
 
 // ── Contrato v2 de OPS (campaña #41, spec #44): Tailwind + owncoding-ui +
 // primitivas de app/ui-v2.tsx. Reemplaza al contrato del rediseño anterior.
@@ -195,6 +196,14 @@ assert.match(inventory,/className="mt-0\.5 h-6 w-6 p-0 accent-fono"/,'los ítems
 assert.match(inventory,/className="h-6 w-6 p-0 accent-fono" checked=\{adjust\}/,'el ajuste de verificación usa el checkbox de 24 px');
 assert.match(inventory,/className="flex min-h-11 items-center gap-2 text-sm text-fore md:min-h-0"/,'los toggles de ubicación y categoría tienen target de 44 px');
 assert.match(studio,/className="h-6 w-6 p-0 accent-fono" checked=\{members\.includes/,'los responsables de estudio usan el checkbox de 24 px');
+// ── Ronda 17 (#71): casilla de la grilla 44×44 y adopción de ?fields=.
+assert.match(inventory,/mt-0\.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6/,'la casilla de la grilla de inventario completa 44×44 en mobile');
+assert.match(inventoryHook,/from '\.\/api-projection'/,'el catálogo de inventario adopta ?fields=');
+assert.match(inventoryHook,/fields:INVENTORY_FIELDS/,'el catálogo pide su proyección');
+assert.match(inventoryHook,/fields:INVENTORY_RESERVATION_FIELDS/,'las reservas del mes piden su proyección');
+assert.match(inventoryHook,/projectionRejected\(section\.path,reason\)/,'si el API rechaza la proyección, se reintenta sin fields');
+assert.match(studioHook,/readProjected<\{spaces:StudioSpace\[\]}>/,'el estudio proyecta los espacios');
+assert.match(studioHook,/STUDIO_RESERVATION_FIELDS/,'las reservas del estudio piden su proyección');
 // ── Ronda 14 (#62): el vacío de Proyectos también trae su CTA contextual.
 assert.match(projects,/Todavía no hay proyectos\./,'el vacío de Proyectos tiene estado propio');
 assert.match(projects,/>Nuevo proyecto<\/Button>/,'el vacío de Proyectos ofrece crearlo');
