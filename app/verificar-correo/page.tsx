@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
-import {esToken} from 'owncoding-ui';
+import {esToken,extractTokenFromUrl} from 'owncoding-ui';
 import {AccessLayout} from '../access-layout';
 import {api} from '../operations';
 
@@ -21,7 +21,8 @@ export default function VerifyEmailPage(){
   finally{setResending(false);}
  }
  useEffect(()=>{
-  const params=new URLSearchParams(window.location.search),token=params.get('verifyToken')||'';
+  // El enlace completo (o pegado desde el correo) resuelve el token con la util compartida.
+  const token=extractTokenFromUrl(window.location.href);
   if(!esToken(token)){setState('missing');setMessage('Este enlace no es válido o ya venció. Pedí uno nuevo con tu correo acá abajo.');return;}
   let active=true;
   void (async()=>{
