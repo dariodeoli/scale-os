@@ -30,7 +30,7 @@ const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 import {setDataScope, clearDataCache, dataFetch} from './data-cache';
 import {request} from './workspace-request';
-import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,type ShellResource,type ShellScope} from './shell-data';
+import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,stageCountsFrom,projectedList,BUDGET_LIST_FIELDS,type ShellResource,type ShellScope} from './shell-data';
 import {prefetchSectionData} from './data-prefetch';
 import './control-center.css';
 import {Dialog} from './dialog';
@@ -415,10 +415,10 @@ export default function Home() {
     upcoming_deliveries: null,
   });
   const stageCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const order of orders) counts.set(order.status, (counts.get(order.status) || 0) + 1);
-    return counts;
-  }, [orders]);
+    // El resumen trae el conteo exacto por etapa (#71): la ventana de órdenes
+    // solo dibuja buscador, alertas y planificador. Sin resumen cae a la ventana.
+    return stageCountsFrom(summary, orders);
+  }, [orders, summary.stage_counts]);
   const directoryKpis = useMemo(() => {
     const active = clients.filter(client => client.active).length;
     const paused = clients.length - active;
@@ -579,7 +579,7 @@ export default function Home() {
   async function loadBudgets() {
     setBudgetsState('loading');
     try {
-      const data = await request<{ budgets: Budget[] }>("/api/agency/budgets");
+      const data = await projectedList('budgets',"/api/agency/budgets",BUDGET_LIST_FIELDS,path=>request<{ budgets: Budget[] }>(path));
       setBudgets(listOf<Budget>(data?.budgets));
       setBudgetsState('ready');
     } catch (cause) {

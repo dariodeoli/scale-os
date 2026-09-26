@@ -134,7 +134,7 @@ test('Producción no pide órdenes al shell: el tablero las carga por columna',a
 });
 
 test('las secciones PLT piden la proyección del shell y conservan el buscador (#67)',async()=>{
- const {sectionScope,CLIENT_FIELDS_CHROME,PROJECT_FIELDS_CHROME,ORDER_WINDOW,ORDER_FIELDS_SEARCH}=await import('../app/shell-data');
+ const {sectionScope,CLIENT_FIELDS_CHROME,PROJECT_FIELDS_CHROME,ORDER_WINDOW,ORDER_FIELDS_SEARCH,ORDER_FIELDS_SUMMARY}=await import('../app/shell-data');
  for(const section of ['Equipo','Invitaciones','Roles y permisos','Papelera','Configuración','Preferencias','Actividad']){
   const scope=sectionScope(section);
   assert.equal(scope.clients?.fields,CLIENT_FIELDS_CHROME,`${section} proyecta clientes`);
@@ -145,4 +145,48 @@ test('las secciones PLT piden la proyección del shell y conservan el buscador (
  }
  assert.equal(sectionScope('Clientes').clients?.fields,undefined,'Clientes conserva la ficha completa para su directorio');
  assert.equal(sectionScope('Resumen').projects?.fields,undefined,'Resumen conserva los conteos de proyectos');
+ // #71: el contrato de Resumen — ventana + proyección del buscador/alertas/
+ // planificador y resumen para los conteos exactos por etapa.
+ const resumen=sectionScope('Resumen');
+ assert.equal(resumen.orders?.limit,300,'Resumen conserva la ventana de órdenes');
+ assert.equal(resumen.orders?.fields,ORDER_FIELDS_SUMMARY,'Resumen proyecta lo que dibujan buscador, alertas y planificador');
+ for(const field of ['id','title','status','project_id','project_name','client_name','due_date','due_time','work_type','effective_assignees','assigned_user_id','assigned_user_ids','checklist_total','checklist_completed','estimated_hours','actual_hours','updated_at'])assert.match(ORDER_FIELDS_SUMMARY,new RegExp(`(^|,)${field}(,|$)`),`la proyección de Resumen incluye ${field}`);
+ assert.ok(resumen.summary,'Resumen pide el resumen (conteos exactos por etapa)');
+});
+
+test('Resumen: los conteos por etapa salen del resumen y la ventana es el respaldo (#71)',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const {stageCountsFrom}=await import('../app/shell-data');
+ const windowOrders=[{status:'review'},{status:'review'},{status:'blocked'}];
+ const exact=stageCountsFrom({stage_counts:{review:27,editing:21,approved:44}},windowOrders);
+ assert.equal(exact.get('review'),27,'el resumen manda sobre la ventana');
+ assert.equal(exact.get('approved'),44,'conserva todas las etapas contadas');
+ assert.equal(exact.get('blocked'),undefined,'no inventa etapas que el resumen no trae');
+ const fallback=stageCountsFrom({},windowOrders);
+ assert.equal(fallback.get('review'),2,'sin resumen cae a la ventana del shell');
+ assert.equal(fallback.get('blocked'),1,'y cuenta lo que la ventana sí tiene');
+ const resumen=readFileSync(new URL('../app/sections/resumen.tsx',import.meta.url),'utf8');
+ assert.match(resumen,/const enRevision = stageCounts\.get\('review'\)/,'el KPI En revisión usa el conteo exacto, no la ventana');
+});
+
+test('proyección optimista de listas: cae al payload completo si el API no la soporta (#67/#71)',async()=>{
+ const {projectedList,listProjectionEnabled,LEAD_LIST_FIELDS,BUDGET_LIST_FIELDS}=await import('../app/shell-data');
+ // El API soporta la proyección: viaja tal cual.
+ const ok:string[]=[];
+ const okData=await projectedList('test-soportada','/api/agency/leads',LEAD_LIST_FIELDS,async path=>{ok.push(path);return {records:[1]};});
+ assert.deepEqual(okData,{records:[1]});
+ assert.deepEqual(ok,[`/api/agency/leads?fields=${LEAD_LIST_FIELDS}`],'la lista viaja proyectada');
+ // El API todavía no la soporta: 400 de campos inválidos → reintenta completa y la recuerda.
+ const fallback:string[]=[];
+ const load=async(path:string)=>{fallback.push(path);if(path.includes('fields='))throw new Error('Campos inválidos: name, stage');return {records:[2]};};
+ const fallbackData=await projectedList('test-sin-soporte','/api/agency/leads',LEAD_LIST_FIELDS,load);
+ assert.deepEqual(fallbackData,{records:[2]});
+ assert.deepEqual(fallback,['/api/agency/leads?fields='+LEAD_LIST_FIELDS,'/api/agency/leads'],'reintenta sin proyección');
+ assert.equal(listProjectionEnabled('test-sin-soporte'),false,'el contrato queda apagado para esa lista');
+ const again=await projectedList('test-sin-soporte','/api/agency/leads',LEAD_LIST_FIELDS,load);
+ assert.deepEqual(again,{records:[2]});
+ assert.deepEqual(fallback.at(-1),'/api/agency/leads','las siguientes lecturas no reintentan la proyección');
+ // Un error real nunca se oculta con un reintento silencioso.
+ await assert.rejects(()=>projectedList('test-error','/api/agency/budgets',BUDGET_LIST_FIELDS,async()=>{throw new Error('No se pudieron cargar los presupuestos.');}),/No se pudieron cargar los presupuestos/);
+ assert.equal(listProjectionEnabled('test-error'),true,'un fallo real no apaga la proyección');
 });
