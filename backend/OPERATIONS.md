@@ -37,7 +37,10 @@ y `../VERSIONING.md`.
 - Suscripción: `STRIPE_BILLING_ENABLED`, `STRIPE_WEBHOOK_VERIFIED_AT`,
   `SUBSCRIPTION_CHECKOUT_PROVIDER` y las claves `PAGAYA_*`; el estado real se valida en
   `STRIPE-SETUP.md`.
-- Plataforma e ingesta: `SCALE_INITIAL_PLATFORM_ADMIN_EMAIL`, `HUB_INGEST_KEY`.
+- Plataforma e ingesta: `SCALE_INITIAL_PLATFORM_ADMIN_EMAIL` (correo del dueño: en cada arranque queda como
+  admin global activo — bootstrap único si la plataforma no tiene admins y reafirmación idempotente después;
+  `/api/auth/me` publica `platform_role` resuelto contra `platform_administrators`, nunca por email del front),
+  `HUB_INGEST_KEY`.
 - PDFs: `PUPPETEER_EXECUTABLE_PATH` (la imagen la define).
 - Las variables se inyectan en runtime y nunca como ARG/ENV de build (lo verifica
   `tests/docker-build-secrets.test.mjs`). `DADOO_*`, `SCALE_IMPORT_COOKIE`, `*_DEBUG`,

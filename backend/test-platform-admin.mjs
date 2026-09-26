@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {PGlite} from '@electric-sql/pglite';
 import {platformAdmin,platformBootstrapEmail,platformBootstrapStatus,bootstrapInitialPlatformAdmin,ensurePlatformOwnerAdmin} from './platform-admin.js';
+import {agencyCore} from './agency-core.js';
 import bcrypt from 'bcryptjs';
 import {accountSecurity} from './account-security.js';
 const pg=new PGlite();
@@ -45,6 +46,13 @@ async function call(path,{method='GET',actor={id:2,email:'platform@scale.example
  let answer;const handled=await platformAdmin({req:{method,headers},res:{},url:new URL(path,'https://isolated.invalid'),db,session:async()=>actor,body:async()=>payload,bootstrapValue,send:(_res,status,data)=>{answer={status,data};}});
  return {handled,...answer};
 }
+// #69: `/api/auth/me` resuelve el rol global contra la tabla (nunca por email).
+async function me(actor){
+ let answer;
+ const handled=await agencyCore({req:{method:'GET',headers:{},socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('/api/auth/me','https://isolated.invalid'),db,session:async()=>actor,body:async()=>({}),send:(_res,status,data)=>{answer={status,...data};},requestSubscription:async()=>null});
+ assert.equal(handled,true,'agencyCore cubre /api/auth/me');
+ return answer;
+}
 assert.equal(platformBootstrapEmail(' Platform@Scale.Example '),'platform@scale.example');
 assert.equal(platformBootstrapEmail('platform@scale.example,other@scale.example'),null,'the bootstrap accepts exactly one explicit email');
 assert.equal(platformBootstrapEmail('invalid'),null);
@@ -61,6 +69,12 @@ assert(platformSource.includes('stripe_status as status'),'global subscription s
 assert(platformSource.includes('s.stripe_status as subscription_status'),'global agency list must use the production stripe_status column');
 assert(platformSource.includes("case s.currency when 'USD' then 10::numeric when 'PYG' then 50000::numeric"),'global agency list must derive the launch price from the supported subscription currency');
 assert(platformSource.includes('platform_administrators'),'the global guard must remain independent from agency membership');
+// #69: el arranque del servidor liga el correo configurado al bootstrap y a la
+// reafirmación idempotente del dueño como admin global activo.
+const serverSource=fs.readFileSync(new URL('./server.js',import.meta.url),'utf8');
+assert.match(serverSource,/const initialPlatformAdminEmail = process\.env\.SCALE_INITIAL_PLATFORM_ADMIN_EMAIL/,'el correo del admin inicial sale del entorno del servidor');
+assert.match(serverSource,/await bootstrapInitialPlatformAdmin\(db,initialPlatformAdminEmail\)/,'el arranque ejecuta el bootstrap del admin inicial');
+assert.match(serverSource,/await ensurePlatformOwnerAdmin\(db,initialPlatformAdminEmail\)/,'el arranque reafirma al dueño configurado como admin activo');
 assert.equal((await call('/api/agency/clients')).handled,false);
 assert.deepEqual((await call('/api/platform/bootstrap-status',{actor:null,bootstrapValue:'invalid'})).data,{configured:true,valid:false,initialized:true,state:'initialized'},'the public diagnostic never exposes the configured address');
 assert.equal((await call('/api/platform/overview',{actor:{id:1,email:'owner@agency.example'}})).status,403,'agency owner must not inherit platform access');
@@ -139,6 +153,9 @@ let bootstrap=await bootstrapInitialPlatformAdmin(db,'platform@scale.example');
 assert.equal(bootstrap.activated,true);
 assert.equal(bootstrap.initialized,true);
 assert.equal((await pg.query("select count(*)::int as n from platform_bootstrap_audit_log where action='initial_admin_granted'")).rows[0].n,1);
+const bootstrappedRole=(await pg.query('select role,active from platform_administrators where user_id=2')).rows[0];
+assert.equal(bootstrappedRole.role,'admin','el bootstrap deja al dueño como admin');
+assert.equal(bootstrappedRole.active,true,'el bootstrap deja el rol activo');
 assert.equal((await call('/api/platform/audit')).data.actions[0].action,'initial_admin_granted','the unified audit includes the one-time bootstrap');
 bootstrap=await bootstrapInitialPlatformAdmin(db,'member@agency.example');
 assert.equal(bootstrap.activated,false,'an initialized platform never grants a second admin from configuration');
@@ -168,12 +185,28 @@ assert.equal((await call('/api/platform/users/2',{method:'PATCH',payload:{platfo
 assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'bogus'}})).status,400);
 assert.equal((await call('/api/platform/users/999',{method:'PATCH',payload:{platform_access:'admin'}})).status,404);
 assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'admin'}})).status,200);
+// #69: `/api/auth/me` refleja el rol global vigente (admin / viewer / null).
+let sessionMe=await me({id:2,email:'platform@scale.example'});
+assert.equal(sessionMe.status,200);
+assert.equal(sessionMe.user.platform_role,'admin','un admin global activo viaja en /me');
+assert.equal(sessionMe.user.platform_admin,true);
+sessionMe=await me({id:3,email:'member@agency.example'});
+assert.equal(sessionMe.user.platform_role,'viewer','el rol viewer viaja en /me');
+assert.equal(sessionMe.user.platform_admin,true);
+sessionMe=await me({id:1,email:'owner@agency.example'});
+assert.equal(sessionMe.user.platform_role,'admin','el rol otorgado por PATCH viaja en /me');
+sessionMe=await me({id:4,email:'persona@demo.example.invalid'});
+assert.equal(sessionMe.user.platform_role,null,'sin fila activa, /me devuelve null (nunca un email)');
+assert.equal(sessionMe.user.platform_admin,false);
 const adminPreview=await destructivePreview(platformActor,'platform.user.delete',1);
 assert.equal(adminPreview.status,200);assert.equal(adminPreview.data.preview.confirmation,'owner@agency.example','the confirmation is the user email on record');
 const adminAuth=await recentAuth(platformActor,adminPreview.data.preview.id);
 assert.equal((await call('/api/platform/users/1',{method:'DELETE',payload:{previewId:adminPreview.data.preview.id,confirmation:'owner@agency.example',recentAuthProof:adminAuth.proof}})).status,403,'a global admin cannot delete another global admin');
 assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'none'}})).status,200,'revoking access leaves the account intact');
 assert.equal((await call('/api/platform/users')).data.users.find(row=>row.email==='owner@agency.example').platform_role,null);
+sessionMe=await me({id:1,email:'owner@agency.example'});
+assert.equal(sessionMe.user.platform_role,null,'la revocación se refleja en /me sin re-login');
+assert.equal(sessionMe.user.platform_admin,false);
 await pg.query("insert into users(id,email,password_hash,email_verified_at,is_demo_guest) values(11,'tester@scale.example','unused',now(),false)");
 await pg.query("insert into organizations(id,name,slug) values(60,'Tester Agency','tester-agency')");
 await pg.query("insert into organization_members(organization_id,user_id,active,removed_at,role) values(60,11,true,null,'owner')");
@@ -210,4 +243,4 @@ assert.equal(selfDeleted.status,200);assert.equal(selfDeleted.data.deleted.self,
 assert.equal((await pg.query('select deleted_at is not null as gone from users where id=2')).rows[0].gone,true);
 assert.equal((await pg.query('select count(*)::int as n from platform_administrators where active=true')).rows[0].n,0,'self-deletion also removes the global role');
 await pg.close();
-console.log('PASS: separated platform admin authorization, scoped lists, one-time explicit bootstrap and audit, explicit admin/viewer roles with write gating, re-authenticated global deletions (preview + single-use proof, forged/replayed/cross-preview rejection, demo targets protected), self-protected admins, and audited user/agency deletion.');
+console.log('PASS: separated platform admin authorization, scoped lists, one-time explicit bootstrap and audit, explicit admin/viewer roles with write gating, /api/auth/me exposes the live global role (admin/viewer/null) and the startup wiring keeps the configured owner as active admin, re-authenticated global deletions (preview + single-use proof, forged/replayed/cross-preview rejection, demo targets protected), self-protected admins, and audited user/agency deletion.');
