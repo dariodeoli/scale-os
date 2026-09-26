@@ -48,7 +48,7 @@ test('every list view carries the same column-header and alignment contract',()=
 
 test('the client directory keeps one template, ordered row actions and shared date formats',()=>{
   const clientes=sectionSource('clientes.tsx');
-  assert.match(clientes,/const CLIENT_TEMPLATE = 'grid-cols-\[minmax\(13rem,1\.6fr\)_minmax\(11rem,1\.15fr\)_7rem_15rem_9rem_16rem\]'/,'la lista de clientes declara una sola plantilla');
+  assert.match(clientes,/const CLIENT_TEMPLATE = 'grid-cols-\[minmax\(13rem,1\.6fr\)_minmax\(11rem,1\.15fr\)_7rem_15rem_9rem_20rem\]'/,'la lista de clientes declara una sola plantilla');
   assert.match(clientes,/ListRow template=\{CLIENT_TEMPLATE\} className="client-hub-row"/,'la fila finita usa la plantilla del encabezado y no viste la clase de tarjeta');
   assert.match(clientes,/silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto/,'las acciones de la fila scrollean en silencio y cierran a la derecha');
   assert.match(clientes,/IconAction icon="eye"[\s\S]*?client-record-actions/,'la fila conserva el orden de acciones compartido');
