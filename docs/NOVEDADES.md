@@ -2,6 +2,32 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.133
+
+### Comercial y Resumen
+
+- **Responsables sin fotos en la ventana de Resumen**: el shell pide los nombres livianos de los responsables (`assignee_names`) en vez de las fotos incrustadas; con 300 órdenes la carga pasa de ~3.417 KB a **129 KB**, sin perder nombres en el buscador ni en el planificador.
+- **Alertas de vencidos exactas**: se piden directo al endpoint de vencimientos (`?due=overdue`, 30 por página) en vez de depender de la ventana visible, para todos los roles.
+- **Cierre contractual**: tests que verifican que cada proyección del front existe en la lista blanca del API y que la ventana de Resumen no arrastra imágenes base64; verificador de producción re-ejecutable (`verify-prod-com.mjs`).
+
+### Operaciones
+
+- **Formularios de diálogo que no guardaban**: los botones de guardar de la librería (Equipo, Inventario, Estudio y otras verticales) ahora se asocian al formulario del diálogo y el envío funciona; con test de regresión.
+- **Proyección de estudio corregida**: la lista de espacios deja de pedir campos que el API no expone (adiós al 400 con fallback) y el flujo de reserva se verificó de punta a punta en producción.
+
+### Navegación y plataforma (verificado en producción)
+
+- El encabezado de grupo navega a su primer módulo (Flujo → Pipeline, Recursos → Inventario, Finanzas → Finanzas) también en producción, en claro/oscuro, riel colapsado y drawer móvil; el acceso a Administración queda oculto sin `platform_role` y el bundle desplegado contiene el gate.
+
+### Finanzas (verificado en producción)
+
+- **Informes**: una sola llamada (`months=12&previous=1`), sin duplicados, con el rango y el período anterior completos; el mensaje “sin comparación” es honesto para la demo.
+- **Cobros**: la ventana trae 20 con “Ver todos”, y el histórico completo (77 en la demo) carga en una sola llamada sin duplicados.
+
+### API y medición
+
+- El banco de TTFB imprime filas, ids y forma por candidato (deterministas por semilla) y suma modo `--verify` (39/39 chequeos) que falla si el contrato se rompe; los payloads por defecto quedan idénticos antes/después.
+
 ## v1.0.132
 
 ### Navegación
