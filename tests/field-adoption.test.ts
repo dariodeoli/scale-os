@@ -31,9 +31,12 @@ for (const retired of ['digitsOnly', 'parsePhone', 'internationalPhone', 'normal
 const phoneField = read('app/phone-field.tsx');
 assert(phoneField.includes("from 'owncoding-ui'"), 'phone field uses the shared parse/compose helpers');
 assert(phoneField.includes('parseTelefono(') && phoneField.includes('componerTelefono('), 'phone field parses and composes with the library');
+assert(phoneField.includes('parsed.countryCode') && phoneField.includes('parsed.phone'), 'phone field usa la firma real del runtime ({countryCode, phone})');
+assert(phoneField.includes('componerTelefono({countryCode'), 'phone field composes with the object signature');
 for (const retired of ['parsePhone(', 'internationalPhone(', 'digitsOnly(']) {
   assert(!phoneField.includes(retired), `phone field no longer hand-rolls ${retired}`);
 }
+assert(rules.includes('national.length === 8'), 'field rules conservan la excepción PY fijo hasta que la librería generalice telefonoValido (owncoding-ui#2)');
 
 const list = read('app/list-format.tsx');
 assert(list.includes('partirSerial') && list.includes('serialEnmascarado'), 'serial cells use the shared serial helpers');
@@ -50,7 +53,9 @@ assert(!panel.includes('wa.me/${activationWhatsApp}'), 'activation requests no l
 for (const page of ['app/verificar-correo/page.tsx', 'app/cliente/invitacion/page.tsx']) {
   const source = read(page);
   assert(source.includes('esToken('), `${page} checks tokens with the shared helper`);
+  assert(source.includes('extractTokenFromUrl('), `${page} resolés el token del enlace completo con la util compartida`);
   assert(!source.includes('/^[a-f0-9]{64}$/'), `${page} no longer copies the token pattern`);
+  assert(!source.includes('URLSearchParams'), `${page} no longer hand-rolls the query parse`);
 }
 
 for (const file of ['app/client-ruc.tsx', 'app/suite.tsx']) {

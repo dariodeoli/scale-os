@@ -14,6 +14,7 @@ declare module 'owncoding-ui' {
   export function partirSerial(serial?: string | null): {cabeza: string; cola: string};
   export function serialEnmascarado(serial?: string | null): string;
   export function esToken(value: string): boolean;
+  export function extractTokenFromUrl(url: string): string;
 
   // Objetos de interfaz v2 (campaña #41). El paquete no publica tipos; se
   // declaran permisivos para consumir los componentes desde TSX y la
