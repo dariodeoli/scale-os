@@ -206,6 +206,25 @@ try{
   ['proyectos · chrome (id,name,client_id,status,client_name,work_order_count,assignees)','/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees'],
   ['proyectos · mínimo (id,name,client_id,status)','/api/agency/projects?fields=id,name,client_id,status'],
   ['órdenes · ventana buscador (300, sin descripción)','/api/agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date'],
+  // Ronda 17 (#71): propuesta de alertas/próximas entregas de Resumen sobre la proyección de órdenes.
+  ['órdenes · alertas vencidas (due=overdue)','/api/agency/work-orders?due=overdue&limit=50&fields=id,title,status,due_date,due_time,project_name,client_name'],
+  ['órdenes · próximas entregas (due=week)','/api/agency/work-orders?due=week&limit=50&fields=id,title,status,due_date,due_time,project_name,client_name'],
+  // Ronda 17 (#71): listas con `?fields=` de OPS/COM.
+  ['inventario · hoy (catálogo completo)','/api/agency/inventory'],
+  ['inventario · campos de la vista','/api/agency/inventory?fields=id,name,inventory_code,serial_number,status,category_name,storage_location_name,storage_shelf,storage_row,location_type,active_reservation_id,production_name,current_value,photo_url,barcode_payload,last_verified_at,last_verification_result'],
+  ['inventario · vista + limit=50','/api/agency/inventory?limit=50&fields=id,name,inventory_code,status,category_name,storage_location_name,location_type,current_value,photo_url'],
+  [`reservas inventario · hoy (mes)`,`/api/agency/inventory-reservations?from=${enc(monthRange().from)}&to=${enc(monthRange().to)}`],
+  [`reservas inventario · lista`,`/api/agency/inventory-reservations?from=${enc(monthRange().from)}&to=${enc(monthRange().to)}&fields=id,title,status,starts_at,ends_at,project_name,return_user_name,custodian_name,items,responsible_members`],
+  [`reservas inventario · lista + limit=25`,`/api/agency/inventory-reservations?from=${enc(monthRange().from)}&to=${enc(monthRange().to)}&limit=25&fields=id,title,status,starts_at,ends_at,project_name,return_user_name`],
+  ['estudio espacios · hoy','/api/agency/studio-spaces'],
+  ['estudio espacios · campos','/api/agency/studio-spaces?fields=id,name,scenario,active'],
+  [`estudio reservas · hoy (mes)`,`/api/agency/studio-reservations?from=${enc(monthRange().from)}&to=${enc(monthRange().to)}`],
+  [`estudio reservas · lista`,`/api/agency/studio-reservations?from=${enc(monthRange().from)}&to=${enc(monthRange().to)}&fields=id,space_id,space_name,title,production_type,starts_at,ends_at,status,project_name,responsible_members`],
+  ['oportunidades · hoy','/api/agency/leads'],
+  ['oportunidades · pipeline','/api/agency/leads?fields=id,name,email,phone,stage,amount,currency,probability,client_id,updated_at'],
+  ['presupuestos · hoy','/api/agency/budgets'],
+  ['presupuestos · lista','/api/agency/budgets?fields=id,number,title,status,currency,total,client_name,item_count,valid_until,created_at'],
+  ['presupuestos · lista + limit=50','/api/agency/budgets?limit=50&fields=id,number,title,status,currency,total,client_name,item_count'],
  ];
  console.log('\nCandidatos (front):');
  for(const [label,url] of candidates){
