@@ -19,15 +19,27 @@ let items=equipment,reservations=[record];
 let categories=[{id:'1',name:'Memoria',active:true},{id:'2',name:'Audio',active:true}];
 let storageTemplates:StorageTemplate[]=[{id:'storage-a',name:'Estante A',active:true,item_count:1},{id:'storage-b',name:'Estante B',active:true,item_count:0},{id:'storage-old',name:'Depósito anterior',active:false,item_count:2}];
 const mockApi=async(path:string,body?:unknown,method='POST')=>{
- if(body!==undefined||method==='DELETE'){writes.push({path,body,method});if(delayWrites)await new Promise<void>(resolve=>pendingWrites.push(resolve));if(fail)throw new Error('Conflicto de reserva');if(path==='/api/agency/inventory-locations')return {location:{id:'storage-new',name:(body as {name:string}).name,active:true,item_count:0}};return {reservation:record};}
+ const clean=path.split('?')[0];
+ if(body!==undefined||method==='DELETE'){writes.push({path,body,method});if(delayWrites)await new Promise<void>(resolve=>pendingWrites.push(resolve));if(fail)throw new Error('Conflicto de reserva');if(clean==='/api/agency/inventory-locations')return {location:{id:'storage-new',name:(body as {name:string}).name,active:true,item_count:0}};return {reservation:record};}
  reads++;if(delay)await new Promise<void>(resolve=>pending.push(resolve));if(fail)throw new Error('Sin conexión');
- if(path.endsWith('/inventory-context'))return context;
- if(path.endsWith('/inventory-categories'))return {categories};
- if(path.endsWith('/inventory-locations'))return {locations:storageTemplates};
- if(/\/inventory\/\d+$/.test(path))return {record:items.find(entry=>path.endsWith(`/${entry.id}`))||items[0],verifications:[],trace:[],maintenance:[]};
- if(path.endsWith('/inventory'))return {records:items};
+ if(clean.endsWith('/inventory-context'))return context;
+ if(clean.endsWith('/inventory-categories'))return {categories};
+ if(clean.endsWith('/inventory-locations'))return {locations:storageTemplates};
+ if(/\/inventory\/\d+$/.test(clean))return {record:items.find(entry=>clean.endsWith(`/${entry.id}`))||items[0],verifications:[],trace:[],maintenance:[]};
+ if(clean.endsWith('/inventory'))return {records:items};
+ if(clean.endsWith('/inventory-reservations'))return {reservations};
  return {reservations};
 };
+// El catálogo (45 s) y las reservas del mes (20 s) viajan con timeout propio por
+// `dataFetch`; acá se sirven y se cuentan igual que las secciones livianas
+// (la proyección `?fields=` ya viene en la URL).
+const dataCachePath=require.resolve('../app/data-cache');
+require.cache[dataCachePath]={id:dataCachePath,filename:dataCachePath,loaded:true,exports:{dataFetch:async(url:string)=>{
+ reads++;if(delay)await new Promise<void>(resolve=>pending.push(resolve));if(fail)throw new TypeError('fetch failed');
+ const clean=url.split('?')[0];
+ if(clean.endsWith('/inventory-reservations'))return {ok:true,status:200,text:async()=>JSON.stringify({reservations})};
+ return {ok:true,status:200,text:async()=>JSON.stringify({records:items})};
+}}} as NodeModule;
 // Dialog/editor behavior is covered by existing tests. Keep these tests focused
 // on the inventory contract, reservation drafts, permissions and polling.
 const operationsPath=require.resolve('../app/operations');
@@ -107,14 +119,14 @@ async function run(){
  await act(async()=>{renderer=create(<InventoryWorkspace role="collaborator"/>);});assert.notEqual(renderer.toJSON(),null,'collaborator reaches the inventory catalog');act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryWorkspace role="guest"/>);});assert.equal(renderer.toJSON(),null,'a role outside the capability renders nothing');act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});
- assert.equal(intervals.size,1);assert.match(text(renderer.root),/Sincroniza cada 30 s/);assert.match(text(renderer.root),/Estante A/);assert.doesNotMatch(text(renderer.root),/Cargando inventario/);assert.doesNotMatch(text(renderer.root),/Ubicaciones de guardado/,'storage management controls stay hidden outside manager roles');
+ assert.equal(intervals.size,1);assert.match(text(renderer.root),/2 de 2 equipos/,'the compact counter shows visible of total');assert.match(text(renderer.root),/Estante A/);assert.doesNotMatch(text(renderer.root),/Cargando inventario/);assert.doesNotMatch(text(renderer.root),/Ubicaciones de guardado/,'storage management controls stay hidden outside manager roles');
  const tabs=renderer.root.findByProps({'aria-label':'Vistas de inventario'}).findAllByType('button');assert.equal(tabs.length,2);assert.equal(tabs[0].props['aria-pressed'],true);assert.equal(tabs[1].props['aria-pressed'],false);
  const viewControl=renderer.root.findByProps({'aria-label':'Vista de inventario'});
  let viewButtons=viewControl.findAllByType('button');assert.equal(viewButtons.length,3,'grid, list and pipeline are the equipment views');assert(viewButtons.every(node=>node.props['aria-label']&&node.props['aria-pressed']!==undefined),'view controls retain accessible labels and selected state');
  act(()=>viewButton('Lista').props.onClick());assert.equal(listHeader().length,1,'the list shows a column header row');for(const col of ['Foto','Artículo','Detalles','Valor','Estado','Ubicación','Verificación','Acciones'])assert.match(text(listHeader()[0]),new RegExp(col),`${col} column header is present`);
  assert.equal(viewButton('Lista').props['aria-pressed'],true);
  act(()=>viewButton('Cuadrícula').props.onClick());assert.equal(listHeader().length,0,'the column header belongs to the list view only');
- assert.match(text(renderer.root),/2 equipos visibles/);change('Buscar equipo o ubicación','Mic');assert.match(text(renderer.root),/1 equipo visible/,'the compact count tracks the filter');change('Buscar equipo o ubicación','');
+ assert.match(text(renderer.root),/2 de 2 equipos/);change('Buscar equipo o ubicación','Mic');assert.match(text(renderer.root),/1 de 2 equipos/,'the compact count tracks the filter');change('Buscar equipo o ubicación','');
  act(()=>viewButton('Ubicaciones').props.onClick());
  assert.match(tree(),/Estante B/,'every active location appears in the pipeline even when empty');
  assert.match(tree(),/Depósito anterior/,'an archived location still appears while it holds equipment');
