@@ -30,11 +30,16 @@ assert(workspace.includes('<ProjectCard key={project.id} project={project}'),'di
 assert(/<h3 className="break-words[^"]*" title=\{project\.name\}>\{project\.name\}<\/h3>/.test(read('project-card.tsx')),'project name is rendered as a card heading with its full title (v2)');
 assert(operations.includes('<ActorIdentity name={c.actor_name||c.author_email'),'project comments render the shared author identity with email fallback');
 // Riel y drawer v2: la geometría del marco vive en las clases (Tailwind), no en hojas propias.
+// Un solo corte móvil/escritorio para el marco: `md` (768 px). Debajo manda el
+// drawer (`max-md:` en el trigger y la topbar) y desde 768 vive el riel; antes
+// el riel nacía en 761 px y ambos navs convivían entre 761 y 767 (issue #61).
 const sidebarSource=read('desktop-sidebar.tsx');
-assert(sidebarSource.includes('desktop-sidebar hidden')&&sidebarSource.includes('min-[761px]:flex'),'the rail hides on mobile and shows from 761px');
-assert(sidebarSource.includes('min-[761px]:!w-48')&&sidebarSource.includes('min-[761px]:!w-[60px]'),'the rail keeps its expanded and collapsed widths');
+assert(sidebarSource.includes('desktop-sidebar hidden')&&sidebarSource.includes('md:flex'),'the rail hides on mobile and shows from md (768px)');
+assert(sidebarSource.includes('md:!w-48')&&sidebarSource.includes('md:!w-[60px]'),'the rail keeps its expanded and collapsed widths');
+assert(!/min-\[761px\]/.test(sidebarSource),'the rail no longer uses a 761px breakpoint that overlaps the mobile trigger');
 const drawerSource=read('mobile-navigation.tsx');
 assert(drawerSource.includes('mobile-menu-trigger hidden')&&drawerSource.includes('max-md:grid'),'the menu trigger hides on desktop and shows on mobile');
+assert(drawerSource.includes("matchMedia('(min-width: 768px)')"),'the drawer closes on the same md breakpoint as the rail');
 
 for(const width of [320,360,390,768]){
  const at=(file:string,selector:string,property:string)=>declaration(file,selector,property,width);
