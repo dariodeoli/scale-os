@@ -11,7 +11,8 @@ const suite = read('app/suite.tsx');
 assert((suite.match(/type:'phone'/g) || []).length >= 3, 'suite declares phone fields for leads, clients and settings');
 
 const inventory = read('app/inventory-workspace.tsx');
-assert(inventory.includes('normalizeSerial(event.target.value)'), 'inventory normalizes serials while typing');
+assert(inventory.includes('<SerialField') && inventory.includes('normalizar={normalizeSerial}'), 'inventory normalizes serials with the shared SerialField while typing');
+assert(!inventory.includes('normalizeSerial(event.target.value)'), 'inventory no longer hand-rolls serial normalization');
 
 const operations = read('app/operations.tsx');
 assert(operations.includes("f.type === 'phone' ? <PhoneField"), 'editor renders the shared phone field');
