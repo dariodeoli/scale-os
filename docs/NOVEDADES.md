@@ -2,6 +2,35 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.130
+
+### Marco y sistema visual
+
+- **QA de la ola 2 publicada**: criterios comunes de móvil/tablet, modo oscuro, modales, formularios largos, foco y “reducir movimiento” (con evidencia por dominio).
+- **Nav más legible en oscuro**: el grupo activo del riel usa pill translúcido y texto/blanco (antes mezclaba el tono viejo y quedaba en 1,27:1); el toggle de tema y el selector de empresa llegan a 44 px en el celular y el marco apaga animaciones con “reducir movimiento”.
+- **Tablas densas con una sola primitiva**: `ListActions` + `pinnedActions` (columna de acciones fija, encabezado por encima, fondo por superficie) y `useDenseTableFit` como medidor común; se retiraron las variantes por vertical (COM migró Clientes y Presupuestos).
+
+### Comercial
+
+- **Clientes y Presupuestos** quedan sobre la primitiva común: acciones siempre visibles, vista tarjeta cuando la tabla no entra y sin scroll horizontal en móvil/tablet; los vacíos usan el CTA canónico.
+- **Compositor de presupuestos más liviano**: pide solo id y nombre de clientes para las opciones del select.
+
+### Operaciones
+
+- **QA móvil**: Estudio sin scroll horizontal, checkboxes y targets parejos en Inventario y Proyectos, y el contraste del harness deja de contar bordes de ancho 0.
+- **Menos payload**: las pantallas OPS piden proyecciones de clientes y proyectos (el chrome del buscador y las tarjetas), conservando la ventana del buscador y sin arrastrar fotos de asignados.
+
+### Finanzas
+
+- **Informes en una sola llamada**: se reemplazaron las dos consultas (período actual y anterior) por una ventana de 13 meses; el dibujo y el PDF no cambian.
+- **Cobros con ventana**: la lista de Finanzas pide los últimos cobros y “Ver todos los cobros” completa el histórico a demanda (antes traía todo de una).
+- **QA ola 2**: overflow, targets, filas y foco del modal de cuenta corregidos; el chrome proyectado de Finanzas/Mora/Informes/Previsión/Comisiones recorta ~300 KB por navegación.
+
+### Plataforma y acceso
+
+- **Targets táctiles**: el toggle de tema del login y los 27 switches de Roles y permisos llegan a 44 px en móvil (escritorio igual que antes).
+- **Shell proyectado**: las secciones de plataforma piden el chrome mínimo de clientes/proyectos y el prefetch de cuentas se movió de Equipo a Comisiones/Finanzas (deja de calentar datos que no se usaban).
+
 ## v1.0.129
 
 ### Navegación
