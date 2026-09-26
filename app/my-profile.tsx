@@ -20,7 +20,7 @@ const EDITOR_CONTROLS='grid gap-2 px-2 pb-3 pt-2 [&_button]:min-h-11 [&_button]:
 // editores siguen siendo los compartidos (`Dialog`, `Editor`, `ProfilePhoto`).
 export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>void;refresh:()=>Promise<void>}){
  const [current,setCurrent]=useState<Profile|null>(null),[error,setError]=useState(''),[warning,setWarning]=useState(''),[retry,setRetry]=useState(0);
- const [photoSaving,setPhotoSaving]=useState(false),[securityOpen,setSecurityOpen]=useState(false);
+ const [photoSaving,setPhotoSaving]=useState(false),[securityOpen,setSecurityOpen]=useState(false),[nameOpen,setNameOpen]=useState(false);
  const mounted=useRef(true);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  useEffect(()=>{let alive=true;setError('');void api<{profile:Profile}>('/api/agency/productivity/profile').then(d=>{if(alive)setCurrent(d.profile);}).catch(e=>{if(alive)setError(e instanceof Error?e.message:'No se pudo cargar tu perfil.');});return()=>{alive=false;};},[retry]);
@@ -64,12 +64,12 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
       <ProfilePhoto photo={current.photo_url||null} name={name} save={async photo=>{setPhotoSaving(true);try{await save({...(!current.full_name?{full_name:name}:{}),photo_url:photo});}finally{if(mounted.current)setPhotoSaving(false);}}}/>
      </div>
     </details>
-    <details className="group">
+    <details className="group" data-profile-section="name" onToggle={event=>setNameOpen(event.currentTarget.open)}>
      <summary className={DISCLOSURE}><span>Datos personales</span><span className="ml-2 text-[11px] font-normal text-mute">Nombre</span></summary>
-     <div className={EDITOR_CONTROLS}>
+     {nameOpen?<div className={EDITOR_CONTROLS}>
       <Editor fields={[{key:'full_name',label:'Nombre completo'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
       <p className="text-[11.5px] text-mute">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
-     </div>
+     </div>:null}
     </details>
    </section>}
    {current.identity_scope!=='demo'?<section className={`${CARD} gap-1`} data-profile-section="account" aria-labelledby="my-profile-account-title">
