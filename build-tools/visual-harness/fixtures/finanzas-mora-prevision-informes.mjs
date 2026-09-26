@@ -13,6 +13,9 @@
  *  - app/reports-workspace.tsx + app/weekly-automatic.tsx · Informes (tiles, chart,
  *    tablas, distribución) y producción semanal.
  *  - app/sections/comisiones.tsx · liquidación, comisiones, descuentos y pagos.
+ *  - Ronda 14 (#62): el rango de Informes declara el período completo con año y
+ *    los vacíos de la vertical (finanzas-vacio, informes-vacio, prevision-vacio,
+ *    comisiones-vacio) muestran su CTA contextual como en la app real.
  *  - app/dialog.tsx + app/workspace-forms.tsx + app/daily-controls.tsx ·
  *    modales mobile (fin-movil-transferencia, fin-movil-comision, fin-movil-cobro):
  *    overlay/panel reales (heading + body con scroll + footer) medidos sobre el
@@ -41,7 +44,7 @@ const chevronIcon = (size = 16) => icon(size, '<path d="m6 9 6 6 6-6"/>');
 const actorIdentity = (initials, name) => `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span></span></span>`;
 
 /* SelectCustom cerrado (app/profile-controls.tsx 45-58). */
-const selectCustom = (label, value, labelId) => `<div class="ops-select"><span class="ops-label" id="${labelId}-label">${label}</span><button type="button" class="ops-select-trigger" title="${value}" aria-labelledby="${labelId}-label ${labelId}-value" aria-haspopup="listbox" aria-expanded="false"><span id="${labelId}-value">${value}</span>${chevronIcon(16)}</button></div>`;
+const selectCustom = (label, value, labelId, disabled = false) => `<div class="ops-select"><span class="ops-label" id="${labelId}-label">${label}</span><button type="button" class="ops-select-trigger"${disabled ? ' disabled' : ''} title="${value}" aria-labelledby="${labelId}-label ${labelId}-value" aria-haspopup="listbox" aria-expanded="false"><span id="${labelId}-value">${value}</span>${chevronIcon(16)}</button></div>`;
 
 /* RemoveRecord (app/archive-controls.tsx 22-26). */
 const removeRecord = (name) => `<button class="icon-button record-remove" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: ${name}">${trashIcon(16)}</button>`;
@@ -170,7 +173,7 @@ const v2Kpi = (label, valor, hint = '', destacado = false) => `<div class="relat
 const v2KpiStrip = (items) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${items.join('')}</div>`;
 const v2Grid = ({label, template, columns, rows, minWidth = 'min-w-[58rem]'}) => `<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto"><div class="${minWidth}"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">${columns.map((column, index) => `<span role="columnheader" class="${index === columns.length - 1 ? 'text-right ' : ''}whitespace-nowrap">${column}</span>`).join('')}</div><div role="rowgroup">${Array.isArray(rows) ? rows.join('') : rows}</div></div></div>`;
 const v2Row = (template, cells) => `<div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template}">${cells}</div>`;
-const v2Empty = (title, description = '') => `<div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="flex flex-col items-center justify-center px-6 py-6 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${icon(20, '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p>${description ? `<p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>` : ''}</div></div>`;
+const v2Empty = (title, description = '', action = '') => `<div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-6 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${icon(20, '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p>${description ? `<p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>` : ''}${action ? `<div class="mt-4">${action}</div>` : ''}</div></div>`;
 const actorCompact = (initials, name) => `<span class="inline-flex min-w-0 items-center gap-1.5 text-xs text-mute"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="truncate" title="${name}">${name}</span></span>`;
 const moneyCell = (text) => `<span class="whitespace-nowrap font-semibold tabular-nums text-fore">${text}</span>`;
 const chipMute = (text) => chip('mute', text);
@@ -598,7 +601,7 @@ const informesTablas = {
 <section class="grid gap-4" aria-label="Reportes de la agencia">
  <div class="${CARD} grid gap-3">
   <h3 class="text-[17px] font-semibold tracking-tight text-fore">Comparativa del período visible contra el anterior</h3>
-  <p class="text-xs text-mute">Período visible: 01-oct – 01-sept · período anterior: 01-oct – 01-sept (12 meses por período).</p>
+  <p class="text-xs text-mute">Período visible: 1 oct. 2025 — 30 sept. 2026 · período anterior: 1 oct. 2024 — 30 sept. 2025 (12 meses por período).</p>
   ${tableBlock([['Métrica'], ['Período visible'], ['Período anterior'], ['Variación']], [
     [['Clientes activos (último mes con datos)'], ['128'], ['116'], ['+12 · +10,34 %']],
     [['Clientes incorporados (suma del período)'], ['14'], ['11'], ['+3 · +27,27 %']],
@@ -725,6 +728,118 @@ const comisionesPagos = {
 };
 
 
+/* --------------- Vacíos FIN con salida (ronda 14, #62) ---------------- */
+/* Cada vacío de la vertical declara su acción concreta. El markup espeja
+   `EmptyBlock`/`EmptyState` de app/ui-v2.tsx + owncoding-ui: superficie
+   `rounded-xl border border-ink-600 bg-ink-800 p-5` (p-4 en mobile), ícono,
+   título, descripción y la acción dentro de `mt-4`. */
+
+const finanzasVacio = {
+  id: 'finanzas-vacio',
+  section: 'Finanzas',
+  surface: 'Finanzas sin cuentas ni facturas: CTAs de arranque (v2)',
+  kind: 'workspace',
+  body: `
+<section class="grid gap-4" aria-label="Finanzas">
+ ${v2KpiStrip([
+   v2Kpi('DISPONIBLE', '—', 'Saldo actual de cuentas activas por moneda'),
+   v2Kpi('POR COBRAR', '—', 'Facturas emitidas o parciales con saldo pendiente'),
+   v2Kpi('FACTURAS CON SALDO', '0', 'Todavía no hay facturas registradas'),
+ ])}
+ <section class="${v2Card}" aria-labelledby="finance-accounts-title">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+   <div class="min-w-0 flex-1"><h3 id="finance-accounts-title" class="text-[17px] font-semibold tracking-tight text-fore">Cuentas</h3><p class="mt-1 text-xs text-mute">Disponibilidad por cuenta y custodia.</p></div>
+   <div class="flex flex-wrap items-center gap-1"><button class="text-button" type="button">${plusIcon(14)}Cuenta</button><button class="text-button" type="button">${transferIcon(14)}Transferir</button></div>
+  </div>
+  ${v2Empty('Todavía no hay cuentas registradas.', 'Sin cuentas no se pueden imputar cobros, pagos ni transferencias.', `<button class="primary" type="button">${plusIcon(16)}Registrar primera cuenta</button>`)}
+ </section>
+ <section class="${v2Card}" aria-labelledby="finance-invoices-title">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+   <div class="min-w-0 flex-1"><h3 id="finance-invoices-title" class="text-[17px] font-semibold tracking-tight text-fore">Cobros pendientes</h3><p class="mt-1 text-xs text-mute">Facturas con saldo; el cobro descuenta la cuenta elegida.</p></div>
+   <div class="flex flex-wrap items-center gap-1"><button class="text-button" type="button">${plusIcon(14)}Factura</button><button class="primary" type="button">${plusIcon(16)}Registrar cobro</button></div>
+  </div>
+  ${v2Empty('Todavía no hay facturas registradas.', 'Creá la primera factura para registrar cobros.', `<button class="primary" type="button">${plusIcon(16)}Crear factura</button>`)}
+ </section>
+ <section class="${v2Card}" aria-labelledby="finance-payments-title">
+  <div class="min-w-0 flex-1"><h3 id="finance-payments-title" class="text-[17px] font-semibold tracking-tight text-fore">Quién cobró y dónde quedó</h3><p class="mt-1 text-xs text-mute">Cada cobro queda en la cuenta elegida y conserva su reversión en el historial.</p></div>
+  ${v2Empty('Aún no hay cobros registrados.', 'Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial.')}
+ </section>
+</section>`,
+};
+
+const informesVacio = {
+  id: 'informes-vacio',
+  section: 'Informes',
+  surface: 'Informes sin serie mensual: CTA de arranque (v2)',
+  kind: 'workspace',
+  body: `
+<section class="grid gap-4" aria-label="Reportes de la agencia">
+ <div class="flex flex-wrap items-end gap-3">
+  ${field('Mes a consultar', `<input id="reports-month" type="month" class="${INPUT} w-44" value="2026-09">`, 'reports-month')}
+  <div class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>${segmented(['Últimos 6 meses', 'Últimos 12 meses', 'Últimos 24 meses'], 1, 'Meses de histórico')}</div>
+  <div class="w-40">${selectCustom('Moneda', 'Sin datos monetarios', 'informes-currency', true)}</div>
+ </div>
+ ${nota('neutro', 'Datos al 10 sept 26 · 12:00 (hora de Asunción). Histórico confiable desde: sin fecha confirmada.')}
+ ${v2Empty('Sin datos para el mes seleccionado.', 'Registrá la primera factura o cobro para empezar la serie mensual.', `<button class="primary" type="button">${plusIcon(16)}Registrar primera factura</button>`)}
+ <div class="grid gap-2">
+  <p class="text-sm font-semibold text-fore">Evolución mensual · sin moneda disponible</p>
+  <p class="text-xs text-mute">“Sin datos” no significa cero.</p>
+  <div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${icon(20, '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>')}</div><p class="mt-3 text-sm font-semibold text-fore">Sin meses registrados.</p></div>
+ </div>
+</section>`,
+};
+
+const previsionVacio = {
+  id: 'prevision-vacio',
+  section: 'Finanzas',
+  surface: 'Previsión sin movimientos: CTAs de arranque (v2)',
+  kind: 'workspace',
+  body: `
+<section class="grid gap-4" aria-label="Previsión financiera">
+ <div class="${CARD} grid gap-3 p-4">
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Ingresos vs gastos del mes</h3><p class="text-xs text-mute">Ingresos = emitido más aceptado sin factura. Gastos = personal, comisiones, gastos planificados y gastos reales. Resultado = ingresos menos gastos.</p></div>
+  ${v2Empty('Sin datos financieros para este mes.', 'Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance.', '<button class="primary" type="button">Registrar factura</button>')}
+ </div>
+ <div class="${CARD} grid gap-3 p-4">
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Personal proyectado</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
+  ${v2Empty('Sin salarios fijos mensuales incluidos para este mes.', 'Cargá el salario fijo de cada persona desde su ficha de equipo.', '<button class="secondary" type="button">Ver equipo</button>')}
+ </div>
+ <div class="${CARD} grid gap-3 p-4">
+  <h3 class="text-[17px] font-semibold tracking-tight text-fore">Contratos vs facturación del mes</h3>
+  ${v2Empty('Sin contratos vigentes para este mes.', 'Activá un contrato desde la ficha comercial del cliente, con su plan y monto mensual.', '<button class="secondary" type="button">Ver clientes</button>')}
+ </div>
+</section>`,
+};
+
+const comisionesVacio = {
+  id: 'comisiones-vacio',
+  section: 'Finanzas',
+  surface: 'Comisiones sin registros: CTAs de arranque (v2)',
+  kind: 'workspace',
+  body: `
+<section class="grid gap-4" aria-label="Comisiones y referidos">
+ <section class="${v2Card}" aria-labelledby="commissions-settlement-title">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+   <div class="min-w-0 flex-1"><h3 id="commissions-settlement-title" class="text-[17px] font-semibold tracking-tight text-fore">Liquidación del mes</h3><p class="mt-1 text-xs text-mute">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
+   <label class="grid gap-1.5"><span class="text-[11px] font-medium uppercase tracking-wider text-mute">Mes</span><input type="month" class="w-44" value="2026-09"></label>
+  </div>
+  ${v2Empty('Sin comisiones ni acuerdos comerciales para este mes.', 'Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada).', `<button class="primary" type="button">${plusIcon(16)}Registrar comisión</button>`)}
+ </section>
+ <section class="${v2Card}" aria-labelledby="commissions-discounts-title">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+   <div class="min-w-0 flex-1"><h3 id="commissions-discounts-title" class="text-[17px] font-semibold tracking-tight text-fore">Descuentos por referido</h3><p class="mt-1 text-xs text-mute">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
+   <button class="secondary" type="button">${plusIcon(16)}Nuevo descuento</button>
+  </div>
+  ${v2Empty('Todavía no hay descuentos registrados.', 'Aplicá un descuento cuando el saldo de una factura se ajuste por una recomendación.', `<button class="primary" type="button">${plusIcon(16)}Nuevo descuento</button>`)}
+ </section>
+ <section class="${v2Card}" aria-labelledby="commissions-payouts-title">
+  <div class="min-w-0 flex-1"><h3 id="commissions-payouts-title" class="text-[17px] font-semibold tracking-tight text-fore">Pagos registrados</h3><p class="mt-1 text-xs text-mute">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
+  ${v2Empty('Todavía no hay egresos registrados.', 'Al pagar una comisión o un sueldo, el egreso aparece acá con su cuenta.')}
+ </section>
+</section>`,
+};
+
+
 /* --------------- Móvil: modales de FIN (360/390/430) ------------------ */
 /* Los modales usan el overlay real de `dialog.tsx` (position:fixed) + el panel
    `.ops-dialog.unified-dialog` con heading, body con scroll y footer; el harness
@@ -830,13 +945,17 @@ export default [
   finMovilCobro,
   finanzasTransferencias,
   finanzasCobros,
+  finanzasVacio,
   moraCobranzas,
   previsionResumen,
   previsionContratos,
   previsionProyeccion,
+  previsionVacio,
   informesIndicadores,
   informesTablas,
+  informesVacio,
   comisionesLiquidacion,
   comisionesLista,
   comisionesPagos,
+  comisionesVacio,
 ];
