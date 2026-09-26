@@ -1,12 +1,12 @@
 /*
- * Fixtures: Resumen (centro de control) y Presupuestos.
+ * Fixtures: Resumen (centro de control).
  *
  * Producción y Proyectos viven en `ops-produccion-proyectos.mjs` (rediseño v2 de
  * OPS, campaña #41): esas pantallas ya no usan las hojas production-focus.css ni
  * project-card.css.
  *
- * Espeja el JSX real de app/control-center.tsx (ControlCenter) y de la tarjeta de
- * presupuestos (app/suite.tsx, BudgetActions).
+ * Espeja el JSX real de app/control-center.tsx (ControlCenter). Las vistas de
+ * Presupuestos viven en `secciones-comercial.mjs` (ronda 14, #62).
  * CSS: app/control-center.css, app/suite.css y los primitivos de app/ui-system.css.
  *
  * Datos de estrés deliberados: nombres largos, montos grandes y fechas vencidas.
@@ -187,65 +187,10 @@ const dueAlertClear = `
  <div class="clear-message">${svg(17, ICON.checkCircle)}<span>Sin pendientes vencidos</span></div>
 </section>`;
 
-/* ----------------------------------------------------------------- Presupuestos */
-
-/* app/scale-workspace.tsx líneas 1457-1473 + app/suite.tsx línea 136 (BudgetActions) */
-const budgetCard = (budget) => `
-<article class="ops-card budget-hub-card">
- <header class="budget-hub-head"><span class="budget-number">${budget.number}</span><span class="budget-state" data-status="${budget.status.key}">${budget.status.label}</span></header>
- <h3>${budget.title}</h3>
- <p class="budget-client">${budget.client}</p>
- <dl class="budget-hub-facts">
-  <div><dt>Ítems</dt><dd>${budget.items}</dd></div>
-  <div><dt>Vigencia</dt><dd>${budget.validUntil || 'Sin fecha'}</dd></div>
-  <div class="budget-hub-fact-amount"><dt>Sin IVA</dt><dd title="${budget.subtotal}">${budget.subtotal}</dd></div>
- </dl>
- <strong class="budget-hub-total">${budget.total}<small>IVA incl.</small></strong>
- <footer class="budget-hub-actions"><button class="text-button">${svg(14, ICON.eye)}Abrir presupuesto</button>${removeRecord(budget.title)}</footer>
-</article>`;
-
-const budgets = [
-  {
-    number: 'P-2026-0148',
-    status: {key: 'sent', label: 'Enviado'},
-    title: 'Campaña Aniversario 2026 · Producción audiovisual completa con spots, cápsulas y cobertura del evento',
-    client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada',
-    items: 42,
-    validUntil: '23-sept',
-    subtotal: 'Gs 1.234.567.890',
-    total: 'Gs 1.468.835.789',
-  },
-  {
-    number: 'P-2026-0149',
-    status: {key: 'accepted', label: 'Aceptado'},
-    title: 'Documental institucional del Bicentenario',
-    client: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima',
-    items: 7,
-    validUntil: '30-oct',
-    subtotal: 'USD 12.345,67',
-    total: 'USD 14.691,35',
-  },
-  {
-    number: 'P-2026-0150',
-    status: {key: 'draft', label: 'Borrador'},
-    title: 'Memoria audiovisual 2026 · Registro de archivo histórico y digitalización de cintas',
-    client: 'Ministerio de Educación y Ciencias',
-    items: 0,
-    validUntil: null,
-    subtotal: 'Gs 0',
-    total: 'Gs 0',
-  },
-  {
-    number: 'P-2026-0031',
-    status: {key: 'expired', label: 'Vencido'},
-    title: 'Reel de lanzamiento para la nueva línea de productos — corte final con subtítulos y corrección de color',
-    client: 'Fundación Niñez y Comunidad',
-    items: 19,
-    validUntil: '02-sept',
-    subtotal: 'Gs 987.654.321',
-    total: 'Gs 1.174.308.742',
-  },
-];
+/* ----------------------------------------------------- Presupuestos (tarjetas) */
+/* Ronda 14 (#62): la vista tarjeta de Presupuestos (BudgetTile) se espeja en
+   `secciones-comercial.mjs` (`seccion-presupuestos-cuadricula`), junto a la
+   lista densa y el vacío con CTA. Acá quedó solo el Resumen. */
 
 /* ---------------------------------------------------------------------- export */
 
@@ -263,13 +208,5 @@ export default [
     surface: 'Alertas de vencimiento',
     kind: 'workspace',
     body: `${dueAlertOverdue}${dueAlertClear}`,
-  },
-  {
-    id: 'presupuestos-cuadricula',
-    section: 'Presupuestos',
-    surface: 'Propuestas en cuadrícula',
-    kind: 'workspace',
-    grids: [{container: '.budget-hub-grid', card: '.budget-hub-card', label: 'Presupuestos · cuadrícula', minHeight: 200}],
-    body: `<div class="budget-hub-grid">${budgets.map(budgetCard).join('')}</div>`,
   },
 ];

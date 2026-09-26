@@ -10,6 +10,7 @@ import {listDateShort} from '../list-format';
 import {ClientIdentity} from '../client-identity';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
+import {CLIENT_TABLE_MIN_WIDTH,useDenseTableFit} from '../use-dense-table';
 import {EmptyBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {CommercialDashboard} from '../control-center-data';
 import type {Client, ClientPaymentStatus, User} from '../workspace-types';
@@ -26,7 +27,7 @@ const CLIENT_COLUMNS: Column[] = [
   {key: 'activity', label: 'Actividad'},
   {key: 'actions', label: 'Acciones'},
 ];
-const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_16rem]';
+const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_20rem]';
 
 const STATE_TONE: Record<string, ChipTone> = {active: 'ok', paused: 'warn', cancelled: 'bad', expired: 'warn', inactive: 'mute'};
 const moraTone = (pay: ClientPaymentStatus): ChipTone => pay.payment_status === 'up_to_date' ? 'ok' : pay.payment_status === 'due_soon' ? 'warn' : pay.days_overdue > 30 ? 'bad' : 'warn';
@@ -87,9 +88,9 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
     <div role="cell" className="client-row-actions silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
-      {client.has_recurring_price !== true ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
+      {client.has_recurring_price !== true && !canManageTerms ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
       {canManage ? <button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button> : null}
-      <span className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} canManageTerms={canManageTerms} refresh={refresh}/></span>
+      <span className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} canManageTerms={canManageTerms} planCta={client.has_recurring_price !== true ? 'icon' : undefined} refresh={refresh}/></span>
     </div>
   </ListRow>;
 }
@@ -120,13 +121,13 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
       {pay && pay.currency && Number(pay.outstanding_amount) > 0
         ? <MoneyText valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
         : <span className="text-[11px] text-mute">Sin saldo pendiente</span>}
-      {client.has_recurring_price !== true ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
+      {client.has_recurring_price !== true && !canManageTerms ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
     </div> : null}
     <footer className="client-card-actions silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
       {canManage ? <button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button> : null}
-      <span className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} canManageTerms={canManageTerms} refresh={refresh}/></span>
+      <span className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} canManageTerms={canManageTerms} planCta={client.has_recurring_price !== true ? 'text' : undefined} refresh={refresh}/></span>
     </footer>
   </article>;
 }
@@ -166,6 +167,9 @@ type ClientesSectionProps = {
 export function ClientesSection({dataState = 'ready', user, clientView, clientStatusFilter, setClientStatusFilter, clientSearch, setClientSearch, archiveBusy, bulkBusy, selectedClients, setSelectedClients, canSeeBilling, canManageClients, clients, displayedClients, liveClients, archivedClients, paymentStatuses, clientHubStats, commercialSummary, commercialState, directoryKpis, cobrosKpis, load, setClientArchive, toggleClientSelected, selectVisibleClients, batchClients, setDetail}: ClientesSectionProps) {
   const canManageTerms = roleCan(user?.role, 'commercial-terms.manage');
   const billingRole = ['owner', 'admin', 'finance'].includes(user?.role || '');
+  // La tabla densa sólo entra con ancho suficiente; si no, tarjetas (#62).
+  const {ref: tableRef, fits: tableFits} = useDenseTableFit(CLIENT_TABLE_MIN_WIDTH);
+  const dense = tableFits && clientView !== 'grid';
   const renderClients = (list: Client[], asTile: boolean) => list.map(client => {
     const props: ClientRowProps = {
       client,
@@ -186,7 +190,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
     return asTile ? <ClientTile key={client.id} {...props}/> : <ClientLine key={client.id} {...props}/>;
   });
 
-  return <section className="directory grid gap-4" aria-label="Directorio de clientes">
+  return <section ref={tableRef} className="directory grid gap-4" aria-label="Directorio de clientes">
     <KpiStrip>
       <Kpi label="Clientes activos" valor={directoryKpis.active} hint="Con servicio en curso" destacado/>
       <Kpi label="Cobros al día" valor={cobrosKpis.alDia} hint={`${cobrosKpis.enMora} en mora · ${cobrosKpis.porVencer} por vencer · ${cobrosKpis.sinFactura} sin factura`}/>
@@ -220,9 +224,9 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       </div>
     </div> : null}
 
-    {clientView === 'grid'
-      ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(liveClients, true)}</div>
-      : <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[71rem]">{renderClients(liveClients, false)}</ListGrid>}
+    {dense
+      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" className="com-table-fixed-actions">{renderClients(liveClients, false)}</ListGrid>
+      : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(liveClients, true)}</div>}
 
     {!liveClients.length && archivedClients.length && clientStatusFilter !== 'inactive' ? <p className="text-[13px] text-mute" role="status">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p> : null}
 
@@ -239,9 +243,9 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
     {archivedClients.length ? (
       <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
         <summary>Archivados ({archivedClients.length})</summary>
-        {clientView === 'grid'
-          ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(archivedClients, true)}</div>
-          : <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[71rem]">{renderClients(archivedClients, false)}</ListGrid>}
+        {dense
+          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" className="com-table-fixed-actions">{renderClients(archivedClients, false)}</ListGrid>
+          : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(archivedClients, true)}</div>}
       </details>
     ) : null}
   </section>;

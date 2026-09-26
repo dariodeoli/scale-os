@@ -32,7 +32,7 @@ const MONEY_TONE = {ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', mute: 'te
 const MoneyText = ({valor, currency = 'PYG', tono = '', className = ''}) => h('span', {className: `inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className}`.trim()}, money(valor, currency));
 
 /* ── Réplica de app/ui-v2.tsx (ListGrid/ListRow: mismas clases) ─────────────── */
-const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_16rem]';
+const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_20rem]';
 const CLIENT_COLUMNS = [
   {key: 'client', label: 'Cliente'},
   {key: 'facts', label: 'Datos'},
@@ -42,7 +42,7 @@ const CLIENT_COLUMNS = [
   {key: 'actions', label: 'Acciones'},
 ];
 
-const ListGrid = ({label, template, columns, minWidthClass = 'min-w-[48rem]', children}) => h('div', {role: 'table', 'aria-label': label, className: 'silent-scroll min-w-0 overflow-x-auto'},
+const ListGrid = ({label, template, columns, minWidthClass = 'min-w-[48rem]', children}) => h('div', {role: 'table', 'aria-label': label, className: 'silent-scroll min-w-0 overflow-x-auto com-table-fixed-actions'},
   h('div', {className: minWidthClass},
     h('div', {role: 'row', className: `grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`},
       columns.map((column, index) => h('span', {key: column.key, role: 'columnheader', className: `${index === columns.length - 1 ? 'text-right' : 'text-left'} whitespace-nowrap`}, column.label))),
@@ -63,11 +63,6 @@ const Trash = h('svg', {width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none
   h('path', {d: 'M14 11v6'}));
 const WhatsAppIcon = h('svg', {width: 14, height: 14, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': 'true', focusable: 'false'},
   h('path', {d: 'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'}));
-const PriceMissing = h('span', {className: 'client-price-missing', title: 'Sin precio definido: editá el cliente y completá Plan y pago.'},
-  h('svg', {width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', role: 'img', 'aria-label': 'Sin precio definido'},
-    h('circle', {cx: 12, cy: 12, r: 10}),
-    h('path', {d: 'M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8'}),
-    h('path', {d: 'M12 18V6'})));
 const Plus = h('svg', {width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true'},
   h('path', {d: 'M5 12h14'}),
   h('path', {d: 'M12 5v14'}));
@@ -77,7 +72,17 @@ const Identity = ({name, initials}) => h('span', {className: 'client-identity id
   h('span', {className: 'identity-avatar overflow-hidden', 'aria-hidden': 'true'}, initials),
   h('span', {className: 'identity-name min-w-0 font-bold leading-snug', title: name}, name));
 
-const recordActions = (name) => h('span', {className: 'client-record-actions'},
+/* `client-price-missing`: con permiso de términos el aviso se vuelve CTA
+   "Cargar plan" (ronda 14, #62): icono en la fila densa y texto en la tarjeta.
+   Sin permiso queda el icono honesto; el fixture espeja la vista de quien
+   gestiona (por eso también ve Archivar/Editar). */
+const recordActions = (name, planCta = 'none') => h('span', {className: 'client-record-actions'},
+  planCta !== 'none' ? h('button', {type: 'button', className: planCta === 'text' ? 'text-button' : 'icon-button', title: `Cargar plan y pago: ${name}`, 'aria-label': `Cargar plan y pago: ${name}`},
+    h('svg', {width: planCta === 'text' ? 14 : 16, height: planCta === 'text' ? 14 : 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true'},
+      h('circle', {cx: 12, cy: 12, r: 10}),
+      h('path', {d: 'M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8'}),
+      h('path', {d: 'M12 18V6'})),
+    planCta === 'text' ? 'Cargar plan' : null) : null,
   h('button', {type: 'button', className: 'icon-button', title: 'Editar', 'aria-label': `Editar ${name}`}, Pencil),
   h('button', {type: 'button', className: 'icon-button record-remove', title: 'Mover a la papelera', 'aria-label': `Mover a la papelera: ${name}`}, Trash));
 
@@ -171,9 +176,8 @@ const clientRow = (client) => h('div', {
   h('div', {role: 'cell', className: 'client-row-actions silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]'},
     h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),
     client.phone ? h('a', {className: 'text-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer'}, WhatsAppIcon, 'WhatsApp') : null,
-    client.missingPrice ? PriceMissing : null,
     h('button', {type: 'button', className: 'text-button'}, client.archived ? 'Reactivar' : 'Archivar'),
-    recordActions(client.name)));
+    recordActions(client.name, client.missingPrice ? 'icon' : 'none')));
 
 /* ── app/sections/clientes.tsx · ClientTile (tarjeta grande) ────────────────── */
 const clientTile = (client) => h('article', {
@@ -195,13 +199,12 @@ const clientTile = (client) => h('article', {
     h('div', {className: 'col-span-2'}, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cartera'), h('dd', {className: 'mt-0.5 text-fore'}, client.projects || client.pieces ? `${client.projects} proyectos · ${client.pieces} piezas${client.due ? ` · próxima entrega ${client.due}` : ''}` : 'Sin proyectos activos'))),
   h('div', {className: 'flex flex-wrap items-center gap-2'},
     client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : null,
-    client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone}) : h('span', {className: 'text-[11px] text-mute'}, 'Sin saldo pendiente'),
-    client.missingPrice ? PriceMissing : null),
+    client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone}) : h('span', {className: 'text-[11px] text-mute'}, 'Sin saldo pendiente')),
   h('footer', {className: 'client-card-actions silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]'},
     h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),
     client.phone ? h('a', {className: 'text-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer'}, WhatsAppIcon, 'WhatsApp') : null,
     h('button', {type: 'button', className: 'text-button'}, client.archived ? 'Reactivar' : 'Archivar'),
-    recordActions(client.name)));
+    recordActions(client.name, client.missingPrice ? 'text' : 'none')));
 
 /* ── app/client-directory-toolbar.tsx (barra del directorio en el shell) ────── */
 const toolbar = h('div', {className: 'client-directory-toolbar flex flex-wrap items-end gap-3', 'aria-label': 'Controles del directorio de clientes'},
@@ -234,10 +237,10 @@ const listPage = h('div', {className: 'grid gap-4'},
     h('span', {className: 'bulk-count'}, h('span', {className: 'bulk-hint'}, 'Seleccioná varios para operar en lote · máximo 50')),
     h('div', {className: 'inline-actions bulk-actions'},
       h('button', {type: 'button', className: 'text-button'}, 'Seleccionar visibles'))),
-  h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[71rem]'}, clients.filter(client => !client.archived).map(clientRow)),
+  h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[75rem]'}, clients.filter(client => !client.archived).map(clientRow)),
   h('details', {className: 'archived-capsule'},
     h('summary', null, `Archivados (${clients.filter(client => client.archived).length})`),
-    h(ListGrid, {label: 'Clientes archivados', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[71rem]'}, clients.filter(client => client.archived).map(clientRow))));
+    h(ListGrid, {label: 'Clientes archivados', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[75rem]'}, clients.filter(client => client.archived).map(clientRow))));
 
 const gridPage = h('div', {className: 'grid gap-3 md:grid-cols-2 xl:grid-cols-3', 'data-grid': 'clientes'}, clients.map(clientTile));
 

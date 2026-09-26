@@ -422,6 +422,19 @@
           return false;
         };
         if ((positioned(a) || positioned(b)) && ratio < 0.4) continue;
+        // Columna o encabezado pegado (sticky con inset): la superposición con
+        // el contenido que scrollea por debajo es el comportamiento del patrón
+        // de tabla densa (#62), no un solape accidental.
+        const stickyPinned = (el) => {
+          let node = el;
+          while (node && node !== root) {
+            const s = getComputedStyle(node);
+            if (s.position === 'sticky' && (s.top !== 'auto' || s.right !== 'auto')) return true;
+            node = node.parentElement;
+          }
+          return false;
+        };
+        if (stickyPinned(a) || stickyPinned(b)) continue;
         // Afordancia dentro del campo (ver/ocultar, limpiar): el botón vive en el
         // padding reservado del input (p. ej. `password-field-control`) y no es un
         // solape real entre dos objetos.

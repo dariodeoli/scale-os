@@ -4,7 +4,17 @@
  * con los patrones de app/ui-v2.tsx y los objetos de owncoding-ui. Son la
  * evidencia del rediseño de sección: KPIs, lista con encabezado y plantilla,
  * tablero kanban (excepción del contrato) y estados con datos reales de estrés.
+ *
+ * Ronda 14 (#62, refs #43): la tabla densa lleva `com-table-fixed-actions`
+ * (cola de acciones fija, app/com-tables.css) y en anchos medios la sección
+ * muestra su vista tarjeta; por eso están `seccion-presupuestos-cuadricula`
+ * (espejo de BudgetTile) y `seccion-presupuestos-vacio` (CTA contextual).
  */
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {Button, EmptyState} from 'owncoding-ui';
+
+const h = React.createElement;
 
 const label = (text) => `<div class="text-[11px] font-medium uppercase tracking-wider text-mute">${text}</div>`;
 /* app/ui-v2.tsx MoneyText: la celda de dinero v2 (mismas clases que el markup real). */
@@ -42,8 +52,8 @@ const budgetBulkBar = (selected = 0) => `<div class="bulk-bar" role="status" ari
   ${selected ? '<button type="button" class="secondary danger min-h-11 md:min-h-10">🗑 Mover a la papelera</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button>' : ''}
  </div>
 </div>`;
-const budgetList = (rows) => `<div role="table" aria-label="Presupuestos" class="silent-scroll min-w-0 overflow-x-auto">
- <div class="min-w-[90rem]">
+const budgetList = (rows) => `<div role="table" aria-label="Presupuestos" class="silent-scroll min-w-0 overflow-x-auto com-table-fixed-actions">
+ <div class="min-w-[93rem]">
   <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${BUDGET_TEMPLATE}">${BUDGET_COLUMNS.map((column, index) => `<span role="columnheader" class="${index === BUDGET_COLUMNS.length - 1 ? 'text-right' : index >= 3 && index <= 6 ? 'text-right' : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}</div>
   <div role="rowgroup">${rows.join('')}</div>
  </div>
@@ -77,6 +87,42 @@ const presupuestosLote = `<section class="directory grid gap-4" aria-label="Pres
   budgetRow({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'}),
  ])}
 </section>`;
+
+/* Ronda 14 (#62): vista tarjeta de anchos medios, espejo de BudgetTile
+   (app/sections/presupuestos.tsx) sobre la cápsula `budget-hub-*` del sistema. */
+const budgetCard = ({number, title, client, tone, state, items, valid, due, subtotal, total, selected = false}) => `<article class="ops-card budget-hub-card">
+ <header class="budget-hub-head">
+  <span class="flex min-w-0 items-center gap-2"><label class="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label="Seleccionar ${number} · ${title}"${selected ? ' checked' : ''}/></label><b class="shrink-0 font-mono text-[11px] font-semibold text-mute">${number}</b></span>
+  ${stateChip(tone, state)}
+ </header>
+ <h3 class="text-[15px] font-semibold leading-snug text-fore" title="${title}">${title}</h3>
+ <p class="budget-client truncate" title="${client}">${client}</p>
+ <dl class="budget-hub-facts">
+  <div><dt>Ítems</dt><dd>${items}</dd></div>
+  <div><dt>Vigencia</dt><dd class="list-date"${due ? ' data-tone="warn"' : ''} title="Vigencia hasta ${valid}">${valid}</dd></div>
+  <div class="budget-hub-fact-amount"><dt>Sin IVA</dt><dd>${moneyText(subtotal)}</dd></div>
+ </dl>
+ <strong class="budget-hub-total">${moneyText(total, 'text-fore')}<small>Total · IVA incl.</small></strong>
+ <footer class="budget-hub-actions"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></footer>
+</article>`;
+const presupuestosCuadricula = `<section class="directory grid gap-4" aria-label="Presupuestos">
+ ${kpiStrip([
+   kpi('Presupuestos', '3', 'Total sin IVA: BRL 1.000 · Gs. 14.500.000 · US$ 2.400', true),
+   kpi('Borradores', '1', 'Sin enviar al cliente'),
+   kpi('Aceptadas', '1', 'Con aprobación del cliente'),
+   kpi('Vencen esta semana', '1', 'Vigencia en los próximos 7 días'),
+ ].join(''))}
+ ${budgetBulkBar(0)}
+ <div class="budget-hub-grid">
+  ${budgetCard({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', due: true, subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00'})}
+  ${budgetCard({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', due: false, subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000'})}
+  ${budgetCard({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'})}
+ </div>
+</section>`;
+/* Vacío con CTA contextual (#62, ítem 9): espeja ui-v2.EmptyBlock + Button. */
+const presupuestosVacio = renderToStaticMarkup(h('section', {className: 'directory grid gap-4', 'aria-label': 'Presupuestos'},
+ h('div', {role: 'status', className: 'rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4'},
+  h(EmptyState, {icon: 'receipt', title: 'Todavía no hay presupuestos.', description: 'Creá el primero: el valor se carga sin IVA y el IVA se define en el documento.', action: h(Button, {type: 'button'}, 'Nuevo presupuesto')}))));
 
 /* ---- Planes: KpiStrip + comparador (tabla compartida) ------------------- */
 const PLAN_TEMPLATE = 'min-w-0 max-w-full text-fore';
@@ -181,6 +227,8 @@ const metricasSection = `<div class="grid gap-4 rounded-xl border border-fono/30
 export default [
   {id: 'seccion-presupuestos', section: 'Presupuestos', surface: 'Sección v2 con lista y KPIs', kind: 'workspace', lists: [{container: '[role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Presupuestos · lista v2', rowHeight: [44, 52]}], body: presupuestosSection},
   {id: 'seccion-presupuestos-lote', section: 'Presupuestos', surface: 'Sección v2 con lote seleccionado (#59)', kind: 'workspace', lists: [{container: '[role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Presupuestos · lista v2 con lote', rowHeight: [44, 52]}], body: presupuestosLote},
+  {id: 'seccion-presupuestos-cuadricula', section: 'Presupuestos', surface: 'Sección v2 en tarjetas (anchos medios, #62)', kind: 'workspace', grids: [{container: '.budget-hub-grid', card: '.budget-hub-card', label: 'Presupuestos · tarjetas', minHeight: 200}], body: presupuestosCuadricula},
+  {id: 'seccion-presupuestos-vacio', section: 'Presupuestos', surface: 'Sección v2 vacía con CTA contextual (#62)', kind: 'workspace', body: presupuestosVacio},
   {id: 'seccion-planes', section: 'Planes', surface: 'Sección v2 con comparador', kind: 'workspace', body: planesSection},
   {id: 'seccion-pipeline', section: 'Pipeline', surface: 'Sección v2 con tablero', kind: 'workspace', body: pipelineSection},
   {id: 'seccion-metricas', section: 'Métricas', surface: 'Sección v2 de crecimiento', kind: 'workspace', body: metricasSection},
