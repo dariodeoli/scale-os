@@ -184,7 +184,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
     </div>
     <p className="text-xs text-mute">La distribución de planes muestra clientes activos, no nuevas contrataciones. “Sin clasificar” y “Sin plan registrado” identifican datos desconocidos, no categorías supuestas.</p>
    </>}
-   <div className="grid gap-2">
+   <div className="grid grid-cols-1 gap-2">
     <p className="text-sm font-semibold text-fore">Evolución mensual · {selectedCurrency||'sin moneda disponible'}</p>
     <p className="text-xs text-mute">“Sin datos” no significa cero.</p>
     <DataTable

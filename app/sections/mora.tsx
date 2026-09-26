@@ -109,7 +109,7 @@ export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, m
     </div>
 
     <FilterToolbar summary={`${visible.length} de ${paymentStatuses.length}`}>
-      <SegmentedField ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Al día'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
+      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Al día'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
       <label className="grid w-full gap-1.5 sm:w-72">
         <span className="sr-only">Buscar cliente en cobranza</span>
         <input type="search" value={moraSearch} onChange={event => setMoraSearch(event.target.value)} placeholder="Buscar cliente…" autoComplete="off" className="w-full"/>

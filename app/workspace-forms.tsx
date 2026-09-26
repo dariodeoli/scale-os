@@ -376,7 +376,6 @@ export function AccountForm({
         Nombre de la cuenta
         <input
           {...form.register("name")}
-          autoFocus
           placeholder="Banco Regional — Operativa"
         />
       </label>
