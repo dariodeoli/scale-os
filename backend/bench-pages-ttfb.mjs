@@ -103,15 +103,15 @@ async function seed(q){
 
 /* ------------------------------------------------------------------ pages */
 const ORDER_FIELDS_SEARCH='id,title,status,project_id,project_name,client_name,due_date';
-const ORDER_FIELDS_STATUS='id,status,project_id';
 const ORDER_FIELDS_PORTFOLIO='id,status,project_id,due_date';
+const ORDER_FIELDS_SUMMARY='id,title,status,project_id,project_name,client_name,due_date,due_time,work_type,effective_assignees,assigned_user_id,assigned_user_ids,checklist_total,checklist_completed,estimated_hours,actual_hours,updated_at';
 const ORDER_FIELDS_BOARD='id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at';
 const BOARD_STATUSES=['blocked','to_record','recorded','editing','review','approved','published'];
 const enc=value=>encodeURIComponent(value);
 const monthRange=()=>{const now=new Date(),y=now.getUTCFullYear(),m=now.getUTCMonth();return{from:new Date(Date.UTC(y,m,1)).toISOString(),to:new Date(Date.UTC(y,m+1,1)).toISOString()};};
 const SHELL_SEARCH={clients:'/api/agency/clients',projects:'/api/agency/projects',orders:`/api/agency/work-orders?limit=300&fields=${ORDER_FIELDS_SEARCH}`};
 const PAGES=[
- {name:'Resumen',calls:['/api/agency/clients','/api/agency/projects',`/api/agency/work-orders?fields=${ORDER_FIELDS_STATUS}`,'/api/agency/summary','/api/agency/dashboard','/api/agency/control-center']},
+ {name:'Resumen',calls:['/api/agency/clients','/api/agency/projects',`/api/agency/work-orders?limit=300&fields=${ORDER_FIELDS_SUMMARY}`,'/api/agency/summary','/api/agency/dashboard','/api/agency/control-center']},
  {name:'Pipeline',calls:[SHELL_SEARCH.clients,SHELL_SEARCH.projects,SHELL_SEARCH.orders,'/api/agency/leads','/api/agency/pipeline-stages']},
  {name:'Clientes',calls:['/api/agency/clients','/api/agency/projects',`/api/agency/work-orders?fields=${ORDER_FIELDS_PORTFOLIO}`,'/api/agency/summary']},
  {name:'Presupuestos',calls:[SHELL_SEARCH.clients,SHELL_SEARCH.projects,SHELL_SEARCH.orders,'/api/agency/summary','/api/agency/budgets']},
@@ -225,6 +225,7 @@ try{
   ['presupuestos · hoy','/api/agency/budgets'],
   ['presupuestos · lista','/api/agency/budgets?fields=id,number,title,status,currency,total,client_name,item_count,valid_until,created_at'],
   ['presupuestos · lista + limit=50','/api/agency/budgets?limit=50&fields=id,number,title,status,currency,total,client_name,item_count'],
+  ['órdenes · ventana Resumen (300, buscador+alertas+planificador)','/api/agency/work-orders?limit=300&fields='+ORDER_FIELDS_SUMMARY],
  ];
  console.log('\nCandidatos (front):');
  for(const [label,url] of candidates){

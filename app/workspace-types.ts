@@ -165,6 +165,8 @@ export type Summary = {
   unanswered_budgets: number | null;
   unverified_inventory: number | null;
   upcoming_deliveries: number | null;
+  /** Conteo exacto por estado sobre todas las órdenes visibles (#71). */
+  stage_counts?: Record<string, number> | null;
 };
 
 export type ModalKind =

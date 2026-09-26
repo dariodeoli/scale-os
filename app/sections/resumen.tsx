@@ -29,7 +29,8 @@ type ResumenSectionProps = {
 };
 const STAGE_TONE: Record<string, ChipTone> = {red: 'bad', yellow: 'warn', green: 'ok', blue: 'info', teal: 'info', purple: 'info'};
 export function ResumenSection({dataState = 'ready', guideProps, user, orders, load, setActive, summary, stageCounts, projects, setDetail}: ResumenSectionProps){
-  const enRevision = orders.filter(order => order.status === 'review').length;
+  // Exacto sobre todas las órdenes visibles: sale del resumen (#71), no de la ventana.
+  const enRevision = stageCounts.get('review') || 0;
   // Primer dato en camino: esqueleto por bloque, sin pantalla vacía.
   if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <LoadingBlock label="Cargando el panel…" lines={5}/>;
   return <div className="grid gap-5 [&>*]:min-w-0">

@@ -10,6 +10,7 @@ import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,type LeadOpportunity} from '../pipeline-summary';
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
+import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
 import {useDialogPending} from '../dialog';
 import type {MetricEvent,User} from '../workspace-types';
 
@@ -97,7 +98,7 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
 
   async function load(){
     try{
-      const data=await api<{records:Row[]}>('/api/agency/leads');
+      const data=await projectedList('leads','/api/agency/leads',LEAD_LIST_FIELDS,path=>api<{records:Row[]}>(path));
       setRows(Array.isArray(data.records)?data.records:[]);
       setState('ready');
     }catch{setState('error');}

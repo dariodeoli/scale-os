@@ -10,6 +10,7 @@ import {notify} from '../feedback';
 import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
+import {projectedList,BUDGET_LIST_FIELDS} from '../shell-data';
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,denseTableMinWidth,useDenseTableFit,type ChipTone,type Column} from '../ui-v2';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
@@ -92,7 +93,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
   const {ref: tableRef, fits: tableFits} = useDenseTableFit(BUDGET_TABLE_MIN_WIDTH);
   const totals = Array.from(budgetKpis.totals);
   const [selected,setSelected]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false),[confirmOpen,setConfirmOpen]=useState(false),[bulkError,setBulkError]=useState('');
-  const reload = async () => { setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets); };
+  const reload = async () => { setBudgets((await projectedList('budgets','/api/agency/budgets',BUDGET_LIST_FIELDS,path=>request<{budgets:Budget[]}>(path))).budgets); };
   // La selección no sobrevive a un presupuesto que ya no está en la lista.
   useEffect(()=>{setSelected(current=>{const live=new Set(budgets.map(budget=>String(budget.id)));const next=current.filter(id=>live.has(id));return next.length===current.length?current:next;});},[budgets]);
   function toggleSelected(id:string){

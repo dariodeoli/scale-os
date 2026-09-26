@@ -17,8 +17,8 @@ export const ORDER_WINDOW = 300;
 const PATHS: Record<ShellResource, string> = {clients: '/clients', projects: '/projects', orders: '/work-orders', summary: '/summary'};
 
 // Proyecciones por uso (todas dentro de `workOrderListFields` del API).
-/** Resumen: cuenta por estado y "en revisión". */
-export const ORDER_FIELDS_STATUS = 'id,status,project_id';
+/** Resumen: buscador global, alertas de vencimiento y planificador embebido en la ventana del shell. */
+export const ORDER_FIELDS_SUMMARY = 'id,title,status,project_id,project_name,client_name,due_date,due_time,work_type,effective_assignees,assigned_user_id,assigned_user_ids,checklist_total,checklist_completed,estimated_hours,actual_hours,updated_at';
 /** Clientes: cartera por cliente (piezas abiertas y próximo vencimiento). */
 export const ORDER_FIELDS_PORTFOLIO = 'id,status,project_id,due_date';
 /** Producción: la tarjeta del tablero completa (asignados y checklist incluidos). */
@@ -29,6 +29,13 @@ export const ORDER_FIELDS_SEARCH = 'id,title,status,project_id,project_name,clie
 export const CLIENT_FIELDS_CHROME = 'id,name,email,phone,active,lifecycle_status,logo_url,color_key';
 /** #67: chrome mínimo de proyectos (nombre, estado y piezas) para esas mismas secciones. */
 export const PROJECT_FIELDS_CHROME = 'id,name,client_id,status,client_name,work_order_count,assignees';
+
+// #67/#71: proyecciones de las listas COM con contrato optimista (el API las
+// ignora hasta que las soporte). Se piden solo los campos que cada pantalla lee.
+/** Oportunidades: tarjeta, editor, KPIs y conversión a cliente. */
+export const LEAD_LIST_FIELDS = 'id,name,email,phone,stage,amount,currency,probability,notes,client_id';
+/** Presupuestos: fila finita y tarjeta de anchos medios. */
+export const BUDGET_LIST_FIELDS = 'id,number,title,status,currency,subtotal,total,valid_until,item_count,client_name';
 
 // Proyecciones OPS (#67): el chrome (buscador, presencia y filtros) no necesita
 // la ficha completa del cliente ni del proyecto. Medido por PLT: clients
@@ -57,6 +64,42 @@ export function scopeResources(scope: ShellScope): ShellResource[] {
   return (Object.keys(scope) as ShellResource[]).filter((resource) => scope[resource]);
 }
 
+/**
+ * Conteos por etapa para Resumen (#71): el `summary` los trae exactos sobre
+ * todas las órdenes visibles; la ventana del shell (buscador, alertas y
+ * planificador) es solo el respaldo si el resumen no está disponible.
+ */
+export function stageCountsFrom(summary: {stage_counts?: Record<string, number> | null}, orders: readonly {status: string}[]) {
+  const counts = new Map<string, number>();
+  for (const [status, total] of Object.entries(summary.stage_counts || {})) counts.set(status, Number(total) || 0);
+  if (counts.size) return counts;
+  for (const order of orders) counts.set(order.status, (counts.get(order.status) || 0) + 1);
+  return counts;
+}
+
+// Proyección optimista de listas de sección (#67/#71): se intenta `?fields=`;
+// si el API todavía no la soporta (400 de campos inválidos), se apaga para esa
+// lista en la sesión y se repite el payload completo. Nunca oculta otro error.
+const listProjectionsOff = new Set<string>();
+
+/** ¿La lista sigue pidiendo su proyección? (contrato aprendido, para tests.) */
+export function listProjectionEnabled(key: string) {
+  return !listProjectionsOff.has(key);
+}
+
+export async function projectedList<T>(key: string, path: string, fields: string, load: (path: string) => Promise<T>): Promise<T> {
+  if (!listProjectionsOff.has(key)) {
+    try {
+      return await load(`${path}?fields=${fields}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (!/campos inválidos/i.test(message)) throw error;
+      listProjectionsOff.add(key);
+    }
+  }
+  return load(path);
+}
+
 // El contrato es optimista (el API soporta `?fields=` desde v1.0.112) y se apaga
 // en la sesión si una proyección devuelve 400: la pantalla vuelve al payload por defecto.
 export type ShellContract = {fields: boolean};
@@ -79,7 +122,10 @@ const PLT_SCOPE: ShellScope = {
   orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH},
 };
 const SECTION_SCOPE: Record<string, ShellScope> = {
-  Resumen: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_STATUS}},
+  // Resumen: los conteos por etapa salen del `summary` (exactos sobre todas las
+  // órdenes visibles); la ventana de órdenes alimenta buscador, alertas y el
+  // planificador embebido con la proyección que dibujan (contrato #67/#71).
+  Resumen: {clients: {}, projects: {}, summary: {}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SUMMARY}},
   // El tablero de Producción es dueño de sus datos por columna
   // (`app/board-data.ts`: `?status=` + `?counts=1`): el shell no pide órdenes
   // para esta sección y así no hay lecturas duplicadas.
