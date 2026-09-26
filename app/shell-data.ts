@@ -17,8 +17,13 @@ export const ORDER_WINDOW = 300;
 const PATHS: Record<ShellResource, string> = {clients: '/clients', projects: '/projects', orders: '/work-orders', summary: '/summary'};
 
 // Proyecciones por uso (todas dentro de `workOrderListFields` del API).
-/** Resumen: buscador global, alertas de vencimiento y planificador embebido en la ventana del shell. */
-export const ORDER_FIELDS_SUMMARY = 'id,title,status,project_id,project_name,client_name,due_date,due_time,work_type,effective_assignees,assigned_user_id,assigned_user_ids,checklist_total,checklist_completed,estimated_hours,actual_hours,updated_at';
+/**
+ * Resumen: buscador global, alertas de vencimiento y planificador embebido en
+ * la ventana del shell. `assignee_names` es el nombre liviano de responsables
+ * (#73): `effective_assignees` arrastra las fotos base64 y multiplicaba el
+ * payload de la ventana; el detalle y el tablero siguen usando las completas.
+ */
+export const ORDER_FIELDS_SUMMARY = 'id,title,status,project_id,project_name,client_name,due_date,due_time,work_type,assignee_names,assigned_user_id,assigned_user_ids,checklist_total,checklist_completed,estimated_hours,actual_hours,updated_at';
 /** Clientes: cartera por cliente (piezas abiertas y próximo vencimiento). */
 export const ORDER_FIELDS_PORTFOLIO = 'id,status,project_id,due_date';
 /** Producción: la tarjeta del tablero completa (asignados y checklist incluidos). */

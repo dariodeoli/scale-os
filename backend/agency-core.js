@@ -24,7 +24,7 @@ const memberRoles=roles;
 // Campos que expone la lista de órdenes; `?fields=` proyecta sobre esta lista.
 // Todo lo que no esté acá no viaja: sin `organization_id`/`created_at`/`assignee_version`
 // (sin lectores) ni el `assignee_email` legado (Re #57).
-const workOrderListFields=['id','project_id','project_name','client_name','title','description','description_preview','status','urgency','work_type','approval_step','due_date','due_time','drive_url','drive_links','estimated_hours','actual_hours','updated_at','assigned_user_id','assigned_user_ids','effective_assignees','assignee_source','checklist_total','checklist_completed'];
+const workOrderListFields=['id','project_id','project_name','client_name','title','description','description_preview','status','urgency','work_type','approval_step','due_date','due_time','drive_url','drive_links','estimated_hours','actual_hours','updated_at','assigned_user_id','assigned_user_ids','effective_assignees','assignee_names','assignee_source','checklist_total','checklist_completed'];
 
 // Expresión SQL de cada campo proyectable (#67): con `?fields=` la consulta trae
 // solo las columnas pedidas (antes se seleccionaba `o.*` y se recortaba en
@@ -369,7 +369,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       for(const row of r.rows){delete row.organization_id;delete row.created_at;delete row.assignee_version;}
       const hasMore=paginated&&r.rows.length>limit;
       if(hasMore)r.rows.length=limit;
-      if(wants('effective_assignees')||wants('assignee_source')||wants('assigned_user_ids'))await enrichWorkOrderAssignees(db,user.organization_id,r.rows);
+      if(wants('effective_assignees')||wants('assignee_source')||wants('assigned_user_ids')||wants('assignee_names'))await enrichWorkOrderAssignees(db,user.organization_id,r.rows);
       if(wants('checklist_total')||wants('checklist_completed')){
         const ids=[...new Set(r.rows.map(row=>String(row.id)))];
         if(ids.length){
@@ -395,6 +395,9 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         const out={id:row.id};
         for(const field of projection){
           if(field==='description_preview'){out.description_preview=row.description?String(row.description).slice(0,240):null;continue;}
+          // Nombre liviano de responsables (#73): la lista no arrastra las fotos
+          // base64 de `effective_assignees`; el detalle/tarjeta sigue usándolas.
+          if(field==='assignee_names'){out.assignee_names=(Array.isArray(row.effective_assignees)?row.effective_assignees:[]).map(person=>person.full_name||person.email||'').filter(Boolean);continue;}
           if(Object.hasOwn(row,field))out[field]=row[field];
         }
         return out;

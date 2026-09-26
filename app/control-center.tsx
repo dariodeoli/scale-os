@@ -4,9 +4,11 @@ import {AlertCircle,ArrowUpRight,CalendarClock,CheckCircle2,FileQuestion,Package
 import {api,money} from './operations';
 import {DueAlert,CommercialDashboard,groupDueAlerts,normalizeCommercialDashboard,shortDate} from './control-center-data';
 import {RecordEditor} from './suite';
+import {ORDER_FIELDS_SEARCH} from './shell-data';
 type Total={currency:string;total:string};
 type Dashboard={cash:Total[];receivables:Total[];collections:Total[];inventory:Total[];expenses:Total[];personnel:Total[];expected:Total[];alerts:DueAlert[]};
 type Order={id:string;title:string;status:string;due_date?:string|null;client_name:string;project_name:string};
+type OverdueRow={id:string;title:string;status:string;due_date?:string|null;client_name?:string|null;project_name?:string|null};
 type Signals={unanswered_budgets:number|null;unverified_inventory:number|null;upcoming_deliveries:number|null};
 const financeSeries=[['cash','Disponible'],['receivables','Por cobrar'],['collections','Cobrado este mes'],['expenses','Gastos planificados'],['personnel','Personal']] as const;
 const dueTone=(due:string,today:string)=>{const past=new Date(due.slice(0,10)+'T12:00:00Z').valueOf();const now=new Date(today+'T12:00:00Z').valueOf();if(Number.isNaN(past))return 'warning';const days=Math.max(0,Math.round((now-past)/86400000));return days<=7?'gold':days<=21?'warning':'danger';};
@@ -14,7 +16,14 @@ const dueTone=(due:string,today:string)=>{const past=new Date(due.slice(0,10)+'T
 export function ControlCenter({role,orders,refresh,navigate,signals}:{role:string;orders:Order[];refresh:()=>Promise<void>;navigate:(label:string)=>void;signals:Signals}){
  const allowed=['owner','admin','finance'].includes(role),commercialAllowed=['owner','admin','management','sales','finance'].includes(role);
  const [data,setData]=useState<Dashboard|null>(null),[error,setError]=useState('');
+ const [overdue,setOverdue]=useState<DueAlert[]|null>(null),[overdueCapped,setOverdueCapped]=useState(false);
  const [commercial,setCommercial]=useState<CommercialDashboard|null>(null),[commercialError,setCommercialError]=useState('');
+ // Alertas exactas para roles sin finanzas (#71/#73): el listado de vencidos de
+ // la API (due=overdue, cerradas afuera) en vez de depender de la ventana del
+ // buscador; el dashboard sigue mandando cuando el rol puede ver finanzas.
+ useEffect(()=>{let live=true;if(allowed){setOverdue(null);setOverdueCapped(false);return()=>{live=false;};}setOverdue(null);setOverdueCapped(false);
+  void api<{workOrders:OverdueRow[];page?:{hasMore?:boolean}}>(`/api/agency/work-orders?due=overdue&limit=30&fields=${ORDER_FIELDS_SEARCH}`).then(value=>{if(!live)return;setOverdue((value.workOrders||[]).map(row=>({id:String(row.id),type:'work_order' as const,name:String(row.title||''),due:String(row.due_date||'').slice(0,10),context:[row.client_name,row.project_name].filter(Boolean).join(' · ')})));setOverdueCapped(Boolean(value.page?.hasMore));}).catch(()=>{if(live){setOverdue(null);setOverdueCapped(false);}});
+  return()=>{live=false;};},[allowed,orders]);
  useEffect(()=>{let live=true;if(allowed){setError('');void api<Dashboard>('/api/agency/dashboard').then(value=>{if(live)setData(value);}).catch(e=>{if(live)setError(e instanceof Error?e.message:'No se pudo cargar el resumen financiero.');});}return()=>{live=false;};},[allowed,orders]);
  useEffect(()=>{let live=true;setCommercial(null);setCommercialError('');if(commercialAllowed)void api<unknown>('/api/agency/control-center').then(value=>{const normalized=normalizeCommercialDashboard(value);if(live)setCommercial(normalized);}).catch(e=>{if(live)setCommercialError(e instanceof Error?e.message:'No se pudo cargar el resumen comercial.');});return()=>{live=false;};},[commercialAllowed,orders]);
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
@@ -22,8 +31,9 @@ export function ControlCenter({role,orders,refresh,navigate,signals}:{role:strin
  // `alerts` puede faltar en una respuesta vieja/parcial del API: sin la guarda
  // `data.alerts.length` volteaba la pantalla antes de llegar a `groupDueAlerts`.
  const dashboardAlerts=Array.isArray(data?.alerts)?data.alerts:[];
- const capped=Boolean(allowed&&data&&dashboardAlerts.length>=30);
- const alerts=allowed&&data?dashboardAlerts.map(a=>({...a,context:orderAlerts.find(o=>String(o.id)===String(a.id)&&a.type==='work_order')?.context})):orderAlerts;
+ const exactOverdue=overdue&&overdue.length?overdue:null;
+ const capped=allowed&&data?dashboardAlerts.length>=30:Boolean(exactOverdue&&overdueCapped);
+ const alerts=allowed&&data?dashboardAlerts.map(a=>({...a,context:orderAlerts.find(o=>String(o.id)===String(a.id)&&a.type==='work_order')?.context})):exactOverdue||orderAlerts;
  const groups=groupDueAlerts(alerts);
  const maxGroupCount=Math.max(1,...groups.map(group=>group.items.length));
  const resultCurrencies=data?.expected.filter(row=>row.total!=='0').map(row=>row.currency)||[];

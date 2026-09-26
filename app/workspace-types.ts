@@ -36,6 +36,8 @@ export type WorkOrder = {
   urgency?:number|null;
   assignees?:AssignedPerson[];
   effective_assignees?:AssignedPerson[];
+  /** Nombres livianos de responsables para listas (#73): sin fotos base64. */
+  assignee_names?:string[];
   assignee_source?:'direct'|'project'|null;
   assigned_user_id?:string|null;
   assigned_user_ids?:string[];
