@@ -55,12 +55,16 @@
   color: var(--text-muted);
   font-size: 12px;
 }
-.team-filters {
-  display: grid;
-  gap: 12px;
-  max-width: 440px;
-  margin-top: 2px;
-}
+/* Toolbar del equipo (ronda 14, #62): búsqueda, filtros, contador, vista y
+   acciones en una sola fila que envuelve sin dejar huecos. La búsqueda absorbe
+   el espacio libre y las acciones acompañan al extremo derecho. */
+.team-filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 10px;margin-top:12px}
+.team-filters .team-search{flex:1 1 13rem;min-width:11rem;max-width:17rem}
+.team-filters .choice-list.compact{flex:none;align-items:center}
+.team-filters .team-count{display:flex;align-items:center;min-height:40px;margin:0;font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--text-subtle,var(--text-muted));white-space:nowrap}
+.team-filters .workspace-view-controls{margin-left:auto}
+.team-filters .team-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-left:auto}
+@media(max-width:620px){.team-filters .team-search{flex:1 1 100%;max-width:100%}.team-filters .workspace-view-controls,.team-filters .team-actions{margin-left:0}.team-filters .choice{padding-inline:8px}}
 .avatar {
   width: 48px;
   height: 48px;
@@ -275,6 +279,10 @@
 .hub-chip.muted{font-weight:600}
 /* Tarjeta de equipo: el chip informativo largo envuelve en vez de estirar la tarjeta. */
 .ops-grid:not(.ops-grid-list)>.person-hub-card .hub-chip{white-space:normal;overflow-wrap:anywhere;max-width:100%}
+/* Ronda 14 (#62): en tarjetas el nombre completo se lee hasta en dos líneas
+   (el tooltip conserva el texto íntegro); la fila finita de lista sigue en una. */
+.ops-grid:not(.ops-grid-list)>.person-hub-card .person-container-name,
+.team-directory-card .person-container-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere}
 .person-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}
 .person-hub-actions::-webkit-scrollbar{display:none}
 .person-hub-buttons{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -313,8 +321,7 @@
  .settlement-name{grid-column:1/-1}
 }
 
-/* Equipo: header de página en dos filas y vista lista compacta. */
-.team-filters{align-items:end}.team-filters .workspace-view-controls{margin-left:auto}
+/* Equipo: la vista lista mantiene su propia densidad (ver bloques de medios). */
 
 
 

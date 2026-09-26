@@ -13,9 +13,32 @@
  * CSS contracts: app/operations.css, app/settings-slice.css, app/company-settings.css,
  * app/dialog.css y los primitivos de app/ui-system.css.
  *
+ * Ronda 14 (#62): la toolbar de Equipo junta búsqueda, filtros, contador, vista y
+ * acciones en una fila (app/operations.css `.team-filters`), el nombre de las
+ * tarjetas usa dos líneas (`.person-container-name` en `.ops-grid`) y el estado
+ * vacío lleva CTA ("Agregar primera persona").
+ *
  * Datos de estrés deliberados: nombres/correos largos, montos grandes, fechas con
  * vencimiento y accesos suspendidos. Este archivo no arregla dominio.
  */
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {EmptyState, ListGridToggle} from 'owncoding-ui';
+
+const h = React.createElement;
+/* Vista lista/cuadrícula v2: envuelve ListGridToggle como app/ui-v2.tsx (ViewSwitch). */
+const viewSwitch = (value = 'grid') => renderToStaticMarkup(h(ListGridToggle, {
+  value,
+  onChange: () => {},
+  className: '[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-9 md:[&>button]:w-9',
+}));
+/* EmptyBlock v2: EmptyState de la librería sobre la superficie de panel (app/ui-v2.tsx).
+   `action` va como elemento React: un string se escaparía en el render. */
+const emptyBlock = ({title, description, action, className = ''}) => renderToStaticMarkup(h('div', {
+  role: 'status',
+  className: `rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4 ${className}`,
+}, h(EmptyState, {title, description, action})));
+
 
 /* ------------------------------------------------------------------ icons */
 const svg = (path, size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${path}</svg>`;
@@ -76,7 +99,16 @@ const actorIdentity = ({name, photo = '', timestamp = '', timeText = '', verifie
   return `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${label}">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}" title="${timeText || listDateFull(timestamp)}">${timeText || listDateFull(timestamp)}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
 };
 const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" title="${value}" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
-const searchField = ({label, placeholder}) => `<label class="search-field"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
+const searchField = ({label, placeholder, className = ''}) => `<label class="search-field${className ? ' ' + className : ''}"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
+/* Toolbar del equipo (app/operations.tsx): búsqueda, filtros, contador, vista y
+   acciones en la misma fila (`.team-filters`). */
+const teamToolbar = (count = '5 de 5 personas') => `<div class="team-filters" aria-label="Controles del equipo">
+ ${searchField({label: 'Buscar persona', placeholder: 'Nombre, correo o cargo', className: 'team-search'})}
+ <div class="choice-list compact" role="group" aria-label="Filtrar por estado laboral"><button type="button" class="choice active" aria-pressed="true">Todos</button><button type="button" class="choice" aria-pressed="false">Activos</button><button type="button" class="choice" aria-pressed="false">Inactivos</button></div>
+ <p class="team-count" role="status" aria-atomic="true">${count}</p>
+ <div class="workspace-view-controls">${viewSwitch('grid')}</div>
+ <div class="team-actions"><button type="button" class="secondary">Permisos del panel</button><button type="button" class="primary">${svg(ICON.plus, 16)}Agregar persona</button></div>
+</div>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
 const amountCell = (text) => `<dd class="list-amount">${text}</dd>`;
 /* app/field-rules.ts: único mensaje de ayuda del teléfono. */
@@ -165,7 +197,7 @@ const personCard = (person, list = false) => {
   const isMember = person.kind === 'member';
   // En lista la app baja el contenedor a 32px (PersonContainer md) y en cuadrícula a 48px (lg).
   const initials = person.name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase();
-  const avatar = `<div class="ops-person"><span class="person-container person-container-${list ? 'md' : 'lg'}"><span class="person-container-avatar" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : initials}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span>${person.role ? `<span class="person-container-secondary" title="${person.role}">${person.role}</span>` : ''}</span></span></div>`;
+  const avatar = `<div class="ops-person" title="${person.name}"><span class="person-container person-container-${list ? 'md' : 'lg'}"><span class="person-container-avatar" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : initials}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span>${person.role ? `<span class="person-container-secondary" title="${person.role}">${person.role}</span>` : ''}</span></span></div>`;
   const stateLabel = isMember ? (person.memberActive ? 'Acceso activo' : 'Acceso suspendido') : person.state;
   const stateAttr = isMember ? (person.memberActive ? 'active' : 'inactive') : (person.state === 'Activo' ? 'active' : 'inactive');
   const chips = isMember
@@ -256,16 +288,27 @@ export default [
     }],
     body: `
 <section class="panel">
- <div class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3"><div class="min-w-0 flex-1"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Equipo de Estudio de Comunicación y Producción Audiovisual del Paraguay: directorio, roles y estado de cada integrante.</p></div><div class="flex flex-wrap items-center gap-2"><button class="secondary">Permisos del panel</button><button class="primary">${svg(ICON.plus, 16)}Agregar persona</button></div></div>
- <div class="team-filters">
-  ${searchField({label: 'Buscar persona', placeholder: 'Nombre, correo o cargo'})}
-  <div class="choice-list compact"><button class="choice active">Todos</button><button class="choice">Activos</button><button class="choice">Inactivos</button></div>
-  <div class="toggle-replica flex items-center gap-[4px] rounded-[18px] border border-ink-600 bg-ink-700 p-[5px]" role="group" aria-label="Vista del equipo"><button type="button" class="grid size-[42px] min-h-[42px] min-w-[42px] max-md:size-[44px] max-md:min-h-[44px] max-md:min-w-[44px] place-items-center rounded-[13px]" aria-label="Ver como cuadrícula" aria-pressed="false" title="Ver como cuadrícula">${svg(ICON.grid, 18)}</button><button type="button" class="grid size-[42px] min-h-[42px] min-w-[42px] max-md:size-[44px] max-md:min-h-[44px] max-md:min-w-[44px] place-items-center rounded-[13px] bg-fono/15 text-fono-light" aria-label="Ver como lista" aria-pressed="true" title="Ver como lista">${svg(ICON.list, 18)}</button></div>
- </div>
+ <div class="mb-3 min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Equipo de Estudio de Comunicación y Producción Audiovisual del Paraguay: directorio, roles y estado de cada integrante.</p></div>
+ ${teamToolbar()}
  <div class="ops-grid ops-grid-list">
   <div class="bulk-bar" role="status" aria-live="polite"><span class="bulk-count"><b>2</b> seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button">Seleccionar visibles</button><button type="button" class="secondary">Suspender acceso</button><button type="button" class="secondary">Reactivar acceso</button><button type="button" class="text-button">Limpiar</button></div></div>
   <div class="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>
   ${people.map((person) => personCard(person, true)).join('')}
+ </div>
+</section>`,
+  },
+
+  {
+    id: 'equipo-vacio',
+    section: 'Equipo',
+    surface: 'Personas · estado vacío con CTA',
+    kind: 'workspace',
+    body: `
+<section class="panel">
+ <div class="mb-3 min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Equipo de Estudio de Comunicación y Producción Audiovisual del Paraguay: directorio, roles y estado de cada integrante.</p></div>
+ ${teamToolbar('0 de 0 personas')}
+ <div class="ops-grid">
+  ${emptyBlock({title: 'Todavía no hay personas', description: 'Agregá la primera persona del equipo para registrar accesos y remuneraciones.', action: h('button', {type: 'button', className: 'primary'}, h('svg', {width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': 'true'}, h('path', {d: 'M12 5v14M5 12h14'})), 'Agregar primera persona'), className: '[grid-column:1/-1]'})}
  </div>
 </section>`,
   },

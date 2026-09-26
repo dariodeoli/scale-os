@@ -22,3 +22,18 @@ export function teamDirectory<P extends TeamProfile>(profiles:P[],members:TeamMe
  return entries;
 }
 export const teamRoleLabels:Record<string,string>={owner:'Dueño',admin:'Administrador',management:'Gerencia',finance:'Finanzas',sales:'Ventas',production:'Producción',editor:'Editor',viewer:'Solo lectura',collaborator:'Colaborador'};
+
+export type TeamStatusFilter='all'|'active'|'inactive';
+type FilterableTeamEntry={profile:{full_name?:string|null;email?:string|null;active?:boolean}|null;member:TeamMember|null};
+/** Búsqueda y filtro de estado de la toolbar de Equipo (ronda 14, #62).
+ *  El filtro sigue la etiqueta visible de cada tarjeta: los perfiles por su
+ *  estado laboral y los accesos sin ficha por su acceso vigente. */
+export function filterTeamEntries<E extends FilterableTeamEntry>(entries:E[],search:string,status:TeamStatusFilter='all'):E[]{
+ const query=search.trim().toLowerCase();
+ return entries.filter(entry=>{
+  if(query&&!`${entry.profile?.full_name||''} ${entry.profile?.email||''} ${entry.member?.full_name||''} ${entry.member?.email||''}`.toLowerCase().includes(query))return false;
+  if(status==='all')return true;
+  const active=entry.profile?entry.profile.active===true:Boolean(entry.member&&entry.member.active&&!entry.member.removed_at);
+  return status==='active'?active:!active;
+ });
+}
