@@ -1,12 +1,12 @@
 "use client";
-import {useMemo, useState, type Dispatch, type SetStateAction} from 'react';
-import {ArrowLeftRight, Plus, Search} from 'lucide-react';
+import {useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction} from 'react';
+import {ArrowLeftRight, Plus} from 'lucide-react';
 import {ActorAvatar, safePhoto} from '../actor-identity';
 import {ReceiptReversal, ReconciliationWorkspace} from '../daily-controls';
 import {RemoveRecord} from '../archive-controls';
 import {moneyKpi} from '../client-format';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
-import {Aviso} from 'owncoding-ui';
+import {Aviso, SearchField} from 'owncoding-ui';
 import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {FilterToolbar} from '../ui-v2';
 import type {Account, AccountTransfer, Invoice, ModalKind, PaymentRecord, User} from '../workspace-types';
@@ -174,13 +174,7 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
         <div className="flex flex-wrap gap-1">
           {INVOICE_FILTERS.map(([value, label]) => <button key={value} type="button" className={invoiceFilter === value ? 'choice active' : 'choice'} onClick={() => setInvoiceFilter(value)}>{label}</button>)}
         </div>
-        <label className="grid w-full gap-1.5 sm:w-64">
-          <span className="sr-only">Buscar factura o cliente</span>
-          <span className="relative">
-            <Search size={14} aria-hidden="true" className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-mute"/>
-            <input type="search" value={invoiceSearch} onChange={event => setInvoiceSearch(event.target.value)} placeholder="Número o cliente…" autoComplete="off" className="w-full pl-7"/>
-          </span>
-        </label>
+        <SearchField className="w-full sm:w-64 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar factura o cliente" value={invoiceSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setInvoiceSearch(event.target.value)} placeholder="Número o cliente…"/>
       </FilterToolbar>
       {visibleInvoices.length
         ? <ListGrid label="Cobros pendientes" template={INVOICE_TEMPLATE} columns={INVOICE_COLUMNS} minWidthClass="min-w-[60rem]">
