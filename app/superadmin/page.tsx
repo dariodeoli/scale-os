@@ -9,7 +9,10 @@ import {
   ArrowLeft,
   Building2,
   CircleCheck,
+  LayoutDashboard,
+  Network,
   RefreshCw,
+  ScrollText,
   ShieldCheck,
   Ticket,
   Users,
@@ -489,111 +492,159 @@ export default function PlatformAdmin() {
       <PlatformNotices state={state} error={error} busy={busy} bootstrap={bootstrap}/>
       {state ? (
         <>
-          <section className="platform-admin-section platform-admin-context platform-admin-command-deck" aria-labelledby="platform-admin-context-title">
-            <div className="platform-admin-command-copy">
-              <div className="platform-admin-section-heading">
+          <section className="platform-admin-command-center" aria-labelledby="platform-admin-context-title">
+            <div className="platform-admin-command-deck">
+              <div className="platform-admin-command-copy">
+                <div className="platform-admin-command-heading">
+                  <p className="eyebrow">SCALE OS / CONTROL CENTRAL</p>
+                  <h2 id="platform-admin-context-title">Sala de mando de plataforma</h2>
+                  <p>Visión operativa para la flota, los accesos privilegiados y la actividad comercial de Scale OS.</p>
+                </div>
+                <nav className="platform-admin-rail" aria-label="Navegación del centro de control">
+                  <Link href="#resumen">
+                    <LayoutDashboard aria-hidden="true" />
+                    <span>Panorama</span>
+                  </Link>
+                  <Link href="#agencias">
+                    <Building2 aria-hidden="true" />
+                    <span>Flota</span>
+                  </Link>
+                  <Link href="#catalogo">
+                    <Ticket aria-hidden="true" />
+                    <span>Comercial</span>
+                  </Link>
+                  <Link href="#accesos">
+                    <ShieldCheck aria-hidden="true" />
+                    <span>Accesos</span>
+                  </Link>
+                  <Link href="#auditoria">
+                    <ScrollText aria-hidden="true" />
+                    <span>Registro</span>
+                  </Link>
+                </nav>
+              </div>
+              <aside className="platform-admin-command-status" aria-label="Estado del centro de control">
+                <span className="platform-admin-command-icon" aria-hidden="true">
+                  <Network />
+                </span>
                 <div>
-                  <p className="eyebrow">NÚCLEO DE PLATAFORMA</p>
-                  <h2 id="platform-admin-context-title">Administración global</h2>
-                  <p>Una vista de mando para organizaciones, permisos, catálogo comercial y trazabilidad.</p>
+                  <span>Control disponible</span>
+                  <strong>{formatPlatformMetric(state.overview.agencies?.active)} agencias activas</strong>
                 </div>
-              </div>
-              <nav className="platform-admin-section-nav platform-admin-actions" aria-label="Secciones de administración global">
-                <Link className="text-button" href="#resumen">Resumen</Link>
-                <Link className="text-button" href="#agencias">Agencias</Link>
-                <Link className="text-button" href="#accesos">Accesos</Link>
-                <Link className="text-button" href="#catalogo">Catálogo</Link>
-                <Link className="text-button" href="#auditoria">Auditoría</Link>
-              </nav>
+                <Activity aria-hidden="true" className="platform-admin-command-pulse" />
+              </aside>
             </div>
-            <div className="platform-admin-command-status" aria-label="Estado del centro de control">
-              <span className="platform-admin-command-icon" aria-hidden="true">
-                <ShieldCheck />
-              </span>
+            <div className="platform-admin-signal-strip" aria-label="Señales actuales de plataforma">
               <div>
-                <span>Ámbito activo</span>
-                <strong>Plataforma Scale OS</strong>
+                <span>Flota activa</span>
+                <strong>{formatPlatformMetric(state.overview.agencies?.active)} <small>de {formatPlatformMetric(state.overview.agencies?.total)}</small></strong>
               </div>
-              <Activity aria-hidden="true" className="platform-admin-command-pulse" />
+              <div>
+                <span>Identidades cargadas</span>
+                <strong>{formatPlatformMetric(state.users.length)}</strong>
+              </div>
+              <div>
+                <span>Eventos en registro</span>
+                <strong>{formatPlatformMetric(state.audit.length)}</strong>
+              </div>
             </div>
           </section>
 
-          <section id="resumen" className="platform-admin-section platform-admin-overview" aria-labelledby="platform-admin-overview-title">
-            <div className="platform-admin-section-heading">
+          <section className="platform-admin-fleet-zone" aria-labelledby="platform-admin-fleet-title">
+            <div className="platform-admin-zone-heading">
               <div>
-              <p className="eyebrow">PANORAMA ACTUAL</p>
-              <h2 id="platform-admin-overview-title">Resumen de plataforma</h2>
+                <p className="eyebrow">OPERACIÓN DE FLOTA</p>
+                <h2 id="platform-admin-fleet-title">Panorama y organizaciones</h2>
+              </div>
+              <p>Priorizá salud de la red y administración de agencias sin salir del flujo operativo.</p>
+            </div>
+            <div className="platform-admin-fleet-grid">
+              <section id="resumen" className="platform-admin-section platform-admin-overview" aria-labelledby="platform-admin-overview-title">
+                <div className="platform-admin-section-heading">
+                  <div>
+                    <p className="eyebrow">SEÑALES DE PLATAFORMA</p>
+                    <h3 id="platform-admin-overview-title">Resumen de plataforma</h3>
+                  </div>
+                </div>
+                <div className="platform-admin-stats">
+                  <article className="platform-admin-stat-card">
+                    <span className="platform-admin-stat-icon">
+                      <Building2 aria-hidden="true" />
+                    </span>
+                    <div className="platform-admin-stat-copy">
+                      <small>Agencias activas</small>
+                      <strong>
+                        {formatPlatformMetric(state.overview.agencies?.active)}{" "}
+                        <span>
+                          / {formatPlatformMetric(state.overview.agencies?.total)}
+                        </span>
+                      </strong>
+                    </div>
+                  </article>
+                  <article className="platform-admin-stat-card">
+                    <span className="platform-admin-stat-icon">
+                      <Users aria-hidden="true" />
+                    </span>
+                    <div className="platform-admin-stat-copy">
+                      <small>Usuarios registrados</small>
+                      <strong>
+                        {formatPlatformMetric(state.overview.users?.total)}
+                      </strong>
+                    </div>
+                  </article>
+                  <article className="platform-admin-stat-card">
+                    <span className="platform-admin-stat-icon">
+                      <Ticket aria-hidden="true" />
+                    </span>
+                    <div className="platform-admin-stat-copy">
+                      <small>Cupones activos</small>
+                      <strong>
+                        {formatPlatformMetric(state.overview.coupons?.active)}{" "}
+                        <span>
+                          / {formatPlatformMetric(state.overview.coupons?.total)}
+                        </span>
+                      </strong>
+                    </div>
+                  </article>
+                  <article className="platform-admin-stat-card">
+                    <span className="platform-admin-stat-icon">
+                      <CircleCheck aria-hidden="true" />
+                    </span>
+                    <div className="platform-admin-stat-copy">
+                      <small>Suscripciones</small>
+                      <strong className="platform-admin-subscription-summary">
+                        {subscriptionSummary(state.overview.subscriptions)}
+                      </strong>
+                    </div>
+                  </article>
+                </div>
+              </section>
+              <div id="agencias" className="platform-admin-fleet-content">
+                <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/>
               </div>
             </div>
-            <div className="platform-admin-stats">
-              <article className="platform-admin-stat-card">
-                <span className="platform-admin-stat-icon">
-                  <Building2 aria-hidden="true" />
-                </span>
-                <div className="platform-admin-stat-copy">
-                  <small>Agencias activas</small>
-                  <strong>
-                    {formatPlatformMetric(state.overview.agencies?.active)}{" "}
-                    <span>
-                      / {formatPlatformMetric(state.overview.agencies?.total)}
-                    </span>
-                  </strong>
-                </div>
-              </article>
-              <article className="platform-admin-stat-card">
-                <span className="platform-admin-stat-icon">
-                  <Users aria-hidden="true" />
-                </span>
-                <div className="platform-admin-stat-copy">
-                  <small>Usuarios registrados</small>
-                  <strong>
-                    {formatPlatformMetric(state.overview.users?.total)}
-                  </strong>
-                </div>
-              </article>
-              <article className="platform-admin-stat-card">
-                <span className="platform-admin-stat-icon">
-                  <Ticket aria-hidden="true" />
-                </span>
-                <div className="platform-admin-stat-copy">
-                  <small>Cupones activos</small>
-                  <strong>
-                    {formatPlatformMetric(state.overview.coupons?.active)}{" "}
-                    <span>
-                      / {formatPlatformMetric(state.overview.coupons?.total)}
-                    </span>
-                  </strong>
-                </div>
-              </article>
-              <article className="platform-admin-stat-card">
-                <span className="platform-admin-stat-icon">
-                  <CircleCheck aria-hidden="true" />
-                </span>
-                <div className="platform-admin-stat-copy">
-                  <small>Suscripciones</small>
-                  <strong className="platform-admin-subscription-summary">
-                    {subscriptionSummary(state.overview.subscriptions)}
-                  </strong>
-                </div>
-              </article>
-            </div>
           </section>
-
-          <div id="agencias">
-            <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/>
-          </div>
 
           {writable && subscriptionAgency ? (
             <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension}/>
           ) : null}
 
-          <section className="platform-admin-two-columns" aria-label="Acceso y catálogo">
-            <div id="accesos">
-              <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/>
+          <section className="platform-admin-governance-zone" aria-labelledby="platform-admin-governance-title">
+            <div className="platform-admin-zone-heading">
+              <div>
+                <p className="eyebrow">GOBIERNO DE PLATAFORMA</p>
+                <h2 id="platform-admin-governance-title">Comercial y acceso privilegiado</h2>
+              </div>
+              <p>Configuración comercial y controles de identidad agrupados para acciones de administración sensibles.</p>
             </div>
+          <div className="platform-admin-two-columns" aria-label="Catálogo y acceso">
             <div id="catalogo">
               <PlatformCatalog busy={busy} state={state} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/>
             </div>
+            <div id="accesos">
+              <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/>
+            </div>
+          </div>
           </section>
 
           <div id="auditoria">
