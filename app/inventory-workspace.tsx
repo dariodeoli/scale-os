@@ -13,7 +13,7 @@
  * el encabezado comparte la misma grilla que las filas.
  */
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {Aviso,Button,Card,CeldaMoneda,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,Nota,SearchField,SegmentedField} from 'owncoding-ui';
+import {Aviso,Button,Card,CeldaMoneda,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,Nota,SearchField,SegmentedField,primerNombre} from 'owncoding-ui';
 import {Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip} from './ui-v2';
 import {api,Dialog,Editor} from './operations';
 import {SaveActions} from './save-actions';
@@ -60,7 +60,6 @@ export function CategoryIcon({name}:{name?:string|null}){const Icon=name?categor
 
 const statusTone=(status:string)=>status==='available'?'ok':status==='in_use'?'info':status==='maintenance'?'warn':status==='retired'?'mute':'mute';
 const reservationTone=(status:InventoryReservation['status'])=>status==='reserved'?'info':status==='checked_out'?'warn':status==='returned'?'ok':'mute';
-const firstName=(name?:string|null)=>(name||'').trim().split(/\s+/)[0]||'';
 const PHYSICAL_VERIFICATION_MAX_AGE_DAYS=30;
 const PHYSICAL_VERIFICATION_MAX_AGE_MS=PHYSICAL_VERIFICATION_MAX_AGE_DAYS*24*60*60*1000;
 type InventoryAttentionFilter='missing_value'|'physical_verification'|'';
@@ -78,7 +77,7 @@ function VerificationStamp({item,empty}:{item:InventoryItem;empty:ReactNode}){
  return <span className="inline-flex min-w-0 items-center gap-1.5" data-tone={tone}>
   <span role="img" title={`Control: ${verificationLabel(item.last_verification_result)}`} aria-label={`Control: ${verificationLabel(item.last_verification_result)}`} className={tone==='ok'?'text-ok':tone==='warn'?'text-warn':tone==='bad'?'text-bad':'text-mute'}>{tone==='ok'?'✓':tone==='warn'?'!':tone==='bad'?'×':'·'}</span>
   <ActorAvatar name={item.last_verifier_name||'Verificador'} photo={safePhoto(item.last_verifier_photo_url)}/>
-  <span className="min-w-0 text-xs text-mute" title={item.last_verifier_name||'Verificador'}>{firstName(item.last_verifier_name)||'Verificador'}</span>
+  <span className="min-w-0 text-xs text-mute" title={item.last_verifier_name||'Verificador'}>{primerNombre(item.last_verifier_name??'')||'Verificador'}</span>
   <time className="whitespace-nowrap text-[11px] tabular-nums text-mute" dateTime={item.last_verified_at}>{dateTime(item.last_verified_at)}</time>
  </span>;
 }
