@@ -45,8 +45,8 @@ export const CONTRAST_JS=`(()=>{
  for(const el of controls){
   const style=getComputedStyle(el);
   if(skip(el,style))continue;
-  // Un borde de 0px no es una affordance visible: el color computado
-  // (currentColor heredado) no puede medirse como límite del control.
+  // Un borde de ancho 0 (o sin estilo) no se dibuja: no es un límite visible
+  // (evita falsos positivos con el currentColor heredado).
   if(parseFloat(style.borderTopWidth)<=0||style.borderTopStyle==='none')continue;
   const bg=parse(style.backgroundColor);const border=parse(style.borderTopColor);
   const outer=background(el.parentElement||el);
