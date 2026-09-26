@@ -9,7 +9,7 @@ import {roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,type LeadOpportunity} from '../pipeline-summary';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
+import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
 import {useDialogPending} from '../dialog';
 import type {MetricEvent,User} from '../workspace-types';
 
@@ -200,13 +200,13 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
       </div>:null}
 
       {canEdit?<div className="flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" variant="outline" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
+        <Button type="button" variant="ghost" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
         <Button type="button" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
       </div>:null}
 
       {state==='loading' && !rows.length ? <LoadingBlock label="Cargando oportunidades…" lines={4}/> : null}
       {state==='error' && !rows.length ? <ErrorBlock title="No se pudieron cargar las oportunidades." description="Revisá la conexión y volvé a intentar; el tablero conserva las etapas conocidas." onRetry={()=>void load()}/> : null}
-      {state==='ready' && !rows.length ? <EmptyBlock icon="target" title="Todavía no hay oportunidades." description={canEdit?'Cargá el primer lead con su etapa, valor y probabilidad para verlo en el tablero.':'Cuando el equipo cargue una oportunidad, vas a verla acá con su etapa y valor.'}/> : null}
+      {state==='ready' && !rows.length ? <EmptyBlock icon="target" title="Todavía no hay oportunidades." description={canEdit?'Cargá el primer lead con su etapa, valor y probabilidad para verlo en el tablero.':'Cuando el equipo cargue una oportunidad, vas a verla acá con su etapa y valor.'} action={canEdit?<EmptyCta label="Nueva oportunidad" onClick={()=>setEdit('new')} icon={<Plus aria-hidden="true" size={16}/>}/>:undefined}/> : null}
 
       {rows.length?<div className="grid gap-2">
         <div className="flex items-center gap-2 text-[11px] text-mute"><Target size={14}/>Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%.</div>

@@ -329,9 +329,12 @@ test('accesibilidad AA COM: celdas con rol, anuncios en castellano y movimiento 
  const pipeline=read('app/sections/pipeline.tsx');
  const composer=read('app/quote-composer.tsx');
  const dashboard=read('app/growth-dashboard.tsx');
- // Listas: cada celda declara su rol (axe `aria-required-children`).
- assert.equal((clientes.match(/role="cell"/g)||[]).length,6,'la fila de clientes declara sus seis celdas');
- assert.equal((presupuestos.match(/role="cell"/g)||[]).length,8,'la fila de presupuestos declara sus ocho celdas');
+ // Listas: cada celda declara su rol (axe `aria-required-children`); la última
+ // celda de acciones sale de `ListActions` (primitiva común, #63).
+ assert.equal((clientes.match(/role="cell"/g)||[]).length,5,'la fila de clientes declara sus cinco celdas propias');
+ assert.match(clientes,/<ListActions/,'la sexta celda de clientes es la primitiva fija');
+ assert.equal((presupuestos.match(/role="cell"/g)||[]).length,7,'la fila de presupuestos declara sus siete celdas propias');
+ assert.match(presupuestos,/<ListActions/,'la octava celda de presupuestos es la primitiva fija');
  await act(async()=>{renderer=create(<PresupuestosSection loading={false} user={user('owner')} budgetsState="ready" budgets={[{id:'1',number:'P-1',title:'Propuesta',client_name:'Cliente',status:'sent',item_count:1,valid_until:null,subtotal:'100',total:'110',currency:'PYG'},{id:'2',number:'P-2',title:'Otra',client_name:'Cliente',status:'draft',item_count:1,valid_until:null,subtotal:'100',total:'110',currency:'PYG'}] as never} invoices={[] as never} budgetKpis={{totals:new Map(),drafts:1,accepted:0,expiring:0}} summary={{} as never} loadBudgets={()=>{}} setBudgets={()=>{}}/>);});
  assert.equal(renderer.root.findAllByProps({role:'cell'}).length,16,'las filas renderizadas exponen celdas, no hijos sueltos');
  act(()=>renderer.unmount());

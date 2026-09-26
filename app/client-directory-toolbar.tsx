@@ -5,11 +5,10 @@
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
 import {Button, Label, SearchField, Select} from 'owncoding-ui';
-import {ViewSwitch} from './ui-v2';
-import {CLIENT_TABLE_MIN_WIDTH,useDenseTableFit} from './use-dense-table';
+import {ViewSwitch, useDenseTableFit} from './ui-v2';
+import {CLIENT_TABLE_MIN_WIDTH, directorySummaryText} from './client-directory-data';
 import { clientStatuses } from "./client-status";
 import type { CollectionView } from "./view-toggle";
-import {directorySummaryText} from "./client-directory-data";
 
 // La lógica pura vive en ./client-directory-data; se reexporta para no romper
 // a los consumidores existentes (el shell importa filterClientDirectory de acá).

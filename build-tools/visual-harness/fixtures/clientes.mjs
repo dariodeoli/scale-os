@@ -31,7 +31,7 @@ const money = (value, currency = 'PYG') => new Intl.NumberFormat('es-PY', {style
 const MONEY_TONE = {ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', mute: 'text-mute', info: 'text-info'};
 const MoneyText = ({valor, currency = 'PYG', tono = '', className = ''}) => h('span', {className: `inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className}`.trim()}, money(valor, currency));
 
-/* ── Réplica de app/ui-v2.tsx (ListGrid/ListRow: mismas clases) ─────────────── */
+/* ── Réplica de app/ui-v2.tsx (ListGrid/ListRow/ListActions: mismas clases) ── */
 const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_20rem]';
 const CLIENT_COLUMNS = [
   {key: 'client', label: 'Cliente'},
@@ -42,10 +42,10 @@ const CLIENT_COLUMNS = [
   {key: 'actions', label: 'Acciones'},
 ];
 
-const ListGrid = ({label, template, columns, minWidthClass = 'min-w-[48rem]', children}) => h('div', {role: 'table', 'aria-label': label, className: 'silent-scroll min-w-0 overflow-x-auto com-table-fixed-actions'},
+const ListGrid = ({label, template, columns, minWidthClass = 'min-w-[48rem]', children}) => h('div', {role: 'table', 'aria-label': label, className: 'silent-scroll min-w-0 overflow-x-auto'},
   h('div', {className: minWidthClass},
     h('div', {role: 'row', className: `grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`},
-      columns.map((column, index) => h('span', {key: column.key, role: 'columnheader', className: `${index === columns.length - 1 ? 'text-right' : 'text-left'} whitespace-nowrap`}, column.label))),
+      columns.map((column, index) => h('span', {key: column.key, role: 'columnheader', className: `${index === columns.length - 1 ? 'text-right list-actions-head' : 'text-left'} whitespace-nowrap`}, column.label))),
     h('div', {role: 'rowgroup'}, children)));
 
 /* ── Réplica de app/client-status + ui-v2.StateChip ────────────────────────── */
@@ -173,7 +173,7 @@ const clientRow = (client) => h('div', {
         ? [h('b', {key: 'projects', className: 'tabular-nums text-fore'}, client.projects), ' proyectos · ', h('b', {key: 'pieces', className: 'tabular-nums text-fore'}, client.pieces), ' piezas']
         : 'Sin proyectos activos'),
     client.due ? h('span', {className: 'block whitespace-nowrap'}, 'Próxima entrega ', h('b', {className: 'tabular-nums text-fore'}, client.due)) : null),
-  h('div', {role: 'cell', className: 'client-row-actions silent-scroll flex min-w-0 items-center gap-1 overflow-x-auto [justify-content:safe_flex-end]'},
+  h('div', {role: 'cell', className: 'list-actions client-row-actions silent-scroll'},
     h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),
     client.phone ? h('a', {className: 'text-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer'}, WhatsAppIcon, 'WhatsApp') : null,
     h('button', {type: 'button', className: 'text-button'}, client.archived ? 'Reactivar' : 'Archivar'),
