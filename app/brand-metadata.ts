@@ -1,6 +1,7 @@
 import type {Metadata, Viewport} from 'next';
 
 const appOrigin='https://app.scaleparaguay.com';
+export {appOrigin};
 
 // The authenticated product must never compete with the public landing in search.
 // Public acquisition metadata belongs to sistema.scaleparaguay.com instead.
