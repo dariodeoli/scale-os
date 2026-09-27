@@ -34,6 +34,8 @@ type ProduccionSectionProps = {
   productionClientId: string;
   preferenceWarning: string;
   updatePreferences: (change: Partial<WorkspacePreferences>) => void;
+  /** El shell está releyendo clientes/proyectos: no decorar identidad hasta el dato fresco. */
+  identityLoading?: boolean;
   projects: Project[];
   user: User | null;
   setActive: (label: string) => void;
@@ -50,14 +52,14 @@ type ProduccionSectionProps = {
   load?: () => Promise<void>;
 };
 const VIEW_OPTIONS: [string, string, string][] = [['Tablero','Tablero','grid'],['Mi día','Mi día','clock'],['Calendario','Calendario','calendar'],['Lista y lotes','Lista y lotes','list']];
-export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, updatePreferences, projects, user, setActive, setDetail, createOrder}: ProduccionSectionProps){
+export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, updatePreferences, projects, user, setActive, setDetail, createOrder, identityLoading=false}: ProduccionSectionProps){
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
   const today=useLocalCalendarDay();
   const filters=useMemo(()=>({clientId:selectedProductionClient,mine:preferences.production.mine,week:preferences.production.week,userId:String(user?.id||''),today}),[selectedProductionClient,preferences.production.mine,preferences.production.week,user?.id,today]);
   const filtered=boardFiltersActive(filters);
   const boardData=useBoardData({board:productionView==='Tablero',planner:productionView!=='Tablero',filters,refresh:0});
   // La tarjeta dibuja el logo y el color del cliente: se decoran las filas cargadas.
-  const decorate=(order:WorkOrder)=>{const project=projects.find(candidate=>String(candidate.id)===String(order.project_id));const client=clients.find(candidate=>String(candidate.id)===String(project?.client_id));return {...order,client_logo_url:client?.logo_url,client_color_key:client?.color_key};};
+  const decorate=(order:WorkOrder)=>{const project=projects.find(candidate=>String(candidate.id)===String(order.project_id));const client=clients.find(candidate=>String(candidate.id)===String(project?.client_id));return {...order,client_logo_url:identityLoading?undefined:client?.logo_url,client_color_key:identityLoading?undefined:client?.color_key};};
   const visibleColumns=useMemo(()=>{
     const out:Record<string,WorkOrderCard[]>={};
     for(const status of statuses){
