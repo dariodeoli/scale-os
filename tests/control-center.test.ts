@@ -52,7 +52,7 @@ const recursos=navGroups.find(([group])=>group==='Recursos');
 assert(recursos&&recursos[1].join(',')==='Inventario,Estudio,Equipo','Recursos agrupa los dos reservables y después Equipo (refine OPS #70)');
 // Contrato del encabezado navegable (#72): el clic de un grupo va a su primer módulo.
 const firstModule=(group:string)=>navGroups.find(([label])=>label===group)?.[1][0];
-assert.equal(firstModule('Flujo'),'Pipeline','clic en Flujo navega a Pipeline');
+assert.equal(firstModule('Flujo'),'Producción','clic en Flujo navega a Producción (primer módulo del grupo)');assert.deepEqual(navGroups.find(([group])=>group==='Flujo')?.[1],['Producción','Pipeline','Clientes','Presupuestos','Proyectos'],'Flujo lista Producción primero y Pipeline segundo (issue #78)');
 assert.equal(firstModule('Recursos'),'Inventario','clic en Recursos navega a Inventario');
 assert.equal(firstModule('Finanzas'),'Finanzas','clic en Finanzas navega a Finanzas');
 assert.equal(moduleNavGroup('Sin acceso'),'','fuera del nav no hay grupo activo');
