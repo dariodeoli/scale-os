@@ -2,6 +2,21 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.138
+
+### Finanzas
+
+- **Buscadores de la librería** en Finanzas (Cobros pendientes) y Mora: lupa, botón de limpiar y `aria-label` del campo compartido, con target de limpieza de 44 px en mobile.
+- **Hallazgo para el sistema**: el CSS base de la app pisa el padding de los `Input`/`SearchField` de la línea v2 (la lupa se montaba sobre el texto); FIN lo compensó por uso y queda para DSN resolverlo en la base, porque afecta a todas las verticales.
+- **Auditoría de adopción FIN documentada** (con capturas antes/después): quedan listos `MoneyInput`, overlays con `useDialogPending`, fechas y `Vencimiento`, `SectionState`, `PercentField` y los chips AA para la próxima pasada.
+
+## v1.0.137
+
+### Superadmin
+
+- **Centro de control rediseñado**: cabecera de comando con estado del centro y pulso, zona de **flota** (agencias) y zona de **gobernanza**, tablero de señales y tarjetas de métricas.
+- Riel interno de navegación, títulos por zona y badge propio: el panel global queda compacto y organizado por secciones.
+
 ## v1.0.136
 
 ### Plataforma
