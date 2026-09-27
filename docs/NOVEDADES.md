@@ -2,6 +2,30 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.142
+
+### Comercial
+
+- **Lista de Clientes más fina**: las pistas del contrato denso entran ya en 1440 (antes la vista lista caía en fichas de 200 px y parecía cuadrícula); la fila queda en el piso del contrato (44 px) con separadores suaves, datos a 11 px y acciones discretas de 28 px (WhatsApp icon-only). La cuadrícula no cambia.
+- **Cobros en una línea**: chip y monto comparten fila; si un monto extremo no entra, baja alineado a la derecha en vez de pisar la columna siguiente.
+- **Ficha de la vista lista**: datos en línea con detalle al pasar el cursor en escritorio y orden de fila real desde 1280; en el celular conserva el apilado táctil con áreas de 44 px.
+- **Nombre único**: el apartado de Pipeline dice “Pipeline” en todos lados (se retira “Oportunidades”/“comercial” del código).
+
+### Navegación
+
+- **Flujo arranca por Producción**: el grupo queda Producción · Pipeline · Clientes · Presupuestos · Proyectos. Por la regla del encabezado navegable, el clic en Flujo abre `/produccion` y Pipeline sigue como segunda hoja (`/pipeline`). Los redirects históricos no cambian.
+
+## v1.0.141
+
+### Operaciones
+
+- **Barra compacta de Producción**: la toolbar operativa del tablero ocupa menos espacio y queda alineada al rediseño.
+
+### Sistema y formularios
+
+- **Fechas y avisos de vencimiento propios**: formateo de fechas y tono de vencimiento con implementación estable de la app.
+- **Envío único propio**: el guardado de un solo disparo vuelve a ser de la app, evitando dobles envíos y regresiones del puente.
+
 ## v1.0.140
 
 ### Librería y sistema de diseño
