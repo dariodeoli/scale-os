@@ -1,4 +1,5 @@
 "use client";
+import {Aviso} from 'owncoding-ui';
 import {useEffect,useState} from 'react';
 import {api,Dialog} from './operations';
 import {notify} from './feedback';
@@ -26,7 +27,7 @@ export function RemoveRecord({kind,id,name,role,done}:{kind:string;id:string;nam
   {kind==='accounts'&&<p className="form-note">Solo se pueden retirar cuentas con saldo cero. Su historial seguirá disponible.</p>}
   {kind==='collaborators'&&<p className="form-note">Esto retira el perfil del colaborador, no su acceso. Para revocar el acceso usá Equipo.</p>}
   {kind==='inventory'&&<p className="form-note">Archivar no equivale a dar de baja un activo: no modifica su valor patrimonial.</p>}
-  {error&&<p className="error" role="alert">{error}</p>}
+  {error&&<Aviso tono="error">{error}</Aviso>}
   <div className="inline-actions"><button className="secondary" disabled={busy} onClick={()=>setOpen(false)}>Cancelar</button><button className="secondary danger" disabled={busy} onClick={async()=>{setBusy(true);try{await api(`/api/agency/${kind}/${id}`,{},'DELETE');await done();setOpen(false);}catch(e){setError(errorMessage(e));}finally{setBusy(false);}}}>{busy?'Procesando…':access?'Confirmar: quitar acceso':'Confirmar: mover a papelera'}</button></div>
  </Dialog>}</>;
 }

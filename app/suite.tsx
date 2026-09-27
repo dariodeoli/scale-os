@@ -19,7 +19,7 @@ import {api,Dialog,Editor,Field,money} from './operations';
 import {roleCan} from './capabilities';
 import {SelectCustom} from './profile-controls';
 import {useDialogPending} from './dialog';
-import {normalizarNombre} from 'owncoding-ui';
+import {Aviso,normalizarNombre} from 'owncoding-ui';
 import {PHONE_HELP} from './field-rules';
 import {QuoteComposer} from './quote-composer';
 import {PlanComparison} from './plan-comparison';
@@ -168,14 +168,14 @@ export function CouponRedeem({role,onRedeemed}:{role:string;onRedeemed?:()=>void
   <p className="form-note">Cada cupón se puede canjear una sola vez por empresa. No cobra ni guarda datos de pago.</p>
  </section>;
 }
-export function SettingsWorkspace(){ const {setCurrency}=useCompanyCurrency();const [settings,setSettings]=useState<Row|null>(null),[rates,setRates]=useState<Row[]>([]),[notice,setNotice]=useState('');
- useEffect(()=>{let active=true;void api<{settings:Row}>('/api/agency/settings').then(s=>{if(active)setSettings(s.settings);}).catch(e=>{if(active)setNotice(err(e));});void api<{records:Row[]}>('/api/agency/exchange-rates').then(r=>{if(active)setRates(r.records);}).catch(e=>{if(active)setNotice(err(e));});return()=>{active=false;};},[]);
+export function SettingsWorkspace(){ const {setCurrency}=useCompanyCurrency();const [settings,setSettings]=useState<Row|null>(null),[rates,setRates]=useState<Row[]>([]),[notice,setNotice]=useState(''),[noticeTone,setNoticeTone]=useState<'ok'|'danger'>('ok');
+ useEffect(()=>{let active=true;void api<{settings:Row}>('/api/agency/settings').then(s=>{if(active)setSettings(s.settings);}).catch(e=>{if(active){setNotice(err(e));setNoticeTone('danger');}});void api<{records:Row[]}>('/api/agency/exchange-rates').then(r=>{if(active)setRates(r.records);}).catch(e=>{if(active){setNotice(err(e));setNoticeTone('danger');}});return()=>{active=false;};},[]);
  const latestRate=rates[0],rateIsValid=latestRate&&validPygRate(latestRate.usd_to_pyg);
  return <div className="settings-slice ops-stack">
   <section className="panel settings-card settings-company-card" aria-labelledby="company-settings-title">
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Building2 size={18}/></span><div><h2 id="company-settings-title">Empresa</h2><p>Datos que identifican a esta empresa y valores predeterminados para nuevos formularios.</p></div></div>
-   {notice&&<p className="settings-notice" role="status">{notice}</p>}
-   {settings&&<Editor columns fields={[{key:'name',label:'Nombre de la empresa'},{key:'legal_name',label:'Razón social',optional:true,section:'Datos fiscales y contacto'},{key:'tax_id',label:'RUC',optional:true,section:'Datos fiscales y contacto'},{key:'phone',label:'Teléfono',type:'phone',optional:true,section:'Datos fiscales y contacto',help:PHONE_HELP},{key:'address',label:'Dirección',optional:true,wide:true,section:'Datos fiscales y contacto'},{key:'default_currency',label:'Moneda predeterminada',choices:currencies}]} defaults={Object.fromEntries(['name','legal_name','tax_id','phone','address','default_currency'].map(k=>[k,str(settings,k)]))} save={async v=>{const result=await api<{default_currency:typeof currencies[number]['value']}>('/api/agency/settings',{...v,onboarding_completed:true},'PATCH');setCurrency(result.default_currency);setSettings({...settings,...v,default_currency:result.default_currency});setNotice('Datos guardados. La moneda predeterminada se aplicará a nuevos formularios.');}}/>}
+   {notice&&<Aviso tono={noticeTone}>{notice}</Aviso>}
+   {settings&&<Editor columns fields={[{key:'name',label:'Nombre de la empresa'},{key:'legal_name',label:'Razón social',optional:true,section:'Datos fiscales y contacto'},{key:'tax_id',label:'RUC',optional:true,section:'Datos fiscales y contacto'},{key:'phone',label:'Teléfono',type:'phone',optional:true,section:'Datos fiscales y contacto',help:PHONE_HELP},{key:'address',label:'Dirección',optional:true,wide:true,section:'Datos fiscales y contacto'},{key:'default_currency',label:'Moneda predeterminada',choices:currencies}]} defaults={Object.fromEntries(['name','legal_name','tax_id','phone','address','default_currency'].map(k=>[k,str(settings,k)]))} save={async v=>{const result=await api<{default_currency:typeof currencies[number]['value']}>('/api/agency/settings',{...v,onboarding_completed:true},'PATCH');setCurrency(result.default_currency);setSettings({...settings,...v,default_currency:result.default_currency});setNotice('Datos guardados. La moneda predeterminada se aplicará a nuevos formularios.');setNoticeTone('ok');}}/>}
   </section>
   <section className="panel settings-card" aria-labelledby="exchange-settings-title">
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><ChartNoAxesCombined size={18}/></span><div><h2 id="exchange-settings-title">Cotización USD / PYG</h2><p>Referencia por fecha; no modifica saldos ni convierte movimientos anteriores.</p></div></div>

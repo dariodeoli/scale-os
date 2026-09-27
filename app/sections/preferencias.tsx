@@ -1,5 +1,5 @@
 "use client";
-import {Select} from 'owncoding-ui';
+import {Aviso,Select} from 'owncoding-ui';
 import {Settings,SlidersHorizontal} from 'lucide-react';
 import {startupChoices} from '../workspace-preferences';
 import type {StartupPreference,WorkspacePreferences} from '../workspace-preferences';
@@ -32,7 +32,7 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
    <Kpi label="Filtros del tablero" valor={filterCount} hint="Se editan desde Producción"/>
    <Kpi label="Alcance" valor="Este navegador" hint="No se sincroniza entre dispositivos"/>
   </KpiStrip>
-  {preferenceWarning?<p role="status" className={CARD+' text-xs text-warn'}>{preferenceWarning}</p>:null}
+  {preferenceWarning?<Aviso tono="warn">{preferenceWarning}</Aviso>:null}
   <div className={`${CARD} grid gap-4`}>
    <div className="flex items-start gap-3">
     <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute" aria-hidden="true"><Settings size={18}/></span>
