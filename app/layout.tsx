@@ -9,4 +9,11 @@ import {scaleMetadata,viewport} from './brand-metadata';
 
 export const metadata=scaleMetadata;
 export {viewport};
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="es"><head><script dangerouslySetInnerHTML={{__html:`try{var t=localStorage.getItem('scale-theme');if(t==='dark')document.documentElement.dataset.theme='dark';}catch(e){}`}}/></head><body>{children}<NotificationCenter/></body></html>; }
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="es"><head><script dangerouslySetInnerHTML={{__html:`try{var t=localStorage.getItem('scale-theme');if(t==='dark')document.documentElement.dataset.theme='dark';}catch(e){}`}}/>
+  {/* Fuentes críticas del marco (issue #76): Outfit latin (variable 400–700,
+      la del load page y el shell) y DM Mono 400 latin (caption del riel).
+      El preload arranca la descarga junto con el CSS y, con
+      `font-display: optional` en fonts.css, no hay swap tardío. */}
+  <link rel="preload" href="/fonts/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2" as="font" type="font/woff2" crossOrigin="anonymous"/>
+  <link rel="preload" href="/fonts/s/dmmono/v16/aFTU7PB1QTsUX8KYthqQBK6PYK0.woff2" as="font" type="font/woff2" crossOrigin="anonymous"/>
+ </head><body>{children}<NotificationCenter/></body></html>; }
