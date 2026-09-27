@@ -1,17 +1,13 @@
 "use client";
-import {useRef,useState,type BaseSyntheticEvent} from 'react';
+import {useSingleFlightSubmit as useSingleFlightSubmitBase} from 'owncoding-ui';
+import type {BaseSyntheticEvent} from 'react';
 
-// Lock before asynchronous validation, not only when the network request starts.
-// A second submit must not release another request's pending state.
-export function useSingleFlightSubmit(submit:(event?:BaseSyntheticEvent)=>Promise<void>){
- const running=useRef(false);
- const [pending,setPending]=useState(false);
- async function onSubmit(event:BaseSyntheticEvent){
-  event.preventDefault();
-  if(running.current)return;
-  running.current=true;setPending(true);
-  try{await submit(event);}
-  finally{running.current=false;setPending(false);}
- }
- return {pending,onSubmit};
+/**
+ * Puente al envío único de owncoding-ui v0.39 (cosecha ScaleOS #2): el bloqueo
+ * empieza antes de la validación asíncrona y un segundo envío se ignora.
+ * Conserva la API local (`pending`) mientras los import sites migran.
+ */
+export function useSingleFlightSubmit(submit:(event?:BaseSyntheticEvent)=>Promise<void>|void){
+ const {pendiente,onSubmit}=useSingleFlightSubmitBase(submit);
+ return {pending:pendiente,onSubmit};
 }

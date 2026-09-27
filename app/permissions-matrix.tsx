@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState, type ChangeEvent} from 'react';
 import {ChevronDown,ShieldCheck} from 'lucide-react';
-import {Switch} from 'owncoding-ui';
+import {Aviso,Switch} from 'owncoding-ui';
 import {api,Dialog} from './operations';
 import {teamRoleLabels} from './team-directory';
 import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,PageHeader,StateChip} from './ui-v2';
@@ -92,7 +92,7 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
  return <div className="grid gap-4" aria-busy={loading||busy}>
   <p className="flex items-start gap-2 text-xs text-mute"><ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0"/> Definí qué puede hacer cada cargo. El Dueño siempre conserva todos los permisos. Los cambios se guardan por empresa y se auditan.</p>
   {error?<ErrorBlock title="No pudimos guardar el permiso" description={error} onRetry={()=>void load()}/>:null}
-  {notice?<p role="status" className="text-xs text-ok">{notice}</p>:null}
+  {notice?<Aviso tono="ok" compact>{notice}</Aviso>:null}
   {loading?<LoadingBlock label="Cargando permisos…" lines={4}/>:!data?<EmptyBlock title="Sin datos de permisos" description="El API no devolvió la matriz de capacidades." action={<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>}/>:<>
    {explorer&&<>
     <KpiStrip>

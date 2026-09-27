@@ -4,7 +4,7 @@
 import Link from "next/link";
 import {ArrowLeft, CircleAlert, KeyRound, RefreshCw, ShieldAlert} from "lucide-react";
 import {appHome, type BootstrapStatus, type State} from "./model";
-import {Skeleton} from 'owncoding-ui';
+import {Aviso,Skeleton} from 'owncoding-ui';
 
 const SURFACE = "grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4";
 const ICON = "grid size-10 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute";
@@ -49,7 +49,7 @@ export function PlatformNotices({state, error, busy, bootstrap}: {state: State |
       <span className={ICON} aria-hidden="true"><CircleAlert size={20}/></span>
       <div className="min-w-0">
         <h2 className="text-[17px] font-semibold tracking-tight text-fore">No pudimos actualizar el control global</h2>
-        <p className="mt-1 break-words text-xs text-bad">{error}</p>
+        <Aviso tono="error" compact className="mt-1">{error}</Aviso>
       </div>
     </section> : null}
     {busy && !state ? <section className={`${SURFACE} sm:grid-cols-[auto_minmax(0,1fr)]`} role="status" aria-busy="true">

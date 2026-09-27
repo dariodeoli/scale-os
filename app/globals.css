@@ -52,9 +52,6 @@ html[data-theme="dark"] .my-profile-name input{box-shadow:inset 0 1px 0 rgb(255 
 /* Dark polish: deeper shell, clearer borders and readable chips. */
 html[data-theme="dark"] .comment-composer textarea{box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
 html[data-theme="dark"] .assignee-picker .assignee-selected li{box-shadow:inset 0 1px 0 rgb(255 255 255 / 4%)}
-html[data-theme="dark"] .team-access-status.is-active{border-color:color-mix(in srgb,var(--success) 42%,transparent);background:var(--success-soft);color:var(--success)}
-html[data-theme="dark"] .team-access-status.is-suspended{border-color:color-mix(in srgb,var(--danger) 42%,transparent);background:var(--danger-soft);color:var(--danger)}
-html[data-theme="dark"] .team-access-status.is-removed{border-color:color-mix(in srgb,var(--warning) 42%,transparent);background:var(--warning-soft);color:var(--warning)}
 html[data-theme="dark"] .forecast-balance-fill.income{background:linear-gradient(90deg,var(--success),color-mix(in srgb,var(--success) 45%,var(--canvas)))}
 html[data-theme="dark"] .forecast-balance-fill.expense{background:linear-gradient(90deg,var(--danger),color-mix(in srgb,var(--danger) 45%,var(--canvas)))}
 html[data-theme="dark"] .forecast-balance-fill.negative{background:linear-gradient(90deg,var(--danger),color-mix(in srgb,var(--danger) 55%,#000))}

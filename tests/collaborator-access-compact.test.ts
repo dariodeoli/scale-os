@@ -26,12 +26,13 @@ test('collaborator identity is rendered by its card, while access keeps only sta
  assert.match(operations,/\{p\.email\|\|'Sin correo'\}/);
  assert.doesNotMatch(operations,/Cargo: \{p\.job_title/);
  assert.doesNotMatch(access,/ActorIdentity|team-access-member|team-access-help/);
- assert.match(access,/data-access-state=\{state\.className\.slice\(3\)\}/);
+ assert.match(access,/ChipEstado/);
 });
 
-test('suspended access has a dedicated semantic badge and collaborator photo uses the compact opt-in',()=>{
- assert.match(access,/className:'is-suspended'/);
- assert.match(accessCss,/\.team-access-status\.is-suspended\{border-color:#b42318;background:#fef0ef;color:#8d1812\}/);
+test('suspended access uses the canonical chip with bad tone and collaborator photo uses the compact opt-in',()=>{
+ assert.match(access,/estado:'suspendido',etiqueta:'Acceso suspendido',tono:'bad'/);
+ assert.doesNotMatch(accessCss,/#(?:b42318|fef0ef|8d1812)/,'el chip ya no hardcodea colores');
+ assert.match(accessCss,/\.team-access-status\{max-width:60%/);
  assert.match(operations,/<PersonPhotoField/);
  assert.match(photo,/compact=false/);
  assert.match(photo,/profile-photo-progressive/);

@@ -1,14 +1,14 @@
 'use client';
 
+import {fechaHora} from 'owncoding-ui';
 import {useEffect,useState} from 'react';
 import {LogOut,Smartphone} from 'lucide-react';
 import {api} from './operations';
 import {StateChip} from './ui-v2';
 
 type Session={id:string;created_at:string;expires_at:string;current:boolean};
-// Reloj 24 h en zona Asunción: contrato de `tests/ux-consistency.test.ts`
-// (hourCycle h23 dentro de este archivo) mientras el resto migra a list-format.
-const when=(value:string)=>new Intl.DateTimeFormat('es-PY',{timeZone:'America/Asuncion',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
+// Reloj 24 h y zona de la empresa desde la util compartida (owncoding-ui v0.39).
+const when=(value:string)=>fechaHora(value,'—',{timeZone:'America/Asuncion'});
 
 // Seguridad de cuenta (issue #46): mismas llamadas y textos, superficie v2.
 export function AccountSecurity({onClosed}:{onClosed:()=>void}){

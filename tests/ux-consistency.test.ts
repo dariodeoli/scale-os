@@ -66,9 +66,11 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
     assert.doesNotMatch(source,/timeStyle:\s*'short'/,`no 12-hour timeStyle survives in ${file}`);
   }
   // El reloj compartido del OPS vive ahora en la capa de datos (spec #44).
-  for(const file of ['app/account-security.tsx','app/deletion-danger-zone.tsx','app/ops-time.ts']){
+  for(const file of ['app/deletion-danger-zone.tsx','app/ops-time.ts']){
     assert.match(read(file),/hourCycle:\s*'h23'/,`${file} keeps the 24-hour clock`);
   }
+  // La seguridad de cuenta usa la util de fechas de la librería (24 h por contrato).
+  assert.match(read('app/account-security.tsx'),/fechaHora\(/,'account security renders dates through the shared 24-hour helper');
   const archive=read('app/archive-controls.tsx');
   assert.match(archive,/TRASH_COLUMNS=\[\{key:'select',label:''\},\{key:'kind',label:'Tipo'\},\{key:'record',label:'Registro'\},\{key:'actions',label:'Acciones'\}\]/,'the trash list shows its column header');
   assert.match(archive,/TRASH_TEMPLATE='grid-cols-\[2rem_7rem_minmax\(16rem,2\.4fr\)_7rem\]'/,'the trash rows share the v2 template literal with their header');

@@ -150,7 +150,7 @@ test('v2 source: wrapping identity, 44px controls and unchanged hidden file inpu
  assert(source.includes('min-w-0')&&source.includes('grid-cols-[minmax(0,1fr)]'),'el perfil no desborda en mobile');
  assert(source.includes('break-words'),'los datos largos (correo) parten línea en vez de cortarse');
  assert(source.includes('data-profile-section=\"access\"')&&source.includes('AccountSecurity'),'la seguridad de cuenta vive en su sección del perfil');
- assert(security.includes("hourCycle:'h23'"),'el reloj de sesiones sigue en 24 h (contrato de ux-consistency)');
+ assert(security.includes('fechaHora('),'el reloj de sesiones usa la util 24 h compartida (contrato de ux-consistency)');
  assert(!/#[0-9a-f]{3,8}\b/i.test(source)&&!/#[0-9a-f]{3,8}\b/i.test(security),'sin colores hardcodeados: tokens del sistema');
  assert(!source.includes('my-profile.css')&&!security.includes('my-profile.css'),'el CSS plano del perfil quedó retirado');
 });
