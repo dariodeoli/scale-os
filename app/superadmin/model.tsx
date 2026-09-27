@@ -1,6 +1,7 @@
 "use client";
 // Modelo y helpers del panel global (issue #46): extraídos de superadmin/page.tsx
 // sin cambios de comportamiento, para descomponer la pantalla por secciones.
+import {fechaDia} from "owncoding-ui";
 import {money as formatMoney} from "../operations";
 
 export type Overview = {
@@ -128,10 +129,8 @@ export function money(value: unknown, currency: unknown) {
 
 export function platformDate(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return "—";
-  const date = new Date(value);
-  return Number.isFinite(date.getTime())
-    ? new Intl.DateTimeFormat("es-PY", { dateStyle: "medium", timeZone: "America/Asuncion" }).format(date)
-    : "—";
+  // Fecha de calendario en la zona de la empresa (util compartida, v0.39).
+  return fechaDia(value, "—", { timeZone: "America/Asuncion" });
 }
 
 export function subscriptionSummary(rows: unknown) {
