@@ -27,7 +27,10 @@ const CLIENT_COLUMNS: Column[] = [
   {key: 'activity', label: 'Actividad'},
   {key: 'actions', label: 'Acciones'},
 ];
-const CLIENT_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.15fr)_7rem_15rem_9rem_20rem]';
+// Plantilla única de la lista densa de clientes (#77): las pistas se ajustaron
+// para que la tabla entre ya en 1440 (antes quedaba en tarjetas y la vista lista
+// se veía como cuadrícula) y la columna de acciones fija use iconos compactos.
+const CLIENT_TEMPLATE = 'grid-cols-[minmax(11rem,1.35fr)_minmax(9.5rem,1.15fr)_6rem_minmax(15rem,1.15fr)_minmax(9rem,.95fr)_14rem]';
 
 const STATE_TONE: Record<string, ChipTone> = {active: 'ok', paused: 'warn', cancelled: 'bad', expired: 'warn', inactive: 'mute'};
 const moraTone = (pay: ClientPaymentStatus): ChipTone => pay.payment_status === 'up_to_date' ? 'ok' : pay.payment_status === 'due_soon' ? 'warn' : pay.days_overdue > 30 ? 'bad' : 'warn';
@@ -66,20 +69,20 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
         <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
       </button>
     </div>
-    <div role="cell" className="min-w-0 text-[11.5px] text-mute">
+    <div role="cell" className="min-w-0 text-[11px] leading-tight text-mute">
       <span className="block truncate" title={client.email || 'Sin email registrado'}>{client.email || 'Sin email registrado'}</span>
       <span className="block truncate" title={`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'} · Cliente desde ${since || 'sin fecha de alta'}`}>{client.phone || 'Sin teléfono'} · RUC {client.tax_id || 'sin registrar'} · desde {since || 'sin fecha'}</span>
     </div>
     <div role="cell" className="min-w-0"><StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip></div>
-    <div role="cell" className="flex min-w-0 items-center justify-between gap-2">
+    <div role="cell" className="flex min-w-0 flex-wrap items-center justify-between gap-2">
       {canSeeBilling ? <>
         {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : <span className="text-[11px] text-mute">Sin datos de cobro</span>}
         {pay && pay.currency && Number(pay.outstanding_amount) > 0
-          ? <MoneyText valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
+          ? <MoneyText className="ml-auto" valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
           : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}
       </> : <span className="text-[11px] text-mute">Sin acceso a cobros</span>}
     </div>
-    <div role="cell" className="min-w-0 text-[11.5px] text-mute">
+    <div role="cell" className="min-w-0 text-[11px] leading-tight text-mute">
       <span className="block truncate" title={stat ? `${stat.projects} proyectos activos · ${stat.pieces} piezas en curso` : 'Sin proyectos activos'}>
         {stat && (stat.projects || stat.pieces) ? <><b className="tabular-nums text-fore">{stat.projects}</b> proyectos · <b className="tabular-nums text-fore">{stat.pieces}</b> piezas</> : 'Sin proyectos activos'}
       </span>
@@ -87,7 +90,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
     </div>
     <ListActions className="client-row-actions silent-scroll">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
-      <WhatsAppButton href={tel}/>
+      <WhatsAppButton compact href={tel} label={`WhatsApp: ${client.name}`}/>
       {client.has_recurring_price !== true && !canManageTerms ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
       {canManage ? <button type="button" className="text-button" disabled={archiveBusy} onClick={onToggleArchive}>{client.active===false?'Reactivar':'Archivar'}</button> : null}
       <span className="client-record-actions"><RecordEditor kind="clients" recordId={client.id} name={client.name} role={role} canManageTerms={canManageTerms} planCta={client.has_recurring_price !== true ? 'icon' : undefined} refresh={refresh}/></span>
@@ -229,7 +232,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
     </div> : null}
 
     {dense
-      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" pinnedActions>{renderClients(liveClients, false)}</ListGrid>
+      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(liveClients, false)}</ListGrid>
       : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(liveClients, true)}</div>}
 
     {!liveClients.length && archivedClients.length && clientStatusFilter !== 'inactive' ? <p className="text-[13px] text-mute" role="status">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p> : null}
@@ -248,7 +251,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
         <summary>Archivados ({archivedClients.length})</summary>
         {dense
-          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" pinnedActions>{renderClients(archivedClients, false)}</ListGrid>
+          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(archivedClients, false)}</ListGrid>
           : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(archivedClients, true)}</div>}
       </details>
     ) : null}

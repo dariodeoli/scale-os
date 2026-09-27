@@ -48,12 +48,12 @@ const user=(role:string)=>({id:'1',role,organization_id:'7',full_name:'Prueba',o
 const nodeFor=(width:number)=>({clientWidth:width});
 
 test('el ancho mínimo del contrato denso suma pistas, espacios y padding',()=>{
- // 75rem de pistas + 5 espacios de 8 px + padding lateral = 1248 px (Clientes).
+ // 64.5rem de pistas + 5 espacios de 8 px + padding lateral = 1080 px (Clientes).
  assert.equal(dense.denseTableMinWidth(75,6),75*16+5*8+8);
  // 93rem de pistas + 7 espacios + padding = 1552 px (Presupuestos).
  assert.equal(dense.denseTableMinWidth(93,8),93*16+7*8+8);
- assert.equal(CLIENT_TABLE_MIN_WIDTH,1248);
- assert.equal(dense.denseTableFits(1247,CLIENT_TABLE_MIN_WIDTH),false,'un píxel menos ya no entra');
+ assert.equal(CLIENT_TABLE_MIN_WIDTH,1080);
+ assert.equal(dense.denseTableFits(1079,CLIENT_TABLE_MIN_WIDTH),false,'un píxel menos ya no entra');
  assert.equal(dense.denseTableFits(1552,dense.denseTableMinWidth(93,8)),true,'el ancho exacto sí entra');
 });
 
