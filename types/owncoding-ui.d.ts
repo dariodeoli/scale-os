@@ -94,4 +94,22 @@ declare module 'owncoding-ui' {
   export function completeSave(cerrar?: () => void, refrescar?: () => void | Promise<void>, opciones?: {avisar?: (mensaje: string) => void}): Promise<boolean>;
   export function cn(...inputs: unknown[]): string;
   export function primerNombre(nombre?: string): string;
+
+  // Cosecha ScaleOS de v0.39 (#75): ciclo de guardado, chips de negocio,
+  // fechas de listas y gráficos. La librería ya publica tipos; el shim local
+  // sigue vivo mientras la fundación resuelve sus gaps (Label.htmlFor,
+  // SegmentedField genérico) que hoy impiden usarlos en toda la app.
+  export function useSingleFlightSubmit(enviar: (evento?: any) => Promise<void> | void): {pendiente: boolean; onSubmit: (evento?: any) => Promise<void>};
+  export function completeSave(cerrar?: () => void, refrescar?: () => void | Promise<void>, opciones?: {avisar?: (mensaje: string) => void}): Promise<boolean>;
+  export const AVISO_REFRESCO: string;
+  export const ChipEstado: any;
+  export function fechaListaCorta(value: unknown, vacio?: string | {timeZone?: string; vacio?: string}, opciones?: {timeZone?: string; vacio?: string}): string;
+  export function fechaLista(value: unknown, vacio?: string | {timeZone?: string; vacio?: string; hora?: string}, opciones?: {timeZone?: string; vacio?: string; hora?: string}): string;
+  export function tonoVencimiento(fecha: unknown, opciones?: {hoy?: unknown; diasAviso?: number}): '' | 'bad' | 'warn';
+  export function diasHasta(fecha: unknown, opciones?: {hoy?: unknown; timeZone?: string}): number | null;
+  export const GraficoBarras: any;
+  export function taxIdValid(value: unknown): boolean;
+  export const MENSAJE_RUC: string;
+  export function normalizeTaxId(value: unknown): string | null;
+  export function limpiarTaxId(value: unknown, max?: number): string;
 }

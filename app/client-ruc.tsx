@@ -6,10 +6,12 @@ import {z} from 'zod';
 import {api,Editor} from './operations';
 import {Dialog,FormActions} from './dialog';
 import {notify} from './feedback';
-import {normalizarNombre} from 'owncoding-ui';
+import {MENSAJE_RUC,normalizarNombre,normalizeTaxId,taxIdValid} from 'owncoding-ui';
 import {listDateFull} from './list-format';
 import {Search,X} from 'lucide-react';
-const schema=z.object({ruc:z.string().trim().transform(v=>v.replace(/[.\s]/g,'')).refine(v=>/^\d{3,12}(?:-\d)?$/.test(v),'Ingresá un RUC con o sin guion y dígito verificador')});
+// La regla del RUC es la de la librería (#75): normaliza puntos/espacios y valida
+// 5–8 dígitos con dígito verificador opcional (nunca se inventa).
+const schema=z.object({ruc:z.string().trim().transform(v=>normalizeTaxId(v)||'').refine(v=>taxIdValid(v),MENSAJE_RUC)});
 type Record={name:string;tax_id:string;tax_state:string;publication_date:string;source:string};
 type ExistingClient={id:string;name:string;legalName?:string;taxId?:string;onUpdated:()=>Promise<void>|void};
 export function ClientRuc({refresh,embedded=false,onCreated,existing}:{refresh:()=>Promise<void>;embedded?:boolean;onCreated?:()=>void;existing?:ExistingClient}){

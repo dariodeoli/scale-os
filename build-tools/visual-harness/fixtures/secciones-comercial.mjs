@@ -34,12 +34,12 @@ const button = (text, variant = 'primary') => `<button type="button" class="inli
 /* ---- Presupuestos: KpiStrip + ListGrid con encabezado y plantilla ------- */
 const BUDGET_COLUMNS = ['Presupuesto', 'Cliente', 'Estado', 'Ítems', 'Vigencia', 'Sin IVA', 'Total · IVA incl.', 'Acciones'];
 const BUDGET_TEMPLATE = 'grid-cols-[minmax(26rem,2.2fr)_minmax(16rem,1.4fr)_7rem_4rem_7rem_9rem_9rem_15rem]';
-const budgetRow = ({number, title, client, tone, state, items, valid, due, subtotal, total, selected = false}) => `<div role="row" class="budget-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${BUDGET_TEMPLATE}">
+const budgetRow = ({number, title, client, tone, state, items, valid, dueTone = '', subtotal, total, selected = false}) => `<div role="row" class="budget-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${BUDGET_TEMPLATE}">
  <div role="cell" class="flex min-w-0 items-center gap-2"><label class="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label="Seleccionar ${number} · ${title}"${selected ? ' checked' : ''}/></label><span class="flex min-w-0 items-baseline gap-2"><b class="shrink-0 font-mono text-[11px] font-semibold text-mute">${number}</b><span class="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title="${title}">${title}</span></span></div>
  <span role="cell" class="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title="${client}">${client}</span>
  <span role="cell" class="min-w-0">${stateChip(tone, state)}</span>
  <span role="cell" class="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">${items}</span>
- <span role="cell" class="list-date min-w-0 whitespace-nowrap text-[11px] text-mute"${due ? ' data-tone="warn"' : ''} title="${valid}">${valid}</span>
+ <span role="cell" class="list-date min-w-0 whitespace-nowrap text-[11px] text-mute"${dueTone ? ` data-tone="${dueTone}"` : ''} title="${valid}">${valid}</span>
  <span role="cell" class="text-right">${moneyText(subtotal, 'text-fore')}</span>
  <span role="cell" class="text-right">${moneyText(total, 'text-[13.5px] text-fore')}</span>
  <span role="cell" class="list-actions [&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8"><button type="button" class="text-button">Abrir presupuesto</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${title}" title="Mover a la papelera">🗑</button></span>
@@ -67,9 +67,9 @@ const presupuestosSection = `<section class="directory grid gap-4" aria-label="P
  ].join(''))}
  ${budgetBulkBar(0)}
  ${budgetList([
-  budgetRow({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', due: true, subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00'}),
-  budgetRow({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', due: false, subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000'}),
-  budgetRow({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'}),
+  budgetRow({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', dueTone: 'bad', subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00'}),
+  budgetRow({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000'}),
+  budgetRow({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'}),
  ])}
 </section>`;
 /* Estado con selección activa: barra con acciones y casillas marcadas. */
@@ -82,15 +82,15 @@ const presupuestosLote = `<section class="directory grid gap-4" aria-label="Pres
  ].join(''))}
  ${budgetBulkBar(2)}
  ${budgetList([
-  budgetRow({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', due: true, subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00', selected: true}),
-  budgetRow({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', due: false, subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000', selected: true}),
-  budgetRow({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'}),
+  budgetRow({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', dueTone: 'bad', subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00', selected: true}),
+  budgetRow({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000', selected: true}),
+  budgetRow({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'}),
  ])}
 </section>`;
 
 /* Ronda 14 (#62): vista tarjeta de anchos medios, espejo de BudgetTile
    (app/sections/presupuestos.tsx) sobre la cápsula `budget-hub-*` del sistema. */
-const budgetCard = ({number, title, client, tone, state, items, valid, due, subtotal, total, selected = false}) => `<article class="ops-card budget-hub-card">
+const budgetCard = ({number, title, client, tone, state, items, valid, dueTone = '', subtotal, total, selected = false}) => `<article class="ops-card budget-hub-card">
  <header class="budget-hub-head">
   <span class="flex min-w-0 items-center gap-2"><label class="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label="Seleccionar ${number} · ${title}"${selected ? ' checked' : ''}/></label><b class="shrink-0 font-mono text-[11px] font-semibold text-mute">${number}</b></span>
   ${stateChip(tone, state)}
@@ -99,7 +99,7 @@ const budgetCard = ({number, title, client, tone, state, items, valid, due, subt
  <p class="budget-client truncate" title="${client}">${client}</p>
  <dl class="budget-hub-facts">
   <div><dt>Ítems</dt><dd>${items}</dd></div>
-  <div><dt>Vigencia</dt><dd class="list-date"${due ? ' data-tone="warn"' : ''} title="Vigencia hasta ${valid}">${valid}</dd></div>
+  <div><dt>Vigencia</dt><dd class="list-date"${dueTone ? ` data-tone="${dueTone}"` : ''} title="Vigencia hasta ${valid}">${valid}</dd></div>
   <div class="budget-hub-fact-amount"><dt>Sin IVA</dt><dd>${moneyText(subtotal)}</dd></div>
  </dl>
  <strong class="budget-hub-total">${moneyText(total, 'text-fore')}<small>Total · IVA incl.</small></strong>
@@ -114,9 +114,9 @@ const presupuestosCuadricula = `<section class="directory grid gap-4" aria-label
  ].join(''))}
  ${budgetBulkBar(0)}
  <div class="budget-hub-grid">
-  ${budgetCard({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', due: true, subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00'})}
-  ${budgetCard({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', due: false, subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000'})}
-  ${budgetCard({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', due: false, subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'})}
+  ${budgetCard({number: 'P-2026-014', title: 'Campaña de lanzamiento regional · producción audiovisual integral', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', tone: 'info', state: 'Enviado', items: 12, valid: '25-sept', dueTone: 'bad', subtotal: 'BRL 1.000,00', total: 'BRL 1.100,00'})}
+  ${budgetCard({number: 'P-2026-013', title: 'Retainer mensual de contenidos y social media', client: 'Estudio Ñandú', tone: 'ok', state: 'Aceptado', items: 4, valid: 'Sin fecha', subtotal: 'Gs. 14.500.000', total: 'Gs. 15.950.000'})}
+  ${budgetCard({number: 'P-2026-012', title: 'Cobertura de evento corporativo', client: 'Fundación Niñez y Comunidad', tone: 'mute', state: 'Borrador', items: 2, valid: '30-oct', subtotal: 'US$ 2.400,00', total: 'US$ 2.640,00'})}
  </div>
 </section>`;
 /* Vacío con CTA contextual (#62, ítem 9): espeja ui-v2.EmptyBlock + EmptyCta. */
@@ -214,13 +214,14 @@ const pipelineSection = `<section class="grid gap-4" aria-label="Pipeline comerc
 /* ---- Métricas: tablero de crecimiento (Stat + barras + tabla) ----------- */
 const dayStart = Date.UTC(2026, 7, 22); // 22 ago 2026: 30 días corridos válidos
 const days = Array.from({length: 30}, (_, index) => new Date(dayStart + index * 86_400_000).toISOString().slice(0, 10));
+const shortDay = (iso) => new Intl.DateTimeFormat('es-PY', {timeZone: 'America/Asuncion', day: '2-digit', month: 'short'}).format(new Date(`${iso}T12:00:00Z`)).replace(/\./g, '').replace(/\s+/g, '-');
 const counts = [1024, 987, 0, 1540, 2331, 1204, 876, 990, 1105, 1502, 998, 744, 1310, 1622, 1805, 1201, 933, 1010, 1475, 1320, 1188, 902, 1210, 1660, 1902, 1433, 1108, 995, 1215, 1889];
 const max = Math.max(...counts);
 const growthStat = (text, value, change, sub) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${text}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${value}</div><div class="mt-1.5 flex items-center gap-2 text-xs"><span class="font-medium text-ok">${change}</span><span class="text-mute">${sub}</span></div></div>`;
 const metricasSection = `<div class="grid gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">
  <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div class="min-w-0"><p class="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Captación digital</p><h2 class="mt-1 text-[17px] font-bold tracking-tight text-fore">Visitas y crecimiento</h2></div><label class="flex shrink-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Período<select class="h-11 w-44 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore md:h-9 md:text-sm" aria-label="Período"><option>Últimos 7 días</option><option selected>Últimos 30 días</option><option>Últimos 90 días</option></select></label></header>
  <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">${growthStat('Páginas vistas', '37.479', '128,4%', 'vs. período anterior')}${growthStat('Vistas desde móvil', '18.240', '—', 'Sin base anterior')}${growthStat('Clics en WhatsApp', '1.284', '12,5%', 'vs. período anterior')}</div>
- <section aria-labelledby="growth-evolution"><h3 id="growth-evolution" class="text-sm font-bold text-fore">Evolución diaria · páginas vistas</h3><div role="img" aria-label="Páginas vistas durante 30 días. 37.479 en total." class="mt-2 flex h-40 items-end gap-[3px] rounded-t-lg border border-b-ink-500 border-ink-600 bg-ink-900 px-2 pt-2">${counts.map((count, index) => `<div class="min-w-0 flex-1 rounded-t bg-fono" style="height:${Math.max(1, (count / max) * 100)}%" title="${days[index]}: ${count} vistas"></div>`).join('')}</div><div class="mt-1 flex justify-between gap-2 text-[11px] tabular-nums text-mute"><span>${days[0]}</span><span>${days[days.length - 1]}</span></div></section>
+ <section aria-labelledby="growth-evolution"><h3 id="growth-evolution" class="text-sm font-bold text-fore">Evolución diaria · páginas vistas</h3><div role="img" aria-label="Páginas vistas durante 30 días. 37.479 en total." class="mt-2 flex h-40 items-end gap-[3px] rounded-t-lg border border-b-ink-500 border-ink-600 bg-ink-900 px-2 pt-2">${counts.map((count, index) => `<div class="min-w-0 flex-1 rounded-t bg-fono" style="height:${Math.max(1, (count / max) * 100)}%" title="${days[index]}: ${count} vistas"></div>`).join('')}</div><div class="mt-1 flex justify-between gap-2 text-[11px] tabular-nums text-mute"><span>${shortDay(days[0])}</span><span>${shortDay(days[days.length - 1])}</span></div></section>
  <p class="rounded-lg border border-info/25 bg-info/10 p-2 text-xs text-mute">Son eventos registrados, no personas únicas ni usuarios conectados. Las vistas móviles no se suman al total de páginas. Las comprobaciones de despliegue quedan excluidas.</p>
 </div>`;
 

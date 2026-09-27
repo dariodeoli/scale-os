@@ -1,9 +1,8 @@
 "use client";
 import {useEffect,useState} from 'react';
-import {Aviso} from 'owncoding-ui';
+import {Aviso,fechaListaCorta,tonoVencimiento} from 'owncoding-ui';
 import {Plus,Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';
-import {listDateShort,dueTone} from '../list-format';
 import {BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
 import {Dialog} from '../dialog';
 import {notify} from '../feedback';
@@ -62,8 +61,8 @@ const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pud
 // y el pie queda anclado.
 function BudgetTile({budget,user,canManage,selected,onToggle,refresh}:{budget:Budget;user:User|null;canManage:boolean;selected:boolean;onToggle:()=>void;refresh:()=>Promise<void>}){
   const state=BUDGET_STATE[budget.status]||{label:budget.status,tone:'mute' as ChipTone};
-  const valid=listDateShort(budget.valid_until);
-  const tone=dueTone(budget.valid_until);
+  const valid=fechaListaCorta(budget.valid_until,'Sin fecha');
+  const tone=tonoVencimiento(budget.valid_until);
   return <article className="ops-card budget-hub-card">
     <header className="budget-hub-head">
       <span className="flex min-w-0 items-center gap-2">
@@ -76,7 +75,7 @@ function BudgetTile({budget,user,canManage,selected,onToggle,refresh}:{budget:Bu
     <p className="budget-client truncate" title={budget.client_name}>{budget.client_name}</p>
     <dl className="budget-hub-facts">
       <div><dt>Ítems</dt><dd>{budget.item_count}</dd></div>
-      <div><dt>Vigencia</dt><dd className="list-date" data-tone={tone||undefined} title={valid?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid||'Sin fecha'}</dd></div>
+      <div><dt>Vigencia</dt><dd className="list-date" data-tone={tone||undefined} title={budget.valid_until?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid}</dd></div>
       <div className="budget-hub-fact-amount"><dt>Sin IVA</dt><dd><MoneyText valor={budget.subtotal} currency={budget.currency}/></dd></div>
     </dl>
     <strong className="budget-hub-total"><MoneyText valor={budget.total} currency={budget.currency} className="text-fore"/><small>Total · IVA incl.</small></strong>
@@ -124,8 +123,8 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
   const selectedTitles = selected.map(id=>budgets.find(budget=>String(budget.id)===id)).filter((budget):budget is Budget=>Boolean(budget)).map(budget=>budget.title);
   const row = (budget: Budget) => {
     const state = BUDGET_STATE[budget.status] || {label: budget.status, tone: 'mute' as ChipTone};
-    const valid = listDateShort(budget.valid_until);
-    const tone = dueTone(budget.valid_until);
+    const valid = fechaListaCorta(budget.valid_until,'Sin fecha');
+    const tone = tonoVencimiento(budget.valid_until);
     return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
       <div role="cell" className="flex min-w-0 items-center gap-2">
         {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected.includes(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
@@ -137,7 +136,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
       <span role="cell" className="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title={budget.client_name}>{budget.client_name}</span>
       <span role="cell" className="min-w-0"><StateChip tone={state.tone}>{state.label}</StateChip></span>
       <span role="cell" className="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">{budget.item_count}</span>
-      <span role="cell" className="list-date min-w-0 whitespace-nowrap text-[11px] text-mute" data-tone={tone||undefined} title={valid?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid||'Sin fecha'}</span>
+      <span role="cell" className="list-date min-w-0 whitespace-nowrap text-[11px] text-mute" data-tone={tone||undefined} title={budget.valid_until?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid}</span>
       <span role="cell" className="text-right"><MoneyText valor={budget.subtotal} currency={budget.currency} className="text-fore"/></span>
       <span role="cell" className="text-right"><MoneyText valor={budget.total} currency={budget.currency} className="text-[13.5px] text-fore"/></span>
       <ListActions className="[&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8">
