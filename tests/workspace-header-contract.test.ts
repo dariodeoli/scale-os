@@ -44,6 +44,11 @@ test("workspace header shows the signed-in company once and the sidebar keeps on
   assert.doesNotMatch(drawer, /sidebar-company/);
 });
 
+test("workspace chrome compacts only from desktop while mobile spacing remains unchanged", () => {
+  assert.match(source, /px-4 pb-8 pt-5 md:px-6 md:pb-6 md:pt-4/, "the shared content wrapper preserves mobile padding and reduces desktop vertical chrome");
+  assert.match(source, /workspace-page-header mb-5[\s\S]*?gap-y-3 md:mb-4 md:gap-y-2 max-md:grid/, "the page header preserves mobile spacing and compacts desktop action wrapping");
+});
+
 test("workspace header retains visible focus, 40px desktop controls, 44px mobile targets, and reduced motion", () => {
   // El foco visible vive en la hoja global; el v2 no lo pisa.
   assert.match(globals, /button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible\{outline:3px solid var\(--focus-ring\)/);

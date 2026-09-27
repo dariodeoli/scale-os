@@ -5,8 +5,8 @@
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
 import {Button, Label, SearchField, Select} from 'owncoding-ui';
-import {ViewSwitch, useDenseTableFit} from './ui-v2';
-import {CLIENT_TABLE_MIN_WIDTH, directorySummaryText} from './client-directory-data';
+import {ViewSwitch} from './ui-v2';
+import {directorySummaryText} from './client-directory-data';
 import { clientStatuses } from "./client-status";
 import type { CollectionView } from "./view-toggle";
 
@@ -42,12 +42,10 @@ export function ClientDirectoryToolbar({
   totalCount,
   view,
 }: ClientDirectoryToolbarProps) {
-  // El selector de vista sólo aplica cuando la tabla densa entra (#62); en
-  // anchos medios la sección muestra tarjetas y el control no tendría efecto.
-  const {ref: toolbarRef, fits: tableFits} = useDenseTableFit<HTMLDivElement>(CLIENT_TABLE_MIN_WIDTH);
+  // La preferencia se guarda en el shell por navegador. También se muestra en
+  // pantallas chicas: allí la lista usa fichas compactas, no una tabla recortada.
   return (
     <div
-      ref={toolbarRef}
       className="client-directory-toolbar flex flex-wrap items-end gap-3"
       aria-label="Controles del directorio de clientes"
     >
@@ -65,7 +63,9 @@ export function ClientDirectoryToolbar({
           {clientStatuses.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
         </Select>
       </div>
-      {tableFits ? <ViewSwitch value={view} onChange={onViewChange}/> : null}
+      <div className="client-directory-view-controls" role="group" aria-label="Vista del directorio">
+        <ViewSwitch value={view} onChange={onViewChange}/>
+      </div>
       {query || status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}}>Limpiar filtros</button> : null}
       {children}
       {canCreate && (

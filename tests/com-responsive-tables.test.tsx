@@ -104,7 +104,9 @@ test('la primitiva común de tablas densas vive en ui-v2 y no hay variantes COM 
 test('las secciones COM consumen la primitiva común (#63)',()=>{
  const clientes=read('app/sections/clientes.tsx');
  assert.match(clientes,/useDenseTableFit\(CLIENT_TABLE_MIN_WIDTH\)/,'Clientes mide su contenedor con el hook común');
- assert.match(clientes,/const dense = tableFits && clientView !== 'grid'/,'con la tabla fuera de ancho manda la tarjeta');
+ assert.match(clientes,/const isGridView = clientView === 'grid'/,'la preferencia conserva explícitamente el modo cuadrícula');
+ assert.match(clientes,/const dense = tableFits && !isGridView/,'la tabla densa solo se usa para la vista lista cuando entra en ancho');
+ assert.match(clientes,/client-directory-results--\$\{isGridView \? 'grid' : 'list'\}/,'la vista lista chica conserva fichas compactas en lugar de volver a la cuadrícula');
  assert.match(clientes,/ListGrid label="Clientes"[\s\S]{0,220}?pinnedActions/,'la tabla viva fija su columna con la primitiva');
  assert.match(clientes,/ListGrid label="Clientes archivados"[\s\S]{0,240}?pinnedActions/,'la lista archivada usa el mismo contrato');
  assert.match(clientes,/<ListActions className="client-row-actions silent-scroll">/,'la fila usa la celda ListActions');
@@ -124,8 +126,8 @@ test('las secciones COM consumen la primitiva común (#63)',()=>{
  const pipeline=read('app/sections/pipeline.tsx');
  assert.match(pipeline,/<EmptyCta label="Nueva oportunidad"/,'el vacío del pipeline usa el CTA canónico');
  const toolbar=read('app/client-directory-toolbar.tsx');
- assert.match(toolbar,/import \{ViewSwitch, useDenseTableFit\} from '\.\/ui-v2'/,'el toolbar importa la primitiva común');
- assert.match(toolbar,/\{tableFits \? <ViewSwitch value=\{view\} onChange=\{onViewChange\}\/> : null\}/,'sin tabla densa el selector de vista no se muestra');
+ assert.match(toolbar,/import \{ViewSwitch\} from '\.\/ui-v2'/,'el toolbar importa la primitiva común');
+ assert.match(toolbar,/<div className="client-directory-view-controls" role="group" aria-label="Vista del directorio">[\s\S]*?<ViewSwitch value=\{view\} onChange=\{onViewChange\}\/>/,'el selector de vista sigue disponible y usable sin depender del ancho de la tabla');
 });
 
 const budgets=[

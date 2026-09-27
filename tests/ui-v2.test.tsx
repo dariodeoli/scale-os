@@ -91,7 +91,9 @@ test('patrones v2: encabezado, toolbar, lista y estados salen de una sola pieza'
  await act(async()=>{renderer=create(<PageHeader eyebrow="Comercial" title="Clientes" subtitle="Mostrando 4 de 4" actions={<button>Nuevo cliente</button>}/>);});
  const header=plain(renderer.toJSON());
  assert(header.includes('Comercial')&&header.includes('Clientes')&&header.includes('Mostrando 4 de 4')&&header.includes('Nuevo cliente'));
- assert(!JSON.stringify(renderer.toJSON()).includes('truncate'),'el encabezado no trunca el título');
+ const headerMarkup=JSON.stringify(renderer.toJSON());
+ assert(headerMarkup.includes('mb-4')&&headerMarkup.includes('md:mb-0'),'el encabezado conserva su espacio móvil y deja el hueco de escritorio al padre');
+ assert(!headerMarkup.includes('truncate'),'el encabezado no trunca el título');
 
  await act(async()=>{renderer=create(<FilterToolbar summary="4 de 4"><span>Buscar</span></FilterToolbar>);});
  const toolbar=plain(renderer.toJSON());

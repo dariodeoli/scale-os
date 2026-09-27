@@ -170,7 +170,10 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
   const billingRole = ['owner', 'admin', 'finance'].includes(user?.role || '');
   // La tabla densa sólo entra con ancho suficiente; si no, tarjetas (#62).
   const {ref: tableRef, fits: tableFits} = useDenseTableFit(CLIENT_TABLE_MIN_WIDTH);
-  const dense = tableFits && clientView !== 'grid';
+  const isGridView = clientView === 'grid';
+  // La preferencia de lista usa la tabla cuando entra; en pantallas chicas se
+  // conserva como una lista compacta de fichas, nunca se sustituye por la grilla.
+  const dense = tableFits && !isGridView;
   const renderClients = (list: Client[], asTile: boolean) => list.map(client => {
     const props: ClientRowProps = {
       client,
@@ -227,7 +230,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
 
     {dense
       ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" pinnedActions>{renderClients(liveClients, false)}</ListGrid>
-      : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(liveClients, true)}</div>}
+      : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(liveClients, true)}</div>}
 
     {!liveClients.length && archivedClients.length && clientStatusFilter !== 'inactive' ? <p className="text-[13px] text-mute" role="status">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p> : null}
 
@@ -246,7 +249,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
         <summary>Archivados ({archivedClients.length})</summary>
         {dense
           ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} minWidthClass="min-w-[75rem]" pinnedActions>{renderClients(archivedClients, false)}</ListGrid>
-          : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderClients(archivedClients, true)}</div>}
+          : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(archivedClients, true)}</div>}
       </details>
     ) : null}
   </section>;

@@ -126,7 +126,7 @@ const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left',
  * nombres); si no cabe, envuelve.
  */
 export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyebrow?: string; title: string; subtitle?: ReactNode; actions?: ReactNode; className?: string}) {
-  return <header className={`mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 ${className ?? ''}`}>
+  return <header className={`mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 ${className ?? ''}`}>
     <div className="min-w-0 flex-1">
       {eyebrow && <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute">{eyebrow}</p>}
       <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{title}</h1>
