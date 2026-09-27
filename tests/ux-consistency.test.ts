@@ -9,7 +9,7 @@ test('visible date-time values use the 24-hour clock',()=>{
   assert.match(read('app/list-format.tsx'),/hourCycle:\s*'h23'/,`app/list-format.tsx renders 24-hour time`);
   for(const file of ['app/actor-identity.tsx','app/notification-inbox.tsx','app/presence.tsx','app/productivity-ui.tsx','app/inventory-workspace.tsx']){
     const source=read(file);
-    assert.ok(/listDate(Full|Short)/.test(source)||/hourCycle:'h23'/.test(source),`${file} renders 24-hour time through the shared format`);
+    assert.ok(/listDate(Full|Short)|fechaLista(Corta)?\(/.test(source)||/hourCycle:'h23'/.test(source),`${file} renders 24-hour time through the shared format`);
   }
 });
 

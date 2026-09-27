@@ -34,6 +34,13 @@ function MockDialog({title,children,close}:{title?:string;children:React.ReactNo
 require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(value:string|number,currency:string)=>`${currency} ${value}`,Dialog:MockDialog,Editor:MockEditor}} as NodeModule;
 const dialogPath=require.resolve('../app/dialog');
 require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:()=>undefined}} as NodeModule;
+// Overlays de owncoding-ui (Modal/Drawer/SaveActions): sin DOM real en el
+// entorno de test se usan dobles con el mismo contrato de contexto.
+const uiPath=require.resolve('owncoding-ui');
+const realUi=require('owncoding-ui');
+function MockOverlay({open,onClose,title,children,busy=false}:{open:boolean;onClose:()=>void;title:string;children:React.ReactNode;busy?:boolean}){return open?<CloseContext.Provider value={onClose}><section role="dialog" aria-label={title} aria-busy={busy}><h2>{title}</h2>{children}</section></CloseContext.Provider>:null;}
+function MockLibSaveActions({pendiente=false,children,cancelLabel='Cancelar'}:{pendiente?:boolean;children:React.ReactNode;cancelLabel?:string|false}){const close=React.useContext(CloseContext);return <div>{close&&cancelLabel?<button type="button" className="secondary" disabled={pendiente} onClick={()=>{if(!pendiente)close();}}>{cancelLabel}</button>:null}{children}</div>;}
+require.cache[uiPath]={id:uiPath,filename:uiPath,loaded:true,exports:{...realUi,Modal:MockOverlay,Drawer:MockOverlay,SaveActions:MockLibSaveActions,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:()=>undefined}} as NodeModule;
 const {InventoryItemForm,InventoryDetail}=require('../app/inventory-workspace') as typeof import('../app/inventory-workspace');
 let renderer:ReactTestRenderer,formDone=0,changed=0;
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');

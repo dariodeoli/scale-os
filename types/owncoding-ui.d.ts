@@ -61,6 +61,19 @@ declare module 'owncoding-ui' {
   export const EmailField: any;
   export const SerialField: any;
   export const ListGridToggle: any;
+  export const FormActions: any;
+  export const SaveActions: any;
+  export const Checkbox: any;
+  export const BarraLote: any;
+  export const Vencimiento: any;
+  export const SerialTexto: any;
+  export function useDialogPending(pendiente: boolean): void;
+  export function useDialogClose(): (() => void) | undefined;
+  export function fechaLista(value: unknown, vacio?: string | {timeZone?: string; hora?: string; vacio?: string}, opciones?: {timeZone?: string; hora?: string}): string;
+  export function fechaListaCorta(value: unknown, vacio?: string | {timeZone?: string}, opciones?: {timeZone?: string}): string;
+  export function diasHasta(fecha: unknown, opciones?: {hoy?: Date; timeZone?: string}): number | null;
+  export function tonoVencimiento(fecha: unknown, opciones?: {hoy?: Date; diasAviso?: number}): '' | 'bad' | 'warn';
+  export function completeSave(cerrar?: () => void, refrescar?: () => void | Promise<void>, opciones?: {avisar?: (mensaje: string) => void}): Promise<boolean>;
   export function cn(...inputs: unknown[]): string;
   export function primerNombre(nombre?: string): string;
 }
