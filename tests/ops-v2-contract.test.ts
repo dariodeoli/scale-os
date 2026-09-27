@@ -7,6 +7,7 @@ const uiV2=read('app/ui-v2.tsx');
 const boardData=read('app/board-data.ts'),boardHook=read('app/use-board-data.ts');
 const checklistCss=read('app/work-checklist.css'),orderLinks=read('app/work-order-links.tsx');
 const inventoryHook=read('app/use-inventory-data.ts'),studioHook=read('app/use-studio-data.ts');
+const workspaceShell=read('app/scale-workspace.tsx'),dataCacheSource=read('app/data-cache.ts');
 
 // ── Contrato v2 de OPS (campaña #41, spec #44): Tailwind + owncoding-ui +
 // primitivas de app/ui-v2.tsx. Reemplaza al contrato del rediseño anterior.
@@ -304,3 +305,12 @@ assert.match(projects,/projectRow: \(project: Project\) => ReactNode/,'la secci�
 assert.match(prodFixtures,/row: '\.project-list \[role="rowgroup"\] > \[role="row"\]'/,'el fixture de la lista mide las filas del cuerpo');
 assert.match(prodFixtures,/projectListRow/,'y espeja la fila con acciones de ícono');
 console.log('PASS contrato ronda 7: conmutador v2 en Proyectos y fila con acciones de ícono (44-52)');
+
+// ── Identidad sin foto vieja (issue #81): el tablero no decora con la lista de
+// clientes/proyectos mientras el shell la relee, y editarla la invalida.
+assert.match(workspaceShell,/identityLoading/,'el shell expone si la identidad se está releyendo');
+assert.match(productionSection,/identityLoading\?undefined:client\?\.logo_url/,'el tablero no pinta el logo viejo durante la relectura');
+assert.match(workspaceShell,/identityLoading\?undefined:clients\.find/,'las tarjetas de Proyectos tampoco pintan la identidad vieja');
+assert.match(dataCacheSource,/scale:data-mutated/,'las mutaciones avisan para invalidar la identidad');
+assert.match(workspaceShell,/addEventListener\('scale:data-mutated'/,'el shell escucha las mutaciones');
+assert(shell.includes('^(clients|projects):'),'el shell expira solo la frescura de clientes/proyectos');

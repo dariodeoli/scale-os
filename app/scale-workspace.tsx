@@ -216,6 +216,8 @@ export default function Home() {
   const [guideData,setGuideData]=useState<WorkspaceGuideData>({scope:null,status:'unknown'});
   const dataLoadSequence=useRef(0);
   const dataFreshness=useRef<Record<string,number>>({});
+  const identityLoads=useRef(0);
+  const [identityLoading,setIdentityLoading]=useState(false);
   const contractKnown=useRef(false);
   const [projectsState,setProjectsState]=useState<'loading'|'ready'|'error'>('loading');
   useEffect(()=>{setProjectsState(guideData.status==='error'?'error':guideData.status==='ready'?'ready':'loading');},[guideData.status]);
@@ -285,6 +287,13 @@ export default function Home() {
     window.addEventListener('scale:billing-refresh',refresh);document.addEventListener('visibilitychange',refresh);
     return()=>{disposed=true;clearInterval(timer);controller?.abort();window.removeEventListener('scale:billing-refresh',refresh);document.removeEventListener('visibilitychange',refresh);};
   },[signedIn,user?.id,user?.organization_id]);
+  useEffect(()=>{
+    // Editar un cliente o proyecto invalida la identidad en memoria: la próxima
+    // activación de sección la relee antes de decorar (issue #81).
+    const onMutated=(event:Event)=>{const url=String((event as CustomEvent<{url?:string}>).detail?.url||'');if(!/\/clients(?:\/|$)|\/projects(?:\/|$)|\/work-orders(?:\/|$)/.test(url))return;const next={...dataFreshness.current};for(const key of Object.keys(next))if(/^(clients|projects):/.test(key))delete next[key];dataFreshness.current=next;};
+    window.addEventListener('scale:data-mutated',onMutated);
+    return()=>window.removeEventListener('scale:data-mutated',onMutated);
+  },[]);
   useEffect(()=>{
     let active=true;
     const refreshIdentity=()=>{const now=Date.now();if(now-lastIdentityRefresh.current<15000)return;lastIdentityRefresh.current=now;void request<{user:User}>('/api/auth/me').then(d=>{
@@ -449,6 +458,10 @@ export default function Home() {
     const guideScope=workspaceGuideScope({userId:String(identity.id),organizationId:String(identity.organization_id),role:identity.role,demo:!!identity.demo_owner_user_id});
     const scopeReady=(next:ShellScope)=>scopeResources(next).every(resource=>dataFreshness.current[shellSignature(resource,next[resource])]>0);
     setGuideData({scope:guideScope,status:'loading'});
+    // Identidad de clientes/proyectos: mientras se relee, las pantallas no deben
+    // decorar con la lista vieja (issue #81: el logo anterior se pintaba ~1 s).
+    const identityPending=Boolean(scope.clients||scope.projects);
+    if(identityPending){identityLoads.current+=1;if(identityLoads.current===1)setIdentityLoading(true);}
     const loadedScope=workspacePreferenceKey(String(identity?.id||''),String(identity?.organization_id||''));
     // Una fase del alcance: pide lo que corresponde, valida y aplica el contrato.
     const applyScope=async(next:ShellScope)=>{
@@ -489,6 +502,8 @@ export default function Home() {
       if(sequence!==dataLoadSequence.current)return;
       if(guideData.status!=='ready')setGuideData({scope:guideScope,status:'error'});
       throw cause;
+    }finally{
+      if(identityPending){identityLoads.current=Math.max(0,identityLoads.current-1);if(!identityLoads.current)setIdentityLoading(false);}
     }
   }
   useEffect(()=>{
@@ -685,7 +700,7 @@ export default function Home() {
     finally{setBulkBusy(false);}
   }
   function projectEntry(project:Project){
-    return <ProjectCard key={project.id} project={project} client={clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={selectedProjects.includes(String(project.id))} onSelect={()=>toggleProjectSelected(String(project.id))}>
+    return <ProjectCard key={project.id} project={project} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={selectedProjects.includes(String(project.id))} onSelect={()=>toggleProjectSelected(String(project.id))}>
       <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
       {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
@@ -1081,7 +1096,7 @@ export default function Home() {
         {active==='Preferencias'&&<PreferenciasSection user={user} preferencesReady={preferencesReady} preferences={preferences} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences}/>}
         {active==='Papelera'&&<PapeleraSection load={load}/>}
         {active === "Resumen" && <ResumenSection dataState={shellDataState} guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail}/>}
-        {active==='Producción'&&<ProduccionSection productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} createOrder={canCreateRecord('Producción')?()=>setModal('order'):undefined} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
+        {active==='Producción'&&<ProduccionSection identityLoading={identityLoading} productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} createOrder={canCreateRecord('Producción')?()=>setModal('order'):undefined} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso} onCreateInvoice={openInvoice}/>}
         {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail} onCreate={()=>setModal('client')}/>}
         {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectRow={projectRowEntry} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}

@@ -16,7 +16,7 @@ export async function dataFetch(url:string,init:RequestInit={}):Promise<Response
   !init.signal&&(!init.cache||init.cache==='default')&&
   (!init.credentials||init.credentials==='include')&&Array.from(new Headers(init.headers)).length===0&&
   !/\/members|\/team|\/settings|\/activity|\/notifications|\/inventory-context|\/inventory-reservations|\/custodians|\/productivity\/people/.test(url);
- if(method!=='GET')clearDataCache();
+ if(method!=='GET'){clearDataCache();if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('scale:data-mutated',{detail:{url}}));}
  if(!cacheable){const response=await fetch(url,{...init,signal:init.signal??AbortSignal.timeout(15000)});subscriptionResponse(response);if(method!=='GET'||response.status===401||response.status===403)clearDataCache();return response;}
  const key=scope+':'+url,now=Date.now(),cached=entries.get(key);
  if(cached&&cached.expires>now)return cached.response.clone();
