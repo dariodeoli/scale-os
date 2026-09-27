@@ -349,29 +349,58 @@ const planComparison = `
  * ========================================================================= */
 
 /* ==================================================== 6. SUPERADMIN =======
- * app/superadmin/page.tsx. StatusBadge 183-195; stats 579-633;
- * agencies 635-812; users/coupons 939-1160; audit 1162-1215.
+ * app/superadmin/*.tsx (rediseño #80): KPIs v2, paneles del sistema y listas
+ * densas (`ListGrid`/`ListRow`/`ListActions`) con tarjetas cuando la plantilla
+ * no entra. Mismos datos de ejemplo que la ronda anterior.
  * ========================================================================= */
-const badge = (label, tone = 'neutral') => `<span class="platform-admin-badge" data-tone="${tone}">${label}</span>`;
+const CHIP = {
+  ok: 'bg-ok/15 text-ok-text border-ok/25',
+  warn: 'bg-warn/15 text-warn-text border-warn/25',
+  info: 'bg-fono/15 text-fono-text border-fono/25',
+  mute: 'bg-ink-600 text-mute border-ink-500',
+};
+const chip = (label, tone = 'mute') => `<span class="v2-chip inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${CHIP[tone]}">${label}</span>`;
 
 const platformHeader = `
-<header class="platform-admin-header">
+<header class="platform-admin-header platform-admin-header--global">
  <a href="/" aria-label="Scale OS"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></a>
  <div class="platform-admin-title"><p class="eyebrow">ADMINISTRACIÓN GLOBAL</p><h1>Control de Scale OS</h1><span>Operación, acceso y catálogo comercial</span></div>
  <div class="platform-admin-actions"><button type="button" class="secondary">${svg(I.refresh, 16)}Actualizar</button><a class="text-button" href="/">${svg(I.arrowLeft, 16)}Panel</a></div>
 </header>`;
 
 const platformNotice = `
-<section class="platform-admin-notice">${svg(I.shieldAlert, 18)}<span><strong>Acceso separado por plataforma.</strong> Ser dueño de una agencia no habilita este panel ni sus datos.</span></section>`;
+<section class="platform-admin-notice grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4 sm:grid-cols-[auto_minmax(0,1fr)]">${svg(I.shieldAlert, 18)}<span><strong>Acceso separado por plataforma.</strong> Ser dueño de una agencia no habilita este panel ni sus datos.</span></section>`;
+
+/* Kpi/KpiStrip de app/ui-v2.tsx (Stat de owncoding-ui). */
+const kpi = (label, value, hint, destacado = false) => `
+<div class="relative overflow-hidden rounded-xl border p-4 ${destacado ? 'border-fono/30 bg-gradient-to-br from-fono-dark via-fono to-fono' : 'border-ink-600 bg-ink-800'}">
+ <div class="text-[11px] font-medium uppercase tracking-wider ${destacado ? 'text-onbrand/75' : 'text-mute'}">${label}</div>
+ <div class="mt-1.5 text-2xl font-semibold md:text-3xl ${destacado ? 'text-onbrand' : 'text-fore'}">${value}</div>
+ <div class="mt-1.5 flex items-center gap-2 text-xs"><span class="${destacado ? 'text-onbrand/75' : 'text-mute'}">${hint}</span></div>
+</div>`;
 
 const platformStats = `
-<section class="platform-admin-stats" aria-label="Resumen de plataforma">
- <article class="platform-admin-stat-card"><span class="platform-admin-stat-icon">${svg(I.building, 16)}</span><div class="platform-admin-stat-copy"><small>Agencias activas</small><strong>${whole(1284)} <span>/ ${whole(1301)}</span></strong></div></article>
- <article class="platform-admin-stat-card"><span class="platform-admin-stat-icon">${svg(I.users, 16)}</span><div class="platform-admin-stat-copy"><small>Usuarios registrados</small><strong>${whole(98765)}</strong></div></article>
- <article class="platform-admin-stat-card"><span class="platform-admin-stat-icon">${svg(I.ticket, 16)}</span><div class="platform-admin-stat-copy"><small>Cupones activos</small><strong>${whole(42)} <span>/ ${whole(148)}</span></strong></div></article>
- <article class="platform-admin-stat-card"><span class="platform-admin-stat-icon">${svg(I.checkCircle, 16)}</span><div class="platform-admin-stat-copy"><small>Suscripciones</small><strong class="platform-admin-subscription-summary">${whole(118)} active · ${whole(24)} trial · ${whole(6)} past_due · ${whole(2)} suspended</strong></div></article>
-</section>`;
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumen de plataforma">
+ ${kpi('Agencias activas', whole(1284), `de ${whole(1301)} agencias`, true)}
+ ${kpi('Usuarios registrados', whole(9840), 'Cuentas de todas las agencias')}
+ ${kpi('Cupones activos', whole(42), `de ${whole(148)} códigos`)}
+ ${kpi('Suscripciones', whole(118), `${whole(118)} active · ${whole(24)} trial · ${whole(6)} past_due · ${whole(2)} suspended`)}
+</div>`;
 
+/* Lista densa v2: ListGrid/ListRow/ListActions de app/ui-v2.tsx. */
+const listGrid = ({label, template, minWidth = 'min-w-[48rem]', columns, rows, className = '', pinned = false}) => `
+<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto ${className}">
+ <div class="${minWidth}">
+  <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">
+   ${columns.map((column, index) => `<span role="columnheader" class="${index === columns.length - 1 ? `text-right${pinned ? ' list-actions-head' : ''}` : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}
+  </div>
+  <div role="rowgroup">${rows}</div>
+ </div>
+</div>`;
+const listRow = (template, cells) => `<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template}">${cells}</div>`;
+const listActions = (content) => `<div role="cell" class="list-actions">${content}</div>`;
+
+const AGENCY_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]';
 const agencies = [
   {
     name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima',
@@ -379,8 +408,9 @@ const agencies = [
     active: true,
     users: 148,
     plan: money(2500000, 'PYG'),
-    state: badge('Acceso manual activo', 'neutral'),
-    expiry: '30 sept 2026',
+    state: 'Acceso manual activo',
+    tone: 'info',
+    expiry: '31-oct',
   },
   {
     name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada',
@@ -388,8 +418,9 @@ const agencies = [
     active: false,
     users: 9,
     plan: money(199, 'USD'),
-    state: badge('Acceso manual suspendido', 'warning'),
-    expiry: '—',
+    state: 'Acceso manual suspendido',
+    tone: 'warn',
+    expiry: '30-sept',
   },
   {
     name: 'Agencia Digital Global LLC · Sucursal Paraguay',
@@ -397,37 +428,41 @@ const agencies = [
     active: true,
     users: 1234,
     plan: money(1234567890, 'PYG'),
-    state: badge('Sin cambio manual', 'neutral'),
-    expiry: '15 ago 2026',
+    state: 'Sin cambio manual',
+    tone: 'mute',
+    expiry: '15-oct',
   },
 ];
 
-const agencyLedger = `
-<div class="platform-admin-table-wrap">
- <table class="platform-admin-ledger">
-  <thead><tr><th>Agencia</th><th>Estado</th><th>Plan</th><th>Usuarios</th><th>Prueba / vencimiento</th></tr></thead>
-  <tbody>
-   ${agencies.map((agency) => `
-   <tr>
-    <td><b title="${agency.name}">${agency.name}</b><small>${agency.slug}</small></td>
-    <td><div class="platform-admin-cell-stack">${badge(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'success' : 'neutral')}${agency.state}</div></td>
-    <td>${agency.plan}</td>
-    <td>${whole(agency.users)}</td>
-    <td><div class="platform-admin-cell-stack"><span>${agency.expiry}</span><button type="button" class="text-button platform-admin-inline-action">Gestionar estado manual</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar agencia</button></div></td>
-   </tr>`).join('')}
-  </tbody>
- </table>
-</div>`;
+const agencyLedger = listGrid({
+  label: 'Agencias y suscripciones',
+  template: AGENCY_TEMPLATE,
+  minWidth: 'min-w-[73.5rem]',
+  columns: ['Agencia', 'Estado', 'Plan', 'Usuarios', 'Prueba / vencimiento', 'Acciones'],
+  className: 'platform-admin-table-wrap',
+  pinned: true,
+  rows: agencies.map((agency) => listRow(AGENCY_TEMPLATE, `
+   <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${agency.name}">${agency.name}</b><small class="list-secondary" title="${agency.slug}">${agency.slug}</small></div>
+   <div role="cell" class="flex min-w-0 flex-wrap items-center gap-1.5">${chip(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'ok' : 'mute')}${chip(agency.state, agency.tone)}</div>
+   <span role="cell" class="text-right"><span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums text-fore">${agency.plan}</span></span>
+   <span role="cell" class="text-right text-[12.5px] font-semibold tabular-nums text-fore">${whole(agency.users)}</span>
+   <span role="cell" class="list-date min-w-0">${agency.expiry}</span>
+   ${listActions(`<button type="button" class="text-button platform-admin-inline-action">Gestionar estado manual</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar agencia</button>`)}
+  `)).join(''),
+});
 
 const agencyCards = `
-<div class="platform-admin-agency-cards">
+<div class="platform-admin-agency-cards grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
  ${agencies.map((agency) => `
- <article class="platform-admin-agency-card">
-  <div><b title="${agency.name}">${agency.name}</b><small>${agency.slug}</small></div>
-  <div class="platform-admin-card-badges">${badge(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'success' : 'neutral')}${agency.state}</div>
-  <dl><div><dt>Plan</dt><dd>${agency.plan}</dd></div><div><dt>Usuarios</dt><dd>${whole(agency.users)}</dd></div><div><dt>Vencimiento</dt><dd>${agency.expiry}</dd></div></dl>
-  <button type="button" class="text-button platform-admin-inline-action">Gestionar estado manual</button>
-  <button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar agencia</button>
+ <article class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+  <div class="min-w-0"><b class="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title="${agency.name}">${agency.name}</b><small class="mt-0.5 block text-[11px] text-mute">${agency.slug}</small></div>
+  <div class="flex flex-wrap gap-1.5">${chip(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'ok' : 'mute')}${chip(agency.state, agency.tone)}</div>
+  <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
+   <div><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Plan</dt><dd class="mt-0.5 font-semibold text-fore">${agency.plan}</dd></div>
+   <div><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Usuarios</dt><dd class="mt-0.5 font-semibold tabular-nums text-fore">${whole(agency.users)}</dd></div>
+   <div class="col-span-2"><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Prueba / vencimiento</dt><dd class="list-date mt-0.5">${agency.expiry}</dd></div>
+  </dl>
+  <div class="mt-auto flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3"><button type="button" class="text-button platform-admin-inline-action">Gestionar estado manual</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar agencia</button></div>
  </article>`).join('')}
 </div>`;
 
@@ -435,32 +470,45 @@ const superadminAgencies = `
 ${platformHeader}
 ${platformNotice}
 ${platformStats}
-<section class="platform-admin-section platform-admin-agencies">
- <div class="platform-admin-section-heading"><div><p class="eyebrow">AGENCIAS</p><h2>Agencias y suscripciones</h2></div><small>Gestioná el acceso manual junto a cada registro</small></div>
- ${agencyLedger}
+<section class="panel" aria-labelledby="platform-agencies-title">
+ <div class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1"><div class="min-w-0"><p class="eyebrow">Agencias</p><h2 id="platform-agencies-title" class="text-[17px] font-semibold tracking-tight text-fore">Agencias y suscripciones</h2></div><small class="text-[12px] leading-[1.35] text-mute">Gestioná el acceso manual junto a cada registro</small></div>
+ <div class="min-w-0">${agencyLedger}</div>
+</section>`;
+
+const superadminAgencyCards = `
+${platformHeader}
+${platformNotice}
+${platformStats}
+<section class="panel" aria-labelledby="platform-agencies-title">
+ <div class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1"><div class="min-w-0"><p class="eyebrow">Agencias</p><h2 id="platform-agencies-title" class="text-[17px] font-semibold tracking-tight text-fore">Agencias y suscripciones</h2></div><small class="text-[12px] leading-[1.35] text-mute">Gestioná el acceso manual junto a cada registro</small></div>
  ${agencyCards}
 </section>`;
 
 const platformUsers = [
-  /* Self row, writable: badge + "Eliminar mi cuenta" only (page.tsx 974-997). */
-  {email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', agencies: 12, self: true, badge: badge('Admin global', 'success'), actions: `<button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar mi cuenta</button>`},
-  /* Acceso de agencia: "Hacer admin global" + "Solo lectura" + delete (998-1045). */
-  {email: 'compras@coopservicios.com.py', agencies: 3, self: false, badge: badge('Acceso de agencia'), actions: `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">${svg(I.eye, 14)}Solo lectura</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
-  /* Viewer: "Quitar acceso" replaces "Solo lectura" (1000-1031). */
-  {email: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', agencies: 1, self: false, badge: badge('Solo lectura', 'success'), actions: `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">Quitar acceso</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
+  /* Fila propia, con escritura: chip + "Eliminar mi cuenta" (regla #22). */
+  {email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', agencies: 12, self: true, badge: chip('Admin global', 'ok'), actions: `<button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar mi cuenta</button>`},
+  /* Acceso de agencia: "Hacer admin global" + "Solo lectura" + eliminar. */
+  {email: 'compras@coopservicios.com.py', agencies: 3, self: false, badge: chip('Acceso de agencia', 'mute'), actions: `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">${svg(I.eye, 14)}Solo lectura</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
+  /* Viewer: "Quitar acceso" reemplaza a "Solo lectura". */
+  {email: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', agencies: 1, self: false, badge: chip('Solo lectura', 'info'), actions: `<button type="button" class="text-button">${svg(I.shieldCheck, 14)}Hacer admin global</button><button type="button" class="text-button">Quitar acceso</button><button type="button" class="text-button platform-admin-danger">${svg(I.trash, 14)}Eliminar usuario</button>`},
 ];
 
+const USER_TEMPLATE = 'grid-cols-[minmax(11rem,1fr)_7rem_25rem]';
 const superadminUsers = `
-<section class="platform-admin-section platform-admin-users">
- <div class="platform-admin-section-heading"><div><p class="eyebrow">USUARIOS</p><h2>Accesos entre agencias</h2></div><small>${whole(platformUsers.length)} registrados</small></div>
- <ul class="platform-admin-list">
-  <li class="platform-admin-list-head" aria-hidden="true"><span>Usuario</span><span>Acciones</span></li>
-  ${platformUsers.map((person) => `
-  <li>
-   <span><b title="${person.email}">${person.email}</b><small>${whole(person.agencies)} agencias activas${person.self ? ' · Vos' : ''}</small></span>
-   <div class="platform-admin-user-actions">${person.badge}${person.actions}</div>
-  </li>`).join('')}
- </ul>
+<section class="panel h-full platform-admin-users" aria-labelledby="platform-access-title">
+ <div class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1"><div class="min-w-0"><p class="eyebrow">Usuarios</p><h2 id="platform-access-title" class="text-[17px] font-semibold tracking-tight text-fore">Accesos entre agencias</h2></div><small class="text-[12px] leading-[1.35] text-mute">${whole(platformUsers.length)} registrados</small></div>
+ <div class="min-w-0">${listGrid({
+   label: 'Accesos entre agencias',
+   template: USER_TEMPLATE,
+   minWidth: 'min-w-[45rem]',
+   columns: ['Usuario', 'Acceso', 'Acciones'],
+   pinned: true,
+   rows: platformUsers.map((person) => listRow(USER_TEMPLATE, `
+    <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${person.email}">${person.email}</b><small class="list-secondary">${whole(person.agencies)} agencias activas${person.self ? ' · Vos' : ''}</small></div>
+    <span role="cell">${person.badge}</span>
+    ${listActions(person.actions)}
+   `)).join(''),
+ })}</div>
 </section>`;
 
 const coupons = [
@@ -469,44 +517,54 @@ const coupons = [
   {code: 'BLACK-FRIDAY-2025-AGOTADO-Y-PAUSADO', detail: money(150, 'USD') + ' · 2.000 usos máximos', active: false},
 ];
 
+const COUPON_TEMPLATE = 'grid-cols-[minmax(10rem,1fr)_6.5rem_8rem]';
 const superadminCoupons = `
-<section class="platform-admin-section platform-admin-commercial">
- <div class="platform-admin-section-heading"><div><p class="eyebrow">CUPONES</p><h2>Catálogo comercial</h2></div><small>${whole(coupons.length)} códigos</small></div>
- <form class="platform-admin-coupon">
-  <label>Código<input value="SCALE10" placeholder="SCALE10" required minlength="3" maxlength="40"></label>
+<section class="panel h-full platform-admin-commercial" aria-labelledby="platform-catalog-title">
+ <div class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1"><div class="min-w-0"><p class="eyebrow">Cupones</p><h2 id="platform-catalog-title" class="text-[17px] font-semibold tracking-tight text-fore">Catálogo comercial</h2></div><small class="text-[12px] leading-[1.35] text-mute">${whole(coupons.length)} códigos</small></div>
+ <form class="platform-admin-coupon mb-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(10rem,1.2fr)_minmax(8rem,.9fr)_minmax(7rem,.8fr)_auto]">
+  <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Código<input value="SCALE10" placeholder="SCALE10" required minlength="3" maxlength="40"></label>
   <div class="ops-select"><span class="ops-label" id="coupon-type-label">Tipo</span><button type="button" class="ops-select-trigger" title="Monto fijo" aria-labelledby="coupon-type-label coupon-type-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-type-value">Monto fijo</span>${svg(I.chevronDown, 16)}</button></div>
-  <label>Valor<input value="150" inputmode="decimal" maxlength="10" required></label>
+  <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Valor<input value="150" inputmode="decimal" maxlength="10" required></label>
   <div class="ops-select"><span class="ops-label" id="coupon-currency-label">Moneda</span><button type="button" class="ops-select-trigger" title="USD" aria-labelledby="coupon-currency-label coupon-currency-value" aria-haspopup="listbox" aria-expanded="false"><span id="coupon-currency-value">USD</span>${svg(I.chevronDown, 16)}</button></div>
   <button class="primary" disabled>Crear cupón</button>
  </form>
- <ul class="platform-admin-list">
-  <li class="platform-admin-list-head" aria-hidden="true"><span>Cupón</span><span>Acciones</span></li>
-  ${coupons.map((coupon) => `
-  <li>
-   <span><b title="${coupon.code}">${coupon.code}</b><small>${coupon.detail}</small></span>
-   <span class="platform-admin-list-actions">${badge(coupon.active ? 'Activo' : 'Pausado', coupon.active ? 'success' : 'neutral')}<button type="button" class="text-button ${coupon.active ? 'warn' : 'positive'}">${coupon.active ? svg(I.pauseCircle, 14) + 'Pausar' : svg(I.playCircle, 14) + 'Reactivar'}</button></span>
-  </li>`).join('')}
- </ul>
+ <p class="form-note">Crear un cupón no inicia cobros ni activa un proveedor de pagos.</p>
+ <div class="mt-3 min-w-0">${listGrid({
+   label: 'Cupones',
+   template: COUPON_TEMPLATE,
+   minWidth: 'min-w-[25rem]',
+   columns: ['Cupón', 'Estado', 'Acciones'],
+   pinned: true,
+   rows: coupons.map((coupon) => listRow(COUPON_TEMPLATE, `
+    <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${coupon.code}">${coupon.code}</b><small class="list-secondary" title="${coupon.detail}">${coupon.detail}</small></div>
+    <span role="cell">${chip(coupon.active ? 'Activo' : 'Pausado', coupon.active ? 'ok' : 'mute')}</span>
+    ${listActions(`<button type="button" class="text-button ${coupon.active ? 'warn' : 'positive'}">${coupon.active ? svg(I.pauseCircle, 14) + 'Pausar' : svg(I.playCircle, 14) + 'Reactivar'}</button>`)}
+   `)).join(''),
+ })}</div>
 </section>`;
 
 const auditEntries = [
-  {date: '18 sept 2026', actor: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', action: 'plataforma.acceso_actualizado', target: 'usuario #14823', metadata: '{"from":"viewer","to":"admin","agencies":12,"reason":"pedido del cliente"}', open: false},
-  {date: '17 sept 2026', actor: 'Sistema', action: 'plataforma.suscripcion_vencida', target: 'agencia #982', metadata: '{"expires_at":"2026-09-17T23:59:59-03:00","plan":"enterprise-anual-regional","amount":1234567890,"currency":"PYG"}', open: true},
-  {date: '17 sept 2026', actor: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', action: 'plataforma.cupon_creado', target: 'cupon #4521', metadata: '{"code":"SCALE-LANZAMIENTO-2026-PARAGUAY","type":"percent","value":10,"max_redemptions":null}', open: true},
+  {date: '18 sept 26 · 14:32', actor: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', action: 'plataforma.acceso_actualizado', target: 'usuario #14823', metadata: '{"from":"viewer","to":"admin","agencies":12,"reason":"pedido del cliente"}', open: false},
+  {date: '17 sept 26 · 09:05', actor: 'Sistema', action: 'plataforma.suscripcion_vencida', target: 'agencia #982', metadata: '{"expires_at":"2026-09-17T23:59:59-03:00","plan":"enterprise-anual-regional","amount":1234567890,"currency":"PYG"}', open: true},
+  {date: '17 sept 26 · 08:47', actor: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', action: 'plataforma.cupon_creado', target: 'cupon #4521', metadata: '{"code":"SCALE-LANZAMIENTO-2026-PARAGUAY","type":"percent","value":10,"max_redemptions":null}', open: true},
 ];
 
+const AUDIT_TEMPLATE = 'grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]';
 const superadminAudit = `
-<section class="platform-admin-section platform-admin-audit">
- <div class="platform-admin-section-heading"><div><p class="eyebrow">AUDITORÍA</p><h2>Actividad de administración global</h2></div><small>${whole(auditEntries.length)} acciones recientes</small></div>
- <div class="platform-admin-table-wrap">
-  <table class="platform-admin-ledger">
-   <thead><tr><th>Fecha</th><th>Actor</th><th>Acción</th><th>Destino</th></tr></thead>
-   <tbody>
-    ${auditEntries.map((entry) => `
-    <tr><td>${entry.date}</td><td>${entry.actor}</td><td>${entry.action}</td><td>${entry.target}${entry.open ? `<small title="${entry.metadata.replace(/"/g, '&quot;')}">${entry.metadata}</small>` : ''}</td></tr>`).join('')}
-   </tbody>
-  </table>
- </div>
+<section class="panel platform-admin-audit" aria-labelledby="platform-audit-title">
+ <div class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1"><div class="min-w-0"><p class="eyebrow">Auditoría</p><h2 id="platform-audit-title" class="text-[17px] font-semibold tracking-tight text-fore">Actividad de administración global</h2></div><span class="whitespace-nowrap text-xs tabular-nums text-mute">${whole(auditEntries.length)} acciones recientes</span></div>
+ ${listGrid({
+   label: 'Actividad de administración global',
+   template: AUDIT_TEMPLATE,
+   minWidth: 'min-w-[49.5rem]',
+   columns: ['Fecha', 'Actor', 'Acción', 'Destino'],
+   rows: auditEntries.map((entry) => listRow(AUDIT_TEMPLATE, `
+    <span role="cell" class="whitespace-nowrap text-[11.5px] tabular-nums text-mute">${entry.date}</span>
+    <span role="cell" class="min-w-0 truncate text-[12.5px] text-fore" title="${entry.actor}">${entry.actor}</span>
+    <span role="cell" class="min-w-0">${chip(entry.action, 'info')}</span>
+    <div role="cell" class="min-w-0"><span class="block break-words text-[12.5px] text-fore">${entry.target}</span>${entry.open ? `<small class="mt-1 block truncate text-[11px] text-mute" title="${entry.metadata.replace(/"/g, '&quot;')}">${entry.metadata}</small>` : ''}</div>
+   `)).join(''),
+ })}
 </section>`;
 
 /* ============================================== 7. ADMINISTRACIÓN GLOBAL =
@@ -768,9 +826,19 @@ export default [
   {
     id: 'superadmin-agencias',
     section: 'Superadmin',
-    surface: 'Agencias y suscripciones (tabla + cápsulas)',
+    surface: 'Agencias y suscripciones (panel + lista densa)',
     kind: 'plain',
+    lists: [
+      {container: '.platform-admin-table-wrap', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · agencias', exemptBelow: 760},
+    ],
     body: `<main class="platform-admin-page">${superadminAgencies}</main>`,
+  },
+  {
+    id: 'superadmin-agencias-tarjetas',
+    section: 'Superadmin',
+    surface: 'Agencias y suscripciones (tarjetas)',
+    kind: 'plain',
+    body: `<main class="platform-admin-page">${superadminAgencyCards}</main>`,
   },
   {
     id: 'superadmin-accesos',
@@ -778,16 +846,19 @@ export default [
     surface: 'Accesos entre agencias y catálogo comercial',
     kind: 'plain',
     lists: [
-      {container: '.platform-admin-users .platform-admin-list', head: '.platform-admin-list-head', row: '.platform-admin-users .platform-admin-list li:not(.platform-admin-list-head)', label: 'Superadmin · usuarios', exemptBelow: 430},
-      {container: '.platform-admin-commercial .platform-admin-list', head: '.platform-admin-list-head', row: '.platform-admin-commercial .platform-admin-list li:not(.platform-admin-list-head)', label: 'Superadmin · cupones', exemptBelow: 430},
+      {container: '.platform-admin-users [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · usuarios', exemptBelow: 430},
+      {container: '.platform-admin-commercial [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · cupones', exemptBelow: 430},
     ],
     body: `<main class="platform-admin-page"><div class="platform-admin-two-columns">${superadminUsers}${superadminCoupons}</div></main>`,
   },
   {
     id: 'superadmin-auditoria',
     section: 'Superadmin',
-    surface: 'Auditoría global (tabla)',
+    surface: 'Auditoría global (lista densa)',
     kind: 'plain',
+    lists: [
+      {container: '.platform-admin-audit [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría', rowHeight: [44, 52]},
+    ],
     body: `<main class="platform-admin-page">${superadminAudit}</main>`,
   },
   {

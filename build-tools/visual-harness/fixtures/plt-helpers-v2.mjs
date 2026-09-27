@@ -155,8 +155,8 @@ const DIALOG = (id, title, body) => h('div', {className: 'ops-overlay'},
 
 const confirmacion = DIALOG('confirm-title', 'Eliminar agencia', h('div', {className: 'grid gap-3'},
   h('p', {className: 'text-sm text-mute'}, 'Se eliminará la agencia Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima con todos sus datos. Esta acción es irreversible.'),
-  h('label', {className: 'platform-admin-confirm grid gap-2 text-[12px] font-semibold text-mute'}, 'Escribí ', h('strong', null, 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima'), ' para confirmar', h('input', {className: 'h-11 rounded-lg border border-ink-500 bg-ink-800 px-3', readOnly: true, value: ''})),
-  h('label', {className: 'platform-admin-confirm grid gap-2 text-[12px] font-semibold text-mute'}, 'Confirmá tu identidad con tu contraseña actual', h('input', {type: 'password', className: 'h-11 rounded-lg border border-ink-500 bg-ink-800 px-3', readOnly: true, value: 'secreto'})),
+  h('label', {className: 'grid gap-2 rounded-xl border border-ink-600 bg-ink-700/40 p-4 text-[12px] font-semibold text-mute'}, 'Escribí ', h('strong', null, 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima'), ' para confirmar', h('input', {className: 'h-11 rounded-lg border border-ink-500 bg-ink-800 px-3', readOnly: true, value: ''})),
+  h('label', {className: 'grid gap-2 rounded-xl border border-ink-600 bg-ink-700/40 p-4 text-[12px] font-semibold text-mute'}, 'Confirmá tu identidad con tu contraseña actual', h('input', {type: 'password', className: 'h-11 rounded-lg border border-ink-500 bg-ink-800 px-3', readOnly: true, value: 'secreto'})),
   h('button', {type: 'button', className: 'text-button'}, 'No tengo contraseña (usar código por correo)')));
 
 const bandejaDialogo = DIALOG('inbox-title', 'Notificaciones', bandeja);

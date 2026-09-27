@@ -169,18 +169,11 @@ export function manualAccessLabel(agency: Agency) {
   return "Sin cambio manual";
 }
 
-export function StatusBadge({
-  children,
-  tone = "neutral",
-}: {
-  children: string;
-  tone?: "success" | "warning" | "neutral";
-}) {
-  return (
-    <span className="platform-admin-badge" data-tone={tone}>
-      {children}
-    </span>
-  );
+/** Tono del chip de acceso manual: un solo chip (`StateChip`), sin variantes. */
+export function manualAccessTone(agency: Agency): "ok" | "warn" | "info" | "mute" {
+  if (agency.internal_subscription_state === "active") return "info";
+  if (agency.internal_subscription_state === "suspended") return "warn";
+  return "mute";
 }
 
 /** Clave estable por apertura del diálogo: un reintento del mismo extend no duplica días. */

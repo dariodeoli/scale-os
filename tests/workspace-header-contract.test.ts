@@ -84,7 +84,11 @@ test("the company name truncates in the topbar and wraps inside the switcher", (
 });
 
 test("manual subscription management renders immediately after agency records", () => {
-  order(superadmin, 'className="platform-admin-agency-cards"', 'platform-admin-subscription-form');
-  order(superadmin, 'platform-admin-subscription-form', 'className="platform-admin-two-columns"');
-  assert.match(superadmin, /<h2>Agencias y suscripciones<\/h2>/);
+  const agencies = readFileSync(
+    new URL("../app/superadmin/agencies.tsx", import.meta.url),
+    "utf8",
+  );
+  order(superadmin, '<PlatformAgencies', '<SubscriptionDialog');
+  order(superadmin, '<SubscriptionDialog', 'className="platform-admin-two-columns"');
+  assert.match(agencies, /<h2 id="platform-agencies-title"[^>]*>Agencias y suscripciones<\/h2>/);
 });

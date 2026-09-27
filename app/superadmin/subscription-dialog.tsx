@@ -70,7 +70,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
             </p>
           ) : (
             <form
-              className="platform-admin-subscription-form"
+              className="grid gap-3"
               aria-busy={busy}
               onSubmit={saveSubscription}
             >
@@ -81,7 +81,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
               <SelectCustom label="Estado" choices={[{value:'active',label:'Acceso manual activo'},{value:'suspended',label:'Acceso manual suspendido'},{value:'clear',label:'Quitar estado manual'}]} value={subscriptionState} disabled={busy} onChange={value=>setSubscriptionState(value as typeof subscriptionState)}/>
               {subscriptionState !== "clear" ? (
                 <>
-                  <label>
+                  <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
                     Motivo
                     <textarea
                       value={subscriptionReason}
@@ -95,7 +95,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                       placeholder="Motivo de la intervención manual"
                     />
                   </label>
-                  <label>
+                  <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
                     Vence (opcional)
                     <input
                       type="datetime-local"
@@ -124,7 +124,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
           )}
           {subscriptionLoaded ? (
             <form
-              className="platform-admin-subscription-form"
+              className="grid gap-3"
               aria-busy={busy}
               onSubmit={saveExtension}
             >
@@ -134,7 +134,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                 pagos.
               </p>
               <SelectCustom label="Días a sumar" choices={['7','30','90','180','365'].map(days=>({value:days,label:`${days} días`}))} value={extendDays} disabled={busy} onChange={setExtendDays}/>
-              <label>
+              <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
                 Motivo
                 <input
                   value={extendReason}

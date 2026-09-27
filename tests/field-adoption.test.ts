@@ -63,7 +63,7 @@ for (const file of ['app/client-ruc.tsx', 'app/suite.tsx']) {
   assert(source.includes('normalizarNombre(') && source.includes("apellidosPrimero:'sifen'"), `${file} normalizes RUC names with the library`);
 }
 
-for (const file of ['app/client-reporting.tsx', 'app/financial-forecast.tsx', 'app/superadmin/page.tsx']) {
+for (const file of ['app/client-reporting.tsx', 'app/financial-forecast.tsx', 'app/superadmin/catalog.tsx']) {
   const source = read(file);
   assert(source.includes('soloDigitos'), `${file} uses the shared digits helper`);
   assert(!source.includes('digitsOnly'), `${file} no longer copies digitsOnly`);

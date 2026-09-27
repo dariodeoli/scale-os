@@ -2,36 +2,22 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {money as formatMoney} from "../operations";
 import { useRouter } from "next/navigation";
 import {
-  Activity,
   ArrowLeft,
-  Building2,
-  CircleCheck,
-  LayoutDashboard,
-  Network,
   RefreshCw,
-  ScrollText,
-  ShieldCheck,
-  Ticket,
-  Users,
 } from "lucide-react";
 import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
 import "./platform-admin.css";
 import { platformApi, subscriptionExpiry, asuncionInput } from "../platform-admin-api";
 import {
-  StatusBadge,
   appHome,
   errorCode,
   errorStatus,
   formatPlatformMetric,
   loginReturnPath,
-  manualAccessLabel,
-  money,
   newExtendKey,
-  platformDate,
   subscriptionSummary,
   type Agency,
   type AuditAction,
@@ -43,6 +29,8 @@ import {
   type State,
   type Subscription,
 } from "./model";
+import {Kpi, KpiStrip} from "../ui-v2";
+import {notify} from "../feedback";
 import {PlatformAccessDenied, PlatformNotices, PlatformRedirecting} from "./states";
 import {PlatformAgencies} from "./agencies";
 import {PlatformAccess} from "./access";
@@ -50,10 +38,6 @@ import {PlatformCatalog} from "./catalog";
 import {SubscriptionDialog} from "./subscription-dialog";
 import {PlatformAudit} from "./audit";
 import {PlatformConfirmDialog} from "./confirm";
-import { soloDigitos } from "owncoding-ui";
-import { decimalInput } from "../field-rules";
-import { SelectCustom } from "../profile-controls";
-import { SaveActions } from "../save-actions";
 
 
 export default function PlatformAdmin() {
@@ -95,7 +79,6 @@ export default function PlatformAdmin() {
   const [emailSent, setEmailSent] = useState(false);
   const [emailCode, setEmailCode] = useState("");
   const [emailSending, setEmailSending] = useState(false);
-  const [actionNotice, setActionNotice] = useState("");
   const [actionError, setActionError] = useState("");
 
   function handlePlatformError(cause: unknown, fromLoad = false) {
@@ -180,21 +163,21 @@ export default function PlatformAdmin() {
     platform_access: "admin" | "viewer" | "none",
   ) {
     setBusy(true);
-    setActionError("");
-    setActionNotice("");
     try {
       await platformApi(`/api/platform/users/${person.id}`, {
         method: "PATCH",
         body: JSON.stringify({ platform_access }),
       });
-      setActionNotice(`${person.email}: acceso global actualizado.`);
+      notify({ tone: "success", message: `${person.email}: acceso global actualizado.` });
       await load();
     } catch (cause) {
-      setActionError(
-        cause instanceof Error
-          ? cause.message
-          : "No se pudo actualizar el acceso global.",
-      );
+      notify({
+        tone: "error",
+        message:
+          cause instanceof Error
+            ? cause.message
+            : "No se pudo actualizar el acceso global.",
+      });
     } finally {
       setBusy(false);
     }
@@ -203,7 +186,6 @@ export default function PlatformAdmin() {
     if (!confirming || emailSending || busy) return;
     setEmailSending(true);
     setActionError("");
-    setActionNotice("");
     try {
       const action =
         confirming.kind === "user" ? "platform.user.delete" : "platform.agency.delete";
@@ -218,7 +200,7 @@ export default function PlatformAdmin() {
         body: JSON.stringify({ previewId: preview.preview.id }),
       });
       setEmailSent(true);
-      setActionNotice("Si podemos confirmar la operación, enviamos un código a tu correo registrado.");
+      notify({ tone: "success", message: "Si podemos confirmar la operación, enviamos un código a tu correo registrado." });
     } catch (cause) {
       const code = errorCode(cause);
       setActionError(
@@ -256,7 +238,6 @@ export default function PlatformAdmin() {
     const targetId = confirming.kind === "user" ? confirming.person.id : confirming.agency.id;
     setBusy(true);
     setActionError("");
-    setActionNotice("");
     try {
       const preview = authPreviewId
         ? { preview: { id: authPreviewId } }
@@ -304,7 +285,7 @@ export default function PlatformAdmin() {
           deleted: { userId: number; self: boolean; agencies: number[] };
         }>(`/api/platform/users/${confirming.person.id}`, { method: "DELETE", body: JSON.stringify(proofPayload) });
         if (result.deleted.self) {
-          setActionNotice("Tu cuenta fue eliminada. La sesión se cerrará.");
+          notify({ tone: "success", message: "Tu cuenta fue eliminada. La sesión se cerrará." });
           if (typeof window !== "undefined")
             window.setTimeout(
               () => window.location.assign("https://app.scaleparaguay.com/"),
@@ -312,15 +293,16 @@ export default function PlatformAdmin() {
             );
           return;
         }
-        setActionNotice(
-          `Usuario eliminado${result.deleted.agencies.length ? ` junto con ${result.deleted.agencies.length} agencia(s)` : ""}.`,
-        );
+        notify({
+          tone: "success",
+          message: `Usuario eliminado${result.deleted.agencies.length ? ` junto con ${result.deleted.agencies.length} agencia(s)` : ""}.`,
+        });
       } else {
         await platformApi(`/api/platform/agencies/${confirming.agency.id}`, {
           method: "DELETE",
           body: JSON.stringify(proofPayload),
         });
-        setActionNotice(`Agencia ${confirming.agency.name} eliminada.`);
+        notify({ tone: "success", message: `Agencia ${confirming.agency.name} eliminada.` });
       }
       setConfirmPassword("");
       setAuthPreviewId("");
@@ -483,6 +465,8 @@ export default function PlatformAdmin() {
     }
   }
 
+  const subscriptions = state?.overview.subscriptions || [];
+  const activeSubscriptions = subscriptions.find((row) => row.status === "active")?.total ?? null;
   const pageContent = redirecting ? (
     <PlatformRedirecting/>
   ) : accessDenied ? (
@@ -491,168 +475,28 @@ export default function PlatformAdmin() {
     <>
       <PlatformNotices state={state} error={error} busy={busy} bootstrap={bootstrap}/>
       {state ? (
-        <>
-          <section className="platform-admin-command-center" aria-labelledby="platform-admin-context-title">
-            <div className="platform-admin-command-deck">
-              <div className="platform-admin-command-copy">
-                <div className="platform-admin-command-heading">
-                  <p className="eyebrow">SCALE OS / CONTROL CENTRAL</p>
-                  <h2 id="platform-admin-context-title">Sala de mando de plataforma</h2>
-                  <p>Visión operativa para la flota, los accesos privilegiados y la actividad comercial de Scale OS.</p>
-                </div>
-                <nav className="platform-admin-rail" aria-label="Navegación del centro de control">
-                  <Link href="#resumen">
-                    <LayoutDashboard aria-hidden="true" />
-                    <span>Panorama</span>
-                  </Link>
-                  <Link href="#agencias">
-                    <Building2 aria-hidden="true" />
-                    <span>Flota</span>
-                  </Link>
-                  <Link href="#catalogo">
-                    <Ticket aria-hidden="true" />
-                    <span>Comercial</span>
-                  </Link>
-                  <Link href="#accesos">
-                    <ShieldCheck aria-hidden="true" />
-                    <span>Accesos</span>
-                  </Link>
-                  <Link href="#auditoria">
-                    <ScrollText aria-hidden="true" />
-                    <span>Registro</span>
-                  </Link>
-                </nav>
-              </div>
-              <aside className="platform-admin-command-status" aria-label="Estado del centro de control">
-                <span className="platform-admin-command-icon" aria-hidden="true">
-                  <Network />
-                </span>
-                <div>
-                  <span>Control disponible</span>
-                  <strong>{formatPlatformMetric(state.overview.agencies?.active)} agencias activas</strong>
-                </div>
-                <Activity aria-hidden="true" className="platform-admin-command-pulse" />
-              </aside>
-            </div>
-            <div className="platform-admin-signal-strip" aria-label="Señales actuales de plataforma">
-              <div>
-                <span>Flota activa</span>
-                <strong>{formatPlatformMetric(state.overview.agencies?.active)} <small>de {formatPlatformMetric(state.overview.agencies?.total)}</small></strong>
-              </div>
-              <div>
-                <span>Identidades cargadas</span>
-                <strong>{formatPlatformMetric(state.users.length)}</strong>
-              </div>
-              <div>
-                <span>Eventos en registro</span>
-                <strong>{formatPlatformMetric(state.audit.length)}</strong>
-              </div>
-            </div>
-          </section>
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+          <KpiStrip aria-label="Resumen de plataforma">
+            <Kpi label="Agencias activas" valor={state.overview.agencies?.active} hint={`de ${formatPlatformMetric(state.overview.agencies?.total)} agencias`} destacado/>
+            <Kpi label="Usuarios registrados" valor={state.overview.users?.total} hint="Cuentas de todas las agencias"/>
+            <Kpi label="Cupones activos" valor={state.overview.coupons?.active} hint={`de ${formatPlatformMetric(state.overview.coupons?.total)} códigos`}/>
+            <Kpi label="Suscripciones" valor={activeSubscriptions} hint={subscriptionSummary(subscriptions)}/>
+          </KpiStrip>
 
-          <section className="platform-admin-fleet-zone" aria-labelledby="platform-admin-fleet-title">
-            <div className="platform-admin-zone-heading">
-              <div>
-                <p className="eyebrow">OPERACIÓN DE FLOTA</p>
-                <h2 id="platform-admin-fleet-title">Panorama y organizaciones</h2>
-              </div>
-              <p>Priorizá salud de la red y administración de agencias sin salir del flujo operativo.</p>
-            </div>
-            <div className="platform-admin-fleet-grid">
-              <section id="resumen" className="platform-admin-section platform-admin-overview" aria-labelledby="platform-admin-overview-title">
-                <div className="platform-admin-section-heading">
-                  <div>
-                    <p className="eyebrow">SEÑALES DE PLATAFORMA</p>
-                    <h3 id="platform-admin-overview-title">Resumen de plataforma</h3>
-                  </div>
-                </div>
-                <div className="platform-admin-stats">
-                  <article className="platform-admin-stat-card">
-                    <span className="platform-admin-stat-icon">
-                      <Building2 aria-hidden="true" />
-                    </span>
-                    <div className="platform-admin-stat-copy">
-                      <small>Agencias activas</small>
-                      <strong>
-                        {formatPlatformMetric(state.overview.agencies?.active)}{" "}
-                        <span>
-                          / {formatPlatformMetric(state.overview.agencies?.total)}
-                        </span>
-                      </strong>
-                    </div>
-                  </article>
-                  <article className="platform-admin-stat-card">
-                    <span className="platform-admin-stat-icon">
-                      <Users aria-hidden="true" />
-                    </span>
-                    <div className="platform-admin-stat-copy">
-                      <small>Usuarios registrados</small>
-                      <strong>
-                        {formatPlatformMetric(state.overview.users?.total)}
-                      </strong>
-                    </div>
-                  </article>
-                  <article className="platform-admin-stat-card">
-                    <span className="platform-admin-stat-icon">
-                      <Ticket aria-hidden="true" />
-                    </span>
-                    <div className="platform-admin-stat-copy">
-                      <small>Cupones activos</small>
-                      <strong>
-                        {formatPlatformMetric(state.overview.coupons?.active)}{" "}
-                        <span>
-                          / {formatPlatformMetric(state.overview.coupons?.total)}
-                        </span>
-                      </strong>
-                    </div>
-                  </article>
-                  <article className="platform-admin-stat-card">
-                    <span className="platform-admin-stat-icon">
-                      <CircleCheck aria-hidden="true" />
-                    </span>
-                    <div className="platform-admin-stat-copy">
-                      <small>Suscripciones</small>
-                      <strong className="platform-admin-subscription-summary">
-                        {subscriptionSummary(state.overview.subscriptions)}
-                      </strong>
-                    </div>
-                  </article>
-                </div>
-              </section>
-              <div id="agencias" className="platform-admin-fleet-content">
-                <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/>
-              </div>
-            </div>
-          </section>
+          <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/>
 
           {writable && subscriptionAgency ? (
             <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension}/>
           ) : null}
 
-          <section className="platform-admin-governance-zone" aria-labelledby="platform-admin-governance-title">
-            <div className="platform-admin-zone-heading">
-              <div>
-                <p className="eyebrow">GOBIERNO DE PLATAFORMA</p>
-                <h2 id="platform-admin-governance-title">Comercial y acceso privilegiado</h2>
-              </div>
-              <p>Configuración comercial y controles de identidad agrupados para acciones de administración sensibles.</p>
-            </div>
-          <div className="platform-admin-two-columns" aria-label="Catálogo y acceso">
-            <div id="catalogo">
-              <PlatformCatalog busy={busy} state={state} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/>
-            </div>
-            <div id="accesos">
-              <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/>
-            </div>
+          <div className="platform-admin-two-columns" aria-label="Catálogo comercial y accesos">
+            <PlatformCatalog busy={busy} state={state} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/>
+            <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/>
           </div>
-          </section>
 
-          <div id="auditoria">
-            <PlatformAudit audit={state.audit}/>
-          </div>
-        </>
+          <PlatformAudit audit={state.audit}/>
+        </div>
       ) : null}
-
     </>
   );
 
@@ -684,13 +528,12 @@ export default function PlatformAdmin() {
         </div>
       </header>
       {pageContent}
-      {actionNotice && <p className="platform-admin-status-note" role="status">{actionNotice}</p>}
-      {actionError && <p className="platform-admin-status-note error" role="alert">{actionError}</p>}
       {confirming && writable && (
         <PlatformConfirmDialog
           request={confirming}
           busy={busy}
           self={confirmingSelf}
+          error={actionError}
           emailSending={emailSending}
           typed={typed}
           setTyped={setTyped}
@@ -700,7 +543,6 @@ export default function PlatformAdmin() {
           onSwitchAuth={() => {
             setAuthMethod(authMethod === "password" ? "email" : "password");
             setActionError("");
-            setActionNotice("");
           }}
           emailSent={emailSent}
           emailCode={emailCode}
@@ -714,6 +556,7 @@ export default function PlatformAdmin() {
             setAuthPreviewId("");
             setEmailSent(false);
             setEmailCode("");
+            setActionError("");
           }}
           onRequestEmailCode={() => void requestEmailCode()}
           onRemove={() => void removeConfirmed()}

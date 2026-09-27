@@ -380,6 +380,12 @@ pueden discrepar). Cuando una pantalla lo adopte, el par
 
 ### Migración
 
+- El **panel global** (`app/superadmin/`, issue #80) adoptó la superficie v2:
+  `KpiStrip`/`Kpi`, paneles del sistema, `ListGrid`/`ListRow`/`ListActions`
+  con tarjetas cuando la plantilla no entra, `StateChip`, `EmptyBlock`/`EmptyCta`
+  y `Dialog`; sus avisos transitorios salen por `notify()`. `platform-admin.css`
+  quedó reducido al lienzo, al header sticky, a la accesibilidad (targets y foco)
+  y a la respuesta mobile del ledger de agencias.
 - La descomposición del shell (`scale-workspace.tsx`) la ejecuta **SOS-PLT
   (#47)**; las 3 páginas de referencia (`Panel`, `Clientes`, `Configuración`) se
   construyen sobre esos módulos extraídos, reciben datos y callbacks del shell y
