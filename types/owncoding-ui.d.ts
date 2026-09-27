@@ -15,6 +15,18 @@ declare module 'owncoding-ui' {
   export function serialEnmascarado(serial?: string | null): string;
   export function esToken(value: string): boolean;
   export function extractTokenFromUrl(url: string): string;
+  export function fechaHora(value: unknown, vacio?: string, opciones?: {timeZone?: string; hora?: string}): string;
+  export function fechaDia(value: unknown, vacio?: string, opciones?: {timeZone?: string}): string;
+  export function fechaCorta(value: unknown, vacio?: string, opciones?: {timeZone?: string}): string;
+  export function fechaHoraCorta(value: unknown, vacio?: string, opciones?: {timeZone?: string; hora?: string}): string;
+  export function fechaLista(value: unknown, vacio?: string, opciones?: {timeZone?: string; hora?: string}): string;
+  export function fechaListaCorta(value: unknown, vacio?: string, opciones?: {timeZone?: string}): string;
+  export function diasHasta(fecha: unknown, opciones?: {hoy?: unknown; timeZone?: string}): number | null;
+  export function tonoVencimiento(fecha: unknown, opciones?: {hoy?: unknown; diasAviso?: number}): '' | 'bad' | 'warn';
+  export function montoTexto(value: unknown, currency?: string, vacio?: string): string;
+  export function useSingleFlightSubmit(enviar:(evento?: any)=>Promise<void>|void): {pendiente: boolean; onSubmit: (evento?: any)=>Promise<void>};
+  export function completeSave(cerrar?: () => void, refrescar?: () => void | Promise<void>, opciones?: {avisar?: (mensaje: string) => void}): Promise<boolean>;
+  export const AVISO_REFRESCO: string;
 
   // Objetos de interfaz v2 (campaña #41). El paquete no publica tipos; se
   // declaran permisivos para consumir los componentes desde TSX y la
@@ -44,6 +56,12 @@ declare module 'owncoding-ui' {
   export const ErrorState: any;
   export const Aviso: any;
   export const Nota: any;
+  export const ChipEstado: any;
+  export const EstadoBadge: any;
+  export const EstadoGuardado: any;
+  export const SectionState: any;
+  export const Checkbox: any;
+  export const Vencimiento: any;
   export const PageHeader: any;
   export const DataTable: any;
   export const FormField: any;
