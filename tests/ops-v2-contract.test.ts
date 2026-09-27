@@ -271,7 +271,7 @@ assert.match(uiV2,/silent-scroll min-w-0 overflow-x-auto/,'las listas v2 contien
 assert.match(productionSection,/silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto/,'el tablero contiene su scroll por bloques');
 // Toolbars que envuelven y campos a ancho completo en mobile.
 assert.match(uiV2,/mb-4 flex flex-wrap items-end gap-3/,'la toolbar de filtros envuelve en mobile');
-assert.match(productionSection,/mb-4 flex flex-col gap-3 lg:flex-row/,'la barra de producción apila en mobile');
+assert.match(productionSection,/production-command-toolbar mb-4 flex flex-col gap-3 lg:mb-2 lg:grid lg:grid-cols-\[auto_minmax\(0,1fr\)\]/,'la barra de producción apila en mobile y compacta controles en desktop');
 assert.match(projects,/grid w-full gap-1\.5 sm:w-64/,'el filtro de proyectos ocupa el ancho en mobile');
 // Hojas mobile: el harness mide la geometría real del diálogo (cabe y scrollea adentro).
 const fixtures=read('build-tools/visual-harness/fixtures/ops-detalles-formularios.mjs');
