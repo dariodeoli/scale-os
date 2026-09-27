@@ -123,7 +123,7 @@ const equipoDialog = () => `<div class="grid min-w-0 gap-4">
     <section class="ops-profile-section person-access-panel" aria-label="Acceso al panel">
      <h3>Acceso al panel</h3>
      <div class="person-access-body">
-      <p class="form-note"><span class="team-access-status is-active">Acceso habilitado</span></p>
+      <p class="form-note">${chipEstado({estado:'activo', etiqueta:'Acceso habilitado', tono:'ok', icono:'badgeCheck'})}</p>
       <div class="ops-form-grid">
        ${selectCustom({label: 'Permiso', value: 'Gerencia'})}
        ${selectCustom({label: 'Acceso', value: 'Activo'})}
@@ -176,8 +176,12 @@ const personFacts = ({email, accessRole, accessState, startedOn}, member = false
  <div><dt>Acceso</dt><dd title="${accessRole} · ${accessState}">${accessRole} · ${accessState}</dd></div>
  ${member ? '' : `<div><dt>Ingreso</dt><dd class="list-date">${startedOn || 'Sin fecha'}</dd></div>`}
 </dl>`;
+/* ChipEstado de owncoding-ui v0.39: mismo markup y tonos que el objeto. */
+const CHIP_TONES = {ok:'border-ok/30 bg-ok/10 text-ok-text',warn:'border-warn/30 bg-warn/10 text-warn-text',bad:'border-bad/30 bg-bad/10 text-bad-text',mute:'border-ink-600 bg-ink-800/40 text-mute'};
+const chipEstado = ({estado = 'pendiente', etiqueta, tono = 'mute', icono = 'circleX'}) => `<span data-estado="${estado}" title="${etiqueta}" class="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[11px] font-semibold ${CHIP_TONES[tono]}">${svg(ICON[icono] || ICON.circleX, 12)}${etiqueta}</span>`;
+const ACCESS_CHIP = {'is-active':{estado:'activo',tono:'ok',icono:'badgeCheck'},'is-suspended':{estado:'suspendido',tono:'bad',icono:'triangle'},'is-none':{estado:'pendiente',tono:'mute',icono:'refresh'},'is-removed':{estado:'anulado',tono:'mute',icono:'x'}};
 const teamAccess = ({statusLabel, statusClass, action}) => `<section class="team-access" aria-label="Acceso al panel">
- <header class="team-access-header"><h3>Acceso al panel</h3><span class="team-access-status ${statusClass}" data-access-state="${statusClass.slice(3)}">${statusLabel}</span></header>
+ <header class="team-access-header"><h3>Acceso al panel</h3>${chipEstado({...(ACCESS_CHIP[statusClass] || ACCESS_CHIP['is-none']), etiqueta: statusLabel})}</header>
  ${action ? `<div class="team-access-actions"><button type="button" class="secondary">${action}</button></div>` : ''}
 </section>`;
 const personActions = (person) => `<footer class="person-hub-actions">
