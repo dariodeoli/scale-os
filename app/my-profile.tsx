@@ -1,4 +1,5 @@
 "use client";
+import {Aviso} from 'owncoding-ui';
 import {useEffect,useRef,useState} from 'react';
 import {Dialog} from './dialog';
 import {Editor,api} from './operations';
@@ -39,7 +40,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
   }
  }
  return <Dialog title="Mi perfil" close={close} busy={photoSaving}><div className="grid grid-cols-[minmax(0,1fr)] gap-4">
-  {error?<div className={`${CARD} border-bad/40`} role="alert"><p className="break-words text-sm text-bad">{error}</p><button className={`secondary justify-self-start ${ACTION}`} type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar carga</button></div>:null}
+  {error?<Aviso tono="error" como="div" className="grid justify-items-start gap-2"><p className="break-words text-sm">{error}</p><button className={`secondary ${ACTION}`} type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar carga</button></Aviso>:null}
   {!current&&!error?<LoadingBlock label="Cargando tu perfil…" lines={3}/>:null}
   {current?<>
    <section className={CARD} data-profile-section="identity" aria-labelledby="my-profile-identity-title">
