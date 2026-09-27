@@ -2,6 +2,46 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.140
+
+### Librería y sistema de diseño
+
+- **Segunda fase de adopción de owncoding-ui v0.39** en las cuatro verticales: montos con caret, ciclo de guardado compartido, fechas y vencimientos, seriales, overlays y utilidades (RUC, token de enlaces).
+- El **chip de estado de acceso** usa el objeto de la librería con tokens AA; se retiran colores hardcodeados en Equipo.
+- Queda documentado el shim temporal de tipos y los gaps pedidos a la librería (`Label.htmlFor`, `SegmentedField`, estados de chip faltantes, `hoyClave` con zona y `normalizarSerial` público, entre otros).
+
+### Comercial
+
+- **Montos con caret en toda la vertical**: tipear `12345678` se ve `12.345.678` y el cursor sigue al dígito insertado; el pegado en formato es-PY/en-US se interpreta bien.
+- **Fechas y RUC compartidos**: mora y próximas entregas de Clientes, vigencia de Presupuestos y rango de Métricas usan el formato y el tono de vencimiento de la librería; el RUC usa su validación/normalización.
+- **Guardado**: el compositor usa el envío único de la librería y el ciclo `completeSave` compartido avisa solo si falla el refresco.
+
+### Operaciones
+
+- **Inventario, Estudio, Proyectos y Producción** adoptan fechas/vencimientos, seriales enmascarables, montos con caret (valor, compra, residual y mantenimiento) y overlays con foco y estado pendiente.
+- Los drawers y confirmaciones pasan al contrato compartido (9 diálogos de Inventario, reservas de Estudio y detalle de Proyecto).
+
+### Plataforma
+
+- **Equipo**: estado de acceso con `ChipEstado` (activo, pausado, anulado, pendiente) y avisos de la librería.
+- **Perfil**: fechas de sesiones en zona Asunción con 24 h; errores con `Aviso`.
+- **Configuración**: avisos con tono éxito/error y filas de integraciones al contrato 44–52 px.
+- **Superadmin**: tarjetas sin contenido recortado, filas al contrato y fechas con zona de la empresa.
+
+### Marco
+
+- **Sin FOUT en la carga**: preload de Outfit y DM Mono latin + `font-display: optional`; la marca ya no cambia de tipografía a mitad de carga (0 px de salto medido en Slow 3G).
+
+## v1.0.139
+
+### Marco y sistema visual
+
+- **Layout compartido más compacto**: ajustes del shell y de las primitivas v2, con el contrato del encabezado del espacio de trabajo cubierto por test.
+
+### Comercial
+
+- **Vista de Clientes**: título y contador en su propia fila cuando el riel acota el ancho (contador sin cortar palabras) y controles de vista alineados al patrón compacto.
+
 ## v1.0.138
 
 ### Finanzas
