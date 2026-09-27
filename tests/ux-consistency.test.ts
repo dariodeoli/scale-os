@@ -257,6 +257,12 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert(adminIndex>=0&&profileIndex>=0&&adminIndex<profileIndex,'el acceso admin queda encima de la ficha de perfil');
  const rail=read('app/desktop-sidebar.tsx');
  assert.match(rail,/\[&_\.nav-admin\]:h-11 \[&_\.nav-admin\]:w-11/,'el acceso admin respeta el riel colapsado (44 px, sin cortes)');
+ // FOUT (#76): las fuentes críticas del marco se precargan y no hacen swap.
+ const layoutSource=read('app/layout.tsx');
+ assert.match(layoutSource,/rel="preload" href="\/fonts\/s\/outfit\/v15\/QGYvz_MVcBeNP4NJtEtqUYLknw\.woff2" as="font" type="font\/woff2" crossOrigin="anonymous"/,'Outfit latin se precarga como fuente');
+ assert.match(layoutSource,/rel="preload" href="\/fonts\/s\/dmmono\/v16\/aFTU7PB1QTsUX8KYthqQBK6PYK0\.woff2" as="font" type="font\/woff2" crossOrigin="anonymous"/,'DM Mono 400 latin se precarga como fuente');
+ const fontsSheet=read('app/fonts.css');
+ assert(fontsSheet.includes('font-display: optional')&&!fontsSheet.includes('font-display: swap'),'las fuentes usan optional: sin swap tardío en la carga');
  // QA de marco (#70): el legado `nav button*` no pisa los tonos del nav v3 y el
  // marco apaga motion; el tema móvil conserva targets de 44.
  const tailwind=read('app/tailwind.css');
