@@ -7,12 +7,11 @@
  * mismas acciones, permisos y validaciones de solapamiento que antes.
  */
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso,Button,Card,EmptyState,ErrorState,IconAction,Input,Label,Nota,Select} from 'owncoding-ui';
+import {Aviso,Button,Card,EmptyState,ErrorState,IconAction,Input,Label,Modal,Nota,SaveActions,Select,fechaLista} from 'owncoding-ui';
 import {LoadingBlock,StateChip} from './ui-v2';
 import {api,Dialog,Editor} from './operations';
 import {ActorIdentity} from './actor-identity';
-import {SaveActions} from './save-actions';
-import {listDateFull} from './list-format';
+import {OPS_TIME_ZONE} from './ops-time';
 import {BATCH_LIMITS, limitSelection} from './capabilities';
 import {STUDIO_PRODUCTION_TYPES,studioCanManageReservation,studioMonthGrid,studioProductionTypeLabel,studioReservationsOverlap,type StudioContext as Context,type StudioProductionType as ProductionType,type StudioReservation,type StudioSpace} from './studio-data';
 import {opsLocalTime,opsUtcTime} from './ops-time';
@@ -28,7 +27,7 @@ const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-8 md:[&>butt
 const ROW_ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7';
 
 const errorMessage=(error:unknown)=>error instanceof Error?error.message:'No se pudo completar la operación';
-const dateTime=(value:string)=>listDateFull(value)||'';
+const dateTime=(value:string)=>fechaLista(value,'',{timeZone:OPS_TIME_ZONE});
 
 export function StudioWorkspace({role}:{role:string}){return ['owner','admin','management','production','finance','editor','viewer','sales','collaborator'].includes(role)?<StudioPanel/>:null;}
 function StudioPanel(){
@@ -138,9 +137,9 @@ function StudioPanel(){
    </div>
   </Card>:null}
   {editSpace&&context?.can_manage?<Dialog title={editSpace==='new'?'Nuevo espacio de estudio':'Editar espacio'} close={()=>setEditSpace(null)}><Editor closeOnSave fields={[{key:'name',label:'Nombre del espacio'},{key:'scenario',label:'Escenario o fondo',optional:true},{key:'active',label:'Disponibilidad',choices:[{value:'true',label:'Disponible para reservar'},{value:'false',label:'Inactivo'}]},{key:'notes',label:'Notas',type:'textarea',optional:true}]} defaults={editSpace==='new'?{name:'',scenario:'',active:'true',notes:''}:{name:editSpace.name,scenario:editSpace.scenario,active:String(editSpace.active),notes:editSpace.notes}} save={async values=>{await api(`/api/agency/studio-spaces${editSpace==='new'?'':`/${editSpace.id}`}`,{...values,active:values.active==='true'},editSpace==='new'?'POST':'PATCH');saved('Espacio guardado.');}}/></Dialog>:null}
-  {editReservation&&context?.can_reserve?<Dialog title={editReservation==='new'?'Nueva reserva de estudio':'Editar reserva de estudio'} close={()=>setEditReservation(null)}><StudioReservationForm context={context} spaces={spaces} reservations={reservations} record={editReservation==='new'?null:editReservation} done={()=>saved('Reserva guardada.')} /></Dialog>:null}
-  {bulkCancel?<Dialog title={`Cancelar ${selectedReservations.length} reserva${selectedReservations.length===1?'':'s'} de estudio`} busy={bulkBusy} close={()=>{if(!bulkBusy)setBulkCancel(false);}}><p className="text-sm text-mute">Se liberan los espacios de esas franjas. No afecta equipos ni otras reservas.</p><SaveActions pending={bulkBusy} cancelLabel="Volver"><Button type="button" disabled={bulkBusy} onClick={()=>void cancelSelectedReservations()}>Cancelar reservas</Button></SaveActions></Dialog>:null}
-  {cancel?<Dialog title="Cancelar reserva de estudio" busy={busy} close={()=>{if(!busy)setCancel(null);}}><p className="text-sm text-mute">Se libera el espacio para esa franja. No afecta equipos ni otras reservas.</p><SaveActions pending={busy} cancelLabel="Volver"><Button type="button" disabled={busy} onClick={async()=>{if(busy)return;setBusy(true);try{await api(`/api/agency/studio-reservations/${cancel.id}/cancel`,{expected_version:cancel.version});saved('Reserva cancelada.');}catch(reason){setError(errorMessage(reason));}finally{setBusy(false);}}}>{busy?'Cancelando…':'Confirmar cancelación'}</Button></SaveActions></Dialog>:null}
+  {editReservation&&context?.can_reserve?<Modal open size="amplio" title={editReservation==='new'?'Nueva reserva de estudio':'Editar reserva de estudio'} onClose={()=>setEditReservation(null)}><StudioReservationForm context={context} spaces={spaces} reservations={reservations} record={editReservation==='new'?null:editReservation} done={()=>saved('Reserva guardada.')} /></Modal>:null}
+  {bulkCancel?<Modal open size="corto" title={`Cancelar ${selectedReservations.length} reserva${selectedReservations.length===1?'':'s'} de estudio`} busy={bulkBusy} onClose={()=>{if(!bulkBusy)setBulkCancel(false);}}><p className="text-sm text-mute">Se liberan los espacios de esas franjas. No afecta equipos ni otras reservas.</p><SaveActions pending={bulkBusy} cancelLabel="Volver"><Button type="button" disabled={bulkBusy} onClick={()=>void cancelSelectedReservations()}>Cancelar reservas</Button></SaveActions></Modal>:null}
+  {cancel?<Modal open size="corto" title="Cancelar reserva de estudio" busy={busy} onClose={()=>{if(!busy)setCancel(null);}}><p className="text-sm text-mute">Se libera el espacio para esa franja. No afecta equipos ni otras reservas.</p><SaveActions pendiente={busy} cancelLabel="Volver"><Button type="button" disabled={busy} onClick={async()=>{if(busy)return;setBusy(true);try{await api(`/api/agency/studio-reservations/${cancel.id}/cancel`,{expected_version:cancel.version});saved('Reserva cancelada.');}catch(reason){setError(errorMessage(reason));}finally{setBusy(false);}}}>{busy?'Cancelando…':'Confirmar cancelación'}</Button></SaveActions></Modal>:null}
  </div>;
 }
 function StudioReservationForm({context,spaces,reservations,record,done}:{context:Context;spaces:StudioSpace[];reservations:StudioReservation[];record:StudioReservation|null;done:()=>void}){
@@ -154,9 +153,9 @@ function StudioReservationForm({context,spaces,reservations,record,done}:{contex
   <div><Label htmlFor="studio-reservation-start">Desde · Asunción</Label><Input id="studio-reservation-start" type="datetime-local" value={startsAt} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setStartsAt(event.target.value)} required/></div>
   <div><Label htmlFor="studio-reservation-end">Hasta · Asunción</Label><Input id="studio-reservation-end" type="datetime-local" value={endsAt} min={startsAt||undefined} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setEndsAt(event.target.value)} required/></div>
   <fieldset className="grid gap-2 sm:col-span-2"><legend className="text-[11px] font-medium uppercase tracking-wider text-mute">Responsables · {members.length} de {BATCH_LIMITS.reservationResponsibles}</legend><div className="grid gap-1 sm:grid-cols-2">{context.members.map(person=><label className="flex min-h-11 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px] text-fore md:min-h-0" key={person.id}><input type="checkbox" className="h-6 w-6 p-0 accent-fono" checked={members.includes(String(person.id))} disabled={members.length>=BATCH_LIMITS.reservationResponsibles&&!members.includes(String(person.id))} onChange={()=>toggle(String(person.id))}/><ActorIdentity name={person.name} photoUrl={person.photo_url} verified/></label>)}</div>{members.length>=BATCH_LIMITS.reservationResponsibles?<Nota tono="warn" compact>El lote admite hasta {BATCH_LIMITS.reservationResponsibles} responsables: quitá uno para sumar otro.</Nota>:null}</fieldset>
-  <div className="sm:col-span-2"><Label htmlFor="studio-reservation-notes">Notas · Opcional</Label><textarea id="studio-reservation-notes" className="min-h-20 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-sm text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40" value={notes} onChange={(event:React.ChangeEvent<HTMLTextAreaElement>)=>setNotes(event.target.value)} maxLength={2000}/></div>
+  <div className="sm:col-span-2"><Label htmlFor="studio-reservation-notes">Notas · Opcional</Label><textarea id="studio-reservation-notes" className="min-h-20 w-full rounded-lg border border-interactivo bg-ink-800 px-3.5 py-2.5 text-sm text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40" value={notes} onChange={(event:React.ChangeEvent<HTMLTextAreaElement>)=>setNotes(event.target.value)} maxLength={2000}/></div>
   <p className="text-xs text-mute sm:col-span-2">El sistema impide reservas que se superpongan en el mismo espacio. Reservar un estudio no bloquea inventario.</p>
-  {error?<Aviso tono="error" className="sm:col-span-2">{error}</Aviso>:null}<div className="sm:col-span-2"><SaveActions pending={busy}><Button type="submit" disabled={busy}>{busy?'Guardando…':'Guardar reserva'}</Button></SaveActions></div>
+  {error?<Aviso tono="error" className="sm:col-span-2">{error}</Aviso>:null}<div className="sm:col-span-2"><SaveActions pendiente={busy}><Button type="submit" disabled={busy}>{busy?'Guardando…':'Guardar reserva'}</Button></SaveActions></div>
  </form>;
 }
 function StudioCalendar({month,reservations}:{month:string;reservations:StudioReservation[]}){

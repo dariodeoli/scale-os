@@ -9,6 +9,7 @@
  * única del dominio (`statuses`).
  */
 import {useEffect,useRef,useState} from 'react';
+import {fechaLista} from 'owncoding-ui';
 import {useDraggable,useDroppable} from '@dnd-kit/core';
 import {StateChip,type ChipTone} from './ui-v2';
 import {ClientIdentity} from './client-identity';
@@ -18,7 +19,7 @@ import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {ProjectCardPresence} from './presence';
 import {RemoveRecord} from './archive-controls';
 import {roleCan} from './capabilities';
-import {listDateFull} from './list-format';
+import {OPS_TIME_ZONE} from './ops-time';
 
 export const statuses = [
   { id: "blocked", label: "Bloqueado", tone: "red" },
@@ -126,7 +127,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
       <DueDate value={order.due_date} time={order.due_time} compact/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
-      {order.updated_at ? <p className="text-[10.5px] text-mute">Actualizada {listDateFull(order.updated_at)}</p> : null}
+      {order.updated_at ? <p className="text-[10.5px] text-mute">Actualizada {fechaLista(order.updated_at,'',{timeZone:OPS_TIME_ZONE})}</p> : null}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2">
         {canMove?<button className="text-button min-h-11 min-w-11 rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id,true)}>Editar</button>:<button className="text-button min-h-11 min-w-11 rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id)}>Ver más</button>}
         {canMove?<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role}/>:null}

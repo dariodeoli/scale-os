@@ -50,8 +50,8 @@ assert.match(inventory,/shrink-0 whitespace-nowrap font-mono/,'el código de inv
 assert.match(inventory,/whitespace-nowrap tabular-nums/,'las fechas de las listas van nowrap');
 assert.match(inventory,/SerialTexto/,'los seriales mantienen la cola visible');
 assert.match(inventory,/CeldaMoneda/,'los montos salen del formateador compartido');
-assert.match(inventory,/listDate(Full|Short)/,'las fechas salen de list-format');
-assert.match(studio,/listDateFull/,'las fechas del estudio salen de list-format');
+assert.match(inventory,/fechaLista(Corta)?\(/,'las fechas de inventario salen de owncoding-ui');
+assert.match(studio,/fechaLista\(/,'las fechas del estudio salen de owncoding-ui');
 for(const source of [inventory,studio])assert.doesNotMatch(source,/toLocaleDateString|timeStyle:\s*'short'/,'sin formatos de fecha sueltos');
 
 // ── Acciones: ícono del set compartido, con etiqueta que nombra la acción.
@@ -73,7 +73,7 @@ assert.match(inventory,/role="region" aria-label="Pipeline de ubicaciones"/,'el 
 
 // ── Barcode, drawer de trazabilidad y búsqueda real del API.
 assert.match(inventory,/<InventoryBarcode code=\{code\}/);
-assert.match(inventory,/variant="drawer"/,'la ficha de trazabilidad abre en drawer');
+assert.match(inventory,/<Drawer open/,'la ficha de trazabilidad abre en el Drawer de owncoding-ui');
 assert.match(inventory,/busyVerification|\/api\/agency\/inventory\/\$\{item\.id\}/);
 
 // ── Accesibilidad de las grillas: encabezados de columna y control de vistas.
@@ -107,7 +107,7 @@ assert.match(board,/work_type/,'la tarjeta muestra el tipo de trabajo del API');
 assert.match(board,/estimated_hours/,'la tarjeta muestra las horas estimadas/reales');
 assert.match(board,/approval_step/,'la tarjeta muestra el nivel de aprobación');
 assert.match(board,/drive_links/,'la tarjeta cuenta los enlaces múltiples');
-assert.match(board,/listDateFull/,'la auditoría de la pieza sale de list-format');
+assert.match(board,/fechaLista\(/,'la auditoría de la pieza sale de owncoding-ui');
 assert.match(productionSection,/productionView==="Tablero"/,'la vista Tablero sigue cableada al shell');
 assert.match(productionSection,/<DragOverlay>/,'el overlay de arrastre se conserva');
 assert.match(productionSection,/onDragCancel/,'cancelar el arrastre limpia el estado');
@@ -232,7 +232,7 @@ assert.match(projects,/ListGrid label=\{label\} template="grid-cols-\[var\(--pro
 assert.match(projects,/de \{BATCH_LIMITS\.projects\} seleccionado/,'el lote muestra el tope del API');
 assert.match(projectCard,/\[\.project-list_&\]:grid-cols-\[var\(--project-cols\)\]/,'la tarjeta consume la plantilla en modo lista');
 assert.match(projectCard,/min-h-\[200px\]/,'la cuadrícula mantiene tarjetas de 200 px');
-assert.match(projectCard,/variant="drawer"/,'el detalle del proyecto abre en drawer');
+assert.match(projectCard,/<Drawer open/,'el detalle del proyecto abre en el Drawer de owncoding-ui');
 assert.match(projectCard,/\/api\/agency\/projects\/\$\{project\.id\}/,'el detalle lee la ficha real del API');
 assert.match(projectCard,/approval_levels/,'el detalle muestra los niveles de aprobación');
 assert.match(projectCard,/drive_links/,'el detalle muestra todos los enlaces');

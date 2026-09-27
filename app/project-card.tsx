@@ -10,16 +10,16 @@
  * y comparte la plantilla `--project-cols` con el encabezado de la sección.
  */
 import {useEffect,useRef,useState} from 'react';
-import {IconAction} from 'owncoding-ui';
+import {Drawer, IconAction, fechaLista, fechaListaCorta, tonoVencimiento} from 'owncoding-ui';
 import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip,type ChipTone} from './ui-v2';
 import {UrgencyBadge} from './urgency';
 import {ClientIdentity} from './client-identity';
 import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {DriveLinks,driveLinksText} from './drive-links';
 import {DueDate} from './due-date';
-import {listDateShort,listDateFull,dueTone} from './list-format';
+import {OPS_TIME_ZONE} from './ops-time';
 import {PROJECT_PIECES_LIMIT,fetchProjectPieces,remainingPiecesLabel,type ProjectPiece} from './project-pieces';
-import {api,Dialog} from './operations';
+import {api} from './operations';
 import {statuses} from './production-board';
 
 export type ProjectAssignee=AssignedPerson;
@@ -66,7 +66,7 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
   // El total de piezas viene del registro de la lista; el detalle puede no traerlo.
   const piecesTotal=Math.max(Number(record.work_order_count||0),Number(project.work_order_count||0),pieces?.length||0);
   const {links,legacy,count}=projectLinks(record);
-  return <Dialog variant="drawer" title={record.name} close={onClose}>
+  return <Drawer open onClose={onClose} title={record.name}>
     {error?<ErrorBlock title="No se pudo cargar el proyecto." description={error} onRetry={()=>setReload(value=>value+1)}/>:null}
     <div className="grid min-w-0 gap-4">
       <section className="grid min-w-0 gap-2">
@@ -77,11 +77,11 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
         </div>
         <dl className="grid gap-1 text-[13px]">
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Cliente</dt><dd className="min-w-0 shrink overflow-hidden"><span className="block truncate text-right" title={record.client_name}>{record.client_name}</span></dd></div>
-          <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Inicio</dt><dd className="shrink-0 whitespace-nowrap">{listDateShort(record.start_date)||'Sin fecha'}</dd></div>
-          <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Entrega</dt><dd className="shrink-0 whitespace-nowrap" data-tone={dueTone(record.due_date)||undefined}>{listDateShort(record.due_date)||'Sin fecha'}</dd></div>
+          <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Inicio</dt><dd className="shrink-0 whitespace-nowrap">{fechaListaCorta(record.start_date,'')||'Sin fecha'}</dd></div>
+          <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Entrega</dt><dd className="shrink-0 whitespace-nowrap" data-tone={tonoVencimiento(record.due_date)?'warn':undefined}>{fechaListaCorta(record.due_date,'')||'Sin fecha'}</dd></div>
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Piezas</dt><dd className="shrink-0 tabular-nums">{record.work_order_count||0}</dd></div>
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Enlaces</dt><dd className="shrink-0 whitespace-nowrap">{count?`${count} enlace${count===1?'':'s'}`:'Sin enlaces'}</dd></div>
-          {record.updated_at?<div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Última actualización</dt><dd className="shrink-0 whitespace-nowrap">{listDateFull(record.updated_at)}</dd></div>:null}
+          {record.updated_at?<div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Última actualización</dt><dd className="shrink-0 whitespace-nowrap">{fechaLista(record.updated_at,'',{timeZone:OPS_TIME_ZONE})}</dd></div>:null}
         </dl>
       </section>
       <section className="grid min-w-0 gap-2">
@@ -96,12 +96,12 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
         <h4 className="text-sm font-semibold text-fore">Piezas del proyecto</h4>
         {pieces===null?<LoadingBlock label="Cargando piezas…" lines={2}/>:pieces.length?<ul className="grid gap-1.5">{pieces.slice(0,PROJECT_PIECES_LIMIT).map(piece=><li key={piece.id} className="flex min-w-0 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px]">
           <span className="min-w-0 truncate font-semibold text-fore" title={piece.title}>{piece.title}</span>
-          <span className="ml-auto flex shrink-0 items-center gap-2 whitespace-nowrap"><span className="list-date tabular-nums text-mute" data-tone={dueTone(piece.due_date)||undefined} title={piece.due_date?`Entrega ${listDateShort(piece.due_date)||''}${piece.due_time?` · ${piece.due_time.slice(0,5)} h`:``}`:undefined}>{piece.due_date?<>{listDateShort(piece.due_date)}{piece.due_time?` · ${piece.due_time.slice(0,5)}`:``}</>:'Sin fecha'}</span><StateChip tone={piece.status==='published'?'ok':piece.status==='approved'?'info':piece.status==='review'?'warn':'mute'}>{pieceStatusLabel(piece.status)}</StateChip></span>
+          <span className="ml-auto flex shrink-0 items-center gap-2 whitespace-nowrap"><span className="list-date tabular-nums text-mute" data-tone={tonoVencimiento(piece.due_date)?'warn':undefined} title={piece.due_date?`Entrega ${fechaListaCorta(piece.due_date,'')}${piece.due_time?` · ${piece.due_time.slice(0,5)} h`:``}`:undefined}>{piece.due_date?<>{fechaListaCorta(piece.due_date,'')}{piece.due_time?` · ${piece.due_time.slice(0,5)}`:``}</>:'Sin fecha'}</span><StateChip tone={piece.status==='published'?'ok':piece.status==='approved'?'info':piece.status==='review'?'warn':'mute'}>{pieceStatusLabel(piece.status)}</StateChip></span>
         </li>)}</ul>:<p className="text-[13px] text-mute">El proyecto todavía no tiene piezas.</p>}
         {pieces&&piecesTotal>Math.min(pieces.length,PROJECT_PIECES_LIMIT)?<p className="text-[12px] text-mute" role="status">{remainingPiecesLabel(piecesTotal,Math.min(pieces.length,PROJECT_PIECES_LIMIT))}</p>:null}
       </section>
     </div>
-  </Dialog>;
+  </Drawer>;
 }
 
 export function ProjectCard({project,client,children,selectable=false,selected=false,onSelect}:{project:ProjectView;client?:{logo_url?:string|null;color_key?:string};children:React.ReactNode;selectable?:boolean;selected?:boolean;onSelect?:()=>void}){
@@ -132,16 +132,16 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
         <span className="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:inline" title={project.client_name}>· {project.client_name}</span>
       </div>
     </div>
-    <dl className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg bg-ink-700/40 px-2.5 py-2 text-[11.5px] [.project-list_&]:flex [.project-list_&]:flex-nowrap [.project-list_&]:items-center [.project-list_&]:gap-x-3 [.project-list_&]:overflow-hidden [.project-list_&]:whitespace-nowrap [.project-list_&]:bg-transparent [.project-list_&]:p-0" title={`Inicio ${listDateShort(project.start_date)||'sin fecha'} · Entrega ${listDateShort(project.due_date)||'sin fecha'} · ${project.work_order_count||0} piezas`}>
-      <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:block"><dt className="text-mute [.project-list_&]:hidden">Inicio</dt><dd className="list-date whitespace-nowrap">{listDateShort(project.start_date)||'Sin fecha'}</dd></div>
-      <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:block"><dt className="text-mute [.project-list_&]:hidden">Entrega</dt><dd className="list-date whitespace-nowrap" data-tone={dueTone(project.due_date)||undefined}>{listDateShort(project.due_date)||'Sin fecha'}</dd></div>
+    <dl className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg bg-ink-700/40 px-2.5 py-2 text-[11.5px] [.project-list_&]:flex [.project-list_&]:flex-nowrap [.project-list_&]:items-center [.project-list_&]:gap-x-3 [.project-list_&]:overflow-hidden [.project-list_&]:whitespace-nowrap [.project-list_&]:bg-transparent [.project-list_&]:p-0" title={`Inicio ${fechaListaCorta(project.start_date,'')||'sin fecha'} · Entrega ${fechaListaCorta(project.due_date,'')||'sin fecha'} · ${project.work_order_count||0} piezas`}>
+      <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:block"><dt className="text-mute [.project-list_&]:hidden">Inicio</dt><dd className="list-date whitespace-nowrap">{fechaListaCorta(project.start_date,'')||'Sin fecha'}</dd></div>
+      <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:block"><dt className="text-mute [.project-list_&]:hidden">Entrega</dt><dd className="list-date whitespace-nowrap" data-tone={tonoVencimiento(project.due_date)?'warn':undefined}>{fechaListaCorta(project.due_date,'')||'Sin fecha'}</dd></div>
       <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:block"><dt className="text-mute [.project-list_&]:hidden">Piezas</dt><dd className="tabular-nums">{project.work_order_count}</dd><span className="hidden [.project-list_&]:inline [.project-list_&]:text-mute"> piezas</span></div>
       {project.approval_levels?<div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:hidden" title={`Niveles de aprobación interna: ${project.approval_levels}`}><dt className="text-mute">Aprobación</dt><dd className="tabular-nums">{project.approval_levels}</dd></div>:null}
       <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:hidden"><dt className="text-mute">Drive</dt><dd className="tabular-nums">{count||'—'}</dd></div>
     </dl>
     <div className="min-w-0 text-[11.5px] [.project-list_&]:hidden"><AssignedPeople people={project.assignees}/></div>
     <span className="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:block" title={(project.assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||undefined}>{(project.assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||'Sin responsables'}</span>
-    {project.updated_at?<p className="text-[10.5px] text-mute [.project-list_&]:hidden">Actualizado {listDateFull(project.updated_at)}</p>:null}
+    {project.updated_at?<p className="text-[10.5px] text-mute [.project-list_&]:hidden">Actualizado {fechaLista(project.updated_at,'',{timeZone:OPS_TIME_ZONE})}</p>:null}
     <div className="mt-auto flex min-w-0 flex-wrap items-center gap-2 border-t border-ink-600 pt-1.5 [.project-list_&]:mt-0 [.project-list_&]:flex-nowrap [.project-list_&]:overflow-x-auto [.project-list_&]:border-t-0 [.project-list_&]:pt-0">
       {count?<a className="inline-flex min-h-11 items-center whitespace-nowrap text-[11.5px] font-semibold text-fono-light hover:underline md:min-h-0" href={links[0]?.url||legacy||undefined} target="_blank" rel="noreferrer" title={driveLinksText(links,legacy)}>Abrir Drive{count>1?` (${count})`:''} ↗</a>:<small className="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>}
       <span className={ICON_TARGETS}><IconAction icon="eye" tone="fono" label={`Ver detalle del proyecto: ${project.name}`} onClick={()=>setDetail(true)}/></span>
