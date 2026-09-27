@@ -2,6 +2,13 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.144
+
+### Operaciones
+
+- **Sin “foto anterior” al reentrar al tablero**: mientras el shell relee clientes y proyectos, las tarjetas de Producción y de Proyectos muestran iniciales en vez del logo/color viejo; la identidad aparece recién con el dato fresco.
+- **Identidad invalidada al editar**: al guardar cambios de un cliente o proyecto, la copia en memoria se expira y la próxima visita relee la identidad en lugar de reusar la anterior.
+
 ## v1.0.143
 
 ### Superadmin (panel global)
