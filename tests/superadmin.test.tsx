@@ -99,3 +99,15 @@ test("superadmin keeps its operational controls accessible and responsive", () =
     /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
   );
 });
+
+test("la vuelta al panel es determinista en SSR y cliente, sin depender de window (#79)", () => {
+  assert.match(page, /export function appHome\(\)/);
+  assert.match(page, /export function loginReturnPath\(\) \{\s*return appHome\(\);/);
+  assert.doesNotMatch(page, /window\.location\.hostname/, "el destino ya no depende del navegador");
+  assert.match(page, /process\.env\.NEXT_PUBLIC_APP_ORIGIN/, "el origen se puede configurar por env");
+  assert.match(page, /from "\.\.\/brand-metadata"/, "el fallback comparte el origen de la app");
+  // Los tres puntos usan el helper: brand, «Panel» del header y «Volver al panel».
+  assert.match(page, /<Link href=\{appHome\(\)\} aria-label="Scale OS">/);
+  assert.match(page, /<Link className="text-button" href=\{appHome\(\)\}>/);
+  assert.match(page, /<Link className="secondary mt-3 inline-flex items-center gap-2" href=\{appHome\(\)\}>/);
+});

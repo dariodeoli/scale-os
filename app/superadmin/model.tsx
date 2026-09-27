@@ -2,6 +2,7 @@
 // Modelo y helpers del panel global (issue #46): extraídos de superadmin/page.tsx
 // sin cambios de comportamiento, para descomponer la pantalla por secciones.
 import {fechaDia} from "owncoding-ui";
+import {appOrigin} from "../brand-metadata";
 import {money as formatMoney} from "../operations";
 
 export type Overview = {
@@ -75,13 +76,24 @@ export type BootstrapStatus = {
 };
 
 export type PlatformError = Error & { status?: unknown; code?: unknown };
-export function loginReturnPath() {
-  if (typeof window !== "undefined" && window.location.hostname === "admin.scaleparaguay.com") return "https://app.scaleparaguay.com/";
-  return "/";
-}
+
+/**
+ * Origen absoluto del panel de la app (env > origen de producción).
+ * El admin y la app son el mismo build servido en hosts distintos, así que la
+ * resolución no puede depender de `window`: en SSR el link «Panel» caía en `/`,
+ * que el middleware del host admin reescribe a `/superadmin` (bucle silencioso).
+ */
+const APP_HOME = `${(process.env.NEXT_PUBLIC_APP_ORIGIN || appOrigin).replace(/\/+$/, "")}/`;
+
+/** Destino del link «Panel» (brand, header y «Volver al panel»): igual en SSR y cliente. */
 export function appHome() {
-  if (typeof window !== "undefined" && window.location.hostname === "admin.scaleparaguay.com") return "https://app.scaleparaguay.com/";
-  return "/";
+  // En desarrollo queda relativo para no saltar al host de producción.
+  return process.env.NODE_ENV === "production" ? APP_HOME : "/";
+}
+
+/** Retorno del login del panel: el mismo destino determinista que «Panel». */
+export function loginReturnPath() {
+  return appHome();
 }
 
 export function errorStatus(cause: unknown) {
