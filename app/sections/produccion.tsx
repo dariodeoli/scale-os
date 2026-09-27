@@ -116,18 +116,18 @@ export function ProduccionSection({productionView, preferences, changeProduction
   const onDrop=(event:DragEndEvent)=>{const id=String(event.active.id);setDraggedOrderId(null);const target=dropStatus(String(event.over?.id||''));if(target)boardData.move(id,target);};
   return (
     <>
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/>
-        {productionView!=="Tablero"&&<div className="flex flex-wrap items-center gap-2"><button type="button" className="text-button" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button></div>}
-        {productionView==="Tablero"&&<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
-          <label className="grid w-full gap-1.5 sm:w-64">
+      <div className="production-command-toolbar mb-4 flex flex-col gap-3 lg:mb-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:items-end">
+        <SegmentedField className="production-view-tabs [&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/>
+        {productionView!=="Tablero"&&<div className="production-command-toolbar-actions flex flex-wrap items-center gap-2 lg:justify-self-end"><button type="button" className="text-button" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button></div>}
+        {productionView==="Tablero"&&<div className="production-command-toolbar-actions flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3 lg:justify-self-end lg:gap-2">
+          <label className="production-client-filter grid w-full gap-1.5 sm:w-64 lg:w-56 lg:gap-1">
             <span className="text-[12px] font-semibold text-mute">Filtrar por cliente</span>
             <Select value={selectedProductionClient} disabled={!preferencesReady} onChange={(event:React.ChangeEvent<HTMLSelectElement>)=>setProductionClientId(event.target.value)}>
               <option value="">Todos los clientes</option>
               {[...clients].sort((a,b) => a.name.localeCompare(b.name, 'es')).map(client => <option key={client.id} value={String(client.id)}>{client.name}</option>)}
             </Select>
           </label>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="production-filter-actions flex flex-wrap items-center gap-2">
             <button type="button" className="text-button" disabled={!preferencesReady} onClick={()=>setProductionFiltersDialogScope(preferenceScope)}><SlidersHorizontal size={14}/>Filtros{hasProductionFilters?` · ${Number(!!productionClientId)+Number(preferences.production.mine)+Number(preferences.production.week)}`:''}</button>
             <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite">{counterText}</p>
             {hasProductionFilters && <button type="button" className="text-button" onClick={() => updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>}
@@ -143,7 +143,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
         {filteredEmpty?<EmptyBlock compact icon="filter" title="Ninguna orden coincide con los filtros guardados." description={`El tablero tiene ${totalOrders} órdenes. Los filtros de cliente, responsable o semana las dejan fuera.`} action={<Button type="button" variant="outline" onClick={resetProductionFilters}><RotateCcw size={14}/>Restablecer filtros</Button>}/>:null}
         {boardEmpty?<EmptyBlock compact icon="box" title="Todavía no hay órdenes en producción." description="Creá la primera pieza y seguila por las siete etapas hasta publicarla." action={createOrder?<Button type="button" onClick={createOrder}><Plus size={16}/>Nueva pieza</Button>:undefined}/>:null}
         {!boardEmpty&&!filteredEmpty&&<BoardPresence key={String(user?.organization_id)} projectIds={Object.values(visibleColumns).flat().map(order=>String(order.project_id))}><DndContext sensors={sensors} onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={onDrop}>
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="production-stage-controls flex flex-wrap items-center justify-between gap-2">
             <p className="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p>
             {boardWindow.scrollable?<div className="flex items-center gap-1" role="group" aria-label="Recorrido del tablero" data-board-window>
               <button type="button" data-board-prev className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-interactivo text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas anteriores" title="Etapas anteriores" disabled={boardWindow.atStart} onClick={()=>scrollBoard(-1)}><ChevronLeft size={14}/></button>

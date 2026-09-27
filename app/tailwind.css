@@ -269,6 +269,16 @@ html[data-theme="dark"] {
 .control-shell.production-board-mode>.content{height:auto;min-height:100dvh;display:block;overflow:visible;padding-top:12px;padding-bottom:16px}
 .production-board-mode .workspace-footer{margin-top:8px;padding:6px 0 0;gap:3px 12px;font-size:10px}
 .production-board-mode .workspace-footer .usage-disclosure{margin:0;font-size:9px;line-height:1.4}
+/* El toolbar de Producción pertenece a esta vista: en escritorio comparte una
+   sola línea operativa sin quitar el aire táctil del teléfono. */
+@media(min-width:761px){
+.control-shell.production-mode>.content>header{margin-bottom:6px}
+.control-shell.production-mode .workspace-topbar{margin-bottom:8px;padding-bottom:8px}
+.control-shell.production-board-mode>.content{padding-top:8px;padding-bottom:12px}
+.control-shell.production-mode .production-command-toolbar{column-gap:8px;row-gap:8px;margin-bottom:8px}
+.control-shell.production-mode .production-command-toolbar-actions{min-width:0}
+.control-shell.production-mode .production-filter-actions{justify-content:flex-end}
+}
 @media(max-width:760px){
 .control-shell.production-board-mode>.content{padding:12px}
 .control-shell.production-mode .workspace-topbar{margin:-12px -12px 10px;padding:10px 12px 8px}
