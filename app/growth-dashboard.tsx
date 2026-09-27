@@ -3,7 +3,8 @@
 // Tailwind y datos diarios con `DataTable` (tabla en escritorio, tarjetas en
 // móvil). La lógica vive en ./growth-dashboard-data.
 import {useState} from 'react';
-import {Card,DataTable,Nota,Select,Stat,fechaListaCorta} from 'owncoding-ui';
+import {Card,DataTable,Nota,Select,Stat} from 'owncoding-ui';
+import {fechaListaCorta} from './date-format';
 import {growthSeries,type GrowthEvent} from './growth-dashboard-data';
 // La lógica de datos vive en ./growth-dashboard-data (funciones puras); se
 // reexporta para no romper imports existentes.

@@ -5,6 +5,8 @@ import {act,create} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 const {SerialTexto,listDateShort,listDateFull,dueTone}=require('../app/list-format') as typeof import('../app/list-format');
+const {hasDueWarning}=require('../app/due-status') as typeof import('../app/due-status');
+const {fechaLista,fechaListaCorta}=require('../app/date-format') as typeof import('../app/date-format');
 // Las fechas del helper se calculan en el calendario de Asunción (el mismo que
 // usa dueTone): con ISO en UTC el borde day(7) cambiaba según la hora del día.
 const asuncionDay=(date:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
@@ -33,9 +35,25 @@ test('list dates use the short and full document formats',()=>{
  assert.equal(listDateShort(''),null);assert.equal(listDateShort('invalid'),null);assert.equal(listDateFull(null),null);
 });
 
+test('Scale-owned date format preserves list labels and empty fallbacks',()=>{
+ assert.equal(fechaListaCorta('2026-09-17'),'17-sept');
+ assert.equal(fechaLista('2026-09-17T14:30:00.000Z','',{timeZone:'America/Asuncion'}),'17 sept 26 · 11:30');
+ assert.equal(fechaLista('2026-09-17'),'17 sept 26');
+ assert.equal(fechaListaCorta('', 'Sin fecha'),'Sin fecha');
+ assert.equal(fechaLista('invalid', 'Sin fecha'),'Sin fecha');
+ assert.equal(fechaListaCorta(''),'');
+});
+
 test('due tone paints only overdue or within the next week',()=>{
  assert.equal(dueTone(day(-2)),'warn','overdue dates are painted');
  assert.equal(dueTone(day(0)),'warn');assert.equal(dueTone(day(3)),'warn');assert.equal(dueTone(day(7)),'warn');
  assert.equal(dueTone(day(8)),'','far dates stay muted');
  assert.equal(dueTone(''),'');assert.equal(dueTone(null),'');
+});
+
+test('local due-status helper preserves the boolean warning contract',()=>{
+ assert.equal(hasDueWarning(day(-2)),true,'overdue dates warn');
+ assert.equal(hasDueWarning(day(0)),true);assert.equal(hasDueWarning(day(7)),true);
+ assert.equal(hasDueWarning(day(8)),false,'far dates stay muted');
+ assert.equal(hasDueWarning(''),false);assert.equal(hasDueWarning(null),false);
 });

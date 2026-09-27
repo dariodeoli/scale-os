@@ -6,7 +6,9 @@ import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-re
 import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
-import {Aviso, FilaDato, Subtabs, completeSave, fechaLista, fechaListaCorta, tonoVencimiento} from 'owncoding-ui';
+import {Aviso, FilaDato, Subtabs, completeSave} from 'owncoding-ui';
+import {hasDueWarning} from './due-status';
+import {fechaLista,fechaListaCorta} from './date-format';
 import {EmptyBlock, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
@@ -206,7 +208,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
      {view==='Lista y lotes'&&makers.includes(role)?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${o.title}`} checked={selected.includes(String(o.id))} disabled={['approved','published'].includes(o.status)} onChange={e=>setSelected(ids=>e.target.checked?[...ids,String(o.id)]:ids.filter(id=>id!==String(o.id)))}/></label>:null}
      <button type="button" className="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0" onClick={openPiece(String(o.id))}><b className="block truncate text-[13px] font-semibold text-fore" title={o.title}>{o.title}</b><small className="block truncate text-[11px] text-mute" title={`${o.client_name||''} · ${o.project_name||''}`}>{o.client_name} · {o.project_name}</small></button>
     </span>
-    <span className="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute" data-tone={tonoVencimiento(o.due_date)?'warn':undefined} title={o.due_date?`Entrega ${fechaListaCorta(o.due_date,'')}${o.due_time?` · ${o.due_time.slice(0,5)} h`:''}`:undefined}>{o.due_date?<><span className="list-date">{fechaListaCorta(o.due_date,'')}</span>{o.due_time?` · ${o.due_time.slice(0,5)}`:''}</>:'Sin fecha'}</span>
+    <span className="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute" data-tone={hasDueWarning(o.due_date)?'warn':undefined} title={o.due_date?`Entrega ${fechaListaCorta(o.due_date,'')}${o.due_time?` · ${o.due_time.slice(0,5)} h`:''}`:undefined}>{o.due_date?<><span className="list-date">{fechaListaCorta(o.due_date,'')}</span>{o.due_time?` · ${o.due_time.slice(0,5)}`:''}</>:'Sin fecha'}</span>
     <span className="min-w-0"><StateChip tone={o.status==='approved'||o.status==='published'?'ok':o.status==='review'?'warn':o.status==='blocked'?'bad':'info'}>{workStatusLabel(o.status)}</StateChip></span>
     <span className="min-w-0"><StateChip tone="info">{workTypeLabels[String(o.work_type||'')]||'Sin clasificar'}</StateChip></span>
     <span className="min-w-0 truncate text-[11.5px] text-mute" title={assigneeNames(o).join(', ')||undefined}>{assigneeNames(o).join(', ')||'Sin responsables'}</span>

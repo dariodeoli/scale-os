@@ -1,6 +1,8 @@
 "use client";
 import {useEffect,useState} from 'react';
-import {Aviso,fechaListaCorta,tonoVencimiento} from 'owncoding-ui';
+import {Aviso} from 'owncoding-ui';
+import {fechaListaCorta} from '../date-format';
+import {hasDueWarning} from '../due-status';
 import {Plus,Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';
 import {BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
@@ -62,7 +64,7 @@ const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pud
 function BudgetTile({budget,user,canManage,selected,onToggle,refresh}:{budget:Budget;user:User|null;canManage:boolean;selected:boolean;onToggle:()=>void;refresh:()=>Promise<void>}){
   const state=BUDGET_STATE[budget.status]||{label:budget.status,tone:'mute' as ChipTone};
   const valid=fechaListaCorta(budget.valid_until,'Sin fecha');
-  const tone=tonoVencimiento(budget.valid_until);
+  const tone=hasDueWarning(budget.valid_until);
   return <article className="ops-card budget-hub-card">
     <header className="budget-hub-head">
       <span className="flex min-w-0 items-center gap-2">
@@ -124,7 +126,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
   const row = (budget: Budget) => {
     const state = BUDGET_STATE[budget.status] || {label: budget.status, tone: 'mute' as ChipTone};
     const valid = fechaListaCorta(budget.valid_until,'Sin fecha');
-    const tone = tonoVencimiento(budget.valid_until);
+    const tone = hasDueWarning(budget.valid_until);
     return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
       <div role="cell" className="flex min-w-0 items-center gap-2">
         {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected.includes(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}

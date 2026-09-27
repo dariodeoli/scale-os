@@ -7,8 +7,9 @@
  * mismas acciones, permisos y validaciones de solapamiento que antes.
  */
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso,Button,Card,EmptyState,ErrorState,IconAction,Input,Label,Modal,Nota,SaveActions,Select,fechaLista} from 'owncoding-ui';
+import {Aviso,Button,Card,EmptyState,ErrorState,IconAction,Input,Label,Modal,Nota,SaveActions,Select} from 'owncoding-ui';
 import {LoadingBlock,StateChip} from './ui-v2';
+import {fechaLista} from './date-format';
 import {api,Dialog,Editor} from './operations';
 import {ActorIdentity} from './actor-identity';
 import {OPS_TIME_ZONE} from './ops-time';

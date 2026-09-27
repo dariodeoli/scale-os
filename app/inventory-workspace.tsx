@@ -13,8 +13,9 @@
  * el encabezado comparte la misma grilla que las filas.
  */
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {Aviso,BarraProgreso,Button,Card,CeldaMoneda,Drawer,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,MoneyInput,Modal,Nota,SaveActions,SearchField,SegmentedField,SerialField,SerialTexto,primerNombre,diasHasta,fechaLista,fechaListaCorta} from 'owncoding-ui';
+import {Aviso,BarraProgreso,Button,Card,CeldaMoneda,Drawer,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,MoneyInput,Modal,Nota,SaveActions,SearchField,SegmentedField,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
 import {Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip} from './ui-v2';
+import {fechaLista,fechaListaCorta} from './date-format';
 import {api,Dialog,Editor} from './operations';
 import {ActorAvatar,ActorIdentity,safePhoto} from './actor-identity';
 import {currencyChoices} from './currencies';
