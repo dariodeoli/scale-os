@@ -2,12 +2,13 @@
 // Rediseño v2 (campaña #41 / spec #43 §4-5): compositor de presupuestos y
 // planes con objetos de la librería (Input/Select/MoneyInput/Switch/Button),
 // campos por tipo y vista previa. Esquemas, totales y requests viven en
-// ./quote-composer-data (puros); el envío usa `useSingleFlightSubmit` de la
-// librería (#75) y el pie sigue con `SaveActions` local porque el diálogo de la
+// ./quote-composer-data (puros); el envío usa el guard local
+// `useSingleFlightSubmit` y el pie sigue con `SaveActions` local porque el diálogo de la
 // app todavía es el compartido de `dialog.tsx`.
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso,useSingleFlightSubmit} from 'owncoding-ui';
+import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
+import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
 import {useEffect,useState} from 'react';

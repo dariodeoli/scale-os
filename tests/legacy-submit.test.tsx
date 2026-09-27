@@ -93,8 +93,8 @@ test('single-flight begins before async validation and releases on invalid or th
  await act(async()=>{renderer=create(<Probe/>);});
  let pending:Promise<void>;
  await act(async()=>{pending=hook!.onSubmit(event() as React.BaseSyntheticEvent);await hook!.onSubmit(event() as React.BaseSyntheticEvent);});
- assert.equal(validations,1);assert.equal(hook!.pending,true);
- await act(async()=>{finish();await pending!;});assert.equal(hook!.pending,false);
+ assert.equal(validations,1);assert.equal(hook!.pendiente,true);assert.equal(hook!.pending,true);
+ await act(async()=>{finish();await pending!;});assert.equal(hook!.pendiente,false);assert.equal(hook!.pending,false);
  validate=async()=>{throw Error('Validation failed');};
  await act(async()=>{await assert.rejects(hook!.onSubmit(event() as React.BaseSyntheticEvent),/Validation failed/);});
  assert.equal(hook!.pending,false);
