@@ -2,13 +2,14 @@
 // Rediseño v2 (campaña #41 / spec #43 §4-5): compositor de presupuestos y
 // planes con objetos de la librería (Input/Select/MoneyInput/Switch/Button),
 // campos por tipo y vista previa. Esquemas, totales y requests viven en
-// ./quote-composer-data (puros); el guardado sigue con SaveActions legado.
+// ./quote-composer-data (puros); el envío usa `useSingleFlightSubmit` de la
+// librería (#75) y el pie sigue con `SaveActions` local porque el diálogo de la
+// app todavía es el compartido de `dialog.tsx`.
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
+import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso,useSingleFlightSubmit} from 'owncoding-ui';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
-import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {useEffect,useState} from 'react';
 import {useForm,useFieldArray} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -132,6 +133,6 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
  </section>
  {Object.keys(form.formState.errors).length>0&&<div className="lg:col-span-2"><Aviso tono="error" role="alert" compact>Revisá el título y los ítems: descripción, cantidad positiva e importe válido.</Aviso></div>}
  {error&&<div className="lg:col-span-2"><Aviso tono="error" role="alert" compact>{error}</Aviso></div>}
- <div className="lg:col-span-2"><SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>{submission.pending?'Guardando…':'Guardar'}</button></SaveActions></div>
+ <div className="lg:col-span-2"><SaveActions pending={submission.pendiente}><button className="primary" disabled={submission.pendiente}>{submission.pendiente?'Guardando…':'Guardar'}</button></SaveActions></div>
  </form>;
 }

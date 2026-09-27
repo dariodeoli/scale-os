@@ -1,12 +1,11 @@
 "use client";
 import type {Dispatch, SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
-import {IconAction} from 'owncoding-ui';
+import {IconAction,fechaListaCorta} from 'owncoding-ui';
 import {BATCH_LIMITS, roleCan} from '../capabilities';
 import {clientState} from '../client-status';
 import {clientWhatsappUrl} from '../client-links';
 import {clientSince, moneyKpi} from '../client-format';
-import {listDateShort} from '../list-format';
 import {ClientIdentity} from '../client-identity';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
@@ -34,7 +33,7 @@ const moraTone = (pay: ClientPaymentStatus): ChipTone => pay.payment_status === 
 const moraLabel = (pay: ClientPaymentStatus) => pay.payment_status === 'up_to_date'
   ? 'Al día'
   : pay.payment_status === 'due_soon'
-    ? `Vence ${listDateShort(pay.next_due_on) || 'próximamente'}`
+    ? `Vence ${fechaListaCorta(pay.next_due_on,'próximamente')}`
     : `${pay.days_overdue} días de mora`;
 
 type ClientStat = {projects: number; pieces: number; nextDue: string | null};
@@ -83,7 +82,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
       <span className="block truncate" title={stat ? `${stat.projects} proyectos activos · ${stat.pieces} piezas en curso` : 'Sin proyectos activos'}>
         {stat && (stat.projects || stat.pieces) ? <><b className="tabular-nums text-fore">{stat.projects}</b> proyectos · <b className="tabular-nums text-fore">{stat.pieces}</b> piezas</> : 'Sin proyectos activos'}
       </span>
-      {stat?.nextDue ? <span className="block whitespace-nowrap">Próxima entrega <b className="tabular-nums text-fore">{listDateShort(stat.nextDue)}</b></span> : null}
+      {stat?.nextDue ? <span className="block whitespace-nowrap">Próxima entrega <b className="tabular-nums text-fore">{fechaListaCorta(stat.nextDue)}</b></span> : null}
     </div>
     <ListActions className="client-row-actions silent-scroll">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
@@ -114,7 +113,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Teléfono</dt><dd className="mt-0.5 text-fore">{client.phone || 'Sin teléfono'}</dd></div>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">RUC</dt><dd className="mt-0.5 text-fore">{client.tax_id || 'Sin RUC registrado'}</dd></div>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cliente desde</dt><dd className="mt-0.5 text-fore">{since || 'Sin fecha de alta'}</dd></div>
-      <div className="col-span-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cartera</dt><dd className="mt-0.5 text-fore">{stat && (stat.projects || stat.pieces) ? `${stat.projects} proyectos · ${stat.pieces} piezas${stat.nextDue ? ` · próxima entrega ${listDateShort(stat.nextDue)}` : ''}` : 'Sin proyectos activos'}</dd></div>
+      <div className="col-span-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cartera</dt><dd className="mt-0.5 text-fore">{stat && (stat.projects || stat.pieces) ? `${stat.projects} proyectos · ${stat.pieces} piezas${stat.nextDue ? ` · próxima entrega ${fechaListaCorta(stat.nextDue)}` : ''}` : 'Sin proyectos activos'}</dd></div>
     </dl>
     {canSeeBilling ? <div className="flex flex-wrap items-center gap-2">
       {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : null}

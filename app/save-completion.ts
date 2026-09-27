@@ -1,12 +1,13 @@
-import {completeSave as completeSaveBase} from 'owncoding-ui/utils';
+import {completeSave as completeSaveLib, AVISO_REFRESCO} from 'owncoding-ui';
 import {notify} from './feedback';
 
-/**
- * Puente al ciclo de guardado de owncoding-ui v0.39 (cosecha ScaleOS #2):
- * cierra después de persistir y convierte un fallo de refresco en la misma
- * advertencia (`AVISO_REFRESCO`). Se llama solo después de que la mutación
- * sucedió, nunca alrededor de la mutación.
- */
-export async function completeSave(close:()=>void,refresh:()=>void|Promise<void>):Promise<void>{
- await completeSaveBase(close,refresh,{avisar:message=>notify({tone:'warning',message})});
+// Adaptador del contrato de la app sobre `completeSave` de owncoding-ui v0.39
+// (#75): la biblioteca cierra tras persistir y devuelve el aviso de refresco
+// fallido por callback; acá se conecta al toast único (`notify`). Los
+// consumidores no cambian de firma.
+export {AVISO_REFRESCO};
+
+/** Call only after the mutation has succeeded, never around the mutation itself. */
+export async function completeSave(close:()=>void,refresh:()=>void|Promise<void>){
+  await completeSaveLib(close,refresh,{avisar:message=>notify({tone:'warning',message})});
 }
