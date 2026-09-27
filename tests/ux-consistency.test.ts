@@ -56,7 +56,7 @@ test('the client directory keeps one template, ordered row actions and shared da
   assert.match(clientes,/MoneyText/,'los saldos de la fila salen del formateador compartido v2');
   const workspace=workspaceSource();
   assert.match(workspace,/archived-capsule[\s\S]*?ListGrid label="Clientes archivados" template=\{CLIENT_TEMPLATE\}/,'the archived list carries the same column header');
-  assert.match(workspace,/listDateShort\(stat\.nextDue\)/,'client due dates use the shared short format');
+  assert.match(workspace,/fechaListaCorta\(stat\.nextDue\)/,'las fechas de la cartera salen del formato de la librería (#75)');
   assert.doesNotMatch(workspace,/client-hub-balance/,'row balances use the shared money formatter');
 });
 
