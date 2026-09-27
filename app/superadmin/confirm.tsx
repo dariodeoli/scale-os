@@ -3,12 +3,14 @@
 // El marco conserva el estado y los handlers; este componente dibuja el diálogo
 // con la confirmación tipada, la re-autenticación y el cambio a código por correo.
 import {Dialog} from "../dialog";
+import {Aviso} from "owncoding-ui";
 import type {ConfirmRequest} from "./model";
 
 type PlatformConfirmDialogProps = {
   request: NonNullable<ConfirmRequest>;
   busy: boolean;
   self: boolean;
+  error: string;
   emailSending: boolean;
   typed: string;
   setTyped: (value: string) => void;
@@ -24,7 +26,7 @@ type PlatformConfirmDialogProps = {
   onRemove: () => void;
 };
 
-export function PlatformConfirmDialog({request, busy, self, emailSending, typed, setTyped, confirmPassword, setConfirmPassword, authMethod, onSwitchAuth, emailSent, emailCode, setEmailCode, onClose, onRequestEmailCode, onRemove}: PlatformConfirmDialogProps){
+export function PlatformConfirmDialog({request, busy, self, error, emailSending, typed, setTyped, confirmPassword, setConfirmPassword, authMethod, onSwitchAuth, emailSent, emailCode, setEmailCode, onClose, onRequestEmailCode, onRemove}: PlatformConfirmDialogProps){
   const target = request.kind === "user" ? request.person.email : request.agency.name;
   const title = request.kind === "user"
     ? self
@@ -40,7 +42,8 @@ export function PlatformConfirmDialog({request, busy, self, emailSending, typed,
             : `Se eliminará ${request.person.email} y, si es dueño, sus agencias completas. Esta acción es irreversible.`
           : `Se eliminará la agencia ${request.agency.name} con todos sus datos. Esta acción es irreversible.`}
       </p>
-      <label className="platform-admin-confirm">
+      {error ? <Aviso tono="error" como="div">{error}</Aviso> : null}
+      <label className="grid gap-2 rounded-xl border border-ink-600 bg-ink-700/40 p-4 text-[12px] font-semibold text-mute">
         Escribí <strong>{target}</strong> para confirmar
         <input
           value={typed}
@@ -50,7 +53,7 @@ export function PlatformConfirmDialog({request, busy, self, emailSending, typed,
         />
       </label>
       {authMethod === "password" ? (
-        <label className="platform-admin-confirm">
+        <label className="grid gap-2 rounded-xl border border-ink-600 bg-ink-700/40 p-4 text-[12px] font-semibold text-mute">
           Confirmá tu identidad con tu contraseña actual
           <input
             type="password"
@@ -67,7 +70,7 @@ export function PlatformConfirmDialog({request, busy, self, emailSending, typed,
             Para cuentas sin contraseña (Google): te enviamos un código de 8 dígitos al correo registrado.
           </p>
           {emailSent ? (
-            <label className="platform-admin-confirm">
+            <label className="grid gap-2 rounded-xl border border-ink-600 bg-ink-700/40 p-4 text-[12px] font-semibold text-mute">
               Código recibido
               <input
                 inputMode="numeric"

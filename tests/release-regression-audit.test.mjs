@@ -64,7 +64,7 @@ assert(file('../app/subscription-panel.tsx').includes("state.status==='trialing'
 assert(file('../app/access-layout.tsx').includes('max-w-[30rem]')&&file('../app/registro/page.tsx').includes('grid gap-3'),'las superficies de acceso comparten el marco v2 y su ritmo vertical');
 assert(file('../app/superadmin/platform-admin.css').includes('margin-bottom: 0;'),'the global admin header resets the leaking global header margin');
 assert(file('../app/superadmin/audit.tsx').includes('title={JSON.stringify(entry.metadata)}'),'audit metadata keeps the full value reachable');
-assert(file('../app/superadmin/platform-admin.css').includes('.platform-admin-subscription-form label:has(textarea)'),'subscription notes span the full row');
+assert(file('../app/superadmin/subscription-dialog.tsx').includes('className="grid gap-3"'),'los formularios de suscripción mantienen una sola columna (las notas ocupan el ancho completo)');
 assert(file('../app/actor-identity.css').includes('.actor-identity-time{white-space:nowrap'),'author timestamps never break mid-value');
 assert(file('../app/status/page.tsx').includes('AccessLayout wide')&&file('../app/status/page.tsx').includes('StateChip'),'la página de estado conserva el marco de acceso y un solo chip');
 // Ronda 21-09 (SOS-DSN): las primitivas exponen el texto completo y permiten elipsis sin perderlo (#31).

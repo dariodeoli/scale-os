@@ -54,10 +54,14 @@ test("superadmin hides every mutation control from a viewer and keeps the panel 
   assert.match(page, /if \(!writable\) return;/, "manageSubscription no muta sin rol de escritura del API");
   assert.match(page, /\{writable && subscriptionAgency \? \(/);
   assert.match(page, /\{confirming && writable && \(/);
-  assert.match(page, /\{writable && \(\s*<form className="platform-admin-coupon"/);
-  assert.match(page, /\{writable && \(\s*<button\s+type="button"\s+className=\{"text-button " \+/);
-  const manual = page.match(/\{writable && \(\s*<button\s+type="button"\s+className="text-button platform-admin-inline-action"[\s\S]*?\)\}/g) ?? [];
-  assert.equal(manual.length, 2, "los dos accesos manuales quedan detrás de writable");
+  assert.match(page, /\{writable && \(\s*<form className="platform-admin-coupon/);
+  assert.match(page, /\{writable \? <ListActions>\s*<button\s+type="button"\s+className=\{"text-button " \+/);
+  // El acceso manual vive en un solo helper con gate de escritura y se reusa
+  // en la tabla y en las tarjetas (una definición, dos contenedores).
+  assert.equal((page.match(/\{writable && \(\s*<button\s+type="button"\s+className="text-button platform-admin-inline-action"/g) ?? []).length, 1, "el acceso manual queda detrás de writable");
+  assert.equal((page.match(/\{actions\(agency\)\}/g) ?? []).length, 2, "la tabla y las tarjetas comparten las acciones");
+  assert.match(page, /\{writable \? <ListActions>\{actions\(agency\)\}<\/ListActions> : null\}/);
+  assert.match(page, /\{writable \? <div className="mt-auto/);
 });
 
 test("superadmin offers the email code re-authentication for passwordless admins", () => {
@@ -110,4 +114,26 @@ test("la vuelta al panel es determinista en SSR y cliente, sin depender de windo
   assert.match(page, /<Link href=\{appHome\(\)\} aria-label="Scale OS">/);
   assert.match(page, /<Link className="text-button" href=\{appHome\(\)\}>/);
   assert.match(page, /<Link className="secondary mt-3 inline-flex items-center gap-2" href=\{appHome\(\)\}>/);
+});
+
+test("superadmin panel uses the shared v2 surface and the one notification system (issue #80)", () => {
+  // Jerarquía ejecutiva del sistema: KPIs, paneles, listas densas y chips
+  // compartidos; sin toasts ni chips propios del panel.
+  assert.match(page, /from "\.\.\/ui-v2"/);
+  assert.match(page, /<KpiStrip aria-label="Resumen de plataforma">/);
+  assert.match(page, /<Kpi label="Agencias activas"/);
+  assert.match(page, /<Kpi label="Suscripciones"/);
+  assert.match(page, /<ListGrid label="Agencias y suscripciones"/);
+  assert.match(page, /<ListGrid label="Accesos entre agencias"/);
+  assert.match(page, /<ListGrid label="Cupones"/);
+  assert.match(page, /<ListGrid label="Actividad de administración global"/);
+  assert.match(page, /<ListActions>/);
+  assert.match(page, /className="panel/);
+  assert.match(page, /useDenseTableFit/);
+  assert.match(page, /notify\(\{\s*tone: "success"/);
+  assert.match(page, /notify\(\{\s*tone: "error"/);
+  assert.doesNotMatch(page, /platform-admin-status-note/);
+  assert.doesNotMatch(page, /platform-admin-badge/);
+  assert.doesNotMatch(page, /platform-admin-stat-card/);
+  assert.doesNotMatch(styles, /platform-admin-stat-card|platform-admin-badge|platform-admin-status-note/);
 });
