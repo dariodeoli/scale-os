@@ -17,7 +17,8 @@ import type {MetricEvent,User} from '../workspace-types';
 const LiveVisitors=dynamic(()=>import('../live-visitors').then(m=>m.LiveVisitors),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
 const GrowthDashboard=dynamic(()=>import('../growth-dashboard').then(m=>m.GrowthDashboard),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
 
-// Pipeline comercial (SOS-COM, campaña #41 / spec #43 §2).
+// Pipeline (SOS-COM, campaña #41 / spec #43 §2). Nombre único del módulo (#77):
+// el riel, el tab de apartados y el header dicen «Pipeline».
 // Rediseño v2: KPIs y totales por etapa con pipeline-summary (ponderado y
 // abierto por moneda), tablero por estado con tarjetas propias (excepción
 // kanban del contrato), alta/edición y administración de etapas, con estados
@@ -173,7 +174,7 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
   }
 
   return (
-    <section className="grid gap-4" aria-label="Pipeline comercial">
+    <section className="grid gap-4" aria-label="Pipeline">
       <KpiStrip aria-label="Resumen del pipeline">
         <Kpi label="Oportunidades abiertas" valor={overview.open} destacado hint="Sin ganar ni perder"/>
         <Kpi label="Ganadas" valor={overview.won} hint="Conversiones cerradas"/>

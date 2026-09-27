@@ -60,6 +60,46 @@
  .client-hub-card .client-card-actions>button:first-child{width:44px;min-width:44px}
 }
 
+/* #77 · Lista más fina (sin tocar la cuadrícula):
+   - Tabla densa: fila al piso del contrato (44–48 px), separadores suaves,
+     tipografía compacta y acciones discretas de 28 px; en móvil la tabla no se
+     usa y el apilado táctil conserva targets de 44.
+   - Vista lista sin ancho para la tabla (fichas): con ancho real (≥1280) se
+     ordena como fila (identidad · datos inline · cobros · acciones al pie);
+     debajo conserva el apilado, con targets táctiles de 44 en móvil. */
+.directory .client-hub-row{padding-block:.25rem;border-bottom-color:color-mix(in srgb,var(--line) 45%,transparent)}
+.directory .client-hub-row .client-row-actions :is(button,a.text-button):not(.whatsapp-button){min-height:28px;color:var(--text-muted)}
+.directory .client-hub-row .client-row-actions :is(button,a):hover{color:var(--text)}
+.directory .client-hub-row .client-record-actions :is(.icon-button,.text-button){min-height:28px;color:var(--text-muted)}
+.directory .client-hub-row .client-record-actions :is(.icon-button,.text-button):hover{color:var(--text)}
+.directory .client-hub-row .client-record-actions .icon-button,
+.directory .client-hub-row .client-row-actions .whatsapp-button.icon-button{width:28px;min-width:28px;height:28px;min-height:28px}
+.client-directory-table .list-actions{box-shadow:inset 1px 0 0 color-mix(in srgb,var(--line) 40%,transparent)}
+.client-directory-table [role="row"]:first-of-type{border-bottom-color:color-mix(in srgb,var(--line) 50%,transparent)}
+/* Ficha de la vista lista en desktop: los datos van en línea separados por
+   campo, con título para el detalle; el ritmo queda más fino que la cuadrícula
+   sin perder ningún dato. En móvil se conserva el apilado táctil legible. */
+@media(min-width:768px){
+ .client-directory-results--list .client-hub-card>dl{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px var(--ui-space-3);font-size:11px;line-height:1.35}
+ .client-directory-results--list .client-hub-card>dl>div{display:flex;align-items:baseline;gap:4px;min-width:0}
+ .client-directory-results--list .client-hub-card>dl dt{font-size:9px;letter-spacing:.05em}
+ .client-directory-results--list .client-hub-card>dl dd{margin-top:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .client-directory-results--list .client-hub-card>dl>div:last-child{flex:1 1 100%}
+}
+
+/* Con ancho real (≥1280) la ficha-lista se ordena como fila: identidad · datos
+   en línea · cobros · acciones al pie, con la acción discreta al extremo. */
+@media(min-width:1280px){
+ .client-directory-results--list .client-hub-card{flex-direction:row;align-items:center;gap:var(--ui-space-3);padding:10px var(--ui-space-3);border-color:color-mix(in srgb,var(--line) 55%,transparent);border-radius:var(--radius-sm)}
+ .client-directory-results--list .client-hub-card>header{align-items:center;flex:0 1 15rem;min-width:12rem;gap:var(--ui-space-2)}
+ .client-directory-results--list .client-hub-card>dl{flex:1 1 auto;min-width:0}
+ .client-directory-results--list .client-hub-card>div{flex:0 0 auto;flex-wrap:nowrap}
+ .client-directory-results--list .client-hub-card>footer{flex:0 0 auto;margin-top:0;padding-top:0;border-top:0;border-left:1px solid color-mix(in srgb,var(--line) 45%,transparent);padding-left:var(--ui-space-2);gap:2px}
+ .client-directory-results--list .client-hub-card>footer :is(button,a.text-button):not(.whatsapp-button){min-height:28px;color:var(--text-muted)}
+ .client-directory-results--list .client-hub-card>footer :is(button,a):hover{color:var(--text)}
+ .client-directory-results--list .client-hub-card>footer :is(.icon-button,.record-remove){width:28px;min-width:28px;height:28px;min-height:28px}
+}
+
 /* At sidebar-constrained desktop widths, keep the title and live result count on
    a deliberate toolbar row so the count retains whole-word wrapping. */
 @media (min-width:701px) and (max-width:1280px){

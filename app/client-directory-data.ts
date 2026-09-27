@@ -78,8 +78,9 @@ export function directorySummaryText(resultCount: number, totalCount: number): s
 }
 
 /**
- * Ancho mínimo del contrato denso de Clientes (ronda 14, #63): 75rem de pistas
- * del `CLIENT_TEMPLATE` (13+11+7+15+9+20) + 5 espacios de 8 px + 8 px de
- * padding. Con menos, la sección usa su vista tarjeta (useDenseTableFit).
+ * Ancho mínimo del contrato denso de Clientes (ronda 14, #63; pistas ajustadas
+ * en #77): 64.5rem de pistas del `CLIENT_TEMPLATE` (11+9.5+6+15+9+14) + 5
+ * espacios de 8 px + 8 px de padding. Con menos, la sección usa su vista lista
+ * compacta (useDenseTableFit).
  */
-export const CLIENT_TABLE_MIN_WIDTH = 75 * 16 + 5 * 8 + 8;
+export const CLIENT_TABLE_MIN_WIDTH = 64.5 * 16 + 5 * 8 + 8;
