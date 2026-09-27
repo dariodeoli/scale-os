@@ -2,6 +2,19 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.143
+
+### Superadmin (panel global)
+
+- **Rediseño sobre el sistema v2**: header sticky con tokens del tema, KPIs compartidos (agencias activas, usuarios, cupones y suscripciones con su distribución) y paneles del sistema; se retiran las tarjetas propias, la tira de señales y las “zones” heredadas.
+- **Listas densas compartidas**: agencias, cupones, accesos y auditoría pasan a la grilla del sistema con columna de acciones fija y vista tarjeta cuando la tabla no entra; fechas y montos con los formatos compartidos y un único chip de estado.
+- **Avisos y errores**: los resultados de cada acción usan el sistema único de notificaciones (2–3 s) y los errores de confirmación quedan inline en el diálogo, no como toast.
+- **Accesibilidad y mobile**: filas al contrato 44–52 px, targets de 44 px en móvil, contraste AA medido (el micro-rótulo oscuro sube de 3,77 a 5,57) y sin scroll horizontal a 390 px.
+
+### Navegación
+
+- **“Panel” y “Volver al panel” con destino determinista**: el enlace sale del origen de la app (configurable con `NEXT_PUBLIC_APP_ORIGIN`) en vez del hostname del navegador; se termina el clic que volvía al mismo panel en el host admin y el HTML del servidor coincide con el hidratado.
+
 ## v1.0.142
 
 ### Comercial
