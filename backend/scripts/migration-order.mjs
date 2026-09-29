@@ -91,4 +91,6 @@ export const migrationOrder = [
   '20260924_subscription_suspension_notice.sql',
   '20260929_notification_email_status.sql',
   '20260929_inventory_location_position.sql',
+  '20260929_member_purge.sql',
+  '20260929_destructive_platform_actions.sql',
 ];

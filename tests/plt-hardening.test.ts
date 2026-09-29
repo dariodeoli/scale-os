@@ -16,16 +16,22 @@ assert.match(
   'la selección masiva excluye los accesos retirados',
 );
 assert.ok(
-  (operations.match(/entry\.member&&!entry\.member\.removed_at/g) ?? []).length >= 3,
-  'checkbox, barra de lote y selección comparten el mismo filtro de retirados',
+  (operations.match(/entry\.member&&!entry\.member\.removed_at/g) ?? []).length >= 2,
+  'el checkbox seleccionable y la selección de visibles comparten el mismo filtro de retirados',
+);
+assert.match(
+  operations,
+  /canManageAccess&&selectedAccess\.length\?<div className="bulk-bar"/,
+  'la barra de lote aparece solo cuando hay selección (selección contextual)',
 );
 assert.match(
   operations,
   /for\(const id of selectedAccess\)\{\s*try\{[\s\S]*?catch\{failed\+=1;\}/,
   'una fila retirada o vencida no aborta el lote a mitad',
 );
-assert.match(operations, /removed_at\?'Acceso retirado'/, 'la fila retirada muestra su estado');
+assert.doesNotMatch(operations, /Acceso retirado'/, 'la tarjeta no repite el estado: sale de TeamAccess');
 const teamAccess = read('app/team-access.tsx');
+assert.match(teamAccess, /etiqueta:'Acceso retirado'/, 'el estado de acceso (retirado incluido) sale de la fuente única de TeamAccess');
 assert.match(
   teamAccess,
   /member\?\.removed_at\?'Reinvitar':'Invitar al panel'/,
@@ -92,6 +98,14 @@ assert.match(read('backend/server.js'), /url\.pathname === '\/health'[\s\S]{0,20
 
 // §15 regla 1 (cero éxito falso): el estado del correo en /status sale del API.
 assert.match(read('app/status/page.tsx'), /api\/auth\/email-status/, 'el correo se comprueba contra el API, no por suposición');
+
+// #98 densidad integral: selección masiva contextual en las listas del slot y
+// filas finas en el historial.
+assert.match(read('app/archive-controls.tsx'), /selected\.length\?<div className="bulk-bar"/, 'la papelera muestra el lote solo con selección');
+assert.doesNotMatch(read('app/archive-controls.tsx'), /Seleccioná varios para restaurar en lote/, 'sin la fila permanente de instrucciones de lote');
+const workHistory = read('app/work-history.tsx');
+assert.match(workHistory, /px-3 py-2/, 'las filas del historial usan padding compacto');
+assert.match(workHistory, /truncate text-\[13px\] text-fore" title=/, 'el texto del historial se recorta en una línea con tooltip');
 
 // #96 (compactación del resto de Plataforma): la identidad vive en el shell
 // (título + apartados) y las pantallas no repiten el título con PageHeader; los

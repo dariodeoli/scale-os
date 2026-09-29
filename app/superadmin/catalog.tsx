@@ -84,7 +84,7 @@ export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggl
         {coupon.discount_type === "fixed" ? (
             <SelectCustom label="Moneda" choices={[{value:'USD',label:'USD'},{value:'PYG',label:'PYG'}]} value={coupon.currency} onChange={value=>setCoupon({...coupon,currency:value})}/>
         ) : null}
-        <button className="primary min-h-11 md:min-h-10" disabled={busy}>
+        <button className="primary whitespace-nowrap min-h-11 md:min-h-10" disabled={busy}>
           Crear cupón
         </button>
       </form>

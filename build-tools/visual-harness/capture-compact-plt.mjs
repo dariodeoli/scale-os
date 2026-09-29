@@ -31,6 +31,8 @@ mkdirSync(OUT,{recursive:true});
 
 const SCREENS={
  equipo:{path:'/equipo',ready:'.team-filters',content:'.person-hub-card'},
+ 'equipo-alta':{path:'/equipo',ready:'.team-filters',content:'.team-filters',click:'Agregar persona'},
+ historial:{path:'/equipo/historial',readyText:'Historial de trabajo',content:'section[aria-label="Historial de trabajo"] li'},
  configuracion:{path:'/configuracion',ready:'.settings-slice .settings-card',content:'.settings-slice .settings-card'},
  preferencias:{path:'/configuracion/preferencias',readyText:'Preferencias del espacio',content:'div.rounded-xl'},
  papelera:{path:'/configuracion/papelera',readyText:'Papelera',content:'.list-row'},
@@ -86,9 +88,13 @@ try{
      throw error;
     }
     await sleep(1400);
+    if(screen.click)await evaluate(`(()=>{const button=[...document.querySelectorAll('button')].find(element=>(element.textContent||'').trim().startsWith(${JSON.stringify(screen.click)}));if(button)button.click();return true;})()`);
+    if(screen.click)await sleep(700);
+    if(process.env.QA_VIEW==='list')await evaluate(`(()=>{const button=[...document.querySelectorAll('button[aria-label]')].find(element=>(element.getAttribute('aria-label')||'').startsWith('Ver como lista'));if(button&&button.getAttribute('aria-pressed')!=='true')button.click();return true;})()`);
     await evaluate(`(()=>{try{localStorage.setItem('scale-theme',${JSON.stringify(theme)})}catch{};document.documentElement.dataset.theme=${JSON.stringify(theme==='dark'?'dark':'')};return true;})()`);
     await sleep(200);
-    await shot(`${id}-${LABEL}-${width}-${theme}.jpg`);
+    const suffix=process.env.QA_VIEW==='list'?'-lista':'';
+    await shot(`${id}-${LABEL}${suffix}-${width}-${theme}.jpg`);
     const metrics=await evaluate(`(()=>{const first=document.querySelector(${JSON.stringify(screen.content)});const rows=[...document.querySelectorAll(${JSON.stringify(screen.content)})];const height=window.innerHeight;return {contentTop:first?Math.round(first.getBoundingClientRect().top):null,visibles:rows.filter(row=>{const box=row.getBoundingClientRect();return box.top>=0&&box.bottom<=height;}).length};})()`);
     console.log(`métricas ${id} ${width}×${height} ${theme}:`,JSON.stringify(metrics));
     measurements.push({screen:id,label:LABEL,width,height,theme,...metrics});

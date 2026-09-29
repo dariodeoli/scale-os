@@ -15,7 +15,8 @@ test('la toolbar de Equipo junta búsqueda, filtros, contador, vista y acciones 
  assert.match(operations,/<div className="choice-list compact" role="group" aria-label="Filtrar por estado laboral">/);
  assert.match(operations,/aria-pressed=\{teamFilter==='all'\}/);
  assert.match(operations,/<p className="team-count" role="status" aria-atomic="true">\{peopleSummary\}<\/p>/);
- assert.match(operations,/<ViewSwitch value=\{teamView==='list'\?'list':'grid'\} onChange=\{value=>setTeamView\(value==='list'\?'list':'cards'\)\}\/>/);
+ assert.match(operations,/<ViewSwitch value=\{teamView==='list'\?'list':'grid'\} onChange=\{changeTeamView\}\/>/);
+ assert.match(operations,/localStorage\.getItem\('scale:team-view'\)/,'la vista Lista/Cuadrícula se recuerda por usuario');
  assert.match(operations,/<div className="team-actions">/);
  assert.doesNotMatch(operations,/ViewToggle/,'la vista del equipo usa el control v2 compartido (ViewSwitch)');
  assert.match(operations,/const \[teamFilter,setTeamFilter\]=useState<'all'\|'active'\|'inactive'>\('all'\)/);
@@ -45,6 +46,21 @@ test('la sección no repite la identidad del shell y la facturación vive en una
  assert.match(operations,/billing\?\.length\?\([\s\S]{0,260}team-billing-strip[\s\S]{0,340}<Kpi/);
  assert.match(operations,/<MoneyText valor=\{Number\(item\.total\)\} currency=\{item\.currency\}/);
  assert.match(css,/\.team-billing-strip\{max-width:min\(100%,24rem\)/);
+});
+
+test('la tarjeta de persona es compacta: identidad, correo, chips y acceso una sola vez',()=>{
+ assert.match(operations,/<p className="person-hub-mail" title=\{p\.email\|\|undefined\}>\{p\.email\|\|'Sin correo'\}<\/p>/,'el correo vive en una línea secundaria');
+ assert.match(operations,/<div className="person-hub-meta">[\s\S]{0,220}accessRole/,'el rol es un chip de la metadata');
+ assert.doesNotMatch(operations,/person-hub-facts/,'sin el bloque grande Correo/Acceso/Ingreso');
+ assert.match(css,/\.person-hub-card:not\(\.is-list\)>\.person-hub-tail\{display:flex;align-items:center;justify-content:space-between[\s\S]{0,120}border-top/,'el pie (acceso + acciones) va en una línea anclada');
+ assert.match(css,/--person-cols:minmax\(9rem,1\.3fr\)[\s\S]{0,180}minmax\(8\.5rem,1fr\) 7rem/,'la fila finita declara sus 7 columnas');
+ assert.match(css,/\.person-hub-card\.is-list \.person-hub-meta-label\{display:none\}/,'la etiqueta del chip se oculta en la fila densa');
+});
+
+test('la cabecera de Equipo cabe en una fila y el lote es contextual',()=>{
+ assert.match(operations,/canManageAccess&&selectedAccess\.length\?<div className="bulk-bar"/,'la barra de lote aparece solo con selección');
+ assert.doesNotMatch(operations,/Seleccioná integrantes para operar en lote/,'sin la fila permanente de instrucciones');
+ assert.match(css,/@media\(min-width:1280px\)\{\.team-filters\{flex-wrap:nowrap\}/,'la toolbar no se parte en filas en desktop');
 });
 
 test('en tarjetas el nombre usa dos líneas con tooltip; la fila finita sigue en una',()=>{

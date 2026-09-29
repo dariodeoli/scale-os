@@ -10,7 +10,8 @@ import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star } from "lucide-react";
+import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2 } from "lucide-react";
+import {ConfirmDialog} from 'owncoding-ui';
 import { AmountInput, SelectCustom } from './profile-controls';
 import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
 import {PasswordField} from './password-field';
@@ -256,8 +257,24 @@ function PeopleWorkspace({
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
   const [commercialReady, setCommercialReady] = useState(false);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
+  // La preferencia Lista/Cuadrícula se recuerda por navegador (mismo criterio que Clientes).
+  useEffect(()=>{try{setTeamView(localStorage.getItem('scale:team-view')==='list'?'list':'cards');}catch{/* Optional UI preference. */}},[]);
+  function changeTeamView(value:string){const next=value==='list'?'list':'cards';setTeamView(next);try{localStorage.setItem('scale:team-view',next);}catch{/* Optional UI preference. */}}
   const [teamFilter,setTeamFilter]=useState<'all'|'active'|'inactive'>('all');
+  const [purgeTarget,setPurgeTarget]=useState<TeamMember|null>(null),[purgeBusy,setPurgeBusy]=useState(false),[purgeError,setPurgeError]=useState('');
   const canManageAccess=roleCan(role,'members.manage');
+  // Eliminación definitiva (Equipo): solo para accesos ya retirados/suspendidos.
+  async function purgeMember(){
+    if(!purgeTarget||purgeBusy)return;
+    setPurgeBusy(true);setPurgeError('');
+    try{
+      await api(`/api/agency/members/${purgeTarget.id}/permanent`,{},'DELETE');
+      const label=purgeTarget.full_name||purgeTarget.email;
+      setPurgeTarget(null);await load();
+      notify({tone:'success',message:`${label} salió del equipo.`});
+    }catch(e){setPurgeError(e instanceof Error?e.message:'No se pudo eliminar del equipo.');}
+    finally{setPurgeBusy(false);}
+  }
   const [selectedAccess,setSelectedAccess]=useState<string[]>([]),[bulkAccessBusy,setBulkAccessBusy]=useState(false);
   function toggleAccessSelected(id:string){setSelectedAccess(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
   function selectVisibleAccess(){
@@ -427,7 +444,7 @@ function PeopleWorkspace({
             <button type="button" className={teamFilter==='inactive'?'choice active':'choice'} aria-pressed={teamFilter==='inactive'} onClick={()=>setTeamFilter('inactive')}>Inactivos</button>
           </div>
           <p className="team-count" role="status" aria-atomic="true">{peopleSummary}</p>
-          <div className="workspace-view-controls"><ViewSwitch value={teamView==='list'?'list':'grid'} onChange={value=>setTeamView(value==='list'?'list':'cards')}/></div>
+          <div className="workspace-view-controls"><ViewSwitch value={teamView==='list'?'list':'grid'} onChange={changeTeamView}/></div>
           <div className="team-actions">
             {roleCan(role,'settings.manage')&&<button type="button" className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
             <button type="button" className="primary" onClick={() => {setSeedEmail('');setEdit("new");}}>
@@ -439,30 +456,31 @@ function PeopleWorkspace({
         {loading ? (
           <LoadingBlock label="Cargando equipo…" lines={4}/>
         ) : <>
-          {canManageAccess&&visiblePeople.some(entry=>entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
+          {canManageAccess&&selectedAccess.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count"><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></div></div>:null}
           <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
-            {teamView==='list'?<div className="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>:null}
-            {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
+            {teamView==='list'?<div className="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Correo</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>:null}
+            {visiblePeople.map((entry) => {const p=entry.profile;const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'';return p?(
               <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
                 <header className="person-hub-head">
                   {canManageAccess&&entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                   <div className="ops-person" title={p.full_name}>
-                    <PersonContainer size={teamView==='list'?'md':'lg'} name={p.full_name} photoUrl={p.photo_url||undefined} secondary={entry.member?teamRoleLabels[entry.member.role]||entry.member.role:(p.job_title||'Sin cargo')} verified/>
+                    <PersonContainer size={teamView==='list'?'md':'md'} name={p.full_name} photoUrl={p.photo_url||undefined} secondary={p.job_title||'Sin cargo'} verified/>
                   </div>
                   <span className="person-hub-state" data-state={p.active?'active':'inactive'}>{p.active?'Activo':'Inactivo'}</span>
                 </header>
-                <dl className="person-hub-facts">
-                  <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={p.email||undefined}>{p.email||'Sin correo'}</dd></div>
-                  <div><dt>Acceso</dt><dd title={`${accessRole} · ${accessState}`}>{accessRole} · {accessState}</dd></div>
-                  <div><dt>Ingreso</dt><dd className="list-date">{listDateShort(p.started_on)||'Sin fecha'}</dd></div>
-                </dl>
-                <div className="person-hub-chips">
-                  {salaryView&&!p.compensation_amount&&p.active?<span className="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span>:null}
-                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}</span>
-                  {salaryView&&<span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>}
-                  {salaryView&&p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
-                  {p.ended_on?<span className="hub-chip warn">Salió el {listDateShort(p.ended_on)}</span>:null}
+                <p className="person-hub-mail" title={p.email||undefined}>{p.email||'Sin correo'}</p>
+                <div className="person-hub-meta">
+                  {accessRole?<span className="hub-chip" title={`Rol en el panel: ${accessRole}`}>{accessRole}</span>:null}
+                  {p.started_on?<span className="hub-chip" title={`Ingreso ${listDateShort(p.started_on)}`}><span className="person-hub-meta-label">Ingreso </span>{listDateShort(p.started_on)}</span>:null}
                 </div>
+                {salaryView&&<div className="person-hub-chips">
+                  {!p.compensation_amount&&p.active?<span className="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span>:null}
+                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}</span>
+                  <span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>
+                  {p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
+                  {p.currency?<span className="hub-chip" title="Moneda de la remuneración">{p.currency}</span>:null}
+                </div>}
+                {p.ended_on?<div className="person-hub-meta"><span className="hub-chip warn">Salió el {listDateShort(p.ended_on)}</span></div>:null}
                 {p.notes&&<p className="ops-note-preview" title={p.notes}>{p.notes}</p>}
                 <div className="person-hub-tail"><TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} refresh={load}/>
                 {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
@@ -479,23 +497,19 @@ function PeopleWorkspace({
             ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
               <header className="person-hub-head">
                 {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${entry.member.full_name||entry.member.email}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
-                <div className="ops-person" title={entry.member!.full_name||'Integrante sin ficha'}><PersonContainer size={teamView==='list'?'md':'lg'} name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
-                <span className="person-hub-state" data-state={entry.member!.removed_at||!entry.member!.active?'inactive':'active'}>{entry.member!.removed_at?'Acceso retirado':entry.member!.active?'Acceso activo':'Acceso suspendido'}</span>
+                <div className="ops-person" title={entry.member!.full_name||'Integrante sin ficha'}><PersonContainer size="md" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
               </header>
-              <dl className="person-hub-facts">
-                <div className="person-hub-fact-wide"><dt>Correo</dt><dd title={entry.member!.email||undefined}>{entry.member!.email}</dd></div>
-                <div><dt>Acceso</dt><dd title={`${accessRole} · ${accessState}`}>{accessRole} · {accessState}</dd></div>
-              </dl>
-              <div className="person-hub-chips"><span className="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span>{entry.ambiguous?<span className="hub-chip warn" title="Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.">Perfiles ambiguos</span>:null}</div>
+              <p className="person-hub-mail" title={entry.member!.email||undefined}>{entry.member!.email}</p>
+              <div className="person-hub-chips"><span className="hub-chip muted" title="Agregá la ficha laboral para registrar remuneración, fechas y pagos.">Sin ficha laboral</span>{entry.ambiguous?<span className="hub-chip warn" title="Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.">Perfiles ambiguos</span>:null}</div>
               <div className="person-hub-tail"><TeamAccess member={entry.member} email={entry.member!.email} role={role} refresh={load}/>
               <footer className="person-hub-actions">
                 <div className="person-hub-buttons">
-                  {entry.archivedProfileId?<button className="text-button positive" onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={14}/>Restaurar perfil</button>:!entry.ambiguous?<button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={14}/>Agregar ficha laboral</button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
-                  <button className="text-button" onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>
-                    <Pencil size={14}/>
-                    Editar
+                  {entry.archivedProfileId?<button className="icon-button" title={`Restaurar perfil: ${entry.member!.email}`} aria-label={`Restaurar perfil: ${entry.member!.email}`} onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={16}/></button>:!entry.ambiguous?<button className="icon-button" title={`Agregar ficha laboral: ${entry.member!.email}`} aria-label={`Agregar ficha laboral: ${entry.member!.email}`} onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={16}/></button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
+                  <button className="icon-button" title={`Editar ficha: ${entry.member!.email}`} aria-label={`Editar ficha: ${entry.member!.email}`} onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>
+                    <Pencil size={16}/>
                   </button>
                 </div>
+                {canManageAccess&&(!entry.member!.active||Boolean(entry.member!.removed_at))&&entry.member!.email!==currentEmail&&!(entry.member!.role==='owner'&&role!=='owner')?<button type="button" className="icon-button record-remove" title={`Eliminar del equipo: ${entry.member!.email}`} aria-label={`Eliminar del equipo: ${entry.member!.email}`} onClick={()=>{setPurgeError('');setPurgeTarget(entry.member!);}}><Trash2 size={16} aria-hidden="true"/></button>:null}
               </footer></div>
             </article>;})}
             {!visiblePeople.length && (
@@ -504,6 +518,7 @@ function PeopleWorkspace({
           </div>
         </>}
       </section>
+      {purgeTarget?<ConfirmDialog open busy={purgeBusy} variant="danger" title="Eliminar del equipo" confirmLabel="Eliminar del equipo" description={<><strong>{purgeTarget.full_name||purgeTarget.email}</strong>{' '}dejará de aparecer en Equipo y no podrá reingresar con este acceso; sus sesiones se cierran. El historial (piezas, reservas, pagos y comentarios) se conserva, y una nueva invitación la reactiva.{purgeError?<span role="alert" className="mt-2 block font-semibold text-bad">{purgeError}</span>:null}</>} onCancel={()=>{if(!purgeBusy)setPurgeTarget(null);}} onConfirm={()=>void purgeMember()}/>:null}
       {edit && (
         <Dialog
           title={person ? "Editar persona" : "Nueva persona"}

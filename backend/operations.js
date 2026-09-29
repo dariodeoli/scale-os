@@ -46,12 +46,12 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    // record. Directory roles receive photo, name and cargo and nothing else:
    // no salaries, no contact data, no access state.
    if(!roleCan(user,'finance.view')&&!roleCan(user,'members.manage')){
-    const members=(await c.query(`select u.id::text as id,coalesce(nullif(p.full_name,''),u.email) as full_name,p.photo_url,m.role from organization_members m join users u on u.id=m.user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=m.organization_id where m.organization_id=$1 and m.active and m.removed_at is null order by full_name`,[org])).rows;
+    const members=(await c.query(`select u.id::text as id,coalesce(nullif(p.full_name,''),u.email) as full_name,p.photo_url,m.role from organization_members m join users u on u.id=m.user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=m.organization_id where m.organization_id=$1 and m.active and m.removed_at is null and m.purged_at is null order by full_name`,[org])).rows;
     const extra=(await c.query(`select c.id::text as id,c.full_name,c.photo_url,c.job_title from agency_collaborators c where c.organization_id=$1 and c.user_id is null and ${visibleRecord('c','collaborators')} order by c.full_name`,[org])).rows;
     result={directory:[...members,...extra.map(person=>({id:person.id,full_name:person.full_name,photo_url:person.photo_url,role:'',cargo:person.job_title||''}))]};
    }else{
    const collaborators=(await c.query(`select c.*,u.email as access_email from agency_collaborators c left join users u on u.id=c.user_id where c.organization_id=$1 and ${visibleRecord('c','collaborators')} order by c.active desc,c.full_name`,[org])).rows;
-   const members=(await c.query('select u.id,u.email,m.role,m.active,m.removed_at,p.full_name,p.photo_url from organization_members m join users u on u.id=m.user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=m.organization_id where m.organization_id=$1 order by u.email',[org])).rows;
+   const members=(await c.query('select u.id,u.email,m.role,m.active,m.removed_at,p.full_name,p.photo_url from organization_members m join users u on u.id=m.user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=m.organization_id where m.organization_id=$1 and m.purged_at is null order by u.email',[org])).rows;
    const archivedProfiles=(await c.query("select c.id,c.user_id,c.email from agency_collaborators c join agency_archived_records a on a.organization_id=c.organization_id and a.record_id=c.id and a.kind='collaborators' where c.organization_id=$1",[org])).rows;
    result={collaborators:collaborators.map(withoutSalary),members,archivedProfiles};
    }
