@@ -29,6 +29,7 @@ import {teamDirectory,filterTeamEntries,TeamMember,ArchivedProfile,teamRoleLabel
 import {TeamAccess} from './team-access';
 import {PermissionsMatrix} from './permissions-matrix';
 import {dataFetch} from './data-cache';
+import {transporteError} from './workspace-request';
 import {canOpenPeopleWorkspace,roleCan} from './capabilities';
 
 export async function api<T>(
@@ -36,13 +37,25 @@ export async function api<T>(
   body?: unknown,
   method = "POST",
 ): Promise<T> {
-  const r = await dataFetch(path.startsWith("/core-api/") ? path : `/core-api${path}`, {
-    credentials: "include",
-    method: body === undefined ? "GET" : method,
-    headers: body === undefined ? {} : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const data = await r.json();
+  let r: Response;
+  try {
+    r = await dataFetch(path.startsWith("/core-api/") ? path : `/core-api${path}`, {
+      credentials: "include",
+      method: body === undefined ? "GET" : method,
+      headers: body === undefined ? {} : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch (cause) {
+    // Un fallo de red nunca llega como mensaje del servidor (§15.6).
+    throw transporteError(cause);
+  }
+  let data: T & {error?: string};
+  try {
+    data = (await r.json()) as T & {error?: string};
+  } catch {
+    // Una respuesta no-JSON (HTML de error, proxy caído) es un fallo, no data.
+    throw new Error("El servidor devolvió una respuesta inválida. Reintentá.");
+  }
   if (!r.ok) throw new Error(data.error || "No se pudo completar la operación");
   notifyMutation(path,body===undefined?'GET':method,body,data);
   if(body!==undefined&&/^\/api\/agency\/(productivity\/profile|collaborators(?:\/\d+)?)$/.test(path))window.dispatchEvent(new Event('scale:identity-changed'));
