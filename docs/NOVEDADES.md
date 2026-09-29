@@ -2,6 +2,22 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.148
+
+### Sistema y escritorio
+
+- **Sistema de densidad compartido**: el ritmo del shell —márgenes laterales (16/24/32), separación de secciones, alto mínimo de tarjeta (120 px) y separación de controles (8/12)— vive en tokens del sistema, no en medidas sueltas por pantalla.
+- **Un solo título por pantalla**: el encabezado deja de repetir el título cuando el shell ya lo muestra, y cada página conserva su nombre accesible.
+- **Selección contextual**: la barra de lote del sistema aparece solo con elementos seleccionados, en una línea, y «Seleccionar visibles» vive en la barra de herramientas; los diálogos ajustan su cabecera y el pie solo existe cuando hay acciones.
+- **Biblioteca a v0.53.0** (reglas §17 y arreglo de CI), sin cambios de código en la app.
+
+### Operaciones
+
+- **Producción, Proyectos y Estudio sin redundancias**: la tarjeta deja de repetir la etapa y la línea de auditoría, los enlaces/horas/pasos pasan a una fila de metadatos y se retiran las alturas artificiales de 200 px.
+- **Responsables en una línea**: el objeto compartido de responsables deja de ser una caja apilada; cuando no hay dato, se muestra texto auxiliar.
+- **Inventario y Estudio**: calendarios con celdas de 56 px en escritorio y encabezado en una fila con el mes en línea; las notas del espacio se recortan con salida.
+- **Medición**: el primer dato sube hasta 157 px en Producción (4 columnas) y las cinco pantallas muestran contenido real sin scroll; evidencia en `docs/qa/densidad-ops/`.
+
 ## v1.0.147
 
 ### Sistema (marco)
