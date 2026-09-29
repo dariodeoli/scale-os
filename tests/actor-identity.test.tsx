@@ -18,6 +18,9 @@ async function main(){
  for(const url of ['javascript:alert(1)','http://example.invalid/a.png','https://secret:password@example.invalid/a.png','data:text/html,hello']){
   await act(async()=>renderer!.update(<ActorIdentity name="Ana Pérez" photoUrl={url} verified/>));assert.equal(images().length,0);
  }
+ // #108: los medios de identidad se sirven como URL interna cacheable del API.
+ await act(async()=>renderer!.update(<ActorIdentity name="Ana Pérez" photoUrl="/core-api/api/agency/media/person/7?v=0123456789" verified/>));assert.equal(images().length,1);
+ await act(async()=>renderer!.update(<ActorIdentity name="Ana Pérez" photoUrl="/core-api/api/agency/media/person/7" verified/>));assert.equal(images().length,0,'sin versión no se acepta un medio interno');
  await act(async()=>renderer!.update(<ActorIdentity name=""/>));assert(JSON.stringify(renderer!.toJSON()).includes('Sistema'));
  await act(async()=>renderer!.update(<ActorIdentity name="Darío De Oliveira" verified timestamp="2026-09-11T22:50:26Z"/>));
  assert.equal(renderer!.root.findByType('time').props.dateTime,'2026-09-11T22:50:26.000Z');
