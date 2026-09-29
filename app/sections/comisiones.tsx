@@ -21,7 +21,7 @@ import {
   type Payout,
   type ReferralDiscount,
 } from '../commission-data';
-import {Aviso} from 'owncoding-ui';
+import {Aviso,ConfirmDialog} from 'owncoding-ui';
 import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {User} from '../workspace-types';
 
@@ -63,6 +63,14 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const [filter, setFilter] = useState<CommissionFilter>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Un fallo de carga no se disfraza de sección vacía: con las tres listas
+  // vacías se muestra solo el error con reintento.
+  const [errorScope, setErrorScope] = useState<'load' | 'action' | ''>('');
+  const [payoutsState, setPayoutsState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [payoutsError, setPayoutsError] = useState('');
+  const [catalogError, setCatalogError] = useState<{key: 'invoices' | 'collaborators' | 'accounts'; message: string} | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Commission | null>(null);
+  const [revertTarget, setRevertTarget] = useState<ReferralDiscount | null>(null);
   const [busy, setBusy] = useState(false);
   const [newCommission, setNewCommission] = useState(false);
   const [pay, setPay] = useState<Commission | null>(null);
@@ -80,8 +88,10 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       setMonthly(monthlyData.records || []);
       setDiscounts(discountData.discounts || []);
       setError('');
+      setErrorScope('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No se pudieron cargar las comisiones.');
+      setErrorScope('load');
     } finally {
       setLoading(false);
     }
@@ -91,8 +101,10 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       const monthlyData = await api<{month: string; records: MonthlyCommission[]}>(`/api/agency/commissions/monthly?month=${encodeURIComponent(month)}`);
       setMonthly(monthlyData.records || []);
       setError('');
+      setErrorScope('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No se pudieron cargar las comisiones del mes.');
+      setErrorScope('load');
     }
   }
   // Primera carga: listas + consolidado. Al cambiar de mes alcanza con el consolidado
@@ -102,10 +114,24 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     if (firstLoad.current) { firstLoad.current = false; void load(); return; }
     void loadMonthly();
   }, [month]);
-  // Egresos registrados: visible en la sección y sin dependencia del mes; se pide una vez.
+  // Egresos registrados: visible en la sección y sin dependencia del mes. Un
+  // fallo no se silencia: el bloque muestra su error con reintento.
+  async function loadPayouts() {
+    if (!canSeePayouts) return;
+    setPayoutsState('loading');
+    setPayoutsError('');
+    try {
+      const data = await api<{payouts: Payout[]}>('/api/agency/payouts');
+      setPayouts(data.payouts || []);
+      setPayoutsState('ready');
+    } catch (cause) {
+      setPayoutsState('error');
+      setPayoutsError(cause instanceof Error ? cause.message : 'No se pudieron cargar los egresos.');
+    }
+  }
   useEffect(() => {
     if (!canSeePayouts) return;
-    void api<{payouts: Payout[]}>('/api/agency/payouts').then(data => setPayouts(data.payouts || [])).catch(() => setPayouts([]));
+    void loadPayouts();
   }, [canSeePayouts]);
   // Catálogos de los diálogos: se piden al abrir cada modal (una sola vez), así la
   // pantalla no carga facturas, colaboradores ni cuentas que todavía no se usan.
@@ -126,10 +152,12 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         setAccounts(data.accounts || []);
       }
       state.loaded[key] = true;
-    } catch {
+      setCatalogError(current => current?.key === key ? null : current);
+    } catch (cause) {
       if (key === 'invoices') setInvoices([]);
       else if (key === 'collaborators') setCollaborators([]);
       else setAccounts([]);
+      setCatalogError({key, message: cause instanceof Error ? cause.message : 'No se pudieron cargar los datos del formulario.'});
     } finally {
       state.busy[key] = false;
     }
@@ -145,17 +173,24 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     if (busy) return;
     setBusy(true); setError(''); setNotice('');
     try { await fn(); setNotice(ok); await load(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo completar la operación.'); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo completar la operación.'); setErrorScope('action'); }
     finally { setBusy(false); }
   };
   const invoiceChoices = (onlyOpen: boolean): Choice[] => invoices.filter(invoice => !onlyOpen || Number(invoice.total) > Number(invoice.paid_amount)).map(invoice => ({value: String(invoice.id), label: `${invoice.number} · ${invoice.client_name}${onlyOpen ? ` · pendiente ${money(Number(invoice.total) - Number(invoice.paid_amount), invoice.currency)}` : ''}`}));
   const payAccounts = pay ? accounts.filter(account => account.active && account.currency === pay.currency) : [];
+  // Los catálogos de los diálogos fallan a la vista: mensaje accionable con reintento.
+  const catalogNotice = (...keys: ('invoices' | 'collaborators' | 'accounts')[]) => {
+    if (!catalogError || !keys.includes(catalogError.key)) return null;
+    const failedKey = catalogError.key;
+    return <Aviso tono="error" como="div">{catalogError.message} <button type="button" className="text-button" onClick={() => void ensureCatalog(failedKey)}>Reintentar</button></Aviso>;
+  };
 
   return <section className="grid gap-4" aria-label="Comisiones y referidos">
     <PageHeader eyebrow="Equipo" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." actions={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>
     {error ? <ErrorBlock title="No pudimos completar la operación" description={error} onRetry={() => void load()}/> : null}
     {notice ? <Aviso tono="ok">{notice}</Aviso> : null}
     {loading ? <LoadingBlock label="Cargando comisiones…" lines={4}/> : <>
+      {errorScope === 'load' && !commissions.length && !monthly.length && !discounts.length ? null : <>
       <KpiStrip>
         <Kpi label={`Esperado · ${monthLabel}`} valor={totalFor('expected')} hint="Acuerdos comerciales vigentes con comisión asignada"/>
         <Kpi label={`Pagado · ${monthLabel}`} valor={totalFor('paid')} hint="Comisiones pagadas del mes"/>
@@ -208,8 +243,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
                 <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
                   {actions.approve ? <button className="text-button positive" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/commissions/${commission.id}`, {status: 'approved'}, 'PATCH'); }, 'Comisión aprobada.')}>Aprobar</button> : null}
                   {actions.pay ? <button className="text-button" disabled={busy} onClick={() => { setPay(commission); void ensureCatalog('accounts'); }}>Registrar pago</button> : null}
-                  {actions.cancel ? <button className="text-button danger" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/commissions/${commission.id}`, {status: 'cancelled'}, 'PATCH'); }, 'Comisión cancelada.')}>Cancelar</button> : null}
-                  {!actions.approve && !actions.pay && !actions.cancel ? <span className="text-[11px] text-mute">Sin acciones</span> : null}
+                  {actions.cancel ? <button className="text-button danger" disabled={busy} onClick={() => setCancelTarget(commission)}>Cancelar</button> : null}
                 </div>
               </ListRow>;
             })}
@@ -230,16 +264,19 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               <div className="min-w-0 text-right"><MoneyText valor={discount.amount} currency={discount.currency}/></div>
               <div className="min-w-0"><StateChip tone={DISCOUNT_TONE[discount.status]}>{referralDiscountStatusLabel(discount.status)}</StateChip></div>
               <div className="flex min-w-0 items-center justify-end gap-1">
-                {discount.status === 'applied' && canManage ? <button className="text-button warn" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/referral-discounts/${discount.id}`, {}, 'PATCH'); }, 'Descuento revertido.')}><Undo2 size={14} aria-hidden="true"/>Revertir</button> : null}
+                {discount.status === 'applied' && canManage ? <button className="text-button warn" disabled={busy} onClick={() => setRevertTarget(discount)}><Undo2 size={14} aria-hidden="true"/>Revertir</button> : null}
               </div>
             </ListRow>)}
           </ListGrid>
           : <EmptyBlock compact title="Todavía no hay descuentos registrados." description="Aplicá un descuento cuando el saldo de una factura se ajuste por una recomendación." action={canManage ? <button className="primary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : undefined}/>}
       </section>
+      </>}
 
       {canSeePayouts ? <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-payouts-title">
         <div className="min-w-0"><h3 id="commissions-payouts-title" className="text-[17px] font-semibold tracking-tight text-fore">Pagos registrados</h3><p className="mt-1 text-xs text-mute">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
-        {payouts.length
+        {payoutsState === 'loading' ? <LoadingBlock label="Cargando egresos…" lines={3}/>
+        : payoutsState === 'error' ? <ErrorBlock title="No se pudieron cargar los egresos" description={`${payoutsError || 'No se pudieron cargar los egresos.'} Reintentá para ver los pagos registrados a colaboradores y referidos.`} onRetry={() => void loadPayouts()}/>
+        : payouts.length
           ? <ListGrid label="Pagos registrados" template={PAYOUT_TEMPLATE} columns={PAYOUT_COLUMNS} minWidthClass="min-w-[70rem]">
             {payouts.map(payout => <ListRow key={payout.id} template={PAYOUT_TEMPLATE}>
               <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={payout.collaborator_name || payout.beneficiary_name || 'Sin beneficiario'}>{payout.collaborator_name || payout.beneficiary_name || 'Sin beneficiario'}</b>{payout.reference ? <small className="block truncate text-[11px] text-mute" title={payout.reference}>{payout.reference}</small> : null}</div>
@@ -254,6 +291,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     </>}
 
     {newCommission ? <Dialog title="Nueva comisión o referido" close={() => setNewCommission(false)}>
+      {catalogNotice('invoices', 'collaborators')}
       <Editor columns fields={[
         {key: 'beneficiary_name', label: 'Beneficiario'},
         {key: 'kind', label: 'Origen', section: 'Qué se comisiona', choices: [{value: 'sales', label: 'Venta'}, {value: 'referral', label: 'Referido'}]},
@@ -269,6 +307,8 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     </Dialog> : null}
 
     {pay ? <Dialog title={`Registrar pago · ${pay.beneficiary_name}`} close={() => setPay(null)}>
+      {catalogNotice('accounts')}
+      {!payAccounts.length && !catalogError ? <Aviso tono="warn">No hay cuentas activas en {pay.currency}. Elegí otra moneda en la comisión o activá una cuenta de esa moneda.</Aviso> : null}
       <Editor columns fields={[
         {key: 'account_id', label: 'Cuenta de salida', choices: payAccounts.map(account => ({value: String(account.id), label: `${account.name} · ${money(Number(account.balance), account.currency)}`}))},
         {key: 'amount', label: 'Importe de la comisión (se conserva el aprobado)', type: 'money', currency: pay.currency},
@@ -278,6 +318,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     </Dialog> : null}
 
     {newDiscount ? <Dialog title="Descuento por referido" close={() => setNewDiscount(false)}>
+      {catalogNotice('invoices')}
       <Editor columns fields={[
         {key: 'invoice_id', label: 'Factura', choices: invoiceChoices(true)},
         {key: 'referrer', label: 'Quién refirió al cliente'},
@@ -285,5 +326,9 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         {key: 'reason', label: 'Motivo o acuerdo', type: 'textarea'},
       ]} defaults={{invoice_id: '', referrer: '', amount: '', reason: ''}} label="Aplicar descuento" save={async values => { await api('/api/agency/referral-discounts', values); setNewDiscount(false); setNotice('Descuento aplicado.'); await load(); }}/>
     </Dialog> : null}
+
+    {cancelTarget ? <ConfirmDialog open busy={busy} variant="danger" title="Cancelar comisión" confirmLabel="Cancelar comisión" description={<>Se cancelará la comisión de {cancelTarget.beneficiary_name} por {money(Number(cancelTarget.amount), cancelTarget.currency)}{cancelTarget.invoice_number ? ` (factura ${cancelTarget.invoice_number})` : ''}. Queda en el historial como cancelada y no se puede reactivar.</>} onCancel={() => { if (!busy) setCancelTarget(null); }} onConfirm={() => void run(async () => { await api(`/api/agency/commissions/${cancelTarget.id}`, {status: 'cancelled'}, 'PATCH'); setCancelTarget(null); }, 'Comisión cancelada.')}/> : null}
+
+    {revertTarget ? <ConfirmDialog open busy={busy} variant="danger" title="Revertir descuento" confirmLabel="Revertir descuento" description={<>Se revertirá el descuento de {revertTarget.referrer} por {money(Number(revertTarget.amount), revertTarget.currency)} sobre la factura {revertTarget.invoice_number}. El saldo pendiente vuelve a subir y el historial conserva la reversión.</>} onCancel={() => { if (!busy) setRevertTarget(null); }} onConfirm={() => void run(async () => { await api(`/api/agency/referral-discounts/${revertTarget.id}`, {}, 'PATCH'); setRevertTarget(null); }, 'Descuento revertido.')}/> : null}
   </section>;
 }
