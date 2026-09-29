@@ -44,7 +44,7 @@ const kpiStrip = items => `<div class="ui-kpi-strip grid grid-cols-1 gap-3 sm:gr
 
 /* ── FilterToolbar de app/ui-v2.tsx ───────────────────────────────────────── */
 const filterToolbar = ({summary = '', children}) => `
-<div data-toolbar="filtros" class="mb-4 flex flex-wrap items-end gap-3">
+<div data-toolbar="filtros" class="mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap">
  ${children}
  ${summary ? `<p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">${summary}</p>` : ''}
 </div>`;
