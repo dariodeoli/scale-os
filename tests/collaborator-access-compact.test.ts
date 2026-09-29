@@ -43,7 +43,7 @@ test('team list view renders a compact single-column list and contact data is ne
  assert.match(operations,/ops-grid\$\{teamView==='list'\?' ops-grid-list':''\}/);
  assert.match(operationsCss,/\.control-shell \.ops-grid\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\)/);
  assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:6;grid-row:1;display:flex/);
- assert.match(operationsCss,/--person-cols:minmax\(9rem,1\.3fr\)/,'la plantilla de la fila finita declara sus columnas');
+ assert.match(operationsCss,/--person-cols:minmax\(14rem,2\.4fr\)/,'la plantilla de la fila finita declara sus columnas con Persona priorizada (#110)');
  assert.match(operationsCss,/\.person-hub-card\.is-list \.person-hub-mail\{grid-column:2/,'el correo tiene su columna en la fila densa');
  assert.match(operations,/person-hub-mail" title=\{p\.email/);
 });

@@ -1,0 +1,638 @@
+[
+ {
+  "label": "despues",
+  "view": "list",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "rows": 9,
+  "names": [
+   {
+    "name": "Camila Vera",
+    "width": 75,
+    "scroll": 75,
+    "client": 75,
+    "cut": false,
+    "cargo": "Administración",
+    "cargoCut": false,
+    "title": "Camila Vera"
+   },
+   {
+    "name": "Diego Insfrán",
+    "width": 83,
+    "scroll": 83,
+    "client": 83,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Diego Insfrán"
+   },
+   {
+    "name": "Facundo Ortiz",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Producción de campo",
+    "cargoCut": false,
+    "title": "Facundo Ortiz"
+   },
+   {
+    "name": "Lucía Acosta",
+    "width": 77,
+    "scroll": 77,
+    "client": 77,
+    "cut": false,
+    "cargo": "Dirección",
+    "cargoCut": false,
+    "title": "Lucía Acosta"
+   },
+   {
+    "name": "Mateo Ríos",
+    "width": 68,
+    "scroll": 68,
+    "client": 68,
+    "cut": false,
+    "cargo": "Editor audiovisual",
+    "cargoCut": false,
+    "title": "Mateo Ríos"
+   },
+   {
+    "name": "Nicolás Duarte",
+    "width": 90,
+    "scroll": 90,
+    "client": 90,
+    "cut": false,
+    "cargo": "Comercial",
+    "cargoCut": false,
+    "title": "Nicolás Duarte"
+   },
+   {
+    "name": "Renata López",
+    "width": 83,
+    "scroll": 83,
+    "client": 83,
+    "cut": false,
+    "cargo": "Edición",
+    "cargoCut": false,
+    "title": "Renata López"
+   },
+   {
+    "name": "Sebastián Benítez",
+    "width": 109,
+    "scroll": 109,
+    "client": 109,
+    "cut": false,
+    "cargo": "Dirección general",
+    "cargoCut": false,
+    "title": "Sebastián Benítez"
+   },
+   {
+    "name": "Valentina Sol",
+    "width": 80,
+    "scroll": 80,
+    "client": 80,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Valentina Sol"
+   }
+  ],
+  "cols": "minmax(14rem,2.4fr) minmax(7rem,.75fr) minmax(9rem,1fr) 4.5rem minmax(10rem,1.15fr) minmax(7.5rem,.8fr) 7rem",
+  "template": "1144px",
+  "gridWidth": 1144,
+  "mailSize": 9,
+  "mailCut": 5,
+  "mailTitled": 5
+ },
+ {
+  "label": "despues",
+  "view": "list",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "rows": 9,
+  "names": [
+   {
+    "name": "Camila Vera",
+    "width": 78,
+    "scroll": 78,
+    "client": 78,
+    "cut": false,
+    "cargo": "Administración",
+    "cargoCut": false,
+    "title": "Camila Vera"
+   },
+   {
+    "name": "Diego Insfrán",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Diego Insfrán"
+   },
+   {
+    "name": "Facundo Ortiz",
+    "width": 105,
+    "scroll": 105,
+    "client": 105,
+    "cut": false,
+    "cargo": "Producción de campo",
+    "cargoCut": false,
+    "title": "Facundo Ortiz"
+   },
+   {
+    "name": "Lucía Acosta",
+    "width": 80,
+    "scroll": 80,
+    "client": 80,
+    "cut": false,
+    "cargo": "Dirección",
+    "cargoCut": false,
+    "title": "Lucía Acosta"
+   },
+   {
+    "name": "Mateo Ríos",
+    "width": 87,
+    "scroll": 87,
+    "client": 87,
+    "cut": false,
+    "cargo": "Editor audiovisual",
+    "cargoCut": false,
+    "title": "Mateo Ríos"
+   },
+   {
+    "name": "Nicolás Duarte",
+    "width": 94,
+    "scroll": 94,
+    "client": 94,
+    "cut": false,
+    "cargo": "Comercial",
+    "cargoCut": false,
+    "title": "Nicolás Duarte"
+   },
+   {
+    "name": "Renata López",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Edición",
+    "cargoCut": false,
+    "title": "Renata López"
+   },
+   {
+    "name": "Sebastián Benítez",
+    "width": 113,
+    "scroll": 113,
+    "client": 113,
+    "cut": false,
+    "cargo": "Dirección general",
+    "cargoCut": false,
+    "title": "Sebastián Benítez"
+   },
+   {
+    "name": "Valentina Sol",
+    "width": 83,
+    "scroll": 83,
+    "client": 83,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Valentina Sol"
+   }
+  ],
+  "cols": "minmax(14rem,2.4fr) minmax(7rem,.75fr) minmax(9rem,1fr) 4.5rem minmax(10rem,1.15fr) minmax(7.5rem,.8fr) 7rem",
+  "template": "326px",
+  "gridWidth": 326,
+  "mailSize": 9,
+  "mailCut": 0,
+  "mailTitled": 5
+ },
+ {
+  "label": "despues",
+  "view": "list",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "rows": 9,
+  "names": [
+   {
+    "name": "Camila Vera",
+    "width": 75,
+    "scroll": 75,
+    "client": 75,
+    "cut": false,
+    "cargo": "Administración",
+    "cargoCut": false,
+    "title": "Camila Vera"
+   },
+   {
+    "name": "Diego Insfrán",
+    "width": 83,
+    "scroll": 83,
+    "client": 83,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Diego Insfrán"
+   },
+   {
+    "name": "Facundo Ortiz",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Producción de campo",
+    "cargoCut": false,
+    "title": "Facundo Ortiz"
+   },
+   {
+    "name": "Lucía Acosta",
+    "width": 77,
+    "scroll": 77,
+    "client": 77,
+    "cut": false,
+    "cargo": "Dirección",
+    "cargoCut": false,
+    "title": "Lucía Acosta"
+   },
+   {
+    "name": "Mateo Ríos",
+    "width": 68,
+    "scroll": 68,
+    "client": 68,
+    "cut": false,
+    "cargo": "Editor audiovisual",
+    "cargoCut": false,
+    "title": "Mateo Ríos"
+   },
+   {
+    "name": "Nicolás Duarte",
+    "width": 90,
+    "scroll": 90,
+    "client": 90,
+    "cut": false,
+    "cargo": "Comercial",
+    "cargoCut": false,
+    "title": "Nicolás Duarte"
+   },
+   {
+    "name": "Renata López",
+    "width": 83,
+    "scroll": 83,
+    "client": 83,
+    "cut": false,
+    "cargo": "Edición",
+    "cargoCut": false,
+    "title": "Renata López"
+   },
+   {
+    "name": "Sebastián Benítez",
+    "width": 109,
+    "scroll": 109,
+    "client": 109,
+    "cut": false,
+    "cargo": "Dirección general",
+    "cargoCut": false,
+    "title": "Sebastián Benítez"
+   },
+   {
+    "name": "Valentina Sol",
+    "width": 80,
+    "scroll": 80,
+    "client": 80,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Valentina Sol"
+   }
+  ],
+  "cols": "minmax(14rem,2.4fr) minmax(7rem,.75fr) minmax(9rem,1fr) 4.5rem minmax(10rem,1.15fr) minmax(7.5rem,.8fr) 7rem",
+  "template": "1144px",
+  "gridWidth": 1144,
+  "mailSize": 9,
+  "mailCut": 5,
+  "mailTitled": 5
+ },
+ {
+  "label": "despues",
+  "view": "list",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "rows": 9,
+  "names": [
+   {
+    "name": "Camila Vera",
+    "width": 78,
+    "scroll": 78,
+    "client": 78,
+    "cut": false,
+    "cargo": "Administración",
+    "cargoCut": false,
+    "title": "Camila Vera"
+   },
+   {
+    "name": "Diego Insfrán",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Diego Insfrán"
+   },
+   {
+    "name": "Facundo Ortiz",
+    "width": 105,
+    "scroll": 105,
+    "client": 105,
+    "cut": false,
+    "cargo": "Producción de campo",
+    "cargoCut": false,
+    "title": "Facundo Ortiz"
+   },
+   {
+    "name": "Lucía Acosta",
+    "width": 80,
+    "scroll": 80,
+    "client": 80,
+    "cut": false,
+    "cargo": "Dirección",
+    "cargoCut": false,
+    "title": "Lucía Acosta"
+   },
+   {
+    "name": "Mateo Ríos",
+    "width": 87,
+    "scroll": 87,
+    "client": 87,
+    "cut": false,
+    "cargo": "Editor audiovisual",
+    "cargoCut": false,
+    "title": "Mateo Ríos"
+   },
+   {
+    "name": "Nicolás Duarte",
+    "width": 94,
+    "scroll": 94,
+    "client": 94,
+    "cut": false,
+    "cargo": "Comercial",
+    "cargoCut": false,
+    "title": "Nicolás Duarte"
+   },
+   {
+    "name": "Renata López",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Edición",
+    "cargoCut": false,
+    "title": "Renata López"
+   },
+   {
+    "name": "Sebastián Benítez",
+    "width": 113,
+    "scroll": 113,
+    "client": 113,
+    "cut": false,
+    "cargo": "Dirección general",
+    "cargoCut": false,
+    "title": "Sebastián Benítez"
+   },
+   {
+    "name": "Valentina Sol",
+    "width": 83,
+    "scroll": 83,
+    "client": 83,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Valentina Sol"
+   }
+  ],
+  "cols": "minmax(14rem,2.4fr) minmax(7rem,.75fr) minmax(9rem,1fr) 4.5rem minmax(10rem,1.15fr) minmax(7.5rem,.8fr) 7rem",
+  "template": "326px",
+  "gridWidth": 326,
+  "mailSize": 9,
+  "mailCut": 0,
+  "mailTitled": 5
+ },
+ {
+  "label": "despues",
+  "view": "cards",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "rows": 9,
+  "names": [
+   {
+    "name": "Camila Vera",
+    "width": 78,
+    "scroll": 78,
+    "client": 78,
+    "cut": false,
+    "cargo": "Administración",
+    "cargoCut": false,
+    "title": "Camila Vera"
+   },
+   {
+    "name": "Diego Insfrán",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Diego Insfrán"
+   },
+   {
+    "name": "Facundo Ortiz",
+    "width": 105,
+    "scroll": 105,
+    "client": 105,
+    "cut": false,
+    "cargo": "Producción de campo",
+    "cargoCut": false,
+    "title": "Facundo Ortiz"
+   },
+   {
+    "name": "Lucía Acosta",
+    "width": 80,
+    "scroll": 80,
+    "client": 80,
+    "cut": false,
+    "cargo": "Dirección",
+    "cargoCut": false,
+    "title": "Lucía Acosta"
+   },
+   {
+    "name": "Mateo Ríos",
+    "width": 87,
+    "scroll": 87,
+    "client": 87,
+    "cut": false,
+    "cargo": "Editor audiovisual",
+    "cargoCut": false,
+    "title": "Mateo Ríos"
+   },
+   {
+    "name": "Nicolás Duarte",
+    "width": 94,
+    "scroll": 94,
+    "client": 94,
+    "cut": false,
+    "cargo": "Comercial",
+    "cargoCut": false,
+    "title": "Nicolás Duarte"
+   },
+   {
+    "name": "Renata López",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Edición",
+    "cargoCut": false,
+    "title": "Renata López"
+   },
+   {
+    "name": "Sebastián Benítez",
+    "width": 113,
+    "scroll": 113,
+    "client": 113,
+    "cut": false,
+    "cargo": "Dirección general",
+    "cargoCut": false,
+    "title": "Sebastián Benítez"
+   },
+   {
+    "name": "Valentina Sol",
+    "width": 83,
+    "scroll": 83,
+    "client": 83,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Valentina Sol"
+   }
+  ],
+  "cols": "",
+  "template": "277px 277px 277px 277px",
+  "gridWidth": 1144,
+  "mailSize": 9,
+  "mailCut": 0,
+  "mailTitled": 5
+ },
+ {
+  "label": "despues",
+  "view": "cards",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "rows": 9,
+  "names": [
+   {
+    "name": "Camila Vera",
+    "width": 78,
+    "scroll": 78,
+    "client": 78,
+    "cut": false,
+    "cargo": "Administración",
+    "cargoCut": false,
+    "title": "Camila Vera"
+   },
+   {
+    "name": "Diego Insfrán",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Diego Insfrán"
+   },
+   {
+    "name": "Facundo Ortiz",
+    "width": 105,
+    "scroll": 105,
+    "client": 105,
+    "cut": false,
+    "cargo": "Producción de campo",
+    "cargoCut": false,
+    "title": "Facundo Ortiz"
+   },
+   {
+    "name": "Lucía Acosta",
+    "width": 80,
+    "scroll": 80,
+    "client": 80,
+    "cut": false,
+    "cargo": "Dirección",
+    "cargoCut": false,
+    "title": "Lucía Acosta"
+   },
+   {
+    "name": "Mateo Ríos",
+    "width": 87,
+    "scroll": 87,
+    "client": 87,
+    "cut": false,
+    "cargo": "Editor audiovisual",
+    "cargoCut": false,
+    "title": "Mateo Ríos"
+   },
+   {
+    "name": "Nicolás Duarte",
+    "width": 94,
+    "scroll": 94,
+    "client": 94,
+    "cut": false,
+    "cargo": "Comercial",
+    "cargoCut": false,
+    "title": "Nicolás Duarte"
+   },
+   {
+    "name": "Renata López",
+    "width": 86,
+    "scroll": 86,
+    "client": 86,
+    "cut": false,
+    "cargo": "Edición",
+    "cargoCut": false,
+    "title": "Renata López"
+   },
+   {
+    "name": "Sebastián Benítez",
+    "width": 113,
+    "scroll": 113,
+    "client": 113,
+    "cut": false,
+    "cargo": "Dirección general",
+    "cargoCut": false,
+    "title": "Sebastián Benítez"
+   },
+   {
+    "name": "Valentina Sol",
+    "width": 83,
+    "scroll": 83,
+    "client": 83,
+    "cut": false,
+    "cargo": "Producción",
+    "cargoCut": false,
+    "title": "Valentina Sol"
+   }
+  ],
+  "cols": "",
+  "template": "326px",
+  "gridWidth": 326,
+  "mailSize": 9,
+  "mailCut": 0,
+  "mailTitled": 5
+ }
+]

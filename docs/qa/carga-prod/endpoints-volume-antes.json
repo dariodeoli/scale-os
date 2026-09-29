@@ -1,0 +1,263 @@
+{
+ "capturedAt": "2026-09-29T22:27:11.843Z",
+ "base": "http://127.0.0.1:3078",
+ "iterations": 10,
+ "rows": [
+  {
+   "endpoint": "/api/auth/me",
+   "label": "sesión",
+   "ok": 10,
+   "total": 10,
+   "p50": 4,
+   "p95": 14,
+   "max": 14,
+   "bytesMedian": 681,
+   "decodedMedian": 681
+  },
+  {
+   "endpoint": "/api/agency/team",
+   "label": "Equipo",
+   "ok": 10,
+   "total": 10,
+   "p50": 5,
+   "p95": 6,
+   "max": 6,
+   "bytesMedian": 60953,
+   "decodedMedian": 166454
+  },
+  {
+   "endpoint": "/api/agency/clients?fields=id,name,email,active,logo_url,color_key",
+   "label": "Clientes (chrome)",
+   "ok": 10,
+   "total": 10,
+   "p50": 3,
+   "p95": 4,
+   "max": 4,
+   "bytesMedian": 4118,
+   "decodedMedian": 48889
+  },
+  {
+   "endpoint": "/api/agency/clients",
+   "label": "Clientes (completo)",
+   "ok": 10,
+   "total": 10,
+   "p50": 5,
+   "p95": 6,
+   "max": 6,
+   "bytesMedian": 5933,
+   "decodedMedian": 202118
+  },
+  {
+   "endpoint": "/api/agency/projects?fields=id,name,client_id,client_name,work_order_count",
+   "label": "Proyectos (chrome)",
+   "ok": 10,
+   "total": 10,
+   "p50": 3,
+   "p95": 5,
+   "max": 5,
+   "bytesMedian": 1108,
+   "decodedMedian": 8397
+  },
+  {
+   "endpoint": "/api/agency/projects",
+   "label": "Proyectos (completo)",
+   "ok": 10,
+   "total": 10,
+   "p50": 6,
+   "p95": 7,
+   "max": 7,
+   "bytesMedian": 62046,
+   "decodedMedian": 370587
+  },
+  {
+   "endpoint": "/api/agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+   "label": "Órdenes (ventana shell)",
+   "ok": 10,
+   "total": 10,
+   "p50": 5,
+   "p95": 7,
+   "max": 7,
+   "bytesMedian": 3912,
+   "decodedMedian": 51671
+  },
+  {
+   "endpoint": "/api/agency/control-center",
+   "label": "Centro de control",
+   "ok": 10,
+   "total": 10,
+   "p50": 3,
+   "p95": 7,
+   "max": 7,
+   "bytesMedian": 442,
+   "decodedMedian": 442
+  },
+  {
+   "endpoint": "/api/agency/dashboard",
+   "label": "Tablero",
+   "ok": 10,
+   "total": 10,
+   "p50": 5,
+   "p95": 9,
+   "max": 9,
+   "bytesMedian": 413,
+   "decodedMedian": 2694
+  },
+  {
+   "endpoint": "/api/agency/activity?limit=20&offset=0",
+   "label": "Actividad (ventana)",
+   "ok": 10,
+   "total": 10,
+   "p50": 12,
+   "p95": 14,
+   "max": 14,
+   "bytesMedian": 320,
+   "decodedMedian": 4239
+  },
+  {
+   "endpoint": "/api/agency/trash?limit=50&offset=0",
+   "label": "Papelera (ventana)",
+   "ok": 10,
+   "total": 10,
+   "p50": 3,
+   "p95": 4,
+   "max": 4,
+   "bytesMedian": 309,
+   "decodedMedian": 309
+  },
+  {
+   "endpoint": "/api/agency/productivity/history?limit=10&offset=0",
+   "label": "Historial (ventana)",
+   "ok": 10,
+   "total": 10,
+   "p50": 4,
+   "p95": 6,
+   "max": 6,
+   "bytesMedian": 361,
+   "decodedMedian": 2971
+  },
+  {
+   "endpoint": "/api/agency/invite-links",
+   "label": "Invitaciones",
+   "ok": 0,
+   "total": 10,
+   "max": null
+  },
+  {
+   "endpoint": "/api/agency/access-requests",
+   "label": "Solicitudes",
+   "ok": 0,
+   "total": 10,
+   "max": null
+  },
+  {
+   "endpoint": "/api/agency/presence/usage",
+   "label": "Presencia · uso",
+   "ok": 10,
+   "total": 10,
+   "p50": 4,
+   "p95": 6,
+   "max": 6,
+   "bytesMedian": 60182,
+   "decodedMedian": 81795
+  },
+  {
+   "endpoint": "/api/agency/notifications?status=all",
+   "label": "Bandeja",
+   "ok": 10,
+   "total": 10,
+   "p50": 3,
+   "p95": 3,
+   "max": 3,
+   "bytesMedian": 445,
+   "decodedMedian": 8260
+  },
+  {
+   "endpoint": "/api/agency/permissions",
+   "label": "Permisos",
+   "ok": 10,
+   "total": 10,
+   "p50": 2,
+   "p95": 2,
+   "max": 2,
+   "bytesMedian": 1281,
+   "decodedMedian": 6036
+  },
+  {
+   "endpoint": "/api/agency/settings",
+   "label": "Configuración",
+   "ok": 10,
+   "total": 10,
+   "p50": 2,
+   "p95": 2,
+   "max": 2,
+   "bytesMedian": 254,
+   "decodedMedian": 254
+  },
+  {
+   "endpoint": "/api/agency/exchange-rates",
+   "label": "Cotizaciones",
+   "ok": 10,
+   "total": 10,
+   "p50": 2,
+   "p95": 2,
+   "max": 2,
+   "bytesMedian": 189,
+   "decodedMedian": 189
+  },
+  {
+   "endpoint": "/api/platform/overview",
+   "label": "Superadmin · resumen",
+   "ok": 10,
+   "total": 10,
+   "p50": 2,
+   "p95": 6,
+   "max": 6,
+   "bytesMedian": 107,
+   "decodedMedian": 107
+  },
+  {
+   "endpoint": "/api/platform/agencies?limit=50",
+   "label": "Superadmin · agencias",
+   "ok": 10,
+   "total": 10,
+   "p50": 2,
+   "p95": 3,
+   "max": 3,
+   "bytesMedian": 382,
+   "decodedMedian": 382
+  },
+  {
+   "endpoint": "/api/platform/users?limit=50",
+   "label": "Superadmin · usuarios",
+   "ok": 10,
+   "total": 10,
+   "p50": 3,
+   "p95": 4,
+   "max": 4,
+   "bytesMedian": 365,
+   "decodedMedian": 365
+  },
+  {
+   "endpoint": "/api/platform/coupons?limit=50",
+   "label": "Superadmin · cupones",
+   "ok": 10,
+   "total": 10,
+   "p50": 3,
+   "p95": 4,
+   "max": 4,
+   "bytesMedian": 62,
+   "decodedMedian": 62
+  },
+  {
+   "endpoint": "/api/platform/audit?limit=50",
+   "label": "Superadmin · auditoría",
+   "ok": 10,
+   "total": 10,
+   "p50": 3,
+   "p95": 4,
+   "max": 4,
+   "bytesMedian": 62,
+   "decodedMedian": 62
+  }
+ ]
+}

@@ -1,3 +1,5 @@
+import {mediaPhoto} from './agency-media.js';
+
 // Display attribution only. Call after the handler has authorized and scoped rows.
 // Resolve explicit user IDs through the same tenant-scoped view as presence and
 // history; never match names/emails or use an importer's ID as the source author.
@@ -16,7 +18,7 @@ export async function attributeActors(c, organizationId, groups) {
   const identity = byId.get(String(row[userId]));
   const previousName = fallback.map(key => row[key]).find(value => typeof value === 'string' && value.trim());
   row[`${prefix}_name`] = identity?.full_name?.trim() || identity?.email || previousName || (row[userId] == null ? null : 'Usuario');
-  row[`${prefix}_photo_url`] = identity?.photo_url || null;
+  row[`${prefix}_photo_url`] = mediaPhoto('person', identity?.user_id, identity?.photo_url);
   row[`${prefix}_user_id`] = identity?.user_id ?? null;
   row[`${prefix}_verified`] = Boolean(identity);
  }
