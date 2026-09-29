@@ -2,6 +2,26 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.151
+
+### Fotos y perfiles
+
+- **Un solo objeto de foto** en toda la app (perfil, Equipo, comentarios, actividad, presencia, riel y portal): tamaños y formas canónicos, iniciales cuando falta o falla, y recorte manual solo si el usuario lo pide.
+- **La subida guarda la foto completa**: se termina el recorte cuadrado automático (las fotos verticales perdían la cabeza); el encuadre inicial no hace zoom y el usuario ajusta si quiere.
+- **Avatares de persona con encuadre superior** (cabeza visible) en comentarios, actividad, Equipo, presencia, perfil y riel; los logos de cliente y el visor ampliado no cambian.
+- Si un enlace de foto falla y se vuelve a guardar, la imagen se reintenta sola. Evidencia en `docs/qa/fotos-perfil/`.
+
+### Plataforma
+
+- **Ventanas en listas largas**: Actividad carga de a 20 filas (4,4 KB en vez de 21,6 KB), la Papelera pagina e informa total y tipos, el Historial suma el total y el panel global informa total/`hasMore` con «Ver más» por colección (contrato aditivo).
+- **Medición de la carga inicial**: TTFB, peso y llamadas por pantalla y ancho, reproducible; la propuesta de recortes deja a las fotos como data URL como el 75% del peso inicial.
+- El padding del panel global queda como regla explícita.
+
+### Sistema (CSS)
+
+- **Restaurada la base que un comentario sin cerrar descartaba** desde el 23-sep: la tarjeta (`.panel`), `metric`, `text-button`, `work-card` y compañía vuelven a publicarse, y las superficies fuera del shell (páginas de error, panel global) recuperan su padding.
+- **Guarda nueva** (`tests/css-comments.test.ts`): comentarios CSS cerrados, sin reglas adentro y reglas base presentes; la regla quedó documentada en `AGENTS.md` y `DESIGN-SYSTEM.md`.
+
 ## v1.0.150
 
 ### Comercial
