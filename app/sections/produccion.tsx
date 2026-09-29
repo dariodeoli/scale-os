@@ -118,13 +118,13 @@ export function ProduccionSection({productionView, preferences, changeProduction
   const onDrop=(event:DragEndEvent)=>{const id=String(event.active.id);setDraggedOrderId(null);const target=dropStatus(String(event.over?.id||''));if(target)boardData.move(id,target);};
   return (
     <>
-      <div className="production-command-toolbar mb-4 flex flex-col gap-3 lg:mb-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:items-end">
-        <SegmentedField className="production-view-tabs [&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/>
-        {productionView!=="Tablero"&&<div className="production-command-toolbar-actions flex flex-wrap items-center gap-2 lg:justify-self-end"><button type="button" className="text-button" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button></div>}
-        {productionView==="Tablero"&&<div className="production-command-toolbar-actions flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3 lg:justify-self-end lg:gap-2">
-          <label className="production-client-filter grid w-full gap-1.5 sm:w-64 lg:w-56 lg:gap-1">
-            <span className="text-[12px] font-semibold text-mute">Filtrar por cliente</span>
-            <Select value={selectedProductionClient} disabled={!preferencesReady} onChange={(event:React.ChangeEvent<HTMLSelectElement>)=>setProductionClientId(event.target.value)}>
+    <div className="production-command-toolbar mb-4 flex min-w-0 flex-col gap-3 lg:mb-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3">
+        <SegmentedField className="production-view-tabs silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0 [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/>
+        {productionView!=="Tablero"&&<div className="production-command-toolbar-actions flex flex-wrap items-center gap-2 lg:ml-auto"><button type="button" className="text-button" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button></div>}
+        {productionView==="Tablero"&&<div className="production-command-toolbar-actions flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:ml-auto lg:gap-2">
+          <label className="production-client-filter flex items-center gap-2">
+            <span className="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span>
+            <Select className="w-full sm:w-56" value={selectedProductionClient} disabled={!preferencesReady} onChange={(event:React.ChangeEvent<HTMLSelectElement>)=>setProductionClientId(event.target.value)}>
               <option value="">Todos los clientes</option>
               {[...clients].sort((a,b) => a.name.localeCompare(b.name, 'es')).map(client => <option key={client.id} value={String(client.id)}>{client.name}</option>)}
             </Select>

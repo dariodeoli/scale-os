@@ -92,7 +92,9 @@ assert.match(studio,/limitSelection\(visibleSelectable,BATCH_LIMITS\.studioReser
 assert.match(studio,/\/api\/agency\/studio-reservations\/batch/,'el lote llama al endpoint de batch (#59)');
 assert.match(studio,/\/api\/agency\/studio-reservations\/\$\{id\}\/cancel/,'sin endpoint de lote cae a los cancels unitarios con versión');
 assert.match(studio,/expected_version:row\?\.version/,'el respaldo conserva la versión por fila');
-assert.match(studio,/bulk-bar.*Seleccionar visibles/s,'la barra vive antes de la lista');
+const studioListAt=studio.indexOf('data-list="studio-reservations"');
+assert(studio.indexOf('bulk-bar')<studioListAt,'la barra de lote vive antes de la lista');
+assert(studio.indexOf('Seleccionar visibles')<studioListAt,'la acción de seleccionar vive antes de la lista');
 assert.match(studio,/<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote">/,'la celda de selección es táctil de 44 px en mobile');
 assert.match(studio,/\[--studio-cols:2\.25rem_/,'la plantilla compartida suma la columna de selección');
 const capabilities=read('app/capabilities.ts');
@@ -166,8 +168,9 @@ assert.match(board,/loading&&counts===undefined/,'el badge no inventa un 0 duran
 assert.match(board,/data-column/,'las columnas conservan su ancla de medición');
 assert.match(read('app/scale-workspace.tsx'),/createOrder=\{canCreateRecord\('Producción'\)\?\(\)=>setModal\('order'\):undefined\}/,'el CTA del vacío reutiliza el modal real del shell');
 // ── Ronda 14 (#62): toolbar compacta de inventario y vacíos con CTA.
-assert.match(inventory,/min-w-\[12rem\] flex-1 sm:max-w-80/,'la búsqueda del inventario comparte la línea de la toolbar');
-assert.match(inventory,/visible\.length\} de \{items\.length\} equipos/,'el contador dice visibles de total');
+// #90: la búsqueda es flexible, más angosta en la fila única del toolbar.
+assert.match(inventory,/min-w-\[8rem\] flex-1 lg:max-w-72/,'la búsqueda del inventario comparte la línea de la toolbar');
+assert.match(inventory,/visible\.length\} de \{items\.length\}\{updatedAt/,'el contador compacto dice visibles de total');
 assert.match(inventory,/title=\{`Mostrando \$\{visible\.length\} de \$\{items\.length\} equipos/,'el detalle del contador viaja en el title');
 assert.match(inventory,/onAddValue=\{context\?\.can_manage&&itemWithoutValue\?/,'el valor ausente ofrece la edición de un equipo');
 assert.match(inventory,/>Agregar valor<\/button>/,'el CTA del valor se nombra "Agregar valor"');
@@ -188,17 +191,20 @@ assert.equal((checklistCss.match(/input\[type=checkbox\]\{width:/g)||[]).length,
 assert.match(orderLinks,/className="h-6 w-6 p-0 accent-fono"/,'el checkbox de visibilidad del enlace usa el mismo control de 24 px');
 assert.match(orderLinks,/min-h-11 items-center gap-2 md:min-h-0/,'el checkbox de enlace tiene target de 44 px en móvil');
 assert.match(planner,/className="h-6 w-6 p-0 accent-fono"/,'la selección de piezas del planificador también es de 24 px');
-// ── Ronda 16 (#70): mobile de OPS sin scroll, targets y checkboxes del formulario.
-assert.match(studio,/className="bulk-hint whitespace-normal"/,'la pista del lote de Estudio envuelve en mobile');
-assert.match(projects,/className="bulk-hint whitespace-normal"/,'la pista del lote de Proyectos envuelve en mobile');
+// ── Ronda 16 (#70) + compactación #94: el lote aparece con la selección y la
+// pista viaja en el title del acceso directo del toolbar.
+assert.match(studio,/\{selectedReservations\.length\?<div className="bulk-bar"/,'el lote del Estudio aparece con la selección');
+assert.match(studio,/title=\{`Selecciona hasta \$\{BATCH_LIMITS\.studioReservations\} reservas/,'la pista del lote de Estudio viaja en el title');
+assert.match(projects,/\{canManageProjects&&selectedProjects\.length\?<div className="bulk-bar"/,'el lote de Proyectos aparece con la selección');
+assert.match(projects,/title=\{`Selecciona hasta \$\{BATCH_LIMITS\.projects\} proyectos visibles/,'la pista del lote de Proyectos viaja en el title');
 assert.match(orderLinks,/className="comment-link-chip min-h-11 md:min-h-0"/,'el chip de enlace de la pieza es táctil en mobile');
 assert.match(inventory,/grid h-11 w-11 place-items-center rounded-lg border md:h-9 md:w-9/,'el selector de íconos de categoría es táctil en mobile');
 assert.match(inventory,/className="mt-0\.5 h-6 w-6 p-0 accent-fono"/,'los ítems de reserva usan el checkbox de 24 px');
 assert.match(inventory,/className="h-6 w-6 p-0 accent-fono" checked=\{adjust\}/,'el ajuste de verificación usa el checkbox de 24 px');
 assert.match(inventory,/className="flex min-h-11 items-center gap-2 text-sm text-fore md:min-h-0"/,'los toggles de ubicación y categoría tienen target de 44 px');
 assert.match(studio,/className="h-6 w-6 p-0 accent-fono" checked=\{members\.includes/,'los responsables de estudio usan el checkbox de 24 px');
-// ── Ronda 19 (#74): el mes no corta el año en mobile.
-assert.match(studio,/<div className="w-52"><Label htmlFor="studio-month">/,'el mes del estudio tiene ancho completo para el año');
+// ── Ronda 19 (#74) + compactación #94: el mes no corta el año y el rótulo va en línea.
+assert.match(studio,/<Label htmlFor="studio-month" className="whitespace-nowrap">Mes<\/Label><Input id="studio-month" className="w-44" type="month"/,'el mes del estudio no corta el año');
 assert.match(inventory,/className="w-52">\s*<Label htmlFor="inventory-calendar-month">/,'el mes del calendario de inventario no corta el año');
 assert.match(planner,/grid w-52 gap-1\.5/,'el mes del planificador no corta el año');
 // ── Ronda 17 (#71): casilla de la grilla 44×44 y adopción de ?fields=.
@@ -270,10 +276,11 @@ assert.match(projectCard,/\[&_a\]:inline-flex \[&_a\]:min-h-11/,'los enlaces de 
 // Scroll contenido: el documento no scrollea de costado; las listas y el tablero sí, dentro de su caja.
 assert.match(uiV2,/silent-scroll min-w-0 overflow-x-auto/,'las listas v2 contienen su scroll horizontal');
 assert.match(productionSection,/silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto/,'el tablero contiene su scroll por bloques');
-// Toolbars que envuelven y campos a ancho completo en mobile.
+// Toolbars que envuelven y campos a ancho completo en mobile (#94: fila única en desktop).
 assert.match(uiV2,/mb-4 flex flex-wrap items-end gap-3/,'la toolbar de filtros envuelve en mobile');
-assert.match(productionSection,/production-command-toolbar mb-4 flex flex-col gap-3 lg:mb-2 lg:grid lg:grid-cols-\[auto_minmax\(0,1fr\)\]/,'la barra de producción apila en mobile y compacta controles en desktop');
-assert.match(projects,/grid w-full gap-1\.5 sm:w-64/,'el filtro de proyectos ocupa el ancho en mobile');
+assert.match(productionSection,/production-command-toolbar mb-4 flex min-w-0 flex-col gap-3 lg:mb-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3/,'la barra de producción apila en mobile y va en una fila en desktop');
+assert.match(productionSection,/<label className="production-client-filter flex items-center gap-2">/,'el filtro de cliente va en línea con su rótulo');
+assert.match(projects,/<label className="flex items-center gap-2">/,'el filtro de proyectos va en línea con su rótulo');
 // Hojas mobile: el harness mide la geometría real del diálogo (cabe y scrollea adentro).
 const fixtures=read('build-tools/visual-harness/fixtures/ops-detalles-formularios.mjs');
 assert.match(fixtures,/const sheet = \(heading, body\) =>/,'el harness mide la hoja mobile');

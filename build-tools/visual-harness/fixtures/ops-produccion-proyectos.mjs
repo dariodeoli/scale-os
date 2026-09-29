@@ -76,11 +76,11 @@ const kanbanColumn = (status, orders, {count, hasMore} = {}) => `
  ${orders.length ? '' : '<p class="py-3 text-center text-[11px] text-mute">Sin piezas en esta etapa</p>'}
 </section>`;
 const productionToolbar = `
-<div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
- ${segmented('Vista de Producción', [['Tablero', 'Tablero', 'grid'], ['Mi día', 'Mi día', 'clock'], ['Calendario', 'Calendario', 'calendar'], ['Lista y lotes', 'Lista y lotes', 'list']], 'Tablero')}
- <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
-  <label class="grid w-full gap-1.5 sm:w-64"><span class="text-[12px] font-semibold text-mute">Filtrar por cliente</span><select class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore md:h-9 md:text-sm"><option>Todos los clientes</option></select></label>
-  <div class="flex flex-wrap items-center gap-2"><button type="button" class="text-button">${svg(ICON.sliders, 14)}Filtros · 2</button><p class="whitespace-nowrap text-xs tabular-nums text-mute" role="status">4 de 9 órdenes</p><button type="button" class="text-button">${svg(ICON.rotate, 14)}Restablecer filtros</button></div>
+<div class="production-command-toolbar mb-4 flex min-w-0 flex-col gap-3 lg:mb-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3">
+ ${segmented('Vista de Producción', [['Tablero', 'Tablero', 'grid'], ['Mi día', 'Mi día', 'clock'], ['Calendario', 'Calendario', 'calendar'], ['Lista y lotes', 'Lista y lotes', 'list']], 'Tablero', 'silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0')}
+ <div class="production-command-toolbar-actions flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:ml-auto lg:gap-2">
+  <label class="production-client-filter flex items-center gap-2"><span class="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span><select class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore md:h-9 md:text-sm sm:w-56"><option>Todos los clientes</option></select></label>
+  <div class="production-filter-actions flex flex-wrap items-center gap-2"><button type="button" class="text-button">${svg(ICON.sliders, 14)}Filtros · 2</button><p class="whitespace-nowrap text-xs tabular-nums text-mute" role="status">4 de 9 órdenes</p><button type="button" class="text-button">${svg(ICON.rotate, 14)}Restablecer filtros</button></div>
  </div>
 </div>`;
 // Indicador del riel (#62/#66): "Etapas 1–4 de 7" por bloques de 4 completas.
@@ -194,7 +194,7 @@ const projectListRow = (project) => `
 const projectsBody = (asGrid) => `
 <section class="grid min-w-0 gap-4" aria-label="Proyectos">
  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Activos', '2', 'Con trabajo en curso')}${kpi('Pausados', '1', 'Sin producción activa')}${kpi('Completados', '1', 'Cerrados en el historial')}${kpi('Piezas totales', '187', 'Órdenes de los proyectos visibles')}</div>
- <div class="mb-4 flex flex-wrap items-end gap-3"><label class="grid w-full gap-1.5 sm:w-64"><span class="text-[12px] font-semibold text-mute">Cliente</span><select class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore md:h-9 md:text-sm"><option>Todos los clientes</option></select></label><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">4 proyectos</p></div>
+ <div class="flex flex-wrap items-end gap-3"><label class="flex items-center gap-2"><span class="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span><select class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore md:h-9 md:text-sm sm:w-56"><option>Todos los clientes</option></select></label><button type="button" class="text-button">${svg(ICON.close, 14)}Limpiar filtro</button><button type="button" class="text-button lg:ml-2" title="Selecciona hasta 50 proyectos visibles para operar en lote">Seleccionar visibles</button><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">4 proyectos</p></div>
  ${asGrid
    ? `<div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">${projectRows.map(projectCard).join('')}</div>`
    : `<div role="table" aria-label="Proyectos" class="project-list silent-scroll min-w-0 overflow-x-auto [--project-cols:minmax(14rem,1.6fr)_7rem_minmax(13rem,1.1fr)_minmax(10rem,1fr)_10rem]"><div class="min-w-[64rem]"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PROJECT_TEMPLATE}"><span role="columnheader">Proyecto</span><span role="columnheader">Estado</span><span role="columnheader">Fechas y piezas</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Acciones</span></div><div role="rowgroup">${projectRows.map(projectListRow).join('')}</div></div></div>`}
