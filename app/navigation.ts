@@ -1,3 +1,4 @@
+import legacyRouteMap from './legacy-routes.json';
 export const sections = [
  ['Resumen','resumen'],['Pipeline','pipeline'],['Clientes','clientes'],['Presupuestos','presupuestos'],
  ['Proyectos','proyectos'],['Producción','produccion'],['Inventario','inventario'],['Estudio','estudio'],
@@ -9,7 +10,10 @@ export const sections = [
 export function sectionPath(label:string){if(label==='Tablero de producción')label='Producción';if(label==='Pagos')label='Finanzas';return '/'+(sections.find(([name])=>name===label)?.[1]||'resumen');}
 export function sectionLabel(path:string){return sections.find(([,slug])=>'/'+slug===path.replace(/\/$/,''))?.[0]||'Resumen';}
 export function validSection(slug:string){return sections.some(([,value])=>value===slug);}
-export const legacyRoutes:Record<string,string>={actividad:'/equipo/actividad',metricas:'/pipeline/metricas',mora:'/pagos/mora',planes:'/presupuestos/planes',comisiones:'/equipo/comisiones',papelera:'/configuracion/papelera',colaboradores:'/equipo'};
+// Fuente única de compatibilidad (regla 7, §15): el mapa vive en
+// `legacy-routes.json` y lo consumen el router y la resolución previa al render
+// (`next.config.mjs`). La compatibilidad redirige; la pantalla no se monta dos veces.
+export const legacyRoutes:Record<string,string>=legacyRouteMap;
 export function legacyDestination(slug:string){return Object.prototype.hasOwnProperty.call(legacyRoutes,slug)?legacyRoutes[slug]:undefined;}
 export const sectionGroups:Record<string,readonly string[]>={Finanzas:['Finanzas','Mora','Previsión'],Pipeline:['Pipeline','Métricas'],Presupuestos:['Presupuestos','Planes'],Equipo:['Equipo','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad'],'Configuración':['Configuración','Preferencias','Papelera']};
 export function parentSection(label:string){if(label==='Métricas')return 'Pipeline';return Object.entries(sectionGroups).find(([,children])=>children.includes(label))?.[0]||label;}
