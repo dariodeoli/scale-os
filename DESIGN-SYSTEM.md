@@ -91,6 +91,56 @@ Creación usa un selector nativo con etiqueta vinculada y ayuda permanente media
 
 La etiqueta en tarjetas y detalle muestra número y nombre, sin depender del color. Reutiliza tokens `--text`, `--text-muted`, `--surface`, `--line` y `--ui-space-2`; permite ajuste de línea y no agrega acciones a las tarjetas. Verificación automatizada: `tests/urgency.test.tsx`; servidor: `test-urgency.mjs`. Revisar teclado y lector de pantalla reales antes de la publicación.
 
+## Densidad integral — 29-09-2026 (#97, owncoding-ui §17)
+
+Regla: **más contenido útil arriba del pliegue sin perder claridad**. La
+densidad se ajusta en los componentes y tokens compartidos (`app/ui-system.css`,
+`app/ui-v2.tsx`), nunca con variantes locales por pantalla.
+
+### Tokens (fuente única)
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `--ui-page-padding` | 16 px móvil · 24 px ≥768 · **32 px ≥1280** | gutter de `.workspace-content` y `.workspace-topbar` (nunca 48 px) |
+| `--ui-section-gap` | 16 px (16–24 según la pantalla) | separación entre secciones (`.ops-stack`, `.finance-grid`) |
+| `--ui-card-padding` / `--ui-panel-padding` | 16 / 20 px | interior de cards y paneles |
+| `--ui-card-min-height` | 120 px | **piso** de tarjeta; la homogeneidad por fila la da el grid (`stretch`), no un `min-height` grande |
+| `--ui-control-height` | 40 px escritorio · 44 px móvil | toolbars, botones, campos |
+| `--ui-control-gap` / `--ui-control-gap-lg` | 8 px móvil · 12 px escritorio | separación entre controles de una toolbar |
+
+Medición del pase (harness, 1440×900): gutter de página 48 → **32 px**;
+encabezado de página 64 → **56 px**; encabezado de diálogo 68 → **61 px**;
+tarjetas con piso 190–200 → **120 px** (una card corta mide ~127 px de alto);
+barra de lote 84 (dos líneas) → **54 px** (una línea).
+
+### Patrón obligatorio de listas y directorios
+
+1. **Header**: título + contador/contexto + acción primaria, en una fila
+   (`PageHeader` / `workspace-page-header`).
+2. **Toolbar única**: búsqueda + filtros + vista lista/cuadrícula + acciones
+   secundarias (`FilterToolbar`, `data-toolbar="filtros"`), una fila en ≥1280.
+3. **Señales/KPIs compactos** solo si aportan una decisión (`KpiStrip`;
+   110–140 px, hint de una línea con `title`).
+4. **Contenido real** inmediatamente debajo (nada de cards contenedoras para
+   una sola fila de controles).
+5. **Selección masiva contextual**: `BulkBar` aparece **solo** con al menos un
+   registro seleccionado; «Seleccionar visibles» vive en la toolbar o en el
+   encabezado de la tabla, no en una fila fija.
+
+### Título único por pantalla
+
+El shell publica el título de la página activa (`PageTitleContext`: la etiqueta
+del apartado cuando hay tabs, o el módulo). `PageHeader` **omite** su título
+cuando repite ese valor: una pantalla, un título; la fila queda para contexto y
+acciones. Un título propio de la sección (p. ej. «Estado de pagos») se conserva
+solo si aporta y no repite la tab.
+
+### Diálogos, formularios y paneles laterales
+
+`app/dialog.css`: encabezado 56 px (52 móvil), cuerpo con el padding de card,
+pie 12 px y `.dialog-footer:empty{display:none}` (nada anclado al fondo cuando
+no hay acciones). Los popups del dominio siguen el mismo contrato.
+
 ## Sistema v2 (Tailwind + owncoding-ui) — 22-09-2026
 
 Decisión del dueño (campaña #41): la base del rediseño es **Tailwind CSS 3.4 +

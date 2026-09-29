@@ -1,12 +1,27 @@
 /* Scale OS shared UI. Module layouts retain their own grids and permissions.
    Scope to the workspace and portal dialogs; the sales landing is independent. */
+/* Sistema de densidad (#97, owncoding-ui §17): un solo juego de tokens para
+   todo el panel. Página 16 px en móvil → 24/32 px en escritorio; controles de
+   40 px en escritorio y 44 px en móvil; gap de controles 8–12 px; cards 16–20,
+   paneles/separaciones 16–24. Nada de gutters de 48 px ni `min-height` grande
+   para contenido corto. */
 :root{
  --ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;
  --ui-space-5:20px;--ui-space-6:24px;
- --ui-control-height:40px;--ui-panel-padding:20px;--ui-card-padding:16px;
+ --ui-control-height:40px;--ui-control-gap:var(--ui-space-2);--ui-control-gap-lg:var(--ui-space-3);
+ --ui-panel-padding:20px;--ui-card-padding:16px;--ui-card-min-height:120px;
+ --ui-page-padding:16px;--ui-section-gap:var(--ui-space-4);
  --ui-field-border:var(--border-interactive);--ui-focus:var(--brand-700);
 }
-.control-shell{--control-gap:var(--ui-space-4);--control-padding:var(--ui-panel-padding);container-type:inline-size}
+@media(min-width:768px){:root{--ui-page-padding:24px;--ui-control-gap:var(--ui-space-3)}}
+@media(min-width:1280px){:root{--ui-page-padding:32px}}
+.control-shell{--control-gap:var(--ui-control-gap-lg);--control-padding:var(--ui-panel-padding);container-type:inline-size}
+
+/* Ritmo de la página (#97): el gutter vive en un token (antes llegaba a 48 px
+   en xl) y el alto respira con la misma escala. */
+.workspace-content{padding:var(--ui-space-4) var(--ui-page-padding) var(--ui-space-6)}
+@media(min-width:768px){.workspace-content{padding-block:var(--ui-space-4) var(--ui-space-5)}}
+.workspace-topbar{padding-inline:var(--ui-page-padding)}
 :is(.control-shell,.unified-dialog,.photo-dialog){accent-color:var(--brand-700)}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(h2,h3){line-height:1.3;overflow-wrap:anywhere}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(p,label,legend){overflow-wrap:anywhere}
@@ -321,12 +336,13 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 .whatsapp-button svg{flex:none;color:var(--brand-600)}
 .select-check{display:flex;align-items:center;flex:none}
 .select-check input{width:18px;height:18px;min-height:18px;padding:0;accent-color:var(--brand-700)}
-.bulk-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:8px 12px;border:1px solid color-mix(in srgb,var(--brand-600) 22%,var(--line));border-radius:var(--radius-sm);background:color-mix(in srgb,var(--violet-soft) 60%,var(--surface))}
+.bulk-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-control-gap-lg,12px);flex-wrap:wrap;min-height:var(--ui-control-height,40px);margin:0 0 var(--ui-space-3);padding:6px 12px;border:1px solid color-mix(in srgb,var(--brand-600) 22%,var(--line));border-radius:var(--radius-sm);background:color-mix(in srgb,var(--violet-soft) 60%,var(--surface))}
 .bulk-count{font-size:12.5px;font-weight:650;color:var(--text-strong,var(--text));white-space:nowrap}
 .bulk-count b{font-variant-numeric:tabular-nums}
 .bulk-hint{color:var(--text-subtle,var(--text-muted));font-weight:500}
 .bulk-actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0}
 .bulk-actions::-webkit-scrollbar{display:none}
+@media(max-width:760px){.bulk-bar{min-height:44px}.bulk-actions :is(button,a){min-height:44px}}
 :root{--finance-cols:minmax(0,1fr) auto;--statement-cols:minmax(0,1fr) auto auto}
 .statement-row-head{display:grid;grid-template-columns:var(--statement-cols);gap:8px;align-items:center;padding:2px 2px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .statement-row-head span:last-child{justify-self:end}

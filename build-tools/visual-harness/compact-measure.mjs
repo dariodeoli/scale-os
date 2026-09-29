@@ -45,6 +45,12 @@ const TARGETS = [
   {key: 'kpi', label: 'KPI', selectors: ['.ui-kpi', '.kpi-card', '.metric'], criterio: '112–140 px desktop'},
   {key: 'toolbar', label: 'Toolbar de filtros', selectors: ['[data-toolbar="filtros"]', '.client-directory-toolbar', '.team-filters'], criterio: 'una fila ≥1280, gap 12–16'},
   {key: 'card', label: 'Card', selectors: ['.ops-card', '.inventory-equipment', '.client-hub-card'], criterio: 'padding 16–20'},
+  {key: 'content', label: 'Ritmo de página', selectors: ['.workspace-content'], criterio: '24–32 desktop / 16 móvil'},
+  {key: 'contentBefore', label: 'Ritmo de página (antes)', selectors: ['[data-ritmo="antes"] .content > div'], criterio: 'referencia 48 px en xl'},
+  {key: 'topbar', label: 'Cabecera', selectors: ['.workspace-topbar'], criterio: 'mismo gutter que el contenido'},
+  {key: 'bulk', label: 'Barra de lote', selectors: ['.bulk-bar'], criterio: '40 desktop / 44 móvil, una línea'},
+  {key: 'dialogHead', label: 'Encabezado de diálogo', selectors: ['.dialog-heading'], criterio: '≤56 px desktop'},
+  {key: 'compactCard', label: 'Card con piso compacto', selectors: ['.team-directory-card', '.catalog-card', '.finance-account-card', '.budget-hub-card', '.commission-hub-card'], criterio: 'sin min-height grande'},
   {key: 'panel', label: 'Panel/sección', selectors: ['.panel'], criterio: 'padding 16–24'},
 ];
 

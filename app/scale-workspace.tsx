@@ -42,7 +42,7 @@ import './suite.css';
 import {RecordEditor} from './suite';
 import {AssignedPeople} from './assigned-people';
 import {listDateShort,dueTone} from './list-format';
-import {StateChip,ViewSwitch} from './ui-v2';
+import {PageTitleContext,StateChip,ViewSwitch} from './ui-v2';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
@@ -908,6 +908,7 @@ export default function Home() {
         </div>
       </div>
     );
+  const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
   const firstName = user?.email.split("@")[0] || "U";
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
@@ -1012,7 +1013,7 @@ export default function Home() {
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
-        <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 shadow-[0_1px_0_rgb(37_28_41_/_4%)] backdrop-blur md:px-6 lg:px-8 xl:px-12 motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
+        <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 py-2 shadow-[0_1px_0_rgb(37_28_41_/_4%)] backdrop-blur motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
           <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3">
             <div className="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2">
               <MobileNavigation>{sidebarContent('light')}</MobileNavigation>
@@ -1044,7 +1045,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="flex min-w-0 flex-1 flex-col px-4 pb-8 pt-5 md:px-6 md:pb-6 md:pt-4 lg:px-8 xl:px-12">
+        <PageTitleContext.Provider value={pageTitle}>
+        <div className="workspace-content flex min-w-0 flex-1 flex-col">
         <header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1">
           {active==='Clientes' ? <ClientDirectoryToolbar
             canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
@@ -1059,7 +1061,7 @@ export default function Home() {
             view={clientView as 'grid'|'list'}
           /> : <>
             <div className="page-heading flex min-w-0 items-center gap-2">
-              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{active==='Resumen'?'Centro de control':activeParent}</h1>
+              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{pageTitle}</h1>
               {active==='Proyectos'&&<span className="page-count rounded-full bg-ink-700 px-2 py-0.5 text-[11px] tabular-nums text-mute">{projects.length} proyectos</span>}
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
@@ -1110,6 +1112,7 @@ export default function Home() {
         {active==='Previsión'&&<PrevisionSection user={user} navigate={setActive} onCreateInvoice={openInvoice}/>}
         <div className="mt-auto pt-6"><WorkspaceFooter/></div>
         </div>
+        </PageTitleContext.Provider>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
       {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}

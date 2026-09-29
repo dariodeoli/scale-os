@@ -64,13 +64,14 @@ test('el control de tema cicla claro → oscuro → alto contraste y lo persiste
  const setTheme=(value:string)=>{if(value==='light')delete element.dataset.theme;else element.dataset.theme=value;};
  for(const [inicial,esperado] of [['light','dark'],['dark','contrast'],['contrast','light']] as [string,string][]){
   setTheme(inicial);
-  const renderer=await act(async()=>create(<ThemeToggle/>));
-  const button=renderer!.root.findAllByType('button')[0]!;
+  let renderer:any;
+  await act(async()=>{renderer=create(<ThemeToggle/>);});
+  const button=renderer.root.findAllByType('button')[0]!;
   const etiqueta=inicial==='light'?'Tema claro':inicial==='dark'?'Tema oscuro':'Alto contraste';
   assert(String(button.props['aria-label']).includes(etiqueta),'el control nombra el tema vigente');
   await act(async()=>button.props.onClick());
   assert.equal(element.dataset.theme===undefined?'light':element.dataset.theme,esperado,`clic desde ${inicial}`);
   assert.equal(stored['scale-theme'],esperado,'la preferencia se persiste');
-  await act(()=>renderer!.unmount());
+  await act(()=>renderer.unmount());
  }
 });

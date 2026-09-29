@@ -185,9 +185,11 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(forecast,/const ICON_TARGETS=/,'las acciones de fila de la previsión declaran su target táctil');
   assert.match(finanzas,/const INVOICE_TEMPLATE = 'grid-cols-\[minmax\(18rem,1\.6fr\)_7rem_6\.5rem_8\.5rem_8\.5rem_9rem\]'/,'la columna de acciones de facturas no envuelve el botón');
   assert.doesNotMatch(forms,/Nombre de la cuenta[\s\S]{0,120}?autoFocus/,'la cuenta no roba el foco al abrir el modal');
-  assert.match(team,/\.team-directory-card\{[^}]*min-height:190px/,'the directory keeps big grid cards');
+  // #97: el piso de las tarjetas de cuadrícula es del sistema (compacto); la
+  // homogeneidad por fila la da el grid, no un `min-height` grande.
+  assert.match(team,/\.team-directory-card\{[^}]*min-height:var\(--ui-card-min-height,120px\)/,'the directory cards use the compact floor');
   const presence=read('app/presence.css');
-  assert.match(presence,/\.usage-grid \.ops-card\{[^}]*min-height:180px/,'usage cards keep grid height');
+  assert.match(presence,/\.usage-grid \.ops-card\{[^}]*min-height:var\(--ui-card-min-height,120px\)/,'usage cards use the compact floor');
   const productivity=read('app/productivity-ui.tsx');
   assert.match(productivity,/drawer-list-head[\s\S]*?Proyecto[\s\S]*?Pieza[\s\S]*?Presupuesto[\s\S]*?Factura/,'the client drawer lists show their headers');
   const productivityCss=read('app/productivity.css');
