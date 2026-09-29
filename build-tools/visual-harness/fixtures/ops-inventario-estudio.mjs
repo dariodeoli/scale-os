@@ -32,6 +32,8 @@ const ICON = {
   alert: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
   refresh: 'M21 12a9 9 0 1 1-3-6.7M21 4v5h-5',
   lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  back: 'M19 12H5M12 19l-7-7 7-7',
+  arrow: 'M5 12h14M14 7l5 5-5 5',
   package: 'M12 3l9 5-9 5-9-5 9-5ZM3 8v8l9 5 9-5V8',
   camera: 'M4 7h3l2-3h6l2 3h3v12H4zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
 };
@@ -95,33 +97,51 @@ const equipment = [
   {name: 'Lámpara LED bicolor con batería V-mount', code: 'SC-000455', photo: false, status: 'retired', statusLabel: 'Dado de baja', statusTone: 'mute', category: 'Iluminación', serial: 'LED-LAMP-2019-0000000000000012', value: 'Gs 1.100.000', location: 'Depósito anterior · archivada', verification: {result: 'missing', label: 'No encontrado', tone: 'bad', verifier: 'Carlos Ortiz', time: '05 ago 26 · 11:02'}},
   {name: 'Grabador de audio de 32 canales', code: 'SC-000501', photo: true, status: 'in_use', statusLabel: 'En uso', statusTone: 'info', category: 'Audio', serial: 'REC32-2022-0000000000007788', value: 'USD 3.250,00', location: 'Con Ana Paula Benítez · En uso · sin reserva vinculada', verification: {result: 'confirmed', label: 'Confirmado', tone: 'ok', verifier: 'Rita Mical Herrera', time: '15 sept 26 · 07:00'}},
 ];
+/* Piezas compartidas del equipo (#103): foto/placeholder, metadatos, verificación
+   y acciones. Las usan la fila, la tarjeta y la tarjeta del pipeline. */
+const photoBox = (item, size = 'row') => {
+ const box = size === 'card' ? 'h-14 w-14' : size === 'pipeline' ? 'h-9 w-9' : 'h-8 w-8';
+ return item.photo
+  ? `<img class="${box} shrink-0 rounded-lg border border-ink-600 object-cover" src="/brand/icon-192.png" alt="Foto de ${item.name}">`
+  : `<span class="${box} grid shrink-0 place-items-center rounded-lg border border-ink-600 bg-ink-700/40 text-mute" role="img" aria-label="Sin foto: ${item.name}" title="Sin foto">${svg(ICON.camera, size === 'card' ? 20 : 14)}</span>`;
+};
+const verificationStamp = (item, empty = 'Sin verificación') => item.verification
+ ? `<span class="inline-flex min-w-0 items-center gap-1.5">${avatar(item.verification.verifier)}<span class="min-w-0 truncate text-xs text-mute" title="${item.verification.verifier}">${item.verification.verifier.split(' ')[0]}</span><time class="whitespace-nowrap text-[11px] tabular-nums text-mute">${item.verification.time}</time></span>`
+ : `<span class="text-[11px] text-mute">${empty}</span>`;
+const itemActions = (item, dense = false) => `<span class="flex shrink-0 flex-nowrap items-center justify-end gap-1">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Verificar con detalle: ${item.name}`, dense})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense})}</span>`;
+
 const equipmentRow = (item) => `
-<article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[48px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
+<article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[56px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
  <span class="flex h-11 items-center md:h-auto"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label></span>
- <span class="flex items-center">${item.photo ? '<img class="h-8 w-8 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : `<span class="grid h-8 w-8 place-items-center rounded-lg border border-ink-600 text-mute">${svg(ICON.camera, 14)}</span>`}</span>
+ <span class="flex items-center">${photoBox(item, 'row')}</span>
  <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${item.name}">${item.name}</b><code class="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></span>
- <span class="flex min-w-0 items-center gap-x-1.5 text-[13px] leading-5 text-mute"><span class="min-w-0 truncate" title="${item.category}">${item.category}</span><span aria-hidden="true">·</span><span class="inline-flex items-center whitespace-nowrap">${item.serial ? `••••${item.serial.slice(-4)}` : 'Sin serie'}</span></span>
- <span class="flex justify-end">${money(item.value)}</span>
+ <span class="flex min-w-0 items-center gap-x-1.5 text-[12px] leading-4 text-mute"><span class="inline-flex min-w-0 items-center gap-1.5 truncate" title="${item.category}">${item.category}</span><span aria-hidden="true">·</span><span class="inline-flex items-center whitespace-nowrap" title="${item.serial ? `Serie: ${item.serial}` : 'Sin serie'}">${item.serial ? `••••${item.serial.slice(-4)}` : 'Sin serie'}</span></span>
+ <span class="flex justify-end whitespace-nowrap">${money(item.value)}</span>
  <span class="flex justify-start">${badge(item.statusLabel, item.statusTone)}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${item.location}">${item.location}</span>
- <span class="min-w-0">${item.verification ? `<span class="inline-flex min-w-0 items-center gap-1.5"><span role="img" title="Control: ${item.verification.label}" aria-label="Control: ${item.verification.label}" class="${item.verification.tone === 'ok' ? 'text-ok' : item.verification.tone === 'warn' ? 'text-warn' : 'text-bad'}">${item.verification.tone === 'ok' ? '✓' : item.verification.tone === 'warn' ? '!' : '×'}</span>${avatar(item.verification.verifier)}<span class="min-w-0 text-xs text-mute">${item.verification.verifier.split(' ')[0]}</span><time class="whitespace-nowrap text-[11px] tabular-nums text-mute">${item.verification.time}</time></span>` : '<span class="text-xs text-mute">Sin verificación física</span>'}</span>
- <span class="flex flex-wrap items-center justify-end gap-1">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense: true})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense: true})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense: true})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense: true})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense: true})}</span>
+ <span class="min-w-0">${verificationStamp(item)}</span>
+ ${itemActions(item, true)}
 </article>`;
 const equipmentCard = (item) => `
-<article data-grid-card="equipment" data-status="${item.status}" class="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
- <div class="flex items-start justify-between gap-3"><div class="flex min-w-0 items-start gap-2">
-  <label class="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
-  ${item.photo ? '<img class="h-11 w-11 shrink-0 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : ''}
-  <div class="min-w-0"><h3 class="break-words text-sm font-semibold text-fore">${item.name}</h3><code class="whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></div>
- </div>${badge(item.statusLabel, item.statusTone)}</div>
- <dl class="grid gap-1 text-xs">${filaDato('Categoría', item.category)}${filaDato('Serie / IMEI', item.serial ? serialTexto(item.serial) : 'Sin registrar', 'shrink text-right [overflow-wrap:anywhere] [&_.serial-text]:whitespace-normal [&_.serial-text]:break-all')}${filaDato('Valor', money(item.value), 'shrink text-right')}${item.current ? filaDato('Valor actual', money(item.current)) : ''}${filaDato('Ubicación', item.location)}</dl>
- <div class="mt-auto grid gap-2 border-t border-ink-600 pt-2">
-  <div class="flex flex-wrap items-center justify-between gap-2">${item.verification ? `<span class="inline-flex min-w-0 items-center gap-1.5">${avatar(item.verification.verifier)}<span class="min-w-0 text-xs text-mute">${item.verification.verifier.split(' ')[0]}</span><time class="whitespace-nowrap text-[11px] tabular-nums text-mute">${item.verification.time}</time></span>` : '<span class="text-xs text-mute">Sin verificación física</span>'}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`})}</div>
-  ${item.returning ? `<span class="text-xs text-mute">${item.returning}</span>` : ''}
-  <div class="flex flex-wrap items-center justify-end gap-1">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`})}</div>
+<article data-grid-card="equipment" data-status="${item.status}" class="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3.5">
+ <div class="flex min-w-0 items-start gap-2.5">
+  <label class="flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
+  ${photoBox(item, 'card')}
+  <div class="min-w-0 flex-1"><h3 class="truncate text-sm font-semibold text-fore" title="${item.name}">${item.name}</h3><p class="truncate text-[11.5px] leading-4 text-mute" title="${item.code} · ${item.category}">${item.code} · ${item.category}</p><p class="truncate text-[11.5px] leading-4 text-mute" title="${item.location}">${item.location}</p></div>
+  ${badge(item.statusLabel, item.statusTone)}
+ </div>
+ <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] leading-4 text-mute">
+  <span class="whitespace-nowrap" title="${item.serial ? `Serie / IMEI: ${item.serial}` : 'Sin serie registrada'}">${item.serial ? `••••${item.serial.slice(-4)}` : 'Sin serie'}</span>
+  <span class="whitespace-nowrap" title="${item.value !== 'Sin valor' ? 'Valor del equipo' : 'Sin valor registrado'}">${money(item.value)}</span>
+  ${item.current ? `<span class="whitespace-nowrap">Actual ${money(item.current)}</span>` : ''}
+  ${item.returning ? `<span class="min-w-0 truncate" title="${item.returning}">${item.returning}</span>` : ''}
+ </div>
+ <div class="mt-auto flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2">
+  ${verificationStamp(item, 'Sin verificación física')}
+  ${itemActions(item)}
  </div>
 </article>`;
-const equipmentHead = `<div data-list-head="equipment" class="grid min-w-[67.5rem] grid-cols-[var(--eq-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span></span><span>Foto</span><span>Artículo</span><span>Detalles</span><span class="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span class="text-right">Acciones</span></div>`;
+const equipmentHead = `<div data-list-head="equipment" class="grid min-w-[68rem] grid-cols-[var(--eq-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span></span><span>Foto</span><span>Artículo</span><span>Detalles</span><span class="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span class="text-right">Acciones</span></div>`;
 // Fila "Atención" del inventario: chips de conteo + explicación a ancho completo
 // (antes del pase de compactación #90, espejo de `app/inventory-workspace.tsx`).
 const attentionChip = (label, count, active = false) => `<button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${active ? 'border-warn bg-warn/15 text-fore' : 'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}" aria-pressed="${active}"><span>${label}</span><span class="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">${count}</span></button>`;
@@ -164,29 +184,30 @@ const inventoryToolbar = `
  ${attentionRow}
  ${selectionBar}
 </div>`;
-const kpiStrip = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Valor total', 'Gs 1.249.167.890', '6 equipos', true)}${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
-// Valor total sin datos monetarios (#62): el KPI no inventa cifras y ofrece el CTA.
-const kpiValueEmpty = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"><div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">Valor total</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">—</div><div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs"><span class="text-mute">17 sin valor</span>${textButton('Agregar valor')}</div></div>${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
+const kpiStrip = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Valor total', '<span class="whitespace-nowrap text-[clamp(1.15rem,1.6vw,1.875rem)] font-semibold leading-tight tabular-nums">Gs 1.249.167.890</span>', '6 equipos', true)}${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
+// Valor total sin datos monetarios (#62/#103): el KPI dice «Sin valor», el
+// contador va como dato secundario y «Agregar valor» es un enlace chico.
+const kpiValueEmpty = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"><div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">Valor total</div><div class="v2-numero mt-1.5 text-2xl font-semibold text-mute md:text-3xl">Sin valor</div><div class="mt-1.5 flex items-center gap-2 text-xs"><span class="min-w-0 truncate text-mute">17 sin valor</span><button type="button" class="min-h-11 shrink-0 text-[11px] font-semibold text-fono-light underline-offset-2 hover:underline md:min-h-0" title="Completar el valor de un equipo del inventario">Agregar valor</button></div></div>${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
 
-/* -------------------------------------------------------- pipeline (datos) */
 const pipeline = [
   {key: 'cust-Fabrizio Dellacasa Reyes', title: 'Con Fabrizio Dellacasa Reyes', readonly: true, responsible: '', rows: [equipment[0]], note: 'En préstamo: devolvelo para cambiar su ubicación'},
   {key: 'legacy-in-use', title: 'En uso', readonly: true, responsible: '', rows: [equipment[5]], note: 'En préstamo: devolvelo para cambiar su ubicación'},
-  {key: 'loc-3', title: 'Depósito anterior', readonly: false, responsible: 'Ana Paula Benítez', rows: [equipment[4]], note: 'Aquí desde 12 sept 26 · 15:10'},
-  {key: 'shelf-Estante A', title: 'Estante A', readonly: false, responsible: 'Carlos Ortiz', rows: [], note: ''},
-  {key: 'shelf-Estante B', title: 'Estante B', readonly: false, responsible: '', rows: [equipment[1]], note: 'Aquí desde 14 sept 26 · 08:05'},
+  {key: 'loc-3', title: 'Depósito anterior', readonly: false, locationId: 'loc-3', responsible: 'Ana Paula Benítez', rows: [equipment[4]], note: 'Aquí desde 12 sept 26 · 15:10'},
+  {key: 'shelf-Estante A', title: 'Estante A', readonly: false, locationId: 'storage-a', responsible: 'Carlos Ortiz', rows: [], note: ''},
+  {key: 'shelf-Estante B', title: 'Estante B', readonly: false, locationId: 'storage-b', responsible: '', rows: [equipment[1]], note: 'Aquí desde 14 sept 26 · 08:05'},
   {key: 'sin-ubicacion', title: 'Sin ubicación', readonly: false, responsible: '', rows: [equipment[3]], note: 'Sin registro de ingreso a esta ubicación'},
 ];
-const pipelineCard = (item) => `
-<article data-board-card class="grid cursor-grab gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3">
- <button type="button" title="Abrir detalle: ${item.name}" class="flex min-w-0 items-center gap-2 text-left">${item.photo ? '<img class="h-9 w-9 shrink-0 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : `<span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute">${svg(ICON.camera, 14)}</span>`}<span class="min-w-0"><b class="block break-words text-[13px] font-semibold text-fore">${item.name}</b><code class="whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code><small class="flex items-center gap-1 text-[11px] text-mute">${item.category}</small></span></button>
- <small class="text-[11px] text-mute">${item.note || 'Sin registro de ingreso a esta ubicación'}</small>
- <div class="flex items-center justify-between gap-2">${badge(item.statusLabel, item.statusTone)}<span class="flex items-center gap-1">${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense: true})}<span class="flex h-11 w-11 select-none items-center justify-center text-mute md:h-7 md:w-7" role="img" aria-label="Mover ${item.name}" title="Mover ${item.name}">⋮⋮</span></span></div>
+const pipelineCard = (item, columnNote = '') => `
+<article data-board-card class="grid cursor-grab gap-1.5 rounded-xl border border-ink-600 bg-ink-800 p-3">
+ <button type="button" title="Abrir detalle: ${item.name}" class="flex min-h-11 min-w-0 items-center gap-2 text-left md:min-h-0">${photoBox(item, 'pipeline')}<span class="min-w-0 flex-1"><b class="block truncate text-[13px] font-semibold text-fore" title="${item.name}">${item.name}</b><small class="block truncate text-[11px] leading-4 text-mute" title="${item.code} · ${item.category}">${item.code} · ${item.category}</small></span></button>
+ ${verificationStamp(item)}
+ <p class="truncate text-[11px] leading-4 text-mute" title="${item.note || columnNote || 'Sin registro de ingreso a esta ubicación'}">${item.note || columnNote || 'Sin registro de ingreso a esta ubicación'}</p>
+ <div class="mt-auto flex min-w-0 items-center justify-between gap-2 border-t border-ink-600 pt-1.5">${badge(item.statusLabel, item.statusTone)}<span class="flex shrink-0 items-center gap-1">${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense: true})}<span class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute md:h-7 md:w-7" role="img" aria-hidden="true" title="Acciones del equipo: ${item.name}">⋮</span><span class="select-none text-mute" role="img" aria-label="Mover ${item.name}" title="Mover ${item.name}">⋮⋮</span></span></div>
 </article>`;
 const pipelineBoard = `
-<div data-board="locations" class="flex snap-x gap-3 overflow-x-auto pb-1" role="region" aria-label="Pipeline de ubicaciones">
-${pipeline.map((column) => `<section data-board-column data-column-key="${column.key}" class="flex w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 ${column.title === 'Estudio A' ? 'border-fono bg-fono/10' : 'border-ink-600 bg-ink-800/60'}">
- <header class="flex items-center gap-2">${column.readonly ? `<span class="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">${svg(ICON.lock, 14)}</span>` : '<span class="h-2 w-2 rounded-full bg-fono" aria-hidden="true"></span>'}<h3 class="min-w-0 break-words text-sm font-semibold text-fore">${column.title}</h3>${column.responsible ? avatar(column.responsible) : ''}<span class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">${column.rows.length}</span>${column.title === 'Sin ubicación' ? iconAction({icon: 'close', label: 'Ocultar columna Sin ubicación'}) : ''}</header>
+<div data-board="locations" class="silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [--location-cols:1] sm:[--location-cols:2] xl:[--location-cols:3]" role="region" aria-label="Pipeline de ubicaciones">
+${pipeline.map((column) => `<section data-board-column data-column-key="${column.key}" class="flex min-w-0 w-[calc((100%-(var(--location-cols)-1)*0.75rem)/var(--location-cols))] shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 ${column.title === 'Estudio A' ? 'border-fono bg-fono/10' : 'border-ink-600 bg-ink-800/60'}">
+ <header data-board-head class="flex min-h-11 min-w-0 items-center gap-2">${column.readonly ? `<span class="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">${svg(ICON.lock, 14)}</span>` : '<span class="h-2 w-2 shrink-0 rounded-full bg-fono" aria-hidden="true"></span>'}<h3 class="min-w-0 flex-1 truncate text-sm font-semibold text-fore" title="${column.title}">${column.title}</h3>${column.responsible ? `<span class="shrink-0" title="Responsable: ${column.responsible}">${avatar(column.responsible)}</span>` : ''}${column.locationId ? `<span class="flex shrink-0 items-center gap-1" role="group" aria-label="Ordenar ${column.title}"><button type="button" title="Mover antes: ${column.title}" aria-label="Mover antes: ${column.title}" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7">${svg(ICON.back, 16, 'h-4 w-4')}</button><button type="button" title="Mover después: ${column.title}" aria-label="Mover después: ${column.title}" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7">${svg(ICON.arrow, 16, 'h-4 w-4')}</button></span>` : ''}<span class="ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums text-mute" title="${column.rows.length} equipo(s) en esta ubicación">${column.rows.length}</span></header>
  <div class="grid gap-2">${column.rows.map((item) => pipelineCard({...item, note: column.note})).join('')}${column.rows.length ? '' : '<p class="py-3 text-center text-xs text-mute">Arrastrá equipos hasta acá</p>'}</div>
 </section>`).join('')}
 </div>`;
@@ -267,7 +288,7 @@ export default [
  <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
   ${kpiStrip}
   <div data-list="equipment" class="mt-4 min-w-0 overflow-x-auto">
-   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.5fr)_minmax(8rem,1fr)_7rem_6.5rem_minmax(7.5rem,1fr)_minmax(11rem,1.2fr)_10.5rem] grid min-w-[67.5rem] gap-2">
+   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem] grid min-w-[68rem] gap-2">
    ${equipmentHead}
    ${equipment.map(equipmentRow).join('')}
    </div>
@@ -288,7 +309,7 @@ export default [
  <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
   ${kpiStrip}
   <div data-list="equipment" class="mt-4 min-w-0 overflow-x-auto">
-   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.5fr)_minmax(8rem,1fr)_7rem_6.5rem_minmax(7.5rem,1fr)_minmax(11rem,1.2fr)_10.5rem] grid min-w-[67.5rem] gap-2">
+   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem] grid min-w-[68rem] gap-2">
    ${equipmentHead}
    ${equipment.map(equipmentRow).join('')}
    </div>

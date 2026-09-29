@@ -57,11 +57,14 @@ assert.match(studio,/fechaLista\(/,'las fechas del estudio salen de owncoding-ui
 for(const source of [inventory,studio])assert.doesNotMatch(source,/toLocaleDateString|timeStyle:\s*'short'/,'sin formatos de fecha sueltos');
 
 // ── Acciones: ícono del set compartido, con etiqueta que nombra la acción.
-const iconActions=[...inventory.matchAll(/IconAction[^>]*?label=(?:\{`([^`]+)`\}|"([^"]+)")/g)].map(match=>match[1]||match[2]);
-assert(iconActions.length>=10,'inventario usa acciones de ícono para sus filas');
-assert(iconActions.every(label=>label.includes('${')||label.length>3),'cada acción nombra lo que hace');
-assert(iconActions.some(label=>label.startsWith('Detalle y trazabilidad')),'la acción de la ficha se anuncia');
-assert(iconActions.some(label=>label.startsWith('Archivar equipo')),'la acción de archivar se anuncia');
+// #103: los íconos salen de una lista única de acciones (`inventoryItemActionList`),
+// así la tarjeta, la fila y el menú del pipeline no se desalinean.
+assert.match(inventory,/function inventoryItemActionList\(/, 'las acciones viven en una sola fuente');
+assert.match(inventory,/Detalle y trazabilidad: \$\{item\.name\}/,'la acción de la ficha se anuncia');
+assert.match(inventory,/Archivar equipo: \$\{item\.name\}/,'la acción de archivar se anuncia');
+assert.match(inventory,/tone:'bad' as const,label:`Archivar equipo/,'eliminar va en tono rojo con tooltip');
+assert.match(inventory,/function InventoryItemActions\(/,'las acciones se dibujan desde el componente compartido');
+assert.match(inventory,/function InventoryItemMeta\(/,'los metadatos del equipo se comparten entre tarjeta, fila y pipeline');
 assert.match(inventory,/title=\{`Mover \$\{item\.name\}`\}/,'el arrastre del pipeline se anuncia');
 assert.doesNotMatch(inventory,/<button[^>]*className="icon-button/,'no quedan botones de ícono del rediseño viejo');
 
@@ -212,7 +215,7 @@ assert.match(studio,/<Label htmlFor="studio-month" className="whitespace-nowrap"
 assert.match(inventory,/<Label htmlFor="inventory-calendar-month" className="whitespace-nowrap">Mes<\/Label>\s*<Input id="inventory-calendar-month" className="w-44" type="month"/,'el mes del calendario de inventario comparte la fila con su rótulo (#99)');
 assert.match(planner,/grid w-52 gap-1\.5/,'el mes del planificador no corta el año');
 // ── Ronda 17 (#71): casilla de la grilla 44×44 y adopción de ?fields=.
-assert.match(inventory,/mt-0\.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6/,'la casilla de la grilla de inventario completa 44×44 en mobile');
+assert.match(inventory,/flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6/,'la casilla de la grilla de inventario completa 44×44 en mobile (#103)');
 assert.match(inventoryHook,/from '\.\/api-projection'/,'el catálogo de inventario adopta ?fields=');
 assert.match(inventoryHook,/fields:INVENTORY_FIELDS/,'el catálogo pide su proyección');
 assert.match(inventoryHook,/fields:INVENTORY_RESERVATION_FIELDS/,'las reservas del mes piden su proyección');

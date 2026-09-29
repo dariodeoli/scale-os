@@ -27,6 +27,8 @@ const verificationMigration=await fs.readFile(new URL('./migrations/20260912_inv
 const advancedInventoryMigration=await fs.readFile(new URL('./migrations/20260913_inventory_advanced_traceability.sql',import.meta.url),'utf8');await pg.exec(advancedInventoryMigration);await pg.exec(advancedInventoryMigration);
 await query("update agency_inventory set storage_shelf=' Legacy cage ' where id=$1",[legacy]);
 const storageLocationMigration=await fs.readFile(new URL('./migrations/20260914_inventory_storage_locations.sql',import.meta.url),'utf8');await pg.exec(storageLocationMigration);await pg.exec(storageLocationMigration);
+// Orden manual de ubicaciones (#104): la columna `position` se aplica acá.
+await pg.exec(await fs.readFile(new URL('./migrations/20260929_inventory_location_position.sql',import.meta.url),'utf8'));
 const locationPipelineMigration=await fs.readFile(new URL('./migrations/20260915_inventory_location_pipeline.sql',import.meta.url),'utf8');await pg.exec(locationPipelineMigration);await pg.exec(locationPipelineMigration);
 const photosMigration=await fs.readFile(new URL('./migrations/20260915_inventory_photos.sql',import.meta.url),'utf8');await pg.exec(photosMigration);await pg.exec(photosMigration);
 const categoryIconsMigration=await fs.readFile(new URL('./migrations/20260915_inventory_category_icons.sql',import.meta.url),'utf8');await pg.exec(categoryIconsMigration);await pg.exec(categoryIconsMigration);
@@ -342,6 +344,22 @@ assert(!listedLocations.some(row=>String(row.id)===String(otherPlace.location.id
 assert.equal((await call('inventory-locations','POST',{name:'Z'},management)).status,400,'a place name needs two characters or more');
 assert.equal((await call(`inventory-locations/${placeId}`,'PATCH',{name:'Z'},management)).status,400);
 assert((await call('inventory-locations')).locations.find(row=>String(row.id)===String(placeId))?.name.length>=2,'the rejected rename keeps the stored place name');
+// Orden manual de ubicaciones (#104): patch persistido, validación de empresa y permisos.
+const orderedFirst=(await call('inventory-locations','POST',{name:'A · Primera'},management)).location;
+const orderedSecond=(await call('inventory-locations','POST',{name:'B · Segunda'},management)).location;
+const beforeOrder=(await call('inventory-locations')).locations.map(row=>String(row.id));
+assert.equal((await call('inventory-locations/order','PATCH',{ids:['no-numérico']},management)).status,400,'order rejects non numeric ids');
+assert.equal((await call('inventory-locations/order','PATCH',{ids:[String(orderedFirst.id),String(orderedFirst.id)]},management)).status,400,'order rejects duplicated ids');
+assert.equal((await call('inventory-locations/order','PATCH',{ids:[String(orderedFirst.id),String(otherPlace.location.id)]},management)).status,404,'order rejects ids from another tenant');
+assert.equal((await call('inventory-locations/order','PATCH',{ids:[String(orderedFirst.id)]},viewer)).status,403,'order requires management permission');
+// El front envía la lista completa en el orden elegido; la API reescribe posiciones.
+const orderBefore=(await call('inventory-locations')).locations.map(row=>String(row.id));
+const requested=[String(orderedSecond.id),String(orderedFirst.id),...orderBefore.filter(id=>id!==String(orderedSecond.id)&&id!==String(orderedFirst.id))];
+const reordered=(await call('inventory-locations/order','PATCH',{ids:requested},management)).locations.map(row=>String(row.id));
+assert.deepEqual(reordered,requested,'order persists the requested sequence');
+assert.deepEqual((await call('inventory-locations')).locations.map(row=>String(row.id)),requested,'the list keeps the stored order');
+const restored=(await call('inventory-locations/order','PATCH',{ids:orderBefore},management)).locations.map(row=>String(row.id));
+assert.deepEqual(restored,orderBefore,'restoring the previous order keeps every location');
 const unused=(await call('inventory-locations','POST',{name:'Temporary location'},management)).location;
 assert.equal((await call(`inventory-locations/${unused.id}`,'DELETE',{},management)).status,200,'unreferenced place can be deleted');
 let templateReturn=(await call('inventory-reservations','POST',{...reservationPayload([created.id]),...currentRange},owner)).reservation;

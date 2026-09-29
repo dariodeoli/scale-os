@@ -125,4 +125,8 @@ declare module 'owncoding-ui' {
   export function hayVersionNueva(actual?: string, publicada?: string): boolean;
   export function compararVersiones(a?: string, b?: string): -1 | 0 | 1;
   export function partesVersion(valor?: string): number[];
+
+  // Menú desplegable de acciones (#103): lista portable de ítems con ícono,
+  // peligro y disabled; el disparador lo dibuja la app.
+  export const MenuDesplegable: any;
 }

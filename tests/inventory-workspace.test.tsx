@@ -15,11 +15,12 @@ const writes:{path:string;body:any;method:string}[]=[];let reads=0,fail=false,de
 const pending:(()=>void)[]=[];
 let delayWrites=false;
 const pendingWrites:(()=>void)[]=[];
-let items=equipment,reservations=[record];
+let items=equipment,reservations=[record],reorderFails=false;
 let categories=[{id:'1',name:'Memoria',active:true},{id:'2',name:'Audio',active:true}];
 let storageTemplates:StorageTemplate[]=[{id:'storage-a',name:'Estante A',active:true,item_count:1},{id:'storage-b',name:'Estante B',active:true,item_count:0},{id:'storage-old',name:'Depósito anterior',active:false,item_count:2}];
 const mockApi=async(path:string,body?:unknown,method='POST')=>{
  const clean=path.split('?')[0];
+ if(clean==='/api/agency/inventory-locations/order'){writes.push({path,body,method});if(reorderFails)throw new Error('No se pudo guardar el orden');const ids=(body as {ids:string[]}).ids;return {locations:ids.map((id,index)=>({...storageTemplates.find(template=>String(template.id)===id)!,position:index}))};}
  if(body!==undefined||method==='DELETE'){writes.push({path,body,method});if(delayWrites)await new Promise<void>(resolve=>pendingWrites.push(resolve));if(fail)throw new Error('Conflicto de reserva');if(clean==='/api/agency/inventory-locations')return {location:{id:'storage-new',name:(body as {name:string}).name,active:true,item_count:0}};return {reservation:record};}
  reads++;if(delay)await new Promise<void>(resolve=>pending.push(resolve));if(fail)throw new Error('Sin conexión');
  if(clean.endsWith('/inventory-context'))return context;
@@ -138,7 +139,7 @@ async function run(){
  act(()=>viewButton('Ubicaciones').props.onClick());
  assert.match(tree(),/Estante B/,'every active location appears in the pipeline even when empty');
  assert.match(tree(),/Depósito anterior/,'an archived location still appears while it holds equipment');
- assert.match(tree(),/Sin verificación física/);assert.match(tree(),/Sin registro de ingreso a esta ubicación/);
+ assert.match(tree(),/Sin verificación/);assert.match(tree(),/Sin registro de ingreso a esta ubicación/);
  assert.match(tree(),/Sin equipos/,'empty location columns render with their count at zero');
  assert.match(tree(),/Sin ubicación/,'the unassigned column always exists so items can move back');
  act(()=>{renderer.root.findAllByProps({'aria-label':'Ocultar columna Sin ubicación'})[0].props.onClick();});
@@ -273,6 +274,26 @@ async function run(){
  assert.match(text(renderer.root),/Memoria SD/,'the catalog stays visible after an action failure');
  assert.doesNotMatch(text(renderer.root),/No se pudo cargar el inventario/,'an action failure never replaces the loaded catalog');
  fail=false;act(()=>renderer.unmount());assert.equal(intervals.size,0);
+ // #104: el orden manual viaja completo al API, es optimista y revierte si falla.
+ context.role='management';context.can_manage=true;
+ await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+ act(()=>button('Ubicaciones').props.onClick());
+ const columnTitles=()=>renderer.root.findAll(node=>node.props?.['data-board-head']!==undefined).map(node=>(node.findAllByType('h3')[0] as ReactTestInstance).children.join(''));
+ assert.deepEqual(columnTitles().slice(0,3),['Estante A','Estante B','Depósito anterior'],'el pipeline arranca en el orden del API');
+ const beforeReorder=writes.length;
+ await act(async()=>{await renderer.root.findAllByProps({'aria-label':'Mover después: Estante A'})[0].props.onClick();});
+ const orderWrite=writes.slice(beforeReorder).find(write=>write.path==='/api/agency/inventory-locations/order');
+ assert(orderWrite,'el reordenamiento llama al endpoint de orden');
+ assert.deepEqual((orderWrite!.body as {ids:string[]}).ids,['storage-b','storage-a','storage-old'],'viaja la lista completa en el orden elegido');
+ assert.deepEqual(columnTitles().slice(0,3),['Estante B','Estante A','Depósito anterior'],'el orden optimista se ve al instante');
+ reorderFails=true;
+ await act(async()=>{await renderer.root.findAllByProps({'aria-label':'Mover después: Estante B'})[0].props.onClick();});
+ assert.deepEqual(columnTitles().slice(0,3),['Estante B','Estante A','Depósito anterior'],'si el API falla, la vista vuelve al orden anterior');
+ assert.match(text(renderer.root),/No se pudo guardar el orden/,'el fallo se avisa');
+ reorderFails=false;
+ // El arrastre de equipos sigue disponible junto al reordenamiento.
+ assert(renderer.root.findAllByProps({'aria-label':'Mover Memoria SD'}).length,'la tarjeta conserva su manija de arrastre');
+ act(()=>renderer.unmount());assert.equal(intervals.size,0);
  // #90 (inventario compacto): el toolbar no vive dentro de una card contenedora,
  // la fila principal no envuelve en ≥1280, la vista y la selección van en la
  // segunda fila y la explicación de atención se muestra solo al expandir.

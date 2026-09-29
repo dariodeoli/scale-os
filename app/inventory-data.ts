@@ -171,7 +171,21 @@ export function buildInventoryPipelineColumns(items:InventoryItem[],locations:St
  for(const location of locations.filter(candidate=>candidate.active||candidate.item_count>0))ensure(`loc-${location.id}`,{key:`loc-${location.id}`,title:location.name,readOnly:false,locationId:String(location.id),shelf:location.name,responsibleName:location.responsible_name||null,responsiblePhoto:location.responsible_photo_url??null});
  // The unassigned column always exists so items can move back out of a location.
  ensure('sin-ubicacion',{key:'sin-ubicacion',title:'Sin ubicación',readOnly:false,locationId:null,shelf:''});
- return [...map.values()].sort((a,b)=>{if(a.readOnly!==b.readOnly)return a.readOnly?-1:1;if(a.key==='sin-ubicacion')return 1;if(b.key==='sin-ubicacion')return -1;return a.title.localeCompare(b.title,'es');});
+ // Orden: primero las columnas de sólo lectura, después las ubicaciones en el
+ // orden manual que manda el API (`position`, #104), y al final «Sin ubicación».
+ // Las columnas por estante sin lugar guardado mantienen el orden alfabético.
+ const locationOrder=new Map(locations.map((location,index)=>[String(location.id),index]));
+ return [...map.values()].sort((a,b)=>{
+  if(a.readOnly!==b.readOnly)return a.readOnly?-1:1;
+  if(a.key==='sin-ubicacion')return 1;
+  if(b.key==='sin-ubicacion')return -1;
+  const aIndex=a.locationId===null?undefined:locationOrder.get(String(a.locationId));
+  const bIndex=b.locationId===null?undefined:locationOrder.get(String(b.locationId));
+  if(aIndex!==undefined&&bIndex!==undefined)return aIndex-bIndex;
+  if(aIndex!==undefined)return -1;
+  if(bIndex!==undefined)return 1;
+  return a.title.localeCompare(b.title,'es');
+ });
 }
 /** Columna destino de un drop: por la columna o por la tarjeta que contiene el equipo. */
 export function pipelineDropColumn(columns:PipelineColumn[],items:InventoryItem[],overId:string):PipelineColumn|null{

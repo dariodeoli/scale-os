@@ -85,6 +85,8 @@ export type InventoryCatalog={
  addStorageTemplate:(location:StorageTemplate)=>void;
  /** Movimiento optimista del pipeline: el refresco confirma o la vista revierte. */
  moveItemLocally:(id:string,storageLocationId:string|null,shelf:string)=>void;
+ /** Orden manual de ubicaciones (#104): optimista, con reversión si el API falla. */
+ reorderLocations:(ids:string[])=>Promise<void>;
 };
 /**
  * Catálogo completo del mes pedido. Un ciclo de refresco espera las cinco
@@ -141,11 +143,27 @@ export function useInventoryCatalog(month:string,refresh:number):InventoryCatalo
   document.addEventListener('visibilitychange',visible);
   return ()=>{active=false;window.clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
  },[month,refresh]);
+ // El pipeline y el reordenamiento leen siempre la última lista (evita snapshots viejos).
+ const storageTemplatesRef=useRef(storageTemplates);storageTemplatesRef.current=storageTemplates;
+ const reorderLocations=useCallback(async(ids:string[])=>{
+  const snapshot=storageTemplatesRef.current;
+  const byId=new Map(snapshot.map(template=>[String(template.id),template]));
+  const ordered=ids.map(id=>byId.get(String(id))).filter((template):template is StorageTemplate=>Boolean(template));
+  if(ordered.length!==snapshot.length||!ordered.length)return;
+  setStorageTemplates(ordered);
+  try{
+   const data=await api<{locations:StorageTemplate[]}>('/api/agency/inventory-locations/order',{ids:ids.map(String)},'PATCH');
+   if(Array.isArray(data.locations)&&data.locations.length)setStorageTemplates(data.locations);
+  }catch(reason){
+   setStorageTemplates(snapshot);
+   throw reason;
+  }
+ },[]);
  const addStorageTemplate=useCallback((location:StorageTemplate)=>setStorageTemplates(current=>[...current,location]),[]);
  const moveItemLocally=useCallback((id:string,storageLocationId:string|null,shelf:string)=>{
   setItems(current=>current.map(item=>String(item.id)===String(id)?{...item,storage_location_id:storageLocationId,storage_shelf:shelf}:item));
  },[]);
- return {context,items,categories,storageTemplates,reservations,loading,error,refreshError,lastUpdated,addStorageTemplate,moveItemLocally};
+ return {context,items,categories,storageTemplates,reservations,loading,error,refreshError,lastUpdated,addStorageTemplate,moveItemLocally,reorderLocations};
 }
 
 export type InventoryRecord<T>={data:T|null;error:string};

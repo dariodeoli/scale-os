@@ -322,7 +322,7 @@ async function listStorageLocations(c,org){
   (select coalesce(nullif(p.full_name,''),u.email) from organization_person_identity p join users u on u.id=p.user_id where p.user_id=l.responsible_user_id and p.organization_id=l.organization_id) as responsible_name,
   (select p.photo_url from organization_person_identity p where p.user_id=l.responsible_user_id and p.organization_id=l.organization_id) as responsible_photo_url
   from agency_inventory_storage_locations l left join agency_inventory i on i.storage_location_id=l.id and i.organization_id=l.organization_id
-  where l.organization_id=$1 group by l.id order by l.active desc,l.name`,[org])).rows;
+  where l.organization_id=$1 group by l.id order by l.position,l.name`,[org])).rows;
 }
 
 async function saveItem(c,user,org,key,payload){
@@ -462,7 +462,7 @@ async function traceHistory(c,org,key){
 }
 
 export async function inventoryReservations({req,res,url,db,session,body,send}){
- const route=url.pathname.match(/^\/api\/agency\/(inventory|inventory-categories|inventory-locations|inventory-maintenance|inventory-reservations|inventory-context)(?:\/(\d+))?(?:\/(checkout|return|check-out|check-in|cancel|restore|verify|batch|photo))?$/);
+ const route=url.pathname.match(/^\/api\/agency\/(inventory|inventory-categories|inventory-locations|inventory-maintenance|inventory-reservations|inventory-context)(?:\/(\d+))?(?:\/(checkout|return|check-out|check-in|cancel|restore|verify|batch|photo|order))?$/);
  if(!route)return false;
  let c,transaction=false;
  try{
@@ -497,6 +497,17 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
     if(key)await c.query('update agency_inventory set category=$1 where category_id=$2 and organization_id=$3',[name,key,org]);
     result={category:row};status=key?200:201;
    }else fail('Método no permitido',405);
+  }else if(kind==='inventory-locations'&&action==='order'){
+   // Orden manual de ubicaciones (#104): sólo gestión, ids de la empresa y sin repetidos.
+   if(req.method!=='PATCH')fail('Método no permitido',405);
+   const b=await body(req);
+   const ids=(Array.isArray(b.ids)?b.ids:[]).map(value=>identifier(value));
+   if(!ids.length||ids.length>200)fail('Indicá el orden de las ubicaciones');
+   if(new Set(ids.map(String)).size!==ids.length)fail('El orden no admite ubicaciones repetidas');
+   const rows=(await c.query('select id from agency_inventory_storage_locations where organization_id=$1 and id=any($2::bigint[]) for update',[org,ids])).rows;
+   if(rows.length!==ids.length)fail('Alguna ubicación no pertenece a esta empresa',404);
+   for(const [index,id] of ids.entries())await c.query('update agency_inventory_storage_locations set position=$1,updated_at=now() where id=$2 and organization_id=$3',[index,id,org]);
+   result={locations:await listStorageLocations(c,org)};
   }else if(kind==='inventory-locations'&&!action){
    if(req.method==='GET'&&!key)result={locations:await listStorageLocations(c,org)};
    else if(req.method==='POST'&&!key||req.method==='PATCH'&&key){
@@ -506,7 +517,7 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
     const active=b.active??old?.active??true;if(typeof active!=='boolean')fail('Estado de lugar inválido');
     const responsible=Object.hasOwn(b,'responsible_user_id')?optionalId(b.responsible_user_id):old?.responsible_user_id??null;
     if(responsible)await activeMembers(c,org,[responsible]);
-    const row=old?(await c.query('update agency_inventory_storage_locations set name=$1,active=$2,responsible_user_id=$3,updated_at=now() where id=$4 and organization_id=$5 returning *',[name,active,responsible,key,org])).rows[0]:(await c.query('insert into agency_inventory_storage_locations(organization_id,name,active,responsible_user_id) values($1,$2,$3,$4) returning *',[org,name,active,responsible])).rows[0];
+    const row=old?(await c.query('update agency_inventory_storage_locations set name=$1,active=$2,responsible_user_id=$3,updated_at=now() where id=$4 and organization_id=$5 returning *',[name,active,responsible,key,org])).rows[0]:(await c.query('insert into agency_inventory_storage_locations(organization_id,name,active,responsible_user_id,position) values($1,$2,$3,$4,(select coalesce(max(position)+1,0) from agency_inventory_storage_locations where organization_id=$1)) returning *',[org,name,active,responsible])).rows[0];
     result={location:row};status=old?200:201;
    }else if(req.method==='DELETE'&&key){
     const row=(await c.query('select id from agency_inventory_storage_locations where id=$1 and organization_id=$2 for update',[key,org])).rows[0];if(!row)fail('Lugar de guardado no encontrado',404);
