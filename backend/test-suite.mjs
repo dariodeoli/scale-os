@@ -105,6 +105,17 @@ await call(`/api/agency/pipeline-stages/${wonStage.id}`,'PATCH',{label:'Cerrado 
 const convertLead=(await call('/api/agency/leads','POST',{name:'Convertir',amount:10,currency:'USD'},stageUser)).record;
 assert.equal((await call(`/api/agency/leads/${convertLead.id}/convert`,'POST',{},stageUser)).status,200);
 // #71: `?fields=` (lista blanca) y `?limit=` en oportunidades, con equivalencia.
+// #105: el directorio de clientes también acepta ventana explícita.
+const clientsFull=await call('/api/agency/clients','GET',{});
+const clientsProjected=await call('/api/agency/clients?fields=id,name','GET',{});
+assert.equal(clientsProjected.status,200);
+assert.deepEqual(Object.keys(clientsProjected.clients[0]).sort(),['id','name']);
+const clientsPage=await call('/api/agency/clients?limit=1&offset=0&fields=id,name','GET',{});
+assert.equal(clientsPage.clients.length,1);
+assert.deepEqual(clientsPage.page,{limit:1,offset:0,hasMore:clientsFull.clients.length>1,total:clientsFull.clients.length},'clientes pagina con limit/offset/hasMore/total');
+assert.equal((await call(`/api/agency/clients?limit=1&offset=${clientsPage.page.total}`,'GET',{})).clients.length,0);
+assert.equal((await call('/api/agency/clients?offset=1','GET',{})).status,400,'offset exige limit');
+assert.equal((await call('/api/agency/clients?limit=1&offset=abc','GET',{})).status,400);
 const leadsFull=await call('/api/agency/leads','GET',{},stageUser);
 const leadsProjected=await call('/api/agency/leads?fields=id,name,stage,amount','GET',{},stageUser);
 assert.equal(leadsProjected.status,200);
@@ -114,6 +125,16 @@ assert.equal((await call('/api/agency/leads?fields=id,inexistente')).status,400)
 assert.equal((await call('/api/agency/leads?fields=')).status,400);
 const leadsWindow=await call('/api/agency/leads?limit=1&fields=id,name','GET',{},stageUser);
 assert.equal(leadsWindow.records.length,1);assert.equal(leadsWindow.hasMore,leadsFull.records.length>1);
+// #105: ventana con `offset` y `page` canónico (aditivo al `hasMore` de #71).
+const leadsPage=await call('/api/agency/leads?limit=1&offset=0&fields=id','GET',{},stageUser);
+assert.deepEqual(leadsPage.page,{limit:1,offset:0,hasMore:leadsFull.records.length>1,total:leadsFull.records.length},'la página informa limit, offset, hasMore y el total exacto');
+const leadsTail=await call(`/api/agency/leads?limit=1&offset=${leadsPage.page.total-1}&fields=id`,'GET',{},stageUser);
+assert.equal(leadsTail.page.hasMore,false,'la última página no promete más');
+assert.equal(leadsTail.records.length,1);
+assert.equal((await call('/api/agency/leads?offset=1','GET',{},stageUser)).status,400,'offset exige limit');
+assert.equal((await call('/api/agency/leads?limit=0','GET',{},stageUser)).status,400);
+assert.equal((await call('/api/agency/leads?limit=1&offset=-1','GET',{},stageUser)).status,400);
+assert.equal((await call(`/api/agency/leads?limit=1&offset=${leadsPage.page.total}`,'GET',{},stageUser)).records.length,0,'pasada la última página la lista viene vacía');
 const convertedStage=await leadById(convertLead.id);
 assert.equal(convertedStage.stage,wonStage.slug,'conversion follows the company won stage');
 assert.equal(convertedStage.probability,100);
@@ -159,6 +180,15 @@ assert.equal((await call('/api/agency/budgets?fields=id,inexistente')).status,40
 assert.equal((await call('/api/agency/budgets?fields=')).status,400);
 const budgetsWindow=await call('/api/agency/budgets?limit=1&fields=id,number');
 assert.equal(budgetsWindow.budgets.length,1);assert.equal(budgetsWindow.hasMore,budgetsFull.budgets.length>1);
+// #105: `offset` y `page` en presupuestos (con el total exacto de la ventana).
+const budgetsPage=await call('/api/agency/budgets?limit=1&offset=0&fields=id,number');
+assert.deepEqual(budgetsPage.page,{limit:1,offset:0,hasMore:budgetsFull.budgets.length>1,total:budgetsFull.budgets.length},'presupuestos pagina con el mismo contrato que órdenes');
+const budgetsTail=await call(`/api/agency/budgets?limit=1&offset=${budgetsPage.page.total-1}&fields=id`);
+assert.equal(budgetsTail.page.hasMore,false);
+assert.equal((await call('/api/agency/budgets?offset=1')).status,400,'offset exige limit en presupuestos');
+const budgetsSecond=await call('/api/agency/budgets?limit=2&offset=1&fields=id');
+assert.equal(budgetsSecond.page.offset,1);
+assert.equal(budgetsSecond.budgets.length,Math.max(0,budgetsFull.budgets.length-1),'la segunda página trae el resto de la lista');
 assert.equal((await call('/p/'+token)).status,404);
 assert.equal((await call(`/api/agency/budgets/${budget}/share`,'POST')).status,200);
 r=await call('/p/'+token);assert.equal(r.status,200);assert.ok(r.content.includes('Q-TEST'));

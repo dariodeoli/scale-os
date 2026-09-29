@@ -16,7 +16,7 @@ import {enrichWorkOrderAssignees} from './work-order-assignees.js';
 import {startTrial,subscriptionState} from './subscription-billing.js';
 import {throttle} from './password-access.js';
 import {ensurePipelineStages} from './pipeline-stages.js';
-import {parseListFields,parseListLimit,projectionSelect,listResponse,aliasColumns} from './list-projection.js';
+import {parseListFields,parseListWindow,windowSql,windowRows,dropWindowTotal,projectRows,projectionSelect,aliasColumns} from './list-projection.js';
 
 // Fuente única de roles: la lista canónica vive en permissions.js.
 const memberRoles=roles;
@@ -210,10 +210,20 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         projection=requested.includes('id')?requested:['id',...requested];
       }
       const selectList=projection===null?`c.*,${clientColumnSql.has_recurring_price} as has_recurring_price`:projection.map(field=>field==='has_recurring_price'?`${clientColumnSql[field]} as has_recurring_price`:clientColumnSql[field]).join(', ');
-      const r = await db.query(`select ${selectList} from agency_clients c where organization_id=$1 and ${visibleRecord('c','clients')} order by active desc,name`,[user.organization_id]);
-      if(projection===null)return send(res,200,{clients:r.rows});
-      const rows=r.rows.map(row=>{const out={id:row.id};for(const field of projection)if(Object.hasOwn(row,field))out[field]=row[field];return out;});
-      return send(res,200,{clients:rows});
+      // Ventana explícita (#105): mismo contrato que work-orders; sin `limit`
+      // la respuesta sigue trayendo el directorio completo.
+      let window;
+      try{window=parseListWindow(url);}catch(error){return send(res,error.status||400,{error:error.message||'Paginación inválida'});}
+      const params=[user.organization_id];
+      const page=window.paginated?windowSql(window.limit,window.offset,params):{pageClause:'',totalExpression:''};
+      const r = await db.query(`select ${selectList}${page.totalExpression} from agency_clients c where organization_id=$1 and ${visibleRecord('c','clients')} order by active desc,name${page.pageClause}`,params);
+      const total=window.paginated?Number(r.rows[0]?.total_count)||0:null;
+      const cut=windowRows(r.rows,window.limit);
+      const windowPage=window.paginated?{hasMore:cut.hasMore,page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{};
+      const visibleRows=dropWindowTotal(cut.rows);
+      if(projection===null)return send(res,200,{clients:visibleRows,...windowPage});
+      const rows=visibleRows.map(row=>{const out={id:row.id};for(const field of projection)if(Object.hasOwn(row,field))out[field]=row[field];return out;});
+      return send(res,200,{clients:rows,...windowPage});
     }
     if (url.pathname === '/api/agency/clients' && req.method === 'POST') {
       const user = await session(req); if (!roleCan(user,'clients.manage')) return send(res,403,{error:'Sin permiso'});
@@ -479,12 +489,18 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/budgets' && req.method === 'GET') {
       const user = await session(req); if (!roleCan(user,'budgets.manage')) return send(res,403,{error:'Sin permiso'});
-      // Proyección y ventana opcionales (#71): la lista completa queda igual.
-      let fields=null,limit=null;
-      try{fields=parseListFields(url.searchParams.get('fields'),budgetListFields);limit=parseListLimit(url);}
+      // Proyección y ventana opcionales (#71/#105): sin `limit` la lista
+      // completa queda igual; con `limit` la consulta se pagina y suma `page`.
+      let fields=null,window=null;
+      try{fields=parseListFields(url.searchParams.get('fields'),budgetListFields);window=parseListWindow(url);}
       catch(error){return send(res,error.status||400,{error:error.message||'Proyección inválida'});}
-      const r = await db.query(`select ${projectionSelect(fields,budgetColumnSql,'b.*,c.name as client_name,count(i.id)::int as item_count')} from agency_budgets b join agency_clients c on c.id=b.client_id left join agency_budget_items i on i.budget_id=b.id where b.organization_id=$1 and ${visibleRecord('b','budgets')} group by b.id,c.name order by b.created_at desc`,[user.organization_id]);
-      return send(res,200,listResponse('budgets',r.rows,fields,limit));
+      const params=[user.organization_id];
+      const page=window.paginated?windowSql(window.limit,window.offset,params):{pageClause:'',totalExpression:''};
+      const r = await db.query(`select ${projectionSelect(fields,budgetColumnSql,'b.*,c.name as client_name,count(i.id)::int as item_count')}${page.totalExpression} from agency_budgets b join agency_clients c on c.id=b.client_id left join agency_budget_items i on i.budget_id=b.id where b.organization_id=$1 and ${visibleRecord('b','budgets')} group by b.id,c.name order by b.created_at desc${page.pageClause}`,params);
+      const total=window.paginated?Number(r.rows[0]?.total_count)||0:null;
+      const cut=windowRows(r.rows,window.limit);
+      // Aditivo (#105): `hasMore` de nivel superior se conserva y se suma `page`.
+      return send(res,200,{budgets:projectRows(dropWindowTotal(cut.rows),fields),...(window.paginated?{hasMore:cut.hasMore,page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{})});
     }
     if (url.pathname === '/api/agency/budgets' && req.method === 'POST') {
       const user = await session(req); if (!roleCan(user,'budgets.manage')) return send(res,403,{error:'Sin permiso'});

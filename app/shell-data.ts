@@ -32,6 +32,8 @@ export const ORDER_FIELDS_BOARD = 'id,project_id,project_name,client_name,title,
 export const ORDER_FIELDS_SEARCH = 'id,title,status,project_id,project_name,client_name,due_date';
 /** #67: chrome mínimo de clientes para el buscador/presencia de las secciones que no listan la cartera (contacto y ciclo de vida incluidos para el buscador global). */
 export const CLIENT_FIELDS_CHROME = 'id,name,email,phone,active,lifecycle_status,logo_url,color_key';
+/** #105: campos que dibuja el directorio de Clientes (fila, tarjeta y KPIs). */
+export const CLIENT_DIRECTORY_FIELDS = 'id,name,email,phone,tax_id,created_at,logo_url,color_key,active,lifecycle_status,has_recurring_price';
 /** #67: chrome mínimo de proyectos (nombre, estado y piezas) para esas mismas secciones. */
 export const PROJECT_FIELDS_CHROME = 'id,name,client_id,status,client_name,work_order_count,assignees';
 
@@ -93,9 +95,12 @@ export function listProjectionEnabled(key: string) {
 }
 
 export async function projectedList<T>(key: string, path: string, fields: string, load: (path: string) => Promise<T>): Promise<T> {
+  // La ruta puede traer ventana (`?limit=`/`?offset=`, #105): la proyección se
+  // agrega con `&` para no romper la query.
+  const projected = `${path}${path.includes('?') ? '&' : '?'}fields=${fields}`;
   if (!listProjectionsOff.has(key)) {
     try {
-      return await load(`${path}?fields=${fields}`);
+      return await load(projected);
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
       if (!/campos inválidos/i.test(message)) throw error;
@@ -135,7 +140,9 @@ const SECTION_SCOPE: Record<string, ShellScope> = {
   // (`app/board-data.ts`: `?status=` + `?counts=1`): el shell no pide órdenes
   // para esta sección y así no hay lecturas duplicadas.
   Producción: {clients: {fields: CLIENT_CHROME_FIELDS}, projects: {fields: PROJECT_CHROME_FIELDS}, summary: {}},
-  Clientes: {clients: {}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_PORTFOLIO}},
+  // El directorio pide solo lo que dibuja (#105): la ficha completa sigue por
+  // `/clients/{id}` cuando se abre el detalle.
+  Clientes: {clients: {fields: CLIENT_DIRECTORY_FIELDS}, projects: {}, summary: {}, orders: {fields: ORDER_FIELDS_PORTFOLIO}},
   Proyectos: {clients: {fields: CLIENT_CHROME_FIELDS}, projects: {fields: PROJECT_LIST_FIELDS}, orders: {limit: ORDER_WINDOW, fields: ORDER_FIELDS_SEARCH}},
   // Inventario y Estudio usan el chrome (clientes/proyectos) y el buscador;
   // sus propios recursos viajan por hooks con ventana (use-inventory/-studio).

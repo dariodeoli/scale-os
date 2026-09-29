@@ -55,7 +55,7 @@ test('planes: una lectura, KPIs reales, estados y editor por rol',async()=>{
  requests=[];let renderer!:ReactTestRenderer;
  await act(async()=>{renderer=create(<PlanesSection user={user('owner')}/>);});
  assert.equal(requests.length,1,'una sola lectura de planes');
- assert.equal(requests[0].url,'/core-api/api/agency/plans');
+ assert.equal(requests[0].url,'/core-api/api/agency/plans?limit=60','la lista de planes se pide con ventana (#105)');
  assert.equal(renderer.root.findByProps({role:'status'}).props['aria-label'],'Cargando planes…','estado de carga antes de la respuesta');
  await flush({records:[
   {id:'1',name:'Plan integral',currency:'PYG',items:[{description:'Videos',quantity:2,unitPrice:'1000000'}],notes:'Notas',active:true},
@@ -101,7 +101,7 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
  requests=[];let renderer!:ReactTestRenderer;
  await act(async()=>{renderer=create(<PipelineSection user={user('owner')}/>);});
  assert.equal(requests.length,2,'una lectura de oportunidades y una de etapas');
- assert.equal(requests[0].url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`);
+ assert.equal(requests[0].url,`/core-api/api/agency/leads?limit=300&fields=${LEAD_LIST_FIELDS}`);
  assert.equal(requests[1].url,'/core-api/api/agency/pipeline-stages');
  await flush({records:[
   {id:'10',name:'Cliente activo',stage:'contacted',amount:'3000000',currency:'PYG',probability:50,notes:'Origen: landing Scale OS.',email:'hola@cliente.com'},
@@ -127,7 +127,7 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
  await act(async()=>{move.resolve(new Response(JSON.stringify({}),{status:200}));});
  await act(async()=>{});
  const reload=pending();
- assert.equal(reload.url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`,'el movimiento recarga la lista proyectada');
+ assert.equal(reload.url,`/core-api/api/agency/leads?limit=300&fields=${LEAD_LIST_FIELDS}`,'el movimiento recarga la lista proyectada');
  await act(async()=>{reload.resolve(new Response(JSON.stringify({records:[]}),{status:200}));});
  assert.match(text(renderer.root),/Todavía no hay oportunidades/);
  act(()=>renderer.unmount());
@@ -168,7 +168,7 @@ test('pipeline: el arrastre es optimista, no revierte con la recarga caída y re
  await act(async()=>{move.resolve(new Response(JSON.stringify({}),{status:200}));});
  await act(async()=>{});
  const failedReload=pending();
- assert.equal(failedReload.url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`);
+ assert.equal(failedReload.url,`/core-api/api/agency/leads?limit=300&fields=${LEAD_LIST_FIELDS}`);
  await act(async()=>{failedReload.resolve(new Response(JSON.stringify({}),{status:500}));});
  await act(async()=>{});
  assert.match(text(column('Ganado')[0]),/Cliente activo/,'el movimiento local no revierte si la recarga falla');
@@ -395,11 +395,14 @@ test('recorte de payload: la ventana de 300 órdenes no alcanza a las secciones 
   assert.doesNotMatch(source,/shellDataUrl|sectionScope|ORDER_WINDOW/,`${file} no depende del recorte del shell`);
  }
  const pipeline=read('app/sections/pipeline.tsx');
- assert.match(pipeline,/projectedList\('leads','\/api\/agency\/leads',LEAD_LIST_FIELDS/,'el tablero lee las oportunidades con proyección optimista (#67/#71)');
+ assert.match(pipeline,/projectedList\('leads',path,LEAD_LIST_FIELDS/,'el tablero lee las oportunidades con proyección optimista (#67/#71)');
+ assert.match(pipeline,/const path=`\/api\/agency\/leads\?limit=\$\{LIST_WINDOW\.leads\}/,'la lista de oportunidades se pide con ventana (#105)');
  assert.match(pipeline,/api<\{stages:RawRow\[\]\}>\('\/api\/agency\/pipeline-stages'\)/,'y todas las etapas');
  const presupuestos=read('app/sections/presupuestos.tsx');
  assert.match(presupuestos,/projectedList\('budgets','\/api\/agency\/budgets',BUDGET_LIST_FIELDS/,'la lista de presupuestos adopta la proyección (#67/#71)');
- assert.match(read('app/scale-workspace.tsx'),/projectedList\('budgets',"\/api\/agency\/budgets",BUDGET_LIST_FIELDS/,'el shell también proyecta la carga inicial de presupuestos');
+ assert.match(read('app/scale-workspace.tsx'),/projectedList\('budgets',path,BUDGET_LIST_FIELDS/,'el shell también proyecta la carga inicial de presupuestos');
+ // #105: la carga del shell lleva la ventana explícita (`?limit=`).
+ assert.match(read('app/scale-workspace.tsx'),/const path=`\/api\/agency\/budgets\?limit=\$/,'la lista de presupuestos se pide con ventana');
 });
 
 test('más de 300 ítems: listas, KPIs y totales siguen completos',async()=>{
@@ -441,3 +444,39 @@ test('más de 300 ítems: listas, KPIs y totales siguen completos',async()=>{
 });
 
 console.log('PASS: secciones comerciales v2 — planes, pipeline, presupuestos y métricas con estados, roles, datos reales y móvil sin colapsar');
+
+test('ventanas (#105): contador honesto, «Ver más» y página siguiente en presupuestos, planes y pipeline',async()=>{
+ let renderer!:ReactTestRenderer;
+ const budget={id:'1',number:'P-2026-001',title:'Propuesta',client_name:'Cliente',status:'draft',item_count:1,valid_until:null,subtotal:'100',total:'110',currency:'PYG'};
+ let more=0;
+ await act(async()=>{renderer=create(<PresupuestosSection loading={false} user={user('owner')} budgetsState="ready" budgets={[budget] as never} windowState={{loaded:60,hasMore:true,total:320}} onLoadMore={()=>{more+=1;}} invoices={[] as never} budgetKpis={{totals:new Map(),drafts:1,accepted:0,expiring:0}} summary={{} as never} loadBudgets={()=>{}} setBudgets={()=>{}}/>);});
+ let copy=text(renderer.root);
+ assert.match(copy,/Mostrando 60 de 320 presupuestos · los indicadores cuentan lo cargado/,'la barra dice cuánto se cargó y qué cuentan los indicadores');
+ assert.match(copy,/320/,'el KPI usa el total exacto de la página');
+ const verMas=()=>renderer.root.findAllByType('button').find(button=>text(button).includes('Ver más'));
+ assert.ok(verMas(),'hay «Ver más» mientras el API promete más');
+ await act(async()=>{verMas()!.props.onClick();});
+ assert.equal(more,1,'«Ver más» pide la página siguiente');
+ act(()=>renderer.unmount());
+
+ // Planes: la respuesta pagina y el «Ver más» pide el offset exacto.
+ requests=[];
+ await act(async()=>{renderer=create(<PlanesSection user={user('owner')}/>);});
+ await flush({records:[{id:'1',name:'Plan integral',currency:'PYG',items:[],notes:'',active:true}],page:{limit:60,offset:0,hasMore:true,total:80}});
+ assert.match(text(renderer.root),/Mostrando 1 de 80 planes · los indicadores cuentan lo cargado/);
+ await act(async()=>{renderer.root.findAllByType('button').find(button=>text(button).includes('Ver más'))!.props.onClick();});
+ assert.equal(requests[0].url,'/core-api/api/agency/plans?limit=60&offset=1','«Ver más» usa el offset de lo cargado');
+ await flush({records:[{id:'2',name:'Retainer',currency:'PYG',items:[],notes:'',active:true}],page:{limit:60,offset:1,hasMore:false,total:80}});
+ assert.equal(text(renderer.root).includes('Ver más'),false,'sin más páginas la barra desaparece');
+ act(()=>renderer.unmount());
+
+ // Pipeline: la ventana del tablero también avisa y pide la siguiente página.
+ requests=[];
+ await act(async()=>{renderer=create(<PipelineSection user={user('owner')}/>);});
+ await flush({records:[{id:'10',name:'Lead',stage:'lead',amount:'100',currency:'PYG',probability:10}],page:{limit:300,offset:0,hasMore:true,total:500}});
+ await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'}]});
+ assert.match(text(renderer.root),/Mostrando 1 de 500 oportunidades · los indicadores cuentan lo cargado/);
+ await act(async()=>{renderer.root.findAllByType('button').find(button=>text(button).includes('Ver más'))!.props.onClick();});
+ assert.equal(requests[0].url,`/core-api/api/agency/leads?limit=300&offset=1&fields=${LEAD_LIST_FIELDS}`,'el tablero pide la siguiente ventana con proyección');
+ act(()=>renderer.unmount());
+});

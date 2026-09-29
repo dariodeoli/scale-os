@@ -1,0 +1,71 @@
+[
+ {
+  "lista": "leads",
+  "sinProyeccion": null,
+  "sinVentana": {
+   "bytes": 123620,
+   "filas": 634,
+   "total": null,
+   "hasMore": null
+  },
+  "conVentana": {
+   "bytes": 58266,
+   "filas": 300,
+   "total": 634,
+   "hasMore": true
+  }
+ },
+ {
+  "lista": "budgets",
+  "sinProyeccion": null,
+  "sinVentana": {
+   "bytes": 102501,
+   "filas": 420,
+   "total": null,
+   "hasMore": null
+  },
+  "conVentana": {
+   "bytes": 14716,
+   "filas": 60,
+   "total": 420,
+   "hasMore": true
+  }
+ },
+ {
+  "lista": "clients",
+  "sinProyeccion": {
+   "bytes": 288549,
+   "filas": 420,
+   "total": null,
+   "hasMore": null
+  },
+  "sinVentana": {
+   "bytes": 125377,
+   "filas": 420,
+   "total": null,
+   "hasMore": null
+  },
+  "conVentana": {
+   "bytes": 34952,
+   "filas": 120,
+   "total": 420,
+   "hasMore": true
+  }
+ },
+ {
+  "lista": "plans",
+  "sinProyeccion": null,
+  "sinVentana": {
+   "bytes": 20776,
+   "filas": 84,
+   "total": null,
+   "hasMore": null
+  },
+  "conVentana": {
+   "bytes": 15019,
+   "filas": 60,
+   "total": 84,
+   "hasMore": true
+  }
+ }
+]
