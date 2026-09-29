@@ -1,0 +1,92 @@
+[
+ {
+  "screen": "equipo",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 618,
+  "visibles": 0
+ },
+ {
+  "screen": "historial",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 533,
+  "visibles": 2
+ },
+ {
+  "screen": "actividad",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 1072,
+  "visibles": 0
+ },
+ {
+  "screen": "papelera",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 681,
+  "visibles": 1
+ },
+ {
+  "screen": "equipo-alta",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 388,
+  "visibles": 1
+ },
+ {
+  "screen": "equipo",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 618,
+  "visibles": 0
+ },
+ {
+  "screen": "historial",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 533,
+  "visibles": 2
+ },
+ {
+  "screen": "actividad",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 1072,
+  "visibles": 0
+ },
+ {
+  "screen": "papelera",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 681,
+  "visibles": 1
+ },
+ {
+  "screen": "equipo-alta",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 388,
+  "visibles": 1
+ }
+]

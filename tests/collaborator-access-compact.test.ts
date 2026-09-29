@@ -20,11 +20,11 @@ const photoCss=read('app/photo-cropper.css');
 const control=read('app/control-center.css');
 
 test('collaborator identity is rendered by its card, while access keeps only state and actions',()=>{
- assert.match(operations,/person-hub-facts/);
+ assert.match(operations,/person-hub-mail/);
  assert.match(operations,/\{entry\.member!\.email\}/);
- assert.match(operations,/\{accessRole\} · \{accessState\}/);
  assert.match(operations,/\{p\.email\|\|'Sin correo'\}/);
  assert.doesNotMatch(operations,/Cargo: \{p\.job_title/);
+ assert.doesNotMatch(operations,/person-hub-facts/,'la tarjeta ya no usa el bloque grande Correo/Acceso/Ingreso');
  assert.doesNotMatch(access,/ActorIdentity|team-access-member|team-access-help/);
  assert.match(access,/ChipEstado/);
 });
@@ -42,10 +42,10 @@ test('suspended access uses the canonical chip with bad tone and collaborator ph
 test('team list view renders a compact single-column list and contact data is never cut',()=>{
  assert.match(operations,/ops-grid\$\{teamView==='list'\?' ops-grid-list':''\}/);
  assert.match(operationsCss,/\.control-shell \.ops-grid\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\)/);
- assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:5;grid-row:1;display:flex/);
- assert.match(operationsCss,/\.person-hub-facts \.person-hub-fact-wide\{grid-column:1\/-1\}/);
- assert.match(operationsCss,/\.person-hub-facts dd\{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere\}/);
- assert.match(operations,/person-hub-fact-wide"><dt>Correo<\/dt><dd title=\{p\.email/);
+ assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:6;grid-row:1;display:flex/);
+ assert.match(operationsCss,/--person-cols:minmax\(9rem,1\.3fr\)/,'la plantilla de la fila finita declara sus columnas');
+ assert.match(operationsCss,/\.person-hub-card\.is-list \.person-hub-mail\{grid-column:2/,'el correo tiene su columna en la fila densa');
+ assert.match(operations,/person-hub-mail" title=\{p\.email/);
 });
 
 test('team directory keeps normal roles on photo, name and cargo only',()=>{
@@ -69,9 +69,10 @@ test('management reaches the team without individual salary amounts',()=>{
  assert.match(operations,/person-hub-comp">\{types\.find\(type=>type\.value===p\.compensation_type\)\?\.label\|\|'Sin modalidad'\}<\/span>/);
  assert.doesNotMatch(operations,/Salario reservado/,'the capsule never shows the individual amount');
  assert.doesNotMatch(operations,/setPay\(\{ person:/,'paying a collaborator lives in Finanzas, not in the team capsule');
- assert.match(operations,/salaryView&&!p\.compensation_amount/);
- assert.match(operations,/\{salaryView&&<span className="hub-chip">\{p\.payment_day/);
- assert.match(operations,/\{salaryView&&p\.invoices_company\?/);
+ assert.match(operations,/!p\.compensation_amount&&p\.active/);
+ assert.match(operations,/\{p\.payment_day\?`Día de pago \$\{p\.payment_day\}`:'Día de pago sin definir'\}/);
+ assert.match(operations,/\{p\.invoices_company\?<span className="hub-chip">Emite factura<\/span>/);
+ assert.match(operations,/\{p\.currency\?<span className="hub-chip" title="Moneda de la remuneración">\{p\.currency\}/,'la moneda de la remuneración es un chip');
  assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');
  assert.match(read('app/capabilities.ts'),/collaborators:'members\.manage'/);
  assert.match(access,/const manage=roleCan\(role,'members\.manage'\)/);

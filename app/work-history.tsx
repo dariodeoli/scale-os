@@ -40,9 +40,9 @@ export function WorkHistory({role,navigate}:{role:string;navigate?:(module:strin
   </FilterToolbar>
   {error?<ErrorBlock title="No se pudo cargar el historial." description={error} onRetry={()=>setIdentityVersion(v=>v+1)}/>:null}
   {loading&&!error?<LoadingBlock label="Cargando actividad…" lines={4}/>:null}
-  {!loading&&!error&&rows.length?<ol className="grid min-w-0 gap-2">{rows.map(r=><li className="grid min-w-0 gap-1 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3" key={r.id}>
+  {!loading&&!error&&rows.length?<ol className="grid min-w-0 gap-1.5">{rows.map(r=><li className="grid min-w-0 gap-0.5 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-2" key={r.id}>
    <ActorIdentity name={str(r,source?'source_author':'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} imported={source} timestamp={str(r,source?'occurred_at':'created_at')}/>
-   <p className="break-words text-[13px] text-fore" title={str(r,source?'body':'title')}>{str(r,source?'body':'title')}</p>
+   <p className="truncate text-[13px] text-fore" title={str(r,source?'body':'title')}>{str(r,source?'body':'title')}</p>
    {!source?<p className="text-xs text-mute">{str(r,'action')==='INSERT'?'Creó':str(r,'action')==='DELETE'?'Eliminó':'Actualizó'}{r.previous_status!==r.next_status?<> · {str(r,'previous_status')||'Nueva'} → <b className="text-fore">{str(r,'next_status')}</b></>:null}</p>:null}
   </li>)}</ol>:null}
   {!loading&&!error&&!rows.length?<EmptyBlock title="Sin actividad registrada." description={source?'No hay historial importado para mostrar.':'Los cambios operativos del equipo van a aparecer acá.'} action={!source&&navigate?<Button type="button" variant="outline" onClick={()=>navigate('Producción')}>Abrir Producción</Button>:undefined}/>:null}

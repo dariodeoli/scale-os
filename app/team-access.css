@@ -1,10 +1,9 @@
-.team-access{display:grid;gap:10px;padding:12px 0 0;border-top:1px solid var(--border-subtle,var(--line))}
-.team-access-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.team-access-header h3{margin:0;color:var(--text);font-size:13px;letter-spacing:-.015em}
-/* El estado usa el chip canónico (owncoding-ui v0.39): acá solo el layout del encabezado. */
+.team-access{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0;border-top:0}
+/* El estado usa el chip canónico (owncoding-ui): acá solo el layout de la línea. */
 .team-access-status{max-width:60%;white-space:nowrap;text-align:right}
-.team-access-actions{display:flex;flex-wrap:wrap;gap:8px}.team-access-actions button{min-height:44px}.team-access-actions .member-actions{display:flex;flex-wrap:wrap;gap:8px}
+.team-access-actions{display:flex;flex-wrap:wrap;gap:8px}.team-access-actions button{min-height:32px}.team-access-actions .member-actions{display:flex;flex-wrap:wrap;gap:8px}
 .team-access-dialog{display:grid;gap:14px}.team-access-dialog .ops-form-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:end}.team-access-dialog .dialog-actions{margin:0;justify-content:flex-start}.team-access-dialog .dialog-actions>.primary{min-height:44px}
 .team-access :focus-visible{outline:2px solid var(--brand-700);outline-offset:2px}.team-access button{transition:transform 160ms ease-out,opacity 160ms ease-out}.team-access button:active:not(:disabled){transform:scale(.98)}
 @media(max-width:540px){.team-access-dialog .ops-form-grid{grid-template-columns:1fr}.team-access-actions,.team-access-actions .member-actions{width:100%}.team-access-actions button{flex:1 1 160px}}
+@media(max-width:760px){.team-access-actions button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.team-access button{transition:opacity 120ms ease-out}.team-access button:active:not(:disabled){transform:none}}

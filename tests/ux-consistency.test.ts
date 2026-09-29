@@ -41,7 +41,7 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(workspace,/PROJECT_COLUMNS: Column\[\] = \[[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables[\s\S]*?Acciones/,'the project list declares its column header');
   assert.match(workspace,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'the project header consumes the shared template');
   const operations=read('app/operations.tsx');
-  assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
+  assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Correo[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
   const clientes=sectionSource('clientes.tsx');
   assert.match(clientes,/ListRow template=\{CLIENT_TEMPLATE\} className="client-hub-row"/,'client rows consume the shared template');
   const team=read('app/operations.css');
@@ -191,7 +191,10 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   // homogeneidad por fila la da el grid, no un `min-height` grande.
   assert.match(team,/\.team-directory-card\{[^}]*min-height:var\(--ui-card-min-height,120px\)/,'the directory cards use the compact floor');
   const presence=read('app/presence.css');
-  assert.match(presence,/\.usage-grid \.ops-card\{[^}]*min-height:var\(--ui-card-min-height,120px\)/,'usage cards use the compact floor');
+  const presenceSource=read('app/presence.tsx');
+  assert.match(presenceSource,/USAGE_TEMPLATE='grid-cols-\[minmax\(11rem,1\.6fr\)_6\.5rem_9rem_minmax\(12rem,1\.2fr\)_8rem\]'/,'el uso del equipo declara una sola plantilla densa');
+  assert.match(presenceSource,/<ListGrid label="Uso del equipo" template=\{USAGE_TEMPLATE\}/,'el uso del equipo usa la lista finita compartida');
+  assert.doesNotMatch(presence,/usage-grid/,'la grilla de tarjetas altas del uso ya no existe');
   const productivity=read('app/productivity-ui.tsx');
   assert.match(productivity,/drawer-list-head[\s\S]*?Proyecto[\s\S]*?Pieza[\s\S]*?Presupuesto[\s\S]*?Factura/,'the client drawer lists show their headers');
   const productivityCss=read('app/productivity.css');

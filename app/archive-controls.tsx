@@ -65,16 +65,8 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
   <KpiStrip>
    <Kpi label="Registros en papelera" valor={records.length} hint="Recuperables con tu permiso actual" destacado/>
    <Kpi label="Tipos de registro" valor={kinds} hint="Clasificación del API"/>
-   <Kpi label="Seleccionados" valor={selected.length} hint="Para restaurar en lote"/>
   </KpiStrip>
-  <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
-   <div className="flex flex-wrap items-center justify-between gap-2" role="status" aria-live="polite">
-    <p className="text-xs text-mute">{selected.length?<><b className="tabular-nums text-fore">{selected.length}</b> seleccionado{selected.length===1?'':'s'}</>:<span>Seleccioná varios para restaurar en lote</span>}</p>
-    <div className="flex flex-wrap items-center gap-1">
-     {records.length?<button type="button" className="text-button" onClick={()=>setSelected(allSelected?[]:records.map(keyOf))}>{allSelected?'Limpiar selección':'Seleccionar todos'}</button>:null}
-     {selected.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()}>{bulkBusy?'Restaurando…':'Restaurar'}</button><button type="button" className="text-button" onClick={()=>setSelected([])}>Limpiar</button></>:null}
-    </div>
-   </div>
+  {selected.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count"><b>{selected.length}</b> seleccionado{selected.length===1?'':'s'}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={()=>setSelected(allSelected?[]:records.map(keyOf))}>{allSelected?'Limpiar selección':'Seleccionar todos'}</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()}>{bulkBusy?'Restaurando…':'Restaurar'}</button><button type="button" className="text-button" onClick={()=>setSelected([])}>Limpiar</button></div></div>:null}
    {loading?<LoadingBlock label="Cargando papelera…" lines={3}/>:!records.length?<EmptyBlock compact title="No hay registros en la papelera" description="Lo que se mueva a la papelera queda acá hasta que lo restaures."/>:
     <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]">
      {records.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
@@ -92,6 +84,5 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
       </div>
      </ListRow>)}
     </ListGrid>}
-  </div>
  </section>;
 }
