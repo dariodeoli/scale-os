@@ -66,20 +66,20 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
   const {data, error, reload} = useForecast(currentForecastMonth(), '1');
   const rows = data?.personnel.records ?? [];
   return <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-salaries-title">
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <div className="min-w-0">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
         <h3 id="finance-salaries-title" className="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3>
-        <p className="mt-1 text-xs text-mute">Gasto esperado del personal al cierre del mes, por moneda; no incluye pagos ni comisiones registrados.</p>
+        <p className="min-w-0 text-xs text-mute" title="Gasto esperado del personal al cierre del mes, por moneda; no incluye pagos ni comisiones registrados.">Gasto esperado del personal al cierre del mes, por moneda; no incluye pagos ni comisiones registrados.</p>
       </div>
       {navigate ? <button className="text-button" onClick={() => navigate('Previsión')}>Ver más</button> : null}
     </div>
     {error ? <ErrorBlock title="No se pudo cargar el gasto del personal" description={error} onRetry={() => reload()}/>
     : !data ? <LoadingBlock label="Cargando salarios…" lines={2}/>
-    : rows.length ? <div className="grid gap-3 lg:grid-cols-2">
-      {rows.map(row => <article className="grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-3 sm:p-4" key={row.currency}>
-        <div className="flex items-center justify-between gap-3 border-b border-ink-600 pb-2">
+    : rows.length ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {rows.map(row => <article className="grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-3" key={row.currency}>
+        <div className="flex items-baseline justify-between gap-3">
           <span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{row.currency}</span>
-          <span className="text-xs tabular-nums text-mute">{count(row.included_headcount)} incluido{count(row.included_headcount) === 1 ? '' : 's'}</span>
+          <span className="whitespace-nowrap text-xs tabular-nums text-mute" title={`${count(row.included_headcount)} colaborador${count(row.included_headcount) === 1 ? '' : 'es'} activo${count(row.included_headcount) === 1 ? '' : 's'} incluido${count(row.included_headcount) === 1 ? '' : 's'}`}>{count(row.included_headcount)} incluido{count(row.included_headcount) === 1 ? '' : 's'}</span>
         </div>
         <FilaDato etiqueta="Esperado al cierre" valor={<MoneyText valor={row.expected_end_of_month_expense} currency={row.currency} className="text-base"/>}/>
       </article>)}
@@ -142,6 +142,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
 
     {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <button type="button" className="text-button" onClick={retry}>Reintentar</button></Aviso> : null}
 
+    <SalariosPanel navigate={navigate}/>
+
     <div className="grid gap-4 xl:grid-cols-2">
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-accounts-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -152,19 +154,19 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
           </div>
         </div>
         {accounts.length ? <div className="grid gap-3 sm:grid-cols-2">
-          {accounts.map(account => <article key={account.id} className="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4" data-archived={account.active === false || undefined}>
+          {accounts.map(account => <article key={account.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4" data-archived={account.active === false || undefined}>
             <header className="flex items-start justify-between gap-2">
-              <b className="min-w-0 text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
+              <b className="min-w-0 truncate text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
               <StateChip tone="mute" title={`${ACCOUNT_TYPES[account.account_type] || account.account_type} · ${account.currency}`}>{ACCOUNT_TYPES[account.account_type] || account.account_type} · {account.currency}</StateChip>
             </header>
-            <MoneyText valor={account.balance} currency={account.currency} className="text-xl"/>
-            <dl className="grid gap-1 text-[11.5px]">
-              {account.institution ? <div className="flex items-baseline justify-between gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd className="min-w-0 text-right text-fore" title={account.institution}>{account.institution}</dd></div> : null}
-              {account.account_number ? <div className="flex items-baseline justify-between gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd className="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title={account.account_number}>{account.account_number}</dd></div> : null}
-              {account.holder_name ? <div className="flex items-baseline justify-between gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd className="min-w-0 text-right text-fore" title={account.holder_name}>{account.holder_name}</dd></div> : null}
-              {account.custodian_email ? <div className="flex items-baseline justify-between gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd className="min-w-0 text-right text-fore" title={account.custodian_email}>{account.custodian_email}</dd></div> : null}
+            <MoneyText valor={account.balance} currency={account.currency} className="text-lg"/>
+            <dl className="grid gap-0.5 text-[11px]">
+              {account.institution ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.institution}>{account.institution}</dd></div> : null}
+              {account.account_number ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd className="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title={account.account_number}>{account.account_number}</dd></div> : null}
+              {account.holder_name ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.holder_name}>{account.holder_name}</dd></div> : null}
+              {account.custodian_email ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.custodian_email}>{account.custodian_email}</dd></div> : null}
             </dl>
-            <footer className="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3">
+            <footer className="mt-auto flex items-center justify-end gap-1 border-t border-ink-600/60 pt-2">
               <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>
             </footer>
           </article>)}
@@ -197,8 +199,6 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
           : <EmptyBlock compact title="Aún no hay transferencias entre cuentas." description="Registrá una cuando muevas saldo entre cuentas; el movimiento queda en la traza." action={activeAccounts >= 2 ? <button className="secondary" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</button> : undefined}/>}
       </section>
     </div>
-
-    <SalariosPanel navigate={navigate}/>
 
     <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-invoices-title">
       <div className="flex flex-wrap items-center justify-between gap-2">

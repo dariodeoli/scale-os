@@ -88,8 +88,14 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
       eyebrow="Finanzas"
       title="Estado de pagos"
       subtitle="Saldo pendiente por antigüedad y días en calle por moneda."
-      actions={updated ? <span className="whitespace-nowrap text-xs tabular-nums text-mute">Actualizado {updated}</span> : undefined}
+      actions={updated ? <span className="whitespace-nowrap text-xs tabular-nums text-mute" title={`Actualizado ${updated}`}>Actualizado {updated}</span> : undefined}
     />
+    {/* La toolbar vive en su propia fila compacta (≥1280, #89): el header
+        conserva el título completo y los filtros no lo recortan (#95). */}
+    <FilterToolbar summary={`${visible.length} de ${paymentStatuses.length}`}>
+      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Al día'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
+      <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar cliente en cobranza" value={moraSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setMoraSearch(event.target.value)} placeholder="Buscar cliente…"/>
+    </FilterToolbar>
 
     {loading ? <LoadingBlock label="Cargando cobranza…" lines={5}/>
     : failed && !paymentStatuses.length ? <ErrorBlock title="No se pudo cargar la cobranza" description="Reintentá para ver el saldo pendiente, la antigüedad de cada cliente y el DSO del mes." onRetry={onRetry}/>
@@ -119,11 +125,6 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
         hint={!canSeeDso ? 'Requiere Informes (reports.view)' : moraReportsError ? 'No se pudo consultar el reporte del mes; usá Reintentar' : 'Saldo pendiente sobre lo facturado del mes, por moneda'}
       />
     </div>
-
-    <FilterToolbar summary={`${visible.length} de ${paymentStatuses.length}`}>
-      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Al día'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
-      <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar cliente en cobranza" value={moraSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setMoraSearch(event.target.value)} placeholder="Buscar cliente…"/>
-    </FilterToolbar>
 
     {visible.length
       ? <ListGrid label="Cobranza por cliente" template={MORA_TEMPLATE} columns={MORA_COLUMNS} minWidthClass="min-w-[58rem]">

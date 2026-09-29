@@ -69,7 +69,7 @@ for(const [name,source] of [['previsión',pre],['informes',informes],['producci�
 }
 
 // ── Anchos de campo por tipo.
-assert.match(pre,/className="w-44"/);assert.match(informes,/className="w-44"/);assert.match(treasury,/className="w-40"/);
+assert.match(pre,/className="w-44/);assert.match(informes,/className="w-44/);assert.match(treasury,/className="w-40"/);
 
 
 // ── Secciones FIN (campaña #41): ui-v2, una plantilla por lista, montos por

@@ -44,6 +44,7 @@ import {
   FormField,
   IconAction,
   Input,
+  Label,
   Nota,
   SegmentedField,
   cn,
@@ -102,15 +103,18 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
  const plannedFor=(currency:MoneyCurrency)=>plannedExpenseCounts(data!.planned_expenses).find(item=>item.currency===currency);
 
  return <section className="grid gap-4" aria-label="Previsión financiera">
-  <PageHeader eyebrow="Finanzas" title="Previsión financiera"/>
-  <div className="flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-ink-600 bg-ink-900/60 px-3 py-2.5">
-   <FormField label="Mes" htmlFor="forecast-month"><Input id="forecast-month" type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/></FormField>
-   <div className="grid min-w-0 gap-1.5">
-    <span className="text-[10px] font-bold uppercase tracking-[.08em] text-mute">Horizonte</span>
+  <PageHeader
+   eyebrow="Finanzas"
+   title="Previsión financiera"
+   subtitle={<span title="Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.">Planificación mensual por moneda; no convierte ni mezcla monedas.</span>}
+   actions={<>
+    <div className="grid min-w-0 gap-1">
+     <Label htmlFor="forecast-month" className="sr-only">Mes</Label>
+     <Input id="forecast-month" type="month" aria-label="Mes a planificar" title="Mes a planificar" className="w-44 max-md:w-full" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/>
+    </div>
     <SegmentedField className="[&>button]:min-h-11 [&>button]:px-3 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
-   </div>
-  </div>
-  <Nota tono="neutro">Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.</Nota>
+   </>}
+  />
   {error?<ErrorState title="No se pudo cargar la previsión" description={error} onRetry={()=>reload()}/>
   :!data?<LoadingBlock label="Cargando previsión…" lines={4}/>
   :<>
