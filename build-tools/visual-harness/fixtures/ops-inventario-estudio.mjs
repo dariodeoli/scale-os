@@ -58,7 +58,7 @@ const searchField = (label, placeholder) => `<div class="relative min-w-0">${svg
 const fieldLabel = (text, id) => `<label class="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-mute" for="${id}">${text}</label>`;
 const kpi = (label, value, hint, moneda = false) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${moneda ? money(value) : value}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="text-mute">${hint}</span></div>` : ''}</div>`;
 const filaDato = (etiqueta, valor, valorClass = 'shrink break-words text-right') => `<div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">${etiqueta}</dt><dd class="${valorClass} font-semibold tabular-nums">${valor}</dd></div>`;
-const emptyState = (title, description, action = '', compact = false) => `<div class="flex flex-col items-center justify-center px-6 text-center ${compact ? 'py-6' : 'py-12'}"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>${action ? `<div class="mt-4">${action}</div>` : ''}</div>`;
+const emptyState = (title, description, action = '', compact = false, icon = ICON.box) => `<div class="flex flex-col items-center justify-center px-6 text-center ${compact ? 'py-6' : 'py-12'}"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(icon, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>${action ? `<div class="mt-4">${action}</div>` : ''}</div>`;
 const textButton = (label) => `<button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-mute transition hover:bg-ink-700 hover:text-fore md:h-8">${label}</button>`;
 
 const aviso = (tono, text) => {
@@ -323,6 +323,24 @@ export default [
     body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${kpiValueEmpty}</div></div>`,
   },
   {
+    id: 'inventario-pipeline-vacio',
+    section: 'Inventario',
+    surface: 'Pipeline sin equipos',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${emptyState('No hay equipos para mostrar en el pipeline.', 'Arrastrá los equipos entre ubicaciones para ordenar dónde se guarda cada uno.', button('Agregar equipo'))}</div></div>`,
+  },
+  {
+    id: 'inventario-reservas-vacio',
+    section: 'Inventario',
+    surface: 'Calendario y reservas sin reservas',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5"><div class="flex flex-wrap items-center justify-between gap-3"><div class="min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Calendario y reservas</h2><p class="mt-1 text-xs leading-5 text-mute">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p></div><div class="w-52">${fieldLabel('Mes del calendario', 'inventory-calendar-month')}<input id="inventory-calendar-month" type="month" value="2026-09" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore md:h-9 md:text-sm"></div></div>${emptyState('Sin reservas en este mes.', 'Elegí equipos y fechas para planificar una producción.', button('Reservar equipos'), false, ICON.calendar)}</div></div>`,
+  },
+  {
     id: 'inventario-error',
     section: 'Inventario',
     surface: 'Estado de error y reintento',
@@ -351,6 +369,15 @@ export default [
     lists: [],
     grids: [],
     body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${emptyState('Todavía no hay espacios.', 'Creá el set, la cabina o el escenario para reservarlo después.', button('Agregar espacio'), true)}</div></div>`,
+  },
+  {
+    id: 'estudio-reservas-vacio',
+    section: 'Estudio',
+    surface: 'Reservas del mes vacías',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${emptyState('No hay reservas en este mes.', 'Elegí un espacio y una franja para reservarlo.', button('Nueva reserva'), false, ICON.calendar)}</div></div>`,
   },
   {
     id: 'estudio-reservas-lista',

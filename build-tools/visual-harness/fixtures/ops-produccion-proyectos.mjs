@@ -30,6 +30,8 @@ const ICON = {
   chevronLeft: 'M15 18l-6-6 6-6',
   chevronRight: 'M9 6l6 6-6 6',
   box: 'M21 8l-9-5-9 5 9 5 9-5ZM3 8v8l9 5 9-5V8M12 13v8',
+  alert: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
+  close: 'M6 6l12 12M18 6 6 18',
 };
 const initials = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 const chip = (label, tone) => {
@@ -92,6 +94,9 @@ const boardWindow = `
  </div>
 </div>`;
 const boardEmpty = `<div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-6 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">Todavía no hay órdenes en producción.</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">Creá la primera pieza y seguila por las siete etapas hasta publicarla.</p><div class="mt-4">${button('Nueva pieza')}</div></div></div>`;
+/* §15.3 error con reintento: el tablero y el planificador usan el `ErrorState`
+   canónico dentro de la superficie del sistema (app/ui-v2.tsx `ErrorBlock`). */
+const errorBlock = (title, description) => `<div role="alert" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-bad/25 bg-bad/10 text-bad">${svg(ICON.alert, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p><button type="button" class="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore transition hover:border-fono hover:bg-fono/10 md:h-9">Reintentar</button></div></div>`;
 const orders = [
   {id: 'wo_1', title: 'Reel de lanzamiento para la nueva línea de productos — corte final con subtítulos, corrección de color y mezcla', color: 'teal', client: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', project: 'Campaña Aniversario 2026 · Temporada de verano · Spots para televisión abierta y redes', urgency: '5 · Crítica', status: {id: 'blocked', label: 'Bloqueado', tone: 'bad'}, workType: 'Video', links: 3, hours: '12 h est. · 4 h reales', checklist: {done: 3, total: 8}, description: 'Falta la aprobación del cliente sobre la música y el cierre con el logo animado de cierre.', due: 'Entrega 28 ago. 2026 · 09:30 h · venció hace 23 días', dueShort: '28-ago · 09:30', people: [{initials: 'MR', name: 'María Renée Ayala Benítez', primary: true}, {initials: 'JC', name: 'Juan Carlos Villalba'}], updated: '17 sept 26 · 09:48', approval: 1},
   {id: 'wo_2', title: 'Spots de 15 s y 30 s para radio, televisión abierta y redes sociales', color: 'violet', client: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima', project: 'Documental institucional del Bicentenario — Investigación, rodaje y postproducción completa', urgency: '2 · Moderada', status: {id: 'to_record', label: 'Por grabar', tone: 'warn'}, workType: 'Producción', links: 1, hours: '8 h est.', checklist: null, description: 'Confirmar con el cliente el enfoque del guion y las locaciones antes del rodaje. Checklist de producción: 1) Brief aprobado: https://trello.com/c/AbC123/brief-campana-primavera-2026 2) Guion y storyboard en Drive: https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOpQrStUvWxYz 3) Equipo y permisos de filmación 4) Fechas de rodaje con el cliente. Notas largas importadas de Trello: coordinar el transporte del equipo y reservar el estudio para las tomas de producto.', detalle: true, due: 'Entrega 23 sept. 2026 · 07:00 h · faltan 3 días', dueShort: '23-sept · 07:00', people: [{initials: 'LP', name: 'Lucía Paredes', primary: true}], updated: '18 sept 26 · 15:10', approval: 0},
@@ -110,7 +115,7 @@ const productionColumns = [
 
 /* ----------------------------------------------------------- planificador */
 const PLANNER_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.1fr)_7rem_7rem_minmax(9rem,1fr)_6rem_9rem]';
-const plannerHead = `<div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PLANNER_TEMPLATE}"><span role="columnheader">Pieza</span><span role="columnheader">Vence</span><span role="columnheader">Estado</span><span role="columnheader">Tipo</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Checklist</span><span role="columnheader">Horas</span></div>`;
+const plannerHead = `<div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PLANNER_TEMPLATE}"><span role="columnheader">Pieza</span><span role="columnheader">Vence</span><span role="columnheader">Estado</span><span role="columnheader">Tipo</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Pasos</span><span role="columnheader">Horas</span></div>`;
 const plannerRow = (order) => `
 <div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors hover:bg-ink-700/40 md:min-h-11 md:!py-1.5 ${PLANNER_TEMPLATE}" data-status="${order.status.id}">
  <span class="flex min-w-0 items-center gap-2"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${order.title}"></label><button type="button" class="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0"><b class="block truncate text-[13px] font-semibold text-fore" title="${order.title}">${order.title}</b><small class="block truncate text-[11px] text-mute" title="${order.client} · ${order.project}">${order.client} · ${order.project}</small></button></span>
@@ -241,6 +246,33 @@ export default [
     body: calendarBody,
   },
   {
+    id: 'produccion-planificador-vacio',
+    section: 'Producción',
+    surface: 'Planificador sin piezas',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `
+<div class="grid min-w-0 gap-4" aria-label="Planificador de producción">
+ <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Trabajo diario</h2></div>
+ <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-2">${kpi('Entregas para hoy o vencidas', '0', 'Piezas asignadas con entrega hasta hoy')}${kpi('Piezas asignadas pendientes', '0', 'Sin aprobar ni publicar')}</div>
+ <div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">No tenés piezas pendientes asignadas.</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">Podés elegir el tablero general desde el selector de vista.</p><div class="mt-4">${button('Abrir el tablero de Producción', 'outline')}</div></div></div>
+</div>`,
+  },
+  {
+    id: 'produccion-error',
+    section: 'Producción',
+    surface: 'Tablero y planificador sin carga',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `
+<div class="grid min-w-0 gap-4" aria-label="Producción · estados de error">
+ <section class="grid min-w-0 gap-2" aria-label="Tablero de Producción">${errorBlock('No se pudo cargar el tablero.', 'El servidor no respondió a tiempo. Reintentá; si sigue igual, avisá a soporte.')}</section>
+ <section class="grid min-w-0 gap-2" aria-label="Planificador de producción">${errorBlock('No se pudo cargar el planificador.', 'No hay conexión con el servidor. Revisá tu conexión y reintentá.')}</section>
+</div>`,
+  },
+  {
     id: 'produccion-mi-dia',
     section: 'Producción',
     surface: 'Trabajo diario',
@@ -272,6 +304,20 @@ export default [
     }],
     grids: [],
     body: projectsBody(false),
+  },
+  {
+    id: 'proyectos-filtro-vacio',
+    section: 'Proyectos',
+    surface: 'Filtro sin resultados · vacío con acción',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `
+<section class="grid min-w-0 gap-4" aria-label="Proyectos">
+ <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Activos', '2', 'Con trabajo en curso')}${kpi('Pausados', '1', 'Sin producción activa')}${kpi('Completados', '1', 'Cerrados en el historial')}${kpi('Piezas totales', '187', 'Órdenes de los proyectos visibles')}</div>
+ <div class="mb-4 flex flex-wrap items-end gap-3"><label class="grid w-full gap-1.5 sm:w-64"><span class="text-[12px] font-semibold text-mute">Cliente</span><select class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore md:h-9 md:text-sm"><option>Cooperativa Multiactiva de Servicios Múltiples Limitada</option></select></label><button type="button" class="text-button">${svg(ICON.close, 14)}Limpiar filtro</button><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">0 proyectos</p></div>
+ <div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">Este cliente no tiene proyectos.</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">Elegí otro cliente o limpiá el filtro.</p><div class="mt-4">${button('Limpiar filtro', 'outline')}</div></div></div>
+</section>`,
   },
   {
     id: 'proyectos-cuadricula',
