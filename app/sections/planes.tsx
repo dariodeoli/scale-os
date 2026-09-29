@@ -9,7 +9,7 @@ import {PlanComparison} from '../plan-comparison';
 import {comparePlans} from '../plan-comparison-data';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
-import {moneyKpi} from '../client-format';
+import {MoneyText} from '../ui-v2';
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock} from '../ui-v2';
 import type {ComparablePlan} from '../plan-comparison-data';
 import type {User} from '../workspace-types';
@@ -40,18 +40,20 @@ export function PlanesSection({user}: PlanesSectionProps){
 
   const active=plans.filter(plan=>plan.active!==false);
   const archived=plans.filter(plan=>plan.active===false);
-  const currencies=[...new Set(plans.map(plan=>String(plan.currency||'')).filter(Boolean))];
   // Mismo cálculo que la tabla (precio de línea redondeado en el comparador).
   const totals=new Map<string,number>();
   for(const {currency,total} of comparePlans(plans)) if(total!==null) totals.set(currency,(totals.get(currency)||0)+total);
+  const valueEntries=[...totals.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
 
   return (
     <section className="directory grid gap-4" aria-label="Planes reutilizables">
+      {/* Franja sin KPIs redundantes (#100): la moneda por plan vive en el
+          comparador; acá queda el valor de ítems como dato propio. */}
       <KpiStrip aria-label="Métricas de planes">
-        <Kpi label="Planes" valor={plans.length} destacado hint={totals.size?`Valor de ítems: ${Array.from(totals).map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}`:'Sin totales guardados'} className="[&_.text-xs]:truncate"/>
+        <Kpi label="Planes" valor={plans.length} destacado hint={active.length?`${active.length} activo${active.length===1?'':'s'} · ${archived.length} archivado${archived.length===1?'':'s'}`:'Sin planes guardados'}/>
+        <Kpi label="Valor de ítems" valor={valueEntries.length?<MoneyText valor={valueEntries[0][1]} currency={valueEntries[0][0]}/>:'—'} hint={valueEntries.length>1?<>{valueEntries.slice(1).map(([currency,value])=><span key={currency}><MoneyText valor={value} currency={currency}/> · </span>)}Sin IVA</>:'Sin IVA · totales guardados'}/>
         <Kpi label="Activos" valor={active.length} hint="Disponibles para presupuestos"/>
         <Kpi label="Archivados" valor={archived.length} hint="Fuera de circulación"/>
-        <Kpi label="Monedas" valor={currencies.length} hint={currencies.length?currencies.join(' · '):'Sin moneda registrada'}/>
       </KpiStrip>
 
       {state==='error' && plans.length ? (

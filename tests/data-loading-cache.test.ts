@@ -167,7 +167,10 @@ test('Resumen: los conteos por etapa salen del resumen y la ventana es el respal
  assert.equal(fallback.get('review'),2,'sin resumen cae a la ventana del shell');
  assert.equal(fallback.get('blocked'),1,'y cuenta lo que la ventana sí tiene');
  const resumen=readFileSync(new URL('../app/sections/resumen.tsx',import.meta.url),'utf8');
- assert.match(resumen,/const enRevision = stageCounts\.get\('review'\)/,'el KPI En revisión usa el conteo exacto, no la ventana');
+ // #100: el Resumen ya no repite las métricas operativas; el conteo exacto se
+ // sigue viendo en los chips de «Piezas por etapa».
+ assert.doesNotMatch(resumen,/enRevision/,'sin KPI duplicado de revisión');
+ assert.match(resumen,/stageCounts\.get\(status\.id\)/,'los chips de piezas usan el conteo exacto, no la ventana');
 });
 
 test('proyección optimista de listas: cae al payload completo si el API no la soporta (#67/#71)',async()=>{

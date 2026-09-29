@@ -242,15 +242,15 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <Kpi label="Entregas próximas" valor={directoryKpis.deliveries} hint="Piezas con vencimiento en 7 días"/>
     </KpiStrip>
 
-    {canManageClients && liveClients.length ? <div className="bulk-bar" role="status" aria-live="polite">
-      <span className="bulk-count">{selectedClients.length ? <><b>{selectedClients.length}</b> de {BATCH_LIMITS.clients} seleccionado{selectedClients.length === 1 ? '' : 's'}</> : <span className="bulk-hint">Seleccioná varios para operar en lote · máximo {BATCH_LIMITS.clients}</span>}</span>
+    {/* Selección contextual (#100): la barra existe sólo cuando hay algo
+        seleccionado; sin selección no ocupa ninguna fila. */}
+    {canManageClients && selectedClients.length ? <div className="bulk-bar" role="status" aria-live="polite">
+      <span className="bulk-count"><b>{selectedClients.length}</b> de {BATCH_LIMITS.clients} seleccionado{selectedClients.length === 1 ? '' : 's'}</span>
       <div className="inline-actions bulk-actions">
         <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisibleClients}>Seleccionar visibles</button>
-        {selectedClients.length ? <>
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => {setBulkError(''); setConfirmArchive(true);}}>Archivar</button>
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void runBatch(false)}>Reactivar</button>
-          <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setSelectedClients([])}>Limpiar</button>
-        </> : null}
+        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => {setBulkError(''); setConfirmArchive(true);}}>Archivar</button>
+        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void runBatch(false)}>Reactivar</button>
+        <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setSelectedClients([])}>Limpiar</button>
       </div>
     </div> : null}
 

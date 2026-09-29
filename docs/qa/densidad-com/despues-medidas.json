@@ -1,0 +1,1338 @@
+{
+ "clientes-1440-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "toolbar",
+    "selector": ".client-directory-toolbar",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 145,
+     "bottom": 261,
+     "height": 116,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "lote",
+    "selector": ".bulk-bar",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "contenido",
+    "selector": "[role=\"table\"] [role=\"row\"], .client-hub-card",
+    "rect": {
+     "top": 277,
+     "bottom": 301,
+     "height": 24,
+     "width": 1152
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 13,
+  "rowsTotal": 21
+ },
+ "presupuestos-1440-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 145,
+     "bottom": 187,
+     "height": 42,
+     "width": 240
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 199,
+     "bottom": 309,
+     "height": 110,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "lote",
+    "selector": ".bulk-bar",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "contenido",
+    "selector": "[role=\"table\"] [role=\"row\"], .budget-hub-card",
+    "rect": {
+     "top": 325,
+     "bottom": 349,
+     "height": 24,
+     "width": 1152
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 12,
+  "rowsTotal": 21
+ },
+ "pipeline-1440-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 145,
+     "bottom": 187,
+     "height": 42,
+     "width": 218
+    },
+    "count": 1
+   },
+   {
+    "label": "toolbar",
+    "selector": "section[aria-label=\"Pipeline\"] > div",
+    "rect": {
+     "top": 199,
+     "bottom": 235,
+     "height": 36,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 251,
+     "bottom": 361,
+     "height": 110,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "totales",
+    "selector": "[aria-label=\"Totales por etapa\"]",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "tablero",
+    "selector": "[aria-label=\"Pipeline\"] [aria-label$=\"oportunidades\"]",
+    "rect": {
+     "top": 377,
+     "bottom": 2542,
+     "height": 2165,
+     "width": 240
+    },
+    "count": 1
+   },
+   {
+    "label": "captación",
+    "selector": "section[aria-label=\"Pipeline\"] .ui-kpi-strip ~ *",
+    "rect": {
+     "top": 377,
+     "bottom": 2550,
+     "height": 2173,
+     "width": 1152
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 8,
+  "rowsTotal": 34
+ },
+ "planes-1440-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 145,
+     "bottom": 187,
+     "height": 42,
+     "width": 240
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 199,
+     "bottom": 309,
+     "height": 110,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "comparador",
+    "selector": "section[aria-label=\"Planes reutilizables\"] [role=\"region\"]",
+    "rect": {
+     "top": 377,
+     "bottom": 770,
+     "height": 393,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "ítem de plan",
+    "selector": "[data-plan-item]",
+    "rect": {
+     "top": 622,
+     "bottom": 679,
+     "height": 57,
+     "width": 207
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 3,
+  "rowsTotal": 3
+ },
+ "resumen-1440-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "señales",
+    "selector": ".control-signals",
+    "rect": {
+     "top": 378,
+     "bottom": 440,
+     "height": 62,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "comercial",
+    "selector": ".commercial-summary",
+    "rect": {
+     "top": 472,
+     "bottom": 635,
+     "height": 163,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "finanzas",
+    "selector": ".financial-summary:not(.commercial-summary)",
+    "rect": {
+     "top": 667,
+     "bottom": 1159,
+     "height": 492,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "vencimientos",
+    "selector": ".due-alert",
+    "rect": {
+     "top": 1203,
+     "bottom": 1245,
+     "height": 42,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "piezas",
+    "selector": "section[aria-label=\"Piezas por etapa\"]",
+    "rect": {
+     "top": 1277,
+     "bottom": 1419,
+     "height": 142,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "métricas operativas",
+    "selector": ".metrics.operational-metrics",
+    "rect": null,
+    "count": 0
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 0,
+  "rowsTotal": 48
+ },
+ "clientes-1440-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "toolbar",
+    "selector": ".client-directory-toolbar",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 145,
+     "bottom": 261,
+     "height": 116,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "lote",
+    "selector": ".bulk-bar",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "contenido",
+    "selector": "[role=\"table\"] [role=\"row\"], .client-hub-card",
+    "rect": {
+     "top": 277,
+     "bottom": 301,
+     "height": 24,
+     "width": 1152
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 13,
+  "rowsTotal": 21
+ },
+ "presupuestos-1440-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 145,
+     "bottom": 187,
+     "height": 42,
+     "width": 240
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 199,
+     "bottom": 309,
+     "height": 110,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "lote",
+    "selector": ".bulk-bar",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "contenido",
+    "selector": "[role=\"table\"] [role=\"row\"], .budget-hub-card",
+    "rect": {
+     "top": 325,
+     "bottom": 349,
+     "height": 24,
+     "width": 1152
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 12,
+  "rowsTotal": 21
+ },
+ "pipeline-1440-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 145,
+     "bottom": 187,
+     "height": 42,
+     "width": 218
+    },
+    "count": 1
+   },
+   {
+    "label": "toolbar",
+    "selector": "section[aria-label=\"Pipeline\"] > div",
+    "rect": {
+     "top": 199,
+     "bottom": 235,
+     "height": 36,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 251,
+     "bottom": 361,
+     "height": 110,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "totales",
+    "selector": "[aria-label=\"Totales por etapa\"]",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "tablero",
+    "selector": "[aria-label=\"Pipeline\"] [aria-label$=\"oportunidades\"]",
+    "rect": {
+     "top": 377,
+     "bottom": 2542,
+     "height": 2165,
+     "width": 240
+    },
+    "count": 1
+   },
+   {
+    "label": "captación",
+    "selector": "section[aria-label=\"Pipeline\"] .ui-kpi-strip ~ *",
+    "rect": {
+     "top": 377,
+     "bottom": 2550,
+     "height": 2173,
+     "width": 1152
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 8,
+  "rowsTotal": 34
+ },
+ "planes-1440-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 145,
+     "bottom": 187,
+     "height": 42,
+     "width": 240
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 199,
+     "bottom": 309,
+     "height": 110,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "comparador",
+    "selector": "section[aria-label=\"Planes reutilizables\"] [role=\"region\"]",
+    "rect": {
+     "top": 377,
+     "bottom": 770,
+     "height": 393,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "ítem de plan",
+    "selector": "[data-plan-item]",
+    "rect": {
+     "top": 622,
+     "bottom": 679,
+     "height": 57,
+     "width": 207
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 3,
+  "rowsTotal": 3
+ },
+ "resumen-1440-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 73,
+     "bottom": 129,
+     "height": 56,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "señales",
+    "selector": ".control-signals",
+    "rect": {
+     "top": 378,
+     "bottom": 440,
+     "height": 62,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "comercial",
+    "selector": ".commercial-summary",
+    "rect": {
+     "top": 472,
+     "bottom": 635,
+     "height": 163,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "finanzas",
+    "selector": ".financial-summary:not(.commercial-summary)",
+    "rect": {
+     "top": 667,
+     "bottom": 1159,
+     "height": 492,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "vencimientos",
+    "selector": ".due-alert",
+    "rect": {
+     "top": 1203,
+     "bottom": 1245,
+     "height": 42,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "piezas",
+    "selector": "section[aria-label=\"Piezas por etapa\"]",
+    "rect": {
+     "top": 1277,
+     "bottom": 1419,
+     "height": 142,
+     "width": 1152
+    },
+    "count": 1
+   },
+   {
+    "label": "métricas operativas",
+    "selector": ".metrics.operational-metrics",
+    "rect": null,
+    "count": 0
+   }
+  ],
+  "docScroll": 1440,
+  "rowsAboveFold": 0,
+  "rowsTotal": 48
+ },
+ "clientes-390-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 400,
+     "height": 215,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "toolbar",
+    "selector": ".client-directory-toolbar",
+    "rect": {
+     "top": 185,
+     "bottom": 400,
+     "height": 215,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 416,
+     "bottom": 898,
+     "height": 482,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "lote",
+    "selector": ".bulk-bar",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "contenido",
+    "selector": "[role=\"table\"] [role=\"row\"], .client-hub-card",
+    "rect": {
+     "top": 914,
+     "bottom": 1231,
+     "height": 318,
+     "width": 358
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 20
+ },
+ "presupuestos-390-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 302,
+     "height": 117,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 318,
+     "bottom": 370,
+     "height": 52,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 382,
+     "bottom": 858,
+     "height": 476,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "lote",
+    "selector": ".bulk-bar",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "contenido",
+    "selector": "[role=\"table\"] [role=\"row\"], .budget-hub-card",
+    "rect": {
+     "top": 874,
+     "bottom": 1214,
+     "height": 340,
+     "width": 358
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 20
+ },
+ "pipeline-390-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 258,
+     "height": 73,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 274,
+     "bottom": 326,
+     "height": 52,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "toolbar",
+    "selector": "section[aria-label=\"Pipeline\"] > div",
+    "rect": {
+     "top": 338,
+     "bottom": 382,
+     "height": 44,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 398,
+     "bottom": 874,
+     "height": 476,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "totales",
+    "selector": "[aria-label=\"Totales por etapa\"]",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "tablero",
+    "selector": "[aria-label=\"Pipeline\"] [aria-label$=\"oportunidades\"]",
+    "rect": {
+     "top": 890,
+     "bottom": 3225,
+     "height": 2336,
+     "width": 240
+    },
+    "count": 1
+   },
+   {
+    "label": "captación",
+    "selector": "section[aria-label=\"Pipeline\"] .ui-kpi-strip ~ *",
+    "rect": {
+     "top": 890,
+     "bottom": 3233,
+     "height": 2344,
+     "width": 358
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 34
+ },
+ "planes-390-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 258,
+     "height": 73,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 274,
+     "bottom": 326,
+     "height": 52,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 338,
+     "bottom": 814,
+     "height": 476,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "comparador",
+    "selector": "section[aria-label=\"Planes reutilizables\"] [role=\"region\"]",
+    "rect": {
+     "top": 942,
+     "bottom": 1338,
+     "height": 397,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "ítem de plan",
+    "selector": "[data-plan-item]",
+    "rect": {
+     "top": 1191,
+     "bottom": 1247,
+     "height": 57,
+     "width": 207
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 3
+ },
+ "resumen-390-light": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 302,
+     "height": 117,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "señales",
+    "selector": ".control-signals",
+    "rect": {
+     "top": 583,
+     "bottom": 789,
+     "height": 205,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "comercial",
+    "selector": ".commercial-summary",
+    "rect": {
+     "top": 821,
+     "bottom": 1123,
+     "height": 302,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "finanzas",
+    "selector": ".financial-summary:not(.commercial-summary)",
+    "rect": {
+     "top": 1155,
+     "bottom": 2273,
+     "height": 1118,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "vencimientos",
+    "selector": ".due-alert",
+    "rect": {
+     "top": 2317,
+     "bottom": 2385,
+     "height": 68,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "piezas",
+    "selector": "section[aria-label=\"Piezas por etapa\"]",
+    "rect": {
+     "top": 2417,
+     "bottom": 2610,
+     "height": 194,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "métricas operativas",
+    "selector": ".metrics.operational-metrics",
+    "rect": null,
+    "count": 0
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 48
+ },
+ "clientes-390-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 400,
+     "height": 215,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "toolbar",
+    "selector": ".client-directory-toolbar",
+    "rect": {
+     "top": 185,
+     "bottom": 400,
+     "height": 215,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 416,
+     "bottom": 898,
+     "height": 482,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "lote",
+    "selector": ".bulk-bar",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "contenido",
+    "selector": "[role=\"table\"] [role=\"row\"], .client-hub-card",
+    "rect": {
+     "top": 914,
+     "bottom": 1231,
+     "height": 318,
+     "width": 358
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 20
+ },
+ "presupuestos-390-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 302,
+     "height": 117,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 318,
+     "bottom": 370,
+     "height": 52,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 382,
+     "bottom": 858,
+     "height": 476,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "lote",
+    "selector": ".bulk-bar",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "contenido",
+    "selector": "[role=\"table\"] [role=\"row\"], .budget-hub-card",
+    "rect": {
+     "top": 874,
+     "bottom": 1214,
+     "height": 340,
+     "width": 358
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 20
+ },
+ "pipeline-390-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 258,
+     "height": 73,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 274,
+     "bottom": 326,
+     "height": 52,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "toolbar",
+    "selector": "section[aria-label=\"Pipeline\"] > div",
+    "rect": {
+     "top": 338,
+     "bottom": 382,
+     "height": 44,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 398,
+     "bottom": 874,
+     "height": 476,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "totales",
+    "selector": "[aria-label=\"Totales por etapa\"]",
+    "rect": null,
+    "count": 0
+   },
+   {
+    "label": "tablero",
+    "selector": "[aria-label=\"Pipeline\"] [aria-label$=\"oportunidades\"]",
+    "rect": {
+     "top": 890,
+     "bottom": 3225,
+     "height": 2336,
+     "width": 240
+    },
+    "count": 1
+   },
+   {
+    "label": "captación",
+    "selector": "section[aria-label=\"Pipeline\"] .ui-kpi-strip ~ *",
+    "rect": {
+     "top": 890,
+     "bottom": 3233,
+     "height": 2344,
+     "width": 358
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 34
+ },
+ "planes-390-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 258,
+     "height": 73,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "tabs",
+    "selector": "nav.section-tabs",
+    "rect": {
+     "top": 274,
+     "bottom": 326,
+     "height": 52,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "kpis",
+    "selector": ".ui-kpi-strip",
+    "rect": {
+     "top": 338,
+     "bottom": 814,
+     "height": 476,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "comparador",
+    "selector": "section[aria-label=\"Planes reutilizables\"] [role=\"region\"]",
+    "rect": {
+     "top": 942,
+     "bottom": 1338,
+     "height": 397,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "ítem de plan",
+    "selector": "[data-plan-item]",
+    "rect": {
+     "top": 1191,
+     "bottom": 1247,
+     "height": 57,
+     "width": 207
+    },
+    "count": 1
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 3
+ },
+ "resumen-390-dark": {
+  "blocks": [
+   {
+    "label": "header",
+    "selector": ".workspace-page-header",
+    "rect": {
+     "top": 185,
+     "bottom": 302,
+     "height": 117,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "señales",
+    "selector": ".control-signals",
+    "rect": {
+     "top": 583,
+     "bottom": 789,
+     "height": 205,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "comercial",
+    "selector": ".commercial-summary",
+    "rect": {
+     "top": 821,
+     "bottom": 1123,
+     "height": 302,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "finanzas",
+    "selector": ".financial-summary:not(.commercial-summary)",
+    "rect": {
+     "top": 1155,
+     "bottom": 2273,
+     "height": 1118,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "vencimientos",
+    "selector": ".due-alert",
+    "rect": {
+     "top": 2317,
+     "bottom": 2385,
+     "height": 68,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "piezas",
+    "selector": "section[aria-label=\"Piezas por etapa\"]",
+    "rect": {
+     "top": 2417,
+     "bottom": 2610,
+     "height": 194,
+     "width": 358
+    },
+    "count": 1
+   },
+   {
+    "label": "métricas operativas",
+    "selector": ".metrics.operational-metrics",
+    "rect": null,
+    "count": 0
+   }
+  ],
+  "docScroll": 390,
+  "rowsAboveFold": 0,
+  "rowsTotal": 48
+ }
+}

@@ -45,9 +45,10 @@ const BUDGET_COLUMNS: Column[] = [
   {key:'total',label:'Total · IVA incl.',align:'end'},
   {key:'actions',label:'Acciones',align:'end'},
 ];
-const BUDGET_TEMPLATE = 'grid-cols-[minmax(26rem,2.2fr)_minmax(16rem,1.4fr)_7rem_4rem_7rem_9rem_9rem_15rem]';
-// Ancho mínimo del contrato denso (93rem de pistas + 7 espacios + padding, #63).
-const BUDGET_TABLE_MIN_WIDTH = denseTableMinWidth(93, 8);
+// Pistas afinadas (#100, mismo criterio que Clientes en #77): la tabla entra ya
+// en 1280 (58rem de pistas + 7 espacios de 8 px + 8 px de padding = 992 px).
+const BUDGET_TEMPLATE = 'grid-cols-[minmax(14rem,2fr)_minmax(8rem,1.1fr)_6rem_3.5rem_6rem_8rem_8rem_4.5rem]';
+const BUDGET_TABLE_MIN_WIDTH = denseTableMinWidth(58, 8);
 const BUDGET_STATE: Record<string,{label:string;tone:ChipTone}> = {
   draft: {label:'Borrador', tone:'mute'},
   sent: {label:'Enviado', tone:'info'},
@@ -132,17 +133,17 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
         {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected.includes(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
         <span className="flex min-w-0 items-baseline gap-2">
           <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
-          <span className="min-w-0 text-[13.5px] font-semibold leading-tight text-fore [overflow-wrap:anywhere]" title={budget.title}>{budget.title}</span>
+          <span className="min-w-0 truncate text-[13.5px] font-semibold leading-tight text-fore" title={budget.title}>{budget.title}</span>
         </span>
       </div>
-      <span role="cell" className="min-w-0 text-[12px] leading-tight text-mute [overflow-wrap:anywhere]" title={budget.client_name}>{budget.client_name}</span>
+      <span role="cell" className="min-w-0 truncate text-[12px] leading-tight text-mute" title={budget.client_name}>{budget.client_name}</span>
       <span role="cell" className="min-w-0"><StateChip tone={state.tone}>{state.label}</StateChip></span>
       <span role="cell" className="whitespace-nowrap text-right text-[12px] tabular-nums text-mute">{budget.item_count}</span>
       <span role="cell" className="list-date min-w-0 whitespace-nowrap text-[11px] text-mute" data-tone={tone||undefined} title={budget.valid_until?`Vigencia hasta ${valid}`:'Sin vigencia registrada'}>{valid}</span>
       <span role="cell" className="text-right"><MoneyText valor={budget.subtotal} currency={budget.currency} className="text-fore"/></span>
       <span role="cell" className="text-right"><MoneyText valor={budget.total} currency={budget.currency} className="text-[13.5px] text-fore"/></span>
       <ListActions className="[&_button.icon-button]:h-8 [&_button.icon-button]:min-h-8 [&_button.icon-button]:w-8 [&_button.icon-button]:min-w-8">
-        <BudgetActions id={budget.id} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={reload}/>
+        <BudgetActions id={budget.id} variant="icon" label={budget.number} canInvoice={roleCan(user?.role,'invoices.manage')} refresh={reload}/>
         <RemoveRecord kind="budgets" id={budget.id} name={budget.title} role={user?.role||'viewer'} done={reload}/>
       </ListActions>
     </ListRow>;
@@ -157,14 +158,14 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
         <Kpi label="Vencen esta semana" valor={budgetKpis.expiring} hint="Vigencia en los próximos 7 días"/>
       </KpiStrip>
 
-      {canManage && budgets.length ? <div className="bulk-bar" role="status" aria-live="polite">
-        <span className="bulk-count">{selected.length ? <><b>{selected.length}</b> de {BATCH_LIMITS.budgets} seleccionado{selected.length===1?'':'s'}</> : <span className="bulk-hint">Seleccioná varios para operar en lote · máximo {BATCH_LIMITS.budgets}</span>}</span>
+      {/* Selección contextual (#100): la barra existe sólo cuando hay algo
+          seleccionado; sin selección no ocupa ninguna fila. */}
+      {canManage && selected.length ? <div className="bulk-bar" role="status" aria-live="polite">
+        <span className="bulk-count"><b>{selected.length}</b> de {BATCH_LIMITS.budgets} seleccionado{selected.length===1?'':'s'}</span>
         <div className="inline-actions bulk-actions">
           <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>
-          {selected.length ? <>
-            <button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setConfirmOpen(true);}}><Trash2 size={14} aria-hidden="true"/>Mover a la papelera</button>
-            <button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setSelected([])}>Limpiar</button>
-          </> : null}
+          <button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setConfirmOpen(true);}}><Trash2 size={14} aria-hidden="true"/>Mover a la papelera</button>
+          <button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setSelected([])}>Limpiar</button>
         </div>
       </div> : null}
 
@@ -177,7 +178,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
 
       {budgets.length ? (
         tableFits ? (
-          <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[93rem]" pinnedActions>
+          <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[62rem]" pinnedActions>
             {budgets.map(row)}
           </ListGrid>
         ) : (

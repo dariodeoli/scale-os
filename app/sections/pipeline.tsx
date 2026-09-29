@@ -2,7 +2,7 @@
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
-import {Eye,GripVertical,Plus,Settings2,Target} from 'lucide-react';
+import {ArrowUpRight,Eye,GripVertical,Move,Plus,Settings2,TrendingUp} from 'lucide-react';
 import {Aviso,Button,Input,Label,Select} from 'owncoding-ui';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {roleCan} from '../capabilities';
@@ -13,10 +13,9 @@ import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,Secti
 import {PHONE_HELP} from '../field-rules';
 import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
 import {useDialogPending} from '../dialog';
-import type {MetricEvent,User} from '../workspace-types';
+import type {User} from '../workspace-types';
 
 const LiveVisitors=dynamic(()=>import('../live-visitors').then(m=>m.LiveVisitors),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
-const GrowthDashboard=dynamic(()=>import('../growth-dashboard').then(m=>m.GrowthDashboard),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
 
 // Pipeline (SOS-COM, campaña #41 / spec #43 §2). Nombre único del módulo (#77):
 // el riel, el tab de apartados y el header dicen «Pipeline».
@@ -26,10 +25,11 @@ const GrowthDashboard=dynamic(()=>import('../growth-dashboard').then(m=>m.Growth
 // de carga/vacío/error. Los datos salen de las mismas rutas del API.
 type PipelineSectionProps = {
   user: User | null;
-  metrics: MetricEvent[];
-  /** Estado real de la lectura de métricas del shell (opcional en tests). */
+  /** Estado real de la lectura de métricas del shell (chip de captación). */
   metricsState?: 'idle' | 'loading' | 'ready' | 'error';
   onRetryMetrics?: () => void;
+  /** Navegación del shell (misma vía que los tabs). */
+  navigate?: (label: string) => void;
 };
 type Row=LeadOpportunity;
 type RawRow=Record<string,unknown>;
@@ -73,24 +73,26 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
   </article>;
 }
 
-function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false}:{stage:{value:string;label:string};rows:Row[];edit:(row:Row)=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;readOnly?:boolean}){
+function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals}:{stage:{value:string;label:string};rows:Row[];edit:(row:Row)=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;readOnly?:boolean;totals?:{weighted:Record<string,number>;open:Record<string,number>}}){
   const drop=useDroppable({id:`stage-${stage.value}`,disabled:readOnly});
-  // Mismo cálculo ponderado que los totales por etapa (`weightedAmounts`):
-  // una sola derivación para el tablero y el resumen.
-  const weighted=weightedAmounts(rows);
-  const currencies=Object.keys(weighted);
+  // El ponderado y el abierto por moneda salen de `stageTotals` (una sola
+  // derivación, la misma del resumen del pipeline) y viven en la columna: no se
+  // repite el encabezado en un bloque aparte (#100).
+  const weighted=totals?.weighted||weightedAmounts(rows);
+  const open=totals?.open||{};
+  const currencies=[...new Set([...Object.keys(weighted),...Object.keys(open)])];
   return <section ref={drop.setNodeRef} aria-label={`${stage.label} · ${rows.length} oportunidades`} className={`grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border p-3 ${drop.isOver?'border-fono/60 bg-fono/10':'border-ink-600 bg-ink-800'}`}>
     <header className="flex items-baseline justify-between gap-2">
       <h3 className="m-0 text-sm font-bold text-fore">{stage.label}{readOnly?' · desactivada':''}</h3>
       <span className="text-xs tabular-nums text-mute">{rows.length}</span>
     </header>
-    {currencies.length?<div className="grid gap-0.5 text-[11px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="whitespace-nowrap"><MoneyText valor={weighted[currency]} currency={currency}/> ponderado</span>)}</div>:null}
+    {currencies.length?<div className="grid gap-0.5 text-[10.5px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="truncate" title={`${currency}: ponderado y abierto`}><MoneyText valor={weighted[currency]??0} currency={currency}/> ponderado{open[currency]!==undefined&&open[currency]!==weighted[currency]?<> · <MoneyText valor={open[currency]} currency={currency}/> abierto</>:null}</span>)}</div>:null}
     {rows.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh}/>)}
     {!rows.length?<p className="text-xs text-mute">Sin oportunidades.</p>:null}
   </section>;
 }
 
-export function PipelineSection({user, metrics, metricsState='ready', onRetryMetrics}: PipelineSectionProps){
+export function PipelineSection({user, metricsState='ready', onRetryMetrics, navigate}: PipelineSectionProps){
   const [rows,setRows]=useState<Row[]>([]);
   const [stages,setStages]=useState<Stage[]>(fallbackStages);
   const [state,setState]=useState<LeadsState>('loading');
@@ -156,6 +158,7 @@ export function PipelineSection({user, metrics, metricsState='ready', onRetryMet
   };
   const looseSlugs=[...new Set(rows.map(row=>str(row,'stage')).filter(value=>Boolean(value)&&!activeStages.some(stage=>stage.value===value)))];
   const totals=stageTotals(rows,activeStages.map(stage=>({slug:stage.value,label:stage.label,position:stage.position,active:stage.active,kind:stage.kind})));
+  const totalsByStage=new Map(totals.map(entry=>[entry.stage,{weighted:entry.weighted,open:entry.open}]));
   const row=edit&&edit!=='new'?edit:null;
   const currentStage=row?str(row,'stage'):'';
   const stageChoices=[...activeStages.map(stage=>({value:stage.value,label:stage.label})),...(currentStage&&!activeStages.some(stage=>stage.value===currentStage)?[{value:currentStage,label:`${stageLabel(currentStage)} · desactivada`}]:[])];
@@ -204,7 +207,7 @@ export function PipelineSection({user, metrics, metricsState='ready', onRetryMet
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         {/* El texto va en una línea con recorte (min-content = palabra más larga, no
             la frase entera): la fila no empuja el ancho de la sección en mobile. */}
-        <p className="flex min-w-0 flex-1 items-center gap-2 text-[11px] text-mute max-md:hidden" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Target size={14} aria-hidden="true" className="shrink-0"/><span className="line-clamp-1 min-w-0">Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%.</span></p>
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[11px] text-mute" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Move size={13} aria-hidden="true" className="shrink-0"/><span className="truncate">Mover: arrastrá una tarjeta a otra etapa</span></span>
         {canEdit?<div className="flex flex-wrap items-center gap-2 max-md:ml-auto">
           <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
           <Button type="button" className="max-md:min-h-11" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
@@ -227,17 +230,6 @@ export function PipelineSection({user, metrics, metricsState='ready', onRetryMet
 
       {error?<ErrorBlock title="No se pudo completar la operación." description={error} onRetry={()=>void load()}/>:null}
 
-      {rows.length?<div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6" aria-label="Totales por etapa">
-        {totals.map(entry=><article key={entry.stage} className="min-w-0 rounded-xl border border-ink-600 bg-ink-800 p-3">
-          <h3 className="m-0 truncate text-[12px] font-bold text-fore" title={entry.label}>{entry.label}</h3>
-          <p className="m-0 mt-0.5 flex items-baseline gap-1.5 tabular-nums text-fore"><b className="text-lg font-semibold">{entry.count}</b><span className="text-[10px] text-mute">oportunidades</span></p>
-          <div className="mt-1 grid gap-0.5 text-[10.5px] tabular-nums">
-            {Object.entries(entry.weighted).map(([currency,value])=><span key={`w-${currency}`} className="truncate text-fore" title={`${currency}: ponderado`}><MoneyText valor={value} currency={currency}/> ponderado</span>)}
-            {Object.entries(entry.open).map(([currency,value])=><span key={`o-${currency}`} className="truncate text-mute" title={`${currency}: abierto`}><MoneyText valor={value} currency={currency}/> abierto</span>)}
-            {!Object.keys(entry.open).length?<span className="text-mute">Sin montos cargados</span>:null}
-          </div>
-        </article>)}
-      </div>:null}
 
       {state==='loading' && !rows.length ? <LoadingBlock label="Cargando oportunidades…" lines={4}/> : null}
       {state==='error' && !rows.length ? <ErrorBlock title="No se pudieron cargar las oportunidades." description={loadError||'Revisá la conexión y volvé a intentar; el tablero conserva las etapas conocidas.'} onRetry={()=>void load()}/> : null}
@@ -246,16 +238,20 @@ export function PipelineSection({user, metrics, metricsState='ready', onRetryMet
       {rows.length?<div className="grid gap-2">
         <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label}} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load}/>)}
-            {looseSlugs.map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} rows={rows.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} readOnly/>)}
+            {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label}} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(stage.value)}/>)}
+            {looseSlugs.map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} rows={rows.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(value)} readOnly/>)}
           </div>
         </DndContext>
       </div>:null}
 
-      {canSeeGrowth?<>
-        {metricsState==='error'?<Aviso tono="warn" como="div" role="status">No se pudieron cargar las métricas de captación.{onRetryMetrics?<>{' '}<button type="button" className="underline" onClick={onRetryMetrics}>Reintentar</button></>:null}</Aviso>:null}
-        {metrics.length?<GrowthDashboard events={metrics}/>:metricsState==='loading'?<SectionLoading label="Cargando métricas…"/>:null}
-      </>:null}
+      {/* Captación: el tablero completo vive en Métricas; acá un chip con enlace
+          (no se embebe la pantalla, #100) y el aviso honesto si falló. */}
+      {canSeeGrowth?<p className="flex flex-wrap items-center gap-2 text-[11px] text-mute" role="status">
+        <TrendingUp size={14} aria-hidden="true" className="shrink-0"/>
+        {metricsState==='error'?'No se pudieron cargar las métricas de captación.':'Captación digital y visitas'}
+        {navigate?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>navigate('Métricas')}>Ver Métricas<ArrowUpRight size={12} aria-hidden="true"/></button>:null}
+        {metricsState==='error'&&onRetryMetrics?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={onRetryMetrics}>Reintentar</button>:null}
+      </p>:null}
       {user?<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>:null}
 
       {edit&&canEdit?<Dialog title={row?'Editar oportunidad':'Nueva oportunidad'} busy={busy} close={()=>{if(!busy)setEdit(null);}}>

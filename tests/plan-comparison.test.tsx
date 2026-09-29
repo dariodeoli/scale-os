@@ -37,7 +37,10 @@ test('long package descriptions and full conditions are visible, without turning
  act(()=>{renderer=create(<PlanComparison plans={[{...fixture,items:[{description:deliverables.join('; '),quantity:1,unitPrice:'1234.50'}],notes},{...fixture,id:'second',currency:'PYG'}]}/>);});
  const root=renderer.root,copy=text(root);
  for(const description of deliverables)assert(copy.includes(description));assert(copy.includes(notes));
- assert(copy.includes(planAmount(1234.5,'USD')));assert(copy.includes('Cantidad del ítem: 1'));
+ assert(copy.includes(planAmount(1234.5,'USD')));assert(copy.includes('1 ×'),'cada ítem muestra cantidad y precio en una línea');
+ assert(root.findAllByProps({'data-plan-item':true}).every(node=>String(node.props.title||'').includes('Cantidad del ítem:')),'el detalle etiquetado queda en el tooltip del ítem');
+ for(const node of root.findAllByProps({'data-plan-item':true}))assert(String(node.props.title||'').includes('Precio unitario:'),'el ítem conserva el precio unitario con su etiqueta');
+ assert(root.findAllByProps({'data-plan-item-price':true}).every(node=>text(node).includes('×')),'la línea del ítem muestra cantidad × precio y subtotal');
  assert.equal(root.findAllByType('details').length,0);assert.equal(root.findAllByProps({role:'dialog'}).length,0);
  assert.equal(root.findAllByType('button').length,0);assert.equal(root.findAllByProps({'data-plan-item':true}).length,5);
  assert(copy.includes('Sin IVA'));assert(copy.includes('El IVA se define en el presupuesto'));
@@ -61,7 +64,7 @@ test('matches backend rounding of unit prices and each line before summing',()=>
  act(()=>{renderer=create(<PlanComparison plans={[plan]}/>);});
  const row=renderer.root.findByProps({'data-plan-total':true});
  assert(text(row).includes(planAmount(.06,'USD')));assert(!text(row).includes(planAmount(.07,'USD')));
- assert.equal(renderer.root.findAllByProps({'data-plan-item-price':true}).filter(node=>text(node).includes(`Subtotal: ${planAmount(.03,'USD')}`)).length,2);
+ assert.equal(renderer.root.findAllByProps({'data-plan-item-price':true}).filter(node=>text(node).includes(planAmount(.03,'USD'))).length,2,'el subtotal de la línea sigue a la vista');
  act(()=>renderer.unmount());
 });
 

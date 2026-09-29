@@ -63,8 +63,9 @@ test('planes: una lectura, KPIs reales, estados y editor por rol',async()=>{
  ]});
  const copy=text(renderer.root);
  assert.match(copy,/Plan integral/);assert.match(copy,/Retainer/);assert.match(copy,/Archivado/);
- assert.match(copy,/Valor de ítems:[^·]*Gs[^·]*2\.000\.000/,'el KPI usa el comparador para el total');
+ assert.match(copy,/Valor de ítems([^·]*Gs[^·]*2\.000\.000)/,'el KPI usa el comparador para el total');
  assert.match(copy,/Activos1/);assert.match(copy,/Archivados1/);
+ assert.equal(copy.includes('Monedas'),false,'sin KPI redundante de monedas (#100)');
  // owner edita: alta disponible y el diálogo monta el compositor en modo plan.
  const buttons=()=>renderer.root.findAllByType('button');
  act(()=>buttons().find(button=>text(button).includes('Nuevo plan'))!.props.onClick());
@@ -98,7 +99,7 @@ test('planes: una lectura, KPIs reales, estados y editor por rol',async()=>{
 
 test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
  requests=[];let renderer!:ReactTestRenderer;
- await act(async()=>{renderer=create(<PipelineSection user={user('owner')} metrics={[]}/>);});
+ await act(async()=>{renderer=create(<PipelineSection user={user('owner')}/>);});
  assert.equal(requests.length,2,'una lectura de oportunidades y una de etapas');
  assert.equal(requests[0].url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`);
  assert.equal(requests[1].url,'/core-api/api/agency/pipeline-stages');
@@ -133,7 +134,7 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
 
  // viewer: sin alta, sin etapas y sin manija de arrastre.
  requests=[];
- await act(async()=>{renderer=create(<PipelineSection user={user('viewer')} metrics={[]}/>);});
+ await act(async()=>{renderer=create(<PipelineSection user={user('viewer')}/>);});
  await flush({records:[{id:'10',name:'Lead',stage:'lead',amount:'1',currency:'PYG',probability:10}]});
  await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'}]});
  const viewerCopy=text(renderer.root);
@@ -145,7 +146,7 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
 
 test('pipeline: el arrastre es optimista, no revierte con la recarga caída y respeta capacidades',async()=>{
  requests=[];let renderer!:ReactTestRenderer;
- await act(async()=>{renderer=create(<PipelineSection user={user('owner')} metrics={[]}/>);});
+ await act(async()=>{renderer=create(<PipelineSection user={user('owner')}/>);});
  await flush({records:[{id:'10',name:'Cliente activo',stage:'contacted',amount:'3000000',currency:'PYG',probability:50}]});
  await flush({stages:[
   {id:'1',slug:'lead',label:'Nuevo lead',position:0,active:true,kind:'open'},
@@ -201,7 +202,7 @@ test('pipeline: el arrastre es optimista, no revierte con la recarga caída y re
 
  // collaborator tiene `commercial.manage`: ve el asa y puede mover.
  requests=[];
- await act(async()=>{renderer=create(<PipelineSection user={user('collaborator')} metrics={[]}/>);});
+ await act(async()=>{renderer=create(<PipelineSection user={user('collaborator')}/>);});
  await flush({records:[{id:'20',name:'Lead colaborador',stage:'lead',amount:'1',currency:'PYG',probability:10}]});
  await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'},{id:'2',slug:'contacted',label:'Contactado',position:1,active:true,kind:'open'}]});
  const handles=renderer.root.findAll(node=>String(node.props?.title||'').startsWith('Mover '));
@@ -276,11 +277,15 @@ test('presupuestos: lote con tope, confirmación y refresco',async()=>{
  const button=(label:string)=>renderer.root.findAllByType('button').find(candidate=>text(candidate).includes(label))!;
  const boxes=()=>renderer.root.findAllByType('input').filter(input=>input.props.type==='checkbox');
 
- // owner: barra, casillas por fila con target de 44 px y tope por llamada.
+ // owner: selección contextual (#100) — la barra aparece recién con una
+ // selección; casillas por fila con target de 44 px y tope por llamada.
  await mount('owner',budgets);
- assert.match(copy(),/Seleccioná varios para operar en lote · máximo 50/);
+ assert.equal(copy().includes('Seleccionar visibles'),false,'sin selección no hay barra de lote');
+ assert.equal(renderer.root.findAll(node=>typeof node.props.className==='string'&&node.props.className.includes('bulk-bar')).length,0,'sin selección no hay fila de lote');
  assert.equal(boxes().length,51,'una casilla por fila');
  assert.ok(renderer.root.findAll(node=>typeof node.props.className==='string'&&node.props.className.startsWith('select-check')).every(node=>node.props.className.includes('h-11 w-11')),'las casillas reservan un target de 44 px');
+ act(()=>boxes()[0].props.onChange());
+ assert.match(copy(),/1 de 50 seleccionado/,'la barra aparece al seleccionar');
  act(()=>button('Seleccionar visibles').props.onClick());
  assert.match(copy(),/50 de 50 seleccionados/,'la selección visible se recorta al tope del endpoint');
  assert.match(feedback.at(-1)!.message,/hasta 50 presupuestos/);
@@ -310,7 +315,7 @@ test('presupuestos: lote con tope, confirmación y refresco',async()=>{
  assert.equal(feedback.at(-1)!.message,'50 presupuestos movidos a la papelera.');
  assert.equal(feedback.at(-1)!.tone,'success');
  assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0,'el diálogo se cierra al terminar');
- assert.match(copy(),/Seleccioná varios para operar en lote/,'la selección se limpia');
+ assert.equal(renderer.root.findAll(node=>typeof node.props.className==='string'&&node.props.className.includes('bulk-bar')).length,0,'la barra desaparece al limpiar la selección');
  act(()=>renderer.unmount());
 
  // viewer: sin barra ni casillas (la capacidad manda).
@@ -410,7 +415,7 @@ test('más de 300 ítems: listas, KPIs y totales siguen completos',async()=>{
  assert.equal(totals[0].weighted.USD+totals[0].weighted.PYG+totals[1].weighted.USD+totals[1].weighted.PYG,350*1000*0.5,'los ponderados no se truncan');
  // Tablero: monta con 350 oportunidades y conserva los conteos de las columnas.
  requests=[];let renderer!:ReactTestRenderer;
- await act(async()=>{renderer=create(<PipelineSection user={user('owner')} metrics={[]}/>);});
+ await act(async()=>{renderer=create(<PipelineSection user={user('owner')}/>);});
  await flush({records:leads});
  await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'},{id:'2',slug:'contacted',label:'Contactado',position:1,active:true,kind:'open'}]});
  const board=text(renderer.root);
