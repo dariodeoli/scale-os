@@ -6,7 +6,9 @@ import {ReceiptReversal, ReconciliationWorkspace} from '../daily-controls';
 import {RemoveRecord} from '../archive-controls';
 import {moneyKpi} from '../client-format';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
-import {Aviso, SearchField} from 'owncoding-ui';
+import {count, currentForecastMonth} from '../forecast-data';
+import {useForecast} from '../use-forecast';
+import {Aviso, FilaDato, SearchField} from 'owncoding-ui';
 import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {FilterToolbar} from '../ui-v2';
 import type {Account, AccountTransfer, Invoice, ModalKind, PaymentRecord, User} from '../workspace-types';
@@ -17,6 +19,8 @@ import type {Account, AccountTransfer, Invoice, ModalKind, PaymentRecord, User} 
 type FinanzasSectionProps = {
   user: User | null;
   financeState: 'loading'|'ready'|'error';
+  /** Navegación del shell: los resúmenes de la pantalla abren su módulo completo. */
+  navigate?: (label: string) => void;
   accounts: Account[];
   invoices: Invoice[];
   transfers: AccountTransfer[];
@@ -52,7 +56,39 @@ const PAYMENT_COLUMNS: Column[] = [{key: 'payment', label: 'Cobro'}, {key: 'date
 const pendingOf = (invoice: Invoice) => Number(invoice.total) - Number(invoice.paid_amount);
 const dueWithinWeek = (due: string | null) => Boolean(due) && dueTone(due!) === 'warn';
 
-export function FinanzasSection({user, financeState, accounts, invoices, transfers, payments, invoiceHasMore, paymentHasMore, financeEmpty, loadFinance, loadAllInvoices, loadAllPayments, setModal, openPayment, setToast}: FinanzasSectionProps) {
+/**
+ * Resumen de «Salarios» en Finanzas: mismo contrato y mismo hook que la Previsión
+ * (`/core-api/api/agency/forecast` → `personnel`), sin recálculos propios.
+ * «Ver más» abre la Previsión completa; el vacío lleva a cargar el salario en
+ * Equipo. Cuatro estados §15: carga, error con reintento, vacío con acción y lleno.
+ */
+function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
+  const {data, error, reload} = useForecast(currentForecastMonth(), '1');
+  const rows = data?.personnel.records ?? [];
+  return <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-salaries-title">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="min-w-0">
+        <h3 id="finance-salaries-title" className="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3>
+        <p className="mt-1 text-xs text-mute">Gasto esperado del personal al cierre del mes, por moneda; no incluye pagos ni comisiones registrados.</p>
+      </div>
+      {navigate ? <button className="text-button" onClick={() => navigate('Previsión')}>Ver más</button> : null}
+    </div>
+    {error ? <ErrorBlock title="No se pudo cargar el gasto del personal" description={error} onRetry={() => reload()}/>
+    : !data ? <LoadingBlock label="Cargando salarios…" lines={2}/>
+    : rows.length ? <div className="grid gap-3 lg:grid-cols-2">
+      {rows.map(row => <article className="grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-3 sm:p-4" key={row.currency}>
+        <div className="flex items-center justify-between gap-3 border-b border-ink-600 pb-2">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{row.currency}</span>
+          <span className="text-xs tabular-nums text-mute">{count(row.included_headcount)} incluido{count(row.included_headcount) === 1 ? '' : 's'}</span>
+        </div>
+        <FilaDato etiqueta="Esperado al cierre" valor={<MoneyText valor={row.expected_end_of_month_expense} currency={row.currency} className="text-base"/>}/>
+      </article>)}
+    </div>
+    : <EmptyBlock compact title="Sin salarios fijos cargados para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo para ver el gasto esperado al cierre." action={navigate ? <button className="secondary" onClick={() => navigate('Equipo')}>Ver equipo</button> : undefined}/>}
+  </section>;
+}
+
+export function FinanzasSection({user, navigate, financeState, accounts, invoices, transfers, payments, invoiceHasMore, paymentHasMore, financeEmpty, loadFinance, loadAllInvoices, loadAllPayments, setModal, openPayment, setToast}: FinanzasSectionProps) {
   const [invoiceFilter, setInvoiceFilter] = useState('all');
   const [invoiceSearch, setInvoiceSearch] = useState('');
 
@@ -162,10 +198,13 @@ export function FinanzasSection({user, financeState, accounts, invoices, transfe
       </section>
     </div>
 
+    <SalariosPanel navigate={navigate}/>
+
     <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-invoices-title">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0"><h3 id="finance-invoices-title" className="text-[17px] font-semibold tracking-tight text-fore">Cobros pendientes</h3><p className="mt-1 text-xs text-mute">Facturas con saldo; el cobro descuenta la cuenta elegida.</p></div>
         <div className="flex flex-wrap items-center gap-1">
+          {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
           <button className="text-button" onClick={() => setModal('invoice')}><Plus size={14} aria-hidden="true"/>Factura</button>
           <button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button>
         </div>

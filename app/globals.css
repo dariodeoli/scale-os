@@ -55,6 +55,11 @@ html[data-theme="dark"] .assignee-picker .assignee-selected li{box-shadow:inset 
 html[data-theme="dark"] .forecast-balance-fill.income{background:linear-gradient(90deg,var(--success),color-mix(in srgb,var(--success) 45%,var(--canvas)))}
 html[data-theme="dark"] .forecast-balance-fill.expense{background:linear-gradient(90deg,var(--danger),color-mix(in srgb,var(--danger) 45%,var(--canvas)))}
 html[data-theme="dark"] .forecast-balance-fill.negative{background:linear-gradient(90deg,var(--danger),color-mix(in srgb,var(--danger) 55%,#000))}
+/* Salarios (Previsión): el avatar se dimensiona en la hoja — iniciales incluidas —
+   al tamaño de la identidad (32 px y 34 px en mobile) porque la fila ya no lo
+   recorta con un wrapper de 24/28 px. */
+.forecast-personnel-card .actor-identity-avatar{width:32px;height:32px;flex-basis:32px;font-size:11px}
+@media(max-width:540px){.forecast-personnel-card .actor-identity-avatar{width:34px;height:34px;flex-basis:34px;font-size:12px}}
 .client-price-missing{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;border-radius:999px;background:var(--warning-soft,var(--surface-subtle));color:var(--warning,#b45309);vertical-align:middle}.client-price-missing svg{width:13px;height:13px}
 
 /* Contenido solo para lectores de pantalla: una definición global para toda la app
