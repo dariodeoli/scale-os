@@ -148,8 +148,9 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   assert.doesNotMatch(controls,/payment-row statement-row/,'statement rows left the legacy grid');
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/forecast-person-who/,'avatar and name share the first column');
-  assert.match(forecast,/forecast-person-override is-empty/,'a missing adjustment reserves its column');
-  assert.match(forecast,/const PERSON_COLS='grid-cols-\[minmax\(16rem,1\.2fr\)_minmax\(7rem,\.9fr\)_minmax\(8rem,\.9fr\)_minmax\(8rem,\.9fr\)_6\.5rem\]'/,'the payroll list declares one shared template');
+  assert.doesNotMatch(forecast,/forecast-person-override is-empty/,'el ajuste faltante ya no reserva columna: viaja inline en el cierre (#101)');
+  assert.match(forecast,/Ajuste del mes: \$\{formatSignedMoney\(member.override_amount/,'el ajuste del mes se muestra inline con su tooltip');
+  assert.match(forecast,/const PERSON_COLS='grid-cols-\[minmax\(9\.5rem,1fr\)_7rem_7rem_7rem\]'/,'the payroll list declares one shared compact template');
   assert.match(forecast,/cn\(LIST_ROW,PERSON_COLS,'forecast-person-row'\)/,'payroll rows share the header template');
 });
 
@@ -177,7 +178,7 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   const agents=read('AGENTS.md');
   assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
   const forecast=read('app/financial-forecast.tsx');
-  assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(22rem,1fr\)_9rem_9rem_9rem\]'/,'contracted clients declare one shared template');
+  assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(11rem,1fr\)_7rem_7rem_6rem\]'/,'contracted clients declare one shared compact template');
   assert.match(forecast,/role="row" className=\{cn\(LIST_HEAD,CONTRACT_COLS\)\}[^>]*><span role="columnheader">Cliente<\/span><span role="columnheader" className="text-right">Contratado<\/span><span role="columnheader" className="text-right">Facturado<\/span>/,'contracted clients show their header');
   assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-0\.5 transition-colors last:border-0 hover:bg-ink-700\/40 md:py-2'/,'list rows keep the thin row contract with the system hover');
   // QA ola 2 (#70): targets táctiles y foco del modal de cuenta en la vertical FIN.

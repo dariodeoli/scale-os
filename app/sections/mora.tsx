@@ -108,22 +108,23 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
       <Kpi label="Al día" valor={kpis.alDia} hint="Sin saldo vencido"/>
       <Kpi label="Por vencer" valor={kpis.porVencer} hint="Vencen en los próximos días"/>
       <Kpi label="En mora" valor={kpis.enMora} hint="Tarde o mora grave" destacado={kpis.enMora > 0}/>
-      <Kpi label="Sin factura" valor={kpis.sinFactura} hint="Sin facturas registradas"/>
-    </KpiStrip>
-
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {buckets.map(bucket => <Kpi
-        key={bucket.key}
-        label={bucket.label}
-        destacado={bucket.key === 'critical' && bucket.clients > 0}
-        valor={bucket.amounts.length ? <span className="flex flex-wrap items-baseline gap-2">{bucket.amounts.map(item => <MoneyText key={item.currency} valor={item.amount} currency={item.currency}/>)}</span> : null}
-        hint={bucket.clients ? `${bucket.clients} cliente${bucket.clients === 1 ? '' : 's'} con saldo vencido` : 'Sin saldos vencidos'}
-      />)}
       <Kpi
         label="DSO · días en calle"
         valor={!canSeeDso ? '—' : moraReportsError ? 'No se pudo calcular' : moraDso === null ? 'Calculando…' : moraDso.length ? <span className="flex flex-wrap items-baseline gap-2">{moraDso.map(row => <span key={row.currency} className="whitespace-nowrap tabular-nums">{row.currency} {row.days} días</span>)}</span> : 'Sin datos'}
         hint={!canSeeDso ? 'Requiere Informes (reports.view)' : moraReportsError ? 'No se pudo consultar el reporte del mes; usá Reintentar' : 'Saldo pendiente sobre lo facturado del mes, por moneda'}
       />
+    </KpiStrip>
+
+    {/* Antigüedad y «sin factura» como chips: la señal compacta que decide,
+        con el conteo y el detalle completo en el tooltip (#101). */}
+    <div className="flex flex-wrap items-center gap-2" aria-label="Antigüedad de la mora">
+      <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Antigüedad</span>
+      {buckets.map(bucket => <StateChip
+        key={bucket.key}
+        tone={bucket.clients ? (bucket.key === 'critical' ? 'bad' : 'warn') : 'mute'}
+        title={`${bucket.clients} cliente${bucket.clients === 1 ? '' : 's'} con saldo vencido${bucket.amounts.length ? '' : ' (sin saldos)'}`}
+      >{MORA_AGE_LABELS[bucket.key]} · {bucket.amounts.length ? bucket.amounts.map(item => <MoneyText key={item.currency} valor={item.amount} currency={item.currency}/>) : '—'}</StateChip>)}
+      <StateChip tone={kpis.sinFactura ? 'warn' : 'mute'} title="Clientes sin facturas registradas">{kpis.sinFactura} sin factura</StateChip>
     </div>
 
     {visible.length

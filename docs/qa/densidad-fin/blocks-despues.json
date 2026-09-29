@@ -1,0 +1,786 @@
+{
+ "finanzas-light-1440": [
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 199,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Salarios",
+   "top": 365,
+   "height": 173,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cuentas",
+   "top": 554,
+   "height": 576,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cobros pendientes",
+   "top": 1146,
+   "height": 1220,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Quién cobró y dónde quedó",
+   "top": 2381,
+   "height": 1157,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Conciliación por extracto",
+   "top": 3554,
+   "height": 322,
+   "aboveTheFold": false
+  }
+ ],
+ "mora-light-1440": [
+  {
+   "label": "Estado de pagos",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 287,
+   "height": 42,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 361,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Antigüedad de la mora",
+   "top": 527,
+   "height": 22,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cobranza por cliente",
+   "top": 565,
+   "height": 1053,
+   "aboveTheFold": true
+  }
+ ],
+ "prevision-light-1440": [
+  {
+   "label": "ui-page-header mb-4 flex flex-wrap items-start justify-b",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Ingresos vs gastos",
+   "top": 287,
+   "height": 597,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Contratos vs facturación",
+   "top": 900,
+   "height": 797,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Gastos planificados · 01-sept",
+   "top": 1712,
+   "height": 505,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos reales del mes · 01-sept",
+   "top": 2234,
+   "height": 417,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 2680,
+   "height": 46,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 2756,
+   "height": 46,
+   "aboveTheFold": false
+  }
+ ],
+ "informes-light-1440": [
+  {
+   "label": "Evolución mensual",
+   "top": 145,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 237,
+   "height": 68,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 355,
+   "height": 46,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comparativa del período visible contra el anterior",
+   "top": 435,
+   "height": 288,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Resumen del período",
+   "top": 743,
+   "height": 645,
+   "aboveTheFold": true
+  },
+  {
+   "label": "grid gap-4 lg:grid-cols-2",
+   "top": 1408,
+   "height": 252,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Evolución mensual · PYG",
+   "top": 1680,
+   "height": 534,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 2234,
+   "height": 46,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Visitantes en vivo del landing",
+   "top": 2300,
+   "height": 142,
+   "aboveTheFold": false
+  }
+ ],
+ "comisiones-light-1440": [
+  {
+   "label": "ui-page-header mb-4 flex flex-wrap items-start justify-b",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 287,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-5 flex flex-wrap gap-2 rounded-2xl border border-fore",
+   "top": 453,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "DIV",
+   "top": 545,
+   "height": 235,
+   "aboveTheFold": true
+  }
+ ],
+ "finanzas-light-390": [
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 334,
+   "height": 434,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Salarios",
+   "top": 784,
+   "height": 279,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cuentas",
+   "top": 1078,
+   "height": 1086,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Cobros pendientes",
+   "top": 2180,
+   "height": 1488,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Quién cobró y dónde quedó",
+   "top": 3684,
+   "height": 1161,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Conciliación por extracto",
+   "top": 4861,
+   "height": 326,
+   "aboveTheFold": false
+  }
+ ],
+ "mora-light-390": [
+  {
+   "label": "Estado de pagos",
+   "top": 334,
+   "height": 142,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 508,
+   "height": 210,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 750,
+   "height": 476,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Antigüedad de la mora",
+   "top": 1242,
+   "height": 52,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Cobranza por cliente",
+   "top": 1310,
+   "height": 984,
+   "aboveTheFold": false
+  }
+ ],
+ "prevision-light-390": [
+  {
+   "label": "ui-page-header mb-4 flex flex-wrap items-start justify-b",
+   "top": 334,
+   "height": 201,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Ingresos vs gastos",
+   "top": 566,
+   "height": 1307,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Contratos vs facturación",
+   "top": 1889,
+   "height": 3882,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos planificados · 01-sept",
+   "top": 5788,
+   "height": 1075,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos reales del mes · 01-sept",
+   "top": 6878,
+   "height": 972,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 7881,
+   "height": 66,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 7977,
+   "height": 70,
+   "aboveTheFold": false
+  }
+ ],
+ "informes-light-390": [
+  {
+   "label": "Evolución mensual",
+   "top": 270,
+   "height": 189,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 495,
+   "height": 284,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 830,
+   "height": 86,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comparativa del período visible contra el anterior",
+   "top": 950,
+   "height": 338,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Resumen del período",
+   "top": 1308,
+   "height": 1352,
+   "aboveTheFold": false
+  },
+  {
+   "label": "grid gap-4 lg:grid-cols-2",
+   "top": 2680,
+   "height": 519,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Evolución mensual · PYG",
+   "top": 3219,
+   "height": 2317,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 5556,
+   "height": 70,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Visitantes en vivo del landing",
+   "top": 5646,
+   "height": 210,
+   "aboveTheFold": false
+  }
+ ],
+ "comisiones-light-390": [
+  {
+   "label": "ui-page-header mb-4 flex flex-wrap items-start justify-b",
+   "top": 334,
+   "height": 119,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 485,
+   "height": 354,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-5 flex flex-wrap gap-2 rounded-2xl border border-fore",
+   "top": 855,
+   "height": 62,
+   "aboveTheFold": true
+  },
+  {
+   "label": "DIV",
+   "top": 953,
+   "height": 232,
+   "aboveTheFold": true
+  }
+ ],
+ "finanzas-dark-1440": [
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 199,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Salarios",
+   "top": 365,
+   "height": 173,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cuentas",
+   "top": 554,
+   "height": 576,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cobros pendientes",
+   "top": 1146,
+   "height": 1220,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Quién cobró y dónde quedó",
+   "top": 2381,
+   "height": 1157,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Conciliación por extracto",
+   "top": 3554,
+   "height": 322,
+   "aboveTheFold": false
+  }
+ ],
+ "mora-dark-1440": [
+  {
+   "label": "Estado de pagos",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 287,
+   "height": 42,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 361,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Antigüedad de la mora",
+   "top": 527,
+   "height": 22,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cobranza por cliente",
+   "top": 565,
+   "height": 1053,
+   "aboveTheFold": true
+  }
+ ],
+ "prevision-dark-1440": [
+  {
+   "label": "ui-page-header mb-4 flex flex-wrap items-start justify-b",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Ingresos vs gastos",
+   "top": 287,
+   "height": 597,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Contratos vs facturación",
+   "top": 900,
+   "height": 797,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Gastos planificados · 01-sept",
+   "top": 1712,
+   "height": 505,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos reales del mes · 01-sept",
+   "top": 2234,
+   "height": 417,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 2680,
+   "height": 46,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 2756,
+   "height": 46,
+   "aboveTheFold": false
+  }
+ ],
+ "informes-dark-1440": [
+  {
+   "label": "Evolución mensual",
+   "top": 145,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 237,
+   "height": 68,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 355,
+   "height": 46,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comparativa del período visible contra el anterior",
+   "top": 435,
+   "height": 288,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Resumen del período",
+   "top": 743,
+   "height": 645,
+   "aboveTheFold": true
+  },
+  {
+   "label": "grid gap-4 lg:grid-cols-2",
+   "top": 1408,
+   "height": 252,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Evolución mensual · PYG",
+   "top": 1680,
+   "height": 534,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 2234,
+   "height": 46,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Visitantes en vivo del landing",
+   "top": 2300,
+   "height": 142,
+   "aboveTheFold": false
+  }
+ ],
+ "comisiones-dark-1440": [
+  {
+   "label": "ui-page-header mb-4 flex flex-wrap items-start justify-b",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 287,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-5 flex flex-wrap gap-2 rounded-2xl border border-fore",
+   "top": 453,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "DIV",
+   "top": 545,
+   "height": 235,
+   "aboveTheFold": true
+  }
+ ],
+ "finanzas-dark-390": [
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 334,
+   "height": 434,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Salarios",
+   "top": 784,
+   "height": 279,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cuentas",
+   "top": 1078,
+   "height": 1086,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Cobros pendientes",
+   "top": 2180,
+   "height": 1488,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Quién cobró y dónde quedó",
+   "top": 3684,
+   "height": 1161,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Conciliación por extracto",
+   "top": 4861,
+   "height": 326,
+   "aboveTheFold": false
+  }
+ ],
+ "mora-dark-390": [
+  {
+   "label": "Estado de pagos",
+   "top": 334,
+   "height": 142,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 508,
+   "height": 210,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 750,
+   "height": 476,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Antigüedad de la mora",
+   "top": 1242,
+   "height": 52,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Cobranza por cliente",
+   "top": 1310,
+   "height": 984,
+   "aboveTheFold": false
+  }
+ ],
+ "prevision-dark-390": [
+  {
+   "label": "ui-page-header mb-4 flex flex-wrap items-start justify-b",
+   "top": 334,
+   "height": 201,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Ingresos vs gastos",
+   "top": 566,
+   "height": 1307,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Contratos vs facturación",
+   "top": 1889,
+   "height": 3882,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos planificados · 01-sept",
+   "top": 5788,
+   "height": 1075,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos reales del mes · 01-sept",
+   "top": 6878,
+   "height": 972,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 7881,
+   "height": 66,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 7977,
+   "height": 70,
+   "aboveTheFold": false
+  }
+ ],
+ "informes-dark-390": [
+  {
+   "label": "Evolución mensual",
+   "top": 270,
+   "height": 189,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 495,
+   "height": 284,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 830,
+   "height": 86,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comparativa del período visible contra el anterior",
+   "top": 950,
+   "height": 338,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Resumen del período",
+   "top": 1308,
+   "height": 1352,
+   "aboveTheFold": false
+  },
+  {
+   "label": "grid gap-4 lg:grid-cols-2",
+   "top": 2680,
+   "height": 519,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Evolución mensual · PYG",
+   "top": 3219,
+   "height": 2317,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 5556,
+   "height": 70,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Visitantes en vivo del landing",
+   "top": 5646,
+   "height": 210,
+   "aboveTheFold": false
+  }
+ ],
+ "comisiones-dark-390": [
+  {
+   "label": "ui-page-header mb-4 flex flex-wrap items-start justify-b",
+   "top": 334,
+   "height": 119,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 485,
+   "height": 354,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-5 flex flex-wrap gap-2 rounded-2xl border border-fore",
+   "top": 855,
+   "height": 62,
+   "aboveTheFold": true
+  },
+  {
+   "label": "DIV",
+   "top": 953,
+   "height": 232,
+   "aboveTheFold": true
+  }
+ ]
+}

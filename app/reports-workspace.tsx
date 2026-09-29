@@ -44,7 +44,7 @@ import {
   SegmentedField,
   cn,
 } from 'owncoding-ui';
-import {Kpi,KpiStrip,EmptyBlock,LoadingBlock,PageHeader} from './ui-v2';
+import {Kpi,KpiStrip,EmptyBlock,FilterToolbar,LoadingBlock,PageHeader} from './ui-v2';
 
 // La descomposición del shell (#47) sigue importando el tipo desde este módulo.
 export type {ReportMonth, ReportsData} from './reports-data';
@@ -70,8 +70,7 @@ function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
 }
 function Distribution({title,rows,total}:{title:string;rows:{name:string;count:number}[];total:number|null}){
  return <div className="grid gap-2">
-  <h4 className="text-[15px] font-semibold tracking-tight text-fore">{title}</h4>
-  <p className="text-xs text-mute">Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.</p>
+  <h4 className="text-[15px] font-semibold tracking-tight text-fore" title="Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.">{title}</h4>
   {rows.length?<ul className="grid gap-2">{rows.map((row,index)=>{const share=distributionShare(row.count,total);return <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs" key={`${row.name}-${index}`}>
    <span className="min-w-0 text-fore">{row.name}</span>
    <strong className="whitespace-nowrap tabular-nums text-fore">{row.count} · {share===null?'Sin porcentaje':`${share.toFixed(1).replace('.',',')} %`}</strong>
@@ -145,34 +144,30 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
    title="Evolución mensual"
    subtitle="Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado."
    actions={<>
-    <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44 max-md:w-full" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
-    <div className="grid gap-1">
-     <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>
-     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Meses de histórico" value={String(months)} options={HISTORY_OPTIONS} onChange={(value:string)=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/>
-    </div>
-    <SelectCustom label="Moneda" choices={currencies.length?currencies.map(value=>({value,label:value})):[{value:'',label:'Sin datos monetarios'}]} value={selectedCurrency} disabled={!currencies.length} onChange={setCurrency}/>
+    <Button type="button" className="min-h-11 justify-center md:min-h-9" variant="outline" disabled={!rows.length} title={selectedCurrency?`Exportar el período visible en ${selectedCurrency}`:'Elegí una moneda para exportar'} onClick={()=>{
+     if(!rows.length)return;
+     setExportError('');
+     try{downloadReportsCsv(data!,selectedCurrency);}catch{setExportError('No se pudo descargar el CSV. Intentá nuevamente.');}
+    }}>CSV{selectedCurrency?` · ${selectedCurrency}`:''}</Button>
+    <Button type="button" className="min-h-11 justify-center md:min-h-9" variant="outline" disabled={!rows.length} title={selectedCurrency?`Exportar el período visible en ${selectedCurrency} a PDF`:'Elegí una moneda para exportar'} onClick={()=>{
+     if(!rows.length)return;
+     setExportError('');
+     try{printReportsPdf({data:data!,previousData,currency:selectedCurrency,organizationName});}catch{setExportError('No se pudo exportar el PDF. Intentá nuevamente.');}
+    }}>PDF{selectedCurrency?` · ${selectedCurrency}`:''}</Button>
    </>}
   />
+  <FilterToolbar summary={data?<span title={`Datos al ${listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: ${listDateFull(data.historySince)||'sin fecha confirmada'}.`}>Datos al {listDateFull(data.asOf)||'sin fecha confirmada'}</span>:undefined}>
+   <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44 max-md:w-full" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
+   <div className="grid gap-1">
+    <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>
+    <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Meses de histórico" value={String(months)} options={HISTORY_OPTIONS} onChange={(value:string)=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/>
+   </div>
+   <SelectCustom label="Moneda" choices={currencies.length?currencies.map(value=>({value,label:value})):[{value:'',label:'Sin datos monetarios'}]} value={selectedCurrency} disabled={!currencies.length} onChange={setCurrency}/>
+  </FilterToolbar>
   {error?<ErrorState title="No se pudo cargar el reporte" description={error} onRetry={()=>setRetry(value=>value+1)}/>
   :!data?<LoadingBlock label="Cargando reportes…" lines={4}/>
   :<>
-   <Nota tono="neutro">Datos al {listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: {listDateFull(data.historySince)||'sin fecha confirmada'}.</Nota>
    {rows.length&&!currencies.length?<EmptyBlock compact title="Sin importes para comparar todavía." description="El histórico tiene clientes pero ningún importe de facturación o cobro registrado en este período." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:null}
-   <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2">
-    <p className="min-w-0 text-xs text-mute" title="CSV UTF-8 con punto y coma; los importes conservan decimales con punto y sin separador de miles.">Exportar el período visible · <b className="font-semibold text-fore">{selectedCurrency||'Elegí una moneda para exportar'}</b></p>
-    <div className="flex flex-wrap gap-2">
-     <Button className="min-h-11 justify-center md:min-h-9" variant="outline" disabled={!rows.length} onClick={()=>{
-      if(!rows.length)return;
-      setExportError('');
-      try{downloadReportsCsv(data,selectedCurrency);}catch{setExportError('No se pudo descargar el CSV. Intentá nuevamente.');}
-     }}>CSV{selectedCurrency?` · ${selectedCurrency}`:''}</Button>
-     <Button className="min-h-11 justify-center md:min-h-9" variant="outline" disabled={!rows.length} onClick={()=>{
-      if(!rows.length)return;
-      setExportError('');
-      try{printReportsPdf({data,previousData,currency:selectedCurrency,organizationName});}catch{setExportError('No se pudo exportar el PDF. Intentá nuevamente.');}
-     }}>PDF{selectedCurrency?` · ${selectedCurrency}`:''}</Button>
-    </div>
-   </div>
    {exportError?<Aviso tono="error">{exportError}</Aviso>:null}
    {partial?<Nota tono="warn">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
    {rows.length?<Card className="grid grid-cols-1 gap-2 p-3 sm:p-4">
@@ -193,15 +188,12 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
     <Card className="grid gap-4 p-3 sm:p-4">
      <div className="flex flex-wrap items-end justify-between gap-2"><div><h3 className="text-[17px] font-semibold tracking-tight text-fore">Resumen del período</h3><p className="text-xs text-mute">{monthTitle(month)} · {selectedCurrency}</p></div><div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-mute"><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-fono-light" aria-hidden="true"/>Facturado</span><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-ok" aria-hidden="true"/>Cobrado</span></div></div>
      <KpiStrip>{tiles.map(tile=><Kpi key={tile.label} label={tile.label} valor={tile.value} hint={tile.change}/>)}</KpiStrip>
-     <div className="grid gap-2"><ReportsChart months={chartMonths} currency={selectedCurrency}/><p className="text-xs text-mute">Comparación mensual en {selectedCurrency}. Meses parciales atenuados; escala relativa al valor máximo, sin mezclar monedas.</p></div>
+     <div className="grid gap-2"><ReportsChart months={chartMonths} currency={selectedCurrency}/><p className="min-w-0 truncate text-xs text-mute" title={`Comparación mensual en ${selectedCurrency}. Meses parciales atenuados; escala relativa al valor máximo, sin mezclar monedas.`}>Meses parciales atenuados; escala relativa al máximo.</p></div>
     </Card>
-    <p className="text-sm text-fore">Antigüedad promedio de clientes activos: <strong className="tabular-nums">{count(selected.clients.averageTenureDays)}{selected.clients.averageTenureDays===null?'':' días'}</strong>. Fechas conocidas: {selected.clients.tenureKnown} de {count(selected.clients.active)} clientes activos. Las fechas desconocidas se excluyen del promedio.</p>
-    <p className="text-xs text-mute">Bajas de actividad: clientes que dejaron de estar activos por pausa, cancelación o archivo, incluso si se reactivaron durante el mismo mes. No implica una pérdida definitiva.</p>
     <div className="grid gap-4 lg:grid-cols-2">
      <Card className="p-4"><Distribution title="Tipos de clientes activos" total={selected.clients.active} rows={selected.clients.types.map(row=>({name:reportKindLabel(row.kind),count:row.count}))}/></Card>
      <Card className="p-4"><Distribution title="Planes por cantidad de clientes activos" total={selected.clients.active} rows={selected.clients.plans.map(row=>({name:row.planId===null?'Sin plan registrado':row.name||'Plan sin nombre',count:row.count}))}/></Card>
     </div>
-    <p className="text-xs text-mute">La distribución de planes muestra clientes activos, no nuevas contrataciones. “Sin clasificar” y “Sin plan registrado” identifican datos desconocidos, no categorías supuestas.</p>
    </>}
    <Card className="grid grid-cols-1 gap-3 p-3 sm:p-4">
     <div className="flex flex-wrap items-baseline justify-between gap-1"><h3 className="text-sm font-semibold text-fore">Evolución mensual · {selectedCurrency||'sin moneda disponible'}</h3><p className="text-xs text-mute">“Sin datos” no significa cero.</p></div>
@@ -212,12 +204,10 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
       {key:'added',label:'Incorporados',align:'right'},
       {key:'lost',label:'Bajas de actividad',align:'right'},
       {key:'retention',label:'Retención %',align:'right'},
-      {key:'tenure',label:'Antigüedad (días)',align:'right'},
-      {key:'tenureKnown',label:'Fechas conocidas',align:'right'},
+      {key:'tenure',label:'Antigüedad (días · con fecha)',align:'right',render:(row:any)=><span className="whitespace-nowrap tabular-nums" title={`Antigüedad promedio: ${count(row.raw?.clients.averageTenureDays)} días · ${row.raw?.clients.tenureKnown} de ${count(row.raw?.clients.active)} clientes con fecha conocida`}>{row.tenure}</span>},
       {key:'invoiced',label:'Facturado con impuestos',align:'right'},
       {key:'collected',label:'Cobrado neto',align:'right'},
-      {key:'invoices',label:'Facturas',align:'right'},
-      {key:'billed',label:'Clientes facturados',align:'right'},
+      {key:'invoices',label:'Facturas · clientes',align:'right',render:(row:any)=><span className="whitespace-nowrap tabular-nums" title={`${row.invoices} facturas · ${row.billed} clientes facturados`}>{row.invoices}</span>},
       {key:'ticket',label:'Ticket por factura',align:'right'},
       {key:'average',label:'Promedio por cliente facturado',align:'right'},
      ]}
@@ -228,11 +218,11 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
       added:count(row.clients.added),
       lost:count(row.clients.lost),
       retention:count(row.clients.retentionPercent),
-      tenure:count(row.clients.averageTenureDays),
-      tenureKnown:String(row.clients.tenureKnown),
+      tenure:row.clients.averageTenureDays===null?'Sin datos':`${count(row.clients.averageTenureDays)} · ${row.clients.tenureKnown}/${count(row.clients.active)}`,
+      raw:row,
       invoiced:reportMoney(money?.invoiced,selectedCurrency),
       collected:reportMoney(money?.collected,selectedCurrency),
-      invoices:count(money?.invoiceCount),
+      invoices:money?`${count(money.invoiceCount)} · ${count(money.billedClients)}`:count(null),
       billed:count(money?.billedClients),
       ticket:reportMoney(money?.averageTicket,selectedCurrency),
       average:reportMoney(money?.averageRevenuePerClient,selectedCurrency),
@@ -244,19 +234,26 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
       <FilaDato etiqueta="Incorporados" valor={row.added}/>
       <FilaDato etiqueta="Bajas de actividad" valor={row.lost}/>
       <FilaDato etiqueta="Retención %" valor={row.retention}/>
-      <FilaDato etiqueta="Antigüedad (días)" valor={row.tenure}/>
-      <FilaDato etiqueta="Fechas conocidas" valor={row.tenureKnown}/>
+      <FilaDato etiqueta="Antigüedad (días · con fecha)" valor={row.tenure}/>
       <FilaDato etiqueta="Facturado con impuestos" valor={row.invoiced}/>
       <FilaDato etiqueta="Cobrado neto" valor={row.collected}/>
-      <FilaDato etiqueta="Facturas" valor={row.invoices}/>
-      <FilaDato etiqueta="Clientes facturados" valor={row.billed}/>
+      <FilaDato etiqueta="Facturas · clientes" valor={row.invoices}/>
       <FilaDato etiqueta="Ticket por factura" valor={row.ticket}/>
       <FilaDato etiqueta="Promedio por cliente facturado" valor={row.average}/>
      </div>}
     />
    </Card>
-   <p className="text-xs text-mute">Comparaciones contra el mes calendario anterior: diferencia absoluta y variación porcentual sobre el valor absoluto anterior. Sin porcentaje cuando la base es cero; sin comparación si falta información o alguno de los meses es parcial. La antigüedad usa solo fechas de inicio conocidas.</p>
+   <details className="rounded-xl border border-ink-600 bg-ink-800/40 p-3">
+    <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-fore md:min-h-0">Cómo leer el informe</summary>
+    <div className="mt-2 grid gap-1.5 text-xs text-mute">
+     <p>Antigüedad promedio: días desde el alta de los clientes activos con fecha conocida; las fechas desconocidas se excluyen del promedio.</p>
+     <p>Bajas de actividad: clientes que dejaron de estar activos por pausa, cancelación o archivo, incluso si se reactivaron durante el mismo mes. No implica una pérdida definitiva.</p>
+     <p>La distribución de planes muestra clientes activos, no nuevas contrataciones. “Sin clasificar” y “Sin plan registrado” identifican datos desconocidos, no categorías supuestas.</p>
+     <p>Comparaciones contra el mes calendario anterior: diferencia absoluta y variación porcentual sobre el valor absoluto anterior. Sin porcentaje cuando la base es cero; sin comparación si falta información o alguno de los meses es parcial. La antigüedad usa solo fechas de inicio conocidas.</p>
+    </div>
+   </details>
   </>}
+
   {/* El widget en vivo no es el informe: cierra la pantalla para no empujar la
       comparativa y el resumen fuera del pliegue (#95). */}
   <LiveVisitorsWidget/>

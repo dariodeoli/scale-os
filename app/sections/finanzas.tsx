@@ -46,8 +46,10 @@ const INVOICE_TONE: Record<string, ChipTone> = {issued: 'info', partial: 'warn',
 const INVOICE_FILTERS: [string, string][] = [['all', 'Todas'], ['open', 'Con saldo'], ['overdue', 'Vencidas'], ['soon', 'Vencen en 7 días'], ['draft', 'Borradoras'], ['cancelled', 'Canceladas']];
 
 /** Plantillas únicas: encabezado y filas comparten una grilla por lista. */
-const TRANSFER_TEMPLATE = 'grid-cols-[minmax(20rem,1.6fr)_7rem_minmax(9rem,1.1fr)_minmax(9rem,1fr)_10rem]';
-const TRANSFER_COLUMNS: Column[] = [{key: 'route', label: 'Transferencia'}, {key: 'date', label: 'Fecha'}, {key: 'actor', label: 'Recibió'}, {key: 'reference', label: 'Referencia'}, {key: 'amount', label: 'Monto', align: 'end'}];
+// Fila finita: la ruta manda y el actor/referencia viajan inline (con el detalle
+// en el title); así la lista entra en media pantalla sin scroll permanente (#101).
+const TRANSFER_TEMPLATE = 'grid-cols-[minmax(12rem,1fr)_6.5rem_minmax(9rem,1fr)]';
+const TRANSFER_COLUMNS: Column[] = [{key: 'route', label: 'Transferencia'}, {key: 'date', label: 'Fecha'}, {key: 'amount', label: 'Monto', align: 'end'}];
 const INVOICE_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_9rem]';
 const INVOICE_COLUMNS: Column[] = [{key: 'invoice', label: 'Factura'}, {key: 'state', label: 'Estado'}, {key: 'due', label: 'Vence'}, {key: 'pending', label: 'Pendiente', align: 'end'}, {key: 'total', label: 'Total', align: 'end'}, {key: 'actions', label: 'Acciones'}];
 const PAYMENT_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_6.5rem_minmax(9rem,1.1fr)_minmax(9rem,1.1fr)_minmax(8rem,1fr)_8.5rem_8rem]';
@@ -147,7 +149,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
     <div className="grid gap-4 xl:grid-cols-2">
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-accounts-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0"><h3 id="finance-accounts-title" className="text-[17px] font-semibold tracking-tight text-fore">Cuentas</h3><p className="mt-1 text-xs text-mute">Disponibilidad por cuenta y custodia.</p></div>
+          <div className="min-w-0"><h3 id="finance-accounts-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Disponibilidad por cuenta y custodia.">Cuentas</h3></div>
           <div className="flex flex-wrap items-center gap-1">
             <button className="text-button" onClick={() => setModal('account')}><Plus size={14} aria-hidden="true"/>Cuenta</button>
             <button className="text-button" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</button>
@@ -175,20 +177,23 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
 
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-transfers-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0"><h3 id="finance-transfers-title" className="text-[17px] font-semibold tracking-tight text-fore">Transferencias</h3><p className="mt-1 text-xs text-mute">Movimientos entre cuentas con su tipo de cambio real.</p></div>
+          <div className="min-w-0"><h3 id="finance-transfers-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Movimientos entre cuentas con su tipo de cambio real.">Transferencias</h3></div>
           <span className="whitespace-nowrap text-xs tabular-nums text-mute">{transfers.length} movimiento{transfers.length === 1 ? '' : 's'}</span>
         </div>
         {transfers.length
-          ? <ListGrid label="Transferencias entre cuentas" template={TRANSFER_TEMPLATE} columns={TRANSFER_COLUMNS} minWidthClass="min-w-[64rem]">
+          ? <ListGrid label="Transferencias entre cuentas" template={TRANSFER_TEMPLATE} columns={TRANSFER_COLUMNS} minWidthClass="min-w-[30rem]">
             {transfers.map(transfer => {
               const row = transfer as TransferRow;
               const fromCurrency = row.from_currency || accounts.find(account => account.id === row.from_account_id)?.currency || 'PYG';
               const received = row.to_currency && row.to_currency !== fromCurrency ? Number(row.received_amount || row.amount) : null;
+              const actor = row.actor_name || row.created_by_email || 'Sin asignar';
+              const detail = [row.reference || 'Sin referencia', actor, row.notes].filter(Boolean).join(' · ');
               return <ListRow key={row.id} template={TRANSFER_TEMPLATE}>
-                <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${row.from_account_name} → ${row.to_account_name}`}>{row.from_account_name} → {row.to_account_name}</b>{row.notes ? <small className="block truncate text-[11px] text-mute" title={row.notes}>{row.notes}</small> : null}</div>
+                <div className="min-w-0">
+                  <b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${row.from_account_name} → ${row.to_account_name}`}>{row.from_account_name} → {row.to_account_name}</b>
+                  <small className="block truncate text-[11px] text-mute" title={`${detail} · ${listDateFull(row.transferred_on) || 'sin fecha'}`}>{detail}</small>
+                </div>
                 <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(row.transferred_on) || undefined}>{listDateShort(row.transferred_on) || '—'}</span></div>
-                <div className="flex min-w-0 items-center gap-1.5 text-xs text-mute"><ActorAvatar name={row.actor_name || row.created_by_email || 'Sin asignar'} photo={safePhoto(row.actor_photo_url)}/><span className="truncate" title={row.actor_name || row.created_by_email || 'Sin asignar'}>{row.actor_name || row.created_by_email || 'Sin asignar'}</span></div>
-                <div className="min-w-0 truncate text-[11.5px] text-mute" title={row.reference || 'Sin referencia'}>{row.reference || 'Sin referencia'}</div>
                 <div className="min-w-0 text-right">
                   <MoneyText valor={row.amount} currency={fromCurrency}/>
                   {received !== null && row.to_currency ? <span className="ml-2 inline-flex items-baseline gap-1 text-mute">→ <MoneyText valor={received} currency={row.to_currency}/></span> : null}
@@ -202,7 +207,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
 
     <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-invoices-title">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0"><h3 id="finance-invoices-title" className="text-[17px] font-semibold tracking-tight text-fore">Cobros pendientes</h3><p className="mt-1 text-xs text-mute">Facturas con saldo; el cobro descuenta la cuenta elegida.</p></div>
+        <div className="min-w-0"><h3 id="finance-invoices-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Facturas con saldo; el cobro descuenta la cuenta elegida.">Cobros pendientes</h3></div>
         <div className="flex flex-wrap items-center gap-1">
           {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
           <button className="text-button" onClick={() => setModal('invoice')}><Plus size={14} aria-hidden="true"/>Factura</button>
@@ -233,7 +238,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
     </section>
 
     <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-payments-title">
-      <div className="min-w-0"><h3 id="finance-payments-title" className="text-[17px] font-semibold tracking-tight text-fore">Quién cobró y dónde quedó</h3><p className="mt-1 text-xs text-mute">Cada cobro queda en la cuenta elegida y conserva su reversión en el historial.</p></div>
+      <div className="min-w-0"><h3 id="finance-payments-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Cada cobro queda en la cuenta elegida y conserva su reversión en el historial.">Quién cobró y dónde quedó</h3></div>
       {payments.length
         ? <ListGrid label="Cobros registrados" template={PAYMENT_TEMPLATE} columns={PAYMENT_COLUMNS} minWidthClass="min-w-[68rem]">
           {payments.map(payment => <ListRow key={payment.id} template={PAYMENT_TEMPLATE}>
