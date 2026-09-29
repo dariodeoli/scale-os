@@ -1,0 +1,128 @@
+[
+ {
+  "screen": "configuracion",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 332,
+  "visibles": 0
+ },
+ {
+  "screen": "preferencias",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 332,
+  "visibles": 3
+ },
+ {
+  "screen": "papelera",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 919,
+  "visibles": 0
+ },
+ {
+  "screen": "invitaciones",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 835,
+  "visibles": 0
+ },
+ {
+  "screen": "permisos",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 2024,
+  "visibles": 0
+ },
+ {
+  "screen": "actividad",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 2530,
+  "visibles": 0
+ },
+ {
+  "screen": "superadmin",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 894,
+  "visibles": 0
+ },
+ {
+  "screen": "configuracion",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 332,
+  "visibles": 0
+ },
+ {
+  "screen": "preferencias",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 332,
+  "visibles": 3
+ },
+ {
+  "screen": "papelera",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 919,
+  "visibles": 0
+ },
+ {
+  "screen": "invitaciones",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 835,
+  "visibles": 0
+ },
+ {
+  "screen": "permisos",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 2024,
+  "visibles": 0
+ },
+ {
+  "screen": "actividad",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 2530,
+  "visibles": 0
+ },
+ {
+  "screen": "superadmin",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 894,
+  "visibles": 0
+ }
+]

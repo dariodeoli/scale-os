@@ -5,7 +5,7 @@ import {teamRoleLabels} from './team-directory';
 import {dueTone,listDateShort} from './list-format';
 import {Copy,Link2,Trash2,UserCheck,X} from 'lucide-react';
 import {ActorIdentity} from './actor-identity';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,PageHeader,StateChip} from './ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
 
 type ActorFields={actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 type LinkRow=ActorFields&{id:string;role:string;mode:string;expires_at:string;revoked_at:string|null;used_at:string|null;click_count:number;account_count:number;url:string|null;created_by_email:string;joined_users:Array<ActorFields&{email:string;full_name:string;joined_at:string}>};
@@ -38,7 +38,6 @@ export function InviteLinks({role}:{role:string}){
  const joined=useMemo(()=>links.reduce((total,link)=>total+(link.joined_users?.length||0),0),[links]);
  const pending=requests.filter(request=>request.status==='pending').length;
  return <section className="grid gap-4" aria-label="Invitaciones y solicitudes">
-  <PageHeader eyebrow="Equipo" title="Invitaciones y solicitudes" subtitle="Atendé las solicitudes pendientes, generá enlaces temporales y limpiá los que ya cumplieron su ciclo."/>
   {error?<ErrorBlock title="No pudimos completar la operación" description={error} onRetry={()=>void load()}/>:null}
   <KpiStrip>
    <Kpi label="Solicitudes pendientes" valor={pending} hint="Esperan aprobación o rechazo" destacado/>

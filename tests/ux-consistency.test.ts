@@ -79,7 +79,7 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
   assert.match(read('app/account-security.tsx'),/fechaHora\(/,'account security renders dates through the shared 24-hour helper');
   const archive=read('app/archive-controls.tsx');
   assert.match(archive,/TRASH_COLUMNS=\[\{key:'select',label:''\},\{key:'kind',label:'Tipo'\},\{key:'record',label:'Registro'\},\{key:'actions',label:'Acciones'\}\]/,'the trash list shows its column header');
-  assert.match(archive,/TRASH_TEMPLATE='grid-cols-\[2rem_7rem_minmax\(16rem,2\.4fr\)_7rem\]'/,'the trash rows share the v2 template literal with their header');
+  assert.match(archive,/TRASH_TEMPLATE='grid-cols-\[2rem_8\.5rem_minmax\(16rem,2\.4fr\)_7rem\]'/,'the trash rows share the v2 template literal with their header');
   assert.match(archive,/ListGrid label="Papelera" template=\{TRASH_TEMPLATE\}/,'the trash list uses the shared v2 template');
   const integrations=read('app/suite.tsx');
   assert.match(integrations,/settings-integration-head[\s\S]*?Integración[\s\S]*?Estado/,'the integrations list shows its header');

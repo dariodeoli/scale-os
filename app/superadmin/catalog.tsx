@@ -141,6 +141,7 @@ export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggl
           </div>
         )) : (
           <EmptyBlock
+            compact
             icon="tag"
             title="No hay cupones para mostrar."
             description={writable ? "Creá el primero: el código se carga a mano y no activa cobros." : "Cuando se cree un cupón comercial, vas a verlo acá."}

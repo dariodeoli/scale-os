@@ -4,7 +4,7 @@ import {ChevronDown,ShieldCheck} from 'lucide-react';
 import {Aviso,Switch} from 'owncoding-ui';
 import {api,Dialog} from './operations';
 import {teamRoleLabels} from './team-directory';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,PageHeader,StateChip} from './ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
 
 type MatrixRow={id:string;label:string;description:string;defaults:string[];overrides:Record<string,boolean|undefined>};
 type MatrixData={roles:string[];capabilities:MatrixRow[]};
@@ -130,8 +130,7 @@ export function PermissionsMatrix({role,close}:{role:string;close:()=>void}){
 }
 
 export function PermissionsMatrixPanel({role}:{role:string}){
- return <section className="grid gap-4" aria-labelledby="roles-permissions-title">
-  <PageHeader eyebrow="Equipo" title="Roles y permisos" subtitle="Un permiso por capacidad y cargo; el Dueño conserva todo."/>
+ return <section className="grid gap-4" aria-label="Roles y permisos">
   <MatrixView role={role} explorer/>
  </section>;
 }

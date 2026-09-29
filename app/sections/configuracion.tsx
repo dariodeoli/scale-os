@@ -21,7 +21,7 @@ type ConfiguracionSectionProps = {
 export function ConfiguracionSection({user, subscriptionError, refreshSubscription, exitDemoSimulation, deletionSignedOut}: ConfiguracionSectionProps){
   const demo = !!user?.demo_owner_user_id || user?.organization_slug === 'scale-demo-controles-20260908';
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
       <div className="min-w-0"><SettingsWorkspace/></div>
       <div className="grid min-w-0 content-start gap-4">
         <div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user?.organization_name}/></div>
