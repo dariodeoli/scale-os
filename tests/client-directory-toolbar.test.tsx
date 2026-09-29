@@ -212,5 +212,7 @@ test("los KPIs de Clientes priorizan el dato real y el estado chico (#91)", () =
   assert.doesNotMatch(clientes, /'Sin contratos activos'/, "no vuelve como titular de tres líneas");
   assert.match(clientes, /\{valor: '—', hint: 'Sin dato'\}/, "sin dato devuelve el vacío explícito");
   assert.match(clientes, /role="alert" className="text-bad">No se pudo cargar/, "el error del API se anuncia en chico");
-  assert.match(clientes, /commercialSummary\.expectedMonthlyBilling\.length/, "el valor con contratos sale del dato real");
+  assert.match(clientes, /billingExpectationState\(commercialSummary, commercialState\)/, "la expectativa contratada sale de la derivación compartida (§15.5)");
+  assert.match(clientes, /billingMontos/, "el valor con contratos sale del dato real");
+  assert.match(clientes, /billingResto/, "las monedas secundarias van en la línea de explicación, sin estirar el KPI");
 });

@@ -179,6 +179,24 @@ test('copias locales reemplazadas por la librería (§15.5) y resultado con el t
  assert.match(summary,/export function weightedAmounts/,'la definición única vive en pipeline-summary');
 });
 
+test('la expectativa contratada se deriva una sola vez para Clientes y Resumen (§15.5)',async()=>{
+ const {billingExpectationState}=await import('../app/control-center-data');
+ const conContratos={activeClients:1,activeProspects:2,expectedMonthlyBilling:[{currency:'PYG',total:'1'}]};
+ assert.equal(billingExpectationState(null,'ready'),'cargando');
+ assert.equal(billingExpectationState(null,'loading'),'cargando');
+ assert.equal(billingExpectationState(conContratos,'error'),'error');
+ assert.equal(billingExpectationState({activeClients:1,activeProspects:0},'ready'),'sin-dato');
+ assert.equal(billingExpectationState({activeClients:1,activeProspects:0,expectedMonthlyBilling:[]},'ready'),'sin-contratos');
+ assert.equal(billingExpectationState(conContratos,'ready'),'listo','con montos queda listo');
+ const clientes=read('app/sections/clientes.tsx');
+ const control=read('app/control-center.tsx');
+ for(const [file,source] of [['clientes',clientes],['control-center',control]] as const){
+  assert.match(source,/billingExpectationState\(/,`${file} lee la derivación compartida`);
+  assert.doesNotMatch(source,/'Sin contratos activos'/,`${file} no vuelve al titular de tres líneas`);
+ }
+ assert.match(control,/<StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos<\/StateChip>/,'el Resumen comercial usa el chip secundario');
+});
+
 test('los fallos de transporte hablan es-PY y no filtran jerga técnica',async()=>{
  const {transporteError}=await import('../app/workspace-request');
  assert.equal(transporteError(new TypeError('Failed to fetch')).message,'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.');
