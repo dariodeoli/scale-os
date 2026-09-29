@@ -9,7 +9,7 @@ const pg=new PGlite();
 await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
 for(const file of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_client_payment_status.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260914_role_permissions.sql','20260915_optional_commission_terms.sql','20260915_client_invoice_flags.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${file}`,import.meta.url),'utf8'));
 for(const file of ['20260910_productivity.sql','20260910_profile_identity.sql','20260912_comment_mentions.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${file}`,import.meta.url),'utf8'));
-for(const file of ['20260910_currencies.sql','20260910_company_currency.sql','20260914_salary_forecast.sql','20260915_salary_override_signed.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${file}`,import.meta.url),'utf8'));
+for(const file of ['20260910_currencies.sql','20260910_company_currency.sql','20260914_salary_forecast.sql','20260915_salary_override_signed.sql','20260929_member_purge.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${file}`,import.meta.url),'utf8'));
 await identitySchema(pg);
 const sql=(s,v)=>pg.query(s,v);
 const org=(await sql("select id from organizations where slug='scale'")).rows[0].id;
@@ -158,6 +158,24 @@ const financeTeam=await call('/api/agency/team','GET',{}, {...user,role:'finance
 const financeRow=financeTeam.collaborators.find(p=>String(p.id)===String(minimal.id));
 assert.ok(Number(financeRow.compensation_amount)>0,'finance keeps the agreed amount');
 assert.notEqual(financeRow.payment_day,null,'finance keeps the payment day');
+// Eliminación definitiva desde Equipo: un integrante con el acceso retirado
+// desaparece del directorio, la fila queda purgada (el historial que referencia
+// (organization_id,user_id) sobrevive) y una nueva invitación lo reactiva.
+const coreApi=async(path,method='DELETE',payload={},as=user)=>{let response;const handled=await agencyCore({req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test'+path),db:{query:sql,connect:async()=>({query:sql,release(){}})},session:async()=>as,body:async()=>payload,send:(_,status,data)=>response={status,...data},sendInvitation:async()=>true,auditContext:async(c,actor)=>{await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(actor.id),'127.0.0.1']);}});assert.equal(handled,true,`${path} is handled by agency-core`);return response;};
+const purgeUser=(await sql("insert into users(email,password_hash) values('purge-fixture@example.invalid','unused') returning id")).rows[0].id;
+await sql("insert into organization_members(organization_id,user_id,role,active,removed_at) values($1,$2,'viewer',false,now())",[org,purgeUser]);
+assert.equal((await coreApi(`/api/agency/members/${purgeUser}/permanent`,'DELETE',{},{...user,role:'viewer'})).status,403,'viewer cannot purge members');
+assert.equal((await coreApi(`/api/agency/members/${user.id}/permanent`,'DELETE')).status,400,'a member cannot purge themselves');
+assert.equal((await coreApi(`/api/agency/members/${purgeUser}/permanent`,'DELETE')).status,200);
+const purgedRow=(await sql('select purged_at,active,removed_at from organization_members where organization_id=$1 and user_id=$2',[org,purgeUser])).rows[0];
+assert.ok(purgedRow.purged_at&&purgedRow.removed_at,'the purged membership keeps its row with a purge mark');
+assert.ok(!(await call('/api/agency/team')).members.some(m=>String(m.id)===String(purgeUser)),'purged members leave the directory');
+assert.equal((await coreApi(`/api/agency/members/${purgeUser}/permanent`,'DELETE')).status,404,'a purged member is gone');
+const activeMember=(await sql("insert into users(email,password_hash) values('active-fixture@example.invalid','unused') returning id")).rows[0].id;
+await sql("insert into organization_members(organization_id,user_id,role,active,removed_at) values($1,$2,'viewer',true,null)",[org,activeMember]);
+assert.equal((await coreApi(`/api/agency/members/${activeMember}/permanent`,'DELETE')).status,409,'only retired access can be purged');
+assert.equal((await coreApi('/api/agency/members','POST',{email:'purge-fixture@example.invalid',role:'viewer'})).status,201,'a new invitation revives the purged member');
+assert.equal((await sql('select purged_at from organization_members where organization_id=$1 and user_id=$2',[org,purgeUser])).rows[0].purged_at,null,'re-inviting clears the purge');
 for(const payload of [{payment_day:9},{invoices_company:true},{compensation_amount:250},{monthly_salary_amount:300}]){
  assert.equal((await call(`/api/agency/collaborators/${minimal.id}`,'PATCH',payload,{...user,role:'management'})).status,403,`management cannot write ${Object.keys(payload)[0]}`);
 }

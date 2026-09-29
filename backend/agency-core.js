@@ -431,8 +431,31 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/members' && req.method === 'GET') {
       const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'Sin permiso'});
-      const r = await db.query('select u.id,u.email,m.role,m.active,m.created_at from organization_members m join users u on u.id=m.user_id where m.organization_id=$1 and m.removed_at is null order by m.created_at asc',[user.organization_id]);
+      const r = await db.query('select u.id,u.email,m.role,m.active,m.created_at from organization_members m join users u on u.id=m.user_id where m.organization_id=$1 and m.removed_at is null and m.purged_at is null order by m.created_at asc',[user.organization_id]);
       return send(res,200,{members:r.rows});
+    }
+    if (url.pathname.match(/^\/api\/agency\/members\/\d+\/permanent$/) && req.method === 'DELETE') {
+      // Eliminación definitiva desde Equipo: solo integrantes con el acceso ya
+      // retirado/suspendido. La membresía se marca purgada (no se borra la fila
+      // porque el historial referencia (organization_id,user_id)); desaparece del
+      // directorio y una nueva invitación la reactiva.
+      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'Sin permiso'});
+      const target = Number(url.pathname.split('/')[4]);
+      if (!Number.isSafeInteger(target) || target <= 0) return send(res,400,{error:'Miembro inválido'});
+      if (target === user.id) return send(res,400,{error:'No podés eliminarte a vos mismo del equipo'});
+      const client = await db.connect();
+      try {
+        await client.query('begin');
+        await auditContext(client,user,req);
+        const member = (await client.query('select role,active,removed_at from organization_members where organization_id=$1 and user_id=$2 and purged_at is null for update',[user.organization_id,target])).rows[0];
+        if (!member) { await client.query('rollback'); return send(res,404,{error:'Miembro no encontrado'}); }
+        if (member.active && !member.removed_at) { await client.query('rollback'); return send(res,409,{error:'Solo se elimina definitivamente a integrantes con el acceso retirado o suspendido'}); }
+        if (member.role === 'owner' && user.role !== 'owner') { await client.query('rollback'); return send(res,403,{error:'Solo un dueño puede eliminar a otro dueño'}); }
+        await client.query('update organization_members set active=false,removed_at=coalesce(removed_at,now()),purged_at=now() where organization_id=$1 and user_id=$2',[user.organization_id,target]);
+        await client.query('delete from sessions where organization_id=$1 and user_id=$2',[user.organization_id,target]);
+        await client.query('commit');
+        return send(res,200,{purged:true});
+      } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
     if (url.pathname === '/api/agency/members' && req.method === 'POST') {
       const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'Sin permiso'});
@@ -455,7 +478,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         await client.query('select id from organizations where id=$1 for update',[user.organization_id]);
         const existing = await client.query('select removed_at from organization_members where organization_id=$1 and user_id=$2 for update',[user.organization_id,account.rows[0].id]);
         if (existing.rows[0]&&!existing.rows[0].removed_at) { await client.query('rollback'); return send(res,409,{error:'Ese usuario ya pertenece a esta empresa'}); }
-        const membership = await client.query('insert into organization_members(organization_id,user_id,role) values($1,$2,$3) on conflict(organization_id,user_id) do update set role=excluded.role,active=true,removed_at=null,created_at=now() returning organization_id,user_id,role,created_at',[user.organization_id,account.rows[0].id,role]);
+        const membership = await client.query('insert into organization_members(organization_id,user_id,role) values($1,$2,$3) on conflict(organization_id,user_id) do update set role=excluded.role,active=true,removed_at=null,purged_at=null,created_at=now() returning organization_id,user_id,role,created_at',[user.organization_id,account.rows[0].id,role]);
         await client.query('commit');
         const member={id:account.rows[0].id,email:normalizedEmail,...membership.rows[0]};
         const emailSent=await sendInvitation(normalizedEmail,user.organization_name,role).catch(()=>false);

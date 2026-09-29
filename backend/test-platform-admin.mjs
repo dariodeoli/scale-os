@@ -35,11 +35,19 @@ await pg.exec(`
   create table if not exists destructive_google_handoffs(token_hash text primary key,preview_token_hash text not null references destructive_action_previews(token_hash) on delete restrict,user_id bigint);
   create table if not exists destructive_auth_proofs(token_hash text primary key,preview_token_hash text not null references destructive_action_previews(token_hash) on delete restrict,user_id bigint,action text not null default 'account.delete',organization_id bigint,method text not null default 'password',expires_at timestamptz not null default now()+interval '5 minutes',consumed_at timestamptz,created_at timestamptz not null default now());
   alter table organization_members add unique(organization_id,user_id);
+  -- Los CHECK reales de producción (20260914_secure_deletion.sql): el fixture
+  -- los replica para que los tests no den falsa confianza con tablas laxas.
+  alter table destructive_action_previews add constraint destructive_action_previews_action_check check(action in ('account.delete','organization.delete'));
+  alter table destructive_action_previews add constraint destructive_action_previews_check check((action='account.delete' and organization_id is null) or (action='organization.delete' and organization_id is not null));
+  alter table destructive_auth_proofs add constraint destructive_auth_proofs_action_check check(action in ('account.delete','organization.delete'));
   create table agency_inventory(id bigserial primary key,organization_id bigint,name text,serial_number text,unique(id,organization_id));
   create table user_personal_identities(user_id bigint primary key,full_name text not null,photo_url text,updated_at timestamptz not null default now());
   create table agency_user_profiles(user_id bigint,organization_id bigint,full_name text,photo_url text,updated_at timestamptz not null default now(),primary key(user_id,organization_id));
   create table agency_inventory_verifications(id bigserial primary key,organization_id bigint,inventory_id bigint,verified_by_user_id bigint,verified_at timestamptz not null default now(),result text not null,differences text not null default '',note text not null default '',adjusted boolean not null default false,before_state jsonb not null,after_state jsonb not null,unique(id,organization_id),foreign key(inventory_id,organization_id) references agency_inventory(id,organization_id),foreign key(organization_id,verified_by_user_id) references organization_members(organization_id,user_id));
  `);
+// La migración que habilita las acciones globales de borrado en el CHECK real
+// (issue #22): sin ella, el flujo completo del panel falla contra producción.
+await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20260929_destructive_platform_actions.sql',import.meta.url),'utf8'));
 await pg.query('insert into platform_administrators(user_id) values(2)');
 const db={query:(sql,values)=>pg.query(sql,values)};
 async function call(path,{method='GET',actor={id:2,email:'platform@scale.example'},payload={},headers={},bootstrapValue=''}={}){
