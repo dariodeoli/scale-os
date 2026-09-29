@@ -1,4 +1,5 @@
 'use client';
+import {WorkspaceFooter} from './workspace-footer';
 export default function ErrorBoundary({reset}:{error:Error&{digest?:string};reset:()=>void}){
  return <main className="error-boundary">
   <section className="panel error-boundary-card" role="alert">
@@ -7,5 +8,6 @@ export default function ErrorBoundary({reset}:{error:Error&{digest?:string};rese
    <p>Ocurrió un error al mostrar esta pantalla. Reintentá; tus datos guardados no se pierden.</p>
    <button className="primary" type="button" onClick={reset}>Reintentar</button>
   </section>
+  <WorkspaceFooter/>
  </main>;
 }

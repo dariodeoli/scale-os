@@ -23,7 +23,7 @@ test('icon-only actions explain themselves on hover',()=>{
     ['app/photo-viewer.tsx',/title="Cerrar foto ampliada"/],
     ['app/mobile-navigation.tsx',/title="Abrir menú"/],
     ['app/mobile-navigation.tsx',/title="Cerrar menú"/],
-    ['app/notification-inbox.tsx',/title="Notificaciones"/],
+    ['app/notification-inbox.tsx',/ariaLabel="Notificaciones"/],
   ];
   for(const [file,pattern] of expectations)assert.match(read(file),pattern,`${file} keeps the hover label`);
 });
@@ -272,6 +272,6 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(tailwind,/nav button svg\{color:currentColor\}/,'el SVG del nav hereda el tono del tile (no brand-600 legacy)');
  assert.match(tailwind,/\(prefers-reduced-motion:reduce\)\{\n :is\(\.desktop-sidebar,\.workspace-topbar,\.mobile-sidebar\),\n :is\(\.desktop-sidebar,\.workspace-topbar,\.mobile-sidebar\) \*\{transition:none!important;animation:none!important\}/,'el marco apaga transiciones y animaciones con reduced motion');
  assert.match(read('app/theme-toggle.css'),/@media\(max-width:767px\)\{\.theme-toggle\{width:44px/,'el cambio de tema usa target de 44 px en móvil');
- assert.match(read('app/workspace-footer.css'),/@media\(max-width:767px\)\{\.control-shell \.workspace-footer a\{display:inline-flex;align-items:center;min-height:44px\}\}/,'los enlaces del pie usan target de 44 px en móvil');
+ assert.match(read('app/workspace-footer.tsx'),/import \{ProductFooter[^}]*\} from 'owncoding-ui'/,'el pie institucional es el objeto de la biblioteca: el crédito trae su target de 44 px');
 }
 console.log('PASS nav v3: 5 grupos con acordeón y acceso admin gateado por servidor (Issues #68 #69)');

@@ -17,5 +17,5 @@ for(const path of [...sections.map(([,slug])=>'/'+slug),...Object.keys(legacyRou
 }
 for(const path of ['/informes-privados','/desconocido','/api/agency/reports'])assert.equal(request('sistema.scaleparaguay.com',path).status,404,path);
 assert.equal(request('sistema.scaleparaguay.com.evil.example').headers.get('x-middleware-rewrite'),null);
-const html=readFileSync('public/scale-os.html','utf8');assert(html.includes('application/ld+json'));assert(html.includes('VISTA ILUSTRATIVA'));assert(!html.includes('Desarrollado por'));assert(html.includes('https://app.scaleparaguay.com/'));
+const html=readFileSync('public/scale-os.html','utf8');assert(html.includes('application/ld+json'));assert(html.includes('VISTA ILUSTRATIVA'));assert(html.includes('data-testid="product-footer"')&&html.includes('Desarrollado por Owncoding'),'la landing publica el pie institucional (§14)');assert(html.includes('https://app.scaleparaguay.com/'));
 console.log('PASS: public landing host routing, private noindex, isolated Demo paths allowed under public host, metadata');

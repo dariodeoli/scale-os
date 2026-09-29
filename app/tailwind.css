@@ -267,8 +267,7 @@ html[data-theme="dark"] {
 .control-shell.production-mode .header-actions{width:auto;flex-wrap:nowrap}
 .control-shell.production-mode .workspace-topbar{margin-bottom:12px;padding-bottom:10px}
 .control-shell.production-board-mode>.content{height:auto;min-height:100dvh;display:block;overflow:visible;padding-top:12px;padding-bottom:16px}
-.production-board-mode .workspace-footer{margin-top:8px;padding:6px 0 0;gap:3px 12px;font-size:10px}
-.production-board-mode .workspace-footer .usage-disclosure{margin:0;font-size:9px;line-height:1.4}
+.production-board-mode .workspace-footer{margin-top:8px;padding:6px 0 0}
 /* El toolbar de Producción pertenece a esta vista: en escritorio comparte una
    sola línea operativa sin quitar el aire táctil del teléfono. */
 @media(min-width:761px){
@@ -283,5 +282,4 @@ html[data-theme="dark"] {
 .control-shell.production-board-mode>.content{padding:12px}
 .control-shell.production-mode .workspace-topbar{margin:-12px -12px 10px;padding:10px 12px 8px}
 .control-shell.production-mode .header-actions>.secondary{display:none}
-.production-board-mode .workspace-footer{font-size:9px}
 }
