@@ -2,6 +2,38 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.147
+
+### Sistema (marco)
+
+- **Encabezado, KPIs y filtros compactos**: en escritorio el título de página ocupa una sola fila (56 px), los KPIs quedan en una franja de ~112–140 px y las barras de filtros van en una fila; en mobile cada control conserva sus 44 px.
+- **Tabs de sección en una barra fina** con scroll horizontal y una sola hoja de estilos para todo el shell (se retiran las reglas legadas).
+- **Auditoría y evidencia por pantalla**: desvíos medidos con el harness y capturas antes/después en `docs/qa/compact-sistema/`.
+
+### Comercial
+
+- **Clientes**: encabezado en una línea, resumen auxiliar y KPIs en franja, sin perder el contrato denso de la lista.
+- **Resumen, Pipeline, Métricas, Presupuestos y Planes** muestran la información clave antes del pliegue, sin quitar filtros, totales ni acciones.
+- Evidencia antes/después en `docs/qa/compact-com/`.
+
+### Operaciones
+
+- **Inventario**: fila única sin la mega-tarjeta, chips de atención y el listado sube más de un tercio.
+- **Proyectos, Producción, Estudio e Historial**: barras en una fila y más contenido visible, sin romper el tablero arrastrable.
+- Evidencia en `docs/qa/compact-ops/`.
+
+### Finanzas
+
+- **Finanzas**: la franja «Salarios» sube junto a los KPIs y las tarjetas de cuenta dejan de ocupar 200 px de alto.
+- **Mora, Previsión, Informes y Comisiones**: mes, horizonte y filtros viven en el encabezado y la información clave aparece antes.
+- Evidencia en `docs/qa/compact-fin/`.
+
+### Equipo y plataforma
+
+- **Equipo**: cabecera compacta, franja de facturación con el KPI compartido y barra de controles en una fila (la barra de lote deja de verse como tarjeta vacía).
+- **Configuración, Preferencias, Papelera, Invitaciones, Permisos, Actividad y Superadmin**: menos títulos repetidos, tipo de registro como chip y vacíos compactos.
+- Evidencia en `docs/qa/compact-equipo/` y `docs/qa/compact-plt/`.
+
 ## v1.0.146
 
 ### Finanzas
