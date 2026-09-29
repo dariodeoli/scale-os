@@ -15,6 +15,7 @@ import './client-directory.css';
 import dynamic from 'next/dynamic';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
+import {VersionNotice} from './version-notice';
 import {GoogleSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
 import {LoadingScreen} from './loading-screen';
@@ -1027,6 +1028,7 @@ export default function Home() {
             <div className="topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2">
               {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
+              <VersionNotice/>
             </div>
             <div className="topbar-utility-actions flex min-w-0 items-center gap-2 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
               <ThemeToggle/>

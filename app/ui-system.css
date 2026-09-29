@@ -392,3 +392,9 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 .project-grid>.project-entry .project-entry-title h3{font-size:14px;line-height:1.3;font-weight:700;margin:0}
 .project-grid>.project-entry .project-entry-meta{align-items:center}
 .project-grid>.project-entry>.project-entry-actions{justify-content:space-between}
+
+/* Bandeja oficial (#83): la campana de la biblioteca mide 36 px de dibujo; el
+   marco le conserva el target táctil de 44 px del resto de los controles
+   (REGLAS §15.4, mismo contrato que `.toque-44`). No se toca el objeto. */
+[data-testid="campana-avisos"]{position:relative}
+[data-testid="campana-avisos"]::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%)}

@@ -27,7 +27,7 @@ const loadingScreen=file('../app/loading-screen.tsx');
 assert(loadingScreen.includes('Cargando tu espacio…')&&loadingScreen.includes('Un momento, estamos preparando todo…'),'la pantalla de carga tiene variante con sesión y variante neutra');
 assert(loadingScreen.includes('PersonContainer')&&loadingScreen.includes('roleLabel'),'la carga con sesión muestra nombre, rol y avatar');
 assert(file('../app/tailwind.css').includes('text-decoration: none'),'la base del sistema apaga el subrayado del navegador para los <a>');
-assert(file('../app/workspace-footer.css').includes('text-decoration:underline'),'el footer declara su subrayado explícito tras el reset');
+assert(file('../app/workspace-footer.tsx').includes('ProductFooter'),'el pie institucional sale del objeto de la biblioteca (su crédito dibuja el subrayado y el target de 44 px)');
 assert(rail.includes('sidebar-collapse')&&!rail.includes('absolute'),'the collapsed rail keeps the toggle out of the brand');
 assert(workspace.includes('[&_.company-name]:truncate'),'long company names truncate in the topbar');
 assert(workspace.includes('[&>*]:min-h-10 [&>*]:min-w-10')&&workspace.includes('max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11'),'topbar utilities keep 40px desktop and 44px mobile targets');

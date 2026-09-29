@@ -10,6 +10,13 @@
  *   - public/scale-os.html (documento real, se sirve instrumentado)
  */
 
+import React from 'react';
+import {readFileSync} from 'node:fs';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {ProductFooter} from 'owncoding-ui';
+
+const releaseVersion = JSON.parse(readFileSync(new URL('../../../release/version.json', import.meta.url), 'utf8')).version;
+
 const svg = (name, size, paths, attrs = '') =>
   `<svg class="lucide lucide-${name}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${attrs}>${paths}</svg>`;
 
@@ -25,7 +32,8 @@ const globe17 = svg('globe', 17, '<circle cx="12" cy="12" r="10"/><path d="M12 2
 
 const googleMark = `<svg class="google-g" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.27c0-.71-.06-1.39-.18-2.04H12v3.86h5.24a4.48 4.48 0 0 1-1.94 2.94v2.5h3.15c1.84-1.69 2.9-4.18 2.9-7.26Z"/><path fill="#34A853" d="M12 21.75c2.63 0 4.84-.87 6.45-2.22l-3.15-2.5c-.87.59-1.99.94-3.3.94-2.54 0-4.69-1.72-5.46-4.03H3.29v2.58A9.75 9.75 0 0 0 12 21.75Z"/><path fill="#FBBC04" d="M6.54 13.94A5.87 5.87 0 0 1 6.23 12c0-.67.11-1.32.31-1.94V7.48H3.29A9.72 9.72 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.52l3.25-2.58Z"/><path fill="#EA4335" d="M12 6.03c1.43 0 2.71.49 3.72 1.46l2.79-2.79C16.84 3.13 14.63 2.25 12 2.25a9.75 9.75 0 0 0-8.71 5.23l3.25 2.58C7.31 7.75 9.46 6.03 12 6.03Z"/></svg>`;
 const brand = '<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>';
-const footer = '<footer class="workspace-footer"><span>© 2026 Scale OS. Todos los derechos reservados. · v1.0.97</span><span>Desarrollado por <a href="https://owncoding.dev/" target="_blank" rel="noopener noreferrer">Owncoding</a></span></footer>';
+// El pie se renderiza con el objeto real (#82): app/workspace-footer.tsx es el puente.
+const footer = renderToStaticMarkup(React.createElement(ProductFooter, {nombre: 'Scale OS', version: `v${releaseVersion}`, className: 'workspace-footer'}));
 const passwordField = (label, name, value, autoComplete, placeholder) => `<label class="password-field"><span>${label}</span><span class="password-field-control"><input name="${name}" type="password" value="${value}" autocomplete="${autoComplete}"${placeholder ? ` placeholder="${placeholder}"` : ''} maxlength="128"/><button type="button" class="password-visibility" title="Mostrar contraseña" aria-label="Mostrar contraseña" aria-pressed="false">${eye18}</button></span></label>`;
 const emailField = (value, placeholder) => `<input type="email" inputmode="email" autocomplete="email" maxlength="200"${placeholder ? ` placeholder="${placeholder}"` : ''} value="${value}"/>`;
 

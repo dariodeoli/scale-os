@@ -1,0 +1,78 @@
+/* Alto contraste (REGLAS.md §15 regla 4, Refs #82): tercer tema del marco,
+   declarado con los mismos tokens —no hay CSS por pantalla—. Sobre lienzo negro
+   el texto sube a ≥7:1 (AAA), los bordes a ≥3:1 y la marca pasa a amarillo con
+   tinta negra, con los pares de texto AA de los chips en su variante brillante.
+   El tema se aplica con `data-theme="contrast"` (script del layout y
+   `ThemeToggle`) y se mide en `tests/contrast-theme.test.ts`. */
+
+html[data-theme="contrast"] {
+  color-scheme: dark;
+  /* Paleta legacy (globals.css) */
+  --canvas: #000000;
+  --canvas-elevated: #000000;
+  --surface: #000000;
+  --surface-subtle: #121212;
+  --surface-raised: #0d0d0d;
+  --surface-sunken: #000000;
+  --text: #ffffff;
+  --text-strong: #ffffff;
+  --text-muted: #e8e8e8;
+  --text-subtle: #dedede;
+  --line: #a1a1a1;
+  --line-strong: #c9c9c9;
+  --border-subtle: #b0b0b0;
+  --border-interactive: #d4d4d4;
+  --brand-700: #ffd400;
+  --brand-600: #ffdf4d;
+  --gold: #ffd400;
+  --anthracite: #000000;
+  --auth-field: #121212;
+  --success: #6ef0b8;
+  --warning: #ffcc66;
+  --danger: #ff9aa8;
+  --info: #a7c2ff;
+  --teal: #7fe3da;
+  --violet-soft: #1f1f1f;
+  --success-soft: #062b20;
+  --info-soft: #0a1c3a;
+  --warning-soft: #332600;
+  --danger-soft: #3a0d14;
+  --focus-ring: #ffd400;
+  --focus-halo: color-mix(in srgb, var(--brand-700) 35%, transparent);
+  --interactive: #ffd400;
+  --interactive-hover: #ffe066;
+  --interactive-pressed: #e6bf00;
+  /* Paleta v2 (`--c-*`, tailwind.css) */
+  --c-paper: 0 0 0;
+  --c-fore: 255 255 255;
+  --c-ink: 0 0 0;
+  --c-ink-950: 0 0 0;
+  --c-ink-900: 10 10 10;
+  --c-ink-800: 13 13 13;
+  --c-ink-700: 26 26 26;
+  --c-ink-600: 161 161 161;
+  --c-ink-500: 201 201 201;
+  --c-mute: 232 232 232;
+  --c-fono: 255 212 0;
+  --c-fono-dark: 255 212 0;
+  --c-fono-light: 255 223 77;
+  --c-fono-glow: 255 212 0;
+  --c-ok: 110 240 184;
+  --c-bad: 255 154 168;
+  --c-warn: 255 204 102;
+  --c-info: 167 194 255;
+  --c-ok-text: 110 240 184;
+  --c-warn-text: 255 204 102;
+  --c-bad-text: 255 154 168;
+  --c-info-text: 167 194 255;
+  --c-fono-text: 255 223 77;
+  --c-pass-text: 110 240 184;
+  --c-interactivo: 212 212 212;
+  --c-onbrand: 0 0 0;
+  --c-pass: 110 240 184;
+}
+
+html[data-theme="contrast"] body{background:var(--canvas)}
+/* La marca institucional mantiene su tinta sobre el lienzo negro. */
+html[data-theme="contrast"] .workspace-brand img,
+html[data-theme="contrast"] .brand-mark{background:#000000;color:#ffffff;border:1px solid var(--line)}
