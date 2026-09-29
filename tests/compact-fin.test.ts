@@ -35,9 +35,9 @@ assert.doesNotMatch(informes,/Período y moneda/,'la tarjeta «Período y moneda
 assert.doesNotMatch(informes,/sm:grid-cols-\[minmax\(0,1fr\)_auto\] sm:items-center sm:p-4/,'la exportación dejó de ser una tarjeta alta');
 assert(informes.indexOf('<LiveVisitorsWidget/>')>informes.indexOf('Resumen del período'),'los visitantes en vivo cierran la pantalla, no empujan el informe');
 
-// ── Comisiones: cada header de panel en una línea (descripción con tooltip).
-for(const id of ['commissions-settlement-title','commissions-list-title','commissions-discounts-title','commissions-payouts-title']){
-  assert.match(comisiones,new RegExp(`id="${id}"[\\s\\S]{0,260}min-w-0 truncate text-xs text-mute`),`${id}: la descripción recorta con tooltip`);
-}
+// ── Comisiones: secciones en subtabs (#101) y ayuda como texto auxiliar.
+assert.match(comisiones,/<Subtabs[\s\S]{0,700}value=\{section\}/,'las secciones de Comisiones viven en subtabs');
+assert.match(comisiones,/title="Los porcentajes se calculan al registrar la comisión/,'la ayuda del panel sigue disponible como tooltip');
+assert.doesNotMatch(comisiones,/className="text-\[17px\] font-semibold tracking-tight text-fore">Comisiones y referidos/,'el panel no repite el título de la pantalla');
 
 console.log('PASS compactación FIN: Salarios en franja, headers en una fila, informes sin bloques altos y paneles densos (#95)');

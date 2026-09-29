@@ -57,8 +57,8 @@ async function run(){
  await respond(june,fixture('2020-06'));
   assert.equal(renderer.root.findAllByType('h1')[0].children[0],'Evolución mensual');
  assert.match(text(),/Mes a consultar/);
- assert.match(text(),/Datos al 10 sept 26 · 12:00 \(hora de Asunción\)/);
- assert.match(text(),/Histórico confiable desde: 01 ene 20 · 00:00/);
+ assert.match(text(),/Datos al 10 sept 26 · 12:00/,'el corte visible va en la toolbar');
+ assert.match(rendered(),/Histórico confiable desde: 01 ene 20 · 00:00/,'la cobertura completa queda en el tooltip del corte (#101)');
  assert.doesNotMatch(text(),/2026-09-10T15:00:00Z|2020-01-01T03:00:00Z/,'timestamps are displayed as readable local dates');
  assert.match(text(),/Bajas de actividad/);assert.doesNotMatch(text(),/Clientes perdidos/);
  assert.match(text(),/pausa, cancelación o archivo/);assert.match(text(),/reactivaron durante el mismo mes/);
@@ -88,7 +88,7 @@ async function run(){
  assert.match(text(),/No autorizado/);assert.equal(renderer.root.findAllByType('table').length,0);
  act(()=>renderer.root.findAllByType("button").find(node=>String(node.props.children).includes("Reintentar"))!.props.onClick());
  await respond(latest(),{...fixture('2020-06',[{...row('2020-06',null),financial:[]}]),historySince:null});
- assert.match(text(),/Histórico confiable desde: sin fecha confirmada/);
+ assert.match(rendered(),/Histórico confiable desde: sin fecha confirmada/);
  assert.match(text(),/Sin datos/);assert.match(text(),/Sin porcentaje/);
  assert.equal(renderer.root.findAllByType(SelectCustom)[0].props.disabled,true);
  assert.match(text(),/Sin importes para comparar todavía/,'el histórico sin monedas explica el vacío');
@@ -108,7 +108,7 @@ async function run(){
  assert(emptySeriesCta,'sin serie mensual el vacío ofrece CTA contextual');
  act(()=>emptySeriesCta!.props.onClick());assert.equal(invoiceClicks,2,'el CTA reutiliza la misma salida del shell');
  assert.match(text(),/Datos al 09 sept 26 · 22:15/,'cutoff respects the previous local day');
- assert.match(text(),/Histórico confiable desde: 31 ago 26 · 22:00/,'coverage date respects Asuncion rather than UTC');
+ assert.match(rendered(),/Histórico confiable desde: 31 ago 26 · 22:00/,'coverage date respects Asuncion rather than UTC');
   act(()=>renderer.update(<ReportsWorkspace key="org2" role="viewer" organizationName="Scale"/>));
   assert.equal(renderer.root.findAllByType('table').length,0,'permission removal clears private report');
   act(()=>renderer.unmount());

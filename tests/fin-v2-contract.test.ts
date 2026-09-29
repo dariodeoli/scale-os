@@ -45,7 +45,10 @@ for(const [name,source,cols] of [['previsión',pre,['PERSON_COLS','CONTRACT_COLS
   assert(!match![1].includes('_auto'),`${name}: ${col} no usa tracks auto (encabezado y filas alinean)`);
  }
 }
-assert.equal((pre.match(/overflow-x-auto/g)||[]).length>=4,true,'cada lista de la previsión scrollea en silencio');
+assert.doesNotMatch(pre,/overflow-x-auto/,'las listas de la previsión no dependen del scroll horizontal (#101)');
+for(const hook of ['PERSONNEL_MIN_WIDTH','CONTRACTS_MIN_WIDTH','PLANNED_MIN_WIDTH','REAL_MIN_WIDTH']){
+  assert.match(pre,new RegExp(`useDenseTableFit<HTMLDivElement>\\([^)]*${hook}`),`${hook}: una sola rama por ancho medido (#101)`);
+}
 assert.match(treasury,/min-w-0 overflow-x-auto/,'el extracto scrollea en silencio');
 assert.match(pre,/const LIST_ROW='grid min-h-11 items-center gap-x-2/,'las filas finitas de la previsión conservan 44 px');
 assert.match(treasury,/const STATEMENT_ROW='grid min-h-11 items-center gap-x-2/,'la fila del extracto conserva 44 px');
