@@ -77,23 +77,23 @@ usarlo y conservan el contenido canónico (versión real + crédito):
 
 ## 6. Pendientes por regla (§14 / §15 / §16)
 
-| Regla | Estado | Pendiente / plan |
-| --- | --- | --- |
-| §14 Pie institucional | ✅ Adoptado en panel, acceso, públicas y tokenizadas; impresión con excepción documentada | — |
-| §15.1 Cero éxito falso | ✅ El marco no silencia fallos: errores con salida (`ErrorBlock`/`ErrorState` con reintento), `IndicadorConexion`, guardado con `completeSave`; los `catch{}` restantes son sólo preferencias locales (`localStorage`/`sessionStorage`) | Revisión de dominio por slot (COM/OPS/FIN/PLT) |
-| §15.2 Paridad demo | ✅ La demo monta el mismo shell y las mismas secciones (`demo_owner_user_id`, `demoStorage`), sin pantallas aparte | Seguir la paridad en features nuevas |
-| §15.3 Cuatro estados | ✅ Primitivas únicas (`LoadingBlock`, `EmptyBlock`/`EmptyState`, `ErrorBlock`/`ErrorState`); secciones pesadas con `dynamic()` + esqueleto | Auditar pantalla por pantalla en cada slot |
-| §15.4 Tres temas + toque 44 | ✅ Claro, oscuro y **alto contraste** (`app/contrast.css` + `ThemeToggle` de 3 estados + `prefers-contrast: more`); 44 px en el marco | Verificar pantallas de dominio en alto contraste (capturas por lote) |
-| §15.5 Una entidad, una fuente | ✅ Montos (`money`/`amount-format`), fechas (`list-format`), seriales (`SerialTexto`) y clientes comparten derivación | — |
-| §15.6 Microcopy es-PY | ✅ Aviso en segunda persona y vocabulario del negocio en el marco | Revisión de textos por slot |
-| §15.7 Rutas canónicas | ✅ `app/navigation.ts` declara secciones y `legacyRoutes` redirige; sin slugs dinámicos duplicados | — |
-| §15.8 Búsqueda y atajos | ⚠️ `WorkspaceSearch` (un solo buscador) sin Ctrl/Cmd+K; la ayuda es `WorkspaceGuide`, no `AyudaModulo`; el estado del sistema ya se alcanza desde la ayuda | **P2**: evaluar `PaletaComandos`/`AyudaModulo` como migración dedicada |
-| §15.9 Dinero y sensibilidad | ✅ Gates por rol (`capabilities.ts`/`workspace-access.ts` + `backend/permissions.js`) y auditoría del API | — |
-| §15.10 Versión visible y novedades | ✅ Pie con versión real; **aviso de versión nueva** con `hayVersionNueva` contra `/health` → `release.version` (`VersionNotice`); `/status` desde la ayuda | — |
-| §15.11 Rendimiento | ⚠️ Secciones pesadas lazy con esqueleto; listas acotadas por `BATCH_LIMITS`/proyecciones | **P4**: `ventanaDeLista` en las listas más largas (dueño por dominio) |
-| §16 Bandeja | ✅ `CampanaAvisos` con mapeo único (`avisoDeNotificacion`), vacío con acción y detalle con las acciones de la app | Contador del objeto acotado a los avisos cargados (P5) |
-| §16 Push | ⚠️ La app no tiene canal push | **P6**: contrato futuro con `payloadPush`/`enHorarioSilencioso` (coord. #84, PLT) |
-| §16 Toast | ⚠️ Un solo sistema propio, sólo acciones en pantalla | **P3**: evaluar `ToastProvider`/`useToast` (no incremental hoy) |
+| Regla | Estado | Evidencia | Pendiente / plan |
+| --- | --- | --- | --- |
+| §14 Pie institucional | ✅ Adoptado en panel, acceso, públicas y tokenizadas; impresión con excepción documentada | `tests/product-footer.test.tsx` (una aserción por superficie), `docs/qa/tanda51-dsn/*-pie-*` | — |
+| §15.1 Cero éxito falso | ✅ El marco no silencia fallos: errores con salida (`ErrorBlock`/`ErrorState` con reintento), `IndicadorConexion`, guardado con `completeSave`; los `catch{}` restantes son sólo preferencias locales | `app/ui-v2.tsx`, `app/notification-inbox.tsx` (mensaje en panel y detalle), `grep` de `catch{}` documentado | Revisión de dominio por slot (COM/OPS/FIN/PLT) |
+| §15.2 Paridad demo | ✅ La demo monta el mismo shell y las mismas secciones (`demo_owner_user_id`, `demoStorage`), sin pantallas aparte | `app/demo/page.tsx`, `app/scale-workspace.tsx` (`DemoToolbar`/`DemoWelcome`) | Seguir la paridad en features nuevas |
+| §15.3 Cuatro estados | ✅ Primitivas únicas (`LoadingBlock`, `EmptyBlock`/`EmptyState`, `ErrorBlock`/`ErrorState`); secciones pesadas con `dynamic()` + esqueleto | `app/ui-v2.tsx`, `tests/ui-v2.test.tsx`, `dynamic(... {loading: SectionLoading})` en `app/sections/*` | Auditar pantalla por pantalla en cada slot |
+| §15.4 Tres temas + toque 44 | ✅ Claro, oscuro y **alto contraste** (`app/contrast.css` + `ThemeToggle` de 3 estados + `prefers-contrast: more`); 44 px en el marco (incluida la campana) | `tests/contrast-theme.test.tsx` (AA/AAA de tokens y ciclo del control), `app/ui-system.css` (`[data-testid="campana-avisos"]::after`) | Verificar pantallas de dominio en alto contraste (capturas por lote) |
+| §15.5 Una entidad, una fuente | ✅ Montos (`money`/`amount-format`), fechas (`list-format`), seriales (`SerialTexto`) y avisos (`avisoDeNotificacion`) comparten derivación | `app/amount-format.ts`, `app/list-format.tsx`, `tests/notification-inbox.test.tsx` | — |
+| §15.6 Microcopy es-PY | ✅ Aviso en segunda persona y vocabulario del negocio en el marco («No tenés avisos», «Probá con otra vista») | `app/notification-inbox.tsx`, `app/workspace-guide.tsx` | Revisión de textos por slot |
+| §15.7 Rutas canónicas | ✅ `app/navigation.ts` declara secciones y `legacyRoutes` redirige; sin slugs dinámicos duplicados | `tests/landing-routing.test.ts`, `tests/navigation-dialog.test.ts` | — |
+| §15.8 Búsqueda y atajos | ⚠️ `WorkspaceSearch` (un solo buscador) sin Ctrl/Cmd+K; la ayuda es `WorkspaceGuide`, no `AyudaModulo`; el estado del sistema ya se alcanza desde la ayuda (`href="/status"`) | `app/workspace-search.tsx`, `app/workspace-guide.tsx` | **P2**: evaluar `PaletaComandos`/`AyudaModulo` como migración dedicada |
+| §15.9 Dinero y sensibilidad | ✅ Gates por rol (`capabilities.ts`/`workspace-access.ts` + `backend/permissions.js`) y auditoría del API | `tests/capability-gates.test.ts`, `tests/commercial-gates.test.tsx` | — |
+| §15.10 Versión visible y novedades | ✅ Pie con versión real; **aviso de versión nueva** con `hayVersionNueva` contra `/health` → `release.version` (`VersionNotice`); `/status` desde la ayuda | `tests/version-notice.test.tsx`, `tests/product-footer.test.tsx` | — |
+| §15.11 Rendimiento | ⚠️ Secciones pesadas lazy con esqueleto; listas acotadas por `BATCH_LIMITS`/proyecciones | `dynamic()` en `app/sections/*`, `app/capabilities.ts` | **P4**: `ventanaDeLista` en las listas más largas (dueño por dominio) |
+| §16 Bandeja | ✅ `CampanaAvisos` con mapeo único (`avisoDeNotificacion`), vacío con acción y detalle con las acciones de la app | `tests/notification-inbox.test.tsx`, `tests/notifications-api-integration.test.tsx` (API real) | Contador del objeto acotado a los avisos cargados (P5) |
+| §16 Push | ⚠️ La app no tiene canal push | `rg payloadPush app` → 0 | **P6**: contrato futuro con `payloadPush`/`enHorarioSilencioso` (coord. #84, PLT) |
+| §16 Toast | ⚠️ Un solo sistema propio, sólo acciones en pantalla | `app/feedback.ts`, `app/notification-center.tsx`, `tests/toast-design.test.ts` | **P3**: evaluar `ToastProvider`/`useToast` (no incremental hoy) |
 
 ### Pendientes con motivo
 
