@@ -13,7 +13,7 @@ function deferred<T>(){let resolve!:(value:T)=>void;const promise=new Promise<T>
 const bitmap=()=>({width:1200,height:800,close(){}});
 Object.assign(globalThis,{
  FileReader:class {result='data:image/jpeg;base64,b3JpZ2luYWw=';onload=()=>{};readAsDataURL(){this.onload();}},
- document:{createElement:()=>({width:0,height:0,getContext:()=>({drawImage(){}}),toDataURL:()=>encoded})},
+ document:{createElement:()=>({width:0,height:0,getContext:()=>({drawImage(){},clearRect(){}}),toDataURL:()=>encoded})},
  Image:class {naturalWidth=500;naturalHeight=500;onload:(()=>void)|null=null;onerror:(()=>void)|null=null;set src(_value:string){queueMicrotask(()=>this.onload?.());}},
 });
 const change=()=>({currentTarget:{files:[file],value:'original.jpg'}});
@@ -41,7 +41,7 @@ async function main(){
  await act(async()=>{upload=input.props.onChange(change());second=input.props.onChange(change());});
  await act(async()=>{preparation.resolve(bitmap());await Promise.all([upload,second]);});
  assert.equal(saves.length,1,'Concurrent input events must produce one autosave');
- assert.equal(decodes,2,'Only the accepted file is decoded for original and crop');
+ assert.equal(decodes,1,'Only the accepted file is decoded once (the original travels via FileReader)');
  await act(async()=>{renderer!.root.findAllByType('button').find(b=>b.children.includes('Mover y recortar'))!.props.onClick();});
  assert.equal(renderer!.root.findByType(CropperStub).props.source,'data:image/jpeg;base64,b3JpZ2luYWw=','Optional crop retains original pixels, not the saved thumbnail');
  assert.equal(saves[0],encoded,'Only the small final image is saved');

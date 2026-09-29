@@ -80,6 +80,9 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
   const [originalSource,setOriginalSource]=useState<string|null>(null);
   const [useLink,setUseLink]=useState(false);
   const [failedPhoto,setFailedPhoto]=useState('');
+  // Reintento del objeto de foto al guardar: si el enlace había fallado,
+  // el guardado exitoso vuelve a intentar la carga (contrato de reintento).
+  const [fotoVersion,setFotoVersion]=useState(0);
   const isLogo=label==='Logo o foto del cliente';
   const mounted=useRef(true),saving=useRef(false),fileInput=useRef<HTMLInputElement|null>(null);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
@@ -98,10 +101,10 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
     {!compact&&<div className="profile-photo-section-heading"><strong>{label}</strong><small>Seleccioná la foto para reemplazarla; después podés ajustar el encuadre.</small></div>}
     <form className="form-stack profile-photo-form" noValidate onSubmit={form.handleSubmit(async values=>{
       if(!startSave())return;
-      setError('');setNotice('');try{if(values.photo.startsWith('https:'))await validateImageLink(values.photo);if(!mounted.current)return;await save(values.photo);if(!mounted.current)return;form.reset(values);setFailedPhoto('');setNotice('Foto guardada.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
+      setError('');setNotice('');try{if(values.photo.startsWith('https:'))await validateImageLink(values.photo);if(!mounted.current)return;await save(values.photo);if(!mounted.current)return;form.reset(values);setFailedPhoto('');setFotoVersion(v=>v+1);setNotice('Foto guardada.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
     })}>
       <div className="profile-photo-summary">
-      <FotoPerfil nombre={name} foto={preview&&preview!==failedPhoto?preview:''} tamano={compact?'xl':'3xl'} variante={isLogo?'logo':'persona'} onClick={()=>fileInput.current?.click()} disabled={busy} etiqueta={preview&&preview!==failedPhoto?`Cambiar foto de ${name}`:`Elegir foto de ${name}`} badge={<Crop size={12}/>}/>
+      <FotoPerfil key={fotoVersion} nombre={name} foto={preview&&preview!==failedPhoto?preview:''} tamano={compact?'xl':'3xl'} variante={isLogo?'logo':'persona'} onClick={()=>fileInput.current?.click()} disabled={busy} etiqueta={preview&&preview!==failedPhoto?`Cambiar foto de ${name}`:`Elegir foto de ${name}`} badge={<Crop size={12}/>}/>
       <div className="profile-photo-controls">
       <label className="photo-upload">{processing?'Preparando…':compact?'Cambiar foto':preview?'Cambiar foto':'Elegir foto'}<input ref={fileInput} aria-label={`Elegir foto (${PHOTO_FORMATS}; hasta 4 MB)`} type="file" accept={PHOTO_ACCEPT} disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file||!startSave())return;
