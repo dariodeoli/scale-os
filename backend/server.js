@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 import bcrypt from 'bcryptjs';
 import pg from 'pg';
 import { operations } from './operations.js';
+import { agencyMedia } from './agency-media.js';
 import { agencyCore } from './agency-core.js';
 import { suite } from './agency-suite.js';
 import { passwordAccess, throttle } from './password-access.js';
@@ -349,6 +350,7 @@ const server = http.createServer(async (req,res) => {
     if(await rucLookup({req,res,url,db,session,body,send,provider:rucProvider,config:rucConfig}))return;
     if(await workOrderLinks({req,res,url,db,session,body,send}))return;
     if(await presence({req,res,url,db,session,body,send,sessionKey:req=>crypto.createHash('sha256').update(parseCookies(req).scale_session||'').digest('hex')}))return;
+    if(await agencyMedia({req,res,url,db,session}))return;
     if(await notifications({req,res,url,db,session,body,send}))return;
     if(await automationApi({req,res,url,db,session,body,send}))return;
     if(await studioReservations({req,res,url,db,session,body,send}))return;

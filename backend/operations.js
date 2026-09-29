@@ -6,6 +6,7 @@ import {companyCurrency,forecastMonth,forecastTimezone} from './forecast.js';
 import { collaboratorAccess } from './collaborator-access.js';
 import { profilePhoto } from './media-policy.js';
 import {visibleRecord,assertRecordAvailable} from './record-lifecycle.js';
+import {mediaPeople,mediaPhoto} from './agency-media.js';
 import {saveCommentMentions} from './comment-mentions.js';
 
 // El importe del módulo delega en `amount` (límite, signo y redondeo compartidos)
@@ -48,12 +49,13 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    if(!roleCan(user,'finance.view')&&!roleCan(user,'members.manage')){
     const members=(await c.query(`select u.id::text as id,coalesce(nullif(p.full_name,''),u.email) as full_name,p.photo_url,m.role from organization_members m join users u on u.id=m.user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=m.organization_id where m.organization_id=$1 and m.active and m.removed_at is null and m.purged_at is null order by full_name`,[org])).rows;
     const extra=(await c.query(`select c.id::text as id,c.full_name,c.photo_url,c.job_title from agency_collaborators c where c.organization_id=$1 and c.user_id is null and ${visibleRecord('c','collaborators')} order by c.full_name`,[org])).rows;
-    result={directory:[...members,...extra.map(person=>({id:person.id,full_name:person.full_name,photo_url:person.photo_url,role:'',cargo:person.job_title||''}))]};
+    result={directory:[...mediaPeople(members),...extra.map(person=>({id:person.id,full_name:person.full_name,photo_url:mediaPhoto('collaborator',person.id,person.photo_url),role:'',cargo:person.job_title||''}))]};
    }else{
    const collaborators=(await c.query(`select c.*,u.email as access_email from agency_collaborators c left join users u on u.id=c.user_id where c.organization_id=$1 and ${visibleRecord('c','collaborators')} order by c.active desc,c.full_name`,[org])).rows;
    const members=(await c.query('select u.id,u.email,m.role,m.active,m.removed_at,p.full_name,p.photo_url from organization_members m join users u on u.id=m.user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=m.organization_id where m.organization_id=$1 and m.purged_at is null order by u.email',[org])).rows;
    const archivedProfiles=(await c.query("select c.id,c.user_id,c.email from agency_collaborators c join agency_archived_records a on a.organization_id=c.organization_id and a.record_id=c.id and a.kind='collaborators' where c.organization_id=$1",[org])).rows;
-   result={collaborators:collaborators.map(withoutSalary),members,archivedProfiles};
+   // #108: las fotos guardadas viajan como URL del medio (cacheadas), no en base64.
+   result={collaborators:collaborators.map(withoutSalary).map(row=>({...row,photo_url:mediaPhoto('collaborator',row.id,row.photo_url)})),members:mediaPeople(members),archivedProfiles};
    }
   }else if(jobMatch) {
    await c.query('select ensure_agency_job_catalog($1)',[org]);

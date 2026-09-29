@@ -1,4 +1,5 @@
 import {visibleRecord} from './record-lifecycle.js';
+import {mediaPeople} from './agency-media.js';
 
 // One batched lookup for a complete response. Inheritance is display context,
 // never a stored assignment, permission grant, or name/alias-based identity match.
@@ -43,7 +44,8 @@ export async function enrichWorkOrderAssignees(c,org,records){
    const assigned=byOrder.get(String(record.id))||{direct:[],project:[]};
    // El detalle directo/proyecto no se duplica en el payload: la respuesta lleva
    // la lista efectiva, su origen y los ids directos, que es lo que consume la UI.
-   record.effective_assignees=assigned.direct.length?assigned.direct:assigned.project;
+   // #108: fotos de responsables como URL del medio (cacheable).
+   record.effective_assignees=mediaPeople(assigned.direct.length?assigned.direct:assigned.project);
    record.assignee_source=assigned.direct.length?'direct':assigned.project.length?'project':null;
    record.assigned_user_ids=assigned.direct.map(person=>person.id);
   }

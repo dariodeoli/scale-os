@@ -4,6 +4,7 @@ import {currencies} from './currencies.js';
 import {amount,date as validDate,email as validEmail,fail,items as validItems,option,text} from './suite-validation.js';
 import {normalizeUrgency} from './urgency.js';
 import {visibleRecord} from './record-lifecycle.js';
+import {mediaPeople,mediaPhoto} from './agency-media.js';
 import {roleCan,roles} from './permissions.js';
 import {externalLink,profilePhoto} from './media-policy.js';
 import {email as normalizedEmail,phone as normalizedPhone} from './suite-validation.js';
@@ -220,7 +221,8 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const total=window.paginated?Number(r.rows[0]?.total_count)||0:null;
       const cut=windowRows(r.rows,window.limit);
       const windowPage=window.paginated?{hasMore:cut.hasMore,page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{};
-      const visibleRows=dropWindowTotal(cut.rows);
+      // #108: el logo guardado viaja como URL del medio (cacheable), no en base64.
+      const visibleRows=dropWindowTotal(cut.rows).map(row=>Object.hasOwn(row,'logo_url')?{...row,logo_url:mediaPhoto('client',row.id,row.logo_url)}:row);
       if(projection===null)return send(res,200,{clients:visibleRows,...windowPage});
       const rows=visibleRows.map(row=>{const out={id:row.id};for(const field of projection)if(Object.hasOwn(row,field))out[field]=row[field];return out;});
       return send(res,200,{clients:rows,...windowPage});
@@ -293,10 +295,12 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const r=await db.query(sql,[user.organization_id]);
       // Mismo recorte que en órdenes: columnas sin lectores fuera del payload.
       for(const row of r.rows){delete row.organization_id;delete row.created_at;delete row.assigned_user_id;delete row.assignee_version;}
-      const rows=projection===null?r.rows:r.rows.map(row=>{
+      // #108: las fotos de responsables viajan como URL del medio (cacheable).
+      const withMedia=row=>Object.hasOwn(row,'assignees')?{...row,assignees:mediaPeople(row.assignees)}:row;
+      const rows=projection===null?r.rows.map(withMedia):r.rows.map(row=>{
         const out={id:row.id};
         for(const field of projection)if(Object.hasOwn(row,field))out[field]=row[field];
-        return out;
+        return Object.hasOwn(out,'assignees')?{...out,assignees:mediaPeople(out.assignees)}:out;
       });
       return send(res,200,{projects:rows});
     }

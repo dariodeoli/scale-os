@@ -1,4 +1,5 @@
 import {fail,owned} from './suite-validation.js';
+import {mediaPeople} from './agency-media.js';
 import {roleCan} from './permissions.js';
 
 
@@ -80,8 +81,9 @@ export async function projectAssignees({req,res,url,db,session,body,send}){
   let result;
   if(people){
    const org=await authorize(c,user);
-   result={members:(await c.query(`select i.user_id::text as id,i.email,coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url,true as active
-    from organization_person_identity i where i.organization_id=$1 order by full_name,i.user_id`,[org])).rows};
+   // #108: las fotos del selector viajan como URL del medio (cacheable), no en base64.
+   result={members:mediaPeople((await c.query(`select i.user_id::text as id,i.email,coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url,true as active
+    from organization_person_identity i where i.organization_id=$1 order by full_name,i.user_id`,[org])).rows)};
   }else result=req.method==='GET'?await getRecordAssignees(c,user,match[1],match[2]):await setRecordAssignees(c,user,match[1],match[2],await body(req));
   await c.query('commit');send(res,200,result);
  }catch(e){
