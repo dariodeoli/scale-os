@@ -21,7 +21,7 @@ import {
   type Payout,
   type ReferralDiscount,
 } from '../commission-data';
-import {Aviso,ConfirmDialog} from 'owncoding-ui';
+import {Aviso,ConfirmDialog,Subtabs} from 'owncoding-ui';
 import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {User} from '../workspace-types';
 
@@ -76,6 +76,9 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const [pay, setPay] = useState<Commission | null>(null);
   const [newDiscount, setNewDiscount] = useState(false);
   const [notice, setNotice] = useState('');
+  // Subtabs de la pantalla (#101): cada sección vive en su panel y solo se
+  // muestra la activa; el DOM se conserva con `hidden` para no perder estado.
+  const [section, setSection] = useState<'liquidacion' | 'comisiones' | 'descuentos' | 'pagos'>('liquidacion');
 
   async function load() {
     try {
@@ -196,10 +199,16 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         <Kpi label={`Pagado · ${monthLabel}`} valor={totalFor('paid')} hint="Comisiones pagadas del mes"/>
         <Kpi label={`Pendiente · ${monthLabel}`} valor={totalFor('pending')} hint="Registradas o aprobadas sin pagar" destacado={totals.some(row => row.pending > 0)}/>
       </KpiStrip>
+      <Subtabs
+        className="[&>button]:min-h-11 md:[&>button]:min-h-9"
+        value={section}
+        onChange={(value: string) => setSection(value as 'liquidacion' | 'comisiones' | 'descuentos' | 'pagos')}
+        items={[['liquidacion', `Liquidación · ${monthLabel}`, monthly.length], ['comisiones', 'Comisiones', commissions.length], ['descuentos', 'Descuentos', discounts.length], ...(canSeePayouts ? [['pagos', 'Pagos', payouts.length] as [string, string, number]] : [])]}
+      />
 
-      <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-settlement-title">
+      <div hidden={section!=='liquidacion'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Liquidación del mes">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><h3 id="commissions-settlement-title" className="shrink-0 text-[17px] font-semibold tracking-tight text-fore">Liquidación del mes</h3><p className="min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
+          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
           <label className="grid gap-1.5"><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mes</span><input type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={event => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value); }}/></label>
         </div>
         {monthly.length
@@ -214,11 +223,11 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
             </ListRow>)}
           </ListGrid>
           : <EmptyBlock compact title="Sin comisiones ni acuerdos comerciales para este mes." description="Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada)." action={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Registrar comisión</button> : undefined}/>}
-      </section>
+      </section></div>
 
-      <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-list-title">
+      <div hidden={section!=='comisiones'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Comisiones registradas">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><h3 id="commissions-list-title" className="shrink-0 text-[17px] font-semibold tracking-tight text-fore">Comisiones y referidos</h3><p className="min-w-0 truncate text-xs text-mute" title="Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p></div>
+          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p></div>
           <div className="flex flex-wrap gap-1">{COMMISSION_FILTERS.map(value => <button key={value} type="button" className={filter === value ? 'choice active' : 'choice'} onClick={() => setFilter(value)}>{value === 'all' ? 'Todas' : commissionStatusLabel(value)}</button>)}</div>
         </div>
         {visible.length
@@ -232,9 +241,8 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
                   <small className="truncate text-[11px] text-mute" title={`${commission.collaborator_name ? `Vinculada a ${commission.collaborator_name}` : 'Sin colaborador vinculado'}${commission.created_at ? ` · alta ${listDateShort(commission.created_at)}` : ''}`}>{commission.collaborator_name ? `Vinculada a ${commission.collaborator_name}` : 'Sin colaborador vinculado'}{commission.created_at ? ` · alta ${listDateShort(commission.created_at)}` : ''}</small>
                 </div>
                 <div className="min-w-0"><StateChip tone={STATUS_TONE[commission.status]} title={`${commissionStatusLabel(commission.status)}${commission.paid_on ? ` · pagada ${listDateShort(commission.paid_on)}` : ''}`}>{commissionStatusLabel(commission.status)}</StateChip></div>
-                <div className="flex min-w-0 items-baseline justify-end gap-2">
+                <div className="min-w-0 text-right" title={commissionBasisText(commission, (value, currency) => money(Number(value), currency))}>
                   <MoneyText valor={commission.amount} currency={commission.currency}/>
-                  <small className="truncate text-[11px] text-mute" title={commissionBasisText(commission, (value, currency) => money(Number(value), currency))}>{commissionBasisText(commission, (value, currency) => money(Number(value), currency))}</small>
                 </div>
                 <div className="flex min-w-0 items-baseline gap-2 text-[11.5px] text-mute">
                   <span className="truncate text-fore" title={`${commission.invoice_number || 'Sin factura vinculada'}${commission.notes ? ` · ${commission.notes}` : ''}`}>{commission.invoice_number || 'Sin factura vinculada'}</span>
@@ -249,11 +257,11 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
             })}
           </ListGrid>
           : <EmptyBlock compact title={commissions.length ? 'No hay comisiones con este estado.' : 'Registrá una comisión por venta o por recomendar un cliente.'} description={commissions.length ? 'Probá con otro estado.' : undefined} action={canManage && !commissions.length ? <button className="primary" onClick={() => setNewCommission(true)}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>}
-      </section>
+      </section></div>
 
-      <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-discounts-title">
+      <div hidden={section!=='descuentos'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Descuentos por referido">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><h3 id="commissions-discounts-title" className="shrink-0 text-[17px] font-semibold tracking-tight text-fore">Descuentos por referido</h3><p className="min-w-0 truncate text-xs text-mute" title="Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
+          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
           {canManage ? <button className="secondary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
         </div>
         {discounts.length
@@ -269,11 +277,11 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
             </ListRow>)}
           </ListGrid>
           : <EmptyBlock compact title="Todavía no hay descuentos registrados." description="Aplicá un descuento cuando el saldo de una factura se ajuste por una recomendación." action={canManage ? <button className="primary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : undefined}/>}
-      </section>
+      </section></div>
       </>}
 
-      {canSeePayouts ? <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-payouts-title">
-        <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><h3 id="commissions-payouts-title" className="shrink-0 text-[17px] font-semibold tracking-tight text-fore">Pagos registrados</h3><p className="min-w-0 truncate text-xs text-mute" title="Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
+      {canSeePayouts ? <div hidden={section!=='pagos'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Pagos registrados">
+        <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
         {payoutsState === 'loading' ? <LoadingBlock label="Cargando egresos…" lines={3}/>
         : payoutsState === 'error' ? <ErrorBlock title="No se pudieron cargar los egresos" description={`${payoutsError || 'No se pudieron cargar los egresos.'} Reintentá para ver los pagos registrados a colaboradores y referidos.`} onRetry={() => void loadPayouts()}/>
         : payouts.length
@@ -287,7 +295,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
             </ListRow>)}
           </ListGrid>
           : <EmptyBlock compact title="Todavía no hay egresos registrados." description="Al pagar una comisión o un sueldo, el egreso aparece acá con su cuenta." action={commissions.some(item => item.status === 'approved') ? <button className="secondary" onClick={() => setFilter('approved')}>Ver comisiones por pagar</button> : undefined}/>}
-      </section> : null}
+      </section></div> : null}
     </>}
 
     {newCommission ? <Dialog title="Nueva comisión o referido" close={() => setNewCommission(false)}>
@@ -296,13 +304,13 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         {key: 'beneficiary_name', label: 'Beneficiario'},
         {key: 'kind', label: 'Origen', section: 'Qué se comisiona', choices: [{value: 'sales', label: 'Venta'}, {value: 'referral', label: 'Referido'}]},
         {key: 'basis', label: 'Cálculo', section: 'Qué se comisiona', choices: [{value: 'fixed', label: 'Importe fijo'}, {value: 'invoiced', label: '% facturado'}, {value: 'collected', label: '% cobrado'}]},
-        {key: 'amount', label: 'Importe (para importe fijo)', type: 'money', section: 'Qué se comisiona'},
-        {key: 'percentage', label: 'Porcentaje (para cálculo %)', type: 'number', optional: true, section: 'Qué se comisiona'},
-        {key: 'currency', label: 'Moneda (se usa la de la factura si se vincula)', choices: currencyChoices, section: 'Qué se comisiona'},
-        {key: 'collaborator_id', label: 'Vincular colaborador', optional: true, section: 'Referencia', choices: [CHOICE_EMPTY, ...collaborators.map(person => ({value: String(person.id), label: person.full_name}))]},
-        {key: 'invoice_id', label: 'Factura de referencia', optional: true, section: 'Referencia', choices: [CHOICE_EMPTY, ...invoiceChoices(false)]},
+        {key: 'amount', label: 'Importe fijo', type: 'money', section: 'Qué se comisiona'},
+        {key: 'percentage', label: 'Porcentaje', type: 'number', optional: true, section: 'Qué se comisiona'},
+        {key: 'currency', label: 'Moneda', choices: currencyChoices, section: 'Qué se comisiona'},
+        {key: 'collaborator_id', label: 'Colaborador', optional: true, section: 'Referencia', choices: [CHOICE_EMPTY, ...collaborators.map(person => ({value: String(person.id), label: person.full_name}))]},
+        {key: 'invoice_id', label: 'Factura', optional: true, section: 'Referencia', choices: [CHOICE_EMPTY, ...invoiceChoices(false)]},
         {key: 'due_on', label: 'Vencimiento', type: 'date', optional: true, section: 'Referencia'},
-        {key: 'notes', label: 'Cliente referido / condiciones', type: 'textarea', optional: true, section: 'Referencia'},
+        {key: 'notes', label: 'Cliente y condiciones', type: 'textarea', optional: true, section: 'Referencia'},
       ]} defaults={{beneficiary_name: '', kind: 'sales', collaborator_id: '', invoice_id: '', basis: 'fixed', amount: '0', percentage: '', currency: 'PYG', due_on: '', notes: ''}} label="Guardar comisión" save={async values => { await api('/api/agency/commissions', values); await load(); setNewCommission(false); }}/>
     </Dialog> : null}
 
@@ -311,9 +319,9 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       {!payAccounts.length && !catalogError ? <Aviso tono="warn">No hay cuentas activas en {pay.currency}. Elegí otra moneda en la comisión o activá una cuenta de esa moneda.</Aviso> : null}
       <Editor columns fields={[
         {key: 'account_id', label: 'Cuenta de salida', choices: payAccounts.map(account => ({value: String(account.id), label: `${account.name} · ${money(Number(account.balance), account.currency)}`}))},
-        {key: 'amount', label: 'Importe de la comisión (se conserva el aprobado)', type: 'money', currency: pay.currency},
+        {key: 'amount', label: 'Importe aprobado', type: 'money', currency: pay.currency},
         {key: 'paid_on', label: 'Fecha', type: 'date'},
-        {key: 'reference', label: 'Comprobante / período / referencia'},
+        {key: 'reference', label: 'Referencia'},
       ]} defaults={{account_id: '', amount: pay.amount, paid_on: todayAsuncion(), reference: ''}} label="Confirmar pago" save={async values => { await api('/api/agency/payouts', {...values, commission_id: pay.id}); setPay(null); setNotice('Pago registrado.'); await load(); }}/>
     </Dialog> : null}
 

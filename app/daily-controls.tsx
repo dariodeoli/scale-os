@@ -114,8 +114,7 @@ export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
  async function perform(fn:()=>Promise<void>){setBusy(true);setError('');try{await fn();}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
  return <Card className="grid gap-3">
   <div className="grid gap-1">
-   <h3 className="text-sm font-semibold text-fore">Conciliación por extracto</h3>
-   <p className="text-xs text-mute">Compará el extracto con los movimientos registrados. Importar y conciliar no modifica saldos. El cruce automático exige fecha, importe y referencia exactos, sin coincidencias ambiguas.</p>
+   <h3 className="text-sm font-semibold text-fore" title="Compará el extracto con los movimientos registrados. Importar y conciliar no modifica saldos. El cruce automático exige fecha, importe y referencia exactos, sin coincidencias ambiguas.">Conciliación por extracto</h3>
   </div>
   <div className="w-full sm:w-72"><SelectCustom label="Cuenta a conciliar" value={accountId} choices={accounts.map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>{setAccountId(value);reset();setNotice('');setError('');if(value)void perform(()=>load(value));}}/></div>
   {accountId?<>

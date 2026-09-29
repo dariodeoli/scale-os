@@ -135,8 +135,8 @@ const LIST_HEAD = 'grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] 
 const LIST_ROW = 'grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700/40';
 /* Fila finita de la previsión: mismo contrato que app/financial-forecast.tsx. */
 const FORECAST_ROW = 'grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:py-2';
-const PERSON_COLS = 'grid-cols-[minmax(16rem,1.2fr)_minmax(7rem,.9fr)_minmax(8rem,.9fr)_minmax(8rem,.9fr)_6.5rem]';
-const CONTRACT_COLS = 'grid-cols-[minmax(22rem,1fr)_9rem_9rem_9rem]';
+const PERSON_COLS = 'grid-cols-[minmax(9.5rem,1fr)_7rem_7rem_7rem]';
+const CONTRACT_COLS = 'grid-cols-[minmax(11rem,1fr)_7rem_7rem_6rem]';
 const EXPENSE_COLS = 'grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS = 'grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
 const STATEMENT_COLS = 'grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
@@ -382,8 +382,7 @@ const personnelRow = ({name, initials, base, override, total, negative = false, 
 <div role="row" class="${FORECAST_ROW} ${PERSON_COLS} forecast-person-row">
  ${cell(`<span class="forecast-person-who flex min-w-0 items-center gap-2"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title="${name}">${name}</span>${noBase ? '<small class="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>' : ''}</span>`)}
  ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${masked ? 'Sin dato' : base}</strong>`, 'forecast-person-base')}
- ${override ? cell(`<span class="whitespace-nowrap text-sm font-semibold tabular-nums text-warn">${override}</span>`) : '<span class="forecast-person-override is-empty hidden md:block" aria-hidden="true"></span>'}
- ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums ${negative ? 'text-bad' : 'text-fore'}">${masked ? 'Sin dato' : total}</strong>`, 'forecast-person-total')}
+ ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums ${negative ? 'text-bad' : 'text-fore'}">${masked ? 'Sin dato' : total}</strong>${override && !masked ? `<small class="ml-1.5 whitespace-nowrap text-[11px] font-semibold tabular-nums text-warn" title="Ajuste del mes: ${override}">${override}</small>` : ''}`, 'forecast-person-total')}
  ${masked ? '<span aria-hidden="true"></span>' : `<span class="forecast-person-actions flex justify-end gap-1.5"><span class="[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7">${iconAction('<path d="m15 5 4 4L8 20l-5 1 1-5Z"/>', `Editar salario: ${name}`)}</span><span class="[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7">${iconAction('<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/>', `Ajuste del mes: ${name}`)}</span>${override ? `<span class="[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7">${iconAction('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', `Quitar ajuste del mes: ${name}`, 'bad')}</span>` : ''}</span>`}
 </div>`;
 const plannedRow = ({category, kind, cadence, note, amount}) => `
@@ -461,7 +460,7 @@ const previsionResumen = {
     <div class="flex flex-wrap items-baseline justify-between gap-2"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG · gasto esperado al cierre</span><strong class="whitespace-nowrap text-lg font-semibold tabular-nums text-fore">Gs. 69.765.432</strong></div>
     <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-mute"><span>Salario base (3): <b class="font-semibold tabular-nums text-fore">Gs. 68.565.432</b></span><span>Ajustes del mes (1): <b class="font-semibold tabular-nums text-fore">Gs. 1.200.000</b></span></div>
     ${listWrap('56rem', `<div class="forecast-person-list" role="table" aria-label="Salarios">
-     <div role="row" class="${LIST_HEAD} ${PERSON_COLS}"><span role="columnheader">Persona</span><span role="columnheader">Salario base</span><span role="columnheader">Ajuste del mes</span><span role="columnheader">Cierre del mes</span><span role="columnheader" class="text-right">Acciones</span></div>
+     <div role="row" class="${LIST_HEAD} ${PERSON_COLS}"><span role="columnheader">Persona</span><span role="columnheader">Salario base</span><span role="columnheader">Cierre del mes</span><span role="columnheader" class="text-right">Acciones</span></div>
  <div role="rowgroup">     ${personnelRow({name: 'Ana López Fernández de la Cruz', initials: 'AL', base: 'Gs. 24.500.000', override: 'Gs. 1.200.000', total: 'Gs. 25.700.000'})}
      ${personnelRow({name: 'Bruno Villalba', initials: 'BV', base: 'Gs. 32.000.000', override: '', total: 'Gs. 32.000.000'})}
      ${personnelRow({name: 'Salario variable sin base fija', initials: 'SV', base: 'Gs. 0', override: 'Gs. 2.065.432', total: 'Gs. 2.065.432', noBase: true})}
