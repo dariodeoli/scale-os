@@ -185,6 +185,14 @@ nuevas**: lo nuevo se escribe con utilidades Tailwind y objetos de la librería.
   y `--c-onbrand` (claro en `:root`, oscuro en `html[data-theme="dark"]`).
   Los objetos de la librería toman de ahí sus colores; no se hardcodean colores
   nuevos por pantalla.
+- **Alcance y comentarios (29-09-2026)**: las reglas del sistema se scopean a
+  `.control-shell` (y a los diálogos) y las reglas base de `globals.css` son el
+  fallback global que el shell refina por especificidad. Toda superficie fuera
+  del shell (panel global, acceso, portal, páginas de error) se envuelve en
+  `.control-shell` o declara su contrato en su hoja; ningún contenedor asume
+  reglas scopeadas. Los comentarios CSS se cierran siempre: un `/*` sin `*/`
+  descarta todo hasta el siguiente cierre sin aviso del build (pasó seis días
+  con `globals.css` desde `3a7a646`). Guarda: `tests/css-comments.test.ts`.
 
 ### Adopción de la librería
 
