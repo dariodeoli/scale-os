@@ -100,13 +100,10 @@
  .client-directory-results--list .client-hub-card>footer :is(.icon-button,.record-remove){width:28px;min-width:28px;height:28px;min-height:28px}
 }
 
-/* At sidebar-constrained desktop widths, keep the title and live result count on
-   a deliberate toolbar row so the count retains whole-word wrapping. */
-@media (min-width:701px) and (max-width:1280px){
- .control-shell .client-directory-toolbar .client-directory-toolbar-title{flex:0 0 100%;display:flex;align-items:baseline;gap:var(--ui-space-2)}
- .control-shell .client-directory-toolbar .directory-summary{min-width:max-content;white-space:nowrap}
-}
-
+/* Pase compacto (#91): el título, el contador y el resumen auxiliar comparten
+   la línea del header (el grupo no se parte: el resumen viaja junto al título y
+   recorta con `title`); si el ancho no alcanza, bajan los controles. Las clases
+   viven en el objeto de la toolbar, sin reglas propias del toolbar acá. */
 
 /* La preferencia Grid/List siempre está disponible. Cuando no hay ancho para la
    tabla, List conserva la semántica como fichas de una sola columna, compactas
@@ -117,7 +114,8 @@
 .client-directory-results--list .client-hub-card dl{gap:var(--ui-space-2)}
 .client-directory-results--list .client-card-actions{margin-top:var(--ui-space-2);padding-top:var(--ui-space-2)}
 @media(max-width:767px){
- .client-directory-toolbar .client-directory-view-controls{order:3}
+ /* Mobile: la vista lista conserva el apilado táctil legible; el header apila
+    sólo lo que no entra (la acción primaria va a lo ancho en la toolbar). */
  .client-directory-results--list .client-hub-card{border-radius:var(--radius-sm)}
  .client-directory-results--list .client-card-actions{flex-wrap:wrap;overflow:visible;justify-content:flex-start}
 }

@@ -2,7 +2,8 @@
 import {useEffect,useState} from 'react';
 import {AlertCircle,ArrowUpRight,CalendarClock,CheckCircle2,FileQuestion,PackageSearch} from 'lucide-react';
 import {api,money} from './operations';
-import {DueAlert,CommercialDashboard,groupDueAlerts,normalizeCommercialDashboard,shortDate} from './control-center-data';
+import {DueAlert,CommercialDashboard,billingExpectationState,groupDueAlerts,normalizeCommercialDashboard,shortDate} from './control-center-data';
+import {StateChip} from './ui-v2';
 import {RecordEditor} from './suite';
 import {ORDER_FIELDS_SEARCH} from './shell-data';
 type Total={currency:string;total:string};
@@ -41,6 +42,9 @@ export function ControlCenter({role,orders,refresh,navigate,signals}:{role:strin
  const financeCurrencies=(()=>{const set=new Set<string>();if(data)for(const [key] of financeSeries)for(const row of data[key])set.add(row.currency);return Array.from(set).sort();})();
  const financeChart=(currency:string)=>{const rows=financeSeries.map(([key,label])=>({key,label,value:Number(data?.[key].find(row=>row.currency===currency)?.total||0)}));const max=Math.max(1,...rows.map(row=>Math.abs(row.value)));return rows.map(row=>({...row,width:Math.max(0,Math.abs(row.value))/max*100}));};
  const financeGroups=financeCurrencies.map(currency=>({currency,rows:financeChart(currency)})).filter(group=>group.rows.some(row=>row.value!==0));
+ // La expectativa contratada se lee una sola vez (misma derivación que el KPI de
+ // Clientes, §15.5) y el estado sin contratos va como chip secundario (#93).
+ const billingEstado=allowed?billingExpectationState(commercial,commercialError?'error':'loading'):null;
  const billingTotals=allowed&&commercial&&commercial.expectedMonthlyBilling&&commercial.expectedMonthlyBilling.length>0?commercial.expectedMonthlyBilling:[];
  const maxBilling=Math.max(1,...billingTotals.map(item=>Math.abs(Number(item.total)||0)));
  const commercialRows=billingTotals.map(item=>({currency:item.currency,width:Math.max(0,Math.abs(Number(item.total)||0))/maxBilling*100}));
@@ -56,7 +60,7 @@ export function ControlCenter({role,orders,refresh,navigate,signals}:{role:strin
    {commercialError?<p className="error" role="alert">{commercialError} Los indicadores comerciales no están disponibles.</p>:<div className="financial-strip" aria-busy={!commercial}>
     <article className="financial-stat"><span>Clientes activos</span><div className="financial-amounts"><strong>{!commercial?'Cargando…':commercial.activeClients}</strong></div><small>Con relación comercial activa.</small></article>
     <article className="financial-stat"><span>Prospectos activos</span><div className="financial-amounts"><strong>{!commercial?'Cargando…':commercial.activeProspects}</strong></div><small>Leads que todavía no están ganados ni perdidos.</small></article>
-    <article className="financial-stat financial-primary"><span>Facturación mensual contratada</span><div className="financial-amounts">{!allowed?<strong className="no-movements">No disponible para tu rol</strong>:!commercial?<strong className="loading-value">Cargando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong className="no-movements">No disponible</strong>:commercial.expectedMonthlyBilling.length?commercial.expectedMonthlyBilling.map(item=><strong key={item.currency}>{money(item.total,item.currency)}</strong>):<strong className="no-movements">Sin contratos activos</strong>}</div>{commercialRows.length>0&&<div className="commercial-bars" aria-hidden="true">{commercialRows.map(row=><span className="commercial-bar-row" key={row.currency}><span className="commercial-bar-currency">{row.currency}</span><span className="commercial-bar-track"><span className="commercial-bar-fill" style={{width:`${row.width}%`}}/></span></span>)}</div>}<small>Expectativa comercial vigente; no es el forecast ni el efectivo cobrado.</small></article>
+    <article className="financial-stat financial-primary"><span>Facturación mensual contratada</span><div className="financial-amounts">{!allowed?<strong className="no-movements">No disponible para tu rol</strong>:billingEstado==='cargando'?<strong className="loading-value">Cargando…</strong>:billingEstado==='error'?<strong className="no-movements" role="alert">No se pudo cargar</strong>:billingEstado==='sin-dato'?<strong className="no-movements">Sin dato</strong>:billingEstado==='sin-contratos'?<><strong className="no-movements">—</strong><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip></>:commercial!.expectedMonthlyBilling!.map(item=><strong key={item.currency}>{money(item.total,item.currency)}</strong>)}</div>{commercialRows.length>0&&<div className="commercial-bars" aria-hidden="true">{commercialRows.map(row=><span className="commercial-bar-row" key={row.currency}><span className="commercial-bar-currency">{row.currency}</span><span className="commercial-bar-track"><span className="commercial-bar-fill" style={{width:`${row.width}%`}}/></span></span>)}</div>}<small>Expectativa comercial vigente; no es el forecast ni el efectivo cobrado.</small></article>
    </div>}
   </section>}
   {allowed&&<section className="financial-summary" aria-labelledby="financial-title">

@@ -2,7 +2,7 @@ import React from "react";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync } from "node:fs";
-import { act, create, type ReactTestRenderer } from "react-test-renderer";
+import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 import {workspaceSource} from './workspace-source';
 require.extensions[".css"] = (module: NodeModule) => {
   module.exports = { toggle: "toggle" };
@@ -10,6 +10,9 @@ require.extensions[".css"] = (module: NodeModule) => {
 Object.assign(globalThis, { React });
 const { ClientDirectoryToolbar, filterClientDirectory } =
   require("../app/client-directory-toolbar") as typeof import("../app/client-directory-toolbar");
+
+const text = (node: ReactTestInstance | string): string =>
+  typeof node === "string" ? node : node.children.map(text).join("");
 
 const clients = [
   {
@@ -116,6 +119,15 @@ test("client toolbar exposes accessible search, count, view controls, and role-g
   );
   assert.ok(grid);
   assert.ok(createButton);
+  // #91: el contador vive en el título, el resumen es auxiliar en la misma
+  // línea y el estado conserva su nombre accesible sin gastar una fila.
+  const title = root.findByType("h1");
+  assert.equal(text(title), "Clientes · 2", "el título lleva el contador del directorio");
+  const summary = root.findByProps({ role: "status" });
+  assert.equal(summary.props.title, "Mostrando 1 cliente de 2 clientes", "el resumen completo queda en el tooltip");
+  assert.equal(summary.parent!.findAllByType("h1").length, 1, "el resumen vive junto al título, no como bloque propio");
+  assert.equal(root.findByProps({ id: "clientes-estado" }).props["aria-label"], "Estado", "el estado conserva su nombre accesible");
+  assert.match(String(createButton!.props.className || ""), /max-md:w-full/, "la acción primaria va a lo ancho en mobile");
   await act(async () => search.props.onChange({ target: { value: "Árbol" } }));
   assert.equal(query, "Árbol");
   await act(async () => grid!.props.onClick());
@@ -158,4 +170,49 @@ test("client toolbar protects touch targets and small-screen layout with the v2 
   assert.match(source, /aria-label="Controles del directorio de clientes"/);
   assert.doesNotMatch(source, /SelectCustom|ViewToggle|search-field'|search-field"/, "los objetos legados quedaron atrás; las clases de la referencia de Clientes se conservan");
   assert.match(source, /directorySummaryText/, "el resumen sale de la capa de datos del dominio");
+});
+
+test("el header de Clientes vive en una fila con el resumen auxiliar (#91)", () => {
+  const source = readFileSync("app/client-directory-toolbar.tsx", "utf8");
+  assert.match(
+    source,
+    /client-directory-toolbar flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 md:min-h-14/,
+    "la fila declara el ritmo (gap 12) y la altura de 56 px en desktop",
+  );
+  assert.match(
+    source,
+    /client-directory-toolbar-title flex min-w-\[12rem\] flex-1 flex-nowrap items-baseline/,
+    "título y contador comparten el grupo del header",
+  );
+  assert.match(
+    source,
+    /client-directory-toolbar-title[\s\S]*?<h1[\s\S]*?<\/h1>[\s\S]*?directory-summary[\s\S]*?<\/div>/,
+    "el resumen auxiliar vive dentro del grupo del título",
+  );
+  assert.doesNotMatch(source, /directory-summary mt-1\.5/, "el resumen dejó de ser un bloque propio");
+  assert.match(
+    source,
+    /<Label htmlFor="clientes-estado" className="sr-only">Estado<\/Label>/,
+    "el rótulo del estado queda accesible sin ocupar una línea",
+  );
+  assert.match(source, /aria-label="Estado"/, "el select conserva su nombre accesible");
+  assert.match(source, /title=\{summary\}/, "el resumen completo queda disponible en el tooltip");
+});
+
+test("los KPIs de Clientes priorizan el dato real y el estado chico (#91)", () => {
+  const clientes = readFileSync(new URL("../app/sections/clientes.tsx", import.meta.url), "utf8");
+  for (const label of ["Clientes activos", "Cobros al día", "Facturación contratada", "Entregas próximas"]) {
+    assert(clientes.includes(`label="${label}"`), `la franja conserva el KPI ${label}`);
+  }
+  assert.match(
+    clientes,
+    /<StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos<\/StateChip>/,
+    "sin contratos es un estado secundario chico",
+  );
+  assert.doesNotMatch(clientes, /'Sin contratos activos'/, "no vuelve como titular de tres líneas");
+  assert.match(clientes, /\{valor: '—', hint: 'Sin dato'\}/, "sin dato devuelve el vacío explícito");
+  assert.match(clientes, /role="alert" className="text-bad">No se pudo cargar/, "el error del API se anuncia en chico");
+  assert.match(clientes, /billingExpectationState\(commercialSummary, commercialState\)/, "la expectativa contratada sale de la derivación compartida (§15.5)");
+  assert.match(clientes, /billingMontos/, "el valor con contratos sale del dato real");
+  assert.match(clientes, /billingResto/, "las monedas secundarias van en la línea de explicación, sin estirar el KPI");
 });

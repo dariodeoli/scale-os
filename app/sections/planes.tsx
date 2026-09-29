@@ -48,7 +48,7 @@ export function PlanesSection({user}: PlanesSectionProps){
   return (
     <section className="directory grid gap-4" aria-label="Planes reutilizables">
       <KpiStrip aria-label="Métricas de planes">
-        <Kpi label="Planes" valor={plans.length} destacado hint={totals.size?`Valor de ítems: ${Array.from(totals).map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}`:'Sin totales guardados'}/>
+        <Kpi label="Planes" valor={plans.length} destacado hint={totals.size?`Valor de ítems: ${Array.from(totals).map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}`:'Sin totales guardados'} className="[&_.text-xs]:truncate"/>
         <Kpi label="Activos" valor={active.length} hint="Disponibles para presupuestos"/>
         <Kpi label="Archivados" valor={archived.length} hint="Fuera de circulación"/>
         <Kpi label="Monedas" valor={currencies.length} hint={currencies.length?currencies.join(' · '):'Sin moneda registrada'}/>
@@ -58,15 +58,10 @@ export function PlanesSection({user}: PlanesSectionProps){
         <ErrorBlock title="No se pudieron actualizar los planes." description="Se muestra la última lista cargada; reintentá para refrescar." onRetry={()=>void load()}/>
       ) : null}
 
-      {state==='ready' && canEdit ? (
-        <div className="flex flex-wrap items-center justify-end">
-          <Button type="button" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nuevo plan</Button>
-        </div>
-      ) : null}
-
       {plans.length ? (
         <PlanComparison
           plans={plans}
+          acciones={state==='ready'&&canEdit?<Button type="button" className="max-md:min-h-11" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nuevo plan</Button>:undefined}
           actions={(plan)=><>
             {canEdit?<Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" onClick={()=>setEdit(plan)}><Pencil aria-hidden="true" size={14}/> Editar</Button>:null}
             <RemoveRecord kind="plans" id={plan.id} name={String(plan.name||'')} role={user?.role||'viewer'} done={load}/>

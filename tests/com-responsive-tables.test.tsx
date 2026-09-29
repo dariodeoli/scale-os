@@ -185,13 +185,13 @@ test('presupuestos vacío: el CTA canónico sólo aparece con permiso',async()=>
 });
 
 const client=(extra:Record<string,unknown>={})=>({id:'9',name:'Cliente sin plan',active:true,created_at:'2025-01-10',email:'',phone:'',tax_id:'',logo_url:null,color_key:'violet',has_recurring_price:false,...extra} as never);
-const mountClientes=async(role:string,list:unknown[],width:number,canManageClients=false,canSeeBilling=false)=>{
+const mountClientes=async(role:string,list:unknown[],width:number,canManageClients=false,canSeeBilling=false,commercialSummary:unknown=null,commercialState:'idle'|'loading'|'ready'|'error'='idle')=>{
  await act(async()=>{
   renderer=create(<ClientesSection
    dataState="ready" user={user(role)} clientView="list" clientStatusFilter="" setClientStatusFilter={()=>{}}
    clientSearch="" setClientSearch={()=>{}} archiveBusy="" bulkBusy={false} selectedClients={[]} setSelectedClients={()=>{}}
    canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={list as never} displayedClients={list as never} liveClients={list as never}
-   archivedClients={[]} paymentStatuses={[]} clientHubStats={new Map()} commercialSummary={null} commercialState="idle"
+   archivedClients={[]} paymentStatuses={[]} clientHubStats={new Map()} commercialSummary={commercialSummary as never} commercialState={commercialState}
    directoryKpis={{active:1,paused:0,activeProjects:0,deliveries:0}} cobrosKpis={{alDia:0,porVencer:0,enMora:0,sinFactura:0}}
    load={async()=>{}} setClientArchive={async()=>{}} toggleClientSelected={()=>{}} selectVisibleClients={()=>{}} batchClients={async()=>{}}
    setDetail={()=>{}}/>,{createNodeMock:()=>nodeFor(width)});
@@ -222,6 +222,33 @@ test('clientes: tarjetas cuando la tabla no entra y CTA "Cargar plan" por rol',a
  assert.equal(renderer.root.findAllByProps({role:'table'}).length,1,'con ancho entra la tabla del directorio');
  assert.equal(renderer.root.findAll(node=>typeof node.props.className==='string'&&node.props.className.split(/\s+/).includes('list-actions')).length,1,'la fila densa usa la celda fija común');
  assert.equal(renderer.root.findAll(node=>String(node.props.className||'').includes('client-hub-card')).length,0,'sin tarjetas cuando la tabla entra');
+ act(()=>renderer.unmount());
+});
+
+test('clientes: el KPI de contratos usa el dato real y el estado chico (#91)',async()=>{
+ // Sin contratos: `—` + chip secundario, nunca el titular de tres líneas.
+ await mountClientes('owner',[client()],1400,false,true,{expectedMonthlyBilling:[]},'ready');
+ let copy=text(renderer.root);
+ assert.match(copy,/Facturación contratada/);
+ assert.match(copy,/Sin contratos/,'sin contratos queda como estado chico');
+ assert.doesNotMatch(copy,/Sin contratos activos/,'no vuelve como titular');
+ assert.match(copy,/—/,'el valor sin dato es el vacío explícito');
+ act(()=>renderer.unmount());
+
+ // Con contratos: el monto real por moneda y su expectativa.
+ await mountClientes('owner',[client()],1400,false,true,{expectedMonthlyBilling:[{currency:'PYG',total:'105000000'}]},'ready');
+ copy=text(renderer.root);
+ assert.match(copy,/105\.000\.000 \/ mes/,'el valor sale del dato real');
+ assert.match(copy,/Expectativa vigente por mes/);
+ assert.doesNotMatch(copy,/Sin contratos/);
+ act(()=>renderer.unmount());
+
+ // Error y "sin dato" también en chico, con el valor en `—`.
+ await mountClientes('owner',[client()],1400,false,true,null,'error');
+ assert.match(text(renderer.root),/No se pudo cargar/,'el error se dice en chico');
+ act(()=>renderer.unmount());
+ await mountClientes('owner',[client()],1400,false,true,{},'ready');
+ assert.match(text(renderer.root),/Sin dato/,'el dato ausente se declara');
  act(()=>renderer.unmount());
 });
 

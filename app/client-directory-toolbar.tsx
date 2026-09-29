@@ -2,6 +2,11 @@
 // Rediseño v2 (campaña #41 / spec #43 §1.2) reconciliado con la adaptación de
 // DSN para la referencia de Clientes (#42): mismos props y objetos de la
 // librería, con la lógica pura centralizada en ./client-directory-data.
+//
+// Pase compacto (#91): el header vive en UNA fila (≥1280, 56 px) con el
+// contador junto al título (`Clientes · 11`), el resumen como texto auxiliar —
+// nunca un bloque propio—, los filtros en línea y la acción primaria al final.
+// En mobile se apila sólo lo que no entra, con targets de 44 px.
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
 import {Button, Label, SearchField, Select} from 'owncoding-ui';
@@ -42,23 +47,26 @@ export function ClientDirectoryToolbar({
   totalCount,
   view,
 }: ClientDirectoryToolbarProps) {
+  // El contador del título es el total del directorio; el resumen auxiliar
+  // aclara cuántos se ven con los filtros activos (`directorySummaryText`).
+  const summary = directorySummaryText(resultCount, totalCount);
   // La preferencia se guarda en el shell por navegador. También se muestra en
   // pantallas chicas: allí la lista usa fichas compactas, no una tabla recortada.
   return (
     <div
-      className="client-directory-toolbar flex flex-wrap items-end gap-3"
+      className="client-directory-toolbar flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 md:min-h-14"
       aria-label="Controles del directorio de clientes"
     >
-      <div className="client-directory-toolbar-title min-w-0 flex-1">
-        <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">Clientes</h1>
-        <p className="directory-summary mt-1.5 text-[13px] leading-[1.5] tabular-nums text-mute" role="status" aria-atomic="true">
-          {directorySummaryText(resultCount, totalCount)}
-        </p>
+      <div className="client-directory-toolbar-title flex min-w-[12rem] flex-1 flex-nowrap items-baseline gap-x-2">
+        <h1 className="whitespace-nowrap text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">
+          Clientes<span aria-hidden="true"> · </span><span className="tabular-nums">{totalCount}</span>
+        </h1>
+        <p className="directory-summary min-w-0 truncate text-[12px] leading-5 tabular-nums text-mute" role="status" aria-atomic="true" title={summary}>{summary}</p>
       </div>
       <SearchField className="client-directory-search w-full sm:w-72" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder="Buscar por nombre, correo o teléfono"/>
-      <div className="grid gap-1.5">
-        <Label htmlFor="clientes-estado">Estado</Label>
-        <Select id="clientes-estado" value={status} onChange={(event:ChangeEvent<HTMLSelectElement>)=>onStatusChange(event.target.value)} className="min-w-[11rem]">
+      <div className="min-w-0">
+        <Label htmlFor="clientes-estado" className="sr-only">Estado</Label>
+        <Select id="clientes-estado" aria-label="Estado" value={status} onChange={(event:ChangeEvent<HTMLSelectElement>)=>onStatusChange(event.target.value)} className="min-w-[11rem]">
           <option value="">Todos los estados</option>
           {clientStatuses.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
         </Select>
@@ -71,7 +79,7 @@ export function ClientDirectoryToolbar({
       {canCreate && (
         <Button
           type="button"
-          className="client-directory-create ml-auto"
+          className="client-directory-create max-md:w-full"
           onClick={onCreate}
         >
           <Plus aria-hidden="true" size={18} /> Nuevo cliente
