@@ -540,7 +540,12 @@ export default function Home() {
         setUser(data.user);
         setSignedIn(true);
         returnToApprovedLoginDestination();
-        if(data.user.subscription?.hasAccess!==false)return load(data.user,sectionScope(sectionLabel(pathname))).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
+        // Arranque percibido (#109): la pantalla de carga dura lo que tarda la
+        // identidad. En cuanto se conoce el usuario, el shell pinta —con sus
+        // esqueletos por bloque— y los datos siguen en paralelo; el mismo `load`
+        // conserva el alcance por sección, los permisos y la identidad fresca
+        // (#81) porque las firmas cargadas se registran al llegar.
+        if(data.user.subscription?.hasAccess!==false)void load(data.user,sectionScope(sectionLabel(pathname))).catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los datos.'));
       })
       .catch(() => setSignedIn(false))
       .finally(() => setLoading(false));
@@ -1063,6 +1068,7 @@ export default function Home() {
         <div className="workspace-content flex min-w-0 flex-1 flex-col">
         <header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1">
           {active==='Clientes' ? <ClientDirectoryToolbar
+            loading={shellDataState==='loading'}
             canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
             onCreate={()=>setModal('client')}
             onQueryChange={setClientSearch}
@@ -1076,7 +1082,7 @@ export default function Home() {
           /> : <>
             <div className="page-heading flex min-w-0 items-center gap-2">
               <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{pageTitle}</h1>
-              {active==='Proyectos'&&<span className="page-count rounded-full bg-ink-700 px-2 py-0.5 text-[11px] tabular-nums text-mute">{projects.length} proyectos</span>}
+              {active==='Proyectos'&&shellDataState!=='loading'&&<span className="page-count rounded-full bg-ink-700 px-2 py-0.5 text-[11px] tabular-nums text-mute">{projects.length} proyectos</span>}
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
               {active==='Proyectos'&&<div className="workspace-view-controls"><ViewSwitch value={projectView as 'list'|'grid'} onChange={changeProjectView}/></div>}

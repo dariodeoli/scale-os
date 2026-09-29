@@ -1,0 +1,205 @@
+{
+  "label": "antes-109",
+  "width": 1440,
+  "at": "2026-09-29T22:38:13.578Z",
+  "routes": [
+    {
+      "route": "/clientes",
+      "nav": "boot",
+      "landed": "/clientes",
+      "api": 12,
+      "duplicates": 0,
+      "payloadKB": 470,
+      "apiMs": 3832,
+      "ttFirst": 142,
+      "ttLast": 2379,
+      "detail": [
+        {
+          "url": "/auth/providers",
+          "delay": 60,
+          "kb": 0,
+          "start": 146
+        },
+        {
+          "url": "/auth/me",
+          "delay": 120,
+          "kb": 0,
+          "start": 146
+        },
+        {
+          "url": "/work-orders?fields=id,status,project_id,due_date",
+          "delay": 1830,
+          "kb": 224,
+          "start": 270
+        },
+        {
+          "url": "/clients?fields=id,name,email,phone,tax_id,created_at,logo_url,color_key,active,lifecycle_status,has_recurring_price",
+          "delay": 150,
+          "kb": 113,
+          "start": 275
+        },
+        {
+          "url": "/projects",
+          "delay": 450,
+          "kb": 132,
+          "start": 275
+        },
+        {
+          "url": "/summary",
+          "delay": 250,
+          "kb": 0,
+          "start": 276
+        },
+        {
+          "url": "/client-payment-status",
+          "delay": 150,
+          "kb": 0,
+          "start": 276
+        },
+        {
+          "url": "/control-center",
+          "delay": 250,
+          "kb": 0,
+          "start": 276
+        },
+        {
+          "url": "/presence/heartbeat",
+          "delay": 80,
+          "kb": 0,
+          "start": 2229
+        },
+        {
+          "url": "/auth/organizations",
+          "delay": 150,
+          "kb": 0,
+          "start": 2229
+        },
+        {
+          "url": "/presence/usage",
+          "delay": 150,
+          "kb": 0,
+          "start": 2230
+        },
+        {
+          "url": "/notifications?status=all",
+          "delay": 120,
+          "kb": 0,
+          "start": 2230
+        }
+      ],
+      "heaviest": [
+        "/work-orders?fields=id,status,project_id,due_date 224 KB",
+        "/projects 132 KB",
+        "/clients?fields=id,name,email,phone,tax_id,created_at,logo_url,color_key,active,lifecycle_status,has_recurring_price 113 KB"
+      ],
+      "marks": {
+        "shell": 2185,
+        "loading": 2185,
+        "content": 2185,
+        "dataReady": 2185
+      }
+    },
+    {
+      "route": "/resumen",
+      "nav": "boot",
+      "landed": "/resumen",
+      "api": 13,
+      "duplicates": 0,
+      "payloadKB": 343,
+      "apiMs": 2477,
+      "ttFirst": 20,
+      "ttLast": 1059,
+      "detail": [
+        {
+          "url": "/auth/providers",
+          "delay": 60,
+          "kb": 0,
+          "start": 22
+        },
+        {
+          "url": "/auth/me",
+          "delay": 120,
+          "kb": 0,
+          "start": 22
+        },
+        {
+          "url": "/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date,due_time,work_type,assignee_names,assigned_user_id,assigned_user_ids,checklist_total,checklist_completed,estimated_hours,actual_hours,updated_at",
+          "delay": 210,
+          "kb": 97,
+          "start": 145
+        },
+        {
+          "url": "/clients",
+          "delay": 150,
+          "kb": 113,
+          "start": 146
+        },
+        {
+          "url": "/projects",
+          "delay": 450,
+          "kb": 132,
+          "start": 147
+        },
+        {
+          "url": "/summary",
+          "delay": 250,
+          "kb": 0,
+          "start": 147
+        },
+        {
+          "url": "/presence/heartbeat",
+          "delay": 80,
+          "kb": 0,
+          "start": 610
+        },
+        {
+          "url": "/auth/organizations",
+          "delay": 150,
+          "kb": 0,
+          "start": 610
+        },
+        {
+          "url": "/presence/usage",
+          "delay": 150,
+          "kb": 0,
+          "start": 610
+        },
+        {
+          "url": "/notifications?status=all",
+          "delay": 120,
+          "kb": 0,
+          "start": 610
+        },
+        {
+          "url": "/dashboard",
+          "delay": 300,
+          "kb": 0,
+          "start": 610
+        },
+        {
+          "url": "/control-center",
+          "delay": 250,
+          "kb": 0,
+          "start": 610
+        },
+        {
+          "url": "/productivity/internal-tasks",
+          "delay": 150,
+          "kb": 0,
+          "start": 909
+        }
+      ],
+      "heaviest": [
+        "/projects 132 KB",
+        "/clients 113 KB",
+        "/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date,due_time,work_type,assignee_names,assigned_user_id,assigned_user_ids,checklist_total,checklist_completed,estimated_hours,actual_hours,updated_at 97 KB"
+      ],
+      "marks": {
+        "shell": 618,
+        "loading": 618,
+        "dataReady": 618,
+        "content": 918
+      }
+    }
+  ]
+}

@@ -29,6 +29,8 @@ type ClientDirectoryToolbarProps = {
   onViewChange: (view: CollectionView) => void;
   query: string;
   resultCount: number;
+  /** #109: el shell todavía está cargando; el contador no afirma cero. */
+  loading?: boolean;
   status: string;
   totalCount: number;
   view: CollectionView;
@@ -43,6 +45,7 @@ export function ClientDirectoryToolbar({
   onViewChange,
   query,
   resultCount,
+  loading = false,
   status,
   totalCount,
   view,
@@ -59,9 +62,9 @@ export function ClientDirectoryToolbar({
     >
       <div className="client-directory-toolbar-title flex min-w-[12rem] flex-1 flex-nowrap items-baseline gap-x-2">
         <h1 className="whitespace-nowrap text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">
-          Clientes<span aria-hidden="true"> · </span><span className="tabular-nums">{totalCount}</span>
+          Clientes{loading ? null : <><span aria-hidden="true"> · </span><span className="tabular-nums">{totalCount}</span></>}
         </h1>
-        <p className="directory-summary min-w-0 truncate text-[12px] leading-5 tabular-nums text-mute" role="status" aria-atomic="true" title={summary}>{summary}</p>
+        <p className="directory-summary min-w-0 truncate text-[12px] leading-5 tabular-nums text-mute" role="status" aria-atomic="true" title={loading ? undefined : summary}>{loading ? 'Cargando el directorio…' : summary}</p>
       </div>
       <SearchField className="client-directory-search w-full sm:w-72" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder="Buscar por nombre, correo o teléfono"/>
       <div className="min-w-0">
