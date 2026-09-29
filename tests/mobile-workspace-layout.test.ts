@@ -4,7 +4,7 @@ import postcss from 'postcss';
 
 // Source-level CSS contracts, not a browser layout or visual verification.
 const read=(file:string)=>readFileSync(new URL('../app/'+file,import.meta.url),'utf8');
-const sheets=Object.fromEntries(['actor-identity.css','work-checklist.css','tailwind.css'].map(file=>[file,postcss.parse(read(file))]));
+const sheets=Object.fromEntries(['actor-identity.css','work-checklist.css','tailwind.css','ui-system.css'].map(file=>[file,postcss.parse(read(file))]));
 
 // Inspect a particular selector's declarations in source order at a viewport.
 // This deliberately does not emulate the full CSS cascade or font metrics.
@@ -78,5 +78,11 @@ layoutTest('grid capsules share one aligned skeleton',()=>{
  assert(ui.includes('.ops-grid:not(.ops-grid-list)>.person-hub-card'),'the shared capsule skeleton covers the team grid');
  assert(ui.includes('.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment'),'the skeleton covers the inventory grid');
  assert(ui.includes('margin-top:auto'),'card actions anchor to the footer');
+// Compactación (#89): las tabs del shell conservan 44 px en móvil y son una
+// barra compacta en escritorio, con scroll horizontal (nunca apiladas).
+assert.equal(declaration('ui-system.css','.control-shell .section-tabs>a','min-height',390),'44px','las tabs del shell sostienen 44 px en móvil');
+assert.equal(declaration('ui-system.css','.control-shell .section-tabs>a','min-height',1440),'34px','las tabs del shell compactan su alto en escritorio');
+assert.equal(declaration('ui-system.css','.control-shell .section-tabs','overflow-x',390),'auto','la barra de tabs scrollea en horizontal');
+assert.equal(declaration('ui-system.css','.control-shell .section-tabs','flex-wrap',390),undefined,'la barra de tabs no envuelve en móvil');
  assert(ui.includes('min-height:24px'),'chip rows keep a stable height');
 });

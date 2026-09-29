@@ -26,9 +26,28 @@ test('un solo KPI: montos por CeldaMoneda, sin truncar y con vacío explícito',
  const text=plain(renderer.toJSON());
  assert(text.includes('Facturación contratada')&&text.includes('Neto mensual'));
  assert(text.replace(/\u00a0/g,' ').includes('Gs. 1.250.000'),'el monto sale del formateador compartido de la app');
- assert(!JSON.stringify(renderer.toJSON()).includes('truncate'),'el KPI no trunca el valor');
+ const kpi=(renderer.toJSON() as any);
+ assert(String(kpi.props.className).includes('ui-kpi'),'el KPI expone el hook del sistema');
+ const [,valor]=kpi.children;
+ assert(!JSON.stringify(valor).includes('truncate'),'el KPI no trunca el valor');
+ const hintTooltip=renderer.root.findByProps({title:'Neto mensual'});
+ assert(String(hintTooltip.props.className).includes('truncate'),'el hint se recorta a una línea');
+ assert(String(hintTooltip.props.className).includes('flex-1'),'el hint ocupa el ancho disponible sin empujar el alto (#89)');
  await act(async()=>{renderer.update(<Kpi label="Cobrado" valor={null}/>);});
  assert(plain(renderer.toJSON()).includes('—'),'el dato ausente se muestra explícito');
+});
+
+test('PageHeader compacto: en ≥1280 es una fila con el contexto en una línea (#89)',async()=>{
+ let renderer:any;
+ await act(async()=>{renderer=create(<PageHeader eyebrow="Configuración" title="Preferencias del espacio" subtitle="Se guardan solo para vos en esta empresa, en este navegador." actions={<button className="primary">Guardar</button>}/>);});
+ const header=(renderer.toJSON() as any);
+ assert(String(header.props.className).includes('ui-page-header'),'el encabezado expone el hook compartido con el shell');
+ const [main,actions]=header.children;
+ assert(String(main.props.className).includes('ui-page-header-main')&&String(main.props.className).includes('xl:flex'),'título y contexto comparten fila desde xl');
+ const subtitle=main.children[2];
+ assert(String(subtitle.props.className).includes('ui-page-header-subtitle')&&String(subtitle.props.className).includes('xl:line-clamp-1'),'el subtítulo auxiliar queda en una línea en escritorio');
+ assert.equal(subtitle.props.title,'Se guardan solo para vos en esta empresa, en este navegador.','el texto completo del contexto viaja en el tooltip');
+ assert(String(actions.props.className).includes('header-actions')&&String(actions.props.className).includes('xl:flex-nowrap'),'las acciones acompañan la fila sin envolver en escritorio');
 });
 
 test('KpiStrip y LoadingBlock: grilla responsive y carga anunciada sin inventar datos',async()=>{
@@ -36,6 +55,7 @@ test('KpiStrip y LoadingBlock: grilla responsive y carga anunciada sin inventar 
  await act(async()=>{renderer=create(<KpiStrip><Kpi label="A" valor={1}/><Kpi label="B" valor={2}/></KpiStrip>);});
  const grid=JSON.stringify(renderer.toJSON());
  assert(grid.includes('grid-cols-1')&&grid.includes('sm:grid-cols-2')&&grid.includes('xl:grid-cols-4'),'la grilla de KPIs es 1/2/4 columnas');
+ assert(grid.includes('ui-kpi-strip'),'la grilla expone el hook del sistema (#89)');
  await act(async()=>{renderer=create(<LoadingBlock label="Cargando clientes…" lines={2}/>);});
  const carga=renderer.root.findByProps({role:'status'});
  assert.equal(String(carga.props['aria-busy']),'true');
@@ -98,6 +118,9 @@ test('patrones v2: encabezado, toolbar, lista y estados salen de una sola pieza'
  await act(async()=>{renderer=create(<FilterToolbar summary="4 de 4"><span>Buscar</span></FilterToolbar>);});
  const toolbar=plain(renderer.toJSON());
  assert(toolbar.includes('Buscar')&&toolbar.includes('4 de 4'),'la toolbar agrupa controles y contador');
+ const toolbarTree=(renderer.toJSON() as any);
+ assert.equal(toolbarTree.props['data-toolbar'],'filtros','la toolbar se identifica para tests y mediciones (#89)');
+ assert(String(toolbarTree.props.className).includes('gap-3')&&String(toolbarTree.props.className).includes('xl:flex-nowrap'),'una fila con gap 12 desde xl (#89)');
 
  const template='grid-cols-[minmax(11rem,1.6fr)_8rem_auto]';
  await act(async()=>{renderer=create(<ListGrid label="Clientes" template={template} columns={[{key:'name',label:'Cliente'},{key:'state',label:'Estado'},{key:'actions',label:'Acciones'}]}><ListRow template={template}><span>Estudio</span><span>Activo</span><span>Editar</span></ListRow></ListGrid>);});

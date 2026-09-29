@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const read=(name:string)=>readFileSync(new URL(`../app/${name}`,import.meta.url),'utf8');
-const control=read('control-center.css');
+const uiSystem=read('ui-system.css');
 const workspace=read('scale-workspace.tsx');
 const rail=read('desktop-sidebar.tsx');
 const drawer=read('mobile-navigation.tsx');
@@ -14,13 +14,14 @@ assert.match(workspace,/navItemClass=\(active:boolean,tone:'rail'\|'light'\)=>/,
 assert.match(workspace,/active\?'bg-fono\/10 text-fono-light':'text-mute hover:bg-ink-700 hover:text-fore'/,'selection changes color only, never geometry');
 assert(workspace.includes('navItemClass(containsActive,tone)')&&workspace.includes('navItemClass(activeParent===module,tone)')&&workspace.includes('navItemClass(false,tone)'),'group header, module leaf and logout share the item class');
 assert.match(drawer,/\[&_a\]:min-h-11 \[&_button\]:min-h-11/,'the mobile drawer keeps 44px targets for links and buttons');
-// Los tabs de apartados conservan su geometría base en la hoja compartida.
+// Los tabs de apartados conservan su geometría base en la hoja del sistema
+// (una sola fuente desde el pase de compactación #89).
 const tabs='.control-shell .section-tabs>a';
-const start=control.indexOf(`${tabs}{`)>=0?control.indexOf(`${tabs}{`):control.indexOf(`${tabs},`);
+const start=uiSystem.indexOf(`${tabs}{`);
 assert(start>=0,'section tabs rule exists');
-const base=control.slice(start).split('}')[0];
-assert(base.includes('font-weight:700'),'section tabs reserve the same font metrics before selection');
-const state=control.slice(control.indexOf(`${tabs}[aria-current=page]{`)).split('}')[0];
+const base=uiSystem.slice(start).split('}')[0];
+assert(base.includes('font-weight:600'),'section tabs reserve the same font metrics before selection');
+const state=uiSystem.slice(uiSystem.indexOf(`${tabs}[aria-current=page]{`)).split('}')[0];
 assert(!/font-weight|font-size|padding|line-height|border-width/.test(state),'tab selection must not change geometry');
 assert(rail.includes('shrink-0'),'rail icons reserve their width');
 assert(read('qa-fixes.css').includes('.choice{font-weight:600}'));
