@@ -108,7 +108,7 @@ const equipmentRow = (item) => `
  <span class="flex flex-wrap items-center justify-end gap-1">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense: true})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense: true})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense: true})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense: true})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense: true})}</span>
 </article>`;
 const equipmentCard = (item) => `
-<article data-grid-card="equipment" data-status="${item.status}" class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+<article data-grid-card="equipment" data-status="${item.status}" class="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
  <div class="flex items-start justify-between gap-3"><div class="flex min-w-0 items-start gap-2">
   <label class="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
   ${item.photo ? '<img class="h-11 w-11 shrink-0 rounded-lg object-cover" src="/brand/icon-192.png" alt="">' : ''}
@@ -210,7 +210,7 @@ const reservationRow = (row) => `
  <span class="flex flex-wrap items-center justify-end gap-1">${row.status === 'reserved' ? iconAction({icon: 'edit', label: `Editar reserva: ${row.title}`, dense: true}) + iconAction({icon: 'package', tone: 'ok', label: `Registrar retiro: ${row.title}`, dense: true}) + iconAction({icon: 'close', tone: 'warn', label: `Cancelar reserva: ${row.title}`, dense: true}) : row.status === 'checked_out' ? iconAction({icon: 'refresh', tone: 'ok', label: `Registrar devolución: ${row.title}`, dense: true}) : ''}</span>
  ${row.audit ? `<p class="col-span-full flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">${row.audit}</p>` : ''}
 </div>`;
-const calendar = (events) => `<div class="grid gap-2" aria-label="Calendario mensual de reservas"><div class="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => `<span class="text-center text-[10px] font-bold uppercase tracking-wider text-mute">${day}</span>`).join('')}</div><div class="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">${Array.from({length: 2}, (_, index) => `<div class="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key="blank-${index}"></div>`).join('')}${Array.from({length: 30}, (_, index) => {const day = index + 1; const rows = events[day] || []; return `<div class="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1" aria-label="2026-09-${String(day).padStart(2, '0')}"><time class="text-[11px] tabular-nums text-mute">${day}</time>${rows.map((event) => `<div class="grid gap-0.5 rounded-md border px-1.5 py-1 text-[11px] ${event.tone}"><b class="break-words">${event.title}</b><small class="text-mute">${event.count} equipo(s) · ${event.label}</small></div>`).join('')}</div>`;}).join('')}</div></div>`;
+const calendar = (events) => `<div class="grid gap-2" aria-label="Calendario mensual de reservas"><div class="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => `<span class="text-center text-[10px] font-bold uppercase tracking-wider text-mute">${day}</span>`).join('')}</div><div class="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">${Array.from({length: 2}, (_, index) => `<div class="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key="blank-${index}"></div>`).join('')}${Array.from({length: 30}, (_, index) => {const day = index + 1; const rows = events[day] || []; return `<div class="grid min-h-[4.25rem] content-start gap-1 rounded-lg border border-ink-600/60 p-2 min-[769px]:min-h-14 min-[769px]:p-1" aria-label="2026-09-${String(day).padStart(2, '0')}"><time class="text-[11px] tabular-nums text-mute">${day}</time>${rows.map((event) => `<div class="grid gap-0.5 rounded-md border px-1.5 py-1 text-[11px] ${event.tone}"><b class="break-words">${event.title}</b><small class="text-mute">${event.count} equipo(s) · ${event.label}</small></div>`).join('')}</div>`;}).join('')}</div></div>`;
 
 /* ------------------------------------------------------------- estudio (datos) */
 const spaces = [
@@ -219,9 +219,9 @@ const spaces = [
   {name: 'Estudio B · escenario de ladrillo', scenario: 'Ladrillo visto · chimenea', notes: 'En refacción hasta octubre.', active: false},
 ];
 const spaceCard = (space) => `
-<article data-grid-card="studio-spaces" class="flex min-h-[200px] flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
+<article data-grid-card="studio-spaces" class="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
  <div class="flex items-start justify-between gap-3"><h3 class="break-words text-sm font-semibold text-fore">${space.name}</h3>${badge(space.active ? 'Disponible' : 'Inactivo', space.active ? 'ok' : 'mute')}</div>
- <p class="text-sm text-mute">${space.scenario}</p>${space.notes ? `<small class="text-xs text-mute">${space.notes}</small>` : ''}
+ <p class="text-sm text-mute">${space.scenario}</p>${space.notes ? `<small class="line-clamp-2 text-xs text-mute" title="${space.notes}">${space.notes}</small>` : ''}
  <div class="mt-auto flex justify-end">${iconAction({icon: 'edit', label: `Editar espacio: ${space.name}`})}</div>
 </article>`;
 const studioReservations = [
@@ -392,7 +392,7 @@ export default [
     kind: 'workspace',
     lists: [],
     grids: [],
-    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5"><div class="flex flex-wrap items-center justify-between gap-3"><div class="min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Calendario y reservas</h2><p class="mt-1 text-xs leading-5 text-mute">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p></div><div class="w-52">${fieldLabel('Mes del calendario', 'inventory-calendar-month')}<input id="inventory-calendar-month" type="month" value="2026-09" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore md:h-9 md:text-sm"></div></div>${emptyState('Sin reservas en este mes.', 'Elegí equipos y fechas para planificar una producción.', button('Reservar equipos'), false, ICON.calendar)}</div></div>`,
+    body: `<div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5"><div class="flex min-w-0 flex-wrap items-center gap-3"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Calendario y reservas</h2><p class="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p><div class="flex items-center gap-2"><label class="whitespace-nowrap text-[12px] font-semibold text-mute" for="inventory-calendar-month">Mes</label>${fieldLabel('Mes del calendario', 'inventory-calendar-month')}<input id="inventory-calendar-month" type="month" value="2026-09" class="h-11 w-44 rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore md:h-9 md:text-sm"></div></div>${emptyState('Sin reservas en este mes.', 'Elegí equipos y fechas para planificar una producción.', button('Reservar equipos'), false, ICON.calendar)}</div></div>`,
   },
   {
     id: 'inventario-error',

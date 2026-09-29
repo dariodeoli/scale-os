@@ -168,11 +168,12 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(inventory,/const RESERVATION_COLS='\[--rsv-cols:[\s\S]*?const RESERVATION_GRID='grid grid-cols-\[var\(--rsv-cols\)\] items-center gap-x-2'/,'reservation rows share their template');
   assert.equal((inventory.match(/\$\{EQUIPMENT_GRID\}/g)||[]).length,2,'the equipment header and rows share the template');
   assert.equal((inventory.match(/\$\{RESERVATION_GRID\}/g)||[]).length,2,'the reservation header and rows share the template');
-  assert.match(inventory,/min-h-\[200px\][\s\S]*?flex-col/,'inventory cards keep a big grid height');
+  // #99 (densidad integral): la altura de la tarjeta la define el contenido.
+  assert.doesNotMatch(inventory,/min-h-\[200px\]/,'inventory cards no longer reserve a fixed grid height (#99)');
   for(const line of inventory.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),'inventory offers the full value for every truncated text');
   assert.doesNotMatch(inventory,/truncate[^>]*(CeldaMoneda|SerialTexto|listDate)/,'inventory never truncates amounts, dates or serials');
   const projectCards=read('app/project-card.tsx');
-  assert.match(projectCards,/min-h-\[200px\][\s\S]*?flex-col/,'project cards keep a big grid height');
+  assert.doesNotMatch(projectCards,/min-h-\[200px\]/,'project cards no longer reserve a fixed grid height (#99)');
   const agents=read('AGENTS.md');
   assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
   const forecast=read('app/financial-forecast.tsx');

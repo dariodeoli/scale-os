@@ -47,7 +47,7 @@ for(const width of [320,360,390,768]){
  // comparte plantilla, las acciones no se envuelven y las celdas pueden encoger.
  const projectCard=read('project-card.tsx'),board=read('production-board.tsx'),section=read('sections/produccion.tsx');
  assert(projectCard.includes('break-words')&&projectCard.includes('title={project.name}'),'project headings wrap with their full title (v2)');
- assert(projectCard.includes('min-h-[200px]'),'project cards keep the 200px grid height (v2)');
+ assert(!projectCard.includes('min-h-[200px]'),'project cards no longer reserve a fixed 200px height (#99: la altura la define el contenido)');
  assert(projectCard.includes('[.project-list_&]:grid-cols-[var(--project-cols)]'),'project rows share the list template (v2)');
  assert(projectCard.includes('[.project-list_&]:overflow-x-auto')&&projectCard.includes('[.project-list_&]:flex-nowrap'),'project row actions never wrap: silent horizontal scroll (v2)');
  assert(projectCard.includes('min-w-0'),'project card cells allow shrinking (v2)');
