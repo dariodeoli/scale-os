@@ -824,44 +824,6 @@ export default [
     body: `<div class="ops-stack"><section class="panel">${planComparison}</section></div>`,
   },
   {
-    id: 'superadmin-agencias',
-    section: 'Superadmin',
-    surface: 'Agencias y suscripciones (panel + lista densa)',
-    kind: 'plain',
-    lists: [
-      {container: '.platform-admin-table-wrap', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · agencias', exemptBelow: 760},
-    ],
-    body: `<main class="platform-admin-page">${superadminAgencies}</main>`,
-  },
-  {
-    id: 'superadmin-agencias-tarjetas',
-    section: 'Superadmin',
-    surface: 'Agencias y suscripciones (tarjetas)',
-    kind: 'plain',
-    body: `<main class="platform-admin-page">${superadminAgencyCards}</main>`,
-  },
-  {
-    id: 'superadmin-accesos',
-    section: 'Superadmin',
-    surface: 'Accesos entre agencias y catálogo comercial',
-    kind: 'plain',
-    lists: [
-      {container: '.platform-admin-users [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · usuarios', exemptBelow: 430},
-      {container: '.platform-admin-commercial [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · cupones', exemptBelow: 430},
-    ],
-    body: `<main class="platform-admin-page"><div class="platform-admin-two-columns">${superadminUsers}${superadminCoupons}</div></main>`,
-  },
-  {
-    id: 'superadmin-auditoria',
-    section: 'Superadmin',
-    surface: 'Auditoría global (lista densa)',
-    kind: 'plain',
-    lists: [
-      {container: '.platform-admin-audit [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría', rowHeight: [44, 52]},
-    ],
-    body: `<main class="platform-admin-page">${superadminAudit}</main>`,
-  },
-  {
     id: 'shell-sidebar-colapsada',
     section: 'Shell',
     surface: 'Sidebar colapsada (60 px)',

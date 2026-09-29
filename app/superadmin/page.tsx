@@ -15,21 +15,24 @@ import {
   appHome,
   errorCode,
   errorStatus,
-  formatPlatformMetric,
   loginReturnPath,
   newExtendKey,
-  subscriptionSummary,
   type Agency,
   type AuditAction,
   type BootstrapStatus,
   type ConfirmRequest,
   type Coupon,
   type Overview,
+  platformTime,
   type Person,
+  type PlatformView,
   type State,
   type Subscription,
 } from "./model";
-import {Kpi, KpiStrip} from "../ui-v2";
+import {SegmentedField} from "owncoding-ui";
+import {LoadingScreen} from "../loading-screen";
+import {StateChip} from "../ui-v2";
+import {PlatformOverview} from "./overview";
 import {notify} from "../feedback";
 import {PlatformAccessDenied, PlatformNotices, PlatformRedirecting} from "./states";
 import {PlatformAgencies} from "./agencies";
@@ -43,6 +46,8 @@ import {PlatformConfirmDialog} from "./confirm";
 export default function PlatformAdmin() {
   const router = useRouter();
   const [state, setState] = useState<State | null>(null);
+  const [view, setView] = useState<PlatformView>("resumen");
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -129,6 +134,7 @@ export default function PlatformAdmin() {
         coupons: coupons.coupons,
         audit: audit.actions,
       });
+      setUpdatedAt(new Date().toISOString());
     } catch (cause) {
       if (!handlePlatformError(cause, true))
         setError(
@@ -465,51 +471,66 @@ export default function PlatformAdmin() {
     }
   }
 
-  const subscriptions = state?.overview.subscriptions || [];
-  const activeSubscriptions = subscriptions.find((row) => row.status === "active")?.total ?? null;
+  // Vistas del panel (#102): una consola con secciones y contadores en vez de
+  // un scroll largo; todas las capacidades siguen disponibles por vista.
+  const views: {id: PlatformView; label: string; icon: string; count?: number}[] = [
+    {id: "resumen", label: "Resumen", icon: "overview"},
+    {id: "agencias", label: "Agencias", icon: "building", count: state?.agencies.length},
+    {id: "cupones", label: "Cupones", icon: "tag", count: state?.coupons.length},
+    {id: "accesos", label: "Accesos", icon: "shield", count: state?.users.length},
+    {id: "auditoria", label: "Auditoría", icon: "audit", count: state?.audit.length},
+  ];
   const pageContent = redirecting ? (
     <PlatformRedirecting/>
   ) : accessDenied ? (
     <PlatformAccessDenied/>
   ) : (
     <>
-      <PlatformNotices state={state} error={error} busy={busy} bootstrap={bootstrap}/>
+      <PlatformNotices state={state} error={error} bootstrap={bootstrap}/>
       {state ? (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
-          <KpiStrip aria-label="Resumen de plataforma">
-            <Kpi label="Agencias activas" valor={state.overview.agencies?.active} hint={`de ${formatPlatformMetric(state.overview.agencies?.total)} agencias`} destacado/>
-            <Kpi label="Usuarios registrados" valor={state.overview.users?.total} hint="Cuentas de todas las agencias"/>
-            <Kpi label="Cupones activos" valor={state.overview.coupons?.active} hint={`de ${formatPlatformMetric(state.overview.coupons?.total)} códigos`}/>
-            <Kpi label="Suscripciones" valor={activeSubscriptions} hint={subscriptionSummary(subscriptions)}/>
-          </KpiStrip>
+          {/* Barra de secciones: `div` (no `nav`) para no heredar el ancho
+              completo de la regla legacy `nav button` del shell; el objeto
+              `SegmentedField` ya declara su propio `role="group"`. */}
+          <div className="platform-admin-tabs silent-scroll">
+            <SegmentedField className="w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" value={view} onChange={(value:string)=>setView(value as PlatformView)} ariaLabel="Secciones del panel global" options={views.map((item)=>[item.id, item.label, item.icon, item.count] as [string,string,string,number|undefined])}/>
+          </div>
 
-          <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/>
+          {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={setView}/> : null}
+
+          {view === "agencias" ? <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/> : null}
+
+          {view === "cupones" ? <PlatformCatalog busy={busy} state={state} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/> : null}
+
+          {view === "accesos" ? <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/> : null}
+
+          {view === "auditoria" ? <PlatformAudit audit={state.audit}/> : null}
 
           {writable && subscriptionAgency ? (
             <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension}/>
           ) : null}
-
-          <div className="platform-admin-two-columns" aria-label="Catálogo comercial y accesos">
-            <PlatformCatalog busy={busy} state={state} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/>
-            <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/>
-          </div>
-
-          <PlatformAudit audit={state.audit}/>
         </div>
       ) : null}
     </>
   );
 
+  const updated = platformTime(updatedAt);
+  // Carga inicial: la misma pantalla de carga de la app (variante neutra, sin
+  // sesión) mientras llega el overview, que además es la puerta de permisos.
+  if (busy && !state && !error && !redirecting && !accessDenied) return <LoadingScreen/>;
   return (
-    <main className="platform-admin-page">
-      <header className="platform-admin-header platform-admin-header--global">
-        <Link href={appHome()} aria-label="Scale OS">
+    <main className="platform-admin-page control-shell">
+      <header className="platform-admin-header">
+        <Link className="platform-admin-brand" href={appHome()} aria-label="Scale OS">
           <WorkspaceBrand />
         </Link>
-        <div className="platform-admin-title">
-          <p className="eyebrow">ADMINISTRACIÓN GLOBAL</p>
+        <div className="platform-admin-identity">
+          <p className="eyebrow">Administración global</p>
           <h1>Control de Scale OS</h1>
-          <span>Operación, acceso y catálogo comercial</span>
+        </div>
+        <div className="platform-admin-meta">
+          <StateChip tone={writable ? "ok" : "info"} title={writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}>{writable ? "Admin global" : "Solo lectura"}</StateChip>
+          {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
         </div>
         <div className="platform-admin-actions">
           <button
@@ -521,7 +542,7 @@ export default function PlatformAdmin() {
             <RefreshCw aria-hidden="true" />
             Actualizar
           </button>
-          <Link className="text-button" href={appHome()}>
+          <Link className="secondary" href={appHome()}>
             <ArrowLeft aria-hidden="true" />
             Panel
           </Link>

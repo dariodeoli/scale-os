@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 // Fuente concatenada del panel global (issue #46): la pantalla se descompuso en
 // page + model (tipos y helpers) + states + audit, y los contratos siguen valiendo.
-const page = ["page.tsx", "model.tsx", "states.tsx", "audit.tsx", "agencies.tsx", "subscription-dialog.tsx", "access.tsx", "catalog.tsx", "confirm.tsx"]
+const page = ["page.tsx", "model.tsx", "overview.tsx", "states.tsx", "audit.tsx", "agencies.tsx", "subscription-dialog.tsx", "access.tsx", "catalog.tsx", "confirm.tsx"]
   .map((file) => readFileSync(new URL(`../app/superadmin/${file}`, import.meta.url), "utf8"))
   .join("\n");
 const styles = readFileSync(
@@ -91,17 +91,21 @@ test("superadmin normalizes absent and invalid dashboard metric values", () => {
 test("superadmin keeps its operational controls accessible and responsive", () => {
   assert.match(
     styles,
-    /\.platform-admin-page :is\(button, a, input, select, textarea\) \{[\s\S]*?min-height: 44px;/,
-  );
-  assert.match(
-    styles,
     /\.platform-admin-page :is\(button, a, input, select, textarea\):focus-visible \{[\s\S]*?outline: 3px solid/,
   );
   assert.match(styles, /\.platform-admin-page \{[\s\S]*?overflow-x: clip;/);
+  // Targets móviles del panel (el escritorio usa el control de 40 px del sistema).
+  assert.match(styles, /\.platform-admin-actions \.secondary \{ flex: 1; min-height: 44px \}/);
   assert.match(
     styles,
     /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
   );
+  // Densidad (#97/#102): ritmo de página por token, encabezado de 56 px alineado
+  // con las cards y sin aire extra arriba.
+  assert.match(styles, /padding: var\(--ui-space-2, 8px\) var\(--ui-page-padding, 16px\) var\(--ui-space-6, 24px\)/);
+  assert.match(styles, /min-height: 56px/);
+  assert.match(styles, /border-radius: var\(--ui-radius-card, 12px\)/);
+  assert.match(page, /className="platform-admin-page control-shell"/);
 });
 
 test("la vuelta al panel es determinista en SSR y cliente, sin depender de window (#79)", () => {
@@ -111,9 +115,9 @@ test("la vuelta al panel es determinista en SSR y cliente, sin depender de windo
   assert.match(page, /process\.env\.NEXT_PUBLIC_APP_ORIGIN/, "el origen se puede configurar por env");
   assert.match(page, /from "\.\.\/brand-metadata"/, "el fallback comparte el origen de la app");
   // Los tres puntos usan el helper: brand, «Panel» del header y «Volver al panel».
-  assert.match(page, /<Link href=\{appHome\(\)\} aria-label="Scale OS">/);
-  assert.match(page, /<Link className="text-button" href=\{appHome\(\)\}>/);
-  assert.match(page, /<Link className="secondary mt-3 inline-flex items-center gap-2" href=\{appHome\(\)\}>/);
+  assert.match(page, /<Link className="platform-admin-brand" href=\{appHome\(\)\} aria-label="Scale OS">/);
+  assert.match(page, /<Link className="secondary" href=\{appHome\(\)\}>/);
+  assert.match(page, /<Link className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" href=\{appHome\(\)\}>/);
 });
 
 test("superadmin panel uses the shared v2 surface and the one notification system (issue #80)", () => {
@@ -136,4 +140,73 @@ test("superadmin panel uses the shared v2 surface and the one notification syste
   assert.doesNotMatch(page, /platform-admin-badge/);
   assert.doesNotMatch(page, /platform-admin-stat-card/);
   assert.doesNotMatch(styles, /platform-admin-stat-card|platform-admin-badge|platform-admin-status-note/);
+});
+
+test("rediseño #102: consola con secciones, carga de la app y título único", () => {
+  // Consola: encabezado compacto + barra de secciones con contadores + vistas.
+  assert.match(page, /<div className="platform-admin-tabs silent-scroll">/, "la barra de secciones es un contenedor sin la regla legacy `nav button`");
+  assert.match(page, /ariaLabel="Secciones del panel global"/);
+  for (const view of ["resumen", "agencias", "cupones", "accesos", "auditoria"]) {
+    assert.match(page, new RegExp(`\\{id: "${view}", label:`), `la vista ${view} existe`);
+  }
+  assert.equal((page.match(/\{view === "/g) ?? []).length, 5, "cada sección renderiza su vista");
+  assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{setView\}\/>/);
+  // Carga inicial con la pantalla de la app (variante neutra, sin sesión).
+  assert.match(page, /import \{LoadingScreen\} from "\.\.\/loading-screen"/);
+  assert.match(page, /if \(busy && !state && !error && !redirecting && !accessDenied\) return <LoadingScreen\/>/);
+  assert.doesNotMatch(page, /<KpiStrip[\s\S]{0,2000}?loading/, "las métricas no se inventan durante la carga");
+  // Estado del encabezado: rol + última actualización en 24 h.
+  assert.match(page, /platformTime\(updatedAt\)/);
+  assert.match(page, /<StateChip tone=\{writable \? "ok" : "info"\}/);
+  assert.match(page, /className="platform-admin-identity"/, "marca, rótulo y título comparten la fila del encabezado");
+});
+
+test("rediseño #102: ninguna capacidad del panel se pierde", () => {
+  // Endpoints y contratos intactos.
+  for (const endpoint of [
+    "/api/platform/overview",
+    "/api/platform/agencies?limit=50",
+    "/api/platform/users?limit=50",
+    "/api/platform/coupons?limit=50",
+    "/api/platform/audit?limit=50",
+    "/api/platform/bootstrap-status",
+    "/api/platform/destructive/preview",
+    "/api/platform/users/",
+    "/api/platform/coupons/",
+    "subscription/extend",
+    "/subscription`",
+  ]) {
+    assert(page.includes(endpoint), `el endpoint ${endpoint} sigue en el panel`);
+  }
+  // Agencias: gestionar estado manual + eliminar.
+  assert.match(page, /Gestionar estado manual/);
+  assert.match(page, /Eliminar agencia/);
+  // Cupones: crear + pausar/reactivar.
+  assert.match(page, /Crear cupón/);
+  assert.match(page, /"Pausar" : "Reactivar"/);
+  // Accesos: admin global, solo lectura, quitar y eliminar.
+  assert.match(page, /Hacer admin global/);
+  assert.match(page, /Solo lectura/);
+  assert.match(page, /Quitar acceso/);
+  assert.match(page, /Eliminar mi cuenta/);
+  assert.match(page, /Eliminar usuario/);
+  // Confirmación reforzada + re-autenticación + auditoría con filtros.
+  assert.match(page, /Escribí <strong>\{target\}<\/strong> para confirmar/);
+  assert.match(page, /PlatformConfirmDialog/);
+  assert.match(page, /ariaLabel="Buscar en la auditoría"/);
+  assert.match(page, /<Select aria-label="Filtrar por acción"/);
+  // Permisos: viewer nunca ve controles mutantes (mismo gate de siempre).
+  assert.match(page, /const writable = myRole === "admin"/);
+});
+
+test("rediseño #102: densidad y filtros de las listas del panel", () => {
+  // Toolbars de lista: búsqueda + filtro + contador, sin card contenedora.
+  assert.equal((page.match(/<FilterToolbar summary=/g) ?? []).length, 3, "agencias, accesos y auditoría usan la toolbar del sistema");
+  assert.equal((page.match(/data-toolbar="filtros"/g) ?? []).length, 0, "la toolbar real sale del primitivo (no se duplica el hook)");
+  assert.match(page, /<FilterToolbar summary=\{`\$\{visible\.length\} de \$\{state\.agencies\.length\}`\}>/);
+  // Los formularios de alta (cupones) viven en una fila del sistema.
+  assert.match(page, /className="platform-admin-coupon"/);
+  assert.match(styles, /\.platform-admin-coupon \{[\s\S]*?display: flex;[\s\S]*?flex-wrap: wrap;/);
+  // Sin `min-height` grande en tarjetas del panel.
+  assert.doesNotMatch(styles, /min-height:\s*(1[5-9][0-9]|2[0-9][0-9])px/);
 });

@@ -1,72 +1,86 @@
-/* Panel global (superadmin) — superficie del sistema (rediseño #80).
+/* Panel global (superadmin) — consola del sistema (#102).
  *
- * La pantalla usa los tokens y objetos v2 (`app/ui-v2.tsx`, Tailwind); este
- * archivo conserva solo el contrato de pantalla: lienzo, header sticky,
- * accesibilidad (targets y foco) y la respuesta mobile del ledger de agencias.
- * No se crean estilos de componente nuevos por pantalla (DESIGN-SYSTEM.md).
+ * Rediseño de cero: la pantalla es una consola con encabezado compacto, barra
+ * de secciones y vistas. Usa el sistema compartido (`control-shell` +
+ * `ui-v2` + tokens de densidad de #97); acá vive solo el contrato de pantalla:
+ * lienzo, encabezado sticky, fila de secciones y los ajustes de las listas
+ * densas a la superficie del panel.
  */
 .platform-admin-page {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: clamp(14px, 1.6vw, 20px);
-  width: min(1600px, 100%);
+  gap: var(--ui-section-gap, 16px);
+  width: 100%;
   min-width: 0;
   min-height: 100dvh;
-  margin: 0 auto;
-  padding: clamp(12px, 2.4vw, 32px);
+  /* Sin aire extra arriba (#102): el encabezado ya tiene su propio padding. */
+  padding: var(--ui-space-2, 8px) var(--ui-page-padding, 16px) var(--ui-space-6, 24px);
   overflow-x: clip;
   color: var(--text);
-  scroll-padding-block: 24px;
+  scroll-padding-block: var(--ui-space-6);
 }
 .platform-admin-page *,
 .platform-admin-page *::before,
 .platform-admin-page *::after { box-sizing: border-box; }
-.platform-admin-page :is(button, a, input, select, textarea) { min-height: 44px; touch-action: manipulation }
+.platform-admin-page :is(button, a, input, select, textarea) { touch-action: manipulation }
 .platform-admin-page :is(button, a, input, select, textarea):focus-visible { outline: 3px solid color-mix(in srgb, var(--brand-600) 72%, white); outline-offset: 3px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand-600) 20%, transparent) }
 
-/* Header sticky compacto: marca, título del panel y acciones. */
+/* ── Encabezado: una fila de 56–64 px, mismo ancho y margen que las cards ─── */
 .platform-admin-header {
   position: sticky;
-  top: 0;
+  top: var(--ui-space-2, 8px);
   z-index: 40;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: clamp(10px, 1.6vw, 18px);
+  gap: var(--ui-control-gap-lg, 12px);
   min-width: 0;
-  min-height: 64px;
+  min-height: 56px;
+  /* El `header` global trae margen propio: el encabezado del panel lo anula. */
   margin-bottom: 0;
-  margin-inline: calc(clamp(12px, 2.4vw, 32px) * -1);
-  padding: 9px clamp(12px, 2.4vw, 32px);
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 86%, transparent);
-  background: color-mix(in srgb, var(--surface, var(--canvas)) 92%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle, var(--line));
+  border-radius: var(--ui-radius-card, 12px);
+  background: var(--surface-raised, var(--surface));
+  box-shadow: var(--shadow-xs);
   color: var(--text);
 }
-.platform-admin-header > a { display: inline-flex; align-items: center; min-width: 0; padding: 6px; border-radius: 12px; color: inherit; text-decoration: none }
-.platform-admin-header .workspace-wordmark { color: var(--text) }
-.platform-admin-header .workspace-wordmark > span { color: var(--brand-600) }
-.platform-admin-title { display: grid; min-width: 0; gap: 2px }
+.platform-admin-brand { display: inline-flex; align-items: center; min-width: 0; padding: 4px 6px; border-radius: var(--ui-radius-control, 10px); color: inherit; text-decoration: none }
+.platform-admin-title { display: grid; min-width: 0; gap: 0 }
 .platform-admin-title .eyebrow { margin: 0; color: var(--brand-600); font-size: 10px; font-weight: 800; letter-spacing: .12em; line-height: 1.2; text-transform: uppercase }
-.platform-admin-title h1 { margin: 0; color: var(--text); font-size: clamp(20px, 1.8vw, 25px); font-weight: 760; letter-spacing: -.04em; line-height: 1.1 }
-.platform-admin-title > span { overflow: hidden; color: var(--text-muted); font-size: 12px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap }
-.platform-admin-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0 }
-.platform-admin-actions :is(button, a) { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding-inline: 13px; white-space: nowrap }
+.platform-admin-title h1 { margin: 0; color: var(--text); font-size: clamp(17px, 1.4vw, 20px); font-weight: 750; letter-spacing: -.03em; line-height: 1.15 }
+.platform-admin-identity { display: flex; min-width: 0; flex-wrap: wrap; align-items: baseline; gap: 2px var(--ui-control-gap-lg, 12px) }
+.platform-admin-meta { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 6px var(--ui-control-gap, 8px) }
+.platform-admin-updated { color: var(--text-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap }
+.platform-admin-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--ui-control-gap, 8px); min-width: 0 }
 .platform-admin-page .platform-admin-danger, .platform-admin-page .platform-admin-danger:hover { color: var(--danger) }
 
-/* Dos columnas (catálogo y accesos): una sola columna cuando no alcanza. */
-.platform-admin-two-columns { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(14px, 1.6vw, 20px); min-width: 0 }
-@media (max-width: 1080px) { .platform-admin-two-columns { grid-template-columns: minmax(0, 1fr) } }
+/* ── Secciones (tabs): barra compacta con scroll silencioso en móvil ─────── */
+.platform-admin-tabs { display: flex; min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none }
+.platform-admin-tabs::-webkit-scrollbar { display: none }
+.platform-admin-tabs > div { flex: none }
+.platform-admin-tabs [aria-pressed] { flex: 0 0 auto; width: auto }
 
-/* Listas densas: 38 px en escritorio; el móvil conserva los 44 px de la base.
- * La fila fina suma 8 px de padding vertical: 38/44 + 8 queda en 46/52 px
- * (contrato 44–52) y la celda de acciones resuelve su desborde con scroll
- * silencioso (una sola línea, sin wrap; acciones siempre alcanzables). */
-@media (min-width: 761px) {
+/* La toolbar de filtros del panel no deja campos pegados al borde. */
+.platform-admin-page [data-toolbar="filtros"] { gap: var(--ui-control-gap-lg, 12px); margin-bottom: var(--ui-space-3, 12px) }
+
+/* ── Cupones: alta en una fila flexible (campos 9–12 rem + CTA) ─────────── */
+.platform-admin-coupon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--ui-control-gap-lg, 12px);
+  margin-bottom: var(--ui-space-3, 12px);
+}
+.platform-admin-coupon > label { flex: 1 1 9rem; min-width: 0 }
+.platform-admin-coupon > label:first-child { flex: 1 1 12rem }
+.platform-admin-coupon > button { flex: 0 0 auto }
+
+/* ── Listas densas en la superficie del panel ───────────────────────────── */
+@media(min-width:761px){
   .platform-admin-page .list-actions :is(button, a),
-  .platform-admin-agency-cards .text-button { min-height: 38px }
+  .platform-admin-agency-cards .text-button { min-height: 32px }
 }
 .platform-admin-page .list-row { padding-block: 4px }
 .platform-admin-page .list-actions { justify-content: safe flex-end; overflow-x: auto; scrollbar-width: none }
@@ -77,17 +91,18 @@
 .platform-admin-page .panel .list-actions-head,
 .platform-admin-page .panel .list-actions { --list-actions-bg: rgb(var(--c-ink-800)) }
 
-/* Mobile: la tabla densa no entra; va la cuadrícula de tarjetas. */
+/* Mobile: la tabla densa no entra; va la cuadrícula de tarjetas. El encabezado
+   pasa a dos filas (identidad / controles) con targets de 44 px. */
 @media(max-width:760px){
-  .platform-admin-page { padding: 12px; gap: 14px }
-  .platform-admin-header { grid-template-columns: auto minmax(0, 1fr); gap: 10px; min-height: 0; margin-inline: -12px; padding: 10px 12px }
-  .platform-admin-title > span { display: none }
+  .platform-admin-header { position: static; grid-template-columns: auto minmax(0, 1fr); gap: 8px 10px }
+  .platform-admin-meta { grid-column: 1 / -1 }
   .platform-admin-actions { grid-column: 1 / -1; width: 100% }
-  .platform-admin-actions :is(button, a) { flex: 1 }
+  .platform-admin-actions .secondary { flex: 1; min-height: 44px }
+  .platform-admin-updated { white-space: normal }
   .platform-admin-table-wrap { display: none; }
 }
 
-@media (prefers-reduced-transparency: reduce) {
+@media(prefers-reduced-transparency:reduce){
   .platform-admin-header { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface, var(--canvas)) }
 }
 

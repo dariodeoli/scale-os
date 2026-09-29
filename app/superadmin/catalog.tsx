@@ -3,7 +3,7 @@
 // Rediseño #80: panel del sistema, formulario de alta y lista densa v2.
 import {useRef} from "react";
 import {PauseCircle, PlayCircle} from "lucide-react";
-import {ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
+import {FilterToolbar, ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, money, type Coupon, type CouponDraft, type State} from "./model";
 import {SelectCustom} from "../profile-controls";
 import {decimalInput} from "../field-rules";
@@ -36,15 +36,15 @@ export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggl
   const detail = (item: Coupon) => `${item.discount_type === "percent" ? `${formatPlatformMetric(item.discount_value)}%` : item.discount_type === "days" ? `${formatPlatformMetric(item.discount_value)} días gratis` : money(item.discount_value, item.currency)} · ${item.max_redemptions === null ? "Sin límite de usos" : `${formatPlatformMetric(item.max_redemptions)} usos máximos`}`;
   return (
     <section className="panel h-full" aria-labelledby="platform-catalog-title">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-        <div className="min-w-0">
-          <p className="eyebrow">Cupones</p>
-          <h2 id="platform-catalog-title" className="text-[17px] font-semibold tracking-tight text-fore">Catálogo comercial</h2>
+      <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <h2 id="platform-catalog-title" className="text-[15px] font-semibold tracking-tight text-fore">Catálogo comercial</h2>
+          <StateChip tone="mute" title="Cupones cargados">{formatPlatformMetric(state.coupons.length)}</StateChip>
         </div>
-        <small className="text-[12px] leading-[1.35] text-mute">{formatPlatformMetric(state.coupons.length)} códigos</small>
+        <small className="text-[12px] leading-[1.35] text-mute">Crear un cupón no inicia cobros ni activa un proveedor de pagos</small>
       </div>
       {writable && (
-      <form className="platform-admin-coupon mb-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(10rem,1.2fr)_minmax(8rem,.9fr)_minmax(7rem,.8fr)_auto]" onSubmit={createCoupon}>
+      <form className="platform-admin-coupon" onSubmit={createCoupon}>
         <label className={FIELD}>
           Código
           <input
@@ -84,13 +84,12 @@ export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggl
         {coupon.discount_type === "fixed" ? (
             <SelectCustom label="Moneda" choices={[{value:'USD',label:'USD'},{value:'PYG',label:'PYG'}]} value={coupon.currency} onChange={value=>setCoupon({...coupon,currency:value})}/>
         ) : null}
-        <button className="primary" disabled={busy}>
+        <button className="primary min-h-11 md:min-h-10" disabled={busy}>
           Crear cupón
         </button>
       </form>
       )}
-      <p className="form-note">Crear un cupón no inicia cobros ni activa un proveedor de pagos.</p>
-      <div ref={listRef} className="mt-3 min-w-0">
+      <div ref={listRef} className="mt-4 min-w-0">
         {state.coupons.length ? (listFits ? (
           <ListGrid label="Cupones" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[25rem]" pinnedActions>
             {state.coupons.map((item) => (
