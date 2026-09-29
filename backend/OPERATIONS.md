@@ -34,6 +34,8 @@ y `../VERSIONING.md`.
 - Orígenes y sesiones: `APP_URL`, `PUBLIC_ORIGIN`, `CLIENT_PORTAL_ORIGIN`, `INVITE_LINK_SECRET`.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`.
 - Correo: `WEEM_EMAIL_RELAY_URL`, `WEEM_EMAIL_RELAY_TOKEN`, `EMAIL_FROM`, `RESEND_API_KEY`.
+  Los avisos de la bandeja se derivan de `agency_notifications`; sin relay quedan **en cola**
+  (nunca «enviados»). Contrato, estados canónicos y plantillas: `NOTIFICATIONS.md`.
 - Suscripción: `STRIPE_BILLING_ENABLED`, `STRIPE_WEBHOOK_VERIFIED_AT`,
   `SUBSCRIPTION_CHECKOUT_PROVIDER` y las claves `PAGAYA_*`; el estado real se valida en
   `STRIPE-SETUP.md`.

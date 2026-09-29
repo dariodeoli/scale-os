@@ -1,0 +1,9 @@
+{
+  "actividad": "/equipo/actividad",
+  "metricas": "/pipeline/metricas",
+  "mora": "/pagos/mora",
+  "planes": "/presupuestos/planes",
+  "comisiones": "/equipo/comisiones",
+  "papelera": "/configuracion/papelera",
+  "colaboradores": "/equipo"
+}

@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 import {resolveCoreApiOrigin} from './core-api-origin.mjs';
+import {readFileSync} from 'node:fs';
+
+// Fuente única de rutas legadas (regla 7, §15): el mismo mapa que consume
+// `app/navigation.ts`; la compatibilidad redirige antes del render.
+const legacyRoutes=JSON.parse(readFileSync(new URL('./app/legacy-routes.json',import.meta.url),'utf8'));
 
 const nextConfig = {
   output: 'standalone',
@@ -23,15 +28,7 @@ const nextConfig = {
   },
   // Resolve legacy URLs before rendering: a real Location header, even without JavaScript.
   async redirects() {
-    return [
-      { source: '/actividad', destination: '/equipo/actividad', permanent: false },
-      { source: '/metricas', destination: '/pipeline/metricas', permanent: false },
-      { source: '/mora', destination: '/pagos/mora', permanent: false },
-      { source: '/planes', destination: '/presupuestos/planes', permanent: false },
-      { source: '/comisiones', destination: '/equipo/comisiones', permanent: false },
-      { source: '/papelera', destination: '/configuracion/papelera', permanent: false },
-      { source: '/colaboradores', destination: '/equipo', permanent: false },
-    ];
+    return Object.entries(legacyRoutes).map(([source,destination])=>({ source: `/${source}`, destination, permanent:false }));
   },
   async rewrites() {
     const coreApiOrigin=resolveCoreApiOrigin();

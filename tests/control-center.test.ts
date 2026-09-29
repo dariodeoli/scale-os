@@ -34,7 +34,15 @@ assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,12);
 assert.equal(sectionPath('Tablero de producción'),'/produccion');assert.equal(sectionLabel('/produccion'),'Producción');
 assert.equal(legacyDestination('constructor'),undefined);assert.equal(legacyDestination('toString'),undefined);assert.equal(legacyDestination('mora'),'/pagos/mora');
 const nextConfig=readFileSync(new URL('../next.config.mjs',import.meta.url),'utf8');
-for(const [old,target] of Object.entries(legacyRoutes))assert(nextConfig.includes(`source: '/${old}', destination: '${target}'`),'legacy paths also have server-level redirects');
+// Regla 7 (§15): el server redirige cada ruta legada desde el mismo mapa que el
+// router (app/legacy-routes.json); la compatibilidad redirige y la pantalla no
+// se monta dos veces. El mapa vive una sola vez para que no pueda derivar.
+const navigation=readFileSync(new URL('../app/navigation.ts',import.meta.url),'utf8');
+const legacyMap=JSON.parse(readFileSync(new URL('../app/legacy-routes.json',import.meta.url),'utf8')) as Record<string,string>;
+assert.deepEqual(legacyRoutes,legacyMap,'las rutas legadas viven en un solo mapa');
+assert.match(navigation,/from '\.\/legacy-routes\.json'/,'el router toma las rutas legadas del mapa único');
+assert.doesNotMatch(navigation,/legacyRoutes:Record<string,string>=\{/,'no queda una segunda copia del mapa');
+assert(/legacy-routes\.json/.test(nextConfig)&&/Object\.entries\(legacyRoutes\)\.map/.test(nextConfig),'legacy paths also have server-level redirects from the shared map');
 for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator']){
  for(const [label] of sections){if(label!=='Métricas'&&visibleModule(label,role))assert(childSections(parentSection(label)).filter(child=>visibleModule(child,role)).includes(label),'all accessible leaves remain reachable; metrics are embedded in Pipeline');}
 }

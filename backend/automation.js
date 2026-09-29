@@ -43,22 +43,29 @@ export async function enqueueDue(c){
  await c.query("select set_config('app.current_user','system:due-reminders',true)");
  await c.query(`select enqueue_agency_notification(o.organization_id,o.assigned_user_id,'due','Entrega pendiente: '||o.title,'La pieza vence hoy o está atrasada. Revisá el estado y la fecha.',o.id,o.project_id,'due:'||o.id||':'||o.due_date||':'||to_char(now() at time zone 'America/Asuncion','YYYY-MM-DD')) from agency_work_orders o join agency_projects p on p.id=o.project_id where o.status not in ('approved','published') and o.due_date<=(now() at time zone 'America/Asuncion')::date and o.assigned_user_id is not null and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} order by o.id limit 1000`);
 }
+// Entrega de los correos derivados de la bandeja (§16): el aviso nace en
+// `agency_notifications` y de ahí sale el correo, sin texto ni estado propios.
+// Estados canónicos (§16, regla 1): `encolado` (en cola), `enviado` (el relay
+// aceptó — aceptación no es entrega), `duplicado` (no corresponde un envío
+// nuevo) y `fallido` (agotó los reintentos). Sin relay configurado el envío
+// queda en cola, nunca «enviado»: las filas permanecen en `encolado`.
 export async function deliverNotifications(db,mail){
  if(!mail?.status?.available||typeof mail.send!=='function')return 0;let sent=0;
  for(let i=0;i<20;i++){
   const c=await db.connect();try{
    await c.query('begin');await c.query("select set_config('app.current_user','system:notifications',true),set_config('app.current_ip','notification-worker',true)");
-   const n=(await c.query("select n.*,u.email,org.name as organization_name,coalesce(p.email_enabled,false) as email_enabled,case n.kind when 'assignment' then coalesce(p.assignment,true) when 'comment' then coalesce(p.comment,true) else coalesce(p.due,true) end as kind_enabled,m.active as member_active,m.removed_at,org.active as org_active,org.demo_owner_user_id from agency_notifications n join users u on u.id=n.user_id join organizations org on org.id=n.organization_id join organization_members m on m.user_id=n.user_id and m.organization_id=n.organization_id left join agency_notification_preferences p on p.user_id=n.user_id and p.organization_id=n.organization_id where n.email_status='pending' and n.next_attempt_at<=now() order by n.id limit 1 for update of n skip locked")).rows[0];
+   const n=(await c.query("select n.*,u.email,org.name as organization_name,coalesce(p.email_enabled,false) as email_enabled,case n.kind when 'assignment' then coalesce(p.assignment,true) when 'comment' then coalesce(p.comment,true) else coalesce(p.due,true) end as kind_enabled,m.active as member_active,m.removed_at,org.active as org_active,org.demo_owner_user_id from agency_notifications n join users u on u.id=n.user_id join organizations org on org.id=n.organization_id join organization_members m on m.user_id=n.user_id and m.organization_id=n.organization_id left join agency_notification_preferences p on p.user_id=n.user_id and p.organization_id=n.organization_id where n.email_status='encolado' and n.next_attempt_at<=now() order by n.id limit 1 for update of n skip locked")).rows[0];
    if(!n){await c.query('commit');break;}
    if(n.read_at||!n.email_enabled||!n.kind_enabled||!n.member_active||n.removed_at||!n.org_active||n.demo_owner_user_id||n.email.endsWith('.invalid')||Date.now()-new Date(n.created_at).getTime()>23*3600000){
-    await c.query("update agency_notifications set email_status='skipped' where id=$1",[n.id]);await c.query('commit');continue;
+    await c.query("update agency_notifications set email_status='duplicado' where id=$1",[n.id]);await c.query('commit');continue;
    }
    try{
+    // `accepted` es la aceptación del proveedor: jamás se marca entrega en bandeja.
     const accepted=await mail.send({to:n.email,message:notificationEmail(n,mail.status.appUrl),idempotencyKey:'scale-notification-'+n.id});
     if(!accepted)throw Error('Provider rejected');
-    await c.query("update agency_notifications set email_status='sent',email_attempts=email_attempts+1 where id=$1",[n.id]);sent++;
+    await c.query("update agency_notifications set email_status='enviado',email_attempts=email_attempts+1 where id=$1",[n.id]);sent++;
    }catch{
-    await c.query("update agency_notifications set email_attempts=email_attempts+1,email_status=case when email_attempts>=4 then 'failed' else 'pending' end,next_attempt_at=now()+interval '5 minutes'*power(2,email_attempts) where id=$1",[n.id]);
+    await c.query("update agency_notifications set email_attempts=email_attempts+1,email_status=case when email_attempts>=4 then 'fallido' else 'encolado' end,next_attempt_at=now()+interval '5 minutes'*power(2,email_attempts) where id=$1",[n.id]);
    }
    await c.query('commit');
   }catch{await c.query('rollback');console.error(JSON.stringify({event:'notification_delivery_error'}));}finally{c.release();}

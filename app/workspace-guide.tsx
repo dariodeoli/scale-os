@@ -48,14 +48,13 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
  };
  const demoNote=demo?<p className="form-note">Datos de ejemplo: explorá la demo. Los registros no indican pasos completados.</p>:null;
  const directory=<details><summary>Todas las herramientas</summary><div className="ops-job-list">{tools.map(([label])=><button type="button" className="choice" key={label} onClick={()=>go(label)}>{label}</button>)}</div></details>;
- // Enlaces de la ayuda (§15 regla 10, Refs #82): el estado del sistema es la
- // comunicación de respaldo y se alcanza desde acá, no escondido en el pie.
- const helpLinks=<p className="form-note">Estado del sistema y disponibilidad: <a href="/status" target="_blank" rel="noreferrer">ver /status ↗</a></p>;
+ // Enlaces de la ayuda (§15 regla 10, Refs #82 #84): una sola implementación
+ // enlaza el estado del sistema desde el diálogo (la de #84 con `text-button`).
  // Ayuda contextual del nav v3 (issue #68): el botón de la guía vive una sola
  // vez en la barra de utilidades (variante `help`, icono con tooltip) en vez de
  // repetirse en el encabezado de cada página; la tarjeta de Resumen sigue como
  // acceso contextual a los primeros pasos.
- const guideDialog=open?<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}{helpLinks}</Dialog>:null;
+ const guideDialog=open?<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}<p className="form-note">¿Algo no responde? Consultá el <a className="text-button" href="/status">estado del sistema</a>.</p></Dialog>:null;
  if(variant==='help')return <><button type="button" className="icon-button" title="Guía del panel" aria-label="Guía del panel" onClick={()=>setOpen(true)}><CircleHelp size={18}/></button>{guideDialog}</>;
  if(variant==='card'){
   if(!preference.ready||preference.dismissed)return null;

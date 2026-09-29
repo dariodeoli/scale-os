@@ -6,19 +6,39 @@ import {AccessLayout} from '../access-layout';
 import {StateChip} from '../ui-v2';
 
 type Check='checking'|'available'|'unavailable';
+type EmailStatus={available?:boolean;provider?:string;message?:string};
 
 const ROW='flex flex-wrap items-center gap-3 border-b border-ink-600/60 py-3 last:border-0';
+const providerLabel=(value?:string)=>value==='weem'?'WEEM':value==='resend'?'Resend':'';
 
 export default function StatusPage(){
  const [state,setState]=useState<Check>('checking');
+ const [email,setEmail]=useState<Check>('checking');
+ const [emailProvider,setEmailProvider]=useState('');
+ const [emailMessage,setEmailMessage]=useState('');
  const [attempt,setAttempt]=useState(0);
- useEffect(()=>{let active=true;setState('checking');fetch('/core-api/health',{cache:'no-store'}).then(response=>{if(active)setState(response.ok?'available':'unavailable');}).catch(()=>active&&setState('unavailable'));return()=>{active=false;};},[attempt]);
+ useEffect(()=>{
+  let active=true;
+  setState('checking');setEmail('checking');
+  fetch('/core-api/health',{cache:'no-store'}).then(response=>{if(active)setState(response.ok?'available':'unavailable');}).catch(()=>active&&setState('unavailable'));
+  // El estado del correo sale del dato real del API; nunca se asume configurado.
+  fetch('/core-api/api/auth/email-status',{cache:'no-store'}).then(response=>response.json().then(data=>({ok:response.ok,data})).catch(()=>({ok:false,data:null}))).then(({ok,data}:{ok:boolean;data:{email?:EmailStatus}|null})=>{
+   if(!active)return;
+   const value=data?.email;
+   setEmail(ok&&value?.available?'available':'unavailable');
+   setEmailProvider(providerLabel(value?.provider));
+   setEmailMessage(typeof value?.message==='string'?value.message:'');
+  }).catch(()=>active&&setEmail('unavailable'));
+  return()=>{active=false;};
+ },[attempt]);
  const label=state==='available'?'API y base de datos disponibles':state==='unavailable'?'API sin respuesta en esta comprobación':'Comprobando API y base de datos…';
  const tone=state==='available'?'ok' as const:state==='unavailable'?'bad' as const:'mute' as const;
+ const emailTone=email==='available'?'ok' as const:email==='unavailable'?'warn' as const:'mute' as const;
+ const emailDetail=email==='available'?`Comprobado ahora${emailProvider?` · ${emailProvider}`:''}`:email==='unavailable'?emailMessage||'Sin proveedor de correo en esta comprobación':'Comprobando ahora…';
  const components=[
   {icon:<Activity size={17}/>,name:'Aplicación',detail:'Disponible por HTTPS',tone:'ok' as const,chip:'Operativo'},
   {icon:<ShieldCheck size={17}/>,name:'Autenticación',detail:'Protegida por sesión',tone:'ok' as const,chip:'Configurado'},
-  {icon:<Mail size={17}/>,name:'Correo transaccional',detail:'Supervisado mediante WEEM',tone:'ok' as const,chip:'Supervisado'},
+  {icon:<Mail size={17}/>,name:'Correo transaccional',detail:emailDetail,tone:emailTone,chip:email==='available'?'Disponible':email==='unavailable'?'No disponible':'Comprobando'},
   {icon:<Globe size={17}/>,name:'API y base de datos',detail:state==='available'?'Responde a la comprobación en vivo':state==='unavailable'?'Sin respuesta en esta comprobación':'Comprobando ahora…',tone,chip:state==='available'?'Operativo':state==='unavailable'?'Sin respuesta':'Comprobando'},
  ];
  return <AccessLayout wide eyebrow="Comunicación de respaldo">
@@ -36,7 +56,7 @@ export default function StatusPage(){
     <StateChip tone={component.tone}>{component.chip}</StateChip>
    </li>)}
   </ul>
-  <p className="text-[11.5px] text-mute">El estado de la API se comprueba en este momento. Los demás componentes se indican por configuración; esta pantalla se mantiene disponible como comunicación de respaldo.</p>
+  <p className="text-[11.5px] text-mute">El API, la base de datos y el correo se comprueban en este momento. Los demás componentes se indican por configuración; esta pantalla se mantiene disponible como comunicación de respaldo.</p>
   <div className="flex flex-wrap items-center gap-2"><a className="secondary" href="https://sistema.scaleparaguay.com/">Landing</a><a className="secondary" href="/">Abrir Scale OS</a></div>
  </AccessLayout>;
 }

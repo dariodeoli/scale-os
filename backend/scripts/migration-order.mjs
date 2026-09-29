@@ -89,4 +89,5 @@ export const migrationOrder = [
   '20260923_agency_core_perf.sql',
   '20260924_inventory_photo_stamp.sql',
   '20260924_subscription_suspension_notice.sql',
+  '20260929_notification_email_status.sql',
 ];

@@ -1,6 +1,14 @@
 import {fail} from './suite-validation.js';
 import {emailShell} from './email-brand.js';
 const defaults={email_enabled:false,assignment:true,comment:true,due:true};
+// Ruta interna única del aviso (§16, derivación única): la bandeja es la fuente
+// y de acá la derivan el correo y los canales futuros. Nunca es una URL externa.
+export function notificationHref(n){
+ const order=n?.work_order_id?String(n.work_order_id):'',comment=n?.comment_id?String(n.comment_id):'',project=n?.project_id?String(n.project_id):'';
+ if(order)return '/resumen?order='+order+(comment?'#comment-'+comment:'');
+ if(project)return '/proyectos#project-'+project;
+ return '/resumen';
+}
 export async function notifications({req,res,url,db,session,body,send}){
  const match=url.pathname.match(/^\/api\/agency\/notifications(?:\/(preferences|read-all|\d+))?$/);if(!match)return false;
  try{
@@ -23,7 +31,7 @@ export async function notifications({req,res,url,db,session,body,send}){
    const rows=found.slice(0,30);
    const unread=Number((await db.query('select count(*) as n from agency_notifications where organization_id=$1 and user_id=$2 and read_at is null',[org,user.id])).rows[0].n);
    const pendingCount=Number((await db.query('select count(*) as n from agency_notifications where organization_id=$1 and user_id=$2 and resolved_at is null',[org,user.id])).rows[0].n);
-   send(res,200,{notifications:rows,unread,pendingCount,next:found.length>30?rows.at(-1).id:null});return true;
+   send(res,200,{notifications:rows.map(row=>({...row,href:notificationHref(row)})),unread,pendingCount,next:found.length>30?rows.at(-1).id:null});return true;
   }
   if(req.method==='PATCH'&&target){
    if(target!=='read-all'&&!/^\d+$/.test(target))fail('Notificación inválida');
@@ -31,11 +39,11 @@ export async function notifications({req,res,url,db,session,body,send}){
    if(!b||typeof b!=='object'||Array.isArray(b)||Object.keys(b).some(k=>k!=='resolved')||Object.hasOwn(b,'resolved')&&typeof b.resolved!=='boolean')fail('Estado de notificación inválido');
    if(Object.hasOwn(b,'resolved')){
     if(target==='read-all')fail('Resolvé cada notificación individualmente');
-    const updated=await write("update agency_notifications set resolved_at=case when $4 then coalesce(resolved_at,now()) else null end,read_at=case when $4 then coalesce(read_at,now()) else read_at end,email_status=case when $4 and email_status='pending' then 'skipped' else email_status end where organization_id=$1 and user_id=$2 and id=$3 returning resolved_at,read_at",[org,user.id,target,b.resolved]);
+    const updated=await write("update agency_notifications set resolved_at=case when $4 then coalesce(resolved_at,now()) else null end,read_at=case when $4 then coalesce(read_at,now()) else read_at end,email_status=case when $4 and email_status='encolado' then 'duplicado' else email_status end where organization_id=$1 and user_id=$2 and id=$3 returning resolved_at,read_at",[org,user.id,target,b.resolved]);
     if(!updated.rows.length)fail('Notificación no encontrada',404);
     send(res,200,{ok:true,...updated.rows[0]});return true;
    }
-   const result=await write("update agency_notifications set read_at=coalesce(read_at,now()),email_status=case when email_status='pending' then 'skipped' else email_status end where organization_id=$1 and user_id=$2 and ($3::bigint is null or id=$3) returning id",[org,user.id,target==='read-all'?null:target]);
+   const result=await write("update agency_notifications set read_at=coalesce(read_at,now()),email_status=case when email_status='encolado' then 'duplicado' else email_status end where organization_id=$1 and user_id=$2 and ($3::bigint is null or id=$3) returning id",[org,user.id,target==='read-all'?null:target]);
    if(target!=='read-all'&&!result.rows.length)fail('Notificación no encontrada',404);
    send(res,200,{ok:true});return true;
   }
@@ -43,15 +51,19 @@ export async function notifications({req,res,url,db,session,body,send}){
  }catch(e){console.error(JSON.stringify({event:'notifications_error',status:e.status||500}));send(res,e.status||500,{error:e.status?e.message:'No se pudieron actualizar las notificaciones'});return true;}
 }
 const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Plantilla canónica (§16): motivo → acción con enlace visible de respaldo →
+// cierre es-PY → firma (app + «Desarrollado por Owncoding»). El enlace sale de
+// `notificationHref`: mismo destino que la bandeja, sin ruta propia del correo.
 export function notificationEmail(n,appUrl){
- const href=appUrl.replace(/\/$/,'')+(n.work_order_id?'/resumen?order='+n.work_order_id:'/proyectos');
- const text=n.title+'\n\n'+n.body+'\n\nAbrir Scale OS: '+href+'\n\nPodés desactivar estos correos en la campana de notificaciones → Preferencias.';
+ const href=appUrl.replace(/\/$/,'')+notificationHref(n);
+ const close='Recibís este aviso porque activaste los correos operativos. Podés desactivarlos en la campana de notificaciones → Preferencias.';
+ const text=n.title+'\n\n'+n.body+'\n\nAbrir Scale OS: '+href+'\n\n'+close+'\n\nScale OS · Gestión de agencias · Desarrollado por Owncoding';
  return{subject:n.title.replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ').trim().slice(0,160),text,html:emailShell({
   eyebrow:n.organization_name||'Scale OS',
   title:n.title,
   lead:n.body,
   cta:{label:'Abrir en Scale OS',href},
-  footer:'Recibís este aviso porque activaste los correos operativos. Podés desactivarlos en la campana de notificaciones → Preferencias.',
-  footerNote:'Scale OS · Gestión de agencias',
+  footer:close,
+  footerNote:'Scale OS · Gestión de agencias · Desarrollado por Owncoding',
  })};
 }

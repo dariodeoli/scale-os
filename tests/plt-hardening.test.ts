@@ -82,6 +82,17 @@ assert.match(forms,/preselectInvoiceId\?: string/, 'PaymentForm declara la factu
 assert.match(forms,/defaultValues:\s*\{\s*invoiceId: preselectInvoiceId,/, 'el formulario arranca con esa factura');
 assert.match(read('app/sections/finanzas.tsx'),/openPayment\(invoice\.id\)/, 'la fila abre el cobro con su factura');
 
+// §15 regla 7 (rutas canónicas) vive en tests/control-center.test.ts, junto al
+// contrato de navegación.
+
+// §15 regla 10 (versión visible y novedades): /status queda accesible desde la
+// ayuda y la versión publicada sale de /health (release.version).
+assert.match(read('app/workspace-guide.tsx'), /href="\/status"/, 'la ayuda enlaza el estado del sistema');
+assert.match(read('backend/server.js'), /url\.pathname === '\/health'[\s\S]{0,200}release/, 'la versión publicada sale de /health');
+
+// §15 regla 1 (cero éxito falso): el estado del correo en /status sale del API.
+assert.match(read('app/status/page.tsx'), /api\/auth\/email-status/, 'el correo se comprueba contra el API, no por suposición');
+
 console.log(
-  'PASS: retirados con reinvitación y lote resiliente, portal con invitaciones y reenvío de verificación, rutas/componentes muertos eliminados y cobro preseleccionado',
+  'PASS: retirados con reinvitación y lote resiliente, portal con invitaciones y reenvío de verificación, rutas/componentes muertos eliminados, cobro preseleccionado, /status desde la ayuda y correo comprobado contra el API',
 );
