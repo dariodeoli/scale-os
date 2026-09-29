@@ -1,5 +1,5 @@
 "use client";
-import {useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
+import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
 import {Aviso, IconAction, fechaListaCorta} from 'owncoding-ui';
 import {BATCH_LIMITS, roleCan} from '../capabilities';
@@ -9,6 +9,7 @@ import {clientSince, moneyKpi} from '../client-format';
 import {ClientIdentity} from '../client-identity';
 import {Dialog} from '../dialog';
 import {notify} from '../feedback';
+import {LIST_WINDOW,windowSlice} from '../list-window';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
 import {CLIENT_TABLE_MIN_WIDTH} from '../client-directory-data';
@@ -190,6 +191,10 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
   }
   // La tabla densa sólo entra con ancho suficiente; si no, tarjetas (#62).
   const {ref: tableRef, fits: tableFits} = useDenseTableFit(CLIENT_TABLE_MIN_WIDTH);
+  // Ventana de montaje (#105): el directorio completo sigue en memoria (buscador
+  // y contadores exactos); la lista monta de a páginas con «Ver más».
+  const [visible, setVisible] = useState<number>(LIST_WINDOW.clients);
+  useEffect(() => { setVisible(LIST_WINDOW.clients); }, [displayedClients, clientView]);
   const isGridView = clientView === 'grid';
   // La preferencia de lista usa la tabla cuando entra; en pantallas chicas se
   // conserva como una lista compacta de fichas, nunca se sustituye por la grilla.
@@ -234,6 +239,8 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
             ? {valor: <span>{moneyKpi(Number(billingBase.total), billingBase.currency)} <span className="text-[0.55em] font-medium text-mute">/ mes</span></span>, hint: <>{billingResto.map(item => <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes · </span>)}Expectativa vigente por mes</>}
             : {valor: '—', hint: <StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip>};
 
+  const mountedLive = windowSlice(liveClients, visible);
+  const hidden = liveClients.length - mountedLive.length;
   return <section ref={tableRef} className="directory grid gap-4" aria-label="Directorio de clientes">
     <KpiStrip>
       <Kpi label="Clientes activos" valor={directoryKpis.active} hint="Con servicio en curso" destacado/>
@@ -273,8 +280,13 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
     ) : null}
 
     {dense
-      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(liveClients, false)}</ListGrid>
-      : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(liveClients, true)}</div>}
+      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(mountedLive, false)}</ListGrid>
+      : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(mountedLive, true)}</div>}
+
+    {hidden > 0 ? <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-lg border border-ink-600 bg-ink-800 px-3 py-2" role="status" aria-live="polite">
+      <span className="text-xs tabular-nums text-mute">Se muestran {mountedLive.length} de {liveClients.length} {liveClients.length === 1 ? 'cliente' : 'clientes'} que coinciden</span>
+      <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setVisible(count => count + LIST_WINDOW.clients)}>Ver más</button>
+    </div> : null}
 
     {!liveClients.length && archivedClients.length && clientStatusFilter !== 'inactive' ? <p className="text-[13px] text-mute" role="status">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p> : null}
 
@@ -294,8 +306,8 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
         <summary>Archivados ({archivedClients.length})</summary>
         {dense
-          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(archivedClients, false)}</ListGrid>
-          : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(archivedClients, true)}</div>}
+          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(windowSlice(archivedClients, visible), false)}</ListGrid>
+          : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(windowSlice(archivedClients, visible), true)}</div>}
       </details>
     ) : null}
   </section>;

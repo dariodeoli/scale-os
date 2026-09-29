@@ -13,6 +13,7 @@ import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
 import {projectedList,BUDGET_LIST_FIELDS} from '../shell-data';
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,denseTableMinWidth,useDenseTableFit,type ChipTone,type Column} from '../ui-v2';
+import {EMPTY_WINDOW,windowLabel,type ListWindowState} from '../list-window';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
 // Presupuestos (SOS-COM, campaña #41 / spec #43 §4).
@@ -27,6 +28,9 @@ type PresupuestosSectionProps = {
   user: User|null;
   budgetsState: 'loading'|'ready'|'error';
   budgets: Budget[];
+  /** Ventana de la lista (#105): filas cargadas, si hay más y el total exacto. */
+  windowState?: ListWindowState;
+  onLoadMore?: () => Promise<void>|void;
   invoices: Invoice[];
   budgetKpis: {totals: Map<string, number>; drafts: number; accepted: number; expiring: number};
   summary: Summary;
@@ -89,7 +93,13 @@ function BudgetTile({budget,user,canManage,selected,onToggle,refresh}:{budget:Bu
   </article>;
 }
 
-export function PresupuestosSection({loading, user, budgetsState, budgets, invoices, budgetKpis, summary, loadBudgets, setBudgets, onCreate}: PresupuestosSectionProps){
+export function PresupuestosSection({loading, user, budgetsState, budgets, windowState=EMPTY_WINDOW, onLoadMore, invoices, budgetKpis, summary, loadBudgets, setBudgets, onCreate}: PresupuestosSectionProps){
+  const [moreBusy,setMoreBusy]=useState(false);
+  const cargarMas=async()=>{
+    if(moreBusy||!onLoadMore)return;
+    setMoreBusy(true);
+    try{await onLoadMore();}finally{setMoreBusy(false);}
+  };
   const canManage = roleCan(user?.role,'budgets.manage');
   // Tabla densa sólo si entra completa; si no, tarjetas (#62).
   const {ref: tableRef, fits: tableFits} = useDenseTableFit(BUDGET_TABLE_MIN_WIDTH);
@@ -152,7 +162,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
   return (
     <section ref={tableRef} className="directory grid gap-4" aria-label="Presupuestos">
       <KpiStrip aria-label="Métricas de presupuestos">
-        <Kpi label="Presupuestos" valor={budgets.length} destacado hint={totals.length ? `Total sin IVA: ${totals.map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}` : 'Sin propuestas cargadas'}/>
+        <Kpi label="Presupuestos" valor={windowState.total ?? budgets.length} destacado hint={totals.length ? `Total sin IVA: ${totals.map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}` : 'Sin propuestas cargadas'}/>
         <Kpi label="Borradores" valor={budgetKpis.drafts} hint="Sin enviar al cliente"/>
         <Kpi label="Aceptadas" valor={budgetKpis.accepted} hint="Con aprobación del cliente"/>
         <Kpi label="Vencen esta semana" valor={budgetKpis.expiring} hint="Vigencia en los próximos 7 días"/>
@@ -166,6 +176,15 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
           <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>
           <button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setConfirmOpen(true);}}><Trash2 size={14} aria-hidden="true"/>Mover a la papelera</button>
           <button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setSelected([])}>Limpiar</button>
+        </div>
+      </div> : null}
+
+      {/* Ventana (#105): contador honesto y «Ver más»; cuando queda lista por
+          traer, el aviso aclara que los indicadores cuentan lo cargado. */}
+      {windowState.hasMore ? <div className="bulk-bar" role="status" aria-live="polite">
+        <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'presupuesto', 'presupuestos')} · los indicadores cuentan lo cargado</span>
+        <div className="inline-actions bulk-actions">
+          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</button>
         </div>
       </div> : null}
 

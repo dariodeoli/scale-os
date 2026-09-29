@@ -12,6 +12,7 @@ import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
 import {PHONE_HELP} from '../field-rules';
 import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
+import {EMPTY_WINDOW,LIST_WINDOW,appendPage,readPage,windowLabel,windowSlice,windowStateOf,type ListWindowState} from '../list-window';
 import {useDialogPending} from '../dialog';
 import type {User} from '../workspace-types';
 
@@ -75,6 +76,11 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
 
 function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals}:{stage:{value:string;label:string};rows:Row[];edit:(row:Row)=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;readOnly?:boolean;totals?:{weighted:Record<string,number>;open:Record<string,number>}}){
   const drop=useDroppable({id:`stage-${stage.value}`,disabled:readOnly});
+  // Ventana de montaje (#105): la columna monta de a páginas; el conteo y los
+  // montos siguen siendo los de la etapa completa.
+  const [visible,setVisible]=useState<number>(LIST_WINDOW.leadsColumns);
+  const mounted=windowSlice(rows,visible);
+  const hidden=rows.length-mounted.length;
   // El ponderado y el abierto por moneda salen de `stageTotals` (una sola
   // derivación, la misma del resumen del pipeline) y viven en la columna: no se
   // repite el encabezado en un bloque aparte (#100).
@@ -87,7 +93,8 @@ function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals}
       <span className="text-xs tabular-nums text-mute">{rows.length}</span>
     </header>
     {currencies.length?<div className="grid gap-0.5 text-[10.5px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="truncate" title={`${currency}: ponderado y abierto`}><MoneyText valor={weighted[currency]??0} currency={currency}/> ponderado{open[currency]!==undefined&&open[currency]!==weighted[currency]?<> · <MoneyText valor={open[currency]} currency={currency}/> abierto</>:null}</span>)}</div>:null}
-    {rows.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh}/>)}
+    {mounted.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh}/>)}
+    {hidden>0?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setVisible(count=>count+LIST_WINDOW.leadsColumns)}>Ver más ({hidden})</button>:null}
     {!rows.length?<p className="text-xs text-mute">Sin oportunidades.</p>:null}
   </section>;
 }
@@ -103,6 +110,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   // Estado honesto de las dos lecturas: el error real de la lista y el aviso de
   // las etapas (el tablero nunca se cae, pero el fallo no se silencia).
   const [loadError,setLoadError]=useState('');
+  const [windowState,setWindowState]=useState<ListWindowState>(EMPTY_WINDOW);
+  const [moreBusy,setMoreBusy]=useState(false);
   const [stagesWarning,setStagesWarning]=useState('');
   const [stagesKnown,setStagesKnown]=useState(false);
   const stagesLoaded=useRef(false);
@@ -114,14 +123,24 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   const canMove=canEdit;
   const canSeeGrowth=['owner','admin'].includes(role);
 
-  async function load(){
+  async function load(offset=0, append=false){
+    if(!append)setState('loading');
     try{
-      const data=await projectedList('leads','/api/agency/leads',LEAD_LIST_FIELDS,path=>api<{records:Row[]}>(path));
-      setRows(Array.isArray(data.records)?data.records:[]);
+      const path=`/api/agency/leads?limit=${LIST_WINDOW.leads}${offset>0?`&offset=${offset}`:''}`;
+      const data=await projectedList('leads',path,LEAD_LIST_FIELDS,path=>api<{records:Row[];page?:unknown}>(path));
+      const page=readPage(data?.page);
+      const incoming=Array.isArray(data.records)?data.records:[];
+      if(append)setRows(current=>{const next=appendPage(current,incoming);setWindowState(windowStateOf(page,next.length));return next;});
+      else{setRows(incoming);setWindowState(windowStateOf(page,incoming.length));}
       setLoadError('');
       setState('ready');
-    }catch(cause){setLoadError(err(cause));setState('error');}
+    }catch(cause){if(!append){setLoadError(err(cause));setState('error');}}
   }
+  const cargarMas=async()=>{
+    if(moreBusy)return;
+    setMoreBusy(true);
+    try{await load(rows.length,true);}finally{setMoreBusy(false);}
+  };
   // Una lectura de etapas fallida conserva el fallback; una recarga fallida
   // preserva las etapas ya conocidas. En ambos casos se avisa con reintento.
   async function loadStages(){
@@ -234,6 +253,15 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {state==='loading' && !rows.length ? <LoadingBlock label="Cargando oportunidades…" lines={4}/> : null}
       {state==='error' && !rows.length ? <ErrorBlock title="No se pudieron cargar las oportunidades." description={loadError||'Revisá la conexión y volvé a intentar; el tablero conserva las etapas conocidas.'} onRetry={()=>void load()}/> : null}
       {state==='ready' && !rows.length ? <EmptyBlock icon="target" title="Todavía no hay oportunidades." description={canEdit?'Cargá el primer lead con su etapa, valor y probabilidad para verlo en el tablero.':'Cuando el equipo cargue una oportunidad, vas a verla acá con su etapa y valor.'} action={canEdit?<EmptyCta label="Nueva oportunidad" onClick={()=>setEdit('new')} icon={<Plus aria-hidden="true" size={16}/>}/>:undefined}/> : null}
+
+      {/* Ventana (#105): el tablero pide una página explícita; cuando el API
+          promete más, el contador lo dice y aclara qué cuentan los indicadores. */}
+      {windowState.hasMore?<div className="bulk-bar" role="status" aria-live="polite">
+        <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'oportunidad', 'oportunidades')} · los indicadores cuentan lo cargado</span>
+        <div className="inline-actions bulk-actions">
+          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</button>
+        </div>
+      </div>:null}
 
       {rows.length?<div className="grid gap-2">
         <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>

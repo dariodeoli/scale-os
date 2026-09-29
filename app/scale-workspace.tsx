@@ -32,6 +32,7 @@ const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetai
 import {setDataScope, clearDataCache, dataFetch} from './data-cache';
 import {request} from './workspace-request';
 import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,stageCountsFrom,projectedList,BUDGET_LIST_FIELDS,type ShellResource,type ShellScope} from './shell-data';
+import {LIST_WINDOW,appendPage,readPage,windowStateOf,type ListWindowState} from './list-window';
 import {prefetchSectionData} from './data-prefetch';
 import './control-center.css';
 import {Dialog} from './dialog';
@@ -346,6 +347,9 @@ export default function Home() {
   const changeProductionView=(v:string)=>{setProductionView(v);const url=new URL(window.location.href);if(v==="Tablero")url.searchParams.delete("vista");else url.searchParams.set("vista",v);window.history.replaceState(window.history.state,"",url);};
   const [budgetsState, setBudgetsState] = useState<'loading'|'ready'|'error'>('loading');
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  // Ventana de presupuestos (#105): la lista pide una página explícita y el
+  // «Ver más» del listado trae la siguiente sin duplicar.
+  const [budgetsWindow, setBudgetsWindow] = useState<ListWindowState>({loaded:0,hasMore:false,total:null});
   const [financeState, setFinanceState] = useState<'loading'|'ready'|'error'>('loading');
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -492,7 +496,7 @@ export default function Home() {
     const next=user?.subscription?.hasAccess??null;
     if(next===false){
       dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
-      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setMetricsState('idle');setMetricsError('');setPaymentStatuses([]);setMoraReports(null);setMoraReportsError(false);
+      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setBudgetsWindow({loaded:0,hasMore:false,total:null});setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setMetricsState('idle');setMetricsError('');setPaymentStatuses([]);setMoraReports(null);setMoraReportsError(false);
       setModal(null);setDetail(null);setMyProfile(false);setSubscriptionOpen(false);
     }else if(previousBillingAccess.current===false&&next===true){void load().catch(()=>setToast('No se pudieron actualizar los datos. Intentá nuevamente.'));}
     previousBillingAccess.current=next;
@@ -577,17 +581,27 @@ export default function Home() {
         .catch(() => {setCommercialSummary(null);setCommercialState('error');});
     }
   }, [active, operationalAccess, user?.role]);
-  async function loadBudgets() {
-    setBudgetsState('loading');
+  async function loadBudgets(offset=0, append=false) {
+    if(!append) setBudgetsState('loading');
     try {
-      const data = await projectedList('budgets',"/api/agency/budgets",BUDGET_LIST_FIELDS,path=>request<{ budgets: Budget[] }>(path));
-      setBudgets(listOf<Budget>(data?.budgets));
+      const path=`/api/agency/budgets?limit=${LIST_WINDOW.budgets}${offset>0?`&offset=${offset}`:''}`;
+      const data = await projectedList('budgets',path,BUDGET_LIST_FIELDS,path=>request<{ budgets: Budget[]; page?: unknown }>(path));
+      const page = readPage(data?.page);
+      const incoming = listOf<Budget>(data?.budgets);
+      if(append)setBudgets(current=>{
+        const next = appendPage(current, incoming);
+        setBudgetsWindow(windowStateOf(page, next.length));
+        return next;
+      });
+      else{setBudgets(incoming);setBudgetsWindow(windowStateOf(page, incoming.length));}
       setBudgetsState('ready');
     } catch (cause) {
-      setBudgetsState('error');
+      if(!append)setBudgetsState('error');
       setToast(cause instanceof Error ? cause.message : "No se pudieron cargar los presupuestos.");
     }
   }
+  // «Ver más» del listado: siguiente página con el offset de lo ya cargado.
+  const loadMoreBudgets = () => loadBudgets(budgets.length, true);
   useEffect(() => {
     if (operationalAccess && active === "Presupuestos") void loadBudgets();
   }, [active, operationalAccess]);
@@ -786,7 +800,7 @@ export default function Home() {
   }
   function clearScopedShellData(){
     dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
-    setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setMetricsState('idle');setMetricsError('');setPaymentStatuses([]);
+    setClients([]);setProjects([]);setOrders([]);setBudgets([]);setBudgetsWindow({loaded:0,hasMore:false,total:null});setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setMetricsState('idle');setMetricsError('');setPaymentStatuses([]);
     setClientStatusFilter('');setMoraFilter('');setProjectClientFilter('');setProjectClient('');setProductionFiltersDialogScope('');setStartupDataScope('');setWorkspaceScope('');
     setMyProfile(false);setDetail(null);setModal(null);setSubscriptionOpen(false);setDemoWelcome(false);
   }
@@ -1106,7 +1120,7 @@ export default function Home() {
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraState={moraState} onRetry={()=>setMoraReload(value=>value+1)} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso} onCreateInvoice={openInvoice}/>}
         {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail} onCreate={()=>setModal('client')}/>}
         {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectRow={projectRowEntry} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}
-        {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={loadBudgets} setBudgets={setBudgets} onCreate={()=>setModal('budget')}/>}
+        {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} windowState={budgetsWindow} onLoadMore={loadMoreBudgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={()=>loadBudgets()} setBudgets={setBudgets} onCreate={()=>setModal('budget')}/>}
         {active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>}
         {active==='Finanzas'&&<FinanzasSection user={user} navigate={setActive} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} paymentHasMore={paymentHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} loadAllPayments={loadAllPayments} setModal={setModal} openPayment={openPayment} setToast={setToast}/>}
         {active==='Previsión'&&<PrevisionSection user={user} navigate={setActive} onCreateInvoice={openInvoice}/>}
