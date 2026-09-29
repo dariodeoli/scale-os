@@ -174,6 +174,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
         </Aviso>
       ) : null}
 
+
       {budgets.length ? (
         tableFits ? (
           <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[93rem]" pinnedActions>
@@ -202,7 +203,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, invoi
         {selected.length>1 ? <p>{selectedTitles.slice(0,3).join(' · ')}{selected.length>3 ? ` y ${selected.length-3} más` : ''}</p> : null}
         <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés restaurarlos después.</p>
         <p className="form-note">El enlace público dejará de funcionar. Restaurar el presupuesto no volverá a publicarlo automáticamente.</p>
-        {bulkError ? <p className="error" role="alert">{bulkError}</p> : null}
+        {bulkError ? <Aviso tono="error" role="alert">{bulkError}</Aviso> : null}
         <div className="inline-actions">
           <button className="secondary" disabled={bulkBusy} onClick={()=>setConfirmOpen(false)}>Cancelar</button>
           <button className="secondary danger" disabled={bulkBusy} onClick={()=>void moveToTrash()}>{bulkBusy?'Procesando…':'Confirmar: mover a papelera'}</button>

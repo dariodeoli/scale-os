@@ -1,3 +1,5 @@
+import {diasHasta} from 'owncoding-ui/utils';
+
 export function moneyKpi(value: number, currency: string) {
   return new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
 }
@@ -12,16 +14,14 @@ export function clientSince(value?: string): string | null {
   return value ? new Intl.DateTimeFormat('es-PY', { month: 'short', year: 'numeric', timeZone: 'America/Asuncion' }).format(new Date(value)) : null;
 }
 
-const asuncionDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit', day: '2-digit' });
-
-/** Whole calendar days from today (Asunción) until a date or timestamp; negative when already past, null when missing or invalid. */
+/**
+ * Whole calendar days from today (Asunción) until a date or timestamp; negative
+ * when already past, null when missing or invalid. La cuenta por día de
+ * calendario sale de `diasHasta` de la librería (una sola definición de
+ * vencimiento en la app), no de una copia local.
+ */
 export function daysUntil(value: string | null | undefined, now: Date = new Date()): number | null {
-  if (!value) return null;
-  const parsed = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00Z` : value);
-  if (Number.isNaN(parsed.getTime())) return null;
-  const target = Date.parse(`${asuncionDay.format(parsed)}T12:00:00Z`);
-  const today = Date.parse(`${asuncionDay.format(now)}T12:00:00Z`);
-  return Math.round((target - today) / 86_400_000);
+  return diasHasta(value, {hoy: now, timeZone: 'America/Asuncion'});
 }
 
 export function clientPortfolioStats(

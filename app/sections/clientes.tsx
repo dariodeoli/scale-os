@@ -1,17 +1,19 @@
 "use client";
-import type {Dispatch, SetStateAction} from 'react';
+import {useState, type Dispatch, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
-import {IconAction} from 'owncoding-ui';
+import {Aviso, IconAction} from 'owncoding-ui';
 import {fechaListaCorta} from '../date-format';
 import {BATCH_LIMITS, roleCan} from '../capabilities';
 import {clientState} from '../client-status';
 import {clientWhatsappUrl} from '../client-links';
 import {clientSince, moneyKpi} from '../client-format';
 import {ClientIdentity} from '../client-identity';
+import {Dialog} from '../dialog';
+import {notify} from '../feedback';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
 import {CLIENT_TABLE_MIN_WIDTH} from '../client-directory-data';
-import {EmptyBlock, EmptyCta, Kpi, KpiStrip, ListActions, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, useDenseTableFit, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, EmptyCta, ErrorBlock, Kpi, KpiStrip, ListActions, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, useDenseTableFit, type ChipTone, type Column} from '../ui-v2';
 import type {CommercialDashboard} from '../control-center-data';
 import type {Client, ClientPaymentStatus, User} from '../workspace-types';
 
@@ -70,7 +72,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
       </button>
     </div>
     <div role="cell" className="min-w-0 text-[11px] leading-tight text-mute">
-      <span className="block truncate" title={client.email || 'Sin email registrado'}>{client.email || 'Sin email registrado'}</span>
+      <span className="block truncate" title={client.email || 'Sin correo registrado'}>{client.email || 'Sin correo registrado'}</span>
       <span className="block truncate" title={`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'} · Cliente desde ${since || 'sin fecha de alta'}`}>{client.phone || 'Sin teléfono'} · RUC {client.tax_id || 'sin registrar'} · desde {since || 'sin fecha'}</span>
     </div>
     <div role="cell" className="min-w-0"><StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip></div>
@@ -113,7 +115,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
       <StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip>
     </header>
     <dl className="grid grid-cols-2 gap-2 text-[11.5px]">
-      <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Correo</dt><dd className="mt-0.5 truncate text-fore" title={client.email || 'Sin email registrado'}>{client.email || 'Sin email registrado'}</dd></div>
+      <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Correo</dt><dd className="mt-0.5 truncate text-fore" title={client.email || 'Sin correo registrado'}>{client.email || 'Sin correo registrado'}</dd></div>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Teléfono</dt><dd className="mt-0.5 text-fore">{client.phone || 'Sin teléfono'}</dd></div>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">RUC</dt><dd className="mt-0.5 text-fore">{client.tax_id || 'Sin RUC registrado'}</dd></div>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cliente desde</dt><dd className="mt-0.5 text-fore">{since || 'Sin fecha de alta'}</dd></div>
@@ -171,6 +173,22 @@ type ClientesSectionProps = {
 export function ClientesSection({dataState = 'ready', user, clientView, clientStatusFilter, setClientStatusFilter, clientSearch, setClientSearch, archiveBusy, bulkBusy, selectedClients, setSelectedClients, canSeeBilling, canManageClients, clients, displayedClients, liveClients, archivedClients, paymentStatuses, clientHubStats, commercialSummary, commercialState, directoryKpis, cobrosKpis, load, setClientArchive, toggleClientSelected, selectVisibleClients, batchClients, setDetail, onCreate}: ClientesSectionProps) {
   const canManageTerms = roleCan(user?.role, 'commercial-terms.manage');
   const billingRole = ['owner', 'admin', 'finance'].includes(user?.role || '');
+  // Archivar clientes es destructivo (oculta también sus proyectos y órdenes):
+  // pasa por confirmación explícita y el error queda inline en el diálogo.
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [bulkError, setBulkError] = useState('');
+  async function runBatch(archived: boolean) {
+    setBulkError('');
+    try {
+      await batchClients(archived);
+      if (archived) setConfirmArchive(false);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : 'No se pudo actualizar el lote de clientes. Reintentá.';
+      // Archivar: el error queda inline en el diálogo. Reactivar: aviso directo.
+      if (archived) setBulkError(message);
+      else notify({tone: 'error', message});
+    }
+  }
   // La tabla densa sólo entra con ancho suficiente; si no, tarjetas (#62).
   const {ref: tableRef, fits: tableFits} = useDenseTableFit(CLIENT_TABLE_MIN_WIDTH);
   const isGridView = clientView === 'grid';
@@ -224,12 +242,30 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <div className="inline-actions bulk-actions">
         <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisibleClients}>Seleccionar visibles</button>
         {selectedClients.length ? <>
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void batchClients(true)}>Archivar</button>
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void batchClients(false)}>Reactivar</button>
+          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => {setBulkError(''); setConfirmArchive(true);}}>Archivar</button>
+          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void runBatch(false)}>Reactivar</button>
           <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setSelectedClients([])}>Limpiar</button>
         </> : null}
       </div>
     </div> : null}
+
+    {confirmArchive ? <Dialog title="Archivar clientes" close={() => {if (!bulkBusy) {setConfirmArchive(false); setBulkError('');}}}>
+      <p><strong>{selectedClients.length === 1 ? selectedClients.map(id => clients.find(client => String(client.id) === id)?.name).filter(Boolean)[0] || '1 cliente' : `${selectedClients.length} clientes`}</strong></p>
+      {selectedClients.length > 1 ? <p>{selectedClients.slice(0, 3).map(id => clients.find(client => String(client.id) === id)?.name).filter(Boolean).join(' · ')}{selectedClients.length > 3 ? ` y ${selectedClients.length - 3} más` : ''}</p> : null}
+      <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés reactivarlos después.</p>
+      <p className="form-note">Mientras estén archivados, sus proyectos y piezas vinculados también quedan ocultos. Reactivar el cliente no los reactiva por sí solo.</p>
+      {bulkError ? <Aviso tono="error" role="alert">{bulkError}</Aviso> : null}
+      <div className="inline-actions">
+        <button className="secondary" disabled={bulkBusy} onClick={() => setConfirmArchive(false)}>Cancelar</button>
+        <button className="secondary danger" disabled={bulkBusy} onClick={() => void runBatch(true)}>{bulkBusy ? 'Procesando…' : 'Confirmar: archivar'}</button>
+      </div>
+    </Dialog> : null}
+
+    {clients.length > 0 && dataState === 'error' ? (
+      <Aviso tono="error" como="div" role="alert">No se pudieron actualizar los clientes. Se muestra la última lista cargada.{' '}
+        <button type="button" className="underline" onClick={() => void load()}>Reintentar</button>
+      </Aviso>
+    ) : null}
 
     {dense
       ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(liveClients, false)}</ListGrid>
@@ -241,7 +277,9 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       clients.length===0 ? (
         dataState === 'loading'
           ? <LoadingBlock label="Cargando clientes…" lines={5}/>
-          : <EmptyBlock title="Todavía no hay clientes. Creá el primero para empezar." description="Cargá la ficha con RUC o de forma manual; después podés sumar proyectos y piezas." action={canManageClients&&onCreate ? <EmptyCta label="Nuevo cliente" onClick={()=>onCreate()} icon={<Plus aria-hidden="true" size={16}/>}/> : undefined}/>
+          : dataState === 'error'
+            ? <ErrorBlock title="No se pudieron cargar los clientes." description="Revisá la conexión y volvé a intentar; no se inventa un directorio vacío." onRetry={() => void load()}/>
+            : <EmptyBlock title="Todavía no hay clientes. Creá el primero para empezar." description="Cargá la ficha con RUC o de forma manual; después podés sumar proyectos y piezas." action={canManageClients&&onCreate ? <EmptyCta label="Nuevo cliente" onClick={()=>onCreate()} icon={<Plus aria-hidden="true" size={16}/>}/> : undefined}/>
       ) : (
         <EmptyBlock title={clientSearch.trim() ? 'No hay clientes que coincidan con tu búsqueda y filtros.' : 'No hay clientes con este estado.'} description="Probá con otro término o restablecé los filtros." action={<button className="text-button min-h-11 md:min-h-8" type="button" onClick={() => {setClientSearch(''); setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>}/>
       )

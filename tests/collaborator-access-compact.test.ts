@@ -78,12 +78,16 @@ test('management reaches the team without individual salary amounts',()=>{
 });
 
 test('viewer never reaches a mutating control in the visible sections',()=>{
- assert.match(suite,/const canMove=\['owner','admin','management','finance','sales'\]\.includes\(role\);const drag=useDraggable\(\{id:String\(row\.id\),disabled:!canMove\}\)/);
- assert.match(suite,/\{canMove&&<button className="icon-button" title=\{`Mover \$\{str\(row,'name'\)\}`\} aria-label=\{`Mover \$\{str\(row,'name'\)\}`\}/);
+ // El único tablero de pipeline vive en `sections/pipeline.tsx` (#85): el asa
+ // comparte la capacidad del PATCH y no hay una lista de roles paralela.
+ const pipeline=read('app/sections/pipeline.tsx');
+ assert.match(pipeline,/const canMove=canEdit/);
+ assert.match(pipeline,/\{canMove\?<button type="button" className="[^"]*" style=\{\{touchAction:'none'\}\} title=\{`Mover \$\{str\(row,'name'\)\}`\}/);
+ assert.doesNotMatch(suite,/CatalogWorkspace|function LeadCard|function LeadColumn/,'el tablero paralelo de suite.tsx se retiró');
  assert.match(production,/const canMove=roleCan\(role,'work-orders\.edit'\)/,'moving a piece follows the API capability');
  assert.match(composer,/const drag=useDraggable\(\{id,disabled:!canReorder\}\)/);
  assert.match(composer,/\{canReorder&&<button type="button" className="[^"]*" title=\{`Reordenar \$\{itemLabel\}`\} aria-label=\{`Reordenar \$\{itemLabel\}`\}/);
- assert.match(suite,/<QuoteComposer mode="plan" record=\{row\} canReorder=\{canEdit\} done=/);
+ assert.match(read('app/sections/planes.tsx'),/<QuoteComposer mode="plan" record=\{row\} canReorder=\{canEdit\} done=/);
  assert.match(operations,/\{role !== "viewer" && \(/);
  assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');
  assert.match(read('app/capabilities.ts'),/collaborators:'members\.manage'/);

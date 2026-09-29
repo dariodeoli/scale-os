@@ -4,6 +4,7 @@
 // móvil). La lógica vive en ./growth-dashboard-data.
 import {useState} from 'react';
 import {Card,DataTable,Nota,Select,Stat} from 'owncoding-ui';
+import {formatoNumero} from 'owncoding-ui/utils';
 import {fechaListaCorta} from './date-format';
 import {growthSeries,type GrowthEvent} from './growth-dashboard-data';
 // La lógica de datos vive en ./growth-dashboard-data (funciones puras); se
@@ -29,7 +30,7 @@ export function GrowthDashboard({events}:{events:GrowthEvent[]}){
    </label>
   </header>
   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-   {metrics.map(({name,label,current,variation})=><Stat key={name} label={label} valor={current.toLocaleString('es-PY')} delta={variation??undefined} sub={variation===null?'Sin base anterior':'vs. período anterior'}/>)}
+   {metrics.map(({name,label,current,variation})=><Stat key={name} label={label} valor={formatoNumero(current)} delta={variation??undefined} sub={variation===null?'Sin base anterior':'vs. período anterior'}/>)}
   </div>
   <section aria-labelledby="growth-evolution">
    <h3 id="growth-evolution" className="text-sm font-bold text-fore">Evolución diaria · páginas vistas</h3>

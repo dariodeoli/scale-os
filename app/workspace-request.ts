@@ -6,16 +6,37 @@ import {notifyMutation} from './feedback';
 // El shell lo usa como «datos compartidos»; las secciones extraídas lo importan de acá.
 const core = "/core-api";
 
+/**
+ * Traduce un fallo de transporte a un mensaje es-PY accionable (§15.6): la red
+ * no responde, la petición se cortó o la respuesta no es JSON. Los mensajes del
+ * servidor (que traen la causa real) pasan tal cual.
+ */
+export function transporteError(cause: unknown): Error {
+  if (cause instanceof Error) {
+    if (cause.name === "AbortError" || cause.name === "TimeoutError" || /timed? ?out|aborted/i.test(cause.message))
+      return new Error("El servidor tardó demasiado en responder. Reintentá.");
+    if (/failed to fetch|fetch failed|networkerror|load failed|network request failed/i.test(cause.message))
+      return new Error("No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.");
+    if (cause.message) return cause;
+  }
+  return new Error("No se pudo completar la operación. Reintentá.");
+}
+
 export async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   // `shellDataUrl` ya devuelve la ruta con `/core-api`: el prefijo es idempotente.
-  const response = await dataFetch(path.startsWith(`${core}/`) ? path : `${core}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: {
-      ...(init.body ? { "Content-Type": "application/json" } : {}),
-      ...init.headers,
-    },
-  });
+  let response: Response;
+  try {
+    response = await dataFetch(path.startsWith(`${core}/`) ? path : `${core}${path}`, {
+      ...init,
+      credentials: "include",
+      headers: {
+        ...(init.body ? { "Content-Type": "application/json" } : {}),
+        ...init.headers,
+      },
+    });
+  } catch (cause) {
+    throw transporteError(cause);
+  }
   let data: T & { error?: string };
   try {
     data = (await response.json()) as T & { error?: string };

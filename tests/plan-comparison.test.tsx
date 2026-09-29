@@ -10,7 +10,8 @@ require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{Dial
 const composerId=require.resolve('../app/quote-composer');
 require.cache[composerId]={id:composerId,filename:composerId,loaded:true,exports:{QuoteComposer:({record}:{record:{id:string}})=><output>{record.id}</output>}} as NodeModule;
 const {PlanComparison,comparePlans,planAmount}=require('../app/plan-comparison') as typeof import('../app/plan-comparison');
-const {CatalogWorkspace}=require('../app/suite') as typeof import('../app/suite');
+const {PlanesSection}=require('../app/sections/planes') as typeof import('../app/sections/planes');
+const user=(role:string)=>({id:'1',role,organization_id:'7',full_name:'Prueba',organization_slug:''} as never);
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
 const fixture={id:'fixture',name:'Plan de prueba',currency:'USD',active:false,notes:'Condición completa\nFuente: documento de prueba. IVA a confirmar.',items:[
  {description:'Videos',quantity:2,unitPrice:'12.25'},
@@ -64,7 +65,7 @@ test('matches backend rounding of unit prices and each line before summing',()=>
  act(()=>renderer.unmount());
 });
 
-test('catalog renders comparison without preview/read amplification and preserves eight-role edit controls',async t=>{
+test('planes renders the comparison without preview/read amplification and preserves the eight-role edit controls',async t=>{
  let requests=0;
  t.mock.method(globalThis,'fetch',async(input:RequestInfo|URL,init?:RequestInit)=>{
   assert.equal(String(input),'/core-api/api/agency/plans');assert.equal(init?.method,'GET');requests++;
@@ -72,15 +73,18 @@ test('catalog renders comparison without preview/read amplification and preserve
  });
  for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator']){
   let renderer!:ReactTestRenderer;
-  await act(async()=>{renderer=create(<CatalogWorkspace kind="plans" role={role}/>);});
+  await act(async()=>{renderer=create(<PlanesSection user={user(role)}/>);});
   const root=renderer.root,copy=text(root),editable=['owner','admin','management','finance','sales','production','collaborator'].includes(role);
   assert(copy.includes(planAmount(45.25,'USD')));assert(copy.includes('Archivado'));assert(copy.includes(fixture.notes));
   assert.equal(root.findAllByProps({'data-plan-item':true}).length,4);
-  assert.equal(root.findAllByProps({role:'dialog'}).length,0);
-  const buttons=root.findAllByType('button');assert(!buttons.some(button=>text(button)==='Vista previa'));
-  for(const label of ['Agregar','Editar'])assert.equal(buttons.some(button=>text(button)===label),editable,`${role}: ${label}`);
+  assert.equal(root.findAllByProps({role:'dialog'}).length,0,'el comparador no abre diálogos por sí solo');
+  const buttons=root.findAllByType('button');assert(!buttons.some(button=>text(button).includes('Vista previa')));
+  for(const label of ['Nuevo plan','Editar'])assert.equal(buttons.some(button=>text(button).includes(label)),editable,`${role}: ${label}`);
   assert.equal(buttons.some(button=>String(button.props['aria-label']||'').startsWith('Mover a la papelera')),editable,`${role}: papelera`);
-  if(editable){act(()=>buttons.find(button=>text(button)==='Editar')!.props.onClick());assert.equal(text(root.findByType('output')),fixture.id);}
+  if(editable){
+   act(()=>buttons.find(button=>text(button).includes('Editar'))!.props.onClick());
+   assert.equal(text(root.findByType('output')),fixture.id,'el editor abre el compositor en modo plan');
+  }
   act(()=>renderer.unmount());
  }
  assert.equal(requests,9,'one existing list read per mount, no comparison-specific queries');
