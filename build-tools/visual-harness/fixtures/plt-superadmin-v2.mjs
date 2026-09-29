@@ -1,11 +1,10 @@
 /*
- * Fixtures v2 de la tanda 3 (issue #46): auditoría global, estados del panel
- * global, seguridad de cuenta y alcance del perfil.
+ * Fixtures v2 de la tanda 3 (issue #46): estados del panel global, seguridad de
+ * cuenta y alcance del perfil.
  *
- * Espejan `app/superadmin/audit.tsx`, `app/superadmin/states.tsx`,
+ * Espejan `app/superadmin/states.tsx` (#102: filas compactas), 
  * `app/account-security.tsx` y `app/my-profile.tsx` con las clases de
- * `app/ui-v2.tsx`. Datos de ejemplo (auditoría sin `before_state`/`after_state`:
- * deuda de API declarada).
+ * `app/ui-v2.tsx`.
  */
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
@@ -14,49 +13,21 @@ import {Badge} from 'owncoding-ui';
 const h = React.createElement;
 const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
 const StateChip = ({tone = 'mute', children}) => h(Badge, {color: CHIP[tone], className: 'whitespace-nowrap'}, children);
-const SURFACE = 'grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4 sm:grid-cols-[auto_minmax(0,1fr)]';
-const ICON = 'grid size-10 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute';
+const ROW = 'grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3';
+const ICON = 'grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute';
 
-const AUDIT_TEMPLATE = 'grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]';
-const AUDIT_COLUMNS = [{key: 'date', label: 'Fecha'}, {key: 'actor', label: 'Actor'}, {key: 'action', label: 'Acción'}, {key: 'target', label: 'Destino'}];
-const AUDIT = [
-  {date: '18 sept 26 · 14:32', actor: 'admin@scaleparaguay.com', action: 'subscription.internal_state.update', target: 'organization_subscription #42', metadata: '{"state":"active","days":30}'},
-  {date: '17 sept 26 · 09:05', actor: 'Sistema', action: 'coupon.redeem', target: 'organization_coupon #7', metadata: '{"code":"LANZAMIENTO"}'},
-  {date: '12 sept 26 · 18:47', actor: 'otro.admin@estudiodecomunicacion.com.py', action: 'agency.platform_access.grant', target: 'platform_access #3', metadata: null},
-];
-
-const auditRow = (entry) => h('div', {role: 'row', key: entry.action + entry.date, className: `list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${AUDIT_TEMPLATE}`},
-  h('span', {role: 'cell', className: 'whitespace-nowrap text-[11.5px] tabular-nums text-mute'}, entry.date),
-  h('span', {role: 'cell', className: 'min-w-0 truncate text-[12.5px] text-fore', title: entry.actor}, entry.actor),
-  h('span', {role: 'cell', className: 'min-w-0'}, h(StateChip, {tone: 'info'}, entry.action)),
-  h('div', {role: 'cell', className: 'min-w-0'},
-    h('span', {className: 'block break-words text-[12.5px] text-fore'}, entry.target),
-    entry.metadata ? h('small', {className: 'mt-1 block truncate text-[11px] text-mute', title: entry.metadata}, entry.metadata.slice(0, 160)) : null));
-
-const audit = h('section', {className: 'panel'},
-  h('div', {className: 'mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1'},
-    h('div', {className: 'min-w-0'},
-      h('p', {className: 'eyebrow'}, 'Auditoría'),
-      h('h2', {className: 'text-[17px] font-semibold tracking-tight text-fore'}, 'Actividad de administración global')),
-    h('span', {className: 'whitespace-nowrap text-xs tabular-nums text-mute'}, '3 acciones recientes')),
-  h('div', {role: 'table', 'aria-label': 'Actividad de administración global', className: 'silent-scroll min-w-0 overflow-x-auto'},
-    h('div', {className: 'min-w-[47rem]'},
-      h('div', {role: 'row', className: `grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${AUDIT_TEMPLATE}`},
-        AUDIT_COLUMNS.map((column, index) => h('span', {key: column.key, role: 'columnheader', className: `whitespace-nowrap ${index === AUDIT_COLUMNS.length - 1 ? 'text-right' : 'text-left'}`}, column.label))),
-      h('div', {role: 'rowgroup'}, AUDIT.map(auditRow)))));
 
 const states = h('div', {className: 'grid grid-cols-[minmax(0,1fr)] gap-3'},
-  h('section', {className: SURFACE, role: 'status'},
-    h('span', {className: ICON}, '·'),
+  h('section', {className: `${ROW} border-bad/30`, role: 'alert'},
+    h('span', {className: `${ICON} text-bad`}, '⚠'),
     h('div', {className: 'min-w-0'},
-      h('h2', {className: 'text-[17px] font-semibold tracking-tight text-fore'}, 'No pudimos actualizar el control global'),
-      h('p', {className: 'mt-1 break-words text-xs text-bad'}, 'La sesión venció. Volvé a iniciar sesión para reintentar.'))),
-  h('section', {className: SURFACE, role: 'status'},
-    h('span', {className: ICON}, '·'),
+      h('b', {className: 'block text-[13.5px] font-semibold text-fore'}, 'No pudimos actualizar el control global'),
+      h('p', {className: 'mt-0.5 text-xs text-mute'}, 'La sesión venció. Volvé a iniciar sesión para reintentar.'))),
+  h('section', {className: `${ROW} border-warn/40`, role: 'status'},
+    h('span', {className: `${ICON} text-warn`}, '▲'),
     h('div', {className: 'min-w-0'},
-      h('strong', {className: 'block text-[13.5px] text-fore'}, 'Primer acceso global pendiente.'),
-      h('span', {className: 'mt-1 block text-xs text-mute'}, 'La cuenta configurada debe existir, tener correo verificado y acceso activo a una agencia.'),
-      h('small', {className: 'mt-1 block text-[11.5px] text-mute'}, 'Este diagnóstico no expone correos ni secretos.'))));
+      h('b', {className: 'block text-[13.5px] font-semibold text-fore'}, 'Primer acceso global pendiente'),
+      h('p', {className: 'mt-0.5 text-xs text-mute', title: 'Este diagnóstico no expone correos ni secretos.'}, 'La cuenta configurada debe existir, tener correo verificado y acceso activo a una agencia.'))));
 
 const security = h('section', {className: 'grid grid-cols-[minmax(0,1fr)] gap-3'},
   h('div', {className: 'min-w-0'},
@@ -82,14 +53,6 @@ const profileScope = h('div', {className: 'grid grid-cols-[minmax(0,1fr)] gap-4'
     h('p', {className: 'text-xs text-mute'}, 'Tu nombre y foto personales se comparten entre tus empresas. El cargo, sueldo y acceso se mantienen separados en cada empresa.')));
 
 export default [
-  {
-    id: 'v2-plt-superadmin-auditoria',
-    section: 'Configuración',
-    surface: 'Auditoría global v2',
-    kind: 'plain',
-    lists: [{container: '[role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Auditoría · lista v2', rowHeight: [44, 52]}],
-    body: renderToStaticMarkup(h('main', {className: 'platform-admin-page'}, audit)),
-  },
   {id: 'v2-plt-superadmin-estados', section: 'Configuración', surface: 'Estados del panel global v2', kind: 'plain', body: renderToStaticMarkup(h('main', {className: 'platform-admin-page'}, states))},
   {id: 'v2-plt-perfil-seguridad', section: 'Equipo', surface: 'Seguridad de cuenta v2', kind: 'workspace', body: renderToStaticMarkup(h('div', {className: 'grid grid-cols-[minmax(0,1fr)] gap-4'}, profileScope, security))},
 ];

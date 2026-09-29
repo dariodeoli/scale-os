@@ -2,9 +2,10 @@
 // Accesos entre agencias del panel global.
 // Rediseño #80: panel del sistema con lista densa v2 y tarjetas cuando la
 // plantilla no entra; las acciones mutantes quedan detrás de `writable`.
+import {useMemo, useState} from "react";
 import {Eye, ShieldCheck, Trash2} from "lucide-react";
-import {Nota} from "owncoding-ui";
-import {ListActions, ListGrid, ListRow, EmptyBlock, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
+import {Nota, SearchField} from "owncoding-ui";
+import {EmptyBlock, FilterToolbar, ListActions, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type ConfirmRequest, type Person, type State} from "./model";
 
 type PlatformAccessProps = {
@@ -27,6 +28,11 @@ const MIN_WIDTH = denseTableMinWidth(43, 3);
 
 export function PlatformAccess({busy, state, writable, setConfirming, setTyped, selfRow, setPlatformAccess}: PlatformAccessProps){
   const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
+  const [query, setQuery] = useState("");
+  const visible = useMemo(() => {
+    const text = query.trim().toLowerCase();
+    return text ? state.users.filter((person) => person.email.toLowerCase().includes(text)) : state.users;
+  }, [state.users, query]);
   const accessChip = (person: Person) => person.platform_admin
     ? <StateChip tone={person.platform_role === "viewer" ? "info" : "ok"}>{person.platform_role === "viewer" ? "Solo lectura" : "Admin global"}</StateChip>
     : <StateChip tone="mute">Acceso de agencia</StateChip>;
@@ -99,20 +105,24 @@ export function PlatformAccess({busy, state, writable, setConfirming, setTyped, 
   </>;
   return (
     <section className="panel h-full" aria-labelledby="platform-access-title">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-        <div className="min-w-0">
-          <p className="eyebrow">Usuarios</p>
-          <h2 id="platform-access-title" className="text-[17px] font-semibold tracking-tight text-fore">Accesos entre agencias</h2>
+      <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <h2 id="platform-access-title" className="text-[15px] font-semibold tracking-tight text-fore">Accesos entre agencias</h2>
+          <StateChip tone="mute" title="Usuarios registrados">{formatPlatformMetric(state.users.length)}</StateChip>
         </div>
-        <small className="text-[12px] leading-[1.35] text-mute">{formatPlatformMetric(state.users.length)} registrados</small>
+        <small className="text-[12px] leading-[1.35] text-mute">El acceso global no cambia los permisos de cada agencia</small>
       </div>
+      <FilterToolbar summary={`${visible.length} de ${state.users.length}`}>
+        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" type="search" ariaLabel="Buscar usuario" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Correo del usuario"/>
+        {query ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setQuery("")}>Limpiar filtros</button> : null}
+      </FilterToolbar>
       {!writable && (
         <Nota tono="info" como="div" compact className="mb-3">Solo lectura: podés consultar la administración global, no modificarla.</Nota>
       )}
       <div ref={listRef} className="min-w-0">
-        {state.users.length ? (listFits ? (
+        {visible.length ? (listFits ? (
           <ListGrid label="Accesos entre agencias" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[45rem]" pinnedActions>
-            {state.users.map((person) => {
+            {visible.map((person) => {
               const rowActions = actions(person);
               return (
                 <ListRow key={person.id} template={TEMPLATE}>
@@ -125,7 +135,7 @@ export function PlatformAccess({busy, state, writable, setConfirming, setTyped, 
           </ListGrid>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {state.users.map((person) => {
+            {visible.map((person) => {
               const cardActions = actions(person);
               return (
                 <article key={person.id} className="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">

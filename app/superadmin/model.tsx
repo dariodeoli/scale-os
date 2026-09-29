@@ -184,4 +184,32 @@ export function newExtendKey(){
 }
 
 export type ConfirmRequest = { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null;
+
+/** Vistas del panel (#102): una consola con secciones, no un scroll largo. */
+export type PlatformView = "resumen" | "agencias" | "cupones" | "accesos" | "auditoria";
+
+/** Hora de Asunción en 24 h para el chip «Actualizado» del encabezado. */
+export function platformTime(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("es-PY", {timeZone: "America/Asuncion", hour: "2-digit", minute: "2-digit", hourCycle: "h23"}).format(date);
+}
+
+/** Vencimiento visible del registro: manual, prueba o facturación. */
+export function agencyExpiry(agency: Agency) {
+  return agency.internal_subscription_expires_at || agency.trial_ends_at || agency.due_at;
+}
+
+/** Agencias que piden atención: vencidas o dentro de los próximos `days` días. */
+export function expiringAgencies(agencies: Agency[], days = 7) {
+  const limit = Date.now() + days * 86_400_000;
+  return agencies
+    .flatMap((agency) => {
+      const expiry = agencyExpiry(agency);
+      const time = expiry ? new Date(expiry).getTime() : Number.NaN;
+      return Number.isFinite(time) && time <= limit ? [{agency, expiry: expiry as string, time}] : [];
+    })
+    .sort((a, b) => a.time - b.time);
+}
 export type CouponDraft = { code: string; discount_value: string; discount_type: "percent" | "fixed" | "days"; currency: string };

@@ -1,64 +1,55 @@
 "use client";
-// Estados del panel global (issue #46): extraídos de superadmin/page.tsx con los
-// mismos textos, en la superficie v2 compartida.
+// Estados del panel global (#102): filas compactas de una línea —el detalle
+// vive en el texto muted o en el tooltip— sin tarjetas altas para un solo dato.
 import Link from "next/link";
-import {ArrowLeft, CircleAlert, KeyRound, RefreshCw, ShieldAlert} from "lucide-react";
+import {ArrowLeft, CircleAlert, KeyRound, ShieldAlert, TriangleAlert} from "lucide-react";
 import {appHome, type BootstrapStatus, type State} from "./model";
-import {Aviso,Skeleton} from 'owncoding-ui';
+import {Aviso} from 'owncoding-ui';
 
-const SURFACE = "grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4";
-const ICON = "grid size-10 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute";
+const ROW = "grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3";
+const ICON = "grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute";
 
 export function PlatformRedirecting() {
-  return <section className={`${SURFACE} sm:grid-cols-[auto_minmax(0,1fr)]`} role="status">
-    <span className={ICON} aria-hidden="true"><KeyRound size={20}/></span>
+  return <section className={ROW} role="status">
+    <span className={ICON} aria-hidden="true"><KeyRound size={17}/></span>
     <div className="min-w-0">
-      <h2 className="text-[17px] font-semibold tracking-tight text-fore">Redirigiendo al inicio de sesión</h2>
-      <p className="mt-1 text-xs text-mute">Verificá tu acceso para continuar con la administración global.</p>
+      <b className="block text-[13.5px] font-semibold text-fore">Redirigiendo al inicio de sesión</b>
+      <p className="mt-0.5 text-xs text-mute">Verificá tu acceso para continuar con la administración global.</p>
     </div>
   </section>;
 }
 
 export function PlatformAccessDenied() {
-  return <section className={`${SURFACE} sm:grid-cols-[auto_minmax(0,1fr)]`} role="alert">
-    <span className={ICON} aria-hidden="true"><ShieldAlert size={20}/></span>
+  return <section className={`${ROW} border-bad/30`} role="alert">
+    <span className={`${ICON} text-bad`} aria-hidden="true"><ShieldAlert size={17}/></span>
     <div className="min-w-0">
-      <p className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Acceso restringido</p>
-      <h2 className="mt-1 text-[17px] font-semibold tracking-tight text-fore">No tenés acceso global</h2>
-      <p className="mt-1 text-xs text-mute">Tu sesión está activa, pero no tiene el permiso necesario para administrar la plataforma.</p>
-      <Link className="secondary mt-3 inline-flex items-center gap-2" href={appHome()}><ArrowLeft size={14} aria-hidden="true"/>Volver al panel</Link>
+      <b className="block text-[13.5px] font-semibold text-fore">No tenés acceso global</b>
+      <p className="mt-0.5 text-xs text-mute">Tu sesión está activa, pero no tiene el permiso necesario para administrar la plataforma.</p>
+      <Link className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" href={appHome()}><ArrowLeft size={14} aria-hidden="true"/>Volver al panel</Link>
     </div>
   </section>;
 }
 
-export function PlatformNotices({state, error, busy, bootstrap}: {state: State | null; error: string; busy: boolean; bootstrap: BootstrapStatus | null}) {
-  return <>
-    <section className={`${SURFACE} sm:grid-cols-[auto_minmax(0,1fr)]`}>
-      <span className={ICON} aria-hidden="true"><ShieldAlert size={20}/></span>
-      <span className="min-w-0 text-xs text-mute"><strong className="text-fore">Acceso separado por plataforma.</strong> Ser dueño de una agencia no habilita este panel ni sus datos.</span>
-    </section>
-    {bootstrap && !bootstrap.initialized ? <section className={`${SURFACE} sm:grid-cols-[auto_minmax(0,1fr)]`} role="status">
-      <span className={ICON} aria-hidden="true"><ShieldAlert size={20}/></span>
+export function PlatformNotices({state, error, bootstrap}: {state: State | null; error: string; bootstrap: BootstrapStatus | null}) {
+  return <div className="grid gap-3">
+    <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-1 text-[12px] leading-[1.45] text-mute">
+      <ShieldAlert size={14} className="shrink-0" aria-hidden="true"/>
+      <strong className="font-semibold text-fore">Acceso separado por plataforma.</strong>
+      <span>Ser dueño de una agencia no habilita este panel ni sus datos.</span>
+    </p>
+    {bootstrap && !bootstrap.initialized ? <section className={`${ROW} border-warn/40`} role="status">
+      <span className={`${ICON} text-warn`} aria-hidden="true"><TriangleAlert size={17}/></span>
       <div className="min-w-0">
-        <strong className="block text-[13.5px] text-fore">Primer acceso global pendiente.</strong>
-        <span className="mt-1 block text-xs text-mute">{bootstrap.state === "not_configured" ? "Falta definir la configuración inicial del administrador en el servidor." : bootstrap.state === "invalid_configuration" ? "La configuración inicial del administrador no tiene un formato válido." : bootstrap.state === "awaiting_eligible_user" ? "La cuenta configurada debe existir, tener correo verificado y acceso activo a una agencia." : "Estado de configuración pendiente."}</span>
-        <small className="mt-1 block text-[11.5px] text-mute">Este diagnóstico no expone correos ni secretos.</small>
+        <b className="block text-[13.5px] font-semibold text-fore">Primer acceso global pendiente</b>
+        <p className="mt-0.5 text-xs text-mute" title="Este diagnóstico no expone correos ni secretos.">{bootstrap.state === "not_configured" ? "Falta definir la configuración inicial del administrador en el servidor." : bootstrap.state === "invalid_configuration" ? "La configuración inicial del administrador no tiene un formato válido." : bootstrap.state === "awaiting_eligible_user" ? "La cuenta configurada debe existir, tener correo verificado y acceso activo a una agencia." : "Estado de configuración pendiente."}</p>
       </div>
     </section> : null}
-    {error ? <section className={`${SURFACE} sm:grid-cols-[auto_minmax(0,1fr)]`} role="alert">
-      <span className={ICON} aria-hidden="true"><CircleAlert size={20}/></span>
+    {error ? <section className={ROW} role="alert">
+      <span className={`${ICON} text-bad`} aria-hidden="true"><CircleAlert size={17}/></span>
       <div className="min-w-0">
-        <h2 className="text-[17px] font-semibold tracking-tight text-fore">No pudimos actualizar el control global</h2>
+        <b className="block text-[13.5px] font-semibold text-fore">No pudimos actualizar el control global</b>
         <Aviso tono="error" compact className="mt-1">{error}</Aviso>
       </div>
     </section> : null}
-    {busy && !state ? <section className={`${SURFACE} sm:grid-cols-[auto_minmax(0,1fr)]`} role="status" aria-busy="true">
-      <span className={ICON} aria-hidden="true"><RefreshCw size={20}/></span>
-      <div className="min-w-0">
-        <h2 className="text-[17px] font-semibold tracking-tight text-fore">Cargando control global</h2>
-        <p className="mt-1 text-xs text-mute">Reuniendo indicadores, accesos y catálogo comercial.</p>
-        <div className="mt-3 grid gap-2" aria-hidden="true"><Skeleton className="h-3.5 w-28 rounded-full"/><Skeleton className="h-10 w-full rounded-xl"/></div>
-      </div>
-    </section> : null}
-  </>;
+  </div>;
 }
