@@ -379,7 +379,7 @@ const moraCobranzas = {
 /* --------------- Previsión: resumen del mes (v2) ---------------------- */
 const personnelRow = ({name, initials, base, override, total, negative = false, noBase = false, masked = false}) => `
 <div role="row" class="${FORECAST_ROW} ${PERSON_COLS} forecast-person-row">
- ${cell(`<span class="forecast-person-who flex min-w-0 items-center gap-2"><span class="grid h-6 w-6 flex-none place-items-center overflow-hidden rounded-full bg-ink-700 text-[10px] font-semibold">${initials}</span><span class="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title="${name}">${name}</span>${noBase ? '<small class="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>' : ''}</span>`)}
+ ${cell(`<span class="forecast-person-who flex min-w-0 items-center gap-2"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title="${name}">${name}</span>${noBase ? '<small class="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>' : ''}</span>`)}
  ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${masked ? 'Sin dato' : base}</strong>`, 'forecast-person-base')}
  ${override ? cell(`<span class="whitespace-nowrap text-sm font-semibold tabular-nums text-warn">${override}</span>`) : '<span class="forecast-person-override is-empty hidden md:block" aria-hidden="true"></span>'}
  ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums ${negative ? 'text-bad' : 'text-fore'}">${masked ? 'Sin dato' : total}</strong>`, 'forecast-person-total')}
@@ -404,7 +404,7 @@ const previsionResumen = {
   surface: 'Ingresos vs gastos, resumen por moneda, personal y gastos (v2)',
   kind: 'workspace',
   lists: [
-    {container: '.forecast-person-list', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Previsión · personal proyectado', rowHeight: [44, 52]},
+    {container: '.forecast-person-list', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Previsión · salarios', rowHeight: [44, 52]},
     {container: '[role="table"][aria-label="Gastos planificados del mes"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Previsión · gastos planificados', rowHeight: [44, 52]},
     {container: '[role="table"][aria-label="Gastos reales del mes"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Previsión · gastos reales', rowHeight: [44, 52]},
   ],
@@ -453,13 +453,13 @@ const previsionResumen = {
   </div>
  </div>
  <div class="${CARD} grid gap-3">
-  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Personal proyectado</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
   <p role="status" class="text-xs text-mute">4 colaborador(es) activo(s) incluido(s).</p>
   <div class="grid gap-4">
    <div class="forecast-personnel-card grid gap-2">
     <div class="flex flex-wrap items-baseline justify-between gap-2"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG · gasto esperado al cierre</span><strong class="whitespace-nowrap text-lg font-semibold tabular-nums text-fore">Gs. 69.765.432</strong></div>
     <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-mute"><span>Salario base (3): <b class="font-semibold tabular-nums text-fore">Gs. 68.565.432</b></span><span>Ajustes del mes (1): <b class="font-semibold tabular-nums text-fore">Gs. 1.200.000</b></span></div>
-    ${listWrap('56rem', `<div class="forecast-person-list" role="table" aria-label="Personal proyectado">
+    ${listWrap('56rem', `<div class="forecast-person-list" role="table" aria-label="Salarios">
      <div role="row" class="${LIST_HEAD} ${PERSON_COLS}"><span role="columnheader">Persona</span><span role="columnheader">Salario base</span><span role="columnheader">Ajuste del mes</span><span role="columnheader">Cierre del mes</span><span role="columnheader" class="text-right">Acciones</span></div>
  <div role="rowgroup">     ${personnelRow({name: 'Ana López Fernández de la Cruz', initials: 'AL', base: 'Gs. 24.500.000', override: 'Gs. 1.200.000', total: 'Gs. 25.700.000'})}
      ${personnelRow({name: 'Bruno Villalba', initials: 'BV', base: 'Gs. 32.000.000', override: '', total: 'Gs. 32.000.000'})}
@@ -804,7 +804,7 @@ const previsionVacio = {
   ${v2Empty('Sin datos financieros para este mes.', 'Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance.', '<button class="primary" type="button">Registrar factura</button>')}
  </div>
  <div class="${CARD} grid gap-3 p-4">
-  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Personal proyectado</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
   ${v2Empty('Sin salarios fijos mensuales incluidos para este mes.', 'Cargá el salario fijo de cada persona desde su ficha de equipo.', '<button class="secondary" type="button">Ver equipo</button>')}
  </div>
  <div class="${CARD} grid gap-3 p-4">
