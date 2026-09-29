@@ -101,7 +101,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
    </div>
   </>:null}
   {error?<Aviso tono="error" role="alert">{error}</Aviso>:null}
-  {notice?<p role="status" className="text-sm font-semibold text-ok">{notice}</p>:null}
+  {notice?<Aviso tono="ok" role="status">{notice}</Aviso>:null}
   {data&&editable?<div className="flex flex-wrap gap-2">
    <Button type="button" disabled={saving||!dirty} onClick={()=>void save()}>{saving?'Guardando…':'Guardar datos comerciales'}</Button>
   </div>:null}

@@ -3,13 +3,14 @@ import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {Eye,GripVertical,Plus,Settings2,Target} from 'lucide-react';
-import {Button,Input,Label,Select} from 'owncoding-ui';
+import {Aviso,Button,Input,Label,Select} from 'owncoding-ui';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
-import {pipelineSummary,stageTotals,type LeadOpportunity} from '../pipeline-summary';
+import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '../pipeline-summary';
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
+import {PHONE_HELP} from '../field-rules';
 import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
 import {useDialogPending} from '../dialog';
 import type {MetricEvent,User} from '../workspace-types';
@@ -26,6 +27,9 @@ const GrowthDashboard=dynamic(()=>import('../growth-dashboard').then(m=>m.Growth
 type PipelineSectionProps = {
   user: User | null;
   metrics: MetricEvent[];
+  /** Estado real de la lectura de métricas del shell (opcional en tests). */
+  metricsState?: 'idle' | 'loading' | 'ready' | 'error';
+  onRetryMetrics?: () => void;
 };
 type Row=LeadOpportunity;
 type RawRow=Record<string,unknown>;
@@ -47,15 +51,18 @@ const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(arg
 
 function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:string;canMove:boolean;refresh:()=>Promise<void>}){
   const drag=useDraggable({id:String(row.id),disabled:!canMove});
-  const probability=Number(row.probability)||0;
+  // Dato ausente = vacío explícito: no se inventa un monto 0 ni una probabilidad 0.
+  const amount=str(row,'amount').trim(),probabilityRaw=str(row,'probability').trim();
+  const probability=Number(probabilityRaw);
+  const hasProbability=probabilityRaw!==''&&Number.isFinite(probability);
   return <article ref={drag.setNodeRef} style={{opacity:drag.isDragging?.4:1}} className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
     <header className="flex items-start justify-between gap-2">
       <b className="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title={str(row,'name')}>{str(row,'name')}</b>
       {canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
     </header>
-    <MoneyText valor={str(row,'amount')||'0'} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
+    <MoneyText valor={amount===''?null:amount} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
     <div className="flex flex-wrap items-center gap-2 text-[11px]">
-      <StateChip tone={probability>=75?'ok':probability>=40?'warn':'mute'} title={`Probabilidad ${probability}%`}>{probability}%</StateChip>
+      {hasProbability?<StateChip tone={probability>=75?'ok':probability>=40?'warn':'mute'} title={`Probabilidad ${probability}%`}>{probability}%</StateChip>:<span className="text-mute">Sin probabilidad cargada</span>}
       {str(row,'email')?<span className="min-w-0 text-mute [overflow-wrap:anywhere]" title={str(row,'email')}>{str(row,'email')}</span>:null}
     </div>
     {str(row,'notes')?<p className="text-[11px] leading-4 text-mute [overflow-wrap:anywhere]">{str(row,'notes')}</p>:null}
@@ -68,19 +75,22 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
 
 function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false}:{stage:{value:string;label:string};rows:Row[];edit:(row:Row)=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;readOnly?:boolean}){
   const drop=useDroppable({id:`stage-${stage.value}`,disabled:readOnly});
-  const currencies=[...new Set(rows.map(row=>str(row,'currency')||'PYG'))];
+  // Mismo cálculo ponderado que los totales por etapa (`weightedAmounts`):
+  // una sola derivación para el tablero y el resumen.
+  const weighted=weightedAmounts(rows);
+  const currencies=Object.keys(weighted);
   return <section ref={drop.setNodeRef} aria-label={`${stage.label} · ${rows.length} oportunidades`} className={`grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border p-3 ${drop.isOver?'border-fono/60 bg-fono/10':'border-ink-600 bg-ink-800'}`}>
     <header className="flex items-baseline justify-between gap-2">
       <h3 className="text-sm font-bold text-fore">{stage.label}{readOnly?' · desactivada':''}</h3>
       <span className="text-xs tabular-nums text-mute">{rows.length}</span>
     </header>
-    {currencies.length?<div className="grid gap-0.5 text-[11px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="whitespace-nowrap"><MoneyText valor={rows.filter(row=>(str(row,'currency')||'PYG')===currency).reduce((sum,row)=>sum+Number(row.amount)*Number(row.probability)/100,0)} currency={currency}/> ponderado</span>)}</div>:null}
+    {currencies.length?<div className="grid gap-0.5 text-[11px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="whitespace-nowrap"><MoneyText valor={weighted[currency]} currency={currency}/> ponderado</span>)}</div>:null}
     {rows.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh}/>)}
     {!rows.length?<p className="text-xs text-mute">Sin oportunidades.</p>:null}
   </section>;
 }
 
-export function PipelineSection({user, metrics}: PipelineSectionProps){
+export function PipelineSection({user, metrics, metricsState='ready', onRetryMetrics}: PipelineSectionProps){
   const [rows,setRows]=useState<Row[]>([]);
   const [stages,setStages]=useState<Stage[]>(fallbackStages);
   const [state,setState]=useState<LeadsState>('loading');
@@ -88,6 +98,11 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
   const [stagePanel,setStagePanel]=useState(false);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
+  // Estado honesto de las dos lecturas: el error real de la lista y el aviso de
+  // las etapas (el tablero nunca se cae, pero el fallo no se silencia).
+  const [loadError,setLoadError]=useState('');
+  const [stagesWarning,setStagesWarning]=useState('');
+  const [stagesKnown,setStagesKnown]=useState(false);
   const stagesLoaded=useRef(false);
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
   const role=user?.role||'viewer';
@@ -101,17 +116,23 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
     try{
       const data=await projectedList('leads','/api/agency/leads',LEAD_LIST_FIELDS,path=>api<{records:Row[]}>(path));
       setRows(Array.isArray(data.records)?data.records:[]);
+      setLoadError('');
       setState('ready');
-    }catch{setState('error');}
+    }catch(cause){setLoadError(err(cause));setState('error');}
   }
   // Una lectura de etapas fallida conserva el fallback; una recarga fallida
-  // preserva las etapas ya conocidas.
+  // preserva las etapas ya conocidas. En ambos casos se avisa con reintento.
   async function loadStages(){
     try{
       const data=await api<{stages:RawRow[]}>('/api/agency/pipeline-stages');
       setStages(data.stages.map(normalizeStage));
+      setStagesWarning('');
+      setStagesKnown(true);
       stagesLoaded.current=true;
-    }catch{if(!stagesLoaded.current)setStages(fallbackStages);}
+    }catch(cause){
+      if(!stagesLoaded.current)setStages(fallbackStages);
+      setStagesWarning(err(cause));
+    }
   }
   useEffect(()=>{void load();void loadStages();},[]);
 
@@ -139,7 +160,7 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
   const fields:Field[]=[
     {key:'name',label:'Empresa o prospecto'},
     {key:'email',label:'Correo',type:'email',optional:true},
-    {key:'phone',label:'Teléfono',type:'phone',optional:true},
+    {key:'phone',label:'Teléfono',type:'phone',optional:true,help:PHONE_HELP},
     {key:'stage',label:'Etapa',choices:stageChoices},
     {key:'amount',label:'Valor de la oportunidad',type:'money'},
     {key:'currency',label:'Moneda',choices:[{value:'PYG',label:'PYG · Guaraníes'},{value:'USD',label:'USD · Dólares'},{value:'EUR',label:'EUR · Euros'},{value:'BRL',label:'BRL · Reales'},{value:'ARS',label:'ARS · Pesos argentinos'},{value:'MXN',label:'MXN · Pesos mexicanos'}]},
@@ -186,6 +207,10 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
         />
       </KpiStrip>
 
+      {stagesWarning?<Aviso tono="warn" como="div" role="status">No se pudieron leer las etapas de esta empresa. {stagesWarning} {stagesKnown?'Se conservan las últimas etapas conocidas.':'Se muestra el tablero estándar mientras tanto.'}{' '}
+        <button type="button" className="underline" onClick={()=>void loadStages()}>Reintentar</button>
+      </Aviso>:null}
+
       {error?<ErrorBlock title="No se pudo completar la operación." description={error} onRetry={()=>void load()}/>:null}
 
       {rows.length?<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Totales por etapa">
@@ -207,7 +232,7 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
       </div>:null}
 
       {state==='loading' && !rows.length ? <LoadingBlock label="Cargando oportunidades…" lines={4}/> : null}
-      {state==='error' && !rows.length ? <ErrorBlock title="No se pudieron cargar las oportunidades." description="Revisá la conexión y volvé a intentar; el tablero conserva las etapas conocidas." onRetry={()=>void load()}/> : null}
+      {state==='error' && !rows.length ? <ErrorBlock title="No se pudieron cargar las oportunidades." description={loadError||'Revisá la conexión y volvé a intentar; el tablero conserva las etapas conocidas.'} onRetry={()=>void load()}/> : null}
       {state==='ready' && !rows.length ? <EmptyBlock icon="target" title="Todavía no hay oportunidades." description={canEdit?'Cargá el primer lead con su etapa, valor y probabilidad para verlo en el tablero.':'Cuando el equipo cargue una oportunidad, vas a verla acá con su etapa y valor.'} action={canEdit?<EmptyCta label="Nueva oportunidad" onClick={()=>setEdit('new')} icon={<Plus aria-hidden="true" size={16}/>}/>:undefined}/> : null}
 
       {rows.length?<div className="grid gap-2">
@@ -220,7 +245,10 @@ export function PipelineSection({user, metrics}: PipelineSectionProps){
         </DndContext>
       </div>:null}
 
-      {canSeeGrowth?<GrowthDashboard events={metrics}/>:null}
+      {canSeeGrowth?<>
+        {metricsState==='error'?<Aviso tono="warn" como="div" role="status">No se pudieron cargar las métricas de captación.{onRetryMetrics?<>{' '}<button type="button" className="underline" onClick={onRetryMetrics}>Reintentar</button></>:null}</Aviso>:null}
+        {metrics.length?<GrowthDashboard events={metrics}/>:metricsState==='loading'?<SectionLoading label="Cargando métricas…"/>:null}
+      </>:null}
       {user?<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>:null}
 
       {edit&&canEdit?<Dialog title={row?'Editar oportunidad':'Nueva oportunidad'} busy={busy} close={()=>{if(!busy)setEdit(null);}}>
@@ -259,8 +287,8 @@ function StageManager({stages,reload}:{stages:Stage[];reload:()=>Promise<void>})
   }
   const ordered=[...stages].sort((a,b)=>a.position-b.position||a.value.localeCompare(b.value));
   return <div className="grid gap-3">
-    {error?<p role="alert" className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-xs text-bad">{error}</p>:null}
-    {notice?<p role="status" className="text-xs font-semibold text-ok">{notice}</p>:null}
+    {error?<Aviso tono="error" role="alert" compact>{error}</Aviso>:null}
+    {notice?<Aviso tono="ok" role="status" compact>{notice}</Aviso>:null}
     <form className="grid gap-3 sm:grid-cols-3" onSubmit={event=>{event.preventDefault();if(busy)return;const name=label.trim();const order=validOrder(position);if(name.length<2){setError('Ingresá el nombre de la etapa.');return;}if(Number.isNaN(order)){setError('Orden de etapa inválido.');return;}void run(async()=>{await api('/api/agency/pipeline-stages',{label:name,kind,...(order===null?{}:{position:order})},'POST');setLabel('');setPosition('');setKind('open');return 'Etapa creada.';});}}>
       <div className="grid gap-1"><Label htmlFor="stage-name">Nombre de la etapa</Label><Input id="stage-name" value={label} disabled={busy} maxLength={60} placeholder="Ej.: Visita técnica" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setLabel(event.target.value)}/></div>
       <div className="grid gap-1"><Label htmlFor="stage-kind">Tipo</Label><Select id="stage-kind" value={kind} disabled={busy} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setKind(event.target.value as Stage['kind'])}>{stageKindChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></div>

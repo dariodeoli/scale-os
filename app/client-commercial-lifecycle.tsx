@@ -72,7 +72,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
    </form>:null}
   </>:null}
   {error?<Aviso tono="error" role="alert">{error}</Aviso>:null}
-  {notice?<p role="status" className="text-sm font-semibold text-ok">{notice}</p>:null}
+  {notice?<Aviso tono="ok" role="status">{notice}</Aviso>:null}
   {error?<div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={saving} onClick={reload}>Recargar ficha (descarta cambios)</Button></div>:null}
  </section>;
 }

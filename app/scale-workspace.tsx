@@ -352,6 +352,8 @@ export default function Home() {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [custodians, setCustodians] = useState<Member[]>([]);
   const [metrics, setMetrics] = useState<MetricEvent[]>([]);
+  const [metricsState, setMetricsState] = useState<'idle'|'loading'|'ready'|'error'>('idle');
+  const [metricsError, setMetricsError] = useState('');
   const [paymentStatuses, setPaymentStatuses] = useState<ClientPaymentStatus[]>(
     [],
   );
@@ -511,7 +513,7 @@ export default function Home() {
     const next=user?.subscription?.hasAccess??null;
     if(next===false){
       dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
-      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);setMoraReports(null);setMoraReportsError(false);
+      clearDataCache();setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setMetricsState('idle');setMetricsError('');setPaymentStatuses([]);setMoraReports(null);setMoraReportsError(false);
       setModal(null);setDetail(null);setMyProfile(false);setSubscriptionOpen(false);
     }else if(previousBillingAccess.current===false&&next===true){void load().catch(()=>setToast('No se pudieron actualizar los datos. Intentá nuevamente.'));}
     previousBillingAccess.current=next;
@@ -678,15 +680,24 @@ export default function Home() {
     setSelectedProjects(selection);
     if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.projects} proyectos: se seleccionaron los primeros ${BATCH_LIMITS.projects}.`});
   }
+  // El lote de clientes informa el resultado real: cuántos entraron y si la
+  // lista se pudo refrescar. Un fallo del API se propaga para que el diálogo de
+  // confirmación muestre el error inline (nunca un éxito falso).
   async function batchClients(archived:boolean){
     if(bulkBusy||!selectedClients.length)return;
+    const requested=selectedClients.length;
     setBulkBusy(true);
     try{
       const data=await request<{updated:number}>('/api/agency/clients/batch',{method:'POST',body:JSON.stringify({ids:selectedClients,archived})});
-      const total=data.updated??selectedClients.length;
-      setSelectedClients([]);await load();
-      notify({tone:'success',message:archived?`${total} cliente${total===1?'':'s'} archivado${total===1?'':'s'}.`:`${total} cliente${total===1?'':'s'} reactivado${total===1?'':'s'}.`});
-    }catch(cause){setToast(cause instanceof Error?cause.message:'No se pudo actualizar el lote de clientes.');}
+      const total=data.updated??requested;
+      setSelectedClients([]);
+      let refreshed=true;
+      try{await load();}catch{refreshed=false;}
+      const label=archived?`cliente${total===1?'':'s'} archivado${total===1?'':'s'}`:`cliente${total===1?'':'s'} reactivado${total===1?'':'s'}`;
+      if(!refreshed)notify({tone:'warning',message:`${total} ${label}, pero no se pudo actualizar la lista. Recargá la página para verla al día.`});
+      else if(total<requested)notify({tone:'warning',message:`${total} de ${requested} ${label}.`});
+      else notify({tone:'success',message:`${total} ${label}.`});
+    }
     finally{setBulkBusy(false);}
   }
   async function batchProjects(archived:boolean){
@@ -745,21 +756,29 @@ export default function Home() {
     const data=await request<{payments:PaymentRecord[];hasMore?:boolean}>("/api/agency/payments?limit=all");
     setPayments(listOf<PaymentRecord>(data?.payments));setPaymentHasMore(false);setAllPaymentsLoaded(true);
   }
+  // Métricas: estado real de la lectura (cargando/error/lleno) para que
+  // Pipeline y Métricas muestren los cuatro estados con reintento.
+  async function loadMetrics() {
+    setMetricsState("loading");
+    setMetricsError("");
+    try {
+      const data = await request<{ events: MetricEvent[] }>("/api/metrics");
+      setMetrics(listOf<MetricEvent>(data?.events));
+      setMetricsState("ready");
+    } catch (cause) {
+      setMetricsError(
+        cause instanceof Error ? cause.message : "No se pudieron cargar las métricas.",
+      );
+      setMetricsState("error");
+    }
+  }
   useEffect(() => {
     if (
       operationalAccess &&
       (active === "Pipeline" || active === "Métricas") &&
       ["owner", "admin"].includes(user?.role || "")
     )
-      request<{ events: MetricEvent[] }>("/api/metrics")
-        .then((data) => setMetrics(listOf<MetricEvent>(data?.events)))
-        .catch((cause) =>
-          setToast(
-            cause instanceof Error
-              ? cause.message
-              : "No se pudieron cargar las métricas.",
-          ),
-        );
+      void loadMetrics();
   }, [active, operationalAccess, user?.role]);
   async function login(event: React.FormEvent) {
     event.preventDefault();
@@ -784,7 +803,7 @@ export default function Home() {
   }
   function clearScopedShellData(){
     dataLoadSequence.current++;setGuideData({scope:null,status:'unknown'});
-    setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setPaymentStatuses([]);
+    setClients([]);setProjects([]);setOrders([]);setBudgets([]);setAccounts([]);setInvoices([]);setInvoiceHasMore(false);setAllInvoicesLoaded(false);setTransfers([]);setPayments([]);setCustodians([]);setMetrics([]);setMetricsState('idle');setMetricsError('');setPaymentStatuses([]);
     setClientStatusFilter('');setMoraFilter('');setProjectClientFilter('');setProjectClient('');setProductionFiltersDialogScope('');setStartupDataScope('');setWorkspaceScope('');
     setMyProfile(false);setDetail(null);setModal(null);setSubscriptionOpen(false);setDemoWelcome(false);
   }
@@ -1088,8 +1107,8 @@ export default function Home() {
         {active==='Historial de trabajo'&&<HistorialSection user={user}/>}
         {active==='Invitaciones'&&<InvitacionesSection user={user}/>}
         {active==='Comisiones'&&<ComisionesSection user={user}/>}
-        {active==='Pipeline'&&<PipelineSection user={user} metrics={metrics}/>}
-        {active==='Métricas'&&<MetricasSection user={user} metrics={metrics}/>}
+        {active==='Pipeline'&&<PipelineSection user={user} metrics={metrics} metricsState={metricsState} onRetryMetrics={()=>void loadMetrics()}/>}
+        {active==='Métricas'&&<MetricasSection user={user} metrics={metrics} state={metricsState} error={metricsError} onRetry={()=>void loadMetrics()}/>}
         {active==='Planes'&&<PlanesSection user={user}/>}
         {active==='Inventario'&&<InventarioSection user={user}/>}
         {active==='Estudio'&&<EstudioSection user={user}/>}
