@@ -257,6 +257,9 @@ function PeopleWorkspace({
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
   const [commercialReady, setCommercialReady] = useState(false);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
+  // La preferencia Lista/Cuadrícula se recuerda por navegador (mismo criterio que Clientes).
+  useEffect(()=>{try{setTeamView(localStorage.getItem('scale:team-view')==='list'?'list':'cards');}catch{/* Optional UI preference. */}},[]);
+  function changeTeamView(value:string){const next=value==='list'?'list':'cards';setTeamView(next);try{localStorage.setItem('scale:team-view',next);}catch{/* Optional UI preference. */}}
   const [teamFilter,setTeamFilter]=useState<'all'|'active'|'inactive'>('all');
   const [purgeTarget,setPurgeTarget]=useState<TeamMember|null>(null),[purgeBusy,setPurgeBusy]=useState(false),[purgeError,setPurgeError]=useState('');
   const canManageAccess=roleCan(role,'members.manage');
@@ -441,7 +444,7 @@ function PeopleWorkspace({
             <button type="button" className={teamFilter==='inactive'?'choice active':'choice'} aria-pressed={teamFilter==='inactive'} onClick={()=>setTeamFilter('inactive')}>Inactivos</button>
           </div>
           <p className="team-count" role="status" aria-atomic="true">{peopleSummary}</p>
-          <div className="workspace-view-controls"><ViewSwitch value={teamView==='list'?'list':'grid'} onChange={value=>setTeamView(value==='list'?'list':'cards')}/></div>
+          <div className="workspace-view-controls"><ViewSwitch value={teamView==='list'?'list':'grid'} onChange={changeTeamView}/></div>
           <div className="team-actions">
             {roleCan(role,'settings.manage')&&<button type="button" className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
             <button type="button" className="primary" onClick={() => {setSeedEmail('');setEdit("new");}}>

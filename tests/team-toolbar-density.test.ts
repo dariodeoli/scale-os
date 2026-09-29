@@ -15,7 +15,8 @@ test('la toolbar de Equipo junta búsqueda, filtros, contador, vista y acciones 
  assert.match(operations,/<div className="choice-list compact" role="group" aria-label="Filtrar por estado laboral">/);
  assert.match(operations,/aria-pressed=\{teamFilter==='all'\}/);
  assert.match(operations,/<p className="team-count" role="status" aria-atomic="true">\{peopleSummary\}<\/p>/);
- assert.match(operations,/<ViewSwitch value=\{teamView==='list'\?'list':'grid'\} onChange=\{value=>setTeamView\(value==='list'\?'list':'cards'\)\}\/>/);
+ assert.match(operations,/<ViewSwitch value=\{teamView==='list'\?'list':'grid'\} onChange=\{changeTeamView\}\/>/);
+ assert.match(operations,/localStorage\.getItem\('scale:team-view'\)/,'la vista Lista/Cuadrícula se recuerda por usuario');
  assert.match(operations,/<div className="team-actions">/);
  assert.doesNotMatch(operations,/ViewToggle/,'la vista del equipo usa el control v2 compartido (ViewSwitch)');
  assert.match(operations,/const \[teamFilter,setTeamFilter\]=useState<'all'\|'active'\|'inactive'>\('all'\)/);
