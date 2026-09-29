@@ -2,6 +2,41 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.145
+
+### Librería y sistema de diseño (owncoding-ui v0.51.0)
+
+- **Pie institucional único**: el mismo pie (copyright, versión real y “Desarrollado por Owncoding” con enlace) en panel, pantallas de acceso, páginas públicas y tokenizadas; una sola pieza, sin copias locales.
+- **Bandeja de avisos oficial**: la campana con contador, panel, estados y vacío con acción sale del objeto compartido; la app conserva solo sus datos y preferencias.
+- **Alto contraste y aviso de versión**: tercer tema accesible, y el aviso de “versión nueva” compara contra el API y ofrece recargar. El estado del sistema queda a un clic desde la ayuda del panel.
+- **Adopción de las reglas §14–§16** del marco en las cuatro superficies y en las verticales, con el retiro del parche CSS de la librería y su instalación limpia desde el pin fijo.
+
+### Comercial
+
+- **Clientes sin “lista vacía” falsa**: si la lectura falla se ve el error con reintento y, si había datos, se avisa que no se pudieron actualizar.
+- **Archivo en lote con confirmación**: informa cuántos clientes entraron y deja el error a la vista en el diálogo si algo falla.
+- **Métricas y Pipeline con estados reales**: cargando, error con reintento y vacío con acción; las tarjetas no inventan monto ni probabilidad.
+- **Mensajes en español paraguayo**: los fallos de conexión y de servidor dejan de mostrar jerga técnica.
+
+### Operaciones
+
+- **Planificador honesto**: esqueleto mientras carga y error con reintento, en lugar de un vacío falso.
+- **Lotes contados por su respuesta**: las reservas del estudio informan cuántas entraron y cuántas faltan; lo que falla queda seleccionado.
+- **Inventario y Estudio**: el error de una acción se avisa sin tapar el catálogo o el calendario, y la lista de pendientes tiene tope con aviso.
+- **Vacíos con salida y microcopy es-PY**: los estados vacíos ofrecen la acción siguiente y “Checklist” pasa a “Pasos”.
+
+### Finanzas
+
+- **Mora e Informes sin datos fingidos**: la carga se ve, el error ofrece reintento y el DSO fallido lo dice en vez de mostrar “Sin datos”.
+- **Acciones de dinero con confirmación reforzada**: cancelar comisiones o revertir descuentos y gastos explica el importe y la consecuencia antes de ejecutar.
+- **Fechas y montos con una sola fuente**: la app delega en la librería y en el formateador único, sin cuentas paralelas por pantalla.
+
+### Equipo y plataforma
+
+- **Avisos de envío canónicos (API)**: encolado, enviado, duplicado y fallido, con la bandeja como única fuente del correo; sin relay configurado el envío queda en cola y nunca se marca “enviado”.
+- **Correos con cierre y firma**: motivo, acción con enlace de respaldo, cierre es-PY y firma del producto con crédito del grupo.
+- **Rutas legadas en una sola fuente** y página de estado con el correo comprobado contra el API, no por suposición.
+
 ## v1.0.144
 
 ### Operaciones
