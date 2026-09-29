@@ -1,4 +1,5 @@
 "use client";
+import {money} from './money-format';
 import {currencyChoices} from "./currencies";
 import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
@@ -53,7 +54,8 @@ export async function api<T>(
   try {
     data = (await r.json()) as T & {error?: string};
   } catch {
-    // Una respuesta no-JSON (HTML de error, proxy caído) es un fallo, no data.
+    // Una respuesta no-JSON nunca es un dato: se dice en es-PY y sin el cuerpo crudo.
+    if (!r.ok) throw new Error(r.status >= 500 ? "El servidor no pudo completar la operación. Probá de nuevo en unos segundos." : `No se pudo completar la operación (HTTP ${r.status}).`);
     throw new Error("El servidor devolvió una respuesta inválida. Reintentá.");
   }
   if (!r.ok) throw new Error(data.error || "No se pudo completar la operación");
@@ -63,12 +65,7 @@ export async function api<T>(
 }
 const message = (e: unknown) =>
   e instanceof Error ? e.message : "No se pudo completar la operación";
-export const money = (value: string | number, currency = "PYG") =>
-  new Intl.NumberFormat("es-PY", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: currency === "PYG" ? 0 : 2,
-  }).format(Number(value));
+export {money};
 export {Dialog} from './dialog';
 type Choice = { value: string; label: string };
 export type Field = {

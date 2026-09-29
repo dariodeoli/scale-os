@@ -1,8 +1,8 @@
 "use client";
 import type {ChangeEvent, Dispatch, SetStateAction} from 'react';
 import {Plus} from 'lucide-react';
-import {EmptyBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
-import {SearchField, SegmentedField} from 'owncoding-ui';
+import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {Aviso, SearchField, SegmentedField} from 'owncoding-ui';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
 import {roleCan} from '../capabilities';
 import {buildMoraBuckets, filterMoraClients, moraAgeKey, moraKpis, MORA_AGE_LABELS, type ClientPaymentStatus, type MoraFilter} from '../mora-data';
@@ -14,6 +14,9 @@ import type {User} from '../workspace-types';
 type MoraSectionProps = {
   user: User | null;
   paymentStatuses: ClientPaymentStatus[];
+  /** Estado de la carga de cobranza del shell: nunca se muestra un vacío falso. */
+  moraState?: 'idle' | 'loading' | 'ready' | 'error';
+  onRetry?: () => void;
   moraFilter: string;
   setMoraFilter: Dispatch<SetStateAction<string>>;
   moraSearch: string;
@@ -72,12 +75,14 @@ function ClientLine({client}: {client: ClientPaymentStatus}) {
   </ListRow>;
 }
 
-export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, moraSearch, setMoraSearch, moraUpdated, moraReportsError, moraDso, onCreateInvoice}: MoraSectionProps) {
+export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry, moraFilter, setMoraFilter, moraSearch, setMoraSearch, moraUpdated, moraReportsError, moraDso, onCreateInvoice}: MoraSectionProps) {
   const kpis = moraKpis(paymentStatuses);
   const buckets = buildMoraBuckets(paymentStatuses);
   const visible = filterMoraClients(paymentStatuses, moraFilter as MoraFilter, moraSearch);
   const canSeeDso = roleCan(user?.role, 'reports.view');
   const updated = moraUpdated ? listDateFull(moraUpdated.toISOString()) : null;
+  const loading = (moraState === 'loading' || moraState === 'idle') && !paymentStatuses.length;
+  const failed = moraState === 'error';
   return <section className="grid gap-4" aria-label="Cobranza y mora">
     <PageHeader
       eyebrow="Finanzas"
@@ -85,6 +90,13 @@ export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, m
       subtitle="Saldo pendiente por antigüedad y días en calle por moneda."
       actions={updated ? <span className="whitespace-nowrap text-xs tabular-nums text-mute">Actualizado {updated}</span> : undefined}
     />
+
+    {loading ? <LoadingBlock label="Cargando cobranza…" lines={5}/>
+    : failed && !paymentStatuses.length ? <ErrorBlock title="No se pudo cargar la cobranza" description="Reintentá para ver el saldo pendiente, la antigüedad de cada cliente y el DSO del mes." onRetry={onRetry}/>
+    : <>
+    {failed ? <Aviso tono="error" como="div">No se pudo actualizar la cobranza. Se muestra la última información recibida. {onRetry ? <button type="button" className="text-button" onClick={onRetry}>Reintentar</button> : null}</Aviso>
+    : moraReportsError && canSeeDso ? <Aviso tono="warn" como="div">No se pudo calcular el DSO con el reporte del mes. {onRetry ? <button type="button" className="text-button" onClick={onRetry}>Reintentar</button> : null}</Aviso>
+    : null}
 
     <KpiStrip>
       <Kpi label="Al día" valor={kpis.alDia} hint="Sin saldo vencido"/>
@@ -103,8 +115,8 @@ export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, m
       />)}
       <Kpi
         label="DSO · días en calle"
-        valor={!canSeeDso ? '—' : moraReportsError ? 'Sin datos' : moraDso === null ? 'Calculando…' : moraDso.length ? <span className="flex flex-wrap items-baseline gap-2">{moraDso.map(row => <span key={row.currency} className="whitespace-nowrap tabular-nums">{row.currency} {row.days} días</span>)}</span> : 'Sin datos'}
-        hint={canSeeDso ? 'Saldo pendiente sobre lo facturado del mes, por moneda' : 'Requiere Informes (reports.view)'}
+        valor={!canSeeDso ? '—' : moraReportsError ? 'No se pudo calcular' : moraDso === null ? 'Calculando…' : moraDso.length ? <span className="flex flex-wrap items-baseline gap-2">{moraDso.map(row => <span key={row.currency} className="whitespace-nowrap tabular-nums">{row.currency} {row.days} días</span>)}</span> : 'Sin datos'}
+        hint={!canSeeDso ? 'Requiere Informes (reports.view)' : moraReportsError ? 'No se pudo consultar el reporte del mes; usá Reintentar' : 'Saldo pendiente sobre lo facturado del mes, por moneda'}
       />
     </div>
 
@@ -118,5 +130,6 @@ export function MoraSection({user, paymentStatuses, moraFilter, setMoraFilter, m
         {visible.map(client => <ClientLine key={`${client.client_id}-${client.currency || 'none'}`} client={client}/>)}
       </ListGrid>
       : <EmptyBlock title={paymentStatuses.length ? 'No hay clientes en esta categoría.' : 'Sin registros de cobranza todavía.'} description={paymentStatuses.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Emití la primera factura para seguir el saldo y la antigüedad de cada cliente.'} action={paymentStatuses.length ? <button className="secondary" onClick={() => { setMoraFilter(''); setMoraSearch(''); }}>Limpiar filtros</button> : onCreateInvoice ? <button className="primary" onClick={() => onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button> : undefined}/>}
+    </>}
   </section>;
 }

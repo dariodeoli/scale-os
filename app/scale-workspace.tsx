@@ -54,8 +54,9 @@ import {filterProductionOrders} from './production-filter';
 import type {Status} from './production-board';
 import {defaultWorkspacePreferences, workspacePreferenceKey} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
-import {clientPortfolioStats} from './client-format';
+import {clientPortfolioStats,currentAsuncionMonth} from './client-format';
 import type {Account,AccountTransfer,Budget,Client,ClientPaymentStatus,Invoice,Member,MetricEvent,ModalKind,PaymentRecord,Project,Summary,User,WorkOrder} from './workspace-types';
+import {moraDsoDays,moraKpis} from './mora-data';
 import {SinAccesoSection} from './sections/sin-acceso';
 import {EquipoSection} from './sections/equipo';
 import {PermisosSection} from './sections/permisos';
@@ -138,7 +139,7 @@ import {
 // módulo no cambian.
 const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
 const MODULE_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Pipeline:Target,Clientes:Users,Presupuestos:FileText,Proyectos:FolderKanban,Producción:Clapperboard,Inventario:Boxes,Estudio:CalendarDays,Finanzas:WalletCards,Informes:BarChart3,Equipo:BriefcaseBusiness,Configuración:Settings};
-function localMonth(){const parts=new Intl.DateTimeFormat('en',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).formatToParts(new Date());return `${parts.find(part=>part.type==='year')!.value}-${parts.find(part=>part.type==='month')!.value}`;}
+function localMonth(){return currentAsuncionMonth();}
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
   return user?`${user.id}:${user.organization_id}:${user.role}`:'';
 }
@@ -369,24 +370,11 @@ export default function Home() {
   const [commercialState, setCommercialState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [moraReports, setMoraReports] = useState<ReportsData | null>(null);
   const [moraReportsError, setMoraReportsError] = useState(false);
-  const moraDso = useMemo(() => {
-    if (!moraReports) return null;
-    const current = moraReports.months.find(month => month.month === moraReports.month) || moraReports.months[0];
-    if (!current) return null;
-    const outstanding = new Map<string, number>();
-    for (const client of paymentStatuses) {
-      if (!client.currency || Number(client.outstanding_amount) <= 0) continue;
-      outstanding.set(client.currency, (outstanding.get(client.currency) || 0) + Number(client.outstanding_amount));
-    }
-    const rows: { currency: string; days: number }[] = [];
-    for (const financial of current.financial) {
-      const invoiced = Number(financial.invoiced);
-      const owed = outstanding.get(financial.currency);
-      if (!Number.isFinite(invoiced) || invoiced <= 0 || owed === undefined || owed <= 0) continue;
-      rows.push({ currency: financial.currency, days: Math.max(0, Math.round((owed / invoiced) * 30)) });
-    }
-    return rows;
-  }, [moraReports, paymentStatuses]);
+  const [moraState, setMoraState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [moraReload, setMoraReload] = useState(0);
+  // Una sola derivación del DSO: la vista usa la misma fuente que la sección
+  // (`app/mora-data.ts`), no una copia paralela en el shell.
+  const moraDso = useMemo(() => moraDsoDays(paymentStatuses, moraReports), [moraReports, paymentStatuses]);
   const budgetKpis = useMemo(() => {
     const totals = new Map<string, number>();
     let drafts = 0, accepted = 0, expiring = 0;
@@ -445,16 +433,7 @@ export default function Home() {
     }).length;
     return { active, paused, activeProjects, deliveries };
   }, [clients, projects, orders, summary.upcoming_deliveries]);
-  const cobrosKpis = useMemo(() => {
-    let alDia = 0, porVencer = 0, enMora = 0, sinFactura = 0;
-    for (const client of paymentStatuses) {
-      if (client.payment_status === "up_to_date") alDia += 1;
-      else if (client.payment_status === "due_soon") porVencer += 1;
-      else if (client.payment_status === "late" || client.payment_status === "severe") enMora += 1;
-      if (!client.has_invoice) sinFactura += 1;
-    }
-    return { alDia, porVencer, enMora, sinFactura };
-  }, [paymentStatuses]);
+  const cobrosKpis = useMemo(() => moraKpis(paymentStatuses), [paymentStatuses]);
   async function load(identity:User|null=user,scope:ShellScope=sectionScope(requestedSection)) {
     if(!identity||identity.subscription?.hasAccess===false)return;
     const sequence=++dataLoadSequence.current;
@@ -565,26 +544,30 @@ export default function Home() {
   useEffect(() => {
     if (!canSeeBilling) { setPaymentStatuses([]); return; }
     if (operationalAccess && (active === "Mora" || active === "Clientes")) {
+      setMoraState('loading');
       request<{ clients: ClientPaymentStatus[] }>("/api/agency/client-payment-status")
         .then((data) => {
           setPaymentStatuses(listOf<ClientPaymentStatus>(data?.clients));
           setMoraUpdated(new Date());
+          setMoraState('ready');
         })
-        .catch((cause) =>
+        .catch((cause) => {
+          setMoraState('error');
           setToast(
             cause instanceof Error
               ? cause.message
               : "No se pudo cargar la mora.",
-          ),
-        );
+          );
+        });
       if (active === "Mora" && ["owner", "admin", "finance"].includes(user?.role || "")) {
         setMoraReportsError(false);
+        setMoraReports(null);
         request<ReportsData>(`/api/agency/reports?month=${localMonth()}&months=2`)
           .then((data) => setMoraReports(data))
           .catch(() => setMoraReportsError(true));
       }
     }
-  }, [active, operationalAccess, user?.role]);
+  }, [active, operationalAccess, user?.role, moraReload]);
   useEffect(() => {
     if (operationalAccess && active === "Clientes" && ["owner", "admin", "management", "sales", "finance"].includes(user?.role || "")) {
       setCommercialSummary(null);
@@ -1118,7 +1101,7 @@ export default function Home() {
         {active==='Papelera'&&<PapeleraSection load={load}/>}
         {active === "Resumen" && <ResumenSection dataState={shellDataState} guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail}/>}
         {active==='Producción'&&<ProduccionSection identityLoading={identityLoading} productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} createOrder={canCreateRecord('Producción')?()=>setModal('order'):undefined} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
-        {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso} onCreateInvoice={openInvoice}/>}
+        {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraState={moraState} onRetry={()=>setMoraReload(value=>value+1)} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso} onCreateInvoice={openInvoice}/>}
         {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail} onCreate={()=>setModal('client')}/>}
         {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectRow={projectRowEntry} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={loadBudgets} setBudgets={setBudgets} onCreate={()=>setModal('budget')}/>}

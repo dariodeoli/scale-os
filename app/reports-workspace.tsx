@@ -85,11 +85,19 @@ function Distribution({title,rows,total}:{title:string;rows:{name:string;count:n
 // el alta de factura en el shell, que es el único dueño del modal.
 export function ReportsWorkspace({role,organizationName,onCreateInvoice}:{role:string;organizationName:string;onCreateInvoice?:()=>void}){return ['owner','admin','finance','sales'].includes(role)?<><ReportsPanel key={role} organizationName={organizationName} onCreateInvoice={onCreateInvoice}/><WeeklyAutomatic role={role}/></>:<p className="text-sm text-mute">No tenés permiso para consultar reportes.</p>;}
 function LiveVisitorsWidget(){
- const [visitors,setVisitors]=useState<number|null>(null),[prior,setPrior]=useState<number|null>(null),[trend,setTrend]=useState<'up'|'down'|null>(null);
+ const [visitors,setVisitors]=useState<number|null>(null),[prior,setPrior]=useState<number|null>(null),[trend,setTrend]=useState<'up'|'down'|null>(null),[failed,setFailed]=useState(false);
  useEffect(()=>{
   let alive=true,timer:ReturnType<typeof setInterval>|null=null;
   const fetch_live=async()=>{
-   try{const resp=await fetch('/core-api/api/public/live-visitors/count',{method:'GET',credentials:'omit',cache:'no-store',headers:{'Accept':'application/json'}});if(resp.ok&&alive){const data=await resp.json();if(typeof data?.active_sessions==='number'){const value=data.active_sessions;setVisitors(current=>{if(current!==null&&current!==value){setPrior(current);setTrend(value>current?'up':'down');}return value;});setPrior(current=>current===null?value:current);}}}catch{}
+   try{
+    const resp=await fetch('/core-api/api/public/live-visitors/count',{method:'GET',credentials:'omit',cache:'no-store',headers:{'Accept':'application/json'}});
+    if(!resp.ok){if(alive)setFailed(true);return;}
+    if(alive){
+     const data=await resp.json();
+     if(typeof data?.active_sessions==='number'){setFailed(false);const value=data.active_sessions;setVisitors(current=>{if(current!==null&&current!==value){setPrior(current);setTrend(value>current?'up':'down');}return value;});setPrior(current=>current===null?value:current);}
+     else setFailed(true);
+    }
+   }catch{if(alive)setFailed(true);}
   };
   void fetch_live();
   timer=setInterval(fetch_live,30000);
@@ -102,11 +110,13 @@ function LiveVisitorsWidget(){
    <p className="text-xs text-mute">Personas actualmente en el landing de Scale OS</p>
   </div>
   <div className="text-right">
-   <strong className="block text-2xl font-semibold tabular-nums text-ok">{visitors===null?'—':visitors}</strong>
-   <span className={cn('inline-flex items-center gap-1.5 whitespace-nowrap text-xs',trend==='down'?'text-warn':'text-ok')}>
-    <span className={cn('h-2 w-2 rounded-full',trend==='down'?'bg-warn':'bg-ok')} aria-hidden="true"/>
-    {trend==='up'&&changePercent!==null?`↑ +${changePercent}%`:trend==='down'&&changePercent!==null?`↓ ${changePercent}%`:'—'}
-   </span>
+   <strong className="block text-2xl font-semibold tabular-nums text-ok">{failed&&visitors===null?'No disponible':visitors===null?'—':visitors}</strong>
+   {failed
+    ? <span role="status" className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-warn"><span className="h-2 w-2 rounded-full bg-warn" aria-hidden="true"/>Sin actualizar · se reintenta solo</span>
+    : <span className={cn('inline-flex items-center gap-1.5 whitespace-nowrap text-xs',trend==='down'?'text-warn':'text-ok')}>
+      <span className={cn('h-2 w-2 rounded-full',trend==='down'?'bg-warn':'bg-ok')} aria-hidden="true"/>
+      {trend==='up'&&changePercent!==null?`↑ +${changePercent}%`:trend==='down'&&changePercent!==null?`↓ ${changePercent}%`:'—'}
+     </span>}
   </div>
  </Card>;
 }
@@ -114,7 +124,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
  const [month,setMonth]=useState(currentMonth),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
  const [retry,setRetry]=useState(0);
  const [exportError,setExportError]=useState('');
- const {data,previousData,error}=useReportsWindow(month,months,retry);
+ const {data,previousData,error,previousError}=useReportsWindow(month,months,retry);
  useEffect(()=>{setExportError('');},[month,months,retry]);
  // The table lists the newest month first, oldest at the bottom; the chart
  // keeps chronological order (oldest on the left).
@@ -178,7 +188,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
       <FilaDato etiqueta="Período anterior" valor={row.previous}/>
       <FilaDato etiqueta="Variación" valor={row.change}/>
      </div>}
-    />:<EmptyState compact title="Sin comparación: no hay período anterior con datos."/>}
+    />:<EmptyState compact title={previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'} description={previousError?'Reintentá para volver a pedir la comparación contra el período anterior.':undefined} action={previousError?<button className="secondary" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button>:undefined}/>}
    </Card>:null}
    {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<button className="secondary" onClick={()=>setMonth(rows[0].month)}>Ver {monthTitle(rows[0].month)}</button>:onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:<>
     <Card className="grid gap-4 p-3 sm:p-4">
