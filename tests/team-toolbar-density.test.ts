@@ -53,7 +53,7 @@ test('la tarjeta de persona es compacta: identidad, correo, chips y acceso una s
  assert.match(operations,/<div className="person-hub-meta">[\s\S]{0,220}accessRole/,'el rol es un chip de la metadata');
  assert.doesNotMatch(operations,/person-hub-facts/,'sin el bloque grande Correo/Acceso/Ingreso');
  assert.match(css,/\.person-hub-card:not\(\.is-list\)>\.person-hub-tail\{display:flex;align-items:center;justify-content:space-between[\s\S]{0,120}border-top/,'el pie (acceso + acciones) va en una línea anclada');
- assert.match(css,/--person-cols:minmax\(9rem,1\.3fr\)[\s\S]{0,180}minmax\(8\.5rem,1fr\) 7rem/,'la fila finita declara sus 7 columnas');
+ assert.match(css,/--person-cols:minmax\(14rem,2\.4fr\)[\s\S]{0,180}minmax\(7\.5rem,\.8fr\) 7rem/,'la fila finita declara sus 7 columnas con Persona priorizada (#110)');
  assert.match(css,/\.person-hub-card\.is-list \.person-hub-meta-label\{display:none\}/,'la etiqueta del chip se oculta en la fila densa');
 });
 
