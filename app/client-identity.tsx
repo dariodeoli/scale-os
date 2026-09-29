@@ -7,7 +7,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
 import {Aviso} from 'owncoding-ui';
 import {ProfilePhoto} from './profile-photo';
-import {actorInitials} from './actor-identity';
+import {FotoPerfil} from './foto-perfil';
 import {api} from './operations';
 import {notify} from './feedback';
 import {CLIENT_COLOR_VALUES,clientColors,identityColor,type ClientColorKey} from './client-identity-data';
@@ -17,9 +17,10 @@ export {CLIENT_COLOR_VALUES,clientColorLabels,clientColors,identityColor} from '
 export type {ClientColorKey,ClientIdentityRecord} from './client-identity-data';
 
 export function ClientIdentity({name,logo,color,compact=false}:{name:string;logo?:string|null;color?:string|null;compact?:boolean}){
- const [failed,setFailed]=useState('');
+ // El logo del cliente usa el objeto único de foto (#107) en variante logo:
+ // se ve entero (`contain`) y conserva el color de identidad del cliente.
  return <span className={`client-identity identity-${identityColor(color)} ${compact?'compact':''} inline-flex min-w-0 items-center gap-2.5 text-fore`}>
-  <span className="identity-avatar overflow-hidden" aria-hidden="true">{logo&&logo!==failed?<img src={logo} alt="" loading="lazy" referrerPolicy="no-referrer" width={36} height={36} onError={()=>setFailed(logo)}/>:actorInitials(name)}</span>
+  <FotoPerfil nombre={name} foto={logo} tamano="xl" variante="logo" className="identity-avatar"/>
   <span className="identity-name min-w-0 font-bold leading-snug" title={name}>{name}</span>
  </span>;
 }

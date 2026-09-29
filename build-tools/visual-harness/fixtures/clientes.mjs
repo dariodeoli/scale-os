@@ -69,7 +69,7 @@ const Plus = h('svg', {width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none'
 
 /* ── app/client-identity.tsx (ClientIdentity) ───────────────────────────────── */
 const Identity = ({name, initials}) => h('span', {className: 'client-identity identity-violet inline-flex min-w-0 items-center gap-2.5 text-fore'},
-  h('span', {className: 'identity-avatar overflow-hidden', 'aria-hidden': 'true'}, initials),
+  h('span', {className: 'foto-perfil overflow-hidden', 'aria-hidden': 'true'}, initials),
   h('span', {className: 'identity-name min-w-0 font-bold leading-snug', title: name}, name));
 
 /* `client-price-missing`: con permiso de términos el aviso se vuelve CTA

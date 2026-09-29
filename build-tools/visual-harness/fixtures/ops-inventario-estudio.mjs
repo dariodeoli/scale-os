@@ -38,7 +38,7 @@ const ICON = {
   camera: 'M4 7h3l2-3h6l2 3h3v12H4zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
 };
 const initials = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-const avatar = (name) => `<span class="actor-identity-avatar" aria-hidden="true" style="width:20px;height:20px;font-size:9px">${initials(name)}</span>`;
+const avatar = (name) => `<span class="foto-perfil" aria-hidden="true" style="width:20px;height:20px;font-size:9px">${initials(name)}</span>`;
 const money = (text) => `<span class="inline-flex shrink-0 items-center justify-end gap-1 font-semibold tabular-nums">${text}</span>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
 const badge = (label, tone) => {

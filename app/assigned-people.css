@@ -7,10 +7,10 @@
 /* Chips acotados: la identidad compartida conserva su nombre completo al envolver. */
 .assigned-people .actor-identity{gap:5px;min-height:30px;padding:3px 6px 3px 3px;border:1px solid var(--border-subtle,var(--line));border-radius:99px;background:var(--surface);box-shadow:none;font-size:11px;transition:border-color var(--ease),background var(--ease)}
 .assigned-people .actor-identity:hover{border-color:var(--brand-600);background:var(--violet-soft)}
-.assigned-people .actor-identity-avatar{width:22px;height:22px;flex-basis:22px;font-size:9px}
+/* El tamaño del avatar lo define el objeto en su contexto (`ui-system.css`). */
 .assigned-people .actor-identity-name{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .assigned-people .actor-identity-details{display:block}
 .assigned-people .actor-identity :is(.actor-identity-time,.actor-identity-source){display:none}
 .assigned-people .assigned-person-primary{padding:3px 6px;border-radius:99px;background:var(--violet-soft);color:var(--brand-700);font-size:9px;font-weight:700;line-height:1.2;letter-spacing:.03em}
 .assigned-people-state{margin:0;font-size:11px;line-height:1.4;color:var(--text-subtle,var(--text-muted));overflow-wrap:anywhere}
-@media(max-width:540px){.assigned-people .actor-identity{min-height:44px;padding-inline:8px}.assigned-people .actor-identity-avatar{width:28px;height:28px;flex-basis:28px}}
+@media(max-width:540px){.assigned-people .actor-identity{min-height:44px;padding-inline:8px}/* (#107) el avatar lo dibuja `FotoPerfil`. */}

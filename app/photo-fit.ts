@@ -1,5 +1,13 @@
-export function centeredPhotoArea(width:number,height:number){
+/**
+ * Encuadre del recortador de fotos (#107).
+ *
+ * La foto se guarda **completa** (sin recorte automático): acá solo se decide
+ * dónde arranca la ventana cuadrada del recortador manual. En verticales la
+ * ventana arranca apenas arriba del centro —donde suele estar la cabeza— y el
+ * zoom queda en manos del usuario.
+ */
+export function initialCropArea(width:number,height:number){
  if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw Error('Dimensiones de foto inválidas.');
- const side=Math.min(width,height);
- return {x:(width-side)/2,y:(height-side)/2,width:side,height:side};
+ const vertical=height>width*1.15;
+ return {x:0,y:vertical?-16:0};
 }

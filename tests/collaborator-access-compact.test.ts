@@ -36,7 +36,7 @@ test('suspended access uses the canonical chip with bad tone and collaborator ph
  assert.match(operations,/<PersonPhotoField/);
  assert.match(photo,/compact=false/);
  assert.match(photo,/profile-photo-progressive/);
- assert.match(photoCss,/\.profile-photo-section\.is-compact \.profile-photo-summary \.editable-photo\{width:44px;height:44px\}/);
+ assert.match(readFileSync(new URL('../app/profile-photo.tsx',import.meta.url),'utf8'),/tamano=\{compact\?'xl':'3xl'\}/,'la preview compacta usa el objeto único con su tamaño');
 });
 
 test('team list view renders a compact single-column list and contact data is never cut',()=>{

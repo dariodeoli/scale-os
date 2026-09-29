@@ -34,11 +34,11 @@ const DIALOG_STABILIZE = `<style>
 
 /* app/person-container.tsx lines 14-27 + person-container.css */
 const personContainer = ({name, initials, secondary = '', size = 'md'}) => `
-<span class="person-container person-container-${size}"><span class="person-container-avatar" aria-hidden="true">${initials}</span><span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span>${secondary ? `<span class="person-container-secondary" title="${secondary}">${secondary}</span>` : ''}</span></span>`;
+<span class="person-container person-container-${size}"><span class="foto-perfil" aria-hidden="true">${initials}</span><span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span>${secondary ? `<span class="person-container-secondary" title="${secondary}">${secondary}</span>` : ''}</span></span>`;
 
 /* app/actor-identity.tsx lines 16-27 + actor-identity.css */
 const actorIdentity = ({name, initials, time = null, imported = false}) => `
-<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span>${time ? `<time class="actor-identity-time" datetime="${time.iso}" title="${time.label}">${time.label}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
+<span class="actor-identity"><span class="foto-perfil" aria-hidden="true">${initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span>${time ? `<time class="actor-identity-time" datetime="${time.iso}" title="${time.label}">${time.label}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
 
 const LONG_CLIENT = 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima';
 const LONG_EMAIL = 'administracion.facturacion@estudiocomunicacionparaguay.com.py';

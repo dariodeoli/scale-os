@@ -36,7 +36,7 @@ const ICON = {
 
 /* app/client-identity.tsx líneas 14-20 */
 const clientIdentity = (name, initials, color = 'violet', compact = false) =>
-  `<span class="client-identity identity-${color}${compact ? ' compact' : ''}"><span class="identity-avatar" aria-hidden="true">${initials}</span><span class="identity-name" title="${name}">${name}</span></span>`;
+  `<span class="client-identity identity-${color}${compact ? ' compact' : ''}"><span class="foto-perfil" aria-hidden="true">${initials}</span><span class="identity-name" title="${name}">${name}</span></span>`;
 
 /* app/assigned-people.tsx líneas 11-17 + app/actor-identity.tsx líneas 16-26 */
 const assignedPeople = (people, inherited = false) => `
@@ -46,7 +46,7 @@ const assignedPeople = (people, inherited = false) => `
     ? '<p class="assigned-people-state" role="status">Responsables no disponibles</p>'
     : people.length === 0
       ? '<p class="assigned-people-state">Sin responsables</p>'
-      : `<ul class="assigned-people-list">${people.map((person) => `<li class="assigned-person"><span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${person.initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${person.name}">${person.name}</span></span></span>${person.primary ? `<span class="assigned-person-primary">${inherited ? 'Principal del proyecto' : 'Principal'}</span>` : ''}</li>`).join('')}</ul>`}
+      : `<ul class="assigned-people-list">${people.map((person) => `<li class="assigned-person"><span class="actor-identity"><span class="foto-perfil" aria-hidden="true">${person.initials}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${person.name}">${person.name}</span></span></span>${person.primary ? `<span class="assigned-person-primary">${inherited ? 'Principal del proyecto' : 'Principal'}</span>` : ''}</li>`).join('')}</ul>`}
 </section>`;
 
 /* app/archive-controls.tsx líneas 22-37 (RemoveRecord) */

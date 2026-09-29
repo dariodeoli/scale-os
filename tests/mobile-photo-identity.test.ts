@@ -73,9 +73,20 @@ test('chip remove actions stay compact on desktop and reserve 44px on mobile or 
  }
 });
 test('actor names already wrap without shrinking the avatar or truncating the name',()=>{
- const actor=declarations(actors,'.actor-identity'),name=declarations(actors,'.actor-identity-name'),avatar=declarations(actors,'.actor-identity-avatar');
+ const actor=declarations(actors,'.actor-identity'),name=declarations(actors,'.actor-identity-name');
  assert.equal(actor['min-width'],'0');assert.equal(actor['max-width'],'100%');
  assert.equal(name['min-width'],'0');assert.equal(name['overflow-wrap'],'anywhere');assert.notEqual(name['white-space'],'nowrap');
- assert.equal(avatar.flex,'0 0 2rem');assert.equal(declarations(actors,'.actor-identity-avatar img')['object-fit'],'cover');
+ // #107: un solo objeto de foto (`FotoPerfil`): el avatar paralelo ya no existe.
+ const system=sheet('ui-system.css');
+ const foto=declarations(system,'.foto-perfil img');
+ assert.equal(foto['object-fit'],'cover');assert.equal(foto['object-position'],'center top','los avatares de persona encuadran desde el borde superior');
+ assert.equal(declarations(system,'.foto-perfil-logo img')['object-fit'],'contain','los logos de cliente conservan su tratamiento');
+ assert.equal(declarations(system,'.foto-perfil-2xl')['--foto-perfil-size'],'48px','la escala de tamaños es canónica');
+ assert.equal(declarations(system,'.foto-perfil-xl')['--foto-perfil-size'],'40px');
+ assert.equal(declarations(system,'.foto-perfil-xs')['--foto-perfil-size'],'22px');
+ for(const [sheetName,selector] of [['actor-identity.css','.actor-identity-avatar'],['person-container.css','.person-container-avatar'],['client-identity.css','.identity-avatar img'],['photo-cropper.css','.editable-photo img'],['qa-fixes.css','.photo-preview-button img']]){
+  const leftover=Object.keys(declarations(sheet(sheetName),selector));
+  assert.equal(leftover.length,0,`${selector} debe quedar retirado (objeto único): ${leftover.join(',')}`);
+ }
  for(const width of [320,360,390])assert(width-20-32-32-8.8>0,'Avatar/gap leave positive wrapping space at each target width');
 });

@@ -12,7 +12,7 @@ Object.assign(globalThis,{
  File:class{type='image/jpeg';size=1000;name='foto.jpg';},
  FileReader:class{onload:(()=>void)|null=null;result:string|null=null;readAsDataURL(){this.result='data:image/jpeg;base64,b3JpZ2luYWw=';if(this.onload)this.onload();}},
  createImageBitmap:async()=>({width:1200,height:900,close(){}}),
- document:{createElement:()=>({width:0,height:0,getContext:()=>({drawImage(){},}),toDataURL:()=>tinyWebp})},
+ document:{createElement:()=>({width:0,height:0,getContext:()=>({drawImage(){},clearRect(){}}),toDataURL:()=>tinyWebp})},
  Image:class{onload:(()=>void)|null=null;onerror:(()=>void)|null=null;naturalWidth=800;naturalHeight=600;referrerPolicy='';set src(_value:string){queueMicrotask(()=>{if(this.onload)this.onload();});}},
 });
 const {ProfilePhoto}=require('../app/profile-photo') as typeof import('../app/profile-photo');

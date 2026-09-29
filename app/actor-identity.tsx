@@ -1,6 +1,6 @@
 "use client";
-import {useState} from 'react';
 import {listDateFull} from './list-format';
+import {FotoPerfil} from './foto-perfil';
 import './actor-identity.css';
 
 export type ActorIdentityProps={name?:string|null;photoUrl?:string|null;verified?:boolean;imported?:boolean;timestamp?:string|null};
@@ -21,7 +21,7 @@ export function ActorIdentity({name,photoUrl,verified=false,imported=false,times
  const validDate=date&&!Number.isNaN(date.getTime())?date:null;
  return <span className="actor-identity"><ActorAvatar key={`${label}\n${photo}`} name={label} photo={photo}/><span className="actor-identity-details"><span className="actor-identity-name" title={label}>{label}</span>{validDate&&<time className="actor-identity-time" dateTime={validDate.toISOString()}>{listDateFull(validDate.toISOString())}</time>}{imported&&<span className="actor-identity-source">Autor de registro importado</span>}</span></span>;
 }
+/** Avatar de una identidad: el objeto único de foto de perfil (#107). */
 export function ActorAvatar({name,photo}:{name:string;photo:string}){
- const [failed,setFailed]=useState(false);
- return <span className="actor-identity-avatar" aria-hidden="true">{photo&&!failed?<img src={photo} alt="" referrerPolicy="no-referrer" loading="lazy" onError={()=>setFailed(true)}/>:actorInitials(name)}</span>;
+ return <FotoPerfil nombre={name} foto={photo} tamano="lg"/>;
 }

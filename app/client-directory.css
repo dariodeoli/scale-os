@@ -45,7 +45,7 @@
    acciones en su variante compacta y nombre en una línea con title. Las
    cápsulas (`.client-hub-card`) conservan avatar y nombre completos. */
 .client-hub-row :is(.client-identity,.actor-identity){min-width:0;max-width:100%}
-.client-hub-row .client-identity:not(.compact) .identity-avatar{width:32px;height:32px}
+.client-hub-row .client-identity:not(.compact) .foto-perfil{--foto-perfil-size:32px}
 .client-hub-row .identity-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .client-hub-row .client-record-actions :is(.icon-button,.text-button){min-height:32px}
 .client-hub-row .client-record-actions .icon-button{width:32px;min-width:32px}

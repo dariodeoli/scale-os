@@ -1,9 +1,10 @@
 "use client";
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import Cropper,{type Area} from 'react-easy-crop';
 import {Dialog,FormActions} from './dialog';
 import 'react-easy-crop/react-easy-crop.css';
 import './photo-cropper.css';
+import {initialCropArea} from './photo-fit';
 import {Focus} from 'lucide-react';
 
 export async function cropImage(source:string,area:Area):Promise<string>{
@@ -31,8 +32,17 @@ export async function cropImage(source:string,area:Area):Promise<string>{
 }
 export function PhotoCropper({source,name,close,save}:{source:string;name:string;close:()=>void;save:(photo:string)=>Promise<void>}){
  const [crop,setCrop]=useState({x:0,y:0}),[zoom,setZoom]=useState(1),[area,setArea]=useState<Area|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ // Sin autozoom (#107): el zoom arranca en 1 (el usuario decide) y, en fotos
+ // verticales, la ventana arranca apenas arriba del centro —donde está la
+ // cabeza— en vez de recortar el medio de la foto.
+ useEffect(()=>{
+  if(!source.startsWith('data:image/'))return;
+  let vigente=true;
+  void (async()=>{try{const [meta,payload]=source.split(',');const type=/^data:([^;]+);base64$/.exec(meta)?.[1];if(!type||!payload)return;const bytes=Uint8Array.from(atob(payload),char=>char.charCodeAt(0));const bitmap=await createImageBitmap(new Blob([bytes],{type}));try{if(vigente)setCrop(initialCropArea(bitmap.width,bitmap.height));}finally{bitmap.close();}}catch{/* La foto igual se puede mover a mano. */}})();
+  return ()=>{vigente=false;};
+ },[source]);
  return <Dialog title={`Ajustar foto de ${name}`} busy={busy} close={()=>{if(!busy)close();}}>
-  <p className="form-note">Mové la foto con el mouse, el dedo o las flechas. El círculo muestra cómo se verá tu perfil.</p>
+  <p className="form-note">El círculo muestra el recorte cuadrado que se va a guardar. Mové la foto con el mouse, el dedo o las flechas y ajustá el zoom; el encuadre original de la foto no se toca.</p>
   <div className="profile-crop-stage"><Cropper image={source} crop={crop} zoom={zoom} aspect={1} objectFit="cover" restrictPosition cropShape="round" showGrid={false} minZoom={1} maxZoom={3} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_,pixels)=>setArea(pixels)} disableAutomaticStylesInjection zoomWithScroll={false} cropperProps={{'aria-label':'Mover encuadre de la foto'}} mediaProps={{onError:()=>setError('No se pudo abrir la foto. Volvé a elegir el archivo.')}}/></div>
   {area&&Math.min(area.width,area.height)<256&&<p className="form-note" role="status">Este encuadre tiene pocos píxeles. Reducí el zoom o elegí la foto original para mayor nitidez.</p>}
   <label className="crop-zoom">Zoom <output>{Math.round(zoom*100)}%</output><input aria-label="Zoom del encuadre" type="range" min="1" max="3" step="0.01" value={zoom} onChange={e=>setZoom(Number(e.target.value))} disabled={busy}/></label>

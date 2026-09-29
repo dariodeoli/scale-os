@@ -4,10 +4,10 @@ import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
 import dynamic from 'next/dynamic';
-import {centeredPhotoArea} from './photo-fit';
 import {validateImageLink} from './image-link';
 import './photo-cropper.css';
 import {Crop,Link2,Trash2} from 'lucide-react';
+import {FotoPerfil} from './foto-perfil';
 const PhotoCropper=dynamic(()=>import('./photo-cropper').then(m=>m.PhotoCropper));
 
 export const PHOTO_MIME_TYPES=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
@@ -17,34 +17,59 @@ export const PHOTO_MAX_BYTES=4*1024*1024;
 
 const schema=z.object({photo:z.string().max(700000).refine(value=>{if(!value||value.startsWith('data:image/'))return true;try{const u=new URL(value);return value.length<=2048&&u.protocol==='https:'&&!u.username&&!u.password;}catch{return false;}},'Usá un enlace HTTPS directo a una imagen, sin credenciales.')});
 
-export async function preparePhoto(file:File,forLogo=false,centerCrop=false):Promise<string>{
+function validatePhoto(file:File){
   const imageLike=PHOTO_MIME_TYPES.includes(file.type)||(!file.type&&/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name));
   if(!imageLike||file.size>PHOTO_MAX_BYTES)throw new Error(`Elegí una foto ${PHOTO_FORMATS} de hasta 4 MB.`);
-  let bitmap:ImageBitmap;
-  try{bitmap=await createImageBitmap(file);}catch{throw new Error(file.type.startsWith('image/heic')||file.type.startsWith('image/heif')?'Este formato HEIC no se pudo leer en este navegador. Convertilo a JPG o PNG e intentá de nuevo.':'No se pudo leer esta imagen. Probá con JPG, PNG o WebP.');}
+}
+
+async function decodePhoto(file:File){
+  try{return await createImageBitmap(file);}
+  catch{throw new Error(file.type.startsWith('image/heic')||file.type.startsWith('image/heif')?'Este formato HEIC no se pudo leer en este navegador. Convertilo a JPG o PNG e intentá de nuevo.':'No se pudo leer esta imagen. Probá con JPG, PNG o WebP.');}
+}
+
+/**
+ * Fuente original del archivo (data URL) para el recorte **manual** local.
+ * No se envía al servidor: es el material con el que el usuario ajusta.
+ */
+export async function photoSource(file:File):Promise<string>{
+  validatePhoto(file);
+  return await new Promise<string>((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>typeof reader.result==='string'?resolve(reader.result):reject(new Error('No se pudo leer la foto.'));
+    reader.onerror=()=>reject(new Error('No se pudo leer la foto.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Prepara la foto que se guarda: **imagen completa, sin recorte** (misma
+ * relación de aspecto), con el lado mayor a 512 px y compresión webp. Nada de
+ * autozoom ni autoencuadre (#107): el recorte, si el usuario lo quiere, es
+ * manual (`PhotoCropper`).
+ */
+export async function preparePhoto(file:File):Promise<string>{
+  validatePhoto(file);
+  const bitmap=await decodePhoto(file);
   try{
     if(bitmap.width*bitmap.height>40000000)throw new Error('Elegí una foto de menor resolución.');
-    // Keep the original pixels locally until the user chooses the crop.
-    // Only the final small crop is sent to the server.
-    if(!forLogo&&!centerCrop)return await new Promise<string>((resolve,reject)=>{
-      const reader=new FileReader();
-      reader.onload=()=>typeof reader.result==='string'?resolve(reader.result):reject(new Error('No se pudo leer la foto.'));
-      reader.onerror=()=>reject(new Error('No se pudo leer la foto.'));
-      reader.readAsDataURL(file);
-    });
     const canvas=document.createElement('canvas');
-    const area=centerCrop?centeredPhotoArea(bitmap.width,bitmap.height):{x:0,y:0,width:bitmap.width,height:bitmap.height};
-    const ratio=Math.min(1,512/Math.max(area.width,area.height));
-    canvas.width=Math.max(1,Math.round(area.width*ratio));canvas.height=Math.max(1,Math.round(area.height*ratio));
     const context=canvas.getContext('2d');if(!context)throw new Error('No se pudo preparar la foto.');
     context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
-    context.drawImage(bitmap,area.x,area.y,area.width,area.height,0,0,canvas.width,canvas.height);
-    // The API stores at most ~512 KB decoded; keep the base64 comfortably inside.
-    const encode=(quality:number)=>canvas.toDataURL('image/webp',quality);
-    let result=encode(0.92);
-    if(result.length>680000)result=encode(0.72);
-    if(result.length>680000)throw new Error('La foto comprimida supera el límite. Elegí una imagen más pequeña o con menos detalle.');
-    return result;
+    // La API guarda ~512 KB decodificados: si el webp no entra, se baja la
+    // calidad y, si hace falta, el lado mayor (una foto completa tiene más
+    // píxeles que un cuadrado recortado).
+    let longest=512,quality=0.92,result='';
+    for(;;){
+      const ratio=Math.min(1,longest/Math.max(bitmap.width,bitmap.height));
+      canvas.width=Math.max(1,Math.round(bitmap.width*ratio));canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+      context.clearRect(0,0,canvas.width,canvas.height);
+      context.drawImage(bitmap,0,0,bitmap.width,bitmap.height,0,0,canvas.width,canvas.height);
+      result=canvas.toDataURL('image/webp',quality);
+      if(result.length<=680000)return result;
+      if(quality>0.62){quality=0.62;continue;}
+      if(longest>288){longest=Math.round(longest*0.75);quality=0.82;continue;}
+      throw new Error('La foto comprimida supera el límite. Elegí una imagen más pequeña o con menos detalle.');
+    }
   }finally{bitmap.close();}
 }
 
@@ -55,6 +80,9 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
   const [originalSource,setOriginalSource]=useState<string|null>(null);
   const [useLink,setUseLink]=useState(false);
   const [failedPhoto,setFailedPhoto]=useState('');
+  // Reintento del objeto de foto al guardar: si el enlace había fallado,
+  // el guardado exitoso vuelve a intentar la carga (contrato de reintento).
+  const [fotoVersion,setFotoVersion]=useState(0);
   const isLogo=label==='Logo o foto del cliente';
   const mounted=useRef(true),saving=useRef(false),fileInput=useRef<HTMLInputElement|null>(null);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
@@ -73,14 +101,14 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
     {!compact&&<div className="profile-photo-section-heading"><strong>{label}</strong><small>Seleccioná la foto para reemplazarla; después podés ajustar el encuadre.</small></div>}
     <form className="form-stack profile-photo-form" noValidate onSubmit={form.handleSubmit(async values=>{
       if(!startSave())return;
-      setError('');setNotice('');try{if(values.photo.startsWith('https:'))await validateImageLink(values.photo);if(!mounted.current)return;await save(values.photo);if(!mounted.current)return;form.reset(values);setFailedPhoto('');setNotice('Foto guardada.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
+      setError('');setNotice('');try{if(values.photo.startsWith('https:'))await validateImageLink(values.photo);if(!mounted.current)return;await save(values.photo);if(!mounted.current)return;form.reset(values);setFailedPhoto('');setFotoVersion(v=>v+1);setNotice('Foto guardada.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
     })}>
       <div className="profile-photo-summary">
-      {preview&&preview!==failedPhoto?<button type="button" className="editable-photo" aria-label={`Cambiar foto de ${name}`} disabled={busy} onClick={()=>fileInput.current?.click()}><img src={preview} referrerPolicy="no-referrer" alt={`Foto de ${name}`} onError={()=>setFailedPhoto(preview)}/></button>:<button type="button" className="avatar editable-photo" aria-label={`Elegir foto de ${name}`} disabled={busy} onClick={()=>fileInput.current?.click()}>{name[0]}</button>}
+      <FotoPerfil key={fotoVersion} nombre={name} foto={preview&&preview!==failedPhoto?preview:''} tamano={compact?'xl':'3xl'} variante={isLogo?'logo':'persona'} onClick={()=>fileInput.current?.click()} disabled={busy} etiqueta={preview&&preview!==failedPhoto?`Cambiar foto de ${name}`:`Elegir foto de ${name}`} badge={<Crop size={12}/>}/>
       <div className="profile-photo-controls">
       <label className="photo-upload">{processing?'Preparando…':compact?'Cambiar foto':preview?'Cambiar foto':'Elegir foto'}<input ref={fileInput} aria-label={`Elegir foto (${PHOTO_FORMATS}; hasta 4 MB)`} type="file" accept={PHOTO_ACCEPT} disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file||!startSave())return;
-        setError('');setNotice('');try{const source=await preparePhoto(file,isLogo);if(!mounted.current)return;const ready=isLogo?source:await preparePhoto(file,false,true);if(!mounted.current)return;setOriginalSource(source);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);if(!mounted.current)return;form.reset({photo:ready});setFailedPhoto('');setNotice(isLogo?'Logo guardado automáticamente.':'Foto centrada y guardada automáticamente. Podés ajustar el encuadre.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
+        setError('');setNotice('');try{const source=await photoSource(file);if(!mounted.current)return;const ready=await preparePhoto(file);if(!mounted.current)return;setOriginalSource(source);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);if(!mounted.current)return;form.reset({photo:ready});setFailedPhoto('');setNotice(isLogo?'Logo guardado. Podés ajustar el encuadre.':'Foto guardada. Podés ajustar el encuadre.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
       }}/></label>
       {!compact&&<><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</button>}</>}
       </div></div>

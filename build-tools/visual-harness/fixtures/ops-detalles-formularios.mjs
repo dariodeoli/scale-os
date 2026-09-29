@@ -28,8 +28,8 @@ const chip = (label, tone) => {
   const tones = {ok: 'bg-ok/15 text-ok border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn border-warn/25', bad: 'bg-bad/15 text-bad border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
   return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${tones[tone]}">${label}</span>`;
 };
-const avatar = (name) => `<span class="actor-identity-avatar" aria-hidden="true">${initials(name)}</span>`;
-const actorIdentity = (name, time) => `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${initials(name)}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span><span class="actor-identity-time">${time}</span></span></span>`;
+const avatar = (name) => `<span class="foto-perfil" aria-hidden="true">${initials(name)}</span>`;
+const actorIdentity = (name, time) => `<span class="actor-identity"><span class="foto-perfil" aria-hidden="true">${initials(name)}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${name}">${name}</span><span class="actor-identity-time">${time}</span></span></span>`;
 const fieldLabel = (text, id) => `<label class="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-mute" for="${id}">${text}</label>`;
 const input = (id, value, extra = '') => `<input id="${id}" value="${value}" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore outline-none transition md:h-9 md:text-sm ${extra}">`;
 const select = (id, label) => `<select id="${id}" class="h-11 w-full cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition md:h-9 md:text-sm"><option>${label}</option></select>`;
@@ -89,7 +89,7 @@ const inventoryDetailBody = `
 const pieceDetailBody = `
  <div class="grid min-w-0 gap-4">
   <section class="grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
-   <div class="flex min-w-0 flex-wrap items-center justify-between gap-2"><span class="client-identity identity-teal"><span class="identity-avatar">CM</span><span class="actor-identity-name" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span><span class="urgency-badge">5 · Crítica</span></div>
+   <div class="flex min-w-0 flex-wrap items-center justify-between gap-2"><span class="client-identity identity-teal"><span class="foto-perfil">CM</span><span class="actor-identity-name" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span><span class="urgency-badge">5 · Crítica</span></div>
    <div class="flex flex-wrap items-center gap-1.5">${chip('En revisión', 'warn')}${chip('Video', 'mute')}<span class="due-date overdue compact" title="Entrega: 28 ago. 2026 09:30">Entrega 28 ago. 2026 · 09:30 h · venció hace 23 días</span></div>
    <dl class="grid gap-1 text-xs sm:grid-cols-2">
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Horas estimadas</dt><dd class="shrink-0 font-semibold tabular-nums">12 h</dd></div>
