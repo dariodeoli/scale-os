@@ -159,8 +159,8 @@ test('métricas: cargando, error con reintento y vacío con acción',async()=>{
 });
 
 test('copias locales reemplazadas por la librería (§15.5) y resultado con el tono correcto',()=>{
- const due=read('app/due-status.ts');
- assert.match(due,/import \{tonoVencimiento\} from 'owncoding-ui\/utils'/,'el vencimiento usa el helper de la librería');
+ const due=read('app/list-format.tsx');
+ assert.match(due,/from 'owncoding-ui'/,'el vencimiento usa la librería');
  assert.doesNotMatch(due,/Intl\.DateTimeFormat/,'sin copia local del cálculo de días');
  const clientFormat=read('app/client-format.ts');
  assert.match(clientFormat,/import \{diasHasta\} from 'owncoding-ui\/utils'/);
@@ -193,7 +193,7 @@ test('los fallos de transporte hablan es-PY y no filtran jerga técnica',async()
 });
 
 test('hasDueWarning conserva el contrato de vencimiento con la implementación de la librería',async()=>{
- const {hasDueWarning}=await import('../app/due-status');
+ const {hasDueWarning}=await import('../app/list-format');
  const hoy=new Date('2026-09-18T15:00:00Z');
  assert.equal(typeof hasDueWarning('2026-09-15',7),'boolean');
  assert.equal(hasDueWarning('2026-09-15'),true,'vencido pinta');

@@ -15,12 +15,14 @@ export function useReportsWindow(month: string, months: number, retry: number) {
   const [result, setResult] = useState<{key: string; data: ReportsData} | null>(null);
   const [previousResult, setPreviousResult] = useState<{key: string; data: ReportsData} | null>(null);
   const [error, setError] = useState('');
+  const [previousError, setPreviousError] = useState('');
   const queryKey = `${month}:${months}:${retry}`;
   useEffect(() => {
     let alive = true;
     setResult(null);
     setPreviousResult(null);
     setError('');
+    setPreviousError('');
     const previousWindowMonth = shiftMonth(month, -months);
     void api<ReportsResponse>(`/api/agency/reports?month=${month}&months=${months}&previous=1`).then(data => {
       if (!data || data.month !== month || !Array.isArray(data.months)) throw Error('La respuesta del reporte no corresponde al mes solicitado.');
@@ -35,7 +37,10 @@ export function useReportsWindow(month: string, months: number, retry: number) {
       void api<ReportsData>(`/api/agency/reports?month=${previousWindowMonth}&months=${months}`).then(previousData => {
         if (!previousData || previousData.month !== previousWindowMonth || !Array.isArray(previousData.months)) return;
         if (alive) setPreviousResult({key: queryKey, data: previousData});
-      }).catch(() => {});
+      }).catch(() => {
+        // Un fallo del período anterior no se calla: la pantalla lo dice y ofrece reintento.
+        if (alive) setPreviousError('No se pudo cargar el período anterior.');
+      });
     }).catch(cause => {
       if (alive) setError(cause instanceof Error ? cause.message : 'No se pudo cargar el reporte.');
     });
@@ -45,5 +50,6 @@ export function useReportsWindow(month: string, months: number, retry: number) {
     data: result?.key === queryKey ? result.data : null,
     previousData: previousResult?.key === queryKey ? previousResult.data : null,
     error,
+    previousError,
   };
 }

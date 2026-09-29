@@ -13,7 +13,7 @@ import {parseStatementCsv} from './statement-csv';
 import {listDateShort} from './list-format';
 import {movementValue,matchingMovements,reconciliationPending,transferPreview,type StatementLine} from './treasury-data';
 import {useReconciliation} from './use-reconciliation';
-import {todayInAsuncion} from './field-rules';
+import {todayAsuncion} from './client-format';
 import {Aviso,Button,Card,EmptyState,ErrorState,FormField,IconAction,Input,Nota,cn} from 'owncoding-ui';
 import {LoadingBlock,MoneyText,StateChip} from './ui-v2';
 import {Copy,Eye,Link2,Link2Off,Undo2,Unlink} from 'lucide-react';
@@ -23,7 +23,7 @@ const str=(r:Row,k:string)=>String(r[k]??'');
 const errorText=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar';
 export function FXTransferForm({accounts,done}:{accounts:Account[];done:()=>void|Promise<void>}){
  const schema=z.object({fromAccountId:z.string().min(1),toAccountId:z.string().min(1),amount:z.string().refine(v=>Number(v)>0),receivedAmount:z.string().refine(v=>Number(v)>0),transferredOn:z.string().min(1),reference:z.string().max(120)});
- const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{fromAccountId:'',toAccountId:'',amount:'',receivedAmount:'',transferredOn:todayInAsuncion(),reference:''}});
+ const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{fromAccountId:'',toAccountId:'',amount:'',receivedAmount:'',transferredOn:todayAsuncion(),reference:''}});
  const [requestId]=useState(()=>crypto.randomUUID()),[error,setError]=useState('');const v=form.watch(),from=accounts.find(a=>a.id===v.fromAccountId),to=accounts.find(a=>a.id===v.toAccountId);const transfer=transferPreview({fromCurrency:from?.currency,toCurrency:to?.currency,amount:v.amount,receivedAmount:v.receivedAmount});
  const saving=useRef(false),[savingNow,setSavingNow]=useState(false);
  const pending=form.formState.isSubmitting||savingNow;

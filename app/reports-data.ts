@@ -8,6 +8,8 @@
  * el estado de carga vive en `app/use-reports.ts`.
  */
 
+import {currentAsuncionMonth} from './client-format';
+
 export type ReportMonth = {
   month: string;
   isPartial: boolean;
@@ -64,8 +66,7 @@ export function reportDate(value: string | null, withTime = false): string {
 export const validMonth = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value) && value >= '1900-01' && value <= '9998-12';
 
 export function currentMonth(): string {
-  const parts = new Intl.DateTimeFormat('en', {timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit'}).formatToParts(new Date());
-  return `${parts.find(p => p.type === 'year')!.value}-${parts.find(p => p.type === 'month')!.value}`;
+  return currentAsuncionMonth();
 }
 
 export function previousMonth(value: string): string {

@@ -65,7 +65,9 @@ test("client directory and mora views flag clients that were never invoiced", ()
   const moraData = readFileSync(new URL('../app/mora-data.ts', import.meta.url), 'utf8');
   assert.match(moraData, /filter === 'no_invoice'[\s\S]*?!client\.has_invoice/);
   assert.match(workspace, /cobrosKpis\.sinFactura\} sin factura/);
-  assert.match(workspace, /if \(!client\.has_invoice\) sinFactura \+= 1;/);
+  // Un dato, una fuente: el conteo sale de mora-data, no de una copia en el shell.
+  assert.match(workspace, /const cobrosKpis = useMemo\(\(\) => moraKpis\(paymentStatuses\), \[paymentStatuses\]\)/);
+  assert.match(moraData, /if \(!client\.has_invoice\) sinFactura \+= 1;/);
 });
 
 test("client toolbar exposes accessible search, count, view controls, and role-gated creation", async () => {

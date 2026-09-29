@@ -1,13 +1,23 @@
 import {diasHasta} from 'owncoding-ui/utils';
+import {money} from './money-format';
 
-export function moneyKpi(value: number, currency: string) {
-  return new Intl.NumberFormat("es-PY", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
-}
+/**
+ * Alias histórico de los agregados de KPI: un dato, un formato. Antes redondeaba
+ * los decimales de toda moneda no-PYG y el mismo saldo se veía distinto en la
+ * tarjeta y en el KPI; ahora comparte el formateador único de la app.
+ */
+export const moneyKpi = money;
 
 /** Día calendario de Asunción (YYYY-MM-DD) para hoy; fuente única del dominio. */
 export function todayAsuncion(now: Date = new Date()): string {
   const parts = new Intl.DateTimeFormat('en', { timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
   return ['year', 'month', 'day'].map((type) => parts.find((part) => part.type === type)!.value).join('-');
+}
+
+/** Mes calendario de Asunción (YYYY-MM) para hoy; fuente única del dominio. */
+export function currentAsuncionMonth(now: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en', { timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit' }).formatToParts(now);
+  return ['year', 'month'].map((type) => parts.find((part) => part.type === type)!.value).join('-');
 }
 
 export function clientSince(value?: string): string | null {

@@ -45,7 +45,8 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
     const text = await response.text().catch(() => "");
     const errorMsg = text.slice(0, 100) || "Respuesta inválida del servidor";
     if (!response.ok) {
-      throw new Error(`${errorMsg} (HTTP ${response.status})`);
+      // Un 5xx puede traer el cuerpo del proxy: no se muestra crudo al usuario.
+      throw new Error(response.status >= 500 ? "El servidor no pudo completar la operación. Probá de nuevo en unos segundos." : `${errorMsg} (HTTP ${response.status})`);
     }
     // A 200 with a non-empty non-JSON body is an error page, never data: it must
     // fail loudly instead of becoming an empty object that corrupts state.

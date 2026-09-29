@@ -16,6 +16,19 @@ import {
 } from './forecast-data';
 
 /**
+ * Lee el JSON de la respuesta sin filtrar el error crudo del navegador: un
+ * cuerpo no-JSON (p. ej. el 502 del proxy) se traduce a un mensaje accionable.
+ */
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    if (!response.ok) throw new Error(response.status >= 500 ? 'El servidor no pudo completar la operación. Probá de nuevo en unos segundos.' : `No se pudo completar la operación (HTTP ${response.status}).`);
+    throw new Error('El servidor devolvió una respuesta inválida. Reintentá.');
+  }
+}
+
+/**
  * Estado de la Previsión: trae el mes/horizonte, valida el contrato y se recarga
  * con cada mutación confirmada (`feedbackEvent`, igual que la pantalla actual).
  */
@@ -34,7 +47,7 @@ export function useForecast(month: string, horizon: Horizon) {
     setError('');
     void dataFetch(`/core-api/api/agency/forecast?month=${encodeURIComponent(month)}${horizon === '1' ? '' : `&months=${horizon}`}`, {credentials: 'include'})
       .then(async response => {
-        const result: unknown = await response.json();
+        const result: unknown = await readJson(response);
         if (!response.ok) throw new Error(isRecord(result) && typeof result.error === 'string' ? result.error : 'No se pudo cargar la previsión');
         if (!validForecast(result)) throw new Error('La previsión recibió datos inválidos. Recargá la página.');
         if (active) setData(result);
@@ -61,7 +74,7 @@ export function useRealExpenses(month: string, data: ForecastData | null) {
     setError('');
     const read = async (url: string) => {
       const response = await dataFetch(url, {credentials: 'include'});
-      const result: unknown = await response.json();
+      const result: unknown = await readJson(response);
       if (!response.ok) throw new Error(isRecord(result) && typeof result.error === 'string' ? result.error : 'No se pudieron cargar los gastos reales');
       return result;
     };
@@ -94,7 +107,7 @@ export function usePlannedExpenses(month: string, data: ForecastData | null) {
     setError('');
     void dataFetch(`/core-api/api/agency/planned-expenses?month=${encodeURIComponent(month)}`, {credentials: 'include'})
       .then(async response => {
-        const result: unknown = await response.json();
+        const result: unknown = await readJson(response);
         if (!response.ok) throw new Error(isRecord(result) && typeof result.error === 'string' ? result.error : 'No se pudieron cargar los gastos planificados');
         const normalized = normalizePlannedExpenses(result);
         if (!normalized) throw new Error('Los gastos planificados recibieron datos inválidos. Recargá la página.');

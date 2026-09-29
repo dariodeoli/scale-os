@@ -53,13 +53,6 @@ export function decimalInput(value: string, maxDecimals = 2): string {
 
 export const EMAIL_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com', 'live.com'];
 
-/** Today's calendar day in the company time zone, as `YYYY-MM-DD` for date inputs. */
-export function todayInAsuncion(): string {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-  const part = (type: string) => parts.find(entry => entry.type === type)!.value;
-  return `${part('year')}-${part('month')}-${part('day')}`;
-}
-
 export function emailSuggestions(value: string): string[] {
   const at = (value || '').indexOf('@');
   if (at < 1 || /\s/.test(value)) return [];
