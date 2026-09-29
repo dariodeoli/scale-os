@@ -9,7 +9,7 @@ const pg=new PGlite();
 await pg.exec(await fs.readFile('schema.sql','utf8'));
 for(const name of ['20260908_treasury_ledger','20260908_people_commissions_comments','20260908_operations_complete','20260908_referral_discounts','20260908_collaborator_profiles','20260908_agency_suite','20260908_daily_controls'])await pg.exec(await fs.readFile(`migrations/${name}.sql`,'utf8'));
 await identitySchema(pg);
-for(const name of ['20260910_notifications','20260910_project_assignees','20260910_work_checklists','20260913_ruc_collaboration','20260914_production_traceability'])await pg.exec(await fs.readFile(`migrations/${name}.sql`,'utf8'));
+for(const name of ['20260910_notifications','20260910_project_assignees','20260910_work_checklists','20260913_ruc_collaboration','20260914_production_traceability','20260929_notification_email_status'])await pg.exec(await fs.readFile(`migrations/${name}.sql`,'utf8'));
 const query=(s,v)=>pg.query(s,v),db={query,connect:async()=>({query,release(){}})};
 const insert=async(s,v)=>(await query(s+' returning id',v)).rows[0].id;
 const org=await insert("insert into organizations(slug,name) values('notice-a','A')");
@@ -59,7 +59,7 @@ const again=await call(notifications,'notifications/'+key,asOne,'PATCH',{resolve
 inbox=await call(notifications,'notifications',asOne);assert.equal(inbox.pendingCount,1);assert.equal(inbox.unread,1);
 assert.equal((await call(notifications,'notifications/'+key,asOne,'PATCH',{resolved:false})).status,200);
 inbox=await call(notifications,'notifications',asOne);assert.equal(inbox.pendingCount,2);assert.equal(inbox.unread,1);
-assert.equal((await query('select email_status from agency_notifications where id=$1',[key])).rows[0].email_status,'skipped','Reopening never requeues email');
+assert.equal((await query('select email_status from agency_notifications where id=$1',[key])).rows[0].email_status,'duplicado','Reopening never requeues email');
 assert.equal((await call(notifications,'notifications/read-all',asOne,'PATCH',{})).status,200);
 inbox=await call(notifications,'notifications',asOne);assert.equal(inbox.unread,0);assert.equal(inbox.pendingCount,2,'Read is distinct from resolved');
 assert.equal((await call(notifications,'notifications/'+key,asOne,'PATCH',{resolved:'true'})).status,400);
