@@ -2,6 +2,31 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.150
+
+### Comercial
+
+- **Listas con ventana y contador honesto**: Clientes, Presupuestos, Pipeline y Leads cargan por tramos con «Ver más» («Mostrando 60 de 420 presupuestos»); los indicadores siguen representando el total.
+- **Menos peso y menos filas montadas**: la lectura viaja proyectada (clientes 288 KB → 35 KB con ventana; presupuestos 103 → 14 KB) y se montan clientes 420 → 120, presupuestos 420 → 60 y pipeline 300 → 120 tarjetas.
+- El API suma `?limit`/`?offset` de forma aditiva (sin `limit` nada cambia), con total exacto y `hasMore` estable.
+
+### Operaciones
+
+- **Inventario compacto**: tarjetas unificadas (foto de 56 px, serie y valor en una fila, «Sin serie»/«Sin valor» explícitos, acciones en un pie común); la tarjeta pasa de 434/324 a 252/232 px.
+- **Lista y ubicaciones alineadas**: columnas reales por breakpoint (1/2/3) sin cortes, encabezados de altura fija con contador y «aquí desde» como dato secundario.
+- **Ubicaciones ordenables**: el dueño elige el orden de guardado (mover antes/después) y se respeta en el pipeline y en la lista; las ubicaciones nuevas van al final.
+
+### Equipo y plataforma
+
+- **Personas compactas**: cabecera y metadata en chips, correo como dato secundario, «Acceso habilitado» una sola vez, remuneración en chips y acciones al pie, sin espacios vacíos; toolbar en una fila y tabs compactos.
+- **La vista Lista/Cuadrícula se recuerda** por navegador en Equipo.
+- **Eliminar del equipo (definitivo)**: los integrantes con acceso retirado se purgan con basurero y confirmación; el historial se conserva y una nueva invitación los reactiva.
+
+### Administración global
+
+- **Los borrados globales vuelven a funcionar**: la base rechazaba las acciones del panel (`platform.user.delete`/`platform.agency.delete`); una migración lo habilita conservando la confirmación reforzada, la auditoría y la protección de cuentas demo.
+- **Cupones**: el botón de alta no envuelve en el rediseño de la consola.
+
 ## v1.0.149
 
 ### Administración global
