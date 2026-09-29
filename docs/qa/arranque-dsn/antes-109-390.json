@@ -1,0 +1,240 @@
+{
+  "label": "antes-109",
+  "width": 390,
+  "at": "2026-09-29T22:21:02.341Z",
+  "routes": [
+    {
+      "route": "/resumen",
+      "nav": "boot",
+      "landed": "/resumen",
+      "api": 13,
+      "duplicates": 0,
+      "payloadKB": 343,
+      "apiMs": 4029,
+      "ttFirst": 1187,
+      "ttLast": 2971,
+      "detail": [
+        {
+          "url": "/auth/providers",
+          "delay": 60,
+          "kb": 0,
+          "start": 1401
+        },
+        {
+          "url": "/auth/me",
+          "delay": 120,
+          "kb": 0,
+          "start": 1411
+        },
+        {
+          "url": "/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date,due_time,work_type,assignee_names,assigned_user_id,assigned_user_ids,checklist_total,checklist_completed,estimated_hours,actual_hours,updated_at",
+          "delay": 210,
+          "kb": 97,
+          "start": 1763
+        },
+        {
+          "url": "/clients",
+          "delay": 150,
+          "kb": 113,
+          "start": 1797
+        },
+        {
+          "url": "/projects",
+          "delay": 450,
+          "kb": 132,
+          "start": 1805
+        },
+        {
+          "url": "/summary",
+          "delay": 250,
+          "kb": 0,
+          "start": 1813
+        },
+        {
+          "url": "/auth/organizations",
+          "delay": 150,
+          "kb": 0,
+          "start": 2657
+        },
+        {
+          "url": "/presence/usage",
+          "delay": 150,
+          "kb": 0,
+          "start": 2661
+        },
+        {
+          "url": "/notifications?status=all",
+          "delay": 120,
+          "kb": 0,
+          "start": 2663
+        },
+        {
+          "url": "/dashboard",
+          "delay": 300,
+          "kb": 0,
+          "start": 2664
+        },
+        {
+          "url": "/control-center",
+          "delay": 250,
+          "kb": 0,
+          "start": 2665
+        },
+        {
+          "url": "/presence/heartbeat",
+          "delay": 80,
+          "kb": 0,
+          "start": 2668
+        },
+        {
+          "url": "/productivity/internal-tasks",
+          "delay": 150,
+          "kb": 0,
+          "start": 2669
+        }
+      ],
+      "heaviest": [
+        "/projects 132 KB",
+        "/clients 113 KB",
+        "/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date,due_time,work_type,assignee_names,assigned_user_id,assigned_user_ids,checklist_total,checklist_completed,estimated_hours,actual_hours,updated_at 97 KB"
+      ],
+      "marks": {
+        "shell": 2649,
+        "loading": 2649,
+        "content": 2649,
+        "dataReady": 2649
+      }
+    },
+    {
+      "route": "/produccion",
+      "nav": "boot",
+      "landed": "/produccion",
+      "api": 18,
+      "duplicates": 0,
+      "payloadKB": 457,
+      "apiMs": 6764,
+      "ttFirst": 233,
+      "ttLast": 2382,
+      "detail": [
+        {
+          "url": "/auth/providers",
+          "delay": 60,
+          "kb": 0,
+          "start": 355
+        },
+        {
+          "url": "/auth/me",
+          "delay": 120,
+          "kb": 0,
+          "start": 359
+        },
+        {
+          "url": "/clients?fields=id,name,email,active,logo_url,color_key",
+          "delay": 150,
+          "kb": 113,
+          "start": 685
+        },
+        {
+          "url": "/projects?fields=id,name,client_id,client_name,work_order_count",
+          "delay": 450,
+          "kb": 132,
+          "start": 701
+        },
+        {
+          "url": "/summary",
+          "delay": 250,
+          "kb": 0,
+          "start": 721
+        },
+        {
+          "url": "/auth/organizations",
+          "delay": 150,
+          "kb": 0,
+          "start": 1475
+        },
+        {
+          "url": "/presence/usage",
+          "delay": 150,
+          "kb": 0,
+          "start": 1537
+        },
+        {
+          "url": "/notifications?status=all",
+          "delay": 120,
+          "kb": 0,
+          "start": 1539
+        },
+        {
+          "url": "/work-orders?counts=1&limit=1&fields=id",
+          "delay": 30.6,
+          "kb": 0,
+          "start": 1541
+        },
+        {
+          "url": "/work-orders?status=blocked&fields=id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at&limit=51",
+          "delay": 34.8,
+          "kb": 5,
+          "start": 1550
+        },
+        {
+          "url": "/work-orders?status=to_record&fields=id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at&limit=51",
+          "delay": 60.599999999999994,
+          "kb": 34,
+          "start": 1556
+        },
+        {
+          "url": "/work-orders?status=recorded&fields=id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at&limit=51",
+          "delay": 60.599999999999994,
+          "kb": 34,
+          "start": 1567
+        },
+        {
+          "url": "/work-orders?status=editing&fields=id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at&limit=51",
+          "delay": 60.599999999999994,
+          "kb": 34,
+          "start": 1572
+        },
+        {
+          "url": "/work-orders?status=review&fields=id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at&limit=51",
+          "delay": 60.599999999999994,
+          "kb": 34,
+          "start": 1574
+        },
+        {
+          "url": "/work-orders?status=approved&fields=id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at&limit=51",
+          "delay": 60.599999999999994,
+          "kb": 34,
+          "start": 1575
+        },
+        {
+          "url": "/work-orders?status=published&fields=id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at&limit=51",
+          "delay": 60.599999999999994,
+          "kb": 34,
+          "start": 1577
+        },
+        {
+          "url": "/presence/heartbeat",
+          "delay": 80,
+          "kb": 0,
+          "start": 1580
+        },
+        {
+          "url": "/presence/projects?ids=10%2C11%2C12%2C13%2C14%2C15%2C16%2C17%2C18%2C19%2C2%2C20%2C21%2C22%2C23%2C24%2C25%2C26%2C27%2C28%2C29%2C3%2C30%2C31%2C32%2C33%2C34%2C35%2C36%2C37%2C38%2C39%2C4%2C40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49%2C5%2C50%2C51%2C6%2C7%2C8%2C9",
+          "delay": 250,
+          "kb": 0,
+          "start": 2108
+        }
+      ],
+      "heaviest": [
+        "/projects?fields=id,name,client_id,client_name,work_order_count 132 KB",
+        "/clients?fields=id,name,email,active,logo_url,color_key 113 KB",
+        "/work-orders?status=to_record&fields=id,project_id,project_name,client_name,title,description,status,work_type,urgency,due_date,due_time,effective_assignees,assignee_source,checklist_total,checklist_completed,approval_step,drive_url,drive_links,estimated_hours,actual_hours,updated_at&limit=51 34 KB"
+      ],
+      "marks": {
+        "shell": 1223,
+        "loading": 1223,
+        "dataReady": 1223
+      }
+    }
+  ]
+}

@@ -196,7 +196,8 @@ test("el header de Clientes vive en una fila con el resumen auxiliar (#91)", () 
     "el rótulo del estado queda accesible sin ocupar una línea",
   );
   assert.match(source, /aria-label="Estado"/, "el select conserva su nombre accesible");
-  assert.match(source, /title=\{summary\}/, "el resumen completo queda disponible en el tooltip");
+  assert.match(source, /title=\{loading \? undefined : summary\}/, "el resumen completo queda disponible en el tooltip y se calla mientras carga (#109)");
+  assert.match(source, /loading \? 'Cargando el directorio…' : summary/, "mientras el shell carga no se afirma un directorio de cero (#109)");
 });
 
 test("los KPIs de Clientes priorizan el dato real y el estado chico (#91)", () => {

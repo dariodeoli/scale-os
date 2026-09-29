@@ -27,6 +27,7 @@ const bootOnly = args.includes('--boot-only');
 const network = option('--network', 'wifi');
 const contractMode = option('--contract', 'new');
 const hardOnly = args.includes('--hard');
+const shotMs = Number(option('--shot', '0'));
 const here = resolve(process.cwd());
 const outDir = join(here, 'work/medicion');
 mkdirSync(outDir, {recursive: true});
@@ -136,6 +137,29 @@ await cdp.send('Emulation.setDeviceMetricsOverride', {width, height: width < 768
 if (network === '4g') await cdp.send('Network.enable').then(() => cdp.send('Network.emulateNetworkConditions', {offline: false, latency: 70, downloadThroughput: 9 * 1024 * 1024 / 8, uploadThroughput: 9 * 1024 * 1024 / 8})).catch(() => {});
 await cdp.send('Fetch.enable', {patterns: [{urlPattern: '*/core-api/api/*'}, {urlPattern: '*/api/auth/*'}]});
 
+// Marcas de arranque percibido (#109): cuándo aparece el shell, cuándo se va la
+// pantalla de carga, cuándo llega el primer contenido y cuándo el marco declara
+// los datos listos. Se instalan antes de cualquier script de la página.
+const MARKS_SCRIPT = `(()=>{
+  const marks={};
+  let dark=false;
+  window.__marks=marks;
+  const start=()=>{
+    try{new MutationObserver(()=>{dark=dark||Boolean(document.querySelector('main.shell'));}).observe(document.documentElement,{childList:true,subtree:true});}catch(error){}
+    const raf=()=>{
+      const now=performance.now();
+      if(!marks.shell&&document.querySelector('main.shell'))marks.shell=Math.round(now);
+      if(!marks.loading&&dark&&!document.querySelector('.loading-page'))marks.loading=Math.round(now);
+      if(!marks.content&&document.querySelector('.shell [role="rowgroup"] [role="row"],.shell .client-hub-card,.shell .person-hub-card,.shell .work-card,.shell .inventory-equipment,.shell .ui-kpi'))marks.content=Math.round(now);
+      if(!marks.dataReady&&document.querySelector('[data-shell-data="ready"]'))marks.dataReady=Math.round(now);
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+  };
+  if(document.documentElement)start();else document.addEventListener('DOMContentLoaded',start,{once:true});
+})()`;
+await cdp.send('Page.addScriptToEvaluateOnNewDocument', {source: MARKS_SCRIPT}).catch(() => {});
+
 const results = [];
 const kb = (bytes) => Math.round(bytes / 1024);
 async function measure(route, nav, hard) {
@@ -146,6 +170,14 @@ async function measure(route, nav, hard) {
     const loaded = cdp.once('Page.loadEventFired');
     await cdp.send('Page.navigate', {url: `http://127.0.0.1:${port}${route.path}`});
     await loaded;
+    // Evidencia de la ventana temprana (#109): cómo se ve el arranque a N ms.
+    if (shotMs > 0) {
+      await sleep(shotMs);
+      const shot = await cdp.send('Page.captureScreenshot', {format: 'png'});
+      const file = join(outDir, `${label}-${route.path.replace(/\W+/g, '')}-${width}-${shotMs}ms.png`);
+      writeFileSync(file, Buffer.from(shot.data, 'base64'));
+      console.log(`captura ${shotMs}ms -> ${file}`);
+    }
   } else {
     await cdp.evaluate(`(()=>{const link=[...document.querySelectorAll('a[title]')].find(node=>node.getAttribute('title')===${JSON.stringify(route.label)});if(link)link.click();})()`);
   }
@@ -159,6 +191,7 @@ async function measure(route, nav, hard) {
     await sleep(250);
   }
   const entries = JSON.parse(await cdp.evaluate(`JSON.stringify(performance.getEntriesByType('resource').filter(entry=>entry.name.includes('/core-api/api/')).map(entry=>({name:new URL(entry.name).pathname+new URL(entry.name).search,start:Math.round(entry.startTime),end:Math.round(entry.responseEnd),ms:Math.round(entry.duration)})))`));
+  const marks = await cdp.evaluate('JSON.stringify(window.__marks||{})').catch(() => '{}');
   const counts = new Map();
   for (const entry of entries) counts.set(entry.name, (counts.get(entry.name) || 0) + 1);
   const duplicates = [...counts.values()].reduce((total, value) => total + Math.max(0, value - 1), 0);
@@ -176,9 +209,10 @@ async function measure(route, nav, hard) {
     ttLast: entries.length ? Math.round(Math.max(...entries.map((entry) => entry.end))) : 0,
     detail: requests.map((item) => ({url: item.url.replace('/core-api/api/agency', '').replace('/core-api/api', ''), delay: item.delay, kb: kb(item.bytes), start: Math.round(item.started - navigation)})),
     heaviest: apiRequests.sort((a, b) => b.bytes - a.bytes).slice(0, 3).map((item) => `${item.url.replace('/core-api/api/agency', '')} ${kb(item.bytes)} KB`),
+    marks: JSON.parse(marks),
   };
   results.push(result);
-  console.log(`${nav} ${route.path} (${landed || 'sin ruta'}): api=${result.api} dups=${result.duplicates} payload=${result.payloadKB} KB apiMs=${result.apiMs} ttLast=${result.ttLast}`);
+  console.log(`${nav} ${route.path} (${landed || 'sin ruta'}): api=${result.api} dups=${result.duplicates} payload=${result.payloadKB} KB apiMs=${result.apiMs} shell=${result.marks.shell ?? '—'}ms loading=${result.marks.loading ?? '—'}ms contenido=${result.marks.content ?? '—'}ms datos=${result.marks.dataReady ?? '—'}ms ttLast=${result.ttLast}`);
   return result;
 }
 
@@ -208,8 +242,8 @@ if (hardOnly) {
 
 const suffix = `${label}${width === 1440 ? '' : `-${width}`}${network === 'wifi' ? '' : `-${network}`}`;
 writeFileSync(join(outDir, `${suffix}.json`), JSON.stringify({label, width, at: new Date().toISOString(), routes: results}, null, 2));
-const table = ['| Fase | Ruta | Llamadas API | Duplicadas | Payload (KB) | API ms (suma) | Último dato (ms) | Más pesado |', '|---|---|---|---|---|---|---|---|',
-  ...results.map((item) => `| ${item.nav} | ${item.route} | ${item.api} | ${item.duplicates} | ${item.payloadKB} | ${item.apiMs} | ${item.ttLast} | ${item.heaviest.join(' · ')} |`)].join('\n');
+const table = ['| Fase | Ruta | Llamadas API | Duplicadas | Payload (KB) | API ms (suma) | Shell (ms) | Load page visible (ms) | Primer contenido (ms) | Datos listos (ms) | Último dato (ms) | Más pesado |', '|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...results.map((item) => `| ${item.nav} | ${item.route} | ${item.api} | ${item.duplicates} | ${item.payloadKB} | ${item.apiMs} | ${item.marks.shell ?? '—'} | ${item.marks.loading ?? '—'} | ${item.marks.content ?? '—'} | ${item.marks.dataReady ?? '—'} | ${item.ttLast} | ${item.heaviest.join(' · ')} |`)].join('\n');
 writeFileSync(join(outDir, `${suffix}.md`), `${table}\n`);
 console.log(`\n${table}`);
 cdp.close();

@@ -2,7 +2,7 @@
 import type {Dispatch, ReactNode, SetStateAction} from 'react';
 import {X} from 'lucide-react';
 import {Button,Select} from 'owncoding-ui';
-import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, type Column} from '../ui-v2';
+import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, KpiStripSkeleton, ListGrid, ListRow, LoadingBlock, type Column} from '../ui-v2';
 import {BATCH_LIMITS} from '../capabilities';
 import type {Client, Project} from '../workspace-types';
 
@@ -52,12 +52,12 @@ export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, s
   const empty = !visibleProjects.length;
   return (
     <section className="grid min-w-0 gap-4" aria-label="Proyectos">
-      <KpiStrip className="kpi-strip">
+      {projectsState === 'loading' && !projects.length ? <KpiStripSkeleton label="Cargando proyectos…"/> : <KpiStrip className="kpi-strip">
         <Kpi label="Activos" valor={projectKpis.active} hint="Con trabajo en curso" destacado/>
         <Kpi label="Pausados" valor={projectKpis.paused} hint="Sin producción activa"/>
         <Kpi label="Completados" valor={projectKpis.completed} hint="Cerrados en el historial"/>
         <Kpi label="Piezas totales" valor={projectKpis.pieces} hint="Órdenes de los proyectos visibles"/>
-      </KpiStrip>
+      </KpiStrip>}
       <FilterToolbar className="mb-0" summary={`${liveProjects.length} proyecto${liveProjects.length===1?'':'s'}`}>
         <label className="flex items-center gap-2">
           <span className="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span>

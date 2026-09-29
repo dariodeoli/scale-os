@@ -76,6 +76,16 @@ export function KpiStrip({className, children, ...props}: {className?: string; c
   return <div {...props} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>{children}</div>;
 }
 
+/**
+ * Esqueleto de una tira de KPIs (#109): mismos lugares y alto que las cards
+ * reales, sin números inventados mientras el shell carga sus datos.
+ */
+export function KpiStripSkeleton({count = 4, label = 'Cargando indicadores…', className}: {count?: number; label?: string; className?: string}) {
+  return <div role="status" aria-busy="true" aria-label={label} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>
+    {Array.from({length: Math.max(1, count)}, (_, index) => <Skeleton key={index} className="h-[110px] w-full rounded-xl"/>)}
+  </div>;
+}
+
 /** Carga con esqueleto: anuncia con `role="status"` y no inventa datos. */
 export function LoadingBlock({label = 'Cargando…', lines = 3, className}: {label?: string; lines?: number; className?: string}) {
   return <div role="status" aria-busy="true" aria-label={label} className={`grid gap-2 ${className ?? ''}`}>

@@ -13,7 +13,7 @@ import {LIST_WINDOW,windowSlice} from '../list-window';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
 import {CLIENT_TABLE_MIN_WIDTH} from '../client-directory-data';
-import {EmptyBlock, EmptyCta, ErrorBlock, Kpi, KpiStrip, ListActions, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, useDenseTableFit, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, EmptyCta, ErrorBlock, Kpi, KpiStrip, KpiStripSkeleton, ListActions, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, useDenseTableFit, type ChipTone, type Column} from '../ui-v2';
 import {billingExpectationState,type CommercialDashboard} from '../control-center-data';
 import type {Client, ClientPaymentStatus, User} from '../workspace-types';
 
@@ -242,12 +242,12 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
   const mountedLive = windowSlice(liveClients, visible);
   const hidden = liveClients.length - mountedLive.length;
   return <section ref={tableRef} className="directory grid gap-4" aria-label="Directorio de clientes">
-    <KpiStrip>
+    {dataState === 'loading' && !clients.length ? <KpiStripSkeleton label="Cargando el directorio…"/> : <KpiStrip>
       <Kpi label="Clientes activos" valor={directoryKpis.active} hint="Con servicio en curso" destacado/>
       <Kpi label="Cobros al día" valor={cobrosKpis.alDia} hint={`${cobrosKpis.enMora} en mora · ${cobrosKpis.porVencer} por vencer · ${cobrosKpis.sinFactura} sin factura`}/>
       <Kpi label="Facturación contratada" valor={billingKpi.valor} hint={billingKpi.hint}/>
       <Kpi label="Entregas próximas" valor={directoryKpis.deliveries} hint="Piezas con vencimiento en 7 días"/>
-    </KpiStrip>
+    </KpiStrip>}
 
     {/* Selección contextual (#100): la barra existe sólo cuando hay algo
         seleccionado; sin selección no ocupa ninguna fila. */}
