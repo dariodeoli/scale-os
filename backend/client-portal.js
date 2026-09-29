@@ -78,12 +78,12 @@ async function notifyPortalActivity(c,delivery,{label,body,dedupe}){
 export function clientPortalResetEmail({token}){
  const resetUrl=`${clientOrigin}/recuperar?resetToken=${token}`;
  // El shell escapa el href una sola vez; pre-escaparlo rompía cualquier URL con `&`.
- return {subject:'Restablecé tu contraseña del portal de cliente',text:`Recibimos una solicitud para restablecer la contraseña de tu Portal del Cliente de Scale OS. Abrí este enlace dentro de una hora: ${resetUrl}\n\nSi no lo solicitaste, podés ignorar este correo.`,html:emailShell({
+ return {subject:'Restablecé tu contraseña del portal de cliente',text:`Recibimos una solicitud para restablecer la contraseña de tu Portal del Cliente de Scale OS. Abrí este enlace dentro de una hora: ${resetUrl}\n\nSi no lo solicitaste, podés ignorar este correo.\n\nScale OS · Portal del cliente · Desarrollado por Owncoding`,html:emailShell({
   eyebrow:'Portal del cliente',
   title:'Restablecé tu contraseña',
   lead:'Recibimos una solicitud para tu Portal del Cliente de Scale OS. Este enlace vence en una hora; si no lo solicitaste, podés ignorar este correo.',
   cta:{label:'Elegir una contraseña nueva',href:resetUrl},
-  footerNote:'Scale OS · Portal del cliente',
+  footerNote:'Scale OS · Portal del cliente · Desarrollado por Owncoding',
  })};
 }
 
@@ -92,14 +92,14 @@ export function clientPortalInviteEmail({organizationName,clientName,url}){
  const clean=value=>String(value??'').replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ').trim();
  const org=clean(organizationName)||'tu agencia',client=clean(clientName)||'el cliente';
  const subject=`Te invitaron al portal de ${client} · Scale OS`.slice(0,160);
- const text=`Te invitaron a revisar las entregas de ${client} en el Portal del Cliente de ${org}.\n\nAbrí tu portal: ${url}\n\nEste enlace es personal y vence pronto. Si no lo esperabas, podés ignorarlo.\n\nScale OS · Portal del cliente`;
+ const text=`Te invitaron a revisar las entregas de ${client} en el Portal del Cliente de ${org}.\n\nAbrí tu portal: ${url}\n\nEste enlace es personal y vence pronto. Si no lo esperabas, podés ignorarlo.\n\nScale OS · Portal del cliente · Desarrollado por Owncoding`;
  return{subject,text,html:emailShell({
   eyebrow:'Portal del cliente',
   title:`Entregas de ${client}`,
   lead:`${org} te invita a revisar entregas desde tu portal privado. No necesitás una cuenta.`,
   cta:{label:'Ver entregas',href:url},
   footer:'Este enlace es personal y vence pronto. Si no lo esperabas, podés ignorarlo.',
-  footerNote:'Scale OS · Portal del cliente',
+  footerNote:'Scale OS · Portal del cliente · Desarrollado por Owncoding',
  })};
 }
 export async function clientPortalGoogleInvite(db,raw){return validInvite(db,raw);}

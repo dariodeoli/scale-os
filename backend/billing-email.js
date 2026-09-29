@@ -11,14 +11,15 @@ const formatDate=value=>{const date=value?new Date(value):null;return date&&!Num
 export function trialStartedEmail({email,organizationName,trialEndsOn,appUrl}){
  const url=appLink(appUrl),organization=line(organizationName),ends=formatDate(trialEndsOn);
  const subject=`Tu prueba de 30 días comenzó · ${organization}`.slice(0,160);
- const text=`Tu prueba de ${organization} comenzó\n\nTenés 30 días para probar todos los módulos con tu equipo, sin tarjeta. La prueba empieza con el alta de tu cuenta.\n\nEntrar a Scale OS: ${url.href}\n\nScale OS · Gestión de agencias`;
+ const text=`Tu prueba de ${organization} comenzó\n\nTenés 30 días para probar todos los módulos con tu equipo, sin tarjeta. La prueba empieza con el alta de tu cuenta.\n\nEntrar a Scale OS: ${url.href}\n\nScale OS · Gestión de agencias · Desarrollado por Owncoding`;
  const html=emailShell({
   eyebrow:organization,
   title:'Tu prueba de 30 días comenzó',
   lead:'Todos los módulos incluidos para tu equipo. Sin tarjeta para iniciar.',
   body:ends?`<p style="margin:0;font-size:13px;color:#4b4252">Tu prueba vence el <strong>${ends}</strong>. Después podés continuar con el plan mensual.</p>`:'',
   cta:{label:'Entrar a Scale OS',href:url.href},
-  footerNote:'Scale OS · Gestión de agencias',
+  footer:'Cualquier duda, contactá a quien administra tu cuenta.',
+  footerNote:'Scale OS · Gestión de agencias · Desarrollado por Owncoding',
  });
  return{subject,text,html};
 }
@@ -26,14 +27,14 @@ export function trialStartedEmail({email,organizationName,trialEndsOn,appUrl}){
 export function suspensionEmail({organizationName,appUrl}){
  const url=appLink(appUrl),organization=line(organizationName);
  const subject=`Tu acceso a ${organization} quedó suspendido`.slice(0,160);
- const text=`Tu acceso a ${organization} quedó suspendido\n\nNo registramos el pago del mes y venció la gracia de 2 días. Tus datos siguen guardados: al regularizar el pago el acceso se reactiva solo.\n\nRevisar mi suscripción: ${url.href}\n\nScale OS · Gestión de agencias`;
+ const text=`Tu acceso a ${organization} quedó suspendido\n\nNo registramos el pago del mes y venció la gracia de 2 días. Tus datos siguen guardados: al regularizar el pago el acceso se reactiva solo.\n\nRevisar mi suscripción: ${url.href}\n\nScale OS · Gestión de agencias · Desarrollado por Owncoding`;
  const html=emailShell({
   eyebrow:organization,
   title:'Tu acceso quedó suspendido',
   lead:'No registramos el pago del mes y venció la gracia de 2 días. Tus datos siguen guardados: al regularizar el pago el acceso se reactiva solo.',
   cta:{label:'Revisar mi suscripción',href:url.href},
   footer:'Si ya pagaste con otro medio, contactá al administrador para registrar el pago manual.',
-  footerNote:'Scale OS · Gestión de agencias',
+  footerNote:'Scale OS · Gestión de agencias · Desarrollado por Owncoding',
  });
  return{subject,text,html};
 }
@@ -41,14 +42,14 @@ export function suspensionEmail({organizationName,appUrl}){
 export function paymentFailedEmail({organizationName,appUrl}){
  const url=appLink(appUrl),organization=line(organizationName);
  const subject=`No pudimos cobrar tu suscripción de ${organization}`.slice(0,160);
- const text=`No pudimos cobrar tu suscripción de ${organization}\n\nTenés 2 días de gracia para regularizarla. Al tercer día sin pagar se suspende el acceso, sin borrar tus datos.\n\nRevisar mi suscripción: ${url.href}\n\nScale OS · Gestión de agencias`;
+ const text=`No pudimos cobrar tu suscripción de ${organization}\n\nTenés 2 días de gracia para regularizarla. Al tercer día sin pagar se suspende el acceso, sin borrar tus datos.\n\nRevisar mi suscripción: ${url.href}\n\nScale OS · Gestión de agencias · Desarrollado por Owncoding`;
  const html=emailShell({
   eyebrow:organization,
   title:'No pudimos cobrar tu suscripción',
   lead:'El pago mensual no se completó. Tenés 2 días de gracia para regularizarla; al tercer día sin pagar se suspende el acceso, sin borrar tus datos.',
   cta:{label:'Revisar mi suscripción',href:url.href},
   footer:'Si ya pagaste con otro medio, contactá al administrador para registrar el pago manual.',
-  footerNote:'Scale OS · Gestión de agencias',
+  footerNote:'Scale OS · Gestión de agencias · Desarrollado por Owncoding',
  });
  return{subject,text,html};
 }
