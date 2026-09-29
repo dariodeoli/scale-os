@@ -118,7 +118,10 @@ test('las secciones COM consumen la primitiva común (#63)',()=>{
  assert.match(presupuestos,/useDenseTableFit\(BUDGET_TABLE_MIN_WIDTH\)/,'Presupuestos mide su contenedor con el hook común');
  assert.match(presupuestos,/tableFits \? \([\s\S]{0,260}?ListGrid label="Presupuestos"[\s\S]{0,160}?pinnedActions[\s\S]{0,80}?\) : \([\s\S]{0,80}?budget-hub-grid/,'la tabla sólo entra completa; si no, tarjetas');
  assert.match(presupuestos,/<ListActions className="\[&_button\.icon-button\]:h-8/,'la fila de presupuestos usa la celda ListActions');
- assert.match(presupuestos,/minWidthClass="min-w-\[93rem\]"/,'el ancho mínimo declarado coincide con la plantilla');
+ // #100: pistas afinadas (58rem) para que la tabla entre a 1280–1440.
+ assert.match(presupuestos,/const BUDGET_TEMPLATE = 'grid-cols-\[minmax\(14rem,2fr\)_minmax\(8rem,1\.1fr\)_6rem_3\.5rem_6rem_8rem_8rem_4\.5rem\]'/,'la plantilla densa de Presupuestos suma 58rem');
+ assert.match(presupuestos,/const BUDGET_TABLE_MIN_WIDTH = denseTableMinWidth\(58, 8\)/,'el ancho mínimo se deriva de la plantilla');
+ assert.match(presupuestos,/minWidthClass="min-w-\[62rem\]"/,'el ancho mínimo declarado coincide con la plantilla (992 px)');
  assert.match(presupuestos,/function BudgetTile/,'la tarjeta de presupuesto vive en la sección');
  assert.match(presupuestos,/<EmptyCta label="Nuevo presupuesto"/,'el vacío de presupuestos usa el CTA canónico');
  const planes=read('app/sections/planes.tsx');

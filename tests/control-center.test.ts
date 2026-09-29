@@ -64,7 +64,8 @@ assert.equal(firstModule('Flujo'),'Producción','clic en Flujo navega a Producci
 assert.equal(firstModule('Recursos'),'Inventario','clic en Recursos navega a Inventario');
 assert.equal(firstModule('Finanzas'),'Finanzas','clic en Finanzas navega a Finanzas');
 assert.equal(moduleNavGroup('Sin acceso'),'','fuera del nav no hay grupo activo');
-assert(ui.indexOf('<ControlCenter')<ui.indexOf('className="metrics operational-metrics"'));assert(ui.indexOf('className="metrics operational-metrics"')<ui.indexOf('id="produccion"'));
+assert(ui.indexOf('<ControlCenter')<ui.indexOf('id="produccion"'),'el panel de piezas sigue después del resumen');
+assert(!ui.includes('metrics operational-metrics'),'sin métricas operativas duplicadas en Resumen (#100)');
 const css=readFileSync(new URL('../app/control-center.css',import.meta.url),'utf8');assert(!/#[0-9a-f]{3,8}\b/i.test(css),'new stylesheet uses color tokens');
 for(const block of css.split('}')){const [selector,body]=block.split('{');if(/(?:^|[\s,.])(?:\.ops-card|\.financial-stat|\.metric)\s*$/.test(selector))assert(!body?.includes('min-height'),'no fixed minimum card height');}
 console.log('PASS: grouped alerts, calendar dates, search normalization, 12 menu groups, legacy redirects, all 8 role boundaries, dashboard hierarchy and brand tokens');

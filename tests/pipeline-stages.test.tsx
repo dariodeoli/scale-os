@@ -35,7 +35,7 @@ globalThis.fetch=(input,init={})=>new Promise<Response>(resolve=>{requests.push(
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
 const user=(role='owner')=>({id:'1',role,organization_id:'7',full_name:'Prueba',organization_slug:''} as unknown as User);
 let renderer:ReactTestRenderer;
-async function mount(){await act(async()=>{renderer=create(<PipelineSection user={user()} metrics={[]}/>);});}
+async function mount(){await act(async()=>{renderer=create(<PipelineSection user={user()}/>);});}
 async function flush(data:unknown,status=200){const pending=requests.shift();assert(pending,'expected a pending request');await act(async()=>{pending!.resolve(new Response(JSON.stringify(data),{status}));});}
 const stageRow=(slug:string)=>renderer.root.findAllByType('li').find(node=>text(node).includes(slug))!;
 const buttonIn=(node:ReactTestInstance|undefined,label:string)=>node?.findAllByType('button').find(candidate=>text(candidate).includes(label))!;

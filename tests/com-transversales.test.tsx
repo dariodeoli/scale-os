@@ -120,7 +120,7 @@ test('clientes: archivar en lote pide confirmación, informa el resultado real y
 
 test('pipeline: la tarjeta no inventa monto ni probabilidad y el ponderado sale de la definición única',async()=>{
  requests=[];let renderer!:ReactTestRenderer;
- await act(async()=>{renderer=create(<PipelineSection user={user()} metrics={[]}/>);});
+ await act(async()=>{renderer=create(<PipelineSection user={user()}/>);});
  await flush({records:[{id:'10',name:'Lead sin datos',stage:'lead',amount:'',currency:'PYG',probability:''}]});
  await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'},{id:'2',slug:'won',label:'Ganado',position:1,active:true,kind:'won'}]});
  const card=renderer.root.findAllByType('article').find(node=>text(node).includes('Lead sin datos'))!;
@@ -130,7 +130,7 @@ test('pipeline: la tarjeta no inventa monto ni probabilidad y el ponderado sale 
  assert.match(cardText,/—/,'el monto ausente deja el vacío explícito');
  const copy=text(renderer.root);
  assert.doesNotMatch(copy,/Gs\. 0\b/,'nunca se inventa un monto 0 en los totales');
- assert.match(copy,/Sin montos cargados/,'la columna honesta no inventa ponderado');
+ assert.doesNotMatch(copy,/ponderado/,'sin montos no se inventa un ponderado en la columna');
  act(()=>renderer.unmount());
 });
 
