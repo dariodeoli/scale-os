@@ -41,6 +41,8 @@ const TRASH_COLUMNS=[{key:'select',label:''},{key:'kind',label:'Tipo'},{key:'rec
 export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
  const [records,setRecords]=useState<Removed[]>([]),[error,setError]=useState(''),[loading,setLoading]=useState(true),[busy,setBusy]=useState('');
  const [selected,setSelected]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false);
+ // Ventana de servidor (#106): 50 por página, total y tipos del API.
+ const [total,setTotal]=useState(0),[kindsCount,setKindsCount]=useState(0),[hasMore,setHasMore]=useState(false),[loadingMore,setLoadingMore]=useState(false);
  const keyOf=(r:Removed)=>`${r.kind}-${r.id}`;
  function toggleSelected(key:string){setSelected(current=>current.includes(key)?current.filter(value=>value!==key):[...current,key]);}
  async function restoreBatch(){
@@ -55,18 +57,29 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
   }catch(e){setError(errorMessage(e));await load().catch(()=>{});}
   finally{setBulkBusy(false);}
  }
- async function load(){setRecords((await api<{records:Removed[]}>('/api/agency/trash')).records);}
+ async function load(offset=0){
+  const data=await api<{records:Removed[];total?:number;kinds?:number;page?:{hasMore:boolean}}>(`/api/agency/trash?limit=50&offset=${offset}`);
+  setRecords(current=>offset?[...current,...data.records]:data.records);
+  setTotal(typeof data.total==='number'?data.total:data.records.length);
+  setKindsCount(typeof data.kinds==='number'?data.kinds:new Set(data.records.map(record=>record.kind)).size);
+  setHasMore(data.page?.hasMore===true);
+ }
+ async function more(){
+  if(loadingMore||!hasMore)return;
+  setLoadingMore(true);setError('');
+  try{await load(records.length);}catch(e){setError(errorMessage(e));}
+  finally{setLoadingMore(false);}
+ }
  useEffect(()=>{void load().catch(e=>setError(errorMessage(e))).finally(()=>setLoading(false));},[]);
- const kinds=new Set(records.map(record=>record.kind)).size;
  const allSelected=records.length>0&&selected.length===records.length;
  return <section className="grid gap-4" aria-label="Papelera de esta empresa">
   <p className="text-xs text-mute" title="No se borran de forma definitiva: los accesos retirados se devuelven con una nueva invitación desde Equipo.">Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva.</p>
   {error?<ErrorBlock title="No pudimos completar la operación" description={error} onRetry={()=>void load().catch(e=>setError(errorMessage(e)))}/>:null}
   <KpiStrip>
-   <Kpi label="Registros en papelera" valor={records.length} hint="Recuperables con tu permiso actual" destacado/>
-   <Kpi label="Tipos de registro" valor={kinds} hint="Clasificación del API"/>
+   <Kpi label="Registros en papelera" valor={total} hint="Recuperables con tu permiso actual" destacado/>
+   <Kpi label="Tipos de registro" valor={kindsCount} hint="Clasificación del API"/>
   </KpiStrip>
-  {selected.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count"><b>{selected.length}</b> seleccionado{selected.length===1?'':'s'}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={()=>setSelected(allSelected?[]:records.map(keyOf))}>{allSelected?'Limpiar selección':'Seleccionar todos'}</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()}>{bulkBusy?'Restaurando…':'Restaurar'}</button><button type="button" className="text-button" onClick={()=>setSelected([])}>Limpiar</button></div></div>:null}
+  {selected.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count"><b>{selected.length}</b> seleccionado{selected.length===1?'':'s'}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={()=>setSelected(allSelected?[]:records.map(keyOf))}>{allSelected?'Limpiar selección':'Seleccionar visibles'}</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()}>{bulkBusy?'Restaurando…':'Restaurar'}</button><button type="button" className="text-button" onClick={()=>setSelected([])}>Limpiar</button></div></div>:null}
    {loading?<LoadingBlock label="Cargando papelera…" lines={3}/>:!records.length?<EmptyBlock compact title="No hay registros en la papelera" description="Lo que se mueva a la papelera queda acá hasta que lo restaures."/>:
     <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]">
      {records.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
@@ -84,5 +97,6 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
       </div>
      </ListRow>)}
     </ListGrid>}
+  <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs tabular-nums text-mute" role="status">{records.length} de {total} registros</span>{hasMore?<button type="button" className="secondary" disabled={loadingMore} onClick={()=>void more()}>{loadingMore?'Cargando…':'Ver más'}</button>:null}</div>
  </section>;
 }

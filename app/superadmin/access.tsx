@@ -7,10 +7,14 @@ import {Eye, ShieldCheck, Trash2} from "lucide-react";
 import {Nota, SearchField} from "owncoding-ui";
 import {EmptyBlock, FilterToolbar, ListActions, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type ConfirmRequest, type Person, type State} from "./model";
+import {PlatformMore} from "./states";
+import type {CollectionPage} from "./model";
 
 type PlatformAccessProps = {
   busy: boolean;
   state: State;
+  page: CollectionPage;
+  onMore: () => void;
   writable: boolean;
   setConfirming: (value: ConfirmRequest) => void;
   setTyped: (value: string) => void;
@@ -26,7 +30,7 @@ const COLUMNS: Column[] = [
 ];
 const MIN_WIDTH = denseTableMinWidth(43, 3);
 
-export function PlatformAccess({busy, state, writable, setConfirming, setTyped, selfRow, setPlatformAccess}: PlatformAccessProps){
+export function PlatformAccess({busy, state, page, onMore, writable, setConfirming, setTyped, selfRow, setPlatformAccess}: PlatformAccessProps){
   const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
   const [query, setQuery] = useState("");
   const visible = useMemo(() => {
@@ -158,6 +162,7 @@ export function PlatformAccess({busy, state, writable, setConfirming, setTyped, 
           />
         )}
       </div>
+      <PlatformMore loaded={state.users.length} total={page.total} hasMore={page.hasMore} busy={busy} onMore={onMore} label="usuarios"/>
     </section>
   );
 }

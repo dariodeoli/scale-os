@@ -25,6 +25,7 @@ import {
   type Overview,
   platformTime,
   type Person,
+  type CollectionPage,
   type PlatformView,
   type State,
   type Subscription,
@@ -119,20 +120,32 @@ export default function PlatformAdmin() {
       // prettier-ignore
       const overview=await platformApi<Overview>('/api/platform/overview',{credentials:'include',cache:'no-store'});
       const [agencies, users, coupons, audit, me] = await Promise.all([
-        platformApi<{ agencies: Agency[] }>("/api/platform/agencies?limit=50"),
-        platformApi<{ users: Person[] }>("/api/platform/users?limit=50"),
-        platformApi<{ coupons: Coupon[] }>("/api/platform/coupons?limit=50"),
-        platformApi<{ actions: AuditAction[] }>("/api/platform/audit?limit=50"),
+        platformApi<{ agencies: Agency[]; total?: number; hasMore?: boolean; limit?: number; offset?: number }>("/api/platform/agencies?limit=50"),
+        platformApi<{ users: Person[]; total?: number; hasMore?: boolean; limit?: number; offset?: number }>("/api/platform/users?limit=50"),
+        platformApi<{ coupons: Coupon[]; total?: number; hasMore?: boolean; limit?: number; offset?: number }>("/api/platform/coupons?limit=50"),
+        platformApi<{ actions: AuditAction[]; total?: number; hasMore?: boolean; limit?: number; offset?: number }>("/api/platform/audit?limit=50"),
         platformApi<{ user: { id?: string | number; platform_role?: string | null } }>("/api/auth/me").catch(() => null),
       ]);
       setMyRole(me?.user?.platform_role === "viewer" ? "viewer" : me?.user?.platform_role === "admin" ? "admin" : null);
       setMyUserId(me?.user?.id ? String(me.user.id) : "");
+      // Ventana por colección (#106): total honesto del API y si queda más.
+      const collectionPage = (data: { total?: number; hasMore?: boolean; limit?: number; offset?: number }, loaded: number): CollectionPage => {
+        const total = typeof data.total === "number" ? data.total : loaded;
+        const offset = typeof data.offset === "number" ? data.offset : 0;
+        return { limit: typeof data.limit === "number" ? data.limit : 50, offset, total, hasMore: data.hasMore === true || offset + loaded < total };
+      };
       setState({
         overview,
         agencies: agencies.agencies,
         users: users.users,
         coupons: coupons.coupons,
         audit: audit.actions,
+        pages: {
+          agencies: collectionPage(agencies, agencies.agencies.length),
+          users: collectionPage(users, users.users.length),
+          coupons: collectionPage(coupons, coupons.coupons.length),
+          audit: collectionPage(audit, audit.actions.length),
+        },
       });
       setUpdatedAt(new Date().toISOString());
     } catch (cause) {
@@ -140,6 +153,34 @@ export default function PlatformAdmin() {
         setError(
           "No pudimos cargar el control global. Actualizá para reintentar.",
         );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function loadMore(kind: "agencies" | "users" | "coupons" | "audit") {
+    if (!state || busy) return;
+    const page = state.pages[kind];
+    if (!page.hasMore) return;
+    setBusy(true);
+    setError("");
+    const offset = state[kind].length, query = `?limit=${page.limit}&offset=${offset}`;
+    try {
+      if (kind === "agencies") {
+        const data = await platformApi<{ agencies: Agency[]; total: number; hasMore: boolean }>(`/api/platform/agencies${query}`);
+        setState(current => current ? {...current, agencies: [...current.agencies, ...data.agencies], pages: {...current.pages, agencies: {...page, offset, total: data.total, hasMore: data.hasMore}}} : current);
+      } else if (kind === "users") {
+        const data = await platformApi<{ users: Person[]; total: number; hasMore: boolean }>(`/api/platform/users${query}`);
+        setState(current => current ? {...current, users: [...current.users, ...data.users], pages: {...current.pages, users: {...page, offset, total: data.total, hasMore: data.hasMore}}} : current);
+      } else if (kind === "coupons") {
+        const data = await platformApi<{ coupons: Coupon[]; total: number; hasMore: boolean }>(`/api/platform/coupons${query}`);
+        setState(current => current ? {...current, coupons: [...current.coupons, ...data.coupons], pages: {...current.pages, coupons: {...page, offset, total: data.total, hasMore: data.hasMore}}} : current);
+      } else {
+        const data = await platformApi<{ actions: AuditAction[]; total: number; hasMore: boolean }>(`/api/platform/audit${query}`);
+        setState(current => current ? {...current, audit: [...current.audit, ...data.actions], pages: {...current.pages, audit: {...page, offset, total: data.total, hasMore: data.hasMore}}} : current);
+      }
+    } catch (cause) {
+      if (!handlePlatformError(cause)) setError("No pudimos cargar más registros. Volvé a intentar.");
     } finally {
       setBusy(false);
     }
@@ -498,13 +539,13 @@ export default function PlatformAdmin() {
 
           {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={setView}/> : null}
 
-          {view === "agencias" ? <PlatformAgencies busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/> : null}
+          {view === "agencias" ? <PlatformAgencies busy={busy} state={state} page={state.pages.agencies} onMore={()=>void loadMore('agencies')} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/> : null}
 
-          {view === "cupones" ? <PlatformCatalog busy={busy} state={state} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/> : null}
+          {view === "cupones" ? <PlatformCatalog busy={busy} state={state} page={state.pages.coupons} onMore={()=>void loadMore('coupons')} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/> : null}
 
-          {view === "accesos" ? <PlatformAccess busy={busy} state={state} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/> : null}
+          {view === "accesos" ? <PlatformAccess busy={busy} state={state} page={state.pages.users} onMore={()=>void loadMore('users')} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/> : null}
 
-          {view === "auditoria" ? <PlatformAudit audit={state.audit}/> : null}
+          {view === "auditoria" ? <PlatformAudit audit={state.audit} page={state.pages.audit} busy={busy} onMore={()=>void loadMore('audit')}/> : null}
 
           {writable && subscriptionAgency ? (
             <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension}/>

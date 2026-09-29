@@ -1,0 +1,74 @@
+[
+ {
+  "screen": "actividad",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 1068,
+  "visibles": 0
+ },
+ {
+  "screen": "historial",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 529,
+  "visibles": 2
+ },
+ {
+  "screen": "papelera",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 677,
+  "visibles": 1
+ },
+ {
+  "screen": "superadmin",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 908,
+  "visibles": 0
+ },
+ {
+  "screen": "actividad",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 1068,
+  "visibles": 0
+ },
+ {
+  "screen": "historial",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 529,
+  "visibles": 2
+ },
+ {
+  "screen": "papelera",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 677,
+  "visibles": 1
+ },
+ {
+  "screen": "superadmin",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 908,
+  "visibles": 0
+ }
+]

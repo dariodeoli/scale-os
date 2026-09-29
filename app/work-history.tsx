@@ -21,12 +21,12 @@ export function WorkHistory({role,navigate}:{role:string;navigate?:(module:strin
  const [rows,setRows]=useState<Row[]>([]),[people,setPeople]=useState<Row[]>([]),[who,setWho]=useState(''),[source,setSource]=useState(false),[error,setError]=useState('');
  // Seeing the whole team's history is the same capability the API asks for (work-orders.manage).
  const managers=roleCan(role,'work-orders.manage');
- const [limit,setLimit]=useState('10'),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[loading,setLoading]=useState(true);
+ const [limit,setLimit]=useState('10'),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[total,setTotal]=useState<number|null>(null),[loading,setLoading]=useState(true);
  const [identityVersion,setIdentityVersion]=useState(0);
  const [peopleError,setPeopleError]=useState(''),[peopleVersion,setPeopleVersion]=useState(0);
  useEffect(()=>{const reload=()=>setIdentityVersion(v=>v+1);window.addEventListener('scale:identity-changed',reload);return()=>window.removeEventListener('scale:identity-changed',reload);},[]);
  useEffect(()=>{if(!managers)return;let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive){setPeople(d.people);setPeopleError('');}}).catch(cause=>{if(alive)setPeopleError(cause instanceof Error?cause.message:'No se pudo cargar el equipo.');});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[managers,peopleVersion]);
- useEffect(()=>{setError('');setLoading(true);setRows([]);let alive=true;const query=new URLSearchParams({limit,offset:String(offset)});if(who&&!source)query.set('userId',who);void api<{records:Row[];page:{hasMore:boolean}}>(`/api/agency/productivity/${source?'source-events':'history'}?${query}`).then(d=>{if(alive){setRows(d.records);setHasMore(d.page.hasMore);}}).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setLoading(false);});return()=>{alive=false;};},[who,source,limit,offset,identityVersion]);
+ useEffect(()=>{setError('');setLoading(true);setRows([]);let alive=true;const query=new URLSearchParams({limit,offset:String(offset)});if(who&&!source)query.set('userId',who);void api<{records:Row[];page:{hasMore:boolean;total?:number}}>(`/api/agency/productivity/${source?'source-events':'history'}?${query}`).then(d=>{if(alive){setRows(d.records);setHasMore(d.page.hasMore);setTotal(typeof d.page.total==='number'?d.page.total:null);}}).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setLoading(false);});return()=>{alive=false;};},[who,source,limit,offset,identityVersion]);
  const range=!loading&&rows.length?`${offset+1}–${offset+rows.length}`:'';
  return <section className="grid min-w-0 gap-4 rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" aria-label="Historial de trabajo">
   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
@@ -47,7 +47,7 @@ export function WorkHistory({role,navigate}:{role:string;navigate?:(module:strin
   </li>)}</ol>:null}
   {!loading&&!error&&!rows.length?<EmptyBlock title="Sin actividad registrada." description={source?'No hay historial importado para mostrar.':'Los cambios operativos del equipo van a aparecer acá.'} action={!source&&navigate?<Button type="button" variant="outline" onClick={()=>navigate('Producción')}>Abrir Producción</Button>:undefined}/>:null}
   <div className="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">
-   <span className="mr-auto text-xs tabular-nums text-mute" role="status">{range}</span>
+   <span className="mr-auto text-xs tabular-nums text-mute" role="status">{range}{total!==null?` de ${total}`:''}</span>
    <Button type="button" variant="outline" disabled={loading||offset===0} onClick={()=>setOffset(Math.max(0,offset-Number(limit)))}>Anterior</Button>
    <Button type="button" variant="outline" disabled={loading||!!error||!hasMore} onClick={()=>setOffset(offset+Number(limit))}>Siguiente</Button>
   </div>

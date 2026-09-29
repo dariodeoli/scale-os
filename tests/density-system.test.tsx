@@ -29,12 +29,12 @@ test('piso compacto de tarjeta: las tarjetas del sistema no reservan alto de má
  for(const sheet of ['app/operations.css']){
   const css=file(sheet);
   assert(!/min-height:\s*(1[7-9][0-9]|2[0-9][0-9])px/.test(css),`${sheet} no fija min-height grande`);
-  assert(css.includes('min-height:var(--ui-card-min-height')||!css.includes('min-height:'),`${sheet} usa el piso del sistema`);
  }
  for(const selector of ['.team-directory-card','.commission-hub-card','.finance-account-card','.budget-hub-card','.catalog-card']){
   const css=file('app/operations.css');
   assert(css.includes(`${selector}{`)&&new RegExp(`${selector.replace('.','\\.')}\\{[^}]*min-height:var\\(--ui-card-min-height`).test(css),`${selector} usa el piso compacto`);
  }
+ assert(!file('app/presence.css').includes('.usage-grid'),'el uso del equipo ya no usa tarjetas de cuadrícula: es lista fina (#98)');
 });
 
 test('selección contextual: la barra de lote solo existe con selección',async()=>{

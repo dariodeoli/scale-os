@@ -57,12 +57,25 @@ export type AuditAction = {
   created_at: string;
   actor_email: string | null;
 };
+export type CollectionPage = {
+  limit: number;
+  offset: number;
+  total: number;
+  hasMore: boolean;
+};
 export type State = {
   overview: Overview;
   agencies: Agency[];
   users: Person[];
   coupons: Coupon[];
   audit: AuditAction[];
+  /** Ventana de cada lista (#106): contador honesto y "Ver más" por colección. */
+  pages: {
+    agencies: CollectionPage;
+    users: CollectionPage;
+    coupons: CollectionPage;
+    audit: CollectionPage;
+  };
 };
 export type BootstrapStatus = {
   configured: boolean;

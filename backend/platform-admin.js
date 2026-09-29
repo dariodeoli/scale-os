@@ -77,6 +77,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
   if(url.pathname==='/api/platform/agencies'&&req.method==='GET'){
    const {limit,offset}=page(url),q=search(url),where=q?'and (o.name ilike $3 or o.slug ilike $3)':'';
    const values=q?[limit,offset,'%'+q+'%']:[limit,offset];
+   const total=Number((await db.query(`select count(*)::int as n from organizations o where ${realOrganization('o')} ${q?'and (o.name ilike $1 or o.slug ilike $1)':''}`,q?['%'+q+'%']:[])).rows[0].n);
    const result=await db.query(`select o.id,o.name,o.slug,o.active,o.created_at,
      s.stripe_status as subscription_status,s.currency as subscription_currency,
      case s.currency when 'USD' then 10::numeric when 'PYG' then 50000::numeric else null end as subscription_amount,
@@ -88,7 +89,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
      left join users u on u.id=m.user_id
      where ${realOrganization('o')} ${where}
      group by o.id,s.stripe_status,s.currency,s.trial_ends_at,s.due_at,ps.state,ps.expires_at order by o.created_at desc limit $1 offset $2`,values);
-   send(res,200,{agencies:result.rows,limit,offset});return true;
+   send(res,200,{agencies:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   const subscriptionPath=url.pathname.match(/^\/api\/platform\/agencies\/(\d+)\/subscription$/);
   if(subscriptionPath&&req.method==='GET'){send(res,200,await inspectInternalSubscription(db,subscriptionPath[1]));return true;}
@@ -161,6 +162,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
   if(url.pathname==='/api/platform/users'&&req.method==='GET'){
    const {limit,offset}=page(url),q=search(url),where=q?'and u.email ilike $3':'';
    const values=q?[limit,offset,'%'+q+'%']:[limit,offset];
+   const total=Number((await db.query(`select count(*)::int as n from users u where ${realUser('u')} ${q?'and u.email ilike $1':''}`,q?['%'+q+'%']:[])).rows[0].n);
    const result=await db.query(`select u.id,u.email,u.created_at,
      count(m.organization_id) filter(where m.active and m.removed_at is null and ${realOrganization('o')})::int as active_agencies,
      exists(select 1 from platform_administrators pa where pa.user_id=u.id and pa.active) as platform_admin,
@@ -169,14 +171,15 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
      left join organizations o on o.id=m.organization_id
      where ${realUser('u')} ${where}
      group by u.id order by u.created_at desc limit $1 offset $2`,values);
-   send(res,200,{users:result.rows,limit,offset});return true;
+   send(res,200,{users:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   if(url.pathname==='/api/platform/coupons'&&req.method==='GET'){
    const {limit,offset}=page(url),q=search(url),where=q?'where c.code ilike $3':'';
    const values=q?[limit,offset,'%'+q+'%']:[limit,offset];
+   const total=Number((await db.query(`select count(*)::int as n from platform_coupons c ${q?'where c.code ilike $1':''}`,q?['%'+q+'%']:[])).rows[0].n);
    const result=await db.query(`select c.id,c.code,c.discount_type,c.discount_value,c.currency,c.active,c.max_redemptions,c.lifetime_eligible,c.created_at,c.updated_at,u.email as created_by
      from platform_coupons c join users u on u.id=c.created_by_user_id ${where} order by c.created_at desc limit $1 offset $2`,values);
-   send(res,200,{coupons:result.rows,limit,offset});return true;
+   send(res,200,{coupons:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   if(url.pathname==='/api/platform/coupons'&&req.method==='POST'){
    requireWrite(role);
@@ -264,6 +267,14 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
   if(url.pathname==='/api/platform/audit'&&req.method==='GET'){
    const {limit,offset}=page(url),q=search(url),where=q?'where action ilike $3 or target_type ilike $3 or target_id ilike $3 or actor_email ilike $3':'';
    const values=q?[limit,offset,'%'+q+'%']:[limit,offset];
+   const countWhere=q?'where action ilike $1 or target_type ilike $1 or target_id ilike $1 or actor_email ilike $1':'';
+   const total=Number((await db.query(`select count(*)::int as n from (
+     select a.action,a.target_type,a.target_id::text,u.email as actor_email
+     from platform_audit_log a join users u on u.id=a.actor_user_id
+     union all
+     select b.action,'platform_administrator'::text,b.target_user_id::text,null::text
+     from platform_bootstrap_audit_log b
+    ) actions ${countWhere}`,q?['%'+q+'%']:[])).rows[0].n);
    const result=await db.query(`select * from (
      select a.id,a.action,a.target_type,a.target_id,a.metadata,a.created_at,u.email as actor_email
      from platform_audit_log a join users u on u.id=a.actor_user_id
@@ -271,7 +282,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
      select b.id,b.action,'platform_administrator'::text,b.target_user_id::text,'{}'::jsonb,b.created_at,null::text
      from platform_bootstrap_audit_log b
     ) actions ${where} order by created_at desc,id desc limit $1 offset $2`,values);
-   send(res,200,{actions:result.rows,limit,offset});return true;
+   send(res,200,{actions:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   fail('Ruta de administración global no encontrada.',404);
   }catch(error){if(process.env.PLATFORM_ADMIN_DEBUG&&!error.status)console.error('PLATFORM 500:',error.message,error.detail||'',error.constraint||'');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación global.'});return true;}
