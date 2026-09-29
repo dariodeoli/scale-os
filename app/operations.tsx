@@ -10,7 +10,8 @@ import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star } from "lucide-react";
+import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2 } from "lucide-react";
+import {ConfirmDialog} from 'owncoding-ui';
 import { AmountInput, SelectCustom } from './profile-controls';
 import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
 import {PasswordField} from './password-field';
@@ -257,7 +258,20 @@ function PeopleWorkspace({
   const [commercialReady, setCommercialReady] = useState(false);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
   const [teamFilter,setTeamFilter]=useState<'all'|'active'|'inactive'>('all');
+  const [purgeTarget,setPurgeTarget]=useState<TeamMember|null>(null),[purgeBusy,setPurgeBusy]=useState(false),[purgeError,setPurgeError]=useState('');
   const canManageAccess=roleCan(role,'members.manage');
+  // Eliminación definitiva (Equipo): solo para accesos ya retirados/suspendidos.
+  async function purgeMember(){
+    if(!purgeTarget||purgeBusy)return;
+    setPurgeBusy(true);setPurgeError('');
+    try{
+      await api(`/api/agency/members/${purgeTarget.id}/permanent`,{},'DELETE');
+      const label=purgeTarget.full_name||purgeTarget.email;
+      setPurgeTarget(null);await load();
+      notify({tone:'success',message:`${label} salió del equipo.`});
+    }catch(e){setPurgeError(e instanceof Error?e.message:'No se pudo eliminar del equipo.');}
+    finally{setPurgeBusy(false);}
+  }
   const [selectedAccess,setSelectedAccess]=useState<string[]>([]),[bulkAccessBusy,setBulkAccessBusy]=useState(false);
   function toggleAccessSelected(id:string){setSelectedAccess(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
   function selectVisibleAccess(){
@@ -495,6 +509,7 @@ function PeopleWorkspace({
                     <Pencil size={14}/>
                     Editar
                   </button>
+                  {canManageAccess&&(!entry.member!.active||Boolean(entry.member!.removed_at))&&entry.member!.email!==currentEmail&&!(entry.member!.role==='owner'&&role!=='owner')?<button type="button" className="secondary danger" title={`Eliminar del equipo: ${entry.member!.email}`} aria-label={`Eliminar del equipo: ${entry.member!.email}`} onClick={()=>{setPurgeError('');setPurgeTarget(entry.member!);}}><Trash2 size={14} aria-hidden="true"/>Eliminar del equipo</button>:null}
                 </div>
               </footer></div>
             </article>;})}
@@ -504,6 +519,7 @@ function PeopleWorkspace({
           </div>
         </>}
       </section>
+      {purgeTarget?<ConfirmDialog open busy={purgeBusy} variant="danger" title="Eliminar del equipo" confirmLabel="Eliminar del equipo" description={<><strong>{purgeTarget.full_name||purgeTarget.email}</strong>{' '}dejará de aparecer en Equipo y no podrá reingresar con este acceso; sus sesiones se cierran. El historial (piezas, reservas, pagos y comentarios) se conserva, y una nueva invitación la reactiva.{purgeError?<span role="alert" className="mt-2 block font-semibold text-bad">{purgeError}</span>:null}</>} onCancel={()=>{if(!purgeBusy)setPurgeTarget(null);}} onConfirm={()=>void purgeMember()}/>:null}
       {edit && (
         <Dialog
           title={person ? "Editar persona" : "Nueva persona"}
