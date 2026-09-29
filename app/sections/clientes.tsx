@@ -1,5 +1,5 @@
 "use client";
-import {useState, type Dispatch, type SetStateAction} from 'react';
+import {useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
 import {Aviso, IconAction, fechaListaCorta} from 'owncoding-ui';
 import {BATCH_LIMITS, roleCan} from '../capabilities';
@@ -214,26 +214,27 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
     return asTile ? <ClientTile key={client.id} {...props}/> : <ClientLine key={client.id} {...props}/>;
   });
 
+  // Facturación contratada: el dato real manda y el estado va como información
+  // secundaria chica. Sin contratos → chip «Sin contratos» (no un titular de
+  // tres líneas); sin dato → `—`, nunca una cifra inventada (#91).
+  const billingKpi: {valor: ReactNode; hint: ReactNode} = !billingRole
+    ? {valor: '—', hint: 'Expectativa vigente por mes'}
+    : commercialState === 'error'
+      ? {valor: '—', hint: <span role="alert" className="text-bad">No se pudo cargar</span>}
+      : commercialSummary === null
+        ? {valor: '—', hint: <span role="status">Calculando…</span>}
+        : commercialSummary.expectedMonthlyBilling === undefined
+          ? {valor: '—', hint: 'Sin dato'}
+          : commercialSummary.expectedMonthlyBilling.length
+            ? {valor: <span className="flex flex-wrap items-baseline gap-2">{commercialSummary.expectedMonthlyBilling.map(item => <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes</span>)}</span>, hint: 'Expectativa vigente por mes'}
+            : {valor: '—', hint: <StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip>};
+
   return <section ref={tableRef} className="directory grid gap-4" aria-label="Directorio de clientes">
     <KpiStrip>
       <Kpi label="Clientes activos" valor={directoryKpis.active} hint="Con servicio en curso" destacado/>
       <Kpi label="Cobros al día" valor={cobrosKpis.alDia} hint={`${cobrosKpis.enMora} en mora · ${cobrosKpis.porVencer} por vencer · ${cobrosKpis.sinFactura} sin factura`}/>
-      <Kpi
-        label="Facturación contratada"
-        valor={billingRole
-          ? commercialState === 'error'
-            ? <span role="alert" className="text-bad">No se pudo cargar</span>
-            : commercialSummary === null
-              ? <span role="status" className="text-mute">Calculando…</span>
-              : commercialSummary.expectedMonthlyBilling === undefined
-                ? 'No disponible'
-                : commercialSummary.expectedMonthlyBilling.length
-                  ? <span className="flex flex-wrap items-baseline gap-2">{commercialSummary.expectedMonthlyBilling.map(item => <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes</span>)}</span>
-                  : 'Sin contratos activos'
-          : '—'}
-        hint="Expectativa comercial vigente por moneda"
-      />
-      <Kpi label="Entregas esta semana" valor={directoryKpis.deliveries} hint="Piezas con vencimiento en 7 días"/>
+      <Kpi label="Facturación contratada" valor={billingKpi.valor} hint={billingKpi.hint}/>
+      <Kpi label="Entregas próximas" valor={directoryKpis.deliveries} hint="Piezas con vencimiento en 7 días"/>
     </KpiStrip>
 
     {canManageClients && liveClients.length ? <div className="bulk-bar" role="status" aria-live="polite">
