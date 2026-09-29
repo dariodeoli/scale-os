@@ -14,7 +14,7 @@ import {setRecordAssignees} from './project-assignees.js';
 import {enrichWorkOrderAssignees} from './work-order-assignees.js';
 import {assertUniqueClientRuc} from './ruc-lookup.js';
 import {roleCan,roles} from './permissions.js';
-import {parseListFields,parseListLimit,projectionSelect,listResponse} from './list-projection.js';
+import {parseListFields,parseListWindow,windowSql,windowRows,dropWindowTotal,projectionSelect,projectRows} from './list-projection.js';
 import {commercialProfile} from './commercial-lifecycle.js';
 import {ensurePipelineStages,defaultLeadStage,wonLeadStage} from './pipeline-stages.js';
 
@@ -162,12 +162,19 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
   }else if(kind==='plans'||kind==='leads'){
    const table={plans:'agency_plans',leads:'agency_leads'}[kind];
    if(req.method==='GET'){
-    // Proyección y ventana opcionales (#71): mismas reglas que órdenes/proyectos.
+    // Proyección y ventana opcionales (#71/#105): mismas reglas que
+    // órdenes/proyectos. Sin `limit` la respuesta no cambia.
     const fields=parseListFields(url.searchParams.get('fields'),kind==='leads'?leadListFields:planListFields);
-    const limit=parseListLimit(url);
+    const window=parseListWindow(url);
     const columns=kind==='leads'?leadColumnSql:planColumnSql;
-    const rows=(await c.query(`select ${projectionSelect(fields,columns,'r.*')} from ${table} r where organization_id=$1 and ${visibleRecord('r',kind)} order by id desc`,[org])).rows;
-    result=listResponse('records',rows,fields,limit);
+    const params=[org];
+    const page=window.paginated?windowSql(window.limit,window.offset,params):{pageClause:'',totalExpression:''};
+    const rows=(await c.query(`select ${projectionSelect(fields,columns,'r.*')}${page.totalExpression} from ${table} r where organization_id=$1 and ${visibleRecord('r',kind)} order by id desc${page.pageClause}`,params)).rows;
+    const total=window.paginated?Number(rows[0]?.total_count)||0:null;
+    const cut=windowRows(rows,window.limit);
+    // Aditivo (#105): se conserva `hasMore` de nivel superior (#71) y se suma
+    // el `page` canónico de las listas paginadas.
+    result={records:projectRows(dropWindowTotal(cut.rows),fields),...(window.paginated?{hasMore:cut.hasMore,page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{})};
    }
    else if(kind==='leads'&&action==='convert'&&key&&req.method==='POST'){const lead=await owned(c,table,key,org);if(lead.client_id)result={clientId:lead.client_id};else{const won=wonLeadStage(await ensurePipelineStages(c,org));const client=(await c.query('insert into agency_clients(organization_id,name,email,phone,notes) values($1,$2,$3,$4,$5) returning id',[org,lead.name,lead.email,lead.phone,lead.notes])).rows[0];await c.query('update agency_leads set stage=$1,probability=100,client_id=$2,updated_at=now() where id=$3',[won,client.id,key]);result={clientId:client.id};}}
    else if((req.method==='POST'&&!key)||(req.method==='PATCH'&&key&&!action)){
