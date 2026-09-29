@@ -55,13 +55,13 @@ export const projectLinks=(project:Pick<ProjectView,'drive_links'|'drive_url'>)=
 function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void}){
   const [data,setData]=useState<{record:ProjectView;assignees:ProjectAssignee[]}|null>(null);
   const [pieces,setPieces]=useState<{id:string;title:string;status:string;due_date?:string|null;due_time?:string|null;effective_assignees?:ProjectAssignee[]}[]|null>(null);
-  const [error,setError]=useState('');const [reload,setReload]=useState(0);
+  const [error,setError]=useState('');const [reload,setReload]=useState(0);const [assigneesError,setAssigneesError]=useState(false);
   useEffect(()=>{
-    let alive=true;setData(null);setPieces(null);setError('');
+    let alive=true;setData(null);setPieces(null);setError('');setAssigneesError(false);
     Promise.all([
-      Promise.all([api<{record:ProjectView}>(`/api/agency/projects/${project.id}`),api<{assignees:ProjectAssignee[]}>(`/api/agency/projects/${project.id}/assignees`).catch(()=>({assignees:[]}))]).then(([record,assignees])=>({record:record.record,assignees:assignees.assignees||[]})),
+      Promise.all([api<{record:ProjectView}>(`/api/agency/projects/${project.id}`),api<{assignees:ProjectAssignee[]}>(`/api/agency/projects/${project.id}/assignees`).then(assignees=>({assignees:assignees.assignees||[],failed:false})).catch(()=>({assignees:[] as ProjectAssignee[],failed:true}))]).then(([record,assignees])=>({record:record.record,assignees:assignees.assignees,failed:assignees.failed})),
       fetchProjectPieces(project.id,(url)=>api<{workOrders:ProjectPiece[]}>(url).then(result=>result.workOrders||[])),
-    ]).then(([head,orders])=>{if(!alive)return;setData(head);setPieces(orders);}).catch(cause=>{if(alive)setError(cause instanceof Error?cause.message:'No se pudo cargar el proyecto.');});
+    ]).then(([head,orders])=>{if(!alive)return;setData(head);setAssigneesError(head.failed);setPieces(orders);}).catch(cause=>{if(alive)setError(cause instanceof Error?cause.message:'No se pudo cargar el proyecto.');});
     return()=>{alive=false;};
   },[project.id,reload]);
   const record=data?.record||project;
@@ -88,7 +88,7 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Responsables</h4>
-        {data?<AssignedPeople people={data.assignees}/>:<LoadingBlock label="Cargando responsables…" lines={1}/>}
+        {data?assigneesError?<p className="flex flex-wrap items-center gap-2 text-[13px] text-mute">No se pudieron cargar los responsables. <button type="button" className="text-button" onClick={()=>setReload(value=>value+1)}>Reintentar</button></p>:<AssignedPeople people={data.assignees}/>:<LoadingBlock label="Cargando responsables…" lines={1}/>}
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Enlaces de archivo o carpeta de Drive</h4>
@@ -130,7 +130,7 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
           <StateChip tone={STATUS_TONE[project.status]||'mute'}>{statusLabel(project.status)}</StateChip>
           <UrgencyBadge value={project.urgency}/>
         </div>
-        <button type="button" className="mt-0.5 min-w-0 text-left text-[11.5px] leading-4 text-mute hover:text-fono-light [.project-list_&]:hidden" onClick={()=>setDetail(true)} aria-label={`Abrir detalle del proyecto ${project.name}`}><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key}/></button>
+        <button type="button" className="mt-0.5 flex min-h-11 min-w-0 items-center text-left text-[11.5px] leading-4 text-mute hover:text-fono-light md:min-h-0 [.project-list_&]:hidden" onClick={()=>setDetail(true)} aria-label={`Abrir detalle del proyecto ${project.name}`}><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key}/></button>
         <span className="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:inline" title={project.client_name}>· {project.client_name}</span>
       </div>
     </div>

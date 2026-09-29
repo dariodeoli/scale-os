@@ -142,7 +142,7 @@ function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onD
  </article>;
 }
 
-function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVerify,verifyingId,onMoveLocally}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onDetail:(item:InventoryItem)=>void;onMoved:()=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onMoveLocally:(id:string,storageLocationId:string|null,shelf:string)=>void}){
+function InventoryPipeline({items,locations,canManage,onDetail,onAdd,onMoved,onQuickVerify,verifyingId,onMoveLocally}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onDetail:(item:InventoryItem)=>void;onAdd?:()=>void;onMoved:()=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onMoveLocally:(id:string,storageLocationId:string|null,shelf:string)=>void}){
  const [dragged,setDragged]=useState<InventoryItem|null>(null);
  const [moveError,setMoveError]=useState('');
  const [hideUnassigned,setHideUnassigned]=useState(false);
@@ -179,7 +179,7 @@ function InventoryPipeline({items,locations,canManage,onDetail,onMoved,onQuickVe
    <DragOverlay>{dragged?<article className="rounded-xl border border-fono/40 bg-ink-800 p-3 shadow-2xl"><b className="text-sm text-fore">{dragged.name}</b><code className="block whitespace-nowrap font-mono text-[11px] text-mute">{itemCode(dragged)}</code><small className="text-xs text-mute">{dragged.category_name||dragged.category||'Sin categoría'}</small></article>:null}</DragOverlay>
   </DndContext>
   {hideUnassigned?<Nota tono="info" className="flex items-center justify-between gap-3">{columns.find(column=>column.key==='sin-ubicacion')?.rows.length||0} equipo(s) sin ubicación no se muestran.<Button type="button" variant="ghost" onClick={()=>setHideUnassigned(false)}>Mostrar columna</Button></Nota>:null}
-  {!items.length?<EmptyState icon="box" title="No hay equipos para mostrar en el pipeline."/>:null}
+  {!items.length?<EmptyState icon="box" title="No hay equipos para mostrar en el pipeline." description="Arrastrá los equipos entre ubicaciones para ordenar dónde se guarda cada uno." action={onAdd?<Button type="button" onClick={onAdd}>Agregar equipo</Button>:undefined}/>:null}
  </div>;
 }
 function PipelineColumn({column,canManage,onDetail,onQuickVerify,verifyingId,onHideUnassigned}:{column:PipelineColumn;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onHideUnassigned:()=>void}){
@@ -206,7 +206,7 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
  const verifying=verifyingId===String(item.id);
  const code=itemCode(item);
  return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab'}`}>
-  <button type="button" className="flex min-w-0 items-center gap-2 text-left" title={`Abrir detalle: ${item.name}`} onClick={()=>onDetail(item)}>
+  <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 text-left md:min-h-0" title={`Abrir detalle: ${item.name}`} onClick={()=>onDetail(item)}>
    {item.photo_url?<img className="h-9 w-9 shrink-0 rounded-lg object-cover" src={item.photo_url} alt={`Foto de ${item.name}`}/>:<span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute"><CategoryIcon name={item.category_icon}/></span>}
    <span className="min-w-0"><b className="block break-words text-[13px] font-semibold text-fore">{item.name}</b><code className="whitespace-nowrap font-mono text-[11px] text-mute">{code}</code><small className="flex items-center gap-1 text-[11px] text-mute"><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</small></span>
   </button>
@@ -242,8 +242,9 @@ function InventoryPanel(){
  const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[selectedItems,setSelectedItems]=useState<string[]>([]),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
  const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0);
  const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate,moveItemLocally}=useInventoryCatalog(month,refresh);
- // El error del catálogo sólo existe cuando nunca hubo datos; el de acciones se limpia al reintentar.
- const error=actionError||loadError;
+ // El error del catálogo sólo existe cuando nunca hubo datos y bloquea la vista; el de una
+ // acción se avisa aparte y NUNCA esconde el catálogo que ya está en pantalla.
+ const error=loadError;
  // Keep the selection bounded to the records the API still returns.
  useEffect(()=>{const ids=new Set(items.map(record=>String(record.id)));setSelectedItems(current=>current.filter(id=>ids.has(id)));},[items]);
  const [editItem,setEditItem]=useState<InventoryItem|'new'|null>(null),[editReservation,setEditReservation]=useState<InventoryReservation|'new'|null>(null),[editCategory,setEditCategory]=useState<Category|'new'|null>(null),[editStorageTemplate,setEditStorageTemplate]=useState<StorageTemplate|'new'|null>(null),[verification,setVerification]=useState<InventoryItem|null>(null),[detail,setDetail]=useState<InventoryItem|null>(null);
@@ -339,7 +340,15 @@ function InventoryPanel(){
    </div>:null}
   </Card>
 
-  {view==='reservations'?<Card className="grid min-w-0 gap-4">
+  {/* Estados de la pantalla, compartidos por equipos y calendario: un fallo de
+      acción no reemplaza el contenido ya cargado. */}
+  {refreshError?<Aviso tono="warn">No se pudo actualizar: {refreshError}. Se muestra la última información recibida.</Aviso>:null}
+  {notice?<Aviso tono="ok">{notice}</Aviso>:null}
+  {actionError?<Aviso tono="error">{actionError}</Aviso>:null}
+  {error?<ErrorState title="No se pudo cargar el inventario." description={error} onRetry={()=>setRefresh(n=>n+1)}/>:null}
+  {loading&&!error?<LoadingBlock label="Cargando inventario…" lines={6}/>:null}
+
+  {view==='reservations'&&!loading&&!error?<Card className="grid min-w-0 gap-4">
    <div className="flex flex-wrap items-center justify-between gap-3">
     <div className="min-w-0">
      <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario y reservas</h2>
@@ -377,16 +386,14 @@ function InventoryPanel(){
       {row.notes?<span className="truncate" title={`Notas: ${row.notes}`}>Notas: {row.notes}</span>:null}
      </p>:null}
     </div>)}
-    {!reservations.length?<EmptyState icon="calendar" title="Sin reservas en este mes." description="Elegí equipos y fechas para planificar una producción."/>:null}
+    {!reservations.length?<EmptyState icon="calendar" title="Sin reservas en este mes." description="Elegí equipos y fechas para planificar una producción." action={context?.can_reserve&&items.length?<Button type="button" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</Button>:context?.can_manage&&!items.length?<Button type="button" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:undefined}/>:null}
     </div>
    </div>
-  </Card>:<Card className="grid min-w-0 gap-4">
-   {refreshError?<Aviso tono="warn">No se pudo actualizar: {refreshError}. Se muestra la última información recibida.</Aviso>:null}
-   {notice?<Aviso tono="ok">{notice}</Aviso>:null}
-   {error?<ErrorState title="No se pudo cargar el inventario." description={error} onRetry={()=>setRefresh(n=>n+1)}/>:null}
-   {loading&&!error?<LoadingBlock label="Cargando inventario…" lines={6}/>:null}
-   {!loading&&!error&&equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onDetail={setDetail} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally}/>:null}
-   {!loading&&!error&&equipmentView!=='pipeline'?<>
+  </Card>:null}
+
+  {view!=='reservations'&&!loading&&!error?<Card className="grid min-w-0 gap-4">
+   {equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onDetail={setDetail} onAdd={context?.can_manage?()=>setEditItem('new'):undefined} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally}/>:null}
+   {equipmentView!=='pipeline'?<>
     <InventorySummary items={items} onAddValue={context?.can_manage&&itemWithoutValue?()=>setEditItem(itemWithoutValue):undefined}/>
     {equipmentView==='list'?<div data-list="equipment" className="min-w-0 overflow-x-auto">
      <div className={`${EQUIPMENT_COLS} grid min-w-[67.5rem] gap-2`}>
@@ -400,7 +407,7 @@ function InventoryPanel(){
     </div>}
     {!visible.length?<EmptyState icon="box" title={items.length?'No hay equipos que coincidan con la búsqueda.':'Todavía no hay equipos en el inventario.'} description={items.length?'Probá otra búsqueda o categoría.':'Registrá el primer equipo para reservarlo, verificarlo y etiquetarlo.'} action={items.length?<Button type="button" variant="ghost" onClick={()=>{setSearch('');setCategoryFilter('');}}>Limpiar búsqueda</Button>:context?.can_manage?<Button type="button" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:undefined}/>:null}
    </>:null}
-  </Card>}
+  </Card>:null}
 
   {context?.can_manage?<Card className="grid min-w-0 gap-4">
    <details className="grid gap-3">

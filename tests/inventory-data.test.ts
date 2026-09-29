@@ -166,6 +166,6 @@ assert.equal(depreciationMethodLabel('linear'),'Lineal');
 assert.equal(depreciationMethodLabel('none'),'Sin depreciación');
 assert.equal(traceLabel('loan.checked_in'),'Devolución registrada');
 assert.equal(traceLabel('location.changed'),'Ubicación actualizada');
-assert.equal(traceLabel('custom.event'),'custom event');
+assert.equal(traceLabel('custom.event'),'Movimiento registrado','un evento nuevo se dice en es-PY, nunca el código crudo');
 
 console.log('PASS: inventario — reloj operativo, identidad, permisos, filtros, KPIs, pipeline y valor/depreciación (incluye residual, vida útil cumplida y datos del API).');
