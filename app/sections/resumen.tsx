@@ -1,11 +1,10 @@
 "use client";
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {ArrowUpRight} from 'lucide-react';
 import {ControlCenter} from '../control-center';
 import {WorkspaceGuide} from '../workspace-guide';
 import {statuses} from '../production-board';
-import {Kpi, KpiStrip, LoadingBlock, SectionLoading, StateChip, type ChipTone} from '../ui-v2';
+import {LoadingBlock, SectionLoading, StateChip, type ChipTone} from '../ui-v2';
 import type {ComponentProps} from 'react';
 import type {Project,Summary,User,WorkOrder} from '../workspace-types';
 const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner),{loading:()=> <SectionLoading label="Cargando el resumen…"/>});
@@ -29,8 +28,6 @@ type ResumenSectionProps = {
 };
 const STAGE_TONE: Record<string, ChipTone> = {red: 'bad', yellow: 'warn', green: 'ok', blue: 'info', teal: 'info', purple: 'info'};
 export function ResumenSection({dataState = 'ready', guideProps, user, orders, load, setActive, summary, stageCounts, projects, setDetail}: ResumenSectionProps){
-  // Exacto sobre todas las órdenes visibles: sale del resumen (#71), no de la ventana.
-  const enRevision = stageCounts.get('review') || 0;
   // Primer dato en camino: esqueleto por bloque, sin pantalla vacía.
   if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <LoadingBlock label="Cargando el panel…" lines={5}/>;
   return <div className="grid gap-5 [&>*]:min-w-0">
@@ -54,17 +51,7 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
     </section>
     <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
     <InternalTasks role={user?.role||'viewer'}/>
-    <div className="mt-0">
-      <p className="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Operación</p>
-      <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Métricas operativas</h2>
-    </div>
-    <KpiStrip className="metrics operational-metrics" aria-label="Métricas operativas">
-      <Kpi label="Proyectos activos" valor={summary.active_projects} hint="Con trabajo en curso" destacado/>
-      <Kpi label="Órdenes abiertas" valor={summary.open_orders} hint="Seguimiento diario"/>
-      <Kpi label="En revisión" valor={enRevision} hint="Piezas para aprobar"/>
-    </KpiStrip>
-    <div>
-      <Link href="/produccion" className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-ink-500 px-4 text-sm font-semibold text-fore transition hover:border-fono hover:bg-fono/10 md:min-h-9">Abrir Producción →</Link>
-    </div>
+    {/* #100: sin «Métricas operativas» (repetían Producción/Proyectos) y sin un
+        segundo CTA a Producción: el panel de piezas ya enlaza al módulo. */}
   </div>;
 }

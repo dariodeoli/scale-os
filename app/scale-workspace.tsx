@@ -1090,7 +1090,7 @@ export default function Home() {
         {active==='Historial de trabajo'&&<HistorialSection user={user} navigate={setActive}/>}
         {active==='Invitaciones'&&<InvitacionesSection user={user}/>}
         {active==='Comisiones'&&<ComisionesSection user={user}/>}
-        {active==='Pipeline'&&<PipelineSection user={user} metrics={metrics} metricsState={metricsState} onRetryMetrics={()=>void loadMetrics()}/>}
+        {active==='Pipeline'&&<PipelineSection user={user} metricsState={metricsState} onRetryMetrics={()=>void loadMetrics()} navigate={setActive}/>}
         {active==='Métricas'&&<MetricasSection user={user} metrics={metrics} state={metricsState} error={metricsError} onRetry={()=>void loadMetrics()}/>}
         {active==='Planes'&&<PlanesSection user={user}/>}
         {active==='Inventario'&&<InventarioSection user={user}/>}

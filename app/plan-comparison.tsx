@@ -50,13 +50,13 @@ export function PlanComparison({plans:records,actions,acciones}:{plans:Comparabl
      </tr>
      <tr>
       <th scope="row" className={rowHead}>Entregables incluidos</th>
-      {plans.map(plan=><td key={plan.record.id} className={cell}>{plan.items.length?<ol className="grid gap-2">{plan.items.map((item,index)=><li key={index} data-plan-item className="grid gap-2 border-b border-ink-600/60 pb-2 text-xs leading-relaxed last:border-0 last:pb-0">
-       <Deliverables description={item.description}/>
-       <div data-plan-item-price className="grid gap-0.5 rounded-lg border border-ink-600 bg-ink-900 p-2 text-[11px] text-mute">
-        <span className="whitespace-nowrap">Cantidad del ítem: {item.quantity===null?'No disponible':numberLabel(item.quantity)}</span>
-        <span className="whitespace-nowrap">Precio unitario: {planAmount(item.price,plan.currency)}</span>
-        <strong className="whitespace-nowrap text-xs text-fore">Subtotal: {planAmount(item.subtotal,plan.currency)}</strong>
-       </div>
+      {plans.map(plan=><td key={plan.record.id} className={cell}>{plan.items.length?<ol className="grid gap-1">{plan.items.map((item,index)=><li key={index} data-plan-item className="flex flex-wrap items-baseline gap-x-2 border-b border-ink-600/60 pb-1 text-xs leading-snug last:border-0 last:pb-0" title={`Cantidad del ítem: ${item.quantity===null?'No disponible':numberLabel(item.quantity)} · Precio unitario: ${planAmount(item.price,plan.currency)} · Subtotal: ${planAmount(item.subtotal,plan.currency)}`}>
+       <span className="min-w-[9rem] flex-1 [overflow-wrap:anywhere]"><Deliverables description={item.description}/></span>
+       <span data-plan-item-price className="ml-auto flex shrink-0 items-baseline gap-x-2 whitespace-nowrap text-[11px] tabular-nums text-mute">
+        <span>{item.quantity===null?'—':`${numberLabel(item.quantity)} ×`}</span>
+        <span>{planAmount(item.price,plan.currency)}</span>
+        <strong className="text-xs text-fore">{planAmount(item.subtotal,plan.currency)}</strong>
+       </span>
       </li>)}</ol>:<span className="text-[11px] font-medium text-mute">Sin entregables guardados.</span>}</td>)}
      </tr>
      <tr>
