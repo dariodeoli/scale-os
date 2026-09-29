@@ -46,7 +46,10 @@ test("workspace header shows the signed-in company once and the sidebar keeps on
 });
 
 test("workspace chrome compacts only from desktop while mobile spacing remains unchanged", () => {
-  assert.match(source, /px-4 pb-8 pt-5 md:px-6 md:pb-6 md:pt-4/, "the shared content wrapper preserves mobile padding and reduces desktop vertical chrome");
+  // #97: el gutter de página vive en el token `--ui-page-padding` (16/24/32),
+  // no en utilidades que llegaban a 48 px en xl.
+  assert.match(source, /className="workspace-content flex min-w-0 flex-1 flex-col"/, "the shared content wrapper uses the density class");
+  assert.match(read('ui-system.css'), /\.workspace-content\{padding:var\(--ui-space-4\) var\(--ui-page-padding\)/, "the page rhythm comes from the density token");
   assert.match(source, /workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1/, "the page header preserves mobile spacing and stacks below md");
   // #89: en escritorio el alto y la fila única los fija la hoja del sistema.
   assert.match(read('ui-system.css'), /@media\(min-width:1280px\)\{[\s\S]{0,400}?\.control-shell :is\(\.workspace-page-header,\.ui-page-header\)\{flex-wrap:nowrap;align-items:center;gap:var\(--ui-space-4\);min-height:56px/, "desktop compacts the page header into one 56–64px row");

@@ -9,7 +9,7 @@
 import {Badge, EmptyState, ErrorState, Label, ListGridToggle, Select, Skeleton, Stat} from 'owncoding-ui';
 import {currencyChoices} from './currencies';
 import {money} from './operations';
-import {useEffect, useRef, useState, type ChangeEvent, type HTMLAttributes, type ReactNode} from 'react';
+import {createContext,useContext,useEffect,useRef,useState,type ChangeEvent,type HTMLAttributes,type ReactNode} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -140,17 +140,46 @@ const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left',
  * su texto completo en el tooltip. En mobile conserva el apilado y el alto de
  * siempre. `workspace-page-header` (shell) comparte el mismo contrato desde
  * `ui-system.css`.
+ *
+ * Densidad (#97): `title` es opcional y se omite cuando repite el título de la
+ * página que ya publica el shell (`PageTitleContext`): una pantalla, un título.
+ * La fila queda para contexto y acciones.
  */
-export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyebrow?: string; title: string; subtitle?: ReactNode; actions?: ReactNode; className?: string}) {
+export const PageTitleContext = createContext<string>('');
+
+export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyebrow?: string; title?: string; subtitle?: ReactNode; actions?: ReactNode; className?: string}) {
+  const pageTitle = useContext(PageTitleContext);
   const subtitleText = typeof subtitle === 'string' ? subtitle : undefined;
+  const repetido = Boolean(title && pageTitle) && title!.trim().toLowerCase() === pageTitle.trim().toLowerCase();
+  const heading = repetido ? undefined : title;
   return <header className={`ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 ${className ?? ''}`}>
     <div className="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
       {eyebrow && <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">{eyebrow}</p>}
-      <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">{title}</h1>
+      {heading && <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">{heading}</h1>}
       {subtitle && <p className="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1" title={subtitleText}>{subtitle}</p>}
     </div>
     {actions && <div className="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap">{actions}</div>}
   </header>;
+}
+
+/**
+ * Barra de lote contextual (#97): aparece **solo** cuando hay selección, en una
+ * sola línea compacta (sin ocupar una fila fija cuando no hay nada elegido).
+ * El rótulo, las acciones del lote y «Limpiar» los aporta la pantalla; el
+ * contador y el estado accesible (`role="status"` + `aria-live`) los dibuja el
+ * sistema. «Seleccionar visibles» deja de vivir acá: va en la toolbar de la
+ * pantalla como acción secundaria (o en el encabezado de la tabla).
+ */
+export function BulkBar({count, total, label = 'seleccionado', children, onSelectVisible, selectVisibleLabel = 'Seleccionar visibles', onClear, busy = false, className}: {count: number; total?: number; label?: string; children?: ReactNode; onSelectVisible?: () => void; selectVisibleLabel?: string; onClear?: () => void; busy?: boolean; className?: string}) {
+  if (!count) return null;
+  return <div role="status" aria-live="polite" className={`bulk-bar ${className ?? ''}`}>
+    <span className="bulk-count"><b>{count}</b>{total !== undefined ? <> de {total}</> : null} {label}{count === 1 ? '' : 's'}</span>
+    <div className="inline-actions bulk-actions">
+      {children}
+      {onSelectVisible && <button type="button" className="text-button" disabled={busy} onClick={onSelectVisible}>{selectVisibleLabel}</button>}
+      {onClear && <button type="button" className="text-button" disabled={busy} onClick={onClear}>Limpiar</button>}
+    </div>
+  </div>;
 }
 
 /**
