@@ -2,6 +2,30 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.149
+
+### Administración global
+
+- **Consola operativa en vez de scroll largo**: encabezado compacto y barra de secciones (Resumen · Agencias · Cupones · Accesos · Auditoría) con contadores; el Resumen trae KPIs, agencias por vencer y últimas acciones derivadas de los datos ya cargados.
+- **Listas con la toolbar del sistema** (búsqueda + filtro + contador) y tablas densas; el alta de cupones queda en una fila flexible.
+- **Estados como filas de una línea** con el detalle en tooltip, chip de rol y hora de actualización en 24 h; carga inicial con la pantalla de carga de la app.
+- **Se conservan todas las capacidades**: endpoints, gates de rol (viewer sin mutaciones), confirmación con re-autenticación, auditoría con filtros y borrados globales.
+- Evidencia: `docs/qa/admin-redesign/` (30 capturas 1440×900 / 390×844, claro, oscuro y alto contraste).
+
+### Comercial
+
+- **Selección masiva contextual**: la barra de lote aparece recién con algo seleccionado (Clientes gana una fila visible al pliegue).
+- **Presupuestos**: tabla densa desde 1280 (12 filas visibles; antes 4 tarjetas), título y cliente en una línea y abrir como icono con tooltip exacto.
+- **Pipeline sin embeber Métricas** (chip «Captación digital» + «Ver Métricas» por la navegación del shell) y totales por etapa en cada columna con una sola derivación.
+- **Planes y Resumen sin redundancias**: ítems del comparador en una línea con el detalle en tooltip y sin KPIs ni CTA duplicados.
+
+### Finanzas
+
+- **Transferencias en 3 columnas** sin scroll horizontal permanente; las explicaciones largas pasan a tooltip.
+- **Mora**: la segunda franja de KPIs se reemplaza por chips de antigüedad y «sin factura» (−128 px antes de la lista).
+- **Previsión**: pares de tarjetas en 2 columnas ≥1440 con tablas compactas y una sola rama según el ancho medido.
+- **Informes y Comisiones**: exportaciones en el header, ayudas en el acordeón «Cómo leer el informe» y secciones en subtabs con contador.
+
 ## v1.0.148
 
 ### Sistema y escritorio
