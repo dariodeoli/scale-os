@@ -94,7 +94,7 @@ La etiqueta en tarjetas y detalle muestra número y nombre, sin depender del col
 ## Sistema v2 (Tailwind + owncoding-ui) — 22-09-2026
 
 Decisión del dueño (campaña #41): la base del rediseño es **Tailwind CSS 3.4 +
-`owncoding-ui` v0.12.0**. El CSS plano legado convive durante la migración y se
+`owncoding-ui`** (tag fijo; hoy **v0.51.0**, tanda #82/#83). El CSS plano legado convive durante la migración y se
 retira cuando cada pantalla se rediseñe. **No se crean hojas de componente
 nuevas**: lo nuevo se escribe con utilidades Tailwind y objetos de la librería.
 
@@ -105,8 +105,8 @@ nuevas**: lo nuevo se escribe con utilidades Tailwind y objetos de la librería.
   corre Tailwind + autoprefixer sobre todo el CSS (las hojas legadas no cambian).
 - Orden de carga en `app/layout.tsx`: `owncoding-ui/styles.css` (tokens y base
   del grupo) → hojas legadas (`globals`, `qa-fixes`, `mobile-forms`,
-  `ui-system`) → `app/tailwind.css` (hoja del sistema: utilidades y tokens de
-  marca). Las utilidades salen después del CSS legado: en un mismo elemento
+  `ui-system`), `app/contrast.css` (tercer tema) → `app/tailwind.css` (hoja del
+  sistema: utilidades y tokens de marca). Las utilidades salen después del CSS legado: en un mismo elemento
   gana Tailwind; las hojas de módulo legadas siguen mandando en sus pantallas.
   La base de elementos de la librería (Space Grotesk, titulares balanceados,
   mono en campos numéricos) se neutraliza en la hoja del sistema para conservar
@@ -299,7 +299,7 @@ overflow, harness 0 altas y `test:release-regression` + `next build` verdes.
   oscuro `#867493`) y lo usan campos, `.choice`, `.secondary`; los objetos de la
   librería usan su `border-interactivo`, mapeado al mismo valor. El tono base de
   cada semántico se reserva para rellenos y puntos, y el texto de los chips sale
-  de la familia `--c-*-text` (owncoding-ui v0.39, AA en ambos temas).
+  de la familia `--c-*-text` (owncoding-ui v0.39+, AA en los tres temas: claro, oscuro y alto contraste).
 - Estados con su tono (`ok/warn/bad/info`) y texto sobre marca vía `--c-onbrand`.
 - Superficies, avatares y sombras legibles sobre `surface-raised/sunken`.
 

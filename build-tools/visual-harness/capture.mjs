@@ -70,7 +70,7 @@ try {
       const loaded = cdp.once('Page.loadEventFired');
       await cdp.send('Page.navigate', {url: `http://127.0.0.1:${port}/audit.html`});
       await loaded;
-      await cdp.evaluate(`document.documentElement.dataset.theme=${JSON.stringify(theme === 'dark' ? 'dark' : '')};document.documentElement.style.background=${JSON.stringify(theme === 'dark' ? 'rgb(var(--c-paper))' : '#ffffff')};`);
+      await cdp.evaluate(`document.documentElement.dataset.theme=${JSON.stringify(theme === 'dark' ? 'dark' : theme === 'contrast' ? 'contrast' : '')};document.documentElement.style.background=${JSON.stringify(theme === 'dark' ? 'rgb(var(--c-paper))' : theme === 'contrast' ? '#000000' : '#ffffff')};`);
       await new Promise(resolveWait => setTimeout(resolveWait, 250));
       const fixtures = await cdp.evaluate(`[...document.querySelectorAll('[data-fixture]')].map(element=>element.getAttribute('data-fixture'))`);
       const selected = fixtures.filter(id => !only.length || only.includes(id));
