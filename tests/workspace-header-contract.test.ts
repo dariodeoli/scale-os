@@ -6,6 +6,7 @@ const source = readFileSync(
   new URL("../app/scale-workspace.tsx", import.meta.url),
   "utf8",
 );
+const read = (file: string) => readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8");
 const drawer = readFileSync(
   new URL("../app/mobile-navigation.tsx", import.meta.url),
   "utf8",
@@ -46,7 +47,9 @@ test("workspace header shows the signed-in company once and the sidebar keeps on
 
 test("workspace chrome compacts only from desktop while mobile spacing remains unchanged", () => {
   assert.match(source, /px-4 pb-8 pt-5 md:px-6 md:pb-6 md:pt-4/, "the shared content wrapper preserves mobile padding and reduces desktop vertical chrome");
-  assert.match(source, /workspace-page-header mb-5[\s\S]*?gap-y-3 md:mb-4 md:gap-y-2 max-md:grid/, "the page header preserves mobile spacing and compacts desktop action wrapping");
+  assert.match(source, /workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1/, "the page header preserves mobile spacing and stacks below md");
+  // #89: en escritorio el alto y la fila única los fija la hoja del sistema.
+  assert.match(read('ui-system.css'), /@media\(min-width:1280px\)\{[\s\S]{0,400}?\.control-shell :is\(\.workspace-page-header,\.ui-page-header\)\{flex-wrap:nowrap;align-items:center;gap:var\(--ui-space-4\);min-height:56px/, "desktop compacts the page header into one 56–64px row");
 });
 
 test("workspace header retains visible focus, 40px desktop controls, 44px mobile targets, and reduced motion", () => {

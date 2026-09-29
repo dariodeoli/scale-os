@@ -23,12 +23,22 @@ export function StateChip({tone = 'mute', title, className, children}: {tone?: C
 /**
  * KPI único de la app v2. El monto se formatea con `MoneyText` y el dato
  * ausente se muestra `—`: nunca se inventa un cero ni se corta la cifra.
+ *
+ * Compactación desktop (#89): el KPI mide 112–140 px en escritorio; el `hint`
+ * es UNA línea (el texto completo queda en el tooltip) y el alto no crece con
+ * explicaciones largas. El hook `ui-kpi` identifica al primitivo en tests y
+ * mediciones.
  */
 export function Kpi({label, valor, currency, hint, destacado = false, className}: {label: string; valor: ReactNode | number | string | null | undefined; currency?: string; hint?: ReactNode; destacado?: boolean; className?: string}) {
   const vacio = valor === null || valor === undefined || valor === '';
   const monto = typeof valor === 'string' || typeof valor === 'number' ? <MoneyText valor={valor} currency={currency ?? 'PYG'}/> : valor;
   const contenido = vacio ? '—' : currency ? monto : valor;
-  return <Stat label={label} valor={contenido} sub={hint} destacado={destacado} className={className}/>;
+  const sub = hint === undefined || hint === null || hint === ''
+    ? undefined
+    : typeof hint === 'string'
+      ? <span className="min-w-0 flex-1 truncate" title={hint}>{hint}</span>
+      : hint;
+  return <Stat label={label} valor={contenido} sub={sub} destacado={destacado} className={`ui-kpi ${className ?? ''}`}/>;
 }
 
 const MONEY_TONE: Record<string, string> = {ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', mute: 'text-mute', info: 'text-info'};
@@ -63,7 +73,7 @@ export function CurrencyField({id, label, value, onChange, disabled = false, cla
 
 /** Grilla de KPIs: 1 columna en móvil, 2 en tablet y 4 en escritorio. */
 export function KpiStrip({className, children, ...props}: {className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} className={`grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>{children}</div>;
+  return <div {...props} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>{children}</div>;
 }
 
 /** Carga con esqueleto: anuncia con `role="status"` y no inventa datos. */
@@ -124,21 +134,34 @@ const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left',
  * Encabezado de página v2 (arquetipo dashboard/lista/ajustes): eyebrow, título
  * y acciones. El título no se trunca (regla de deuda: nada de elipsis en
  * nombres); si no cabe, envuelve.
+ *
+ * Compactación desktop (#89): en ≥1280 px es UNA fila de 56–64 px —título,
+ * contexto/contador y acciones—; el subtítulo auxiliar queda en una línea con
+ * su texto completo en el tooltip. En mobile conserva el apilado y el alto de
+ * siempre. `workspace-page-header` (shell) comparte el mismo contrato desde
+ * `ui-system.css`.
  */
 export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyebrow?: string; title: string; subtitle?: ReactNode; actions?: ReactNode; className?: string}) {
-  return <header className={`mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 ${className ?? ''}`}>
-    <div className="min-w-0 flex-1">
-      {eyebrow && <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute">{eyebrow}</p>}
-      <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{title}</h1>
-      {subtitle && <p className="mt-1.5 text-[13px] leading-[1.5] text-mute">{subtitle}</p>}
+  const subtitleText = typeof subtitle === 'string' ? subtitle : undefined;
+  return <header className={`ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 ${className ?? ''}`}>
+    <div className="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
+      {eyebrow && <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">{eyebrow}</p>}
+      <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">{title}</h1>
+      {subtitle && <p className="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1" title={subtitleText}>{subtitle}</p>}
     </div>
-    {actions && <div className="flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">{actions}</div>}
+    {actions && <div className="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap">{actions}</div>}
   </header>;
 }
 
-/** Toolbar de filtros/búsqueda: los controles son objetos de la librería. */
+/**
+ * Toolbar de filtros/búsqueda: los controles son objetos de la librería.
+ * Compactación desktop (#89): una sola fila en ≥1280 px con `gap` 12 px y el
+ * resumen a la derecha; sin card contenedora (vive sobre el lienzo del panel o
+ * de la página) y con wrap sólo en los breakpoints reales. El hook
+ * `data-toolbar="filtros"` identifica al primitivo en tests y mediciones.
+ */
 export function FilterToolbar({children, summary, className}: {children: ReactNode; summary?: ReactNode; className?: string}) {
-  return <div className={`mb-4 flex flex-wrap items-end gap-3 ${className ?? ''}`}>
+  return <div data-toolbar="filtros" className={`mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap ${className ?? ''}`}>
     {children}
     {summary !== undefined && summary !== null && <p className="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">{summary}</p>}
   </div>;

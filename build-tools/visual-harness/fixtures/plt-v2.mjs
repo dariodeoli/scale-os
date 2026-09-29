@@ -24,8 +24,9 @@ const noop = () => {};
 const CARD = 'rounded-xl border border-ink-600 bg-ink-800 p-4';
 const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
 
-const Kpi = ({label, valor, hint, destacado}) => h(Stat, {label, destacado, sub: hint, valor});
-const KpiStrip = ({children}) => h('div', {className: 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'}, children);
+/* Espeja app/ui-v2.tsx (#89): hook `ui-kpi` y hint de una línea con tooltip. */
+const Kpi = ({label, valor, hint, destacado}) => h(Stat, {label, destacado, className: 'ui-kpi', sub: typeof hint === 'string' ? h('span', {className: 'min-w-0 flex-1 truncate', title: hint}, hint) : hint, valor});
+const KpiStrip = ({children}) => h('div', {className: 'ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'}, children);
 const StateChip = ({tone = 'mute', title, children}) => h(Badge, {color: CHIP[tone], title, className: 'whitespace-nowrap'}, children);
 const Header = ({eyebrow, title, subtitle}) => h('header', {className: 'mb-4 flex flex-wrap items-start justify-between gap-3'},
   h('div', {className: 'min-w-0'},

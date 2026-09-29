@@ -31,6 +31,7 @@ function option(name, fallback = '') {
 const input = resolve(repo, option('input', 'work/visual-harness/latest/audit.html'));
 const outDir = resolve(repo, option('out', join(dirname(input), 'captures')));
 const widths = option('widths', '360,768,1440').split(',').map(value => Number(value.trim())).filter(Boolean);
+const heights = option('heights', '900').split(',').map(value => Number(value.trim())).filter(Boolean);
 const themes = option('themes', 'light,dark').split(',').map(value => value.trim()).filter(Boolean);
 const only = option('only', '').split(',').map(value => value.trim()).filter(Boolean);
 const chromePath = option('chrome', process.env.CHROME_PATH || defaultChromePath);
@@ -66,7 +67,9 @@ try {
   for (const theme of themes) {
     for (const width of widths) {
       const mobile = width < 768;
-      await cdp.send('Emulation.setDeviceMetricsOverride', {width, height: 900, deviceScaleFactor: 1, mobile});
+      // Altura del viewport emulado por ancho (p. ej. 844 en móvil, 900 en escritorio).
+      const height = heights.length === widths.length ? heights[widths.indexOf(width)] : heights[0];
+      await cdp.send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile});
       const loaded = cdp.once('Page.loadEventFired');
       await cdp.send('Page.navigate', {url: `http://127.0.0.1:${port}/audit.html`});
       await loaded;

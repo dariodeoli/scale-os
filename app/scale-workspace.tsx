@@ -1045,7 +1045,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col px-4 pb-8 pt-5 md:px-6 md:pb-6 md:pt-4 lg:px-8 xl:px-12">
-        <header className="workspace-page-header mb-5 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-4 md:gap-y-2 max-md:grid max-md:grid-cols-1">
+        <header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1">
           {active==='Clientes' ? <ClientDirectoryToolbar
             canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
             onCreate={()=>setModal('client')}

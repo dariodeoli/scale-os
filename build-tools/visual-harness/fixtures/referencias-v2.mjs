@@ -40,13 +40,15 @@ const noop = () => {};
 const STATE_SURFACE = 'rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4 max-md:p-4';
 const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
 
+/* Espeja app/ui-v2.tsx (#89): hook `ui-kpi` y hint de una línea con tooltip. */
 const Kpi = ({label, valor, currency, hint, destacado}) => h(Stat, {
   label,
   destacado,
-  sub: hint,
+  className: 'ui-kpi',
+  sub: typeof hint === 'string' ? h('span', {className: 'min-w-0 flex-1 truncate', title: hint}, hint) : hint,
   valor: currency ? h('span', {className: 'inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums'}, new Intl.NumberFormat('es-PY', {style: 'currency', currency, maximumFractionDigits: currency === 'PYG' ? 0 : 2}).format(Number(valor))) : valor,
 });
-const KpiStrip = ({children}) => h('div', {className: 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'}, children);
+const KpiStrip = ({children}) => h('div', {className: 'ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'}, children);
 const StateChip = ({tone = 'mute', title, children}) => h(Badge, {color: CHIP[tone], title, className: 'whitespace-nowrap'}, children);
 const PageHeader = ({eyebrow, title, subtitle, actions}) => h('header', {className: 'mb-4 flex flex-wrap items-start justify-between gap-3'},
   h('div', {className: 'min-w-0'},
