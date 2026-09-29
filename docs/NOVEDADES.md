@@ -2,6 +2,24 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.152
+
+### Arranque y carga
+
+- **La pantalla de carga dura lo que tarda la identidad**: el shell pinta apenas se resuelve el acceso y los datos llegan en paralelo, con esqueletos por bloque. Medición a 1440: 618–2282 ms → 155–311 ms; en móvil, 1223–2649 ms → 168–208 ms.
+- **Bloques honestos mientras carga**: los KPIs muestran esqueleto (sin cifras), el encabezado de Clientes dice «Cargando el directorio…» en vez de «Clientes · 0» y el contador de Proyectos no se dibuja hasta tener datos.
+- Evidencia con tablas y capturas antes/después en `docs/qa/arranque-dsn/`.
+
+### Rendimiento y medios
+
+- **Fotos y logos como URL cacheable**: la API sirve las identidades de cada listado como URL de medio con ETag/304 y caché privada, en vez de repetir base64 (Equipo 162 KB, responsables de proyectos 362 KB y presencia 80 KB se dejan de duplicar en cada respuesta).
+- **El front acepta la URL interna** de medios, así las identidades siguen mostrando la foto y no caen a iniciales.
+- **Medición con volumen producción-like** (320 clientes, 80 proyectos, 1580 piezas, 6852 filas de auditoría) y compresión real del proxy; método, hallazgos y comparativa en `docs/qa/carga-prod/`.
+
+### Equipo
+
+- **Vista Lista con nombre completo**: la plantilla prioriza la columna Persona y el cargo es el que cede espacio; los nombres dejan de cortarse con puntos (9 de 9 cortados antes, 0 de 9 después). Evidencia en `docs/qa/equipo-nombres/`.
+
 ## v1.0.151
 
 ### Fotos y perfiles
