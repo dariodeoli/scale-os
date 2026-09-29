@@ -138,7 +138,7 @@ async function run(){
  act(()=>viewButton('Ubicaciones').props.onClick());
  assert.match(tree(),/Estante B/,'every active location appears in the pipeline even when empty');
  assert.match(tree(),/Depósito anterior/,'an archived location still appears while it holds equipment');
- assert.match(tree(),/Sin verificación física/);assert.match(tree(),/Sin registro de ingreso a esta ubicación/);
+ assert.match(tree(),/Sin verificación/);assert.match(tree(),/Sin registro de ingreso a esta ubicación/);
  assert.match(tree(),/Sin equipos/,'empty location columns render with their count at zero');
  assert.match(tree(),/Sin ubicación/,'the unassigned column always exists so items can move back');
  act(()=>{renderer.root.findAllByProps({'aria-label':'Ocultar columna Sin ubicación'})[0].props.onClick();});

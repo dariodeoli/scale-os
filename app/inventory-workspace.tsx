@@ -13,10 +13,10 @@
  * el encabezado comparte la misma grilla que las filas.
  */
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {Aviso,BarraProgreso,Button,Card,CeldaMoneda,Drawer,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,MoneyInput,Modal,Nota,SaveActions,SearchField,SegmentedField,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
+import {Aviso,BarraProgreso,Button,Card,CeldaMoneda,Drawer,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,MenuDesplegable,MoneyInput,Modal,Nota,SaveActions,SearchField,SegmentedField,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
 import {Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip} from './ui-v2';
 import {fechaLista,fechaListaCorta} from 'owncoding-ui';
-import {api,Dialog,Editor} from './operations';
+import {api,Dialog,Editor,money} from './operations';
 import {ActorAvatar,ActorIdentity,safePhoto} from './actor-identity';
 import {currencyChoices} from './currencies';
 import {useCompanyCurrency} from './currency-provider';
@@ -44,7 +44,7 @@ const dateTime=(value:string)=>fechaLista(value,'',{timeZone:OPS_TIME_ZONE});
 
 // Plantilla única por lista: el encabezado y las filas comparten la grilla, el
 // gap-x y el padding. La variable se declara en el contenedor una sola vez.
-const EQUIPMENT_COLS='[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.5fr)_minmax(8rem,1fr)_7rem_6.5rem_minmax(7.5rem,1fr)_minmax(11rem,1.2fr)_10.5rem]';
+const EQUIPMENT_COLS='[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem]';
 const EQUIPMENT_GRID='grid grid-cols-[var(--eq-cols)] items-center gap-x-2';
 const RESERVATION_COLS='[--rsv-cols:minmax(9.5rem,1.3fr)_minmax(6.5rem,1fr)_minmax(15.5rem,1.2fr)_minmax(7.5rem,1fr)_minmax(7.5rem,1fr)_minmax(7rem,1fr)_9rem]';
 const RESERVATION_GRID='grid grid-cols-[var(--rsv-cols)] items-center gap-x-2';
@@ -55,7 +55,7 @@ const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-8 md:[&>butt
 const ROW_ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7';
 
 const categoryIconMap:Record<string,LucideIcon>={'camera':Camera,'video':Video,'mic':Mic,'lamp':Lamp,'lightbulb':Lightbulb,'monitor':Monitor,'laptop':Laptop,'speaker':Speaker,'hard-drive':HardDrive,'battery-charging':BatteryCharging,'package':Package,'home':Home};
-export function CategoryIcon({name}:{name?:string|null}){const Icon=name?categoryIconMap[name]:undefined;return Icon?<Icon size={14} aria-hidden="true"/>:null;}
+export function CategoryIcon({name,size=14}:{name?:string|null;size?:number}){const Icon=name?categoryIconMap[name]:undefined;return Icon?<Icon size={size} aria-hidden="true"/>:null;}
 
 const statusTone=(status:string)=>status==='available'?'ok':status==='in_use'?'info':status==='maintenance'?'warn':status==='retired'?'mute':'mute';
 const reservationTone=(status:InventoryReservation['status'])=>status==='reserved'?'info':status==='checked_out'?'warn':status==='returned'?'ok':'mute';
@@ -76,69 +76,118 @@ function VerificationStamp({item,empty}:{item:InventoryItem;empty:ReactNode}){
  return <span className="inline-flex min-w-0 items-center gap-1.5" data-tone={tone}>
   <span role="img" title={`Control: ${verificationLabel(item.last_verification_result)}`} aria-label={`Control: ${verificationLabel(item.last_verification_result)}`} className={tone==='ok'?'text-ok':tone==='warn'?'text-warn':tone==='bad'?'text-bad':'text-mute'}>{tone==='ok'?'✓':tone==='warn'?'!':tone==='bad'?'×':'·'}</span>
   <ActorAvatar name={item.last_verifier_name||'Verificador'} photo={safePhoto(item.last_verifier_photo_url)}/>
-  <span className="min-w-0 text-xs text-mute" title={item.last_verifier_name||'Verificador'}>{primerNombre(item.last_verifier_name??'')||'Verificador'}</span>
+  <span className="min-w-0 truncate text-xs text-mute" title={item.last_verifier_name||'Verificador'}>{primerNombre(item.last_verifier_name??'')||'Verificador'}</span>
   <time className="whitespace-nowrap text-[11px] tabular-nums text-mute" dateTime={item.last_verified_at}>{dateTime(item.last_verified_at)}</time>
  </span>;
 }
 
+/**
+ * Foto o placeholder limpio (#103): nunca un ícono roto ni el texto «Foto». La
+ * misma pieza dibuja tarjeta (56 px), fila (32 px) y pipeline (36 px).
+ */
+function EquipmentPhoto({item,size='row'}:{item:InventoryItem;size?:'card'|'row'|'pipeline'}){
+ const box=size==='card'?'h-14 w-14':size==='pipeline'?'h-9 w-9':'h-8 w-8';
+ if(item.photo_url)return <img className={`${box} shrink-0 rounded-lg border border-ink-600 object-cover`} src={item.photo_url} alt={`Foto de ${item.name}`}/>;
+ return <span className={`${box} grid shrink-0 place-items-center rounded-lg border border-ink-600 bg-ink-700/40 text-mute`} role="img" aria-label={`Sin foto: ${item.name}`} title="Sin foto"><CategoryIcon name={item.category_icon} size={size==='card'?20:14}/></span>;
+}
+
+/**
+ * Metadatos compactos del equipo (#103): código, categoría y ubicación en líneas
+ * secundarias. En la fila densa alimenta la celda «Detalles» (categoría · serie).
+ * Sin filas vacías: lo que falta se dice una vez y en corto.
+ */
+function InventoryItemMeta({item,layout}:{item:InventoryItem;layout:'card'|'row'}){
+ const code=itemCode(item),category=item.category_name||item.category||'Sin categoría';
+ if(layout==='row')return <span className="flex min-w-0 items-center gap-x-1.5 text-[12px] leading-4 text-mute">
+  <span className="inline-flex min-w-0 items-center gap-1.5 truncate" title={category}><CategoryIcon name={item.category_icon}/>{category}</span>
+  <span aria-hidden="true">·</span>
+  <span className="inline-flex items-center whitespace-nowrap" title={item.serial_number?`Serie: ${item.serial_number}`:'Sin serie'}>{item.serial_number?<SerialTexto serial={item.serial_number} className="serial-text" enmascarar/>:'Sin serie'}</span>
+ </span>;
+ return <>
+  <p className="truncate text-[11.5px] leading-4 text-mute" title={`${code} · ${category}`}>{code} · {category}</p>
+  <p className="truncate text-[11.5px] leading-4 text-mute" title={inventoryLocation(item)}>{inventoryLocation(item)}</p>
+ </>;
+}
+
+/**
+ * Acciones del equipo (#103): una sola lista alimenta los íconos alineados de la
+ * tarjeta/fila y el menú desplegable del pipeline. Eliminar va siempre en rojo
+ * con tooltip; en móvil los targets son de 44 px.
+ */
+type InventoryItemActionContext={item:InventoryItem;canManage:boolean;verifying:boolean;onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void};
+function inventoryItemActionList({item,canManage,verifying,onDetail,onVerify,onVerifyDetail,onEdit,onArchive}:InventoryItemActionContext){
+ const code=itemCode(item),location=inventoryLocation(item);
+ return [
+  {key:'detail',icon:'eye',label:`Detalle y trazabilidad: ${item.name}`,texto:'Ver detalle y trazabilidad',onClick:()=>onDetail(item)},
+  {key:'print',icon:'printer',label:`Imprimir etiqueta: ${item.name}`,texto:'Imprimir etiqueta',onClick:()=>printInventoryLabel({code,name:item.name,category:item.category_name||item.category||'Sin categoría',serial:item.serial_number,location})},
+  ...(canManage?[
+   {key:'verify',icon:'check',tone:'ok' as const,label:verifying?'Verificando…':`Marcar verificado: ${item.name}`,texto:verifying?'Verificando…':'Marcar verificado',disabled:verifying,onClick:()=>onVerify(item)},
+   {key:'verify-detail',icon:'check',tone:'ok' as const,label:`Verificar con detalle: ${item.name}`,texto:'Verificar con detalle',onClick:()=>onVerifyDetail(item)},
+   {key:'edit',icon:'edit',label:`Editar equipo: ${item.name}`,texto:'Editar equipo',onClick:()=>onEdit(item)},
+   {key:'archive',icon:'trash',tone:'bad' as const,label:`Archivar equipo: ${item.name}`,texto:'Archivar equipo',peligro:true,onClick:()=>onArchive(item)},
+  ]:[]),
+ ];
+}
+function InventoryItemActions(context:InventoryItemActionContext&{dense?:boolean}){
+ const {dense=false}=context;
+ return <span className={`flex shrink-0 flex-nowrap items-center justify-end gap-1 ${dense?ROW_ICON_TARGETS:ICON_TARGETS}`}>
+  {inventoryItemActionList(context).map(action=><IconAction key={action.key} icon={action.icon} tone={action.tone} disabled={action.disabled} label={action.label} onClick={action.onClick}/>)}
+ </span>;
+}
+
+/**
+ * Tarjeta de equipo (#103): cabecera alineada (checkbox, foto 56, nombre
+ * flexible, estado a la derecha), metadatos en dos líneas y pie con
+ * verificación + acciones. La altura la define el contenido (sin min-height).
+ */
 function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,onDetail,onVerify,onVerifyDetail,onEdit,onArchive}:{
  item:InventoryItem;selectable:boolean;selected:boolean;onSelect:()=>void;canManage:boolean;verifying:boolean;
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
- const code=itemCode(item),location=inventoryLocation(item),facts=depreciationFacts(item);
- return <article data-grid-card="equipment" className="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
-  <div className="flex items-start justify-between gap-3">
-   <div className="flex min-w-0 items-start gap-2">
-    {selectable?<label className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
-    {item.photo_url?<img className="h-11 w-11 shrink-0 rounded-lg object-cover" src={item.photo_url} alt={`Foto de ${item.name}`}/>:null}
-    <div className="min-w-0">
-     <h3 className="break-words text-sm font-semibold text-fore">{item.name}</h3>
-     <code className="whitespace-nowrap font-mono text-[11px] text-mute">{code}</code>
-    </div>
+ const facts=depreciationFacts(item);
+ return <article data-grid-card="equipment" className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3.5">
+  <div className="flex min-w-0 items-start gap-2.5">
+   {selectable?<label className="flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
+   <EquipmentPhoto item={item} size="card"/>
+   <div className="min-w-0 flex-1">
+    <h3 className="truncate text-sm font-semibold text-fore" title={item.name}>{item.name}</h3>
+    <InventoryItemMeta item={item} layout="card"/>
    </div>
    <StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip>
   </div>
-  <dl className="grid gap-1 text-xs">
-   <FilaDato etiqueta="Categoría" etiquetaComo="dt" valorComo="dd" valorClassName="shrink break-words text-right" valor={<span className="inline-flex items-center gap-1.5"><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</span>}/>
-   <FilaDato etiqueta="Serie / IMEI" etiquetaComo="dt" valorComo="dd" valorClassName="shrink text-right [overflow-wrap:anywhere] [&_.serial-text]:whitespace-normal [&_.serial-text]:break-all" valor={item.serial_number?<SerialTexto serial={item.serial_number} className="serial-text"/>:'Sin registrar'}/>
-   <FilaDato etiqueta="Valor" etiquetaComo="dt" valorComo="dd" valorClassName="shrink text-right" valor={<CeldaMoneda valor={Number(item.value)} currency={item.currency}/>}/>
-   {facts.hasDepreciation?<FilaDato etiqueta="Valor actual" etiquetaComo="dt" valorComo="dd" tono="info" valorClassName="shrink text-right" valor={<CeldaMoneda valor={facts.currentValue??0} currency={item.currency}/>}/>:null}
-   <FilaDato etiqueta="Ubicación" etiquetaComo="dt" valorComo="dd" valorClassName="shrink break-words text-right" valor={location}/>
-  </dl>
-  <div className="mt-auto grid gap-2 border-t border-ink-600 pt-2">
-   <div className="flex flex-wrap items-center justify-between gap-2">
-    <VerificationStamp item={item} empty={<span className="text-xs text-mute">Sin verificación física</span>}/>
-    {canManage?<span className={ICON_TARGETS}><IconAction icon="check" tone="ok" disabled={verifying} label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={()=>onVerify(item)}/></span>:null}
-   </div>
-   {item.return_user_name?<span className="text-xs text-mute" title={`Devuelve ${item.return_user_name}${item.expected_return_at?` · previsto ${dateTime(item.expected_return_at)}`:''}`}>Devuelve {item.return_user_name}{item.expected_return_at?<> · previsto <span className="whitespace-nowrap" data-tone={(diasHasta(item.expected_return_at,{timeZone:OPS_TIME_ZONE})??99)<=7?'warn':undefined}>{dateTime(item.expected_return_at)}</span></>:null}</span>:null}
-   <div className={`flex flex-wrap items-center justify-end gap-1 ${ICON_TARGETS}`}>
-    <IconAction icon="eye" label={`Detalle y trazabilidad: ${item.name}`} onClick={()=>onDetail(item)}/>
-    <IconAction icon="printer" label={`Imprimir etiqueta: ${item.name}`} onClick={()=>printInventoryLabel({code,name:item.name,category:item.category_name||item.category||'Sin categoría',serial:item.serial_number,location})}/>
-    {canManage?<><IconAction icon="check" tone="ok" label={`Verificar con detalle: ${item.name}`} onClick={()=>onVerifyDetail(item)}/><IconAction icon="edit" label={`Editar equipo: ${item.name}`} onClick={()=>onEdit(item)}/><IconAction icon="trash" tone="bad" label={`Archivar equipo: ${item.name}`} onClick={()=>onArchive(item)}/></>:null}
-   </div>
+  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] leading-4 text-mute">
+   <span className="whitespace-nowrap" title={item.serial_number?`Serie / IMEI: ${item.serial_number}`:'Sin serie registrada'}>{item.serial_number?<><span className="sr-only">Serie </span><SerialTexto serial={item.serial_number} className="serial-text" enmascarar/></>:'Sin serie'}</span>
+   <span className="whitespace-nowrap" title={Number(item.value)>0?'Valor del equipo':'Sin valor registrado'}>{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency}/>:'Sin valor'}</span>
+   {facts.hasDepreciation?<span className="whitespace-nowrap" title={`Valor actual con depreciación: ${facts.monthsElapsed} de ${facts.usefulLifeMonths} meses`}>Actual <CeldaMoneda valor={facts.currentValue??0} currency={item.currency}/></span>:null}
+   {item.return_user_name?<span className="min-w-0 truncate" title={`Devuelve ${item.return_user_name}${item.expected_return_at?` · previsto ${dateTime(item.expected_return_at)}`:''}`}>Devuelve {item.return_user_name}{item.expected_return_at?<> · <span className="whitespace-nowrap" data-tone={(diasHasta(item.expected_return_at,{timeZone:OPS_TIME_ZONE})??99)<=7?'warn':undefined}>{dateTime(item.expected_return_at)}</span></>:null}</span>:null}
+  </div>
+  <div className="mt-auto flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2">
+   <VerificationStamp item={item} empty={<span className="text-[11px] text-mute">Sin verificación física</span>}/>
+   <InventoryItemActions item={item} canManage={canManage} verifying={verifying} onDetail={onDetail} onVerify={onVerify} onVerifyDetail={onVerifyDetail} onEdit={onEdit} onArchive={onArchive}/>
   </div>
  </article>;
 }
 
+/**
+ * Fila densa (#103): columnas reales (foto · artículo · detalles · valor ·
+ * estado · ubicación · verificación · acciones) con la plantilla compartida y
+ * las acciones en una sola línea.
+ */
 function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onDetail,onVerify,onVerifyDetail,onEdit,onArchive}:{
  item:InventoryItem;selectable:boolean;selected:boolean;onSelect:()=>void;canManage:boolean;verifying:boolean;
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
  const code=itemCode(item),location=inventoryLocation(item);
- return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[48px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} data-status={item.status}>
+ return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[56px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} data-status={item.status}>
   <span className="flex h-11 items-center md:h-auto">{selectable?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}</span>
-  <span className="flex items-center">{item.photo_url?<img className="h-8 w-8 rounded-lg object-cover" src={item.photo_url} alt={`Foto de ${item.name}`}/>:<span className="grid h-8 w-8 place-items-center rounded-lg border border-ink-600 text-mute"><CategoryIcon name={item.category_icon}/></span>}</span>
+  <span className="flex items-center"><EquipmentPhoto item={item} size="row"/></span>
   <span className="flex min-w-0 items-baseline gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b><code className="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">{code}</code></span>
-  <span className={`${CELL} flex min-w-0 items-center gap-x-1.5 text-mute`}><span className="inline-flex min-w-0 items-center gap-1.5 truncate" title={item.category_name||item.category||'Sin categoría'}>{<CategoryIcon name={item.category_icon}/>}{item.category_name||item.category||'Sin categoría'}</span><span aria-hidden="true">·</span><span className="inline-flex items-center whitespace-nowrap">{item.serial_number?<SerialTexto serial={item.serial_number} className="serial-text" enmascarar/>:'Sin serie'}</span></span>
-  <span className="flex justify-end"><CeldaMoneda valor={Number(item.value)} currency={item.currency} className="text-[13px]"/></span>
+  <span className={CELL}><InventoryItemMeta item={item} layout="row"/></span>
+  <span className="flex justify-end whitespace-nowrap">{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency} className="text-[13px]"/>:<span className="text-[12px] text-mute">Sin valor</span>}</span>
   <span className="flex justify-start"><StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip></span>
   <span className={`${CELL} truncate text-mute`} title={location}>{location}</span>
-  <span className="min-w-0"><VerificationStamp item={item} empty={<span className="text-xs text-mute">Sin verificación física</span>}/></span>
-  <span className={`flex flex-wrap items-center justify-end gap-1 ${ROW_ICON_TARGETS}`}>
-   <IconAction icon="eye" label={`Detalle y trazabilidad: ${item.name}`} onClick={()=>onDetail(item)}/>
-   <IconAction icon="printer" label={`Imprimir etiqueta: ${item.name}`} onClick={()=>printInventoryLabel({code,name:item.name,category:item.category_name||item.category||'Sin categoría',serial:item.serial_number,location})}/>
-   {canManage?<><IconAction icon="check" tone="ok" disabled={verifying} label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={()=>onVerify(item)}/><IconAction icon="check" tone="ok" label={`Verificar con detalle: ${item.name}`} onClick={()=>onVerifyDetail(item)}/><IconAction icon="edit" label={`Editar equipo: ${item.name}`} onClick={()=>onEdit(item)}/><IconAction icon="trash" tone="bad" label={`Archivar equipo: ${item.name}`} onClick={()=>onArchive(item)}/></>:null}
-  </span>
+  <span className="min-w-0"><VerificationStamp item={item} empty={<span className="text-[11px] text-mute">Sin verificación</span>}/></span>
+  <InventoryItemActions item={item} canManage={canManage} verifying={verifying} dense onDetail={onDetail} onVerify={onVerify} onVerifyDetail={onVerifyDetail} onEdit={onEdit} onArchive={onArchive}/>
  </article>;
 }
 
@@ -173,7 +222,7 @@ function InventoryPipeline({items,locations,canManage,onDetail,onAdd,onMoved,onQ
  return <div className="grid gap-3">
   {moveError?<Aviso tono="error">{moveError}</Aviso>:null}
   <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
-   <div data-board="locations" className="flex snap-x gap-3 overflow-x-auto pb-1" role="region" aria-label="Pipeline de ubicaciones">
+   <div data-board="locations" className="silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [--location-cols:1] sm:[--location-cols:2] xl:[--location-cols:3]" role="region" aria-label="Pipeline de ubicaciones">
     {visibleColumns.map(column=><PipelineColumn key={column.key} column={column} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId} onHideUnassigned={()=>setHideUnassigned(true)}/>)}
    </div>
    <DragOverlay>{dragged?<article className="rounded-xl border border-fono/40 bg-ink-800 p-3 shadow-2xl"><b className="text-sm text-fore">{dragged.name}</b><code className="block whitespace-nowrap font-mono text-[11px] text-mute">{itemCode(dragged)}</code><small className="text-xs text-mute">{dragged.category_name||dragged.category||'Sin categoría'}</small></article>:null}</DragOverlay>
@@ -182,17 +231,19 @@ function InventoryPipeline({items,locations,canManage,onDetail,onAdd,onMoved,onQ
   {!items.length?<EmptyState icon="box" title="No hay equipos para mostrar en el pipeline." description="Arrastrá los equipos entre ubicaciones para ordenar dónde se guarda cada uno." action={onAdd?<Button type="button" onClick={onAdd}>Agregar equipo</Button>:undefined}/>:null}
  </div>;
 }
+/** Columna del pipeline (#103): encabezado de altura fija, contador a la derecha
+ *  y ancho fluido por breakpoint (nunca queda cortada a mitad de columna). */
 function PipelineColumn({column,canManage,onDetail,onQuickVerify,verifyingId,onHideUnassigned}:{column:PipelineColumn;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onHideUnassigned:()=>void}){
  // La columna es el destino del arrastre (id = clave de la columna, la que resuelve
  // `pipelineDropColumn`); las de solo lectura no aceptan drops ni se resaltan.
  const droppable=useDroppable({id:column.key,disabled:column.readOnly});
- return <section ref={droppable.setNodeRef} data-board-column data-column-key={column.key} className={`flex w-72 shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver?'border-fono bg-fono/10':'border-ink-600 bg-ink-800/60'}`} data-readonly={column.readOnly?'true':undefined}>
-  <header className="flex items-center gap-2">
-   {column.readOnly?<span className="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">🔒</span>:<span className="h-2 w-2 rounded-full bg-fono" aria-hidden="true"/>}
-   <h3 className="min-w-0 break-words text-sm font-semibold text-fore">{column.title}</h3>
-   {column.responsibleName?<span title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={safePhoto(column.responsiblePhoto)}/></span>:null}
-   <span className="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">{column.rows.length}</span>
-   {column.key==='sin-ubicacion'?<span className={ICON_TARGETS}><IconAction icon="close" label="Ocultar columna Sin ubicación" onClick={onHideUnassigned}/></span>:null}
+ return <section ref={droppable.setNodeRef} data-board-column data-column-key={column.key} className={`flex min-w-0 w-[calc((100%-(var(--location-cols)-1)*0.75rem)/var(--location-cols))] shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver?'border-fono bg-fono/10':'border-ink-600 bg-ink-800/60'}`} data-readonly={column.readOnly?'true':undefined}>
+  <header data-board-head className="flex min-h-11 min-w-0 items-center gap-2">
+   {column.readOnly?<span className="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">🔒</span>:<span className="h-2 w-2 shrink-0 rounded-full bg-fono" aria-hidden="true"/>}
+   <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-fore" title={column.title}>{column.title}</h3>
+   {column.responsibleName?<span className="shrink-0" title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={safePhoto(column.responsiblePhoto)}/></span>:null}
+   <span className="ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums text-mute" title={`${column.rows.length} equipo(s) en esta ubicación`}>{column.rows.length}</span>
+   {column.key==='sin-ubicacion'?<span className={`shrink-0 ${ICON_TARGETS}`}><IconAction icon="close" label="Ocultar columna Sin ubicación" onClick={onHideUnassigned}/></span>:null}
   </header>
   <div className="grid gap-2">
    {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
@@ -200,24 +251,30 @@ function PipelineColumn({column,canManage,onDetail,onQuickVerify,verifyingId,onH
   </div>
  </section>;
 }
+/** Tarjeta interna del pipeline (#103): foto/placeholder, nombre, código y
+ *  categoría, verificación, «aquí desde» como metadata y estado + acciones abajo. */
 function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:InventoryItem;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null}){
  const disabled=!canManage||item.location_type==='checked_out';
  const draggable=useDraggable({id:item.id,disabled});
  const verifying=verifyingId===String(item.id);
- const code=itemCode(item);
- return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab'}`}>
+ const movedAt=item.location_type==='checked_out'?'En préstamo: devolvelo para cambiar su ubicación':item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación';
+ return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-1.5 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab'}`}>
   <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 text-left md:min-h-0" title={`Abrir detalle: ${item.name}`} onClick={()=>onDetail(item)}>
-   {item.photo_url?<img className="h-9 w-9 shrink-0 rounded-lg object-cover" src={item.photo_url} alt={`Foto de ${item.name}`}/>:<span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute"><CategoryIcon name={item.category_icon}/></span>}
-   <span className="min-w-0"><b className="block break-words text-[13px] font-semibold text-fore">{item.name}</b><code className="whitespace-nowrap font-mono text-[11px] text-mute">{code}</code><small className="flex items-center gap-1 text-[11px] text-mute"><CategoryIcon name={item.category_icon}/>{item.category_name||item.category||'Sin categoría'}</small></span>
+   <EquipmentPhoto item={item} size="pipeline"/>
+   <span className="min-w-0 flex-1">
+    <b className="block truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b>
+    <small className="block truncate text-[11px] leading-4 text-mute" title={`${itemCode(item)} · ${item.category_name||item.category||'Sin categoría'}`}>{itemCode(item)} · {item.category_name||item.category||'Sin categoría'}</small>
+   </span>
   </button>
-  <VerificationStamp item={item} empty={<span className="text-[11px] text-mute">Sin verificación física</span>}/>
-  <small className="text-[11px] text-mute">{item.location_type==='checked_out'?'En préstamo: devolvelo para cambiar su ubicación':item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación'}</small>
-  <div className="flex items-center justify-between gap-2">
+  <VerificationStamp item={item} empty={<span className="text-[11px] text-mute">Sin verificación</span>}/>
+  <p className="truncate text-[11px] leading-4 text-mute" title={movedAt} data-tone={item.location_type==='checked_out'?'warn':undefined}>{movedAt}</p>
+  <div className="mt-auto flex min-w-0 items-center justify-between gap-2 border-t border-ink-600 pt-1.5">
    <StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip>
-   {!disabled?<span className={`flex items-center gap-1 ${ROW_ICON_TARGETS}`}>
-    {canManage?<IconAction icon="check" tone="ok" disabled={verifying} label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={()=>onQuickVerify(item)}/>:null}
-    <span className="select-none text-mute" role="img" aria-label={`Mover ${item.name}`} title={`Mover ${item.name}`}>⋮⋮</span>
-   </span>:null}
+   <span className={`flex shrink-0 items-center gap-1 ${ROW_ICON_TARGETS}`}>
+    {canManage&&!disabled?<IconAction icon="check" tone="ok" disabled={verifying} label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={()=>onQuickVerify(item)}/>:null}
+    <MenuDesplegable ariaLabel={`Acciones del equipo: ${item.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-hidden="true">⋮</span>} items={inventoryItemActionList({item,canManage,verifying,onDetail,onVerify:onQuickVerify,onVerifyDetail:onDetail,onEdit:onDetail,onArchive:onDetail}).map(action=>({id:action.key,label:action.texto,icono:action.icon,disabled:action.disabled,peligro:action.peligro,onClick:action.onClick}))}/>
+    {!disabled?<span className="select-none text-mute" role="img" aria-label={`Mover ${item.name}`} title={`Mover ${item.name}`}>⋮⋮</span>:null}
+   </span>
   </div>
  </article>;
 }
@@ -227,7 +284,7 @@ function InventorySummary({items,onAddValue}:{items:InventoryItem[];onAddValue?:
  const missingValue=items.filter(item=>!(Number(item.value)>0)).length;
  const equipmentLabel=`${items.length} equipo${items.length===1?'':'s'}`;
  return <section aria-label="Métricas de inventario"><KpiStrip>
-  <Kpi label="Valor total" valor={currencyTotals.length?<span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">{currencyTotals.map(({currency,total})=><CeldaMoneda key={currency} valor={total} currency={currency}/>)}</span>:'—'} hint={currencyTotals.length?equipmentLabel:items.length?<span className="flex flex-wrap items-center gap-x-2 gap-y-1"><span>{missingValue?`${missingValue} sin valor`:'Sin datos monetarios'}</span>{missingValue&&onAddValue?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={onAddValue} title="Completar el valor de un equipo del inventario">Agregar valor</button>:null}</span>:equipmentLabel}/>
+  <Kpi label="Valor total" valor={currencyTotals.length?<span className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1" title={currencyTotals.map(({currency,total})=>money(total,currency)).join(' · ')}>{currencyTotals.map(({currency,total})=><span key={currency} className="whitespace-nowrap text-[clamp(1.15rem,1.6vw,1.875rem)] font-semibold leading-tight tabular-nums"><CeldaMoneda valor={total} currency={currency}/></span>)}</span>:<span className="text-base font-semibold text-mute">Sin valor</span>} hint={currencyTotals.length?<span className="min-w-0 flex-1 truncate" title={`${equipmentLabel}${missingValue?` · ${missingValue} sin valor`:''}`}>{equipmentLabel}{missingValue?` · ${missingValue} sin valor`:''}</span>:items.length?<span className="flex min-w-0 flex-wrap items-center gap-x-2"><span className="min-w-0 truncate" title={`${missingValue} equipo${missingValue===1?'':'s'} sin valor registrado`}>{missingValue?`${missingValue} sin valor`:'Sin datos monetarios'}</span>{missingValue&&onAddValue?<button type="button" className="min-h-11 shrink-0 text-[11px] font-semibold text-fono-light underline-offset-2 hover:underline focus-visible:underline md:min-h-0" onClick={onAddValue} title="Completar el valor de un equipo del inventario">Agregar valor</button>:null}</span>:equipmentLabel}/>
   <Kpi label="En uso" valor={inUse} hint="Retirados o en rodaje"/>
   <Kpi label="Mantenimiento" valor={maintenance} hint="No asignables a rodaje"/>
   <Kpi label="Disponibles" valor={available} hint="Listos para reservar"/>
@@ -399,7 +456,7 @@ function InventoryPanel(){
    {equipmentView!=='pipeline'?<>
     <InventorySummary items={items} onAddValue={context?.can_manage&&itemWithoutValue?()=>setEditItem(itemWithoutValue):undefined}/>
     {equipmentView==='list'?<div data-list="equipment" className="min-w-0 overflow-x-auto">
-     <div className={`${EQUIPMENT_COLS} grid min-w-[67.5rem] gap-2`}>
+     <div className={`${EQUIPMENT_COLS} grid min-w-[68rem] gap-2`}>
      <div data-list-head="equipment" className={`${EQUIPMENT_GRID} px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
       <span/><span>Foto</span><span>Artículo</span><span>Detalles</span><span className="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span className="text-right">Acciones</span>
      </div>
