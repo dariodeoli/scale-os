@@ -464,7 +464,7 @@ function PeopleWorkspace({
                 <header className="person-hub-head">
                   {canManageAccess&&entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                   <div className="ops-person" title={p.full_name}>
-                    <PersonContainer size={teamView==='list'?'md':'md'} name={p.full_name} photoUrl={p.photo_url||undefined} secondary={p.job_title||'Sin cargo'} verified/>
+                    <PersonContainer size="md" name={p.full_name} photoUrl={p.photo_url||undefined} secondary={p.job_title||'Sin cargo'} verified/>
                   </div>
                   <span className="person-hub-state" data-state={p.active?'active':'inactive'}>{p.active?'Activo':'Inactivo'}</span>
                 </header>

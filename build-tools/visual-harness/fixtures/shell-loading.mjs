@@ -6,7 +6,7 @@
  * barra va debajo del nombre y es la única animación (`.loading-bar-fill`,
  * app/tailwind.css), apagada con `prefers-reduced-motion`.
  */
-const person = (name, secondary) => `<span class="person-container person-container-md"><span class="person-container-avatar" aria-hidden="true">FD</span><span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span><span class="person-container-secondary" title="${secondary}">${secondary}</span></span></span>`;
+const person = (name, secondary) => `<span class="person-container person-container-md"><span class="foto-perfil" aria-hidden="true">FD</span><span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span><span class="person-container-secondary" title="${secondary}">${secondary}</span></span></span>`;
 const brand = `<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span>`;
 const bar = `<span class="h-1 w-28 overflow-hidden rounded-full bg-ink-700" aria-hidden="true"><span class="loading-bar-fill block h-full w-1/2 rounded-full bg-fono"></span></span>`;
 

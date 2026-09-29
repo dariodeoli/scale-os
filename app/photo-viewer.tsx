@@ -3,6 +3,7 @@ import {useId,useRef,useState} from 'react';
 import {useOverlay} from './dialog';
 import {createPortal} from 'react-dom';
 import {Maximize,X,ZoomIn,ZoomOut} from 'lucide-react';
+import {FotoPerfil,type FotoPerfilTamano} from './foto-perfil';
 import './photo-cropper.css';
 function EnlargedPhoto({photo,name,close}:{photo:string;name:string;close:()=>void}){
  const [zoom,setZoom]=useState(100),panel=useRef<HTMLElement>(null),title=useId();
@@ -15,7 +16,8 @@ function EnlargedPhoto({photo,name,close}:{photo:string;name:string;close:()=>vo
   <p className="form-note">Arrastrá para ver detalles. Esta vista no modifica la foto: usá «Mover y recortar foto» al editar el perfil para guardar un encuadre.</p>
  </section></div>,document.body);
 }
-export function PhotoViewer({photo,name,size=48}:{photo:string;name:string;size?:number}){
+export function PhotoViewer({photo,name,tamano='2xl'}:{photo:string;name:string;tamano?:FotoPerfilTamano}){
  const [open,setOpen]=useState(false);
- return <><button type="button" className="photo-preview-button" style={{width:size,height:size}} aria-label={`Ampliar foto de ${name}`} onClick={()=>setOpen(true)}><img src={photo} alt={`Foto de ${name}`} referrerPolicy="no-referrer"/><span aria-hidden="true"><ZoomIn size={13}/></span></button>{open&&<EnlargedPhoto photo={photo} name={name} close={()=>setOpen(false)}/>}</>;
+ // La miniatura es el objeto único de foto de perfil (#107) con el badge de zoom.
+ return <><FotoPerfil nombre={name} foto={photo} tamano={tamano} onClick={()=>setOpen(true)} etiqueta={`Ampliar foto de ${name}`} badge={<ZoomIn size={13}/>}/>{open&&<EnlargedPhoto photo={photo} name={name} close={()=>setOpen(false)}/>}</>;
 }

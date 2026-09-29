@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import {validateImageLink} from './image-link';
 import './photo-cropper.css';
 import {Crop,Link2,Trash2} from 'lucide-react';
+import {FotoPerfil} from './foto-perfil';
 const PhotoCropper=dynamic(()=>import('./photo-cropper').then(m=>m.PhotoCropper));
 
 export const PHOTO_MIME_TYPES=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
@@ -100,7 +101,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
       setError('');setNotice('');try{if(values.photo.startsWith('https:'))await validateImageLink(values.photo);if(!mounted.current)return;await save(values.photo);if(!mounted.current)return;form.reset(values);setFailedPhoto('');setNotice('Foto guardada.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar la foto.');}finally{finishSave();}
     })}>
       <div className="profile-photo-summary">
-      {preview&&preview!==failedPhoto?<button type="button" className="editable-photo" aria-label={`Cambiar foto de ${name}`} disabled={busy} onClick={()=>fileInput.current?.click()}><img src={preview} referrerPolicy="no-referrer" alt={`Foto de ${name}`} onError={()=>setFailedPhoto(preview)}/></button>:<button type="button" className="avatar editable-photo" aria-label={`Elegir foto de ${name}`} disabled={busy} onClick={()=>fileInput.current?.click()}>{name[0]}</button>}
+      <FotoPerfil nombre={name} foto={preview&&preview!==failedPhoto?preview:''} tamano={compact?'xl':'3xl'} variante={isLogo?'logo':'persona'} onClick={()=>fileInput.current?.click()} disabled={busy} etiqueta={preview&&preview!==failedPhoto?`Cambiar foto de ${name}`:`Elegir foto de ${name}`} badge={<Crop size={12}/>}/>
       <div className="profile-photo-controls">
       <label className="photo-upload">{processing?'Preparando…':compact?'Cambiar foto':preview?'Cambiar foto':'Elegir foto'}<input ref={fileInput} aria-label={`Elegir foto (${PHOTO_FORMATS}; hasta 4 MB)`} type="file" accept={PHOTO_ACCEPT} disabled={busy} onChange={async event=>{
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file||!startSave())return;

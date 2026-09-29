@@ -41,13 +41,14 @@ const fila = (superficie, render) => `
  </div>
 </section>`;
 
-const container = (src) => `<span class="person-container person-container-md"><span class="person-container-avatar" aria-hidden="true">${src}</span><span class="person-container-details"><span class="person-container-name">Ana Benítez</span><span class="person-container-secondary">Producción</span></span></span>`;
-const opsPerson = (src) => `<div class="ops-person">${src}<div class="ops-person-info"><b>Carlos Ramírez</b><small>Producción</small></div></div>`;
-const actor = (src, cls = '') => `<span class="actor-identity ${cls}"><span class="actor-identity-avatar" aria-hidden="true">${src}</span><span class="actor-identity-details"><span class="actor-identity-name">Lucía Ferreira</span><time class="actor-identity-time">29 sept 26 · 18:12</time></span></span>`;
-const presence = (src) => `<span class="presence-avatars"><span class="presence-person">${src}<i data-active="true"></i></span><span class="presence-more">+2</span></span>`;
-const editable = (src) => `<span class="profile-photo-summary"><span class="editable-photo">${src}</span><span class="profile-photo-controls"><span class="photo-upload">Cambiar foto</span></span></span>`;
-const footer = (src) => `<div class="profile-footer"><span class="user">${src}<span><b>Fredd D.</b><small>Propietario</small></span></span></div>`;
-const logo = (src) => `<span class="client-identity"><span class="identity-avatar">${src}</span><span class="identity-name">Estudio de Comunicación</span></span>`;
+const container = (src) => `<span class="person-container person-container-md"><span class="foto-perfil foto-perfil-lg foto-perfil-circulo foto-perfil-persona">${src}</span><span class="person-container-details"><span class="person-container-name">Ana Benítez</span><span class="person-container-secondary">Producción</span></span></span>`;
+// Fila densa de Equipo: el avatar va dentro del contenedor de persona (markup real).
+const opsPerson = (src) => `<div class="ops-person" title="Carlos Ramírez"><span class="person-container person-container-md"><span class="foto-perfil foto-perfil-lg foto-perfil-circulo foto-perfil-persona">${src}</span><span class="person-container-details"><span class="person-container-name" title="Carlos Ramírez">Carlos Ramírez</span><span class="person-container-secondary" title="Producción">Producción</span></span></span></div>`;
+const actor = (src, cls = '') => `<span class="actor-identity ${cls}"><span class="foto-perfil foto-perfil-lg foto-perfil-circulo foto-perfil-persona">${src}</span><span class="actor-identity-details"><span class="actor-identity-name">Lucía Ferreira</span><time class="actor-identity-time">29 sept 26 · 18:12</time></span></span>`;
+const presence = (src) => `<span class="presence-avatars"><span class="presence-person"><span class="foto-perfil foto-perfil-sm foto-perfil-circulo foto-perfil-persona">${src}</span><i data-active="true"></i></span><span class="presence-more">+2</span></span>`;
+const editable = (src) => `<span class="profile-photo-summary"><span class="foto-perfil foto-perfil-3xl foto-perfil-circulo foto-perfil-persona">${src}</span><span class="profile-photo-controls"><span class="photo-upload">Cambiar foto</span></span></span>`;
+const footer = (src) => `<div class="profile-footer"><span class="user"><span class="foto-perfil foto-perfil-lg foto-perfil-circulo foto-perfil-persona">${src}</span><span><b>Fredd D.</b><small>Propietario</small></span></span></div>`;
+const logo = (src) => `<span class="client-identity"><span class="foto-perfil foto-perfil-xl foto-perfil-circulo foto-perfil-logo">${src}</span><span class="identity-name">Estudio de Comunicación</span></span>`;
 
 export default [
   {

@@ -4,6 +4,7 @@ import {useEffect,useRef,useState} from 'react';
 import {Dialog} from './dialog';
 import {Editor,api} from './operations';
 import {ProfilePhoto} from './profile-photo';
+import {FotoPerfil} from './foto-perfil';
 import {notify} from './feedback';
 import {AccountSecurity} from './account-security';
 import {LoadingBlock,StateChip} from './ui-v2';
@@ -46,7 +47,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
    <section className={CARD} data-profile-section="identity" aria-labelledby="my-profile-identity-title">
     <p className={KICKER}>{current.identity_scope==='demo'?'Perfil del demo':'Identidad personal'}</p>
     <div className="flex min-w-0 items-center gap-3">
-     {current.photo_url?<img className="size-12 shrink-0 rounded-full border border-ink-600 object-cover" src={current.photo_url} alt="" width={48} height={48}/>:<div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-ink-700 text-sm font-semibold text-fore" aria-hidden="true">{name.slice(0,1).toUpperCase()}</div>}
+     <FotoPerfil nombre={name} foto={current.photo_url} tamano="2xl"/>
      <div className="min-w-0">
       <h3 id="my-profile-identity-title" className="truncate text-[15px] font-semibold text-fore">{name}</h3>
       <p className="break-words text-[12px] text-mute">{current.email||profile.email}</p>

@@ -41,10 +41,10 @@ const Grid = ({label, template, columns, children, minWidthClass = 'min-w-[48rem
 /** Fila finita v2: mismas clases que app/ui-v2.tsx (`ListRow`). */
 const ListRow = ({template, children, className = '', ...props}) => h('div', {role: 'row', ...props, className: `grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${template} ${className}`}, children);
 /** Densidad de fila finita (app/invite-links.tsx): identidad compacta. */
-const ROW_DENSITY = '[&_.actor-identity]:py-0.5 [&_.actor-identity-name]:truncate md:[&_.actor-identity-avatar]:h-6 md:[&_.actor-identity-avatar]:w-6 md:[&_.actor-identity-avatar]:flex-none';
+const ROW_DENSITY = '[&_.actor-identity]:py-0.5 [&_.actor-identity-name]:truncate md:[&_.foto-perfil]:h-6 md:[&_.foto-perfil]:w-6 md:[&_.foto-perfil]:flex-none';
 /** Réplica de `ActorIdentity` (app/actor-identity.tsx) con sus clases. */
 const ActorIdentity = ({name, photo = '/brand/icon-192.png'}) => h('span', {className: 'actor-identity'},
-  h('span', {className: 'actor-identity-avatar', 'aria-hidden': 'true'}, photo ? h('img', {src: photo, alt: '', referrerPolicy: 'no-referrer'}) : null),
+  h('span', {className: 'foto-perfil', 'aria-hidden': 'true'}, photo ? h('img', {src: photo, alt: '', referrerPolicy: 'no-referrer'}) : null),
   h('span', {className: 'actor-identity-details'}, h('span', {className: 'actor-identity-name', title: name}, name)));
 const SectionCard = ({title, subtitle, meta, children}) => h('div', {className: `${CARD} grid gap-3`},
   h('div', {className: 'flex flex-wrap items-center justify-between gap-2'},

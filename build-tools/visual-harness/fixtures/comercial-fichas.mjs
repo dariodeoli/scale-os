@@ -179,7 +179,7 @@ const palette = (label, key, active) => `<label class="identity-${key} flex min-
 
 const appearanceSheet = `
 <section class="grid gap-4 rounded-xl border border-ink-600 bg-ink-800 p-4 md:grid-cols-2 md:p-5">
- <div class="md:col-span-2"><span class="client-identity identity-teal inline-flex min-w-0 items-center gap-2.5 text-fore"><span class="identity-avatar overflow-hidden" aria-hidden="true">CM</span><span class="identity-name min-w-0 font-bold leading-snug" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span></div>
+ <div class="md:col-span-2"><span class="client-identity identity-teal inline-flex min-w-0 items-center gap-2.5 text-fore"><span class="foto-perfil overflow-hidden" aria-hidden="true">CM</span><span class="identity-name min-w-0 font-bold leading-snug" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span></div>
  <section class="profile-photo-section"><h3 class="text-sm font-bold text-fore">Logo o foto del cliente</h3><p class="mt-1 text-xs text-mute">Se guarda normalizado a WebP.</p></section>
  <form class="grid content-start gap-3" novalidate>
   <fieldset class="min-w-0 border-0 p-0">
@@ -218,7 +218,7 @@ const drawerSheet = `
   <div class="dialog-heading"><h2>Cooperativa Multiactiva de Servicios Múltiples Limitada</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${iconX}</button></div>
   <div class="dialog-body">
    <section class="grid gap-4 rounded-xl border border-ink-600 bg-ink-800 p-4 md:grid-cols-2 md:p-5" aria-label="Apariencia del cliente">
-    <div class="md:col-span-2"><span class="client-identity identity-teal inline-flex min-w-0 items-center gap-2.5 text-fore"><span class="identity-avatar overflow-hidden" aria-hidden="true">CM</span><span class="identity-name min-w-0 font-bold leading-snug" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span></div>
+    <div class="md:col-span-2"><span class="client-identity identity-teal inline-flex min-w-0 items-center gap-2.5 text-fore"><span class="foto-perfil overflow-hidden" aria-hidden="true">CM</span><span class="identity-name min-w-0 font-bold leading-snug" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span></div>
     <section class="profile-photo-section"><h3 class="text-sm font-bold text-fore">Logo o foto del cliente</h3><p class="mt-1 text-xs text-mute">Se guarda normalizado a WebP.</p></section>
     <form class="grid content-start gap-3" novalidate><fieldset class="min-w-0 border-0 p-0"><legend class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Color identificador</legend><div class="flex flex-wrap gap-2">${palette('Violeta', 'violet', false)}${palette('Azul', 'blue', false)}${palette('Turquesa', 'teal', true)}${palette('Verde', 'green', false)}${palette('Dorado', 'gold', false)}${palette('Rosa', 'rose', false)}${palette('Gris', 'slate', false)}</div></fieldset></form>
    </section>

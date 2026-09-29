@@ -35,7 +35,7 @@ assert(workspace.includes('className="workspace-content flex min-w-0 flex-1 flex
 const operationsCss=file('../app/operations.css');
 assert(operationsCss.includes('.control-shell .ops-grid.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto'),'the team list wins over the card grid and scrolls instead of overflowing its panel');
 assert(operationsCss.includes('.company-choice-row{display:flex'),'the company switcher row wraps instead of overflowing the dialog');
-assert(operationsCss.includes('.person-hub-card.is-list :is(.ops-person img,.avatar){width:32px'),'team list rows keep a thin identity');
+assert(operationsCss.includes('.person-hub-card.is-list .foto-perfil{--foto-perfil-size:32px}'),'team list rows keep a thin identity with the shared photo object');
 assert(operationsCss.includes('.person-hub-card:not(.is-list)>.person-hub-tail{display:flex'),'team cards anchor their actions to the foot');
 assert(operationsCss.includes('.person-hub-actions .ops-card-actions{margin:0;padding:0;border:0'),'no empty or double-bordered action block in the team cards');
 assert(operationsCss.includes('.person-hub-card.is-list>.person-hub-tail>.form-note'),'the ambiguous-profile note spans the row');

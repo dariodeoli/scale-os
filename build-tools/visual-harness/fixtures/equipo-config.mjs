@@ -96,7 +96,7 @@ const actorIdentity = ({name, photo = '', timestamp = '', timeText = '', verifie
   const label = name || (imported ? 'Autor importado' : 'Sistema');
   const initials = label.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((word) => Array.from(word)[0]).join('').toLocaleUpperCase('es');
   const avatar = verified && photo ? `<img src="${photo}" alt="" referrerpolicy="no-referrer">` : initials;
-  return `<span class="actor-identity"><span class="actor-identity-avatar" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${label}">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}" title="${timeText || listDateFull(timestamp)}">${timeText || listDateFull(timestamp)}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
+  return `<span class="actor-identity"><span class="foto-perfil" aria-hidden="true">${avatar}</span><span class="actor-identity-details"><span class="actor-identity-name" title="${label}">${label}</span>${timestamp ? `<time class="actor-identity-time" datetime="${timestamp}" title="${timeText || listDateFull(timestamp)}">${timeText || listDateFull(timestamp)}</time>` : ''}${imported ? '<span class="actor-identity-source">Autor de registro importado</span>' : ''}</span></span>`;
 };
 const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" title="${value}" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
 const searchField = ({label, placeholder, className = ''}) => `<label class="search-field${className ? ' ' + className : ''}"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
@@ -111,7 +111,7 @@ const equipoDialog = () => `<div class="grid min-w-0 gap-4">
    <div class="person-identity-panel">
     <section class="ops-profile-section profile-photo-section is-compact person-photo-field" aria-label="Foto de perfil">
      <div class="profile-photo-summary">
-      <button type="button" class="editable-photo" aria-label="Cambiar foto de ${people[0].name}"><img src="/brand/icon-192.png" alt="Foto de ${people[0].name}"></button>
+      <button type="button" class="foto-perfil" aria-label="Cambiar foto de ${people[0].name}"><img src="/brand/icon-192.png" alt="Foto de ${people[0].name}"></button>
       <div class="profile-photo-controls">
        <label class="photo-upload">Elegir foto<input type="file" aria-label="Elegir foto (JPG, PNG o WebP; hasta 4 MB)"></label>
        <button type="button" class="text-button">${svg(ICON.link2, 14)}Usar enlace</button>
@@ -255,7 +255,7 @@ const personCard = (person, list = false) => {
   const isMember = person.kind === 'member';
   // En lista la app baja el contenedor a 32px (PersonContainer md) y en cuadrícula a 48px (lg).
   const initials = person.name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase();
-  const avatar = `<div class="ops-person" title="${person.name}"><span class="person-container person-container-${list ? 'md' : 'lg'}"><span class="person-container-avatar" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : initials}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span>${person.role ? `<span class="person-container-secondary" title="${person.role}">${person.role}</span>` : ''}</span></span></div>`;
+  const avatar = `<div class="ops-person" title="${person.name}"><span class="person-container person-container-${list ? 'md' : 'lg'}"><span class="foto-perfil" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : initials}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span>${person.role ? `<span class="person-container-secondary" title="${person.role}">${person.role}</span>` : ''}</span></span></div>`;
   const stateLabel = isMember ? (person.memberActive ? 'Acceso activo' : 'Acceso suspendido') : person.state;
   const stateAttr = isMember ? (person.memberActive ? 'active' : 'inactive') : (person.state === 'Activo' ? 'active' : 'inactive');
   const chips = isMember

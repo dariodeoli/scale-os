@@ -182,7 +182,7 @@ const pipelineColumns = [
  * ========================================================================= */
 const peopleContainer = ({name, secondary, initials}) => `
   <span class="person-container person-container-md">
-   <span class="person-container-avatar" aria-hidden="true">${initials}</span>
+   <span class="foto-perfil" aria-hidden="true">${initials}</span>
    <span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span>${secondary ? `<span class="person-container-secondary" title="${secondary}">${secondary}</span>` : ''}</span>
   </span>`;
 

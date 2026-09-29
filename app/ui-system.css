@@ -63,16 +63,34 @@
  .control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{flex-wrap:nowrap;flex:0 0 auto;width:auto}
 }
 
-/* ── Retrato de personas (#107) ─────────────────────────────────────────────
-   La foto se guarda completa (sin recorte automático). Acá vive, en un solo
-   lugar, el encuadre amable de todos los avatares de persona: el círculo toma
-   desde el borde superior —donde está la cabeza— y deja de ampliar de más las
-   verticales. Los logos de cliente (`.identity-avatar` con `contain`) y la
-   vista ampliada del visor de foto conservan su tratamiento propio. */
-:is(.actor-identity-avatar,.person-container-avatar,.presence-person,.photo-preview-button,.editable-photo,.ops-person,.avatar) img,
-.profile-footer .user img{object-position:center top}
-.assigned-people .actor-identity-avatar img,
-.activity-feed-row .actor-identity-avatar img{object-position:center top}
+/* ── Foto de perfil (#107) ───────────────────────────────────────────────────
+   Objeto único (`app/foto-perfil.tsx`): tamaño, forma, iniciales y encuadre
+   amable. La foto se guarda completa (sin recorte automático); el círculo de
+   persona toma desde el borde superior —donde está la cabeza— y los logos se
+   ven enteros (`contain`). Reemplaza los avatares paralelos: no hay otra regla
+   de `object-fit`/`object-position` para fotos de persona en la app. */
+.foto-perfil{--foto-perfil-size:28px;--foto-perfil-font:calc(var(--foto-perfil-size) * .38);position:relative;display:grid;place-items:center;flex:none;width:var(--foto-perfil-size);height:var(--foto-perfil-size);padding:0;border:0;border-radius:50%;overflow:hidden;background:var(--brand-700);color:rgb(var(--c-onbrand));font-family:inherit;font-size:var(--foto-perfil-font);font-weight:600;line-height:1}
+.foto-perfil img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
+.foto-perfil-cuadrado{border-radius:var(--ui-radius-control,10px)}
+.foto-perfil-logo{background:var(--surface-raised,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line-strong) 70%,transparent)}
+.foto-perfil-logo img{object-fit:contain;object-position:center;padding:calc(var(--foto-perfil-size) * .08)}
+.foto-perfil-xs{--foto-perfil-size:22px}
+.foto-perfil-sm{--foto-perfil-size:24px}
+.foto-perfil-md{--foto-perfil-size:28px}
+.foto-perfil-lg{--foto-perfil-size:32px}
+.foto-perfil-xl{--foto-perfil-size:40px}
+.foto-perfil-2xl{--foto-perfil-size:48px}
+.foto-perfil-3xl{--foto-perfil-size:64px}
+button.foto-perfil{cursor:pointer}
+button.foto-perfil:disabled{cursor:wait;opacity:.7}
+button.foto-perfil:focus-visible{outline:3px solid var(--focus-ring,var(--brand-700));outline-offset:3px}
+.foto-perfil-badge{position:absolute;right:0;bottom:0;display:grid;place-items:center;width:38%;height:38%;min-width:14px;min-height:14px;border-radius:50%;background:var(--brand-700);color:rgb(var(--c-onbrand))}
+.foto-perfil-badge>svg{width:64%;height:64%}
+/* Contextos densos: el mismo objeto, más chico donde el layout lo exige. */
+.activity-feed-row .foto-perfil{--foto-perfil-size:24px}
+.assigned-people .foto-perfil{--foto-perfil-size:22px}
+.presence-person .foto-perfil{--foto-perfil-size:24px}
+html[data-theme="dark"] .foto-perfil{background:#8329c9}
 
 /* ── KPI compacto (#89) ─────────────────────────────────────────────────────
    En escritorio el valor baja a 28 px con interlineado 1.15: una card con dos
