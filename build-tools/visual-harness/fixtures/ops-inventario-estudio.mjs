@@ -53,9 +53,12 @@ const button = (label, variant = 'primary') => {
   const variants = {primary: 'bg-fono text-onbrand hover:bg-fono-light', outline: 'bg-transparent text-fore border border-ink-500 hover:border-fono hover:bg-fono/10', ghost: 'bg-transparent text-mute hover:bg-ink-700 hover:text-fore'};
   return `<button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition md:h-9 ${variants[variant]}">${label}</button>`;
 };
-const segmented = (label, options, active) => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" role="group" aria-label="${label}">${options.map(([id, text, icon]) => `<button type="button" aria-pressed="${id === active}" aria-label="${text}" title="${text}" class="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 md:min-h-8 text-sm font-medium transition ${id === active ? 'bg-fono/15 text-fono-light' : 'text-mute hover:bg-fore/5 hover:text-fore'}">${svg(ICON[icon], 16, 'h-4 w-4 shrink-0')}<span class="min-w-0 truncate">${text}</span></button>`).join('')}</div>`;
+const segmented = (label, options, active, extra = '') => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 ${extra}" role="group" aria-label="${label}">${options.map(([id, text, icon]) => `<button type="button" aria-pressed="${id === active}" aria-label="${text}" title="${text}" class="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 md:min-h-8 text-sm font-medium transition ${extra ? 'shrink-0 ' : ''}${id === active ? 'bg-fono/15 text-fono-light' : 'text-mute hover:bg-fore/5 hover:text-fore'}">${svg(ICON[icon], 16, 'h-4 w-4 shrink-0')}<span class="min-w-0 truncate">${text}</span></button>`).join('')}</div>`;
 const searchField = (label, placeholder) => `<div class="relative min-w-0">${svg(ICON.search, 16, 'pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mute')}<input type="search" value="" placeholder="${placeholder}" aria-label="${label}" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 pl-9 pr-9 text-base text-fore outline-none transition placeholder:text-mute/60 focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"></div>`;
 const fieldLabel = (text, id) => `<label class="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-mute" for="${id}">${text}</label>`;
+/* Espejo del `SelectCustom` de la app (`app/profile-controls.tsx`): `.ops-select`
+   con rótulo `.ops-label` + trigger. La pantalla lo alinea en línea en desktop. */
+const selectCustom = (label, value, id = 'inventory-category-filter') => `<div class="ops-select"><span class="ops-label" id="${id}-label">${label}</span><button type="button" class="ops-select-trigger" aria-labelledby="${id}-label ${id}-value" aria-haspopup="listbox" aria-expanded="false" title="${value}"><span id="${id}-value">${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
 const kpi = (label, value, hint, moneda = false) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${moneda ? money(value) : value}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="text-mute">${hint}</span></div>` : ''}</div>`;
 const filaDato = (etiqueta, valor, valorClass = 'shrink break-words text-right') => `<div class="flex items-center justify-between gap-3"><dt class="min-w-0 text-mute">${etiqueta}</dt><dd class="${valorClass} font-semibold tabular-nums">${valor}</dd></div>`;
 const emptyState = (title, description, action = '', compact = false, icon = ICON.box) => `<div class="flex flex-col items-center justify-center px-6 text-center ${compact ? 'py-6' : 'py-12'}"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(icon, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>${action ? `<div class="mt-4">${action}</div>` : ''}</div>`;
@@ -119,17 +122,47 @@ const equipmentCard = (item) => `
  </div>
 </article>`;
 const equipmentHead = `<div data-list-head="equipment" class="grid min-w-[67.5rem] grid-cols-[var(--eq-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span></span><span>Foto</span><span>Artículo</span><span>Detalles</span><span class="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span class="text-right">Acciones</span></div>`;
-const inventoryToolbar = `
+// Fila "Atención" del inventario: chips de conteo + explicación a ancho completo
+// (antes del pase de compactación #90, espejo de `app/inventory-workspace.tsx`).
+const attentionChip = (label, count, active = false) => `<button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${active ? 'border-warn bg-warn/15 text-fore' : 'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}" aria-pressed="${active}"><span>${label}</span><span class="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">${count}</span></button>`;
+const attentionRow = `<div class="flex min-w-0 flex-wrap items-center gap-2" aria-label="Filtros locales de atención del inventario">
+  <span class="text-[11px] font-bold uppercase tracking-wider text-mute">Atención</span>
+  ${attentionChip('Valor faltante', 1)}${attentionChip('Control físico pendiente', 2)}
+  <button type="button" class="text-button" aria-expanded="false" title="Qué cuenta cada chip de atención">¿Qué es?</button>
+  <div class="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">${segmented('Vista de inventario', [['grid', 'Cuadrícula', 'grid'], ['list', 'Lista', 'list'], ['pipeline', 'Ubicaciones', 'store']], 'list', 'silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0')}<button type="button" class="text-button">Seleccionar visibles</button></div>
+ </div>`;
+const selectionBar = `<div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2" role="status" aria-live="polite"><span class="text-xs text-mute"><b class="text-fore">1</b> de 50 seleccionado</span><div class="flex flex-wrap items-center gap-2">${button('Reservar', 'outline')}${button('Verificar', 'outline')}${button('Mover ubicación', 'outline')}${button('Limpiar', 'ghost')}</div></div>`;
+/* Referencia del ANTES (#90): espejo fiel del toolbar con card contenedora y
+   explicación a ancho completo. Se conserva para reproducir la medición
+   antes/después que vive en docs/qa/compact-inventario/README.md. */
+const inventoryToolbarAntes = `
 <div class="grid gap-3">
  <div class="flex flex-wrap items-end gap-2">
   ${segmented('Vistas de inventario', [['equipment', 'Equipos', 'box'], ['reservations', 'Calendario y reservas', 'calendar']], 'equipment')}
   <div class="min-w-[12rem] flex-1 sm:max-w-80">${searchField('Buscar equipo o ubicación', 'Memoria, DJI Mic, estante…')}</div>
-  <div>${fieldLabel('Categoría', 'inventory-category-filter')}<select id="inventory-category-filter" class="h-11 w-full cursor-pointer rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"><option>Todas</option></select></div>
+  <div>${selectCustom('Categoría', 'Todas')}</div>
   ${segmented('Vista de inventario', [['grid', 'Cuadrícula', 'grid'], ['list', 'Lista', 'list'], ['pipeline', 'Ubicaciones', 'store']], 'list')}
   ${button('Seleccionar visibles', 'ghost')}
-  <div class="ml-auto flex flex-wrap items-center gap-2"><p class="whitespace-nowrap text-xs tabular-nums text-mute" role="status" title="Mostrando 6 de 6 equipos. Sincroniza cada 30 s mientras esta pestaña esté visible. Actualizado 15:42.">6 de 6 equipos · 15:42</p>${button('Agregar equipo', 'outline')}${button('Reservar equipos')}</div>
+  <div class="ml-auto flex flex-wrap items-center gap-2"><p class="whitespace-nowrap text-xs tabular-nums text-mute" role="status" title="Mostrando 6 de 6 equipos. Actualizado 15:42.">6 de 6 equipos · 15:42</p>${button('Agregar equipo', 'outline')}${button('Reservar equipos')}</div>
  </div>
- <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2" role="status" aria-live="polite"><span class="text-xs text-mute"><b class="text-fore">1</b> de 50 seleccionado</span><div class="flex flex-wrap items-center gap-2">${button('Reservar', 'outline')}${button('Verificar', 'outline')}${button('Mover ubicación', 'outline')}${button('Limpiar', 'ghost')}</div></div>
+ <div class="flex flex-wrap items-center gap-2 border-t border-ink-600/60 pt-3" aria-label="Filtros locales de atención del inventario">
+  <span class="text-[11px] font-bold uppercase tracking-wider text-mute">Atención</span>
+  ${attentionChip('Valor faltante', 1)}${attentionChip('Control físico pendiente', 2)}
+  <p class="basis-full text-[11px] leading-4 text-mute">Control pendiente: vencido hace más de 30 días o sin registro. Los conteos respetan búsqueda y categoría.</p>
+ </div>
+ ${selectionBar}
+</div>`;
+
+const inventoryToolbar = `
+<div class="grid min-w-0 gap-3">
+ <div class="flex min-w-0 flex-wrap items-end gap-3 xl:flex-nowrap">
+  ${segmented('Vistas de inventario', [['equipment', 'Equipos', 'box'], ['reservations', 'Calendario y reservas', 'calendar']], 'equipment', 'silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0')}
+  <div class="min-w-[8rem] flex-1 lg:max-w-72">${searchField('Buscar equipo o ubicación', 'Memoria, DJI Mic, estante…')}</div>
+  <div class="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap">${selectCustom('Categoría', 'Todas')}</div>
+  <div class="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto"><p class="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite" title="Mostrando 6 de 6 equipos. Sincroniza cada 30 s mientras esta pestaña esté visible. Actualizado 15:42.">6 de 6 · 15:42</p>${button('Agregar equipo', 'outline')}${button('Reservar equipos')}</div>
+ </div>
+ ${attentionRow}
+ ${selectionBar}
 </div>`;
 const kpiStrip = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Valor total', 'Gs 1.249.167.890', '6 equipos', true)}${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
 // Valor total sin datos monetarios (#62): el KPI no inventa cifras y ofrece el CTA.
@@ -229,8 +262,29 @@ export default [
       exemptBelow: 940,
     }],
     body: `
-<div class="grid min-w-0 gap-4 p-4">
- <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">${inventoryToolbar}</div>
+<div class="grid min-w-0 gap-4">
+ <div class="grid min-w-0 gap-3">${inventoryToolbar}</div>
+ <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
+  ${kpiStrip}
+  <div data-list="equipment" class="mt-4 min-w-0 overflow-x-auto">
+   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.5fr)_minmax(8rem,1fr)_7rem_6.5rem_minmax(7.5rem,1fr)_minmax(11rem,1.2fr)_10.5rem] grid min-w-[67.5rem] gap-2">
+   ${equipmentHead}
+   ${equipment.map(equipmentRow).join('')}
+   </div>
+  </div>
+ </div>
+</div>`,
+  },
+  {
+    id: 'inventario-equipos-lista-antes-90',
+    section: 'Inventario',
+    surface: 'Equipos en lista · referencia del antes (#90)',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `
+<div class="grid min-w-0 gap-4">
+ <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5"><div class="grid min-w-0 gap-3">${inventoryToolbarAntes}</div></div>
  <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
   ${kpiStrip}
   <div data-list="equipment" class="mt-4 min-w-0 overflow-x-auto">
@@ -249,9 +303,9 @@ export default [
     kind: 'workspace',
     grids: [{container: '[data-grid="equipment"]', card: '[data-grid-card="equipment"]', label: 'Inventario · cuadrícula', minHeight: 200}],
     body: `
-<div class="grid min-w-0 gap-4 p-4">
- ${kpiStrip}
- <div data-grid="equipment" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">${equipment.map(equipmentCard).join('')}</div>
+<div class="grid min-w-0 gap-4">
+ <div class="grid min-w-0 gap-3">${inventoryToolbar}</div>
+ <div class="grid min-w-0 gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">${kpiStrip}<div data-grid="equipment" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">${equipment.map(equipmentCard).join('')}</div></div>
 </div>`,
   },
   {

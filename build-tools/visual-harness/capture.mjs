@@ -33,6 +33,12 @@ const outDir = resolve(repo, option('out', join(dirname(input), 'captures')));
 const widths = option('widths', '360,768,1440').split(',').map(value => Number(value.trim())).filter(Boolean);
 const heights = option('heights', '900').split(',').map(value => Number(value.trim())).filter(Boolean);
 const themes = option('themes', 'light,dark').split(',').map(value => value.trim()).filter(Boolean);
+/* Tamaños de viewport por ancho (p. ej. `--viewport 1440x900,390x844`): con el
+   flag, la captura recorta al viewport pedido en vez de la página completa. */
+const viewports = new Map(option('viewport', '').split(',').map(value => value.trim()).filter(Boolean).map(value => {
+  const [w, h] = value.split('x').map(Number);
+  return [Number(w), Number(h)];
+}));
 const only = option('only', '').split(',').map(value => value.trim()).filter(Boolean);
 const chromePath = option('chrome', process.env.CHROME_PATH || defaultChromePath);
 
@@ -67,8 +73,9 @@ try {
   for (const theme of themes) {
     for (const width of widths) {
       const mobile = width < 768;
-      // Altura del viewport emulado por ancho (p. ej. 844 en móvil, 900 en escritorio).
-      const height = heights.length === widths.length ? heights[widths.indexOf(width)] : heights[0];
+      // Altura del viewport emulado por ancho: `--viewport w×h` (recorta al
+      // viewport) tiene prioridad; `--heights` (#89) fija solo la emulación.
+      const height = viewports.get(width) || (heights.length === widths.length ? heights[widths.indexOf(width)] : heights[0]);
       await cdp.send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile});
       const loaded = cdp.once('Page.loadEventFired');
       await cdp.send('Page.navigate', {url: `http://127.0.0.1:${port}/audit.html`});
@@ -80,7 +87,8 @@ try {
       for (const id of selected) {
         await cdp.evaluate(`[...document.querySelectorAll('[data-fixture]')].forEach(element=>{element.style.display=element.getAttribute('data-fixture')===${JSON.stringify(id)}?'':'none';});`);
         const metrics = await cdp.evaluate(`(()=>{const element=document.querySelector(${JSON.stringify(`[data-fixture="${id}"]`)});const box=element.getBoundingClientRect();return {height:Math.ceil(element.scrollHeight||box.height),width:Math.ceil(box.width)};})()`);
-        const shot = await cdp.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: true, clip: {x: 0, y: 0, width, height: Math.max(120, metrics.height), scale: 1}});
+        const clipHeight = viewports.get(width) || Math.max(120, metrics.height);
+        const shot = await cdp.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: true, clip: {x: 0, y: 0, width, height: clipHeight, scale: 1}});
         const file = join(outDir, `${id}-${width}-${theme}.png`);
         writeFileSync(file, Buffer.from(shot.data, 'base64'));
         console.log(`${id} ${width}px ${theme} -> ${file}`);

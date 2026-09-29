@@ -166,8 +166,9 @@ assert.match(board,/loading&&counts===undefined/,'el badge no inventa un 0 duran
 assert.match(board,/data-column/,'las columnas conservan su ancla de medición');
 assert.match(read('app/scale-workspace.tsx'),/createOrder=\{canCreateRecord\('Producción'\)\?\(\)=>setModal\('order'\):undefined\}/,'el CTA del vacío reutiliza el modal real del shell');
 // ── Ronda 14 (#62): toolbar compacta de inventario y vacíos con CTA.
-assert.match(inventory,/min-w-\[12rem\] flex-1 sm:max-w-80/,'la búsqueda del inventario comparte la línea de la toolbar');
-assert.match(inventory,/visible\.length\} de \{items\.length\} equipos/,'el contador dice visibles de total');
+// #90: la búsqueda es flexible, más angosta en la fila única del toolbar.
+assert.match(inventory,/min-w-\[8rem\] flex-1 lg:max-w-72/,'la búsqueda del inventario comparte la línea de la toolbar');
+assert.match(inventory,/visible\.length\} de \{items\.length\}\{updatedAt/,'el contador compacto dice visibles de total');
 assert.match(inventory,/title=\{`Mostrando \$\{visible\.length\} de \$\{items\.length\} equipos/,'el detalle del contador viaja en el title');
 assert.match(inventory,/onAddValue=\{context\?\.can_manage&&itemWithoutValue\?/,'el valor ausente ofrece la edición de un equipo');
 assert.match(inventory,/>Agregar valor<\/button>/,'el CTA del valor se nombra "Agregar valor"');

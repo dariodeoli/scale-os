@@ -240,7 +240,7 @@ export function InventoryWorkspace({role}:{role:string}){
 }
 function InventoryPanel(){
  const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[selectedItems,setSelectedItems]=useState<string[]>([]),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
- const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0);
+ const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0),[attentionHelp,setAttentionHelp]=useState(false);
  const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate,moveItemLocally}=useInventoryCatalog(month,refresh);
  // El error del catálogo sólo existe cuando nunca hubo datos y bloquea la vista; el de una
  // acción se avisa aparte y NUNCA esconde el catálogo que ya está en pantalla.
@@ -307,27 +307,32 @@ function InventoryPanel(){
  const attentionFilterLabel=attentionFilter==='missing_value'?'valor faltante':attentionFilter==='physical_verification'?'control físico pendiente':'';
  const updatedAt=lastUpdated?lastUpdated.toLocaleTimeString('es-PY',{timeZone:OPS_TIME_ZONE,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}):'';
  return <div className="grid min-w-0 gap-4">
-  <Card className="grid min-w-0 gap-3">
-   <div className="flex flex-wrap items-end gap-2">
-    <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/>
+  {/* Toolbar sin card contenedora (#90): una fila en ≥1280, chips de atención
+      compactos debajo y la explicación solo a tooltip/expandible. */}
+  <div className="grid min-w-0 gap-3" data-inventory-toolbar>
+   <div className="flex min-w-0 flex-wrap items-end gap-3 xl:flex-nowrap">
+    <SegmentedField className="silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0 [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/>
     {view!=='reservations'?<>
-     <SearchField className="min-w-[12rem] flex-1 sm:max-w-80" ariaLabel="Buscar equipo o ubicación" value={search} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setSearch(event.target.value)} placeholder="Memoria, DJI Mic, estante…"/>
-     <SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/>
-     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
-     {selectionEnabled&&visible.length?<Button type="button" variant="ghost" onClick={selectVisible}>Seleccionar visibles</Button>:null}
-     <div className="ml-auto flex flex-wrap items-center gap-2">
-      <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite" title={`Mostrando ${visible.length} de ${items.length} equipos${attentionFilterLabel?` con filtro de ${attentionFilterLabel}`:''}. Sincroniza cada 30 s mientras esta pestaña esté visible.${updatedAt?` Actualizado ${updatedAt}.`:''}`}>{visible.length} de {items.length} equipos{attentionFilterLabel?` · ${attentionFilterLabel}`:''}{updatedAt?` · ${updatedAt}`:''}</p>
+     <SearchField className="min-w-[8rem] flex-1 lg:max-w-72" ariaLabel="Buscar equipo o ubicación" value={search} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setSearch(event.target.value)} placeholder="Memoria, DJI Mic, estante…"/>
+     <div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/></div>
+     <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">
+      <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite" title={`Mostrando ${visible.length} de ${items.length} equipos${attentionFilterLabel?` con filtro de ${attentionFilterLabel}`:''}. Sincroniza cada 30 s mientras esta pestaña esté visible.${updatedAt?` Actualizado ${updatedAt}.`:''}`}>{visible.length} de {items.length}{updatedAt?` · ${updatedAt}`:''}</p>
       {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:null}
       {context?.can_reserve&&!selectedItems.length?<Button type="button" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</Button>:null}
      </div>
     </>:null}
    </div>
-   {view!=='reservations'?<div className="flex flex-wrap items-center gap-2 border-t border-ink-600/60 pt-3" aria-label="Filtros locales de atención del inventario">
+   {view!=='reservations'?<div className="flex min-w-0 flex-wrap items-center gap-2" aria-label="Filtros locales de atención del inventario">
     <span className="text-[11px] font-bold uppercase tracking-wider text-mute">Atención</span>
     <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='missing_value'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}`} aria-label={`Filtrar equipos con valor faltante: ${attention.missingValue}`} aria-pressed={attentionFilter==='missing_value'} title={`Filtrar ${attention.missingValue} equipo${attention.missingValue===1?'':'s'} con valor faltante`} onClick={()=>setAttentionFilter(current=>current==='missing_value'?'':'missing_value')}><span>Valor faltante</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.missingValue}</span></button>
-    <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='physical_verification'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}`} aria-label={`Filtrar equipos con control físico vencido o sin registro: ${attention.physicalVerification}`} aria-pressed={attentionFilter==='physical_verification'} title={`Filtrar ${attention.physicalVerification} equipo${attention.physicalVerification===1?'':'s'} con control físico vencido o sin registro`} onClick={()=>setAttentionFilter(current=>current==='physical_verification'?'':'physical_verification')}><span>Control físico pendiente</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.physicalVerification}</span></button>
+    <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='physical_verification'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}`} aria-label={`Filtrar equipos con control físico vencido o sin registro: ${attention.physicalVerification}`} aria-pressed={attentionFilter==='physical_verification'} title={`Control pendiente: vencido hace más de ${PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.`} onClick={()=>setAttentionFilter(current=>current==='physical_verification'?'':'physical_verification')}><span>Control físico pendiente</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.physicalVerification}</span></button>
     {attentionFilter?<Button type="button" variant="ghost" className="min-h-11 md:min-h-8" onClick={()=>setAttentionFilter('')}>Limpiar atención</Button>:null}
-    <p className="basis-full text-[11px] leading-4 text-mute">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</p>
+    <button type="button" className="text-button" aria-expanded={attentionHelp} title="Qué cuenta cada chip de atención" onClick={()=>setAttentionHelp(value=>!value)}>¿Qué es?</button>
+    <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">
+     <SegmentedField className="silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0 [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
+     {selectionEnabled&&visible.length?<button type="button" className="text-button" onClick={selectVisible}>Seleccionar visibles</button>:null}
+    </div>
+    {attentionHelp?<Nota tono="info" compact className="basis-full">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</Nota>:null}
    </div>:null}
    {view!=='reservations'&&selectedItems.length?<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2" role="status" aria-live="polite">
     <span className="text-xs text-mute"><b className="text-fore">{selectedItems.length}</b> de {BATCH_LIMITS.inventory} seleccionado{selectedItems.length===1?'':'s'}</span>
@@ -338,7 +343,7 @@ function InventoryPanel(){
      <Button type="button" variant="ghost" onClick={()=>setSelectedItems([])}>Limpiar</Button>
     </div>
    </div>:null}
-  </Card>
+  </div>
 
   {/* Estados de la pantalla, compartidos por equipos y calendario: un fallo de
       acción no reemplaza el contenido ya cargado. */}

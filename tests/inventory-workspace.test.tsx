@@ -127,14 +127,14 @@ async function run(){
  await act(async()=>{renderer=create(<InventoryWorkspace role="collaborator"/>);});assert.notEqual(renderer.toJSON(),null,'collaborator reaches the inventory catalog');act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryWorkspace role="guest"/>);});assert.equal(renderer.toJSON(),null,'a role outside the capability renders nothing');act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});
- assert.equal(intervals.size,1);assert.match(text(renderer.root),/2 de 2 equipos/,'the compact counter shows visible of total');assert.match(text(renderer.root),/Estante A/);assert.doesNotMatch(text(renderer.root),/Cargando inventario/);assert.doesNotMatch(text(renderer.root),/Ubicaciones de guardado/,'storage management controls stay hidden outside manager roles');
+ assert.equal(intervals.size,1);assert.match(text(renderer.root),/2 de 2/,'the compact counter shows visible of total');assert.match(text(renderer.root),/Estante A/);assert.doesNotMatch(text(renderer.root),/Cargando inventario/);assert.doesNotMatch(text(renderer.root),/Ubicaciones de guardado/,'storage management controls stay hidden outside manager roles');
  const tabs=renderer.root.findByProps({'aria-label':'Vistas de inventario'}).findAllByType('button');assert.equal(tabs.length,2);assert.equal(tabs[0].props['aria-pressed'],true);assert.equal(tabs[1].props['aria-pressed'],false);
  const viewControl=renderer.root.findByProps({'aria-label':'Vista de inventario'});
  let viewButtons=viewControl.findAllByType('button');assert.equal(viewButtons.length,3,'grid, list and pipeline are the equipment views');assert(viewButtons.every(node=>node.props['aria-label']&&node.props['aria-pressed']!==undefined),'view controls retain accessible labels and selected state');
  act(()=>viewButton('Lista').props.onClick());assert.equal(listHeader().length,1,'the list shows a column header row');for(const col of ['Foto','Artículo','Detalles','Valor','Estado','Ubicación','Verificación','Acciones'])assert.match(text(listHeader()[0]),new RegExp(col),`${col} column header is present`);
  assert.equal(viewButton('Lista').props['aria-pressed'],true);
  act(()=>viewButton('Cuadrícula').props.onClick());assert.equal(listHeader().length,0,'the column header belongs to the list view only');
- assert.match(text(renderer.root),/2 de 2 equipos/);change('Buscar equipo o ubicación','Mic');assert.match(text(renderer.root),/1 de 2 equipos/,'the compact count tracks the filter');change('Buscar equipo o ubicación','');
+ assert.match(text(renderer.root),/2 de 2/);change('Buscar equipo o ubicación','Mic');assert.match(text(renderer.root),/1 de 2/,'the compact count tracks the filter');change('Buscar equipo o ubicación','');
  act(()=>viewButton('Ubicaciones').props.onClick());
  assert.match(tree(),/Estante B/,'every active location appears in the pipeline even when empty');
  assert.match(tree(),/Depósito anterior/,'an archived location still appears while it holds equipment');
@@ -273,6 +273,31 @@ async function run(){
  assert.match(text(renderer.root),/Memoria SD/,'the catalog stays visible after an action failure');
  assert.doesNotMatch(text(renderer.root),/No se pudo cargar el inventario/,'an action failure never replaces the loaded catalog');
  fail=false;act(()=>renderer.unmount());assert.equal(intervals.size,0);
+ // #90 (inventario compacto): el toolbar no vive dentro de una card contenedora,
+ // la fila principal no envuelve en ≥1280, la vista y la selección van en la
+ // segunda fila y la explicación de atención se muestra solo al expandir.
+ await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+ const toolbar=renderer.root.findByProps({'data-inventory-toolbar':true});
+ assert(String(toolbar.parent!.props.className).includes('grid min-w-0 gap-4'),'el toolbar es hijo directo del panel');
+ assert(!String(toolbar.parent!.props.className).includes('rounded-2xl'),'el toolbar no está dentro de una card (#90)');
+ const mainRow=toolbar.children[0] as ReactTestInstance;
+ assert(String(mainRow.props.className).includes('xl:flex-nowrap'),'la fila principal es una sola fila en ≥1280');
+ const attentionRow=renderer.root.findByProps({'aria-label':'Filtros locales de atención del inventario'});
+ assert(String(attentionRow.props.className).includes('flex'),'la atención vive en su propia fila');
+ const viewSwitch=renderer.root.findAll(node=>node.props?.['aria-label']==='Vista de inventario');
+ assert.equal(viewSwitch.length,1,'hay un solo selector de vista');
+ assert(!text(attentionRow).includes('Cuadrícula')===false,'el selector de vista acompaña la fila de atención');
+ assert(attentionRow.findAllByType('button').some(node=>text(node)==='Seleccionar visibles'&&String(node.props.className).includes('text-button')),'Seleccionar visibles es una acción secundaria discreta');
+ assert(!text(renderer.root).includes('Control pendiente: vencido'),'la explicación no ocupa una línea fija');
+ const help=renderer.root.findAllByType('button').find(node=>text(node)==='¿Qué es?!')||renderer.root.findAllByType('button').find(node=>text(node)==='¿Qué es?')!;
+ assert.equal(help.props['aria-expanded'],false,'la explicación arranca colapsada');
+ act(()=>help.props.onClick());
+ assert.equal(renderer.root.findAllByType('button').find(node=>text(node)==='¿Qué es?')!.props['aria-expanded'],true,'la explicación se expande');
+ assert(text(renderer.root).includes('Control pendiente: vencido'),'la explicación sigue disponible al expandir');
+ const counter=renderer.root.findAll(node=>node.props?.role==='status'&&String(node.props.className).includes('tabular-nums')).find(node=>text(node).startsWith('2 de 2'));
+ assert(counter,'el contador es compacto');
+ assert(String(counter!.props.title).includes('Mostrando 2 de 2 equipos'),'el detalle del contador vive en el tooltip');
+ act(()=>renderer.unmount());assert.equal(intervals.size,0);
  // El detalle y la trazabilidad abren el drawer con la lectura real del API.
  await act(async()=>{renderer=create(<InventoryDetail item={equipment[0]} members={context.members} canManage={false}/>);});
  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
