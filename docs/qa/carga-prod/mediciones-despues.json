@@ -1,0 +1,1504 @@
+{
+ "capturedAt": "2026-09-29T22:30:57.926Z",
+ "base": "http://127.0.0.1:3078",
+ "latency": {
+  "desktop": {
+   "latency": 40,
+   "downloadThroughput": 1280000,
+   "uploadThroughput": 384000
+  },
+  "mobile": {
+   "latency": 80,
+   "downloadThroughput": 204800,
+   "uploadThroughput": 96000
+  }
+ },
+ "rows": [
+  {
+   "screen": "equipo",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 28,
+   "loadMs": 131,
+   "authMs": 15,
+   "fcp": 124,
+   "calls": 17,
+   "bytes": 78447,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 18,
+    "bytes": 1883
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 3,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 15,
+     "bytes": 981
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 9,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 9,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 18,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 9,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 9,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 9,
+     "bytes": 846
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 1,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 12,
+     "bytes": 745
+    },
+    {
+     "url": "agency/control-center",
+     "duration": 14,
+     "bytes": 742
+    },
+    {
+     "url": "agency/team",
+     "duration": 17,
+     "bytes": 1475
+    },
+    {
+     "url": "agency/media/collaborator/39?v=6dec44db7c",
+     "duration": 4,
+     "bytes": 11992
+    },
+    {
+     "url": "agency/media/collaborator/37?v=4b3c2579e9",
+     "duration": 4,
+     "bytes": 11552
+    },
+    {
+     "url": "agency/media/collaborator/38?v=9953008706",
+     "duration": 4,
+     "bytes": 11614
+    },
+    {
+     "url": "agency/media/collaborator/41?v=89c8500935",
+     "duration": 4,
+     "bytes": 15972
+    },
+    {
+     "url": "agency/media/collaborator/40?v=3df9b47d96",
+     "duration": 4,
+     "bytes": 9852
+    }
+   ],
+   "contentMs": 181
+  },
+  {
+   "screen": "actividad",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 2,
+   "loadMs": 62,
+   "authMs": 4,
+   "fcp": 84,
+   "calls": 17,
+   "bytes": 77697,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/activity?limit=20&offset=0",
+    "duration": 20,
+    "bytes": 620
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 2,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 4,
+     "bytes": 981
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 5,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 5,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 7,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 5,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 4,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 5,
+     "bytes": 847
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 1,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 5,
+     "bytes": 745
+    },
+    {
+     "url": "agency/activity?limit=20&offset=0",
+     "duration": 20,
+     "bytes": 620
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 4,
+     "bytes": 846
+    },
+    {
+     "url": "agency/media/person/47?v=6dec44db7c",
+     "duration": 3,
+     "bytes": 11992
+    },
+    {
+     "url": "agency/media/person/46?v=9953008706",
+     "duration": 3,
+     "bytes": 11614
+    },
+    {
+     "url": "agency/media/person/45?v=4b3c2579e9",
+     "duration": 4,
+     "bytes": 11552
+    },
+    {
+     "url": "agency/media/person/48?v=3df9b47d96",
+     "duration": 4,
+     "bytes": 9852
+    },
+    {
+     "url": "agency/media/person/49?v=89c8500935",
+     "duration": 4,
+     "bytes": 15972
+    }
+   ],
+   "contentMs": 181
+  },
+  {
+   "screen": "historial",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 2,
+   "loadMs": 56,
+   "authMs": 4,
+   "fcp": 80,
+   "calls": 12,
+   "bytes": 18231,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/presence/usage",
+    "duration": 16,
+    "bytes": 846
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 1,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 4,
+     "bytes": 981
+    },
+    {
+     "url": "agency/projects",
+     "duration": 7,
+     "bytes": 2488
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 7,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients",
+     "duration": 7,
+     "bytes": 6233
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 11,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 13,
+     "bytes": 311
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 1,
+     "bytes": 387
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 16,
+     "bytes": 846
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 15,
+     "bytes": 745
+    },
+    {
+     "url": "agency/productivity/people",
+     "duration": 5,
+     "bytes": 674
+    },
+    {
+     "url": "agency/productivity/history?limit=10&offset=0",
+     "duration": 8,
+     "bytes": 661
+    }
+   ],
+   "contentMs": 177
+  },
+  {
+   "screen": "invitaciones",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 2,
+   "loadMs": 54,
+   "authMs": 4,
+   "fcp": 80,
+   "calls": 12,
+   "bytes": 6103,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/access-requests",
+    "duration": 6,
+    "bytes": 677
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 2,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 4,
+     "bytes": 901
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 3,
+     "bytes": 365
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 3,
+     "bytes": 314
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 4,
+     "bytes": 315
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 4,
+     "bytes": 462
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 1,
+     "bytes": 387
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 4,
+     "bytes": 594
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 4,
+     "bytes": 360
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 4,
+     "bytes": 311
+    },
+    {
+     "url": "agency/access-requests",
+     "duration": 6,
+     "bytes": 677
+    },
+    {
+     "url": "agency/invite-links",
+     "duration": 6,
+     "bytes": 1101
+    }
+   ],
+   "contentMs": 175
+  },
+  {
+   "screen": "permisos",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 3,
+   "loadMs": 55,
+   "authMs": 4,
+   "fcp": 92,
+   "calls": 11,
+   "bytes": 16829,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 7,
+    "bytes": 1883
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 2,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 4,
+     "bytes": 981
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 6,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 6,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 7,
+     "bytes": 1883
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 4,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 5,
+     "bytes": 311
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 2,
+     "bytes": 387
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 6,
+     "bytes": 846
+    },
+    {
+     "url": "agency/permissions",
+     "duration": 5,
+     "bytes": 1581
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 5,
+     "bytes": 745
+    }
+   ],
+   "contentMs": 179
+  },
+  {
+   "screen": "papelera",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 3,
+   "loadMs": 60,
+   "authMs": 5,
+   "fcp": 84,
+   "calls": 11,
+   "bytes": 15858,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/trash?limit=50&offset=0",
+    "duration": 12,
+    "bytes": 609
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 2,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 5,
+     "bytes": 981
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 6,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 6,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 7,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 7,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 5,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 7,
+     "bytes": 847
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 2,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 10,
+     "bytes": 745
+    },
+    {
+     "url": "agency/trash?limit=50&offset=0",
+     "duration": 12,
+     "bytes": 609
+    }
+   ],
+   "contentMs": 183
+  },
+  {
+   "screen": "preferencias",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 4,
+   "loadMs": 59,
+   "authMs": 4,
+   "fcp": 96,
+   "calls": 10,
+   "bytes": 15248,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/presence/usage",
+    "duration": 8,
+    "bytes": 846
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 2,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 4,
+     "bytes": 981
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 5,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 7,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 7,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 6,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 5,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 8,
+     "bytes": 846
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 3,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 7,
+     "bytes": 745
+    }
+   ],
+   "contentMs": 183
+  },
+  {
+   "screen": "configuracion",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 2,
+   "loadMs": 62,
+   "authMs": 5,
+   "fcp": 76,
+   "calls": 12,
+   "bytes": 16291,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+    "duration": 6,
+    "bytes": 5190
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 2,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 5,
+     "bytes": 981
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 6,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 6,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 6,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 4,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 4,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 5,
+     "bytes": 846
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 1,
+     "bytes": 387
+    },
+    {
+     "url": "agency/settings",
+     "duration": 5,
+     "bytes": 554
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 5,
+     "bytes": 745
+    },
+    {
+     "url": "agency/exchange-rates",
+     "duration": 5,
+     "bytes": 489
+    }
+   ],
+   "contentMs": 186
+  },
+  {
+   "screen": "superadmin",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "network": "40ms/10000kbps",
+   "ttfb": 2,
+   "loadMs": 60,
+   "authMs": 3,
+   "fcp": 64,
+   "calls": 7,
+   "bytes": 3754,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/platform/overview",
+    "duration": 4,
+    "bytes": 407
+   },
+   "api": [
+    {
+     "url": "platform/overview",
+     "duration": 4,
+     "bytes": 407
+    },
+    {
+     "url": "platform/bootstrap-status",
+     "duration": 2,
+     "bytes": 375
+    },
+    {
+     "url": "platform/agencies?limit=50",
+     "duration": 3,
+     "bytes": 682
+    },
+    {
+     "url": "auth/me",
+     "duration": 3,
+     "bytes": 901
+    },
+    {
+     "url": "platform/coupons?limit=50",
+     "duration": 3,
+     "bytes": 362
+    },
+    {
+     "url": "platform/users?limit=50",
+     "duration": 3,
+     "bytes": 665
+    },
+    {
+     "url": "platform/audit?limit=50",
+     "duration": 3,
+     "bytes": 362
+    }
+   ],
+   "contentMs": 172
+  },
+  {
+   "screen": "equipo",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 2,
+   "loadMs": 106,
+   "authMs": 4,
+   "fcp": 140,
+   "calls": 17,
+   "bytes": 17466,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+    "duration": 6,
+    "bytes": 5190
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 1,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 4,
+     "bytes": 981
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 6,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 6,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 6,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 4,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 3,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 5,
+     "bytes": 847
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 1,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 5,
+     "bytes": 745
+    },
+    {
+     "url": "agency/control-center",
+     "duration": 5,
+     "bytes": 742
+    },
+    {
+     "url": "agency/team",
+     "duration": 5,
+     "bytes": 1475
+    },
+    {
+     "url": "agency/media/collaborator/39?v=6dec44db7c",
+     "duration": 0,
+     "bytes": 0
+    },
+    {
+     "url": "agency/media/collaborator/37?v=4b3c2579e9",
+     "duration": 0,
+     "bytes": 0
+    },
+    {
+     "url": "agency/media/collaborator/38?v=9953008706",
+     "duration": 0,
+     "bytes": 0
+    },
+    {
+     "url": "agency/media/collaborator/40?v=3df9b47d96",
+     "duration": 0,
+     "bytes": 0
+    },
+    {
+     "url": "agency/media/collaborator/41?v=89c8500935",
+     "duration": 0,
+     "bytes": 0
+    }
+   ],
+   "contentMs": 230
+  },
+  {
+   "screen": "actividad",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 2,
+   "loadMs": 94,
+   "authMs": 4,
+   "fcp": 104,
+   "calls": 17,
+   "bytes": 16716,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/activity?limit=20&offset=0",
+    "duration": 28,
+    "bytes": 620
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 2,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 4,
+     "bytes": 981
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 5,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 5,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 6,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 6,
+     "bytes": 311
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 2,
+     "bytes": 387
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 5,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 8,
+     "bytes": 847
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 6,
+     "bytes": 745
+    },
+    {
+     "url": "agency/activity?limit=20&offset=0",
+     "duration": 28,
+     "bytes": 620
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 9,
+     "bytes": 847
+    },
+    {
+     "url": "agency/media/person/47?v=6dec44db7c",
+     "duration": 0,
+     "bytes": 0
+    },
+    {
+     "url": "agency/media/person/45?v=4b3c2579e9",
+     "duration": 0,
+     "bytes": 0
+    },
+    {
+     "url": "agency/media/person/46?v=9953008706",
+     "duration": 0,
+     "bytes": 0
+    },
+    {
+     "url": "agency/media/person/48?v=3df9b47d96",
+     "duration": 0,
+     "bytes": 0
+    },
+    {
+     "url": "agency/media/person/49?v=89c8500935",
+     "duration": 0,
+     "bytes": 0
+    }
+   ],
+   "contentMs": 218
+  },
+  {
+   "screen": "historial",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 5,
+   "loadMs": 106,
+   "authMs": 13,
+   "fcp": 140,
+   "calls": 12,
+   "bytes": 18232,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/projects",
+    "duration": 16,
+    "bytes": 2488
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 5,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 13,
+     "bytes": 981
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 13,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients",
+     "duration": 15,
+     "bytes": 6233
+    },
+    {
+     "url": "agency/projects",
+     "duration": 16,
+     "bytes": 2488
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 12,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 7,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 11,
+     "bytes": 847
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 2,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 11,
+     "bytes": 745
+    },
+    {
+     "url": "agency/productivity/people",
+     "duration": 10,
+     "bytes": 674
+    },
+    {
+     "url": "agency/productivity/history?limit=10&offset=0",
+     "duration": 15,
+     "bytes": 661
+    }
+   ],
+   "contentMs": 232
+  },
+  {
+   "screen": "invitaciones",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 24,
+   "loadMs": 120,
+   "authMs": 33,
+   "fcp": 152,
+   "calls": 12,
+   "bytes": 6103,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 47,
+    "bytes": 315
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 6,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 33,
+     "bytes": 901
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 30,
+     "bytes": 365
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 46,
+     "bytes": 314
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 47,
+     "bytes": 315
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 17,
+     "bytes": 462
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 5,
+     "bytes": 387
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 21,
+     "bytes": 594
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 31,
+     "bytes": 360
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 31,
+     "bytes": 311
+    },
+    {
+     "url": "agency/invite-links",
+     "duration": 46,
+     "bytes": 1101
+    },
+    {
+     "url": "agency/access-requests",
+     "duration": 33,
+     "bytes": 677
+    }
+   ],
+   "contentMs": 261
+  },
+  {
+   "screen": "permisos",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 34,
+   "loadMs": 138,
+   "authMs": 38,
+   "fcp": 152,
+   "calls": 11,
+   "bytes": 16829,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 61,
+    "bytes": 1883
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 17,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 38,
+     "bytes": 981
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 39,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 39,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 61,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 33,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 12,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 24,
+     "bytes": 846
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 11,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 24,
+     "bytes": 745
+    },
+    {
+     "url": "agency/permissions",
+     "duration": 33,
+     "bytes": 1581
+    }
+   ],
+   "contentMs": 265
+  },
+  {
+   "screen": "papelera",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 23,
+   "loadMs": 129,
+   "authMs": 54,
+   "fcp": 164,
+   "calls": 11,
+   "bytes": 15857,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 82,
+    "bytes": 1883
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 12,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 54,
+     "bytes": 981
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 48,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 48,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 82,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 27,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 8,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 26,
+     "bytes": 846
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 5,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 14,
+     "bytes": 745
+    },
+    {
+     "url": "agency/trash?limit=50&offset=0",
+     "duration": 39,
+     "bytes": 609
+    }
+   ],
+   "contentMs": 396
+  },
+  {
+   "screen": "preferencias",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 11,
+   "loadMs": 123,
+   "authMs": 13,
+   "fcp": 172,
+   "calls": 10,
+   "bytes": 15249,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 42,
+    "bytes": 1883
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 11,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 13,
+     "bytes": 981
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 19,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 19,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 42,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 18,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 11,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 17,
+     "bytes": 847
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 5,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 18,
+     "bytes": 745
+    }
+   ],
+   "contentMs": 266
+  },
+  {
+   "screen": "configuracion",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 14,
+   "loadMs": 127,
+   "authMs": 14,
+   "fcp": 168,
+   "calls": 12,
+   "bytes": 16291,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+    "duration": 25,
+    "bytes": 4212
+   },
+   "api": [
+    {
+     "url": "auth/providers",
+     "duration": 6,
+     "bytes": 316
+    },
+    {
+     "url": "auth/me",
+     "duration": 14,
+     "bytes": 981
+    },
+    {
+     "url": "agency/work-orders?limit=300&fields=id,title,status,project_id,project_name,client_name,due_date",
+     "duration": 25,
+     "bytes": 4212
+    },
+    {
+     "url": "agency/clients?fields=id,name,email,phone,active,lifecycle_status,logo_url,color_key",
+     "duration": 25,
+     "bytes": 5190
+    },
+    {
+     "url": "agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+     "duration": 25,
+     "bytes": 1883
+    },
+    {
+     "url": "agency/presence/heartbeat",
+     "duration": 15,
+     "bytes": 311
+    },
+    {
+     "url": "auth/organizations",
+     "duration": 6,
+     "bytes": 377
+    },
+    {
+     "url": "agency/presence/usage",
+     "duration": 11,
+     "bytes": 846
+    },
+    {
+     "url": "/core-api/health",
+     "duration": 4,
+     "bytes": 387
+    },
+    {
+     "url": "agency/notifications?status=all",
+     "duration": 14,
+     "bytes": 745
+    },
+    {
+     "url": "agency/settings",
+     "duration": 15,
+     "bytes": 554
+    },
+    {
+     "url": "agency/exchange-rates",
+     "duration": 18,
+     "bytes": 489
+    }
+   ],
+   "contentMs": 258
+  },
+  {
+   "screen": "superadmin",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "network": "80ms/1600kbps",
+   "ttfb": 5,
+   "loadMs": 122,
+   "authMs": 4,
+   "fcp": 136,
+   "calls": 7,
+   "bytes": 3754,
+   "rawBytes": 0,
+   "slowest": {
+    "url": "/core-api/api/platform/overview",
+    "duration": 10,
+    "bytes": 407
+   },
+   "api": [
+    {
+     "url": "platform/overview",
+     "duration": 10,
+     "bytes": 407
+    },
+    {
+     "url": "platform/bootstrap-status",
+     "duration": 4,
+     "bytes": 375
+    },
+    {
+     "url": "platform/agencies?limit=50",
+     "duration": 5,
+     "bytes": 682
+    },
+    {
+     "url": "platform/coupons?limit=50",
+     "duration": 4,
+     "bytes": 362
+    },
+    {
+     "url": "platform/users?limit=50",
+     "duration": 4,
+     "bytes": 665
+    },
+    {
+     "url": "auth/me",
+     "duration": 4,
+     "bytes": 901
+    },
+    {
+     "url": "platform/audit?limit=50",
+     "duration": 5,
+     "bytes": 362
+    }
+   ],
+   "contentMs": 122
+  }
+ ]
+}
