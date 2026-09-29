@@ -8,7 +8,11 @@ assert(forms.includes('<PhoneField'), 'client creation uses the shared phone fie
 assert(!forms.includes('dialCode'), 'client creation no longer hand-rolls a country code selector');
 
 const suite = read('app/suite.tsx');
-assert((suite.match(/type:'phone'/g) || []).length >= 3, 'suite declares phone fields for leads, clients and settings');
+assert((suite.match(/type:'phone'/g) || []).length >= 2, 'suite declares phone fields for clients and settings');
+// El editor de oportunidades vive en la sección del Pipeline (#85) y comparte
+// el campo y la ayuda del teléfono.
+const pipeline = read('app/sections/pipeline.tsx');
+assert(pipeline.includes("{key:'phone',label:'Teléfono',type:'phone',optional:true,help:PHONE_HELP}"), 'el editor de oportunidades usa el campo de teléfono compartido con su ayuda');
 
 const inventory = read('app/inventory-workspace.tsx');
 assert(inventory.includes('<SerialField') && inventory.includes('normalizar={normalizeSerial}'), 'inventory normalizes serials with the shared SerialField while typing');

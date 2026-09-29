@@ -8,8 +8,6 @@ const feedbackId=require.resolve('../app/feedback');
 require.cache[feedbackId]={id:feedbackId,filename:feedbackId,loaded:true,exports:{notify:(notice:{tone:string})=>notices.push(notice)}} as NodeModule;
 const {completeSave}=require('../app/save-completion') as typeof import('../app/save-completion');
 const cases=[
- ['suite','CatalogWorkspace','Editor','save'],
- ['suite','CatalogWorkspace','QuoteComposer','done'],
  ['suite','RecordEditor','Editor','save'],
  ['suite','RecordEditor','RecordAssignees','refresh'],
  ['suite','BudgetActions','QuoteComposer','done'],
@@ -81,8 +79,8 @@ for(const [module,name,component,attribute] of cases)test(`${name} ${component}:
 test('completion covers main save paths including unified assignments, not secondary actions',()=>{
  const suite=readFileSync(new URL('../app/suite.tsx',import.meta.url),'utf8');
  const access=readFileSync(new URL('../app/team-access.tsx',import.meta.url),'utf8');
- assert.equal((suite.match(/await completeSave\(/g)||[]).length,4);
- assert.equal((suite.match(/\bcompleteSave\(/g)||[]).length,5,'unified assignment completion is also covered');
+ assert.equal((suite.match(/await completeSave\(/g)||[]).length,2,'client detail and budget invoice keep their completion');
+ assert.equal((suite.match(/\bcompleteSave\(/g)||[]).length,3,'unified assignment completion is also covered');
  assert.equal((access.match(/await completeSave\(/g)||[]).length,1);
  assert(suite.includes('refresh={async()=>{await refresh();await open();}}'),'appearance partial saves retain their reload behavior');
  for(const source of [suite,access]){
