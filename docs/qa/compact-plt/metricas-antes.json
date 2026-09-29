@@ -1,0 +1,128 @@
+[
+ {
+  "screen": "configuracion",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 332,
+  "visibles": 0
+ },
+ {
+  "screen": "preferencias",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 498,
+  "visibles": 2
+ },
+ {
+  "screen": "papelera",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 1032,
+  "visibles": 0
+ },
+ {
+  "screen": "invitaciones",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 1000,
+  "visibles": 0
+ },
+ {
+  "screen": "permisos",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 2170,
+  "visibles": 0
+ },
+ {
+  "screen": "actividad",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 2645,
+  "visibles": 0
+ },
+ {
+  "screen": "superadmin",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 894,
+  "visibles": 0
+ },
+ {
+  "screen": "configuracion",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 332,
+  "visibles": 0
+ },
+ {
+  "screen": "preferencias",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 498,
+  "visibles": 2
+ },
+ {
+  "screen": "papelera",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 1032,
+  "visibles": 0
+ },
+ {
+  "screen": "invitaciones",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 1000,
+  "visibles": 0
+ },
+ {
+  "screen": "permisos",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 2170,
+  "visibles": 0
+ },
+ {
+  "screen": "actividad",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 2645,
+  "visibles": 0
+ },
+ {
+  "screen": "superadmin",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 894,
+  "visibles": 0
+ }
+]

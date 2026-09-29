@@ -1,0 +1,42 @@
+[
+ {
+  "label": "antes",
+  "billing": "real",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "barTop": 440,
+  "cardTop": 537,
+  "tarjetasVisibles": 0
+ },
+ {
+  "label": "antes",
+  "billing": "real",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "barTop": 576,
+  "cardTop": 1304,
+  "tarjetasVisibles": 0
+ },
+ {
+  "label": "antes",
+  "billing": "real",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "barTop": 440,
+  "cardTop": 537,
+  "tarjetasVisibles": 0
+ },
+ {
+  "label": "antes",
+  "billing": "real",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "barTop": 576,
+  "cardTop": 1304,
+  "tarjetasVisibles": 0
+ }
+]

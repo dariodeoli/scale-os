@@ -6,7 +6,7 @@ import {notify} from './feedback';
 import {listDateFull} from './list-format';
 import {RotateCcw,Trash2} from 'lucide-react';
 import {ARCHIVE_KIND_CAPABILITIES,roleCan,type Capability} from './capabilities';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,PageHeader} from './ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
 
 // Fuente única con la papelera del API: el NAV usa el mismo mapa.
 const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>;
@@ -35,7 +35,7 @@ export function RemoveRecord({kind,id,name,role,done}:{kind:string;id:string;nam
 type Removed={kind:string;id:string;name:string;removed_at:string;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 
 /** Plantilla v2 compartida entre el encabezado y las filas de la papelera. */
-const TRASH_TEMPLATE='grid-cols-[2rem_7rem_minmax(16rem,2.4fr)_7rem]';
+const TRASH_TEMPLATE='grid-cols-[2rem_8.5rem_minmax(16rem,2.4fr)_7rem]';
 const TRASH_COLUMNS=[{key:'select',label:''},{key:'kind',label:'Tipo'},{key:'record',label:'Registro'},{key:'actions',label:'Acciones'}];
 
 export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
@@ -59,8 +59,8 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
  useEffect(()=>{void load().catch(e=>setError(errorMessage(e))).finally(()=>setLoading(false));},[]);
  const kinds=new Set(records.map(record=>record.kind)).size;
  const allSelected=records.length>0&&selected.length===records.length;
- return <section className="grid gap-4" aria-labelledby="trash-workspace-title">
-  <PageHeader eyebrow="Configuración" title="Papelera de esta empresa" subtitle="Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva: los accesos retirados se devuelven con una nueva invitación desde Equipo."/>
+ return <section className="grid gap-4" aria-label="Papelera de esta empresa">
+  <p className="text-xs text-mute" title="No se borran de forma definitiva: los accesos retirados se devuelven con una nueva invitación desde Equipo.">Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva.</p>
   {error?<ErrorBlock title="No pudimos completar la operación" description={error} onRetry={()=>void load().catch(e=>setError(errorMessage(e)))}/>:null}
   <KpiStrip>
    <Kpi label="Registros en papelera" valor={records.length} hint="Recuperables con tu permiso actual" destacado/>
@@ -79,7 +79,7 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
     <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]">
      {records.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
       <label className="relative flex items-center after:absolute after:-inset-3.5 after:content-['']" title="Seleccionar registro"><input type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={selected.includes(keyOf(record))} onChange={()=>toggleSelected(keyOf(record))}/></label>
-      <span className="whitespace-nowrap text-[11.5px] text-mute">{labels[record.kind]||record.kind}</span>
+      <span className="whitespace-nowrap"><StateChip tone="mute">{labels[record.kind]||record.kind}</StateChip></span>
       <div className="flex min-w-0 items-baseline gap-2 overflow-hidden">
        <b className="min-w-0 truncate text-[13.5px] font-semibold leading-[1.2] text-fore" title={record.name}>{record.name}</b>
        <small className="flex min-w-0 items-baseline gap-2 text-[11.5px] text-mute">

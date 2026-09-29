@@ -93,6 +93,27 @@ assert.match(read('backend/server.js'), /url\.pathname === '\/health'[\s\S]{0,20
 // §15 regla 1 (cero éxito falso): el estado del correo en /status sale del API.
 assert.match(read('app/status/page.tsx'), /api\/auth\/email-status/, 'el correo se comprueba contra el API, no por suposición');
 
+// #96 (compactación del resto de Plataforma): la identidad vive en el shell
+// (título + apartados) y las pantallas no repiten el título con PageHeader; los
+// encabezados pasan a una línea compacta con el dato a la vista.
+for (const [file, label] of [
+  ['app/sections/preferencias.tsx', 'Preferencias del espacio'],
+  ['app/archive-controls.tsx', 'Papelera de esta empresa'],
+  ['app/invite-links.tsx', 'Invitaciones y solicitudes'],
+  ['app/permissions-matrix.tsx', 'Roles y permisos'],
+] as const) {
+  assert.match(read(file), new RegExp(`aria-label="${label}"`), `${file} conserva su nombre accesible`);
+  assert.doesNotMatch(read(file), /PageHeader/, `${file} no repite el título del shell`);
+}
+assert.doesNotMatch(read('app/suite.tsx'), /Actividad del equipo<\/h2>/, 'el feed de Actividad no repite el apartado del shell');
+assert.match(read('app/suite.tsx'), /cambios registrados por el servidor en esta empresa · se muestran/);
+assert.match(read('app/presence.tsx'), /Últimos 30 días · tiempo activo estimado, no horas trabajadas/, 'el uso del equipo explica el alcance en una línea con el detalle en el tooltip');
+assert.match(read('app/archive-controls.tsx'), /<StateChip tone="mute">\{labels\[record\.kind\]/, 'la papelera muestra el tipo como chip');
+assert.match(read('app/archive-controls.tsx'), /TRASH_TEMPLATE='grid-cols-\[2rem_8\.5rem/, 'la columna del chip conserva su ancho');
+assert.match(read('app/sections/configuracion.tsx'), /grid gap-4 lg:grid-cols-\[minmax\(0,1\.6fr\)_minmax\(0,1fr\)\]/, 'Configuración usa la separación compacta entre columnas');
+for (const file of ['app/superadmin/catalog.tsx', 'app/superadmin/audit.tsx', 'app/superadmin/access.tsx'])
+  assert.match(read(file), /<EmptyBlock\s+compact/, `los vacíos del panel global son compactos (${file})`);
+
 console.log(
   'PASS: retirados con reinvitación y lote resiliente, portal con invitaciones y reenvío de verificación, rutas/componentes muertos eliminados, cobro preseleccionado, /status desde la ayuda y correo comprobado contra el API',
 );

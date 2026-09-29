@@ -55,16 +55,26 @@
   color: var(--text-muted);
   font-size: 12px;
 }
-/* Toolbar del equipo (ronda 14, #62): búsqueda, filtros, contador, vista y
-   acciones en una sola fila que envuelve sin dejar huecos. La búsqueda absorbe
-   el espacio libre y las acciones acompañan al extremo derecho. */
-.team-filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 10px;margin-top:12px}
-.team-filters .team-search{flex:1 1 13rem;min-width:11rem;max-width:17rem}
+/* Barra del equipo (ronda 14 #62, compactada #92): buscador, filtros, contador,
+   vista y acciones en una sola fila desde 1280 px; debajo envuelve sin huecos y
+   en mobile el buscador toma su propia fila con targets de 44 px. El buscador
+   absorbe el espacio libre y el bloque vista+acciones cierra a la derecha. */
+.team-filters{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-3,12px);margin-top:0}
+.team-filters .team-search{flex:1 1 11rem;min-width:11rem;max-width:17rem}
 .team-filters .choice-list.compact{flex:none;align-items:center}
-.team-filters .team-count{display:flex;align-items:center;min-height:40px;margin:0;font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--text-subtle,var(--text-muted));white-space:nowrap}
+.team-filters .team-count{display:flex;align-items:center;margin:0;font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--text-subtle,var(--text-muted));white-space:nowrap}
 .team-filters .workspace-view-controls{margin-left:auto}
-.team-filters .team-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-left:auto}
-@media(max-width:620px){.team-filters .team-search{flex:1 1 100%;max-width:100%}.team-filters .workspace-view-controls,.team-filters .team-actions{margin-left:0}.team-filters .choice{padding-inline:8px}}
+.team-filters .team-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-2,8px) var(--ui-space-3,12px)}
+@media(min-width:1280px){.team-filters{flex-wrap:nowrap}.team-filters .team-search{flex:1 1 auto;max-width:none}}
+@media(max-width:620px){.team-filters .team-search{flex:1 1 100%;max-width:100%}.team-filters .workspace-view-controls{margin-left:0}.team-filters .choice{padding-inline:8px}}
+/* «Facturación contratada» en franja compacta: chip cuando no hay contratos
+   activos y el Kpi compartido (112-140 px) cuando hay montos. Reemplaza la card
+   azul de ancho completo que empujaba el directorio fuera del pliegue (#92). */
+.team-billing-strip{max-width:min(100%,24rem);margin:0 0 var(--ui-space-3,12px)}
+.team-billing-note{display:flex;margin:0 0 var(--ui-space-3,12px)}
+.team-billing-amounts{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;font-variant-numeric:tabular-nums}
+.team-billing-amounts>span{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}
+.team-billing-amounts small{font-size:12px;font-weight:500;color:var(--text-subtle,var(--text-muted))}
 .avatar {
   width: 48px;
   height: 48px;

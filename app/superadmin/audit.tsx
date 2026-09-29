@@ -32,6 +32,7 @@ export function PlatformAudit({audit}: {audit: AuditAction[]}) {
       </ListGrid>
     ) : (
       <EmptyBlock
+        compact
         icon="report"
         title="Sin acciones registradas."
         description="Las operaciones sensibles de la plataforma quedan acá con su actor, su acción y el destino."

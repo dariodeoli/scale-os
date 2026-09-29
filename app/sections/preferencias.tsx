@@ -4,7 +4,7 @@ import {Settings,SlidersHorizontal} from 'lucide-react';
 import {startupChoices} from '../workspace-preferences';
 import type {StartupPreference,WorkspacePreferences} from '../workspace-preferences';
 import type {User} from '../workspace-types';
-import {Kpi,KpiStrip,LoadingBlock,PageHeader,StateChip} from '../ui-v2';
+import {Kpi,KpiStrip,LoadingBlock,StateChip} from '../ui-v2';
 
 // Preferencias del espacio (locales por usuario y empresa).
 // Rediseño v2 (issue #46): mismos datos y callbacks que el módulo extraído en #47.
@@ -25,8 +25,7 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
  const startupLabel=choices.find(choice=>choice.value===startup)?.label||'Resumen';
  const filters=preferences.production;
  const filterCount=[filters.clientId?1:0,filters.mine?1:0,filters.week?1:0].reduce((total,value)=>total+value,0);
- return <section className="grid gap-4" aria-labelledby="workspace-preferences-title">
-  <PageHeader eyebrow="Configuración" title="Preferencias del espacio" subtitle={`Se guardan solo para vos en ${user?.organization_name||'esta empresa'}, en este navegador.`}/>
+ return <section className="grid gap-4" aria-label="Preferencias del espacio">
   <KpiStrip>
    <Kpi label="Inicio configurado" valor={startupLabel} hint="Solo se aplica al entrar a la raíz"/>
    <Kpi label="Filtros del tablero" valor={filterCount} hint="Se editan desde Producción"/>

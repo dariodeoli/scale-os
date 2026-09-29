@@ -18,7 +18,7 @@ import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
 import {PersonPhotoField} from './person-photo';
 import {listDateShort} from './list-format';
-import {EmptyBlock,LoadingBlock,ViewSwitch} from './ui-v2';
+import {EmptyBlock,Kpi,LoadingBlock,MoneyText,StateChip,ViewSwitch} from './ui-v2';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
@@ -219,7 +219,7 @@ export function OperationsWorkspace({
   organizationName?:string;
 }) {
   if(!canOpenPeopleWorkspace(role))return <TeamDirectoryView organizationName={organizationName}/>;
-  return <PeopleWorkspace role={role} currentEmail={currentEmail} organizationName={organizationName}/>;
+  return <PeopleWorkspace role={role} currentEmail={currentEmail}/>;
 }
 type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
 function TeamDirectoryView({organizationName}:{organizationName:string}){
@@ -241,11 +241,9 @@ function TeamDirectoryView({organizationName}:{organizationName:string}){
 function PeopleWorkspace({
   role,
   currentEmail='',
-  organizationName='',
 }: {
   role: string;
   currentEmail?:string;
-  organizationName?:string;
 }) {
   const {currency:defaultCurrency}=useCompanyCurrency();
   const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[seedEmail,setSeedEmail]=useState(''),[search,setSearch]=useState('');
@@ -256,6 +254,7 @@ function PeopleWorkspace({
     [notice, setNotice] = useState(""),
     [edit, setEdit] = useState<Person | "new" | null>(null);
   const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
+  const [commercialReady, setCommercialReady] = useState(false);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
   const [teamFilter,setTeamFilter]=useState<'all'|'active'|'inactive'>('all');
   const canManageAccess=roleCan(role,'members.manage');
@@ -289,10 +288,10 @@ function PeopleWorkspace({
   useEffect(() => {
     if (!allowed) return;
     let alive = true;
-    setCommercial(null);
+    setCommercial(null);setCommercialReady(false);
     void api<unknown>("/api/agency/control-center")
-      .then(value => { if (alive) setCommercial(normalizeCommercialDashboard(value)); })
-      .catch(() => { if (alive) setCommercial(null); });
+      .then(value => { if (alive) { setCommercial(normalizeCommercialDashboard(value));setCommercialReady(true); } })
+      .catch(() => { if (alive) { setCommercial(null);setCommercialReady(true); } });
     return () => { alive = false; };
   }, [allowed]);
   async function load() {
@@ -391,28 +390,37 @@ function PeopleWorkspace({
     const member=dialogMember&&!dialogMember.removed_at&&!(dialogMember.email===currentEmail||dialogMember.role==='owner'&&role!=='owner')?dialogMember:null;
     setAccessDraft(member?{role:member.role,active:String(member.active!==false)}:null);
   },[dialogMember?.id,dialogMember?.role,dialogMember?.active,dialogMember?.removed_at]);
+  const billing=commercial?.expectedMonthlyBilling;
   return (
     <div className="ops-stack">
-      <section className="panel">
-        <div className="mb-3 min-w-0">
-          <h2 className="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2>
-          <p className="mt-1 text-[13px] leading-[1.5] text-mute">Equipo{organizationName?` de ${organizationName}`:''}: directorio, roles y estado de cada integrante.</p>
-        </div>
+      {/* Identidad en el shell (título + apartados): la sección no la repite; el
+          nombre accesible queda en el `aria-label`. */}
+      <section className="panel" aria-label="Personas, accesos y remuneraciones">
         {error && (
           <p className="error" role="alert">
             {error}
           </p>
         )}
         {notice && <p role="status">{notice}</p>}
-        <div className="kpi-strip" aria-label="Facturación contratada">
-          <article className="kpi-card tone-blue">
-            <p className="eyebrow">FACTURACIÓN CONTRATADA</p>
-            {commercial===null?<strong>Calculando…</strong>:commercial.expectedMonthlyBilling===undefined?<strong>No disponible</strong>:commercial.expectedMonthlyBilling.length?<div className="kpi-amounts">{commercial.expectedMonthlyBilling.map(item=><span key={item.currency}>{money(Number(item.total),item.currency)} / mes</span>)}</div>:<strong>Sin contratos activos</strong>}
-            <small>{commercial?.expectedMonthlyBilling===undefined?'No disponible':commercial.expectedMonthlyBilling.length?'Expectativa comercial vigente por moneda':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}</small>
-          </article>
-        </div>
+        {/* Franja compacta (#92): chip si no hay contratos activos, Kpi compartido
+            (112-140 px) con el monto cuando los hay. Nunca la card azul completa. */}
+        {billing?.length?(
+          <div className="team-billing-strip" aria-label="Facturación contratada">
+            <Kpi
+              label="Facturación contratada"
+              valor={<span className="team-billing-amounts">{billing.map(item=><span key={item.currency}><MoneyText valor={Number(item.total)} currency={item.currency}/><small>/ mes</small></span>)}</span>}
+              hint="Expectativa comercial vigente por moneda"
+            />
+          </div>
+        ):(
+          <p className="team-billing-note" aria-label="Facturación contratada">
+            <StateChip tone="mute" title={!commercialReady||!commercial||billing===undefined?'No se pudo consultar el centro de control; se reintenta al volver a la pantalla.':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}>
+              Facturación contratada: {!commercialReady?'calculando…':!commercial||billing===undefined?'no disponible':'sin contratos activos'}
+            </StateChip>
+          </p>
+        )}
         <div className="team-filters" aria-label="Controles del equipo">
-          <SearchField className="team-search" label="Buscar persona" value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
+          <SearchField className="team-search" label="Buscar persona" hideLabel value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
           <div className="choice-list compact" role="group" aria-label="Filtrar por estado laboral">
             <button type="button" className={teamFilter==='all'?'choice active':'choice'} aria-pressed={teamFilter==='all'} onClick={()=>setTeamFilter('all')}>Todos</button>
             <button type="button" className={teamFilter==='active'?'choice active':'choice'} aria-pressed={teamFilter==='active'} onClick={()=>setTeamFilter('active')}>Activos</button>
@@ -430,9 +438,9 @@ function PeopleWorkspace({
         </div>
         {loading ? (
           <LoadingBlock label="Cargando equipo…" lines={4}/>
-        ) : (
+        ) : <>
+          {canManageAccess&&visiblePeople.some(entry=>entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
           <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
-            {canManageAccess&&visiblePeople.some(entry=>entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail)?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedAccess.length?<><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</>:<span className="bulk-hint">Seleccioná integrantes para operar en lote</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button>{selectedAccess.length?<><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></>:null}</div></div>:null}
             {teamView==='list'?<div className="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>:null}
             {visiblePeople.map((entry) => {const p=entry.profile;const accessState=!entry.member?'Sin acceso al panel':entry.member.removed_at?'Acceso retirado':entry.member.active?'Acceso habilitado':'Acceso suspendido';const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'Sin permiso';return p?(
               <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
@@ -494,7 +502,7 @@ function PeopleWorkspace({
               <EmptyBlock className="[grid-column:1/-1]" title={hasFilters?'Sin coincidencias':'Todavía no hay personas'} description={hasFilters?'Probá con otro nombre, correo o cargo, o cambiá el filtro.':'Agregá la primera persona del equipo para registrar accesos y remuneraciones.'} action={hasFilters?<button type="button" className="text-button" onClick={()=>{setSearch('');setTeamFilter('all');}}>Limpiar filtros</button>:<button type="button" className="primary" onClick={()=>{setSeedEmail('');setEdit("new");}}><Plus size={16} aria-hidden="true"/>Agregar primera persona</button>}/>
             )}
           </div>
-        )}
+        </>}
       </section>
       {edit && (
         <Dialog

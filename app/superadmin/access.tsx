@@ -141,6 +141,7 @@ export function PlatformAccess({busy, state, writable, setConfirming, setTyped, 
           </div>
         )) : (
           <EmptyBlock
+            compact
             icon="users"
             title="No hay usuarios para mostrar."
             description="Cuando alguien cree su cuenta o reciba acceso global, va a aparecer acá."
