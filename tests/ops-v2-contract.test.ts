@@ -43,9 +43,10 @@ assert.equal((studio.match(/\$\{RESERVATION_GRID\}/g)||[]).length,2,'el encabeza
 // ── Nada de elipsis en montos, fechas, códigos ni seriales: el texto largo se
 // recorta con elipsis + `title` (AGENTS.md) y el valor completo queda a mano.
 for(const [name,source] of [['inventario',inventory],['estudio',studio]] as const){
- for(const line of source.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),`${name}: cada texto recortado lleva title`);
- assert.doesNotMatch(source,/truncate[^>]*(CeldaMoneda|SerialTexto|listDate)/,`${name} no recorta montos, fechas ni seriales`);
- assert.doesNotMatch(source,/text-ellipsis|line-clamp/,`${name} no usa otros recortes`);
+ // #99: `truncate` o `line-clamp` valen solo con `title` en la misma línea.
+ for(const line of source.split('\n'))if(line.includes('truncate')||line.includes('line-clamp'))assert(line.includes('title='),`${name}: cada texto recortado lleva title`);
+ assert.doesNotMatch(source,/(truncate|line-clamp)[^>]*(CeldaMoneda|SerialTexto|listDate)/,`${name} no recorta montos, fechas ni seriales`);
+ assert.doesNotMatch(source,/text-ellipsis/,`${name} no usa otros recortes`);
 }
 assert.match(inventory,/shrink-0 whitespace-nowrap font-mono/,'el código de inventario va nowrap');
 assert.match(inventory,/whitespace-nowrap tabular-nums/,'las fechas de las listas van nowrap');
@@ -110,7 +111,10 @@ assert.match(board,/work_type/,'la tarjeta muestra el tipo de trabajo del API');
 assert.match(board,/estimated_hours/,'la tarjeta muestra las horas estimadas/reales');
 assert.match(board,/approval_step/,'la tarjeta muestra el nivel de aprobación');
 assert.match(board,/drive_links/,'la tarjeta cuenta los enlaces múltiples');
-assert.match(board,/fechaLista\(/,'la auditoría de la pieza sale de owncoding-ui');
+// #99: la etapa no se repite en la tarjeta (vive en la columna) y la auditoría
+// de la pieza queda en el detalle, no en la tarjeta.
+assert.doesNotMatch(board,/Actualizada \{fechaLista/,'la tarjeta no repite la fecha de auditoría');
+assert.doesNotMatch(board,/STATUS_TONE\[order\.status\]/,'la tarjeta no repite el chip de etapa de su columna');
 assert.match(productionSection,/productionView==="Tablero"/,'la vista Tablero sigue cableada al shell');
 assert.match(productionSection,/<DragOverlay>/,'el overlay de arrastre se conserva');
 assert.match(productionSection,/onDragCancel/,'cancelar el arrastre limpia el estado');
@@ -205,7 +209,7 @@ assert.match(inventory,/className="flex min-h-11 items-center gap-2 text-sm text
 assert.match(studio,/className="h-6 w-6 p-0 accent-fono" checked=\{members\.includes/,'los responsables de estudio usan el checkbox de 24 px');
 // ── Ronda 19 (#74) + compactación #94: el mes no corta el año y el rótulo va en línea.
 assert.match(studio,/<Label htmlFor="studio-month" className="whitespace-nowrap">Mes<\/Label><Input id="studio-month" className="w-44" type="month"/,'el mes del estudio no corta el año');
-assert.match(inventory,/className="w-52">\s*<Label htmlFor="inventory-calendar-month">/,'el mes del calendario de inventario no corta el año');
+assert.match(inventory,/<Label htmlFor="inventory-calendar-month" className="whitespace-nowrap">Mes<\/Label>\s*<Input id="inventory-calendar-month" className="w-44" type="month"/,'el mes del calendario de inventario comparte la fila con su rótulo (#99)');
 assert.match(planner,/grid w-52 gap-1\.5/,'el mes del planificador no corta el año');
 // ── Ronda 17 (#71): casilla de la grilla 44×44 y adopción de ?fields=.
 assert.match(inventory,/mt-0\.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6/,'la casilla de la grilla de inventario completa 44×44 en mobile');
@@ -238,7 +242,7 @@ assert.match(projects,/PROJECT_COLS = '\[--project-cols:/,'la sección declara l
 assert.match(projects,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'encabezado y filas comparten --project-cols');
 assert.match(projects,/de \{BATCH_LIMITS\.projects\} seleccionado/,'el lote muestra el tope del API');
 assert.match(projectCard,/\[\.project-list_&\]:grid-cols-\[var\(--project-cols\)\]/,'la tarjeta consume la plantilla en modo lista');
-assert.match(projectCard,/min-h-\[200px\]/,'la cuadrícula mantiene tarjetas de 200 px');
+assert.doesNotMatch(projectCard,/min-h-\[200px\]/,'la cuadrícula no reserva 200 px: la altura la define el contenido (#99)');
 assert.match(projectCard,/<Drawer open/,'el detalle del proyecto abre en el Drawer de owncoding-ui');
 assert.match(projectCard,/\/api\/agency\/projects\/\$\{project\.id\}/,'el detalle lee la ficha real del API');
 assert.match(projectCard,/approval_levels/,'el detalle muestra los niveles de aprobación');

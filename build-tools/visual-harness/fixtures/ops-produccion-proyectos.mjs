@@ -30,6 +30,7 @@ const ICON = {
   chevronLeft: 'M15 18l-6-6 6-6',
   chevronRight: 'M9 6l6 6-6 6',
   box: 'M21 8l-9-5-9 5 9 5 9-5ZM3 8v8l9 5 9-5V8M12 13v8',
+  paperclip: 'M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l8.49-8.49a3 3 0 0 1 4.24 4.24l-8.49 8.49a1 1 0 0 1-1.41-1.41l7.78-7.78',
   alert: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
   close: 'M6 6l12 12M18 6 6 18',
 };
@@ -41,7 +42,9 @@ const chip = (label, tone) => {
 const clientIdentity = (name, color) => `<span class="client-identity identity-${color}"><span class="identity-avatar">${initials(name)}</span><span class="actor-identity-name" title="${name}">${name}</span></span>`;
 const urgencyBadge = (label) => `<span class="urgency-badge" title="Urgencia: ${label}"><span class="urgency-dots">•••••</span>${label}</span>`;
 const dueDate = (text, overdue = false) => `<span class="due-date${overdue ? ' overdue' : ''} compact" title="Entrega: ${text}">${text}</span>`;
-const assignedPeople = (people) => !people ? '<span class="assigned-people muted">Responsables no disponibles</span>' : people.length === 0 ? '<span class="assigned-people">Sin responsables</span>' : `<span class="assigned-people"><span class="assigned-people-list">${people.map((person) => `<span class="assigned-person" title="${person.name}${person.primary ? ' · Principal' : ''}">${person.primary ? '★' : ''}${person.initials}</span>`).join('')}</span></span>`;
+/* Responsables (#99): una línea compacta con rótulo + chips; los estados sin
+   dato son texto auxiliar, sin caja. */
+const assignedPeople = (people) => !people ? '<section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-state" role="status">Responsables no disponibles</span></section>' : people.length === 0 ? '<section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><span class="assigned-people-state">Sin responsables</span></section>' : `<section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><ul class="assigned-people-list">${people.map((person) => `<li class="assigned-person" title="${person.name}${person.primary ? ' · Principal' : ''}"><span class="actor-identity"><span class="actor-identity-avatar">${person.initials}</span><span class="actor-identity-name">${person.name}</span></span>${person.primary ? '<span class="assigned-person-primary">Principal</span>' : ''}</li>`).join('')}</ul></section>`;
 const iconAction = ({icon, label, tone = 'mute'}) => {
   const tones = {mute: 'border-transparent text-mute hover:bg-ink-700 hover:text-fore', ok: 'border-ok/30 text-ok hover:bg-ok/10', warn: 'border-warn/30 text-warn hover:bg-warn/10', bad: 'border-bad/30 text-bad hover:bg-bad/10', fono: 'border-fono/30 text-fono-light hover:bg-fono/10'};
   return `<button type="button" title="${label}" aria-label="${label}" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border transition md:h-8 md:w-8 ${tones[tone]}">${svg(ICON[icon] || ICON.eye, 16, 'h-4 w-4')}</button>`;
@@ -54,16 +57,16 @@ const segmented = (label, options, active) => `<div class="flex flex-wrap gap-1 
 const kpi = (label, value, hint) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${value}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="text-mute">${hint}</span></div>` : ''}</div>`;
 
 /* --------------------------------------------------------------- tablero */
+/* Tarjeta del tablero (#99): la etapa vive en la columna y la auditoría en el
+   detalle; enlaces/horas/pasos son metadatos compactos con su tooltip. */
 const orderCard = (order) => `
 <article class="flex min-w-0 cursor-grab flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3" data-order="${order.id}">
  <div class="flex items-start justify-between gap-2"><button type="button" class="min-w-0 text-left text-[13px] font-semibold text-fore">${order.title}</button><span class="flex h-11 w-11 shrink-0 select-none items-center justify-center text-mute md:h-7 md:w-7" role="img" aria-label="Mover ${order.title}" title="Mover ${order.title}">⋮⋮</span></div>
  <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] text-mute">${clientIdentity(order.client, order.color)}<span aria-hidden="true">·</span><span class="min-w-0 truncate" title="${order.project}">${order.project}</span></div>
- <div class="flex flex-wrap items-center gap-1">${chip(order.status.label, order.status.tone)}${urgencyBadge(order.urgency)}${chip(order.workType, 'info')}${order.approval ? chip(`Aprobaciones: ${order.approval}`, 'ok') : ''}</div>
- <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-mute">${order.links ? `<span class="whitespace-nowrap">${order.links === 1 ? '1 enlace' : `${order.links} enlaces`}</span>` : '<span>Sin enlace</span>'}<span class="whitespace-nowrap">${order.hours}</span>${order.checklist ? `<span class="whitespace-nowrap">☑ ${order.checklist.done}/${order.checklist.total} pasos</span>` : ''}</div>
+ <div class="flex min-w-0 flex-wrap items-center gap-1">${urgencyBadge(order.urgency)}${chip(order.workType, 'info')}${order.approval ? chip(`Aprobaciones: ${order.approval}`, 'ok') : ''}${order.links ? `<span class="inline-flex min-w-0 items-center gap-1 text-[11px] text-mute" title="${order.links} archivo(s)">${svg(ICON.paperclip, 12, 'h-3 w-3')}${order.links === 1 ? '1 enlace' : `${order.links} enlaces`}</span>` : ''}<span class="whitespace-nowrap text-[11px] text-mute">${order.hours}</span>${order.checklist ? `<span class="whitespace-nowrap text-[11px] text-mute">☑ ${order.checklist.done}/${order.checklist.total} pasos</span>` : ''}</div>
  ${order.description ? `<div class="grid gap-1"><p class="line-clamp-2 text-[11.5px] leading-5 text-mute" title="${order.description}">${order.description}</p>${order.detalle ? '<button type="button" class="text-button min-h-11 justify-self-start md:min-h-0">Ver detalle</button>' : ''}</div>` : ''}
  ${dueDate(order.due)}
  ${assignedPeople(order.people)}
- <p class="text-[10.5px] text-mute">Actualizada ${order.updated}</p>
  <div class="flex flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2"><button class="text-button">Editar</button>${iconAction({icon: 'trash', label: `Archivar pieza: ${order.title}`})}</div>
 </article>`;
 // El badge muestra el total EXACTO de la etapa (`?counts=1`); si la ventana de la
@@ -118,7 +121,7 @@ const PLANNER_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.1fr)_7re
 const plannerHead = `<div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PLANNER_TEMPLATE}"><span role="columnheader">Pieza</span><span role="columnheader">Vence</span><span role="columnheader">Estado</span><span role="columnheader">Tipo</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Pasos</span><span role="columnheader">Horas</span></div>`;
 const plannerRow = (order) => `
 <div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors hover:bg-ink-700/40 md:min-h-11 md:!py-1.5 ${PLANNER_TEMPLATE}" data-status="${order.status.id}">
- <span class="flex min-w-0 items-center gap-2"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${order.title}"></label><button type="button" class="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0"><b class="block truncate text-[13px] font-semibold text-fore" title="${order.title}">${order.title}</b><small class="block truncate text-[11px] text-mute" title="${order.client} · ${order.project}">${order.client} · ${order.project}</small></button></span>
+ <span class="flex min-w-0 items-center gap-2"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${order.title}"${order.selected ? ' checked' : ''}></label><button type="button" class="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0"><b class="block truncate text-[13px] font-semibold text-fore" title="${order.title}">${order.title}</b><small class="block truncate text-[11px] text-mute" title="${order.client} · ${order.project}">${order.client} · ${order.project}</small></button></span>
  <span class="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute">${order.dueShort || 'Sin fecha'}</span>
  <span class="min-w-0">${chip(order.status.label, order.status.tone)}</span>
  <span class="min-w-0">${chip(order.workType, 'mute')}</span>
@@ -143,7 +146,7 @@ const projectRows = [
   {id: '01J7Q5', name: 'Memoria audiovisual 2026 · Registro de archivo histórico y digitalización de cintas', client: {name: 'Ministerio de Educación y Ciencias', color: 'blue'}, status: {key: 'cancelled', label: 'Cancelado', tone: 'bad'}, urgency: '5 · Crítica', start: null, due: null, dueTone: '', pieces: 12, levels: 2, people: [{initials: 'LP', name: 'Lucía Paredes', primary: true}, {initials: 'MR', name: 'María Renée Ayala Benítez'}], links: 3, updated: '05 sept 26 · 08:30', selectable: true, manageable: true},
 ];
 const projectRow = (project) => `
-<article id="project-${project.id}" tabindex="-1" class="project-entry group/project flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1">
+<article id="project-${project.id}" tabindex="-1" class="project-entry group/project flex min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1">
  <div class="flex min-w-0 items-start gap-2 [.project-list_&]:items-center">
   ${project.selectable ? `<label class="select-check flex h-11 min-w-11 items-center justify-center md:h-6 md:min-w-6" title="Seleccionar proyecto"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${project.name}"></label>` : ''}
   <div class="min-w-0 [.project-list_&]:flex [.project-list_&]:items-center [.project-list_&]:gap-2">
@@ -168,7 +171,7 @@ const projectRow = (project) => `
  <div class="mt-auto flex min-w-0 flex-wrap items-center gap-2 border-t border-ink-600 pt-2 [.project-list_&]:mt-0 [.project-list_&]:flex-nowrap [.project-list_&]:overflow-x-auto [.project-list_&]:border-t-0 [.project-list_&]:pt-0">${project.links ? `<a class="inline-flex min-h-11 items-center whitespace-nowrap text-[11.5px] font-semibold text-fono-light md:min-h-0" href="#drive">Abrir Drive${project.links > 1 ? ` (${project.links})` : ''} ↗</a>` : '<small class="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>'}${iconAction({icon: 'eye', label: `Ver detalle del proyecto: ${project.name}`, tone: 'fono'})}<button type="button" class="text-button">Comentarios</button>${project.manageable ? '<button type="button" class="text-button">Archivar</button>' : ''}${project.manageable ? iconAction({icon: 'pencil', label: `Editar proyecto: ${project.name}`}) : ''}</div>
 </article>`;
 const projectCard = (project) => `
-<article class="project-entry group/project flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+<article class="project-entry group/project flex min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
  <div class="flex min-w-0 items-start gap-2">${project.selectable ? `<label class="select-check flex h-11 min-w-11 items-center justify-center md:h-6 md:min-w-6" title="Seleccionar proyecto"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${project.name}"></label>` : ''}<div class="min-w-0"><h3 class="break-words text-sm font-semibold text-fore" title="${project.name}">${project.name}</h3><span class="mt-0.5 block text-[11.5px] text-mute">${clientIdentity(project.client.name, project.client.color)}</span></div></div>
  <div class="flex min-w-0 flex-wrap items-center gap-1">${chip(project.status.label, project.status.tone)}${urgencyBadge(project.urgency)}</div>
  <dl class="grid gap-1 text-[11.5px]"><div class="flex items-center gap-1.5"><dt class="text-mute">Inicio</dt><dd class="list-date whitespace-nowrap">${project.start || 'Sin fecha'}</dd></div><div class="flex items-center gap-1.5"><dt class="text-mute">Entrega</dt><dd class="list-date whitespace-nowrap">${project.due || 'Sin fecha'}</dd></div><div class="flex items-center gap-1.5"><dt class="text-mute">Piezas</dt><dd class="tabular-nums">${project.pieces}</dd></div></dl>
@@ -287,6 +290,20 @@ export default [
     }],
     grids: [],
     body: plannerBody,
+  },
+  {
+    id: 'produccion-planificador-seleccion',
+    section: 'Producción',
+    surface: 'Lista y lotes · selección contextual (#99)',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `
+<div class="grid min-w-0 gap-4" aria-label="Planificador de producción">
+ <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Lista y lotes</h2></div>
+ <div class="flex flex-wrap items-center gap-2"><button class="secondary" type="button">Cambiar 1 piezas</button><button class="text-button" type="button">Quitar selección</button><button class="text-button" type="button">${svg(ICON.calendar, 14)}Plantillas mensuales</button></div>
+ <div role="table" aria-label="Piezas en lista y lotes" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map((order, index) => plannerRow({...order, selected: index === 0})).join('')}</div></div></div>
+</div>`,
   },
   {
     id: 'proyectos-lista',

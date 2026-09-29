@@ -104,7 +104,7 @@ function StudioPanel(){
     <div data-grid="studio-spaces" className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="grid min-w-0 gap-1.5 rounded-xl border border-ink-600 bg-ink-800/60 p-3" key={space.id}>
      <div className="flex min-w-0 items-center justify-between gap-2"><h3 className="truncate text-sm font-semibold text-fore" title={space.name}>{space.name}</h3><StateChip tone={space.active?'ok':'mute'}>{space.active?'Disponible':'Inactivo'}</StateChip></div>
      <p className="truncate text-xs text-mute" title={space.scenario||'Escenario sin especificar'}>{space.scenario||'Escenario sin especificar'}</p>
-     {space.notes?<small className="max-h-10 overflow-hidden text-xs leading-5 text-mute">{space.notes}</small>:null}
+     {space.notes?<small className="line-clamp-2 text-xs leading-5 text-mute" title={space.notes}>{space.notes}</small>:null}
      {context?.can_manage?<div className={`mt-1 flex justify-end ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar espacio: ${space.name}`} onClick={()=>setEditSpace(space)}/></div>:null}
     </article>)}</div>
    </>}

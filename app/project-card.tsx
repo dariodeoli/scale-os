@@ -121,7 +121,7 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
     window.addEventListener('hashchange',reveal);
     return()=>window.removeEventListener('hashchange',reveal);
   },[anchor]);
-  return <article id={anchor} ref={card} tabIndex={-1} className="project-entry group/project flex min-h-[200px] min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 sm:p-4 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1">
+  return <article id={anchor} ref={card} tabIndex={-1} className="project-entry group/project flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 sm:p-4 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1">
     <div className="flex min-w-0 items-start gap-2 [.project-list_&]:items-center">
       {selectable?<label className="select-check flex h-11 min-w-11 items-center justify-center md:h-6 md:min-w-6" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
       <div className="min-w-0 flex-1 [.project-list_&]:flex [.project-list_&]:items-center [.project-list_&]:gap-2">

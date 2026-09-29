@@ -86,7 +86,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
  const code=itemCode(item),location=inventoryLocation(item),facts=depreciationFacts(item);
- return <article data-grid-card="equipment" className="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+ return <article data-grid-card="equipment" className="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
   <div className="flex items-start justify-between gap-3">
    <div className="flex min-w-0 items-start gap-2">
     {selectable?<label className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
@@ -354,14 +354,12 @@ function InventoryPanel(){
   {loading&&!error?<LoadingBlock label="Cargando inventario…" lines={6}/>:null}
 
   {view==='reservations'&&!loading&&!error?<Card className="grid min-w-0 gap-4">
-   <div className="flex flex-wrap items-center justify-between gap-3">
-    <div className="min-w-0">
-     <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario y reservas</h2>
-     <p className="mt-1 text-xs leading-5 text-mute">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p>
-    </div>
-    <div className="w-52">
-     <Label htmlFor="inventory-calendar-month">Mes del calendario</Label>
-     <Input id="inventory-calendar-month" type="month" value={month} min="1900-01" max="9998-12" onChange={(e:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value);}}/>
+   <div className="flex min-w-0 flex-wrap items-center gap-3">
+    <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario y reservas</h2>
+    <p className="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p>
+    <div className="flex items-center gap-2">
+     <Label htmlFor="inventory-calendar-month" className="whitespace-nowrap">Mes</Label>
+     <Input id="inventory-calendar-month" className="w-44" type="month" value={month} min="1900-01" max="9998-12" onChange={(e:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value);}}/>
     </div>
    </div>
    <InventoryCalendar month={month} reservations={reservations}/>
@@ -602,7 +600,7 @@ export function InventoryCalendar({month,reservations}:{month:string;reservation
   <div className="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">{Array.from({length:offset},(_,index)=><div className="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key={`blank-${index}`}/>)}{Array.from({length:days},(_,index)=>{
    const day=`${month}-${String(index+1).padStart(2,'0')}`,start=opsUtcTime(day+'T00:00'),nextDay=new Date(Date.UTC(year,m-1,index+2)).toISOString().slice(0,10),end=opsUtcTime(nextDay+'T00:00');
    const rows=reservations.filter(r=>r.status!=='cancelled'&&r.starts_at<end&&r.ends_at>start);
-   return <div className="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1" key={day} aria-label={day}><time className="text-[11px] tabular-nums text-mute" dateTime={day}>{index+1}</time>{rows.map(r=><div className={`grid gap-0.5 rounded-md border px-1.5 py-1 text-[11px] ${r.status==='checked_out'?'border-warn/40 bg-warn/10 text-warn':r.status==='returned'?'border-ok/40 bg-ok/10 text-ok':'border-fono/30 bg-fono/10 text-fono-light'}`} key={r.id}><b className="break-words">{r.title}</b><small className="text-mute">{r.items.length} equipo(s) · {statusLabels[r.status]}</small></div>)}</div>;
+   return <div className="grid min-h-[4.25rem] content-start gap-1 rounded-lg border border-ink-600/60 p-2 min-[769px]:min-h-14 min-[769px]:p-1" key={day} aria-label={day}><time className="text-[11px] tabular-nums text-mute" dateTime={day}>{index+1}</time>{rows.map(r=><div className={`grid gap-0.5 rounded-md border px-1.5 py-1 text-[11px] ${r.status==='checked_out'?'border-warn/40 bg-warn/10 text-warn':r.status==='returned'?'border-ok/40 bg-ok/10 text-ok':'border-fono/30 bg-fono/10 text-fono-light'}`} key={r.id}><b className="break-words">{r.title}</b><small className="text-mute">{r.items.length} equipo(s) · {statusLabels[r.status]}</small></div>)}</div>;
   })}</div>
  </div>;
 }

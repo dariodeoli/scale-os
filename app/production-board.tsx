@@ -9,7 +9,6 @@
  * única del dominio (`statuses`).
  */
 import {useEffect,useRef,useState} from 'react';
-import {fechaLista} from 'owncoding-ui';
 import {useDraggable,useDroppable} from '@dnd-kit/core';
 import {StateChip,type ChipTone} from './ui-v2';
 import {ClientIdentity} from './client-identity';
@@ -19,7 +18,7 @@ import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {ProjectCardPresence} from './presence';
 import {RemoveRecord} from './archive-controls';
 import {roleCan} from './capabilities';
-import {OPS_TIME_ZONE} from './ops-time';
+import {Paperclip} from 'lucide-react';
 
 export const statuses = [
   { id: "blocked", label: "Bloqueado", tone: "red" },
@@ -98,27 +97,20 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
         <button type="button" className="min-h-11 min-w-11 flex-1 text-left text-[13px] font-semibold leading-5 text-fore outline-none transition-colors hover:text-fono-light focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
         {canMove?<span className="flex h-11 w-11 shrink-0 select-none items-center justify-center rounded-md text-mute md:h-7 md:w-7" role="img" aria-label={`Mover ${order.title}`} title={`Mover ${order.title}`}>⋮⋮</span>:null}
       </div>
-      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 border-l-2 border-ink-600 pl-2 text-[11.5px] leading-4 text-mute">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] leading-4 text-mute">
         <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/>
         <span aria-hidden="true">·</span>
         <span className="min-w-0 truncate" title={order.project_name}>{order.project_name}</span>
       </div>
-      <div className="flex flex-wrap items-center gap-1 border-y border-ink-600 py-2">
-        <StateChip tone={STATUS_TONE[order.status] || 'mute'}>{statuses.find(state => state.id === order.status)?.label || order.status}</StateChip>
+      {/* La etapa ya vive en el encabezado de la columna y la auditoría en el
+          detalle: acá solo van los datos que se deciden desde el tablero (#99). */}
+      <div className="flex min-w-0 flex-wrap items-center gap-1">
         <UrgencyBadge value={order.urgency}/>
         <StateChip tone="info">{workTypeLabel(order.work_type)}</StateChip>
         {order.approval_step ? <StateChip tone="ok" title={`Niveles de aprobación completados: ${order.approval_step}`}>Aprobaciones: {order.approval_step}</StateChip> : null}
-      </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] leading-4 text-mute">
-        <div className="min-w-0">
-          <span className="block text-[10px] font-medium uppercase tracking-wide text-mute/80">Recursos</span>
-          {links.length ? <span className="block truncate" title={links.map(link => link.label || link.url).join(' · ')}>{links.length === 1 ? '1 enlace' : `${links.length} enlaces`}</span> : order.drive_url ? <a className="inline-flex min-h-11 min-w-11 items-center text-fono-light outline-none hover:underline focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" href={order.drive_url} target="_blank" rel="noreferrer" onPointerDown={(event) => event.stopPropagation()}>Drive ↗</a> : <span>Sin enlace</span>}
-        </div>
-        <div className="min-w-0">
-          <span className="block text-[10px] font-medium uppercase tracking-wide text-mute/80">Capacidad</span>
-          {hours ? <span className="block truncate" title={`Horas: ${hours}`}>{hours}</span> : <span>Sin horas</span>}
-        </div>
-        {order.checklist_total ? <div className="col-span-2 flex items-center gap-1 border-t border-ink-600 pt-1.5" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}><span aria-hidden="true">☑</span><span>{order.checklist_completed||0}/{order.checklist_total} pasos</span></div> : null}
+        {links.length ? <span className="inline-flex min-w-0 items-center gap-1 text-[11px] text-mute" title={links.map(link => link.label || link.url).join(' · ')}><Paperclip size={12} aria-hidden="true"/>{links.length === 1 ? '1 enlace' : `${links.length} enlaces`}</span> : order.drive_url ? <a className="inline-flex min-h-11 min-w-11 items-center gap-1 text-[11px] text-fono-light outline-none hover:underline focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" href={order.drive_url} target="_blank" rel="noreferrer" onPointerDown={(event) => event.stopPropagation()}><Paperclip size={12} aria-hidden="true"/>Drive ↗</a> : null}
+        {hours ? <span className="whitespace-nowrap text-[11px] text-mute" title={`Horas: ${hours}`}>{hours}</span> : null}
+        {order.checklist_total ? <span className="whitespace-nowrap text-[11px] text-mute" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`} title={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</span> : null}
       </div>
       {order.description ? <div className="grid gap-1">
         <p ref={description} className="line-clamp-2 text-[11.5px] leading-5 text-mute" title={order.description}>{order.description}</p>
@@ -127,7 +119,6 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
       <DueDate value={order.due_date} time={order.due_time} compact/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
-      {order.updated_at ? <p className="text-[10.5px] text-mute">Actualizada {fechaLista(order.updated_at,'',{timeZone:OPS_TIME_ZONE})}</p> : null}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2">
         {canMove?<button className="text-button min-h-11 min-w-11 rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id,true)}>Editar</button>:<button className="text-button min-h-11 min-w-11 rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id)}>Ver más</button>}
         {canMove?<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role}/>:null}
