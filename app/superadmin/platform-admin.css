@@ -56,6 +56,12 @@
 .platform-admin-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--ui-control-gap, 8px); min-width: 0 }
 .platform-admin-page .platform-admin-danger, .platform-admin-page .platform-admin-danger:hover { color: var(--danger) }
 
+/* Las secciones del panel son `.panel` del sistema: fuera de `.control-shell`
+ * el padding del panel no aplicaba y el contenido tocaba el borde (0 px).
+ * Este contrato devuelve el aire del panel y deja 16 px en mobile (#89). */
+.platform-admin-page .panel { padding: var(--ui-panel-padding, 20px) }
+@media (max-width: 760px) { .platform-admin-page .panel { padding: var(--ui-card-padding, 16px) } }
+
 /* ── Secciones (tabs): barra compacta con scroll silencioso en móvil ─────── */
 .platform-admin-tabs { display: flex; min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none }
 .platform-admin-tabs::-webkit-scrollbar { display: none }

@@ -120,7 +120,7 @@ for (const [file, label] of [
   assert.doesNotMatch(read(file), /PageHeader/, `${file} no repite el título del shell`);
 }
 assert.doesNotMatch(read('app/suite.tsx'), /Actividad del equipo<\/h2>/, 'el feed de Actividad no repite el apartado del shell');
-assert.match(read('app/suite.tsx'), /cambios registrados por el servidor en esta empresa · se muestran/);
+assert.match(read('app/suite.tsx'), /de \$\{total\} cambios registrados por el servidor en esta empresa/, 'la Actividad muestra el contador honesto del API');
 assert.match(read('app/presence.tsx'), /Últimos 30 días · tiempo activo estimado, no horas trabajadas/, 'el uso del equipo explica el alcance en una línea con el detalle en el tooltip');
 assert.match(read('app/archive-controls.tsx'), /<StateChip tone="mute">\{labels\[record\.kind\]/, 'la papelera muestra el tipo como chip');
 assert.match(read('app/archive-controls.tsx'), /TRASH_TEMPLATE='grid-cols-\[2rem_8\.5rem/, 'la columna del chip conserva su ancho');

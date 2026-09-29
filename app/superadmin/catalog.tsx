@@ -4,7 +4,8 @@
 import {useRef} from "react";
 import {PauseCircle, PlayCircle} from "lucide-react";
 import {FilterToolbar, ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
-import {formatPlatformMetric, money, type Coupon, type CouponDraft, type State} from "./model";
+import {formatPlatformMetric, money, type CollectionPage, type Coupon, type CouponDraft, type State} from "./model";
+import {PlatformMore} from "./states";
 import {SelectCustom} from "../profile-controls";
 import {decimalInput} from "../field-rules";
 import {soloDigitos} from "owncoding-ui";
@@ -12,6 +13,8 @@ import {soloDigitos} from "owncoding-ui";
 type PlatformCatalogProps = {
   busy: boolean;
   state: State;
+  page: CollectionPage;
+  onMore: () => void;
   writable: boolean;
   coupon: CouponDraft;
   setCoupon: (value: CouponDraft) => void;
@@ -29,7 +32,7 @@ const MIN_WIDTH = denseTableMinWidth(23.5, 3);
 
 const FIELD = "grid gap-1.5 text-[11px] font-semibold text-mute";
 
-export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggleCoupon, createCoupon}: PlatformCatalogProps){
+export function PlatformCatalog({busy, state, page, onMore, writable, coupon, setCoupon, toggleCoupon, createCoupon}: PlatformCatalogProps){
   // El vacío de cupones lleva al formulario de creación que vive arriba.
   const codeRef=useRef<HTMLInputElement|null>(null);
   const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
@@ -84,7 +87,7 @@ export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggl
         {coupon.discount_type === "fixed" ? (
             <SelectCustom label="Moneda" choices={[{value:'USD',label:'USD'},{value:'PYG',label:'PYG'}]} value={coupon.currency} onChange={value=>setCoupon({...coupon,currency:value})}/>
         ) : null}
-        <button className="primary whitespace-nowrap min-h-11 md:min-h-10" disabled={busy}>
+        <button className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy}>
           Crear cupón
         </button>
       </form>
@@ -148,6 +151,7 @@ export function PlatformCatalog({busy, state, writable, coupon, setCoupon, toggl
           />
         )}
       </div>
+      <PlatformMore loaded={state.coupons.length} total={page.total} hasMore={page.hasMore} busy={busy} onMore={onMore} label="cupones"/>
     </section>
   );
 }

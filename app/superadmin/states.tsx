@@ -3,7 +3,7 @@
 // vive en el texto muted o en el tooltip— sin tarjetas altas para un solo dato.
 import Link from "next/link";
 import {ArrowLeft, CircleAlert, KeyRound, ShieldAlert, TriangleAlert} from "lucide-react";
-import {appHome, type BootstrapStatus, type State} from "./model";
+import {appHome, formatPlatformMetric, type BootstrapStatus, type CollectionPage, type State} from "./model";
 import {Aviso} from 'owncoding-ui';
 
 const ROW = "grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3";
@@ -51,5 +51,16 @@ export function PlatformNotices({state, error, bootstrap}: {state: State | null;
         <Aviso tono="error" compact className="mt-1">{error}</Aviso>
       </div>
     </section> : null}
+  </div>;
+}
+
+/**
+ * Pie de una lista global (#106): contador honesto («N de M») y «Ver más» cuando
+ * el API informa que quedan registros fuera de la ventana.
+ */
+export function PlatformMore({loaded,total,hasMore,busy,onMore,label='registros'}: {loaded:number;total:number|null;hasMore:boolean;busy:boolean;onMore:()=>void;label?:string}) {
+  return <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+    <span className="text-xs tabular-nums text-mute" role="status">{total===null?`${formatPlatformMetric(loaded)} ${label}`:`${formatPlatformMetric(loaded)} de ${formatPlatformMetric(total)} ${label}`}</span>
+    {hasMore?<button type="button" className="secondary" disabled={busy} onClick={onMore}>Ver más</button>:null}
   </div>;
 }

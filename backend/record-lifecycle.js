@@ -1,5 +1,6 @@
 import {attributeActors} from './actor-identity.js';
 import {roleCan} from './permissions.js';
+import {parseListWindow,windowRows,windowSql} from './list-projection.js';
 
 
 
@@ -43,10 +44,20 @@ export async function recordLifecycle({req,res,url,db,session,send}) {
   await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket.remoteAddress||'']);
   const org=user.organization_id;
   if(trash){
+   // Ventana canónica (#105/#106): `?limit`/`?offset` sobre la papelera + totales
+   // por tipo (el total y `kinds` salen de la misma consulta de conteos).
+   const window=parseListWindow(url,100);
+   const archivedKinds=allowedKinds.map(([kind])=>kind);
+   const counts=(await c.query('select kind,count(*)::int as n from agency_archived_records where organization_id=$1 and kind=any($2::text[]) group by kind',[org,archivedKinds])).rows;
+   const total=counts.reduce((sum,row)=>sum+Number(row.n),0);
    const queries=allowedKinds.map(([kind,v])=>`select '${kind}' as kind,r.id::text as id,r.${v.name} as name,a.removed_at,a.removed_by from ${v.table} r join agency_archived_records a on a.organization_id=r.organization_id and a.record_id=r.id and a.kind='${kind}' where r.organization_id=$1`);
-   const records=(await c.query(queries.join(' union all ')+' order by removed_at desc',[org])).rows;
-   await attributeActors(c,org,[{rows:records,userId:'removed_by'}]);
-   await c.query('commit');send(res,200,{records});return true;
+   const params=[org];
+   const page=window.paginated?windowSql(window.limit,window.offset,params):{pageClause:''};
+   const found=(await c.query(queries.join(' union all ')+' order by removed_at desc'+page.pageClause,params)).rows;
+   const cut=windowRows(found,window.limit);
+   await attributeActors(c,org,[{rows:cut.rows,userId:'removed_by'}]);
+   await c.query('commit');
+   send(res,200,{records:cut.rows,total,kinds:counts.length,...(window.paginated?{page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{})});return true;
   }
   const [,kind,rawKey,restore]=match,key=String(BigInt(rawKey));
   if(kind==='members'){

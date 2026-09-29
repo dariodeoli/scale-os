@@ -1,0 +1,312 @@
+{
+ "capturedAt": "2026-09-29T21:34:54.550Z",
+ "base": "http://127.0.0.1:3078",
+ "rows": [
+  {
+   "screen": "equipo",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 15,
+   "authMs": 8,
+   "fcp": 88,
+   "calls": 12,
+   "bytes": 626752,
+   "slowest": {
+    "url": "/core-api/api/agency/control-center",
+    "duration": 35,
+    "bytes": 741
+   },
+   "contentMs": 289
+  },
+  {
+   "screen": "actividad",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 7,
+   "authMs": 13,
+   "fcp": 56,
+   "calls": 12,
+   "bytes": 546076,
+   "slowest": {
+    "url": "/core-api/api/agency/activity?limit=20&offset=0",
+    "duration": 29,
+    "bytes": 4696
+   },
+   "contentMs": 159
+  },
+  {
+   "screen": "historial",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 4,
+   "authMs": 4,
+   "fcp": 28,
+   "calls": 12,
+   "bytes": 563397,
+   "slowest": {
+    "url": "/core-api/api/agency/projects",
+    "duration": 11,
+    "bytes": 350050
+   },
+   "contentMs": 137
+  },
+  {
+   "screen": "invitaciones",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 3,
+   "authMs": 6,
+   "fcp": 52,
+   "calls": 12,
+   "bytes": 6104,
+   "slowest": {
+    "url": "/core-api/api/auth/me",
+    "duration": 6,
+    "bytes": 901
+   },
+   "contentMs": 135
+  },
+  {
+   "screen": "permisos",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 3,
+   "authMs": 7,
+   "fcp": 28,
+   "calls": 11,
+   "bytes": 465622,
+   "slowest": {
+    "url": "/core-api/api/agency/presence/usage",
+    "duration": 12,
+    "bytes": 82094
+   },
+   "contentMs": 134
+  },
+  {
+   "screen": "papelera",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 6,
+   "authMs": 5,
+   "fcp": 52,
+   "calls": 11,
+   "bytes": 459885,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 25,
+    "bytes": 344850
+   },
+   "contentMs": 144
+  },
+  {
+   "screen": "preferencias",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 3,
+   "authMs": 5,
+   "fcp": 36,
+   "calls": 10,
+   "bytes": 459286,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 10,
+    "bytes": 344850
+   },
+   "contentMs": 134
+  },
+  {
+   "screen": "configuracion",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 3,
+   "authMs": 3,
+   "fcp": 48,
+   "calls": 12,
+   "bytes": 460329,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 9,
+    "bytes": 344850
+   },
+   "contentMs": 136
+  },
+  {
+   "screen": "superadmin",
+   "width": 1440,
+   "height": 900,
+   "mobile": false,
+   "ttfb": 5,
+   "authMs": 5,
+   "fcp": 44,
+   "calls": 7,
+   "bytes": 3754,
+   "slowest": {
+    "url": "/core-api/api/platform/overview",
+    "duration": 8,
+    "bytes": 407
+   },
+   "contentMs": 131
+  },
+  {
+   "screen": "equipo",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 5,
+   "fcp": 40,
+   "calls": 12,
+   "bytes": 626773,
+   "slowest": {
+    "url": "/core-api/api/agency/team",
+    "duration": 11,
+    "bytes": 166746
+   },
+   "contentMs": 136
+  },
+  {
+   "screen": "actividad",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 4,
+   "fcp": 52,
+   "calls": 12,
+   "bytes": 546076,
+   "slowest": {
+    "url": "/core-api/api/agency/activity?limit=20&offset=0",
+    "duration": 16,
+    "bytes": 4696
+   },
+   "contentMs": 136
+  },
+  {
+   "screen": "historial",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 4,
+   "fcp": 28,
+   "calls": 12,
+   "bytes": 563397,
+   "slowest": {
+    "url": "/core-api/api/agency/projects",
+    "duration": 9,
+    "bytes": 350050
+   },
+   "contentMs": 134
+  },
+  {
+   "screen": "invitaciones",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 3,
+   "fcp": 52,
+   "calls": 12,
+   "bytes": 6103,
+   "slowest": {
+    "url": "/core-api/api/agency/invite-links",
+    "duration": 5,
+    "bytes": 1101
+   },
+   "contentMs": 137
+  },
+  {
+   "screen": "permisos",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 5,
+   "fcp": 28,
+   "calls": 11,
+   "bytes": 465622,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 9,
+    "bytes": 344850
+   },
+   "contentMs": 133
+  },
+  {
+   "screen": "papelera",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 5,
+   "fcp": 36,
+   "calls": 11,
+   "bytes": 459885,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 13,
+    "bytes": 344850
+   },
+   "contentMs": 137
+  },
+  {
+   "screen": "preferencias",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 4,
+   "fcp": 28,
+   "calls": 10,
+   "bytes": 459286,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 9,
+    "bytes": 344850
+   },
+   "contentMs": 134
+  },
+  {
+   "screen": "configuracion",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 5,
+   "fcp": 24,
+   "calls": 12,
+   "bytes": 460329,
+   "slowest": {
+    "url": "/core-api/api/agency/projects?fields=id,name,client_id,status,client_name,work_order_count,assignees",
+    "duration": 8,
+    "bytes": 344850
+   },
+   "contentMs": 134
+  },
+  {
+   "screen": "superadmin",
+   "width": 390,
+   "height": 844,
+   "mobile": true,
+   "ttfb": 3,
+   "authMs": 3,
+   "fcp": 32,
+   "calls": 7,
+   "bytes": 3754,
+   "slowest": {
+    "url": "/core-api/api/platform/overview",
+    "duration": 3,
+    "bytes": 407
+   },
+   "contentMs": 18
+  }
+ ]
+}

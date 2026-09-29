@@ -6,12 +6,13 @@ import {useMemo, useState} from "react";
 import {SearchField, Select} from "owncoding-ui";
 import {listDateFull} from "../list-format";
 import {EmptyBlock, FilterToolbar, ListGrid, ListRow, StateChip, type Column} from "../ui-v2";
-import {formatPlatformMetric, type AuditAction} from "./model";
+import {formatPlatformMetric, type AuditAction, type CollectionPage} from "./model";
+import {PlatformMore} from "./states";
 
 const TEMPLATE = "grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]";
 const COLUMNS: Column[] = [{key: "date", label: "Fecha"}, {key: "actor", label: "Actor"}, {key: "action", label: "Acción"}, {key: "target", label: "Destino"}];
 
-export function PlatformAudit({audit}: {audit: AuditAction[]}) {
+export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]; page: CollectionPage; busy: boolean; onMore: () => void}) {
   const [query, setQuery] = useState("");
   const [action, setAction] = useState("");
   // Tipos de acción presentes en lo cargado: filtro real, sin taxonomía inventada.
@@ -63,5 +64,6 @@ export function PlatformAudit({audit}: {audit: AuditAction[]}) {
         description={audit.length ? "Probá con otro actor, acción o texto." : "Las operaciones sensibles de la plataforma quedan acá con su actor, su acción y el destino."}
       />
     )}
+    <PlatformMore loaded={audit.length} total={page.total} hasMore={page.hasMore} busy={busy} onMore={onMore} label="acciones"/>
   </section>;
 }

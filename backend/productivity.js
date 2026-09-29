@@ -32,14 +32,16 @@ export async function productivity({req,res,url,db,session,body,send}){
    const person=optId(url.searchParams.get('userId'));
    if(person&&person!==String(user.id)&&!roleCan(user,'work-orders.manage'))fail('Sin permiso para historial de otra persona',403);
    const actor=person||(!roleCan(user,'work-orders.manage')?String(user.id):null);
+   const filter=`a.organization_id=$1 and ($2::text is null or a.actor=$2) and a.table_name in ('agency_work_orders','agency_projects','agency_order_comments','agency_project_comments','agency_internal_tasks')`;
+   const total=Number((await c.query(`select count(*)::int as n from agency_operation_audit a where ${filter}`,[org,actor])).rows[0].n);
    result=historyResult((await c.query(`select a.id,a.table_name,a.action,coalesce(nullif(trim(i.full_name),''),i.email,nullif(a.actor,''),'Sistema') as actor_name,
     i.user_id as actor_user_id,i.photo_url as actor_photo_url,(i.user_id is not null) as actor_verified,a.created_at,
     coalesce(a.after_state->>'title',a.before_state->>'title',a.after_state->>'name',a.before_state->>'name','Comentario') as title,
     a.before_state->>'status' as previous_status,a.after_state->>'status' as next_status
     from agency_operation_audit a left join organization_person_identity i on i.user_id::text=a.actor and i.organization_id=a.organization_id
-    where a.organization_id=$1 and ($2::text is null or a.actor=$2) and a.table_name in ('agency_work_orders','agency_projects','agency_order_comments','agency_project_comments','agency_internal_tasks') order by a.id desc limit $3 offset $4`,[org,actor,page.limit+1,page.offset])).rows,page);
+    where ${filter} order by a.id desc limit $3 offset $4`,[org,actor,page.limit+1,page.offset])).rows,page,total);
   }else if(kind==='source-events'){
-   if(req.method==='GET'){const page=historyPage(url.searchParams);result=historyResult((await c.query('select id,source_url,source_author,source_author as actor_name,body,occurred_at,null::text as actor_photo_url,null::bigint as actor_user_id,false as actor_verified from agency_source_events where organization_id=$1 order by occurred_at desc,id desc limit $2 offset $3',[org,page.limit+1,page.offset])).rows,page);}
+   if(req.method==='GET'){const page=historyPage(url.searchParams);const total=Number((await c.query('select count(*)::int as n from agency_source_events where organization_id=$1',[org])).rows[0].n);result=historyResult((await c.query('select id,source_url,source_author,source_author as actor_name,body,occurred_at,null::text as actor_photo_url,null::bigint as actor_user_id,false as actor_verified from agency_source_events where organization_id=$1 order by occurred_at desc,id desc limit $2 offset $3',[org,page.limit+1,page.offset])).rows,page,total);}
    else if(req.method==='POST'){
     const b=await body(req);if(!Array.isArray(b.events)||b.events.length>100)fail('Máximo 100 eventos por importación');let created=0;
     for(const e of b.events){const at=new Date(e.occurred_at);if(!Number.isFinite(at.getTime()))fail('Fecha de origen inválida');created+=(await c.query('insert into agency_source_events(organization_id,source_key,source_url,source_author,body,occurred_at,imported_by) values($1,$2,$3,$4,$5,$6,$7) on conflict do nothing returning id',[org,text(e.source_key,160),link(e.source_url),text(e.source_author,120),text(e.body,4000),at.toISOString(),user.id])).rows.length;}result={created};

@@ -23,12 +23,16 @@ import {
   manualAccessTone,
   platformDate,
   type Agency,
+  type CollectionPage,
   type State,
 } from "./model";
+import {PlatformMore} from "./states";
 
 type PlatformAgenciesProps = {
   busy: boolean;
   state: State;
+  page: CollectionPage;
+  onMore: () => void;
   writable: boolean;
   setConfirming: (value: import("./model").ConfirmRequest) => void;
   setTyped: (value: string) => void;
@@ -46,7 +50,7 @@ const COLUMNS: Column[] = [
 ];
 const MIN_WIDTH = denseTableMinWidth(70.5, 6);
 
-export function PlatformAgencies({busy, state, writable, setConfirming, setTyped, manageSubscription}: PlatformAgenciesProps) {
+export function PlatformAgencies({busy, state, page, onMore, writable, setConfirming, setTyped, manageSubscription}: PlatformAgenciesProps) {
   // La tabla densa solo entra con ancho suficiente; si no, tarjetas (#62/#63).
   const {ref: tableRef, fits: tableFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
   const [query, setQuery] = useState("");
@@ -162,6 +166,7 @@ export function PlatformAgencies({busy, state, writable, setConfirming, setTyped
           </div>
         )}
       </div>
+      <PlatformMore loaded={state.agencies.length} total={page.total} hasMore={page.hasMore} busy={busy} onMore={onMore} label="agencias"/>
     </section>
   );
 }
