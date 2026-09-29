@@ -2,6 +2,16 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.146
+
+### Finanzas
+
+- **Panel «Salarios» en Finanzas**: el gasto esperado del personal al cierre del mes, con una tarjeta por moneda (esperado al cierre y colaboradores incluidos); sale del mismo contrato y hook que la Previsión, sin recálculos propios.
+- **Estados completos**: cargando, error con reintento, vacío con acción («Ver equipo») y lleno; si el API no trae el dato, se muestra «—» en vez de un número inventado.
+- **«Ver más» hacia la vista completa**: Salarios abre la Previsión y Cobros pendientes abre Mora, sin duplicar datos en la pantalla.
+- **«Personal proyectado» ahora se llama «Salarios»** en la Previsión, con sus títulos y etiquetas de accesibilidad de escritorio y móvil.
+- **Fotos completas**: los avatares de la lista de Salarios se dimensionan a 32 px (34 px en mobile) y dejan de recortarse; las iniciales caen en el mismo círculo.
+
 ## v1.0.145
 
 ### Librería y sistema de diseño (owncoding-ui v0.51.0)
