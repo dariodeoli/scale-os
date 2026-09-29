@@ -110,22 +110,18 @@ function StudioPanel(){
    </>}
   </Card>
   {(spaces.length||reservations.length)?<Card className="grid min-w-0 gap-4">
-   <div className="flex flex-wrap items-center justify-between gap-3">
-    <div className="min-w-0">
-     <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2>
-     <p className="mt-1 text-xs leading-5 text-mute">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p>
-    </div>
-    <div className="w-52"><Label htmlFor="studio-month">Mes</Label><Input id="studio-month" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
+   <div className="flex min-w-0 flex-wrap items-center gap-3">
+    <h2 className="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2>
+    <p className="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Horario de Asunción. Una reserva activa bloquea únicamente su espacio.">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p>
+    <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
+    {visibleSelectable.length?<button type="button" className="text-button min-h-11 md:min-h-8" title={`Selecciona hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations}>Seleccionar visibles</button>:null}
    </div>
    <StudioCalendar month={month} reservations={reservations}/>
-  {visibleSelectable.length?<div className="bulk-bar" role="status" aria-live="polite">
-    <span className="bulk-count">{selectedReservations.length?<><b>{selectedReservations.length}</b> de {BATCH_LIMITS.studioReservations} seleccionada{selectedReservations.length===1?'':'s'}</>:<span className="bulk-hint whitespace-normal">Seleccioná varias reservas del mes para cancelarlas juntas.</span>}</span>
+  {selectedReservations.length?<div className="bulk-bar" role="status" aria-live="polite">
+    <span className="bulk-count"><b>{selectedReservations.length}</b> de {BATCH_LIMITS.studioReservations} seleccionada{selectedReservations.length===1?'':'s'}</span>
     <div className="inline-actions bulk-actions">
-      <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisibleReservations}>Seleccionar visibles</button>
-      {selectedReservations.length?<>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkCancel(true)}>Cancelar</button>
-        <button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setSelectedReservations([])}>Limpiar</button>
-      </>:null}
+      <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkCancel(true)}>Cancelar</button>
+      <button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setSelectedReservations([])}>Limpiar</button>
     </div>
   </div>:null}
    <div data-list="studio-reservations" className="grid min-w-0 gap-2 md:hidden">
@@ -178,5 +174,5 @@ function StudioReservationForm({context,spaces,reservations,record,done}:{contex
 }
 function StudioCalendar({month,reservations}:{month:string;reservations:StudioReservation[]}){
  const {blanks,days}=studioMonthGrid(month,reservations);
- return <div className="grid gap-2" aria-label="Calendario mensual del estudio"><div className="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div><div className="grid grid-cols-2 gap-1 sm:grid-cols-3 min-[769px]:grid-cols-7">{Array.from({length:blanks},(_,index)=><div className="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key={`blank-${index}`}/>)}{days.map(({date,day,reservations:rows})=><div className="grid min-h-[4.25rem] content-start gap-1 rounded-lg border border-ink-600/60 p-2 min-[769px]:min-h-16 min-[769px]:p-1" key={date}><time className="text-[11px] tabular-nums text-mute" dateTime={date} aria-label={date}>{day}</time>{rows.map(item=><div className="grid gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-[11px] text-fono-light" key={item.id}><b className="truncate" title={item.space_name}>{item.space_name}</b><span className="truncate text-mute" title={item.title}>{item.title}</span></div>)}</div>)}</div></div>;
+ return <div className="grid gap-2" aria-label="Calendario mensual del estudio"><div className="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div><div className="grid grid-cols-2 gap-1 sm:grid-cols-3 min-[769px]:grid-cols-7">{Array.from({length:blanks},(_,index)=><div className="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key={`blank-${index}`}/>)}{days.map(({date,day,reservations:rows})=><div className="grid min-h-[4.25rem] content-start gap-1 rounded-lg border border-ink-600/60 p-2 min-[769px]:min-h-14 min-[769px]:p-1" key={date}><time className="text-[11px] tabular-nums text-mute" dateTime={date} aria-label={date}>{day}</time>{rows.map(item=><div className="grid gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-[11px] text-fono-light" key={item.id}><b className="truncate" title={item.space_name}>{item.space_name}</b><span className="truncate text-mute" title={item.title}>{item.title}</span></div>)}</div>)}</div></div>;
 }

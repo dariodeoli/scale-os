@@ -410,14 +410,15 @@ export default [
       exemptBelow: 0,
     }],
     body: `
-<section class="grid min-w-0 gap-4 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Historial de trabajo">
- <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-  <div class="min-w-0"><h2 class="text-lg font-bold text-fore">Historial de trabajo</h2><p class="mt-1 text-xs leading-5 text-mute">Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.</p></div>
+<section class="grid min-w-0 gap-4 rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" aria-label="Historial de trabajo">
+ <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+  <h2 class="text-[17px] font-semibold tracking-tight text-fore">Historial de trabajo</h2>
+  <p class="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.">Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.</p>
   <button class="text-button shrink-0">${svg(ICON.history, 14)}Ver historial importado de Trello</button>
  </div>
- <div class="mb-4 flex flex-wrap items-end gap-3">
-  <div class="w-full sm:w-72">${selectCustom({label: 'Persona', value: 'Todo el equipo'})}</div>
-  <div class="w-44">${selectCustom({label: 'Registros por página', value: '100'})}</div>
+ <div class="flex flex-wrap items-end gap-3">
+  <div class="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap">${selectCustom({label: 'Persona', value: 'Todo el equipo'})}</div>
+  <div class="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap">${selectCustom({label: 'Registros por página', value: '100'})}</div>
   <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">1–4</p>
  </div>
  <ol class="grid min-w-0 gap-2">

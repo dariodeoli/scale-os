@@ -58,17 +58,18 @@ export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, s
         <Kpi label="Completados" valor={projectKpis.completed} hint="Cerrados en el historial"/>
         <Kpi label="Piezas totales" valor={projectKpis.pieces} hint="Órdenes de los proyectos visibles"/>
       </KpiStrip>
-      <FilterToolbar summary={`${liveProjects.length} proyecto${liveProjects.length===1?'':'s'}`}>
-        <label className="grid w-full gap-1.5 sm:w-64">
-          <span className="text-[12px] font-semibold text-mute">Cliente</span>
-          <Select value={projectClientFilter} onChange={(event:React.ChangeEvent<HTMLSelectElement>)=>setProjectClientFilter(event.target.value)}>
+      <FilterToolbar className="mb-0" summary={`${liveProjects.length} proyecto${liveProjects.length===1?'':'s'}`}>
+        <label className="flex items-center gap-2">
+          <span className="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span>
+          <Select className="w-full sm:w-56" value={projectClientFilter} onChange={(event:React.ChangeEvent<HTMLSelectElement>)=>setProjectClientFilter(event.target.value)}>
             <option value="">Todos los clientes</option>
             {clients.map(client=><option key={client.id} value={String(client.id)}>{client.name}</option>)}
           </Select>
         </label>
         {projectClientFilter?<button type="button" className="text-button" onClick={()=>setProjectClientFilter('')}><X size={14}/>Limpiar filtro</button>:null}
+        {canManageProjects&&liveProjects.length?<button type="button" className="text-button lg:ml-2" title={`Selecciona hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={selectVisibleProjects}>Seleccionar visibles</button>:null}
       </FilterToolbar>
-      {canManageProjects&&liveProjects.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count">{selectedProjects.length?<><b>{selectedProjects.length}</b> de {BATCH_LIMITS.projects} seleccionado{selectedProjects.length===1?'':'s'}</>:<span className="bulk-hint whitespace-normal">Seleccioná varios para operar en lote · máximo {BATCH_LIMITS.projects}</span>}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleProjects}>Seleccionar visibles</button>{selectedProjects.length?<><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedProjects([])}>Limpiar</button></>:null}</div></div>:null}
+      {canManageProjects&&selectedProjects.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count"><b>{selectedProjects.length}</b> de {BATCH_LIMITS.projects} seleccionado{selectedProjects.length===1?'':'s'}</span><div className="inline-actions bulk-actions"><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedProjects([])}>Limpiar</button></div></div>:null}
       {projectsState === 'error' && projects.length ? <p className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-sm text-bad" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={retry}>Reintentar</button></p> : null}
       {projectsState === 'loading' && !projects.length ? <LoadingBlock label="Cargando proyectos…" lines={4}/> : null}
       {projectsState === 'error' && !projects.length ? <ErrorBlock title="No se pudieron cargar los proyectos." onRetry={retry}/> : null}
