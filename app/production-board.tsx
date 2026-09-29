@@ -9,7 +9,7 @@
  * única del dominio (`statuses`).
  */
 import {useEffect,useRef,useState} from 'react';
-import {fechaLista} from './date-format';
+import {fechaLista} from 'owncoding-ui';
 import {useDraggable,useDroppable} from '@dnd-kit/core';
 import {StateChip,type ChipTone} from './ui-v2';
 import {ClientIdentity} from './client-identity';

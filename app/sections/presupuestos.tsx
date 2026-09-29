@@ -1,8 +1,8 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {Aviso} from 'owncoding-ui';
-import {fechaListaCorta} from '../date-format';
-import {hasDueWarning} from '../due-status';
+import {fechaListaCorta} from 'owncoding-ui';
+import {hasDueWarning} from '../list-format';
 import {Plus,Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';
 import {BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';

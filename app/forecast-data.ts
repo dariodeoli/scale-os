@@ -1,3 +1,4 @@
+import {currentAsuncionMonth,todayAsuncion} from './client-format';
 import {currencyCodes,type Currency} from './currencies';
 import {listDateShort} from './list-format';
 
@@ -91,14 +92,10 @@ export function dateLabel(value: string): string {
 }
 
 export function currentForecastMonth(now = new Date()) {
-  const parts = new Intl.DateTimeFormat('en-US', {timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit'}).formatToParts(now);
-  return `${parts.find(p => p.type === 'year')!.value}-${parts.find(p => p.type === 'month')!.value}`;
+  return currentAsuncionMonth(now);
 }
 
-export const todayAsuncion = () => {
-  const parts = new Intl.DateTimeFormat('en-US', {timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit', day: '2-digit'}).formatToParts(new Date());
-  return `${parts.find(part => part.type === 'year')!.value}-${parts.find(part => part.type === 'month')!.value}-${parts.find(part => part.type === 'day')!.value}`;
-};
+export {todayAsuncion};
 
 export const amountFor = (rows: AggregateRow[] | undefined, currency: MoneyCurrency) => rows?.find(row => row.currency === currency)?.amount;
 

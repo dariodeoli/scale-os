@@ -3,9 +3,8 @@
 // Tailwind y datos diarios con `DataTable` (tabla en escritorio, tarjetas en
 // móvil). La lógica vive en ./growth-dashboard-data.
 import {useState} from 'react';
-import {Card,DataTable,Nota,Select,Stat} from 'owncoding-ui';
+import {Card,DataTable,Nota,Select,Stat,fechaListaCorta} from 'owncoding-ui';
 import {formatoNumero} from 'owncoding-ui/utils';
-import {fechaListaCorta} from './date-format';
 import {growthSeries,type GrowthEvent} from './growth-dashboard-data';
 // La lógica de datos vive en ./growth-dashboard-data (funciones puras); se
 // reexporta para no romper imports existentes.
@@ -39,7 +38,7 @@ export function GrowthDashboard({events}:{events:GrowthEvent[]}){
    <div role="img" aria-label={`Páginas vistas durante ${days} días. ${sum('page_view')} en total.`} className="mt-2 flex h-40 items-end gap-[3px] rounded-t-lg border border-b-ink-500 border-ink-600 bg-ink-900 px-2 pt-2">
     {points.map(point=><div key={point.day} className="min-w-0 flex-1 rounded-t bg-fono transition motion-reduce:transition-none hover:brightness-110" style={{height:`${Math.max(1,point.count/max*100)}%`}} title={`${point.day}: ${point.count} vistas`}/>)}
    </div>
-   <div className="mt-1 flex justify-between gap-2 text-[11px] tabular-nums text-mute"><span>{fechaListaCorta(points[0]?.day)}</span><span>{fechaListaCorta(points.at(-1)?.day)}</span></div>
+   <div className="mt-1 flex justify-between gap-2 text-[11px] tabular-nums text-mute"><span>{fechaListaCorta(points[0]?.day,'')}</span><span>{fechaListaCorta(points.at(-1)?.day,'')}</span></div>
   </section>
   <Nota tono="info" compact>Son eventos registrados, no personas únicas ni usuarios conectados. Las vistas móviles no se suman al total de páginas. Las comprobaciones de despliegue quedan excluidas.</Nota>
   <details className="text-sm text-fore">

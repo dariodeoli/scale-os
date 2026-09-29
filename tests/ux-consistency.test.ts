@@ -1,12 +1,18 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
+import {fechaLista} from 'owncoding-ui';
 import {workspaceSource,sectionSource} from './workspace-source';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('visible date-time values use the 24-hour clock',()=>{
-  assert.match(read('app/list-format.tsx'),/hourCycle:\s*'h23'/,`app/list-format.tsx renders 24-hour time`);
+  const listFormat=read('app/list-format.tsx');
+  assert.match(listFormat,/from 'owncoding-ui'/,'app/list-format.tsx usa los objetos de fecha de la librería');
+  assert.doesNotMatch(listFormat,/new Intl\.DateTimeFormat/,'app/list-format.tsx ya no arma fechas a mano');
+  assert.match(listFormat,/hora: time/,'listDateFull delega la hora al helper compartido');
+  // La librería rinde 24 h: 14:30 UTC son 11:30 en Asunción, nunca «11:30 a. m.».
+  assert.equal(fechaLista('2026-09-17T14:30:00.000Z','',{timeZone:'America/Asuncion'}),'17 sept 26 · 11:30');
   for(const file of ['app/actor-identity.tsx','app/notification-inbox.tsx','app/presence.tsx','app/productivity-ui.tsx','app/inventory-workspace.tsx']){
     const source=read(file);
     assert.ok(/listDate(Full|Short)|fechaLista(Corta)?\(/.test(source)||/hourCycle:'h23'/.test(source),`${file} renders 24-hour time through the shared format`);

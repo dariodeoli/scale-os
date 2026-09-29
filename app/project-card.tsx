@@ -11,8 +11,8 @@
  */
 import {useEffect,useRef,useState} from 'react';
 import {Drawer, IconAction} from 'owncoding-ui';
-import {fechaLista,fechaListaCorta} from './date-format';
-import {hasDueWarning} from './due-status';
+import {fechaLista,fechaListaCorta} from 'owncoding-ui';
+import {hasDueWarning} from './list-format';
 import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip,type ChipTone} from './ui-v2';
 import {UrgencyBadge} from './urgency';
 import {ClientIdentity} from './client-identity';

@@ -1,41 +1,36 @@
 'use client';
-// Shared list formats. Every list view uses these instead of hand-rolling
-// serials, short dates or due emphasis, so the dense tables stay consistent.
-import {partirSerial, serialEnmascarado} from 'owncoding-ui';
+// Formato único de las listas densas. Las fechas, los vencimientos y los
+// seriales salen de los objetos de owncoding-ui (`fechaLista`, `fechaListaCorta`,
+// `diasHasta`, `partirSerial`, `serialEnmascarado`): acá solo se fija la zona de
+// la empresa y el contrato de vacío de las celdas, que devuelve `null` para que
+// cada celda elija su texto. No hay una segunda implementación de Intl.
+import {diasHasta, fechaLista, fechaListaCorta, partirSerial, serialEnmascarado} from 'owncoding-ui';
 import './list-format.css';
 
 const timeZone = 'America/Asuncion';
-function parse(value: string | null | undefined, dateOnly = false) {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
-  const date = new Date(dateOnly ? `${raw.slice(0, 10)}T12:00:00Z` : raw);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
 
-/** Full date with clock: `17 sep 26 · 14:30`. */
+/** Full date with clock: `17 sept 26 · 14:30`; `null` when there is no date. */
 export function listDateFull(value: string | null | undefined, time?: string | null) {
-  const raw = String(value || '').trim();
-  const date = parse(value, !raw.includes('T'));
-  if (!date) return null;
-  const day = new Intl.DateTimeFormat('es-PY', { timeZone, day: '2-digit', month: 'short', year: '2-digit' }).format(date).replace(/\./g, '');
-  const clock = String(time || (raw.includes('T') ? new Intl.DateTimeFormat('es-PY', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date) : '') || '').slice(0, 5);
-  return clock ? `${day} · ${clock}` : day;
+  return fechaLista(value, '', {timeZone, hora: time || undefined}) || null;
 }
 
-/** Short table date: `17-sept`. */
+/** Short table date: `17-sept`; `null` when there is no date. */
 export function listDateShort(value: string | null | undefined) {
-  const date = parse(value, !String(value || '').includes('T'));
-  if (!date) return null;
-  return new Intl.DateTimeFormat('es-PY', { timeZone, day: '2-digit', month: 'short' }).format(date).replace(/\./g, '').replace(/\s+/g, '-');
+  return fechaListaCorta(value, '') || null;
 }
 
-/** Due tone: painted only when overdue or within the next week. */
+/**
+ * Due tone: painted (`warn`) only when the date is overdue or falls within the
+ * next `days` calendar days of Asunción; `''` when there is nothing to paint.
+ */
 export function dueTone(value: string | null | undefined, days = 7) {
-  const date = parse(value, true);
-  if (!date) return '';
-  const today = new Date(new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()) + 'T12:00:00Z');
-  const left = Math.round((date.getTime() - today.getTime()) / 86_400_000);
-  return left <= days ? 'warn' : '';
+  const left = diasHasta(value, {timeZone});
+  return left !== null && left <= days ? 'warn' : '';
+}
+
+/** Boolean contract of `dueTone` for the lists that only need the warning flag. */
+export function hasDueWarning(value: string | null | undefined, days = 7) {
+  return dueTone(value, days) !== '';
 }
 
 /** Serial/IMEI: the tail is always visible; masked where it adds no value. */

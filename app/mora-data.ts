@@ -6,8 +6,9 @@ import type {Currency} from './currencies';
  * La lógica vivía dentro de `scale-workspace.tsx` (sección Mora). Se extrajo acá
  * como normalizadores/funciones puras para que el rediseño de FIN (#45) y la
  * descomposición del shell (#47) la adopten sin depender del monolito.
- * Mientras el shell siga siendo el dueño de la sección, este módulo no se importa
- * desde la app: se valida con `tests/mora-data.test.ts`.
+ * Es la única fuente del dominio: la sección (`app/sections/mora.tsx`) y el
+ * shell (`app/scale-workspace.tsx`) derivan KPIs y DSO desde acá, y se valida
+ * con `tests/mora-data.test.ts`.
  */
 
 /** Fila de `GET /api/agency/client-payment-status` (vista `client_payment_status`). */

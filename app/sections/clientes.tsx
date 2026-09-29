@@ -1,8 +1,7 @@
 "use client";
 import {useState, type Dispatch, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
-import {Aviso, IconAction} from 'owncoding-ui';
-import {fechaListaCorta} from '../date-format';
+import {Aviso, IconAction, fechaListaCorta} from 'owncoding-ui';
 import {BATCH_LIMITS, roleCan} from '../capabilities';
 import {clientState} from '../client-status';
 import {clientWhatsappUrl} from '../client-links';

@@ -6,9 +6,9 @@ import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-re
 import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
-import {Aviso, Button, FilaDato, Nota, Subtabs, completeSave} from 'owncoding-ui';
-import {hasDueWarning} from './due-status';
-import {fechaLista,fechaListaCorta} from './date-format';
+import {Aviso, Button, FilaDato, Nota, Subtabs, completeSave, fechaLista, fechaListaCorta} from 'owncoding-ui';
+import {hasDueWarning} from './list-format';
+import {todayAsuncion} from './client-format';
 import {EmptyBlock, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
@@ -76,7 +76,7 @@ const PLANNER_COLUMNS:Column[]=[{key:'piece',label:'Pieza'},{key:'due',label:'Ve
 const PLANNER_TEMPLATE='grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.1fr)_7rem_7rem_minmax(9rem,1fr)_6rem_9rem]';
 const managers=['owner','admin','management','production','collaborator'];
 const makers=[...managers,'editor'];
-const localDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const localDay=todayAsuncion;
 function usePeople(){
  const [people,setPeople]=useState<Row[]>([]),[error,setError]=useState(''),[reload,setReload]=useState(0);
  useEffect(()=>{let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive){setPeople(d.people);setError('');}}).catch(cause=>{if(alive)setError(errorText(cause));});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[reload]);

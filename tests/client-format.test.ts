@@ -1,8 +1,14 @@
 import assert from 'node:assert/strict';
-import {daysUntil,todayAsuncion} from '../app/client-format';
+import {daysUntil,todayAsuncion,moneyKpi} from '../app/client-format';
+import {money} from '../app/money-format';
 
 function main(){
  const now=new Date('2026-09-18T15:00:00Z');
+ // Un dato, un formato: el agregado de KPI comparte el formateador de las filas
+ // y conserva los centavos de toda moneda no-PYG.
+ assert.equal(moneyKpi(1234.56,'USD'),money(1234.56,'USD'));
+ assert.equal(moneyKpi(1234.56,'USD'),'USD\u00a01.234,56');
+ assert.equal(moneyKpi(3500000,'PYG'),'Gs.\u00a03.500.000');
  assert.equal(daysUntil('2026-10-18',now),30);
  assert.equal(daysUntil('2026-09-18',now),0);
  assert.equal(daysUntil('2026-09-15',now),-3);
