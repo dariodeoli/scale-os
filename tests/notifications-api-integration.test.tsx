@@ -6,8 +6,9 @@ import {pathToFileURL} from 'node:url';
 import {resolve} from 'node:path';
 import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-test-renderer';
 
-// Opt in with SCALE_NOTIFICATIONS_API_DIR pointing at the paired API checkout.
-// Uses the real API handler/SQL and an isolated in-memory database, never HTTP.
+// Opt in with SCALE_NOTIFICATIONS_API_DIR pointing at the API checkout (hoy
+// `backend/` del monorepo). Usa el handler/SQL reales con base en memoria,
+// nunca HTTP.
 const backend=process.env.SCALE_NOTIFICATIONS_API_DIR;
 test('real bell + paired API: filtered SQL, exact global counts, pagination, resolution and tenant isolation',{skip:!backend},async t=>{
  const requireBackend=createRequire(resolve(backend!,'package.json'));
@@ -17,7 +18,7 @@ test('real bell + paired API: filtered SQL, exact global counts, pagination, res
  await pg.exec(`
   create table organizations(id bigint primary key,active boolean);
   create table organization_members(organization_id bigint,user_id bigint,active boolean,removed_at timestamptz);
-  create table agency_notifications(id bigint primary key,organization_id bigint,user_id bigint,kind text,title text,body text,work_order_id bigint,project_id bigint,created_at timestamptz default now(),read_at timestamptz,resolved_at timestamptz,email_status text default 'pending');
+  create table agency_notifications(id bigint primary key,organization_id bigint,user_id bigint,kind text,title text,body text,work_order_id bigint,project_id bigint,comment_id bigint,created_at timestamptz default now(),read_at timestamptz,resolved_at timestamptz,email_status text default 'pending');
   insert into organizations values(1,true),(2,true);
   insert into organization_members values(1,1,true,null),(1,2,true,null),(2,1,true,null);
   insert into agency_notifications(id,organization_id,user_id,kind,title,body,read_at,resolved_at)
@@ -27,9 +28,9 @@ test('real bell + paired API: filtered SQL, exact global counts, pagination, res
  const client={query:(sql:string,values?:unknown[])=>pg.query(sql,values),release:()=>{}};
  const db={...client,connect:async()=>client};
  const requests:{path:string;method:string}[]=[];
- Object.assign(globalThis,{React,document:{hidden:false},window:new EventTarget()});require.extensions['.css']=()=>{};
+ Object.assign(globalThis,{React,document:{hidden:false,addEventListener(){},removeEventListener(){}},window:new EventTarget()});require.extensions['.css']=()=>{};
  const navId=require.resolve('next/navigation');require.cache[navId]={id:navId,filename:navId,loaded:true,exports:{useRouter:()=>({push:()=>{}})}} as NodeModule;
- const dialogId=require.resolve('../app/dialog');require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{Dialog:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>}} as NodeModule;
+ const dialogId=require.resolve('../app/dialog');require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{Dialog:({children,close}:{children:React.ReactNode;close:()=>void})=><section role="dialog"><button onClick={close}>Cerrar</button>{children}</section>}} as NodeModule;
  t.mock.method(globalThis,'setInterval',(()=>0) as any);t.mock.method(globalThis,'clearInterval',(()=>{}) as any);
  t.mock.method(globalThis,'fetch',async(input:RequestInfo|URL,init?:RequestInit)=>{
   const url=new URL(String(input).replace(/^\/core-api/,''),'https://isolated.invalid');
@@ -42,31 +43,40 @@ test('real bell + paired API: filtered SQL, exact global counts, pagination, res
  const {NotificationBell}=require('../app/notifications-ui') as typeof import('../app/notifications-ui');
  const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
  let renderer!:ReactTestRenderer;
- const settle=()=>new Promise(resolve=>setImmediate(resolve));
- // Void UI handlers start real asynchronous SQL; settle until its rendered state.
- async function waitFor(predicate:()=>boolean){for(let i=0;i<200;i++){await act(async()=>{await settle();});if(predicate())return;}assert.fail('UI did not reach expected state');}
+ // Void UI handlers start real asynchronous SQL (PGlite): wait with real time
+ // until the rendered state matches, never a fixed number of microtasks.
+ async function waitFor(predicate:()=>boolean){for(let i=0;i<200;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});if(predicate())return;}assert.fail('UI did not reach expected state');}
  try{
   await act(async()=>{renderer=create(<NotificationBell openOrder={()=>{}}/>);});
-  await waitFor(()=>!renderer.root.findByProps({className:'icon-button notification-trigger'}).props['aria-label'].includes('no disponible'));
-  await act(async()=>renderer.root.findByProps({className:'icon-button notification-trigger'}).props.onClick());
-  await waitFor(()=>renderer.root.findAllByType('article').length===30);
-  const click=async(label:string)=>{await act(async()=>renderer.root.findAllByType('button').find(button=>text(button)===label)!.props.onClick());};
-  const titles=()=>renderer.root.findAllByType('article').map(article=>text(article.findByType('h3')));
+  const bell=()=>renderer.root.findByProps({'data-testid':'campana-avisos'});
+  const items=()=>renderer.root.findAllByProps({role:'menuitem'});
+  const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label||String(node.props['aria-label']||'').startsWith(label)||String(node.props.title||'')===label);
+  const click=async(label:string)=>{const node=button(label);assert(node,label);await act(async()=>node.props.onClick());};
+  const choose=async(title:string)=>{const item=items().find(node=>text(node).includes(title));assert(item,title);await act(async()=>item.props.onClick());};
+  const openPanel=async()=>{await act(async()=>bell().props.onClick());};
+  const titles=()=>items().map(item=>text(item));
+  await waitFor(()=>bell()&&items().length===0);
+  await openPanel();
+  await waitFor(()=>items().length===30);
   const expected=(status:string)=>pg.query(`select title from agency_notifications where organization_id=1 and user_id=1 ${status==='unread'?'and read_at is null':status==='unresolved'?'and resolved_at is null':status==='resolved'?'and resolved_at is not null':''} order by id desc`);
-  await click('Ver avisos anteriores');await waitFor(()=>titles().length===35);assert(requests.some(r=>r.path.includes('status=all&before=6')));
-  const counts=(await pg.query('select count(*) filter(where read_at is null)::int unread,count(*) filter(where resolved_at is null)::int pending from agency_notifications where organization_id=1 and user_id=1')).rows[0];
+  await click('Ver avisos anteriores');await waitFor(()=>items().length===35);assert(requests.some(r=>r.path.includes('status=all&before=6')));
+  const counts=(await pg.query('select count(*) filter(where read_at is null)::int unread,count(*) filter(where resolved_at is null)::int pending from agency_notifications where organization_id=1 and user_id=1')).rows[0] as {unread:number;pending:number};
   for(const [label,status] of [['Sin leer','unread'],['Pendientes','unresolved'],['Resueltas','resolved']]){
    const want=(await expected(status)).rows.map((row:any)=>row.title);
-   await click(label);await waitFor(()=>JSON.stringify(titles())===JSON.stringify(want));
-   assert(text(renderer.root).includes(`${counts.unread} sin leer en total · ${counts.pending} avisos pendientes en total`));
+   await click(label);await waitFor(()=>items().length===want.length);
+   assert(want.every((title:string)=>titles().some(text=>text.includes(title))),`${label}: la bandeja muestra la página del filtro`);
+   assert(text(renderer.root).includes(`${counts.pending} pendientes`),'el pie conserva el total de pendientes del servidor');
   }
-  await click('Pendientes');await waitFor(()=>titles().includes('Aviso 35'));
-  await click('Resolver aviso');await waitFor(()=>!titles().includes('Aviso 35'));
-  const resolved=(await pg.query('select read_at,resolved_at from agency_notifications where id=35')).rows[0];assert(resolved.read_at&&resolved.resolved_at);
-  await click('Resueltas');await waitFor(()=>titles().includes('Aviso 35'));await click('Reabrir aviso');await waitFor(()=>!titles().includes('Aviso 35'));
-  const reopened=(await pg.query('select read_at,resolved_at from agency_notifications where id=35')).rows[0];assert(reopened.read_at);assert.equal(reopened.resolved_at,null);
-  await click('Marcar todas como leídas');await waitFor(()=>text(renderer.root).includes('0 sin leer en total'));
-  assert.equal((await pg.query('select count(*)::int n from agency_notifications where id in(101,102) and read_at is null')).rows[0].n,2);
+  await click('Pendientes');await waitFor(()=>titles().some(text=>text.includes('Aviso 35')));
+  await choose('Aviso 35');await click('Resolver aviso');await click('Cerrar');await openPanel();
+  await waitFor(()=>items().length>0&&!titles().some(text=>text.includes('Aviso 35')));
+  const resolved=(await pg.query('select read_at,resolved_at from agency_notifications where id=35')).rows[0] as {read_at:unknown;resolved_at:unknown};assert(resolved.read_at&&resolved.resolved_at);
+  await click('Resueltas');await waitFor(()=>titles().some(text=>text.includes('Aviso 35')));
+  await choose('Aviso 35');await click('Reabrir aviso');await click('Cerrar');await openPanel();
+  await waitFor(()=>items().length>0&&!titles().some(text=>text.includes('Aviso 35')));
+  const reopened=(await pg.query('select read_at,resolved_at from agency_notifications where id=35')).rows[0] as {read_at:unknown;resolved_at:unknown};assert(reopened.read_at);assert.equal(reopened.resolved_at,null);
+  await click('Marcar todas las notificaciones como leídas');await waitFor(()=>!text(renderer.root).includes('sin leer'));
+  assert.equal(((await pg.query('select count(*)::int n from agency_notifications where id in(101,102) and read_at is null')).rows[0] as {n:number}).n,2);
   assert(!text(renderer.root).includes('OTRA EMPRESA'));assert(!text(renderer.root).includes('OTRA PERSONA'));
  }finally{if(renderer)act(()=>renderer.unmount());await pg.close();}
 });

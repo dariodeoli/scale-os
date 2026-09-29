@@ -1,32 +1,57 @@
 'use client';
-// Bandeja de notificaciones v2 (issue #46): Tailwind + primitivas ui-v2; sin hoja
-// propia. La lógica de filtros, polling y single-flight se conserva tal cual.
+// Bandeja oficial de avisos (owncoding-ui §16, Refs #83): el objeto
+// `CampanaAvisos` dibuja la campana, el contador, el panel, el vacío con acción
+// y cada aviso (contrato `{id, titulo, detalle, tono, fecha, href, leido}`); la
+// app conserva datos, polling, filtros, mutaciones y preferencias.
+// El aviso elegido abre su detalle con las acciones propias de Scale OS (ver
+// pieza o proyecto, marcar como leída, resolver o reabrir).
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {Bell,Check,CheckCheck,CircleCheck,ExternalLink,RefreshCw,RotateCcw,Settings2} from 'lucide-react';
+import {Check,CheckCheck,CircleCheck,ExternalLink,RefreshCw,RotateCcw,Settings2} from 'lucide-react';
 import {useRouter} from 'next/navigation';
-import {SegmentedField} from 'owncoding-ui';
+import {CampanaAvisos,SegmentedField} from 'owncoding-ui';
 import {api} from './operations';
 import {Dialog} from './dialog';
 import {listDateFull} from './list-format';
-import {EmptyBlock,LoadingBlock,StateChip} from './ui-v2';
+import {StateChip} from './ui-v2';
 
 type Notice={id:string;kind?:'assignment'|'comment'|'due';title:string;body:string;work_order_id:string|null;project_id?:string|null;comment_id?:string|null;read_at:string|null;resolved_at?:string|null;created_at:string};
 type Inbox={notifications:Notice[];unread:number;pendingCount?:number;next:string|null};
 type Filter='all'|'unread'|'unresolved'|'resolved';
+/** Aviso canónico de la bandeja (§16): lo que el objeto sabe dibujar. */
+export type Aviso={id:string;titulo:string;detalle:string;tono:'ok'|'warn'|'bad'|'info'|'mute';fecha:string;leido:boolean;icono:string};
 const filters:{value:Filter;label:string}[]=[{value:'all',label:'Todas'},{value:'unread',label:'Sin leer'},{value:'unresolved',label:'Pendientes'},{value:'resolved',label:'Resueltas'}];
 const empty:Inbox={notifications:[],unread:0,next:null};
 const error=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudieron cargar los avisos.';
 const kindLabel=(kind:Notice['kind'])=>({assignment:'Asignación',comment:'Mención o comentario',due:'Entrega pendiente'} as Record<string,string>)[kind||'']||'Aviso';
 function dateLabel(value:string){return listDateFull(value)||'Fecha no disponible';}
-/** Acción de la bandeja: target de 44 px en mobile y geometría estable. */
+/** Una línea del detalle: sin saltos ni espacios repetidos. */
+function oneLine(value:string){return value.replace(/\s+/g,' ').trim();}
+function short(value:string,limit:number){const text=oneLine(value);return text.length>limit?`${text.slice(0,limit-1).trimEnd()}…`:text;}
+/** Tono del aviso: lo nuevo se pinta, lo leído queda neutro y lo resuelto en verde. */
+function tonoDeAviso(notice:Notice):Aviso['tono']{if(notice.resolved_at)return 'ok';if(notice.read_at)return 'mute';return notice.kind==='due'?'warn':'info';}
+function iconoDeAviso(notice:Notice){if(notice.resolved_at)return 'check';return ({assignment:'user',comment:'megaphone',due:'clock'} as Record<string,string>)[notice.kind||'']||'bell';}
+/** Mapeo único al contrato de la bandeja (§16): título corto sin punto final,
+ *  detalle en una línea y fecha ya formateada. La ruta del destino la resuelve
+ *  la app al abrir el detalle (la pieza no tiene ruta canónica propia). */
+export function avisoDeNotificacion(notice:Notice):Aviso{
+ return {
+  id:String(notice.id),
+  titulo:short(notice.title||'Aviso',90).replace(/\.+$/,''),
+  detalle:short(notice.body||'',140),
+  tono:tonoDeAviso(notice),
+  fecha:dateLabel(notice.created_at),
+  leido:Boolean(notice.read_at),
+  icono:iconoDeAviso(notice),
+ };
+}
+/** Acción de la bandeja: target de 44 px y geometría estable. */
 const ICON_ACTION='icon-button !h-11 !w-11';
-const CARD='grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4';
-const CARD_UNREAD='grid min-w-0 gap-2 rounded-xl border border-ink-600 border-l-4 border-l-fono bg-ink-700 p-4';
 
 export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:string,anchor?:string)=>void;openPreferences:()=>void}){
  const router=useRouter();
- const [open,setOpen]=useState(false),[filter,setFilter]=useState<Filter>('all'),[data,setData]=useState<Inbox>(empty);
+ const [filter,setFilter]=useState<Filter>('all'),[data,setData]=useState<Inbox>(empty);
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
+ const [selected,setSelected]=useState<Notice|null>(null);
  const alive=useRef(false),sequence=useRef(0),locked=useRef(false),reading=useRef(false),olderPages=useRef(false);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;sequence.current++;};},[]);
  const load=useCallback(async(before?:string,background=false)=>{
@@ -44,13 +69,14 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
  },[filter]);
  useEffect(()=>{
   void load();
-  // Do not replace the expanded history with page one while it is being read.
-  // Explicit refresh/filter changes and closing the drawer resume fresh polling.
-  const timer=setInterval(()=>{if(!document.hidden&&!locked.current&&!reading.current&&!(open&&olderPages.current))void load(undefined,true);},60000);
+  // La página uno no reemplaza el historial expandido mientras se lee: al
+  // abrir la bandeja se vuelve a la primera página y el polling se reanuda.
+  const timer=setInterval(()=>{if(!document.hidden&&!locked.current&&!reading.current&&!olderPages.current)void load(undefined,true);},60000);
   return()=>{clearInterval(timer);sequence.current++;reading.current=false;};
- },[load,open]);
+ },[load]);
  function changeFilter(next:Filter){if(locked.current||next===filter)return;setFilter(next);setData(previous=>({...previous,notifications:[],next:null}));setLoading(true);setMessage('');}
- function visitNotice(notice:Notice){setOpen(false);if(notice.work_order_id)openOrder(String(notice.work_order_id),notice.comment_id?`comment-${notice.comment_id}`:undefined);else if(notice.project_id)router.push('/proyectos#project-'+encodeURIComponent(notice.project_id));}
+ function openInbox(){if(olderPages.current){olderPages.current=false;setData(previous=>({...previous,notifications:[],next:null}));void load();}else void load(undefined,true);}
+ function visitNotice(notice:Notice){setSelected(null);if(notice.work_order_id)openOrder(String(notice.work_order_id),notice.comment_id?`comment-${notice.comment_id}`:undefined);else if(notice.project_id)router.push('/proyectos#project-'+encodeURIComponent(notice.project_id));}
  async function mutate(action:'read'|'read-all'|'resolve'|'reopen',notice?:Notice,visit=false){
   if(locked.current)return;locked.current=true;sequence.current++;reading.current=false;setBusy(true);setMessage('');
   try{
@@ -58,6 +84,7 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
    await api('/api/agency/notifications/'+(action==='read-all'?'read-all':encodeURIComponent(notice!.id)),action==='resolve'?{resolved:true}:action==='reopen'?{resolved:false}:{},'PATCH');
    }catch(cause){if(alive.current)setMessage(error(cause));return;}
    if(!alive.current)return;
+   if(notice)setSelected(current=>current&&String(current.id)===String(notice.id)?{...current,...(action==='resolve'?{resolved_at:'now'}:action==='reopen'?{resolved_at:null}:{read_at:current.read_at||'now'})}:current);
    const refreshed=await load(undefined,true);
    if(alive.current){
    if(!refreshed)setMessage('Cambio guardado. No se pudo actualizar la lista; usá Actualizar para comprobar el estado.');
@@ -69,42 +96,60 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
   if(locked.current||!data.next)return;locked.current=true;setBusy(true);
   try{await load(data.next);}finally{locked.current=false;if(alive.current)setBusy(false);}
  }
+ function choose(aviso:Aviso){
+  const notice=data.notifications.find(row=>String(row.id)===String(aviso.id));
+  if(!notice)return;
+  setMessage('');
+  setSelected(notice);
+  if(!notice.read_at)void mutate('read',notice);
+ }
+ const avisos=data.notifications.map(avisoDeNotificacion);
+ const pending=typeof data.pendingCount==='number'?`${data.pendingCount} pendientes`:'';
+ const status=loaded?pending:'Estado no disponible.';
+ const vacio=!loaded
+  ?{titulo:loading?'Consultando avisos…':'No pudimos cargar los avisos',detalle:loading?'Un momento.':(message||'Volvé a intentar en un rato.')}
+  :{titulo:filter==='all'?'No tenés avisos':'No hay avisos para este filtro',detalle:filter==='all'?'Acá aparecerán tus avisos de asignaciones, comentarios y entregas.':'Probá con otra vista o volvé a todas.'};
+ const vacioAccion=!loaded
+  ?(loading?undefined:<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>)
+  :filter==='all'
+   ?<button type="button" className="secondary" onClick={()=>void load()}>Actualizar</button>
+   :<button type="button" className="secondary" onClick={()=>changeFilter('all')}>Ver todas</button>;
  return <>
-  <span className="relative flex-none">
-   <button type="button" className="icon-button notification-trigger" title="Notificaciones" aria-haspopup="dialog" aria-expanded={open} aria-label={`Notificaciones${!loaded?', estado no disponible':data.unread?`, ${data.unread} sin leer`:''}`} onClick={()=>setOpen(true)}><Bell size={19}/></button>
-   {loaded&&data.unread>0&&<span className="pointer-events-none absolute -right-1.5 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-ink-800 bg-bad px-1 text-[10px] font-bold leading-none tabular-nums text-onbrand" aria-hidden="true">{data.unread>99?'99+':data.unread}</span>}
-  </span>
-  {open&&<Dialog title="Notificaciones" close={()=>setOpen(false)} size="compact" busy={busy}><div className="grid min-w-0 max-w-full gap-3 [overflow-wrap:anywhere]">
-   <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-600 bg-ink-700 px-3 py-2">
-    <p role="status" className="text-[13px] tabular-nums text-mute">{loaded?`${data.unread} sin leer${typeof data.pendingCount==='number'?` · ${data.pendingCount} pendientes`:''}`:loading?'Consultando notificaciones…':'Estado no disponible.'}</p>
+  <CampanaAvisos
+   avisos={avisos}
+   ariaLabel="Notificaciones"
+   onAbrir={openInbox}
+   onElegir={choose}
+   vacioTitulo={vacio.titulo}
+   vacioDetalle={vacio.detalle}
+   vacioAccion={vacioAccion}
+   pie={<div className="grid gap-2">
+    <p role="status" className="px-1 text-[11px] tabular-nums text-mute">{status}</p>
+    {message&&<p role="alert" className="rounded-lg border-l-[3px] border-bad bg-bad/10 px-2.5 py-1.5 text-[12px] leading-[1.4] text-fore">{message}</p>}
+    <SegmentedField value={filter} onChange={(value:string)=>changeFilter(value as Filter)} ariaLabel="Filtrar notificaciones" className="[&_button]:min-h-11 [&_button]:px-2 [&_button]:text-[11px]" options={filters.map(option=>[option.value,option.label] as [string,string])}/>
     <div className="flex flex-wrap items-center gap-1" aria-label="Acciones de notificaciones">
-     <button type="button" className={ICON_ACTION} title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button>
-     <button type="button" className={`${ICON_ACTION} notification-action-icon is-confirm`} title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')}><CheckCheck size={18}/></button>
+     <button type="button" className={ICON_ACTION} title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')}><CheckCheck size={18}/></button>
      <button type="button" className={ICON_ACTION} title="Actualizar" aria-label="Actualizar notificaciones" disabled={busy||loading} onClick={()=>void load()}><RefreshCw size={17}/></button>
+     <button type="button" className={ICON_ACTION} title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button>
     </div>
+    {data.next&&!loading&&<button type="button" className="secondary" disabled={busy} onClick={()=>void more()}>Ver avisos anteriores</button>}
+   </div>}
+  />
+  {selected&&<Dialog title={kindLabel(selected.kind)} close={()=>setSelected(null)} size="compact" busy={busy}><div className="grid min-w-0 max-w-full gap-3 [overflow-wrap:anywhere]">
+   <div className="flex min-w-0 flex-wrap items-center gap-2">
+    <h2 className="min-w-0 text-base font-semibold leading-snug text-fore">{selected.title}</h2>
+    <StateChip tone={selected.resolved_at?'ok':'mute'}>{selected.resolved_at?'Resuelta':'Pendiente'}</StateChip>
+    <StateChip tone="mute">{selected.read_at?'Leída':'Sin leer'}</StateChip>
    </div>
-   <p className="whitespace-pre-wrap text-[12px] leading-[1.45] text-mute">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
-   <SegmentedField value={filter} onChange={(value:string)=>changeFilter(value as Filter)} ariaLabel="Filtrar notificaciones" className="[&_button]:min-h-11" options={filters.map(option=>[option.value,option.label] as [string,string])}/>
+   <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-mute">{selected.body}</p>
    {message&&<p role="alert" className="rounded-lg border-l-[3px] border-bad bg-bad/10 px-3 py-2 text-[13px] text-fore">{message}</p>}
-   <div aria-busy={loading||busy} className="grid gap-2">
-    {loading?<LoadingBlock label="Cargando avisos…" lines={3}/>:!data.notifications.length?<EmptyBlock compact title={message?'No se pudo mostrar la lista':'No tenés notificaciones'} description={message?'Intentá actualizar.':filter==='all'?'Acá aparecerán tus avisos de asignaciones, comentarios y entregas.':'No hay notificaciones para este filtro.'}/>:<div className="grid gap-2">
-     {data.notifications.map(notice=><article key={notice.id} className={notice.read_at?CARD:CARD_UNREAD}>
-      <div className="flex min-w-0 flex-wrap items-baseline gap-2">
-       <h3 className="min-w-0 whitespace-pre-wrap text-sm font-semibold leading-[1.3] text-fore [overflow-wrap:anywhere]">{notice.title}</h3>
-       <StateChip tone="mute" className="uppercase tracking-[.05em]">{kindLabel(notice.kind)}</StateChip>
-      </div>
-      <p className="min-w-0 whitespace-pre-wrap text-[12.5px] leading-[1.45] text-mute [overflow-wrap:anywhere]">{notice.body}</p>
-      <time className="whitespace-nowrap text-[11px] tabular-nums text-mute" dateTime={Number.isFinite(new Date(notice.created_at).getTime())?notice.created_at:undefined}>{dateLabel(notice.created_at)}</time>
-      <p className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[.075em] text-mute">{notice.read_at?'Leída':'Sin leer'} · {notice.resolved_at?'Resuelta':'Pendiente'}</p>
-      <div className="flex flex-wrap items-center gap-1 border-t border-ink-600 pt-2">
-       {(notice.work_order_id||notice.project_id)&&<button type="button" className={ICON_ACTION} title={notice.work_order_id?'Ver pieza':'Ver proyecto'} aria-label={`${notice.work_order_id?'Ver pieza':'Ver proyecto'}: ${notice.title}`} disabled={busy} onClick={()=>{if(locked.current)return;if(notice.read_at)visitNotice(notice);else void mutate('read',notice,true);}}><ExternalLink size={17}/></button>}
-       {!notice.read_at&&<button type="button" className={`${ICON_ACTION} notification-action-icon is-confirm`} title="Marcar como leída" aria-label={`Marcar como leída: ${notice.title}`} disabled={busy} onClick={()=>void mutate('read',notice)}><Check size={18}/></button>}
-       <button type="button" className={`${ICON_ACTION} notification-action-icon ${notice.resolved_at?'':'is-confirm'}`} title={notice.resolved_at?'Reabrir aviso':'Resolver aviso'} aria-label={`${notice.resolved_at?'Reabrir aviso':'Resolver aviso'}: ${notice.title}`} disabled={busy} onClick={()=>void mutate(notice.resolved_at?'reopen':'resolve',notice)}>{notice.resolved_at?<RotateCcw size={17}/>:<CircleCheck size={18}/>}</button>
-      </div>
-     </article>)}
-    </div>}
+   <time className="whitespace-nowrap text-[11px] tabular-nums text-mute" dateTime={Number.isFinite(new Date(selected.created_at).getTime())?selected.created_at:undefined}>{dateLabel(selected.created_at)}</time>
+   <p className="text-[12px] leading-[1.45] text-mute">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
+   <div className="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">
+    {(selected.work_order_id||selected.project_id)&&<button type="button" className="secondary" disabled={busy} onClick={()=>visitNotice(selected)}><ExternalLink size={15}/>{selected.work_order_id?'Ver pieza':'Ver proyecto'}</button>}
+    {!selected.read_at&&<button type="button" className="secondary" disabled={busy} onClick={()=>void mutate('read',selected)}><Check size={16}/>Marcar como leída</button>}
+    <button type="button" className={`text-button ${selected.resolved_at?'warn':'positive'}`} disabled={busy} onClick={()=>void mutate(selected.resolved_at?'reopen':'resolve',selected)}>{selected.resolved_at?<><RotateCcw size={15}/>Reabrir aviso</>:<><CircleCheck size={16}/>Resolver aviso</>}</button>
    </div>
-   {data.next&&!loading&&<button type="button" className="secondary" disabled={busy} onClick={()=>void more()}>Ver avisos anteriores</button>}
   </div></Dialog>}
  </>;
 }

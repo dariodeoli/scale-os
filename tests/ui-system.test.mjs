@@ -78,11 +78,12 @@ for(const viewport of [320,360,390,768]){
  console.log(`PASS ${viewport}px source contracts: shrinkable fields, wrapping actions, shared surfaces; not visual viewport QA`);
 }
 const notifications=readFileSync('app/notification-inbox.tsx','utf8');
-assert(notifications.includes('data.notifications.map(notice=><article'),'notifications keep stacked cards, never thin rows (documented exception)');
-assert(notifications.includes('flex-wrap')&&notifications.includes('whitespace-pre-wrap'),'notification cards wrap their content');
-assert(notifications.includes('<h3'),'notification titles keep their card hierarchy');
-assert(notifications.includes('StateChip'),'notification kind stays a chip beside the title');
-console.log('PASS notification feed keeps stacked cards per the documented exception');
+assert(notifications.includes('CampanaAvisos'),'la bandeja es el objeto de la biblioteca (el feed apilado de avisos ya no es copia local)');
+assert(notifications.includes('avisoDeNotificacion'),'el mapeo al contrato de la bandeja vive en un solo lugar');
+assert(notifications.includes('whitespace-pre-wrap')&&notifications.includes('[overflow-wrap:anywhere]'),'el detalle del aviso envuelve el contenido sin recortarlo');
+assert(notifications.includes('StateChip'),'el detalle mantiene el chip del tipo de aviso');
+assert(!notifications.includes('<article'),'la tarjeta local de avisos se retiró con la adopción del objeto');
+console.log('PASS notification feed adopts the library bandeja and keeps its detail readable');
 assert(css.includes('.person-hub-card:not(.is-list) .ops-person small'),'team cards show the role as a chip beside the name');
 assert(css.includes('.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-code'),'inventory cards show the code as a chip beside the title');
 assert(/\.person-hub-card:not\(\.is-list\) \.ops-person h3\{font-size:14px/.test(css),'team titles keep one size (the notification clone retired its own classes)');
