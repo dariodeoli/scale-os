@@ -90,4 +90,5 @@ export const migrationOrder = [
   '20260924_inventory_photo_stamp.sql',
   '20260924_subscription_suspension_notice.sql',
   '20260929_notification_email_status.sql',
+  '20260929_inventory_location_position.sql',
 ];

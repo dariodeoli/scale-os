@@ -215,6 +215,7 @@ async function init() {
     await migration.query(await fs.readFile(path.join(root,'migrations/20260924_inventory_photo_stamp.sql'),'utf8'));
     await migration.query(await fs.readFile(path.join(root,'migrations/20260924_subscription_suspension_notice.sql'),'utf8'));
     await migration.query(await fs.readFile(path.join(root,'migrations/20260929_notification_email_status.sql'),'utf8'));
+    await migration.query(await fs.readFile(path.join(root,'migrations/20260929_inventory_location_position.sql'),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline'});
     await migration.query('commit');
   }catch(error){await migration.query('rollback');throw error;}finally{migration.release();}

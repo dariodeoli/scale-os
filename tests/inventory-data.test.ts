@@ -80,7 +80,7 @@ const pipelineItems:InventoryItem[]=[
  {...base,id:'5',storage_location_id:'old',storage_location_name:'Depósito anterior',storage_shelf:'Depósito anterior'},
 ];
 const columns=buildInventoryPipelineColumns(pipelineItems,locations);
-assert.deepEqual(columns.map(column=>column.key),['cust-Sonido','legacy-in-use','loc-old','loc-a','loc-b','sin-ubicacion'],'primero las de sólo lectura, luego las ubicaciones por nombre y al final sin ubicación');
+assert.deepEqual(columns.map(column=>column.key),['cust-Sonido','legacy-in-use','loc-a','loc-b','loc-old','sin-ubicacion'],'primero las de sólo lectura, luego las ubicaciones en el orden manual del API y al final sin ubicación');
 assert.equal(columns.find(column=>column.key==='cust-Sonido')?.rows.length,1);
 assert.equal(columns.find(column=>column.key==='cust-Sonido')?.readOnly,true);
 assert(columns.find(column=>column.key==='loc-b')?.rows.length===0,'una ubicación activa vacía sigue apareciendo');
