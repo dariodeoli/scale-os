@@ -33,6 +33,22 @@ export function normalizeCommercialDashboard(value:unknown):CommercialDashboard{
  summary.expectedMonthlyBilling=Array.from(totals,([currency,total])=>({currency,total:String(total)})).sort((a,b)=>a.currency.localeCompare(b.currency));
  return summary;
 }
+/**
+ * Estado de la facturación contratada: una sola derivación para el KPI de
+ * Clientes y la tarjeta del Resumen comercial (§15.5). `sin-contratos` no es un
+ * monto: la pantalla lo dibuja como estado secundario chico (#91/#93).
+ */
+export type BillingExpectationState='cargando'|'error'|'sin-dato'|'sin-contratos'|'listo';
+export function billingExpectationState(
+ commercial:CommercialDashboard|null,
+ state:'idle'|'loading'|'ready'|'error'='ready',
+):BillingExpectationState{
+ if(state==='error')return 'error';
+ if(commercial===null)return 'cargando';
+ if(commercial.expectedMonthlyBilling===undefined)return 'sin-dato';
+ return commercial.expectedMonthlyBilling.length?'listo':'sin-contratos';
+}
+
 /** Búsqueda sin acentos: la guarda convierte a texto cualquier entrada (issue #65). */
 export function normalizeSearch(value:unknown){return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('es');}
 /** Group presentation only. Keep every identity for inspection and editing.

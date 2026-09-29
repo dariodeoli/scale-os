@@ -20,18 +20,24 @@ function Deliverables({description}:{description:string}){
  return parts.length>1?<ul className="list-disc pl-4">{parts.map((part,index)=><li key={index}>{part.trim()}{index<parts.length-1?';':''}</li>)}</ul>:<p className="whitespace-pre-wrap">{description}</p>;
 }
 
-export function PlanComparison({plans:records,actions}:{plans:ComparablePlan[];actions?:(plan:ComparablePlan)=>ReactNode}){
+export function PlanComparison({plans:records,actions,acciones}:{plans:ComparablePlan[];actions?:(plan:ComparablePlan)=>ReactNode;acciones?:ReactNode}){
  const hint=useId(),plans=comparePlans(records);
  if(!plans.length)return null;
+ // Toolbar en una fila (#93): la ayuda del comparador recorta con `title` y la
+ // acción de la pantalla vive al extremo, sin una fila propia.
  return <div className="min-w-0 max-w-full text-fore">
-  <p id={hint} className="max-w-[76ch] text-xs leading-5 text-mute">Todos los entregables y precios guardados, sin IVA. El IVA se define en el presupuesto. Cada plan conserva su moneda. Desplazá la tabla horizontalmente para comparar.</p>
+  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+   {/* La leyenda no se recorta (contrato de #42/#43): comparte la fila con la acción. */}
+   <p id={hint} className="m-0 max-w-[76ch] min-w-0 flex-1 text-xs leading-5 text-mute">Todos los entregables y precios guardados, sin IVA. El IVA se define en el presupuesto. Cada plan conserva su moneda. Desplazá la tabla horizontalmente para comparar.</p>
+   {acciones}
+  </div>
   <div className="mt-3 max-w-full overflow-x-auto rounded-xl border border-ink-600 bg-ink-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fono/60" role="region" aria-label="Comparación de planes" aria-describedby={hint} tabIndex={0}>
    <table className="w-full table-fixed border-separate border-spacing-0 tabular-nums" style={{minWidth:`${11+plans.length*17}rem`}}>
     <caption className="border-b border-ink-600 bg-ink-900 px-3 py-3 text-left text-xs font-semibold text-mute">Planes, precios y entregables incluidos</caption>
     <thead><tr>
      <th scope="col" className={`${head} sticky left-0 z-[3] w-44`}>Comparar</th>
      {plans.map(({record,currency,items})=><th scope="col" key={record.id} className={`${head} sticky top-0 z-[1]`}>
-      <h3 className="whitespace-normal text-sm font-bold leading-snug text-fore">{String(record.name||'Plan sin nombre')}</h3>
+      <h3 className="m-0 whitespace-normal text-sm font-bold leading-snug text-fore">{String(record.name||'Plan sin nombre')}</h3>
       <span className="mt-1 block text-[11px] font-medium leading-4 text-mute">{currencyCodes.includes(currency as Currency)?currency:'Moneda no disponible'} · {items.length} {items.length===1?'ítem':'ítems'}</span>
       {record.active===false&&<span className="mt-1 block text-[11px] font-medium leading-4 text-mute">Archivado</span>}
       {actions&&<div className="mt-2 flex flex-wrap gap-1.5">{actions(record)}</div>}

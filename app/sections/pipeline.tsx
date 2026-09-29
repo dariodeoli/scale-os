@@ -81,7 +81,7 @@ function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false}:{stage
   const currencies=Object.keys(weighted);
   return <section ref={drop.setNodeRef} aria-label={`${stage.label} · ${rows.length} oportunidades`} className={`grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border p-3 ${drop.isOver?'border-fono/60 bg-fono/10':'border-ink-600 bg-ink-800'}`}>
     <header className="flex items-baseline justify-between gap-2">
-      <h3 className="text-sm font-bold text-fore">{stage.label}{readOnly?' · desactivada':''}</h3>
+      <h3 className="m-0 text-sm font-bold text-fore">{stage.label}{readOnly?' · desactivada':''}</h3>
       <span className="text-xs tabular-nums text-mute">{rows.length}</span>
     </header>
     {currencies.length?<div className="grid gap-0.5 text-[11px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="whitespace-nowrap"><MoneyText valor={weighted[currency]} currency={currency}/> ponderado</span>)}</div>:null}
@@ -137,6 +137,9 @@ export function PipelineSection({user, metrics, metricsState='ready', onRetryMet
   useEffect(()=>{void load();void loadStages();},[]);
 
   const overview=pipelineSummary(rows);
+  // Monedas abiertas ordenadas: la base va en el valor del KPI y el resto en la
+  // línea de explicación (una sola lectura del dato, #93).
+  const openAmounts=Object.entries(overview.amounts).sort((a,b)=>b[1]-a[1]);
   const activeStages=[...stages].filter(stage=>stage.active).sort((a,b)=>a.position-b.position||a.value.localeCompare(b.value));
   const stageLabel=(value:string)=>stages.find(stage=>stage.value===value)?.label||value;
   // dnd-kit anuncia en inglés por defecto; el tablero habla castellano (#60).
@@ -196,14 +199,25 @@ export function PipelineSection({user, metrics, metricsState='ready', onRetryMet
 
   return (
     <section className="grid gap-4" aria-label="Pipeline">
+      {/* Toolbar en una fila (#93): la ayuda del tablero es secundaria (recorta
+          con title) y las acciones viven arriba, no entre los totales y el tablero. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        {/* El texto va en una línea con recorte (min-content = palabra más larga, no
+            la frase entera): la fila no empuja el ancho de la sección en mobile. */}
+        <p className="flex min-w-0 flex-1 items-center gap-2 text-[11px] text-mute max-md:hidden" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Target size={14} aria-hidden="true" className="shrink-0"/><span className="line-clamp-1 min-w-0">Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%.</span></p>
+        {canEdit?<div className="flex flex-wrap items-center gap-2 max-md:ml-auto">
+          <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
+          <Button type="button" className="max-md:min-h-11" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
+        </div>:null}
+      </div>
       <KpiStrip aria-label="Resumen del pipeline">
         <Kpi label="Oportunidades abiertas" valor={overview.open} destacado hint="Sin ganar ni perder"/>
         <Kpi label="Ganadas" valor={overview.won} hint="Conversiones cerradas"/>
         <Kpi label="Consultas web" valor={overview.web} hint="Origen: landing Scale OS"/>
         <Kpi
           label="Valor abierto"
-          valor={Object.entries(overview.amounts).length?<span className="flex flex-wrap items-baseline gap-2">{Object.entries(overview.amounts).map(([currency,value])=><MoneyText key={currency} valor={value} currency={currency}/>)}</span>:'Sin oportunidades abiertas'}
-          hint="Sin convertir monedas"
+          valor={openAmounts.length?<MoneyText valor={openAmounts[0][1]} currency={openAmounts[0][0]}/>:'Sin oportunidades abiertas'}
+          hint={openAmounts.length>1?<>{openAmounts.slice(1).map(([currency,value])=><span key={currency}><MoneyText valor={value} currency={currency}/> · </span>)}Sin convertir monedas</>:'Sin convertir monedas'}
         />
       </KpiStrip>
 
@@ -213,22 +227,16 @@ export function PipelineSection({user, metrics, metricsState='ready', onRetryMet
 
       {error?<ErrorBlock title="No se pudo completar la operación." description={error} onRetry={()=>void load()}/>:null}
 
-      {rows.length?<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Totales por etapa">
-        {totals.map(entry=><article key={entry.stage} className="rounded-xl border border-ink-600 bg-ink-800 p-4">
-          <h3 className="text-sm font-bold text-fore [overflow-wrap:anywhere]">{entry.label}</h3>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-fore">{entry.count}</p>
-          <p className="text-[11px] text-mute">oportunidades</p>
-          <div className="mt-2 grid gap-0.5 text-[11px] tabular-nums">
-            {Object.entries(entry.weighted).map(([currency,value])=><span key={`w-${currency}`} className="whitespace-nowrap text-fore"><MoneyText valor={value} currency={currency}/> ponderado</span>)}
-            {Object.entries(entry.open).map(([currency,value])=><span key={`o-${currency}`} className="whitespace-nowrap text-mute"><MoneyText valor={value} currency={currency}/> abierto</span>)}
+      {rows.length?<div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6" aria-label="Totales por etapa">
+        {totals.map(entry=><article key={entry.stage} className="min-w-0 rounded-xl border border-ink-600 bg-ink-800 p-3">
+          <h3 className="m-0 truncate text-[12px] font-bold text-fore" title={entry.label}>{entry.label}</h3>
+          <p className="m-0 mt-0.5 flex items-baseline gap-1.5 tabular-nums text-fore"><b className="text-lg font-semibold">{entry.count}</b><span className="text-[10px] text-mute">oportunidades</span></p>
+          <div className="mt-1 grid gap-0.5 text-[10.5px] tabular-nums">
+            {Object.entries(entry.weighted).map(([currency,value])=><span key={`w-${currency}`} className="truncate text-fore" title={`${currency}: ponderado`}><MoneyText valor={value} currency={currency}/> ponderado</span>)}
+            {Object.entries(entry.open).map(([currency,value])=><span key={`o-${currency}`} className="truncate text-mute" title={`${currency}: abierto`}><MoneyText valor={value} currency={currency}/> abierto</span>)}
             {!Object.keys(entry.open).length?<span className="text-mute">Sin montos cargados</span>:null}
           </div>
         </article>)}
-      </div>:null}
-
-      {canEdit?<div className="flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
-        <Button type="button" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
       </div>:null}
 
       {state==='loading' && !rows.length ? <LoadingBlock label="Cargando oportunidades…" lines={4}/> : null}
@@ -236,7 +244,6 @@ export function PipelineSection({user, metrics, metricsState='ready', onRetryMet
       {state==='ready' && !rows.length ? <EmptyBlock icon="target" title="Todavía no hay oportunidades." description={canEdit?'Cargá el primer lead con su etapa, valor y probabilidad para verlo en el tablero.':'Cuando el equipo cargue una oportunidad, vas a verla acá con su etapa y valor.'} action={canEdit?<EmptyCta label="Nueva oportunidad" onClick={()=>setEdit('new')} icon={<Plus aria-hidden="true" size={16}/>}/>:undefined}/> : null}
 
       {rows.length?<div className="grid gap-2">
-        <div className="flex items-center gap-2 text-[11px] text-mute"><Target size={14}/>Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%.</div>
         <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label}} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load}/>)}

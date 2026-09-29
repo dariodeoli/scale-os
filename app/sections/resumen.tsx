@@ -37,10 +37,10 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
     <WorkspaceGuide {...guideProps} variant="card"/>
     <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary}/>
     <section className="rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" aria-label="Piezas por etapa">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-ink-600 pb-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-ink-600 pb-2">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Producción</p>
-          <h2 className="text-[17px] font-semibold tracking-tight text-fore">Piezas por etapa</h2>
+          <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Piezas por etapa</h2>
         </div>
         <button type="button" className="text-button" onClick={() => setActive("Producción")}>Abrir Producción<ArrowUpRight size={14}/></button>
       </div>
@@ -54,9 +54,9 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
     </section>
     <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
     <InternalTasks role={user?.role||'viewer'}/>
-    <div className="mt-2">
+    <div className="mt-0">
       <p className="mb-1 font-mono text-[10px] uppercase tracking-[.13em] text-mute">Operación</p>
-      <h2 className="text-[17px] font-semibold tracking-tight text-fore">Métricas operativas</h2>
+      <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Métricas operativas</h2>
     </div>
     <KpiStrip className="metrics operational-metrics" aria-label="Métricas operativas">
       <Kpi label="Proyectos activos" valor={summary.active_projects} hint="Con trabajo en curso" destacado/>

@@ -13,7 +13,7 @@ import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
 import {CLIENT_TABLE_MIN_WIDTH} from '../client-directory-data';
 import {EmptyBlock, EmptyCta, ErrorBlock, Kpi, KpiStrip, ListActions, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, useDenseTableFit, type ChipTone, type Column} from '../ui-v2';
-import type {CommercialDashboard} from '../control-center-data';
+import {billingExpectationState,type CommercialDashboard} from '../control-center-data';
 import type {Client, ClientPaymentStatus, User} from '../workspace-types';
 
 // Directorio de clientes (referencia #42, arquetipo lista + detalle).
@@ -217,16 +217,21 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
   // Facturación contratada: el dato real manda y el estado va como información
   // secundaria chica. Sin contratos → chip «Sin contratos» (no un titular de
   // tres líneas); sin dato → `—`, nunca una cifra inventada (#91).
+  // La expectativa con varias monedas muestra la base en el valor y el resto en
+  // la línea de explicación: el KPI no se estira a dos líneas de titular (#93).
+  const billingEstado = billingExpectationState(commercialSummary, commercialState);
+  const billingMontos = commercialSummary?.expectedMonthlyBilling || [];
+  const [billingBase, ...billingResto] = billingMontos;
   const billingKpi: {valor: ReactNode; hint: ReactNode} = !billingRole
     ? {valor: '—', hint: 'Expectativa vigente por mes'}
-    : commercialState === 'error'
+    : billingEstado === 'error'
       ? {valor: '—', hint: <span role="alert" className="text-bad">No se pudo cargar</span>}
-      : commercialSummary === null
+      : billingEstado === 'cargando'
         ? {valor: '—', hint: <span role="status">Calculando…</span>}
-        : commercialSummary.expectedMonthlyBilling === undefined
+        : billingEstado === 'sin-dato'
           ? {valor: '—', hint: 'Sin dato'}
-          : commercialSummary.expectedMonthlyBilling.length
-            ? {valor: <span className="flex flex-wrap items-baseline gap-2">{commercialSummary.expectedMonthlyBilling.map(item => <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes</span>)}</span>, hint: 'Expectativa vigente por mes'}
+          : billingEstado === 'listo'
+            ? {valor: <span>{moneyKpi(Number(billingBase.total), billingBase.currency)} <span className="text-[0.55em] font-medium text-mute">/ mes</span></span>, hint: <>{billingResto.map(item => <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes · </span>)}Expectativa vigente por mes</>}
             : {valor: '—', hint: <StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip>};
 
   return <section ref={tableRef} className="directory grid gap-4" aria-label="Directorio de clientes">
