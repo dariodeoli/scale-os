@@ -199,7 +199,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-settlement-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0"><h3 id="commissions-settlement-title" className="text-[17px] font-semibold tracking-tight text-fore">Liquidación del mes</h3><p className="mt-1 text-xs text-mute">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
+          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><h3 id="commissions-settlement-title" className="shrink-0 text-[17px] font-semibold tracking-tight text-fore">Liquidación del mes</h3><p className="min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
           <label className="grid gap-1.5"><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mes</span><input type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={event => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value); }}/></label>
         </div>
         {monthly.length
@@ -218,7 +218,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-list-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0"><h3 id="commissions-list-title" className="text-[17px] font-semibold tracking-tight text-fore">Comisiones y referidos</h3><p className="mt-1 text-xs text-mute">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p></div>
+          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><h3 id="commissions-list-title" className="shrink-0 text-[17px] font-semibold tracking-tight text-fore">Comisiones y referidos</h3><p className="min-w-0 truncate text-xs text-mute" title="Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p></div>
           <div className="flex flex-wrap gap-1">{COMMISSION_FILTERS.map(value => <button key={value} type="button" className={filter === value ? 'choice active' : 'choice'} onClick={() => setFilter(value)}>{value === 'all' ? 'Todas' : commissionStatusLabel(value)}</button>)}</div>
         </div>
         {visible.length
@@ -253,7 +253,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
       <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-discounts-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0"><h3 id="commissions-discounts-title" className="text-[17px] font-semibold tracking-tight text-fore">Descuentos por referido</h3><p className="mt-1 text-xs text-mute">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
+          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><h3 id="commissions-discounts-title" className="shrink-0 text-[17px] font-semibold tracking-tight text-fore">Descuentos por referido</h3><p className="min-w-0 truncate text-xs text-mute" title="Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
           {canManage ? <button className="secondary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
         </div>
         {discounts.length
@@ -273,7 +273,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       </>}
 
       {canSeePayouts ? <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="commissions-payouts-title">
-        <div className="min-w-0"><h3 id="commissions-payouts-title" className="text-[17px] font-semibold tracking-tight text-fore">Pagos registrados</h3><p className="mt-1 text-xs text-mute">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
+        <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><h3 id="commissions-payouts-title" className="shrink-0 text-[17px] font-semibold tracking-tight text-fore">Pagos registrados</h3><p className="min-w-0 truncate text-xs text-mute" title="Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
         {payoutsState === 'loading' ? <LoadingBlock label="Cargando egresos…" lines={3}/>
         : payoutsState === 'error' ? <ErrorBlock title="No se pudieron cargar los egresos" description={`${payoutsError || 'No se pudieron cargar los egresos.'} Reintentá para ver los pagos registrados a colaboradores y referidos.`} onRetry={() => void loadPayouts()}/>
         : payouts.length

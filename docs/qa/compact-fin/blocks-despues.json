@@ -1,0 +1,978 @@
+{
+ "finanzas-light-1440": [
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 199,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Salarios",
+   "top": 365,
+   "height": 173,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cuentas",
+   "top": 554,
+   "height": 604,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cobros pendientes",
+   "top": 1174,
+   "height": 1248,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Quién cobró y dónde quedó",
+   "top": 2437,
+   "height": 1185,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Conciliación por extracto",
+   "top": 3638,
+   "height": 366,
+   "aboveTheFold": false
+  }
+ ],
+ "mora-light-1440": [
+  {
+   "label": "Estado de pagos",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 287,
+   "height": 42,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 361,
+   "height": 110,
+   "aboveTheFold": true
+  },
+  {
+   "label": "grid gap-3 sm:grid-cols-2 xl:grid-cols-4",
+   "top": 487,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cobranza por cliente",
+   "top": 653,
+   "height": 1053,
+   "aboveTheFold": true
+  }
+ ],
+ "prevision-light-1440": [
+  {
+   "label": "Previsión financiera",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Ingresos vs gastos",
+   "top": 287,
+   "height": 325,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Resumen por moneda",
+   "top": 628,
+   "height": 455,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Contratos vs facturación",
+   "top": 1099,
+   "height": 797,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Salarios",
+   "top": 1911,
+   "height": 720,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos planificados · 01-sept",
+   "top": 2647,
+   "height": 505,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos reales del mes · 01-sept",
+   "top": 3168,
+   "height": 417,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 3615,
+   "height": 46,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 3691,
+   "height": 46,
+   "aboveTheFold": false
+  }
+ ],
+ "informes-light-1440": [
+  {
+   "label": "Evolución mensual",
+   "top": 145,
+   "height": 68,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-ink-600 b",
+   "top": 263,
+   "height": 46,
+   "aboveTheFold": true
+  },
+  {
+   "label": "flex flex-wrap items-center justify-between gap-x-3 gap-",
+   "top": 343,
+   "height": 58,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 435,
+   "height": 46,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comparativa del período visible contra el anterior",
+   "top": 515,
+   "height": 288,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Resumen del período",
+   "top": 823,
+   "height": 645,
+   "aboveTheFold": true
+  },
+  {
+   "label": "text-sm text-fore",
+   "top": 1502,
+   "height": 20,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 1568,
+   "height": 16,
+   "aboveTheFold": false
+  },
+  {
+   "label": "grid gap-4 lg:grid-cols-2",
+   "top": 1616,
+   "height": 300,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 1948,
+   "height": 16,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Evolución mensual · PYG",
+   "top": 1996,
+   "height": 550,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 2578,
+   "height": 32,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Visitantes en vivo del landing",
+   "top": 2642,
+   "height": 142,
+   "aboveTheFold": false
+  }
+ ],
+ "comisiones-light-1440": [
+  {
+   "label": "Comisiones y referidos",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 287,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Liquidación del mes",
+   "top": 453,
+   "height": 235,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comisiones y referidos",
+   "top": 704,
+   "height": 316,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Descuentos por referido",
+   "top": 1036,
+   "height": 279,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Pagos registrados",
+   "top": 1331,
+   "height": 382,
+   "aboveTheFold": false
+  }
+ ],
+ "finanzas-light-390": [
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 338,
+   "height": 434,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Salarios",
+   "top": 788,
+   "height": 279,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cuentas",
+   "top": 1082,
+   "height": 1218,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Cobros pendientes",
+   "top": 2316,
+   "height": 1516,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Quién cobró y dónde quedó",
+   "top": 3848,
+   "height": 1205,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Conciliación por extracto",
+   "top": 5069,
+   "height": 418,
+   "aboveTheFold": false
+  }
+ ],
+ "mora-light-390": [
+  {
+   "label": "Estado de pagos",
+   "top": 338,
+   "height": 142,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 512,
+   "height": 210,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 754,
+   "height": 476,
+   "aboveTheFold": true
+  },
+  {
+   "label": "grid gap-3 sm:grid-cols-2 xl:grid-cols-4",
+   "top": 1246,
+   "height": 476,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Cobranza por cliente",
+   "top": 1737,
+   "height": 984,
+   "aboveTheFold": false
+  }
+ ],
+ "prevision-light-390": [
+  {
+   "label": "Previsión financiera",
+   "top": 338,
+   "height": 251,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Ingresos vs gastos",
+   "top": 621,
+   "height": 476,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Resumen por moneda",
+   "top": 1113,
+   "height": 815,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Contratos vs facturación",
+   "top": 1944,
+   "height": 1924,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Salarios",
+   "top": 3885,
+   "height": 1942,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos planificados · 01-sept",
+   "top": 5843,
+   "height": 1075,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos reales del mes · 01-sept",
+   "top": 6933,
+   "height": 972,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 7936,
+   "height": 66,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 8032,
+   "height": 70,
+   "aboveTheFold": false
+  }
+ ],
+ "informes-light-390": [
+  {
+   "label": "Evolución mensual",
+   "top": 274,
+   "height": 422,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-ink-600 b",
+   "top": 746,
+   "height": 66,
+   "aboveTheFold": true
+  },
+  {
+   "label": "flex flex-wrap items-center justify-between gap-x-3 gap-",
+   "top": 846,
+   "height": 110,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 990,
+   "height": 86,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Comparativa del período visible contra el anterior",
+   "top": 1110,
+   "height": 338,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Resumen del período",
+   "top": 1468,
+   "height": 1368,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-sm text-fore",
+   "top": 2870,
+   "height": 60,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 2976,
+   "height": 48,
+   "aboveTheFold": false
+  },
+  {
+   "label": "grid gap-4 lg:grid-cols-2",
+   "top": 3056,
+   "height": 647,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 3735,
+   "height": 48,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Evolución mensual · PYG",
+   "top": 3815,
+   "height": 2657,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 6504,
+   "height": 80,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Visitantes en vivo del landing",
+   "top": 6616,
+   "height": 210,
+   "aboveTheFold": false
+  }
+ ],
+ "comisiones-light-390": [
+  {
+   "label": "Comisiones y referidos",
+   "top": 338,
+   "height": 170,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 540,
+   "height": 354,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Liquidación del mes",
+   "top": 910,
+   "height": 232,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comisiones y referidos",
+   "top": 1158,
+   "height": 320,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Descuentos por referido",
+   "top": 1493,
+   "height": 272,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Pagos registrados",
+   "top": 1781,
+   "height": 366,
+   "aboveTheFold": false
+  }
+ ],
+ "finanzas-dark-1440": [
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 199,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Salarios",
+   "top": 365,
+   "height": 173,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cuentas",
+   "top": 554,
+   "height": 604,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cobros pendientes",
+   "top": 1174,
+   "height": 1248,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Quién cobró y dónde quedó",
+   "top": 2437,
+   "height": 1185,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Conciliación por extracto",
+   "top": 3638,
+   "height": 366,
+   "aboveTheFold": false
+  }
+ ],
+ "mora-dark-1440": [
+  {
+   "label": "Estado de pagos",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 287,
+   "height": 42,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 361,
+   "height": 110,
+   "aboveTheFold": true
+  },
+  {
+   "label": "grid gap-3 sm:grid-cols-2 xl:grid-cols-4",
+   "top": 487,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cobranza por cliente",
+   "top": 653,
+   "height": 1053,
+   "aboveTheFold": true
+  }
+ ],
+ "prevision-dark-1440": [
+  {
+   "label": "Previsión financiera",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Ingresos vs gastos",
+   "top": 287,
+   "height": 325,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Resumen por moneda",
+   "top": 628,
+   "height": 455,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Contratos vs facturación",
+   "top": 1099,
+   "height": 797,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Salarios",
+   "top": 1911,
+   "height": 720,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos planificados · 01-sept",
+   "top": 2647,
+   "height": 505,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos reales del mes · 01-sept",
+   "top": 3168,
+   "height": 417,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 3615,
+   "height": 46,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 3691,
+   "height": 46,
+   "aboveTheFold": false
+  }
+ ],
+ "informes-dark-1440": [
+  {
+   "label": "Evolución mensual",
+   "top": 145,
+   "height": 68,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-ink-600 b",
+   "top": 263,
+   "height": 46,
+   "aboveTheFold": true
+  },
+  {
+   "label": "flex flex-wrap items-center justify-between gap-x-3 gap-",
+   "top": 343,
+   "height": 58,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 435,
+   "height": 46,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comparativa del período visible contra el anterior",
+   "top": 515,
+   "height": 288,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Resumen del período",
+   "top": 823,
+   "height": 645,
+   "aboveTheFold": true
+  },
+  {
+   "label": "text-sm text-fore",
+   "top": 1502,
+   "height": 20,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 1568,
+   "height": 16,
+   "aboveTheFold": false
+  },
+  {
+   "label": "grid gap-4 lg:grid-cols-2",
+   "top": 1616,
+   "height": 300,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 1948,
+   "height": 16,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Evolución mensual · PYG",
+   "top": 1996,
+   "height": 550,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 2578,
+   "height": 32,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Visitantes en vivo del landing",
+   "top": 2642,
+   "height": 142,
+   "aboveTheFold": false
+  }
+ ],
+ "comisiones-dark-1440": [
+  {
+   "label": "Comisiones y referidos",
+   "top": 199,
+   "height": 56,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 287,
+   "height": 150,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Liquidación del mes",
+   "top": 453,
+   "height": 235,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comisiones y referidos",
+   "top": 704,
+   "height": 316,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Descuentos por referido",
+   "top": 1036,
+   "height": 279,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Pagos registrados",
+   "top": 1331,
+   "height": 382,
+   "aboveTheFold": false
+  }
+ ],
+ "finanzas-dark-390": [
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 338,
+   "height": 434,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Salarios",
+   "top": 788,
+   "height": 279,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Cuentas",
+   "top": 1082,
+   "height": 1218,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Cobros pendientes",
+   "top": 2316,
+   "height": 1516,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Quién cobró y dónde quedó",
+   "top": 3848,
+   "height": 1205,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Conciliación por extracto",
+   "top": 5069,
+   "height": 418,
+   "aboveTheFold": false
+  }
+ ],
+ "mora-dark-390": [
+  {
+   "label": "Estado de pagos",
+   "top": 338,
+   "height": 142,
+   "aboveTheFold": true
+  },
+  {
+   "label": "mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap",
+   "top": 512,
+   "height": 210,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 754,
+   "height": 476,
+   "aboveTheFold": true
+  },
+  {
+   "label": "grid gap-3 sm:grid-cols-2 xl:grid-cols-4",
+   "top": 1246,
+   "height": 476,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Cobranza por cliente",
+   "top": 1737,
+   "height": 984,
+   "aboveTheFold": false
+  }
+ ],
+ "prevision-dark-390": [
+  {
+   "label": "Previsión financiera",
+   "top": 338,
+   "height": 251,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Ingresos vs gastos",
+   "top": 621,
+   "height": 476,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Resumen por moneda",
+   "top": 1113,
+   "height": 815,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Contratos vs facturación",
+   "top": 1944,
+   "height": 1924,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Salarios",
+   "top": 3885,
+   "height": 1942,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos planificados · 01-sept",
+   "top": 5843,
+   "height": 1075,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Gastos reales del mes · 01-sept",
+   "top": 6933,
+   "height": 972,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 7936,
+   "height": 66,
+   "aboveTheFold": false
+  },
+  {
+   "label": "rounded-xl border border-ink-600 bg-ink-800/40 p-3",
+   "top": 8032,
+   "height": 70,
+   "aboveTheFold": false
+  }
+ ],
+ "informes-dark-390": [
+  {
+   "label": "Evolución mensual",
+   "top": 274,
+   "height": 422,
+   "aboveTheFold": true
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-ink-600 b",
+   "top": 746,
+   "height": 66,
+   "aboveTheFold": true
+  },
+  {
+   "label": "flex flex-wrap items-center justify-between gap-x-3 gap-",
+   "top": 846,
+   "height": 110,
+   "aboveTheFold": false
+  },
+  {
+   "label": "border text-mute rounded-xl p-3 text-sm border-warn/30 b",
+   "top": 990,
+   "height": 86,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Comparativa del período visible contra el anterior",
+   "top": 1110,
+   "height": 338,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Resumen del período",
+   "top": 1468,
+   "height": 1368,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-sm text-fore",
+   "top": 2870,
+   "height": 60,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 2976,
+   "height": 48,
+   "aboveTheFold": false
+  },
+  {
+   "label": "grid gap-4 lg:grid-cols-2",
+   "top": 3056,
+   "height": 647,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 3735,
+   "height": 48,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Evolución mensual · PYG",
+   "top": 3815,
+   "height": 2657,
+   "aboveTheFold": false
+  },
+  {
+   "label": "text-xs text-mute",
+   "top": 6504,
+   "height": 80,
+   "aboveTheFold": false
+  },
+  {
+   "label": "Visitantes en vivo del landing",
+   "top": 6616,
+   "height": 210,
+   "aboveTheFold": false
+  }
+ ],
+ "comisiones-dark-390": [
+  {
+   "label": "Comisiones y referidos",
+   "top": 338,
+   "height": 170,
+   "aboveTheFold": true
+  },
+  {
+   "label": "ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gr",
+   "top": 540,
+   "height": 354,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Liquidación del mes",
+   "top": 910,
+   "height": 232,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Comisiones y referidos",
+   "top": 1158,
+   "height": 320,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Descuentos por referido",
+   "top": 1493,
+   "height": 272,
+   "aboveTheFold": true
+  },
+  {
+   "label": "Pagos registrados",
+   "top": 1781,
+   "height": 366,
+   "aboveTheFold": false
+  }
+ ]
+}
