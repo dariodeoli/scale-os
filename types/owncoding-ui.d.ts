@@ -112,4 +112,17 @@ declare module 'owncoding-ui' {
   export const MENSAJE_RUC: string;
   export function normalizeTaxId(value: unknown): string | null;
   export function limpiarTaxId(value: unknown, max?: number): string;
+
+  // Tanda v0.51 (#82/#83): pie institucional (§14), bandeja oficial (§16) y
+  // comparación de versiones (regla 10). El shim sigue declarando sólo lo que
+  // Scale OS adopta; la firma real vive en la biblioteca.
+  export const ProductFooter: any;
+  export const CREDITO_PIE: string;
+  export const CREDITO_PIE_URL: string;
+  export const CampanaAvisos: any;
+  export function contarSinLeer(avisos?: unknown[]): number;
+  export function textoContador(total: number): string;
+  export function hayVersionNueva(actual?: string, publicada?: string): boolean;
+  export function compararVersiones(a?: string, b?: string): -1 | 0 | 1;
+  export function partesVersion(valor?: string): number[];
 }
