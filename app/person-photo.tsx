@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import dynamic from 'next/dynamic';
 import {Crop,Link2,Trash2} from 'lucide-react';
-import {preparePhoto,PHOTO_ACCEPT,PHOTO_FORMATS} from './profile-photo';
+import {preparePhoto,photoSource,PHOTO_ACCEPT,PHOTO_FORMATS} from './profile-photo';
 import {validateImageLink} from './image-link';
 
 const PhotoCropper=dynamic(()=>import('./photo-cropper').then(m=>m.PhotoCropper));
@@ -27,8 +27,9 @@ export function PersonPhotoField({photo,name,save}:{photo:string|null;name:strin
  };
  const store=async(value:string)=>{setCurrent(value);setFailed(false);await save(value);};
  async function pick(file:File){
-  const source=await preparePhoto(file,false);
-  const ready=await preparePhoto(file,false,true);
+  // Foto completa (sin recorte automático): el recorte es manual (#107).
+  const source=await photoSource(file);
+  const ready=await preparePhoto(file);
   setOriginal(source);setCurrent(ready);setFailed(false);
   await save(ready);
  }
@@ -39,7 +40,7 @@ export function PersonPhotoField({photo,name,save}:{photo:string|null;name:strin
   <div className="profile-photo-summary">
    {current&&!failed?<button type="button" className="editable-photo" aria-label={`Cambiar foto de ${name}`} disabled={processing} onClick={()=>fileInput.current?.click()}><img src={current} referrerPolicy="no-referrer" alt={`Foto de ${name}`} onError={()=>setFailed(true)}/></button>:<button type="button" className="avatar editable-photo" aria-label={`Elegir foto de ${name}`} disabled={processing} onClick={()=>fileInput.current?.click()}>{Array.from(name.trim())[0]||'?'}</button>}
    <div className="profile-photo-controls">
-    <label className="photo-upload">{processing?'Preparando…':'Elegir foto'}<input ref={fileInput} type="file" accept={PHOTO_ACCEPT} aria-label={`Elegir foto (${PHOTO_FORMATS}; hasta 4 MB)`} disabled={processing} onChange={async event=>{const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file)return;await run(async()=>{await pick(file);},'Foto centrada y guardada automáticamente. Podés ajustar el encuadre.');}}/></label>
+    <label className="photo-upload">{processing?'Preparando…':'Elegir foto'}<input ref={fileInput} type="file" accept={PHOTO_ACCEPT} aria-label={`Elegir foto (${PHOTO_FORMATS}; hasta 4 MB)`} disabled={processing} onChange={async event=>{const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file)return;await run(async()=>{await pick(file);},'Foto guardada. Podés ajustar el encuadre.');}}/></label>
     <button type="button" className="text-button" disabled={processing} onClick={()=>setLinkMode(value=>!value)}><Link2 size={14}/>{linkMode?'Ocultar enlace':'Usar enlace'}</button>
     {original||current?.startsWith('data:image/')?<button type="button" className="text-button" disabled={processing} onClick={openCrop}><Crop size={14}/>Recortar</button>:null}
     {current?<button type="button" className="text-button danger" disabled={processing} onClick={remove}><Trash2 size={14}/>Quitar foto</button>:null}

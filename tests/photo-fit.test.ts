@@ -1,9 +1,17 @@
 import assert from 'node:assert/strict';
-import {centeredPhotoArea} from '../app/photo-fit';
-for(const [w,h] of [[1600,900],[900,1600],[512,512],[100,1000],[1000,100]]){
- const a=centeredPhotoArea(w,h);assert.equal(a.width,a.height);assert.equal(a.width,Math.min(w,h));
- assert(a.x>=0&&a.y>=0&&a.x+a.width<=w&&a.y+a.height<=h);
- assert.equal(a.x+a.width/2,w/2);assert.equal(a.y+a.height/2,h/2);
+import {initialCropArea} from '../app/photo-fit';
+// #107: sin autozoom ni autoencuadre. La ventana del recortador arranca centrada
+// y, en verticales, apenas arriba del centro (donde está la cabeza).
+for(const [w,h] of [[1600,900],[1000,100],[512,512],[900,1035]]){
+ const area=initialCropArea(w,h);
+ assert.equal(area.x,0,'el encuadre no se corre en horizontal');
+ assert.equal(area.y,0,`${w}×${h}: sin sesgo para horizontales o verticales leves`);
 }
-assert.throws(()=>centeredPhotoArea(0,5));assert.throws(()=>centeredPhotoArea(NaN,5));
-console.log('PASS: automatic centered profile crop fills square without empty borders');
+for(const [w,h] of [[900,1600],[100,1000],[300,900],[512,683]]){
+ const area=initialCropArea(w,h);
+ assert.equal(area.x,0);
+ assert.equal(area.y,-16,`${w}×${h}: la vertical arranca arriba del centro`);
+ assert(area.y>-h,'el sesgo es un corrimiento chico, no un recorte del encuadre');
+}
+assert.throws(()=>initialCropArea(0,5));assert.throws(()=>initialCropArea(NaN,5));
+console.log('PASS: el recortador arranca sin zoom extra y con la ventana arriba del centro solo en verticales');

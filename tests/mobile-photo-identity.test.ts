@@ -77,5 +77,10 @@ test('actor names already wrap without shrinking the avatar or truncating the na
  assert.equal(actor['min-width'],'0');assert.equal(actor['max-width'],'100%');
  assert.equal(name['min-width'],'0');assert.equal(name['overflow-wrap'],'anywhere');assert.notEqual(name['white-space'],'nowrap');
  assert.equal(avatar.flex,'0 0 2rem');assert.equal(declarations(actors,'.actor-identity-avatar img')['object-fit'],'cover');
+ // #107: el círculo de persona encuadra desde arriba (la foto se guarda completa).
+ const system=sheet('ui-system.css');
+ const retrato=declarations(system,':is(.actor-identity-avatar,.person-container-avatar,.presence-person,.photo-preview-button,.editable-photo,.ops-person,.avatar) img');
+ assert.equal(retrato['object-position'],'center top','los avatares de persona encuadran desde el borde superior');
+ assert.equal(declarations(sheet('client-identity.css'),'.identity-avatar img')['object-fit'],'contain','los logos de cliente conservan su tratamiento');
  for(const width of [320,360,390])assert(width-20-32-32-8.8>0,'Avatar/gap leave positive wrapping space at each target width');
 });

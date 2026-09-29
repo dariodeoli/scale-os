@@ -63,6 +63,17 @@
  .control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{flex-wrap:nowrap;flex:0 0 auto;width:auto}
 }
 
+/* ── Retrato de personas (#107) ─────────────────────────────────────────────
+   La foto se guarda completa (sin recorte automático). Acá vive, en un solo
+   lugar, el encuadre amable de todos los avatares de persona: el círculo toma
+   desde el borde superior —donde está la cabeza— y deja de ampliar de más las
+   verticales. Los logos de cliente (`.identity-avatar` con `contain`) y la
+   vista ampliada del visor de foto conservan su tratamiento propio. */
+:is(.actor-identity-avatar,.person-container-avatar,.presence-person,.photo-preview-button,.editable-photo,.ops-person,.avatar) img,
+.profile-footer .user img{object-position:center top}
+.assigned-people .actor-identity-avatar img,
+.activity-feed-row .actor-identity-avatar img{object-position:center top}
+
 /* ── KPI compacto (#89) ─────────────────────────────────────────────────────
    En escritorio el valor baja a 28 px con interlineado 1.15: una card con dos
    monedas (dos líneas de valor) queda en ~140 px y una de una línea en ~114 px.

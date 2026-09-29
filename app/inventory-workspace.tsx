@@ -534,7 +534,7 @@ export function InventoryItemForm({item,categories,members,storageTemplates,canM
  const [photoBusy,setPhotoBusy]=useState(false);
  const availableTemplates=storageTemplates.filter(template=>template.active||template.id===initialTemplate);
  function change(key:keyof typeof values,value:string){setValues(current=>({...current,[key]:value}));}
- async function pickPhoto(file:File){setPhotoBusy(true);setError('');try{const photo=await preparePhoto(file,true);change('photo_url',photo);}catch(cause){setError(errorMessage(cause));}finally{setPhotoBusy(false);}}
+ async function pickPhoto(file:File){setPhotoBusy(true);setError('');try{const photo=await preparePhoto(file);change('photo_url',photo);}catch(cause){setError(errorMessage(cause));}finally{setPhotoBusy(false);}}
  async function createPlace(){const name=newPlace.trim();if(!name||creatingPlace)return;setCreatingPlace(true);setError('');try{const template=await createStorageTemplate(name);setTemplateId(template.id);change('storage_shelf',template.name);setNewPlace('');}catch(error){setError(errorMessage(error));}finally{setCreatingPlace(false);}}
  // Mirrors the server rules before calling the API: linear needs purchase value, date and life 1..600.
  function validateValue(){const check=depreciationValidation(values);if(!check.ok){setError(check.error);return false;}return true;}
