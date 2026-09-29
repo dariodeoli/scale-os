@@ -49,7 +49,7 @@ const baseStages=[
 async function run(){
  await mount();
  assert.equal(requests.length,2);
- assert.equal(requests[0].url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`);assert.equal(requests[1].url,'/core-api/api/agency/pipeline-stages');
+ assert.equal(requests[0].url,`/core-api/api/agency/leads?limit=300&fields=${LEAD_LIST_FIELDS}`);assert.equal(requests[1].url,'/core-api/api/agency/pipeline-stages');
  await flush({records:[
   {id:'10',name:'Cliente activo',stage:'diagnostico',amount:'100',currency:'PYG',probability:30},
   {id:'11',name:'Cliente histórico',stage:'propuesta',amount:'50',currency:'PYG',probability:40},
@@ -85,7 +85,7 @@ async function run(){
  assert.deepEqual(JSON.parse(String(requests[0].init.body)),{label:'Visita técnica',kind:'open'});
  await flush({stage:{id:'5',slug:'visita-tecnica',label:'Visita técnica',position:4,active:true,kind:'open'}});
  assert.equal(requests[0].url,'/core-api/api/agency/pipeline-stages');assert.equal(requests[0].init.method,'GET','stage mutations reload the stage list');
- assert.equal(requests[1].url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`,'stage mutations also reload the rows');
+ assert.equal(requests[1].url,`/core-api/api/agency/leads?limit=300&fields=${LEAD_LIST_FIELDS}`,'stage mutations also reload the rows');
  await flush({stages:[...baseStages,{id:'5',slug:'visita-tecnica',label:'Visita técnica',position:4,active:true,kind:'open'}]});
  await flush(rowsIn('diagnostico'));
  assert.match(text(renderer.root),/Visita técnica/);
@@ -107,7 +107,7 @@ async function run(){
  act(()=>renderer.unmount());
  // Fallback: a failed stage read keeps the fixed board and warns with retry (#85).
  await mount();
- assert.equal(requests[0].url,`/core-api/api/agency/leads?fields=${LEAD_LIST_FIELDS}`);assert.equal(requests[1].url,'/core-api/api/agency/pipeline-stages');
+ assert.equal(requests[0].url,`/core-api/api/agency/leads?limit=300&fields=${LEAD_LIST_FIELDS}`);assert.equal(requests[1].url,'/core-api/api/agency/pipeline-stages');
  await flush({records:[{id:'10',name:'Cliente activo',stage:'lead',amount:'100',currency:'PYG',probability:30}]});
  await flush({error:'Sin conexión'},500);
  const fallback=(label:string)=>String(renderer.root.findAll(node=>String(node.props?.['aria-label']||'').startsWith(`${label} ·`))[0]?.props?.['aria-label']||'');

@@ -143,7 +143,11 @@ test('las secciones PLT piden la proyección del shell y conservan el buscador (
   assert.equal(scope.orders?.fields,ORDER_FIELDS_SEARCH,`${section} conserva la proyección de órdenes`);
   assert.equal(scope.summary,undefined,`${section} no necesita el resumen`);
  }
- assert.equal(sectionScope('Clientes').clients?.fields,undefined,'Clientes conserva la ficha completa para su directorio');
+ // #105: el directorio proyecta solo los campos que dibuja (la ficha completa
+ // sigue por `/clients/{id}` al abrir el detalle).
+ const {CLIENT_DIRECTORY_FIELDS}=await import('../app/shell-data');
+ assert.equal(sectionScope('Clientes').clients?.fields,CLIENT_DIRECTORY_FIELDS,'Clientes proyecta su directorio');
+ assert(CLIENT_DIRECTORY_FIELDS.includes('logo_url')&&CLIENT_DIRECTORY_FIELDS.includes('has_recurring_price'),'la proyección del directorio conserva identidad y plan');
  assert.equal(sectionScope('Resumen').projects?.fields,undefined,'Resumen conserva los conteos de proyectos');
  // #71: el contrato de Resumen — ventana + proyección del buscador/alertas/
  // planificador y resumen para los conteos exactos por etapa.

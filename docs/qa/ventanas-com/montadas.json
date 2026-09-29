@@ -1,0 +1,30 @@
+{
+ "clientes": {
+  "filas": 121,
+  "enTabla": 121,
+  "tarjetas": 0,
+  "oportunidades": 0,
+  "barra": true
+ },
+ "presupuestos": {
+  "filas": 61,
+  "enTabla": 61,
+  "tarjetas": 0,
+  "oportunidades": 0,
+  "barra": true
+ },
+ "pipeline": {
+  "filas": 120,
+  "enTabla": 0,
+  "tarjetas": 0,
+  "oportunidades": 120,
+  "barra": true
+ },
+ "planes": {
+  "filas": 0,
+  "enTabla": 0,
+  "tarjetas": 0,
+  "oportunidades": 0,
+  "barra": true
+ }
+}

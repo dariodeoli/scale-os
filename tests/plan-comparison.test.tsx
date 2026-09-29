@@ -71,7 +71,7 @@ test('matches backend rounding of unit prices and each line before summing',()=>
 test('planes renders the comparison without preview/read amplification and preserves the eight-role edit controls',async t=>{
  let requests=0;
  t.mock.method(globalThis,'fetch',async(input:RequestInfo|URL,init?:RequestInit)=>{
-  assert.equal(String(input),'/core-api/api/agency/plans');assert.equal(init?.method,'GET');requests++;
+  assert.equal(String(input),'/core-api/api/agency/plans?limit=60','la lista de planes se pide con ventana (#105)');assert.equal(init?.method,'GET');requests++;
   return Response.json({records:[fixture]});
  });
  for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator']){

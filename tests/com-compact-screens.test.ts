@@ -84,10 +84,14 @@ test('selección masiva contextual: la barra sólo existe con algo seleccionado 
   assert.match(source, /\{canManage[A-Za-z]* && selected[A-Za-z]*\.length \? <div className="bulk-bar"/, `${nombre}: la barra depende de la selección`);
   assert.doesNotMatch(source, /bulk-hint">Seleccioná varios para operar en lote/, `${nombre}: sin selección no hay fila de lote`);
  }
+ // Pipeline y Planes no tienen lote: su `bulk-bar` es la ventana (#105), no
+ // selección masiva.
  const pipeline=read('app/sections/pipeline.tsx');
- assert.doesNotMatch(pipeline, /bulk-bar|batch/i, 'el Pipeline no tiene lote y no inventa una barra');
+ assert.doesNotMatch(pipeline, /toggleSelected|Seleccionar visibles/, 'el Pipeline no inventa selección masiva');
+ assert.match(pipeline, /windowLabel\(windowState\.loaded, windowState\.total, 'oportunidad', 'oportunidades'\)/, 'la barra del Pipeline es la ventana con contador honesto');
  const planes=read('app/sections/planes.tsx');
- assert.doesNotMatch(planes, /bulk-bar|batch/i, 'Planes no tiene lote y no inventa una barra');
+ assert.doesNotMatch(planes, /toggleSelected|Seleccionar visibles/, 'Planes no inventa selección masiva');
+ assert.match(planes, /windowLabel\(windowState\.loaded, windowState\.total, 'plan', 'planes'\)/, 'la barra de Planes es la ventana con contador honesto');
 });
 
 test('presupuestos: la tabla densa entra a 1280–1440 y la fila va en una línea (#100)',()=>{
