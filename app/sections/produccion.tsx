@@ -3,8 +3,8 @@ import dynamic from 'next/dynamic';
 import {useCallback,useEffect,useMemo,useRef,useState,type Dispatch,type SetStateAction} from 'react';
 import {ArrowUpRight, ChevronLeft, ChevronRight, Plus, RotateCcw, SlidersHorizontal} from 'lucide-react';
 import {DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
-import {Aviso, Button, SegmentedField, Select} from 'owncoding-ui';
-import {EmptyBlock,SectionLoading} from '../ui-v2';
+import {Button, SegmentedField, Select} from 'owncoding-ui';
+import {EmptyBlock,ErrorBlock,LoadingBlock,SectionLoading} from '../ui-v2';
 import {BoardPresence} from '../presence';
 import {KanbanColumn, statuses, type Status, type WorkOrderCard} from '../production-board';
 import {defaultWorkspacePreferences, type WorkspacePreferences} from '../workspace-preferences';
@@ -138,10 +138,16 @@ export function ProduccionSection({productionView, preferences, changeProduction
       </div>
       {productionView==='Tablero'&&hasProductionFilters&&<p className="mb-3 text-xs text-mute" role="status">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
       {productionView==='Tablero'&&preferenceWarning?<p className="mb-3 text-xs text-mute" role="status">{preferenceWarning}</p>:null}
-      {productionView!=="Tablero"&&<WorkPlanner key={productionView} initialView={productionView} orders={boardData.plannerOrders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={boardData.reload} navigate={setActive}/>}
+      {/* El planificador comparte la carga con el tablero: con error no se pinta un
+          vacío falso ("No hay piezas") y con la primera carga va el esqueleto. */}
+      {productionView!=="Tablero"&&(boardData.error
+        ?<ErrorBlock title="No se pudo cargar el planificador." description={boardData.error} onRetry={()=>void boardData.reload()}/>
+        :boardData.loading&&!boardData.plannerOrders.length
+          ?<LoadingBlock label="Cargando producción…" lines={5}/>
+          :<WorkPlanner key={productionView} initialView={productionView} orders={boardData.plannerOrders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={boardData.reload} navigate={setActive}/>)}
       {productionView==="Tablero"&&
       <section className="grid min-w-0 gap-2" id="produccion" aria-label="Tablero de Producción">
-        {boardData.error?<div className="grid gap-2"><Aviso tono="error">No se pudo cargar el tablero: {boardData.error}</Aviso><button type="button" className="text-button justify-self-start" onClick={boardData.reload}>Reintentar</button></div>:null}
+        {boardData.error?<ErrorBlock title="No se pudo cargar el tablero." description={boardData.error} onRetry={()=>void boardData.reload()}/>:null}
         {filteredEmpty?<EmptyBlock compact icon="filter" title="Ninguna orden coincide con los filtros guardados." description={`El tablero tiene ${totalOrders} órdenes. Los filtros de cliente, responsable o semana las dejan fuera.`} action={<Button type="button" variant="outline" onClick={resetProductionFilters}><RotateCcw size={14}/>Restablecer filtros</Button>}/>:null}
         {boardEmpty?<EmptyBlock compact icon="box" title="Todavía no hay órdenes en producción." description="Creá la primera pieza y seguila por las siete etapas hasta publicarla." action={createOrder?<Button type="button" onClick={createOrder}><Plus size={16}/>Nueva pieza</Button>:undefined}/>:null}
         {!boardEmpty&&!filteredEmpty&&<BoardPresence key={String(user?.organization_id)} projectIds={Object.values(visibleColumns).flat().map(order=>String(order.project_id))}><DndContext sensors={sensors} onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={onDrop}>

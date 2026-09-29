@@ -6,7 +6,7 @@ import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-re
 import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
-import {Aviso, FilaDato, Subtabs, completeSave} from 'owncoding-ui';
+import {Aviso, Button, FilaDato, Nota, Subtabs, completeSave} from 'owncoding-ui';
 import {hasDueWarning} from './due-status';
 import {fechaLista,fechaListaCorta} from './date-format';
 import {EmptyBlock, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
@@ -72,12 +72,21 @@ export const workStatusLabel=(value:string)=>statuses.find(state=>state.id===val
 const workTypeLabels:Record<string,string>={video:'Video',reedicion:'Reedición',foto:'Foto',produccion:'Producción',entregable:'Entregable'};
 const workTypeChoices=[{value:'',label:'Sin clasificar'},...Object.entries(workTypeLabels).map(([value,label])=>({value,label}))];
 // Plantilla única del planificador: el encabezado y las filas comparten grilla.
-const PLANNER_COLUMNS:Column[]=[{key:'piece',label:'Pieza'},{key:'due',label:'Vence'},{key:'status',label:'Estado'},{key:'type',label:'Tipo'},{key:'people',label:'Responsables'},{key:'checklist',label:'Checklist',align:'end'},{key:'hours',label:'Horas'}];
+const PLANNER_COLUMNS:Column[]=[{key:'piece',label:'Pieza'},{key:'due',label:'Vence'},{key:'status',label:'Estado'},{key:'type',label:'Tipo'},{key:'people',label:'Responsables'},{key:'checklist',label:'Pasos',align:'end'},{key:'hours',label:'Horas'}];
 const PLANNER_TEMPLATE='grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.1fr)_7rem_7rem_minmax(9rem,1fr)_6rem_9rem]';
 const managers=['owner','admin','management','production','collaborator'];
 const makers=[...managers,'editor'];
 const localDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-function usePeople(){const [people,setPeople]=useState<Row[]>([]);useEffect(()=>{let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive)setPeople(d.people);}).catch(()=>{});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[]);return [{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email')}))];}
+function usePeople(){
+ const [people,setPeople]=useState<Row[]>([]),[error,setError]=useState(''),[reload,setReload]=useState(0);
+ useEffect(()=>{let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive){setPeople(d.people);setError('');}}).catch(cause=>{if(alive)setError(errorText(cause));});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[reload]);
+ return {choices:[{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email')}))],error,retry:()=>setReload(value=>value+1)};
+}
+/** La lista de personas puede fallar: se dice y se ofrece reintento, nunca "Sin asignar" mudo. */
+function PeopleNotice({error,retry}:{error:string;retry:()=>void}){
+ if(!error)return null;
+ return <Nota tono="warn" compact>No se pudo cargar el equipo para asignar: {error}. <button type="button" className="text-button" onClick={retry}>Reintentar</button></Nota>;
+}
 
 export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialEditing=false}:{id:string;organizationId:string;role:string;close:()=>void;refresh:()=>Promise<void>;anchor?:string;initialEditing?:boolean}){
  const [data,setData]=useState<{order:Row;comments:Row[];history:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Detalle'),[busy,setBusy]=useState(false),[editing,setEditing]=useState(false);
@@ -90,7 +99,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
   const fields:Field[]=[urgencyField,{key:'title',label:'Título'},{key:'description',label:'Descripción y notas',type:'textarea',optional:true},{key:'drive_links',label:'Enlaces de archivo o carpeta de Drive',type:'textarea',optional:true,wide:true},{key:'due_date',label:'Entrega',type:'date',optional:true},{key:'due_time',label:'Hora de entrega',type:'time',optional:true},{key:'work_type',label:'Tipo de trabajo',optional:true,choices:workTypeChoices},{key:'estimated_hours',label:'Horas estimadas',type:'number',optional:true},{key:'actual_hours',label:'Horas trabajadas',type:'number',optional:true}];
   const mentioned=(comment:Row)=>Array.isArray(comment.mentioned_user_ids)?comment.mentioned_user_ids.length:0;
   return <Dialog variant="drawer" title={heading} close={close}>
-   {error?<Aviso tono="error" className="mb-3">{error}</Aviso>:null}
+   {error?<Aviso tono="error" className="mb-3">{error} <button type="button" className="text-button" onClick={()=>{setError('');void load().catch(cause=>setError(errorText(cause)));}}>Reintentar</button></Aviso>:null}
    {!order?<LoadingBlock label="Cargando pieza…" lines={4}/>:<>
     <section className="mb-4 grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/><UrgencyBadge value={order.urgency}/></div>
@@ -216,22 +225,22 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
     <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{[o.estimated_hours?`${o.estimated_hours} h est.`:'',o.actual_hours?`${o.actual_hours} h reales`:''].filter(Boolean).join(' · ')||'—'}</span>
    </ListRow>)}
   </ListGrid>
-  {!visible.length?<EmptyBlock title={view==='Mi día'?'No tenés piezas pendientes asignadas.':'No hay piezas para esta vista.'} description={view==='Mi día'?'Podés elegir el tablero general desde el selector de vista.':'Probá con otro mes o cambiá de vista.'} icon="box"/>:null}
+  {!visible.length?<EmptyBlock title={view==='Mi día'?'No tenés piezas pendientes asignadas.':'No hay piezas para esta vista.'} description={view==='Mi día'?'Podés elegir el tablero general desde el selector de vista.':'Probá con otro mes o cambiá de vista.'} icon="box" action={<Button type="button" variant="outline" onClick={()=>navigate('Producción')}>Abrir el tablero de Producción</Button>}/>:null}
   {visible.length>100?<p className="text-xs text-mute" role="status">Mostrando 100 de {visible.length}. Filtrá por mes para acotar la lista.</p>:null}
   {batch?<BatchEditor orders={orders.filter(o=>selected.includes(String(o.id)))} close={()=>setBatch(false)} done={async()=>{await refresh();setSelected([]);setBatch(false);}}/>:null}
   {templatesOpen?<MonthlyTemplates projects={projects} close={()=>setTemplatesOpen(false)} refresh={refresh}/>:null}
  </section>;
 }
 function BatchEditor({orders,close,done}:{orders:WorkItem[];close:()=>void;done:()=>Promise<void>}){
- const [field,setField]=useState('due_date');const people=usePeople();
- return <Dialog title={`Actualizar ${orders.length} piezas`} close={close}><div className="grid gap-3"><p className="text-sm text-mute">Se aplica todo el lote o ninguno. No incluye aprobaciones, publicaciones ni cobros.</p><SelectCustom label="Qué cambiar" value={field} onChange={setField} choices={[{value:'due_date',label:'Fecha de entrega'},{value:'assigned_user_id',label:'Responsable'},{value:'status',label:'Estado de producción'}]}/><Editor key={field} fields={[{key:'value',label:'Nuevo valor',...(field==='due_date'?{type:'date' as const}:{choices:field==='status'?batchStates:people})}]} defaults={{value:field==='status'?'to_record':''}} save={async v=>{const result=await api<{updated:number}>('/api/agency/productivity/batch',{ids:orders.map(o=>o.id),versions:Object.fromEntries(orders.map(o=>[o.id,o.updated_at])),change:{[field]:v.value}});notify({tone:'success',message:`${result.updated} piezas actualizadas.`});await done();}}/></div></Dialog>;
+ const [field,setField]=useState('due_date');const {choices:people,error:peopleError,retry:retryPeople}=usePeople();
+ return <Dialog title={`Actualizar ${orders.length} piezas`} close={close}><div className="grid gap-3"><p className="text-sm text-mute">Se aplica todo el lote o ninguno. No incluye aprobaciones, publicaciones ni cobros.</p><PeopleNotice error={peopleError} retry={retryPeople}/><SelectCustom label="Qué cambiar" value={field} onChange={setField} choices={[{value:'due_date',label:'Fecha de entrega'},{value:'assigned_user_id',label:'Responsable'},{value:'status',label:'Estado de producción'}]}/><Editor key={field} fields={[{key:'value',label:'Nuevo valor',...(field==='due_date'?{type:'date' as const}:{choices:field==='status'?batchStates:people})}]} defaults={{value:field==='status'?'to_record':''}} save={async v=>{const result=await api<{updated:number}>('/api/agency/productivity/batch',{ids:orders.map(o=>o.id),versions:Object.fromEntries(orders.map(o=>[o.id,o.updated_at])),change:{[field]:v.value}});notify({tone:'success',message:`${result.updated} piezas actualizadas.`});await done();}}/></div></Dialog>;
 }
 function MonthlyTemplates({projects,close,refresh}:{projects:{id:string;name:string;client_name:string}[];close:()=>void;refresh:()=>Promise<void>}){
- const [templates,setTemplates]=useState<Row[]>([]),[creating,setCreating]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState('');const people=usePeople();
+ const [templates,setTemplates]=useState<Row[]>([]),[creating,setCreating]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState('');const {choices:people,error:peopleError,retry:retryPeople}=usePeople();
  async function load(){setTemplates((await api<{templates:Row[]}>('/api/agency/productivity/templates')).templates);}
  useEffect(()=>{void load().catch(e=>setError(errorText(e)));},[]);
- return <Dialog title="Plantillas mensuales de producción" close={close}><div className="grid gap-3"><p className="text-sm text-mute">Generá una tanda en un proyecto existente. Repetir la misma plantilla, proyecto y mes no crea duplicados. No genera facturas ni cobros.</p><button className="text-button" onClick={()=>setCreating(v=>!v)}><LayoutTemplate size={14}/>{creating?'Usar una plantilla':'Crear plantilla'}</button>{error?<Aviso tono="error">{error}</Aviso>:null}{notice?<Aviso tono="ok">{notice}</Aviso>:null}
-  {creating?<><p className="text-xs text-mute">Una pieza por línea: título | día del mes | horas estimadas | checklist opcional.</p><Editor fields={[{key:'name',label:'Nombre de la plantilla'},{key:'lines',label:'Piezas',type:'textarea'}]} defaults={{name:'',lines:''}} save={async v=>{const items=v.lines.split('\n').filter(l=>l.trim()).map(l=>{const [title,day,hours,...rest]=l.split('|').map(x=>x.trim());return{title,day:Number(day),hours:Number(hours||0),checklist:rest.join(' | ')};});await api('/api/agency/productivity/templates',{name:v.name,items});await load();setCreating(false);}}/></>:<Editor key={templates.length} fields={[{key:'template',label:'Plantilla',choices:templates.map(t=>({value:String(t.id),label:s(t,'name')}))},{key:'project_id',label:'Proyecto',choices:projects.map(p=>({value:String(p.id),label:`${p.client_name} · ${p.name}`}))},{key:'month',label:'Mes (AAAA-MM)'},{key:'assigned_user_id',label:'Responsable inicial',choices:people,optional:true}]} defaults={{template:'',project_id:'',month:localDay().slice(0,7),assigned_user_id:''}} save={async v=>{if(!v.template||!v.project_id)throw Error('Elegí plantilla y proyecto.');const r=await api<{created:number;alreadyGenerated:boolean}>(`/api/agency/productivity/templates/${v.template}/generate`,v);await refresh();setNotice(r.alreadyGenerated?'Ese mes ya fue generado para esta plantilla y proyecto.':`${r.created} piezas creadas para ${v.month}.`);}}/>}
+ return <Dialog title="Plantillas mensuales de producción" close={close}><div className="grid gap-3"><p className="text-sm text-mute">Generá una tanda en un proyecto existente. Repetir la misma plantilla, proyecto y mes no crea duplicados. No genera facturas ni cobros.</p><PeopleNotice error={peopleError} retry={retryPeople}/><button className="text-button" onClick={()=>setCreating(v=>!v)}><LayoutTemplate size={14}/>{creating?'Usar una plantilla':'Crear plantilla'}</button>{error?<Aviso tono="error">{error}</Aviso>:null}{notice?<Aviso tono="ok">{notice}</Aviso>:null}
+  {creating?<><p className="text-xs text-mute">Una pieza por línea: título | día del mes | horas estimadas | pasos opcionales.</p><Editor fields={[{key:'name',label:'Nombre de la plantilla'},{key:'lines',label:'Piezas',type:'textarea'}]} defaults={{name:'',lines:''}} save={async v=>{const items=v.lines.split('\n').filter(l=>l.trim()).map(l=>{const [title,day,hours,...rest]=l.split('|').map(x=>x.trim());return{title,day:Number(day),hours:Number(hours||0),checklist:rest.join(' | ')};});await api('/api/agency/productivity/templates',{name:v.name,items});await load();setCreating(false);}}/></>:<Editor key={templates.length} fields={[{key:'template',label:'Plantilla',choices:templates.map(t=>({value:String(t.id),label:s(t,'name')}))},{key:'project_id',label:'Proyecto',choices:projects.map(p=>({value:String(p.id),label:`${p.client_name} · ${p.name}`}))},{key:'month',label:'Mes (AAAA-MM)'},{key:'assigned_user_id',label:'Responsable inicial',choices:people,optional:true}]} defaults={{template:'',project_id:'',month:localDay().slice(0,7),assigned_user_id:''}} save={async v=>{if(!v.template||!v.project_id)throw Error('Elegí plantilla y proyecto.');const r=await api<{created:number;alreadyGenerated:boolean}>(`/api/agency/productivity/templates/${v.template}/generate`,v);await refresh();setNotice(r.alreadyGenerated?'Ese mes ya fue generado para esta plantilla y proyecto.':`${r.created} piezas creadas para ${v.month}.`);}}/>}
   <MonthlySchedules projects={projects} templates={templates.map(t=>({id:String(t.id),name:s(t,'name')}))} people={people}/>
  </div></Dialog>;
 }

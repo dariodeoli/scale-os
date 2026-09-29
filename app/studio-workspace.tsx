@@ -39,7 +39,9 @@ function StudioPanel(){
  const [selectedReservations,setSelectedReservations]=useState<string[]>([]),[bulkCancel,setBulkCancel]=useState(false),[bulkBusy,setBulkBusy]=useState(false);
  // Un ciclo de datos exitoso limpia el error de la última acción, igual que antes de separar la capa de datos.
  useEffect(()=>{if(!loading)setError('');},[loading]);
- const error=loadError||actionError;
+ // El error de la carga inicial bloquea la pantalla; el de una acción se avisa
+ // aparte y no borra el calendario que ya está en pantalla.
+ const error=loadError;
  const saved=(message:string)=>{setNotice(message);setEditSpace(null);setEditReservation(null);setCancel(null);setRefresh(value=>value+1);};
  // Lote de reservas del mes: solo lo que el usuario puede gestionar y sigue reservada.
  const reservationSelectable=(reservation:StudioReservation)=>Boolean(context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved');
@@ -50,24 +52,39 @@ function StudioPanel(){
   if(bulkBusy||!selectedReservations.length)return;
   setBulkBusy(true);setError('');
   const {selection,capped}=limitSelection(selectedReservations,BATCH_LIMITS.studioReservations);
+  // Cada fila se cuenta por su propia respuesta: el aviso nunca da por cancelada
+  // una reserva que el API no confirmó.
+  let cancelled=0;let failed:string[]=[];
+  const cancelOne=async(id:string)=>{
+   const row=reservations.find(candidate=>String(candidate.id)===id);
+   try{await api(`/api/agency/studio-reservations/${id}/cancel`,{expected_version:row?.version},'POST');cancelled+=1;}
+   catch{failed.push(id);}
+  };
   try{
-   let cancelled=0;
+   let confirmedByBatch=false;
    try{
     const data=await api<{cancelled?:string[]|number}>('/api/agency/studio-reservations/batch',{ids:selection,change:{cancel:true}},'POST');
-    cancelled=Array.isArray(data.cancelled)?data.cancelled.length:Number(data.cancelled||selection.length);
+    if(Array.isArray(data.cancelled)){cancelled=data.cancelled.length;confirmedByBatch=true;}
+    else if(typeof data.cancelled==='number'){cancelled=data.cancelled;confirmedByBatch=true;}
+    // Sin el detalle en la respuesta no se puede afirmar cuáles quedaron canceladas:
+    // se cae a los cancels unitarios.
    }catch(cause){
     // El endpoint de lote todavía no está (#59, PLT): se cae a los cancels unitarios.
     if(!/no encontrado|404/i.test(cause instanceof Error?cause.message:''))throw cause;
-    for(const id of selection){
-     const row=reservations.find(candidate=>String(candidate.id)===id);
-     try{await api(`/api/agency/studio-reservations/${id}/cancel`,{expected_version:row?.version},'POST');cancelled+=1;}catch{/* la fila se saltea */}
-    }
    }
-   setBulkCancel(false);setSelectedReservations([]);setBulkBusy(false);
+   if(!confirmedByBatch){cancelled=0;failed=[];for(const id of selection)await cancelOne(id);}
+   if(failed.length){
+    const titles=failed.slice(0,3).map(id=>reservations.find(row=>String(row.id)===id)?.title||`Reserva ${id}`);
+    setSelectedReservations(failed);
+    setError(`No se pudieron cancelar ${failed.length} de ${selection.length} reservas: ${titles.join(', ')}${failed.length>3?'…':''}. Probá de nuevo; las demás quedaron canceladas.`);
+    return;
+   }
+   setBulkCancel(false);setSelectedReservations([]);
    saved(capped?`${cancelled} de ${selection.length} reservas canceladas (tope ${BATCH_LIMITS.studioReservations}).`:`${cancelled} reserva${cancelled===1?'':'s'} cancelada${cancelled===1?'':'s'}.`);
   }catch(cause){
-   setBulkBusy(false);
    setError(cause instanceof Error?cause.message:'No se pudieron cancelar las reservas.');
+  }finally{
+   setBulkBusy(false);
   }
  }
  if(loading)return <Card className="min-w-0"><LoadingBlock label="Cargando espacios y calendario…" lines={4}/></Card>;
@@ -76,6 +93,7 @@ function StudioPanel(){
  return <div className="grid min-w-0 gap-4">
   <Card className="grid min-w-0 gap-3">
    {notice?<Aviso tono="ok">{notice}</Aviso>:null}
+   {actionError?<Aviso tono="error">{actionError}</Aviso>:null}
    {!spaces.length?<EmptyState compact icon="store" title="Sin espacios todavía." description={context?.can_manage?'Creá un espacio para reservarlo después.':'Un responsable debe crear un espacio antes de reservar.'} action={context?.can_manage?<Button type="button" onClick={()=>setEditSpace('new')}>Agregar espacio</Button>:undefined}/>:<>
     <div className="flex flex-wrap items-center justify-between gap-2">
      <p className="text-xs text-mute">Los espacios disponibles se reservan por franja horaria; cada reserva bloquea solo su espacio.</p>
@@ -118,7 +136,7 @@ function StudioPanel(){
      <div className="grid grid-cols-1 gap-1 text-xs text-mute"><p className="truncate" title={reservation.project_name||'Sin proyecto vinculado'}>Proyecto: {reservation.project_name||'Sin proyecto vinculado'}</p><p className="truncate" title={reservation.responsible_members.map(person=>person.name).join(', ')}>Responsables: {reservation.responsible_members.map(person=>person.name).join(', ')}</p></div>
      {(reservationSelectable(reservation)||context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved')?<div className="flex min-h-11 items-center justify-between gap-2 border-t border-ink-600/60 pt-2"><span>{reservationSelectable(reservation)?<label className="flex min-h-11 items-center gap-2 text-xs text-mute"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar reserva: ${reservation.title}`} checked={selectedReservations.includes(String(reservation.id))} onChange={()=>toggleReservation(String(reservation.id))}/><span>Seleccionar</span></label>:null}</span>{context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved'?<span className={`flex items-center gap-1 ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar reserva: ${reservation.title}`} onClick={()=>setEditReservation(reservation)}/><IconAction icon="close" tone="warn" label={`Cancelar reserva: ${reservation.title}`} onClick={()=>setCancel(reservation)}/></span>:null}</div>:null}
     </article>)}
-    {!reservations.length?<EmptyState compact icon="calendar" title="No hay reservas en este mes."/>:null}
+    {!reservations.length?<EmptyState compact icon="calendar" title="No hay reservas en este mes." description="Elegí un espacio y una franja para reservarlo." action={context?.can_reserve&&activeSpaces.length?<Button type="button" onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:undefined}/>:null}
    </div>
    <div data-list="studio-reservations" className="hidden min-w-0 overflow-x-auto md:block">
     <div className={`${RESERVATION_COLS} grid min-w-[64rem] gap-2`}>
@@ -133,13 +151,13 @@ function StudioPanel(){
      <span className={`flex flex-wrap items-center justify-end gap-1 ${ROW_ICON_TARGETS}`}>{context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved'?<><IconAction icon="edit" label={`Editar reserva: ${reservation.title}`} onClick={()=>setEditReservation(reservation)}/><IconAction icon="close" tone="warn" label={`Cancelar reserva: ${reservation.title}`} onClick={()=>setCancel(reservation)}/></>:null}</span>
      {reservation.actor_name||reservation.notes?<p className="col-span-full flex min-w-0 flex-nowrap items-center gap-x-3 overflow-hidden text-[11px] text-mute" title={[reservation.actor_name?`Creada por ${reservation.actor_name}`:'',reservation.notes?`Notas: ${reservation.notes}`:''].filter(Boolean).join(' · ')}>{reservation.actor_name?<span className="truncate" title={`Creada por ${reservation.actor_name}`}>Creada por {reservation.actor_name}</span>:null}{reservation.notes?<span className="truncate" title={reservation.notes}>{reservation.notes}</span>:null}</p>:null}
     </div>)}
-    {!reservations.length?<EmptyState icon="calendar" title="No hay reservas en este mes."/>:null}
+    {!reservations.length?<EmptyState icon="calendar" title="No hay reservas en este mes." description="Elegí un espacio y una franja para reservarlo." action={context?.can_reserve&&activeSpaces.length?<Button type="button" onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:undefined}/>:null}
     </div>
    </div>
   </Card>:null}
   {editSpace&&context?.can_manage?<Dialog title={editSpace==='new'?'Nuevo espacio de estudio':'Editar espacio'} close={()=>setEditSpace(null)}><Editor closeOnSave fields={[{key:'name',label:'Nombre del espacio'},{key:'scenario',label:'Escenario o fondo',optional:true},{key:'active',label:'Disponibilidad',choices:[{value:'true',label:'Disponible para reservar'},{value:'false',label:'Inactivo'}]},{key:'notes',label:'Notas',type:'textarea',optional:true}]} defaults={editSpace==='new'?{name:'',scenario:'',active:'true',notes:''}:{name:editSpace.name,scenario:editSpace.scenario,active:String(editSpace.active),notes:editSpace.notes}} save={async values=>{await api(`/api/agency/studio-spaces${editSpace==='new'?'':`/${editSpace.id}`}`,{...values,active:values.active==='true'},editSpace==='new'?'POST':'PATCH');saved('Espacio guardado.');}}/></Dialog>:null}
   {editReservation&&context?.can_reserve?<Modal open size="amplio" title={editReservation==='new'?'Nueva reserva de estudio':'Editar reserva de estudio'} onClose={()=>setEditReservation(null)}><StudioReservationForm context={context} spaces={spaces} reservations={reservations} record={editReservation==='new'?null:editReservation} done={()=>saved('Reserva guardada.')} /></Modal>:null}
-  {bulkCancel?<Modal open size="corto" title={`Cancelar ${selectedReservations.length} reserva${selectedReservations.length===1?'':'s'} de estudio`} busy={bulkBusy} onClose={()=>{if(!bulkBusy)setBulkCancel(false);}}><p className="text-sm text-mute">Se liberan los espacios de esas franjas. No afecta equipos ni otras reservas.</p><SaveActions pending={bulkBusy} cancelLabel="Volver"><Button type="button" disabled={bulkBusy} onClick={()=>void cancelSelectedReservations()}>Cancelar reservas</Button></SaveActions></Modal>:null}
+  {bulkCancel?<Modal open size="corto" title={`Cancelar ${selectedReservations.length} reserva${selectedReservations.length===1?'':'s'} de estudio`} busy={bulkBusy} onClose={()=>{if(!bulkBusy)setBulkCancel(false);}}><p className="text-sm text-mute">Se liberan los espacios de esas franjas. No afecta equipos ni otras reservas.</p>{actionError?<Aviso tono="error" className="mt-3">{actionError}</Aviso>:null}<SaveActions pending={bulkBusy} cancelLabel="Volver"><Button type="button" disabled={bulkBusy} onClick={()=>void cancelSelectedReservations()}>Cancelar reservas</Button></SaveActions></Modal>:null}
   {cancel?<Modal open size="corto" title="Cancelar reserva de estudio" busy={busy} onClose={()=>{if(!busy)setCancel(null);}}><p className="text-sm text-mute">Se libera el espacio para esa franja. No afecta equipos ni otras reservas.</p><SaveActions pendiente={busy} cancelLabel="Volver"><Button type="button" disabled={busy} onClick={async()=>{if(busy)return;setBusy(true);try{await api(`/api/agency/studio-reservations/${cancel.id}/cancel`,{expected_version:cancel.version});saved('Reserva cancelada.');}catch(reason){setError(errorMessage(reason));}finally{setBusy(false);}}}>{busy?'Cancelando…':'Confirmar cancelación'}</Button></SaveActions></Modal>:null}
  </div>;
 }

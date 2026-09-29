@@ -264,6 +264,15 @@ async function run(){
  await act(async()=>{await button('Archivar equipo').props.onClick();});
  assert.equal(renderer.root.findAllByType(MockOverlay).length,0);assert.match(text(renderer.root),/Equipo archivado/);
  assert.equal(writes.at(-1)!.method,'DELETE');act(()=>renderer.unmount());assert.equal(intervals.size,0);
+ // Un fallo de acción no esconde el catálogo: se avisa y el contenido sigue a la vista.
+ await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+ const beforeAction=writes.length;fail=true;
+ await act(async()=>{await renderer.root.findAllByProps({'aria-label':'Marcar verificado: Memoria SD'})[0].props.onClick();});
+ assert.equal(writes.length,beforeAction+1,'the verify action hits the API');
+ assert.match(text(renderer.root),/Conflicto de reserva/,'the action failure is announced');
+ assert.match(text(renderer.root),/Memoria SD/,'the catalog stays visible after an action failure');
+ assert.doesNotMatch(text(renderer.root),/No se pudo cargar el inventario/,'an action failure never replaces the loaded catalog');
+ fail=false;act(()=>renderer.unmount());assert.equal(intervals.size,0);
  // El detalle y la trazabilidad abren el drawer con la lectura real del API.
  await act(async()=>{renderer=create(<InventoryDetail item={equipment[0]} members={context.members} canManage={false}/>);});
  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});

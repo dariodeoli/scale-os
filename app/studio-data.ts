@@ -33,7 +33,7 @@ export type StudioContext={
 export const STUDIO_PRODUCTION_TYPES:{value:StudioProductionType;label:string}[]=[
  {value:'video',label:'Video / Reels'},
  {value:'podcast',label:'Podcast'},
- {value:'ads',label:'Ads'},
+ {value:'ads',label:'Publicidad'},
  {value:'fotografia',label:'Foto'},
  {value:'streaming',label:'Streaming'},
  {value:'otro',label:'Otro'},

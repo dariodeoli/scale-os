@@ -73,7 +73,7 @@ export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, s
       {projectsState === 'loading' && !projects.length ? <LoadingBlock label="Cargando proyectos…" lines={4}/> : null}
       {projectsState === 'error' && !projects.length ? <ErrorBlock title="No se pudieron cargar los proyectos." onRetry={retry}/> : null}
       {liveProjects.length ? collection(liveProjects, 'Proyectos') : null}
-      {empty && projects.length ? <EmptyBlock title={projectClientFilter ? 'Este cliente no tiene proyectos.' : 'No hay proyectos para mostrar.'} description={projectClientFilter ? 'Elegí otro cliente o limpiá el filtro.' : 'Probá con otro filtro.'}/> : null}
+      {empty && projects.length ? <EmptyBlock title={projectClientFilter ? 'Este cliente no tiene proyectos.' : 'No hay proyectos para mostrar.'} description={projectClientFilter ? 'Elegí otro cliente o limpiá el filtro.' : 'Probá con otro filtro.'} action={projectClientFilter ? <Button type="button" variant="outline" onClick={()=>setProjectClientFilter('')}>Limpiar filtro</Button> : undefined}/> : null}
       {empty && !projects.length && (projectsState === 'ready') ? <EmptyBlock compact icon="report" title="Todavía no hay proyectos." description={clients.length?'Creá el primero para agrupar las piezas y sus niveles de aprobación.':'Primero cargá un cliente; después vas a poder crear el proyecto.'} action={createProject&&clients.length?<Button type="button" onClick={createProject}>Nuevo proyecto</Button>:undefined}/> : null}
       {archivedProjects.length ? (
         <details className="archived-capsule">

@@ -431,6 +431,28 @@ export default [
   },
 
   {
+    id: 'ops-historial-vacio',
+    section: 'Historial de trabajo',
+    surface: 'Sin actividad · vacío con acción',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: `
+<section class="grid min-w-0 gap-4 rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" aria-label="Historial de trabajo">
+ <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+  <div class="min-w-0"><p class="text-xs leading-5 text-mute">Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.</p></div>
+  <button class="text-button shrink-0">${svg(ICON.history, 14)}Ver historial importado de Trello</button>
+ </div>
+ <div class="mb-4 flex flex-wrap items-end gap-3">
+  <div class="w-full sm:w-72">${selectCustom({label: 'Persona', value: 'Todo el equipo'})}</div>
+  <div class="w-44">${selectCustom({label: 'Registros por página', value: '10'})}</div>
+  <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute" role="status"></p>
+  <p class="w-full basis-full rounded-lg border border-warn/30 bg-warn/10 p-2 text-xs text-mute">No se pudo cargar la lista del equipo: Sin conexión <button type="button" class="text-button">Reintentar</button></p>
+ </div>
+ <div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box || ICON.grid, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">Sin actividad registrada.</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">Los cambios operativos del equipo van a aparecer acá.</p><div class="mt-4"><button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore transition hover:border-fono hover:bg-fono/10 md:h-9">Abrir Producción</button></div></div></div>
+</section>`,
+  },
+  {
     id: 'equipo-actividad-feed',
     section: 'Actividad',
     surface: 'Feed de actividad',

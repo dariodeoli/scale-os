@@ -1104,7 +1104,7 @@ export default function Home() {
         {active==='Sin acceso'&&<SinAccesoSection/>}
         {active==='Equipo'&&<EquipoSection user={user}/>}
         {active==='Roles y permisos'&&<PermisosSection user={user}/>}
-        {active==='Historial de trabajo'&&<HistorialSection user={user}/>}
+        {active==='Historial de trabajo'&&<HistorialSection user={user} navigate={setActive}/>}
         {active==='Invitaciones'&&<InvitacionesSection user={user}/>}
         {active==='Comisiones'&&<ComisionesSection user={user}/>}
         {active==='Pipeline'&&<PipelineSection user={user} metrics={metrics} metricsState={metricsState} onRetryMetrics={()=>void loadMetrics()}/>}

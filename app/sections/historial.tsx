@@ -8,9 +8,11 @@ const WorkHistory=dynamic(()=>import('../work-history').then(m=>m.WorkHistory),{
 // Extraído de app/scale-workspace.tsx (issue #47): misma lógica y JSX, sin cambios.
 type HistorialSectionProps = {
   user: User | null;
+  /** Abre otro módulo desde el vacío del historial (el shell resuelve la ruta). */
+  navigate?: (module: string) => void;
 };
-export function HistorialSection({user}: HistorialSectionProps){
+export function HistorialSection({user,navigate}: HistorialSectionProps){
   return (
-    <WorkHistory role={user?.role||'viewer'}/>
+    <WorkHistory role={user?.role||'viewer'} navigate={navigate}/>
   );
 }

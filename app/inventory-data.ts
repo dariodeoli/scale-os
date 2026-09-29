@@ -102,7 +102,7 @@ const traceLabels:Record<string,string>={
  'reservation.reserved':'Reserva creada','reservation.updated':'Reserva actualizada','reservation.cancelled':'Reserva cancelada',
  'loan.checked_out':'Retiro registrado','loan.checked_in':'Devolución registrada','location.changed':'Ubicación actualizada',
 };
-export const traceLabel=(event:string)=>traceLabels[event]||event.replace(/[._]/g,' ');
+export const traceLabel=(event:string)=>traceLabels[event]||'Movimiento registrado';
 
 export const itemCode=(item:Pick<InventoryItem,'id'|'inventory_code'>)=>item.inventory_code||inventoryCode(item.id);
 
