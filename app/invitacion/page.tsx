@@ -1,11 +1,14 @@
 "use client";
 import {useEffect,useState} from 'react';
+import {AvisoPrivacidad,ConsentimientoDatos,registroConsentimiento} from 'owncoding-ui';
 import {teamRoleLabels} from '../team-directory';
 import {AccessLayout} from '../access-layout';
 import {StateChip} from '../ui-v2';
 import {listDateFull} from '../list-format';
 import {PasswordField} from '../password-field';
 import {EmailField} from '../email-field';
+import {PRIVACY_NOTICE} from '../privacy-notice';
+import {queuePrivacyConsent,registerPrivacyConsent} from '../privacy-data';
 type Preview={organization_name:string;role:string;mode:'single'|'approval';expires_at?:string};
 type State={status:'loading'|'missing'|'invalid'|'pending'|'previous-error'|'unavailable'|'connection'|'expired'|'revoked'|'used'}|{status:'ready';info:Preview;token:string};
 function isPreview(value:unknown):value is Preview{
@@ -29,6 +32,16 @@ const notices={
 export default function InvitationPage(){
  const [state,setState]=useState<State>({status:'loading'});
  const [attempt,setAttempt]=useState(0);
+ const [dataConsent,setDataConsent]=useState(false),[consentError,setConsentError]=useState('');
+ // Consentimiento de datos (Ley 7593/2025, Refs #113): la invitación crea una
+ // cuenta con datos de una persona real; la aceptación es explícita, con la
+ // versión del aviso a la vista y registrada con canal y fecha.
+ const consentRecord=()=>registroConsentimiento({finalidad:'cuenta-y-prestacion',aceptado:true,version:PRIVACY_NOTICE.version,canal:'invitacion-equipo',titular:email.trim().toLowerCase()});
+ function requireConsent(){if(dataConsent)return true;setConsentError('Aceptá el tratamiento de tus datos para crear la cuenta.');return false;}
+ async function continueWithGoogle(event:React.MouseEvent<HTMLAnchorElement>){
+  if(!requireConsent()){event.preventDefault();return;}
+  queuePrivacyConsent({finalidad:'cuenta-y-prestacion',canal:'invitacion-equipo-google',titular:email.trim().toLowerCase()});
+ }
  const [passwordOpen,setPasswordOpen]=useState(false),[passwordError,setPasswordError]=useState(''),[passwordNotice,setPasswordNotice]=useState(''),[passwordBusy,setPasswordBusy]=useState(false),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[email,setEmail]=useState('');
  useEffect(()=>{
   const query=new URLSearchParams(window.location.search),token=query.get('token')||'';
@@ -69,12 +82,14 @@ export default function InvitationPage(){
   event.preventDefault();if(state.status!=='ready')return;
   const values=new FormData(event.currentTarget),password=String(values.get('password')||''),confirm=String(values.get('confirm')||'');
   setPasswordError('');setPasswordNotice('');
+  if(!requireConsent())return;
   if(password!==confirm){setPasswordError('Las contraseñas no coinciden.');return;}
   setPasswordBusy(true);
   try{
-   const response=await fetch('/core-api/api/auth/password/invitations/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:state.token,email,password,full_name:values.get('full_name')}),referrerPolicy:'no-referrer'});
+   const response=await fetch('/core-api/api/auth/password/invitations/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:state.token,email,password,full_name:values.get('full_name'),privacy:consentRecord()}),referrerPolicy:'no-referrer'});
    const data=await response.json().catch(()=>null);
    if(!response.ok)throw Error(data?.error||'No se pudo crear la cuenta.');
+   await registerPrivacyConsent({finalidad:'cuenta-y-prestacion',canal:'invitacion-equipo',titular:email.trim().toLowerCase()}).catch(()=>{});
    setPasswordNotice(data?.message||'Revisá tu correo para verificar tu cuenta.');
   }catch(cause){setPasswordError(cause instanceof Error?cause.message:'No se pudo crear la cuenta.');}
   finally{setPasswordBusy(false);}
@@ -94,15 +109,16 @@ export default function InvitationPage(){
     </div>
     <p className="text-sm text-mute">{state.info.mode==='single'?'Este enlace habilita una sola cuenta.':'Podés solicitar acceso; el dueño lo aprobará antes de habilitarte.'}</p>
     <p className="text-xs text-mute">Elegí cómo querés verificar tu correo para continuar.</p>
+    <AvisoPrivacidad finalidad="Vamos a crear tu cuenta con el correo de la invitación y los datos de tu perfil." detalle="El equipo de esta agencia verá tu nombre y cargo para asignarte trabajo." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
+    <ConsentimientoDatos checked={dataConsent} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{setDataConsent(event.target.checked);setConsentError('');}} finalidad="Acepto el tratamiento de mis datos para crear mi cuenta y trabajar en este espacio." detalle="Nombre, correo y actividad de trabajo; la agencia donde te invitan es responsable de estos datos." politicaUrl="/privacidad" version={PRIVACY_NOTICE.version} error={consentError||undefined}/>
     <div className="grid gap-2">
-     <a className="primary login-button" referrerPolicy="no-referrer" href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
+     <a className="primary login-button" referrerPolicy="no-referrer" onClick={continueWithGoogle} href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
      {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:
       <form className="grid gap-3" onSubmit={registerWithPassword}>
        <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<input name="full_name" maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
        <label className="grid gap-1.5 text-xs text-mute">Correo<EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
        <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="8+ caracteres" required minLength={8}/>
        <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required minLength={8}/>
-       <p className="text-[11.5px] text-mute">8+ caracteres; sin requisitos de mayúsculas, números ni símbolos.</p>
        <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
        {passwordError?<p className="error" role="alert">{passwordError}</p>:null}
        {passwordNotice?<p className="success" role="status">{passwordNotice}</p>:null}
