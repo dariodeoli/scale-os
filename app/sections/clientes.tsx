@@ -77,8 +77,13 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
       </button>
     </div>
     <div role="cell" className="min-w-0 text-[11px] leading-tight text-mute">
-      <span className="block truncate"><PiiTexto kind="email" value={client.email} masked={!canSeeContact} fallback="Sin correo registrado"/></span>
-      <span className="block truncate" title={canSeeContact?`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'} · Cliente desde ${since || 'sin fecha de alta'}`:`Contacto protegido para tu rol · Cliente desde ${since || 'sin fecha de alta'}`}><PiiTexto kind="telefono" value={client.phone} masked={!canSeeContact} fallback="Sin teléfono"/> · RUC <PiiTexto kind="documento" value={client.tax_id} masked={!canSeeContact} fallback="sin registrar"/> · desde {since || 'sin fecha'}</span>
+      {client.contact_restricted ? <>
+        <span className="block truncate" title="El contacto y los datos fiscales están reservados para los roles que gestionan clientes.">Contacto reservado</span>
+        <span className="block truncate" title={`Cliente desde ${since || 'sin fecha de alta'}`}>Datos fiscales reservados · desde {since || 'sin fecha'}</span>
+      </> : <>
+        <span className="block truncate"><PiiTexto kind="email" value={client.email} masked={!canSeeContact} fallback="Sin correo registrado"/></span>
+        <span className="block truncate" title={canSeeContact?`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'} · Cliente desde ${since || 'sin fecha de alta'}`:`Contacto protegido para tu rol · Cliente desde ${since || 'sin fecha de alta'}`}><PiiTexto kind="telefono" value={client.phone} masked={!canSeeContact} fallback="Sin teléfono"/> · RUC <PiiTexto kind="documento" value={client.tax_id} masked={!canSeeContact} fallback="sin registrar"/> · desde {since || 'sin fecha'}</span>
+      </>}
     </div>
     <div role="cell" className="min-w-0"><StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip></div>
     <div role="cell" className="flex min-w-0 flex-wrap items-center justify-between gap-2">
@@ -121,9 +126,11 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
       <StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip>
     </header>
     <dl className="grid grid-cols-2 gap-2 text-[11.5px]">
+      {client.contact_restricted ? <div className="col-span-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Contacto y datos fiscales</dt><dd className="mt-0.5 text-mute" title="Reservados para los roles que gestionan clientes (Ley 7593/2025).">Reservados para los roles que gestionan clientes</dd></div> : <>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Correo</dt><dd className="mt-0.5 truncate text-fore"><PiiTexto kind="email" value={client.email} masked={!canSeeContact} fallback="Sin correo registrado"/></dd></div>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Teléfono</dt><dd className="mt-0.5 text-fore"><PiiTexto kind="telefono" value={client.phone} masked={!canSeeContact} fallback="Sin teléfono"/></dd></div>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">RUC</dt><dd className="mt-0.5 text-fore"><PiiTexto kind="documento" value={client.tax_id} masked={!canSeeContact} fallback="Sin RUC registrado"/></dd></div>
+      </>}
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cliente desde</dt><dd className="mt-0.5 text-fore">{since || 'Sin fecha de alta'}</dd></div>
       <div className="col-span-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cartera</dt><dd className="mt-0.5 text-fore">{stat && (stat.projects || stat.pieces) ? `${stat.projects} proyectos · ${stat.pieces} piezas${stat.nextDue ? ` · próxima entrega ${fechaListaCorta(stat.nextDue)}` : ''}` : 'Sin proyectos activos'}</dd></div>
     </dl>

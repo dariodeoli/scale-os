@@ -10,6 +10,7 @@ import {externalLink,profilePhoto} from './media-policy.js';
 import {email as normalizedEmail,phone as normalizedPhone} from './suite-validation.js';
 import {budgetSections} from './budget-sections.js';
 import {clientColor,clientLogo} from './client-identity.js';
+import {redactClientContact,redactClientContactRows} from './client-contact.js';
 import {assertUniqueClientRuc} from './ruc-lookup.js';
 import {loginOrganization,defaultOrganizationId,setDefaultOrganization} from './default-organization.js';
 import {privateDemoEntry,demoOrganization} from './demo-session.js';
@@ -90,8 +91,10 @@ const clientColumnSql={
 };
 
 // `?fields=` de la lista de presupuestos (#71): lista blanca explícita.
-const budgetListFields=['id','client_id','number','title','currency','status','valid_until','subtotal','tax_rate','total','notes','public_token','created_at','updated_at','share_enabled','accepted_by','accepted_at','revision','sections','client_name','item_count'];
-const budgetColumnSql=aliasColumns({id:'b.id',client_id:'b.client_id',number:'b.number',title:'b.title',currency:'b.currency',status:'b.status',valid_until:'b.valid_until',subtotal:'b.subtotal',tax_rate:'b.tax_rate',total:'b.total',notes:'b.notes',public_token:'b.public_token',created_at:'b.created_at',updated_at:'b.updated_at',share_enabled:'b.share_enabled',accepted_by:'b.accepted_by',accepted_at:'b.accepted_at',revision:'b.revision',sections:'b.sections',client_name:'c.name',item_count:'count(i.id)::int'});
+// `public_token` no viaja en listas (Refs #114): es la llave del enlace
+// anónimo y la UI solo la recibe al habilitar el enlace (`/share`).
+const budgetListFields=['id','client_id','number','title','currency','status','valid_until','subtotal','tax_rate','total','notes','created_at','updated_at','share_enabled','accepted_by','accepted_at','revision','sections','client_name','item_count'];
+const budgetColumnSql=aliasColumns({id:'b.id',client_id:'b.client_id',number:'b.number',title:'b.title',currency:'b.currency',status:'b.status',valid_until:'b.valid_until',subtotal:'b.subtotal',tax_rate:'b.tax_rate',total:'b.total',notes:'b.notes',created_at:'b.created_at',updated_at:'b.updated_at',share_enabled:'b.share_enabled',accepted_by:'b.accepted_by',accepted_at:'b.accepted_at',revision:'b.revision',sections:'b.sections',client_name:'c.name',item_count:'count(i.id)::int'});
 
 // Legacy operational endpoints extracted from the server entrypoint. Handlers
 // keep their original behavior and responses; the dispatcher returns true when
@@ -224,8 +227,10 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const windowPage=window.paginated?{hasMore:cut.hasMore,page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{};
       // #108: el logo guardado viaja como URL del medio (cacheable), no en base64.
       const visibleRows=dropWindowTotal(cut.rows).map(row=>Object.hasOwn(row,'logo_url')?{...row,logo_url:mediaPhoto('client',row.id,row.logo_url)}:row);
-      if(projection===null)return send(res,200,{clients:visibleRows,...windowPage});
-      const rows=visibleRows.map(row=>{const out={id:row.id};for(const field of projection)if(Object.hasOwn(row,field))out[field]=row[field];return out;});
+      // Minimización (#114): los canales de contacto solo salen con `clients.manage`.
+      const contactRows=redactClientContactRows(visibleRows,user);
+      if(projection===null)return send(res,200,{clients:contactRows,...windowPage});
+      const rows=contactRows.map(row=>{const out={id:row.id};for(const field of projection)if(Object.hasOwn(row,field))out[field]=row[field];if(row.contact_restricted)out.contact_restricted=true;return out;});
       return send(res,200,{clients:rows,...windowPage});
     }
     if (url.pathname === '/api/agency/clients' && req.method === 'POST') {
@@ -532,6 +537,8 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const r = await db.query(`select ${projectionSelect(fields,budgetColumnSql,'b.*,c.name as client_name,count(i.id)::int as item_count')}${page.totalExpression} from agency_budgets b join agency_clients c on c.id=b.client_id left join agency_budget_items i on i.budget_id=b.id where b.organization_id=$1 and ${visibleRecord('b','budgets')} group by b.id,c.name order by b.created_at desc${page.pageClause}`,params);
       const total=window.paginated?Number(r.rows[0]?.total_count)||0:null;
       const cut=windowRows(r.rows,window.limit);
+      // El token del enlace público no se expone en la lista (Refs #114).
+      for(const row of cut.rows)delete row.public_token;
       // Aditivo (#105): `hasMore` de nivel superior se conserva y se suma `page`.
       return send(res,200,{budgets:projectRows(dropWindowTotal(cut.rows),fields),...(window.paginated?{hasMore:cut.hasMore,page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{})});
     }

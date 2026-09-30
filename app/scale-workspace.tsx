@@ -16,7 +16,6 @@ import './client-directory.css';
 import dynamic from 'next/dynamic';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
-import {AvisoPrivacidad} from 'owncoding-ui';
 import {VersionNotice} from './version-notice';
 import {GoogleSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
@@ -86,6 +85,8 @@ import {ProyectosSection} from './sections/proyectos';
 import {ResumenSection} from './sections/resumen';
 import {AccountForm,ClientForm,InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
 import {notify} from './feedback';
+import {AvisoPrivacidad} from 'owncoding-ui';
+import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_CLIENT_FINALITY,PRIVACY_CLIENT_DETAIL} from './privacy-links';
 import {SubscriptionPanel, SubscriptionNotice} from './subscription-panel';
 import './settings-slice.css';
 
@@ -1059,7 +1060,7 @@ export default function Home() {
               <ThemeToggle/>
               <WorkspaceGuide {...guideProps} variant="help"/>
               <WorkspaceSearch key={workspaceScope} navigate={setActive} records={[
-                ...clients.map(c=>({id:c.id,name:c.name,context:canSeeClientContact(user?.role)?(c.email||'Sin correo registrado'):(c.email?maskEmail(c.email):'Sin correo registrado'),kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
+                ...clients.map(c=>({id:c.id,name:c.name,context:c.contact_restricted===true?'Contacto reservado':(canSeeClientContact(user?.role)?(c.email||'Sin correo registrado'):(c.email?maskEmail(c.email):'Sin correo registrado')),kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
                 ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
                 ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.assignee_names?.length?o.assignee_names.map(name=>({id:name,full_name:name,is_primary:false})):o.effective_assignees||o.assignees||project?.assignees};}),
               ]}/>
@@ -1073,6 +1074,7 @@ export default function Home() {
           {active==='Clientes' ? <ClientDirectoryToolbar
             loading={shellDataState==='loading'}
             canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
+            contactVisible={clients.every(client=>client.contact_restricted!==true)}
             onCreate={()=>setModal('client')}
             onQueryChange={setClientSearch}
             onStatusChange={setClientStatusFilter}
@@ -1142,6 +1144,9 @@ export default function Home() {
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
         <Modal title="Nuevo cliente" onClose={close}>
+          {/* Finalidad declarada donde la agencia carga datos de un tercero (#114):
+              cubre tanto la consulta por RUC como la carga manual. */}
+          <AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
           <div className="choice-list compact" role="group" aria-label="Cómo cargar el cliente">
             <button type="button" className={clientMode?'choice active':'choice'} aria-pressed={clientMode} onClick={()=>setClientMode(true)}>Completar desde RUC</button>
             <button type="button" className={!clientMode?'choice active':'choice'} aria-pressed={!clientMode} onClick={()=>setClientMode(false)}>Carga manual</button>

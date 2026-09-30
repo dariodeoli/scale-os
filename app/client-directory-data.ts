@@ -11,6 +11,8 @@ export type DirectoryClient = {
   lifecycle_status?: string;
   name: string;
   phone: string | null;
+  /** El API no entregó contacto a este rol (Ley 7593/2025, Refs #114). */
+  contact_restricted?: boolean;
 };
 
 /**
@@ -41,6 +43,8 @@ export type DirectoryClientRecord = {
   ruc_tax_state?: string | null;
   ruc_source?: string | null;
   ruc_refreshed_at?: string | null;
+  /** true = el rol no gestiona clientes y el API minimizó contacto y datos fiscales (#114). */
+  contact_restricted?: boolean;
 };
 
 // Guarda de entrada (issue #65): un campo `null`/`undefined` del API se

@@ -1,7 +1,8 @@
 // Capa de datos del pipeline (SOS-COM, campaña #41 / spec #43 §2).
 // Funciones puras: resumen ejecutivo y totales por etapa del tablero.
-// Campos reales de `agency_leads` (schema + migración de etapas):
-// id,name,email,phone,stage,amount,currency,probability,notes,client_id,created_at,updated_at.
+// Campos reales de `agency_leads` (schema + migraciones de etapas y oposición
+// al contacto): id,name,email,phone,stage,amount,currency,probability,notes,
+// client_id,created_at,updated_at,do_not_contact.
 export type LeadStageKind='open'|'won'|'lost';
 
 export type LeadStage={
@@ -26,6 +27,8 @@ export type LeadOpportunity={
  client_id?:string|number|null;
  created_at?:string|null;
  updated_at?:string|null;
+ /** Oposición al contacto del titular (Ley 7593/2025, Refs #114). */
+ do_not_contact?:boolean|null;
 };
 
 export type StageTotals={

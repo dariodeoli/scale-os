@@ -23,6 +23,8 @@ export type {DirectoryClient, DirectoryClientRecord} from "./client-directory-da
 type ClientDirectoryToolbarProps = {
   canCreate: boolean;
   children?: React.ReactNode;
+  /** false = el rol no recibe contacto: el buscador solo promete nombre (#114). */
+  contactVisible?: boolean;
   onCreate: () => void;
   onQueryChange: (query: string) => void;
   onStatusChange: (status: string) => void;
@@ -39,6 +41,7 @@ type ClientDirectoryToolbarProps = {
 export function ClientDirectoryToolbar({
   canCreate,
   children,
+  contactVisible = true,
   onCreate,
   onQueryChange,
   onStatusChange,
@@ -66,7 +69,7 @@ export function ClientDirectoryToolbar({
         </h1>
         <p className="directory-summary min-w-0 truncate text-[12px] leading-5 tabular-nums text-mute" role="status" aria-atomic="true" title={loading ? undefined : summary}>{loading ? 'Cargando el directorio…' : summary}</p>
       </div>
-      <SearchField className="client-directory-search w-full sm:w-72" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder="Buscar por nombre, correo o teléfono"/>
+      <SearchField className="client-directory-search w-full sm:w-72" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder={contactVisible?'Buscar por nombre, correo o teléfono':'Buscar por nombre'}/>
       <div className="min-w-0">
         <Label htmlFor="clientes-estado" className="sr-only">Estado</Label>
         <Select id="clientes-estado" aria-label="Estado" value={status} onChange={(event:ChangeEvent<HTMLSelectElement>)=>onStatusChange(event.target.value)} className="min-w-[11rem]">

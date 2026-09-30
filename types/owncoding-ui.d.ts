@@ -130,9 +130,10 @@ declare module 'owncoding-ui' {
   // peligro y disabled; el disparador lo dibuja la app.
   export const MenuDesplegable: any;
 
-  // Tanda v0.54 (Refs #113): protección de datos personales (Ley 7593/2025,
-  // §12). El aviso de finalidad, la casilla explícita (nunca premarcada, con
-  // versión visible y enlace fuera del label) y el registro normalizado.
+  // Tanda v0.54 (Refs #113/#114): protección de datos personales (Ley
+  // 7593/2025, §12). El aviso de finalidad, la casilla explícita (nunca
+  // premarcada, con versión visible y enlace fuera del label) y el registro
+  // normalizado que aporta la app.
   export const AvisoPrivacidad: any;
   export const ConsentimientoDatos: any;
   export function registroConsentimiento(datos?: {finalidad?: string; aceptado?: boolean; version?: string | number; canal?: string; fecha?: Date | string | number; titular?: string}): {finalidad: string; aceptado: boolean; version: string; canal: string; fecha: string; titular: string};
