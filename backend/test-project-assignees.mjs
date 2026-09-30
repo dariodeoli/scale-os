@@ -47,6 +47,14 @@ assert.equal((await call(orderPath,'GET',{}, {...user,organization_id:other})).s
 assert.deepEqual(normalizeAssigneeIds(['001',1,2,'2']),['1','2']);
 for(const ids of [null,{},'1',[0],['-1'],[true],['1e2'],['1.2'],[Number.MAX_SAFE_INTEGER+1],['9223372036854775808'],Array(101).fill('1')])assert.throws(()=>normalizeAssigneeIds(ids));
 let r=await call(orderPath);assert.deepEqual(r.assigned_user_ids,[people.editor.id]);assert.equal(r.assignee_version,'0');
+// #115: el correo de responsables se sirve solo a equipo (members.manage) o finanzas.
+assert.ok(r.assignees.every(a=>typeof a.email==='string'),'owner recibe el correo de los responsables');
+const productionView=await call(orderPath,'GET',{},people.production);
+assert.ok(productionView.assignees.length>0&&productionView.assignees.every(a=>a.email===null),'production no recibe correos de responsables');
+const pickerOwner=await call('/api/agency/assignees');
+assert.ok(pickerOwner.members.some(m=>typeof m.email==='string'),'owner ve correos en el selector de integrantes');
+const pickerProduction=await call('/api/agency/assignees','GET',{},people.production);
+assert.ok(pickerProduction.members.length>0&&pickerProduction.members.every(m=>m.email===null),'production no ve correos en el selector de integrantes');
 const membersBefore=(await query('select * from organization_members order by organization_id,user_id')).rows;
 for(const kind of [projectPath,orderPath]){
  r=await save(kind,[people.editor.id,people.viewer.id,'00'+people.editor.id],people.editor.id);

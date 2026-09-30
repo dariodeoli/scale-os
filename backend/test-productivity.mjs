@@ -77,6 +77,9 @@ assert.equal((await call(`/api/agency/clients/${client}`,'PATCH',{color_key:'blu
 assert.equal((await call(`/api/agency/projects/${project}`)).record.client_color_key,'teal');
 assert.equal((await call(base+`/orders/${order.id}/comments`,'POST',{body:'Revisar audio'})).status,201);
 assert.equal((await call(base+`/orders/${order.id}`)).comments.length,1);
+// #115: el correo del autor de un comentario se sirve solo a equipo/finanzas.
+assert.equal((await call(base+`/orders/${order.id}`)).comments[0].author_email,'productivity@example.invalid','owner recibe el correo del autor');
+assert.equal((await call(base+`/orders/${order.id}`,'GET',{}, {...user,role:'production'})).comments[0].author_email,null,'production no recibe correos de terceros ni del equipo');
 assert.equal((await call(base+`/orders/${order.id}`,'GET',{}, {...user,organization_id:other})).status,404);
 assert.equal((await call(base+`/orders/${order.id}/duplicate`,'POST')).order.status,'to_record');
 assert.equal((await call(base+`/orders/${order.id}/duplicate`,'POST',{}, {...user,role:'viewer'})).status,403);

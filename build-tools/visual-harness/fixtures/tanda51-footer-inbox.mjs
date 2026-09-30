@@ -82,7 +82,7 @@ const inboxPreview = (panelHtml) => `
 
 const avisos = [
   aviso({titulo: 'Te asignaron una pieza de Cooperativa Multiactiva de Servicios Múltiples Limitada', detalle: 'Video institucional · entrega el viernes 3 de octubre', tono: 'info', fecha: '11 sept 26 · 09:00', icono: 'user', leido: false}),
-  aviso({titulo: 'Mención de Fredd en el comentario de la pieza «Spot radial 30s»', detalle: '¿Podés revisar el guion antes de la aprobación del cliente?', tono: 'info', fecha: '11 sept 26 · 08:12', icono: 'megaphone', leido: false}),
+  aviso({titulo: 'Mención de Lucía en el comentario de la pieza «Spot radial 30s»', detalle: '¿Podés revisar el guion antes de la aprobación del cliente?', tono: 'info', fecha: '11 sept 26 · 08:12', icono: 'megaphone', leido: false}),
   aviso({titulo: 'Entrega pendiente hoy', detalle: 'Landing de lanzamiento · vence a las 18:00 (hora de Asunción).', tono: 'warn', fecha: '10 sept 26 · 18:40', icono: 'clock', leido: false}),
   aviso({titulo: 'Aviso resuelto', detalle: 'El cobro de la factura 0002-001-0000123 quedó registrado.', tono: 'ok', fecha: '9 sept 26 · 11:20', icono: 'check', leido: true}),
 ].join('');

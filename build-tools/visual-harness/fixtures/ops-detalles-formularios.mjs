@@ -53,7 +53,7 @@ const inventoryDetailBody = `
     <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-fono-light">Identificación física</p>
     <code class="whitespace-nowrap font-mono text-sm text-fore">SC-000128</code>
     <p class="break-words text-sm text-fore">Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido) · SD128GB-UHSII-SANDISK-2024-000123456789</p>
-    <p class="text-xs text-mute">Con Fabrizio Dellacasa Reyes · Rodaje de contenidos · Campaña Primavera 2026 · Banco Atlas</p>
+    <p class="text-xs text-mute">Con Mateo Ríos de Prueba · Rodaje de contenidos · Campaña Primavera 2026 · Aurora Café</p>
     <div class="mt-1"><svg class="inventory-barcode block h-16 w-full max-w-[250px] rounded-lg border border-ink-600 bg-ink-800 p-1 text-fore" viewBox="0 0 120 64" role="img" aria-label="Código de barras SC-000128"><g fill="currentColor"><rect x="10" y="0" width="1" height="48"></rect><rect x="16" y="0" width="1" height="48"></rect></g><text x="60" y="60" text-anchor="middle">SC-000128</text></svg></div>
    </div>
   </section>
@@ -72,16 +72,16 @@ const inventoryDetailBody = `
   </section>
   <section class="grid min-w-0 gap-2"><h3 class="text-sm font-semibold text-fore">Mantenimiento</h3>
    <div class="flex justify-start"><button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore transition md:h-9">${svg(ICON.plus, 14)}Agregar mantenimiento</button></div>
-   <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2 opacity-60" data-voided="true"><b class="text-[13px] text-fore">Preventivo<span class="ml-2 text-[11px] font-semibold text-warn">Anulado</span></b><span class="inline-flex items-center gap-1 text-xs text-mute">10-sept · <span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums text-xs">Gs 50.000</span> · <span class="inline-flex items-center gap-1.5 text-xs text-mute">${avatar('Ana Paula Benítez')}Ana Paula Benítez</span></span><p class="text-xs text-mute">Limpieza de contactos y revisión de escritura. Se reemplazó la funda rígida del estuche.</p><span class="text-xs text-mute">Anulado por Ana Paula Benítez</span><div class="flex flex-wrap items-center gap-2"><button type="button" class="text-button">${svg(ICON.pencil, 14)}Editar</button><button type="button" class="text-button">${svg(ICON.x, 14)}Anular</button></div></article>
+   <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2 opacity-60" data-voided="true"><b class="text-[13px] text-fore">Preventivo<span class="ml-2 text-[11px] font-semibold text-warn">Anulado</span></b><span class="inline-flex items-center gap-1 text-xs text-mute">10-sept · <span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums text-xs">Gs 50.000</span> · <span class="inline-flex items-center gap-1.5 text-xs text-mute">${avatar('Camila Vera de Prueba')}Camila Vera de Prueba</span></span><p class="text-xs text-mute">Limpieza de contactos y revisión de escritura. Se reemplazó la funda rígida del estuche.</p><span class="text-xs text-mute">Anulado por Camila Vera de Prueba</span><div class="flex flex-wrap items-center gap-2"><button type="button" class="text-button">${svg(ICON.pencil, 14)}Editar</button><button type="button" class="text-button">${svg(ICON.x, 14)}Anular</button></div></article>
    <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Correctivo</b><span class="inline-flex items-center gap-1 text-xs text-mute">01-ago · <span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums text-xs">Gs 120.000</span></span><p class="text-xs text-mute">Cambio de cable y limpieza.</p></article>
   </section>
   <section class="grid min-w-0 gap-2"><h3 class="text-sm font-semibold text-fore">Verificación física</h3>
-   <p class="text-sm text-fore"><b>Con diferencias</b> · 15 sept 26 · 07:00 · Rita Mical Herrera</p>
-   <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Con diferencias</b><span class="text-xs text-mute">15 sept 26 · 07:00 · Rita Mical Herrera</span><p class="text-xs text-mute">Faltaba una de las dos tarjetas del kit; se encontró en el estante contiguo.</p></article>
+   <p class="text-sm text-fore"><b>Con diferencias</b> · 15 sept 26 · 07:00 · Valentina Sol de Prueba</p>
+   <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Con diferencias</b><span class="text-xs text-mute">15 sept 26 · 07:00 · Valentina Sol de Prueba</span><p class="text-xs text-mute">Faltaba una de las dos tarjetas del kit; se encontró en el estante contiguo.</p></article>
   </section>
   <section class="grid min-w-0 gap-2"><h3 class="text-sm font-semibold text-fore">Rastro de préstamo y cambios</h3>
-   <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Retiro registrado</b><span class="text-xs text-mute">17 sept 26 · 08:05 · Fabrizio Dellacasa Reyes</span><p class="text-xs text-mute">Campaña Aniversario 2026</p></article>
-   <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Ubicación actualizada</b><span class="text-xs text-mute">14 sept 26 · 12:00 · Ana Paula Benítez</span></article>
+   <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Retiro registrado</b><span class="text-xs text-mute">17 sept 26 · 08:05 · Mateo Ríos de Prueba</span><p class="text-xs text-mute">Campaña Aniversario 2026</p></article>
+   <article class="grid gap-1 rounded-lg border border-ink-600/60 px-3 py-2"><b class="text-[13px] text-fore">Ubicación actualizada</b><span class="text-xs text-mute">14 sept 26 · 12:00 · Camila Vera de Prueba</span></article>
   </section>
  </div>`;
 
@@ -89,7 +89,7 @@ const inventoryDetailBody = `
 const pieceDetailBody = `
  <div class="grid min-w-0 gap-4">
   <section class="grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
-   <div class="flex min-w-0 flex-wrap items-center justify-between gap-2"><span class="client-identity identity-teal"><span class="foto-perfil">CM</span><span class="actor-identity-name" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></span><span class="urgency-badge">5 · Crítica</span></div>
+   <div class="flex min-w-0 flex-wrap items-center justify-between gap-2"><span class="client-identity identity-teal"><span class="foto-perfil">CM</span><span class="actor-identity-name" title="Cooperativa de Servicios Múltiples de Prueba Limitada">Cooperativa de Servicios Múltiples de Prueba Limitada</span></span><span class="urgency-badge">5 · Crítica</span></div>
    <div class="flex flex-wrap items-center gap-1.5">${chip('En revisión', 'warn')}${chip('Video', 'mute')}<span class="due-date overdue compact" title="Entrega: 28 ago. 2026 09:30">Entrega 28 ago. 2026 · 09:30 h · venció hace 23 días</span></div>
    <dl class="grid gap-1 text-xs sm:grid-cols-2">
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Horas estimadas</dt><dd class="shrink-0 font-semibold tabular-nums">12 h</dd></div>
@@ -97,18 +97,18 @@ const pieceDetailBody = `
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Niveles de aprobación completados</dt><dd class="shrink-0 font-semibold tabular-nums">1</dd></div>
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Última actualización</dt><dd class="shrink-0 font-semibold tabular-nums"><span class="whitespace-nowrap">17 sept 26 · 09:48</span></dd></div>
    </dl>
-   <span class="project-presence">Viendo ahora: ${avatar('Fabrizio Dellacasa Reyes')}</span>
+   <span class="project-presence">Viendo ahora: ${avatar('Mateo Ríos de Prueba')}</span>
   </section>
   <div class="mb-5 flex flex-wrap gap-2 rounded-2xl border border-fore/10 bg-ink p-2 [&>button]:min-h-11 md:[&>button]:min-h-9" role="tablist"><button type="button" role="tab" aria-selected="true" class="rounded-xl bg-fono px-3 py-2 text-sm font-medium text-onbrand">Detalle</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Comentarios (2)</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Historial</button></div>
   <div class="grid gap-4">
    <div class="flex flex-wrap items-center gap-2"><button class="secondary">${svg(ICON.pencil, 14)}Editar pieza</button></div>
    <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Descripción</h4><p class="whitespace-pre-line text-[13px] text-mute">Reel de lanzamiento para la nueva línea de productos — corte final con subtítulos, corrección de color y mezcla. Falta la aprobación del cliente sobre la música.</p></section>
-   <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Responsables</h4><section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><ul class="assigned-people-list"><li class="assigned-person">${actorIdentity('María Renée Ayala Benítez', '18 sept 26 · 16:20')}<span class="assigned-person-primary">Principal</span></li><li class="assigned-person">${actorIdentity('Juan Carlos Villalba', '17 sept 26 · 09:48')}</li></ul></section></section>
+   <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Responsables</h4><section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><ul class="assigned-people-list"><li class="assigned-person">${actorIdentity('Sofía Benítez de Prueba', '18 sept 26 · 16:20')}<span class="assigned-person-primary">Principal</span></li><li class="assigned-person">${actorIdentity('Marcos Rojas de Prueba', '17 sept 26 · 09:48')}</li></ul></section></section>
    <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Archivos y enlaces</h4>
     <div class="drive-links [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center md:[&_a]:min-h-0"><span class="drive-links-label">Enlaces</span><ul class="drive-links-list"><li><a href="#drive">Corte final · Drive ↗</a></li><li><a href="#drive">Música aprobada · Drive ↗</a></li></ul></div>
     <div class="work-order-links"><h3>Enlaces de la pieza</h3><ul class="work-order-link-list"><li><span>Previsualización para el cliente</span><button type="button" class="text-button">Copiar</button></li></ul></div>
    </section>
-   <section><div class="work-checklist"><div class="work-checklist-heading"><h3>Checklist</h3><small>1 de 2 completados</small></div><ul class="work-checklist-items"><li class="is-complete"><div class="work-checklist-item"><label class="work-checklist-check"><input type="checkbox" checked><span>Subtítulos revisados</span></label><span class="work-checklist-actor" title="Quién completó este ítem">Completado por ${actorIdentity('Ana Paula Benítez', '16 sept 26 · 15:10')}</span></div></li><li><div class="work-checklist-item"><label class="work-checklist-check"><input type="checkbox"><span>Mezcla final de audio aprobada por el cliente</span></label></div></li></ul></div></section>
+   <section><div class="work-checklist"><div class="work-checklist-heading"><h3>Checklist</h3><small>1 de 2 completados</small></div><ul class="work-checklist-items"><li class="is-complete"><div class="work-checklist-item"><label class="work-checklist-check"><input type="checkbox" checked><span>Subtítulos revisados</span></label><span class="work-checklist-actor" title="Quién completó este ítem">Completado por ${actorIdentity('Camila Vera de Prueba', '16 sept 26 · 15:10')}</span></div></li><li><div class="work-checklist-item"><label class="work-checklist-check"><input type="checkbox"><span>Mezcla final de audio aprobada por el cliente</span></label></div></li></ul></div></section>
   </div>
  </div>`;
 
@@ -118,7 +118,7 @@ const projectDetailBody = `
   <section class="grid min-w-0 gap-2">
    <div class="flex flex-wrap items-center gap-2">${chip('Activo', 'ok')}<span class="urgency-badge">4 · Alta</span>${chip('3 niveles de aprobación', 'info')}</div>
    <dl class="grid gap-1 text-[13px]">
-    <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Cliente</dt><dd class="min-w-0 shrink overflow-hidden"><span class="block truncate text-right" title="Cooperativa Multiactiva de Servicios Múltiples Limitada">Cooperativa Multiactiva de Servicios Múltiples Limitada</span></dd></div>
+    <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Cliente</dt><dd class="min-w-0 shrink overflow-hidden"><span class="block truncate text-right" title="Cooperativa de Servicios Múltiples de Prueba Limitada">Cooperativa de Servicios Múltiples de Prueba Limitada</span></dd></div>
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Inicio</dt><dd class="shrink-0 whitespace-nowrap">05-ene</dd></div>
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Entrega</dt><dd class="shrink-0 whitespace-nowrap" data-tone="warn">23-sept</dd></div>
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Piezas</dt><dd class="shrink-0 tabular-nums">148</dd></div>
@@ -126,7 +126,7 @@ const projectDetailBody = `
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Última actualización</dt><dd class="shrink-0 whitespace-nowrap">19 sept 26 · 15:42</dd></div>
    </dl>
   </section>
-  <section class="grid min-w-0 gap-2"><h4 class="text-sm font-semibold text-fore">Responsables</h4><section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><ul class="assigned-people-list"><li class="assigned-person">${actorIdentity('María Renée Ayala Benítez', '18 sept 26 · 16:20')}<span class="assigned-person-primary">Principal</span></li><li class="assigned-person">${actorIdentity('Juan Carlos Villalba', '17 sept 26 · 09:48')}</li><li class="assigned-person">${actorIdentity('Lucía Paredes', '16 sept 26 · 15:10')}</li></ul></section></section>
+  <section class="grid min-w-0 gap-2"><h4 class="text-sm font-semibold text-fore">Responsables</h4><section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><ul class="assigned-people-list"><li class="assigned-person">${actorIdentity('Sofía Benítez de Prueba', '18 sept 26 · 16:20')}<span class="assigned-person-primary">Principal</span></li><li class="assigned-person">${actorIdentity('Marcos Rojas de Prueba', '17 sept 26 · 09:48')}</li><li class="assigned-person">${actorIdentity('Laura Ortega de Prueba', '16 sept 26 · 15:10')}</li></ul></section></section>
   <section class="grid min-w-0 gap-2"><h4 class="text-sm font-semibold text-fore">Enlaces de archivo o carpeta de Drive</h4><div class="drive-links [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center md:[&_a]:min-h-0"><ul class="drive-links-list"><li><a href="#drive">Campaña Aniversario 2026 · Drive ↗</a></li><li><a href="#drive">Entregables aprobados · Drive ↗</a></li></ul></div></section>
   <section class="grid min-w-0 gap-2"><h4 class="text-sm font-semibold text-fore">Piezas del proyecto</h4>
    <ul class="grid gap-1.5">
@@ -169,7 +169,7 @@ const itemFormBody = `
 /* ------------------------------------------------ formulario de reserva */
 const reservationFormBody = `
  <form class="grid gap-4 sm:grid-cols-2">
-  <div class="sm:col-span-2">${fieldLabel('Producción o uso previsto', 'r-title')}${input('r-title', 'Rodaje de contenidos · Banco Atlas (estudio y exteriores)')}</div>
+  <div class="sm:col-span-2">${fieldLabel('Producción o uso previsto', 'r-title')}${input('r-title', 'Rodaje de contenidos · Aurora Café (estudio y exteriores)')}</div>
   <div class="sm:col-span-2">${fieldLabel('Proyecto', 'r-project')}${select('r-project', 'Campaña Aniversario 2026 · Temporada de verano')}</div>
   <div>${fieldLabel('Desde · Asunción', 'r-start')}<input id="r-start" type="datetime-local" value="2026-09-17T08:00" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore md:h-9 md:text-sm"></div>
   <div>${fieldLabel('Devolución prevista · Asunción', 'r-end')}<input id="r-end" type="datetime-local" value="2026-09-21T18:00" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-base text-fore md:h-9 md:text-sm"></div>
@@ -182,10 +182,10 @@ const reservationFormBody = `
    <small class="text-xs text-mute">Se verifica que los equipos no tengan otra reserva en el horario elegido.</small>
   </fieldset>
   <fieldset class="grid gap-2 sm:col-span-2"><legend class="text-[11px] font-medium uppercase tracking-wider text-mute">Responsables · 2 de 30</legend><div class="grid gap-1 sm:grid-cols-2">
-   <label class="flex min-h-11 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px] text-fore"><input type="checkbox" class="h-6 w-6 p-0 accent-fono">${actorIdentity('María Renée Ayala Benítez', 'Responsable')}</label>
-   <label class="flex min-h-11 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px] text-fore"><input type="checkbox" class="h-6 w-6 p-0 accent-fono">${actorIdentity('Fabrizio Dellacasa Reyes', 'Responsable')}</label>
+   <label class="flex min-h-11 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px] text-fore"><input type="checkbox" class="h-6 w-6 p-0 accent-fono">${actorIdentity('Sofía Benítez de Prueba', 'Responsable')}</label>
+   <label class="flex min-h-11 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px] text-fore"><input type="checkbox" class="h-6 w-6 p-0 accent-fono">${actorIdentity('Mateo Ríos de Prueba', 'Responsable')}</label>
   </div></fieldset>
-  <div class="sm:col-span-2">${fieldLabel('Responsable de devolución', 'r-return')}${select('r-return', 'María Renée Ayala Benítez')}</div>
+  <div class="sm:col-span-2">${fieldLabel('Responsable de devolución', 'r-return')}${select('r-return', 'Sofía Benítez de Prueba')}</div>
   <div class="sm:col-span-2">${fieldLabel('Notas', 'r-notes')}${textarea('r-notes', 'Se retiran en la mañana; incluir baterías cargadas y tarjetas formateadas.')}</div>
   <p class="text-xs text-mute sm:col-span-2">Reservar no registra el retiro. Al retirar se indica quién lleva físicamente los equipos; al devolver se registra dónde quedan.</p>
   <div class="sm:col-span-2"><div class="dialog-actions"><button type="button" class="secondary">Cancelar</button><button type="button" class="primary">Guardar reserva</button></div></div>

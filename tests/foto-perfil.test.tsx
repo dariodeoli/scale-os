@@ -11,7 +11,7 @@ const plain=(node:any):string=>!node?'':typeof node==='string'?node:Array.isArra
 
 test('objeto único de foto: la foto se muestra o caen las iniciales (#107)',async()=>{
  let renderer:any;
- await act(async()=>{renderer=create(<FotoPerfil nombre="María José Fernández de la Vega"/>);});
+ await act(async()=>{renderer=create(<FotoPerfil nombre="María Ejemplo Fernández de Vera"/>);});
  assert.equal(renderer.root.findAllByType('img').length,0,'sin foto no inventa una imagen');
  assert(plain(renderer.toJSON()).includes('MV'),'sin foto usa las iniciales del autor (primera y última palabra)');
  assert(renderer.root.findAllByProps({className:'foto-perfil-iniciales'}).length===1,'las iniciales viven en el objeto');
