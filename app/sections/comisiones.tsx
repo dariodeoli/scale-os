@@ -4,6 +4,7 @@ import {Plus, Undo2} from 'lucide-react';
 import {api, Dialog, Editor, money} from '../operations';
 import {currencyChoices} from '../currencies';
 import {currentForecastMonth, todayAsuncion} from '../forecast-data';
+import {financeNoticeHref,financePurposeNotice} from '../finance-privacy';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
 import {roleCan} from '../capabilities';
 import {
@@ -300,6 +301,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
     {newCommission ? <Dialog title="Nueva comisión o referido" close={() => setNewCommission(false)}>
       {catalogNotice('invoices', 'collaborators')}
+      <p className="field-help">{financePurposeNotice('commissions')} · <a href={financeNoticeHref('commissions')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <Editor columns fields={[
         {key: 'beneficiary_name', label: 'Beneficiario'},
         {key: 'kind', label: 'Origen', section: 'Qué se comisiona', choices: [{value: 'sales', label: 'Venta'}, {value: 'referral', label: 'Referido'}]},
@@ -316,6 +318,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
     {pay ? <Dialog title={`Registrar pago · ${pay.beneficiary_name}`} close={() => setPay(null)}>
       {catalogNotice('accounts')}
+      <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       {!payAccounts.length && !catalogError ? <Aviso tono="warn">No hay cuentas activas en {pay.currency}. Elegí otra moneda en la comisión o activá una cuenta de esa moneda.</Aviso> : null}
       <Editor columns fields={[
         {key: 'account_id', label: 'Cuenta de salida', choices: payAccounts.map(account => ({value: String(account.id), label: `${account.name} · ${money(Number(account.balance), account.currency)}`}))},
@@ -327,6 +330,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
     {newDiscount ? <Dialog title="Descuento por referido" close={() => setNewDiscount(false)}>
       {catalogNotice('invoices')}
+      <p className="field-help">{financePurposeNotice('commissions')} · <a href={financeNoticeHref('commissions')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <Editor columns fields={[
         {key: 'invoice_id', label: 'Factura', choices: invoiceChoices(true)},
         {key: 'referrer', label: 'Quién refirió al cliente'},
