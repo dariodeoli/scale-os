@@ -1,3 +1,6 @@
+// Importación puntual del tablero de producción (ya aplicada a la organización
+// Scale el 10/09/2026). Desde #115 el origen es un fixture anonimizado: no
+// re-ejecutar con `--apply` contra producción salvo pedido explícito del dueño.
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import {board,plans,cards,internal} from './scale-source-data.mjs';
@@ -9,14 +12,14 @@ const me=(await api('/api/auth/me')).user;
 if(String(me.organization_id)!=='1'||me.organization_slug!=='scale'||me.role!=='owner')throw Error('Expected owner of real Scale (organization 1, slug scale)');
 const normalize=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
 const currentPlans=(await api('/api/agency/plans')).records,currentClients=(await api('/api/agency/clients')).clients,currentProjects=(await api('/api/agency/projects')).projects,currentOrders=(await api('/api/agency/work-orders')).workOrders;
-const note=`Fuente: Trello SCALE, captura 10/09/2026. ${board}. Responsables de Trello conservados como referencia; no se asignaron cuentas ni se enviaron invitaciones.`;
+const note=`Fuente: tablero de producción anonimizado (issue #115). ${board}. Responsables de origen conservados como referencia; no se asignaron cuentas ni se enviaron invitaciones.`;
 const report={plansCreated:0,clientsCreated:0,projectsCreated:0,ordersCreated:0,internalCount:internal.length,historyCreated:0};
 if(!applying){console.log(JSON.stringify({mode:'preview',organization:me.organization_name,existing:{plans:currentPlans.length,clients:currentClients.length,projects:currentProjects.length,orders:currentOrders.length},source:{plans:plans.length,clients:new Set(cards.map(c=>c[0])).size,orders:cards.length,internal:internal.length}}));process.exit(0);}
 for(const plan of plans){if(currentPlans.some(p=>normalize(p.name)===normalize(plan.name)))continue;await api('/api/agency/plans',plan);report.plansCreated++;}
 for(const [clientName,title,status,description] of cards){
  let client=currentClients.find(c=>normalize(c.name)===normalize(clientName));
  if(!client){client=(await api('/api/agency/clients',{name:clientName,notes:note})).client;currentClients.push(client);report.clientsCreated++;}
- const projectName='Producción · Trello SCALE';
+ const projectName='Producción · Tablero importado';
  let project=currentProjects.find(p=>String(p.client_id)===String(client.id)&&p.name===projectName);
  if(!project){project=(await api('/api/agency/projects',{name:projectName,clientId:client.id})).project;currentProjects.push(project);report.projectsCreated++;}
  if(currentOrders.some(o=>String(o.project_id)===String(project.id)&&o.title===title))continue;
@@ -26,8 +29,8 @@ for(const [title,description,due] of internal)await api('/api/agency/productivit
 if(process.env.SCALE_TRELLO_HISTORY){
  const raw=await fs.readFile(process.env.SCALE_TRELLO_HISTORY,'utf8');
  // Each event begins with the actor; retain narrative verbatim and source-local UTC-03 dates.
- const blocks=raw.split(/\n(?=Eric Baccon(?: ha | se | de ))/).filter(b=>b.startsWith('Eric Baccon')&&!b.startsWith('Eric Baccon ('));
- const events=blocks.map(b=>{const m=b.match(/([78]) sept 2026, (\d{2}):(\d{2})/);return m?{source_key:'trello-event:'+crypto.createHash('sha256').update(b.trim()).digest('hex'),source_url:board,source_author:'Eric Baccon (ericbaccon)',body:b.trim(),occurred_at:`2026-09-0${m[1]}T${m[2]}:${m[3]}:00-03:00`}:null;}).filter(Boolean);
+ const blocks=raw.split(/\n(?=Elena Ejemplo(?: ha | se | de ))/).filter(b=>b.startsWith('Elena Ejemplo')&&!b.startsWith('Elena Ejemplo ('));
+ const events=blocks.map(b=>{const m=b.match(/([78]) sept 2026, (\d{2}):(\d{2})/);return m?{source_key:'trello-event:'+crypto.createHash('sha256').update(b.trim()).digest('hex'),source_url:board,source_author:'Elena Ejemplo (elena.ejemplo)',body:b.trim(),occurred_at:`2026-09-0${m[1]}T${m[2]}:${m[3]}:00-03:00`}:null;}).filter(Boolean);
  for(let i=0;i<events.length;i+=100)report.historyCreated+=(await api('/api/agency/productivity/source-events',{events:events.slice(i,i+100)})).created;
 }
 console.log(JSON.stringify({mode:'applied',...report}));
