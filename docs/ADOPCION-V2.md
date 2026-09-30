@@ -202,3 +202,8 @@ Tests que fijan lo adoptado: `tests/privacy-pdp-113.test.tsx` (aviso, no
 premarcado, versión, registro, permisos, enmascarado, SLA y supresión), más
 `tests/product-footer.test.tsx`/`tests/workspace-footer.test.tsx` para el
 enlace del pie.
+
+Evidencia visual: `docs/qa/pdp-113/` — 16 capturas en 1440×900 y 390×844,
+claro y oscuro (aviso, consentimiento, «Mis datos» y supresión), sobre el
+fixture `build-tools/visual-harness/fixtures/pdp-privacidad-113.mjs`
+(0 hallazgos de geometría a 1440 y 390).
