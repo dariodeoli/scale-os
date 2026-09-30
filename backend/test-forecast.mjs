@@ -141,33 +141,48 @@ assert.equal((await call(termsPath,'GET',{},financeUser)).terms,null,'finance ca
 assert.equal((await call(termsPath,'PATCH',terms,financeUser)).status,403,'finance is read-only for commercial terms');
 for(const recurringAmount of [0,-1,'1000.5',true,Number.MAX_SAFE_INTEGER+1])assert.equal((await call(termsPath,'PATCH',{...terms,recurringAmount},managementUser)).status,400,`terms reject recurring amount ${String(recurringAmount)}`);
 for(const commissionValue of [0,'10.5',101])assert.equal((await call(termsPath,'PATCH',{...terms,commissionValue},managementUser)).status,400,`terms reject commission ${String(commissionValue)}`);
-let savedTerms=await call(termsPath,'PATCH',terms,managementUser);
+let savedTerms=await call(termsPath,'PATCH',terms,user);
 assert.equal(savedTerms.status,200);assert.deepEqual({amount:savedTerms.terms.recurringAmount,currency:savedTerms.terms.currency,startsOn:savedTerms.terms.startsOn,invoiceRequired:savedTerms.terms.invoiceRequired,recipient:savedTerms.terms.commissionRecipientId,mode:savedTerms.terms.commissionMode,value:savedTerms.terms.commissionValue},{amount:1000,currency:'PYG',startsOn:'2026-09-15',invoiceRequired:true,recipient:String(salaryPyg.collaborator.id),mode:'percentage',value:10});
 assert.deepEqual(Object.keys(savedTerms.terms).sort(),['cadence','clientId','commissionMode','commissionRecipientId','commissionRecipientName','commissionValue','currency','endsOn','intervalMonths','invoiceRequired','planId','planName','recurringAmount','startsOn','updatedAt'].sort(),'commercial terms response has the documented stable shape');
 assert.equal((await call(termsPath,'GET',{},financeUser)).terms.planId,String(commercialPlan),'finance reads effective terms for LTV');
-const intervalTerms=await call(termsPath,'PATCH',{...terms,cadence:'interval',intervalMonths:3},managementUser);
+const intervalTerms=await call(termsPath,'PATCH',{...terms,cadence:'interval',intervalMonths:3},user);
 assert.equal(intervalTerms.status,200);
 assert.deepEqual({cadence:intervalTerms.terms.cadence,interval:intervalTerms.terms.intervalMonths},{cadence:'interval',interval:3},'billing cadence persists');
-const customTerms=await call(termsPath,'PATCH',{...terms,planId:'',cadence:'once'},managementUser);
+const customTerms=await call(termsPath,'PATCH',{...terms,planId:'',cadence:'once'},user);
 assert.equal(customTerms.status,200);
 assert.equal(customTerms.terms.planName,'Plan personalizado','an empty plan resolves to the per-organization manual plan');
 assert.equal(customTerms.terms.cadence,'once');
-await call(termsPath,'PATCH',{...terms,cadence:'monthly',intervalMonths:1},managementUser);
-const noneTerms=await call(termsPath,'PATCH',{...terms,commissionMode:'none',commissionRecipientId:null,commissionValue:null},managementUser);
+await call(termsPath,'PATCH',{...terms,cadence:'monthly',intervalMonths:1},user);
+const noneTerms=await call(termsPath,'PATCH',{...terms,commissionMode:'none',commissionRecipientId:null,commissionValue:null},user);
 assert.equal(noneTerms.status,200);
 assert.deepEqual({recipient:noneTerms.terms.commissionRecipientId,name:noneTerms.terms.commissionRecipientName,mode:noneTerms.terms.commissionMode,value:noneTerms.terms.commissionValue},{recipient:null,name:null,mode:'none',value:null},'a contract can exist without commission');
 assert.equal((await call(termsPath,'PATCH',{...terms,commissionMode:'none'},managementUser)).status,400,'none rejects leftover recipient/value');
 assert.equal((await call(termsPath,'PATCH',{...terms,endsOn:'2026-09-10'},managementUser)).status,400,'an end before the start is rejected');
-const ended=await call(termsPath,'PATCH',{...terms,endsOn:'2026-09-20'},managementUser);
+const ended=await call(termsPath,'PATCH',{...terms,endsOn:'2026-09-20'},user);
 assert.equal(ended.status,200);assert.equal(ended.terms.endsOn,'2026-09-20','the effective terms carry the end date');
 const contractedSeptember=await call('/api/agency/forecast?month=2026-09');
 assert.deepEqual(contractedSeptember.contracted_recurring.records,[{currency:'PYG',client_count:1,amount:1000}],'an agreement ending inside the month still counts that month');
 assert.equal(contractedSeptember.contracted_clients.records.find(row=>String(row.client_id)===String(client))?.ends_on,'2026-09-20','contracted clients expose their end date');
 const contractedOctober=await call('/api/agency/forecast?month=2026-10');
 assert.deepEqual(contractedOctober.contracted_recurring.records,[],'an ended agreement leaves the following month without contracted income');
-assert.equal((await call(termsPath,'PATCH',{...terms,endsOn:null},managementUser)).terms.endsOn,null,'the end date can be cleared');
+assert.equal((await call(termsPath,'PATCH',{...terms,endsOn:null},user)).terms.endsOn,null,'the end date can be cleared');
 assert.equal((await call(termsPath,'PATCH',{...terms,commissionMode:'none',commissionRecipientId:null,commissionValue:'10'},managementUser)).status,400,'none rejects a value without recipient');
-await call(termsPath,'PATCH',terms,managementUser);
+await call(termsPath,'PATCH',terms,user);
+// La comisión es dato personal del destinatario: `commissions.manage` decide
+// leerla y definirla. Management conserva el plan, preserva la comisión vigente
+// y nunca la cambia desde su editor.
+const managementRead=await call(termsPath,'GET',{},managementUser);
+assert.deepEqual({mode:managementRead.terms.commissionMode,value:managementRead.terms.commissionValue,recipient:managementRead.terms.commissionRecipientId,name:managementRead.terms.commissionRecipientName},{mode:'none',value:null,recipient:null,name:null},'management receives the commission masked');
+assert.deepEqual(managementRead.collaborators,[],'management does not receive the commission catalog');
+const preserved=await call(termsPath,'PATCH',{...terms,commissionRecipientId:null,commissionMode:'none',commissionValue:null},managementUser);
+assert.equal(preserved.status,200,'management still edits the plan fields');
+assert.equal(preserved.terms.commissionMode,'none','the response stays masked for management');
+const liveCommission=(await query("select commission_mode,commission_value::text as value,commission_recipient_id::text as recipient from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and effective_until is null",[org,client])).rows[0];
+assert.deepEqual(liveCommission,{commission_mode:'percentage',value:'10',recipient:String(salaryPyg.collaborator.id)},'a management plan edit preserves the live commission');
+assert.equal((await call(termsPath,'PATCH',terms,managementUser)).status,403,'management cannot define or change a commission');
+assert.equal((await call(termsPath,'PATCH',{...terms,commissionMode:'none',commissionRecipientId:null,commissionValue:null},managementUser)).status,200,'management may keep editing the plan without touching the commission');
+const financeTerms=await call(termsPath,'GET',{},financeUser);
+assert.deepEqual({mode:financeTerms.terms.commissionMode,value:financeTerms.terms.commissionValue},{mode:'percentage',value:10},'finance keeps reading the commission for liquidation');
 
 const expensesPath='/api/agency/planned-expenses?month=2026-09';
 const recurringExpense={cadence:'recurring',effectiveMonth:'2026-08',category:'Software',amount:'300',currency:'PYG',note:'Licencias'};

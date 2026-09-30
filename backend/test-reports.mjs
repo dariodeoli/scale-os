@@ -213,6 +213,40 @@ assert.equal((await call(cadencePath,'PATCH',{...cadenceBody,cadence:'weekly'},u
 assert.equal((await call(cadencePath,'PATCH',{...cadenceBody,cadence:'interval',intervalMonths:25},user)).status,400,'intervals outside 1..24 are rejected');
 const cadenceExplicit=await call(cadencePath,'PATCH',{...cadenceBody,cadence:'monthly'},user);
 assert.deepEqual({cadence:cadenceExplicit.terms.cadence,interval:cadenceExplicit.terms.intervalMonths},{cadence:'monthly',interval:1},'an explicit cadence still changes and normalizes the interval');
+// Comisión del contrato: dato personal del destinatario. Solo
+// `commissions.manage` la lee y la define; el resto de los roles de términos
+// recibe el contrato enmascarado y su PATCH de plan preserva la comisión.
+const commissionClient=await one("insert into agency_clients(organization_id,name) values($1,'Comisión') returning id",[org]);
+const commissionPath=`/api/agency/clients/${commissionClient.id}/commercial-terms`;
+const recipient=(await one("insert into agency_collaborators(organization_id,full_name,compensation_type,compensation_amount) values($1,'Ana Comisión','fixed',0) returning id",[org])).id;
+const commissionBody={planId:String(termsPlan.id),recurringAmount:'800000',currency:'PYG',startsOn:'2026-03-01',endsOn:null,invoiceRequired:true,commissionRecipientId:String(recipient),commissionMode:'percentage',commissionValue:'10'};
+const created=await call(commissionPath,'PATCH',commissionBody,user);
+assert.equal(created.status,200);
+assert.deepEqual({mode:created.terms.commissionMode,name:created.terms.commissionRecipientName,value:created.terms.commissionValue},{mode:'percentage',name:'Ana Comisión',value:10},'owner defines and reads the commission');
+assert.ok(created.collaborators.some(person=>person.id===String(recipient)),'owner keeps the recipient catalog');
+await query("update organization_members set role='finance' where organization_id=$1 and user_id=$2",[org,uid]);
+const financeRead=await call(commissionPath,'GET',{}, {...user,role:'finance'});
+assert.equal(financeRead.status,200);
+assert.deepEqual({mode:financeRead.terms.commissionMode,value:financeRead.terms.commissionValue},{mode:'percentage',value:10},'finance (commissions.manage without commercial-terms.manage) still reads the commission');
+let livePlan=800000;
+for(const role of ['management','sales']){
+ await query('update organization_members set role=$3 where organization_id=$1 and user_id=$2',[org,uid,role]);
+ const masked=await call(commissionPath,'GET',{}, {...user,role});
+ assert.equal(masked.status,200);
+ assert.deepEqual({id:masked.terms.commissionRecipientId,name:masked.terms.commissionRecipientName,mode:masked.terms.commissionMode,value:masked.terms.commissionValue},{id:null,name:null,mode:'none',value:null},`${role} receives the commission masked`);
+ assert.deepEqual(masked.collaborators,[],`${role} does not receive the recipient catalog`);
+ assert.equal(masked.terms.recurringAmount,livePlan,'plan amounts stay available for terms roles');
+ const planPatch=await call(commissionPath,'PATCH',{...commissionBody,recurringAmount:'810000',commissionRecipientId:null,commissionMode:'none',commissionValue:null}, {...user,role});
+ assert.equal(planPatch.status,200);
+ livePlan=810000;
+ assert.equal(planPatch.terms.commissionMode,'none','the response keeps the masked contract for the role without commissions.manage');
+ const stored=(await one('select commission_recipient_id::text as recipient,commission_mode,commission_value::text as value from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and effective_until is null',[org,commissionClient.id]));
+ assert.deepEqual(stored,{recipient:String(recipient),commission_mode:'percentage',value:'10'},`${role} preserves the live commission when editing the plan`);
+ const forged=await call(commissionPath,'PATCH',{...commissionBody,startsOn:'2026-04-01'}, {...user,role});
+ assert.equal(forged.status,403,`${role} cannot define or change a commission`);
+ assert.match(forged.error,/comisiones/);
+}
+await query("update organization_members set role='owner' where organization_id=$1 and user_id=$2",[org,uid]);
 // Cierre de las seis monedas: términos comerciales y gastos planificados aceptan
 // EUR/BRL/ARS/MXN (la base y el validador estaban en PYG|USD) y rechazan el resto.
 const sixCurrencies=['EUR','BRL','ARS','MXN'];
@@ -237,5 +271,5 @@ const expenseList=await call(`/api/agency/planned-expenses?month=${expenseMonth}
 for(const currency of sixCurrencies)assert.ok(expenseList.records.some(row=>row.currency===currency),`the ${currency} expense is listed`);
 assert.ok(expenseList.totals.every(total=>sixCurrencies.concat(['PYG','USD']).includes(total.currency)),'totals stay inside the six currencies');
 await query('delete from agency_planned_expenses where organization_id=$1 and category like $2',[org,'Gasto %']);
-console.log(`PASS reports: ${n} real handler calls; migration repeatability, observation coverage, local/leap boundaries, snapshots, lifecycle/archive, roles/tenant/version, numeric currencies, dated reversals, lifecycle terms served end to end, append-only ficha amendments and preserved billing cadence`);
+console.log(`PASS reports: ${n} real handler calls; migration repeatability, observation coverage, local/leap boundaries, snapshots, lifecycle/archive, roles/tenant/version, numeric currencies, dated reversals, lifecycle terms served end to end, append-only ficha amendments, preserved billing cadence and commission masking/PATCH preservation`);
 await pg.close();
