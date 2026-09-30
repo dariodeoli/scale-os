@@ -2,6 +2,28 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.155
+
+### Privacidad (Ley N° 7593/2025)
+
+- **La base de la ley queda en producción**: consentimientos verificables con la versión del aviso aceptada, pedidos de derechos (acceso, rectificación, supresión, oposición) con estados y vencimiento a 30 días corridos, bitácora de accesos a datos personales y política de retención con corrida de reporte y ejecución.
+- **Panel de protección de datos en Configuración** (owner/admin): cola de solicitudes con vencimientos, verificación de identidad, resolución con la acción aplicada (copia, bloqueo o anonimización) y rechazo con motivo; consentimientos vigentes y revocación; retención declarada de solo lectura.
+- **Nunca se borra lo que tiene conservación legal**: la supresión bloquea o anonimiza y conserva el historial fiscal y contable; el titular puede descargar su copia en JSON o CSV y los logs quedan barridos de datos personales.
+- **Borradores legales y runbook de brecha**: Política, Aviso v1, ARSOP, RAT, encargados, seguridad y el procedimiento de brecha ≤72 h viven en `docs/`, todos marcados como borrador hasta que el dueño apruebe el texto final (el aviso público se muestra «en revisión»).
+
+### Comercial
+
+- **Minimización del contacto del cliente por rol**: quien no gestiona clientes recibe la ficha sin correo, teléfono, RUC ni notas, y la pantalla dice «Contacto reservado» en lugar de disfrazar el dato ausente; el buscador deja de prometer correo o teléfono.
+- **Oposición al contacto**: las oportunidades suman «No contactar» visible y editable, el tablero ya no expone correos y el guardado viaja explícito.
+- **Finalidad declarada donde se cargan datos de terceros**: alta y edición de cliente, captación de la landing y acceso del portal muestran el aviso con su enlace.
+- **El token del presupuesto sale de las listas**: el enlace público solo se entrega con la acción explícita de compartir.
+
+### Finanzas
+
+- **Contrato de privacidad de Finanzas**: inventario de finalidades, retención declarada y rutas de export/anonimización alineadas al API, en `docs/FIN-PRIVACIDAD-7593.md`.
+- **Comisiones con permisos finos**: cada rol ve lo que le corresponde y el contacto se enmascara por capacidad.
+- **Avisos en los puntos de captura**: cuenta y plan, comisiones, previsión y cobros declaran para qué se usan los datos.
+
 ## v1.0.154
 
 ### Privacidad (Ley N° 7593/2025)
