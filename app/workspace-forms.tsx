@@ -9,6 +9,7 @@ import {statuses} from './production-board';
 import {SaveActions} from './save-actions';
 import type {Account,Client,Invoice,Member,Project,WorkOrder} from './workspace-types';
 import {currencyCodes} from './currencies';
+import {financeNoticeHref,financePurposeNotice} from './finance-privacy';
 import {AmountInput,SelectCustom} from './profile-controls';
 import {UrgencySelect} from './urgency';
 import {PHONE_ERROR, phoneValid} from './field-rules';
@@ -469,6 +470,7 @@ export function AccountForm({
         </div>
       </fieldset>
       {error && <p className="error">{error}</p>}
+      <p className="field-help">{financePurposeNotice('treasury')} · <a href={financeNoticeHref('treasury')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
         {submission.pending ? "Creando…" : "Crear cuenta"}
       </button></SaveActions>
@@ -722,6 +724,7 @@ export function PaymentForm({
         />
       </label>
       {error && <p className="error">{error}</p>}
+      <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <SaveActions pending={submission.pending}><button
         className="primary"
         disabled={!accounts.length || submission.pending}

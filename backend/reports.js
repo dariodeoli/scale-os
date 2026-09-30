@@ -113,7 +113,7 @@ async function metadata(db,org,id) {
  const plans=(await db.query("select p.id::text,p.name from agency_plans p where p.organization_id=$1 and p.active and not exists(select 1 from agency_archived_records a where a.organization_id=p.organization_id and a.kind='plans' and a.record_id=p.id) order by p.name,p.id",[org])).rows;
  return {reporting:{clientId:row.id,customerKind:row.customer_kind,servicePlanId:row.service_plan_id,relationshipStartedOn:dateString(row.relationship_started_on),version:row.reporting_version,updatedAt:new Date(row.updated_at).toISOString(),archived:row.archived},plans};
 }
-async function commercialTerms(db,org,id) {
+async function commercialTerms(db,org,id,canManageCommissions=true) {
  const client=(await db.query(`select c.id::text,exists(select 1 from agency_archived_records a where a.organization_id=c.organization_id and a.kind='clients' and a.record_id=c.id) archived
   from agency_clients c where c.organization_id=$1 and c.id=$2`,[org,id])).rows[0];
  if(!client)fail('Cliente no encontrado',404);
@@ -131,9 +131,13 @@ async function commercialTerms(db,org,id) {
   where t.organization_id=$1 and t.client_id=$2 and t.effective_until is null order by t.id desc limit 1`,[org,id])).rows[0]||null;
  const plans=(await db.query(`select p.id::text,p.name,p.currency from agency_plans p where p.organization_id=$1 and p.active
   and not exists(select 1 from agency_archived_records a where a.organization_id=p.organization_id and a.kind='plans' and a.record_id=p.id) order by p.name,p.id`,[org])).rows;
- const collaborators=(await db.query(`select c.id::text,c.full_name from agency_collaborators c where c.organization_id=$1 and c.active and ${'not exists(select 1 from agency_archived_records a where a.organization_id=c.organization_id and a.kind=\'collaborators\' and a.record_id=c.id)'} order by c.full_name,c.id`,[org])).rows;
- return {clientId:client.id,archived:client.archived,
-  terms:terms&&projectMoney(terms,['recurringAmount','commissionValue']),plans,collaborators};
+ const collaborators=canManageCommissions?(await db.query(`select c.id::text,c.full_name from agency_collaborators c where c.organization_id=$1 and c.active and ${'not exists(select 1 from agency_archived_records a where a.organization_id=c.organization_id and a.kind=\'collaborators\' and a.record_id=c.id)'} order by c.full_name,c.id`,[org])).rows:[];
+ // La comisión (destinatario, modo y valor) es dato personal de un tercero:
+ // sin `commissions.manage` el contrato se sirve enmascarado y sin el catálogo de
+ // destinatarios. El PATCH preserva la comisión vigente (ver más abajo).
+ const projected=terms&&projectMoney(terms,['recurringAmount','commissionValue']);
+ const visible=projected&&(canManageCommissions?projected:{...projected,commissionRecipientId:null,commissionRecipientName:null,commissionMode:'none',commissionValue:null});
+ return {clientId:client.id,archived:client.archived,terms:visible,plans,collaborators};
 }
 async function ensureCustomPlan(db,org) {
  const existing=(await db.query(`select id from agency_plans p where p.organization_id=$1 and p.name='Plan personalizado' and p.active
@@ -235,14 +239,22 @@ export async function reports({req,res,url,db,session,body,send}) {
   }
   const id=(match||termsMatch)[1];if(BigInt(id)>9223372036854775807n)fail('Cliente no encontrado',404);
   if(termsMatch){
-   if(req.method==='GET'){send(res,200,await commercialTerms(db,user.organization_id,id));return true;}
+   if(req.method==='GET'){send(res,200,await commercialTerms(db,user.organization_id,id,roleCan(user,'commissions.manage')));return true;}
    if(req.method!=='PATCH')fail('Método no permitido',405);
    c=await db.connect();await c.query('begin');await authorize(c,user,'commercial-terms.manage');
    await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket?.remoteAddress||'']);
    const client=(await c.query(`select c.id from agency_clients c where c.organization_id=$1 and c.id=$2 and not exists(select 1 from agency_archived_records a where a.organization_id=c.organization_id and a.kind='clients' and a.record_id=c.id) for update`,[user.organization_id,id])).rows[0];
    if(!client)fail('Cliente no disponible',404);
-   const open=(await c.query('select id,plan_name,monthly_price,effective_from,starts_on,version,cadence,interval_months from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and effective_until is null for update',[user.organization_id,id])).rows[0];
-   const value=await validateTerms(c,user.organization_id,await body(req),open);
+   const open=(await c.query('select id,plan_name,monthly_price,effective_from,starts_on,version,cadence,interval_months,commission_recipient_id::text as commission_recipient_id,coalesce(commission_mode,\'none\') as commission_mode,commission_value::text as commission_value from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and effective_until is null for update',[user.organization_id,id])).rows[0];
+   const termsInput=await body(req);
+   const value=await validateTerms(c,user.organization_id,termsInput,open);
+   // La comisión es dato personal de un tercero y su gestión exige
+   // `commissions.manage`. Sin esa capacidad la comisión vigente se preserva
+   // (el editor de plan reenvía lo que recibió enmascarado) y el intento
+   // explícito de definir o cambiar una comisión se rechaza, nunca se ignora.
+   const canManageCommissions=roleCan(user,'commissions.manage');
+   if(!canManageCommissions&&termsInput.commissionMode!=='none')fail('Tu rol no permite gestionar comisiones',403);
+   if(!canManageCommissions&&open){value.recipientId=open.commission_recipient_id;value.commissionMode=open.commission_mode;value.commissionValue=open.commission_value;}
    // The terms contract keeps one effective row per client. Rows written by the
    // commercial lifecycle carry the plan snapshot and belong to its append-only
    // history: an edit from the ficha closes the open term (version+1, the same
@@ -259,7 +271,7 @@ export async function reports({req,res,url,db,session,body,send}) {
     await insertCommercialTerm(c,user.organization_id,id,value);
    }else if(open)await c.query(`update agency_client_commercial_terms set plan_id=$3,recurring_amount=$4,currency=$5,starts_on=$6::date,ends_on=$7::date,invoice_required=$8,commission_recipient_id=$9,commission_mode=$10,commission_value=$11,cadence=$12,interval_months=$13,updated_at=clock_timestamp() where organization_id=$1 and client_id=$2 and id=$14 and effective_until is null`,[user.organization_id,id,value.planId,value.recurringAmount,value.currency,value.startsOn,value.endsOn,value.invoiceRequired,value.recipientId,value.commissionMode,value.commissionValue,value.cadence,value.intervalMonths,open.id]);
     else await insertCommercialTerm(c,user.organization_id,id,value);
-   const result=await commercialTerms(c,user.organization_id,id);await c.query('commit');c.release();c=null;send(res,200,result);return true;
+   const result=await commercialTerms(c,user.organization_id,id,canManageCommissions);await c.query('commit');c.release();c=null;send(res,200,result);return true;
   }
   if(req.method==='GET'){send(res,200,await metadata(db,user.organization_id,id));return true;}
   if(req.method!=='PATCH')fail('Método no permitido',405);
