@@ -39,15 +39,18 @@ async function record(c,kind,key,org){
  await owned(c,'agency_clients',project.client_id,org);
  return r;
 }
-async function snapshot(c,kind,r,org){
- const assignees=(await c.query(`select a.user_id::text as id,a.is_primary,i.email,coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url
+async function snapshot(c,kind,r,org,contact){
+ // #115: el correo interno se sirve solo a quien gestiona equipo o ve finanzas,
+ // igual contrato que `/productivity/people`; el resto ve nombre y foto.
+ const assignees=(await c.query(`select a.user_id::text as id,a.is_primary,case when $4::boolean then i.email else null end as email,coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url
   from agency_record_assignees a join organization_person_identity i on i.user_id=a.user_id and i.organization_id=a.organization_id
-  where a.organization_id=$1 and a.kind=$2 and a.record_id=$3 order by a.is_primary desc,a.user_id`,[org,kind,r.id])).rows;
+  where a.organization_id=$1 and a.kind=$2 and a.record_id=$3 order by a.is_primary desc,a.user_id`,[org,kind,r.id,contact])).rows;
  return {assigned_user_id:assignees.find(a=>a.is_primary)?.id??null,assigned_user_ids:assignees.map(a=>a.id),assignee_version:String(r.assignee_version),assignees};
 }
+function teamContact(user){return roleCan(user,'members.manage')||roleCan(user,'finance.view');}
 // Helpers must use the caller's BEGIN/COMMIT transaction, including record creation.
 export async function getRecordAssignees(c,user,kind,key){
- const org=await authorize(c,user);return snapshot(c,kind,await record(c,kind,key,org),org);
+ const org=await authorize(c,user);return snapshot(c,kind,await record(c,kind,key,org),org,teamContact(user));
 }
 export async function setRecordAssignees(c,user,kind,key,payload){
  const d=definition(kind),org=await authorize(c,user,writers);
@@ -59,7 +62,7 @@ export async function setRecordAssignees(c,user,kind,key,payload){
  if((ids.length>0&&!primary)||(primary&&!ids.includes(primary)))fail('El responsable principal debe estar en la lista');
  const active=(await c.query('select user_id::text as id from organization_members where organization_id=$1 and user_id=any($2::bigint[]) and active and removed_at is null order by user_id for share',[org,ids])).rows;
  if(active.length!==ids.length)fail('Todos los responsables deben tener acceso activo a esta empresa');
- const before=await snapshot(c,kind,r,org);
+ const before=await snapshot(c,kind,r,org,teamContact(user));
  const additional=ids.filter(id=>id!==primary);
  const stored=(await c.query(`select user_id::text as id from ${d.links} where organization_id=$1 and ${d.key}=$2`,[org,r.id])).rows;
  if(String(r.assigned_user_id??'')===String(primary??'')&&stored.length===additional.length&&stored.every(row=>additional.includes(row.id)))return before;
@@ -67,7 +70,7 @@ export async function setRecordAssignees(c,user,kind,key,payload){
  const updated=(await c.query(`update ${d.table} set assigned_user_id=$1,assignee_version=assignee_version+1,updated_at=now() where id=$2 and organization_id=$3 returning *`,[primary,r.id,org])).rows[0];
  await c.query(`delete from ${d.links} where organization_id=$1 and ${d.key}=$2 and not(user_id=any($3::bigint[]))`,[org,r.id,additional]);
  await c.query(`insert into ${d.links}(organization_id,${d.key},user_id) select $1,$2,unnest($3::bigint[]) on conflict do nothing`,[org,r.id,additional]);
- return snapshot(c,kind,updated,org);
+ return snapshot(c,kind,updated,org,teamContact(user));
 }
 export async function projectAssignees({req,res,url,db,session,body,send}){
  const match=url.pathname.match(/^\/api\/agency\/(projects|work-orders)\/(\d+)\/assignees$/),people=url.pathname==='/api/agency/assignees';
@@ -82,8 +85,9 @@ export async function projectAssignees({req,res,url,db,session,body,send}){
   if(people){
    const org=await authorize(c,user);
    // #108: las fotos del selector viajan como URL del medio (cacheable), no en base64.
-   result={members:mediaPeople((await c.query(`select i.user_id::text as id,i.email,coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url,true as active
-    from organization_person_identity i where i.organization_id=$1 order by full_name,i.user_id`,[org])).rows)};
+   // #115: el correo interno se sirve solo a quien gestiona equipo o ve finanzas.
+   result={members:mediaPeople((await c.query(`select i.user_id::text as id,case when $2::boolean then i.email else null end as email,coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url,true as active
+    from organization_person_identity i where i.organization_id=$1 order by full_name,i.user_id`,[org,teamContact(user)])).rows)};
   }else result=req.method==='GET'?await getRecordAssignees(c,user,match[1],match[2]):await setRecordAssignees(c,user,match[1],match[2],await body(req));
   await c.query('commit');send(res,200,result);
  }catch(e){

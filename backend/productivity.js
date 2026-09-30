@@ -22,6 +22,8 @@ export async function productivity({req,res,url,db,session,body,send}){
  try{
   const user=await session(req);if(!user)fail('No autenticado',401);
   const [,kind,key,action]=match,org=user.organization_id;
+  // #115: contacto interno por rol, mismo contrato que `/productivity/people`.
+  const teamContact=roleCan(user,'members.manage')||roleCan(user,'finance.view');
   if(kind!=='profile'&&req.method!=='GET'&&!roleCan(user,kind==='templates'?'work-orders.manage':'work-orders.edit'))fail('Sin permiso para esta acción',403);
   if(kind==='templates'&&!roleCan(user,'work-orders.manage'))fail('Sin permiso para plantillas',403);
   if(kind==='source-events'&&req.method!=='GET'&&!roleCan(user,'activity.view'))fail('Solo administración puede importar actividad',403);
@@ -78,7 +80,6 @@ export async function productivity({req,res,url,db,session,body,send}){
    // El directorio de equipo oculta correos a roles no administrativos: acá solo
    // los reciben quienes ven el panel del equipo. El resto recibe el nombre ya
    // resuelto (nombre o correo) para poder identificar a la persona.
-   const teamContact=roleCan(user,'members.manage')||roleCan(user,'finance.view');
    // #108: las fotos viajan como URL del medio (cacheable) y no como base64 repetido.
    result={people:mediaPeople((await c.query("select user_id as id,case when $2 then email else null end as email,coalesce(nullif(trim(full_name),''),email) as full_name,photo_url from organization_person_identity where organization_id=$1 order by coalesce(nullif(trim(full_name),''),email)",[org,teamContact])).rows)};
   }else if(kind==='orders'&&key){
@@ -86,7 +87,7 @@ export async function productivity({req,res,url,db,session,body,send}){
    if(req.method==='GET'&&!action){
     const identity=(await c.query('select c.name as client_name,c.logo_url as client_logo_url,c.color_key as client_color_key from agency_projects p join agency_clients c on c.id=p.client_id where p.id=$1 and p.organization_id=$2',[order.project_id,org])).rows[0]||{};
     const history=(await c.query("select a.id,a.action,a.created_at,coalesce(nullif(trim(i.full_name),''),i.email,nullif(a.actor,''),'Sistema') as actor_name,i.user_id as actor_user_id,i.photo_url as actor_photo_url,(i.user_id is not null) as actor_verified,a.before_state->>'status' as previous_status,a.after_state->>'status' as next_status from agency_operation_audit a left join organization_person_identity i on i.user_id::text=a.actor and i.organization_id=a.organization_id where a.organization_id=$1 and a.table_name='agency_work_orders' and coalesce(a.after_state->>'id',a.before_state->>'id')=$2 order by a.id desc limit 100",[org,String(key)])).rows;
-    result={order:{...order,...identity},history,comments:(await c.query("select c.id,c.body,c.created_at,i.email as author_email,coalesce(nullif(trim(i.full_name),''),i.email,'Usuario') as actor_name,i.user_id as actor_user_id,i.photo_url as actor_photo_url,(i.user_id is not null) as actor_verified,coalesce((select jsonb_agg(m.mentioned_user_id::text order by m.mentioned_user_id) from agency_order_comment_mentions m where m.organization_id=c.organization_id and m.order_comment_id=c.id),'[]'::jsonb) as mentioned_user_ids from agency_order_comments c left join organization_person_identity i on i.user_id=c.author_user_id and i.organization_id=c.organization_id where c.organization_id=$1 and c.work_order_id=$2 order by c.id desc limit 100",[org,key])).rows};
+    result={order:{...order,...identity},history,comments:(await c.query("select c.id,c.body,c.created_at,case when $3::boolean then i.email else null end as author_email,coalesce(nullif(trim(i.full_name),''),case when $3::boolean then i.email end,'Usuario') as actor_name,i.user_id as actor_user_id,i.photo_url as actor_photo_url,(i.user_id is not null) as actor_verified,coalesce((select jsonb_agg(m.mentioned_user_id::text order by m.mentioned_user_id) from agency_order_comment_mentions m where m.organization_id=c.organization_id and m.order_comment_id=c.id),'[]'::jsonb) as mentioned_user_ids from agency_order_comments c left join organization_person_identity i on i.user_id=c.author_user_id and i.organization_id=c.organization_id where c.organization_id=$1 and c.work_order_id=$2 order by c.id desc limit 100",[org,key,teamContact])).rows};
    }
    else if(req.method==='POST'&&action==='comments'){
     const b=await body(req),content=text(b.body,2000);if(!content)fail('Escribí un comentario');

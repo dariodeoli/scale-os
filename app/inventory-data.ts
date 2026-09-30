@@ -56,7 +56,6 @@ export type InventoryReservation=ReservationActors&{
  created_by_user_id:string;return_user_id:string;return_user_name:string;
  custodian_user_id:string|null;custodian_name:string|null;
  responsible_members:Person[];items:ItemReference[];notes:string;version:number;
- checkout_note?:string;return_note?:string;
  checked_out_at?:string|null;returned_at?:string|null;cancelled_at?:string|null;
  checked_out_by_user_id?:string|null;returned_by_user_id?:string|null;
  created_at?:string;updated_at?:string;
@@ -78,10 +77,8 @@ export type InventoryMaintenance={
 };
 export type InventoryTrace={
  id:string;event_type:string;event_at:string;actor_name?:string;actor_photo_url?:string;
- /** Payload real del API (`context` jsonb). Trae código, nombre, estado, resultado, notas, etc. */
+ /** Payload real del API (`context` jsonb): código, nombre, estado, resultado, notas, etc. */
  context?:Record<string,unknown>|null;
- /** @deprecated el API nunca devolvió `event_data`; se mantiene hasta el rediseño de la ficha. */
- event_data?:Record<string,unknown>;
 };
 
 export const statusLabels:Record<InventoryReservationStatus,string>={
