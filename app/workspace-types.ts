@@ -17,6 +17,8 @@ export type Client = {
   email: string | null;
   phone: string | null;
   active: boolean;
+  /** El API minimizó contacto y datos fiscales para este rol (#114). */
+  contact_restricted?: boolean;
 };
 export type Project = {
   urgency?:number|null;
