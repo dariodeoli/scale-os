@@ -39,8 +39,8 @@ export const PROJECT_FIELDS_CHROME = 'id,name,client_id,status,client_name,work_
 
 // #67/#71: proyecciones de las listas COM con contrato optimista (el API las
 // ignora hasta que las soporte). Se piden solo los campos que cada pantalla lee.
-/** Oportunidades: tarjeta, editor, KPIs y conversión a cliente. */
-export const LEAD_LIST_FIELDS = 'id,name,email,phone,stage,amount,currency,probability,notes,client_id';
+/** Oportunidades: tarjeta, editor, KPIs y conversión a cliente. `do_not_contact` es la oposición del titular (Refs #114). */
+export const LEAD_LIST_FIELDS = 'id,name,email,phone,stage,amount,currency,probability,notes,client_id,do_not_contact';
 /** Presupuestos: fila finita y tarjeta de anchos medios. */
 export const BUDGET_LIST_FIELDS = 'id,number,title,status,currency,subtotal,total,valid_until,item_count,client_name';
 

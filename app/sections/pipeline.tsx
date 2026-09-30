@@ -11,6 +11,7 @@ import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '../pipeline-summary';
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
 import {PHONE_HELP} from '../field-rules';
+import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_LEAD_FINALITY,PRIVACY_LEAD_DETAIL} from '../privacy-links';
 import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
 import {EMPTY_WINDOW,LIST_WINDOW,appendPage,readPage,windowLabel,windowSlice,windowStateOf,type ListWindowState} from '../list-window';
 import {useDialogPending} from '../dialog';
@@ -63,8 +64,8 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
     </header>
     <MoneyText valor={amount===''?null:amount} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
     <div className="flex flex-wrap items-center gap-2 text-[11px]">
+      {row.do_not_contact===true?<StateChip tone="warn" title="El titular pidió no ser contactado: el equipo conserva el registro y no inicia contacto.">No contactar</StateChip>:null}
       {hasProbability?<StateChip tone={probability>=75?'ok':probability>=40?'warn':'mute'} title={`Probabilidad ${probability}%`}>{probability}%</StateChip>:<span className="text-mute">Sin probabilidad cargada</span>}
-      {str(row,'email')?<span className="min-w-0 text-mute [overflow-wrap:anywhere]" title={str(row,'email')}>{str(row,'email')}</span>:null}
     </div>
     {str(row,'notes')?<p className="text-[11px] leading-4 text-mute [overflow-wrap:anywhere]">{str(row,'notes')}</p>:null}
     <footer className="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2">
@@ -107,6 +108,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   const [stagePanel,setStagePanel]=useState(false);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
+  // Oposición al contacto (#114): estado del diálogo; el alta arranca destildada.
+  const [doNotContact,setDoNotContact]=useState(false);
   // Estado honesto de las dos lecturas: el error real de la lista y el aviso de
   // las etapas (el tablero nunca se cae, pero el fallo no se silencia).
   const [loadError,setLoadError]=useState('');
@@ -156,6 +159,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     }
   }
   useEffect(()=>{void load();void loadStages();},[]);
+  // El diálogo refleja la oposición guardada al abrir cada oportunidad.
+  useEffect(()=>{setDoNotContact(edit&&edit!=='new'?edit.do_not_contact===true:false);},[edit]);
 
   const overview=pipelineSummary(rows);
   // Monedas abiertas ordenadas: la base va en el valor del KPI y el resto en la
@@ -283,8 +288,14 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {user?<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>:null}
 
       {edit&&canEdit?<Dialog title={row?'Editar oportunidad':'Nueva oportunidad'} busy={busy} close={()=>{if(!busy)setEdit(null);}}>
-        <AvisoPrivacidad compact finalidad="Cargás datos de la persona interesada para dar seguimiento a esta oportunidad." detalle="Se usan sólo para esta relación comercial; la persona puede pedir acceso, corrección o supresión por el canal de derechos." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
-        <Editor columns fields={fields} defaults={defaults} save={async values=>{await api(`/api/agency/leads${row?`/${row.id}`:''}`,values,row?'PATCH':'POST');await completeSave(()=>setEdit(null),load);}}/>
+        <AvisoPrivacidad finalidad={PRIVACY_LEAD_FINALITY} detalle={PRIVACY_LEAD_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
+        {/* Oposición (#114): se declara junto a los datos y viaja en el mismo
+            guardado; el titular puede revertirla cuando quiera. */}
+        <label className="mb-3 flex items-start gap-2.5 text-[12.5px] leading-5 text-mute">
+          <input type="checkbox" className="mt-0.5 h-5 w-5 flex-none accent-fono" checked={doNotContact} disabled={busy} onChange={event=>setDoNotContact(event.target.checked)}/>
+          <span><b className="text-fore">No contactar.</b> El titular pidió no ser contactado: conservamos el registro de la oportunidad y no iniciamos contacto.</span>
+        </label>
+        <Editor columns fields={fields} defaults={defaults} save={async values=>{await api(`/api/agency/leads${row?`/${row.id}`:''}`,{...values,do_not_contact:doNotContact},row?'PATCH':'POST');await completeSave(()=>setEdit(null),load);}}/>
         {row&&!row.client_id?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await api(`/api/agency/leads/${row.id}/convert`,{});setEdit(null);await load();}catch(reason){setError(err(reason));}finally{setBusy(false);}}}>Ganado: convertir a cliente</Button></div>:null}
       </Dialog>:null}
 
