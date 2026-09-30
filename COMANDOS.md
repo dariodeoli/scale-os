@@ -9,6 +9,7 @@ Estándar del grupo (owncoding-ui `docs/COMANDOS.md`, v0.14.x). Estos comandos l
 | **`al`** | Agentes libres | Quién está libre y cómo repartir el trabajo pendiente entre dominios; propone ronda |
 | **`ht`** | Ciclo completo | Ordena al integrador: merge → suite de checks → push → `NOVEDADES.md` → release + smoke |
 | **`hd`** | Alias de `ht` | Igual que `ht` |
+| **`xx`** | Estado **x/100** | Reporta cuánto de lo pedido está hecho (%), qué está en vuelo (agentes/ramas/hd), qué quedó pendiente y qué espera decisión del dueño |
 
 Reglas generales: nada se mergea, pushea ni despliega fuera de `ht`/`hd` o una ronda ordenada; el único que toca `main` y despliega es el integrador (con `SCALE_INTEGRATOR=1`); los conflictos se resuelven en el worktree del slot que rebasea (nunca en `main` ni en silencio); si una rama queda superseded (diff neto vacío), se descarta y se avisa; el orquestador no toca código.
 
@@ -22,6 +23,7 @@ Política del grupo: cuando hay **≥ 15 commits nuevos sin integrar** (suma de 
 - Pausa: `touch auto-hd.pause` para suspender; borrarlo para reanudar.
 - Umbral, cooldown, intervalo, repo, patrón de ramas y agente se ajustan por variables de entorno (`AUTO_HD_*`), así que el mismo script sirve para LedBox u otra app cambiando `AUTO_HD_REPO`, `AUTO_HD_BRANCHES`, `AUTO_HD_AGENT` y `AUTO_HD_BRIEF`.
 - El `ht`/`hd` manual siempre está disponible y adelanta el ciclo. Nunca hay dos ciclos a la vez: el disparo automático espera si el integrador está trabajando, bloqueado o hay un merge en curso.
+- El reporte **`xx`** incluye el estado del vigía entre lo que está en vuelo (si el `hd` automático está corriendo, pausado o cuál fue el último disparo).
 - `NOVEDADES.md`: el integrador mantiene `docs/NOVEDADES.md` en el repo (acumulativo por versión, en lenguaje de producto); si no existe, lo crea en el primer ciclo.
 
 ## Versionado en esta app
