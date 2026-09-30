@@ -2,6 +2,13 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.153
+
+### Operación interna
+
+- **Comando `xx` (estado x/100)**: el kit del grupo documenta el reporte que resume cuánto de lo pedido está hecho (%), qué está en vuelo (agentes, ramas y el `hd` automático), qué quedó pendiente y qué espera decisión del dueño.
+- La política del vigía queda actualizada en `COMANDOS.md`: el reporte `xx` incluye si el ciclo automático está corriendo, pausado o cuál fue el último disparo.
+
 ## v1.0.152
 
 ### Arranque y carga
