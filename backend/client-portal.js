@@ -6,6 +6,9 @@ import {throttle,validatePassword} from './password-access.js';
 import {externalLink} from './media-policy.js';
 import {owned} from './suite-validation.js';
 import {visibleRecord} from './record-lifecycle.js';
+import {readClientPortalSession} from './client-portal-session.js';
+import {grantConsent} from './personal-data.js';
+import {redactPiiText} from './pii-safety.js';
 
 // Until the dedicated client subdomain is configured, the portal is served
 // through the authenticated app origin under /cliente.  Keeping the public
@@ -28,16 +31,7 @@ const id=value=>/^\d+$/.test(String(value))&&Number(value)>0?String(value):fail(
 const text=(value,max=2000)=>typeof value==='string'&&value.trim().length>0&&value.trim().length<=max?value.trim():fail('Texto inválido');
 const email=value=>{const normalized=typeof value==='string'?value.trim().toLowerCase():'';if(!/^\S+@\S+\.\S+$/.test(normalized)||normalized.length>254)fail('Correo inválido');return normalized;};
 const portalCookie=(value,maxAge)=>`__Host-scale_client_session=${value}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax`;
-const readCookie=req=>Object.fromEntries((req.headers?.cookie||'').split(';').filter(Boolean).map(value=>{const at=value.indexOf('=');return[value.slice(0,at).trim(),decodeURIComponent(value.slice(at+1))];}));
 const sameOrigin=req=>{const origin=req.headers?.origin;if(origin&&!clientOrigins.has(origin))fail('Origen no permitido',403);};
-async function portalSession(db,req){
- const raw=readCookie(req)['__Host-scale_client_session'];if(!raw||!/^[a-f0-9]{64}$/.test(raw))return null;
- const row=(await db.query(`select s.token_hash,u.id,u.email,u.full_name
-  from client_portal_sessions s join client_portal_users u on u.id=s.portal_user_id
-  where s.token_hash=$1 and s.expires_at>now() and u.disabled_at is null`,[hash(raw)])).rows[0]||null;
- if(row)await db.query('update client_portal_sessions set last_seen_at=now() where token_hash=$1',[row.token_hash]);
- return row;
-}
 async function scopedDelivery(c,userId,deliveryId){
  // Las fechas de la entrega viajan como texto `YYYY-MM-DD`: un `date` serializado
  // como timestamp hacía que el portal mostrara el día anterior y una hora inventada.
@@ -118,6 +112,8 @@ export async function acceptClientPortalGoogleInvite({db,inviteId,email:googleEm
    if(String(user.organization_id)!==String(invite.organization_id)||String(user.client_id)!==String(invite.client_id))fail('Esta dirección ya está vinculada a otro cliente.',409);
   }else user=(await c.query('insert into client_portal_users(organization_id,client_id,email,email_normalized,password_hash,full_name) values($1,$2,$3,$4,null,$5) returning *',[invite.organization_id,invite.client_id,invite.email_normalized,invite.email_normalized,text(fullName||invite.email_normalized,120)])).rows[0];
   await c.query('insert into client_portal_grants(organization_id,client_id,portal_user_id,granted_by_user_id) values($1,$2,$3,$4) on conflict(organization_id,client_id,portal_user_id) do update set active=true,revoked_at=null,revoked_by_user_id=null',[invite.organization_id,invite.client_id,user.id,invite.invited_by_user_id]);
+  // PDP (#112): la aceptación de la invitación registra la versión del aviso y el origen.
+  await grantConsent(c,{organizationId:invite.organization_id,subjectKind:'portal_user',subjectId:String(user.id),purpose:'portal',source:'client_portal',basis:'contract',evidence:{invite_id:String(invite.id),method:'google'}});
   await c.query('update client_portal_invites set accepted_at=now() where id=$1',[invite.id]);
   const rawSession=crypto.randomBytes(32).toString('hex');
   await c.query("insert into client_portal_sessions(token_hash,portal_user_id,expires_at) values($1,$2,now()+interval '7 days')",[hash(rawSession),user.id]);
@@ -209,6 +205,7 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
     if(!user.password_hash||!await bcrypt.compare(b.password,user.password_hash))fail('Esta dirección ya tiene una cuenta. Ingresá con su contraseña o usá Google.',409);
    }else {validatePassword(b.password,invite.email_normalized);user=(await c.query('insert into client_portal_users(organization_id,client_id,email,email_normalized,password_hash,full_name) values($1,$2,$3,$4,$5,$6) returning *',[invite.organization_id,invite.client_id,invite.email_normalized,invite.email_normalized,await bcrypt.hash(b.password,12),text(b.fullName,120)])).rows[0];}
    await c.query('insert into client_portal_grants(organization_id,client_id,portal_user_id,granted_by_user_id) values($1,$2,$3,$4) on conflict(organization_id,client_id,portal_user_id) do update set active=true,revoked_at=null,revoked_by_user_id=null',[invite.organization_id,invite.client_id,user.id,invite.invited_by_user_id]);
+   await grantConsent(c,{organizationId:invite.organization_id,subjectKind:'portal_user',subjectId:String(user.id),purpose:'portal',source:'client_portal',basis:'contract',evidence:{invite_id:String(invite.id),method:'password'}});
    await c.query('update client_portal_invites set accepted_at=now() where id=$1',[invite.id]);const rawSession=crypto.randomBytes(32).toString('hex');
    await c.query("insert into client_portal_sessions(token_hash,portal_user_id,expires_at) values($1,$2,now()+interval '7 days')",[hash(rawSession),user.id]);
    await c.query('commit');transaction=false;send(res,201,{ok:true},{'Set-Cookie':portalCookie(rawSession,604800)});return true;
@@ -244,7 +241,7 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
    await c.query('delete from client_portal_password_resets where portal_user_id=$1',[saved.portal_user_id]);
    await c.query('commit');transaction=false;send(res,200,{ok:true});return true;
   }
-  const user=await portalSession(db,req);if(!user)fail('Ingresá al portal de cliente',401);
+  const user=await readClientPortalSession(db,req);if(!user)fail('Ingresá al portal de cliente',401);
   if(logout){if(req.method!=='POST')fail('Método no permitido',405);await db.query('delete from client_portal_sessions where token_hash=$1',[user.token_hash]);send(res,200,{ok:true},{'Set-Cookie':portalCookie('',0)});return true;}
   if(me){if(req.method!=='GET')fail('Método no permitido',405);const client=(await db.query('select o.name as organization_name,c.name as client_name from client_portal_users u join organizations o on o.id=u.organization_id join agency_clients c on c.id=u.client_id and c.organization_id=u.organization_id where u.id=$1 and o.active and c.active',[user.id])).rows[0]||null;send(res,200,{user:{fullName:user.full_name,email:user.email},client});return true;}
   if(deliveries){if(req.method!=='GET')fail('Método no permitido',405);const rows=(await db.query(`select distinct d.id,d.title,d.summary,d.asset_name,d.version,d.published_at,w.title as work_order_title,to_char(w.due_date,'YYYY-MM-DD') as due_date,w.due_time,p.name as project_name,c.name as client_name
@@ -310,5 +307,5 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
    on conflict(delivery_id,portal_user_id,version) do update set decision=excluded.decision,comment_id=excluded.comment_id,updated_at=now() returning decision,created_at,updated_at`,[delivery.organization_id,delivery.id,user.id,delivery.version,decision,commentId])).rows[0];
   await notifyPortalActivity(c,delivery,{label:decision==='approved'?'El cliente aprobó':'El cliente pidió cambios en',body:decisionBody,dedupe:`portal-decision-${delivery.id}-${delivery.version}-${user.id}`});
   await c.query('commit');transaction=false;send(res,200,{decision:result});return true;
- }catch(error){if(transaction)await c.query('rollback');console.error(JSON.stringify({event:'client_portal_error',status:error.status||500,code:error.code||null,message:error.status?null:error.message}));const linkStatus=['expired','revoked','used'].includes(error.link_status)?{link_status:error.link_status}:{};send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación',...linkStatus});return true;}finally{c?.release();}
+ }catch(error){if(transaction)await c.query('rollback');console.error(JSON.stringify({event:'client_portal_error',status:error.status||500,code:error.code||null,message:error.status?null:redactPiiText(error.message)}));const linkStatus=['expired','revoked','used'].includes(error.link_status)?{link_status:error.link_status}:{};send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación',...linkStatus});return true;}finally{c?.release();}
 }

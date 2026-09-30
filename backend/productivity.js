@@ -6,6 +6,7 @@ import {fail,text,id,optId,date,option,owned,link} from './suite-validation.js';
 import {visibleRecord} from './record-lifecycle.js';
 import {profilePhoto} from './media-policy.js';
 import {historyPage,historyResult} from './history-page.js';
+import {redactPiiText} from './pii-safety.js';
 import {saveCommentMentions} from './comment-mentions.js';
 
 
@@ -138,5 +139,5 @@ export async function productivity({req,res,url,db,session,body,send}){
    {rows:result.payments,userId:'received_by_user_id',fallback:['received_by_email']},
   ]);
   await c.query('commit');tx=false;send(res,status,result);return true;
- }catch(error){if(tx)await c.query('rollback');console.error(JSON.stringify({event:'productivity_error',path:url.pathname,status:error.status||500,message:error.status?error.message:'unexpected'}));send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación'});return true;}finally{c?.release();}
+ }catch(error){if(tx)await c.query('rollback');console.error(JSON.stringify({event:'productivity_error',path:url.pathname,status:error.status||500,message:error.status?redactPiiText(error.message):'unexpected'}));send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación'});return true;}finally{c?.release();}
 }

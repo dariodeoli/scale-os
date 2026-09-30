@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import {inspectInternalSubscription,updateInternalSubscription,realOrganization} from './platform-subscription-service.js';
 import {optionalUpdate,createPlatformPreview,consumePlatformDeletionProof} from './account-security.js';
+import {redactPiiText} from './pii-safety.js';
 
 const currencies=['USD','PYG'];
 const realUser=alias=>`not ${alias}.is_demo_guest and ${alias}.deleted_at is null and ${alias}.email not ilike '%@demo.example.invalid' and ${alias}.email not ilike '%@scale-demo.example.invalid'`;
@@ -285,7 +286,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    send(res,200,{actions:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   fail('Ruta de administración global no encontrada.',404);
-  }catch(error){if(process.env.PLATFORM_ADMIN_DEBUG&&!error.status)console.error('PLATFORM 500:',error.message,error.detail||'',error.constraint||'');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación global.'});return true;}
+  }catch(error){if(process.env.PLATFORM_ADMIN_DEBUG&&!error.status)console.error('PLATFORM 500:',redactPiiText(error.message),error.detail||'',error.constraint||'');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación global.'});return true;}
 }
 export function platformBootstrapEmail(value){
  const email=String(value||'').trim().toLowerCase();

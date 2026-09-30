@@ -120,9 +120,9 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
   const profile={email:saved.email,email_verified:true,name:nameOf(payload.full_name)||saved.email};
   if(saved.purpose==='trial'){
    const trial=trialDetailsFromInput({company:payload.company,currency:payload.currency,consent:true});
-   account=await registerTrial(client,profile,trial);
+   account=await registerTrial(client,profile,trial,{method:'password'});
   }else{
-   account=await claimInvite(client,saved.invite_link_id,profile);
+   account=await claimInvite(client,saved.invite_link_id,profile,{method:'password'});
   }
   await client.query('update users set email_verified_at=coalesce(email_verified_at,now()) where id=$1',[saved.user_id]);
   await client.query('update auth_email_verifications set used_at=now() where id=$1',[saved.id]);

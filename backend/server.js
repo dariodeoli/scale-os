@@ -46,14 +46,17 @@ import {trialDetails,trialDetailsFromInput,registerTrial} from './trial-registra
 import {platformAdmin,bootstrapInitialPlatformAdmin,ensurePlatformOwnerAdmin} from './platform-admin.js';
 import {applyPendingMigrations} from './migrations-runner.mjs';
 import {rolePermissions,roleCan} from './permissions.js';
+import {redactPiiText} from './pii-safety.js';
 import {createEmailDelivery,publicEmailDeliveryStatus} from './email-delivery.js';
 import {acceptClientPortalGoogleInvite,clientPortal,clientPortalGoogleInvite,clientPortalResetEmail,clientPortalInviteEmail,clientPortalUrl} from './client-portal.js';
 import {accountSecurity,googleRecentAuthBinding,issueGoogleRecentAuthHandoff} from './account-security.js';
+import {personalData} from './personal-data.js';
+import {startPrivacyRetention} from './personal-data-retention.js';
 
 const { Pool } = pg;
 const port = Number(process.env.PORT || 3000);
 const db = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
- log: (message, duration) => { if(typeof duration==='number'&&duration>250)console.info(JSON.stringify({event:'slow_query',duration_ms:Math.round(duration),message:typeof message==='string'?message.slice(0,200):''})); } });
+ log: (message, duration) => { if(typeof duration==='number'&&duration>250)console.info(JSON.stringify({event:'slow_query',duration_ms:Math.round(duration),message:redactPiiText(typeof message==='string'?message.slice(0,200):'')})); } });
 const root = path.dirname(fileURLToPath(import.meta.url));
 const release=JSON.parse(await fs.readFile(path.join(root,'release-version.json'),'utf8'));
 const rucConfig=rucLookupConfig();
@@ -217,6 +220,7 @@ async function init() {
     await migration.query(await fs.readFile(path.join(root,'migrations/20260924_subscription_suspension_notice.sql'),'utf8'));
     await migration.query(await fs.readFile(path.join(root,'migrations/20260929_notification_email_status.sql'),'utf8'));
     await migration.query(await fs.readFile(path.join(root,'migrations/20260929_inventory_location_position.sql'),'utf8'));
+    await migration.query(await fs.readFile(path.join(root,'migrations/20260930_personal_data.sql'),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline'});
     await migration.query('commit');
   }catch(error){await migration.query('rollback');throw error;}finally{migration.release();}
@@ -330,6 +334,7 @@ const server = http.createServer(async (req,res) => {
     if(await inventoryReservations({req,res,url,db,session,body,send}))return;
     if(await workChecklists({req,res,url,db,session,body,send}))return;
     if(await publicExperience({req,res,url,db,session,body,send,cookie,parseCookies}))return;
+    if(await personalData({req,res,url,db,session,body,send}))return;
     if(await clientPortal({req,res,url,db,session,body,send,sendPasswordReset:sendClientPortalReset,sendInvite:sendClientPortalInvite,emailAvailable:emailDelivery.status.available}))return;
     if(await inviteLinks({req,res,url,db,session,body,send,appUrl,sendAccessGranted}))return;
     if(req.method!=='GET'){
@@ -526,7 +531,7 @@ if (process.env.SCALE_CORE_API_DISABLE_LISTEN !== '1') {
   server.listen(port, () => {
     console.log(`Scale Core API listening on ${port}`);
     init()
-      .then(() => { databaseReady = true; startAutomation(db,emailDelivery); server.once('close',startLiveVisitorCleanup(db));server.once('close',startMaintenance(db));console.log(JSON.stringify({event:'email_delivery_readiness',provider:emailDelivery.status.provider,available:emailDelivery.status.available,missing:emailDelivery.status.missing}));console.log('Scale database ready'); })
+      .then(() => { databaseReady = true; startAutomation(db,emailDelivery); server.once('close',startLiveVisitorCleanup(db));server.once('close',startMaintenance(db));server.once('close',startPrivacyRetention(db));console.log(JSON.stringify({event:'email_delivery_readiness',provider:emailDelivery.status.provider,available:emailDelivery.status.available,missing:emailDelivery.status.missing}));console.log('Scale database ready'); })
       .catch((error) => { console.error('Database initialization failed', error); });
   });
 }

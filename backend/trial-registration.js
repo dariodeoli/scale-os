@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import {startTrial} from './subscription-billing.js';
 import {ensurePipelineStages} from './pipeline-stages.js';
+import {grantConsent} from './personal-data.js';
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
 export function trialDetails(params){
  if(params.get('signup')!=='1')return null;
@@ -15,7 +16,8 @@ export function trialDetailsFromInput(input={}){
 }
 // The Google callback owns the transaction. Profile must have been verified by
 // Google's token/userinfo exchange, never supplied by a browser request body.
-export async function registerTrial(c,profile,details){
+// `method` deja en la evidencia cómo se verificó el correo (google | password).
+export async function registerTrial(c,profile,details,{method='google'}={}){
  const email=String(profile.email||'').trim().toLowerCase();
  if(profile.email_verified!==true||!/^\S+@\S+\.\S+$/.test(email))fail('Verificá tu correo con Google.',403);
  await c.query('select pg_advisory_xact_lock(hashtextextended($1,0))',['trial-registration:'+email]);
@@ -36,5 +38,8 @@ export async function registerTrial(c,profile,details){
  await c.query('insert into agency_user_profiles(organization_id,user_id,full_name) values($1,$2,$3) on conflict(organization_id,user_id) do nothing',[org.id,user.id,name]);
  await startTrial(c,org.id,details.currency);
  await c.query("insert into os_trial_registrations(user_id,organization_id,consent_version) values($1,$2,'2026-09-10:30d-10usd-50000pyg-2d-grace')",[user.id,org.id]);
+ // PDP (#112): el alta registra la aceptación del aviso vigente por finalidad.
+ await grantConsent(c,{organizationId:org.id,subjectKind:'user',subjectId:String(user.id),purpose:'account',source:'registration',grantedByUserId:user.id,evidence:{method,terms_accepted:true}});
+ await grantConsent(c,{organizationId:org.id,subjectKind:'user',subjectId:String(user.id),purpose:'service',source:'registration',grantedByUserId:user.id,evidence:{method,terms_accepted:true}});
  return {userId:user.id,organizationId:org.id};
 }

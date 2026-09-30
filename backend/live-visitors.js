@@ -1,5 +1,6 @@
 import {fail} from './suite-validation.js';
 import {roleCan} from './permissions.js';
+import {redactPiiText} from './pii-safety.js';
 const publicPath='/api/public/live-visitors/heartbeat';
 const publicCountPath='/api/public/live-visitors/count';
 const countsPath='/api/agency/live-visitors';
@@ -79,7 +80,7 @@ export async function liveVisitors({req,res,url,db,session,send}){
   send(res,202,{ok:true},responseHeaders);return true;
  }catch(error){
   if(tx)await c.query('rollback');
-  if(process.env.LIVE_VISITORS_DEBUG&&!error.status)console.error('LIVE 500:',error.message,error.detail||'');
+  if(process.env.LIVE_VISITORS_DEBUG&&!error.status)console.error('LIVE 500:',redactPiiText(error.message),error.detail||'');
   send(res,error.status||500,{error:error.status?error.message:'Contador temporalmente no disponible'},
    {...responseHeaders,...(error.status===429?{'Retry-After':'30'}:{})});return true;
  }finally{c?.release();}

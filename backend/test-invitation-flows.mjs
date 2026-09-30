@@ -15,7 +15,8 @@ const migrations=[
   '20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql',
   '20260916_identity_photo_removal.sql',
   '20260910_client_lifecycle.sql','20260911_agency_reports.sql','20260911_invite_link_metrics.sql',
- '20260911_invite_link_details.sql'
+ '20260911_invite_link_details.sql',
+ '20260930_personal_data.sql'
 ];
 
 async function fixture(){

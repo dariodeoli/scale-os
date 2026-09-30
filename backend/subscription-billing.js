@@ -1,4 +1,5 @@
 import {createHmac,timingSafeEqual,randomUUID} from 'node:crypto';
+import {redactPiiText} from './pii-safety.js';
 
 const DAY=86400000,GRACE=2*DAY,VERSION='2025-03-31.basil';
 const plans={USD:{amount:10,minor:1000},PYG:{amount:50000,minor:50000}};
@@ -407,6 +408,6 @@ export async function subscriptionBilling({req,res,url,db,session,body,send,send
    const sub=await stripe(cfg,`subscriptions/${objectId(row.stripe_subscription_id,'sub')}`);subscriptionValid(sub,row,cfg,row.stripe_customer_id);
    const portal=await stripe(cfg,'billing_portal/sessions',{customer:row.stripe_customer_id,return_url:`${cfg.origin}/?billing=portal`});return {url:stripeUrl(portal.url,'billing.stripe.com')};
   });send(res,200,result);
- }catch(error){if(process.env.BILLING_DEBUG&&!error.status)console.error('BILLING 500:',error.message,error.detail||'',error.constraint||'');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación de suscripción',code:error.status?error.code:'BILLING_INTERNAL'});}
+ }catch(error){if(process.env.BILLING_DEBUG&&!error.status)console.error('BILLING 500:',redactPiiText(error.message),error.detail||'',error.constraint||'');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación de suscripción',code:error.status?error.code:'BILLING_INTERNAL'});}
  return true;
 }

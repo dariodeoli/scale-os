@@ -10,7 +10,7 @@ const pg=new PGlite();
 await pg.exec(await fs.readFile('schema.sql','utf8'));
 for(const name of ['20260908_treasury_ledger','20260908_people_commissions_comments','20260908_operations_complete','20260908_referral_discounts','20260908_collaborator_profiles','20260908_agency_suite','20260908_daily_controls'])await pg.exec(await fs.readFile(`migrations/${name}.sql`,'utf8'));
 await identitySchema(pg);
-for(const name of ['20260910_productivity','20260910_profile_identity','20260910_demo_sessions','20260910_work_checklists','20260910_notifications','20260910_project_assignees','20260911_assignment_notifications','20260911_drive_links','20260912_comment_mentions','20260913_ruc_collaboration','20260914_production_traceability'])await pg.exec(await fs.readFile(`migrations/${name}.sql`,'utf8'));
+for(const name of ['20260910_productivity','20260910_profile_identity','20260910_demo_sessions','20260910_work_checklists','20260910_notifications','20260910_project_assignees','20260911_assignment_notifications','20260911_drive_links','20260912_comment_mentions','20260913_ruc_collaboration','20260914_production_traceability','20260930_personal_data'])await pg.exec(await fs.readFile(`migrations/${name}.sql`,'utf8'));
 const query=(sql,values)=>pg.query(sql,values),db={query,connect:async()=>({query,release(){}})};
 const insert=async(sql,values)=>(await query(sql+' returning id',values)).rows[0].id;
 const org=await insert("insert into organizations(slug,name) values('mention-a','Mention A')");

@@ -18,6 +18,7 @@ import {parseListFields,parseListWindow,windowSql,windowRows,dropWindowTotal,pro
 import {mediaPeople,mediaPhoto} from './agency-media.js';
 import {commercialProfile} from './commercial-lifecycle.js';
 import {ensurePipelineStages,defaultLeadStage,wonLeadStage} from './pipeline-stages.js';
+import {CONSENT_BASES,ensureConsent,grantConsent} from './personal-data.js';
 
 // `?fields=` de oportunidades y planes (#71): lista blanca explícita por tabla.
 const leadListFields=['id','name','email','phone','stage','amount','currency','probability','notes','client_id','created_at','updated_at'];
@@ -179,7 +180,10 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
     // el `page` canónico de las listas paginadas.
     result={records:projectRows(dropWindowTotal(cut.rows),fields),...(window.paginated?{hasMore:cut.hasMore,page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{})};
    }
-   else if(kind==='leads'&&action==='convert'&&key&&req.method==='POST'){const lead=await owned(c,table,key,org);if(lead.client_id)result={clientId:lead.client_id};else{const won=wonLeadStage(await ensurePipelineStages(c,org));const client=(await c.query('insert into agency_clients(organization_id,name,email,phone,notes) values($1,$2,$3,$4,$5) returning id',[org,lead.name,lead.email,lead.phone,lead.notes])).rows[0];await c.query('update agency_leads set stage=$1,probability=100,client_id=$2,updated_at=now() where id=$3',[won,client.id,key]);result={clientId:client.id};}}
+   else if(kind==='leads'&&action==='convert'&&key&&req.method==='POST'){const lead=await owned(c,table,key,org);if(lead.client_id)result={clientId:lead.client_id};else{const won=wonLeadStage(await ensurePipelineStages(c,org));const client=(await c.query('insert into agency_clients(organization_id,name,email,phone,notes) values($1,$2,$3,$4,$5) returning id',[org,lead.name,lead.email,lead.phone,lead.notes])).rows[0];await c.query('update agency_leads set stage=$1,probability=100,client_id=$2,updated_at=now() where id=$3',[won,client.id,key]);result={clientId:client.id};
+     // PDP (#112): la conversión conserva los consentimientos vigentes del prospecto.
+     const consents=(await c.query('select purpose,basis,notice_version,evidence from personal_data_consents where organization_id=$1 and subject_kind=$2 and subject_id=$3 and revoked_at is null',[org,'lead',String(key)])).rows;
+     for(const consent of consents)await ensureConsent(c,{organizationId:org,subjectKind:'client',subjectId:String(client.id),purpose:consent.purpose,basis:consent.basis,source:'lead_conversion',grantedByUserId:user.id,evidence:{...consent.evidence,converted_from_lead:String(key)},noticeVersion:consent.notice_version});}}
    else if((req.method==='POST'&&!key)||(req.method==='PATCH'&&key&&!action)){
     const old=key?await owned(c,table,key,org):{},incoming=await body(req),b={...old,...incoming},name=text(b.name,160);if(name.length<2)fail('Ingresá el nombre');
     if(!key&&b.currency===undefined)b.currency=await companyCurrency(c,org);
@@ -197,11 +201,17 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
      const probability=stageKind==='won'?100:stageKind==='lost'?0:Number(b.probability??10);if(!Number.isInteger(probability)||probability<0||probability>100)fail('Probabilidad de 0 a 100');
      columns=['name','email','phone','stage','amount','currency','probability','notes'];values=[name,email(b.email),Object.hasOwn(incoming,'phone')?phone(b.phone):(b.phone??null),chosen?.slug||requested,amount(b.amount||0),option(b.currency,currencies),probability,text(b.notes||'')];
     }
+    // PDP (#112): la base legal declarada se valida antes de escribir el registro.
+    if(kind==='leads'&&Object.hasOwn(incoming,'lawful_basis')&&!CONSENT_BASES.includes(incoming.lawful_basis))fail('Base legal inválida');
     // El PATCH de una oportunidad bumpea updated_at (misma convención que el
     // resto de los recursos; `agency_plans` no tiene esa columna).
     const stamp=key&&kind==='leads'?',updated_at=now()':'';
     const query=key?`update ${table} set ${columns.map((n,i)=>`${n}=$${i+1}`).join(',')}${stamp} where id=$${values.length+1} returning *`:`insert into ${table}(${columns.join(',')},organization_id) values(${values.map((_,i)=>`$${i+1}`).join(',')},$${values.length+1}) returning *`;
     result={record:(await c.query(query,[...values,key||org])).rows[0]};status=key?200:201;
+    // PDP (#112): la agencia declara la base legal al cargar datos de terceros.
+    if(kind==='leads'&&Object.hasOwn(incoming,'lawful_basis')){
+     await grantConsent(c,{organizationId:org,subjectKind:'lead',subjectId:String(result.record.id),purpose:'contact',source:'crm_lead',basis:incoming.lawful_basis,grantedByUserId:user.id,evidence:{declared_by_user_id:String(user.id),channel:'crm'}});
+    }
    }else fail('Método no permitido',405);
   }else if(kind==='budgets'){
    const b=await owned(c,'agency_budgets',key,org);
