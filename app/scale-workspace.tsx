@@ -16,7 +16,6 @@ import './client-directory.css';
 import dynamic from 'next/dynamic';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
-import {AvisoPrivacidad} from 'owncoding-ui';
 import {VersionNotice} from './version-notice';
 import {GoogleSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
