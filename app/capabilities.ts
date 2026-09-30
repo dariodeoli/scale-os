@@ -82,6 +82,16 @@ export function canOpenPeopleWorkspace(role: string | null | undefined){
  return roleCan(role, 'members.manage') || roleCan(role, 'salary.view');
 }
 
+/**
+ * Contacto del cliente (correo, teléfono, documento) — Ley 7593/2025, Refs #113.
+ * Lo ven los roles que necesitan operar la relación comercial o cobrarla; el
+ * resto ve el dato enmascarado (`PiiTexto`/`maskPii`). Es la decisión de la
+ * interfaz: el API de #112 revalida el mismo criterio en el servidor.
+ */
+export function canSeeClientContact(role: string | null | undefined){
+ return roleCan(role, 'clients.manage') || roleCan(role, 'finance.view');
+}
+
 /** Topes por llamada de los endpoints de lote del dominio. */
 export const BATCH_LIMITS = {
  budgets: 50,

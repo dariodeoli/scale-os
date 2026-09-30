@@ -14,3 +14,16 @@
 
 /* Mobile: enlaces de archivos de la entrega con target de 44 px. */
 .delivery-links a{display:inline-flex;align-items:center;min-height:44px}
+
+/* Consentimiento del portal (Ley 7593/2025, Refs #113): casilla explícita, sin
+   premarcar, con el enlace al aviso público. Mantiene el sistema visual del
+   portal (decisión 17-09) y el target táctil de 44 px. */
+.client-portal .portal-consent{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;font-weight:600;line-height:1.5;color:var(--text-subtle,var(--text-muted))}
+.client-portal .portal-consent input{flex:none;width:20px;min-width:20px;height:20px;min-height:20px;margin:2px 0 0;padding:0;accent-color:var(--brand-600);cursor:pointer}
+.client-portal .portal-consent a{color:var(--brand-600);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.client-portal .portal-consent a:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px}
+/* Canal de derechos del portal (Refs #113): una línea, en el idioma visual del
+   portal, sin competir con el contenido. */
+.client-portal-shell>.portal-privacy{width:min(960px,100%);margin:0 auto;padding:18px 4px 0;color:var(--text-subtle,var(--text-muted));font-size:11.5px;line-height:1.7;text-align:center}
+.portal-privacy a{color:var(--brand-600);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.portal-privacy a:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px}

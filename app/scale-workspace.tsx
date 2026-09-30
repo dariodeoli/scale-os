@@ -10,11 +10,13 @@ import {WorkspaceBrand} from './workspace-brand';
 import {ThemeToggle} from './theme-toggle';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar, RAIL_ITEM} from './desktop-sidebar';
-import {roleCan,BATCH_LIMITS,limitSelection} from './capabilities';
+import {roleCan,BATCH_LIMITS,limitSelection,canSeeClientContact} from './capabilities';
+import {maskEmail} from './list-format';
 import './client-directory.css';
 import dynamic from 'next/dynamic';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
+import {AvisoPrivacidad} from 'owncoding-ui';
 import {VersionNotice} from './version-notice';
 import {GoogleSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
@@ -923,6 +925,7 @@ export default function Home() {
             <button className="primary login-button">Continuar</button>
           </form>
           <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>
+          <AvisoPrivacidad compact finalidad="Usamos tu correo para autenticarte y darte acceso a tu espacio." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
           <WorkspaceFooter/>
         </div>
       </div>
@@ -1056,7 +1059,7 @@ export default function Home() {
               <ThemeToggle/>
               <WorkspaceGuide {...guideProps} variant="help"/>
               <WorkspaceSearch key={workspaceScope} navigate={setActive} records={[
-                ...clients.map(c=>({id:c.id,name:c.name,context:c.email||'Sin correo registrado',kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
+                ...clients.map(c=>({id:c.id,name:c.name,context:canSeeClientContact(user?.role)?(c.email||'Sin correo registrado'):(c.email?maskEmail(c.email):'Sin correo registrado'),kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
                 ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
                 ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.assignee_names?.length?o.assignee_names.map(name=>({id:name,full_name:name,is_primary:false})):o.effective_assignees||o.assignees||project?.assignees};}),
               ]}/>

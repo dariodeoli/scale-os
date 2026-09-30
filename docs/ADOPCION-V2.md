@@ -155,3 +155,55 @@ Tests que fijan lo adoptado: `tests/product-footer.test.tsx`,
 `tests/notifications-api-integration.test.tsx` (handler/SQL reales con PGlite:
 filtros, paginación, resolver/reabrir, read-all y aislamiento por empresa),
 `tests/version-notice.test.tsx`, `tests/contrast-theme.test.tsx`.
+
+## 8. Tanda owncoding-ui v0.54.0 (Refs #113) — datos personales (Ley 7593/2025)
+
+Tag fijado `git+https://github.com/dariodeoli/owncoding-ui.git#v0.54.0`. La
+biblioteca publica los objetos de la §12 de `REGLAS-ECOSISTEMA.md`; la app los
+adopta sin variantes locales:
+
+| Objeto | Dónde se adopta | Qué aporta la app |
+| --- | --- | --- |
+| `AvisoPrivacidad` | registro (paso 1), login, invitaciones de equipo y del portal | finalidad, detalle y enlaces reales |
+| `ConsentimientoDatos` | registro e invitación de equipo | estado, versión del aviso, error accesible y registro |
+| `registroConsentimiento` | `app/privacy-data.ts`, registro e invitación | finalidad, versión, fecha, canal y titular reales |
+
+El portal del cliente **no** monta `ConsentimientoDatos`: la decisión 17-09 le
+da su propio sistema visual público y la casilla se dibuja con
+`.portal-consent` (no premarcada, con versión y enlace). Es la única excepción y
+queda acá documentada.
+
+### Puentes vivos de esta tanda
+
+| Ruta de la app | Objeto/contrato esperado | Qué aporta la app |
+| --- | --- | --- |
+| `app/privacy-notice.ts` | Aviso versionado de #112 (`GET /api/privacy/notice`) | versión, fecha, estado y textos; hoy plantilla con `estado:'revision'` hasta que el dueño apruebe |
+| `app/privacy-data.ts` | `GET/POST /api/privacy/consents`, `GET /api/privacy/my-data`, `POST /api/privacy/requests`, `GET /api/privacy/my-data/export` | contrato tipado, cola local `scale:privacy-consents` cuando el endpoint no existe y estados honestos (sin pedidos ni exports falsos) |
+| `app/my-data.tsx` | «Mis datos» de #112 | resumen real, revocación, pedidos ARSOP, SLA y confirmación reforzada de supresión |
+| `canSeeClientContact` + `PiiTexto`/`maskPii` | enmascarado por rol de #112 (§12.3) | la mitad de interfaz: la lista y la ficha del cliente no escriben el valor completo para roles sin permiso |
+
+### Pendientes de esta tanda
+
+- **P8 · API de privacidad (#112).** Sin endpoints, «Mis datos» muestra el
+  puente local y el canal de derechos real; cuando el API exista, la vista ya
+  consume su contrato sin cambiar de ruta.
+- **P9 · Enmascarado en el servidor (#112).** `GET /api/agency/clients` y
+  `GET /productivity/clients/:id` siguen devolviendo correo, teléfono y RUC a
+  todos los roles; la UI los enmascara, pero la revalidación tiene que vivir en
+  el API (regla «el front normaliza y el API revalida»).
+- **P10 · Texto legal final.** `PRIVACY_NOTICE.estado` pasa a `aprobado` con el
+  texto del dueño; el canal de correo queda `null` hasta que exista un buzón
+  real (no se inventa una dirección).
+- **P11 · Adopción por verticales (#114/#115/#116).** COM/OPS/FIN reutilizan
+  `AvisoPrivacidad` + `canSeeClientContact`/`PiiTexto`; los formularios propios
+  se auditan con el checklist de la §12.6.
+
+Tests que fijan lo adoptado: `tests/privacy-pdp-113.test.tsx` (aviso, no
+premarcado, versión, registro, permisos, enmascarado, SLA y supresión), más
+`tests/product-footer.test.tsx`/`tests/workspace-footer.test.tsx` para el
+enlace del pie.
+
+Evidencia visual: `docs/qa/pdp-113/` — 16 capturas en 1440×900 y 390×844,
+claro y oscuro (aviso, consentimiento, «Mis datos» y supresión), sobre el
+fixture `build-tools/visual-harness/fixtures/pdp-privacidad-113.mjs`
+(0 hallazgos de geometría a 1440 y 390).

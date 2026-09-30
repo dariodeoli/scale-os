@@ -54,7 +54,7 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
  // vez en la barra de utilidades (variante `help`, icono con tooltip) en vez de
  // repetirse en el encabezado de cada página; la tarjeta de Resumen sigue como
  // acceso contextual a los primeros pasos.
- const guideDialog=open?<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}<p className="form-note">¿Algo no responde? Consultá el <a className="text-button" href="/status">estado del sistema</a>.</p></Dialog>:null;
+ const guideDialog=open?<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}<p className="form-note">¿Algo no responde? Consultá el <a className="text-button" href="/status">estado del sistema</a>.</p><p className="form-note">Tus datos personales: <a className="text-button" href="/privacidad">Política de Privacidad</a> y tus derechos desde «Mis datos».</p></Dialog>:null;
  if(variant==='help')return <><button type="button" className="icon-button" title="Guía del panel" aria-label="Guía del panel" onClick={()=>setOpen(true)}><CircleHelp size={18}/></button>{guideDialog}</>;
  if(variant==='card'){
   if(!preference.ready||preference.dismissed)return null;

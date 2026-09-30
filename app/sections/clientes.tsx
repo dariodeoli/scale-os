@@ -2,7 +2,8 @@
 import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
 import {Aviso, IconAction, fechaListaCorta} from 'owncoding-ui';
-import {BATCH_LIMITS, roleCan} from '../capabilities';
+import {BATCH_LIMITS, roleCan, canSeeClientContact} from '../capabilities';
+import {PiiTexto, maskEmail} from '../list-format';
 import {clientState} from '../client-status';
 import {clientWhatsappUrl} from '../client-links';
 import {clientSince, moneyKpi} from '../client-format';
@@ -63,7 +64,11 @@ type ClientRowProps = {
 function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms, archiveBusy, onOpen, onToggleArchive, refresh, role, selectable, selected, onSelect}: ClientRowProps) {
   const state = clientState(client);
   const since = clientSince(client.created_at);
-  const tel = clientWhatsappUrl(client.phone || undefined);
+  // Minimización por rol (Ley 7593/2025, Refs #113): sin permiso de contacto
+  // el correo, el teléfono y el RUC se muestran parciales y el valor completo
+  // no viaja al DOM; el API de #112 revalida el mismo criterio.
+  const canSeeContact = canSeeClientContact(role);
+  const tel = canSeeContact ? clientWhatsappUrl(client.phone || undefined) : '';
   return <ListRow template={CLIENT_TEMPLATE} className="client-hub-row" data-archived={client.active===false||undefined}>
     <div role="cell" className="flex min-w-0 items-center gap-2">
       {selectable ? <label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
@@ -72,8 +77,8 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
       </button>
     </div>
     <div role="cell" className="min-w-0 text-[11px] leading-tight text-mute">
-      <span className="block truncate" title={client.email || 'Sin correo registrado'}>{client.email || 'Sin correo registrado'}</span>
-      <span className="block truncate" title={`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'} · Cliente desde ${since || 'sin fecha de alta'}`}>{client.phone || 'Sin teléfono'} · RUC {client.tax_id || 'sin registrar'} · desde {since || 'sin fecha'}</span>
+      <span className="block truncate"><PiiTexto kind="email" value={client.email} masked={!canSeeContact} fallback="Sin correo registrado"/></span>
+      <span className="block truncate" title={canSeeContact?`${client.phone || 'Sin teléfono'} · RUC ${client.tax_id || 'sin registrar'} · Cliente desde ${since || 'sin fecha de alta'}`:`Contacto protegido para tu rol · Cliente desde ${since || 'sin fecha de alta'}`}><PiiTexto kind="telefono" value={client.phone} masked={!canSeeContact} fallback="Sin teléfono"/> · RUC <PiiTexto kind="documento" value={client.tax_id} masked={!canSeeContact} fallback="sin registrar"/> · desde {since || 'sin fecha'}</span>
     </div>
     <div role="cell" className="min-w-0"><StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip></div>
     <div role="cell" className="flex min-w-0 flex-wrap items-center justify-between gap-2">
@@ -103,7 +108,8 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
 function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms, archiveBusy, onOpen, onToggleArchive, refresh, role, selectable, selected, onSelect}: ClientRowProps) {
   const state = clientState(client);
   const since = clientSince(client.created_at);
-  const tel = clientWhatsappUrl(client.phone || undefined);
+  const canSeeContact = canSeeClientContact(role);
+  const tel = canSeeContact ? clientWhatsappUrl(client.phone || undefined) : '';
   return <article className="client-hub-card flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" data-archived={client.active===false||undefined}>
     <header className="flex items-start justify-between gap-3">
       <div className="flex min-w-0 items-start gap-2">
@@ -115,9 +121,9 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
       <StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip>
     </header>
     <dl className="grid grid-cols-2 gap-2 text-[11.5px]">
-      <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Correo</dt><dd className="mt-0.5 truncate text-fore" title={client.email || 'Sin correo registrado'}>{client.email || 'Sin correo registrado'}</dd></div>
-      <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Teléfono</dt><dd className="mt-0.5 text-fore">{client.phone || 'Sin teléfono'}</dd></div>
-      <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">RUC</dt><dd className="mt-0.5 text-fore">{client.tax_id || 'Sin RUC registrado'}</dd></div>
+      <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Correo</dt><dd className="mt-0.5 truncate text-fore"><PiiTexto kind="email" value={client.email} masked={!canSeeContact} fallback="Sin correo registrado"/></dd></div>
+      <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Teléfono</dt><dd className="mt-0.5 text-fore"><PiiTexto kind="telefono" value={client.phone} masked={!canSeeContact} fallback="Sin teléfono"/></dd></div>
+      <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">RUC</dt><dd className="mt-0.5 text-fore"><PiiTexto kind="documento" value={client.tax_id} masked={!canSeeContact} fallback="Sin RUC registrado"/></dd></div>
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cliente desde</dt><dd className="mt-0.5 text-fore">{since || 'Sin fecha de alta'}</dd></div>
       <div className="col-span-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cartera</dt><dd className="mt-0.5 text-fore">{stat && (stat.projects || stat.pieces) ? `${stat.projects} proyectos · ${stat.pieces} piezas${stat.nextDue ? ` · próxima entrega ${fechaListaCorta(stat.nextDue)}` : ''}` : 'Sin proyectos activos'}</dd></div>
     </dl>

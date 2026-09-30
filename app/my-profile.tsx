@@ -8,6 +8,8 @@ import {FotoPerfil} from './foto-perfil';
 import {notify} from './feedback';
 import {AccountSecurity} from './account-security';
 import {LoadingBlock,StateChip} from './ui-v2';
+import {MyDataPanel} from './my-data';
+import {PRIVACY_NOTICE,PRIVACY_RIGHTS_CHANNEL} from './privacy-notice';
 
 type Profile={email:string;full_name?:string|null;photo_url?:string|null;identity_scope?:'personal'|'demo'|'personal_readonly';google_connected?:boolean};
 
@@ -22,7 +24,7 @@ const EDITOR_CONTROLS='grid gap-2 px-2 pb-3 pt-2 [&_button]:min-h-11 [&_button]:
 // editores siguen siendo los compartidos (`Dialog`, `Editor`, `ProfilePhoto`).
 export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>void;refresh:()=>Promise<void>}){
  const [current,setCurrent]=useState<Profile|null>(null),[error,setError]=useState(''),[warning,setWarning]=useState(''),[retry,setRetry]=useState(0);
- const [photoSaving,setPhotoSaving]=useState(false),[securityOpen,setSecurityOpen]=useState(false),[nameOpen,setNameOpen]=useState(false);
+ const [photoSaving,setPhotoSaving]=useState(false),[securityOpen,setSecurityOpen]=useState(false),[nameOpen,setNameOpen]=useState(false),[dataOpen,setDataOpen]=useState(false);
  const mounted=useRef(true);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  useEffect(()=>{let alive=true;setError('');void api<{profile:Profile}>('/api/agency/productivity/profile').then(d=>{if(alive)setCurrent(d.profile);}).catch(e=>{if(alive)setError(e instanceof Error?e.message:'No se pudo cargar tu perfil.');});return()=>{alive=false;};},[retry]);
@@ -64,6 +66,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
      <summary className={DISCLOSURE}><span>Foto de perfil</span><span className="ml-2 text-[11px] font-normal text-mute">Opcional</span></summary>
      <div className="px-2 pb-3 pt-2">
       <ProfilePhoto photo={current.photo_url||null} name={name} save={async photo=>{setPhotoSaving(true);try{await save({...(!current.full_name?{full_name:name}:{}),photo_url:photo});}finally{if(mounted.current)setPhotoSaving(false);}}}/>
+     <p className="mt-2 text-[11.5px] text-mute">Usamos la foto para identificarte ante tu equipo; podés quitarla cuando quieras.</p>
      </div>
     </details>
     <details className="group" data-profile-section="name" onToggle={event=>setNameOpen(event.currentTarget.open)}>
@@ -88,7 +91,19 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
      {securityOpen?<div className="px-2 pb-3 pt-2"><AccountSecurity onClosed={close}/></div>:null}
     </details>
    </section>:null}
+   <section className={`${CARD} gap-1`} data-profile-section="data" aria-labelledby="my-profile-data-title">
+    <p id="my-profile-data-title" className={KICKER}>Mis datos y privacidad</p>
+    <div className="grid gap-2 px-2 py-3">
+     <p className="max-w-prose text-xs leading-5 text-mute">Aviso de Privacidad {PRIVACY_NOTICE.version} · {PRIVACY_NOTICE.fechaLabel}. Desde «Mis datos» podés ver el resumen y las finalidades, descargar una copia, pedir rectificación, supresión u oposición y revocar consentimientos. La respuesta llega dentro de {PRIVACY_RIGHTS_CHANNEL.slaDias} días corridos.</p>
+     <div className="flex flex-wrap items-center gap-2">
+      <button className={`secondary ${ACTION}`} type="button" onClick={()=>setDataOpen(true)}>Abrir Mis datos</button>
+      <a className={`text-button ${ACTION}`} href="/privacidad">Política de Privacidad</a>
+     </div>
+    </div>
+   </section>
    {warning?<p className="text-xs text-warn" role="status">{warning}</p>:null}
   </>:null}
- </div></Dialog>;
+ </div>
+ {dataOpen?<MyDataPanel profile={{email:current?.email||profile.email,full_name:current?.full_name||profile.full_name||null}} close={()=>setDataOpen(false)}/>:null}
+ </Dialog>;
 }

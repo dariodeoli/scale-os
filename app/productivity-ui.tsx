@@ -1,13 +1,13 @@
 "use client";
 import {urgencyField,UrgencyBadge} from './urgency';
-import {roleCan} from './capabilities';
+import {roleCan,canSeeClientContact} from './capabilities';
 import {useEffect,useState} from 'react';
 import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-react';
 import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {Aviso, Button, FilaDato, Nota, Subtabs, completeSave, fechaLista, fechaListaCorta} from 'owncoding-ui';
-import {hasDueWarning} from './list-format';
+import {hasDueWarning,PiiTexto} from './list-format';
 import {todayAsuncion} from './client-format';
 import {EmptyBlock, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
 import type {AssignedPerson} from './assigned-people';
@@ -157,9 +157,10 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
   return()=>{alive=false;};
  },[id,role]);
  const sinceValue=summary?.relationshipStartedOn||(data?String(data.client.created_at||'').slice(0,10):'');
+ const canSeeContact=canSeeClientContact(role);
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error" role="alert">{error}</p>}{data?<>
   {['owner','admin','management','sales','finance'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
-  <p>{s(data.client,'email')} · {s(data.client,'phone')}</p><WhatsAppButton className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))}/><p>{s(data.client,'notes')}</p>
+  <p><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/> · <PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>{canSeeContact?<WhatsAppButton className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))}/>:null}<p>{s(data.client,'notes')}</p>
   {summary&&<section className="client-summary" aria-label="Resumen comercial del cliente">
    <div className="client-summary-grid">
     <article><span>Estado del servicio</span><strong>{clientState({lifecycle_status:s(data.client,'lifecycle_status'),active:data.client.active!==false}).label}</strong></article>

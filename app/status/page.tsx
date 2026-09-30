@@ -57,6 +57,6 @@ export default function StatusPage(){
    </li>)}
   </ul>
   <p className="text-[11.5px] text-mute">El API, la base de datos y el correo se comprueban en este momento. Los demás componentes se indican por configuración; esta pantalla se mantiene disponible como comunicación de respaldo.</p>
-  <div className="flex flex-wrap items-center gap-2"><a className="secondary" href="https://sistema.scaleparaguay.com/">Landing</a><a className="secondary" href="/">Abrir Scale OS</a></div>
+  <div className="flex flex-wrap items-center gap-2"><a className="secondary" href="https://sistema.scaleparaguay.com/">Landing</a><a className="secondary" href="/">Abrir Scale OS</a><a className="secondary" href="/privacidad">Privacidad</a></div>
  </AccessLayout>;
 }
