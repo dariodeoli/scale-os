@@ -93,5 +93,6 @@ export const migrationOrder = [
   '20260929_inventory_location_position.sql',
   '20260929_member_purge.sql',
   '20260929_destructive_platform_actions.sql',
+  '20260930_lead_contact_opposition.sql',
   '20260930_personal_data.sql',
 ];

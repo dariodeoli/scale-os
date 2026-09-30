@@ -8,6 +8,7 @@ import {profilePhoto} from './media-policy.js';
 import {historyPage,historyResult} from './history-page.js';
 import {redactPiiText} from './pii-safety.js';
 import {saveCommentMentions} from './comment-mentions.js';
+import {redactClientContact} from './client-contact.js';
 
 
 
@@ -125,7 +126,7 @@ export async function productivity({req,res,url,db,session,body,send}){
    const client=await owned(c,'agency_clients',key,org);
    const projects=(await c.query(`select p.* from agency_projects p where p.client_id=$1 and p.organization_id=$2 and ${visibleRecord('p','projects')} order by p.id desc`,[key,org])).rows;
    const orders=(await c.query(`select o.* from agency_work_orders o join agency_projects p on p.id=o.project_id where p.client_id=$1 and o.organization_id=$2 and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} order by o.updated_at desc limit 100`,[key,org])).rows;
-   result={client,projects,orders,financeAllowed:roleCan(user,'finance.view')};
+   result={client:redactClientContact(client,user),projects,orders,financeAllowed:roleCan(user,'finance.view')};
    if(roleCan(user,'finance.view')){
     result.invoices=(await c.query('select id,number,currency,total,paid_amount,due_on from agency_invoices where organization_id=$1 and client_id=$2 order by id desc limit 100',[org,key])).rows;
     result.payments=(await c.query('select p.id,p.amount,p.received_on,p.received_by_user_id,a.name as account_name,a.currency,u.email as received_by_email from agency_payments p join agency_invoices i on i.id=p.invoice_id join bank_accounts a on a.id=p.account_id left join users u on u.id=p.received_by_user_id where p.organization_id=$1 and i.client_id=$2 order by p.id desc limit 100',[org,key])).rows;

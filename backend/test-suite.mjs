@@ -17,7 +17,7 @@ await pg.exec(await fs.readFile('migrations/20260910_client_links.sql','utf8'));
 for(const file of ['20260908_google_oauth.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260914_role_permissions.sql','20260918_collaborator_role_and_project_archive.sql','20260919_collaborator_role_member_checks.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
 await pg.exec(await fs.readFile('migrations/20260911_drive_links.sql','utf8'));
 await pg.exec(await fs.readFile('migrations/20260910_project_assignees.sql','utf8'));
-for(const file of ['20260914_salary_forecast.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260915_billing_cadence_and_coupons.sql','20260915_client_terms_end_date.sql','20260910_work_checklists.sql','20260910_notifications.sql','20260913_ruc_collaboration.sql','20260914_production_traceability.sql','20260915_planned_expense_kind.sql','20260915_inventory_photos.sql','20260915_salary_override_signed.sql','20260919_pipeline_stages.sql','20260920_currency_widening.sql','20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260911_subscriptions.sql','20260923_agency_core_perf.sql','20260924_inventory_photo_stamp.sql','20260924_subscription_suspension_notice.sql','20260929_notification_email_status.sql','20260929_inventory_location_position.sql','20260929_member_purge.sql','20260930_personal_data.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
+for(const file of ['20260914_salary_forecast.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260915_billing_cadence_and_coupons.sql','20260915_client_terms_end_date.sql','20260910_work_checklists.sql','20260910_notifications.sql','20260913_ruc_collaboration.sql','20260914_production_traceability.sql','20260915_planned_expense_kind.sql','20260915_inventory_photos.sql','20260915_salary_override_signed.sql','20260919_pipeline_stages.sql','20260920_currency_widening.sql','20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260911_subscriptions.sql','20260923_agency_core_perf.sql','20260924_inventory_photo_stamp.sql','20260924_subscription_suspension_notice.sql','20260929_notification_email_status.sql','20260929_inventory_location_position.sql','20260929_member_purge.sql','20260930_lead_contact_opposition.sql','20260930_personal_data.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const serverSource=await fs.readFile(new URL('./server.js',import.meta.url),'utf8');
 assert(serverSource.indexOf('inventoryReservations({')<serverSource.indexOf('suite({'),'inventory routes are handled before the suite in server.js');
@@ -116,6 +116,28 @@ assert.deepEqual(clientsPage.page,{limit:1,offset:0,hasMore:clientsFull.clients.
 assert.equal((await call(`/api/agency/clients?limit=1&offset=${clientsPage.page.total}`,'GET',{})).clients.length,0);
 assert.equal((await call('/api/agency/clients?offset=1','GET',{})).status,400,'offset exige limit');
 assert.equal((await call('/api/agency/clients?limit=1&offset=abc','GET',{})).status,400);
+// #114: minimización de contacto — los roles sin `clients.manage` reciben la
+// ficha operativa con `contact_restricted` y sin canales ni datos fiscales.
+await call(`/api/agency/clients/${client}`,'PATCH',{name:'Renamed',email:'cliente@example.invalid',phone:'+595 981000111',tax_id:'80011111-1',notes:'Nota interna'});
+const restrictedClients=await call('/api/agency/clients','GET',{}, {...user,role:'editor'});
+const restrictedClient=restrictedClients.clients.find(row=>String(row.id)===String(client));
+assert.equal(restrictedClient.email,null,'editor no recibe el correo del cliente');
+assert.equal(restrictedClient.phone,null,'editor no recibe el teléfono del cliente');
+assert.equal(restrictedClient.tax_id,null,'editor no recibe el RUC del cliente');
+assert.equal(restrictedClient.notes,null,'editor no recibe las notas internas del cliente');
+assert.equal(restrictedClient.social_links,null,'editor tampoco recibe los enlaces de contacto');
+assert.equal(restrictedClient.contact_restricted,true,'la restricción viaja explícita para un estado honesto');
+const restrictedProjection=await call('/api/agency/clients?fields=id,name,email,phone','GET',{}, {...user,role:'production'});
+const restrictedProjected=restrictedProjection.clients.find(row=>String(row.id)===String(client));
+assert.equal(restrictedProjected.email,null,'la proyección de la lista tampoco filtra contacto');
+assert.equal(restrictedProjected.contact_restricted,true,'la proyección conserva la marca de restricción');
+const allowedClient=(await call('/api/agency/clients','GET',{}, {...user,role:'sales'})).clients.find(row=>String(row.id)===String(client));
+assert.equal(allowedClient.email,'cliente@example.invalid','quien gestiona clientes conserva el contacto');
+assert.equal(allowedClient.contact_restricted,undefined,'sin restricción no se marca la ficha');
+const restrictedDetail=await call(`/api/agency/clients/${client}`,'GET',{}, {...user,role:'editor'});
+assert.equal(restrictedDetail.record.contact_restricted,true,'la ficha individual también minimiza');
+assert.equal(restrictedDetail.record.email,null,'la ficha individual no entrega correo a otros roles');
+assert.equal((await call(`/api/agency/clients/${client}`,'GET',{})).record.email,'cliente@example.invalid','el detalle completo sigue disponible para quien gestiona');
 const leadsFull=await call('/api/agency/leads','GET',{},stageUser);
 const leadsProjected=await call('/api/agency/leads?fields=id,name,stage,amount','GET',{},stageUser);
 assert.equal(leadsProjected.status,200);
@@ -138,6 +160,17 @@ assert.equal((await call(`/api/agency/leads?limit=1&offset=${leadsPage.page.tota
 const convertedStage=await leadById(convertLead.id);
 assert.equal(convertedStage.stage,wonStage.slug,'conversion follows the company won stage');
 assert.equal(convertedStage.probability,100);
+// #114: oposición al contacto — booleano explícito, conservado en edición
+// parcial, rechazado si no es booleano y expuesto en la proyección.
+const flaggedLead=(await call('/api/agency/leads','POST',{name:'No contactar',do_not_contact:true},stageUser)).record;
+assert.equal(flaggedLead.do_not_contact,true,'el alta guarda la oposición al contacto');
+assert.equal((await call(`/api/agency/leads/${flaggedLead.id}`,'PATCH',{amount:50},stageUser)).record.do_not_contact,true,'la edición parcial conserva la oposición');
+assert.equal((await call(`/api/agency/leads/${flaggedLead.id}`,'PATCH',{do_not_contact:'sí'},stageUser)).status,400,'la oposición no acepta texto');
+assert.equal((await call(`/api/agency/leads/${flaggedLead.id}`,'PATCH',{do_not_contact:false},stageUser)).record.do_not_contact,false,'el titular puede revertir la oposición');
+const flaggedProjected=await call(`/api/agency/leads?fields=id,do_not_contact`,'GET',{},stageUser);
+assert.deepEqual(Object.keys(flaggedProjected.records[0]).sort(),['do_not_contact','id']);
+assert.equal(flaggedProjected.records.find(row=>String(row.id)===String(flaggedLead.id)).do_not_contact,false);
+assert.equal((await call('/api/agency/leads','POST',{name:'Contacto vigente'},stageUser)).record.do_not_contact,false,'las altas nuevas arrancan sin oposición');
 assert.equal((await call(`/api/agency/pipeline-stages/${wonStage.id}`,'PATCH',{label:'Ajeno'},{...stageUser,organization_id:org})).status,404,'cross-tenant stage edits are refused');
 assert.equal((await call('/api/agency/pipeline-stages','GET',{}, {...stageUser,role:'viewer'})).status,403);
 assert.equal((await call('/api/agency/pipeline-stages','POST',{label:'Viewer'}, {...stageUser,role:'viewer'})).status,403);
@@ -185,6 +218,13 @@ const budgetsPage=await call('/api/agency/budgets?limit=1&offset=0&fields=id,num
 assert.deepEqual(budgetsPage.page,{limit:1,offset:0,hasMore:budgetsFull.budgets.length>1,total:budgetsFull.budgets.length},'presupuestos pagina con el mismo contrato que órdenes');
 const budgetsTail=await call(`/api/agency/budgets?limit=1&offset=${budgetsPage.page.total-1}&fields=id`);
 assert.equal(budgetsTail.page.hasMore,false);
+// #114: el token del enlace público ya no viaja en listas ni lecturas; solo lo
+// entrega la acción `share` cuando la empresa habilita el enlace.
+assert.equal('public_token' in budgetsFull.budgets[0],false,'la lista no expone el token del enlace anónimo');
+assert.equal((await call('/api/agency/budgets?fields=id,public_token')).status,400,'la whitelist ya no acepta public_token');
+assert.equal('public_token' in (await call(`/api/agency/budgets/${budget}`)).budget,false,'la lectura autenticada tampoco entrega el token');
+assert.equal((await call(`/api/agency/budgets/${budget}/share`,'POST')).url.includes(token),true,'la acción share sigue entregando la URL habilitada');
+await call(`/api/agency/budgets/${budget}/revoke`,'POST');
 assert.equal((await call('/api/agency/budgets?offset=1')).status,400,'offset exige limit en presupuestos');
 const budgetsSecond=await call('/api/agency/budgets?limit=2&offset=1&fields=id');
 assert.equal(budgetsSecond.page.offset,1);

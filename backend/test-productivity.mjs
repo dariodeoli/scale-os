@@ -26,7 +26,7 @@ const uid=(await query("insert into users(email,password_hash) values('productiv
 await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner')",[org,uid]);
 await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'editor')",[other,uid]);
 const user={id:uid,email:'productivity@example.invalid',organization_id:org,role:'owner'};
-const client=(await query("insert into agency_clients(organization_id,name) values($1,'Client') returning id",[org])).rows[0].id;
+const client=(await query("insert into agency_clients(organization_id,name,email,phone) values($1,'Client','cliente-productividad@example.invalid','+595 981000222') returning id",[org])).rows[0].id;
 const project=(await query("insert into agency_projects(organization_id,client_id,name) values($1,$2,'Project') returning id",[org,client])).rows[0].id;
 const order=(await query("insert into agency_work_orders(organization_id,project_id,title) values($1,$2,'Video') returning *",[org,project])).rows[0];
 async function call(path,method='GET',payload={},as=user){let result;const args={req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{result={status,...data};}};assert.equal(await(path.includes('/productivity/')?productivity(args):suite(args)),true);return result;}
@@ -92,6 +92,13 @@ r=await call(base+`/templates/${template.id}/generate`,'POST',{project_id:projec
 assert.equal((await call(base+`/templates/${template.id}/generate`,'POST',{project_id:project,month:'2026-02'})).alreadyGenerated,true);
 assert.equal(monthDate('2026-02',31),'2026-02-28');
 assert.equal((await call(base+`/clients/${client}`,'GET',{}, {...user,role:'editor'})).invoices,undefined);
+// #114: la ficha operativa del cliente minimiza el contacto para los roles que
+// no gestionan clientes; el dueño conserva la ficha completa.
+const editorClient=(await call(base+`/clients/${client}`,'GET',{}, {...user,role:'editor'})).client;
+assert.equal(editorClient.contact_restricted,true,'editor recibe la ficha con contacto reservado');
+assert.equal(editorClient.email,null,'editor no recibe el correo del cliente');
+assert.equal(editorClient.phone,null,'editor no recibe el teléfono del cliente');
+assert.equal((await call(base+`/clients/${client}`,'GET',{})).client.email,'cliente-productividad@example.invalid','quien gestiona conserva el contacto');
 assert.ok(Array.isArray((await call(base+`/clients/${client}`)).invoices));
 const internal=(await call(base+'/internal-tasks','POST',{title:'Tarea interna',source_key:'test:internal'})).record;
 assert.equal((await call(base+'/internal-tasks','POST',{title:'Tarea interna',source_key:'test:internal'})).record.id,internal.id);

@@ -17,12 +17,13 @@ import {roleCan,roles} from './permissions.js';
 import {parseListFields,parseListWindow,windowSql,windowRows,dropWindowTotal,projectionSelect,projectRows} from './list-projection.js';
 import {mediaPeople,mediaPhoto} from './agency-media.js';
 import {commercialProfile} from './commercial-lifecycle.js';
+import {redactClientContact} from './client-contact.js';
 import {ensurePipelineStages,defaultLeadStage,wonLeadStage} from './pipeline-stages.js';
 import {CONSENT_BASES,ensureConsent,grantConsent} from './personal-data.js';
 
 // `?fields=` de oportunidades y planes (#71): lista blanca explícita por tabla.
-const leadListFields=['id','name','email','phone','stage','amount','currency','probability','notes','client_id','created_at','updated_at'];
-const leadColumnSql={id:'r.id',name:'r.name',email:'r.email',phone:'r.phone',stage:'r.stage',amount:'r.amount',currency:'r.currency',probability:'r.probability',notes:'r.notes',client_id:'r.client_id',created_at:'r.created_at',updated_at:'r.updated_at'};
+const leadListFields=['id','name','email','phone','stage','amount','currency','probability','notes','client_id','created_at','updated_at','do_not_contact'];
+const leadColumnSql={id:'r.id',name:'r.name',email:'r.email',phone:'r.phone',stage:'r.stage',amount:'r.amount',currency:'r.currency',probability:'r.probability',notes:'r.notes',client_id:'r.client_id',created_at:'r.created_at',updated_at:'r.updated_at',do_not_contact:'r.do_not_contact'};
 const planListFields=['id','name','currency','items','notes','active','created_at'];
 const planColumnSql={id:'r.id',name:'r.name',currency:'r.currency',items:'r.items',notes:'r.notes',active:'r.active',created_at:'r.created_at'};
 const driveLinks=value=>{if(value===undefined)return undefined;const rows=Array.isArray(value)?value:String(value||'').split(/\r?\n/).filter(Boolean).map(url=>({url}));if(rows.length>10)fail('Podés agregar hasta 10 enlaces');return rows.map(row=>{const url=link(row.url);return url?{url,label:text(row.label||'',80)||'Archivo o carpeta'}:null}).filter(Boolean);};
@@ -122,7 +123,7 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
     let identity={};
     if(kind==='projects')identity=(await c.query('select name as client_name,logo_url as client_logo_url,color_key as client_color_key from agency_clients where id=$1 and organization_id=$2',[old.client_id,org])).rows[0]||{};
     if(kind==='work-orders')identity=(await c.query('select c.name as client_name,c.logo_url as client_logo_url,c.color_key as client_color_key from agency_projects p join agency_clients c on c.id=p.client_id where p.id=$1 and p.organization_id=$2',[old.project_id,org])).rows[0]||{};
-    result={record:{...old,...identity}};
+    result={record:redactClientContact({...old,...identity},user)};
     if(kind==='clients'&&roleCan(user,'commercial.manage'))result.commercial=await commercialProfile(c,org,old.id);
    }
    else if(action&&kind==='work-orders'&&req.method==='POST'){
@@ -199,7 +200,11 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
      if(!chosen&&!requested)fail('Creá al menos una etapa activa en el Pipeline');
      const stageKind=chosen?.kind||(requested==='won'?'won':requested==='lost'?'lost':'open');
      const probability=stageKind==='won'?100:stageKind==='lost'?0:Number(b.probability??10);if(!Number.isInteger(probability)||probability<0||probability>100)fail('Probabilidad de 0 a 100');
-     columns=['name','email','phone','stage','amount','currency','probability','notes'];values=[name,email(b.email),Object.hasOwn(incoming,'phone')?phone(b.phone):(b.phone??null),chosen?.slug||requested,amount(b.amount||0),option(b.currency,currencies),probability,text(b.notes||'')];
+     // Oposición al contacto (#114): el flag viaja explícito en el PATCH y una
+     // edición parcial conserva el valor guardado. Nunca se acepta texto.
+     const doNotContact=Object.hasOwn(incoming,'do_not_contact')?incoming.do_not_contact:(old.do_not_contact??false);
+     if(typeof doNotContact!=='boolean')fail('La marca de no contacto debe ser verdadera o falsa');
+     columns=['name','email','phone','stage','amount','currency','probability','notes','do_not_contact'];values=[name,email(b.email),Object.hasOwn(incoming,'phone')?phone(b.phone):(b.phone??null),chosen?.slug||requested,amount(b.amount||0),option(b.currency,currencies),probability,text(b.notes||''),doNotContact];
     }
     // PDP (#112): la base legal declarada se valida antes de escribir el registro.
     if(kind==='leads'&&Object.hasOwn(incoming,'lawful_basis')&&!CONSENT_BASES.includes(incoming.lawful_basis))fail('Base legal inválida');
@@ -262,6 +267,9 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
     await c.query('insert into agency_exchange_rates values($1,$2,$3) on conflict(organization_id,rate_date) do update set usd_to_pyg=excluded.usd_to_pyg',[org,on,raw]);result={ok:true};}else fail('Método no permitido',405);
   }else fail('Método no permitido',405);
   if(kind==='work-orders')await enrichWorkOrderAssignees(c,org,result.record||result.workOrder);
+  // El token del enlace público no viaja en la lectura autenticada (Refs #114);
+  // `share` sigue devolviendo la URL cuando la empresa la habilita.
+  if(kind==='budgets'&&result?.budget)delete result.budget.public_token;
   await c.query('commit');transaction=false;
   if(grantedNotify)await sendAccessGranted(grantedNotify.email,grantedNotify.organizationName,grantedNotify.role).catch(()=>false);
   send(res,status,result);return true;
