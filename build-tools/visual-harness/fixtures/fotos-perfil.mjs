@@ -47,7 +47,7 @@ const opsPerson = (src) => `<div class="ops-person" title="Carlos Ramírez"><spa
 const actor = (src, cls = '') => `<span class="actor-identity ${cls}"><span class="foto-perfil foto-perfil-lg foto-perfil-circulo foto-perfil-persona">${src}</span><span class="actor-identity-details"><span class="actor-identity-name">Lucía Ferreira</span><time class="actor-identity-time">29 sept 26 · 18:12</time></span></span>`;
 const presence = (src) => `<span class="presence-avatars"><span class="presence-person"><span class="foto-perfil foto-perfil-sm foto-perfil-circulo foto-perfil-persona">${src}</span><i data-active="true"></i></span><span class="presence-more">+2</span></span>`;
 const editable = (src) => `<span class="profile-photo-summary"><span class="foto-perfil foto-perfil-3xl foto-perfil-circulo foto-perfil-persona">${src}</span><span class="profile-photo-controls"><span class="photo-upload">Cambiar foto</span></span></span>`;
-const footer = (src) => `<div class="profile-footer"><span class="user"><span class="foto-perfil foto-perfil-lg foto-perfil-circulo foto-perfil-persona">${src}</span><span><b>Fredd D.</b><small>Propietario</small></span></span></div>`;
+const footer = (src) => `<div class="profile-footer"><span class="user"><span class="foto-perfil foto-perfil-lg foto-perfil-circulo foto-perfil-persona">${src}</span><span><b>Lucía Acosta</b><small>Propietaria</small></span></span></div>`;
 const logo = (src) => `<span class="client-identity"><span class="foto-perfil foto-perfil-xl foto-perfil-circulo foto-perfil-logo">${src}</span><span class="identity-name">Estudio de Comunicación</span></span>`;
 
 export default [

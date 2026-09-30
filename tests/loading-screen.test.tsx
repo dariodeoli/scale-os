@@ -34,8 +34,8 @@ assert(neutral.includes('loading-bar-fill'),'la barra de progreso es parte de la
 assert(!neutral.includes('loading-orb'),'la variante neutra no monta el orbe');
 
 // Variante con sesión: nombre, rol y avatar, con la barra debajo del nombre.
-const signedIn=render(<LoadingScreen name="Fredd D." photoUrl="https://cdn.example/foto.webp" roleLabel="Propietario"/>);
-assert(signedIn.includes('Fredd D.'),'la carga con sesión muestra el nombre');
+const signedIn=render(<LoadingScreen name="Lucía Acosta" photoUrl="https://cdn.example/foto.webp" roleLabel="Propietario"/>);
+assert(signedIn.includes('Lucía Acosta'),'la carga con sesión muestra el nombre');
 assert(signedIn.includes('Propietario'),'la carga con sesión muestra el rol');
 assert(signedIn.includes('person-container')&&signedIn.includes('foto-perfil'),'la carga con sesión muestra el avatar (objeto único)');
 assert(signedIn.includes('Cargando tu espacio…'),'la carga con sesión conserva el estado de espera');
@@ -44,9 +44,9 @@ assert(signedIn.indexOf('foto-perfil')<signedIn.indexOf('loading-bar-fill'),'la 
 assert(!signedIn.includes('loading-orb'),'la pantalla con sesión no monta el orbe');
 
 // Sin foto: iniciales, nunca una imagen rota en el avatar (objeto único #107).
-const initials=render(<LoadingScreen name="Fredd D." roleLabel="Propietario"/>);
+const initials=render(<LoadingScreen name="Lucía Acosta" roleLabel="Propietario"/>);
 assert(!initials.includes('<img'),'sin foto el avatar no renderiza una imagen');
-assert(initials.includes('FD')&&initials.includes('foto-perfil-iniciales'),'sin foto el avatar usa las iniciales del objeto único');
+assert(initials.includes('LA')&&initials.includes('foto-perfil-iniciales'),'sin foto el avatar usa las iniciales del objeto único');
 
 // Accesibilidad: un solo anuncio cortés, barra decorativa.
 const statusProps=create(<LoadingScreen/>).root.findByProps({role:'status'}).props;
