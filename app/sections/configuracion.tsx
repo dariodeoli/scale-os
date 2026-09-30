@@ -4,6 +4,7 @@ import {SectionLoading} from '../ui-v2';
 import {SettingsWorkspace,CouponRedeem} from '../suite';
 import {SubscriptionPanel} from '../subscription-panel';
 import {NewCompany} from '../workspace-guide';
+import {PrivacyPanel} from '../privacy-panel';
 import type {User} from '../workspace-types';
 const DeletionDangerZone=dynamic(()=>import('../deletion-danger-zone').then(m=>m.DeletionDangerZone),{loading:()=> <SectionLoading label="Cargando la configuración…"/>});
 
@@ -28,6 +29,9 @@ export function ConfiguracionSection({user, subscriptionError, refreshSubscripti
         {!user?.demo_owner_user_id&&['owner','admin'].includes(user?.role||'')&&<CouponRedeem role={user?.role||''} onRedeemed={refreshSubscription}/>}
         {!user?.demo_owner_user_id&&<NewCompany/>}
       </div>
+      {user&&<div className="min-w-0 lg:col-span-2">
+        <PrivacyPanel key={String(user.organization_id)} user={user}/>
+      </div>}
       {user&&<div className="min-w-0 lg:col-span-2">
         <DeletionDangerZone key={String(user.organization_id)} organizationId={String(user.organization_id)} organizationName={user.organization_name} demo={demo} onDemoExit={exitDemoSimulation} onAccountDeleted={deletionSignedOut} onOrganizationDeleted={deletionSignedOut}/>
       </div>}
