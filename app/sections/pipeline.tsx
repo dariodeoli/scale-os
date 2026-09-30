@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {ArrowUpRight,Eye,GripVertical,Move,Plus,Settings2,TrendingUp} from 'lucide-react';
-import {Aviso,Button,Input,Label,Select} from 'owncoding-ui';
+import {Aviso,AvisoPrivacidad,Button,Input,Label,Select} from 'owncoding-ui';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
@@ -283,6 +283,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {user?<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>:null}
 
       {edit&&canEdit?<Dialog title={row?'Editar oportunidad':'Nueva oportunidad'} busy={busy} close={()=>{if(!busy)setEdit(null);}}>
+        <AvisoPrivacidad compact finalidad="Cargás datos de la persona interesada para dar seguimiento a esta oportunidad." detalle="Se usan sólo para esta relación comercial; la persona puede pedir acceso, corrección o supresión por el canal de derechos." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
         <Editor columns fields={fields} defaults={defaults} save={async values=>{await api(`/api/agency/leads${row?`/${row.id}`:''}`,values,row?'PATCH':'POST');await completeSave(()=>setEdit(null),load);}}/>
         {row&&!row.client_id?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await api(`/api/agency/leads/${row.id}/convert`,{});setEdit(null);await load();}catch(reason){setError(err(reason));}finally{setBusy(false);}}}>Ganado: convertir a cliente</Button></div>:null}
       </Dialog>:null}
