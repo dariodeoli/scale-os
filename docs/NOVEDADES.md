@@ -2,6 +2,22 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.154
+
+### Privacidad (Ley N° 7593/2025)
+
+- **Aviso de Privacidad versionado y público**: la app publica la ruta `/privacidad` con versión y fecha, enlazada desde el pie, el registro y las invitaciones; mientras el dueño no lo apruebe el documento se muestra marcado como «en revisión».
+- **Consentimiento informado sin premarcar**: el alta de cuenta y las invitaciones explican para qué se usan los datos y registran la versión del aviso aceptada; la casilla nunca viene marcada sola.
+- **«Mis datos» en el perfil**: cada persona puede pedir su copia, rectificar, suprimir, oponerse y revocar consentimientos, viendo el estado y el vencimiento (≤30 días) de cada pedido. Como la base del API todavía no está publicada, la vista lo dice con todas las letras y deriva al canal de derechos real, sin inventar estados ni pedidos resueltos.
+- **El contacto de clientes se enmascara por rol**: correo, teléfono y RUC se muestran parcialmente a los roles sin permiso, y el dato completo ni siquiera llega a la pantalla. El portal del cliente suma el acceso al aviso y al canal de derechos.
+
+### Operaciones
+
+- **Inventario de finalidades y retención**: documento `docs/pdp/OPS-finalidades.md` que ordena dato → finalidad → base legal → retención de producción, proyectos, estudio e inventario; alimenta el RAT y la política de retención de la base de privacidad.
+- **Correo interno según rol**: responsables, integrantes y autores de comentarios solo exponen su correo a quien corresponde; el resto ve nombre y foto.
+- **Evidencia y orígenes anonimizados**: capturas, fixtures del harness visual y la importación de Trello quedan sin personas, tableros ni correos reales, con una guarda de test que lo fija.
+- **Sello de verificación y listas**: el sello de verificación trunca dentro de su celda (sin desbordes) y las proyecciones de reservas dejan de pedir campos que ninguna pantalla lee.
+
 ## v1.0.153
 
 ### Operación interna
