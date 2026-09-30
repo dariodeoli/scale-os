@@ -38,6 +38,7 @@ export const CAPABILITIES=[
  {id:'portal-access.manage',label:'Accesos del portal',description:'Invitar y revocar clientes del portal.',roles:['owner','admin','management','production']},
  {id:'portal.manage',label:'Portal del cliente',description:'Publicar entregas y gestionar revisiones.',roles:['owner','admin','management','production','collaborator']},
  {id:'salary.view',label:'Ver salarios',description:'Salarios y ajustes mensuales del equipo.',roles:['owner','admin','finance']},
+ {id:'privacy.manage',label:'Protección de datos',description:'Consentimientos, solicitudes de derechos, export y retención.',roles:['owner','admin']},
 ];
 const byId=new Map(CAPABILITIES.map(capability=>[capability.id,capability]));
 /** The owner always keeps every capability; overrides apply to the other roles. */

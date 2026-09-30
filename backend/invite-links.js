@@ -2,6 +2,7 @@ import {fail} from './suite-validation.js';
 import crypto from 'node:crypto';
 import {roleCan,roles} from './permissions.js';
 import {attributeActors} from './actor-identity.js';
+import {ensureConsent} from './personal-data.js';
 // Fuente única de roles: la lista canónica vive en permissions.js.
 export const accessRoles=roles;
 const hash=v=>crypto.createHash('sha256').update(v).digest('hex');
@@ -33,7 +34,8 @@ export async function resolveInvite(db,token,{countVisit=false}={}){
  return {id:r.id,role:r.role,mode:r.mode,organization_name:r.organization_name,expires_at:r.expires_at,link_status:'active'};
 }
 // Only called after Google verifies email AND the state cookie is checked.
-export async function claimInvite(c,linkId,profile){
+// `method` deja en la evidencia el canal de verificación (google | password).
+export async function claimInvite(c,linkId,profile,{method='google'}={}){
  if(profile.email_verified!==true)fail('Verificá tu correo con Google',403);
  const l=(await c.query(`select l.* from agency_invite_links l join organizations o on o.id=l.organization_id
  where l.id=$1 and l.revoked_at is null and l.used_at is null and l.expires_at>now() and o.active=true and o.demo_owner_user_id is null for update of l`,[linkId])).rows[0];
@@ -41,6 +43,9 @@ export async function claimInvite(c,linkId,profile){
  const email=String(profile.email||'').trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(email)||email.length>254)fail('Correo inválido');
  const u=(await c.query("insert into users(email,password_hash,role) values($1,'!invite-google-only','viewer') on conflict(email) do update set email=excluded.email returning id,is_demo_guest",[email])).rows[0];
  if(u.is_demo_guest)fail('Usá una cuenta de Google real',403);
+ // PDP (#112): la aceptación de la invitación registra el aviso vigente y el origen.
+ await ensureConsent(c,{organizationId:l.organization_id,subjectKind:'user',subjectId:String(u.id),purpose:'account',source:'invitation',basis:'contract',evidence:{invite_link_id:String(l.id),method}});
+ await ensureConsent(c,{organizationId:l.organization_id,subjectKind:'user',subjectId:String(u.id),purpose:'service',source:'invitation',basis:'contract',evidence:{invite_link_id:String(l.id),method}});
  const existing=(await c.query('select active,removed_at from organization_members where organization_id=$1 and user_id=$2',[l.organization_id,u.id])).rows[0];
  // A link never changes the role or reactivates a previously removed/suspended member.
  if(existing){
@@ -134,6 +139,9 @@ export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendA
     if(old)await c.query('update organization_members set role=$1,active=true,removed_at=null,invite_link_id=$4 where organization_id=$2 and user_id=$3',[r.role,org,r.user_id,r.link_id]);
     else await c.query('insert into organization_members(organization_id,user_id,role,invite_link_id) values($1,$2,$3,$4)',[org,r.user_id,r.role,r.link_id]);
     await c.query('insert into agency_user_profiles(organization_id,user_id,full_name) values($1,$2,$3) on conflict do nothing',[org,r.user_id,r.full_name]);
+    // PDP (#112): al aprobar el acceso queda el consentimiento del titular con su canal.
+    await ensureConsent(c,{organizationId:org,subjectKind:'user',subjectId:String(r.user_id),purpose:'account',source:'invitation_approval',basis:'contract',evidence:{invite_link_id:String(r.link_id),method:'approval'}});
+    await ensureConsent(c,{organizationId:org,subjectKind:'user',subjectId:String(r.user_id),purpose:'service',source:'invitation_approval',basis:'contract',evidence:{invite_link_id:String(r.link_id),method:'approval'}});
     await c.query('update agency_invite_links set account_count=account_count+1,used_at=case when mode=\'single\' then now() else used_at end where id=$1',[r.link_id]);
     if(typeof sendAccessGranted==='function'){
      const target=(await c.query('select u.email,o.name as organization_name from users u join organizations o on o.id=$1 where u.id=$2',[org,r.user_id])).rows[0];

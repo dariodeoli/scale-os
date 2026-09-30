@@ -8,6 +8,7 @@ import { profilePhoto } from './media-policy.js';
 import {visibleRecord,assertRecordAvailable} from './record-lifecycle.js';
 import {mediaPeople,mediaPhoto} from './agency-media.js';
 import {saveCommentMentions} from './comment-mentions.js';
+import {logPersonalDataAccess} from './personal-data.js';
 
 // El importe del módulo delega en `amount` (límite, signo y redondeo compartidos)
 // y solo agrega la regla de negocio: el cero no es un importe válido salvo que el
@@ -56,6 +57,11 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    const archivedProfiles=(await c.query("select c.id,c.user_id,c.email from agency_collaborators c join agency_archived_records a on a.organization_id=c.organization_id and a.record_id=c.id and a.kind='collaborators' where c.organization_id=$1",[org])).rows;
    // #108: las fotos guardadas viajan como URL del medio (cacheadas), no en base64.
    result={collaborators:collaborators.map(withoutSalary).map(row=>({...row,photo_url:mediaPhoto('collaborator',row.id,row.photo_url)})),members:mediaPeople(members),archivedProfiles};
+   // PDP (#112): quién leyó salarios queda en la bitácora de datos personales.
+   if(roleCan(user,'salary.view')){
+    const withSalary=collaborators.filter(row=>Number(row.compensation_amount)>0||row.monthly_salary_amount!==null&&row.monthly_salary_amount!==undefined);
+    if(withSalary.length)await logPersonalDataAccess(c,{organizationId:org,actorUserId:user.id,actorLabel:user.full_name||user.email||null,action:'salary.view',context:'team',details:{collaborator_ids:withSalary.slice(0,100).map(row=>String(row.id))}});
+   }
    }
   }else if(jobMatch) {
    await c.query('select ensure_agency_job_catalog($1)',[org]);
@@ -98,6 +104,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    if(req.method==='GET'){
     const month=forecastMonth(url.searchParams.get('month'));
     result={month,override:(await c.query('select amount::text as amount,note from agency_salary_month_overrides where organization_id=$1 and collaborator_id=$2 and month=$3::date',[org,collaborator.id,`${month}-01`])).rows[0]||null};
+    await logPersonalDataAccess(c,{organizationId:org,actorUserId:user.id,actorLabel:user.full_name||user.email||null,action:'salary.view',subjectKind:collaborator.user_id?'user':null,subjectId:collaborator.user_id?String(collaborator.user_id):null,context:'salary-override',details:{collaborator_id:String(collaborator.id),month}});
    } else if(req.method==='PATCH'){
     const b=await body(req),month=forecastMonth(b.month),overrideAmount=salaryOverrideAmount(b.amount);
     result={month,override:(await c.query(`insert into agency_salary_month_overrides(organization_id,collaborator_id,month,amount,note)
