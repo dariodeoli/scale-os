@@ -24,6 +24,8 @@ test('config: normaliza la respuesta y conserva sólo los tipos permitidos', () 
  assert.deepEqual(config, {configurada: true, modelo: 'openai/gpt-oss-120b', tipos: ['clientes', 'inventario']});
  assert.deepEqual(normalizarIaConfig(null), {configurada: false, modelo: null, tipos: []});
  assert.equal(normalizarIaConfig({configurada: 'sí', tipos: null}).configurada, false, 'un valor no booleano no enciende la IA');
+ // Puente con el motor de #117: el servidor publica «equipos» y la UI lo llama «inventario».
+ assert.deepEqual(normalizarIaConfig({configurada: true, tipos: ['clientes', 'equipos']}).tipos, ['clientes', 'inventario'], 'los equipos del motor se mapean a inventario');
 });
 
 test('análisis: normaliza, recorta y conserva los avisos sin inventar datos', () => {
@@ -41,6 +43,8 @@ test('análisis: normaliza, recorta y conserva los avisos sin inventar datos', (
  assert.deepEqual(analisis.inventario[1], {nombre: 'Trípode', categoria: null, cantidad: null, valor: null, avisos: ['Cantidad dudosa']}, 'un valor negativo no se convierte en un monto inventado');
  assert.deepEqual(analisis.avisos, ['Se descartaron 2 registros repetidos']);
  assert.deepEqual(normalizarIaAnalisis({}), {clientes: [], inventario: [], avisos: []}, 'una respuesta vacía no rompe la vista previa');
+ // Puente con el motor de #117: la respuesta real llega con la clave «equipos».
+ assert.deepEqual(normalizarIaAnalisis({equipos: [{nombre: 'Trípode', categoria: null, cantidad: null, valor: null, avisos: []}]}).inventario[0].nombre, 'Trípode', 'los equipos del servidor se leen como inventario');
 });
 
 test('análisis: recorta a 25 por tipo y lo dice en los avisos', () => {

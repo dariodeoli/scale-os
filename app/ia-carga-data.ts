@@ -80,7 +80,11 @@ export function normalizarIaConfig(value: unknown): IaConfig {
   return {
     configurada: data.configurada === true,
     modelo: nullableText(data.modelo, 120),
-    tipos: list(data.tipos).filter((tipo): tipo is IaTipo => (IA_TIPOS as readonly string[]).includes(String(tipo))),
+    // Puente de contrato con #117: el motor publica «equipos»; la UI lo llama
+    // «inventario». Se acepta la forma del servidor y la propia (tolerancia).
+    tipos: list(data.tipos)
+      .map((tipo) => (String(tipo) === 'equipos' ? 'inventario' : String(tipo)))
+      .filter((tipo): tipo is IaTipo => (IA_TIPOS as readonly string[]).includes(tipo)),
   };
 }
 
@@ -103,7 +107,9 @@ export function normalizarIaAnalisis(value: unknown): IaAnalisis {
       avisos: avisosDe(fila.avisos),
     };
   });
-  const inventario = list(data.inventario).map((item) => {
+  // Puente de contrato con #117: el motor devuelve «equipos»; la UI lo expone
+  // como «inventario». Se lee la clave del servidor y se tolera la propia.
+  const inventario = list(data.equipos ?? data.inventario).map((item) => {
     const fila = record(item);
     return {
       nombre: clean(fila.nombre, 160),
