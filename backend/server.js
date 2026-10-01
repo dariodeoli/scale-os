@@ -52,6 +52,7 @@ import {acceptClientPortalGoogleInvite,clientPortal,clientPortalGoogleInvite,cli
 import {accountSecurity,googleRecentAuthBinding,issueGoogleRecentAuthHandoff} from './account-security.js';
 import {personalData} from './personal-data.js';
 import {startPrivacyRetention} from './personal-data-retention.js';
+import {iaCarga} from './ia-carga.js';
 
 const { Pool } = pg;
 const port = Number(process.env.PORT || 3000);
@@ -314,7 +315,7 @@ const server = http.createServer(async (req,res) => {
     if(await platformAdmin({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
     // Billing is separate from membership: suspended owners retain billing,
     // logout and company switching, but no private operational reads/writes.
-    if(url.pathname.startsWith('/api/agency/')||url.pathname==='/api/metrics'||url.pathname==='/api/hub/overview'||(url.pathname==='/api/auth/organizations'&&req.method==='POST')){
+    if(url.pathname.startsWith('/api/agency/')||url.pathname==='/api/metrics'||url.pathname==='/api/hub/overview'||url.pathname==='/api/ia/carga'||(url.pathname==='/api/auth/organizations'&&req.method==='POST')){
       const actor=await session(req);
       if(actor){const subscription=await requestSubscription(req,actor);if(!subscription.hasAccess)return send(res,402,{code:'SUBSCRIPTION_REQUIRED',error:'La suscripción está suspendida. El dueño puede regularizar el pago sin perder los datos.',subscription});}
     }
@@ -335,6 +336,7 @@ const server = http.createServer(async (req,res) => {
     if(await workChecklists({req,res,url,db,session,body,send}))return;
     if(await publicExperience({req,res,url,db,session,body,send,cookie,parseCookies}))return;
     if(await personalData({req,res,url,db,session,body,send}))return;
+    if(await iaCarga({req,res,url,db,session,body,send}))return;
     if(await clientPortal({req,res,url,db,session,body,send,sendPasswordReset:sendClientPortalReset,sendInvite:sendClientPortalInvite,emailAvailable:emailDelivery.status.available}))return;
     if(await inviteLinks({req,res,url,db,session,body,send,appUrl,sendAccessGranted}))return;
     if(req.method!=='GET'){

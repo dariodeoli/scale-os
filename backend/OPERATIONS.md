@@ -36,6 +36,10 @@ y `../VERSIONING.md`.
 - Correo: `WEEM_EMAIL_RELAY_URL`, `WEEM_EMAIL_RELAY_TOKEN`, `EMAIL_FROM`, `RESEND_API_KEY`.
   Los avisos de la bandeja se derivan de `agency_notifications`; sin relay quedan **en cola**
   (nunca «enviados»). Contrato, estados canónicos y plantillas: `NOTIFICATIONS.md`.
+- Carga con IA (#117): `IA_API_KEY` (sin ella la función queda apagada con
+  `ia_no_configurada`), `IA_MODELO` (default `openai/gpt-oss-120b`) e `IA_BASE_URL`
+  (default `https://api.groq.com/openai/v1`, API compatible con `chat/completions`).
+  Solo se envía el texto pegado; el servidor no lo persiste.
 - Suscripción: `STRIPE_BILLING_ENABLED`, `STRIPE_WEBHOOK_VERIFIED_AT`,
   `SUBSCRIPTION_CHECKOUT_PROVIDER` y las claves `PAGAYA_*`; el estado real se valida en
   `STRIPE-SETUP.md`.

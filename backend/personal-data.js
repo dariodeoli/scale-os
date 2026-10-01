@@ -24,7 +24,7 @@ export const CONSENT_BASES=['consent','contract','legal_obligation','vital_inter
 export const REQUEST_STATUSES=['received','identity_verified','in_review','resolved','rejected','cancelled'];
 export const OPEN_REQUEST_STATUSES=['received','identity_verified','in_review'];
 export const RESOLUTION_ACTIONS=['export_delivered','corrected','opposed','blocked','anonymized','none'];
-const ACCESS_ACTIONS=['view','export','consent.grant','consent.revoke','request.create','request.update','request.resolve','request.reject','erasure','salary.view'];
+const ACCESS_ACTIONS=['view','export','consent.grant','consent.revoke','request.create','request.update','request.resolve','request.reject','erasure','salary.view','ai.transfer'];
 const purposeIds=new Set(PRIVACY_PURPOSES.map(item=>item.id));
 
 export function privacyNotice(){
