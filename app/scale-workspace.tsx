@@ -1166,13 +1166,13 @@ export default function Home() {
           ) : (
             <ClientForm
               request={request}
-              done={(client) => {
+              done={(client, keepOpen) => {
                 setClients((current) => [client, ...current]);
                 setSummary((current) => ({
                   ...current,
                   active_clients: current.active_clients + 1,
                 }));
-                close();
+                if (!keepOpen) close();
               }}
             />
           )}

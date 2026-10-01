@@ -1,0 +1,188 @@
+{
+ "captures": [
+  "alta-manual-390-light",
+  "alta-manual-390-dark",
+  "alta-manual-768-light",
+  "alta-manual-768-dark"
+ ],
+ "flows": {
+  "metricas-390-light": {
+   "overflowX": 0,
+   "name": {
+    "w": 358,
+    "h": 44
+   },
+   "ruc": {
+    "w": 358,
+    "h": 44
+   },
+   "legal": {
+    "w": 358,
+    "h": 44
+   },
+   "buttons": [
+    {
+     "t": "Cancelar",
+     "w": 358,
+     "h": 44
+    },
+    {
+     "t": "Guardar y crear otro",
+     "w": 358,
+     "h": 44
+    },
+    {
+     "t": "Crear cliente",
+     "w": 358,
+     "h": 44
+    }
+   ]
+  },
+  "escape-390-light": true,
+  "metricas-390-dark": {
+   "overflowX": 0,
+   "name": {
+    "w": 358,
+    "h": 44
+   },
+   "ruc": {
+    "w": 358,
+    "h": 44
+   },
+   "legal": {
+    "w": 358,
+    "h": 44
+   },
+   "buttons": [
+    {
+     "t": "Cancelar",
+     "w": 358,
+     "h": 44
+    },
+    {
+     "t": "Guardar y crear otro",
+     "w": 358,
+     "h": 44
+    },
+    {
+     "t": "Crear cliente",
+     "w": 358,
+     "h": 44
+    }
+   ]
+  },
+  "escape-390-dark": true,
+  "metricas-768-light": {
+   "overflowX": 0,
+   "name": {
+    "w": 335,
+    "h": 40
+   },
+   "ruc": {
+    "w": 335,
+    "h": 40
+   },
+   "legal": {
+    "w": 686,
+    "h": 40
+   },
+   "buttons": [
+    {
+     "t": "Cancelar",
+     "w": 83,
+     "h": 40
+    },
+    {
+     "t": "Guardar y crear otro",
+     "w": 152,
+     "h": 40
+    },
+    {
+     "t": "Crear cliente",
+     "w": 140,
+     "h": 40
+    }
+   ]
+  },
+  "escape-768-light": true,
+  "metricas-768-dark": {
+   "overflowX": 0,
+   "name": {
+    "w": 335,
+    "h": 40
+   },
+   "ruc": {
+    "w": 335,
+    "h": 40
+   },
+   "legal": {
+    "w": 686,
+    "h": 40
+   },
+   "buttons": [
+    {
+     "t": "Cancelar",
+     "w": 83,
+     "h": 40
+    },
+    {
+     "t": "Guardar y crear otro",
+     "w": 152,
+     "h": 40
+    },
+    {
+     "t": "Crear cliente",
+     "w": 140,
+     "h": 40
+    }
+   ]
+  },
+  "escape-768-dark": true,
+  "serial": {
+   "modalOpen": true,
+   "notice": true,
+   "nameValue": "",
+   "focusOnName": true,
+   "rucValue": "",
+   "legalValue": ""
+  },
+  "created": [
+   {
+    "id": "1365",
+    "name": "QA Alta 405044-Serie 1",
+    "email": null,
+    "phone": null,
+    "tax_id": "80405044",
+    "legal_name": "QA Alta 405044 S.A."
+   },
+   {
+    "id": "1366",
+    "name": "QA Alta 405044-Serie 2",
+    "email": null,
+    "phone": null,
+    "tax_id": null,
+    "legal_name": null
+   }
+  ],
+  "createdFindings": [
+   {
+    "name": "QA Alta 405044-Serie 1",
+    "tax_id": "80405044",
+    "legal_name": "QA Alta 405044 S.A."
+   },
+   {
+    "name": "QA Alta 405044-Serie 2",
+    "tax_id": null,
+    "legal_name": null
+   }
+  ],
+  "errorNombre": "Nuevo cliente\nUsamos los datos del cliente para la relación comercial, la facturación y el contacto operativo.\nLos comprobantes y datos fiscales se conservan por obligación contable; el resto podés pedir corregirlo o suprimirlo desde «Tus derechos».\nPolítica de privacidad\n·\nTus derechos\nCompletar desde RUC\nCarga manual\nNombre\nEscribí el nombre del cliente.\nEmail\nTeléfono / WhatsApp · Opcional\n🇵🇾 +595\n🇧🇷 +55\n🇦🇷 +54\n🇺🇸 +1\n🇪🇸 +34\nElegí el país; al guardar se conserva el código internacional y se habilita el acceso directo a WhatsApp.\nRUC · Opcional\nPodés pegarlo con puntos o espacios; se guarda normalizado y no se consulta al proveedor. Si no lo tenés, dejalo vacío.\nRazón social · Opcional\nNombre legal para facturas y documentos. Si coincide con el nombre comercial, podés dejarla vacía.\nCancelar\nGuardar y crear otro\nCrear cliente",
+  "errorRuc": "Nuevo cliente\nUsamos los datos del cliente para la relación comercial, la facturación y el contacto operativo.\nLos comprobantes y datos fiscales se conservan por obligación contable; el resto podés pedir corregirlo o suprimirlo desde «Tus derechos».\nPolítica de privacidad\n·\nTus derechos\nCompletar desde RUC\nCarga manual\nNombre\nEmail\nTeléfono / WhatsApp · Opcional\n🇵🇾 +595\n🇧🇷 +55\n🇦🇷 +54\n🇺🇸 +1\n🇪🇸 +34\nElegí el país; al guardar se conserva el código internacional y se habilita el acceso directo a WhatsApp.\nRUC · Opcional\nPodés pegarlo con puntos o espacios; se guarda normalizado y no se consulta al proveedor. Si no lo tenés, dejalo vacío.\nRUC inválido: usá 5 a 8 dígitos, con o sin dígito verificador (ej: 80012345-6).\nRazón social · Opcional\nNombre legal para facturas y documentos. Si coincide con el nombre comercial, podés dejarla vacía.\nCancelar\nGuardar y crear otro\nCrear cliente",
+  "editor": {
+   "createButton": false,
+   "masked": true,
+   "placeholder": "Buscar por nombre"
+  }
+ },
+ "consoleErrors": []
+}
