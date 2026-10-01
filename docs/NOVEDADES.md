@@ -2,6 +2,14 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.160
+
+### Operaciones
+
+- **Barrido completo móvil/tablet y oscuro, sin hallazgos**: inventario (lista, búsqueda sin resultados, alta, ubicaciones y reservas), producción (tablero y nueva pieza), proyectos y estudio pasan las verificaciones a 390×844 y 768×1024: sin desbordes horizontales, acciones de 44 px en móvil, diálogos que atrapan el foco, Escape que devuelve el foco y validaciones visibles al enviar vacío.
+- **Herramienta de verificación más estable**: el ensayo de arrastre/entrega de piezas queda sólido (custodia por empresa, pipeline vigente y sesión táctil), para repetir la medición sin falsos positivos.
+- Evidencia en `docs/qa/qa-ola2-ops/`: 39 capturas (claro y oscuro) más el reporte del barrido con todos los chequeos en verde.
+
 ## v1.0.159
 
 ### Asistente «Carga con IA»
