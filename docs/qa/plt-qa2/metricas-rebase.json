@@ -1,0 +1,600 @@
+[
+ {
+  "screen": "permisos",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   },
+   {
+    "tag": "DIV",
+    "cls": "min-w-[84rem]",
+    "right": 1360
+   },
+   {
+    "tag": "DIV",
+    "cls": "grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold u",
+    "right": 1360
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial-vacio",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "papelera-vacia",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 469
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "equipo",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "permisos",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   },
+   {
+    "tag": "DIV",
+    "cls": "min-w-[84rem]",
+    "right": 1560
+   },
+   {
+    "tag": "DIV",
+    "cls": "grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold u",
+    "right": 1560
+   },
+   {
+    "tag": "SPAN",
+    "cls": "text-right whitespace-nowrap ",
+    "right": 1556
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial-vacio",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "papelera-vacia",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "equipo",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "permisos",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   },
+   {
+    "tag": "DIV",
+    "cls": "min-w-[84rem]",
+    "right": 1360
+   },
+   {
+    "tag": "DIV",
+    "cls": "grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold u",
+    "right": 1360
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial-vacio",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "papelera-vacia",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 469
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "equipo",
+  "label": "final",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "permisos",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   },
+   {
+    "tag": "DIV",
+    "cls": "min-w-[84rem]",
+    "right": 1560
+   },
+   {
+    "tag": "DIV",
+    "cls": "grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold u",
+    "right": 1560
+   },
+   {
+    "tag": "SPAN",
+    "cls": "text-right whitespace-nowrap ",
+    "right": 1556
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial-vacio",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "papelera-vacia",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "equipo",
+  "label": "final",
+  "width": 768,
+  "height": 1024,
+  "theme": "dark",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ }
+]

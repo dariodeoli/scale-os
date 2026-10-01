@@ -4,6 +4,11 @@ _2026-10-01 · rama `SOS-PLT` · stack local del harness (`e2e-plt-stack.mjs`:
 Postgres 17 temporal + API real + demo privada + datos de Plataforma + front
 `next start` y proxy de un solo origen)._
 
+> El barrido inicial se capturó sobre v1.0.156 + owncoding-ui v0.54.0; tras el
+> rebase a **v1.0.157 + owncoding-ui v0.59.0** se re-capturaron y revisaron
+> Equipo, Permisos, Historial y los dos vacíos (`metricas-rebase.json`), y las
+> capturas `-despues-` corresponden a ese estado final.
+
 ## Cobertura
 
 76 capturas en claro/oscuro a **390×844** y **768×1024** (16 pantallas + 2
