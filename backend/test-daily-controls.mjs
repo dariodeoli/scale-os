@@ -10,6 +10,10 @@ import {budgetSections} from './budget-sections.js';
 import {zoneDate} from './business-time.js';
 const pg=new PGlite();await pg.exec(await fs.readFile('schema.sql','utf8'));
 for(const name of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql'])await pg.exec(await fs.readFile('migrations/'+name,'utf8'));
+// El cobro por cliente (#121) usa `assertRecordAvailable` (papelera de clientes)
+// y el guard de reportes; la cadena real llega con estas dos migraciones.
+await pg.exec(await fs.readFile('migrations/20260910_client_lifecycle.sql','utf8'));
+await pg.exec(await fs.readFile('migrations/20260911_agency_reports.sql','utf8'));
 // The current work-order PATCH writes drive_links, as in the production migration chain.
 await pg.exec(await fs.readFile('migrations/20260911_drive_links.sql','utf8'));
 await identitySchema(pg);
@@ -163,4 +167,36 @@ assert(windowed.payments.every((row,index)=>index===0||row.received_on<=windowed
 const complete=await call('/api/agency/payments?limit=all');
 assert.equal(complete.hasMore,false,'limit=all desactiva el hasMore');
 assert(complete.payments.length>20,'limit=all conserva el histórico completo');
-await pg.close();console.log('PASS: partial receipts, FX, reversal idempotency, insufficient funds, tenant/role isolation, reconciliation import/dedup/matches, client review and publication gate, PDF sections, actor audit, migration re-run, payments/transfers routed to finance-controls (no legacy handlers), and the payments window (#67)');
+// Cobro por cliente (#121, acción `registrar_cobro` de «Carga con IA»): cliente +
+// monto + fecha + detalle sin factura explícita; reparto FIFO sobre las facturas
+// con saldo en la moneda de la cuenta de ingreso.
+const batchClient=(await query("insert into agency_clients(organization_id,name) values($1,'Cliente lote') returning id",[org])).rows[0].id;
+const batchOld=(await query("insert into agency_invoices(organization_id,client_id,number,total,currency,due_on) values($1,$2,'BATCH-1',300000,'PYG','2026-08-01') returning id",[org,batchClient])).rows[0].id;
+const batchNew=(await query("insert into agency_invoices(organization_id,client_id,number,total,currency,due_on) values($1,$2,'BATCH-2',500000,'PYG','2026-09-15') returning id",[org,batchClient])).rows[0].id;
+const batchKey='33333333-3333-4333-a333-333333333333';
+r=await call('/api/agency/payments','POST',{clientId:batchClient,accountId:cash,amount:600000,receivedOn:'2026-09-30',reference:'Cobro IA',requestId:batchKey});
+assert.equal(r.status,201,'el cobro por cliente se registra');
+assert.deepEqual(r.payments.map(row=>({invoice:String(row.invoice_id),amount:Number(row.amount)})),[{invoice:String(batchOld),amount:300000},{invoice:String(batchNew),amount:300000}],'FIFO reparte en una fila por factura');
+assert.equal(r.total,600000);
+assert.equal((await query('select status from agency_invoices where id=$1',[batchOld])).rows[0].status,'paid','la factura más antigua queda saldada');
+assert.equal(Number((await query('select paid_amount from agency_invoices where id=$1',[batchNew])).rows[0].paid_amount),300000,'el resto se aplica a la siguiente factura');
+const batchCount=(await query('select count(*)::int as n from agency_payments where organization_id=$1',[org])).rows[0].n;
+r=await call('/api/agency/payments','POST',{clientId:batchClient,accountId:cash,amount:600000,receivedOn:'2026-09-30',reference:'Cobro IA',requestId:batchKey});
+assert.equal(r.status,200);assert.equal(r.alreadyRecorded,true);assert.equal(r.payments.length,2,'el reintento devuelve el lote original');
+assert.equal((await query('select count(*)::int as n from agency_payments where organization_id=$1',[org])).rows[0].n,batchCount,'el reintento no duplica filas');
+assert.equal((await call('/api/agency/payments','POST',{clientId:batchClient,accountId:cash,amount:600001,receivedOn:'2026-09-30',requestId:batchKey})).status,409,'la misma llave con otro importe se rechaza');
+const inactiveClient=(await query("insert into agency_clients(organization_id,name,active) values($1,'Cliente inactivo',false) returning id",[org])).rows[0].id;
+const rejections=[
+ [{clientId:batchClient,accountId:cash,amount:999999999,receivedOn:'2026-09-30'},409,'el monto no puede superar el saldo del cliente'],
+ [{clientId:99999999,accountId:cash,amount:1000,receivedOn:'2026-09-30'},404,'el cliente inexistente no registra nada'],
+ [{clientId:batchClient,invoiceId:batchNew,accountId:cash,amount:1000,receivedOn:'2026-09-30'},400,'no se mezclan factura y cliente'],
+ [{clientId:batchClient,accountId:cash,amount:1000,receivedOn:'2999-01-01'},400,'una fecha futura no registra nada'],
+ [{clientId:batchClient,accountId:usd,amount:1000,receivedOn:'2026-09-30'},409,'sin facturas en la moneda de la cuenta'],
+ [{clientId:inactiveClient,accountId:cash,amount:1000,receivedOn:'2026-09-30'},409,'un cliente inactivo no recibe cobros'],
+];
+for(const [payload,status,label] of rejections)assert.equal((await call('/api/agency/payments','POST',payload)).status,status,label);
+assert.equal((await call('/api/agency/payments','POST',{clientId:batchClient,accountId:cash,amount:1000,receivedOn:'2026-09-30'}, {...user,role:'sales'})).status,403,'sin payments.manage no hay cobro');
+assert.equal((await query('select count(*)::int as n from agency_payments where organization_id=$1',[org])).rows[0].n,batchCount,'ningún rechazo escribió una fila');
+const batchListed=await call('/api/agency/payments');
+assert(batchListed.payments.some(row=>String(row.client_id)===String(batchClient)),'la lista de cobros trae client_id para detectar duplicados');
+await pg.close();console.log('PASS: partial receipts, FX, reversal idempotency, insufficient funds, tenant/role isolation, reconciliation import/dedup/matches, client review and publication gate, PDF sections, actor audit, migration re-run, payments/transfers routed to finance-controls (no legacy handlers), the payments window (#67) and the IA client receipt with FIFO allocation (#121)');
