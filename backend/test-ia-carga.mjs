@@ -17,6 +17,8 @@ import {
  senalesDeCliente,estadoDeCoincidencias,coincidenciasClientes,coincidenciasEquipos,
  enriquecerCoincidencias,normalizarAcciones,resolverClienteDeAccion,fechaDeTextoIa,
  IA_ACCIONES,
+ distanciaEdicion,similitudIa,confianzaDeSenales,monedaDeTexto,
+ fechaDeTextoIaDetalle,textoTieneCredito,plazoDeTexto,verificarEscalares,
 } from './ia-carga.js';
 
 const read=file=>fs.readFile(new URL(file,import.meta.url),'utf8');
@@ -84,8 +86,9 @@ assert.ok(clienteDudoso.avisos.some(aviso=>aviso.startsWith('RUC')));
 const equipo=normalizarEquipo({nombre:'Cámara Sony FX3',categoria:'Cámara',cantidad:'4',valor:'15.000.000',moneda:'gs'});
 assert.equal(equipo.cantidad,4);
 assert.equal(equipo.valor,15000000);
-assert.equal(equipo.moneda,null,'gs no es una moneda declarada: la elige la empresa');
-assert.ok(equipo.avisos.some(aviso=>aviso.startsWith('Moneda')));
+assert.equal(equipo.moneda,'PYG','gs es una forma local de PYG');
+assert.equal(equipo.moneda_extranjera,null);
+assert.ok(!equipo.avisos.some(aviso=>aviso.startsWith('Moneda')),'una moneda local no genera aviso de moneda');
 const equipoSinCantidad=normalizarEquipo({nombre:'Trípode'});
 assert.equal(equipoSinCantidad.cantidad,1);
 assert.equal(equipoSinCantidad.valor,null);
@@ -152,8 +155,10 @@ assert.deepEqual(nuevo,{estado:'nuevo',coincidencias:[]});
 const inactivo=coincidenciasClientes(cartera,{nombre:'Pérez Hnos'});
 assert.equal(inactivo.estado,'coincide');
 assert.equal(inactivo.coincidencias[0].activo,false,'el cliente inactivo viaja marcado');
-assert.equal(estadoDeCoincidencias([{id:'1',nombre:'A',senales:['ruc_ci_exacto'],activo:true},{id:'2',nombre:'B',senales:['nombre_normalizado'],activo:true}]),'coincide','un fuerte único gana aunque haya débiles');
-assert.equal(estadoDeCoincidencias([{id:'1',nombre:'A',senales:['correo'],activo:true},{id:'2',nombre:'B',senales:['correo'],activo:true}]),'ambiguo','dos fuertes no se resuelven solos');
+assert.equal(estadoDeCoincidencias([{id:'1',nombre:'A',senales:['ruc_ci_exacto'],confianza:100,activo:true},{id:'2',nombre:'B',senales:['nombre_normalizado'],confianza:90,activo:true}]),'coincide','un fuerte único gana aunque haya débiles');
+assert.equal(estadoDeCoincidencias([{id:'1',nombre:'A',senales:['correo'],confianza:98,activo:true},{id:'2',nombre:'B',senales:['correo'],confianza:98,activo:true}]),'ambiguo','dos fuertes no se resuelven solos');
+assert.equal(estadoDeCoincidencias([{id:'1',nombre:'A',senales:['nombre_parecido'],confianza:72,activo:true}]),'ambiguo','un parecido preselecciona, no vincula');
+assert.equal(estadoDeCoincidencias([{id:'1',nombre:'A',senales:['nombre_parcial'],confianza:40,activo:true}]),'nuevo','por debajo de 60 se crea nuevo');
 
 const equipos=[{id:'7',name:'Cámara Sony FX3',category:'Cámara',status:'available',active:true},{id:'8',name:'Cámara Sony FX3',category:'Cámara',status:'available',active:true},{id:'9',name:'Trípode Manfrotto',category:'Accesorio',status:'available',active:true}];
 assert.equal(coincidenciasEquipos(equipos,{nombre:'cámara sony fx3'}).estado,'ambiguo','hay dos equipos con el mismo nombre');
@@ -182,7 +187,7 @@ assert.equal(fechaDeTextoIa('2026-09-30T15:30:00Z'),'2026-09-30');
 assert.equal(fechaDeTextoIa('31/02/2026'),null);
 assert.equal(fechaDeTextoIa('la semana pasada'),null);
 
-assert.deepEqual(IA_ACCIONES,['registrar_cobro']);
+assert.deepEqual(IA_ACCIONES,['registrar_cobro','registrar_vencimiento']);
 const acciones=normalizarAcciones({acciones:[
  {tipo:'registrar_cobro',cliente:'Juan Pérez',monto:'1.500.000',fecha:'ayer',detalle:'Seña del proyecto'},
  {tipo:'registrar_cobro',cliente:'Ana',monto:'mil',fecha:null},
@@ -206,13 +211,95 @@ assert.equal(accionUnica.cliente.id,'2');
 assert.equal(accionUnica.estado,'coincide');
 assert.deepEqual(accionUnica.avisos,[]);
 const accionAmbigua=resolverClienteDeAccion({tipo:'registrar_cobro',cliente:{nombre:'Pérez',id:null,candidatos:[]},monto:500000,moneda:'PYG',fecha:null,detalle:null,avisos:[]},cartera);
-assert.equal(accionAmbigua.cliente.id,null);
 assert.ok(accionAmbigua.cliente.candidatos.length>=2);
-assert.ok(accionAmbigua.avisos.some(aviso=>aviso.includes('elegí cuál')));
+assert.ok(accionAmbigua.cliente.id,'el mejor candidato ≥60 queda preseleccionado');
+assert.ok(accionAmbigua.cliente.candidatos.some(item=>item.id===accionAmbigua.cliente.id));
+assert.ok(accionAmbigua.avisos.some(aviso=>aviso.includes('preseleccionado')));
 const accionFantasma=resolverClienteDeAccion({tipo:'registrar_cobro',cliente:{nombre:'Nadie',id:null,candidatos:[]},monto:500000,moneda:'PYG',fecha:null,detalle:null,avisos:[]},cartera);
 assert.equal(accionFantasma.estado,'nuevo');
 assert.ok(accionFantasma.avisos.some(aviso=>aviso.includes('No encontramos')));
 assert.equal(hoy.length,10);
+
+// ── Estándar portable (#131): confianza, escalares, moneda, fechas y plazo ──
+
+assert.equal(distanciaEdicion('juan','jhon'),2);
+assert.equal(distanciaEdicion('','abc'),3);
+assert.equal(similitudIa('juan perez','jhon perez'),0.8);
+assert.equal(similitudIa('igual','igual'),1);
+assert.equal(confianzaDeSenales(['ruc_ci_exacto']),100);
+assert.equal(confianzaDeSenales(['correo']),98);
+assert.equal(confianzaDeSenales(['telefono']),85);
+assert.equal(confianzaDeSenales(['nombre_normalizado']),90);
+assert.equal(confianzaDeSenales(['telefono','nombre_normalizado']),95,'dos señales independientes refuerzan');
+assert.equal(confianzaDeSenales(['nombre_parecido'],0.8),72);
+assert.equal(confianzaDeSenales(['nombre_parcial'],0.5),75);
+
+const typo=coincidenciasClientes(cartera,{nombre:'Jhon Perez'});
+assert.ok(typo.coincidencias.length>=1,'el typo encuentra al cliente');
+assert.ok(typo.coincidencias[0].senales.includes('nombre_parecido'));
+assert.ok(typo.coincidencias[0].confianza>=60&&typo.coincidencias[0].confianza<90,'60–89: mejor candidato');
+assert.equal(typo.estado,'ambiguo','un typo no vincula solo');
+const exactoConfianza=coincidenciasClientes([{id:'9',name:'Único Cliente',legal_name:null,email:null,phone:null,tax_id:null,active:true}],{nombre:'unico cliente'});
+assert.equal(exactoConfianza.coincidencias[0].confianza,90);
+assert.equal(exactoConfianza.estado,'coincide');
+
+assert.deepEqual(monedaDeTexto('Gs'),{moneda:'PYG',extranjera:null});
+assert.deepEqual(monedaDeTexto('US$'),{moneda:'USD',extranjera:null});
+assert.deepEqual(monedaDeTexto('EUR'),{moneda:null,extranjera:'EUR'});
+const equipoExtranjero=normalizarEquipo({nombre:'Cámara',valor:'1.200',moneda:'EUR'});
+assert.equal(equipoExtranjero.valor,null,'un importe en euros no se lee como guaraníes');
+assert.equal(equipoExtranjero.moneda_extranjera,'EUR');
+assert.ok(equipoExtranjero.avisos.some(aviso=>aviso.includes('Moneda extranjera')));
+
+assert.deepEqual(fechaDeTextoIaDetalle('ayer',{hoy:'2026-10-01'}),{fecha:'2026-09-30',motivo:'relativa: ayer'});
+assert.deepEqual(fechaDeTextoIaDetalle('5/1',{hoy:'2026-10-01'}),{fecha:'2026-01-05',motivo:'sin año: se asumió 2026 (día/mes)'});
+assert.deepEqual(fechaDeTextoIaDetalle('2026-09-30'),{fecha:'2026-09-30',motivo:'explícita'});
+assert.deepEqual(fechaDeTextoIaDetalle('la semana pasada'),{fecha:null,motivo:null});
+const conFechaRelativa=normalizarAcciones({acciones:[{tipo:'registrar_cobro',cliente:'Ana',monto:100,fecha:'ayer'}]});
+assert.equal(conFechaRelativa.acciones[0].fecha_motivo,'relativa: ayer','el motivo de la fecha queda visible');
+
+assert.equal(textoTieneCredito('Juan me va a pagar a crédito 30 días'),true);
+assert.equal(textoTieneCredito('Juan me pagó 500.000'),false);
+assert.equal(plazoDeTexto('a crédito 30 días'),30);
+assert.equal(plazoDeTexto('sin días'),null);
+const diasEntre=(a,b)=>Math.round((new Date(a+'T00:00:00Z')-new Date(b+'T00:00:00Z'))/86400000);
+const credito=normalizarAcciones({acciones:[{tipo:'registrar_cobro',cliente:'Juan Pérez',monto:'500.000'}]},{texto:'Juan Pérez me va a pagar a crédito 30 días'});
+assert.equal(credito.acciones.length,1);
+assert.equal(credito.acciones[0].tipo,'registrar_vencimiento','la red de seguridad no lo deja como cobro');
+assert.equal(credito.acciones[0].plazo_dias,30);
+assert.equal(diasEntre(credito.acciones[0].vencimiento,zoneToday()),30);
+assert.ok(credito.avisos.some(aviso=>aviso.includes('no se registran como cobros')));
+assert.ok(credito.acciones[0].avisos.some(aviso=>aviso.includes('vencimiento, no un cobro')));
+const vencimientoExplicito=normalizarAcciones({acciones:[{tipo:'registrar_vencimiento',cliente:'Ana',monto:null,plazo_dias:15,fecha:null}]});
+assert.equal(vencimientoExplicito.acciones[0].tipo,'registrar_vencimiento');
+assert.equal(vencimientoExplicito.acciones[0].plazo_dias,15);
+assert.equal(vencimientoExplicito.acciones[0].monto,null);
+assert.equal(diasEntre(vencimientoExplicito.acciones[0].vencimiento,zoneToday()),15);
+assert.ok(vencimientoExplicito.acciones[0].avisos.some(aviso=>aviso.includes('a 15 días')));
+const vencimientoSinDatos=normalizarAcciones({acciones:[{tipo:'registrar_vencimiento',cliente:'Ana'}]});
+assert.ok(vencimientoSinDatos.acciones[0].avisos.some(aviso=>aviso.includes('no pudimos leer cuántos días')));
+
+const accionEuro=normalizarAcciones({acciones:[{tipo:'registrar_cobro',cliente:'Ana',monto:500,moneda:'EUR'}]});
+assert.deepEqual(accionEuro.acciones,[]);
+assert.ok(accionEuro.avisos.some(aviso=>aviso.includes('EUR')));
+const accionUsd=normalizarAcciones({acciones:[{tipo:'registrar_cobro',cliente:'Ana',monto:500,moneda:'USD'}]});
+assert.equal(accionUsd.acciones[0].moneda,'USD','USD no se lee como guaraníes');
+
+assert.deepEqual(verificarEscalares('Ana 0981 123 456',{campos:{nombre:'Ana',telefono:'+595 981123456'}}).no_en_texto,[]);
+assert.deepEqual(verificarEscalares('Ana sin datos',{campos:{nombre:'Ana',correo:'ana@nada.example'}}).no_en_texto,['correo']);
+assert.deepEqual(verificarEscalares('Total 1.500.000 Gs',{campos:{monto:1500000}}).no_en_texto,[]);
+assert.deepEqual(verificarEscalares('Sin importe',{campos:{monto:1500000}}).no_en_texto,['monto']);
+assert.ok(verificarEscalares('Ana',{campos:{correo:'ana@nada.example'}}).avisos[0].includes('no está en el texto'));
+assert.deepEqual(verificarEscalares('Constructora Ñandú S.A. facturó',{campos:{nombre:'Constructora Ñandú SA'}}).no_en_texto,[]);
+
+const proveedorInventado={id:'inv',label:'inv',async analizar(){return JSON.stringify({clientes:[{nombre:'Cliente Fantasma',correo:'fantasma@nada.example'}],equipos:[],acciones:[]});}};
+const inventado=await analizarCarga({texto:'Solo este texto no tiene el cliente',tipos:['clientes'],proveedor:proveedorInventado});
+assert.deepEqual(inventado.registros.clientes[0].no_en_texto,['nombre','correo']);
+assert.ok(inventado.registros.clientes[0].avisos.some(aviso=>aviso.includes('no está en el texto')));
+assert.equal(enriquecerCoincidencias(inventado.registros,{}).clientes[0].estado,'nuevo');
+const proveedorEnTexto={id:'ok',label:'ok',async analizar(){return JSON.stringify({clientes:[{nombre:'Ana',telefono:'0981 000 111'}],equipos:[],acciones:[]});}};
+const enTexto=await analizarCarga({texto:'Ana pidió presupuesto al 0981 000 111',tipos:['clientes'],proveedor:proveedorEnTexto});
+assert.deepEqual(enTexto.registros.clientes[0].no_en_texto,[],'lo que está en el texto no se marca');
 
 // ── Presupuesto de tokens y resiliencia (#127) ──────────────────────────────
 
@@ -363,7 +450,7 @@ try{
  let r=await call('/api/ia/carga');
  assert.equal(r.status,200);assert.equal(r.configurada,true);assert.equal(r.modelo,'modelo-prueba');
  assert.deepEqual(r.tipos,['clientes','equipos']);
- assert.deepEqual(r.acciones_soportadas,['registrar_cobro']);
+ assert.deepEqual(r.acciones_soportadas,['registrar_cobro','registrar_vencimiento']);
  assert.equal(r.limites.texto,IA_TEXTO_MAX);assert.equal(r.limites.coincidencias,IA_COINCIDENCIAS_MAX);
  assert.deepEqual((await call('/api/ia/carga',{as:sales})).tipos,['clientes']);
  assert.deepEqual((await call('/api/ia/carga',{as:production})).tipos,['equipos']);
@@ -437,6 +524,62 @@ try{
  const maximo=await call('/api/ia/carga',{method:'POST',payload:{texto:'x'.repeat(IA_TEXTO_MAX)},proveedor:registraPresupuesto});
  assert.equal(maximo.status,200);assert.equal(presupuestoVisto,8000);
 
+ // ── Estándar portable (#131) de punta a punta ──────────────────────────────
+ const orgE=await insert("insert into organizations(slug,name) values('ia-e','IA E')");
+ const ownerEId=await insert("insert into users(email,password_hash) values('ia-owner-e@example.invalid','unused')");
+ await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner')",[orgE,ownerEId]);
+ const ownerE={...owner,id:ownerEId,email:'ia-owner-e@example.invalid',organization_id:orgE};
+ const juanE=await insert("insert into agency_clients(organization_id,name,email) values($1,'Juan Pérez','juan.perez@example.invalid')",[orgE]);
+ const equipoE=await insert("insert into agency_inventory(organization_id,name,category,value) values($1,'Cámara Sony FX3','Cámara',15000000)",[orgE]);
+
+ // Typo tolerante: «Jhon Perez» encuentra a «Juan Pérez» por distancia de edición.
+ const proveedorTypo=jsonProvider({clientes:[{nombre:'Jhon Perez'}],equipos:[{nombre:'Camara Sony FX3',valor:'15.000.000',moneda:'Gs'}],acciones:[{tipo:'registrar_cobro',cliente:'Jhon Perez',monto:'500.000'}]});
+ const ty=await call('/api/ia/carga',{method:'POST',as:ownerE,payload:{texto:'Jhon Perez me pagó 500.000 por la camara sony fx3'},proveedor:proveedorTypo});
+ assert.equal(ty.status,200);
+ const clienteTy=ty.registros.clientes[0];
+ assert.equal(clienteTy.coincidencias[0].id,String(juanE));
+ assert.ok(clienteTy.coincidencias[0].senales.includes('nombre_parecido'));
+ assert.ok(clienteTy.coincidencias[0].confianza>=60&&clienteTy.coincidencias[0].confianza<90,'60–89: mejor candidato');
+ assert.equal(clienteTy.estado,'ambiguo');
+ assert.deepEqual(clienteTy.no_en_texto,[]);
+ const equipoTy=ty.registros.equipos[0];
+ assert.equal(equipoTy.coincidencias[0].id,String(equipoE),'el equipo con typo/acento matchea');
+ assert.equal(equipoTy.estado,'coincide','sin acentos el nombre es exacto');
+ assert.ok(equipoTy.no_en_texto.includes('valor'),'el valor no estaba en el texto');
+ assert.equal(ty.acciones[0].cliente.id,String(juanE),'el mejor candidato de la acción queda preseleccionado');
+ assert.equal(ty.acciones[0].tipo,'registrar_cobro');
+ assert.deepEqual(ty.acciones[0].no_en_texto,[]);
+
+ // «A crédito N días» → vencimiento, nunca cobro.
+ const proveedorCredito=jsonProvider({clientes:[{nombre:'Juan Pérez'}],equipos:[],acciones:[{tipo:'registrar_cobro',cliente:'Juan Pérez',monto:'1.500.000'}]});
+ const creditoResp=await call('/api/ia/carga',{method:'POST',as:ownerE,payload:{texto:'Juan Pérez va a pagar a crédito 30 días'},proveedor:proveedorCredito});
+ assert.equal(creditoResp.acciones[0].tipo,'registrar_vencimiento');
+ assert.equal(creditoResp.acciones[0].plazo_dias,30);
+ assert.equal(diasEntre(creditoResp.acciones[0].vencimiento,zoneToday()),30);
+ assert.ok(creditoResp.registros.avisos.some(aviso=>aviso.includes('no se registran como cobros')));
+
+ // Moneda extranjera: no se interpreta como Gs ni se propone cobro.
+ const proveedorEuro=jsonProvider({clientes:[{nombre:'Juan Pérez'}],equipos:[{nombre:'Cámara rara',valor:'1.200',moneda:'EUR'}],acciones:[{tipo:'registrar_cobro',cliente:'Juan Pérez',monto:500,moneda:'EUR'}]});
+ const euroResp=await call('/api/ia/carga',{method:'POST',as:ownerE,payload:{texto:'Juan Pérez pagó 500 EUR y compró una cámara rara en euros'},proveedor:proveedorEuro});
+ assert.equal(euroResp.registros.equipos[0].valor,null);
+ assert.equal(euroResp.registros.equipos[0].moneda_extranjera,'EUR');
+ assert.deepEqual(euroResp.acciones,[]);
+ assert.ok(euroResp.registros.avisos.some(aviso=>aviso.includes('EUR')));
+
+ // Escalares que no están en el texto se marcan.
+ const proveedorAlucina=jsonProvider({clientes:[{nombre:'Juan Pérez',correo:'inventado@nada.example',telefono:'+595 999 000 111'}],equipos:[],acciones:[]});
+ const alucina=await call('/api/ia/carga',{method:'POST',as:ownerE,payload:{texto:'Juan Pérez pasó por la oficina'},proveedor:proveedorAlucina});
+ assert.deepEqual(alucina.registros.clientes[0].no_en_texto.slice().sort(),['correo','telefono']);
+ assert.ok(alucina.registros.clientes[0].avisos.some(aviso=>aviso.includes('no está en el texto')));
+
+ // Idempotencia reforzada: mismo texto, mismo resultado y cero escrituras.
+ const clientesAntesE=(await query('select count(*)::int as n from agency_clients where organization_id=$1',[orgE])).rows[0].n;
+ const repetido=await call('/api/ia/carga',{method:'POST',as:ownerE,payload:{texto:'Jhon Perez me pagó 500.000 por la camara sony fx3'},proveedor:proveedorTypo});
+ assert.deepEqual(repetido.registros,ty.registros);
+ assert.deepEqual(repetido.acciones,ty.acciones);
+ assert.equal((await query('select count(*)::int as n from agency_clients where organization_id=$1',[orgE])).rows[0].n,clientesAntesE);
+ assert.equal((await query('select count(*)::int as n from agency_inventory where organization_id=$1',[orgE])).rows[0].n,1);
+
  // Producción no ve clientes ni acciones aunque el proveedor las devuelva.
  const soloEquipo=await call('/api/ia/carga',{method:'POST',as:production,payload:{texto:'x'},proveedor:jsonProvider({clientes:[{nombre:'Constructora Ñandú S.A.',ruc:'80012345-6'}],equipos:[{nombre:'Trípode Manfrotto'}],acciones:[{tipo:'registrar_cobro',cliente:'Constructora Ñandú S.A.',monto:100}]})});
  assert.equal(soloEquipo.status,200);
@@ -481,7 +624,7 @@ try{
  }
  const excedido=await call('/api/ia/carga',{method:'POST',as:ownerC,payload:{texto:'Hola'},proveedor:jsonProvider({clientes:[]})});
  assert.equal(excedido.status,429);
- assert.equal((await query('select count(*)::int as n from agency_clients')).rows[0].n,antesClientes+1,'solo el archivado de prueba');
+ assert.equal((await query('select count(*)::int as n from agency_clients')).rows[0].n,antesClientes+2,'solo los fixtures de la prueba (archivado + orgE)');
 }finally{
  if(previousKey===undefined)delete process.env.IA_API_KEY;else process.env.IA_API_KEY=previousKey;
  delete process.env.IA_MODELO;
@@ -503,6 +646,11 @@ assert.match(modulo,/reasoning_effort/,'el request acota el razonamiento');
 assert.match(modulo,/finishReason==='length'/,'el motor detecta el truncado');
 assert.match(modulo,/IA_INTENTOS_MAX/,'el reintento único está acotado');
 assert.match(modulo,/60 s|más de un minuto/,'el timeout es de 60 s con mensaje accionable');
+assert.match(modulo,/distanciaEdicion/,'la tolerancia a typos usa distancia de edición');
+assert.match(modulo,/IA_CONFIANZA_VINCULAR/,'los umbrales de confianza del estándar viven en el motor');
+assert.match(modulo,/no_en_texto/,'la verificación de escalares contra el texto existe');
+assert.match(modulo,/registrar_vencimiento/,'el pago a crédito se modela como vencimiento');
+assert.match(modulo,/moneda_extranjera/,'la moneda extranjera no se interpreta como local');
 const servidor=await read('./server.js');
 assert.match(servidor,/iaCarga\(\{req,res,url,db,session,body,send\}\)/,'el endpoint está montado en el server');
 const pdp=await read('./personal-data.js');
@@ -516,4 +664,4 @@ assert.match(rat,/coincidencias locales/i,'el RAT documenta el matching local');
 const politica=await read('../docs/PRIVACIDAD-POLITICA.md');
 assert.match(politica,/inteligencia artificial/i,'la política menciona el tratamiento con IA');
 
-console.log('PASS: IA — configuración por entorno (Groq por defecto), permisos por tipo, prompt con acciones, JSON estricto, normalización con avisos, coincidencias locales (RUC con/sin guion, correo, teléfono, homónimos, parciales, archivados, multi-agencia), acciones propuestas con montos válidos, proveedor mockeado sin red, idempotencia, rate-limit, resiliencia (reasoning_effort, presupuesto por texto, truncado, reintento único, timeout 60 s) y guardas de no-persistencia/no-escritura/no-ejecución');
+console.log('PASS: IA — configuración por entorno (Groq por defecto), permisos por tipo, prompt con acciones, JSON estricto, normalización con avisos, coincidencias locales con confianza 0–100 (RUC con/sin guion, correo, teléfono, homónimos, parciales, typos, archivados, multi-agencia), acciones propuestas (cobro y vencimiento por crédito), verificación no_en_texto, moneda extranjera, fechas con motivo, proveedor mockeado sin red, idempotencia, rate-limit, resiliencia (reasoning_effort, presupuesto por texto, truncado, reintento único, timeout 60 s) y guardas de no-persistencia/no-escritura/no-ejecución');
