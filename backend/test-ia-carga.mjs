@@ -9,10 +9,10 @@ import {PGlite} from '@electric-sql/pglite';
 import {migrationOrder} from './scripts/migration-order.mjs';
 import {zoneToday} from './business-time.js';
 import {
- IA_TEXTO_MAX,IA_REGISTROS_MAX,IA_RATE_LIMIT,IA_COINCIDENCIAS_MAX,
+ IA_TEXTO_MAX,IA_REGISTROS_MAX,IA_RATE_LIMIT,IA_COINCIDENCIAS_MAX,IA_TIMEOUT_MS,
  iaConfig,iaConfigurada,tiposPermitidos,instruccionesIa,mensajesDeCarga,
  parsearSalidaIa,normalizarAnalisis,normalizarCliente,normalizarEquipo,
- analizarCarga,IaError,iaCarga,
+ analizarCarga,IaError,iaCarga,iaTokensPresupuesto,
  normalizarBusqueda,documentoDigitos,documentosCompatibles,telefonosCompatibles,
  senalesDeCliente,estadoDeCoincidencias,coincidenciasClientes,coincidenciasEquipos,
  enriquecerCoincidencias,normalizarAcciones,resolverClienteDeAccion,fechaDeTextoIa,
@@ -26,10 +26,10 @@ const read=file=>fs.readFile(new URL(file,import.meta.url),'utf8');
 assert.equal(iaConfigurada({}),false);
 assert.equal(iaConfigurada({IA_API_KEY:'   '}),false);
 assert.equal(iaConfig({}),null);
-assert.deepEqual(iaConfig({IA_API_KEY:'k'}),{apiKey:'k',modelo:'openai/gpt-oss-120b',baseUrl:'https://api.groq.com/openai/v1'});
+assert.deepEqual(iaConfig({IA_API_KEY:'k'}),{apiKey:'k',modelo:'openai/gpt-oss-120b',baseUrl:'https://api.groq.com/openai/v1',reasoningEffort:'low'});
 assert.deepEqual(
  iaConfig({IA_API_KEY:' k ',IA_MODELO:'otro-modelo',IA_BASE_URL:'https://api.ejemplo.com/v1/'}),
- {apiKey:'k',modelo:'otro-modelo',baseUrl:'https://api.ejemplo.com/v1'},
+ {apiKey:'k',modelo:'otro-modelo',baseUrl:'https://api.ejemplo.com/v1',reasoningEffort:'low'},
 );
 assert.equal(iaConfig({IA_API_KEY:'k',IA_BASE_URL:'no-es-una-url'}).baseUrl,'https://api.groq.com/openai/v1');
 
@@ -214,6 +214,16 @@ assert.equal(accionFantasma.estado,'nuevo');
 assert.ok(accionFantasma.avisos.some(aviso=>aviso.includes('No encontramos')));
 assert.equal(hoy.length,10);
 
+// ── Presupuesto de tokens y resiliencia (#127) ──────────────────────────────
+
+assert.equal(IA_TIMEOUT_MS,60000,'el timeout sube a 60 s para textos grandes');
+assert.equal(iaTokensPresupuesto(''),5000);
+assert.equal(iaTokensPresupuesto('x'.repeat(4000)),5000);
+assert.equal(iaTokensPresupuesto('x'.repeat(4001)),6500);
+assert.equal(iaTokensPresupuesto('x'.repeat(12000)),6500);
+assert.equal(iaTokensPresupuesto('x'.repeat(12001)),8000);
+assert.equal(iaTokensPresupuesto('x'.repeat(IA_TEXTO_MAX)),8000);
+
 // ── Proveedor mockeado (sin red) ────────────────────────────────────────────
 
 const visto={};
@@ -228,40 +238,87 @@ const proveedorDePrueba={
   });
  },
 };
-const {registros,acciones:propuestas}=await analizarCarga({texto:'Ana me pagó 250.000 y sumá una cámara',tipos:['clientes','equipos'],proveedor:proveedorDePrueba});
+const {registros,acciones:propuestas,meta}=await analizarCarga({texto:'Ana me pagó 250.000 y sumá una cámara',tipos:['clientes','equipos'],proveedor:proveedorDePrueba});
 assert.equal(visto.mensajes,2);
-assert.equal(visto.maxTokens,4000);
+assert.equal(visto.maxTokens,5000,'texto corto usa el presupuesto base');
+assert.deepEqual(meta,{finishReason:null,intentos:1,presupuesto:5000,tokens_salida:null});
 assert.equal(registros.clientes[0].nombre,'Ana');
 assert.equal(registros.equipos[0].valor,1500000);
 assert.equal(propuestas.length,1);
 assert.equal(propuestas[0].monto,250000);
 const soloEquipos=await analizarCarga({texto:'texto',tipos:['equipos'],proveedor:proveedorDePrueba});
 assert.deepEqual(soloEquipos.acciones,[],'sin clientes permitidos no se proponen acciones');
+const textoMaximo=await analizarCarga({texto:'x'.repeat(IA_TEXTO_MAX),tipos:['clientes'],proveedor:proveedorDePrueba});
+assert.equal(textoMaximo.meta.presupuesto,8000,'el texto máximo usa el tope');
 
+const enSerie=salidas=>{
+ let indice=0;
+ return {id:'serie',label:'serie',async analizar(){return salidas[Math.min(indice++,salidas.length-1)];}};
+};
+const valido={contenido:'{"clientes":[{"nombre":"Ana"}]}',finishReason:'stop'};
+
+// Un truncado no se reintenta y explica qué hacer.
+let llamadasTruncado=0;
+const truncado={id:'t',label:'t',async analizar(){llamadasTruncado+=1;return {contenido:'{"clientes":[',finishReason:'length'};}};
 await assert.rejects(
- ()=>analizarCarga({texto:'texto',tipos:['clientes'],proveedor:{id:'x',label:'x',analizar:async()=>{throw new IaError('El proveedor de IA respondió 429.');}}}),
- /429/,
+ ()=>analizarCarga({texto:'x',tipos:['clientes'],proveedor:truncado}),
+ error=>error instanceof IaError&&error.code==='ia_truncado'&&error.retryable===false&&/dos partes/.test(error.message)&&error.finishReason==='length',
 );
+assert.equal(llamadasTruncado,1,'el truncado no se reintenta');
+
+// Vacío o JSON roto: un reintento único (solo análisis, sin efectos).
+const vacioLuegoOk=await analizarCarga({texto:'x',tipos:['clientes'],proveedor:enSerie([{contenido:''},valido])});
+assert.equal(vacioLuegoOk.meta.intentos,2,'un vacío se reintenta una vez');
+assert.equal(vacioLuegoOk.registros.clientes[0].nombre,'Ana');
+const rotoLuegoOk=await analizarCarga({texto:'x',tipos:['clientes'],proveedor:enSerie([{contenido:'no es json'},valido])});
+assert.equal(rotoLuegoOk.meta.intentos,2,'un JSON inválido se reintenta una vez');
+await assert.rejects(
+ ()=>analizarCarga({texto:'x',tipos:['clientes'],proveedor:enSerie([{contenido:''},{contenido:''}])}),
+ error=>error.code==='ia_vacio'&&error.retryable===true,
+);
+await assert.rejects(
+ ()=>analizarCarga({texto:'x',tipos:['clientes'],proveedor:enSerie([{contenido:'no'},{contenido:'tampoco'}])}),
+ error=>error.code==='ia_json'&&error.retryable===true,
+);
+
+// Un error del proveedor (429/timeout) no dispara el reintento del motor.
+let llamadasError=0;
+await assert.rejects(
+ ()=>analizarCarga({texto:'texto',tipos:['clientes'],proveedor:{id:'x',label:'x',async analizar(){llamadasError+=1;throw new IaError('El proveedor de IA está limitando las consultas; probá de nuevo en un rato.',{code:'ia_proveedor'});}}}),
+ /limitando/,
+);
+assert.equal(llamadasError,1,'un 429 no se reintenta desde el motor');
 await assert.rejects(()=>analizarCarga({texto:'x',tipos:['clientes'],proveedor:null}),IaError);
 
 const llamadas=[];
 const fetchFalso=(async (url,init)=>{
  llamadas.push({url:String(url),init});
- return new Response(JSON.stringify({choices:[{message:{content:'{"clientes":[]}'}}]}),{status:200});
+ return new Response(JSON.stringify({choices:[{message:{content:'{"clientes":[]}'},finish_reason:'stop'}],usage:{completion_tokens:321}}),{status:200});
 });
 const {iaProviderDeConfig}=await import('./ia-carga.js');
 const config=iaConfig({IA_API_KEY:'secreto',IA_MODELO:'modelo-x'});
+assert.equal(config.reasoningEffort,'low','el razonamiento se acota por defecto');
 const proveedor=iaProviderDeConfig(config,{fetcher:fetchFalso});
-assert.equal(await proveedor.analizar(mensajesDeCarga('texto',['clientes']),{maxTokens:123}),'{"clientes":[]}');
+const salidaProveedor=await proveedor.analizar(mensajesDeCarga('texto',['clientes']),{maxTokens:123});
+assert.deepEqual(salidaProveedor,{contenido:'{"clientes":[]}',finishReason:'stop',uso:{completion_tokens:321}});
 assert.equal(llamadas[0].url,'https://api.groq.com/openai/v1/chat/completions');
 assert.equal(llamadas[0].init.headers.Authorization,'Bearer secreto');
 const cuerpo=JSON.parse(llamadas[0].init.body);
 assert.equal(cuerpo.model,'modelo-x');
+assert.equal(cuerpo.max_tokens,123);
+assert.equal(cuerpo.reasoning_effort,'low','el request acota el razonamiento');
 assert.deepEqual(cuerpo.response_format,{type:'json_object'});
+const sinEffort=iaConfig({IA_API_KEY:'k',IA_REASONING_EFFORT:'none'});
+assert.equal(sinEffort.reasoningEffort,null);
+let cuerpoSinEffort=null;
+await iaProviderDeConfig(sinEffort,{fetcher:async(url,init)=>{cuerpoSinEffort=JSON.parse(init.body);return new Response(JSON.stringify({choices:[{message:{content:'{}'},finish_reason:'stop'}]}),{status:200});}}).analizar(mensajesDeCarga('x',['clientes']),{maxTokens:1});
+assert.equal(Object.hasOwn(cuerpoSinEffort,'reasoning_effort'),false,'IA_REASONING_EFFORT=none lo omite');
 const conEstado=status=>(async()=>new Response('{}',{status}));
 await assert.rejects(()=>iaProviderDeConfig(config,{fetcher:conEstado(401)}).analizar(mensajesDeCarga('x',['clientes']),{maxTokens:1}),/IA_API_KEY/);
 await assert.rejects(()=>iaProviderDeConfig(config,{fetcher:conEstado(429)}).analizar(mensajesDeCarga('x',['clientes']),{maxTokens:1}),/limitando/);
-await assert.rejects(()=>iaProviderDeConfig(config,{fetcher:async()=>new Response(JSON.stringify({choices:[]}),{status:200})}).analizar(mensajesDeCarga('x',['clientes']),{maxTokens:1}),/no devolvió contenido/);
+await assert.rejects(()=>iaProviderDeConfig(config,{fetcher:async()=>{throw Object.assign(new Error('timed out'),{name:'TimeoutError'});}}).analizar(mensajesDeCarga('x',['clientes']),{maxTokens:1}),/más de un minuto/);
+const vacioDelProveedor=await iaProviderDeConfig(config,{fetcher:async()=>new Response(JSON.stringify({choices:[]}),{status:200})}).analizar(mensajesDeCarga('x',['clientes']),{maxTokens:1});
+assert.deepEqual(vacioDelProveedor,{contenido:'',finishReason:null,uso:null},'el proveedor no decide: expone el vacío para el reintento');
 
 // ── Endpoint con PGlite (proveedor mockeado, sin red) ───────────────────────
 
@@ -352,7 +409,7 @@ try{
 
  // La transferencia queda en la bitácora con conteos (nunca el texto) y no se escribe nada.
  const bitacora=(await query("select details from personal_data_access_log where organization_id=$1 and action='ai.transfer' order by id desc limit 1",[orgA])).rows[0];
- assert.deepEqual(bitacora.details,{modelo:'modelo-prueba',clientes:3,equipos:1,acciones:1});
+ assert.deepEqual(bitacora.details,{modelo:'modelo-prueba',clientes:3,equipos:1,acciones:1,finish_reason:null,intentos:1,presupuesto:5000,tokens_salida:null});
  assert.equal((await query('select count(*)::int as n from agency_clients')).rows[0].n,antesClientes);
  assert.equal((await query('select count(*)::int as n from agency_inventory')).rows[0].n,antesEquipos);
  assert.equal((await query('select count(*)::int as n from agency_leads')).rows[0].n,0);
@@ -364,6 +421,21 @@ try{
  assert.deepEqual(otraVez.acciones,r.acciones);
  assert.equal((await query('select count(*)::int as n from agency_clients')).rows[0].n,antesClientes);
  assert.equal((await query('select count(*)::int as n from agency_inventory')).rows[0].n,antesEquipos);
+
+ // Truncado del proveedor: error claro con código propio y traza en la bitácora.
+ const truncadoHandler=await call('/api/ia/carga',{method:'POST',payload:{texto:'x'},proveedor:{id:'t',label:'t',analizar:async()=>({contenido:'{"clientes":[',finishReason:'length'})}});
+ assert.equal(truncadoHandler.status,502);
+ assert.equal(truncadoHandler.code,'ia_truncado');
+ assert.match(truncadoHandler.error,/dos partes/);
+ const bitacoraTruncado=(await query("select details from personal_data_access_log where organization_id=$1 and action='ai.transfer' order by id desc limit 1",[orgA])).rows[0];
+ assert.deepEqual(bitacoraTruncado.details,{modelo:'modelo-prueba',error:'ia_truncado',finish_reason:'length',presupuesto:5000});
+ assert.equal((await query('select count(*)::int as n from agency_clients')).rows[0].n,antesClientes,'un truncado no escribe nada');
+
+ // Texto máximo: el presupuesto sube al tope y el proveedor lo recibe.
+ let presupuestoVisto=null;
+ const registraPresupuesto={id:'p',label:'p',async analizar(mensajes,{maxTokens}){presupuestoVisto=maxTokens;return {contenido:'{"clientes":[]}',finishReason:'stop'};}};
+ const maximo=await call('/api/ia/carga',{method:'POST',payload:{texto:'x'.repeat(IA_TEXTO_MAX)},proveedor:registraPresupuesto});
+ assert.equal(maximo.status,200);assert.equal(presupuestoVisto,8000);
 
  // Producción no ve clientes ni acciones aunque el proveedor las devuelva.
  const soloEquipo=await call('/api/ia/carga',{method:'POST',as:production,payload:{texto:'x'},proveedor:jsonProvider({clientes:[{nombre:'Constructora Ñandú S.A.',ruc:'80012345-6'}],equipos:[{nombre:'Trípode Manfrotto'}],acciones:[{tipo:'registrar_cobro',cliente:'Constructora Ñandú S.A.',monto:100}]})});
@@ -427,6 +499,10 @@ assert.doesNotMatch(modulo,/update\s+agency_|delete\s+from/i,'el análisis no to
 assert.match(modulo,/throttle\(db,'ia-carga:'\+user\.organization_id,IA_RATE_LIMIT\)/,'rate-limit por organización');
 assert.match(modulo,/action:'ai\.transfer'/,'la transferencia al encargado queda auditada');
 assert.match(modulo,/No crea registros, no ejecuta acciones/,'el contrato declara que no ejecuta');
+assert.match(modulo,/reasoning_effort/,'el request acota el razonamiento');
+assert.match(modulo,/finishReason==='length'/,'el motor detecta el truncado');
+assert.match(modulo,/IA_INTENTOS_MAX/,'el reintento único está acotado');
+assert.match(modulo,/60 s|más de un minuto/,'el timeout es de 60 s con mensaje accionable');
 const servidor=await read('./server.js');
 assert.match(servidor,/iaCarga\(\{req,res,url,db,session,body,send\}\)/,'el endpoint está montado en el server');
 const pdp=await read('./personal-data.js');
@@ -440,4 +516,4 @@ assert.match(rat,/coincidencias locales/i,'el RAT documenta el matching local');
 const politica=await read('../docs/PRIVACIDAD-POLITICA.md');
 assert.match(politica,/inteligencia artificial/i,'la política menciona el tratamiento con IA');
 
-console.log('PASS: IA — configuración por entorno (Groq por defecto), permisos por tipo, prompt con acciones, JSON estricto, normalización con avisos, coincidencias locales (RUC con/sin guion, correo, teléfono, homónimos, parciales, archivados, multi-agencia), acciones propuestas con montos válidos, proveedor mockeado sin red, idempotencia, rate-limit y guardas de no-persistencia/no-escritura/no-ejecución');
+console.log('PASS: IA — configuración por entorno (Groq por defecto), permisos por tipo, prompt con acciones, JSON estricto, normalización con avisos, coincidencias locales (RUC con/sin guion, correo, teléfono, homónimos, parciales, archivados, multi-agencia), acciones propuestas con montos válidos, proveedor mockeado sin red, idempotencia, rate-limit, resiliencia (reasoning_effort, presupuesto por texto, truncado, reintento único, timeout 60 s) y guardas de no-persistencia/no-escritura/no-ejecución');

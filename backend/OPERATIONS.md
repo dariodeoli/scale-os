@@ -36,10 +36,14 @@ y `../VERSIONING.md`.
 - Correo: `WEEM_EMAIL_RELAY_URL`, `WEEM_EMAIL_RELAY_TOKEN`, `EMAIL_FROM`, `RESEND_API_KEY`.
   Los avisos de la bandeja se derivan de `agency_notifications`; sin relay quedan **en cola**
   (nunca «enviados»). Contrato, estados canónicos y plantillas: `NOTIFICATIONS.md`.
-- Carga con IA (#117): `IA_API_KEY` (sin ella la función queda apagada con
+- Carga con IA (#117, #127): `IA_API_KEY` (sin ella la función queda apagada con
   `ia_no_configurada`), `IA_MODELO` (default `openai/gpt-oss-120b`) e `IA_BASE_URL`
   (default `https://api.groq.com/openai/v1`, API compatible con `chat/completions`).
-  Solo se envía el texto pegado; el servidor no lo persiste.
+  `IA_REASONING_EFFORT` acota el razonamiento (default `low`; `none` lo omite para
+  proveedores que no lo aceptan). El motor usa presupuesto de tokens según el
+  texto (5.000/6.500/8.000), timeout de 60 s, detecta `finish_reason=length` y
+  reintenta una vez solo ante JSON inválido o vacío. Solo se envía el texto
+  pegado; el servidor no lo persiste.
 - Suscripción: `STRIPE_BILLING_ENABLED`, `STRIPE_WEBHOOK_VERIFIED_AT`,
   `SUBSCRIPTION_CHECKOUT_PROVIDER` y las claves `PAGAYA_*`; el estado real se valida en
   `STRIPE-SETUP.md`.
