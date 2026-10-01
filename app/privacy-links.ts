@@ -1,6 +1,7 @@
-// Transparencia de datos personales en Comercial (Ley 7593/2025, Refs #114).
-// Punto único donde se declaran la política y el canal de derechos que usan las
-// superficies de captura de Comercial: leads, clientes y accesos del portal.
+// Transparencia de datos personales (Ley 7593/2025, Refs #113/#114/#118).
+// Punto único donde se declaran la política, el canal de derechos y las
+// finalidades que usan las superficies de captura de la app: leads, clientes,
+// accesos del portal y «Carga con IA».
 // La página pública y el procedimiento los publica Diseño (#113); si cambia la
 // ruta, se cambia acá y ninguna pantalla escribe enlaces a mano.
 export const PRIVACY_POLICY_URL = '/privacidad';
@@ -16,3 +17,7 @@ export const PRIVACY_CLIENT_DETAIL = 'Los comprobantes y datos fiscales se conse
 
 /** Finalidad declarada al habilitar el acceso de una persona al portal del cliente. */
 export const PRIVACY_PORTAL_FINALITY = 'Usamos este correo para dar acceso al portal del cliente y avisarle de sus entregas.';
+
+/** Finalidad declarada al usar «Carga con IA» (Refs #118): sólo viaja el texto pegado. */
+export const PRIVACY_IA_FINALITY = 'Usamos el texto que pegás sólo para detectar los registros y armar la vista previa: nada se crea sin tu confirmación y el texto no se guarda en Scale OS.';
+export const PRIVACY_IA_DETAIL = 'El análisis lo hace el proveedor de IA configurado como encargado y se envía únicamente ese texto, nunca la base de datos.';
