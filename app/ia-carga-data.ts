@@ -257,6 +257,10 @@ export function mensajeIaError(cause: unknown): string {
     if (cause.status === 401) return 'Tu sesión venció. Volvé a ingresar y probá de nuevo.';
     if (cause.status === 403) return 'Tu rol no permite crear los registros de esta carga.';
     if (cause.status === 400) return cause.message || 'El texto no es válido para el análisis.';
+    // Resiliencia del motor (#127): el truncado se explica solo; una salida
+    // ilegible ya se reintentó una vez en el servidor.
+    if (cause.code === 'ia_truncado') return 'El texto era muy largo para una sola pasada: probalo en dos partes.';
+    if (cause.code === 'ia_vacio' || cause.code === 'ia_json') return 'La IA devolvió una respuesta ilegible. Reintentá en un momento; si sigue, dividí el texto en dos partes.';
     if (cause.status >= 500) return 'El proveedor de IA no respondió. Probá de nuevo en unos segundos.';
     return cause.message || 'No se pudo completar el análisis.';
   }

@@ -6,7 +6,7 @@ require.extensions['.css'] = () => {};
 
 const file = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const {IA_REGISTROS_MAX, normalizarIaAnalisis, normalizarIaAcciones, analizarIa, IaApiError} = require('../app/ia-carga-data') as typeof import('../app/ia-carga-data');
+const {IA_REGISTROS_MAX, normalizarIaAnalisis, normalizarIaAcciones, analizarIa, mensajeIaError, IaApiError} = require('../app/ia-carga-data') as typeof import('../app/ia-carga-data');
 
 /* ------------------------------------------------ coincidencias (Fase 2 #119) */
 
@@ -121,4 +121,13 @@ test('el contrato declara los tipos de la Fase 2', () => {
 test('sin sesión rota igual que el motor: los errores del análisis se conservan', async () => {
   (globalThis as {fetch: unknown}).fetch = async () => new Response(JSON.stringify({error: 'No autenticado', code: 'ia_no_configurada'}), {status: 503, headers: {'Content-Type': 'application/json'}});
   await assert.rejects(() => analizarIa('texto'), (error: unknown) => error instanceof IaApiError && error.status === 503);
+});
+
+/* ------------------------------------------- resiliencia del motor (#127) */
+
+test('los errores de resiliencia del motor se explican en es-PY', () => {
+  assert.match(mensajeIaError(new IaApiError('proveedor', 502, 'ia_truncado')), /dos partes/, 'el truncado propone dividir el texto');
+  assert.match(mensajeIaError(new IaApiError('proveedor', 502, 'ia_vacio')), /ilegible/, 'la salida vacía se explica sin jerga');
+  assert.match(mensajeIaError(new IaApiError('proveedor', 502, 'ia_json')), /ilegible/);
+  assert.match(mensajeIaError(new IaApiError('proveedor', 502)), /proveedor de IA no respondió/, 'un 502 sin código conserva el mensaje genérico');
 });
