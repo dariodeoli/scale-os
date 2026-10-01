@@ -182,7 +182,7 @@ assert.equal((await query('select status from agency_invoices where id=$1',[batc
 assert.equal(Number((await query('select paid_amount from agency_invoices where id=$1',[batchNew])).rows[0].paid_amount),300000,'el resto se aplica a la siguiente factura');
 const batchCount=(await query('select count(*)::int as n from agency_payments where organization_id=$1',[org])).rows[0].n;
 r=await call('/api/agency/payments','POST',{clientId:batchClient,accountId:cash,amount:600000,receivedOn:'2026-09-30',reference:'Cobro IA',requestId:batchKey});
-assert.equal(r.status,200);assert.equal(r.alreadyRecorded,true);assert.equal(r.payments.length,2,'el reintento devuelve el lote original');
+assert.equal(r.status,200,r.error||'el reintento idempotente devuelve 200');assert.equal(r.alreadyRecorded,true);assert.equal(r.payments.length,2,'el reintento devuelve el lote original');
 assert.equal((await query('select count(*)::int as n from agency_payments where organization_id=$1',[org])).rows[0].n,batchCount,'el reintento no duplica filas');
 assert.equal((await call('/api/agency/payments','POST',{clientId:batchClient,accountId:cash,amount:600001,receivedOn:'2026-09-30',requestId:batchKey})).status,409,'la misma llave con otro importe se rechaza');
 const inactiveClient=(await query("insert into agency_clients(organization_id,name,active) values($1,'Cliente inactivo',false) returning id",[org])).rows[0].id;
@@ -199,4 +199,45 @@ assert.equal((await call('/api/agency/payments','POST',{clientId:batchClient,acc
 assert.equal((await query('select count(*)::int as n from agency_payments where organization_id=$1',[org])).rows[0].n,batchCount,'ningún rechazo escribió una fila');
 const batchListed=await call('/api/agency/payments');
 assert(batchListed.payments.some(row=>String(row.client_id)===String(batchClient)),'la lista de cobros trae client_id para detectar duplicados');
-await pg.close();console.log('PASS: partial receipts, FX, reversal idempotency, insufficient funds, tenant/role isolation, reconciliation import/dedup/matches, client review and publication gate, PDF sections, actor audit, migration re-run, payments/transfers routed to finance-controls (no legacy handlers), the payments window (#67) and the IA client receipt with FIFO allocation (#121)');
+// Pago parcial/seña y división en partes/cuentas (#133): el monto puede ser
+// menor al saldo (estado «parcial» visible con el pendiente restante) y una
+// confirmación puede repartirse entre varias cuentas con suma exacta.
+const partialClient=(await query("insert into agency_clients(organization_id,name) values($1,'Cliente parcial') returning id",[org])).rows[0].id;
+const partialOld=(await query("insert into agency_invoices(organization_id,client_id,number,total,currency,due_on) values($1,$2,'PART-1',300000,'PYG','2026-08-01') returning id",[org,partialClient])).rows[0].id;
+await query("insert into agency_invoices(organization_id,client_id,number,total,currency,due_on) values($1,$2,'PART-2',500000,'PYG','2026-09-15')",[org,partialClient]);
+const partial=await call('/api/agency/payments','POST',{clientId:partialClient,accountId:cash,amount:200000,receivedOn:'2026-09-30',reference:'Seña',requestId:'44444444-4444-4444-a444-444444444444'});
+assert.equal(partial.status,201,'la seña se registra con un monto menor al saldo');
+assert.equal(partial.parcial,true,'la seña queda marcada como parcial');
+assert.equal(partial.pending,600000,'el pendiente restante viaja en la respuesta');
+assert.deepEqual(partial.payments.map(row=>({invoice:String(row.invoice_id),amount:Number(row.amount)})),[{invoice:String(partialOld),amount:200000}],'FIFO aplica la seña a la factura más antigua');
+assert.equal((await query('select status from agency_invoices where id=$1',[partialOld])).rows[0].status,'partial','la factura queda en estado parcial');
+const secondCash=await account('Caja chica','PYG');
+const splitClient=(await query("insert into agency_clients(organization_id,name) values($1,'Cliente división') returning id",[org])).rows[0].id;
+const splitInvoice=(await query("insert into agency_invoices(organization_id,client_id,number,total,currency,due_on) values($1,$2,'SPLIT-1',1000000,'PYG','2026-09-20') returning id",[org,splitClient])).rows[0].id;
+const splitKey='55555555-5555-4555-a555-555555555555';
+const splitPayload={clientId:splitClient,amount:600000,receivedOn:'2026-09-30',reference:'Mitad y mitad',requestId:splitKey,parts:[{accountId:cash,amount:350000},{accountId:secondCash,amount:250000}]};
+const split=await call('/api/agency/payments','POST',splitPayload);
+assert.equal(split.status,201,'la división en partes se registra');
+assert.equal(split.total,600000);
+assert.equal(split.parcial,true,'la división también puede ser parcial');
+assert.equal(split.pending,400000);
+assert.deepEqual(split.payments.map(row=>({account:String(row.account_id),amount:Number(row.amount)})).sort((a,b)=>a.account<b.account?-1:1),[{account:String(cash),amount:350000},{account:String(secondCash),amount:250000}].sort((a,b)=>a.account<b.account?-1:1),'cada parte quedó en su cuenta');
+assert.equal(Number((await query('select paid_amount from agency_invoices where id=$1',[splitInvoice])).rows[0].paid_amount),600000);
+const splitRetry=await call('/api/agency/payments','POST',splitPayload);
+assert.equal(splitRetry.status,200,'el reintento de la división es idempotente');
+assert.equal(splitRetry.alreadyRecorded,true);
+const splitCount=(await query('select count(*)::int as n from agency_payments where organization_id=$1',[org])).rows[0].n;
+const splitRejections=[
+ [{...splitPayload,requestId:'66666666-6666-4666-a666-666666666666',parts:[{accountId:cash,amount:300000},{accountId:secondCash,amount:250000}]},400,'la suma de las partes debe ser exacta'],
+ [{...splitPayload,requestId:'77777777-7777-4777-a777-777777777777',parts:[{accountId:cash,amount:600000}]},400,'una división necesita al menos dos partes'],
+ [{...splitPayload,requestId:'88888888-8888-4888-a888-888888888888',parts:[{accountId:cash,amount:300000},{accountId:99999999,amount:300000}]},404,'una cuenta inexistente no registra nada'],
+ [{...splitPayload,requestId:'99999999-9999-4999-a999-999999999999',parts:[{accountId:cash,amount:300000},{accountId:usd,amount:300000}]},409,'una división no mezcla monedas'],
+];
+for(const [payload,status,label] of splitRejections)assert.equal((await call('/api/agency/payments','POST',payload)).status,status,label);
+const inactiveAccount=await account('Caja inactiva','PYG');
+await query('update bank_accounts set active=false where id=$1',[inactiveAccount]);
+assert.equal((await call('/api/agency/payments','POST',{...splitPayload,requestId:'12121212-1212-4212-a212-121212121212',parts:[{accountId:cash,amount:300000},{accountId:inactiveAccount,amount:300000}]})).status,400,'una cuenta inactiva no registra nada');
+assert.equal((await query('select count(*)::int as n from agency_payments where organization_id=$1',[org])).rows[0].n,splitCount,'ningún rechazo de la división escribió una fila');
+const settled=await call('/api/agency/payments','POST',{clientId:splitClient,accountId:cash,amount:400000,receivedOn:'2026-09-30',requestId:'13131313-1313-4313-a313-131313131313'});
+assert.equal(settled.status,201);assert.equal(settled.parcial,false,'completar el saldo deja de ser parcial');assert.equal(settled.pending,0);
+await pg.close();console.log('PASS: partial receipts, FX, reversal idempotency, insufficient funds, tenant/role isolation, reconciliation import/dedup/matches, client review and publication gate, PDF sections, actor audit, migration re-run, payments/transfers routed to finance-controls (no legacy handlers), the payments window (#67), the IA client receipt with FIFO allocation (#121) and partial/deposit + split payments with exact sums (#133)');
