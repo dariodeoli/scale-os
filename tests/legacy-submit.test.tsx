@@ -12,6 +12,8 @@ import {currencyCodes,currencyLabels} from '../app/currencies';
 import {PHONE_ERROR,phoneValid} from '../app/field-rules';
 import {PhoneField} from '../app/phone-field';
 import {EmailField} from '../app/email-field';
+import {Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid} from 'owncoding-ui';
+import {financeNoticeHref,financePurposeNotice} from '../app/finance-privacy';
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
@@ -44,7 +46,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let done=0;
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
-  const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,
+  const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    SelectCustom:({label,value,onChange,disabled}:{label:string;value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':label,value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    useCompanyCurrency:()=>({currency:'USD'}),
