@@ -16,6 +16,7 @@ import './client-directory.css';
 import dynamic from 'next/dynamic';
 import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
+import {IaCargaButton} from './ia-carga-button';
 import {VersionNotice} from './version-notice';
 import {GoogleSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
@@ -24,6 +25,7 @@ import type {ReportsData} from './reports-workspace';
 const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const DemoWelcome=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoWelcome));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
+const IaCargaDialog=dynamic(()=>import('./ia-carga').then(m=>m.IaCargaDialog));
 const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
 import {WorkspacePresence} from './presence';
@@ -203,6 +205,7 @@ export default function Home() {
   const [modal, setModal] = useState<ModalKind>(null);
   const [paymentInvoice,setPaymentInvoice]=useState('');
   const [myProfile,setMyProfile]=useState(false);
+  const [iaCarga,setIaCarga]=useState(false);
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string;anchor?:string;edit?:boolean}|null>(null);
   const [projectClient,setProjectClient]=useState('');
   const [clientMode,setClientMode]=useState(true);
@@ -243,6 +246,11 @@ export default function Home() {
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
   const canSeeBilling=roleCan(user?.role,'billing.view');
   const canManageClients=roleCan(user?.role,'clients.manage');
+  // «Carga con IA» (Refs #118): el asistente se ofrece sólo a quien puede crear
+  // al menos uno de los tipos de la fase; el diálogo muestra su estado real.
+  // En sesiones Demo no se ofrece: el proveedor de IA se paga y el demo es
+  // anónimo (cada visita levanta su propia organización, sin rate-limit útil).
+  const canIaCarga=(canManageClients||roleCan(user?.role,'inventory.manage'))&&!user?.demo_owner_user_id;
   const canManageProjects=roleCan(user?.role,'projects.edit');
   // The header button creates the record of the visible section; each one has its own capability.
   const canCreateRecord=(section:string)=>section==='Proyectos'?roleCan(user?.role,'projects.manage'):section==='Presupuestos'?roleCan(user?.role,'budgets.manage'):roleCan(user?.role,'work-orders.edit');
@@ -1059,6 +1067,7 @@ export default function Home() {
             <div className="topbar-utility-actions flex min-w-0 items-center gap-2 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
               <ThemeToggle/>
               <WorkspaceGuide {...guideProps} variant="help"/>
+              {canIaCarga?<IaCargaButton onOpen={()=>setIaCarga(true)}/>:null}
               <WorkspaceSearch key={workspaceScope} navigate={setActive} records={[
                 ...clients.map(c=>({id:c.id,name:c.name,context:c.contact_restricted===true?'Contacto reservado':(canSeeClientContact(user?.role)?(c.email||'Sin correo registrado'):(c.email?maskEmail(c.email):'Sin correo registrado')),kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
                 ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
@@ -1140,6 +1149,7 @@ export default function Home() {
         </PageTitleContext.Provider>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
+      {iaCarga&&user&&<IaCargaDialog role={user.role||'viewer'} close={()=>setIaCarga(false)} onCreated={()=>load()}/>}
       {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
