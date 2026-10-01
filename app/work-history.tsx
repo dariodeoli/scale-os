@@ -7,6 +7,7 @@ import {EmptyBlock, ErrorBlock, FilterToolbar, LoadingBlock} from './ui-v2';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {ActorIdentity} from './actor-identity';
+import {workStatusLabel} from './productivity-ui';
 import './productivity.css';
 import {History,Pencil,Plus} from 'lucide-react';
 import {roleCan} from './capabilities';
@@ -15,6 +16,16 @@ const str=(r:Row,k:string)=>String(r[k]??'');
 /** Estados de una tarea interna; un valor nuevo se dice "Sin estado", no se inventa. */
 const internalTaskStatuses:Record<string,string>={pending:'Pendiente',in_progress:'En curso',done:'Lista'};
 export const internalTaskStatusLabel=(status:string)=>internalTaskStatuses[status]||'Sin estado';
+/** Estados de proyecto del Historial (mismos textos que la ficha del proyecto). */
+const projectStatusLabels:Record<string,string>={active:'Activo',paused:'Pausado',completed:'Completado',cancelled:'Cancelado'};
+/** Etiqueta del cambio de estado según la entidad de la fila (nunca un slug crudo). */
+const historyStatusLabel=(table:string,status:string)=>{
+ if(!status)return '';
+ if(table==='agency_work_orders')return workStatusLabel(status);
+ if(table==='agency_projects')return projectStatusLabels[status]||status;
+ if(table==='agency_internal_tasks')return internalTaskStatuses[status]||status;
+ return status;
+};
 /** Tope de la lista de pendientes internos (el API no pagina): el resto se avisa. */
 export const INTERNAL_TASKS_WINDOW=50;
 export function WorkHistory({role,navigate}:{role:string;navigate?:(module:string)=>void}){
@@ -43,11 +54,11 @@ export function WorkHistory({role,navigate}:{role:string;navigate?:(module:strin
   {!loading&&!error&&rows.length?<ol className="grid min-w-0 gap-1.5">{rows.map(r=><li className="grid min-w-0 gap-0.5 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-2" key={r.id}>
    <ActorIdentity name={str(r,source?'source_author':'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} imported={source} timestamp={str(r,source?'occurred_at':'created_at')}/>
    <p className="truncate text-[13px] text-fore" title={str(r,source?'body':'title')}>{str(r,source?'body':'title')}</p>
-   {!source?<p className="text-xs text-mute">{str(r,'action')==='INSERT'?'Creó':str(r,'action')==='DELETE'?'Eliminó':'Actualizó'}{r.previous_status!==r.next_status?<> · {str(r,'previous_status')||'Nueva'} → <b className="text-fore">{str(r,'next_status')}</b></>:null}</p>:null}
+   {!source?<p className="text-xs text-mute">{str(r,'action')==='INSERT'?'Creó':str(r,'action')==='DELETE'?'Eliminó':'Actualizó'}{r.previous_status!==r.next_status?<> · {historyStatusLabel(str(r,'table_name'),str(r,'previous_status'))||'Nueva'} → <b className="text-fore">{historyStatusLabel(str(r,'table_name'),str(r,'next_status'))}</b></>:null}</p>:null}
   </li>)}</ol>:null}
   {!loading&&!error&&!rows.length?<EmptyBlock title="Sin actividad registrada." description={source?'No hay historial importado para mostrar.':'Los cambios operativos del equipo van a aparecer acá.'} action={!source&&navigate?<Button type="button" variant="outline" onClick={()=>navigate('Producción')}>Abrir Producción</Button>:undefined}/>:null}
   <div className="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">
-   <span className="mr-auto text-xs tabular-nums text-mute" role="status">{range}{total!==null?` de ${total}`:''}</span>
+   <span className="mr-auto text-xs tabular-nums text-mute" role="status">{range?`${range}${total!==null?` de ${total}`:''}`:total!==null?`0 de ${total}`:''}</span>
    <Button type="button" variant="outline" disabled={loading||offset===0} onClick={()=>setOffset(Math.max(0,offset-Number(limit)))}>Anterior</Button>
    <Button type="button" variant="outline" disabled={loading||!!error||!hasMore} onClick={()=>setOffset(offset+Number(limit))}>Siguiente</Button>
   </div>
