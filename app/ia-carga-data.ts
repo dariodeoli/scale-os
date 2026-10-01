@@ -48,10 +48,8 @@ export type CoincidenciaIA = {
   /** `ruc_ci_exacto`, `correo`, `telefono`, `nombre_normalizado`, `nombre_parcial`, `nombre_parecido`. */
   senales: string[];
   /** Confianza 0–100 del estándar (#131): ≥90 vincula, 60–89 mejor candidato, <60 nuevo. */
-  confianza?: number;
-  activo: boolean;
-  /** Confianza 0–100 del match (#131); ausente cuando el motor no la manda. */
   confianza?: number | null;
+  activo: boolean;
   /** Imagen de confirmación (logo del cliente / foto del equipo) si el motor la resolvió. */
   fotoUrl?: string | null;
 };
