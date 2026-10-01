@@ -9,42 +9,45 @@ import {EmptyBlock,LoadingBlock,StateChip} from './ui-v2';
 import {useCompanyCurrency} from './currency-provider';
 import {roleCan} from './capabilities';
 import {api} from './operations';
+import {todayAsuncion} from './client-format';
 import {PRIVACY_IA_DETAIL,PRIVACY_IA_FINALITY,PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL} from './privacy-links';
 import {
   IA_REGISTROS_MAX,IA_TEXTO_MAX,IA_TIPO_LABEL,
-  analizarIa,cargarConfigIa,crearClienteDesdeIa,crearEquipoDesdeIa,ejecutarAccionIa,mensajeIaError,senalMatchLabel,
-  type IaAccionCobro,type IaAnalisis,type IaCliente,type IaCoincidencia,type IaConfig,type IaTipo,
+  analizarIa,cargarConfigIa,crearClienteDesdeIa,crearEquipoDesdeIa,mensajeIaError,senalMatchLabel,
+  type AccionIA,type CoincidenciaIA,type EstadoMatch,type IaCliente,type IaConfig,type IaResultado,type IaTipo,
 } from './ia-carga-data';
+import {cargarCuentasCobro,cuentaSugeridaIa,cuentasCobroIa,registrarCobroDesdeIa,validarCobroIa,type IaCuentaCobro} from './ia-cobro-data';
 
 /**
- * «Carga con IA» (Refs #118 y #120, réplica de LedBox #120): el diálogo de
- * pegado, revisión con coincidencias y creación/ejecución con confirmación.
+ * «Carga con IA» (Refs #118, #119, #120 y #121, réplica de LedBox #120): el
+ * diálogo de pegado, revisión con coincidencias y creación/ejecución con
+ * confirmación.
  *
  * Fase 2: cada registro llega con `estado` (nuevo / coincide / ambiguo) y
  * `coincidencias` con lo ya creado; las acciones propuestas (registrar cobro)
- * se confirman de a una. Reglas duras:
+ * se confirman de a una con la ejecución real de Finanzas. Reglas duras:
  * - El análisis **no escribe nada**; el texto viaja sólo al endpoint de #119.
  * - Con coincidencia o ambigüedad **no se crea** hasta que haya decisión
  *   explícita (vincular una ficha o crear un duplicado a propósito).
- * - Ninguna acción se ejecuta sin el OK de su tarjeta.
- * - La creación usa los endpoints existentes y la ejecución de acciones es de
- *   #121 (si no está publicada, se dice con el código real, sin simular nada).
+ * - Ninguna acción se ejecuta sin el OK de su tarjeta, con cuenta elegida.
+ * - La creación usa los endpoints existentes y el cobro el de Finanzas (#121);
+ *   los duplicados se avisan y exigen una segunda decisión.
  */
 
 type Fase = 'entrada' | 'revision' | 'listo';
 /** Decisión por registro: crear, vincular a una ficha existente, o pendiente. */
 type Decision = 'crear' | 'vincular' | 'pendiente';
 /** Estado de la tarjeta de acción: nada se ejecuta sin pasar por 'pendiente'. */
-type EstadoAccion = 'pendiente' | 'ejecutando' | 'ejecutada' | 'duplicado' | 'no-disponible' | 'error';
+type EstadoAccion = 'pendiente' | 'ejecutando' | 'ejecutada' | 'duplicado' | 'error';
 
 type ClienteEdit = IaCliente & {clave: string; incluir: boolean; decision: Decision; elegidoId: string};
 type EquipoEdit = {
   clave: string; incluir: boolean; nombre: string; categoria: string | null; categoriaValor: string;
-  cantidad: string; valor: string; estado: IaCliente['estado']; coincidencias: IaCoincidencia[]; avisos: string[];
+  cantidad: string; valor: string; estado: EstadoMatch | undefined; coincidencias: CoincidenciaIA[]; avisos: string[];
   decision: Decision; elegidoId: string;
 };
 type AccionEdit = {
-  clave: string; accion: IaAccionCobro; clienteId: string; monto: string; fecha: string; detalle: string;
+  clave: string; accion: AccionIA; clienteId: string; cuentaId: string; monto: string; fecha: string; detalle: string;
   estado: EstadoAccion; mensaje: string;
 };
 
@@ -63,19 +66,19 @@ const CONTADOR = 'text-[11px] tabular-nums text-mute';
 const OPCION = 'inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-ink-500 px-2.5 py-1.5 text-left text-[11.5px] font-medium text-mute transition hover:border-fono hover:text-fore aria-pressed:border-fono aria-pressed:bg-fono/10 aria-pressed:text-fore md:min-h-9';
 
 /** Decisión inicial: la coincidencia fuerte propone vincular; la ambigua exige elegir. */
-function decisionInicial(estado: IaCliente['estado'], coincidencias: IaCoincidencia[]): {decision: Decision; elegidoId: string} {
+function decisionInicial(estado: EstadoMatch | undefined, coincidencias: CoincidenciaIA[] = []): {decision: Decision; elegidoId: string} {
   if (estado === 'coincide' && coincidencias[0]) return {decision: 'vincular', elegidoId: coincidencias[0].id};
   if (estado === 'ambiguo') return {decision: 'pendiente', elegidoId: ''};
   return {decision: 'crear', elegidoId: ''};
 }
 
-/** Reparte los registros del análisis en las tarjetas editables. */
-function aTarjetas(analisis: IaAnalisis, siguienteClave: (prefijo: string) => string, tipos: IaTipo[]) {
+/** Reparte el resultado del análisis (registros + acciones) en tarjetas editables. */
+function aTarjetas(resultado: IaResultado, siguienteClave: (prefijo: string) => string, tipos: IaTipo[]) {
   const clientes: ClienteEdit[] = tipos.includes('clientes')
-    ? analisis.clientes.map((cliente) => ({...cliente, clave: siguienteClave('cliente'), incluir: true, ...decisionInicial(cliente.estado, cliente.coincidencias)}))
+    ? resultado.clientes.map((cliente) => ({...cliente, clave: siguienteClave('cliente'), incluir: true, ...decisionInicial(cliente.estado, cliente.coincidencias ?? [])}))
     : [];
   const equipos: EquipoEdit[] = tipos.includes('inventario')
-    ? analisis.inventario.map((equipo) => ({
+    ? resultado.inventario.map((equipo) => ({
         clave: siguienteClave('equipo'),
         incluir: true,
         nombre: equipo.nombre,
@@ -84,17 +87,18 @@ function aTarjetas(analisis: IaAnalisis, siguienteClave: (prefijo: string) => st
         cantidad: String(equipo.cantidad ?? 1),
         valor: equipo.valor === null ? '' : String(equipo.valor),
         estado: equipo.estado,
-        coincidencias: equipo.coincidencias,
+        coincidencias: equipo.coincidencias ?? [],
         avisos: equipo.avisos,
-        ...decisionInicial(equipo.estado, equipo.coincidencias),
+        ...decisionInicial(equipo.estado, equipo.coincidencias ?? []),
       }))
     : [];
-  const acciones: AccionEdit[] = analisis.acciones.map((accion) => ({
+  const acciones: AccionEdit[] = resultado.acciones.map((accion) => ({
     clave: siguienteClave('accion'),
     accion,
     clienteId: accion.cliente.id || '',
-    monto: accion.monto === null ? '' : String(accion.monto),
-    fecha: accion.fecha || '',
+    cuentaId: '',
+    monto: String(accion.monto),
+    fecha: accion.fecha || todayAsuncion(),
     detalle: accion.detalle || '',
     estado: 'pendiente',
     mensaje: '',
@@ -119,6 +123,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
   const [acciones,setAcciones]=useState<AccionEdit[]>([]);
   const [resultado,setResultado]=useState<Resultado|null>(null);
   const [categorias,setCategorias]=useState<CategoriaOpcion[]>([]);
+  const [cuentas,setCuentas]=useState<IaCuentaCobro[]>([]);
   const [intentado,setIntentado]=useState(false);
   const contador=useRef(0);
   const siguienteClave=(prefijo:string)=>`${prefijo}-${contador.current+=1}`;
@@ -153,6 +158,20 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
     return()=>{activo=false;};
   },[puedeInventario,puedeCategorias]);
 
+  // Cuentas de ingreso para confirmar cobros (#121): se cargan cuando hay
+  // acciones propuestas y se sugiere la única cuenta en guaraníes si existe.
+  useEffect(()=>{
+    if(!acciones.length){setCuentas([]);return;}
+    let activo=true;
+    void cargarCuentasCobro().then((lista)=>{
+      if(!activo)return;
+      setCuentas(lista);
+      const sugerida=cuentaSugeridaIa(lista,currency);
+      setAcciones((actuales)=>actuales.map((fila)=>fila.cuentaId?fila:{...fila,cuentaId:sugerida||''}));
+    }).catch(()=>{/* Sin cuentas la tarjeta lo dice y pide elegir a mano en Finanzas. */});
+    return()=>{activo=false;};
+  },[acciones.length,currency]);
+
   const incluidos=useMemo(()=>({
     clientes:clientes.filter((fila)=>fila.incluir&&fila.decision==='crear').length,
     equipos:equipos.filter((fila)=>fila.incluir&&fila.decision==='crear').length,
@@ -183,7 +202,6 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       setError(mensajeIaError(cause));
     }finally{setAnalizando(false);}
   }
-
   /** Nada se crea si una tarjeta incluida sigue sin decisión o sin ficha elegida. */
   function pendientesDeDecision(){
     return [...clientes,...equipos].filter((fila)=>fila.incluir&&(fila.decision==='pendiente'||(fila.decision==='vincular'&&!fila.elegidoId)));
@@ -227,18 +245,29 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
     if(creados.clientes||creados.equipos){try{await onCreated();}catch{/* El resumen ya está: la recarga no puede taparlo. */}}
   }
 
-  /** Confirma UNA acción; `duplicado` pide una segunda decisión explícita. */
-  async function confirmarAccion(clave:string,confirmarDuplicado=false){
+  /** Confirma UNA acción con la ejecución real de Finanzas (#121). */
+  async function confirmarAccion(clave:string,permitirDuplicado=false){
     const fila=acciones.find((item)=>item.clave===clave);
     if(!fila||fila.estado==='ejecutando'||fila.estado==='ejecutada')return;
     const actualizar=(patch:Partial<AccionEdit>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===clave?{...item,...patch}:item));
-    if(!fila.clienteId){actualizar({estado:'error',mensaje:'Elegí el cliente existente antes de confirmar.'});return;}
-    if(!montoValido(fila.monto)){actualizar({estado:'error',mensaje:'Ingresá el monto del cobro (mayor a cero).'});return;}
+    const cobro={clienteId:fila.clienteId,monto:Math.floor(Number(fila.monto)),fecha:fila.fecha||todayAsuncion(),detalle:fila.detalle||''};
+    const problema=validarCobroIa(cobro);
+    if(problema){actualizar({estado:'error',mensaje:problema});return;}
+    if(!fila.cuentaId){actualizar({estado:'error',mensaje:'Elegí la cuenta donde entró el cobro.'});return;}
     actualizar({estado:'ejecutando',mensaje:''});
-    const salida=await ejecutarAccionIa({clienteId:fila.clienteId,monto:Math.floor(Number(fila.monto)),moneda:fila.accion.moneda||currency,fecha:fila.fecha||null,detalle:fila.detalle||null,confirmarDuplicado});
-    actualizar({estado:salida.estado,mensaje:salida.mensaje});
-    // Una acción ejecutada cambia datos de Finanzas: se refresca el panel.
-    if(salida.estado==='ejecutada'){try{await onCreated();}catch{/* El resultado ya está visible en la tarjeta. */}}
+    try{
+      const salida=await registrarCobroDesdeIa({cobro,accountId:fila.cuentaId,permitirDuplicado});
+      if(salida.estado==='duplicado'){
+        const facturas=salida.duplicados.map((pago)=>pago.invoiceNumber||`#${pago.id}`).join(', ');
+        actualizar({estado:'duplicado',mensaje:`Ya registramos un cobro igual${facturas?` (${facturas})`:''}. ¿Querés registrarlo igual?`});
+        return;
+      }
+      actualizar({estado:'ejecutada',mensaje:`${salida.yaRegistrado?'El cobro ya estaba registrado':'Cobro registrado'} · Gs ${salida.total.toLocaleString('es-PY')}${salida.pagos.length>1?` en ${salida.pagos.length} facturas`:''}.`});
+      // Un cobro ejecutado cambia datos de Finanzas: se refresca el panel.
+      try{await onCreated();}catch{/* El resultado ya está visible en la tarjeta. */}
+    }catch(cause){
+      actualizar({estado:'error',mensaje:cause instanceof Error?cause.message:'No se pudo registrar el cobro.'});
+    }
   }
 
   function reiniciar(){
@@ -321,7 +350,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         <h3 className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Clientes <span className="tabular-nums">{clientes.length}</span></h3>
         {clientes.map((cliente)=><article key={cliente.clave} className={CARD} data-off={!cliente.incluir}>
           <CardHead titulo={cliente.nombre} estado={cliente.estado} incluir={cliente.incluir} decision={cliente.decision} onIncluir={(incluir)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,incluir}:fila))}/>
-          <MatchBlock estado={cliente.estado} coincidencias={cliente.coincidencias} decision={cliente.decision} elegidoId={cliente.elegidoId} tipo="cliente"
+          <MatchBlock estado={cliente.estado} coincidencias={cliente.coincidencias??[]} decision={cliente.decision} elegidoId={cliente.elegidoId} tipo="cliente"
             onDecidir={(decision,elegidoId)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,decision,elegidoId}:fila))}/>
           {cliente.avisos.length?<Aviso tono="warn" compact>{cliente.avisos.join(' ')}</Aviso>:null}
           <div className="grid gap-2 sm:grid-cols-2">
@@ -377,25 +406,29 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
             <AccionEstado estado={fila.estado}/>
           </header>
           {fila.accion.avisos.length?<Aviso tono="warn" compact>{fila.accion.avisos.join(' ')}</Aviso>:null}
-          <ClienteDeAccion fila={fila} onElegir={(clienteId)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,clienteId,estado:item.estado==='no-disponible'?'pendiente':item.estado,mensaje:''}:item))}/>
+          <ClienteDeAccion fila={fila} onElegir={(clienteId)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,clienteId,mensaje:''}:item))}/>
           <div className="grid gap-2 sm:grid-cols-2">
-            <FormField label={`Monto (${fila.accion.moneda||currency})`} htmlFor={`${fila.clave}-monto`} hint={fila.accion.monto===null?'El texto no traía el monto: completalo.':undefined}>
-              <AmountInput id={`${fila.clave}-monto`} value={fila.monto} currency={fila.accion.moneda||currency} integerOnly disabled={fila.estado==='ejecutada'} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,monto:value,mensaje:''}:item))}/>
+            <FormField label={`Monto (${fila.accion.moneda})`} htmlFor={`${fila.clave}-monto`}>
+              <AmountInput id={`${fila.clave}-monto`} value={fila.monto} currency={fila.accion.moneda} integerOnly disabled={fila.estado==='ejecutada'} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,monto:value,mensaje:''}:item))}/>
             </FormField>
             <FormField label="Fecha del cobro" htmlFor={`${fila.clave}-fecha`}>
-              <Input id={`${fila.clave}-fecha`} type="date" value={fila.fecha} disabled={fila.estado==='ejecutada'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,fecha:event.target.value}:item))}/>
+              <Input id={`${fila.clave}-fecha`} type="date" max={todayAsuncion()} value={fila.fecha} disabled={fila.estado==='ejecutada'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,fecha:event.target.value}:item))}/>
+            </FormField>
+            <FormField label="Cuenta donde entró el cobro" htmlFor={`${fila.clave}-cuenta`}>
+              {cuentasCobroIa(cuentas,fila.accion.moneda).length
+                ? <SelectCustom label="" choices={cuentasCobroIa(cuentas,fila.accion.moneda).map((cuenta)=>({value:cuenta.id,label:`${cuenta.name} · ${cuenta.currency}`}))} value={fila.cuentaId} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,cuentaId:value,mensaje:''}:item))} disabled={fila.estado==='ejecutada'}/>
+                : <Aviso tono="warn" compact>No hay una cuenta de ingreso en {fila.accion.moneda} activa. Creala o activala en Finanzas para confirmar el cobro.</Aviso>}
             </FormField>
             <FormField label="Detalle" htmlFor={`${fila.clave}-detalle`}>
-              <Input id={`${fila.clave}-detalle`} value={fila.detalle} maxLength={240} disabled={fila.estado==='ejecutada'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,detalle:event.target.value}:item))}/>
+              <Input id={`${fila.clave}-detalle`} value={fila.detalle} maxLength={120} disabled={fila.estado==='ejecutada'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,detalle:event.target.value}:item))}/>
             </FormField>
           </div>
           {fila.mensaje?<Aviso tono={fila.estado==='ejecutada'?'ok':fila.estado==='error'?'error':'warn'} compact>{fila.mensaje}</Aviso>:null}
           <div className="flex flex-wrap items-center gap-2">
             {fila.estado==='ejecutada'?<span className="text-[11.5px] text-mute">Confirmada. No hace falta volver a ejecutarla.</span>:
               fila.estado==='duplicado'?<button type="button" className="secondary" onClick={()=>void confirmarAccion(fila.clave,true)}>Registrar igual</button>:
-              fila.estado==='no-disponible'?<button type="button" className="secondary" onClick={()=>void confirmarAccion(fila.clave)}>Volver a intentar</button>:
               fila.estado==='ejecutando'?<button type="button" className="primary" disabled>Ejecutando…</button>:
-              <button type="button" className="primary" disabled={!fila.clienteId} onClick={()=>void confirmarAccion(fila.clave)}>Confirmar acción</button>}
+              <button type="button" className="primary" disabled={!fila.clienteId||!cuentasCobroIa(cuentas,fila.accion.moneda).length} onClick={()=>void confirmarAccion(fila.clave)}>Confirmar acción</button>}
           </div>
         </article>)}
       </section>:null}
@@ -441,7 +474,7 @@ function CardHead({titulo,estado,incluir,decision,unidades,onIncluir}:{titulo:st
 }
 
 /** Coincidencias: la señal visible y la decisión explícita (vincular o crear). */
-function MatchBlock({estado,coincidencias,decision,elegidoId,tipo,onDecidir}:{estado:IaCliente['estado']; coincidencias:IaCoincidencia[]; decision:Decision; elegidoId:string; tipo:'cliente'|'equipo'; onDecidir:(decision:Decision,elegidoId:string)=>void}){
+function MatchBlock({estado,coincidencias,decision,elegidoId,tipo,onDecidir}:{estado:EstadoMatch|undefined; coincidencias:CoincidenciaIA[]; decision:Decision; elegidoId:string; tipo:'cliente'|'equipo'; onDecidir:(decision:Decision,elegidoId:string)=>void}){
  if(estado==='nuevo')return <p className="text-[11.5px] text-mute">No encontramos una ficha parecida: se creará una nueva.</p>;
  const candidatas=coincidencias.slice(0,5);
  return <div className="grid gap-2 rounded-lg border border-warn/40 bg-warn/10 p-2.5">
@@ -464,13 +497,13 @@ function MatchBlock({estado,coincidencias,decision,elegidoId,tipo,onDecidir}:{es
 /** Cliente de una acción: resuelto por el motor o elegido acá entre candidatos. */
 function ClienteDeAccion({fila,onElegir}:{fila:AccionEdit; onElegir:(clienteId:string)=>void}){
  if(fila.clienteId)return <p className="flex flex-wrap items-center gap-2 text-[12px] text-mute"><StateChip tone="ok">Cliente vinculado</StateChip><span className="break-all">{fila.accion.cliente.nombre||'Cliente existente'}</span></p>;
- const candidatos=fila.accion.cliente.coincidencias.slice(0,5);
+ const candidatos=fila.accion.cliente.candidatos.slice(0,5);
  if(!candidatos.length)return <Aviso tono="warn" compact>No pudimos vincular el cliente: elegí uno existente desde Clientes o creá el cliente primero. Sin cliente resuelto no se puede confirmar.</Aviso>;
  return <div className="grid gap-2 rounded-lg border border-warn/40 bg-warn/10 p-2.5">
   <p className="text-[11.5px] leading-5 text-mute">No sabemos con certeza a qué cliente se refiere. Elegí uno de los candidatos para poder confirmar:</p>
   <div className="flex flex-wrap gap-2" role="group" aria-label="Elegir el cliente del cobro">
-   {candidatos.map((candidato)=><button key={candidato.id} type="button" className={OPCION} title={candidato.nombre} onClick={()=>onElegir(candidato.id)}>
-    <span className="min-w-0 max-w-[14rem] truncate">{candidato.nombre}</span>
+   {candidatos.map((candidato)=><button key={candidato.id} type="button" className={OPCION} title={candidato.nombre} aria-pressed={fila.clienteId===candidato.id} onClick={()=>onElegir(candidato.id)}>
+    <span className="min-w-0 max-w-[14rem] truncate">{candidato.nombre}{candidato.activo?'':' · inactivo'}</span>
     {candidato.senales.length?<span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-mute">{candidato.senales.map(senalMatchLabel).join(' · ')}</span>:null}
    </button>)}
   </div>
@@ -481,7 +514,6 @@ function AccionEstado({estado}:{estado:EstadoAccion}){
  if(estado==='ejecutada')return <StateChip tone="ok">Ejecutada</StateChip>;
  if(estado==='ejecutando')return <StateChip tone="mute">Ejecutando</StateChip>;
  if(estado==='duplicado')return <StateChip tone="warn">Duplicado probable</StateChip>;
- if(estado==='no-disponible')return <StateChip tone="warn">Pendiente de ejecución</StateChip>;
  if(estado==='error')return <StateChip tone="bad">Con error</StateChip>;
  return <StateChip tone="info">Sin confirmar</StateChip>;
 }
