@@ -41,23 +41,48 @@ export type EstadoMatch = 'nuevo' | 'coincide' | 'ambiguo';
 export type CoincidenciaIA = {
   id: string;
   nombre: string;
-  /** `ruc_ci_exacto`, `correo`, `telefono`, `nombre_normalizado`, `nombre_parcial`. */
+  /** `ruc_ci_exacto`, `correo`, `telefono`, `nombre_normalizado`, `nombre_parcial`, `nombre_parecido`. */
   senales: string[];
+  /** Confianza 0–100 del estándar (#131): ≥90 vincula, 60–89 mejor candidato, <60 nuevo. */
+  confianza?: number;
   activo: boolean;
 };
 
-/** Acción propuesta sobre un cliente existente (no se ejecuta sin confirmar). */
-export type AccionIA = {
+/** Acción sobre un cliente existente: un cobro ya percibido. */
+export type AccionCobroIA = {
   tipo: 'registrar_cobro';
   cliente: {nombre: string; id: string | null; candidatos: CoincidenciaIA[]};
-  /** Importe en guaraníes enteros. */
+  /** Importe entero en `moneda` (PYG no lleva decimales). */
   monto: number;
-  moneda: 'PYG';
+  moneda: 'PYG' | 'USD';
   fecha: string | null;
+  /** Cómo se resolvió la fecha («relativa: ayer», «sin año: …»); visible. */
+  fecha_motivo?: string | null;
   detalle: string | null;
   avisos: string[];
+  /** Campos del extracto que no aparecen en el texto pegado (#131). */
+  no_en_texto?: string[];
   estado?: EstadoMatch;
 };
+
+/** Acción sobre un cliente existente: un pago a crédito/plazo (vencimiento). */
+export type AccionVencimientoIA = {
+  tipo: 'registrar_vencimiento';
+  cliente: {nombre: string; id: string | null; candidatos: CoincidenciaIA[]};
+  monto: number | null;
+  moneda: 'PYG' | 'USD';
+  plazo_dias: number | null;
+  /** Fecha de vencimiento calculada o explícita; `null` si no se pudo leer. */
+  vencimiento: string | null;
+  fecha_motivo?: string | null;
+  detalle: string | null;
+  avisos: string[];
+  no_en_texto?: string[];
+  estado?: EstadoMatch;
+};
+
+/** Acción propuesta sobre un cliente existente (no se ejecuta sin confirmar). */
+export type AccionIA = AccionCobroIA | AccionVencimientoIA;
 
 /** Cliente detectado (vista previa editable). */
 export type IaCliente = {
@@ -70,6 +95,8 @@ export type IaCliente = {
   /** Fase 2 (#119): coincidencias locales y estado; ausentes en respuestas viejas. */
   estado?: EstadoMatch;
   coincidencias?: CoincidenciaIA[];
+  /** #131: campos del extracto que no se encontraron en el texto. */
+  no_en_texto?: string[];
 };
 
 /** Equipo de inventario detectado; `cantidad` son las unidades a crear. */
@@ -83,6 +110,9 @@ export type IaEquipo = {
   moneda?: string | null;
   estado?: EstadoMatch;
   coincidencias?: CoincidenciaIA[];
+  no_en_texto?: string[];
+  /** #131: moneda no soportada; el valor pide carga manual. */
+  moneda_extranjera?: string | null;
 };
 
 export type IaAnalisis = {
@@ -102,6 +132,8 @@ export function senalMatchLabel(senal: string): string {
     correo: 'mismo correo',
     telefono: 'mismo teléfono',
     nombre_normalizado: 'nombre igual',
+    nombre_parcial: 'nombre parcial',
+    nombre_parecido: 'nombre parecido',
   };
   return labels[senal] || senal.replace(/_/g, ' ');
 }
@@ -139,11 +171,20 @@ const coincidenciasDe = (value: unknown): CoincidenciaIA[] => {
       const id = clean(fila.id, 40);
       const nombre = clean(fila.nombre, 160);
       if (!id || !nombre) return null;
-      return {id, nombre, senales: senalesDe(fila.senales), activo: fila.activo !== false};
+      const coincidencia: CoincidenciaIA = {id, nombre, senales: senalesDe(fila.senales), activo: fila.activo !== false};
+      const confianza = Number(fila.confianza);
+      if (Number.isFinite(confianza)) coincidencia.confianza = Math.max(0, Math.min(100, Math.round(confianza)));
+      return coincidencia;
     })
     .filter((item): item is CoincidenciaIA => item !== null);
   return filas.slice(0, IA_COINCIDENCIAS_MAX);
 };
+const camposNoEnTexto = (value: unknown) =>
+  list(value)
+    .filter((campo): campo is string => typeof campo === 'string')
+    .map((campo) => clean(campo, 40))
+    .filter(Boolean)
+    .slice(0, 12);
 
 /** Config defensiva: sin `tipos` desconocidos y con la forma exacta de la UI. */
 export function normalizarIaConfig(value: unknown): IaConfig {
@@ -180,6 +221,7 @@ export function normalizarIaAnalisis(value: unknown): IaAnalisis {
     const estado = estadoDe(fila.estado);
     if (estado) cliente.estado = estado;
     if (Array.isArray(fila.coincidencias)) cliente.coincidencias = coincidenciasDe(fila.coincidencias);
+    if (Array.isArray(fila.no_en_texto)) cliente.no_en_texto = camposNoEnTexto(fila.no_en_texto);
     return cliente;
   });
   // Puente de contrato con #117: el motor devuelve «equipos»; la UI lo expone
@@ -198,6 +240,9 @@ export function normalizarIaAnalisis(value: unknown): IaAnalisis {
     const estado = estadoDe(fila.estado);
     if (estado) equipo.estado = estado;
     if (Array.isArray(fila.coincidencias)) equipo.coincidencias = coincidenciasDe(fila.coincidencias);
+    if (Array.isArray(fila.no_en_texto)) equipo.no_en_texto = camposNoEnTexto(fila.no_en_texto);
+    const extranjera = nullableText(fila.moneda_extranjera, 12);
+    if (extranjera) equipo.moneda_extranjera = extranjera;
     return equipo;
   });
   if (clientes.length > IA_REGISTROS_MAX) avisos.push(`El análisis trajo ${clientes.length} clientes; se muestran los primeros ${IA_REGISTROS_MAX}.`);
@@ -206,29 +251,57 @@ export function normalizarIaAnalisis(value: unknown): IaAnalisis {
 }
 
 /**
- * Acciones propuestas (#119): tolerante con la forma externa, estricta con lo
- * que la UI puede confirmar. Solo se aceptan tipos soportados y montos Gs
- * enteros positivos; el resto se descarta (el servidor ya validó igual).
+ * Acciones propuestas (#119/#131): tolerante con la forma externa, estricta con
+ * lo que la UI puede confirmar. Se aceptan `registrar_cobro` (ya cobrado) y
+ * `registrar_vencimiento` (pago a crédito/plazo); el resto se descarta (el
+ * servidor ya validó igual).
  */
 export function normalizarIaAcciones(value: unknown): AccionIA[] {
   const acciones: AccionIA[] = [];
   for (const item of list(value)) {
     const fila = record(item);
-    if (fila.tipo !== 'registrar_cobro') continue;
+    if (fila.tipo !== 'registrar_cobro' && fila.tipo !== 'registrar_vencimiento') continue;
     const cliente = record(fila.cliente);
     const nombre = clean(cliente.nombre, 160);
-    const monto = montoDe(fila.monto);
-    if (nombre.length < 2 || monto === null || monto <= 0) continue;
+    if (nombre.length < 2) continue;
     const id = clean(cliente.id, 40) || null;
-    const accion: AccionIA = {
+    const candidatos = coincidenciasDe(cliente.candidatos);
+    const moneda = fila.moneda === 'USD' ? 'USD' : 'PYG';
+    const avisos = avisosDe(fila.avisos);
+    const noEnTexto = Array.isArray(fila.no_en_texto) ? camposNoEnTexto(fila.no_en_texto) : undefined;
+    const fechaMotivo = nullableText(fila.fecha_motivo, 80);
+    if (fila.tipo === 'registrar_vencimiento') {
+      const plazo = Number(fila.plazo_dias);
+      const accion: AccionVencimientoIA = {
+        tipo: 'registrar_vencimiento',
+        cliente: {nombre, id, candidatos},
+        monto: montoDe(fila.monto),
+        moneda,
+        plazo_dias: Number.isInteger(plazo) && plazo >= 1 ? plazo : null,
+        vencimiento: nullableText(fila.vencimiento, 10),
+        detalle: nullableText(fila.detalle, 500),
+        avisos,
+      };
+      if (fechaMotivo) accion.fecha_motivo = fechaMotivo;
+      if (noEnTexto) accion.no_en_texto = noEnTexto;
+      const estado = estadoDe(fila.estado);
+      if (estado) accion.estado = estado;
+      acciones.push(accion);
+      continue;
+    }
+    const monto = montoDe(fila.monto);
+    if (monto === null || monto <= 0) continue;
+    const accion: AccionCobroIA = {
       tipo: 'registrar_cobro',
-      cliente: {nombre, id, candidatos: coincidenciasDe(cliente.candidatos)},
+      cliente: {nombre, id, candidatos},
       monto,
-      moneda: 'PYG',
+      moneda,
       fecha: nullableText(fila.fecha, 10),
       detalle: nullableText(fila.detalle, 500),
-      avisos: avisosDe(fila.avisos),
+      avisos,
     };
+    if (fechaMotivo) accion.fecha_motivo = fechaMotivo;
+    if (noEnTexto) accion.no_en_texto = noEnTexto;
     const estado = estadoDe(fila.estado);
     if (estado) accion.estado = estado;
     acciones.push(accion);
