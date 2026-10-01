@@ -133,8 +133,10 @@ test('el análisis conserva confianza, no_en_texto y moneda extranjera', () => {
     equipos: [{nombre: 'Cámara rara', valor: null, moneda: null, moneda_extranjera: 'EUR', no_en_texto: ['valor'], avisos: ['Moneda extranjera (EUR): cargala a mano.']}],
     avisos: [],
   });
-  assert.equal(analisis.clientes[0].coincidencias?.[0].confianza, 72);
-  assert.equal(analisis.clientes[0].coincidencias?.[1].confianza, 100, 'la confianza se acota a 100');
+  const candidatos = analisis.clientes[0].coincidencias ?? [];
+  assert.equal(candidatos.find((c) => c.id === '3')?.confianza, 72);
+  assert.equal(candidatos.find((c) => c.id === '4')?.confianza, undefined, 'fuera de 0–100 no se inventa puntaje (no habilita vincular)');
+  assert.equal(candidatos[0]?.id, '3', 'el mejor candidato con puntaje válido va primero');
   assert.deepEqual(analisis.clientes[0].no_en_texto, ['correo']);
   assert.equal(analisis.inventario[0].moneda_extranjera, 'EUR');
   assert.deepEqual(analisis.inventario[0].no_en_texto, ['valor']);

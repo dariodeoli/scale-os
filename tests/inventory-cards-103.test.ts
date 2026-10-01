@@ -10,11 +10,14 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 const inventory=read('app/inventory-workspace.tsx');
 
 // ── Componentes compartidos (una fuente para tarjeta, fila y pipeline).
-assert.match(inventory,/function EquipmentPhoto\(/,'la foto/placeholder se comparte');
+// La foto/ícono se comparte desde `equipment-photo.tsx` (#103/#132).
+const equipmentPhoto=read('app/equipment-photo.tsx');
+assert.match(equipmentPhoto,/export function EquipmentPhoto\(/,'la foto/placeholder se comparte');
+assert.match(inventory,/from '\.\/equipment-photo'/,'inventario usa la pieza compartida de foto/ícono');
 assert.match(inventory,/function InventoryItemMeta\(/,'los metadatos se comparten');
 assert.match(inventory,/function InventoryItemActions\(/,'las acciones se comparten');
 assert.match(inventory,/function inventoryItemActionList\(/,'las acciones salen de una sola lista');
-assert.match(inventory,/role="img" aria-label=\{`Sin foto: \$\{item\.name\}`\} title="Sin foto"/,'sin imagen va un placeholder limpio, nunca un ícono roto');
+assert.match(equipmentPhoto,/role="img" aria-label=\{`Sin foto: \$\{nombre\}`\} title="Sin foto"/,'sin imagen va un placeholder limpio, nunca un ícono roto');
 assert.equal((inventory.match(/>Foto</g)||[]).length,1,'«Foto» solo sobrevive como encabezado de la columna');
 
 // ── Grilla de la lista: plantilla única, columnas reales y acciones en una línea.
@@ -34,7 +37,7 @@ assert.doesNotMatch(inventory,/etiqueta="Valor" etiquetaComo="dt"/,'la tarjeta n
 
 // ── Cabecera de la tarjeta: checkbox, foto 56, nombre flexible y estado a la derecha.
 assert.match(inventory,/size="card"/,'la tarjeta usa la foto grande');
-assert.match(inventory,/h-14 w-14/,'la foto de la tarjeta mide 56 px');
+assert.match(equipmentPhoto,/size==='card'\?'h-14 w-14'/,'la foto de la tarjeta mide 56 px');
 assert.match(inventory,/<h3 className="truncate text-sm font-semibold text-fore" title=\{item\.name\}>/,'el nombre es flexible y truncable');
 assert.match(inventory,/<StateChip tone=\{statusTone\(item\.status\)\}>\{equipmentStatusLabel\(item\.status\)\}<\/StateChip>\s*<\/div>/,'el estado cierra la cabecera');
 

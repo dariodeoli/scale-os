@@ -31,6 +31,10 @@ export const IA_CARGA_PATH = '/api/ia/carga';
 /** Candidatos que muestra el análisis por registro (contrato de #119). */
 export const IA_COINCIDENCIAS_MAX = 5;
 
+/** Umbrales del estándar portable (#132): preselección de vincular por confianza. */
+export const IA_CONFIANZA_ALTA = 90;
+export const IA_CONFIANZA_MEDIA = 60;
+
 /** Configuración del asistente tal como la sirve `GET /api/ia/carga`. */
 export type IaConfig = {configurada: boolean; modelo: string | null; tipos: IaTipo[]};
 
@@ -46,6 +50,10 @@ export type CoincidenciaIA = {
   /** Confianza 0–100 del estándar (#131): ≥90 vincula, 60–89 mejor candidato, <60 nuevo. */
   confianza?: number;
   activo: boolean;
+  /** Confianza 0–100 del match (#131); ausente cuando el motor no la manda. */
+  confianza?: number | null;
+  /** Imagen de confirmación (logo del cliente / foto del equipo) si el motor la resolvió. */
+  fotoUrl?: string | null;
 };
 
 /** Acción sobre un cliente existente: un cobro ya percibido. */
@@ -97,6 +105,8 @@ export type IaCliente = {
   coincidencias?: CoincidenciaIA[];
   /** #131: campos del extracto que no se encontraron en el texto. */
   no_en_texto?: string[];
+  /** Confianza 0–100 del registro completo contra lo existente (#131). */
+  confianza?: number | null;
 };
 
 /** Equipo de inventario detectado; `cantidad` son las unidades a crear. */
@@ -113,6 +123,8 @@ export type IaEquipo = {
   no_en_texto?: string[];
   /** #131: moneda no soportada; el valor pide carga manual. */
   moneda_extranjera?: string | null;
+  /** Confianza 0–100 del registro completo contra lo existente (#131). */
+  confianza?: number | null;
 };
 
 export type IaAnalisis = {
@@ -136,6 +148,56 @@ export function senalMatchLabel(senal: string): string {
     nombre_parecido: 'nombre parecido',
   };
   return labels[senal] || senal.replace(/_/g, ' ');
+}
+
+/**
+ * Preselección del estándar portable (#132) sobre la confianza de #131:
+ * ≥90 coincide alto (vincular preseleccionado) · 60–89 mejor candidato
+ * preseleccionado y cambiable · <60 crear nuevo. `null` = el motor no puntuó
+ * (puente con #119: se conservan las reglas de la Fase 2).
+ */
+export function decisionPorConfianza(confianza: number | null | undefined): 'vincular' | 'crear' | null {
+  if (confianza === null || confianza === undefined || !Number.isFinite(Number(confianza))) return null;
+  return Number(confianza) >= IA_CONFIANZA_MEDIA ? 'vincular' : 'crear';
+}
+
+/** Nivel visible del match: `alta` (≥90), `media` (60–89) o `baja` (<60/sin dato). */
+export function nivelConfianza(confianza: number | null | undefined): 'alta' | 'media' | 'baja' {
+  if (confianza === null || confianza === undefined || !Number.isFinite(Number(confianza))) return 'baja';
+  return Number(confianza) >= IA_CONFIANZA_ALTA ? 'alta' : Number(confianza) >= IA_CONFIANZA_MEDIA ? 'media' : 'baja';
+}
+
+/** Mejor candidato del registro (la normalización los ordena por confianza). */
+export function mejorCoincidencia(coincidencias: readonly CoincidenciaIA[] | undefined): CoincidenciaIA | null {
+  if (!coincidencias?.length) return null;
+  // El motor ya ordena por señales; acá se elige por confianza para que la
+  // preselección por umbral no dependa del orden de llegada.
+  return coincidencias.reduce((mejor, candidato) => ((candidato.confianza ?? -1) > (mejor.confianza ?? -1) ? candidato : mejor));
+}
+
+/** Moneda distinta de la local (guaraníes): no se convierte sola (#131/#132). */
+export function monedaExtranjeraIa(moneda: string | null | undefined) {
+  const codigo = String(moneda ?? '').trim().toUpperCase();
+  return Boolean(codigo) && codigo !== 'PYG';
+}
+
+/** Tipos de aviso del estándar portable que la tarjeta trata distinto. */
+export type AvisoIaTipo = 'no-esta' | 'moneda' | 'fecha' | 'plazo' | 'duplicado' | 'otro';
+
+/**
+ * Clasifica un aviso del motor para darle tratamiento visible (#131/#132):
+ * escalar fuera del texto, moneda extranjera, fecha resuelta, plazo por
+ * «a crédito» y duplicado probable. El texto del motor nunca se reescribe.
+ */
+export function clasificarAvisoIa(texto: string): {tipo: AvisoIaTipo; etiqueta: string} {
+  const valor = String(texto ?? '');
+  const normalizado = valor.toLowerCase();
+  if (/no (est[áa]|aparece|figura) en el texto|fuera del texto|inventad|alucina/.test(normalizado)) return {tipo: 'no-esta', etiqueta: 'No está en el texto'};
+  if (/moneda|usd|d[óo]lar|euro|extranjer/.test(normalizado)) return {tipo: 'moneda', etiqueta: 'Moneda extranjera'};
+  if (/fecha|ma[ñn]ana|ayer|relativ|vencim/.test(normalizado)) return {tipo: 'fecha', etiqueta: 'Fecha resuelta'};
+  if (/cr[ée]dito|plazo|cuotas?/.test(normalizado)) return {tipo: 'plazo', etiqueta: 'Plazo, no cobro'};
+  if (/duplicad|repetid|ya existe/.test(normalizado)) return {tipo: 'duplicado', etiqueta: 'Duplicado probable'};
+  return {tipo: 'otro', etiqueta: ''};
 }
 
 /* ------------------------------------------------------------------ normalización */
@@ -164,6 +226,24 @@ const senalesDe = (value: unknown) =>
     .map((senal) => clean(senal, 40))
     .filter(Boolean)
     .slice(0, 6);
+
+/** Confianza 0–100 del motor (#131); tolera nombres y valores fuera de rango. */
+const confianzaDe = (value: unknown): number | null => {
+  const numero = Number(value);
+  if (!Number.isFinite(numero)) return null;
+  const redondeado = Math.round(numero);
+  // Fuera de 0–100 es entrada inválida: no se acota a 100 (un valor basura no
+  // debe habilitar la vinculación automática por umbral).
+  return redondeado >= 0 && redondeado <= 100 ? redondeado : null;
+};
+/** Imagen segura de confirmación (https o data:image); cualquier otra se descarta. */
+const imagenDe = (value: unknown): string | null => {
+  const texto = String(value ?? '').trim();
+  return /^(https:\/\/|data:image\/)/.test(texto) ? texto.slice(0, 2000) : null;
+};
+const imagenCoincidencia = (fila: Record<string, unknown>) =>
+  imagenDe(fila.foto_url ?? fila.fotoUrl ?? fila.logo_url ?? fila.logoUrl ?? fila.avatar_url ?? fila.imagen ?? fila.foto);
+
 const coincidenciasDe = (value: unknown): CoincidenciaIA[] => {
   const filas = list(value)
     .map((item) => {
@@ -172,11 +252,18 @@ const coincidenciasDe = (value: unknown): CoincidenciaIA[] => {
       const nombre = clean(fila.nombre, 160);
       if (!id || !nombre) return null;
       const coincidencia: CoincidenciaIA = {id, nombre, senales: senalesDe(fila.senales), activo: fila.activo !== false};
-      const confianza = Number(fila.confianza);
-      if (Number.isFinite(confianza)) coincidencia.confianza = Math.max(0, Math.min(100, Math.round(confianza)));
+      // #131: el puntaje y la imagen sólo viajan cuando el motor los manda (el
+      // contrato de #119 sigue siendo válido sin ellos).
+      const confianza = confianzaDe(fila.confianza ?? fila.puntaje ?? fila.score ?? fila.porcentaje ?? fila.match);
+      if (confianza !== null) coincidencia.confianza = confianza;
+      const foto = imagenCoincidencia(fila);
+      if (foto) coincidencia.fotoUrl = foto;
       return coincidencia;
     })
-    .filter((item): item is CoincidenciaIA => item !== null);
+    .filter((item): item is CoincidenciaIA => item !== null)
+    // Mejor candidato primero por confianza: la preselección por umbral y la
+    // vista miran el primero; el motor ya manda las señales, acá se ordena.
+    .sort((uno, dos) => (dos.confianza ?? -1) - (uno.confianza ?? -1));
   return filas.slice(0, IA_COINCIDENCIAS_MAX);
 };
 const camposNoEnTexto = (value: unknown) =>
@@ -222,6 +309,8 @@ export function normalizarIaAnalisis(value: unknown): IaAnalisis {
     if (estado) cliente.estado = estado;
     if (Array.isArray(fila.coincidencias)) cliente.coincidencias = coincidenciasDe(fila.coincidencias);
     if (Array.isArray(fila.no_en_texto)) cliente.no_en_texto = camposNoEnTexto(fila.no_en_texto);
+    const confianza = confianzaDe(fila.confianza ?? fila.puntaje ?? fila.score ?? fila.porcentaje);
+    if (confianza !== null) cliente.confianza = confianza;
     return cliente;
   });
   // Puente de contrato con #117: el motor devuelve «equipos»; la UI lo expone
@@ -243,6 +332,8 @@ export function normalizarIaAnalisis(value: unknown): IaAnalisis {
     if (Array.isArray(fila.no_en_texto)) equipo.no_en_texto = camposNoEnTexto(fila.no_en_texto);
     const extranjera = nullableText(fila.moneda_extranjera, 12);
     if (extranjera) equipo.moneda_extranjera = extranjera;
+    const confianza = confianzaDe(fila.confianza ?? fila.puntaje ?? fila.score ?? fila.porcentaje);
+    if (confianza !== null) equipo.confianza = confianza;
     return equipo;
   });
   if (clientes.length > IA_REGISTROS_MAX) avisos.push(`El análisis trajo ${clientes.length} clientes; se muestran los primeros ${IA_REGISTROS_MAX}.`);
