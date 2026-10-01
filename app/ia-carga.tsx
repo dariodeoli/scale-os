@@ -16,7 +16,7 @@ import {PRIVACY_IA_DETAIL,PRIVACY_IA_FINALITY,PRIVACY_POLICY_URL,PRIVACY_RIGHTS_
 import {
   IA_REGISTROS_MAX,IA_TEXTO_MAX,IA_TIPO_LABEL,
   analizarIa,cargarConfigIa,clasificarIaFallo,crearClienteDesdeIa,crearEquipoDesdeIa,mensajeIaError,montoDudosoIa,senalMatchLabel,
-  type AccionIA,type CoincidenciaIA,type EstadoMatch,type IaCliente,type IaConfig,type IaFallo,type IaResultado,type IaTipo,
+  type AccionCobroIA,type AccionIA,type CoincidenciaIA,type EstadoMatch,type IaCliente,type IaConfig,type IaFallo,type IaResultado,type IaTipo,
 } from './ia-carga-data';
 import {cargarCuentasCobro,cuentaSugeridaIa,cuentasCobroIa,registrarCobroDesdeIa,validarCobroIa,type IaCuentaCobro} from './ia-cobro-data';
 
@@ -94,7 +94,7 @@ function aTarjetas(resultado: IaResultado, siguienteClave: (prefijo: string) => 
         ...decisionInicial(equipo.estado, equipo.coincidencias ?? []),
       }))
     : [];
-  const acciones: AccionEdit[] = resultado.acciones.map((accion) => ({
+  const acciones: AccionEdit[] = resultado.acciones.filter((accion): accion is AccionCobroIA => accion.tipo === 'registrar_cobro').map((accion) => ({
     clave: siguienteClave('accion'),
     accion,
     clienteId: accion.cliente.id || '',
