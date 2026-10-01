@@ -189,7 +189,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     return <Aviso tono="error" como="div">{catalogError.message} <button type="button" className="text-button" onClick={() => void ensureCatalog(failedKey)}>Reintentar</button></Aviso>;
   };
 
-  return <section className="grid gap-4" aria-label="Comisiones y referidos">
+  return <section className="grid grid-cols-1 gap-4" aria-label="Comisiones y referidos">
     <PageHeader eyebrow="Equipo" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." actions={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>
     {error ? <ErrorBlock title="No pudimos completar la operación" description={error} onRetry={() => void load()}/> : null}
     {notice ? <Aviso tono="ok">{notice}</Aviso> : null}
@@ -207,7 +207,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         items={[['liquidacion', `Liquidación · ${monthLabel}`, monthly.length], ['comisiones', 'Comisiones', commissions.length], ['descuentos', 'Descuentos', discounts.length], ...(canSeePayouts ? [['pagos', 'Pagos', payouts.length] as [string, string, number]] : [])]}
       />
 
-      <div hidden={section!=='liquidacion'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Liquidación del mes">
+      <div hidden={section!=='liquidacion'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Liquidación del mes">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
           <label className="grid gap-1.5"><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mes</span><input type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={event => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value); }}/></label>
@@ -226,7 +226,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
           : <EmptyBlock compact title="Sin comisiones ni acuerdos comerciales para este mes." description="Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada)." action={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Registrar comisión</button> : undefined}/>}
       </section></div>
 
-      <div hidden={section!=='comisiones'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Comisiones registradas">
+      <div hidden={section!=='comisiones'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Comisiones registradas">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p></div>
           <div className="flex flex-wrap gap-1">{COMMISSION_FILTERS.map(value => <button key={value} type="button" className={filter === value ? 'choice active' : 'choice'} onClick={() => setFilter(value)}>{value === 'all' ? 'Todas' : commissionStatusLabel(value)}</button>)}</div>
@@ -260,7 +260,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
           : <EmptyBlock compact title={commissions.length ? 'No hay comisiones con este estado.' : 'Registrá una comisión por venta o por recomendar un cliente.'} description={commissions.length ? 'Probá con otro estado.' : undefined} action={canManage && !commissions.length ? <button className="primary" onClick={() => setNewCommission(true)}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>}
       </section></div>
 
-      <div hidden={section!=='descuentos'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Descuentos por referido">
+      <div hidden={section!=='descuentos'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Descuentos por referido">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
           {canManage ? <button className="secondary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
@@ -281,7 +281,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       </section></div>
       </>}
 
-      {canSeePayouts ? <div hidden={section!=='pagos'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Pagos registrados">
+      {canSeePayouts ? <div hidden={section!=='pagos'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Pagos registrados">
         <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
         {payoutsState === 'loading' ? <LoadingBlock label="Cargando egresos…" lines={3}/>
         : payoutsState === 'error' ? <ErrorBlock title="No se pudieron cargar los egresos" description={`${payoutsError || 'No se pudieron cargar los egresos.'} Reintentá para ver los pagos registrados a colaboradores y referidos.`} onRetry={() => void loadPayouts()}/>

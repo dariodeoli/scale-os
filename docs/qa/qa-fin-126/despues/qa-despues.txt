@@ -1,0 +1,296 @@
+✓ Finanzas (light, 390): sin scroll horizontal: 0
+✓ Finanzas (light, 390): targets ≥44: 0
+✓ Finanzas (light, 390): inputs sin zoom iOS (≥16px): 0
+✓ Finanzas (light, 390): filas 44–52: true
+✓ Finanzas (light, 390): tabla «Transferencias entre cuentas» con riel y etiqueta: true
+✓ Finanzas (light, 390): tabla «Cobros pendientes» con riel y etiqueta: true
+✓ Finanzas (light, 390): tabla «Cobros registrados» con riel y etiqueta: true
+· Finanzas (light, 390): rieles ["480>324 «Transferencias entre cuentas»","964>324 «Cobros pendientes»","1124>324 «Cobros registrados»"]
+✓ Finanzas (light, 390): contraste texto AA: 0
+✓ Finanzas (light, 390): bordes 3:1: 0
+✓ Finanzas (dark, 390): sin scroll horizontal: 0
+✓ Finanzas (dark, 390): targets ≥44: 0
+✓ Finanzas (dark, 390): inputs sin zoom iOS (≥16px): 0
+✓ Finanzas (dark, 390): filas 44–52: true
+✓ Finanzas (dark, 390): tabla «Transferencias entre cuentas» con riel y etiqueta: true
+✓ Finanzas (dark, 390): tabla «Cobros pendientes» con riel y etiqueta: true
+✓ Finanzas (dark, 390): tabla «Cobros registrados» con riel y etiqueta: true
+· Finanzas (dark, 390): rieles ["480>324 «Transferencias entre cuentas»","964>324 «Cobros pendientes»","1124>324 «Cobros registrados»"]
+✗ Finanzas (dark, 390): contraste texto AA: 48 (esperado 0)
+✓ Finanzas (dark, 390): bordes 3:1: 0
+·   contraste 2.98 «Ver más» text-button
+·   contraste 2.98 «Cuenta» text-button
+·   contraste 2.98 «Transferir» text-button
+·   contraste 4.21 «Bancaria · PYG» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+·   contraste 4.21 «Bancaria · USD» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+✓ Finanzas (light, 768): sin scroll horizontal: 0
+✓ Finanzas (light, 768): filas 44–52: true
+✓ Finanzas (light, 768): tabla «Cobros pendientes» con riel y etiqueta: true
+✓ Finanzas (light, 768): tabla «Cobros registrados» con riel y etiqueta: true
+· Finanzas (light, 768): rieles ["964>494 «Cobros pendientes»","1124>494 «Cobros registrados»"]
+✓ Finanzas (dark, 768): sin scroll horizontal: 0
+✓ Finanzas (dark, 768): filas 44–52: true
+✓ Finanzas (dark, 768): tabla «Cobros pendientes» con riel y etiqueta: true
+✓ Finanzas (dark, 768): tabla «Cobros registrados» con riel y etiqueta: true
+· Finanzas (dark, 768): rieles ["964>494 «Cobros pendientes»","1124>494 «Cobros registrados»"]
+✗ Finanzas (dark, 768): contraste texto AA: 48 (esperado 0)
+✓ Finanzas (dark, 768): bordes 3:1: 0
+·   contraste 2.98 «Ver más» text-button
+·   contraste 2.98 «Cuenta» text-button
+·   contraste 2.98 «Transferir» text-button
+·   contraste 4.21 «Bancaria · PYG» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+·   contraste 4.21 «Bancaria · USD» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+✓ Mora (light, 390): sin scroll horizontal: 0
+✓ Mora (light, 390): targets ≥44: 0
+✓ Mora (light, 390): inputs sin zoom iOS (≥16px): 0
+✓ Mora (light, 390): filas 44–52: true
+✓ Mora (light, 390): tabla «Cobranza por cliente» con riel y etiqueta: true
+· Mora (light, 390): rieles ["928>358 «Cobranza por cliente»"]
+✓ Mora (light, 390): contraste texto AA: 0
+✓ Mora (light, 390): bordes 3:1: 0
+✓ Mora (dark, 390): sin scroll horizontal: 0
+✓ Mora (dark, 390): targets ≥44: 0
+✓ Mora (dark, 390): inputs sin zoom iOS (≥16px): 0
+✓ Mora (dark, 390): filas 44–52: true
+✓ Mora (dark, 390): tabla «Cobranza por cliente» con riel y etiqueta: true
+· Mora (dark, 390): rieles ["928>358 «Cobranza por cliente»"]
+✗ Mora (dark, 390): contraste texto AA: 4 (esperado 0)
+✓ Mora (dark, 390): bordes 3:1: 0
+·   contraste 4.21 «16–30 días · —» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+·   contraste 4.21 «+30 días · —» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+·   contraste 4.21 «0 sin factura» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+·   contraste 3.77 «Desarrollado por Owncoding» toque-44 font-medium text-fono-dark hover:underline
+✓ Mora (light, 768): sin scroll horizontal: 0
+✓ Mora (light, 768): filas 44–52: true
+✓ Mora (light, 768): tabla «Cobranza por cliente» con riel y etiqueta: true
+· Mora (light, 768): rieles ["928>528 «Cobranza por cliente»"]
+✓ Mora (dark, 768): sin scroll horizontal: 0
+✓ Mora (dark, 768): filas 44–52: true
+✓ Mora (dark, 768): tabla «Cobranza por cliente» con riel y etiqueta: true
+· Mora (dark, 768): rieles ["928>528 «Cobranza por cliente»"]
+✗ Mora (dark, 768): contraste texto AA: 4 (esperado 0)
+✓ Mora (dark, 768): bordes 3:1: 0
+·   contraste 4.21 «16–30 días · —» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+·   contraste 4.21 «+30 días · —» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+·   contraste 4.21 «0 sin factura» inline-flex items-center gap-1 rounded-md border px-2 py-0.5
+·   contraste 3.77 «Desarrollado por Owncoding» toque-44 font-medium text-fono-dark hover:underline
+✓ Previsión (light, 390): sin scroll horizontal: 0
+✓ Previsión (light, 390): targets ≥44: 0
+✓ Previsión (light, 390): inputs sin zoom iOS (≥16px): 0
+✓ Previsión (light, 390): contraste texto AA: 0
+✓ Previsión (light, 390): bordes 3:1: 0
+✓ Previsión (dark, 390): sin scroll horizontal: 0
+✓ Previsión (dark, 390): targets ≥44: 0
+✓ Previsión (dark, 390): inputs sin zoom iOS (≥16px): 0
+✗ Previsión (dark, 390): contraste texto AA: 1 (esperado 0)
+✓ Previsión (dark, 390): bordes 3:1: 0
+·   contraste 3.77 «Desarrollado por Owncoding» toque-44 font-medium text-fono-dark hover:underline
+✓ Previsión (light, 768): sin scroll horizontal: 0
+✓ Previsión (light, 768): filas 44–52: true
+✓ Previsión (dark, 768): sin scroll horizontal: 0
+✓ Previsión (dark, 768): filas 44–52: true
+✗ Previsión (dark, 768): contraste texto AA: 1 (esperado 0)
+✓ Previsión (dark, 768): bordes 3:1: 0
+·   contraste 3.77 «Desarrollado por Owncoding» toque-44 font-medium text-fono-dark hover:underline
+✓ Informes (light, 390): sin scroll horizontal: 0
+✓ Informes (light, 390): targets ≥44: 0
+✓ Informes (light, 390): inputs sin zoom iOS (≥16px): 0
+· Informes (light, 390): rieles ["847>330 «Facturado y cobrado mensual en PYG»"]
+✓ Informes (light, 390): contraste texto AA: 0
+✓ Informes (light, 390): bordes 3:1: 0
+✓ Informes (dark, 390): sin scroll horizontal: 0
+✓ Informes (dark, 390): targets ≥44: 0
+✓ Informes (dark, 390): inputs sin zoom iOS (≥16px): 0
+· Informes (dark, 390): rieles ["847>330 «Facturado y cobrado mensual en PYG»"]
+✗ Informes (dark, 390): contraste texto AA: 1 (esperado 0)
+✓ Informes (dark, 390): bordes 3:1: 0
+·   contraste 3.77 «Desarrollado por Owncoding» toque-44 font-medium text-fono-dark hover:underline
+✓ Informes (light, 768): sin scroll horizontal: 0
+· Informes (light, 768): rieles ["847>492 «Facturado y cobrado mensual en PYG»","1073>494"]
+✓ Informes (dark, 768): sin scroll horizontal: 0
+· Informes (dark, 768): rieles ["847>492 «Facturado y cobrado mensual en PYG»","1073>494"]
+✗ Informes (dark, 768): contraste texto AA: 1 (esperado 0)
+✓ Informes (dark, 768): bordes 3:1: 0
+·   contraste 3.77 «Desarrollado por Owncoding» toque-44 font-medium text-fono-dark hover:underline
+✓ Comisiones (light, 390): sin scroll horizontal: 0
+✓ Comisiones (light, 390): targets ≥44: 0
+✓ Comisiones (light, 390): inputs sin zoom iOS (≥16px): 0
+✓ Comisiones (light, 390): filas 44–52: true
+✓ Comisiones (light, 390): tabla «Comisiones del mes por colaborador» con riel y etiqueta: true
+· Comisiones (light, 390): rieles ["992>324 «Comisiones del mes por colaborador»"]
+✓ Comisiones (light, 390): contraste texto AA: 0
+✓ Comisiones (light, 390): bordes 3:1: 0
+✓ Comisiones (dark, 390): sin scroll horizontal: 0
+✓ Comisiones (dark, 390): targets ≥44: 0
+✓ Comisiones (dark, 390): inputs sin zoom iOS (≥16px): 0
+✓ Comisiones (dark, 390): filas 44–52: true
+✓ Comisiones (dark, 390): tabla «Comisiones del mes por colaborador» con riel y etiqueta: true
+· Comisiones (dark, 390): rieles ["992>324 «Comisiones del mes por colaborador»"]
+✗ Comisiones (dark, 390): contraste texto AA: 2 (esperado 0)
+✓ Comisiones (dark, 390): bordes 3:1: 0
+·   contraste 4.38 «5» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+·   contraste 3.77 «Desarrollado por Owncoding» toque-44 font-medium text-fono-dark hover:underline
+✓ Comisiones (light, 768): sin scroll horizontal: 0
+✓ Comisiones (light, 768): filas 44–52: true
+✓ Comisiones (light, 768): tabla «Comisiones del mes por colaborador» con riel y etiqueta: true
+· Comisiones (light, 768): rieles ["992>494 «Comisiones del mes por colaborador»"]
+✓ Comisiones (dark, 768): sin scroll horizontal: 0
+✓ Comisiones (dark, 768): filas 44–52: true
+✓ Comisiones (dark, 768): tabla «Comisiones del mes por colaborador» con riel y etiqueta: true
+· Comisiones (dark, 768): rieles ["992>494 «Comisiones del mes por colaborador»"]
+✗ Comisiones (dark, 768): contraste texto AA: 2 (esperado 0)
+✓ Comisiones (dark, 768): bordes 3:1: 0
+·   contraste 4.38 «5» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+·   contraste 3.77 «Desarrollado por Owncoding» toque-44 font-medium text-fono-dark hover:underline
+✓ «cobro» (390): foco inicial adentro: true
+✓ «cobro» (390): dentro del viewport: true
+✓ «cobro» (390): sin scroll horizontal: 0
+✓ «cobro» (390): botones ≥44: 0
+✓ «cobro» (390): inputs sin zoom iOS (≥16px): 0
+✓ «cobro» (390): foco atrapado (14 tabs): true
+✓ «cobro» (390): pie alcanzable: true
+✓ «cobro» (390): Escape cierra y devuelve el foco: true
+✓ «factura» (390): foco inicial adentro: true
+✓ «factura» (390): dentro del viewport: true
+✓ «factura» (390): sin scroll horizontal: 0
+✓ «factura» (390): botones ≥44: 0
+✓ «factura» (390): inputs sin zoom iOS (≥16px): 0
+✓ «factura» (390): foco atrapado (14 tabs): true
+✓ «factura» (390): pie alcanzable: true
+✓ «factura» (390): Escape cierra y devuelve el foco: true
+✓ «cuenta» (390): foco inicial adentro: true
+✓ «cuenta» (390): dentro del viewport: true
+✓ «cuenta» (390): sin scroll horizontal: 0
+✓ «cuenta» (390): botones ≥44: 0
+✓ «cuenta» (390): inputs sin zoom iOS (≥16px): 0
+✓ «cuenta» (390): foco atrapado (14 tabs): true
+✓ «cuenta» (390): pie alcanzable: true
+✓ «cuenta» (390): Escape cierra y devuelve el foco: true
+✓ «transferir» (390): foco inicial adentro: true
+✓ «transferir» (390): dentro del viewport: true
+✓ «transferir» (390): sin scroll horizontal: 0
+✓ «transferir» (390): botones ≥44: 0
+✓ «transferir» (390): inputs sin zoom iOS (≥16px): 0
+✓ «transferir» (390): foco atrapado (14 tabs): true
+✓ «transferir» (390): pie alcanzable: true
+✓ «transferir» (390): Escape cierra y devuelve el foco: true
+✓ «salario» (390): foco inicial adentro: true
+✓ «salario» (390): dentro del viewport: true
+✓ «salario» (390): sin scroll horizontal: 0
+✓ «salario» (390): botones ≥44: 0
+✓ «salario» (390): inputs sin zoom iOS (≥16px): 0
+✓ «salario» (390): foco atrapado (14 tabs): true
+✓ «salario» (390): Escape cierra y devuelve el foco: true
+✓ «ajuste» (390): foco inicial adentro: true
+✓ «ajuste» (390): dentro del viewport: true
+✓ «ajuste» (390): sin scroll horizontal: 0
+✓ «ajuste» (390): botones ≥44: 0
+✓ «ajuste» (390): inputs sin zoom iOS (≥16px): 0
+✓ «ajuste» (390): foco atrapado (14 tabs): true
+✓ «ajuste» (390): Escape cierra y devuelve el foco: true
+✓ «comision» (390): foco inicial adentro: true
+✓ «comision» (390): dentro del viewport: true
+✓ «comision» (390): sin scroll horizontal: 0
+✓ «comision» (390): botones ≥44: 0
+✓ «comision» (390): inputs sin zoom iOS (≥16px): 0
+✓ «comision» (390): foco atrapado (14 tabs): true
+✓ «comision» (390): pie alcanzable: true
+✓ «comision» (390): Escape cierra y devuelve el foco: true
+✓ «descuento» (390): foco inicial adentro: true
+✓ «descuento» (390): dentro del viewport: true
+✓ «descuento» (390): sin scroll horizontal: 0
+✓ «descuento» (390): botones ≥44: 0
+✓ «descuento» (390): inputs sin zoom iOS (≥16px): 0
+✓ «descuento» (390): foco atrapado (14 tabs): true
+✓ «descuento» (390): Escape cierra y devuelve el foco: true
+✓ «cobro» (768): foco inicial adentro: true
+✓ «cobro» (768): dentro del viewport: true
+✓ «cobro» (768): sin scroll horizontal: 0
+·   botón 40px «Cerrar»
+·   botón 40px «FC-2026-0014 · Ruta Outdoor»
+·   botón 40px «FC-2026-0019 · Punto Libros»
+·   botón 40px «FC-2026-0008 · Raíz Orgánica»
+✓ «cobro» (768): foco atrapado (14 tabs): true
+✓ «cobro» (768): pie alcanzable: true
+✓ «cobro» (768): Escape cierra y devuelve el foco: true
+✓ «factura» (768): foco inicial adentro: true
+✓ «factura» (768): dentro del viewport: true
+✓ «factura» (768): sin scroll horizontal: 0
+·   botón 40px «Cerrar»
+·   botón 40px «Alma Cocina»
+·   botón 40px «Aurora Café»
+·   botón 40px «Bosque Hogar»
+✓ «factura» (768): foco atrapado (14 tabs): true
+✓ «factura» (768): Escape cierra y devuelve el foco: true
+✓ «cuenta» (768): foco inicial adentro: true
+✓ «cuenta» (768): dentro del viewport: true
+✓ «cuenta» (768): sin scroll horizontal: 0
+·   botón 40px «Cerrar»
+·   botón 40px «Banco»
+·   botón 40px «Caja»
+·   botón 40px «Digital»
+✓ «cuenta» (768): foco atrapado (14 tabs): true
+✓ «cuenta» (768): Escape cierra y devuelve el foco: true
+✓ «transferir» (768): foco inicial adentro: true
+✓ «transferir» (768): dentro del viewport: true
+✓ «transferir» (768): sin scroll horizontal: 0
+·   botón 40px «Cerrar»
+·   botón 40px «Seleccionar…»
+·   botón 40px «Seleccionar…»
+·   botón 40px «Cancelar»
+✓ «transferir» (768): foco atrapado (14 tabs): true
+✓ «transferir» (768): Escape cierra y devuelve el foco: true
+✓ «salario» (768): foco inicial adentro: true
+✓ «salario» (768): dentro del viewport: true
+✓ «salario» (768): sin scroll horizontal: 0
+·   botón 40px «Cerrar»
+·   botón 40px «Cancelar»
+·   botón 40px «Guardar salario»
+✓ «salario» (768): foco atrapado (14 tabs): true
+✓ «salario» (768): Escape cierra y devuelve el foco: true
+✓ «ajuste» (768): foco inicial adentro: true
+✓ «ajuste» (768): dentro del viewport: true
+✓ «ajuste» (768): sin scroll horizontal: 0
+·   botón 40px «Cerrar»
+·   botón 40px «Extra»
+·   botón 40px «Cancelar»
+·   botón 40px «Guardar ajuste»
+✓ «ajuste» (768): foco atrapado (14 tabs): true
+✓ «ajuste» (768): Escape cierra y devuelve el foco: true
+✓ «comision» (768): foco inicial adentro: true
+✓ «comision» (768): dentro del viewport: true
+✓ «comision» (768): sin scroll horizontal: 0
+·   botón 40px «Cerrar»
+·   botón 40px «Venta»
+·   botón 40px «Importe fijo»
+·   botón 40px «Guaraníes (PYG)»
+✓ «comision» (768): foco atrapado (14 tabs): true
+✓ «comision» (768): Escape cierra y devuelve el foco: true
+✓ «descuento» (768): foco inicial adentro: true
+✓ «descuento» (768): dentro del viewport: true
+✓ «descuento» (768): sin scroll horizontal: 0
+·   botón 40px «Cerrar»
+·   botón 40px «Seleccionar…»
+·   botón 40px «Cancelar»
+·   botón 40px «Aplicar descuento»
+✓ «descuento» (768): foco atrapado (14 tabs): true
+✓ «descuento» (768): Escape cierra y devuelve el foco: true
+✓ validación «cobro»: el envío vacío muestra error visible: true
+✓ validación «cobro»: el diálogo sigue abierto: true
+· validación «cobro»: Elegí la factura, la cuenta y un importe mayor a cero. · {"title":"Registrar cobro","buttons":["","FC-2026-0014 · Ruta Outd","FC-2026-0019 · Punto Lib","FC-2026-0008 · Raíz Orgá","FC-2026-0013 · Alma Coci","FC-2026-0016 · Marea Cos","FC-2026-0018 · Cumbre Se","FC-2026-0004 · Nube Soft","FC-2026-0007 · Prisma Di","FC-2026-0011 · Sur Autom","FC-2026-0012 · Pixel Aca","FC-2026-0001 · Aurora Ca","FC-2026-0015 · Nova Ener","FC-2026-0020 · Sol Pet","FC-2026-0017 · Roble Mue","FC-2026-0003 · Órbita Fi","FC-2026-0005 · Luna Moda","FC-2026-0006 · Brisa Via","FC-2026-0009 · Faro Inmu","FC-2026-0010 · Menta Sal","persona-470-0@demo.examp","persona-470-1@demo.examp","persona-470-2@demo.examp","persona-470-3@demo.examp","persona-470-4@demo.examp","persona-470-5@demo.examp","persona-470-6@demo.examp","persona-470-7@demo.examp","visitante-f826aa4f-5e2c-","Banco Continental · Caja","Caja de ahorro en dólare","Caja de oficina · PYG","Cancelar","Registrar cobro"],"invalid":0}
+✓ validación «transferir»: el envío vacío muestra error visible: true
+✓ validación «transferir»: el diálogo sigue abierto: true
+· validación «transferir»: Elegí ambas cuentas, fecha e importes positivos. · {"title":"Transferir entre cuentas","buttons":["","Seleccionar…","Seleccionar…","Cancelar","Registrar transferencia"],"invalid":0}
+✓ validación «salario»: el envío vacío muestra error visible: true
+✓ validación «salario»: el diálogo sigue abierto: true
+· validación «salario»: Ingresá un importe entero positivo y seguro, sin separadores ni decimales. · {"title":"Salario fijo mensual · Camila Vera","buttons":["","Cancelar","Guardar salario"],"invalid":0}
+✓ vacío «vacio-transferencias»: estado vacío real: true
+✓ vacío «vacio-transferencias»: sin scroll horizontal: 0
+✓ vacío «vacio-cuentas»: estado vacío real: true
+✓ vacío «vacio-cuentas»: sin scroll horizontal: 0
+✓ vacío «vacio-comisiones»: estado vacío real: true
+✓ vacío «vacio-comisiones»: sin scroll horizontal: 0
+✓ vacío «vacio-mora»: estado vacío real: true
+✓ vacío «vacio-mora»: sin scroll horizontal: 0
+✓ enmascarado: la UI muestra «Sin dato» con la respuesta del API: true
+✓ enmascarado: sin acciones de edición de salario: 0
