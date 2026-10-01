@@ -56,7 +56,7 @@ test('análisis: recorta a 25 por tipo y lo dice en los avisos', () => {
 
 test('errores: cada fallo del motor tiene un mensaje claro en es-PY', () => {
  assert.match(mensajeIaError(new IaApiError('ia no configurada', 503, 'ia_no_configurada')), /no está configurada/);
- assert.match(mensajeIaError(new IaApiError('límite', 429)), /muchos análisis seguidos/);
+ assert.match(mensajeIaError(new IaApiError('límite', 429)), /límite de análisis de tu empresa/);
  assert.match(mensajeIaError(new IaApiError('sin permiso', 403)), /Tu rol no permite/);
  assert.match(mensajeIaError(new IaApiError('sesión', 401)), /sesión venció/);
  assert.match(mensajeIaError(new IaApiError('proveedor', 502)), /proveedor de IA/);

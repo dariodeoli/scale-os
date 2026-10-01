@@ -129,5 +129,5 @@ test('los errores de resiliencia del motor se explican en es-PY', () => {
   assert.match(mensajeIaError(new IaApiError('proveedor', 502, 'ia_truncado')), /dos partes/, 'el truncado propone dividir el texto');
   assert.match(mensajeIaError(new IaApiError('proveedor', 502, 'ia_vacio')), /ilegible/, 'la salida vacía se explica sin jerga');
   assert.match(mensajeIaError(new IaApiError('proveedor', 502, 'ia_json')), /ilegible/);
-  assert.match(mensajeIaError(new IaApiError('proveedor', 502)), /proveedor de IA no respondió/, 'un 502 sin código conserva el mensaje genérico');
+  assert.match(mensajeIaError(new IaApiError('proveedor', 502)), /proveedor de IA/, 'un 502 sin código se explica como proveedor (fuente única del adaptador, #128)');
 });

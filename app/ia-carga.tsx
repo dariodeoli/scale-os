@@ -5,16 +5,18 @@ import {Dialog,FormActions} from './dialog';
 import {AmountInput,SelectCustom} from './profile-controls';
 import {EmailField} from './email-field';
 import {PhoneField} from './phone-field';
-import {EmptyBlock,LoadingBlock,StateChip} from './ui-v2';
+import {EmptyBlock,LoadingBlock,MoneyText,StateChip} from './ui-v2';
 import {useCompanyCurrency} from './currency-provider';
 import {roleCan} from './capabilities';
 import {api} from './operations';
+import {money} from './money-format';
 import {todayAsuncion} from './client-format';
+import {listDateShort} from './list-format';
 import {PRIVACY_IA_DETAIL,PRIVACY_IA_FINALITY,PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL} from './privacy-links';
 import {
   IA_REGISTROS_MAX,IA_TEXTO_MAX,IA_TIPO_LABEL,
-  analizarIa,cargarConfigIa,crearClienteDesdeIa,crearEquipoDesdeIa,mensajeIaError,senalMatchLabel,
-  type AccionIA,type CoincidenciaIA,type EstadoMatch,type IaCliente,type IaConfig,type IaResultado,type IaTipo,
+  analizarIa,cargarConfigIa,clasificarIaFallo,crearClienteDesdeIa,crearEquipoDesdeIa,mensajeIaError,montoDudosoIa,senalMatchLabel,
+  type AccionIA,type CoincidenciaIA,type EstadoMatch,type IaCliente,type IaConfig,type IaFallo,type IaResultado,type IaTipo,
 } from './ia-carga-data';
 import {cargarCuentasCobro,cuentaSugeridaIa,cuentasCobroIa,registrarCobroDesdeIa,validarCobroIa,type IaCuentaCobro} from './ia-cobro-data';
 
@@ -117,6 +119,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
   const [analizando,setAnalizando]=useState(false);
   const [creando,setCreando]=useState(false);
   const [error,setError]=useState('');
+  const [fallo,setFallo]=useState<IaFallo|null>(null);
   const [avisos,setAvisos]=useState<string[]>([]);
   const [clientes,setClientes]=useState<ClienteEdit[]>([]);
   const [equipos,setEquipos]=useState<EquipoEdit[]>([]);
@@ -126,6 +129,8 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
   const [cuentas,setCuentas]=useState<IaCuentaCobro[]>([]);
   const [intentado,setIntentado]=useState(false);
   const contador=useRef(0);
+  const revisionRef=useRef<HTMLDivElement|null>(null);
+  const resultadoRef=useRef<HTMLDivElement|null>(null);
   const siguienteClave=(prefijo:string)=>`${prefijo}-${contador.current+=1}`;
   const puedeClientes=roleCan(role,'clients.manage');
   const puedeInventario=roleCan(role,'inventory.manage');
@@ -172,8 +177,14 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
     return()=>{activo=false;};
   },[acciones.length,currency]);
 
-  const incluidos=useMemo(()=>({
-    clientes:clientes.filter((fila)=>fila.incluir&&fila.decision==='crear').length,
+  // Foco al cambiar de fase (#128): el contenido nuevo recibe el foco en vez de
+  // dejarlo en un control que desapareció; el resumen se anuncia por `role=status`.
+  useEffect(()=>{
+    if(fase==='revision')revisionRef.current?.focus();
+    if(fase==='listo')resultadoRef.current?.focus();
+  },[fase]);
+
+  const incluidos=useMemo(()=>({    clientes:clientes.filter((fila)=>fila.incluir&&fila.decision==='crear').length,
     equipos:equipos.filter((fila)=>fila.incluir&&fila.decision==='crear').length,
     vinculados:clientes.filter((fila)=>fila.incluir&&fila.decision==='vincular').length+equipos.filter((fila)=>fila.incluir&&fila.decision==='vincular').length,
   }),[clientes,equipos]);
@@ -181,6 +192,8 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
   const unidades=equipos.filter((fila)=>fila.incluir&&fila.decision==='crear').reduce((suma,fila)=>suma+Math.min(IA_REGISTROS_MAX,Math.max(1,Math.floor(Number(fila.cantidad)||1))),0);
   const accionesPendientes=acciones.filter((fila)=>fila.estado==='pendiente'||fila.estado==='duplicado'||fila.estado==='error').length;
   const tipos=config?.tipos.filter((tipo)=>tipo==='clientes'?puedeClientes:puedeInventario)||[];
+  /** Aviso cerca del límite (auditoría #128): el contador supera el 80 %. */
+  const cercaDelLimite=texto.length>IA_TEXTO_MAX*0.8;
 
   function nombreValido(valor:string,min=2){return valor.trim().length>=min;}
   function cantidadValida(valor:string){const numero=Math.floor(Number(valor));return Number.isFinite(numero)&&numero>=1&&numero<=IA_REGISTROS_MAX;}
@@ -189,7 +202,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
 
   async function analizar(){
     if(!texto.trim()||analizando)return;
-    setAnalizando(true);setError('');
+    setAnalizando(true);setError('');setFallo(null);
     try{
       const analisis=await analizarIa(texto.trim());
       const tarjetas=aTarjetas(analisis,siguienteClave,tipos);
@@ -199,7 +212,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       if(ignorados)setAvisos((actuales)=>[...actuales,`Se ignoraron ${ignorados} registro(s) detectados porque tu rol no puede crearlos.`]);
       setResultado(null);setIntentado(false);setFase('revision');
     }catch(cause){
-      setError(mensajeIaError(cause));
+      setFallo(clasificarIaFallo(cause));
     }finally{setAnalizando(false);}
   }
   /** Nada se crea si una tarjeta incluida sigue sin decisión o sin ficha elegida. */
@@ -271,7 +284,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
   }
 
   function reiniciar(){
-    setTexto('');setError('');setAvisos([]);setClientes([]);setEquipos([]);setAcciones([]);setResultado(null);setIntentado(false);setFase('entrada');
+    setTexto('');setError('');setFallo(null);setAvisos([]);setClientes([]);setEquipos([]);setAcciones([]);setResultado(null);setIntentado(false);setFase('entrada');
   }
 
   return <Dialog title="Carga con IA" close={close} busy={analizando||creando} size={fase==='revision'?'wide':'default'}>
@@ -329,8 +342,10 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
           placeholder={'Ejemplo:\nJuan Pérez (Constructora Sur) — RUC 80012345-6, 0981 123 456, juan@sur.com.py\nPantalla LED 3x2, iluminación, cantidad 4, valor 1.500.000\nConstructora Sur me pagó 2.500.000 el 28/09 por el saldo'}
         />
       </FormField>
-      <p className={`${CONTADOR} self-end`} aria-live="polite">{texto.length.toLocaleString('es-PY')} / {IA_TEXTO_MAX.toLocaleString('es-PY')}</p>
+      <p className={`${CONTADOR} self-end`} data-cerca={cercaDelLimite||undefined} aria-live="polite">{texto.length.toLocaleString('es-PY')} / {IA_TEXTO_MAX.toLocaleString('es-PY')}</p>
+      {cercaDelLimite?<Aviso tono="warn" compact role="status">Estás cerca del límite de {IA_TEXTO_MAX.toLocaleString('es-PY')} caracteres: si el texto es más largo, probá en dos partes.</Aviso>:null}
       <AvisoPrivacidad finalidad={PRIVACY_IA_FINALITY} detalle={PRIVACY_IA_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact/>
+      {fallo?<FalloIa fallo={fallo}/>:null}
       {error?<Aviso tono="error">{error}</Aviso>:null}
       <FormActions>
         <button type="button" className="secondary" disabled={analizando} onClick={close}>Cancelar</button>
@@ -338,8 +353,8 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       </FormActions>
     </form>:null}
 
-    {estadoConfig==='lista'&&fase==='revision'?<div className="grid gap-4">
-      <p className="text-sm text-mute">Detectamos <b className="text-fore">{resumenDetectado(clientes.length,equipos.length,acciones.length,puedeClientes,puedeInventario)}</b>. Revisá, corregí o descartá: <b className="text-fore">nada se crea ni se ejecuta sin tu confirmación</b>.</p>
+    {estadoConfig==='lista'&&fase==='revision'?<div ref={revisionRef} tabIndex={-1} className="grid gap-4 outline-none">
+      <p className="text-sm text-mute" role="status">Detectamos <b className="text-fore">{resumenDetectado(clientes.length,equipos.length,acciones.length,puedeClientes,puedeInventario)}</b>. Revisá, corregí o descartá: <b className="text-fore">nada se crea ni se ejecuta sin tu confirmación</b>.</p>
       {incluidos.vinculados?<p className="text-[11.5px] text-mute">Vinculás <b className="tabular-nums text-fore">{incluidos.vinculados}</b> registro(s) a fichas existentes: no se crea nada para esos.</p>:null}
       {unidades>incluidos.equipos?<p className="text-[11.5px] text-mute">Se crearán <b className="tabular-nums text-fore">{unidades}</b> equipos en total: un registro por unidad reservable.</p>:null}
       {avisos.length?<Aviso tono="warn" como="div" className="grid gap-1">{avisos.map((aviso,index)=><span key={index} className="text-[12px] leading-5">{aviso}</span>)}</Aviso>:null}
@@ -407,6 +422,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
           </header>
           {fila.accion.avisos.length?<Aviso tono="warn" compact>{fila.accion.avisos.join(' ')}</Aviso>:null}
           <ClienteDeAccion fila={fila} onElegir={(clienteId)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,clienteId,mensaje:''}:item))}/>
+          <MontoInterpretado fila={fila}/>
           <div className="grid gap-2 sm:grid-cols-2">
             <FormField label={`Monto (${fila.accion.moneda})`} htmlFor={`${fila.clave}-monto`}>
               <AmountInput id={`${fila.clave}-monto`} value={fila.monto} currency={fila.accion.moneda} integerOnly disabled={fila.estado==='ejecutada'} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,monto:value,mensaje:''}:item))}/>
@@ -441,7 +457,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       </FormActions>
     </div>:null}
 
-    {fase==='listo'&&resultado?<div className="grid gap-3">
+    {fase==='listo'&&resultado?<div ref={resultadoRef} tabIndex={-1} className="grid gap-3 outline-none">
       <Aviso tono={resultado.creados.clientes+resultado.creados.equipos>0||resultado.acciones.ejecutadas>0?'ok':'warn'} como="div" className="grid gap-1">
         <strong>{resultado.creados.clientes+resultado.creados.equipos>0||resultado.acciones.ejecutadas>0?'Listo.':'No se creó ni ejecutó nada.'}</strong>
         {resultado.creados.clientes+resultado.creados.equipos>0?<span className="text-[12px] leading-5">{`Creamos ${[resultado.creados.clientes?`${resultado.creados.clientes} cliente${resultado.creados.clientes===1?'':'s'}`:null,resultado.creados.equipos?`${resultado.creados.equipos} equipo${resultado.creados.equipos===1?'':'s'}`:null].filter(Boolean).join(' y ')}.`}</span>:null}
@@ -535,4 +551,46 @@ function opcionesCategoria(equipo:EquipoEdit,categorias:CategoriaOpcion[]):Categ
  if(detectada&&!opciones.some((opcion)=>opcion.label.trim().toLowerCase()===detectada.toLowerCase()))opciones.unshift({value:`nombre:${detectada}`,label:`${detectada} · nueva categoría`});
  if(!opciones.length)opciones.push({value:'nombre:Otro',label:'Otro'});
  return opciones;
+}
+
+/**
+ * Monto interpretado en grande antes de confirmar (auditoría #128): el punto
+ * delicado de `registrar_cobro` es «500 mil» vs «500.000». Muestra el importe
+ * formateado, el cliente y la fecha, y advierte (sin corregir) si el monto
+ * parece de otra escala para guaraníes.
+ */
+function MontoInterpretado({fila}:{fila:AccionEdit}){
+ const monto=Math.floor(Number(fila.monto));
+ const valido=Number.isFinite(monto)&&monto>0;
+ const moneda=fila.accion.moneda;
+ const dudoso=valido&&montoDudosoIa(monto,moneda);
+ return <div className="grid gap-1.5 rounded-lg border border-ink-600 bg-ink-900/40 px-3 py-2.5" data-monto={valido?monto:undefined}>
+  <span className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Monto interpretado</span>
+  <MoneyText valor={valido?monto:null} currency={moneda} className="text-xl leading-tight text-fore"/>
+  <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-mute">
+   <span className="break-all">{fila.accion.cliente.nombre||'Sin cliente identificado'}</span>
+   <span aria-hidden="true">·</span>
+   <span className="whitespace-nowrap">{fila.fecha?listDateShort(fila.fecha)||fila.fecha:'sin fecha'}</span>
+  </p>
+  {dudoso?<Aviso tono="warn" compact>El monto parece bajo para guaraníes: revisá que no falten ceros (¿{money(monto,moneda)} o {money(monto*1000,moneda)}?).</Aviso>:null}
+ </div>;
+}
+
+/** Fallo del análisis con tratamiento propio por estado (#127 y #128). */
+function FalloIa({fallo}:{fallo:IaFallo}){
+ const tono=fallo.tipo==='proveedor'||fallo.tipo==='desconocido'?'error':'warn';
+ const acciones:Record<IaFallo['tipo'],string>={
+  'no-configurada':'El servidor no tiene la clave del proveedor: pedile a un administrador que la cargue. Mientras tanto, podés cargar a mano.',
+  'texto-largo':'Probá en dos partes: analizá la primera mitad y creá esos registros; después pegá la segunda.',
+  'limite':`${fallo.esperaMinutos?`Esperá ${fallo.esperaMinutos} minuto${fallo.esperaMinutos===1?'':'s'}`:'Esperá unos minutos'} y volvé a analizar el mismo texto: queda acá, no se pierde.`,
+  'proveedor':'Reintentá en unos segundos con el mismo texto: queda acá y no se pierde.',
+  'sesion':'Volvé a ingresar y pegá el texto de nuevo.',
+  'permiso':'Pedile a un administrador que revise tu rol para cargar estos registros.',
+  'texto':'Corregí el texto y volvé a probar.',
+  'desconocido':'Reintentá; si sigue igual, avisá al equipo.',
+ };
+ return <Aviso tono={tono} como="div" className="grid gap-1" data-fallo={fallo.tipo}>
+  <strong>{fallo.mensaje}</strong>
+  <span className="text-[12px] leading-5">{acciones[fallo.tipo]}</span>
+ </Aviso>;
 }
