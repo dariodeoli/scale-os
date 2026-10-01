@@ -26,6 +26,17 @@ Personales** y a las instrucciones de las agencias que usan la plataforma.
 No tratamos datos sensibles (salud, biometría, creencias) ni datos de menores de
 16 años sin autorización de su tutor.
 
+### Carga con IA
+
+La función «Carga con IA» permite convertir texto pegado por el equipo en una
+**vista previa** de clientes y equipos. Cuando se usa, **solo ese texto** se envía
+al proveedor de inteligencia artificial configurado (Groq u otro compatible,
+listado en `PRIVACIDAD-ENCARGADOS.md`); la IA no accede a la base ni a otros
+datos, el servidor no persiste el texto y **nada se crea** hasta que una persona
+confirma la carga con los permisos habituales. Queda registrada la transferencia
+(modelo y cantidad de registros, sin el texto) en la bitácora de datos
+personales.
+
 ## 3. Para qué y con qué base legal
 
 Los tratamos para prestar el servicio contratado, gestionar cuentas y accesos,
