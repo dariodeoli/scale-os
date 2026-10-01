@@ -31,6 +31,31 @@ export const IA_CARGA_PATH = '/api/ia/carga';
 /** Configuración del asistente tal como la sirve `GET /api/ia/carga`. */
 export type IaConfig = {configurada: boolean; modelo: string | null; tipos: IaTipo[]};
 
+/** Estado de un registro detectado frente a lo ya cargado en la empresa. */
+export type EstadoMatch = 'nuevo' | 'coincide' | 'ambiguo';
+
+/** Señal de coincidencia con un registro existente de la misma organización. */
+export type CoincidenciaIA = {
+  id: string;
+  nombre: string;
+  /** `ruc_ci_exacto`, `correo`, `telefono`, `nombre_normalizado`, `nombre_parcial`. */
+  senales: string[];
+  activo: boolean;
+};
+
+/** Acción propuesta sobre un cliente existente (no se ejecuta sin confirmar). */
+export type AccionIA = {
+  tipo: 'registrar_cobro';
+  cliente: {nombre: string; id: string | null; candidatos: CoincidenciaIA[]};
+  /** Importe en guaraníes enteros. */
+  monto: number;
+  moneda: 'PYG';
+  fecha: string | null;
+  detalle: string | null;
+  avisos: string[];
+  estado?: EstadoMatch;
+};
+
 /** Cliente detectado (vista previa editable). */
 export type IaCliente = {
   nombre: string;
@@ -39,6 +64,9 @@ export type IaCliente = {
   telefono: string | null;
   correo: string | null;
   avisos: string[];
+  /** Fase 2 (#119): coincidencias locales y estado; ausentes en respuestas viejas. */
+  estado?: EstadoMatch;
+  coincidencias?: CoincidenciaIA[];
 };
 
 /** Equipo de inventario detectado; `cantidad` son las unidades a crear. */
@@ -48,6 +76,10 @@ export type IaEquipo = {
   cantidad: number | null;
   valor: number | null;
   avisos: string[];
+  /** Fase 2 (#119): moneda detectada, coincidencias locales y estado. */
+  moneda?: string | null;
+  estado?: EstadoMatch;
+  coincidencias?: CoincidenciaIA[];
 };
 
 export type IaAnalisis = {
@@ -56,6 +88,9 @@ export type IaAnalisis = {
   /** Notas globales de la pasada (recortes, registros descartados, dudas). */
   avisos: string[];
 };
+
+/** Resultado completo del análisis: registros + acciones propuestas (#119). */
+export type IaResultado = IaAnalisis & {acciones: AccionIA[]};
 
 /* ------------------------------------------------------------------ normalización */
 
@@ -70,8 +105,30 @@ const cantidadDe = (value: unknown) => {
 };
 const montoDe = (value: unknown) => {
   if (value === null || value === undefined || value === '') return null;
-  const numero = Number(value);
+  const numero = typeof value === 'string'
+    ? Number(value.replace(/[^\d.,-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.'))
+    : Number(value);
   return Number.isFinite(numero) && numero >= 0 ? Math.round(numero) : null;
+};
+const estadoDe = (value: unknown): EstadoMatch | undefined =>
+  value === 'nuevo' || value === 'coincide' || value === 'ambiguo' ? value : undefined;
+const senalesDe = (value: unknown) =>
+  list(value)
+    .filter((senal): senal is string => typeof senal === 'string')
+    .map((senal) => clean(senal, 40))
+    .filter(Boolean)
+    .slice(0, 6);
+const coincidenciasDe = (value: unknown): CoincidenciaIA[] => {
+  const filas = list(value)
+    .map((item) => {
+      const fila = record(item);
+      const id = clean(fila.id, 40);
+      const nombre = clean(fila.nombre, 160);
+      if (!id || !nombre) return null;
+      return {id, nombre, senales: senalesDe(fila.senales), activo: fila.activo !== false};
+    })
+    .filter((item): item is CoincidenciaIA => item !== null);
+  return filas.slice(0, 5);
 };
 
 /** Config defensiva: sin `tipos` desconocidos y con la forma exacta de la UI. */
@@ -98,7 +155,7 @@ export function normalizarIaAnalisis(value: unknown): IaAnalisis {
   const avisos = avisosDe(data.avisos);
   const clientes = list(data.clientes).map((item) => {
     const fila = record(item);
-    return {
+    const cliente: IaCliente = {
       nombre: clean(fila.nombre, 120),
       empresa: nullableText(fila.empresa, 160),
       ruc: nullableText(fila.ruc, 60),
@@ -106,22 +163,63 @@ export function normalizarIaAnalisis(value: unknown): IaAnalisis {
       correo: nullableText(fila.correo, 200),
       avisos: avisosDe(fila.avisos),
     };
+    const estado = estadoDe(fila.estado);
+    if (estado) cliente.estado = estado;
+    if (Array.isArray(fila.coincidencias)) cliente.coincidencias = coincidenciasDe(fila.coincidencias);
+    return cliente;
   });
   // Puente de contrato con #117: el motor devuelve «equipos»; la UI lo expone
   // como «inventario». Se lee la clave del servidor y se tolera la propia.
   const inventario = list(data.equipos ?? data.inventario).map((item) => {
     const fila = record(item);
-    return {
+    const equipo: IaEquipo = {
       nombre: clean(fila.nombre, 160),
       categoria: nullableText(fila.categoria, 80),
       cantidad: fila.cantidad === null || fila.cantidad === undefined ? null : cantidadDe(fila.cantidad),
       valor: montoDe(fila.valor),
       avisos: avisosDe(fila.avisos),
     };
+    const moneda = nullableText(fila.moneda, 8);
+    if (moneda) equipo.moneda = moneda.toUpperCase();
+    const estado = estadoDe(fila.estado);
+    if (estado) equipo.estado = estado;
+    if (Array.isArray(fila.coincidencias)) equipo.coincidencias = coincidenciasDe(fila.coincidencias);
+    return equipo;
   });
   if (clientes.length > IA_REGISTROS_MAX) avisos.push(`El análisis trajo ${clientes.length} clientes; se muestran los primeros ${IA_REGISTROS_MAX}.`);
   if (inventario.length > IA_REGISTROS_MAX) avisos.push(`El análisis trajo ${inventario.length} equipos; se muestran los primeros ${IA_REGISTROS_MAX}.`);
   return {clientes: clientes.slice(0, IA_REGISTROS_MAX), inventario: inventario.slice(0, IA_REGISTROS_MAX), avisos};
+}
+
+/**
+ * Acciones propuestas (#119): tolerante con la forma externa, estricta con lo
+ * que la UI puede confirmar. Solo se aceptan tipos soportados y montos Gs
+ * enteros positivos; el resto se descarta (el servidor ya validó igual).
+ */
+export function normalizarIaAcciones(value: unknown): AccionIA[] {
+  const acciones: AccionIA[] = [];
+  for (const item of list(value)) {
+    const fila = record(item);
+    if (fila.tipo !== 'registrar_cobro') continue;
+    const cliente = record(fila.cliente);
+    const nombre = clean(cliente.nombre, 160);
+    const monto = montoDe(fila.monto);
+    if (nombre.length < 2 || monto === null || monto <= 0) continue;
+    const id = clean(cliente.id, 40) || null;
+    const accion: AccionIA = {
+      tipo: 'registrar_cobro',
+      cliente: {nombre, id, candidatos: coincidenciasDe(cliente.candidatos)},
+      monto,
+      moneda: 'PYG',
+      fecha: nullableText(fila.fecha, 10),
+      detalle: nullableText(fila.detalle, 500),
+      avisos: avisosDe(fila.avisos),
+    };
+    const estado = estadoDe(fila.estado);
+    if (estado) accion.estado = estado;
+    acciones.push(accion);
+  }
+  return acciones.slice(0, IA_REGISTROS_MAX);
 }
 
 /* ------------------------------------------------------------------------ API */
@@ -183,12 +281,12 @@ export async function cargarConfigIa(): Promise<IaConfig> {
  * detectados. El timeout supera el del proveedor (30 s) para no cortar un
  * análisis que el servidor todavía está esperando.
  */
-export async function analizarIa(texto: string): Promise<IaAnalisis> {
+export async function analizarIa(texto: string): Promise<IaResultado> {
   const limpio = String(texto || '').trim();
   if (!limpio) throw new IaApiError('Pegá un texto para analizar.', 400);
   const data = await iaFetch(IA_CARGA_PATH, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({texto: limpio})}, 35_000);
   const registros = record(data).registros;
-  return normalizarIaAnalisis(registros);
+  return {...normalizarIaAnalisis(registros), acciones: normalizarIaAcciones(record(data).acciones)};
 }
 
 /* ------------------------------------------------------------------ creación */
