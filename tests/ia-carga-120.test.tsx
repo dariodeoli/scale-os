@@ -62,3 +62,31 @@ test('privacidad y límites de la Fase 2: sin persistencia ni datos personales e
  assert(!dialog.includes('searchParams') && !dialog.includes('document.title'), 'sin datos personales en URLs ni títulos');
  assert(dialog.includes('data-estado={fila.estado}'), 'la tarjeta expone su estado para pruebas y estilos');
 });
+
+/* ------------------------------------------- parcial/seña, división y método (#133) */
+
+test('#133: la confirmación muestra el método real de la cuenta y no confirma a ciegas', () => {
+ const dialog = file('app/ia-carga.tsx');
+ assert(dialog.includes('CuentaDeAccion') && dialog.includes('metodoCuentaIa') && dialog.includes('detalleCuentaIa'), 'la cuenta elegida muestra banco/número/alias con el módulo de Finanzas');
+ assert(dialog.includes('Método:'), 'el método queda visible junto al selector');
+ assert(dialog.includes('data-metodo='), 'la tarjeta expone el método para pruebas y estilos');
+ assert(dialog.includes('No hay una cuenta de ingreso en {fila.accion.moneda} activa'), 'sin cuentas activas se dice y no se confirma');
+ assert(dialog.includes('disabled={!fila.clienteId||!cuentasCobroIa'), 'la confirmación sigue bloqueada sin cliente o sin cuenta');
+});
+
+test('#133: parcial/seña y división en partes con suma exacta', () => {
+ const dialog = file('app/ia-carga.tsx');
+ const data = file('app/ia-cobro-data.ts');
+ assert(dialog.includes('PartesDivision'), 'la división tiene su bloque en la misma confirmación');
+ assert(dialog.includes('Dividir en partes') && dialog.includes('Usar una sola cuenta'), 'la división se activa y se desactiva de forma explícita');
+ assert(dialog.includes('Agregar parte') && dialog.includes('>Quitar</button>'), 'las partes se agregan y se quitan');
+ assert(dialog.includes('Suma: Gs'), 'la suma visible acompaña la edición');
+ assert(data.includes('La suma de las partes'), 'el error de suma se explica sin efectos');
+ assert(dialog.includes('const partesProblema=validarPartesIa(partes,cobro.monto)') && dialog.includes("actualizar({estado:'error',mensaje:partesProblema})"), 'la suma inválida se muestra en la tarjeta sin ejecutar');
+ assert(dialog.includes('validarPartesIa(partes,cobro.monto)') && data.includes('export function validarPartesIa'), 'la suma exacta se revalida antes de llamar al servidor');
+ assert(data.includes('parts: partes!.map'), 'la división viaja al API como partes separadas');
+ assert(dialog.includes("estado:salida.parcial?'parcial':'ejecutada'") && dialog.includes('Pago parcial: quedan Gs'), 'el pago parcial se marca como estado y muestra el pendiente');
+ assert(dialog.includes('>Parcial</StateChip>'), 'la cápsula de estado incluye «Parcial»');
+ assert(dialog.includes("fila.estado==='parcial'"), 'una acción parcial no se vuelve a ejecutar');
+ assert(data.includes('IA_COBRO_PARTES_MAX') && data.includes('export const IA_COBRO_PARTES_MIN'), 'los límites de partes viven en el módulo FIN');
+});

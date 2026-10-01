@@ -21,7 +21,7 @@ import {
   analizarIa,cargarConfigIa,clasificarIaFallo,crearClienteDesdeIa,crearEquipoDesdeIa,mensajeIaError,montoDudosoIa,senalMatchLabel,clasificarAvisoIa,decisionPorConfianza,mejorCoincidencia,monedaExtranjeraIa,nivelConfianza,
   type AccionCobroIA,type AccionIA,type CoincidenciaIA,type EstadoMatch,type IaCliente,type IaConfig,type IaFallo,type IaResultado,type IaTipo,
 } from './ia-carga-data';
-import {cargarCuentasCobro,cuentaSugeridaIa,cuentasCobroIa,registrarCobroDesdeIa,validarCobroIa,type IaCuentaCobro} from './ia-cobro-data';
+import {cargarCuentasCobro,cuentaSugeridaIa,cuentasCobroIa,detalleCuentaIa,metodoCuentaIa,registrarCobroDesdeIa,validarCobroIa,validarPartesIa,IA_COBRO_PARTES_MAX,type IaCobroParte,type IaCuentaCobro} from './ia-cobro-data';
 
 /**
  * «Carga con IA» (Refs #118, #119, #120 y #121, réplica de LedBox #120): el
@@ -43,7 +43,9 @@ type Fase = 'entrada' | 'revision' | 'listo';
 /** Decisión por registro: crear, vincular a una ficha existente, o pendiente. */
 type Decision = 'crear' | 'vincular' | 'pendiente';
 /** Estado de la tarjeta de acción: nada se ejecuta sin pasar por 'pendiente'. */
-type EstadoAccion = 'pendiente' | 'ejecutando' | 'ejecutada' | 'duplicado' | 'error';
+type EstadoAccion = 'pendiente' | 'ejecutando' | 'ejecutada' | 'parcial' | 'duplicado' | 'error';
+/** Parte de una división: una cuenta real y su importe, con suma exacta. */
+type ParteEdit = {clave: string; cuentaId: string; monto: string};
 
 type ClienteEdit = IaCliente & {clave: string; incluir: boolean; decision: Decision; elegidoId: string; origen?: 'texto' | 'manual' | 'duplicado'};
 type EquipoEdit = {
@@ -54,7 +56,7 @@ type EquipoEdit = {
 };
 type AccionEdit = {
   clave: string; accion: AccionIA; clienteId: string; cuentaId: string; monto: string; fecha: string; detalle: string;
-  estado: EstadoAccion; mensaje: string;
+  dividir: boolean; partes: ParteEdit[]; estado: EstadoAccion; mensaje: string;
 };
 
 type Resultado = {
@@ -121,6 +123,8 @@ function aTarjetas(resultado: IaResultado, siguienteClave: (prefijo: string) => 
     monto: String(accion.monto),
     fecha: accion.fecha || todayAsuncion(),
     detalle: accion.detalle || '',
+    dividir: false,
+    partes: [],
     estado: 'pendiente',
     mensaje: '',
   }));
@@ -274,29 +278,36 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         catch(cause){errores.push(`Equipo «${equipo.nombre.trim()||'sin nombre'}»${unidadesEquipo>1?` (unidad ${unidad})`:''}: ${cause instanceof Error?cause.message:'no se pudo crear'}`);break;}
       }
     }
-    setResultado({creados,vinculados,acciones:{ejecutadas:acciones.filter((fila)=>fila.estado==='ejecutada').length,pendientes:acciones.filter((fila)=>fila.estado!=='ejecutada').length},errores});
+    setResultado({creados,vinculados,acciones:{ejecutadas:acciones.filter((fila)=>fila.estado==='ejecutada'||fila.estado==='parcial').length,pendientes:acciones.filter((fila)=>fila.estado!=='ejecutada'&&fila.estado!=='parcial').length},errores});
     setCreando(false);setFase('listo');
     if(creados.clientes||creados.equipos){try{await onCreated();}catch{/* El resumen ya está: la recarga no puede taparlo. */}}
   }
 
-  /** Confirma UNA acción con la ejecución real de Finanzas (#121). */
+  /** Confirma UNA acción con la ejecución real de Finanzas (#121/#133). */
   async function confirmarAccion(clave:string,permitirDuplicado=false){
     const fila=acciones.find((item)=>item.clave===clave);
-    if(!fila||fila.estado==='ejecutando'||fila.estado==='ejecutada')return;
+    if(!fila||fila.estado==='ejecutando'||fila.estado==='ejecutada'||fila.estado==='parcial')return;
     const actualizar=(patch:Partial<AccionEdit>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===clave?{...item,...patch}:item));
     const cobro={clienteId:fila.clienteId,monto:Math.floor(Number(fila.monto)),fecha:fila.fecha||todayAsuncion(),detalle:fila.detalle||''};
     const problema=validarCobroIa(cobro);
     if(problema){actualizar({estado:'error',mensaje:problema});return;}
-    if(!fila.cuentaId){actualizar({estado:'error',mensaje:'Elegí la cuenta donde entró el cobro.'});return;}
+    let partes:IaCobroParte[]|undefined;
+    if(fila.dividir){
+      partes=fila.partes.map((parte)=>({accountId:parte.cuentaId,amount:Math.floor(Number(parte.monto))}));
+      const partesProblema=validarPartesIa(partes,cobro.monto);
+      if(partesProblema){actualizar({estado:'error',mensaje:partesProblema});return;}
+    }else if(!fila.cuentaId){actualizar({estado:'error',mensaje:'Elegí la cuenta donde entró el cobro.'});return;}
     actualizar({estado:'ejecutando',mensaje:''});
     try{
-      const salida=await registrarCobroDesdeIa({cobro,accountId:fila.cuentaId,permitirDuplicado});
+      const salida=await registrarCobroDesdeIa({cobro,accountId:fila.dividir?undefined:fila.cuentaId,partes,permitirDuplicado});
       if(salida.estado==='duplicado'){
         const facturas=salida.duplicados.map((pago)=>pago.invoiceNumber||`#${pago.id}`).join(', ');
         actualizar({estado:'duplicado',mensaje:`Ya registramos un cobro igual${facturas?` (${facturas})`:''}. ¿Querés registrarlo igual?`});
         return;
       }
-      actualizar({estado:'ejecutada',mensaje:`${salida.yaRegistrado?'El cobro ya estaba registrado':'Cobro registrado'} · Gs ${salida.total.toLocaleString('es-PY')}${salida.pagos.length>1?` en ${salida.pagos.length} facturas`:''}.`});
+      const detallePartes=salida.pagos.length>1?` en ${salida.pagos.length} facturas`:'';
+      const parcial=salida.parcial?` · Pago parcial: quedan Gs ${salida.pending.toLocaleString('es-PY')} pendientes`:' · Saldo del cliente al día';
+      actualizar({estado:salida.parcial?'parcial':'ejecutada',mensaje:`${salida.yaRegistrado?'El cobro ya estaba registrado':'Cobro registrado'} · Gs ${salida.total.toLocaleString('es-PY')}${detallePartes}${parcial}.`});
       // Un cobro ejecutado cambia datos de Finanzas: se refresca el panel.
       try{await onCreated();}catch{/* El resultado ya está visible en la tarjeta. */}
     }catch(cause){
@@ -497,23 +508,26 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
           <MontoInterpretado fila={fila}/>
           <div className="grid gap-2 sm:grid-cols-2">
             <FormField label={`Monto (${fila.accion.moneda})`} htmlFor={`${fila.clave}-monto`}>
-              <AmountInput id={`${fila.clave}-monto`} value={fila.monto} currency={fila.accion.moneda} integerOnly disabled={fila.estado==='ejecutada'} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,monto:value,mensaje:''}:item))}/>
+              <AmountInput id={`${fila.clave}-monto`} value={fila.monto} currency={fila.accion.moneda} integerOnly disabled={fila.estado==='ejecutada'||fila.estado==='parcial'} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,monto:value,mensaje:''}:item))}/>
             </FormField>
             <FormField label="Fecha del cobro" htmlFor={`${fila.clave}-fecha`}>
-              <Input id={`${fila.clave}-fecha`} type="date" max={todayAsuncion()} value={fila.fecha} disabled={fila.estado==='ejecutada'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,fecha:event.target.value}:item))}/>
-            </FormField>
-            <FormField label="Cuenta donde entró el cobro" htmlFor={`${fila.clave}-cuenta`}>
-              {cuentasCobroIa(cuentas,fila.accion.moneda).length
-                ? <SelectCustom label="" choices={cuentasCobroIa(cuentas,fila.accion.moneda).map((cuenta)=>({value:cuenta.id,label:`${cuenta.name} · ${cuenta.currency}`}))} value={fila.cuentaId} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,cuentaId:value,mensaje:''}:item))} disabled={fila.estado==='ejecutada'}/>
-                : <Aviso tono="warn" compact>No hay una cuenta de ingreso en {fila.accion.moneda} activa. Creala o activala en Finanzas para confirmar el cobro.</Aviso>}
+              <Input id={`${fila.clave}-fecha`} type="date" max={todayAsuncion()} value={fila.fecha} disabled={fila.estado==='ejecutada'||fila.estado==='parcial'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,fecha:event.target.value}:item))}/>
             </FormField>
             <FormField label="Detalle" htmlFor={`${fila.clave}-detalle`}>
-              <Input id={`${fila.clave}-detalle`} value={fila.detalle} maxLength={120} disabled={fila.estado==='ejecutada'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,detalle:event.target.value}:item))}/>
+              <Input id={`${fila.clave}-detalle`} value={fila.detalle} maxLength={120} disabled={fila.estado==='ejecutada'||fila.estado==='parcial'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,detalle:event.target.value}:item))}/>
             </FormField>
           </div>
-          {fila.mensaje?<Aviso tono={fila.estado==='ejecutada'?'ok':fila.estado==='error'?'error':'warn'} compact>{fila.mensaje}</Aviso>:null}
+          {fila.dividir
+            ? <PartesDivision fila={fila} cuentas={cuentas} disabled={fila.estado==='ejecutada'||fila.estado==='parcial'}
+                onChange={(partes)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,partes,mensaje:''}:item))}
+                onUnaCuenta={()=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,dividir:false,mensaje:''}:item))}/>
+            : <CuentaDeAccion fila={fila} cuentas={cuentas}
+                onElegir={(cuentaId)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,cuentaId,mensaje:''}:item))}
+                onDividir={()=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,dividir:true,partes:item.partes.length?item.partes:[{clave:`${item.clave}-parte-1`,cuentaId:item.cuentaId,monto:item.monto},{clave:`${item.clave}-parte-2`,cuentaId:'',monto:''}],mensaje:''}:item))}/>}
+          {fila.mensaje?<Aviso tono={fila.estado==='ejecutada'?'ok':fila.estado==='parcial'?'warn':fila.estado==='error'?'error':'warn'} compact>{fila.mensaje}</Aviso>:null}
           <div className="flex flex-wrap items-center gap-2">
             {fila.estado==='ejecutada'?<span className="text-[11.5px] text-mute">Confirmada. No hace falta volver a ejecutarla.</span>:
+              fila.estado==='parcial'?<span className="text-[11.5px] text-mute">Pago parcial confirmado. El saldo restante queda a la vista en Finanzas.</span>:
               fila.estado==='duplicado'?<button type="button" className="secondary" onClick={()=>void confirmarAccion(fila.clave,true)}>Registrar igual</button>:
               fila.estado==='ejecutando'?<button type="button" className="primary" disabled>Ejecutando…</button>:
               <button type="button" className="primary" disabled={!fila.clienteId||!cuentasCobroIa(cuentas,fila.accion.moneda).length} onClick={()=>void confirmarAccion(fila.clave)}>Confirmar acción</button>}
@@ -636,6 +650,7 @@ function ClienteDeAccion({fila,onElegir}:{fila:AccionEdit; onElegir:(clienteId:s
 
 function AccionEstado({estado}:{estado:EstadoAccion}){
  if(estado==='ejecutada')return <StateChip tone="ok">Ejecutada</StateChip>;
+ if(estado==='parcial')return <StateChip tone="warn">Parcial</StateChip>;
  if(estado==='ejecutando')return <StateChip tone="mute">Ejecutando</StateChip>;
  if(estado==='duplicado')return <StateChip tone="warn">Duplicado probable</StateChip>;
  if(estado==='error')return <StateChip tone="bad">Con error</StateChip>;
@@ -681,6 +696,61 @@ function MontoInterpretado({fila}:{fila:AccionEdit}){
    <span className="whitespace-nowrap">{fila.fecha?listDateShort(fila.fecha)||fila.fecha:'sin fecha'}</span>
   </p>
   {dudoso?<Aviso tono="warn" compact>El monto parece bajo para guaraníes: revisá que no falten ceros (¿{money(monto,moneda)} o {money(monto*1000,moneda)}?).</Aviso>:null}
+ </div>;
+}
+
+/**
+ * Cuenta de ingreso con su **método real visible** (#133): banco/institución y
+ * número o alias de la cuenta elegida, y el acceso a dividir el cobro. Nunca
+ * hay un selector vacío: sin cuentas activas se dice y no se puede confirmar.
+ */
+function CuentaDeAccion({fila,cuentas,onElegir,onDividir}:{fila:AccionEdit; cuentas:readonly IaCuentaCobro[]; onElegir:(cuentaId:string)=>void; onDividir:()=>void}){
+ const opciones=cuentasCobroIa(cuentas,fila.accion.moneda);
+ const elegida=opciones.find((cuenta)=>cuenta.id===fila.cuentaId);
+ const bloqueada=fila.estado==='ejecutada'||fila.estado==='parcial'||fila.estado==='ejecutando';
+ return <div className="grid gap-1" data-metodo={elegida?metodoCuentaIa(elegida):undefined}>
+  <FormField label="Cuenta donde entró el cobro" htmlFor={`${fila.clave}-cuenta`}>
+   {opciones.length
+    ? <SelectCustom label="" choices={opciones.map((cuenta)=>({value:cuenta.id,label:metodoCuentaIa(cuenta)}))} value={fila.cuentaId} onChange={onElegir} disabled={bloqueada}/>
+    : <Aviso tono="warn" compact>No hay una cuenta de ingreso en {fila.accion.moneda} activa. Creala o activala en Finanzas para confirmar el cobro.</Aviso>}
+  </FormField>
+  {elegida?<p className="field-help" title={detalleCuentaIa(elegida)||elegida.name}>{`Método: ${metodoCuentaIa(elegida)}`}{detalleCuentaIa(elegida)?` · ${detalleCuentaIa(elegida)}`:''}</p>:null}
+  {opciones.length>1?<button type="button" className="text-button" disabled={bloqueada} onClick={onDividir}>Dividir en partes</button>:null}
+ </div>;
+}
+
+/**
+ * División del cobro en partes/cuentas (#133): la suma debe coincidir exacta
+ * con el monto de la acción; el indicador se pinta y el servidor revalida.
+ */
+function PartesDivision({fila,cuentas,disabled,onChange,onUnaCuenta}:{fila:AccionEdit; cuentas:readonly IaCuentaCobro[]; disabled:boolean; onChange:(partes:ParteEdit[])=>void; onUnaCuenta:()=>void}){
+ const opciones=cuentasCobroIa(cuentas,fila.accion.moneda);
+ const suma=fila.partes.reduce((acc,parte)=>acc+Math.max(0,Math.floor(Number(parte.monto)||0)),0);
+ const total=Math.floor(Number(fila.monto)||0);
+ const cuadra=fila.partes.length>=2&&suma===total;
+ const agregar=()=>onChange([...fila.partes,{clave:`${fila.clave}-parte-${Date.now().toString(36)}`,cuentaId:'',monto:''}]);
+ return <div className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900/50 p-2.5" aria-label={`División del cobro en ${fila.partes.length} partes`}>
+  <p className="text-[11.5px] leading-5 text-mute" title="Cada parte entra a una cuenta real; la suma tiene que coincidir con el monto del cobro.">Repartí el monto entre varias cuentas: cada parte entra a su cuenta y la suma debe coincidir exactamente con el monto del cobro.</p>
+  {fila.partes.map((parte,index)=><div key={parte.clave} className="grid items-end gap-2 sm:grid-cols-[minmax(0,1fr)_9rem_auto]">
+   <FormField label={`Cuenta de la parte ${index+1}`} htmlFor={`${parte.clave}-cuenta`}>
+    {opciones.length
+     ? <SelectCustom label="" choices={opciones.map((cuenta)=>({value:cuenta.id,label:metodoCuentaIa(cuenta)}))} value={parte.cuentaId} disabled={disabled} onChange={(value)=>onChange(fila.partes.map((item)=>item.clave===parte.clave?{...item,cuentaId:value}:item))}/>
+     : <Aviso tono="warn" compact>Sin cuentas activas en {fila.accion.moneda}.</Aviso>}
+   </FormField>
+   <FormField label={`Importe de la parte ${index+1}`} htmlFor={`${parte.clave}-monto`}>
+    <AmountInput id={`${parte.clave}-monto`} value={parte.monto} currency={fila.accion.moneda} integerOnly disabled={disabled} onChange={(value)=>onChange(fila.partes.map((item)=>item.clave===parte.clave?{...item,monto:value}:item))}/>
+   </FormField>
+   {fila.partes.length>2
+    ?<button type="button" className="text-button danger" disabled={disabled} onClick={()=>onChange(fila.partes.filter((item)=>item.clave!==parte.clave))}>Quitar</button>
+    :<span aria-hidden="true"/>}
+  </div>)}
+  <div className="flex flex-wrap items-center justify-between gap-2">
+   {fila.partes.length<IA_COBRO_PARTES_MAX
+    ?<button type="button" className="text-button" disabled={disabled} onClick={agregar}>Agregar parte</button>
+    :<span className="text-[11px] text-mute">Máximo {IA_COBRO_PARTES_MAX} partes.</span>}
+   <span className={`text-[11.5px] tabular-nums ${cuadra?'text-mute':'text-bad'}`} role="status">{`Suma: Gs ${suma.toLocaleString('es-PY')} de Gs ${total.toLocaleString('es-PY')}`}</span>
+  </div>
+  <button type="button" className="text-button" disabled={disabled} onClick={onUnaCuenta}>Usar una sola cuenta</button>
  </div>;
 }
 

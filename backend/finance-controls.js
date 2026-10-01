@@ -21,6 +21,16 @@ function paymentBatchKey(value){
  if(typeof value!=='string'||! /^[a-f0-9-]{36}$/.test(value))fail('Identificador de operación inválido');
  return value;
 }
+// Cuenta de una parte de la división (#133): se valida con mensaje propio.
+function partAccountId(value){
+ const raw=value===undefined||value===null?'':String(value).trim();
+ return /^[1-9]\d{0,18}$/.test(raw)?raw:'';
+}
+// Saldo pendiente del cliente en una moneda, en centavos (post-cobro para reintentos).
+async function pendingForClient(c,org,clientId,currency){
+ const row=(await c.query(`select coalesce(sum(total-paid_amount),0)::text as pending from agency_invoices where organization_id=$1 and client_id=$2 and currency=$3 and status not in ('cancelled','draft') and total-paid_amount>0`,[org,clientId,currency])).rows[0];
+ return Math.round(Number(row.pending)*100);
+}
 export async function financeControls({req,res,url,db,session,body,send}){
  const route=url.pathname.match(/^\/api\/agency\/(payments|transfers|reconciliation)(?:\/(\d+))?(?:\/(reverse|match|unmatch|auto))?$/);
  const expenseRoute=url.pathname.match(/^\/api\/agency\/expenses(?:\/(\d+))?$/);
@@ -76,16 +86,30 @@ export async function financeControls({req,res,url,db,session,body,send}){
     if(hasInvoice&&hasClient)fail('Elegí la factura o el cliente del cobro, no ambos');
     const receiver=optId(b.receivedByUserId)||user.id;
     if(hasClient){
-     // Cobro por cliente (acción `registrar_cobro` de «Carga con IA», #121):
+     // Cobro por cliente (acción `registrar_cobro` de «Carga con IA», #121/#133):
      // cliente + monto + fecha + detalle sin factura explícita. Aplica FIFO
      // sobre las facturas con saldo de esa moneda y reparte una fila por
-     // factura; misma capacidad, auditoría, aislamiento e idempotencia que el
-     // cobro por factura. La cuenta de ingreso es obligatoria: el dinero entra
-     // a una cuenta concreta y la IA no puede adivinarla.
+     // factura; admite pago **parcial/seña** (monto menor al saldo) y **división
+     // en partes/cuentas** (`parts`, suma exacta del monto). Misma capacidad,
+     // auditoría, aislamiento e idempotencia que el cobro por factura. La cuenta
+     // de ingreso es obligatoria: el dinero entra a una cuenta concreta.
      const clientKey=id(b.clientId),on=date(b.receivedOn);
-     const account=(await c.query('select * from bank_accounts where id=$1 and organization_id=$2 for update',[id(b.accountId),org])).rows[0];
-     if(!account)fail('Elegí una cuenta de ingreso de esta empresa',404);
-     if(!account.active)fail('La cuenta de ingreso debe estar activa');
+     const rawParts=Array.isArray(b.parts)?b.parts:null;
+     if(rawParts&&(rawParts.length<2||rawParts.length>10))fail('Una división necesita entre 2 y 10 partes');
+     const partValues=rawParts
+      ?rawParts.map(part=>{const fila=part&&typeof part==='object'?part:{};return{accountId:partAccountId(fila.accountId),amount:amount(fila.amount)}})
+      :[{accountId:id(b.accountId),amount:paid}];
+     if(partValues.some(part=>!part.accountId))fail('Elegí la cuenta de ingreso de cada parte');
+     if(partValues.some(part=>!part.amount))fail('Cada parte necesita un importe mayor a cero');
+     const cents=Math.round(paid*100);
+     const partsCents=partValues.reduce((sum,part)=>sum+Math.round(part.amount*100),0);
+     if(rawParts&&partsCents!==cents)fail('La suma de las partes debe coincidir con el monto del cobro');
+     const accountIds=[...new Set(partValues.map(part=>part.accountId))];
+     const accounts=(await c.query('select * from bank_accounts where organization_id=$1 and id=any($2::bigint[]) for update',[org,accountIds])).rows;
+     if(accounts.length!==accountIds.length)fail('Elegí cuentas de ingreso de esta empresa',404);
+     if(accounts.some(account=>!account.active))fail('Todas las cuentas de ingreso deben estar activas');
+     const accountCurrency=accounts[0].currency;
+     if(accounts.some(account=>account.currency!==accountCurrency))fail('Las cuentas de una división deben usar la misma moneda',409);
      const client=(await c.query('select * from agency_clients where id=$1 and organization_id=$2 for update',[clientKey,org])).rows[0];
      if(!client)fail('El cliente no existe en esta empresa',404);
      await assertRecordAvailable(c,'agency_clients',client);
@@ -94,28 +118,36 @@ export async function financeControls({req,res,url,db,session,body,send}){
      if(!(await c.query('select 1 from organization_members where organization_id=$1 and user_id=$2 and active=true',[org,receiver])).rows.length)fail('La persona debe tener acceso activo a la empresa');
      const requestKey=paymentBatchKey(b.requestId);
      if(requestKey)await c.query('select pg_advisory_xact_lock(hashtextextended($1,0))',[`agency_payments:${org}:${requestKey}`]);
-     const cents=Math.round(paid*100);
      if(requestKey){
       const prior=(await c.query(`select p.*,i.number as invoice_number,i.client_id::text as client_id,${dateText('p','received_on')} from agency_payments p join agency_invoices i on i.id=p.invoice_id where p.organization_id=$1 and (p.request_key=$2 or p.request_key like $2||'#%') order by p.id`,[org,requestKey])).rows;
       if(prior.length){
        const total=prior.reduce((sum,row)=>sum+Math.round(Number(row.amount)*100),0);
-       if(prior.some(row=>String(row.account_id)!==String(account.id)||row.client_id!==clientKey)||total!==cents)fail('El identificador ya fue usado para otro cobro',409);
+       if(prior.some(row=>!accountIds.includes(String(row.account_id))||row.client_id!==clientKey)||total!==cents)fail('El identificador ya fue usado para otro cobro',409);
        await attributeActors(c,org,[{rows:prior,userId:'received_by_user_id'}]);
-       await c.query('commit');tx=false;send(res,200,{payments:prior,total:paid,alreadyRecorded:true});return true;
+       await c.query('commit');tx=false;
+       const pendingAfter=await pendingForClient(c,org,clientKey,accountCurrency);
+       send(res,200,{payments:prior,total:paid,alreadyRecorded:true,parcial:pendingAfter>0,pending:pendingAfter/100});return true;
       }
      }
-     const openInvoices=(await c.query(`select * from agency_invoices where organization_id=$1 and client_id=$2 and currency=$3 and status not in ('cancelled','draft') and total-paid_amount>0 order by due_on nulls last,issued_on,id for update`,[org,clientKey,account.currency])).rows;
+     const openInvoices=(await c.query(`select * from agency_invoices where organization_id=$1 and client_id=$2 and currency=$3 and status not in ('cancelled','draft') and total-paid_amount>0 order by due_on nulls last,issued_on,id for update`,[org,clientKey,accountCurrency])).rows;
      const outstanding=openInvoices.reduce((sum,row)=>sum+Math.round((Number(row.total)-Number(row.paid_amount))*100),0);
-     if(outstanding<cents)fail(`El cobro supera el saldo pendiente del cliente (${(outstanding/100).toLocaleString('es-PY')} ${account.currency})`,409);
-     let remaining=cents,index=0;const inserted=[];
-     for(const invoice of openInvoices){
-      if(remaining<=0)break;
-      const slice=Math.min(remaining,Math.round((Number(invoice.total)-Number(invoice.paid_amount))*100));if(slice<=0)continue;
-      const key=requestKey?(index===0?requestKey:`${requestKey}#${index}`):null;
-      inserted.push((await c.query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,$2,$3,$4,coalesce($5::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$6,$7,$8) returning *,received_on::text as received_on",[org,invoice.id,account.id,slice/100,on,text(b.reference||'',120),receiver,key])).rows[0]);
-      remaining-=slice;index++;
+     if(outstanding<cents)fail(`El cobro supera el saldo pendiente del cliente (${(outstanding/100).toLocaleString('es-PY')} ${accountCurrency})`,409);
+     const capacity=new Map(openInvoices.map(invoice=>[String(invoice.id),Math.round((Number(invoice.total)-Number(invoice.paid_amount))*100)]));
+     let index=0;const inserted=[];
+     for(const part of partValues){
+      let remaining=Math.round(part.amount*100);
+      for(const invoice of openInvoices){
+       if(remaining<=0)break;
+       const available=capacity.get(String(invoice.id))||0;
+       const slice=Math.min(remaining,available);if(slice<=0)continue;
+       const key=requestKey?(index===0?requestKey:`${requestKey}#${index}`):null;
+       inserted.push((await c.query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,$2,$3,$4,coalesce($5::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$6,$7,$8) returning *,received_on::text as received_on",[org,invoice.id,part.accountId,slice/100,on,text(b.reference||'',120),receiver,key])).rows[0]);
+       capacity.set(String(invoice.id),available-slice);
+       remaining-=slice;index++;
+      }
      }
-     result={payments:inserted,total:paid,appliedTo:inserted.map(row=>({invoiceId:String(row.invoice_id),amount:Number(row.amount)}))};status=201;
+     const remainingCents=outstanding-cents;
+     result={payments:inserted,total:paid,appliedTo:inserted.map(row=>({invoiceId:String(row.invoice_id),amount:Number(row.amount),accountId:String(row.account_id)})),parcial:remainingCents>0,pending:remainingCents/100};status=201;
     }else{
      const retry=await retryRecord(c,'agency_payments',org,b.requestId,'received_on');
      if(retry){if(String(retry.invoice_id)!==String(b.invoiceId)||String(retry.account_id)!==String(b.accountId)||Number(retry.amount)!==paid)fail('El identificador ya fue usado para otro cobro',409);await attributeActors(c,org,[{rows:retry,userId:'received_by_user_id'}]);await c.query('commit');tx=false;send(res,200,{payment:retry,alreadyRecorded:true});return true;}

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 // Los módulos de datos importan operations (api/money); el env de test no tiene DOM ni CSS.
 require.extensions['.css'] = () => {};
-const {IA_COBRO_DETALLE_MAX, cuentaSugeridaIa, cuentasCobroIa, validarCobroIa, normalizarAccionCobro, buscarCobrosDuplicados, cargarCuentasCobro, registrarCobroDesdeIa} = require('../app/ia-cobro-data') as typeof import('../app/ia-cobro-data');
+const {IA_COBRO_DETALLE_MAX, IA_COBRO_PARTES_MAX, cuentaSugeridaIa, cuentasCobroIa, detalleCuentaIa, metodoCuentaIa, validarCobroIa, validarPartesIa, normalizarAccionCobro, buscarCobrosDuplicados, cargarCuentasCobro, registrarCobroDesdeIa} = require('../app/ia-cobro-data') as typeof import('../app/ia-cobro-data');
 
 type Llamada = {url: string; method: string; body: unknown};
 const respuesta = (data: unknown, status = 200) => new Response(JSON.stringify(data), {status, headers: {'Content-Type': 'application/json'}});
@@ -51,18 +51,58 @@ test('validación del cobro: monto, fecha y cliente con rechazo claro', () => {
 test('cuentas: solo activas de la moneda, con sugerencia visible cuando es única', async () => {
  const {calls, restore} = mockFetch(() => respuesta({accounts: [
   {id: '3', name: 'Caja', currency: 'PYG', active: true},
-  {id: '4', name: 'Banco', currency: 'PYG', active: true},
+  {id: '4', name: 'Banco', currency: 'PYG', active: true, institution: 'Banco Continental', account_number: '310056630007', holder_name: 'Agencia Horizonte'},
   {id: '5', name: 'Vieja', currency: 'PYG', active: false},
   {id: '6', name: 'Dólares', currency: 'USD', active: true},
  ]}));
  try {
   const cuentas = await cargarCuentasCobro();
-  assert.deepEqual(cuentas, [{id: '4', name: 'Banco', currency: 'PYG'}, {id: '3', name: 'Caja', currency: 'PYG'}, {id: '6', name: 'Dólares', currency: 'USD'}], 'descarta inactivas y ordena por moneda y nombre');
+  assert.deepEqual(cuentas, [{id: '4', name: 'Banco', currency: 'PYG', institution: 'Banco Continental', accountNumber: '310056630007', holderName: 'Agencia Horizonte'}, {id: '3', name: 'Caja', currency: 'PYG', institution: null, accountNumber: null, holderName: null}, {id: '6', name: 'Dólares', currency: 'USD', institution: null, accountNumber: null, holderName: null}], 'descarta inactivas, ordena por moneda y nombre y conserva el método');
   assert.equal(calls[0].url, '/core-api/api/agency/accounts');
   assert.equal(cuentaSugeridaIa(cuentas), null, 'con dos cuentas en guaraníes hay que elegir');
   assert.equal(cuentaSugeridaIa(cuentas, 'USD'), '6', 'la única de la moneda se sugiere');
   assert.equal(cuentaSugeridaIa([], 'PYG'), null);
   assert.deepEqual(cuentasCobroIa(cuentas).map(cuenta => cuenta.id), ['4', '3']);
+  assert.equal(metodoCuentaIa(cuentas[0]), 'Banco Continental · 310056630007', 'el método muestra banco y número, nunca un selector vacío');
+  assert.equal(metodoCuentaIa(cuentas[1]), 'Caja', 'sin número se usa el nombre de la cuenta');
+  assert.match(detalleCuentaIa(cuentas[0]), /Institución: Banco Continental · Nº o alias: 310056630007 · Titular: Agencia Horizonte/);
+  assert.equal(detalleCuentaIa(cuentas[1]), '');
+ } finally { restore(); }
+});
+
+test('división en partes: dos o más cuentas reales y suma exacta del monto', () => {
+ const partes = [{accountId: '3', amount: 200000}, {accountId: '4', amount: 300000}];
+ assert.equal(validarPartesIa(partes, 500000), null, 'la suma exacta es válida');
+ assert.match(validarPartesIa([{accountId: '3', amount: 500000}], 500000)!, /al menos 2 partes/);
+ assert.match(validarPartesIa(partes, 500001)!, /suma de las partes .* debe coincidir/);
+ assert.match(validarPartesIa([{accountId: '3', amount: 0}, {accountId: '4', amount: 500000}], 500000)!, /importe entero mayor a cero/);
+ assert.match(validarPartesIa([{accountId: '', amount: 200000}, {accountId: '4', amount: 300000}], 500000)!, /cuenta de cada parte/);
+ const muchas = Array.from({length: IA_COBRO_PARTES_MAX + 1}, (_, index) => ({accountId: String(index + 1), amount: 1}));
+ assert.match(validarPartesIa(muchas, muchas.length)!, /hasta 5 partes/);
+});
+
+test('división: el POST viaja con parts y la respuesta conserva el estado parcial', async () => {
+ const {calls, restore} = mockFetch(call => call.method === 'GET'
+  ? respuesta({payments: []})
+  : respuesta({payments: [{...pagoFila(), id: '95', account_id: '3', amount: '200000'}, {...pagoFila(), id: '96', account_id: '4', amount: '300000'}], total: 500000, parcial: true, pending: 250000}, 201));
+ try {
+  const resultado = await registrarCobroDesdeIa({cobro, partes: [{accountId: '3', amount: 200000}, {accountId: '4', amount: 300000}], requestId: 'dddddddd-dddd-4ddd-dddd-dddddddddddd'});
+  assert.deepEqual(resultado, {estado: 'registrado', total: 500000, yaRegistrado: false, parcial: true, pending: 250000, pagos: [
+   {id: '95', invoiceId: '5', invoiceNumber: 'F-005', amount: 200000, receivedOn: '2026-09-30', reference: 'Transferencia', accountId: '3'},
+   {id: '96', invoiceId: '5', invoiceNumber: 'F-005', amount: 300000, receivedOn: '2026-09-30', reference: 'Transferencia', accountId: '4'},
+  ]});
+  const post = calls.find(call => call.method === 'POST');
+  assert.deepEqual(post?.body, {clientId: '7', parts: [{accountId: '3', amount: 200000}, {accountId: '4', amount: 300000}], amount: 500000, receivedOn: '2026-09-30', reference: 'Transferencia', requestId: 'dddddddd-dddd-4ddd-dddd-dddddddddddd'}, 'la división viaja en parts y sin accountId suelto');
+  assert.equal('accountId' in (post?.body as Record<string, unknown>), false);
+ } finally { restore(); }
+});
+
+test('división inválida: no toca la red y explica el problema', async () => {
+ const {calls, restore} = mockFetch(() => respuesta({payments: []}));
+ try {
+  await assert.rejects(registrarCobroDesdeIa({cobro, partes: [{accountId: '3', amount: 100000}, {accountId: '4', amount: 100000}]}), /suma de las partes/);
+  await assert.rejects(registrarCobroDesdeIa({cobro, partes: []}), /Elegí la cuenta/);
+  assert.equal(calls.length, 0, 'una división inválida no toca la red');
  } finally { restore(); }
 });
 
@@ -95,7 +135,7 @@ test('duplicado: reversiones y cobros de otro cliente o monto no cuentan', async
   const resultado = await registrarCobroDesdeIa({cobro, accountId: '3'});
   assert.equal(resultado.estado, 'registrado');
   assert.equal(calls.filter(call => call.method === 'POST').length, 1, 'sin coincidencia real registra directo');
-  if (resultado.estado === 'registrado') assert.deepEqual(resultado.pagos, [{id: '5', invoiceId: '5', invoiceNumber: 'F-005', amount: 500000, receivedOn: '2026-09-30', reference: 'Transferencia'}]);
+  if (resultado.estado === 'registrado') assert.deepEqual(resultado, {estado: 'registrado', total: 500000, yaRegistrado: false, parcial: false, pending: 0, pagos: [{id: '5', invoiceId: '5', invoiceNumber: 'F-005', amount: 500000, receivedOn: '2026-09-30', reference: 'Transferencia', accountId: null}]});
  } finally { restore(); }
 });
 
@@ -106,9 +146,9 @@ test('camino feliz: dos facturas aplicadas, total honesto y reintento idempotent
   : respuesta({payments: lote, total: 500000, appliedTo: [{invoiceId: '5', amount: 300000}, {invoiceId: '6', amount: 200000}]}, 201));
  try {
   const resultado = await registrarCobroDesdeIa({cobro, accountId: '3', receivedByUserId: '9', requestId: 'cccccccc-cccc-4ccc-cccc-cccccccccccc'});
-  assert.deepEqual(resultado, {estado: 'registrado', total: 500000, yaRegistrado: false, pagos: [
-   {id: '93', invoiceId: '5', invoiceNumber: 'F-005', amount: 300000, receivedOn: '2026-09-30', reference: 'Transferencia'},
-   {id: '94', invoiceId: '6', invoiceNumber: 'F-006', amount: 200000, receivedOn: '2026-09-30', reference: 'Transferencia'},
+  assert.deepEqual(resultado, {estado: 'registrado', total: 500000, yaRegistrado: false, parcial: false, pending: 0, pagos: [
+   {id: '93', invoiceId: '5', invoiceNumber: 'F-005', amount: 300000, receivedOn: '2026-09-30', reference: 'Transferencia', accountId: null},
+   {id: '94', invoiceId: '6', invoiceNumber: 'F-006', amount: 200000, receivedOn: '2026-09-30', reference: 'Transferencia', accountId: null},
   ]});
   assert.deepEqual(calls.find(call => call.method === 'POST')?.body, {clientId: '7', accountId: '3', amount: 500000, receivedOn: '2026-09-30', reference: 'Transferencia', receivedByUserId: '9', requestId: 'cccccccc-cccc-4ccc-cccc-cccccccccccc'});
  } finally { restore(); }
