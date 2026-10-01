@@ -4,10 +4,12 @@ Barrido móvil/tablet, oscuro, modales y formularios en **Finanzas, Previsión,
 Informes, Mora y Comisiones** sobre el stack local real (API + demo + front
 construido), con el harness `build-tools/visual-harness/qa-fin-126.mjs`.
 
-- **Antes** (`antes/`): corrida previa a las correcciones, con las capturas del
-  overflow y el log (`qa-antes.txt`).
-- **Después** (`despues/`): corrida final; `qa-despues.txt` es la lista completa
-  de chequeos (✓/✗) y `qa-despues.json` la misma en JSON.
+- **Antes** (`antes/`): corrida previa a las correcciones (base v1.0.156), con
+  las capturas del overflow y el log (`qa-antes.txt`).
+- **Después** (`despues/`): corrida final sobre `origin/main` v1.0.157 (rebase
+  del hd de la Fase 2 «Carga con IA» + ronda a11y 13); `qa-despues.txt` es la
+  lista completa de chequeos (✓/✗) y `qa-despues.json` la misma en JSON. Los
+  overflows corregidos estaban presentes en ambas bases.
 
 ## Correcciones (sin rediseñar)
 
