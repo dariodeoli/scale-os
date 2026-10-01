@@ -2,6 +2,20 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.156
+
+### Asistente «Carga con IA»
+
+- **Pegás un texto y el asistente propone**: el botón ✨ del topbar abre un diálogo donde se pega una lista, un correo o una planilla, y la IA devuelve clientes y equipos de inventario detectados para revisar antes de cargar.
+- **Vista previa editable por tarjetas**: cada registro se puede corregir y trae sus avisos (datos dudosos o faltantes, recortes y registros descartados). Nada se crea sin confirmación explícita con «Crear todo».
+- **La carga usa los endpoints de siempre**: mismos permisos por rol, mismo aislamiento por empresa y misma auditoría que el alta manual, sin atajos.
+- **El texto pegado no se guarda**: no queda en la app ni en la base; solo se registra la transferencia al proveedor (modelo y conteos) en la bitácora de datos personales. El asistente se apaga solo si el servidor no tiene la clave configurada, con un aviso claro.
+- **Configuración por entorno y límites**: proveedor/modelo/base configurables (por defecto Groq con `openai/gpt-oss-120b`), texto de hasta 20.000 caracteres, 25 registros por tipo, 30 s de espera y 10 análisis cada 15 minutos por empresa.
+
+### Privacidad (Ley N° 7593/2025)
+
+- **El proveedor de IA queda declarado como encargado** en la Política, el RAT y el inventario de encargados, con la finalidad, el alcance (solo el texto pegado) y la retención (nada): sigue como borrador a aprobar por el dueño.
+
 ## v1.0.155
 
 ### Privacidad (Ley N° 7593/2025)
