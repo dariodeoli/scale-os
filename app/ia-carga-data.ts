@@ -241,30 +241,86 @@ export function normalizarIaAcciones(value: unknown): AccionIA[] {
 export class IaApiError extends Error {
   status: number;
   code: string;
-  constructor(message: string, status: number, code = '') {
+  /** Espera sugerida por el motor para el límite por empresa (#127), en minutos. */
+  esperaMinutos: number | null;
+  constructor(message: string, status: number, code = '', esperaMinutos: number | null = null) {
     super(message);
     this.name = 'IaApiError';
     this.status = status;
     this.code = code;
+    this.esperaMinutos = esperaMinutos;
   }
+}
+
+/** Cómo tratar un fallo del análisis: cada caso tiene su acción en el diálogo. */
+export type IaFallo = {
+  tipo: 'no-configurada' | 'texto-largo' | 'limite' | 'proveedor' | 'sesion' | 'permiso' | 'texto' | 'desconocido';
+  mensaje: string;
+  /** Minutos informados por el motor cuando el estado es `limite`. */
+  esperaMinutos: number | null;
+};
+
+const minutosDe = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const numero = Number(value);
+  if (!Number.isFinite(numero) || numero <= 0) return null;
+  return Math.max(1, Math.ceil(numero));
+};
+const segundosAMinutos = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const numero = Number(value);
+  if (!Number.isFinite(numero) || numero <= 0) return null;
+  return Math.max(1, Math.ceil(numero / 60));
+};
+
+/**
+ * Clasifica el fallo del análisis en estados accionables distintos (#127/#128).
+ *
+ * Códigos del motor (tolerantes a variantes): `ia_no_configurada` (sin clave),
+ * `ia_texto_largo` (el modelo truncó: probá en dos partes), `ia_limite` (cuota
+ * por empresa, con `espera_minutos`/`retry_after`), `ia_proveedor_ocupado`
+ * (reintentá); el estado HTTP también clasifica. El texto pegado nunca viaja en
+ * el mensaje: la app no lo repite ni lo persiste.
+ */
+export function clasificarIaFallo(cause: unknown): IaFallo {
+  if (!(cause instanceof IaApiError)) {
+    return {tipo: 'desconocido', mensaje: cause instanceof Error ? cause.message : 'No se pudo completar el análisis.', esperaMinutos: null};
+  }
+  const code = cause.code.toLowerCase();
+  const mensaje = cause.message.toLowerCase();
+  const es = (patron: RegExp) => patron.test(code) || patron.test(mensaje);
+  if (code === 'ia_no_configurada' || es(/no[_ -]?configurada|sin[_ -]?configurar/)) return {tipo: 'no-configurada', mensaje: 'La IA no está configurada en el servidor.', esperaMinutos: null};
+  if (es(/texto.*(largo|extens|grande)|truncad|demasiado[_ -]?texto|length|json inv[aá]lido/)) {
+    return {tipo: 'texto-largo', mensaje: `El texto era muy largo para una sola pasada. Probá en dos partes de hasta ${IA_TEXTO_MAX.toLocaleString('es-PY')} caracteres cada una.`, esperaMinutos: null};
+  }
+  // Resiliencia del motor (#127): salida vacía o ilegible tras el reintento del
+  // servidor; se reintenta desde acá y, si persiste, conviene dividir el texto.
+  if (code === 'ia_vacio' || code === 'ia_json') {
+    return {tipo: 'proveedor', mensaje: 'La IA devolvió una respuesta ilegible. Reintentá en un momento; si sigue, dividí el texto en dos partes.', esperaMinutos: null};
+  }
+  if (cause.status === 429 || es(/limite|rate|cuota|throttle/)) {
+    const espera = cause.esperaMinutos;
+    return {tipo: 'limite', mensaje: `Alcanzaste el límite de análisis de tu empresa. ${espera ? `Esperá ${espera} minuto${espera === 1 ? '' : 's'}` : 'Esperá unos minutos'} y volvé a probar; mientras tanto podés cargar a mano.`, esperaMinutos: espera};
+  }
+  if (cause.status === 401) return {tipo: 'sesion', mensaje: 'Tu sesión venció. Volvé a ingresar y probá de nuevo.', esperaMinutos: null};
+  if (cause.status === 403) return {tipo: 'permiso', mensaje: 'Tu rol no permite crear los registros de esta carga.', esperaMinutos: null};
+  if (cause.status === 0) return {tipo: 'proveedor', mensaje: 'Sin conexión con el servidor. Revisá tu conexión y probá de nuevo.', esperaMinutos: null};
+  if (cause.status >= 500 || es(/proveedor|ocupad|timeout|no respondi/)) return {tipo: 'proveedor', mensaje: 'El proveedor de IA está ocupado o no respondió. Reintentá en unos segundos: el texto que pegaste sigue acá.', esperaMinutos: null};
+  if (cause.status === 400) return {tipo: 'texto', mensaje: cause.message || 'El texto no es válido para el análisis.', esperaMinutos: null};
+  return {tipo: 'desconocido', mensaje: cause.message || 'No se pudo completar el análisis.', esperaMinutos: null};
 }
 
 /** Mensaje claro y en es-PY para cada fallo del asistente (nunca el cuerpo crudo). */
 export function mensajeIaError(cause: unknown): string {
-  if (cause instanceof IaApiError) {
-    if (cause.code === 'ia_no_configurada' || cause.status === 503) return 'La IA no está configurada en el servidor.';
-    if (cause.status === 429 || cause.code === 'ia_rate_limit') return 'Hiciste muchos análisis seguidos. Esperá unos minutos y volvé a intentar.';
-    if (cause.status === 401) return 'Tu sesión venció. Volvé a ingresar y probá de nuevo.';
-    if (cause.status === 403) return 'Tu rol no permite crear los registros de esta carga.';
-    if (cause.status === 400) return cause.message || 'El texto no es válido para el análisis.';
-    // Resiliencia del motor (#127): el truncado se explica solo; una salida
-    // ilegible ya se reintentó una vez en el servidor.
-    if (cause.code === 'ia_truncado') return 'El texto era muy largo para una sola pasada: probalo en dos partes.';
-    if (cause.code === 'ia_vacio' || cause.code === 'ia_json') return 'La IA devolvió una respuesta ilegible. Reintentá en un momento; si sigue, dividí el texto en dos partes.';
-    if (cause.status >= 500) return 'El proveedor de IA no respondió. Probá de nuevo en unos segundos.';
-    return cause.message || 'No se pudo completar el análisis.';
-  }
-  return cause instanceof Error ? cause.message : 'No se pudo completar el análisis.';
+  return clasificarIaFallo(cause).mensaje;
+}
+
+/**
+ * Monto sospechoso para guaraníes (auditoría #128): menos de Gs 10.000 suele ser
+ * un error de escala («500 mil» leído como 500). Se avisa, no se corrige solo.
+ */
+export function montoDudosoIa(monto: number | null | undefined, moneda = 'PYG') {
+  return String(moneda).toUpperCase() === 'PYG' && typeof monto === 'number' && Number.isFinite(monto) && monto > 0 && monto < 10_000;
 }
 
 async function iaFetch(path: string, init: RequestInit = {}, timeoutMs = 12_000): Promise<unknown> {
@@ -281,10 +337,12 @@ async function iaFetch(path: string, init: RequestInit = {}, timeoutMs = 12_000)
     const timedOut = cause instanceof Error && (cause.name === 'TimeoutError' || cause.name === 'AbortError');
     throw new IaApiError(timedOut ? 'El análisis tardó más de lo esperado. Probá de nuevo.' : 'Sin conexión con el servidor. Revisá tu conexión y probá de nuevo.', 0);
   }
-  const data = (await response.json().catch(() => null)) as {error?: unknown; code?: unknown} | null;
+  const data = (await response.json().catch(() => null)) as {error?: unknown; code?: unknown; espera_minutos?: unknown; retry_after?: unknown; retryAfter?: unknown} | null;
   if (!response.ok) {
     const mensaje = typeof data?.error === 'string' && data.error ? data.error : `No se pudo completar el análisis (HTTP ${response.status}).`;
-    throw new IaApiError(mensaje, response.status, typeof data?.code === 'string' ? data.code : '');
+    // La espera del límite puede venir en minutos (`espera_minutos`/`retryAfter`) o en segundos (`retry_after`).
+    const espera = minutosDe(data?.espera_minutos ?? data?.retryAfter) ?? segundosAMinutos(data?.retry_after);
+    throw new IaApiError(mensaje, response.status, typeof data?.code === 'string' ? data.code : '', espera);
   }
   return data;
 }
