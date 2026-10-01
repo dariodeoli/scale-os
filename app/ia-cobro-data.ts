@@ -26,11 +26,16 @@ const MONTO_MAX = 999_999_999_999;
 
 /** Acción lista para ejecutar: cliente resuelto, monto en guaraníes y fecha. */
 export type IaCobro = {clienteId: string; monto: number; fecha: string; detalle: string};
-export type IaCuentaCobro = {id: string; name: string; currency: string};
-export type IaCobroPago = {id: string; invoiceId: string; invoiceNumber: string | null; amount: number; receivedOn: string; reference: string | null};
+export type IaCuentaCobro = {id: string; name: string; currency: string; institution: string | null; accountNumber: string | null; holderName: string | null};
+/** Parte de una división (#133): cada una entra a una cuenta real. */
+export type IaCobroParte = {accountId: string; amount: number};
+export type IaCobroPago = {id: string; invoiceId: string; invoiceNumber: string | null; amount: number; receivedOn: string; reference: string | null; accountId: string | null};
 export type IaCobroResultado =
- | {estado: 'registrado'; pagos: IaCobroPago[]; total: number; yaRegistrado: boolean}
+ | {estado: 'registrado'; pagos: IaCobroPago[]; total: number; yaRegistrado: boolean; parcial: boolean; pending: number}
  | {estado: 'duplicado'; duplicados: IaCobroPago[]};
+
+export const IA_COBRO_PARTES_MIN = 2;
+export const IA_COBRO_PARTES_MAX = 5;
 
 const record = (value: unknown): Record<string, unknown> => (value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {});
 const list = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
@@ -105,11 +110,38 @@ export async function cargarCuentasCobro(): Promise<IaCuentaCobro[]> {
  return list(data?.accounts)
   .map(item => {
    const fila = record(item);
-   return {id: id(fila.id), name: text(fila.name), currency: text(fila.currency), active: fila.active !== false};
+   return {id: id(fila.id), name: text(fila.name), currency: text(fila.currency), institution: text(fila.institution) || null, accountNumber: text(fila.account_number) || null, holderName: text(fila.holder_name) || null, active: fila.active !== false};
   })
   .filter(cuenta => cuenta.id && cuenta.name && cuenta.currency && cuenta.active)
-  .map(({id: cuentaId, name, currency}) => ({id: cuentaId, name, currency}))
+  .map(({id: cuentaId, name, currency, institution, accountNumber, holderName}) => ({id: cuentaId, name, currency, institution, accountNumber, holderName}))
   .sort((a, b) => a.currency.localeCompare(b.currency) || a.name.localeCompare(b.name, 'es'));
+}
+
+/**
+ * Método real de la cuenta para la confirmación (#133): banco/institución y
+ * número o alias visibles; nunca un selector vacío ni «cuenta 1».
+ */
+export function metodoCuentaIa(cuenta: IaCuentaCobro): string {
+ const banco = cuenta.institution || cuenta.name;
+ return cuenta.accountNumber ? `${banco} · ${cuenta.accountNumber}` : banco;
+}
+
+/** Línea de detalle de la cuenta elegida (titular), o `''` si no hay más datos. */
+export function detalleCuentaIa(cuenta: IaCuentaCobro): string {
+ return [cuenta.institution && cuenta.institution !== cuenta.name ? `Institución: ${cuenta.institution}` : null, cuenta.accountNumber ? `Nº o alias: ${cuenta.accountNumber}` : null, cuenta.holderName ? `Titular: ${cuenta.holderName}` : null].filter(Boolean).join(' · ');
+}
+
+/** Partes de una división: cuentas reales, importes enteros y suma exacta. */
+export function validarPartesIa(partes: readonly IaCobroParte[], total: number): string | null {
+ if (partes.length < IA_COBRO_PARTES_MIN) return `Una división necesita al menos ${IA_COBRO_PARTES_MIN} partes.`;
+ if (partes.length > IA_COBRO_PARTES_MAX) return `Una división admite hasta ${IA_COBRO_PARTES_MAX} partes.`;
+ for (const parte of partes) {
+  if (!/^[1-9]\d{0,18}$/.test(parte.accountId)) return 'Elegí la cuenta de cada parte.';
+  if (!Number.isSafeInteger(parte.amount) || parte.amount <= 0 || parte.amount > MONTO_MAX) return 'Cada parte necesita un importe entero mayor a cero.';
+ }
+ const suma = partes.reduce((acc, parte) => acc + parte.amount, 0);
+ if (suma !== total) return `La suma de las partes (${suma.toLocaleString('es-PY')}) debe coincidir con el monto del cobro (${total.toLocaleString('es-PY')}).`;
+ return null;
 }
 
 /** Cuentas de la moneda del cobro (la acción es en guaraníes por contrato). */
@@ -132,6 +164,7 @@ function normalizarPago(value: unknown): IaCobroPago {
   amount: Number(fila.amount ?? 0),
   receivedOn: text(fila.received_on ?? fila.receivedOn),
   reference: text(fila.reference) || null,
+  accountId: fila.account_id !== undefined && fila.account_id !== null ? String(fila.account_id) : fila.accountId !== undefined && fila.accountId !== null ? String(fila.accountId) : null,
  };
 }
 
@@ -152,19 +185,26 @@ export async function buscarCobrosDuplicados(cobro: IaCobro): Promise<IaCobroPag
 
 /**
  * Ejecuta el cobro con el endpoint real de pagos en su variante por cliente.
- * Sin `permitirDuplicado`, un cobro idéntico reciente devuelve
- * `{estado:'duplicado'}` y **no escribe nada**; la UI pide la decisión y vuelve
- * a llamar con la bandera. `requestId` mantiene la idempotencia entre reintentos.
+ * Admite una sola cuenta (`accountId`) o una **división en partes** (`partes`),
+ * y permite montos menores al saldo (seña/parcial): la respuesta informa
+ * `parcial` y el pendiente restante. Sin `permitirDuplicado`, un cobro idéntico
+ * reciente devuelve `{estado:'duplicado'}` y **no escribe nada**; la UI pide la
+ * decisión y vuelve a llamar con la bandera. `requestId` mantiene la
+ * idempotencia entre reintentos (incluido el lote dividido).
  */
-export async function registrarCobroDesdeIa({cobro, accountId, receivedByUserId, requestId, permitirDuplicado = false}: {cobro: IaCobro; accountId: string; receivedByUserId?: string | null; requestId?: string; permitirDuplicado?: boolean}): Promise<IaCobroResultado> {
+export async function registrarCobroDesdeIa({cobro, accountId, partes, receivedByUserId, requestId, permitirDuplicado = false}: {cobro: IaCobro; accountId?: string; partes?: readonly IaCobroParte[]; receivedByUserId?: string | null; requestId?: string; permitirDuplicado?: boolean}): Promise<IaCobroResultado> {
  const invalido = validarCobroIa(cobro);
  if (invalido) throw new Error(invalido);
- if (!id(accountId)) throw new Error('Elegí la cuenta donde entró el cobro.');
+ const dividido = Array.isArray(partes) && partes.length > 0;
+ if (dividido) {
+  const partesError = validarPartesIa(partes!, cobro.monto);
+  if (partesError) throw new Error(partesError);
+ } else if (!id(accountId)) throw new Error('Elegí la cuenta donde entró el cobro.');
  const duplicados = await buscarCobrosDuplicados(cobro);
  if (duplicados.length && !permitirDuplicado) return {estado: 'duplicado', duplicados};
- const data = await api<{payments?: unknown; payment?: unknown; total?: unknown; alreadyRecorded?: boolean}>(`/api/agency/payments`, {
+ const data = await api<{payments?: unknown; payment?: unknown; total?: unknown; alreadyRecorded?: boolean; parcial?: unknown; pending?: unknown}>(`/api/agency/payments`, {
   clientId: cobro.clienteId,
-  accountId,
+  ...(dividido ? {parts: partes!.map(parte => ({accountId: parte.accountId, amount: parte.amount}))} : {accountId}),
   amount: cobro.monto,
   receivedOn: cobro.fecha,
   reference: cobro.detalle,
@@ -172,5 +212,5 @@ export async function registrarCobroDesdeIa({cobro, accountId, receivedByUserId,
   requestId: requestId || crypto.randomUUID(),
  });
  const filas = list(data?.payments).length ? list(data?.payments) : [data?.payment].filter(Boolean);
- return {estado: 'registrado', pagos: filas.map(normalizarPago), total: Number(data?.total ?? cobro.monto), yaRegistrado: data?.alreadyRecorded === true};
+ return {estado: 'registrado', pagos: filas.map(normalizarPago), total: Number(data?.total ?? cobro.monto), yaRegistrado: data?.alreadyRecorded === true, parcial: data?.parcial === true, pending: Number(data?.pending ?? 0)};
 }
