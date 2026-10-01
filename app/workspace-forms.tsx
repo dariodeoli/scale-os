@@ -723,6 +723,7 @@ export function PaymentForm({
           placeholder="Transferencia / comprobante"
         />
       </label>
+      {Object.keys(form.formState.errors).length>0?<p className="error" role="alert">Elegí la factura, la cuenta y un importe mayor a cero.</p>:null}
       {error && <p className="error">{error}</p>}
       <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <SaveActions pending={submission.pending}><button
