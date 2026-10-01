@@ -16,7 +16,7 @@ const object = (element) => renderToStaticMarkup(element);
 const xIcon = object(React.createElement('span', {'aria-hidden': 'true', className: 'text-base leading-none'}, '×'));
 
 const aviso = (tono, children, compact = false) => object(React.createElement(Aviso, {tono, compact}, children));
-const checkbox = (checked) => object(React.createElement(Checkbox, {label: 'Crear', checked, onChange: () => {}}));
+const checkbox = (checked) => object(React.createElement(Checkbox, {label: 'Incluir', checked, onChange: () => {}}));
 const campo = (label, value, {maxLength, error, hint, id = `ia-${label}`} = {}) => object(React.createElement(
   FormField,
   {label, htmlFor: id, error, hint},
@@ -38,7 +38,7 @@ const selectCategoria = (label, seleccionada, opciones) => `
 <p class="text-[11px] text-mute">${opciones}</p>`;
 
 const CARD = (contenido, off = false) => `<article class="grid gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3.5 transition${off ? ' opacity-70' : ''}" data-off="${off}">${contenido}</article>`;
-const cardHead = (titulo, estado, checked) => `<header class="flex min-w-0 items-start justify-between gap-3"><div class="min-w-0"><h4 class="min-w-0 truncate text-[13.5px] font-semibold text-fore" title="${titulo}">${titulo}</h4><p class="text-[11px] text-mute">${estado}</p></div>${checkbox(checked)}</header>`;
+const cardHead = (titulo, estado, checked) => `<header class="flex min-w-0 items-start justify-between gap-3"><div class="grid min-w-0 gap-1"><h4 class="min-w-0 truncate text-[13.5px] font-semibold text-fore" title="${titulo}">${titulo}</h4><p class="flex flex-wrap items-center gap-2 text-[11px] text-mute"><span class="inline-flex items-center whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-semibold text-mute">Nuevo</span><span>${estado}</span></p></div>${checkbox(checked)}</header>`;
 const gridCampos = (campos) => `<div class="grid gap-2 sm:grid-cols-2">${campos.join('')}</div>`;
 
 /* ---------------------------------------------------------------- entrada */
