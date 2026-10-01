@@ -29,7 +29,8 @@ test('la UI consume el contrato canónico de #119 y la ejecución de #121', () =
 test('tarjetas: Nuevo / Coincide / Ambiguo con decisión explícita y nada se duplica solo', () => {
  const dialog = file('app/ia-carga.tsx');
  assert(dialog.includes('>Nuevo</StateChip>') && dialog.includes('>Coincide</StateChip>') && dialog.includes('>Ambiguo</StateChip>'), 'cada tarjeta muestra su estado de match');
- assert(dialog.includes("if (estado === 'coincide' && coincidencias[0]) return {decision: 'vincular'"), 'una coincidencia fuerte propone vincular por defecto');
+ assert(dialog.includes("const porUmbral = decisionPorConfianza(score)") && dialog.includes("if (porUmbral === 'vincular' && mejor) return {decision: 'vincular'"), 'la preselección por umbral propone vincular el mejor candidato');
+ assert(dialog.includes("if (estado === 'coincide' && mejor) return {decision: 'vincular'"), 'sin confianza del motor se conserva el puente de la Fase 2');
  assert(dialog.includes("if (estado === 'ambiguo') return {decision: 'pendiente'"), 'una ambigüedad exige decisión');
  assert(dialog.includes('Usar «'), 'la ficha existente se puede elegir como destino');
  assert(dialog.includes("Crear {tipo} nuevo"), 'crear un registro nuevo es una opción explícita');
