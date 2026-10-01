@@ -1,0 +1,73 @@
+[
+ {
+  "screen": "permisos",
+  "label": "antes",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   },
+   {
+    "tag": "DIV",
+    "cls": "min-w-[84rem]",
+    "right": 1560
+   },
+   {
+    "tag": "DIV",
+    "cls": "grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold u",
+    "right": 1560
+   },
+   {
+    "tag": "SPAN",
+    "cls": "text-right whitespace-nowrap ",
+    "right": 1556
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial",
+  "label": "antes",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ }
+]
