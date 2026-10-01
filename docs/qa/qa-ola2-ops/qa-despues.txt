@@ -1,0 +1,129 @@
+· sesión inyectada; preferencias locales limpiadas
+
+──── 390×844 ────
+✓ shell: trigger del menú 44×44: true
+✓ shell: el drawer móvil toma el foco: true
+· captura shots/shell-menu-390-light.png
+✓ shell: Escape cierra el drawer y devuelve el foco: true
+✓ shell: toggle de tema con target ≥44 en móvil: true
+✓ inventario: sin overflow horizontal del documento: true
+✓ inventario: la lista scrollea en horizontal sin romper columnas: true
+✓ inventario: acciones de fila ≥44 en móvil: true
+· captura shots/inventario-lista-390-light.png
+· captura shots/inventario-lista-390-dark.png
+✓ inventario: estado vacío de búsqueda: true
+· captura shots/inventario-busqueda-vacia-390-light.png
+✓ inventario: abre «Nuevo equipo»: true
+✓ inventario/equipo: el foco entra al diálogo: true
+✓ inventario/equipo: targets del diálogo ≥44 en móvil: true
+✓ inventario/equipo: Tab no escapa del diálogo: true
+✓ inventario/equipo: el cuerpo del diálogo scrollea adentro: true
+✓ inventario/equipo: el pie queda visible: true
+· captura shots/inventario-nuevo-equipo-390-light.png
+· captura shots/inventario-nuevo-equipo-390-dark.png
+✓ inventario/equipo: envío vacío deja validación visible: true
+✓ inventario/equipo: Escape cierra y devuelve el foco: true
+· captura shots/inventario-pipeline-390-light.png
+· captura shots/inventario-pipeline-390-dark.png
+· inventario/ubicación: Depósito QA A ya existía; se omite la creación
+· inventario/ubicación: Depósito QA B ya existía; se omite la creación
+✓ inventario/ubicación: las ubicaciones nuevas aparecen en el pipeline: true
+✓ inventario/ubicación: reordenar con target ≥44 en móvil: true
+✓ inventario/ubicación: mover cambia el orden: true
+· captura shots/inventario-ubicaciones-390-light.png
+· captura shots/inventario-reservas-390-light.png
+· captura shots/inventario-reservas-390-dark.png
+✓ inventario: abre «Reservar equipos»: true
+✓ inventario/reserva: foco al abrir: true
+✓ inventario/reserva: el cuerpo del diálogo scrollea adentro: true
+✓ inventario/reserva: el pie queda visible: true
+✓ inventario/reserva: envío vacío deja validación visible: true
+· captura shots/inventario-reserva-390-light.png
+✓ inventario/reserva: Escape cierra y devuelve el foco: true
+· captura shots/produccion-tablero-390-light.png
+· captura shots/produccion-tablero-390-dark.png
+✓ producción: sin overflow horizontal del documento: true
+✓ producción: el tablero scrollea por etapas: true
+✓ producción: abre «Nueva orden de trabajo»: true
+✓ producción/pieza: foco al abrir: true
+✓ producción/pieza: targets ≥44: true
+· captura shots/produccion-nueva-pieza-390-light.png
+✓ producción/pieza: envío vacío deja validación visible: true
+✓ producción/pieza: Escape cierra y devuelve el foco: true
+· captura shots/proyectos-lista-390-light.png
+· captura shots/proyectos-lista-390-dark.png
+✓ proyectos: sin overflow horizontal del documento: true
+✓ proyectos: abre «Nuevo proyecto»: true
+✓ proyectos: foco al abrir: true
+✓ proyectos: envío vacío deja validación visible: true
+· captura shots/proyectos-nuevo-390-light.png
+✓ proyectos: Escape cierra y devuelve el foco: true
+· estudio: el espacio QA ya existía; se omite la creación
+✓ estudio: abre «Nueva reserva»: true
+✓ estudio/reserva: foco al abrir: true
+✓ estudio/reserva: envío vacío deja validación visible: true
+✓ estudio/reserva: espacio con opciones y fechas datetime-local: true
+· captura shots/estudio-reserva-390-light.png
+· captura shots/estudio-reserva-390-dark.png
+✓ estudio/reserva: Escape cierra y devuelve el foco: true
+· estudio/reserva: la reserva QA ya existía; se omite la creación
+
+──── 768×1024 ────
+✓ shell: toggle de tema presente: true
+✓ inventario: sin overflow horizontal del documento: true
+✓ inventario: la lista scrollea en horizontal sin romper columnas: true
+· captura shots/inventario-lista-768-light.png
+· captura shots/inventario-lista-768-dark.png
+✓ inventario: estado vacío de búsqueda: true
+· captura shots/inventario-busqueda-vacia-768-light.png
+✓ inventario: abre «Nuevo equipo»: true
+✓ inventario/equipo: el foco entra al diálogo: true
+✓ inventario/equipo: Tab no escapa del diálogo: true
+✓ inventario/equipo: el cuerpo del diálogo scrollea adentro: true
+✓ inventario/equipo: el pie queda visible: true
+· captura shots/inventario-nuevo-equipo-768-light.png
+· captura shots/inventario-nuevo-equipo-768-dark.png
+✓ inventario/equipo: envío vacío deja validación visible: true
+✓ inventario/equipo: Escape cierra y devuelve el foco: true
+· captura shots/inventario-pipeline-768-light.png
+· captura shots/inventario-pipeline-768-dark.png
+· inventario/ubicación: Depósito QA A ya existía; se omite la creación
+· inventario/ubicación: Depósito QA B ya existía; se omite la creación
+✓ inventario/ubicación: las ubicaciones nuevas aparecen en el pipeline: true
+✓ inventario/ubicación: mover cambia el orden: true
+· captura shots/inventario-ubicaciones-768-light.png
+· captura shots/inventario-reservas-768-light.png
+· captura shots/inventario-reservas-768-dark.png
+✓ inventario: abre «Reservar equipos»: true
+✓ inventario/reserva: foco al abrir: true
+✓ inventario/reserva: el cuerpo del diálogo scrollea adentro: true
+✓ inventario/reserva: el pie queda visible: true
+✓ inventario/reserva: envío vacío deja validación visible: true
+· captura shots/inventario-reserva-768-light.png
+✓ inventario/reserva: Escape cierra y devuelve el foco: true
+· captura shots/produccion-tablero-768-light.png
+· captura shots/produccion-tablero-768-dark.png
+✓ producción: sin overflow horizontal del documento: true
+✓ producción: el tablero scrollea por etapas: true
+✓ producción: abre «Nueva orden de trabajo»: true
+✓ producción/pieza: foco al abrir: true
+· captura shots/produccion-nueva-pieza-768-light.png
+✓ producción/pieza: envío vacío deja validación visible: true
+✓ producción/pieza: Escape cierra y devuelve el foco: true
+· captura shots/proyectos-lista-768-light.png
+· captura shots/proyectos-lista-768-dark.png
+✓ proyectos: sin overflow horizontal del documento: true
+✓ proyectos: abre «Nuevo proyecto»: true
+✓ proyectos: foco al abrir: true
+✓ proyectos: envío vacío deja validación visible: true
+· captura shots/proyectos-nuevo-768-light.png
+✓ proyectos: Escape cierra y devuelve el foco: true
+· estudio: el espacio QA ya existía; se omite la creación
+✓ estudio: abre «Nueva reserva»: true
+✓ estudio/reserva: foco al abrir: true
+✓ estudio/reserva: envío vacío deja validación visible: true
+✓ estudio/reserva: espacio con opciones y fechas datetime-local: true
+· captura shots/estudio-reserva-768-light.png
+· captura shots/estudio-reserva-768-dark.png
+✓ estudio/reserva: Escape cierra y devuelve el foco: true
+· estudio/reserva: la reserva QA ya existía; se omite la creación
