@@ -1,0 +1,2325 @@
+{
+ "sweep": {
+  "resumen-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 5582,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 5638,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "pipeline-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 3921,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 3977,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Alma Cocina",
+     "rect": {
+      "x": 42,
+      "y": 936,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Aurora Café",
+     "rect": {
+      "x": 42,
+      "y": 1286,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Bosque Hogar",
+     "rect": {
+      "x": 42,
+      "y": 1637,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Brisa Viajes",
+     "rect": {
+      "x": 42,
+      "y": 1988,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Cumbre Seguros",
+     "rect": {
+      "x": 42,
+      "y": 2386,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Faro Inmuebles",
+     "rect": {
+      "x": 42,
+      "y": 2785,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Luna Moda",
+     "rect": {
+      "x": 42,
+      "y": 3183,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Marea Cosmética",
+     "rect": {
+      "x": 42,
+      "y": 3582,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Menta Salud",
+     "rect": {
+      "x": 42,
+      "y": 3933,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Nova Energía",
+     "rect": {
+      "x": 42,
+      "y": 4283,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Nube Software",
+     "rect": {
+      "x": 42,
+      "y": 4682,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Órbita Fitness",
+     "rect": {
+      "x": 42,
+      "y": 5032,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Pixel Academy",
+     "rect": {
+      "x": 42,
+      "y": 5431,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Prisma Diseño",
+     "rect": {
+      "x": 42,
+      "y": 5830,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Punto Libros",
+     "rect": {
+      "x": 42,
+      "y": 6180,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Raíz Orgánica",
+     "rect": {
+      "x": 42,
+      "y": 6531,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Roble Muebles",
+     "rect": {
+      "x": 42,
+      "y": 6881,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Ruta Outdoor",
+     "rect": {
+      "x": 42,
+      "y": 7280,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Sol Pet",
+     "rect": {
+      "x": 42,
+      "y": 7631,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Sur Automotores",
+     "rect": {
+      "x": 42,
+      "y": 7981,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 8423,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 8479,
+   "title": "Scale OS",
+   "searchPadding": "36px"
+  },
+  "presupuestos-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0001 · Plan mensual Aurora C",
+     "rect": {
+      "x": 46,
+      "y": 900,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0002 · Plan mensual Bosque H",
+     "rect": {
+      "x": 46,
+      "y": 1252,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0003 · Plan mensual Órbita F",
+     "rect": {
+      "x": 46,
+      "y": 1603,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0004 · Plan mensual Nube Sof",
+     "rect": {
+      "x": 46,
+      "y": 1955,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0005 · Plan mensual Luna Mod",
+     "rect": {
+      "x": 46,
+      "y": 2307,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0006 · Plan mensual Brisa Vi",
+     "rect": {
+      "x": 46,
+      "y": 2659,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0007 · Plan mensual Prisma D",
+     "rect": {
+      "x": 46,
+      "y": 3011,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0008 · Plan mensual Raíz Org",
+     "rect": {
+      "x": 46,
+      "y": 3363,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0009 · Plan mensual Faro Inm",
+     "rect": {
+      "x": 46,
+      "y": 3714,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0010 · Plan mensual Menta Sa",
+     "rect": {
+      "x": 46,
+      "y": 4066,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0011 · Plan mensual Sur Auto",
+     "rect": {
+      "x": 46,
+      "y": 4418,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0012 · Plan mensual Pixel Ac",
+     "rect": {
+      "x": 46,
+      "y": 4770,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0013 · Plan mensual Alma Coc",
+     "rect": {
+      "x": 46,
+      "y": 5122,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0014 · Plan mensual Ruta Out",
+     "rect": {
+      "x": 46,
+      "y": 5474,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0015 · Plan mensual Nova Ene",
+     "rect": {
+      "x": 46,
+      "y": 5826,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0016 · Plan mensual Marea Co",
+     "rect": {
+      "x": 46,
+      "y": 6177,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0017 · Plan mensual Roble Mu",
+     "rect": {
+      "x": 46,
+      "y": 6529,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0018 · Plan mensual Cumbre S",
+     "rect": {
+      "x": 46,
+      "y": 6881,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0019 · Plan mensual Punto Li",
+     "rect": {
+      "x": 46,
+      "y": 7233,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0020 · Plan mensual Sol Pet",
+     "rect": {
+      "x": 46,
+      "y": 7585,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 7972,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 8027,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "planes-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 1411,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 1467,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "resumen-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 4714,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "pipeline-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 3217,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 5953,
+   "title": "Scale OS",
+   "searchPadding": "36px"
+  },
+  "presupuestos-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 7565,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "planes-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 1085,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "resumen-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 5586,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 5642,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "pipeline-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 3921,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 3977,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Alma Cocina",
+     "rect": {
+      "x": 42,
+      "y": 936,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Aurora Café",
+     "rect": {
+      "x": 42,
+      "y": 1286,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Bosque Hogar",
+     "rect": {
+      "x": 42,
+      "y": 1637,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Brisa Viajes",
+     "rect": {
+      "x": 42,
+      "y": 1988,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Cumbre Seguros",
+     "rect": {
+      "x": 42,
+      "y": 2386,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Faro Inmuebles",
+     "rect": {
+      "x": 42,
+      "y": 2785,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Luna Moda",
+     "rect": {
+      "x": 42,
+      "y": 3183,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Marea Cosmética",
+     "rect": {
+      "x": 42,
+      "y": 3582,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Menta Salud",
+     "rect": {
+      "x": 42,
+      "y": 3933,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Nova Energía",
+     "rect": {
+      "x": 42,
+      "y": 4283,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Nube Software",
+     "rect": {
+      "x": 42,
+      "y": 4682,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Órbita Fitness",
+     "rect": {
+      "x": 42,
+      "y": 5032,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Pixel Academy",
+     "rect": {
+      "x": 42,
+      "y": 5431,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Prisma Diseño",
+     "rect": {
+      "x": 42,
+      "y": 5830,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Punto Libros",
+     "rect": {
+      "x": 42,
+      "y": 6180,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Raíz Orgánica",
+     "rect": {
+      "x": 42,
+      "y": 6531,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Roble Muebles",
+     "rect": {
+      "x": 42,
+      "y": 6881,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Ruta Outdoor",
+     "rect": {
+      "x": 42,
+      "y": 7280,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Sol Pet",
+     "rect": {
+      "x": 42,
+      "y": 7631,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Sur Automotores",
+     "rect": {
+      "x": 42,
+      "y": 7981,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 8423,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 8479,
+   "title": "Scale OS",
+   "searchPadding": "36px"
+  },
+  "presupuestos-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0001 · Plan mensual Aurora C",
+     "rect": {
+      "x": 46,
+      "y": 900,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0002 · Plan mensual Bosque H",
+     "rect": {
+      "x": 46,
+      "y": 1252,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0003 · Plan mensual Órbita F",
+     "rect": {
+      "x": 46,
+      "y": 1603,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0004 · Plan mensual Nube Sof",
+     "rect": {
+      "x": 46,
+      "y": 1955,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0005 · Plan mensual Luna Mod",
+     "rect": {
+      "x": 46,
+      "y": 2307,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0006 · Plan mensual Brisa Vi",
+     "rect": {
+      "x": 46,
+      "y": 2659,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0007 · Plan mensual Prisma D",
+     "rect": {
+      "x": 46,
+      "y": 3011,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0008 · Plan mensual Raíz Org",
+     "rect": {
+      "x": 46,
+      "y": 3363,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0009 · Plan mensual Faro Inm",
+     "rect": {
+      "x": 46,
+      "y": 3714,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0010 · Plan mensual Menta Sa",
+     "rect": {
+      "x": 46,
+      "y": 4066,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0011 · Plan mensual Sur Auto",
+     "rect": {
+      "x": 46,
+      "y": 4418,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0012 · Plan mensual Pixel Ac",
+     "rect": {
+      "x": 46,
+      "y": 4770,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0013 · Plan mensual Alma Coc",
+     "rect": {
+      "x": 46,
+      "y": 5122,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0014 · Plan mensual Ruta Out",
+     "rect": {
+      "x": 46,
+      "y": 5474,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0015 · Plan mensual Nova Ene",
+     "rect": {
+      "x": 46,
+      "y": 5826,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0016 · Plan mensual Marea Co",
+     "rect": {
+      "x": 46,
+      "y": 6177,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0017 · Plan mensual Roble Mu",
+     "rect": {
+      "x": 46,
+      "y": 6529,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0018 · Plan mensual Cumbre S",
+     "rect": {
+      "x": 46,
+      "y": 6881,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0019 · Plan mensual Punto Li",
+     "rect": {
+      "x": 46,
+      "y": 7233,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0020 · Plan mensual Sol Pet",
+     "rect": {
+      "x": 46,
+      "y": 7585,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 7972,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 8027,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "planes-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 172,
+      "y": 112,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 1411,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 1467,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "resumen-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 4714,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "pipeline-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 3217,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 5953,
+   "title": "Scale OS",
+   "searchPadding": "36px"
+  },
+  "presupuestos-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 7565,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "planes-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 1085,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-cuadricula-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "cards": 20
+  },
+  "clientes-cuadricula-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "cards": 20
+  },
+  "clientes-cuadricula-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "cards": 20
+  },
+  "clientes-cuadricula-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "cards": 20
+  }
+ },
+ "modals": [
+  {
+   "id": "pipeline-alta-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 956,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "pipeline-alta-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 956,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-nuevo-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 634,
+    "clientHeight": 583,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-nuevo-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 634,
+    "clientHeight": 583,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-editor-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 2484,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Elegir foto (JPG, PNG, WebP o HEIC; hast",
+     "w": 103,
+     "h": 22
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-editor-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 2484,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Elegir foto (JPG, PNG, WebP o HEIC; hast",
+     "w": 103,
+     "h": 22
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-ficha-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 390,
+     "h": 844
+    },
+    "fit": true,
+    "scrollHeight": 5479,
+    "clientHeight": 772,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Elegir foto (JPG, PNG, WebP o HEIC; hast",
+     "w": 103,
+     "h": 22
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-ficha-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 390,
+     "h": 844
+    },
+    "fit": true,
+    "scrollHeight": 5479,
+    "clientHeight": 772,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Elegir foto (JPG, PNG, WebP o HEIC; hast",
+     "w": 103,
+     "h": 22
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-abrir-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 2248,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Mostrar sección Cliente y vigencia",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "Mostrar sección Condiciones",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-abrir-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 2248,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Mostrar sección Cliente y vigencia",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "Mostrar sección Condiciones",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-nuevo-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 2226,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Mostrar sección Cliente y vigencia",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "Mostrar sección Condiciones",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-nuevo-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 2226,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Mostrar sección Cliente y vigencia",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "Mostrar sección Condiciones",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "plan-nuevo-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 1150,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "plan-nuevo-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 1150,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "pipeline-alta-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 144,
+     "w": 728,
+     "h": 735
+    },
+    "fit": true,
+    "scrollHeight": 594,
+    "clientHeight": 594,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "pipeline-alta-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 144,
+     "w": 728,
+     "h": 735
+    },
+    "fit": true,
+    "scrollHeight": 594,
+    "clientHeight": 594,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-nuevo-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 200,
+     "w": 728,
+     "h": 623
+    },
+    "fit": true,
+    "scrollHeight": 482,
+    "clientHeight": 482,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-nuevo-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 200,
+     "w": 728,
+     "h": 623
+    },
+    "fit": true,
+    "scrollHeight": 482,
+    "clientHeight": 482,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-editor-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1470,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-editor-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1470,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-ficha-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 208,
+     "y": 0,
+     "w": 560,
+     "h": 1024
+    },
+    "fit": true,
+    "scrollHeight": 4046,
+    "clientHeight": 955,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-ficha-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 208,
+     "y": 0,
+     "w": 560,
+     "h": 1024
+    },
+    "fit": true,
+    "scrollHeight": 4046,
+    "clientHeight": 955,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-abrir-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1842,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-abrir-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1842,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-nuevo-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1855,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-nuevo-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1855,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "plan-nuevo-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1031,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "plan-nuevo-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1031,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  }
+ ],
+ "forms": [
+  {
+   "id": "caret-monto",
+   "amountState": {
+    "focused": true,
+    "value": "0",
+    "selectionStart": 0
+   },
+   "amountTyped": {
+    "value": "1.234.567",
+    "selectionStart": 9,
+    "selectionEnd": 9
+   },
+   "amountBackspace": {
+    "value": "123.456",
+    "selectionStart": 7
+   }
+  },
+  {
+   "id": "select-teclado",
+   "selectBefore": "Lead",
+   "selectAfter": {
+    "label": "Contactado",
+    "open": false
+   }
+  },
+  {
+   "id": "validacion-oportunidad",
+   "saveClicked": true,
+   "errors": [
+    "Completá empresa o prospecto"
+   ]
+  }
+ ],
+ "search": {
+  "noResults": {
+   "text": true,
+   "reset": true,
+   "overflowX": 0,
+   "iconPadding": "36px"
+  }
+ },
+ "consoleErrors": [],
+ "planes": {
+  "scrollWidth": 1264,
+  "clientWidth": 356,
+  "scrollable": true,
+  "docOverflow": 0
+ }
+}
