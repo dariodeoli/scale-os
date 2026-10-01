@@ -75,3 +75,56 @@ test('el control de tema cicla claro → oscuro → alto contraste y lo persiste
   await act(()=>renderer.unmount());
  }
 });
+
+// ── Adopción owncoding-ui v0.59.0 (#124): guardas del mapeo de Scale OS ─────
+// La biblioteca mide su propia paleta; acá se mide la paleta de Scale OS sobre
+// sus tintes y pares reales, que es lo que el handover de owncoding-ui#13 dejó
+// del lado de la app.
+const sobre=(color:number[],alfa:number,fondo:number[])=>color.map((valor,indice)=>valor*alfa+fondo[indice]*(1-alfa));
+const bloquesDeTokens=(css:string,apertura:string)=>{
+ for(let index=css.indexOf(apertura);index>=0;index=css.indexOf(apertura,index+1)){
+  const open=css.indexOf('{',index),close=css.indexOf('}',open);
+  const bloque=css.slice(open,close);
+  if(/--c-paper:/.test(bloque))return bloque;
+ }
+ throw new Error(`sin bloque de tokens para ${apertura}`);
+};
+const tokenDe=(bloque:string,nombre:string)=>{
+ const match=bloque.match(new RegExp(`--c-${nombre}:\\s*([\\d ]+)\\s*;`));
+ if(!match)throw new Error(`falta --c-${nombre}`);
+ return match[1].trim().split(/\s+/).map(Number);
+};
+
+test('chips, botones llenos y enlaces AA en claro y oscuro (owncoding-ui #13)',()=>{
+ const claro=bloquesDeTokens(tailwind,':root {');
+ const oscuro=bloquesDeTokens(tailwind,'html[data-theme="dark"] {');
+ const paletas=[
+  {tema:'claro',bloque:claro,fondos:[tokenDe(claro,'ink'),tokenDe(claro,'paper'),tokenDe(claro,'ink-800')]},
+  {tema:'oscuro',bloque:oscuro,fondos:[tokenDe(oscuro,'ink'),tokenDe(oscuro,'paper'),tokenDe(oscuro,'ink-800')]},
+ ];
+ // Chips: la familia `*-text` (la que usan Badge/ChipEstado en v0.59) sobre el
+ // tinte 15 % y 10 % de su tono base en cada superficie.
+ for(const {tema,bloque,fondos} of paletas)for(const tono of ['ok','warn','bad','info','fono']){
+  const texto=tokenDe(bloque,`${tono}-text`),base=tokenDe(bloque,tono);
+  for(const alfa of [0.15,0.10])for(const fondo of fondos)near(ratio(texto,sobre(base,alfa,fondo)),4.5,`${tema}: chip ${tono}-text sobre ${tono} ${alfa*100} %`);
+ }
+ // `pass` hereda el relleno de la librería (Scale OS sólo mapea su texto).
+ const passBase=[22,197,94];
+ near(ratio(tokenDe(claro,'pass-text'),sobre(passBase,0.15,tokenDe(claro,'ink'))),4.5,'claro: chip pass-text sobre el tinte de la librería');
+ near(ratio(tokenDe(oscuro,'pass-text'),sobre(passBase,0.15,tokenDe(oscuro,'ink-800'))),4.5,'oscuro: chip pass-text sobre el tinte de la librería');
+ // Botones llenos (v0.59): el par viaja con el relleno.
+ for(const {tema,bloque} of paletas){
+  near(ratio(tokenDe(bloque,'onbrand'),tokenDe(bloque,'fono')),4.5,`${tema}: texto sobre marca`);
+  near(ratio(tokenDe(bloque,'on-ok'),tokenDe(bloque,'ok')),4.5,`${tema}: texto sobre ok (Button success)`);
+  near(ratio(tokenDe(bloque,'on-bad'),tokenDe(bloque,'bad')),4.5,`${tema}: texto sobre bad (Button danger)`);
+ }
+ // EnlaceLinea pinta `text-fono-light` (v0.59): AA sobre lienzo y paneles.
+ near(ratio(tokenDe(claro,'fono-light'),tokenDe(claro,'paper')),4.5,'claro: enlace sobre lienzo');
+ near(ratio(tokenDe(claro,'fono-light'),tokenDe(claro,'ink')),4.5,'claro: enlace sobre panel');
+ near(ratio(tokenDe(oscuro,'fono-light'),tokenDe(oscuro,'ink')),4.5,'oscuro: enlace sobre panel');
+ near(ratio(tokenDe(oscuro,'fono-light'),tokenDe(oscuro,'paper')),4.5,'oscuro: enlace sobre lienzo');
+ // Pie del riel de Scale OS (riel oscuro propio, no `NavLateral`): el texto
+ // blanco al 78 %/72 % sobre los extremos del gradiente se mantiene AA.
+ const rieles=[[46,0,56],[37,0,47],[10,10,14],[16,16,22]];
+ for(const fondo of rieles)for(const alfa of [0.78,0.72])near(ratio(sobre([255,255,255],alfa,fondo),fondo),4.5,`pie del riel ${alfa*100} %`);
+});

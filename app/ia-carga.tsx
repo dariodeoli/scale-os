@@ -9,28 +9,52 @@ import {EmptyBlock,LoadingBlock,StateChip} from './ui-v2';
 import {useCompanyCurrency} from './currency-provider';
 import {roleCan} from './capabilities';
 import {api} from './operations';
+import {todayAsuncion} from './client-format';
 import {PRIVACY_IA_DETAIL,PRIVACY_IA_FINALITY,PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL} from './privacy-links';
-import {IA_REGISTROS_MAX,IA_TEXTO_MAX,IA_TIPO_LABEL,analizarIa,cargarConfigIa,crearClienteDesdeIa,crearEquipoDesdeIa,mensajeIaError,type IaAnalisis,type IaCliente,type IaConfig,type IaEquipo,type IaTipo} from './ia-carga-data';
+import {
+  IA_REGISTROS_MAX,IA_TEXTO_MAX,IA_TIPO_LABEL,
+  analizarIa,cargarConfigIa,crearClienteDesdeIa,crearEquipoDesdeIa,mensajeIaError,senalMatchLabel,
+  type AccionIA,type CoincidenciaIA,type EstadoMatch,type IaCliente,type IaConfig,type IaResultado,type IaTipo,
+} from './ia-carga-data';
+import {cargarCuentasCobro,cuentaSugeridaIa,cuentasCobroIa,registrarCobroDesdeIa,validarCobroIa,type IaCuentaCobro} from './ia-cobro-data';
 
 /**
- * «Carga con IA» (Refs #118, réplica de LedBox #120): el diálogo de pegado,
- * revisión y creación.
+ * «Carga con IA» (Refs #118, #119, #120 y #121, réplica de LedBox #120): el
+ * diálogo de pegado, revisión con coincidencias y creación/ejecución con
+ * confirmación.
  *
- * El asistente **no escribe nada** al analizar: el texto viaja sólo al endpoint
- * de #117 y vuelve como registros con avisos; la persona edita, incluye o
- * descarta y recién ahí «Crear todo» usa los endpoints existentes de clientes y
- * equipos de inventario (mismos permisos, aislamiento y auditoría que la carga
- * manual). Sin IA configurada el diálogo lo avisa y no rompe; el texto pegado no
- * se persiste en ningún lado, ni en la UI ni en logs locales.
+ * Fase 2: cada registro llega con `estado` (nuevo / coincide / ambiguo) y
+ * `coincidencias` con lo ya creado; las acciones propuestas (registrar cobro)
+ * se confirman de a una con la ejecución real de Finanzas. Reglas duras:
+ * - El análisis **no escribe nada**; el texto viaja sólo al endpoint de #119.
+ * - Con coincidencia o ambigüedad **no se crea** hasta que haya decisión
+ *   explícita (vincular una ficha o crear un duplicado a propósito).
+ * - Ninguna acción se ejecuta sin el OK de su tarjeta, con cuenta elegida.
+ * - La creación usa los endpoints existentes y el cobro el de Finanzas (#121);
+ *   los duplicados se avisan y exigen una segunda decisión.
  */
 
 type Fase = 'entrada' | 'revision' | 'listo';
+/** Decisión por registro: crear, vincular a una ficha existente, o pendiente. */
+type Decision = 'crear' | 'vincular' | 'pendiente';
+/** Estado de la tarjeta de acción: nada se ejecuta sin pasar por 'pendiente'. */
+type EstadoAccion = 'pendiente' | 'ejecutando' | 'ejecutada' | 'duplicado' | 'error';
 
-type ClienteEdit = IaCliente & {clave: string; incluir: boolean};
-type EquipoEdit = {clave: string; incluir: boolean; nombre: string; categoria: string | null; categoriaValor: string; cantidad: string; valor: string; avisos: string[]};
+type ClienteEdit = IaCliente & {clave: string; incluir: boolean; decision: Decision; elegidoId: string};
+type EquipoEdit = {
+  clave: string; incluir: boolean; nombre: string; categoria: string | null; categoriaValor: string;
+  cantidad: string; valor: string; estado: EstadoMatch | undefined; coincidencias: CoincidenciaIA[]; avisos: string[];
+  decision: Decision; elegidoId: string;
+};
+type AccionEdit = {
+  clave: string; accion: AccionIA; clienteId: string; cuentaId: string; monto: string; fecha: string; detalle: string;
+  estado: EstadoAccion; mensaje: string;
+};
 
 type Resultado = {
   creados: {clientes: number; equipos: number};
+  vinculados: {clientes: number; equipos: number};
+  acciones: {ejecutadas: number; pendientes: number};
   errores: string[];
 };
 
@@ -39,14 +63,22 @@ type CategoriaOpcion = {value: string; label: string};
 const CARD = 'grid gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3.5 transition [&[data-off="true"]]:opacity-70';
 const CARD_TITLE = 'min-w-0 truncate text-[13.5px] font-semibold text-fore';
 const CONTADOR = 'text-[11px] tabular-nums text-mute';
+const OPCION = 'inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-ink-500 px-2.5 py-1.5 text-left text-[11.5px] font-medium text-mute transition hover:border-fono hover:text-fore aria-pressed:border-fono aria-pressed:bg-fono/10 aria-pressed:text-fore md:min-h-9';
 
-/** Reparte los registros del análisis en las tarjetas editables. */
-function aTarjetas(analisis: IaAnalisis, siguienteClave: (prefijo: string) => string, tipos: IaTipo[]) {
+/** Decisión inicial: la coincidencia fuerte propone vincular; la ambigua exige elegir. */
+function decisionInicial(estado: EstadoMatch | undefined, coincidencias: CoincidenciaIA[] = []): {decision: Decision; elegidoId: string} {
+  if (estado === 'coincide' && coincidencias[0]) return {decision: 'vincular', elegidoId: coincidencias[0].id};
+  if (estado === 'ambiguo') return {decision: 'pendiente', elegidoId: ''};
+  return {decision: 'crear', elegidoId: ''};
+}
+
+/** Reparte el resultado del análisis (registros + acciones) en tarjetas editables. */
+function aTarjetas(resultado: IaResultado, siguienteClave: (prefijo: string) => string, tipos: IaTipo[]) {
   const clientes: ClienteEdit[] = tipos.includes('clientes')
-    ? analisis.clientes.map((cliente) => ({...cliente, clave: siguienteClave('cliente'), incluir: true}))
+    ? resultado.clientes.map((cliente) => ({...cliente, clave: siguienteClave('cliente'), incluir: true, ...decisionInicial(cliente.estado, cliente.coincidencias ?? [])}))
     : [];
   const equipos: EquipoEdit[] = tipos.includes('inventario')
-    ? analisis.inventario.map((equipo) => ({
+    ? resultado.inventario.map((equipo) => ({
         clave: siguienteClave('equipo'),
         incluir: true,
         nombre: equipo.nombre,
@@ -54,10 +86,24 @@ function aTarjetas(analisis: IaAnalisis, siguienteClave: (prefijo: string) => st
         categoriaValor: equipo.categoria ? `nombre:${equipo.categoria}` : '',
         cantidad: String(equipo.cantidad ?? 1),
         valor: equipo.valor === null ? '' : String(equipo.valor),
+        estado: equipo.estado,
+        coincidencias: equipo.coincidencias ?? [],
         avisos: equipo.avisos,
+        ...decisionInicial(equipo.estado, equipo.coincidencias ?? []),
       }))
     : [];
-  return {clientes, equipos};
+  const acciones: AccionEdit[] = resultado.acciones.map((accion) => ({
+    clave: siguienteClave('accion'),
+    accion,
+    clienteId: accion.cliente.id || '',
+    cuentaId: '',
+    monto: String(accion.monto),
+    fecha: accion.fecha || todayAsuncion(),
+    detalle: accion.detalle || '',
+    estado: 'pendiente',
+    mensaje: '',
+  }));
+  return {clientes, equipos, acciones};
 }
 
 export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>void; onCreated:()=>Promise<void>|void}){
@@ -74,8 +120,10 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
   const [avisos,setAvisos]=useState<string[]>([]);
   const [clientes,setClientes]=useState<ClienteEdit[]>([]);
   const [equipos,setEquipos]=useState<EquipoEdit[]>([]);
+  const [acciones,setAcciones]=useState<AccionEdit[]>([]);
   const [resultado,setResultado]=useState<Resultado|null>(null);
   const [categorias,setCategorias]=useState<CategoriaOpcion[]>([]);
+  const [cuentas,setCuentas]=useState<IaCuentaCobro[]>([]);
   const [intentado,setIntentado]=useState(false);
   const contador=useRef(0);
   const siguienteClave=(prefijo:string)=>`${prefijo}-${contador.current+=1}`;
@@ -83,8 +131,6 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
   const puedeInventario=roleCan(role,'inventory.manage');
   const puedeCategorias=roleCan(role,'inventory.view');
 
-  // Config del asistente (Refs #117): `pendiente` es el puente honesto mientras
-  // el motor no esté publicado; nunca se simula una configuración.
   useEffect(()=>{
     let activo=true;
     setEstadoConfig('cargando');setConfigError('');
@@ -102,7 +148,6 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
     return()=>{activo=false;};
   },[reintento,puedeClientes,puedeInventario]);
 
-  // Categorías de inventario para editar los equipos con los objetos del sistema.
   useEffect(()=>{
     if(!puedeInventario||!puedeCategorias)return;
     let activo=true;
@@ -113,14 +158,34 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
     return()=>{activo=false;};
   },[puedeInventario,puedeCategorias]);
 
-  const incluidos=useMemo(()=>({clientes:clientes.filter((fila)=>fila.incluir).length,equipos:equipos.filter((fila)=>fila.incluir).length}),[clientes,equipos]);
-  const totalIncluidos=incluidos.clientes+incluidos.equipos;
-  const unidades=equipos.filter((fila)=>fila.incluir).reduce((suma,fila)=>suma+Math.min(IA_REGISTROS_MAX,Math.max(1,Math.floor(Number(fila.cantidad)||1))),0);
+  // Cuentas de ingreso para confirmar cobros (#121): se cargan cuando hay
+  // acciones propuestas y se sugiere la única cuenta en guaraníes si existe.
+  useEffect(()=>{
+    if(!acciones.length){setCuentas([]);return;}
+    let activo=true;
+    void cargarCuentasCobro().then((lista)=>{
+      if(!activo)return;
+      setCuentas(lista);
+      const sugerida=cuentaSugeridaIa(lista,currency);
+      setAcciones((actuales)=>actuales.map((fila)=>fila.cuentaId?fila:{...fila,cuentaId:sugerida||''}));
+    }).catch(()=>{/* Sin cuentas la tarjeta lo dice y pide elegir a mano en Finanzas. */});
+    return()=>{activo=false;};
+  },[acciones.length,currency]);
+
+  const incluidos=useMemo(()=>({
+    clientes:clientes.filter((fila)=>fila.incluir&&fila.decision==='crear').length,
+    equipos:equipos.filter((fila)=>fila.incluir&&fila.decision==='crear').length,
+    vinculados:clientes.filter((fila)=>fila.incluir&&fila.decision==='vincular').length+equipos.filter((fila)=>fila.incluir&&fila.decision==='vincular').length,
+  }),[clientes,equipos]);
+  const totalCrear=incluidos.clientes+incluidos.equipos;
+  const unidades=equipos.filter((fila)=>fila.incluir&&fila.decision==='crear').reduce((suma,fila)=>suma+Math.min(IA_REGISTROS_MAX,Math.max(1,Math.floor(Number(fila.cantidad)||1))),0);
+  const accionesPendientes=acciones.filter((fila)=>fila.estado==='pendiente'||fila.estado==='duplicado'||fila.estado==='error').length;
   const tipos=config?.tipos.filter((tipo)=>tipo==='clientes'?puedeClientes:puedeInventario)||[];
 
   function nombreValido(valor:string,min=2){return valor.trim().length>=min;}
   function cantidadValida(valor:string){const numero=Math.floor(Number(valor));return Number.isFinite(numero)&&numero>=1&&numero<=IA_REGISTROS_MAX;}
   function valorValido(valor:string){if(valor==='')return true;const numero=Number(valor);return Number.isFinite(numero)&&numero>=0;}
+  function montoValido(valor:string){const numero=Math.floor(Number(valor));return Number.isFinite(numero)&&numero>0;}
 
   async function analizar(){
     if(!texto.trim()||analizando)return;
@@ -129,7 +194,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       const analisis=await analizarIa(texto.trim());
       const tarjetas=aTarjetas(analisis,siguienteClave,tipos);
       setAvisos(analisis.avisos);
-      setClientes(tarjetas.clientes);setEquipos(tarjetas.equipos);
+      setClientes(tarjetas.clientes);setEquipos(tarjetas.equipos);setAcciones(tarjetas.acciones);
       const ignorados=(puedeClientes?0:analisis.clientes.length)+(puedeInventario?0:analisis.inventario.length);
       if(ignorados)setAvisos((actuales)=>[...actuales,`Se ignoraron ${ignorados} registro(s) detectados porque tu rol no puede crearlos.`]);
       setResultado(null);setIntentado(false);setFase('revision');
@@ -137,20 +202,36 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       setError(mensajeIaError(cause));
     }finally{setAnalizando(false);}
   }
+  /** Nada se crea si una tarjeta incluida sigue sin decisión o sin ficha elegida. */
+  function pendientesDeDecision(){
+    return [...clientes,...equipos].filter((fila)=>fila.incluir&&(fila.decision==='pendiente'||(fila.decision==='vincular'&&!fila.elegidoId)));
+  }
+
+  function validarRegistros(){
+    const sinDecision=pendientesDeDecision();
+    if(sinDecision.length){setError('Elegí qué hacer con las coincidencias antes de crear: vincular una ficha existente o crear un registro nuevo.');return false;}
+    const invalidos=clientes.some((fila)=>fila.incluir&&fila.decision==='crear'&&!nombreValido(fila.nombre,2))||equipos.some((fila)=>fila.incluir&&fila.decision==='crear'&&(!nombreValido(fila.nombre,2)||!cantidadValida(fila.cantidad)||!valorValido(fila.valor)));
+    if(invalidos){setError('Revisá los campos marcados: falta el nombre, la cantidad o el valor.');return false;}
+    return true;
+  }
 
   async function crearTodo(){
-    if(creando||totalIncluidos===0)return;
+    if(creando)return;
+    if(totalCrear===0&&!acciones.length)return;
     setIntentado(true);setError('');
-    const invalidos=clientes.some((fila)=>fila.incluir&&!nombreValido(fila.nombre))||equipos.some((fila)=>fila.incluir&&(!nombreValido(fila.nombre)||!cantidadValida(fila.cantidad)||!valorValido(fila.valor)));
-    if(invalidos){setError('Revisá los campos marcados: falta el nombre, la cantidad o el valor.');return;}
+    if(totalCrear>0&&!validarRegistros())return;
     setCreando(true);
     const creados={clientes:0,equipos:0};
     const errores:string[]=[];
-    for(const cliente of clientes.filter((fila)=>fila.incluir)){
+    const vinculados={
+      clientes:clientes.filter((fila)=>fila.incluir&&fila.decision==='vincular'&&fila.elegidoId).length,
+      equipos:equipos.filter((fila)=>fila.incluir&&fila.decision==='vincular'&&fila.elegidoId).length,
+    };
+    for(const cliente of clientes.filter((fila)=>fila.incluir&&fila.decision==='crear')){
       try{await crearClienteDesdeIa(cliente);creados.clientes+=1;}
       catch(cause){errores.push(`Cliente «${cliente.nombre.trim()||'sin nombre'}»: ${cause instanceof Error?cause.message:'no se pudo crear'}`);}
     }
-    for(const equipo of equipos.filter((fila)=>fila.incluir)){
+    for(const equipo of equipos.filter((fila)=>fila.incluir&&fila.decision==='crear')){
       const unidadesEquipo=Math.min(IA_REGISTROS_MAX,Math.max(1,Math.floor(Number(equipo.cantidad)||1)));
       const categoria=equipo.categoriaValor||categorias[0]?.value||'nombre:Otro';
       const [categoriaId,categoriaNombre]=categoria.startsWith('nombre:')?['',categoria.slice(7)]:[categoria.slice(3),''];
@@ -159,17 +240,41 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         catch(cause){errores.push(`Equipo «${equipo.nombre.trim()||'sin nombre'}»${unidadesEquipo>1?` (unidad ${unidad})`:''}: ${cause instanceof Error?cause.message:'no se pudo crear'}`);break;}
       }
     }
-    setResultado({creados,errores});
+    setResultado({creados,vinculados,acciones:{ejecutadas:acciones.filter((fila)=>fila.estado==='ejecutada').length,pendientes:acciones.filter((fila)=>fila.estado!=='ejecutada').length},errores});
     setCreando(false);setFase('listo');
-    try{await onCreated();}catch{/* El resumen ya está: la recarga no puede taparlo. */}
+    if(creados.clientes||creados.equipos){try{await onCreated();}catch{/* El resumen ya está: la recarga no puede taparlo. */}}
+  }
+
+  /** Confirma UNA acción con la ejecución real de Finanzas (#121). */
+  async function confirmarAccion(clave:string,permitirDuplicado=false){
+    const fila=acciones.find((item)=>item.clave===clave);
+    if(!fila||fila.estado==='ejecutando'||fila.estado==='ejecutada')return;
+    const actualizar=(patch:Partial<AccionEdit>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===clave?{...item,...patch}:item));
+    const cobro={clienteId:fila.clienteId,monto:Math.floor(Number(fila.monto)),fecha:fila.fecha||todayAsuncion(),detalle:fila.detalle||''};
+    const problema=validarCobroIa(cobro);
+    if(problema){actualizar({estado:'error',mensaje:problema});return;}
+    if(!fila.cuentaId){actualizar({estado:'error',mensaje:'Elegí la cuenta donde entró el cobro.'});return;}
+    actualizar({estado:'ejecutando',mensaje:''});
+    try{
+      const salida=await registrarCobroDesdeIa({cobro,accountId:fila.cuentaId,permitirDuplicado});
+      if(salida.estado==='duplicado'){
+        const facturas=salida.duplicados.map((pago)=>pago.invoiceNumber||`#${pago.id}`).join(', ');
+        actualizar({estado:'duplicado',mensaje:`Ya registramos un cobro igual${facturas?` (${facturas})`:''}. ¿Querés registrarlo igual?`});
+        return;
+      }
+      actualizar({estado:'ejecutada',mensaje:`${salida.yaRegistrado?'El cobro ya estaba registrado':'Cobro registrado'} · Gs ${salida.total.toLocaleString('es-PY')}${salida.pagos.length>1?` en ${salida.pagos.length} facturas`:''}.`});
+      // Un cobro ejecutado cambia datos de Finanzas: se refresca el panel.
+      try{await onCreated();}catch{/* El resultado ya está visible en la tarjeta. */}
+    }catch(cause){
+      actualizar({estado:'error',mensaje:cause instanceof Error?cause.message:'No se pudo registrar el cobro.'});
+    }
   }
 
   function reiniciar(){
-    setTexto('');setError('');setAvisos([]);setClientes([]);setEquipos([]);setResultado(null);setIntentado(false);setFase('entrada');
+    setTexto('');setError('');setAvisos([]);setClientes([]);setEquipos([]);setAcciones([]);setResultado(null);setIntentado(false);setFase('entrada');
   }
 
-  const titulo='Carga con IA';
-  return <Dialog title={titulo} close={close} busy={analizando||creando} size={fase==='revision'?'wide':'default'}>
+  return <Dialog title="Carga con IA" close={close} busy={analizando||creando} size={fase==='revision'?'wide':'default'}>
     {estadoConfig==='cargando'?<LoadingBlock label="Consultando la configuración de IA…" lines={2}/>:null}
 
     {estadoConfig==='pendiente'?<div className="grid gap-3">
@@ -210,7 +315,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
 
     {estadoConfig==='lista'&&config&&fase==='entrada'?<form className="grid gap-3" onSubmit={(event)=>{event.preventDefault();void analizar();}}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-mute">Pegá mensajes, listas o catálogos. La IA detecta <b className="text-fore">{tipos.map((tipo)=>IA_TIPO_LABEL[tipo].toLowerCase()).join(' y ')}</b> y arma la vista previa.</p>
+        <p className="text-sm text-mute">Pegá mensajes, listas o catálogos. La IA detecta <b className="text-fore">{tipos.map((tipo)=>IA_TIPO_LABEL[tipo].toLowerCase()).join(' y ')}</b>, reconoce lo ya creado y arma la vista previa.</p>
         {config.modelo?<StateChip tone="mute" title="Modelo configurado en el servidor">{config.modelo}</StateChip>:null}
       </div>
       <FormField label="Texto para cargar" htmlFor="ia-carga-texto" hint={`Máximo ${IA_TEXTO_MAX.toLocaleString('es-PY')} caracteres; hasta ${IA_REGISTROS_MAX} registros por tipo. Nada se crea ni se guarda al analizar.`}>
@@ -221,7 +326,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
           onChange={(event)=>setTexto(event.target.value)}
           maxLength={IA_TEXTO_MAX}
           disabled={analizando}
-          placeholder={'Ejemplo:\nJuan Pérez (Constructora Sur) — RUC 80012345-6, 0981 123 456, juan@sur.com.py\nPantalla LED 3x2, iluminación, cantidad 4, valor 1.500.000'}
+          placeholder={'Ejemplo:\nJuan Pérez (Constructora Sur) — RUC 80012345-6, 0981 123 456, juan@sur.com.py\nPantalla LED 3x2, iluminación, cantidad 4, valor 1.500.000\nConstructora Sur me pagó 2.500.000 el 28/09 por el saldo'}
         />
       </FormField>
       <p className={`${CONTADOR} self-end`} aria-live="polite">{texto.length.toLocaleString('es-PY')} / {IA_TEXTO_MAX.toLocaleString('es-PY')}</p>
@@ -234,35 +339,35 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
     </form>:null}
 
     {estadoConfig==='lista'&&fase==='revision'?<div className="grid gap-4">
-      <p className="text-sm text-mute">Detectamos <b className="text-fore">{resumenDetectado(clientes.length,equipos.length,puedeClientes,puedeInventario)}</b>. Revisá, corregí o descartá: <b className="text-fore">nada se crea sin tu confirmación</b>.</p>
+      <p className="text-sm text-mute">Detectamos <b className="text-fore">{resumenDetectado(clientes.length,equipos.length,acciones.length,puedeClientes,puedeInventario)}</b>. Revisá, corregí o descartá: <b className="text-fore">nada se crea ni se ejecuta sin tu confirmación</b>.</p>
+      {incluidos.vinculados?<p className="text-[11.5px] text-mute">Vinculás <b className="tabular-nums text-fore">{incluidos.vinculados}</b> registro(s) a fichas existentes: no se crea nada para esos.</p>:null}
       {unidades>incluidos.equipos?<p className="text-[11.5px] text-mute">Se crearán <b className="tabular-nums text-fore">{unidades}</b> equipos en total: un registro por unidad reservable.</p>:null}
       {avisos.length?<Aviso tono="warn" como="div" className="grid gap-1">{avisos.map((aviso,index)=><span key={index} className="text-[12px] leading-5">{aviso}</span>)}</Aviso>:null}
       {error?<Aviso tono="error">{error}</Aviso>:null}
-      {!clientes.length&&!equipos.length?<EmptyBlock icon="sparkles" title="No detectamos registros" description="Probá con un texto más completo (nombres, RUC, correo, categorías o montos) o volvé a pegar."/>:null}
+      {!clientes.length&&!equipos.length&&!acciones.length?<EmptyBlock icon="sparkles" title="No detectamos registros" description="Probá con un texto más completo (nombres, RUC, correo, categorías o montos) o volvé a pegar."/>:null}
 
       {clientes.length?<section className="grid gap-3" aria-label={`Clientes detectados (${clientes.length})`}>
         <h3 className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Clientes <span className="tabular-nums">{clientes.length}</span></h3>
         {clientes.map((cliente)=><article key={cliente.clave} className={CARD} data-off={!cliente.incluir}>
-          <header className="flex min-w-0 items-start justify-between gap-3">
-            <div className="min-w-0"><h4 className={CARD_TITLE} title={cliente.nombre||'Sin nombre'}>{cliente.nombre||'Sin nombre'}</h4><p className="text-[11px] text-mute">{cliente.incluir?'Se creará':'Descartado'}</p></div>
-            <Checkbox label="Crear" checked={cliente.incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,incluir:event.target.checked}:fila))}/>
-          </header>
+          <CardHead titulo={cliente.nombre} estado={cliente.estado} incluir={cliente.incluir} decision={cliente.decision} onIncluir={(incluir)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,incluir}:fila))}/>
+          <MatchBlock estado={cliente.estado} coincidencias={cliente.coincidencias??[]} decision={cliente.decision} elegidoId={cliente.elegidoId} tipo="cliente"
+            onDecidir={(decision,elegidoId)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,decision,elegidoId}:fila))}/>
           {cliente.avisos.length?<Aviso tono="warn" compact>{cliente.avisos.join(' ')}</Aviso>:null}
           <div className="grid gap-2 sm:grid-cols-2">
-            <FormField label="Nombre" htmlFor={`${cliente.clave}-nombre`} error={intentado&&!nombreValido(cliente.nombre)?'Obligatorio: 2 caracteres o más.':undefined}>
-              <Input id={`${cliente.clave}-nombre`} value={cliente.nombre} maxLength={120} disabled={!cliente.incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,nombre:event.target.value}:fila))}/>
+            <FormField label="Nombre" htmlFor={`${cliente.clave}-nombre`} error={intentado&&cliente.incluir&&cliente.decision==='crear'&&!nombreValido(cliente.nombre)?'Obligatorio: 2 caracteres o más.':undefined}>
+              <Input id={`${cliente.clave}-nombre`} value={cliente.nombre} maxLength={120} disabled={!cliente.incluir||cliente.decision==='vincular'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,nombre:event.target.value}:fila))}/>
             </FormField>
             <FormField label="Empresa / razón social" htmlFor={`${cliente.clave}-empresa`}>
-              <Input id={`${cliente.clave}-empresa`} value={cliente.empresa||''} maxLength={160} disabled={!cliente.incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,empresa:event.target.value||null}:fila))}/>
+              <Input id={`${cliente.clave}-empresa`} value={cliente.empresa||''} maxLength={160} disabled={!cliente.incluir||cliente.decision==='vincular'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,empresa:event.target.value||null}:fila))}/>
             </FormField>
             <FormField label="RUC / C.I." htmlFor={`${cliente.clave}-ruc`}>
-              <Input id={`${cliente.clave}-ruc`} value={cliente.ruc||''} maxLength={60} autoCapitalize="characters" disabled={!cliente.incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,ruc:event.target.value||null}:fila))}/>
+              <Input id={`${cliente.clave}-ruc`} value={cliente.ruc||''} maxLength={60} autoCapitalize="characters" disabled={!cliente.incluir||cliente.decision==='vincular'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,ruc:event.target.value||null}:fila))}/>
             </FormField>
             <FormField label="Teléfono" htmlFor={`${cliente.clave}-telefono`}>
-              <PhoneField id={`${cliente.clave}-telefono`} value={cliente.telefono||''} disabled={!cliente.incluir} onChange={(value)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,telefono:value||null}:fila))}/>
+              <PhoneField id={`${cliente.clave}-telefono`} value={cliente.telefono||''} disabled={!cliente.incluir||cliente.decision==='vincular'} onChange={(value)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,telefono:value||null}:fila))}/>
             </FormField>
             <FormField label="Correo" htmlFor={`${cliente.clave}-correo`}>
-              <EmailField id={`${cliente.clave}-correo`} value={cliente.correo||''} disabled={!cliente.incluir} onChange={(value)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,correo:value||null}:fila))}/>
+              <EmailField id={`${cliente.clave}-correo`} value={cliente.correo||''} disabled={!cliente.incluir||cliente.decision==='vincular'} onChange={(value)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,correo:value||null}:fila))}/>
             </FormField>
           </div>
         </article>)}
@@ -271,41 +376,83 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {equipos.length?<section className="grid gap-3" aria-label={`Equipos detectados (${equipos.length})`}>
         <h3 className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Equipos de inventario <span className="tabular-nums">{equipos.length}</span></h3>
         {equipos.map((equipo)=><article key={equipo.clave} className={CARD} data-off={!equipo.incluir}>
-          <header className="flex min-w-0 items-start justify-between gap-3">
-            <div className="min-w-0"><h4 className={CARD_TITLE} title={equipo.nombre||'Sin nombre'}>{equipo.nombre||'Sin nombre'}</h4><p className="text-[11px] text-mute">{equipo.incluir?`Se crearán ${Math.min(IA_REGISTROS_MAX,Math.max(1,Math.floor(Number(equipo.cantidad)||1)))} equipo(s) · un registro por unidad reservable`:'Descartado'}</p></div>
-            <Checkbox label="Crear" checked={equipo.incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,incluir:event.target.checked}:fila))}/>
-          </header>
+          <CardHead titulo={equipo.nombre} estado={equipo.estado} incluir={equipo.incluir} decision={equipo.decision} unidades={equipo.decision==='vincular'?undefined:Math.min(IA_REGISTROS_MAX,Math.max(1,Math.floor(Number(equipo.cantidad)||1)))} onIncluir={(incluir)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,incluir}:fila))}/>
+          <MatchBlock estado={equipo.estado} coincidencias={equipo.coincidencias} decision={equipo.decision} elegidoId={equipo.elegidoId} tipo="equipo"
+            onDecidir={(decision,elegidoId)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,decision,elegidoId}:fila))}/>
           {equipo.avisos.length?<Aviso tono="warn" compact>{equipo.avisos.join(' ')}</Aviso>:null}
           <div className="grid gap-2 sm:grid-cols-2">
-            <FormField label="Nombre" htmlFor={`${equipo.clave}-nombre`} error={intentado&&!nombreValido(equipo.nombre)?'Obligatorio: 2 caracteres o más.':undefined}>
-              <Input id={`${equipo.clave}-nombre`} value={equipo.nombre} maxLength={160} disabled={!equipo.incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,nombre:event.target.value}:fila))}/>
+            <FormField label="Nombre" htmlFor={`${equipo.clave}-nombre`} error={intentado&&equipo.incluir&&equipo.decision==='crear'&&!nombreValido(equipo.nombre)?'Obligatorio: 2 caracteres o más.':undefined}>
+              <Input id={`${equipo.clave}-nombre`} value={equipo.nombre} maxLength={160} disabled={!equipo.incluir||equipo.decision==='vincular'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,nombre:event.target.value}:fila))}/>
             </FormField>
-            <SelectCustom label="Categoría" choices={opcionesCategoria(equipo,categorias)} value={equipo.categoriaValor||categorias[0]?.value||''} onChange={(value)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,categoriaValor:value}:fila))} disabled={!equipo.incluir}/>
-            <FormField label={`Unidades a crear (1–${IA_REGISTROS_MAX})`} htmlFor={`${equipo.clave}-cantidad`} error={intentado&&!cantidadValida(equipo.cantidad)?`Indicá una cantidad entre 1 y ${IA_REGISTROS_MAX}.`:undefined}>
-              <Input id={`${equipo.clave}-cantidad`} value={equipo.cantidad} inputMode="numeric" maxLength={2} disabled={!equipo.incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,cantidad:event.target.value.replace(/\D/g,'')}:fila))}/>
+            <SelectCustom label="Categoría" choices={opcionesCategoria(equipo,categorias)} value={equipo.categoriaValor||categorias[0]?.value||''} onChange={(value)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,categoriaValor:value}:fila))} disabled={!equipo.incluir||equipo.decision==='vincular'}/>
+            <FormField label={`Unidades a crear (1–${IA_REGISTROS_MAX})`} htmlFor={`${equipo.clave}-cantidad`} error={intentado&&equipo.incluir&&equipo.decision==='crear'&&!cantidadValida(equipo.cantidad)?`Indicá una cantidad entre 1 y ${IA_REGISTROS_MAX}.`:undefined}>
+              <Input id={`${equipo.clave}-cantidad`} value={equipo.cantidad} inputMode="numeric" maxLength={2} disabled={!equipo.incluir||equipo.decision==='vincular'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,cantidad:event.target.value.replace(/\D/g,'')}:fila))}/>
             </FormField>
-            <FormField label={`Valor del equipo (${currency === 'PYG' ? 'Gs' : currency})`} htmlFor={`${equipo.clave}-valor`} error={intentado&&!valorValido(equipo.valor)?'El valor no puede ser negativo.':undefined}>
-              <AmountInput id={`${equipo.clave}-valor`} value={equipo.valor} currency={currency} integerOnly disabled={!equipo.incluir} onChange={(value)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,valor:value}:fila))}/>
+            <FormField label={`Valor del equipo (${currency === 'PYG' ? 'Gs' : currency})`} htmlFor={`${equipo.clave}-valor`} error={intentado&&equipo.incluir&&equipo.decision==='crear'&&!valorValido(equipo.valor)?'El valor no puede ser negativo.':undefined}>
+              <AmountInput id={`${equipo.clave}-valor`} value={equipo.valor} currency={currency} integerOnly disabled={!equipo.incluir||equipo.decision==='vincular'} onChange={(value)=>setEquipos((actuales)=>actuales.map((fila)=>fila.clave===equipo.clave?{...fila,valor:value}:fila))}/>
             </FormField>
+          </div>
+        </article>)}
+      </section>:null}
+
+      {acciones.length?<section className="grid gap-3" aria-label={`Acciones propuestas (${acciones.length})`}>
+        <h3 className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Acciones propuestas <span className="tabular-nums">{acciones.length}</span></h3>
+        {acciones.map((fila)=><article key={fila.clave} className={CARD} data-estado={fila.estado}>
+          <header className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h4 className={CARD_TITLE}>Registrar cobro</h4>
+              <p className="text-[11px] text-mute">{fila.accion.cliente.nombre?`En el texto: ${fila.accion.cliente.nombre}`:'Sin cliente identificado en el texto'}</p>
+            </div>
+            <AccionEstado estado={fila.estado}/>
+          </header>
+          {fila.accion.avisos.length?<Aviso tono="warn" compact>{fila.accion.avisos.join(' ')}</Aviso>:null}
+          <ClienteDeAccion fila={fila} onElegir={(clienteId)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,clienteId,mensaje:''}:item))}/>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <FormField label={`Monto (${fila.accion.moneda})`} htmlFor={`${fila.clave}-monto`}>
+              <AmountInput id={`${fila.clave}-monto`} value={fila.monto} currency={fila.accion.moneda} integerOnly disabled={fila.estado==='ejecutada'} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,monto:value,mensaje:''}:item))}/>
+            </FormField>
+            <FormField label="Fecha del cobro" htmlFor={`${fila.clave}-fecha`}>
+              <Input id={`${fila.clave}-fecha`} type="date" max={todayAsuncion()} value={fila.fecha} disabled={fila.estado==='ejecutada'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,fecha:event.target.value}:item))}/>
+            </FormField>
+            <FormField label="Cuenta donde entró el cobro" htmlFor={`${fila.clave}-cuenta`}>
+              {cuentasCobroIa(cuentas,fila.accion.moneda).length
+                ? <SelectCustom label="" choices={cuentasCobroIa(cuentas,fila.accion.moneda).map((cuenta)=>({value:cuenta.id,label:`${cuenta.name} · ${cuenta.currency}`}))} value={fila.cuentaId} onChange={(value)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,cuentaId:value,mensaje:''}:item))} disabled={fila.estado==='ejecutada'}/>
+                : <Aviso tono="warn" compact>No hay una cuenta de ingreso en {fila.accion.moneda} activa. Creala o activala en Finanzas para confirmar el cobro.</Aviso>}
+            </FormField>
+            <FormField label="Detalle" htmlFor={`${fila.clave}-detalle`}>
+              <Input id={`${fila.clave}-detalle`} value={fila.detalle} maxLength={120} disabled={fila.estado==='ejecutada'} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAcciones((actuales)=>actuales.map((item)=>item.clave===fila.clave?{...item,detalle:event.target.value}:item))}/>
+            </FormField>
+          </div>
+          {fila.mensaje?<Aviso tono={fila.estado==='ejecutada'?'ok':fila.estado==='error'?'error':'warn'} compact>{fila.mensaje}</Aviso>:null}
+          <div className="flex flex-wrap items-center gap-2">
+            {fila.estado==='ejecutada'?<span className="text-[11.5px] text-mute">Confirmada. No hace falta volver a ejecutarla.</span>:
+              fila.estado==='duplicado'?<button type="button" className="secondary" onClick={()=>void confirmarAccion(fila.clave,true)}>Registrar igual</button>:
+              fila.estado==='ejecutando'?<button type="button" className="primary" disabled>Ejecutando…</button>:
+              <button type="button" className="primary" disabled={!fila.clienteId||!cuentasCobroIa(cuentas,fila.accion.moneda).length} onClick={()=>void confirmarAccion(fila.clave)}>Confirmar acción</button>}
           </div>
         </article>)}
       </section>:null}
 
       <FormActions>
         <button type="button" className="secondary" disabled={creando} onClick={()=>setFase('entrada')}>Volver</button>
-        <button type="button" className="primary" disabled={creando||totalIncluidos===0} onClick={()=>void crearTodo()}>{creando?'Creando…':`Crear todo (${totalIncluidos})`}</button>
+        {totalCrear>0
+          ? <button type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()}>{creando?'Creando…':`Crear todo (${totalCrear})`}</button>
+          : acciones.length?<button type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()}>Ver resumen</button>:null}
       </FormActions>
     </div>:null}
 
     {fase==='listo'&&resultado?<div className="grid gap-3">
-      <Aviso tono={resultado.creados.clientes+resultado.creados.equipos>0?'ok':'warn'}>
-        {resultado.creados.clientes+resultado.creados.equipos>0
-          ? `Creamos ${[resultado.creados.clientes?`${resultado.creados.clientes} cliente${resultado.creados.clientes===1?'':'s'}`:null,resultado.creados.equipos?`${resultado.creados.equipos} equipo${resultado.creados.equipos===1?'':'s'}`:null].filter(Boolean).join(' y ')}.`
-          : 'No se creó ningún registro.'}
+      <Aviso tono={resultado.creados.clientes+resultado.creados.equipos>0||resultado.acciones.ejecutadas>0?'ok':'warn'} como="div" className="grid gap-1">
+        <strong>{resultado.creados.clientes+resultado.creados.equipos>0||resultado.acciones.ejecutadas>0?'Listo.':'No se creó ni ejecutó nada.'}</strong>
+        {resultado.creados.clientes+resultado.creados.equipos>0?<span className="text-[12px] leading-5">{`Creamos ${[resultado.creados.clientes?`${resultado.creados.clientes} cliente${resultado.creados.clientes===1?'':'s'}`:null,resultado.creados.equipos?`${resultado.creados.equipos} equipo${resultado.creados.equipos===1?'':'s'}`:null].filter(Boolean).join(' y ')}.`}</span>:null}
+        {resultado.vinculados.clientes+resultado.vinculados.equipos>0?<span className="text-[12px] leading-5">{`Vinculamos ${[resultado.vinculados.clientes?`${resultado.vinculados.clientes} cliente${resultado.vinculados.clientes===1?'':'s'}`:null,resultado.vinculados.equipos?`${resultado.vinculados.equipos} equipo${resultado.vinculados.equipos===1?'':'s'}`:null].filter(Boolean).join(' y ')} a fichas existentes.`}</span>:null}
+        {resultado.acciones.ejecutadas>0?<span className="text-[12px] leading-5">{`Registramos ${resultado.acciones.ejecutadas} acción${resultado.acciones.ejecutadas===1?'':'es'}.`}</span>:null}
+        {resultado.acciones.pendientes>0?<span className="text-[12px] leading-5">{`Quedaron ${resultado.acciones.pendientes} acción${resultado.acciones.pendientes===1?'':'es'} sin confirmar: no se ejecutó nada de eso.`}</span>:null}
       </Aviso>
       {resultado.errores.length?<Aviso tono="error" como="div" className="grid gap-1"><strong>No pudimos crear {resultado.errores.length} registro(s):</strong>{resultado.errores.map((mensaje,index)=><span key={index} className="text-[12px] leading-5">{mensaje}</span>)}</Aviso>:null}
       <p className="text-[11.5px] leading-5 text-mute">Cada alta quedó auditada como cualquier carga manual y el texto que pegaste no se guardó. Los registros creados ya aparecen en Clientes y en Inventario.</p>
       <FormActions>
+        {resultado.acciones.pendientes>0?<button type="button" className="secondary" onClick={()=>setFase('revision')}>Volver a las acciones</button>:null}
         <button type="button" className="secondary" onClick={reiniciar}>Cargar otro texto</button>
         <button type="button" className="primary" onClick={close}>Listo</button>
       </FormActions>
@@ -313,10 +460,72 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
   </Dialog>;
 }
 
+/** Encabezado de tarjeta con el estado del match y la inclusión en la carga. */
+function CardHead({titulo,estado,incluir,decision,unidades,onIncluir}:{titulo:string; estado:IaCliente['estado']; incluir:boolean; decision:Decision; unidades?:number; onIncluir:(incluir:boolean)=>void}){
+ const chip=estado==='nuevo'?<StateChip tone="mute">Nuevo</StateChip>:estado==='coincide'?<StateChip tone="warn">Coincide</StateChip>:<StateChip tone="warn">Ambiguo</StateChip>;
+ const detalle=!incluir?'Descartado':decision==='vincular'?'Se usa la ficha existente':decision==='pendiente'?'Falta decidir':unidades?`Se crearán ${unidades} equipo(s) · un registro por unidad reservable`:'Se creará';
+ return <header className="flex min-w-0 items-start justify-between gap-3">
+  <div className="grid min-w-0 gap-1">
+   <h4 className={CARD_TITLE} title={titulo||'Sin nombre'}>{titulo||'Sin nombre'}</h4>
+   <p className="flex flex-wrap items-center gap-2 text-[11px] text-mute">{chip}<span>{detalle}</span></p>
+  </div>
+  <Checkbox label="Incluir" checked={incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>onIncluir(event.target.checked)}/>
+ </header>;
+}
+
+/** Coincidencias: la señal visible y la decisión explícita (vincular o crear). */
+function MatchBlock({estado,coincidencias,decision,elegidoId,tipo,onDecidir}:{estado:EstadoMatch|undefined; coincidencias:CoincidenciaIA[]; decision:Decision; elegidoId:string; tipo:'cliente'|'equipo'; onDecidir:(decision:Decision,elegidoId:string)=>void}){
+ if(estado==='nuevo')return <p className="text-[11.5px] text-mute">No encontramos una ficha parecida: se creará una nueva.</p>;
+ const candidatas=coincidencias.slice(0,5);
+ return <div className="grid gap-2 rounded-lg border border-warn/40 bg-warn/10 p-2.5">
+  <p className="text-[11.5px] leading-5 text-mute">
+   {estado==='coincide'?'Ya existe una ficha que coincide':`Hay ${candidatas.length} ficha${candidatas.length===1?'':'s'} parecida${candidatas.length===1?'':'s'}`}: elegí qué hacer. <b className="text-fore">Nada se duplica sin tu decisión.</b>
+  </p>
+  {candidatas.length?<div className="flex flex-wrap gap-2" role="group" aria-label="Elegir la ficha existente">
+   {candidatas.map((candidata)=><button key={candidata.id} type="button" aria-pressed={decision==='vincular'&&elegidoId===candidata.id} className={OPCION} title={candidata.nombre} onClick={()=>onDecidir('vincular',candidata.id)}>
+    <span className="min-w-0 max-w-[14rem] truncate">Usar «{candidata.nombre}»</span>
+    {candidata.senales.length?<span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-mute">{candidata.senales.map(senalMatchLabel).join(' · ')}</span>:null}
+   </button>)}
+  </div>:null}
+  <div className="flex flex-wrap items-center gap-2">
+   <button type="button" aria-pressed={decision==='crear'} className={OPCION} onClick={()=>onDecidir('crear','')}>Crear {tipo} nuevo</button>
+   {decision==='crear'?<span className="text-[11px] text-warn-text">Se creará un registro nuevo aunque exista una ficha parecida.</span>:null}
+  </div>
+ </div>;
+}
+
+/** Cliente de una acción: resuelto por el motor o elegido acá entre candidatos. */
+function ClienteDeAccion({fila,onElegir}:{fila:AccionEdit; onElegir:(clienteId:string)=>void}){
+ if(fila.clienteId)return <p className="flex flex-wrap items-center gap-2 text-[12px] text-mute"><StateChip tone="ok">Cliente vinculado</StateChip><span className="break-all">{fila.accion.cliente.nombre||'Cliente existente'}</span></p>;
+ const candidatos=fila.accion.cliente.candidatos.slice(0,5);
+ if(!candidatos.length)return <Aviso tono="warn" compact>No pudimos vincular el cliente: elegí uno existente desde Clientes o creá el cliente primero. Sin cliente resuelto no se puede confirmar.</Aviso>;
+ return <div className="grid gap-2 rounded-lg border border-warn/40 bg-warn/10 p-2.5">
+  <p className="text-[11.5px] leading-5 text-mute">No sabemos con certeza a qué cliente se refiere. Elegí uno de los candidatos para poder confirmar:</p>
+  <div className="flex flex-wrap gap-2" role="group" aria-label="Elegir el cliente del cobro">
+   {candidatos.map((candidato)=><button key={candidato.id} type="button" className={OPCION} title={candidato.nombre} aria-pressed={fila.clienteId===candidato.id} onClick={()=>onElegir(candidato.id)}>
+    <span className="min-w-0 max-w-[14rem] truncate">{candidato.nombre}{candidato.activo?'':' · inactivo'}</span>
+    {candidato.senales.length?<span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-mute">{candidato.senales.map(senalMatchLabel).join(' · ')}</span>:null}
+   </button>)}
+  </div>
+ </div>;
+}
+
+function AccionEstado({estado}:{estado:EstadoAccion}){
+ if(estado==='ejecutada')return <StateChip tone="ok">Ejecutada</StateChip>;
+ if(estado==='ejecutando')return <StateChip tone="mute">Ejecutando</StateChip>;
+ if(estado==='duplicado')return <StateChip tone="warn">Duplicado probable</StateChip>;
+ if(estado==='error')return <StateChip tone="bad">Con error</StateChip>;
+ return <StateChip tone="info">Sin confirmar</StateChip>;
+}
+
 /** Resumen humano de lo detectado (sólo tipos que el rol puede crear). */
-function resumenDetectado(clientes:number,equipos:number,puedeClientes:boolean,puedeInventario:boolean){
- const partes=[puedeClientes&&clientes?`${clientes} cliente${clientes===1?'':'s'}`:null,puedeInventario&&equipos?`${equipos} equipo${equipos===1?'':'s'} de inventario`:null].filter(Boolean);
- return partes.length?partes.join(' y '):'registros para revisar';
+function resumenDetectado(clientes:number,equipos:number,acciones:number,puedeClientes:boolean,puedeInventario:boolean){
+ const partes=[
+  puedeClientes&&clientes?`${clientes} cliente${clientes===1?'':'s'}`:null,
+  puedeInventario&&equipos?`${equipos} equipo${equipos===1?'':'s'} de inventario`:null,
+  acciones?`${acciones} acción${acciones===1?'':'es'} propuesta${acciones===1?'':'s'}`:null,
+ ].filter(Boolean);
+ return partes.length?partes.join(', '):'registros para revisar';
 }
 
 /** Opciones de categoría: las existentes por id y la detectada por nombre si es nueva. */

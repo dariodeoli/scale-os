@@ -116,9 +116,9 @@ test('vista previa: tarjetas editables, avisos reales, obligatorios e incluir/de
  const dialog = file('app/ia-carga.tsx');
  assert(dialog.includes('Clientes <span'), 'hay una sección de clientes detectados');
  assert(dialog.includes('Equipos de inventario <span'), 'hay una sección de equipos detectados');
- assert(dialog.includes('<Checkbox label="Crear"'), 'cada tarjeta se incluye o descarta');
+ assert(dialog.includes('<Checkbox label="Incluir"'), 'cada tarjeta se incluye o descarta');
  assert(dialog.includes('cliente.avisos.join') && dialog.includes('equipo.avisos.join'), 'los avisos del análisis viajan a la tarjeta');
- assert(dialog.includes("intentado&&!nombreValido") && dialog.includes('Obligatorio: 2 caracteres o más.'), 'los obligatorios se marcan al intentar crear');
+ assert(dialog.includes("intentado&&cliente.incluir&&cliente.decision==='crear'&&!nombreValido") && dialog.includes('Obligatorio: 2 caracteres o más.'), 'los obligatorios se marcan al intentar crear');
  assert(dialog.includes('SelectCustom label="Categoría"'), 'la categoría se edita con el objeto del sistema');
  assert(dialog.includes('PhoneField') && dialog.includes('EmailField') && dialog.includes('AmountInput'), 'los campos tipados usan los objetos compartidos');
  assert(dialog.includes('un registro por unidad reservable'), 'la cantidad de equipos explica el modelo de una fila por unidad');
@@ -128,7 +128,7 @@ test('creación: sólo con confirmación, con los endpoints existentes y resumen
  const dialog = file('app/ia-carga.tsx');
  const data = file('app/ia-carga-data.ts');
  assert(dialog.includes('onClick={()=>void crearTodo()}'), 'la creación cuelga del botón de confirmación');
- assert(dialog.includes("'Creando…':`Crear todo (${totalIncluidos})`"), 'el botón dice cuántos registros va a crear');
+ assert(dialog.includes("'Creando…':`Crear todo (${totalCrear})`"), 'el botón dice cuántos registros va a crear');
  const antesDeCrear = dialog.slice(dialog.indexOf('async function analizar'), dialog.indexOf('async function crearTodo'));
  assert(!antesDeCrear.includes('crearClienteDesdeIa') && !antesDeCrear.includes('crearEquipoDesdeIa'), 'el análisis no crea nada por sí solo');
  assert(dialog.indexOf('crearClienteDesdeIa', dialog.indexOf('async function crearTodo')) > 0, 'la creación de clientes vive dentro de crearTodo');

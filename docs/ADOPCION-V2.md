@@ -14,7 +14,7 @@ para que los consumidores no cambien de ruta.
 
 | Punto | Estado | Evidencia |
 | --- | --- | --- |
-| Tag fijado | `git+https://github.com/dariodeoli/owncoding-ui.git#v0.51.0` (0.51.0 instalado) | `package.json`, `package-lock.json` |
+| Tag fijado | `git+https://github.com/dariodeoli/owncoding-ui.git#v0.59.0` (0.59.0 instalado) | `package.json`, `package-lock.json` |
 | `npm ci` limpio | Verde, incluso con SSH deshabilitado (`GIT_SSH_COMMAND=false`, caché nueva): el build de Coolify no necesita llaves | verificación local del 29-09 |
 | Preset + `content` | `tailwind.config.mjs` usa el preset y suma `./node_modules/owncoding-ui/dist/**/*.js` | `tailwind.config.mjs` |
 | Orden de carga | `owncoding-ui/styles.css` primero; después `globals.css`/legacy, `ui-system.css`, `contrast.css` y `tailwind.css` | `app/layout.tsx` |
@@ -207,3 +207,61 @@ Evidencia visual: `docs/qa/pdp-113/` — 16 capturas en 1440×900 y 390×844,
 claro y oscuro (aviso, consentimiento, «Mis datos» y supresión), sobre el
 fixture `build-tools/visual-harness/fixtures/pdp-privacidad-113.mjs`
 (0 hallazgos de geometría a 1440 y 390).
+
+## 9. Tanda owncoding-ui v0.59.0 (Refs #124) — a11y ronda 13 y defaults
+
+Tag v0.59.0. Desde el pin v0.54.0 entraron además: buscador de personas
+(#108), `DataTable` con `encabezadoFijo` (#114), el asistente `CargaIA` (#11) y
+el motor portable `owncoding-ui/ia` (#12). Esta tanda adopta la versión y
+aplica los arreglos que el handover de `owncoding-ui#13` dejó del lado de la
+app (hallazgos originales en `dariodeoli/scale-os#60`).
+
+### 9.1 Mapeos aplicados y medición (WCAG sobre los tintes reales de Scale OS)
+
+| Punto | Antes | Ahora | Medición (sobre el tinte 15 % / 10 %) |
+| --- | --- | --- | --- |
+| `--c-warn-text` | `#7E5A06` (ya estaba) | `#7E5A06` | 5,10:1 blanco · 4,66:1 lienzo |
+| `--c-ok-text` | `#176B55` | `#116B35` | 5,39:1 blanco · 4,93:1 lienzo |
+| `--c-bad-text` | `#B43B4C` (el base) | `#A23042` | 5,66:1 blanco · 5,17:1 lienzo (antes 4,58/4,18) |
+| `--c-on-ok` / `--c-on-bad` | sin declarar (blanco de la librería) | blanco (claro) · `#1D1520` (oscuro) · negro (contraste) | 5,23 y 5,72 (claro) · 7,10 y 5,54 (oscuro) |
+| `.primary` crudo | `color:var(--surface)` en la tarjeta de acceso | `rgb(var(--c-onbrand))` | 14,07:1 claro · 5,30:1 oscuro |
+| Pie del riel | riel propio oscuro (no `NavLateral`) | sin cambio: el default `text-fore` de la librería no aplica a un riel oscuro | blanco 78/72 % ≥ 4,5:1 sobre los extremos del gradiente |
+
+Guardas: `tests/contrast-theme.test.tsx` suma el test «chips, botones llenos y
+enlaces AA en claro y oscuro» que recorre la familia `*-text` sobre los tintes
+de cada superficie, los pares de botones llenos (`onbrand`/`on-ok`/`on-bad`),
+`fono-light` como enlace y el pie del riel propio.
+
+### 9.2 Defaults verificados
+
+- `IconAction`: el default pasa a **44 px móvil / 28 px escritorio**; los
+  `ICON_TARGETS` locales de OPS/FIN (44/28 en filas y 44/32 en tarjetas) siguen
+  como decisión de diseño, ya no son necesarios para el mínimo táctil.
+- `Button` success/danger: usan `--c-on-ok`/`--c-on-bad`, declarados en los
+  tres temas; la app los usa (Finanzas/Inventario) y ya no heredan el blanco de
+  la librería sobre rellenos claros del tema oscuro.
+- `EnlaceLinea`: no es público (vive dentro de `AvisoPrivacidad`), que ahora
+  pinta `text-fono-light`; el mapeo de la app pasa AA sobre lienzo y paneles.
+- `NavLateral`: la app **no lo usa** (riel y drawer propios); el default
+  `text-fore` del slot `pie` queda documentado para cuando se adopte.
+- `DataTable`/`encabezadoFijo` y buscador #108: el encabezado fijo es opt-in y
+  la app no lo usa; el buscador de personas de la librería no reemplaza todavía
+  a `AssigneePicker`/`WorkspaceSearch` (pendiente P13).
+
+### 9.3 Pendientes de esta tanda
+
+- **P12 · `CargaIA` (#11) y motor `owncoding-ui/ia` (#12).** La biblioteca cubre
+  la forma de la Fase 1 (texto → tarjetas → crear) y un motor server portable;
+  la app tiene `app/ia-carga.tsx` (Fase 2: coincidencias, vincular/crear y
+  acciones confirmadas) y `backend/ia-carga.js`. Adoptar `CargaIA` hoy dejaría
+  la Fase 2 afuera: primero se propone a la biblioteca el esquema de
+  coincidencias/acciones y, cuando #119 cierre, se evalúa migrar el motor
+  portable al backend. Decisión: **no adoptar todavía**, documentado.
+- **P13 · Buscador de personas (#108).** Evaluar `BuscadorPersonas` contra el
+  `AssigneePicker` propio (mismo criterio: un objeto por tipo).
+- **P2/P3/P4** siguen vigentes (paleta de comandos, toasts, `ventanaDeLista`).
+
+Evidencia visual: `docs/qa/a11y-124/` — 16 capturas 1440×900 y 390×844, claro y
+oscuro (chips, botones llenos y enlaces, acciones de fila, pie institucional y
+pie del riel), sobre `build-tools/visual-harness/fixtures/a11y-124.mjs`
+(0 hallazgos de geometría).
