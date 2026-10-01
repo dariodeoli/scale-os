@@ -64,6 +64,7 @@ async function run(){
  assert(labelNode('Valor de compra · Opcional'));assert.equal(select('Método de depreciación').props.value,'none');assert(labelNode('Valor residual'));
  change('Valor de compra · Opcional','1000000');change('Fecha de compra · Opcional','2026-02-01');
  act(()=>select('Método de depreciación').props.onChange('linear'));change('Vida útil (meses)','24');
+ change('Nombre del equipo','Equipo con valor');
  await submit();
  assert.equal(formDone,1);assert.equal(writes.at(-1)!.path,'/api/agency/inventory');assert.equal(writes.at(-1)!.method,'POST');
  assert.equal(writes.at(-1)!.body.purchase_value,'1000000');assert.equal(writes.at(-1)!.body.purchase_date,'2026-02-01');
