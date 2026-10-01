@@ -28,6 +28,9 @@ export const IA_TIPO_LABEL: Record<IaTipo, string> = {
 
 export const IA_CARGA_PATH = '/api/ia/carga';
 
+/** Candidatos que muestra el análisis por registro (contrato de #119). */
+export const IA_COINCIDENCIAS_MAX = 5;
+
 /** Configuración del asistente tal como la sirve `GET /api/ia/carga`. */
 export type IaConfig = {configurada: boolean; modelo: string | null; tipos: IaTipo[]};
 
@@ -92,6 +95,17 @@ export type IaAnalisis = {
 /** Resultado completo del análisis: registros + acciones propuestas (#119). */
 export type IaResultado = IaAnalisis & {acciones: AccionIA[]};
 
+/** Etiqueta visible de cada señal de match; una señal desconocida se muestra cruda. */
+export function senalMatchLabel(senal: string): string {
+  const labels: Record<string, string> = {
+    ruc_ci_exacto: 'RUC/CI coincide',
+    correo: 'mismo correo',
+    telefono: 'mismo teléfono',
+    nombre_normalizado: 'nombre igual',
+  };
+  return labels[senal] || senal.replace(/_/g, ' ');
+}
+
 /* ------------------------------------------------------------------ normalización */
 
 const record = (value: unknown): Record<string, unknown> => (value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {});
@@ -128,7 +142,7 @@ const coincidenciasDe = (value: unknown): CoincidenciaIA[] => {
       return {id, nombre, senales: senalesDe(fila.senales), activo: fila.activo !== false};
     })
     .filter((item): item is CoincidenciaIA => item !== null);
-  return filas.slice(0, 5);
+  return filas.slice(0, IA_COINCIDENCIAS_MAX);
 };
 
 /** Config defensiva: sin `tipos` desconocidos y con la forma exacta de la UI. */
