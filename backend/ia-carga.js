@@ -1,4 +1,4 @@
-// «Carga con IA» (scale-os#117 y #119): motor server-side del asistente.
+// «Carga con IA» (scale-os#117, #119 y #127): motor server-side del asistente.
 //
 // Una persona pega texto libre y un proveedor de IA configurable por entorno
 // (`IA_API_KEY`, `IA_MODELO`, `IA_BASE_URL`; API compatible `chat/completions`
@@ -6,14 +6,17 @@
 // contrato compartido: clientes y equipos de inventario. Fase 2 (#119): cada
 // registro se enriquece con coincidencias locales (`estado` + `coincidencias`)
 // y el análisis propone `acciones[]` (p. ej. registrar un cobro) resolviendo el
-// cliente contra la base **sin mandarla al proveedor**. Este módulo **no crea
-// nada**: el panel confirma con los endpoints existentes (mismos permisos,
+// cliente contra la base **sin mandarla al proveedor**. Resiliencia (#127):
+// razonamiento acotado (`reasoning_effort`), presupuesto de tokens según el
+// texto, detección de `finish_reason=length`, reintento único ante JSON
+// inválido/vacío y timeout de 60 s con mensajes accionables. Este módulo **no
+// crea nada**: el panel confirma con los endpoints existentes (mismos permisos,
 // aislamiento y auditoría).
 //
 // Privacidad (Ley 7593/2025): se manda **solo el texto pegado** —nunca la base—
 // y el servidor no lo persiste; únicamente queda la traza del encargado
-// (modelo y conteos) en la bitácora de datos personales. Sin `IA_API_KEY` la
-// función queda apagada con un mensaje claro (`ia_no_configurada`).
+// (modelo, conteos, finish_reason) en la bitácora de datos personales. Sin
+// `IA_API_KEY` la función queda apagada con un mensaje claro (`ia_no_configurada`).
 import {roleCan} from './permissions.js';
 import {throttle} from './password-access.js';
 import {logPersonalDataAccess} from './personal-data.js';
@@ -26,16 +29,34 @@ export const IA_TEXTO_MAX=20000;
 export const IA_REGISTROS_MAX=25;
 /** Llamadas por organización dentro de la ventana del rate-limit (15 min). */
 export const IA_RATE_LIMIT=10;
-/** Tope de tokens de la respuesta del modelo. */
-export const IA_TOKENS_MAX=4000;
-/** Timeout de la llamada al proveedor. */
-export const IA_TIMEOUT_MS=30000;
+/** Presupuesto base de tokens de la respuesta (razonamiento incluido). */
+export const IA_TOKENS_BASE=5000;
+/** Tope de tokens para textos grandes (auditoría #127: el razonamiento suma). */
+export const IA_TOKENS_MAX=8000;
+/** Timeout de la llamada al proveedor (60 s: 20k + razonamiento puede tardar). */
+export const IA_TIMEOUT_MS=60000;
+/** Esfuerzo de razonamiento sugerido (Groq lo soporta para gpt-oss). */
+export const IA_REASONING_EFFORT_PREDETERMINADO='low';
+/** Intentos totales del análisis: la pasada original + un reintento. */
+export const IA_INTENTOS_MAX=2;
 /** Máximo de coincidencias locales por registro detectado. */
 export const IA_COINCIDENCIAS_MAX=5;
 /** Tope de filas que se traen por tipo para el matching local (SQL acotado). */
 export const IA_MATCH_LIMIT=300;
 /** Acciones soportadas por el motor (contrato extensible). */
 export const IA_ACCIONES=['registrar_cobro'];
+
+/**
+ * Presupuesto de tokens según el largo del texto pegado: corto entra con el
+ * base; los textos grandes (donde el JSON puede ser más largo) suben hasta el
+ * tope, siempre por encima del razonamiento medido (380–802 tokens).
+ */
+export function iaTokensPresupuesto(texto){
+ const largo=String(texto??'').length;
+ if(largo<=4000)return IA_TOKENS_BASE;
+ if(largo<=12000)return 6500;
+ return IA_TOKENS_MAX;
+}
 
 /** Modelo sugerido si no hay `IA_MODELO` (del grupo, vía Groq). */
 export const IA_MODELO_PREDETERMINADO='openai/gpt-oss-120b';
@@ -49,8 +70,16 @@ export const IA_CAPACIDAD={clientes:'clients.manage',equipos:'inventory.manage'}
 
 const fail=(message,status=400,code=null)=>{throw Object.assign(new Error(message),{status,...(code?{code}:{})});};
 
-/** Error con mensaje mostrable (nunca incluye la clave ni el texto pegado). */
-export class IaError extends Error {}
+/**
+ * Error con mensaje mostrable (nunca incluye la clave ni el texto pegado).
+ * `code` viaja al panel; `retryable` habilita el reintento único del análisis y
+ * `finishReason` queda en la bitácora cuando el proveedor lo informó.
+ */
+export class IaError extends Error {
+ constructor(message,{code=null,retryable=false,finishReason=null,presupuesto=null}={}){
+  super(message);this.name='IaError';this.code=code;this.retryable=retryable;this.finishReason=finishReason;this.presupuesto=presupuesto;
+ }
+}
 
 // ── Configuración por entorno ───────────────────────────────────────────────
 
@@ -66,7 +95,9 @@ export function iaConfig(env=process.env){
  const base=(env.IA_BASE_URL??'').trim()||IA_BASE_URL_PREDETERMINADA;
  let baseUrl=IA_BASE_URL_PREDETERMINADA;
  try{baseUrl=new URL(base).toString().replace(/\/+$/,'');}catch{baseUrl=IA_BASE_URL_PREDETERMINADA;}
- return {apiKey,modelo:(env.IA_MODELO??'').trim()||IA_MODELO_PREDETERMINADO,baseUrl};
+ // `IA_REASONING_EFFORT=none` lo omite para proveedores que no lo aceptan.
+ const effortRaw=(env.IA_REASONING_EFFORT??'').trim()||IA_REASONING_EFFORT_PREDETERMINADO;
+ return {apiKey,modelo:(env.IA_MODELO??'').trim()||IA_MODELO_PREDETERMINADO,baseUrl,reasoningEffort:effortRaw.toLowerCase()==='none'?null:effortRaw};
 }
 
 /** Tipos que el rol puede crear; vacío = no puede usar el asistente. */
@@ -87,20 +118,39 @@ export function iaProviderDeConfig(config,{fetcher=fetch}={}){
     respuesta=await fetcher(`${config.baseUrl}/chat/completions`,{
      method:'POST',
      headers:{'Content-Type':'application/json',Authorization:`Bearer ${config.apiKey}`},
-     body:JSON.stringify({model:config.modelo,messages:mensajes,temperature:0.1,max_tokens:maxTokens,response_format:{type:'json_object'}}),
+     body:JSON.stringify({
+      model:config.modelo,
+      messages:mensajes,
+      temperature:0.1,
+      max_tokens:maxTokens,
+      response_format:{type:'json_object'},
+      ...(config.reasoningEffort?{reasoning_effort:config.reasoningEffort}:{}),
+     }),
      signal:AbortSignal.timeout(IA_TIMEOUT_MS),
      cache:'no-store',
     });
-   }catch{throw new IaError('No pudimos conectar con el proveedor de IA.');}
+   }catch(error){
+    const timeout=error&&(error.name==='TimeoutError'||error.name==='AbortError');
+    throw new IaError(
+     timeout?'El proveedor de IA tardó más de un minuto en responder. Probá de nuevo en un momento.':'No pudimos conectar con el proveedor de IA. Probá de nuevo en un momento.',
+     {code:'ia_proveedor'},
+    );
+   }
    if(!respuesta.ok){
-    if(respuesta.status===401||respuesta.status===403)throw new IaError('El proveedor de IA rechazó la credencial: revisá IA_API_KEY en el servidor.');
-    if(respuesta.status===429)throw new IaError('El proveedor de IA está limitando las consultas; probá de nuevo en un rato.');
-    throw new IaError(`El proveedor de IA respondió ${respuesta.status}.`);
+    if(respuesta.status===401||respuesta.status===403)throw new IaError('El proveedor de IA rechazó la credencial: revisá IA_API_KEY en el servidor.',{code:'ia_proveedor'});
+    if(respuesta.status===429)throw new IaError('El proveedor de IA está limitando las consultas; probá de nuevo en un rato.',{code:'ia_proveedor'});
+    throw new IaError(`El proveedor de IA respondió ${respuesta.status}. Probá de nuevo en un momento.`,{code:'ia_proveedor'});
    }
    const datos=await respuesta.json().catch(()=>null);
-   const contenido=datos?.choices?.[0]?.message?.content;
-   if(typeof contenido!=='string'||!contenido.trim())throw new IaError('La IA no devolvió contenido.');
-   return contenido;
+   const eleccion=datos?.choices?.[0];
+   const contenido=eleccion?.message?.content;
+   // El análisis decide si está vacío (reintentable) o truncado; acá solo se
+   // expone lo que devolvió el proveedor, sin el texto en ninguna traza.
+   return {
+    contenido:typeof contenido==='string'?contenido:'',
+    finishReason:typeof eleccion?.finish_reason==='string'?eleccion.finish_reason:null,
+    uso:datos?.usage??null,
+   };
   },
  };
 }
@@ -159,7 +209,8 @@ export function parsearSalidaIa(crudo){
  try{return JSON.parse(limpio);}catch{
   const desde=limpio.indexOf('{'),hasta=limpio.lastIndexOf('}');
   if(desde>=0&&hasta>desde){try{return JSON.parse(limpio.slice(desde,hasta+1));}catch{/* cae al error de abajo */}}
-  throw new IaError('La IA no devolvió un JSON válido.');
+  // Un JSON roto puede ser una salida rara del modelo: se reintenta una vez.
+  throw new IaError('La IA no devolvió un JSON válido.',{code:'ia_json',retryable:true});
  }
 }
 
@@ -519,20 +570,50 @@ export function resolverClienteDeAccion(accion,candidatos){
 
 /**
  * Una pasada completa contra un proveedor: prompt → JSON → validación →
- * normalización (sin base). Las coincidencias y la resolución de acciones se
- * agregan después, en el handler, con los candidatos de la organización.
+ * normalización (sin base). Resiliencia (#127): presupuesto de tokens según el
+ * texto, `finish_reason=length` con mensaje accionable y **un** reintento ante
+ * JSON inválido o contenido vacío (nunca ante 429/timeout: no se castiga al
+ * proveedor). Las coincidencias y la resolución de acciones se agregan después,
+ * en el handler, con los candidatos de la organización.
  */
 export async function analizarCarga({texto,tipos,proveedor}){
- if(!proveedor)throw new IaError('No hay proveedor de IA configurado.');
- const contenido=await proveedor.analizar(mensajesDeCarga(texto,tipos),{maxTokens:IA_TOKENS_MAX});
- const datos=parsearSalidaIa(contenido);
- const registros=normalizarAnalisis(datos,tipos);
- if(tipos.includes('clientes')){
-  const {acciones,avisos}=normalizarAcciones(datos);
-  registros.avisos.push(...avisos);
-  return {registros,acciones};
+ if(!proveedor)throw new IaError('No hay proveedor de IA configurado.',{code:'ia_proveedor'});
+ const mensajes=mensajesDeCarga(texto,tipos);
+ const maxTokens=iaTokensPresupuesto(texto);
+ const pasada=async()=>{
+  const salida=await proveedor.analizar(mensajes,{maxTokens});
+  // Compatibilidad con proveedores de prueba que devuelven el contenido suelto.
+  const crudo=typeof salida==='string'?salida:salida?.contenido;
+  const finishReason=typeof salida==='object'&&salida?salida.finishReason??null:null;
+  const uso=typeof salida==='object'&&salida?salida.uso??null:null;
+  const contenido=typeof crudo==='string'?crudo:'';
+  if(finishReason==='length'){
+   throw new IaError('El texto era muy largo para una sola pasada: probalo en dos partes.',{code:'ia_truncado',retryable:false,finishReason,presupuesto:maxTokens});
+  }
+  if(!contenido.trim()){
+   throw new IaError('La IA no devolvió contenido. Probá de nuevo en un momento.',{code:'ia_vacio',retryable:true,finishReason,presupuesto:maxTokens});
+  }
+  const datos=parsearSalidaIa(contenido);
+  return {datos,finishReason,uso};
+ };
+ let ultimo=null;
+ for(let intento=1;intento<=IA_INTENTOS_MAX;intento++){
+  try{
+   const {datos,finishReason,uso}=await pasada();
+   const registros=normalizarAnalisis(datos,tipos);
+   const acciones=tipos.includes('clientes')?(()=>{
+    const {acciones,avisos}=normalizarAcciones(datos);
+    registros.avisos.push(...avisos);
+    return acciones;
+   })():[];
+   return {registros,acciones,meta:{finishReason,intentos:intento,presupuesto:maxTokens,tokens_salida:uso?.completion_tokens??null}};
+  }catch(error){
+   if(!(error instanceof IaError))throw error;
+   ultimo=error;
+   if(!error.retryable||intento===IA_INTENTOS_MAX)throw error;
+  }
  }
- return {registros,acciones:[]};
+ throw ultimo||new IaError('No se pudo analizar el texto.',{code:'ia_proveedor'});
 }
 
 // ── Endpoint ────────────────────────────────────────────────────────────────
@@ -567,7 +648,11 @@ export async function iaCarga({req,res,url,db,session,body,send,proveedor=null})
   try{
    analisis=await analizarCarga({texto,tipos,proveedor:proveedor||iaProviderDeConfig(config)});
   }catch(error){
-   if(error instanceof IaError)fail(error.message,502,'ia_proveedor');
+   if(error instanceof IaError){
+    // Traza del fallo del encargado (código y finish_reason), nunca el texto.
+    await logPersonalDataAccess(db,{organizationId:user.organization_id,actorUserId:user.id,actorKind:'user',actorLabel:user.full_name||user.email||null,action:'ai.transfer',context:'ia_carga',details:{modelo:config.modelo,error:error.code||'ia_proveedor',finish_reason:error.finishReason??null,presupuesto:error.presupuesto??null}}).catch(()=>false);
+    fail(error.message,502,error.code||'ia_proveedor');
+   }
    throw error;
   }
   // Coincidencias y acciones se resuelven localmente con la empresa activa; la
@@ -576,9 +661,9 @@ export async function iaCarga({req,res,url,db,session,body,send,proveedor=null})
   const registros=enriquecerCoincidencias(analisis.registros,candidatos);
   if(candidatos.truncado)registros.avisos.push('Hay muchos registros parecidos en la empresa: revisá las coincidencias con atención.');
   const acciones=analisis.acciones.map(accion=>resolverClienteDeAccion(accion,candidatos.clientes));
-  // Traza de la transferencia al encargado (Ley 7593/2025): modelo y conteos,
-  // nunca el texto pegado.
-  await logPersonalDataAccess(db,{organizationId:user.organization_id,actorUserId:user.id,actorKind:'user',actorLabel:user.full_name||user.email||null,action:'ai.transfer',context:'ia_carga',details:{modelo:config.modelo,clientes:registros.clientes.length,equipos:registros.equipos.length,acciones:acciones.length}});
+  // Traza de la transferencia al encargado (Ley 7593/2025): modelo, conteos y
+  // finish_reason; nunca el texto pegado.
+  await logPersonalDataAccess(db,{organizationId:user.organization_id,actorUserId:user.id,actorKind:'user',actorLabel:user.full_name||user.email||null,action:'ai.transfer',context:'ia_carga',details:{modelo:config.modelo,clientes:registros.clientes.length,equipos:registros.equipos.length,acciones:acciones.length,finish_reason:analisis.meta.finishReason??null,intentos:analisis.meta.intentos,presupuesto:analisis.meta.presupuesto,tokens_salida:analisis.meta.tokens_salida}});
   send(res,200,{registros,acciones,modelo:config.modelo});
   return true;
  }catch(error){
