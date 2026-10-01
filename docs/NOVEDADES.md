@@ -2,6 +2,22 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.162
+
+### Asistente «Carga con IA»
+
+- **Confianza 0–100 por candidato**: cada coincidencia muestra su puntaje con las señales que la acercan (RUC/CI, correo, teléfono, nombre), tolerante a typos («Jhon Perez» encuentra a «Juan Pérez»). Umbrales del estándar: ≥90 vincula, 60–89 propone el mejor candidato y <60 trata el registro como nuevo.
+- **Carrito editable**: podés agregar registros a mano, duplicar o descartar tarjetas antes de crear; la preselección por confianza deja el % a la vista y **vincular no modifica la ficha existente**.
+- **Verificación contra el texto**: si un dato no aparece en lo que pegaste (nombre, RUC/CI, teléfono, correo, montos), la tarjeta lo marca como «no está en el texto» en vez de crearlo en silencio.
+- **Monedas y fechas**: PYG y USD se interpretan; una moneda extranjera no se lee como guaraníes (se pide carga manual) y las fechas relativas («hoy», «ayer», «dd/mm») se resuelven con el motivo visible.
+- **Imágenes de confirmación**: clientes y equipos muestran logo/foto cuando el motor las resuelve, siempre con fallback seguro (una imagen que no sea https se descarta) y avisos por tarjeta.
+
+### Finanzas
+
+- **Cobros parciales o seña**: se puede registrar un monto menor al saldo del cliente; la diferencia queda pendiente y el resultado lo informa.
+- **División en partes y cuentas**: un mismo cobro se reparte entre 2 y 10 cuentas con suma exacta, respetando los permisos y el aislamiento de siempre.
+- **Método visible al confirmar**: la cuenta elegida muestra banco, número o alias, para que la confirmación sea sobre el dato real y no sobre un nombre suelto. Evidencia en `docs/qa/qa-ia-cobro-133/`.
+
 ## v1.0.161
 
 ### Operaciones
