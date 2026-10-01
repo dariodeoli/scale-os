@@ -2,6 +2,26 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.158
+
+### Comercial
+
+- **El buscador del directorio vuelve a mostrar su texto guía**: la lupa ya no se monta sobre el placeholder en móvil ni tablet, y el área del botón recupera el tamaño táctil correcto.
+- Barrido de la ola 2 en Clientes, Cuadrícula, Pipeline, Planes y Presupuestos (390 y 768, claro y oscuro, modales y estados vacíos) con evidencia antes/después en `docs/qa/ola2-com/`.
+
+### Finanzas
+
+- **Se terminan los desbordes horizontales** en Comisiones y Producción semanal a 390 y 768: las grillas pasan a una sola columna y dejan de empujar el contenido fuera de la pantalla.
+- **Validación visible al registrar un cobro**: si falta la factura, la cuenta o el importe es cero, el formulario lo dice en el momento en vez de fallar en silencio.
+- Evidencia del barrido (mora, previsión, informes, comisiones y modales) en `docs/qa/qa-fin-126/`.
+
+### Plataforma y Equipo
+
+- **Instalaciones nuevas con el esquema completo**: en una base recién creada ahora se aplican también las migraciones que todavía no entran en la cadena curada (antes quedaban pendientes para siempre); con el tracker de migraciones acotado al baseline real.
+- **Historial legible**: los cambios de estado muestran etiquetas humanas (Activo, Completado, En revisión…) en vez del slug crudo, y el contador en cero se dibuja correctamente.
+- **Permisos cómodos en tablet**: los interruptores de la matriz conservan un área táctil de 44 px también a 768.
+- Evidencia del barrido (login, registro, Equipo, permisos, preferencias, papelera, actividades y superadmin) en `docs/qa/plt-qa2/`.
+
 ## v1.0.157
 
 ### Asistente «Carga con IA» (Fase 2)
