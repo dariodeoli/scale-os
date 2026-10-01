@@ -128,6 +128,16 @@ assert.match(read('app/sections/configuracion.tsx'), /grid gap-4 lg:grid-cols-\[
 for (const file of ['app/superadmin/catalog.tsx', 'app/superadmin/audit.tsx', 'app/superadmin/access.tsx'])
   assert.match(read(file), /<EmptyBlock\s+compact/, `los vacíos del panel global son compactos (${file})`);
 
+// QA ola 2 (#125): el Historial no pinta slugs crudos y los interruptores de la
+// matriz de permisos conservan un área táctil de 44 px también en tablet.
+const history = read('app/work-history.tsx');
+assert.match(history, /workStatusLabel\(status\)/, 'el Historial traduce los estados de pieza con la fuente única');
+assert.match(history, /projectStatusLabels\[status\]/, 'los estados de proyecto del Historial tienen etiqueta');
+assert.match(history, /historyStatusLabel\(str\(r,'table_name'\),str\(r,'next_status'\)\)/, 'el Historial no pinta slugs crudos');
+const matrix = read('app/permissions-matrix.tsx');
+assert.match(matrix, /after:-inset-y-3/, 'el interruptor de la matriz tiene área táctil de 44 px');
+assert.doesNotMatch(matrix, /max-md:after:content-none/, 'el área táctil del interruptor no se apaga en tablet');
+
 console.log(
   'PASS: retirados con reinvitación y lote resiliente, portal con invitaciones y reenvío de verificación, rutas/componentes muertos eliminados, cobro preseleccionado, /status desde la ayuda y correo comprobado contra el API',
 );

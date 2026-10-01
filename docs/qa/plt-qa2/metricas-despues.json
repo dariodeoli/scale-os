@@ -1,0 +1,154 @@
+[
+ {
+  "screen": "historial",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial-vacio",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 475
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 598
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 737
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 823
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "papelera-vacia",
+  "label": "despues",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 469
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial",
+  "label": "despues",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "historial-vacio",
+  "label": "despues",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 786
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 921
+   },
+   {
+    "tag": "A",
+    "cls": "",
+    "right": 1003
+   }
+  ],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ },
+ {
+  "screen": "papelera-vacia",
+  "label": "despues",
+  "width": 768,
+  "height": 1024,
+  "theme": "light",
+  "overflow": 0,
+  "wide": [],
+  "dialog": null,
+  "smallControls": null,
+  "active": "body"
+ }
+]
