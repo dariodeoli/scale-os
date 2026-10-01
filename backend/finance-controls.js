@@ -1,4 +1,5 @@
 import {fail,text,id,optId,amount,option,date,owned} from './suite-validation.js';
+import {assertRecordAvailable} from './record-lifecycle.js';
 import {currencies} from './currencies.js';
 import {roleCan} from './permissions.js';
 import {attributeActors} from './actor-identity.js';
@@ -12,6 +13,13 @@ async function retryRecord(c,table,org,key,dateColumn){
  if(!key)return null;if(typeof key!=='string'||! /^[a-f0-9-]{36}$/.test(key))fail('Identificador de operación inválido');
  await c.query('select pg_advisory_xact_lock(hashtextextended($1,0))',[`${table}:${org}:${key}`]);
  return(await c.query(`select *,${dateColumn}::text as ${dateColumn} from ${table} where organization_id=$1 and request_key=$2`,[org,key])).rows[0]||null;
+}
+// Llave de idempotencia opcional del cobro por cliente (#121): el lote reparte la
+// acción en una fila por factura y las filas siguientes llevan `#n`.
+function paymentBatchKey(value){
+ if(value===undefined||value===null||value==='')return null;
+ if(typeof value!=='string'||! /^[a-f0-9-]{36}$/.test(value))fail('Identificador de operación inválido');
+ return value;
 }
 export async function financeControls({req,res,url,db,session,body,send}){
  const route=url.pathname.match(/^\/api\/agency\/(payments|transfers|reconciliation)(?:\/(\d+))?(?:\/(reverse|match|unmatch|auto))?$/);
@@ -57,19 +65,66 @@ export async function financeControls({req,res,url,db,session,body,send}){
     // Ventana por defecto de 20 cobros + `hasMore` (#67), el mismo patrón que
     // `/invoices`: `?limit=all` trae el histórico completo a demanda.
     const requested=url.searchParams.get('limit');
-    const columns=`select p.*,i.number as invoice_number,cl.name as client_name,a.name as account_name,a.account_type,a.currency,u.email as received_by_email,r.id as reversal_id,r.reason as reversal_reason,r.created_by_user_id as reversed_by_user_id,${dateText('p','received_on')},r.reversed_on::text as reversed_on from agency_payments p join agency_invoices i on i.id=p.invoice_id join agency_clients cl on cl.id=i.client_id join bank_accounts a on a.id=p.account_id left join users u on u.id=p.received_by_user_id left join agency_payment_reversals r on r.payment_id=p.id where p.organization_id=$1 order by p.received_on desc,p.id desc`;
+    const columns=`select p.*,i.number as invoice_number,i.client_id::text as client_id,cl.name as client_name,a.name as account_name,a.account_type,a.currency,u.email as received_by_email,r.id as reversal_id,r.reason as reversal_reason,r.created_by_user_id as reversed_by_user_id,${dateText('p','received_on')},r.reversed_on::text as reversed_on from agency_payments p join agency_invoices i on i.id=p.invoice_id join agency_clients cl on cl.id=i.client_id join bank_accounts a on a.id=p.account_id left join users u on u.id=p.received_by_user_id left join agency_payment_reversals r on r.payment_id=p.id where p.organization_id=$1 order by p.received_on desc,p.id desc`;
     if(requested==='all')result={payments:(await c.query(columns,[org])).rows,hasMore:false};
     else{const rows=(await c.query(`${columns} limit 21`,[org])).rows;result={payments:rows.slice(0,20),hasMore:rows.length>20};}
    }
    else if(req.method==='POST'&&!key){
     const b=await body(req),paid=amount(b.amount);if(!paid)fail('El importe debe ser mayor a cero');
-    const retry=await retryRecord(c,'agency_payments',org,b.requestId,'received_on');
-    if(retry){if(String(retry.invoice_id)!==String(b.invoiceId)||String(retry.account_id)!==String(b.accountId)||Number(retry.amount)!==paid)fail('El identificador ya fue usado para otro cobro',409);await attributeActors(c,org,[{rows:retry,userId:'received_by_user_id'}]);await c.query('commit');tx=false;send(res,200,{payment:retry,alreadyRecorded:true});return true;}
-    const invoice=await owned(c,'agency_invoices',b.invoiceId,org),account=await owned(c,'bank_accounts',b.accountId,org);
-    if(!account.active||account.currency!==invoice.currency)fail('La cuenta debe estar activa y usar la moneda de la factura');
-    if(['cancelled','draft'].includes(invoice.status)||Math.round(paid*100)>Math.round((Number(invoice.total)-Number(invoice.paid_amount))*100))fail('El cobro supera el saldo pendiente o la factura no está emitida');
-    const receiver=optId(b.receivedByUserId)||user.id;if(!(await c.query('select 1 from organization_members where organization_id=$1 and user_id=$2 and active=true',[org,receiver])).rows.length)fail('La persona debe tener acceso activo a la empresa');
-    result={payment:(await c.query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,$2,$3,$4,coalesce($5::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$6,$7,$8) returning *,received_on::text as received_on",[org,invoice.id,account.id,paid,date(b.receivedOn),text(b.reference||'',120),receiver,b.requestId||null])).rows[0]};status=201;
+    const hasInvoice=b.invoiceId!==undefined&&b.invoiceId!==null&&b.invoiceId!=='';
+    const hasClient=b.clientId!==undefined&&b.clientId!==null&&b.clientId!=='';
+    if(hasInvoice&&hasClient)fail('Elegí la factura o el cliente del cobro, no ambos');
+    const receiver=optId(b.receivedByUserId)||user.id;
+    if(hasClient){
+     // Cobro por cliente (acción `registrar_cobro` de «Carga con IA», #121):
+     // cliente + monto + fecha + detalle sin factura explícita. Aplica FIFO
+     // sobre las facturas con saldo de esa moneda y reparte una fila por
+     // factura; misma capacidad, auditoría, aislamiento e idempotencia que el
+     // cobro por factura. La cuenta de ingreso es obligatoria: el dinero entra
+     // a una cuenta concreta y la IA no puede adivinarla.
+     const clientKey=id(b.clientId),on=date(b.receivedOn);
+     const account=(await c.query('select * from bank_accounts where id=$1 and organization_id=$2 for update',[id(b.accountId),org])).rows[0];
+     if(!account)fail('Elegí una cuenta de ingreso de esta empresa',404);
+     if(!account.active)fail('La cuenta de ingreso debe estar activa');
+     const client=(await c.query('select * from agency_clients where id=$1 and organization_id=$2 for update',[clientKey,org])).rows[0];
+     if(!client)fail('El cliente no existe en esta empresa',404);
+     await assertRecordAvailable(c,'agency_clients',client);
+     if(!client.active)fail('El cliente está inactivo: no se registran cobros nuevos',409);
+     if(on&&on>(await c.query("select (clock_timestamp() at time zone 'America/Asuncion')::date::text as today")).rows[0].today)fail('La fecha del cobro no puede ser futura');
+     if(!(await c.query('select 1 from organization_members where organization_id=$1 and user_id=$2 and active=true',[org,receiver])).rows.length)fail('La persona debe tener acceso activo a la empresa');
+     const requestKey=paymentBatchKey(b.requestId);
+     if(requestKey)await c.query('select pg_advisory_xact_lock(hashtextextended($1,0))',[`agency_payments:${org}:${requestKey}`]);
+     const cents=Math.round(paid*100);
+     if(requestKey){
+      const prior=(await c.query(`select p.*,i.number as invoice_number,i.client_id::text as client_id,${dateText('p','received_on')} from agency_payments p join agency_invoices i on i.id=p.invoice_id where p.organization_id=$1 and (p.request_key=$2 or p.request_key like $2||'#%') order by p.id`,[org,requestKey])).rows;
+      if(prior.length){
+       const total=prior.reduce((sum,row)=>sum+Math.round(Number(row.amount)*100),0);
+       if(prior.some(row=>String(row.account_id)!==String(account.id)||row.client_id!==clientKey)||total!==cents)fail('El identificador ya fue usado para otro cobro',409);
+       await attributeActors(c,org,[{rows:prior,userId:'received_by_user_id'}]);
+       await c.query('commit');tx=false;send(res,200,{payments:prior,total:paid,alreadyRecorded:true});return true;
+      }
+     }
+     const openInvoices=(await c.query(`select * from agency_invoices where organization_id=$1 and client_id=$2 and currency=$3 and status not in ('cancelled','draft') and total-paid_amount>0 order by due_on nulls last,issued_on,id for update`,[org,clientKey,account.currency])).rows;
+     const outstanding=openInvoices.reduce((sum,row)=>sum+Math.round((Number(row.total)-Number(row.paid_amount))*100),0);
+     if(outstanding<cents)fail(`El cobro supera el saldo pendiente del cliente (${(outstanding/100).toLocaleString('es-PY')} ${account.currency})`,409);
+     let remaining=cents,index=0;const inserted=[];
+     for(const invoice of openInvoices){
+      if(remaining<=0)break;
+      const slice=Math.min(remaining,Math.round((Number(invoice.total)-Number(invoice.paid_amount))*100));if(slice<=0)continue;
+      const key=requestKey?(index===0?requestKey:`${requestKey}#${index}`):null;
+      inserted.push((await c.query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,$2,$3,$4,coalesce($5::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$6,$7,$8) returning *,received_on::text as received_on",[org,invoice.id,account.id,slice/100,on,text(b.reference||'',120),receiver,key])).rows[0]);
+      remaining-=slice;index++;
+     }
+     result={payments:inserted,total:paid,appliedTo:inserted.map(row=>({invoiceId:String(row.invoice_id),amount:Number(row.amount)}))};status=201;
+    }else{
+     const retry=await retryRecord(c,'agency_payments',org,b.requestId,'received_on');
+     if(retry){if(String(retry.invoice_id)!==String(b.invoiceId)||String(retry.account_id)!==String(b.accountId)||Number(retry.amount)!==paid)fail('El identificador ya fue usado para otro cobro',409);await attributeActors(c,org,[{rows:retry,userId:'received_by_user_id'}]);await c.query('commit');tx=false;send(res,200,{payment:retry,alreadyRecorded:true});return true;}
+     const invoice=await owned(c,'agency_invoices',b.invoiceId,org),account=await owned(c,'bank_accounts',b.accountId,org);
+     if(!account.active||account.currency!==invoice.currency)fail('La cuenta debe estar activa y usar la moneda de la factura');
+     if(['cancelled','draft'].includes(invoice.status)||Math.round(paid*100)>Math.round((Number(invoice.total)-Number(invoice.paid_amount))*100))fail('El cobro supera el saldo pendiente o la factura no está emitida');
+     if(!(await c.query('select 1 from organization_members where organization_id=$1 and user_id=$2 and active=true',[org,receiver])).rows.length)fail('La persona debe tener acceso activo a la empresa');
+     result={payment:(await c.query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,$2,$3,$4,coalesce($5::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$6,$7,$8) returning *,received_on::text as received_on",[org,invoice.id,account.id,paid,date(b.receivedOn),text(b.reference||'',120),receiver,b.requestId||null])).rows[0]};status=201;
+    }
    }else if(req.method==='POST'&&key&&action==='reverse'){
     const b=await body(req),reason=text(b.reason,500);if(reason.length<5)fail('Explicá el motivo de la reversión');
     const p=await owned(c,'agency_payments',key,org);

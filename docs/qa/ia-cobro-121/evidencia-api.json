@@ -1,0 +1,203 @@
+{
+  "fecha": "2026-10-01T18:46:27.150Z",
+  "base": "http://127.0.0.1:3021",
+  "cuenta": {
+    "id": "8",
+    "name": "Banco Continental · Caja de ahorro en guaraníes",
+    "currency": "PYG"
+  },
+  "clienteId": "62",
+  "facturas": [
+    {
+      "id": "237",
+      "total": 300000,
+      "dueOn": "2026-08-01"
+    },
+    {
+      "id": "238",
+      "total": 500000,
+      "dueOn": "2026-09-15"
+    }
+  ],
+  "casos": [
+    {
+      "nombre": "cobro por cliente con reparto FIFO",
+      "solicitud": {
+        "clientId": "62",
+        "accountId": "8",
+        "amount": 600000,
+        "receivedOn": "2026-10-01",
+        "reference": "Cobro IA #121",
+        "requestId": "12100000-1210-4121-a121-000000000121"
+      },
+      "estado": 201,
+      "filasNuevas": 2,
+      "respuesta": {
+        "payments": [
+          {
+            "id": "234",
+            "organization_id": "6",
+            "invoice_id": "237",
+            "account_id": "8",
+            "amount": "300000.00",
+            "received_on": "2026-10-01",
+            "reference": "Cobro IA #121",
+            "created_at": "2026-10-01T18:46:27.070Z",
+            "received_by_user_id": "19",
+            "request_key": "12100000-1210-4121-a121-000000000121",
+            "actor_name": "Sebastián Benítez",
+            "actor_photo_url": null,
+            "actor_user_id": "19",
+            "actor_verified": true,
+            "reversal_actor_name": null,
+            "reversal_actor_photo_url": null,
+            "reversal_actor_user_id": null,
+            "reversal_actor_verified": false
+          },
+          {
+            "id": "235",
+            "organization_id": "6",
+            "invoice_id": "238",
+            "account_id": "8",
+            "amount": "300000.00",
+            "received_on": "2026-10-01",
+            "reference": "Cobro IA #121",
+            "created_at": "2026-10-01T18:46:27.070Z",
+            "received_by_user_id": "19",
+            "request_key": "12100000-1210-4121-a121-000000000121#1",
+            "actor_name": "Sebastián Benítez",
+            "actor_photo_url": null,
+            "actor_user_id": "19",
+            "actor_verified": true,
+            "reversal_actor_name": null,
+            "reversal_actor_photo_url": null,
+            "reversal_actor_user_id": null,
+            "reversal_actor_verified": false
+          }
+        ],
+        "total": 600000,
+        "appliedTo": [
+          {
+            "invoiceId": "237",
+            "amount": 300000
+          },
+          {
+            "invoiceId": "238",
+            "amount": 300000
+          }
+        ]
+      }
+    },
+    {
+      "nombre": "reintento con la misma llave",
+      "solicitud": {
+        "clientId": "62",
+        "accountId": "8",
+        "amount": 600000,
+        "receivedOn": "2026-10-01",
+        "reference": "Cobro IA #121",
+        "requestId": "12100000-1210-4121-a121-000000000121"
+      },
+      "estado": 200,
+      "filasNuevas": 0,
+      "respuesta": {
+        "payments": [
+          {
+            "id": "234",
+            "organization_id": "6",
+            "invoice_id": "237",
+            "account_id": "8",
+            "amount": "300000.00",
+            "received_on": "2026-10-01",
+            "reference": "Cobro IA #121",
+            "created_at": "2026-10-01T18:46:27.070Z",
+            "received_by_user_id": "19",
+            "request_key": "12100000-1210-4121-a121-000000000121",
+            "invoice_number": "F-2026-108B9431",
+            "client_id": "62",
+            "actor_name": "Sebastián Benítez",
+            "actor_photo_url": null,
+            "actor_user_id": "19",
+            "actor_verified": true
+          },
+          {
+            "id": "235",
+            "organization_id": "6",
+            "invoice_id": "238",
+            "account_id": "8",
+            "amount": "300000.00",
+            "received_on": "2026-10-01",
+            "reference": "Cobro IA #121",
+            "created_at": "2026-10-01T18:46:27.070Z",
+            "received_by_user_id": "19",
+            "request_key": "12100000-1210-4121-a121-000000000121#1",
+            "invoice_number": "F-2026-2128CDC1",
+            "client_id": "62",
+            "actor_name": "Sebastián Benítez",
+            "actor_photo_url": null,
+            "actor_user_id": "19",
+            "actor_verified": true
+          }
+        ],
+        "total": 600000,
+        "alreadyRecorded": true
+      }
+    },
+    {
+      "nombre": "monto mayor al saldo pendiente",
+      "solicitud": {
+        "clientId": "62",
+        "accountId": "8",
+        "amount": 999999999,
+        "receivedOn": "2026-10-01"
+      },
+      "estado": 409,
+      "filasNuevas": 0,
+      "respuesta": {
+        "error": "El cobro supera el saldo pendiente del cliente (200.000 PYG)"
+      }
+    },
+    {
+      "nombre": "fecha futura",
+      "solicitud": {
+        "clientId": "62",
+        "accountId": "8",
+        "amount": 1000,
+        "receivedOn": "2999-01-01"
+      },
+      "estado": 400,
+      "filasNuevas": 0,
+      "respuesta": {
+        "error": "La fecha del cobro no puede ser futura"
+      }
+    },
+    {
+      "nombre": "cliente inexistente",
+      "solicitud": {
+        "clientId": 99999999,
+        "accountId": "8",
+        "amount": 1000,
+        "receivedOn": "2026-10-01"
+      },
+      "estado": 404,
+      "filasNuevas": 0,
+      "respuesta": {
+        "error": "El cliente no existe en esta empresa"
+      }
+    },
+    {
+      "nombre": "cliente inactivo",
+      "solicitud": {
+        "clientId": "62",
+        "accountId": "8",
+        "amount": 1000,
+        "receivedOn": "2026-10-01"
+      },
+      "estado": 409,
+      "filasNuevas": 0,
+      "respuesta": {
+        "error": "El cliente está inactivo: no se registran cobros nuevos"
+      }
+    }
+  ]
+}
