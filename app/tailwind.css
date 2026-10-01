@@ -206,9 +206,9 @@ body {
   /* Familia de TEXTO AA para chips/avisos (owncoding-ui #5): el tono base queda
      para rellenos, puntos y bordes; estos valores se miden ≥4.5:1 sobre los
      tintes al 15 % de la paleta Scale OS (claro). */
-  --c-ok-text: 23 107 85; /* #176B55 sobre el tinte ok */
+  --c-ok-text: 17 107 53; /* #116B35 sobre el tinte ok (a11y ronda 13, #124) */
   --c-warn-text: 126 90 6; /* #7E5A06 sobre el tinte warn */
-  --c-bad-text: 180 59 76; /* danger #B43B4C */
+  --c-bad-text: 162 44 62; /* #A23042 sobre el tinte bad (el base daba 4.18 en lienzo) */
   --c-info-text: 54 93 178; /* info #365DB2 */
   --c-fono-text: 143 17 132; /* brand-600 #8F1184 sobre el tinte de marca */
   --c-pass-text: 29 122 98; /* success #1D7A62 */
@@ -216,6 +216,10 @@ body {
      el mismo valor AA del borde de control del sistema. */
   --c-interactivo: 155 132 164; /* #9b84a4 (≥3:1 sobre las superficies) */
   --c-onbrand: 255 255 255; /* texto sobre marca */
+  /* Texto sobre rellenos semánticos llenos (owncoding-ui #13): viaja con el
+     relleno; en claro los tonos ok/bad son oscuros → tinta clara. */
+  --c-on-ok: 255 255 255;
+  --c-on-bad: 255 255 255;
 }
 
 /* Oscuro (mismo contrato que globals.css). */
@@ -246,6 +250,10 @@ html[data-theme="dark"] {
   --c-pass-text: 79 181 150; /* success #4fb596 */
   --c-interactivo: 134 116 147; /* #867493 (≥3:1 sobre las superficies oscuras) */
   --c-onbrand: 29 21 32; /* tinta oscura sobre marca clara */
+  /* En oscuro los rellenos ok/bad son claros → tinta oscura (misma del par de
+     marca); el blanco de la librería daba 2.5:1 sobre el ok de Scale OS. */
+  --c-on-ok: 29 21 32;
+  --c-on-bad: 29 21 32;
   color-scheme: dark;
 }
 

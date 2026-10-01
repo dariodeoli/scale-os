@@ -69,6 +69,8 @@ html[data-theme="contrast"] {
   --c-pass-text: 110 240 184;
   --c-interactivo: 212 212 212;
   --c-onbrand: 0 0 0;
+  --c-on-ok: 0 0 0;
+  --c-on-bad: 0 0 0;
   --c-pass: 110 240 184;
 }
 
