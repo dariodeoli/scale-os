@@ -2,6 +2,22 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.157
+
+### Asistente «Carga con IA» (Fase 2)
+
+- **El asistente cruza lo detectado con lo que ya existe**: cada registro llega como «nuevo», «coincide» (con la ficha real) o «ambiguo» (varios candidatos), mostrando las señales del match (RUC/CI, correo, teléfono, nombre). El cruce es local: **la base no viaja al proveedor**.
+- **Vos decidís qué hacer con cada coincidencia**: vincular el registro a la ficha existente o crear un duplicado a propósito. Con coincidencia o ambigüedad no se crea nada hasta que haya decisión explícita.
+- **Acciones propuestas**: si el texto dice que un cliente pagó, el asistente propone registrar el cobro (cliente, monto en guaraníes, fecha y detalle) y **solo se ejecuta con tu confirmación**, de a una.
+- **El cobro usa el flujo real de Finanzas**: elegís la cuenta donde entró el dinero (se sugiere si hay una sola), el monto se reparte FIFO sobre las facturas con saldo y los **duplicados se avisan** con una segunda decisión antes de registrar.
+- Sin cliente resuelto o sin cuenta de ingreso activa, la tarjeta lo dice y no deja confirmar; el texto pegado sigue sin persistirse.
+
+### Accesibilidad
+
+- **Contraste medido (ronda 13)**: chips y avisos en tono warn, botón primario, pie del riel y acciones con ícono quedan en AA sobre claro y oscuro, con tinta propia para los rellenos semánticos (`ok`/`bad`) en cada tema.
+- **Guardas nuevas** en `tests/contrast-theme.test.tsx` que congelan los mapeos y evitan que un ajuste de paleta los rompa en silencio.
+- La librería compartida del grupo queda fijada en **v0.59.0** (incluye los defaults y tokens de esta ronda).
+
 ## v1.0.156
 
 ### Asistente «Carga con IA»
