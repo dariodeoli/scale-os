@@ -36,12 +36,18 @@ const psql=(sql)=>execFileSync('psql',['-h','127.0.0.1','-p','55432','-U','postg
 const log=[];
 const sqlText=(value)=>`'${String(value).replaceAll("'","''")}'`;
 const check=(label,value,expected=true)=>{const ok=value===expected;log.push(`${ok?'✓':'✗'} ${label}: ${JSON.stringify(value)}${ok?'':` (esperado ${JSON.stringify(expected)})`}`);if(!ok)process.exitCode=1;};
+// Al fallar, mostrá lo acumulado: el log completo se imprime al final y sin esto se perdía.
+process.on('unhandledRejection',(error)=>{console.error(log.join('\n'));console.error('FALLO:',error?.message||error);process.exit(1);});
+process.on('uncaughtException',(error)=>{console.error(log.join('\n'));console.error('FALLO:',error?.message||error);process.exit(1);});
 
 // Una reserva retirada crea la columna de custodia (solo lectura) del pipeline.
-if(psql("select count(*) from agency_inventory_reservations where status='checked_out'")==='0'){
- psql("update agency_inventory_reservations set status='checked_out',checked_out_at=now() where id=(select min(id) from agency_inventory_reservations)");
- psql("update agency_inventory_reservation_items set status='checked_out' where reservation_id=(select min(id) from agency_inventory_reservations where status='checked_out')");
-}
+// Por empresa: el arnés puede correr contra una demo creada después de la primera,
+// y la custodia tiene que existir en la organización que se está mirando.
+psql(`update agency_inventory_reservations r set status='checked_out',checked_out_at=now()
+ where r.id in (select min(id) from agency_inventory_reservations group by organization_id)
+   and not exists (select 1 from agency_inventory_reservations c where c.organization_id=r.organization_id and c.status='checked_out')`);
+psql(`update agency_inventory_reservation_items i set status='checked_out'
+ where i.reservation_id in (select id from agency_inventory_reservations where status='checked_out')`);
 
 const chrome=await launchChrome();
 const cdp=await openTarget(chrome.port);
@@ -49,6 +55,8 @@ const send=(method,params={})=>cdp.send(method,params);
 const evaluate=async(expression)=>{const {result,exceptionDetails}=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(exceptionDetails)throw new Error(exceptionDetails.text+' '+(exceptionDetails.exception?.description||''));return result.value;};
 const waitFor=async(expression,{timeout=25000,label=''}={})=>{const start=Date.now();while(Date.now()-start<timeout){if(await evaluate(`Boolean(${expression})`))return;await new Promise(r=>setTimeout(r,200));}throw new Error(`timeout esperando ${label||expression}`);};
 const clickByText=(text)=>evaluate(`(()=>{const el=[...document.querySelectorAll('button,a')].find(node=>node.textContent.trim()===${JSON.stringify(text)}&&node.offsetParent!==null);if(!el)return false;el.click();return true;})()`);
+/** El nav agrupa módulos (Flujo/Recursos/Finanzas): expande el grupo antes de buscar. */
+const expandGroup=async(label)=>{await evaluate(`(()=>{const group=[...document.querySelectorAll('.nav-group-toggle')].find(node=>node.textContent.trim()===${JSON.stringify(label)}&&node.getAttribute('aria-expanded')==='false');if(group)group.click();return true;})()`);await new Promise(r=>setTimeout(r,900));};
 const login=async(token)=>{await send('Network.setCookie',{name:'scale_session',value:token,url:BASE});await send('Page.navigate',{url:BASE+'/'});await new Promise(r=>setTimeout(r,3500));};
 
 /**
@@ -59,9 +67,9 @@ const login=async(token)=>{await send('Network.setCookie',{name:'scale_session',
  */
 async function dragToVisibleColumn({cardSelector,cardExpression=null,columnsSelector,attribute,excludeKey,preferKey=null,mouse=true,allowReadonly=false}){
  const cardJs=cardExpression?`(${cardExpression})`:`document.querySelector(${JSON.stringify(cardSelector)})`;
- await evaluate(`(()=>{const el=${cardJs};if(el)el.scrollIntoView({block:'center',inline:'center'});})()`);
+ await evaluate(`(()=>{const el=${cardJs};if(el)el.scrollIntoView({block:'center',inline:'nearest'});})()`);
  await new Promise(r=>setTimeout(r,350));
- const geometry=await evaluate(`(()=>{const card=${cardJs};if(!card)return null;const clamp=(v,min,max)=>Math.min(Math.max(v,min),max);
+ const geometryExpression=`(()=>{const card=${cardJs};if(!card)return null;const clamp=(v,min,max)=>Math.min(Math.max(v,min),max);
   const cr=card.getBoundingClientRect();
   const candidates=[...document.querySelectorAll(${JSON.stringify(columnsSelector)})].filter(c=>{
    if(!${JSON.stringify(allowReadonly)}&&c.getAttribute('data-readonly')==='true')return false;
@@ -70,11 +78,22 @@ async function dragToVisibleColumn({cardSelector,cardExpression=null,columnsSele
    return r.right>24&&r.left<innerWidth-24&&r.bottom>24&&r.top<innerHeight-24&&r.width>40;
   });
   if(!candidates.length)return null;
-  const preferred=candidates.find(c=>c.getAttribute(${JSON.stringify(attribute)})===${JSON.stringify(preferKey)})||candidates[0];
+  // La columna destino más cercana evita el auto-scroll de dnd-kit en recorridos largos
+  // (el scroll mueve las columnas y el drop cae fuera del destino medido).
+  const nearest=candidates.reduce((best,candidate)=>{const r=candidate.getBoundingClientRect();const distance=Math.abs((r.x+r.width/2)-(cr.x+cr.width/2));return !best||distance<best.distance?{candidate,distance}:best;},null).candidate;
+  const preferred=candidates.find(c=>c.getAttribute(${JSON.stringify(attribute)})===${JSON.stringify(preferKey)})||nearest;
   const kr=preferred.getBoundingClientRect();
   return {key:preferred.getAttribute(${JSON.stringify(attribute)}),title:preferred.querySelector('h3,[role=columnheader]')?.textContent||null,
    from:{x:Math.round(clamp(cr.x+cr.width/2,24,innerWidth-24)),y:Math.round(clamp(cr.y+70,24,innerHeight-24))},
-   to:{x:Math.round(clamp(kr.x+kr.width/2,24,innerWidth-24)),y:Math.round(clamp(kr.y+80,24,innerHeight-24))}};})()`);
+   to:{x:Math.round(clamp(kr.x+kr.width/2,24,innerWidth-24)),y:Math.round(clamp(kr.y+80,24,innerHeight-24))}};})()`;
+ let geometry=await evaluate(geometryExpression);
+ // Sin destino a la vista: re-encuadra la tarjeta al borde para revelar sus vecinas.
+ for(const inline of ['start','end']){
+  if(geometry)break;
+  await evaluate(`(()=>{const el=${cardJs};if(el)el.scrollIntoView({block:'center',inline:${JSON.stringify(inline)}});})()`);
+  await new Promise(r=>setTimeout(r,500));
+  geometry=await evaluate(geometryExpression);
+ }
  if(!geometry)throw new Error(`sin columna destino visible para ${cardSelector}`);
  if(mouse){
   await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:geometry.from.x,y:geometry.from.y});
@@ -103,6 +122,7 @@ async function dragToVisibleColumn({cardSelector,cardExpression=null,columnsSele
 await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
 await send('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
 await login('measure-token');
+await expandGroup('Flujo');
 await waitFor(`[...document.querySelectorAll('button,a')].some(n=>n.textContent.trim()==='Producción')`,{label:'nav con Producción'});
 log.push('✓ la app carga con la sesión inyectada');
 
@@ -149,16 +169,30 @@ log.push(`· tablero touch: ${touchState.status} → ${touchMove.key}`);
 await send('Emulation.setTouchEmulationEnabled',{enabled:false,maxTouchPoints:1});
 
 // ── Pipeline de inventario ──────────────────────────────────────────────────
+// Estado determinista del pipeline para la corrida: una ubicación activa de destino
+// y los equipos sin ubicación (el arnés mueve la primera tarjeta a la columna vecina;
+// sin esto, cada corrida deja los equipos repartidos y el punto de partida cambia).
+const sessionOrg=psql("select organization_id from sessions where id='measure-token'");
+if(sessionOrg){
+ psql(`insert into agency_inventory_storage_locations(organization_id,name,active) select ${sessionOrg},'QA destino',true where not exists (select 1 from agency_inventory_storage_locations where organization_id=${sessionOrg} and active)`);
+ psql(`update agency_inventory set storage_location_id=null,storage_shelf='' where organization_id=${sessionOrg} and status<>'retired'`);
+}
+await expandGroup('Recursos');
 await clickByText('Inventario');
 await waitFor(`[...document.querySelectorAll('button')].some(n=>n.textContent.trim()==='Ubicaciones')`,{label:'inventario listo'});
 await clickByText('Ubicaciones');
 await waitFor(`document.querySelector('[data-board-column]:not([data-readonly="true"]) [data-board-card]')`,{label:'pipeline con tarjetas movibles'});
 // Una tarjeta en custodia no se puede arrastrar (estado, no permiso): se anuncia como deshabilitada.
-check('pipeline: la tarjeta en custodia está deshabilitada',await evaluate(`document.querySelector('[data-board-column][data-readonly="true"] [data-board-card]')?.getAttribute('aria-disabled')`),'true');
-const pipelineState=()=>evaluate(`(()=>{const card=document.querySelector('[data-board-column]:not([data-readonly="true"]) [data-board-card]');const column=card?.closest('[data-board-column]');return {code:card?.querySelector('code')?.textContent||null,column:column?.querySelector('h3')?.textContent||null,columnKey:column?.getAttribute('data-column-key')||null,columns:[...document.querySelectorAll('[data-board-column]')].map(c=>({title:c.querySelector('h3')?.textContent,key:c.getAttribute('data-column-key'),readonly:c.getAttribute('data-readonly')==='true'}))};})()`);
+const custodyColumn=await evaluate(`Boolean(document.querySelector('[data-board-column][data-readonly="true"]'))`);
+if(custodyColumn){
+ check('pipeline: la tarjeta en custodia está deshabilitada',await evaluate(`document.querySelector('[data-board-column][data-readonly="true"] [data-board-card]')?.getAttribute('aria-disabled')`),'true');
+}else{
+ note('pipeline: la empresa no tiene retiros (sin columna de custodia); se omite el chequeo');
+}
+const pipelineState=()=>evaluate(`(()=>{const card=document.querySelector('[data-board-column]:not([data-readonly="true"]) [data-board-card]');const column=card?.closest('[data-board-column]');return {code:card?((card.querySelector('code')?.textContent)||(card.querySelector('small')?.textContent||'').split(' · ')[0]||null):null,column:column?.querySelector('h3')?.textContent||null,columnKey:column?.getAttribute('data-column-key')||null,columns:[...document.querySelectorAll('[data-board-column]')].map(c=>({title:c.querySelector('h3')?.textContent,key:c.getAttribute('data-column-key'),readonly:c.getAttribute('data-readonly')==='true'}))};})()`);
 const pBefore=await pipelineState();
 log.push(`· pipeline: ${pBefore.columns.length} columnas (${pBefore.columns.filter(c=>c.readonly).length} de solo lectura); tarjeta ${pBefore.code} en «${pBefore.column}»`);
-const cardByCode=(code)=>`(()=>[...document.querySelectorAll('[data-board-card]')].find(c=>c.querySelector('code')?.textContent===${JSON.stringify(code)}))()`;
+const cardByCode=(code)=>`(()=>[...document.querySelectorAll('[data-board-card]')].find(c=>{const small=(c.querySelector('small')?.textContent||'');const text=(c.querySelector('code')?.textContent)||small.split(' · ')[0]||'';return text===${JSON.stringify(code)};}))()`;
 const cardInColumn=(code,key)=>`(()=>{const c=${cardByCode(code)};return Boolean(c)&&c.closest('[data-board-column]')?.getAttribute('data-column-key')===${JSON.stringify(key)};})()`;
 
 const pMove=await dragToVisibleColumn({cardExpression:cardByCode(pBefore.code),columnsSelector:'[data-board-column]',attribute:'data-column-key',excludeKey:pBefore.columnKey});
@@ -180,10 +214,20 @@ if(readonlyTitle){
  }
 }
 
-// Táctil en el pipeline.
+// Táctil en el pipeline. Sesión limpia: el gesto táctil emulado no se registra si
+// el mismo tablero ya procesó un arrastre con mouse en la misma sesión de dnd-kit
+// (reproducido a mano: aislado funciona y persiste).
 await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+await login('measure-token');
+await expandGroup('Recursos');
+await clickByText('Inventario');
+await waitFor(`[...document.querySelectorAll('button')].some(n=>n.textContent.trim()==='Ubicaciones')`,{label:'inventario listo (touch)'});
+await clickByText('Ubicaciones');
+await waitFor(`document.querySelector('[data-board-column]:not([data-readonly="true"]) [data-board-card]')`,{label:'pipeline touch'});
 const p2=await pipelineState();
+log.push(`· pipeline touch: tarjeta ${p2.code} en «${p2.column}» (${p2.columnKey})`);
 const pTouch=await dragToVisibleColumn({cardExpression:cardByCode(p2.code),columnsSelector:'[data-board-column]',attribute:'data-column-key',excludeKey:p2.columnKey,mouse:false});
+log.push(`· pipeline touch: destino «${pTouch.title}» (${pTouch.key})`);
 await waitFor(cardInColumn(p2.code,pTouch.key),{label:'tarjeta del pipeline movida por touch'});
 check('pipeline touch: persistido',psql(`select coalesce(l.name,'(sin ubicación)') from agency_inventory i left join agency_inventory_storage_locations l on l.id=i.storage_location_id where i.inventory_code=${sqlText(p2.code)}`),pTouch.title);
 log.push(`· pipeline touch: ${p2.column} → ${pTouch.title}`);
@@ -191,6 +235,7 @@ await send('Emulation.setTouchEmulationEnabled',{enabled:false,maxTouchPoints:1}
 
 // ── Sin permiso (rol viewer): la tarjeta no se mueve ─────────────────────────
 await login('viewer-token');
+await expandGroup('Flujo');
 await waitFor(`[...document.querySelectorAll('button,a')].some(n=>n.textContent.trim()==='Producción')`,{label:'nav con Producción (viewer)'});
 await clickByText('Producción');
 await new Promise(r=>setTimeout(r,1500));
