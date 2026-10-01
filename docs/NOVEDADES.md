@@ -2,6 +2,22 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.159
+
+### Asistente «Carga con IA»
+
+- **Textos largos, sin callejones**: el motor acota el razonamiento del modelo, ajusta el presupuesto de tokens al tamaño del texto y espera hasta 60 s; si la IA trunca la respuesta, lo dice claro («probalo en dos partes») y ya no entrega una vista previa incompleta.
+- **Un reintento automático** cuando el proveedor devuelve una salida ilegible; recién si vuelve a fallar, el aviso propone dividir el texto.
+- **Errores accionables por estado**: sin configurar, límite de análisis de la empresa (con los minutos de espera), sesión vencida, rol sin permiso, texto demasiado largo y proveedor ocupado — cada uno con su mensaje y su acción, sin jerga.
+- **Monto interpretado en grande** antes de confirmar un cobro: el importe formateado, el cliente y la fecha en primer plano; si el monto parece fuera de escala, se avisa sin corregirlo solo.
+- El RAT suma el procesamiento del proveedor con su política de reintentos (sigue como borrador a aprobar por el dueño).
+
+### Comercial
+
+- **Alta manual más directa**: el formulario de cliente suma RUC y razón social con las reglas compartidas del grupo (se acepta con puntos o espacios y se guarda normalizado; el dígito verificador nunca se inventa).
+- **«Guardar y crear otro»**: carga en serie sin cerrar el diálogo — un solo guardado por cliente, aviso de «creado, podés cargar el siguiente» y formulario limpio.
+- Evidencia del flujo en 390 y 768, claro y oscuro, en `docs/qa/alta-129/`.
+
 ## v1.0.158
 
 ### Comercial
