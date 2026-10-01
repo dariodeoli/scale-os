@@ -1,0 +1,80 @@
+{
+  "fecha": "2026-10-01T23:35:43.144Z",
+  "base": "http://127.0.0.1:3021",
+  "clienteId": "710",
+  "cuentas": {
+    "banco": {
+      "id": "638",
+      "metodo": "Banco Continental · 310056630007"
+    },
+    "caja": {
+      "id": "637",
+      "metodo": "Caja de oficina ·"
+    }
+  },
+  "casos": [
+    {
+      "caso": "parcial/seña",
+      "metodoElegido": true,
+      "metodoVisible": true,
+      "ui": {
+        "estado": "parcial",
+        "chip": true,
+        "mensaje": "Pago parcial: quedan Gs 600.000 pendientes"
+      },
+      "pagos": [
+        {
+          "id": "2194",
+          "monto": 200000,
+          "factura": "F-2026-AD97BC28",
+          "cuenta": "638",
+          "referencia": "Seña"
+        }
+      ]
+    },
+    {
+      "caso": "división",
+      "partesCount": 2,
+      "cuentaParte1": true,
+      "cuentaParte2": true,
+      "sumaIndicador": "Suma: Gs 600.000 de Gs 600.000",
+      "sumaError": {
+        "mensaje": "La suma de las partes (590.000) debe coincidir con el monto del cobro (600.000).",
+        "estado": "error"
+      },
+      "filasAntes": 1,
+      "ui": {
+        "estado": "ejecutada",
+        "mensaje": "Cobro registrado · Gs 600.000 en 3 facturas · Saldo del cliente al día."
+      },
+      "pagos": [
+        {
+          "id": "2197",
+          "monto": 250000,
+          "factura": "F-2026-0CB0DDBB",
+          "cuenta": "637",
+          "referencia": "Mitad transferencia, mitad efectivo"
+        },
+        {
+          "id": "2196",
+          "monto": 250000,
+          "factura": "F-2026-0CB0DDBB",
+          "cuenta": "638",
+          "referencia": "Mitad transferencia, mitad efectivo"
+        },
+        {
+          "id": "2195",
+          "monto": 100000,
+          "factura": "F-2026-AD97BC28",
+          "cuenta": "638",
+          "referencia": "Mitad transferencia, mitad efectivo"
+        }
+      ]
+    },
+    {
+      "caso": "sin cuentas activas",
+      "aviso": true,
+      "confirmDisabled": true
+    }
+  ]
+}
