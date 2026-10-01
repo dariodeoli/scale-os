@@ -13,9 +13,14 @@
 | WEEM (relay propio) | Envío de correo | Correo, nombre, asunto y cuerpo | [servidor propio/UE a confirmar] | Relay propio de Scale | Activo si está configurado |
 | Resend (`RESEND_API_KEY`) | Envío de correo alternativo | Correo, nombre, asunto y cuerpo | EE. UU. | DPA del proveedor | Activo si está configurado |
 | Google OAuth | Inicio de sesión | Correo verificado, nombre y foto | EE. UU. | Contrato de Google | Activo |
-| Groq (`IA_API_KEY`, `IA_MODELO`, `IA_BASE_URL`) | Carga con IA: convertir texto pegado en vista previa | **Solo el texto pegado** por la persona; sin acceso a la base | EE. UU. | DPA/condiciones del proveedor [confirmar] | Activo solo si `IA_API_KEY` está configurada |
+| Groq (`IA_API_KEY`, `IA_MODELO`, `IA_BASE_URL`) | Carga con IA: convertir texto pegado en vista previa y proponer acciones | **Solo el texto pegado** por la persona; sin acceso a la base | EE. UU. | DPA/condiciones del proveedor [confirmar] | Activo solo si `IA_API_KEY` está configurada |
 | R2 [Cloudflare] / respaldo externo | Copia de respaldo | Copia completa de la base | [a confirmar] | **Pendiente de activación** según `backend/OPERATIONS.md` | Pendiente |
 | [Proveedor de analítica, si se agrega] | Métricas | Eventos agregados | [—] | — | No se usa hoy |
+
+**Carga con IA:** las coincidencias contra clientes y equipos ya cargados se
+calculan **localmente** en Scale OS (SQL + normalización); al proveedor sólo
+viaja el texto pegado. La resolución de acciones propuestas también es local y
+no ejecuta nada hasta que una persona confirma.
 
 ## 2. Transferencias internacionales
 

@@ -29,12 +29,14 @@ No tratamos datos sensibles (salud, biometría, creencias) ni datos de menores d
 ### Carga con IA
 
 La función «Carga con IA» permite convertir texto pegado por el equipo en una
-**vista previa** de clientes y equipos. Cuando se usa, **solo ese texto** se envía
-al proveedor de inteligencia artificial configurado (Groq u otro compatible,
-listado en `PRIVACIDAD-ENCARGADOS.md`); la IA no accede a la base ni a otros
-datos, el servidor no persiste el texto y **nada se crea** hasta que una persona
-confirma la carga con los permisos habituales. Queda registrada la transferencia
-(modelo y cantidad de registros, sin el texto) en la bitácora de datos
+**vista previa** de clientes y equipos, reconocer los que ya existen y proponer
+acciones (por ejemplo, registrar un cobro) para confirmar. Cuando se usa, **solo
+ese texto** se envía al proveedor de inteligencia artificial configurado (Groq u
+otro compatible, listado en `PRIVACIDAD-ENCARGADOS.md`); el reconocimiento de lo
+existente se calcula localmente en Scale OS y la base nunca viaja al proveedor.
+El servidor no persiste el texto y **nada se crea ni se ejecuta** hasta que una
+persona confirma con los permisos habituales. Queda registrada la transferencia
+(modelo y cantidad de registros/acciones, sin el texto) en la bitácora de datos
 personales.
 
 ## 3. Para qué y con qué base legal
