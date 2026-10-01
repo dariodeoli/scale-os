@@ -169,7 +169,10 @@ export function nivelConfianza(confianza: number | null | undefined): 'alta' | '
 
 /** Mejor candidato del registro (la normalización los ordena por confianza). */
 export function mejorCoincidencia(coincidencias: readonly CoincidenciaIA[] | undefined): CoincidenciaIA | null {
-  return coincidencias?.[0] ?? null;
+  if (!coincidencias?.length) return null;
+  // El motor ya ordena por señales; acá se elige por confianza para que la
+  // preselección por umbral no dependa del orden de llegada.
+  return coincidencias.reduce((mejor, candidato) => ((candidato.confianza ?? -1) > (mejor.confianza ?? -1) ? candidato : mejor));
 }
 
 /** Moneda distinta de la local (guaraníes): no se convierte sola (#131/#132). */
@@ -229,6 +232,8 @@ const confianzaDe = (value: unknown): number | null => {
   const numero = Number(value);
   if (!Number.isFinite(numero)) return null;
   const redondeado = Math.round(numero);
+  // Fuera de 0–100 es entrada inválida: no se acota a 100 (un valor basura no
+  // debe habilitar la vinculación automática por umbral).
   return redondeado >= 0 && redondeado <= 100 ? redondeado : null;
 };
 /** Imagen segura de confirmación (https o data:image); cualquier otra se descarta. */
@@ -256,7 +261,8 @@ const coincidenciasDe = (value: unknown): CoincidenciaIA[] => {
       return coincidencia;
     })
     .filter((item): item is CoincidenciaIA => item !== null)
-    // Mejor candidato primero: la preselección por umbral mira el primero.
+    // Mejor candidato primero por confianza: la preselección por umbral y la
+    // vista miran el primero; el motor ya manda las señales, acá se ordena.
     .sort((uno, dos) => (dos.confianza ?? -1) - (uno.confianza ?? -1));
   return filas.slice(0, IA_COINCIDENCIAS_MAX);
 };
