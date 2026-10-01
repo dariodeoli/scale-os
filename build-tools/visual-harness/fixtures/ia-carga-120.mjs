@@ -53,6 +53,10 @@ const matchBlock = (intro, decisiones, extra = '') => `
 const campoCategoria = (seleccionada) => `
 <div class="ops-select"><span class="ops-label">Categoría</span><button type="button" class="ops-select-trigger" aria-haspopup="listbox" aria-expanded="false"><span>${seleccionada}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>`;
 
+/** `SelectCustom` de la cuenta de cobro (mismo markup que `app/profile-controls.tsx`). */
+const campoCuenta = (seleccionada) => `
+<div class="ops-select"><span class="ops-label">Cuenta donde entró el cobro</span><button type="button" class="ops-select-trigger" aria-haspopup="listbox" aria-expanded="false"><span>${seleccionada}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>`;
+
 const gridCampos = (campos) => `<div class="grid gap-2 sm:grid-cols-2">${campos.join('')}</div>`;
 
 /* ------------------------------------------------------------ coincide */
@@ -110,7 +114,7 @@ const ambiguo = `
 
 const accion = `
 <div class="grid gap-4">
- <p class="text-sm text-mute">Detectamos <b class="text-fore">1 acción propuesta</b>. Revisá, corregí o descartá: <b class="text-fore">nada se crea ni se ejecuta sin tu confirmación</b>.</p>
+ <p class="text-sm text-mute">Detectamos <b class="text-fore">3 acciones propuestas</b>. Revisá, corregí o descartá: <b class="text-fore">nada se crea ni se ejecuta sin tu confirmación</b>.</p>
  <section class="grid gap-3" aria-label="Acciones propuestas (3)">
   <h3 class="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Acciones propuestas <span class="tabular-nums">3</span></h3>
   ${CARD(`
@@ -119,6 +123,7 @@ const accion = `
    ${gridCampos([
      campo('Monto (PYG)', '2.500.000'),
      campo('Fecha del cobro', '2026-09-28', {type: 'date'}),
+     campoCuenta('Banco Continental · Gs'),
      campo('Detalle', 'Saldo del mes'),
    ])}
    <div class="flex flex-wrap items-center gap-2"><button type="button" class="primary" disabled>Confirmar acción</button></div>`)}
@@ -128,8 +133,9 @@ const accion = `
    ${gridCampos([
      campo('Monto (PYG)', '1.200.000'),
      campo('Fecha del cobro', '2026-09-27', {type: 'date'}),
+     campoCuenta('Banco Continental · Gs'),
    ])}
-   ${aviso('warn', 'Ya registramos un cobro igual el mismo día. ¿Querés registrarlo de nuevo?', true)}
+   ${aviso('warn', 'Ya registramos un cobro igual (0001-001-0000123). ¿Querés registrarlo igual?', true)}
    <div class="flex flex-wrap items-center gap-2"><button type="button" class="secondary">Registrar igual</button></div>`)}
   ${CARD(`
    <header class="flex min-w-0 flex-wrap items-start justify-between gap-2"><div class="min-w-0"><h4 class="min-w-0 truncate text-[13.5px] font-semibold text-fore">Registrar cobro</h4><p class="text-[11px] text-mute">En el texto: Estudio Norte</p></div>${chip('ok', 'Ejecutada')}</header>
@@ -137,8 +143,9 @@ const accion = `
    ${gridCampos([
      campo('Monto (PYG)', '800.000'),
      campo('Fecha del cobro', '2026-09-26', {type: 'date'}),
+     campoCuenta('Banco Continental · Gs'),
    ])}
-   ${aviso('ok', 'Cobro registrado por Gs. 800.000.', true)}
+   ${aviso('ok', 'Cobro registrado · Gs 800.000.', true)}
    <div class="flex flex-wrap items-center gap-2"><span class="text-[11.5px] text-mute">Confirmada. No hace falta volver a ejecutarla.</span></div>`)}
  </section>
 </div>`;

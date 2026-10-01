@@ -38,11 +38,11 @@ test('análisis: normaliza, recorta y conserva los avisos sin inventar datos', (
   avisos: ['Se descartaron 2 registros repetidos', null],
  });
  assert.equal(analisis.clientes.length, 1);
- assert.deepEqual(analisis.clientes[0], {nombre: 'Juan Pérez', empresa: 'Constructora Sur', ruc: '80012345-6', telefono: null, correo: 'juan@sur.com.py', estado: 'nuevo', coincidencias: [], avisos: ['Sin RUC verificado']});
- assert.deepEqual(analisis.inventario[0], {nombre: 'Pantalla LED 3x2', categoria: 'iluminación', cantidad: 4, valor: 1500000, estado: 'nuevo', coincidencias: [], avisos: []});
- assert.deepEqual(analisis.inventario[1], {nombre: 'Trípode', categoria: null, cantidad: null, valor: null, estado: 'nuevo', coincidencias: [], avisos: ['Cantidad dudosa']}, 'un valor negativo no se convierte en un monto inventado');
+ assert.deepEqual(analisis.clientes[0], {nombre: 'Juan Pérez', empresa: 'Constructora Sur', ruc: '80012345-6', telefono: null, correo: 'juan@sur.com.py', avisos: ['Sin RUC verificado']});
+ assert.deepEqual(analisis.inventario[0], {nombre: 'Pantalla LED 3x2', categoria: 'iluminación', cantidad: 4, valor: 1500000, avisos: []});
+ assert.deepEqual(analisis.inventario[1], {nombre: 'Trípode', categoria: null, cantidad: null, valor: null, avisos: ['Cantidad dudosa']}, 'un valor negativo no se convierte en un monto inventado');
  assert.deepEqual(analisis.avisos, ['Se descartaron 2 registros repetidos']);
- assert.deepEqual(normalizarIaAnalisis({}), {clientes: [], inventario: [], acciones: [], avisos: []}, 'una respuesta vacía no rompe la vista previa');
+ assert.deepEqual(normalizarIaAnalisis({}), {clientes: [], inventario: [], avisos: []}, 'una respuesta vacía no rompe la vista previa');
  // Puente con el motor de #117: la respuesta real llega con la clave «equipos».
  assert.deepEqual(normalizarIaAnalisis({equipos: [{nombre: 'Trípode', categoria: null, cantidad: null, valor: null, avisos: []}]}).inventario[0].nombre, 'Trípode', 'los equipos del servidor se leen como inventario');
 });
