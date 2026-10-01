@@ -2,6 +2,16 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.161
+
+### Operaciones
+
+- **Alta de equipos más corta**: la primera pasada queda en **Básico** (nombre, cantidad, categoría, serie/IMEI, valor, moneda y ubicación) y el resto —foto, compra, depreciación, estado, custodio, adquisición y notas— vive en **«Más datos»**, plegado. En edición se abre solo si la ficha ya trae datos, así nada queda escondido de sorpresa.
+- **Cantidad al crear (1–25)**: N copias idénticas con su propio código Scale OS (un registro por unidad reservable); con serie/IMEI la cantidad queda en 1 y el aviso lo explica. Si una unidad falla a mitad, la lista se refresca sin cerrar el diálogo, se avisa cuántas se crearon y la cantidad vuelve a 1.
+- **«Guardar y agregar otro»**: guarda, deja el formulario listo para el siguiente (conserva categoría, valor, moneda, ubicación y estado; limpia lo único), avisa arriba qué se creó y reenfoca el nombre sin cerrar el diálogo.
+- **Validación junto al campo**: el nombre es lo único obligatorio; los errores se muestran al lado (`role="alert"`) y si el error es de depreciación «Más datos» se abre solo.
+- Evidencia en 390 y 768, claro y oscuro, en `docs/qa/alta-130/` (con verificación en Postgres de la cantidad creada).
+
 ## v1.0.160
 
 ### Operaciones
