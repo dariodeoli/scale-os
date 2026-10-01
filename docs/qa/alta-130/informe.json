@@ -1,0 +1,307 @@
+{
+ "generatedAt": "2026-10-01T22:38:51.153Z",
+ "checks": [
+  {
+   "label": "alta 390: nombre, cantidad y valor visibles",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: «Más datos» plegado",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: los campos avanzados no ocupan la primera pasada",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: Foto del equipo sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: Valor de compra · Opcional sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: Método de depreciación sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: Estado sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: Custodio registrado sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: Fecha de adquisición sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: Notas sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: el error del nombre vive junto al campo",
+   "ok": true,
+   "value": "alert",
+   "expected": "alert"
+  },
+  {
+   "label": "alta 390: el input queda marcado inválido",
+   "ok": true,
+   "value": "true",
+   "expected": "true"
+  },
+  {
+   "label": "alta 390: el CTA dice cuántos equipos crea",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: 3 unidades persistidas",
+   "ok": true,
+   "value": "3",
+   "expected": "3"
+  },
+  {
+   "label": "alta 390: el diálogo sigue abierto",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 390: el nombre se limpia",
+   "ok": true,
+   "value": "",
+   "expected": ""
+  },
+  {
+   "label": "alta 390: el valor previo se conserva",
+   "ok": true,
+   "value": "450",
+   "expected": "450"
+  },
+  {
+   "label": "alta 390: el foco vuelve al nombre",
+   "ok": true,
+   "value": "inventory-item-name",
+   "expected": "inventory-item-name"
+  },
+  {
+   "label": "alta 390: con serie la cantidad queda en 1",
+   "ok": true,
+   "value": "1",
+   "expected": "1"
+  },
+  {
+   "label": "alta 390: con serie la cantidad se deshabilita",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: nombre, cantidad y valor visibles",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: «Más datos» plegado",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: los campos avanzados no ocupan la primera pasada",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: Foto del equipo sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: Valor de compra · Opcional sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: Método de depreciación sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: Estado sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: Custodio registrado sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: Fecha de adquisición sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: Notas sigue en Más datos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: el error del nombre vive junto al campo",
+   "ok": true,
+   "value": "alert",
+   "expected": "alert"
+  },
+  {
+   "label": "alta 768: el input queda marcado inválido",
+   "ok": true,
+   "value": "true",
+   "expected": "true"
+  },
+  {
+   "label": "alta 768: el CTA dice cuántos equipos crea",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: 3 unidades persistidas",
+   "ok": true,
+   "value": "3",
+   "expected": "3"
+  },
+  {
+   "label": "alta 768: el diálogo sigue abierto",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "alta 768: el nombre se limpia",
+   "ok": true,
+   "value": "",
+   "expected": ""
+  },
+  {
+   "label": "alta 768: el valor previo se conserva",
+   "ok": true,
+   "value": "450",
+   "expected": "450"
+  },
+  {
+   "label": "alta 768: el foco vuelve al nombre",
+   "ok": true,
+   "value": "inventory-item-name",
+   "expected": "inventory-item-name"
+  },
+  {
+   "label": "alta 768: con serie la cantidad queda en 1",
+   "ok": true,
+   "value": "1",
+   "expected": "1"
+  },
+  {
+   "label": "alta 768: con serie la cantidad se deshabilita",
+   "ok": true,
+   "value": true,
+   "expected": true
+  }
+ ],
+ "log": [
+  "\n──── 390×844 ────",
+  "✓ alta 390: nombre, cantidad y valor visibles: true",
+  "✓ alta 390: «Más datos» plegado: true",
+  "✓ alta 390: los campos avanzados no ocupan la primera pasada: true",
+  "✓ alta 390: Foto del equipo sigue en Más datos: true",
+  "✓ alta 390: Valor de compra · Opcional sigue en Más datos: true",
+  "✓ alta 390: Método de depreciación sigue en Más datos: true",
+  "✓ alta 390: Estado sigue en Más datos: true",
+  "✓ alta 390: Custodio registrado sigue en Más datos: true",
+  "✓ alta 390: Fecha de adquisición sigue en Más datos: true",
+  "✓ alta 390: Notas sigue en Más datos: true",
+  "· captura alta-basico-390-light.jpg",
+  "· captura alta-basico-390-dark.jpg",
+  "✓ alta 390: el error del nombre vive junto al campo: \"alert\"",
+  "✓ alta 390: el input queda marcado inválido: \"true\"",
+  "· captura alta-error-nombre-390-light.jpg",
+  "✓ alta 390: el CTA dice cuántos equipos crea: true",
+  "· captura alta-cantidad-390-light.jpg",
+  "✓ alta 390: 3 unidades persistidas: \"3\"",
+  "· captura alta-mas-datos-390-light.jpg",
+  "· captura alta-mas-datos-390-dark.jpg",
+  "✓ alta 390: el diálogo sigue abierto: true",
+  "✓ alta 390: el nombre se limpia: \"\"",
+  "✓ alta 390: el valor previo se conserva: \"450\"",
+  "✓ alta 390: el foco vuelve al nombre: \"inventory-item-name\"",
+  "· captura alta-agregar-otro-390-light.jpg",
+  "· captura alta-agregar-otro-390-dark.jpg",
+  "✓ alta 390: con serie la cantidad queda en 1: \"1\"",
+  "✓ alta 390: con serie la cantidad se deshabilita: true",
+  "· captura alta-serie-390-light.jpg",
+  "\n──── 768×1024 ────",
+  "✓ alta 768: nombre, cantidad y valor visibles: true",
+  "✓ alta 768: «Más datos» plegado: true",
+  "✓ alta 768: los campos avanzados no ocupan la primera pasada: true",
+  "✓ alta 768: Foto del equipo sigue en Más datos: true",
+  "✓ alta 768: Valor de compra · Opcional sigue en Más datos: true",
+  "✓ alta 768: Método de depreciación sigue en Más datos: true",
+  "✓ alta 768: Estado sigue en Más datos: true",
+  "✓ alta 768: Custodio registrado sigue en Más datos: true",
+  "✓ alta 768: Fecha de adquisición sigue en Más datos: true",
+  "✓ alta 768: Notas sigue en Más datos: true",
+  "· captura alta-basico-768-light.jpg",
+  "· captura alta-basico-768-dark.jpg",
+  "✓ alta 768: el error del nombre vive junto al campo: \"alert\"",
+  "✓ alta 768: el input queda marcado inválido: \"true\"",
+  "· captura alta-error-nombre-768-light.jpg",
+  "✓ alta 768: el CTA dice cuántos equipos crea: true",
+  "· captura alta-cantidad-768-light.jpg",
+  "✓ alta 768: 3 unidades persistidas: \"3\"",
+  "· captura alta-mas-datos-768-light.jpg",
+  "· captura alta-mas-datos-768-dark.jpg",
+  "✓ alta 768: el diálogo sigue abierto: true",
+  "✓ alta 768: el nombre se limpia: \"\"",
+  "✓ alta 768: el valor previo se conserva: \"450\"",
+  "✓ alta 768: el foco vuelve al nombre: \"inventory-item-name\"",
+  "· captura alta-agregar-otro-768-light.jpg",
+  "· captura alta-agregar-otro-768-dark.jpg",
+  "✓ alta 768: con serie la cantidad queda en 1: \"1\"",
+  "✓ alta 768: con serie la cantidad se deshabilita: true",
+  "· captura alta-serie-768-light.jpg"
+ ]
+}
