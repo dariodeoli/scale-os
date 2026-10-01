@@ -68,10 +68,12 @@ assert.match(inventory,/function InventoryItemMeta\(/,'los metadatos del equipo 
 assert.match(inventory,/title=\{`Mover \$\{item\.name\}`\}/,'el arrastre del pipeline se anuncia');
 assert.doesNotMatch(inventory,/<button[^>]*className="icon-button/,'no quedan botones de ícono del rediseño viejo');
 
-// ── Pipeline de ubicaciones y registro de íconos de categoría.
-assert.match(inventory,/categoryIconMap/);
+// ── Pipeline de ubicaciones y registro de íconos de categoría (fuente única #132).
+const equipmentPhoto=read('app/equipment-photo.tsx');
+assert.match(equipmentPhoto,/categoryIconMap/);
+assert.match(inventory,/from '\.\/equipment-photo'/,'inventario importa la pieza compartida');
 const iconKeys=['camera','video','mic','lamp','lightbulb','monitor','laptop','speaker','hard-drive','battery-charging','package','home'];
-assert(iconKeys.filter(key=>inventory.includes(`'${key}'`)).length>=8,'al menos 8 de las 12 categorías tienen ícono');
+assert(iconKeys.filter(key=>equipmentPhoto.includes(`'${key}'`)).length>=8,'al menos 8 de las 12 categorías tienen ícono');
 assert.match(inventory,/\['pipeline','Ubicaciones','store'\]/,'la vista de pipeline de ubicaciones está cableada');
 assert.match(inventory,/buildInventoryPipelineColumns/,'las columnas del pipeline salen de la capa de datos');
 assert.match(inventory,/role="region" aria-label="Pipeline de ubicaciones"/,'el pipeline declara su región desplazable');
