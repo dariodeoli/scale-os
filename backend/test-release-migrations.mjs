@@ -4,6 +4,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {productivity} from './productivity.js';
 import {projectAssignees} from './project-assignees.js';
 import {ensurePersonalIdentity} from './identity-session.js';
+import {migrationOrder} from './scripts/migration-order.mjs';
 
 // Read the release's actual registration order, not a second hand-maintained list.
 // Optional Dadoo belongs to another product and is explicitly excluded.
@@ -15,6 +16,10 @@ assert(start>=0&&end>start,'Server migration transaction must be identifiable');
 const files=[...server.slice(start,end).matchAll(/(2026\d{4}_[a-z0-9_]+\.sql)/g)].map(m=>m[1]).filter(f=>f!=='20260908_dadoo_hub.sql');
 assert.equal(files.length,new Set(files).size,'Unexpected duplicate migration registration');
 for(const required of ['20260910_global_identity.sql','20260910_company_currency.sql','20260910_project_assignees.sql','20260910_inventory_reservations.sql','20260910_work_checklists.sql','20260913_ruc_collaboration.sql','20260913_platform_admin_vertical_slice.sql','20260914_inventory_storage_locations.sql'])assert(files.includes(required),`${required} missing from server init`);
+// La cadena del server es la fuente de lo que corre en una base nueva: tiene
+// que ser exactamente el orden curado (una migración fuera del baseline no se
+// aplica nunca en un clon limpio — pasó con member_purge/destructive/oposición).
+assert.deepEqual(files,migrationOrder,'La cadena del server debe coincidir con migration-order.mjs');
 const pg=new PGlite();
 const query=(s,v)=>pg.query(s,v),db={connect:async()=>({query,release(){}})};
 const insert=async(s,v)=>(await query(s+' returning id',v)).rows[0].id;

@@ -138,91 +138,109 @@ async function init() {
     await migration.query("select pg_advisory_xact_lock(hashtextextended('scale-core-schema',0))");
     await migration.query(await fs.readFile(path.join(root,'schema.sql'),'utf8'));
     await runOptionalMigration('20260908_dadoo_hub.sql',migration);
-    for(const filename of ['20260908_client_payment_status.sql','20260908_treasury_ledger.sql','20260908_google_oauth.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql'])await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_productivity.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_profile_identity.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_demo_sessions.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_notifications.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_client_links.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_client_lifecycle.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_ruc_lookup.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_presence.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_invite_links.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_currencies.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_company_currency.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_live_visitors.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_global_identity.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_demo_owner_identity.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_project_assignees.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_inventory_reservations.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260910_work_checklists.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_subscriptions.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260913_pagaya_subscription_handoff.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_trial_registration.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_google_pending_trial_registration.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_agency_reports.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_drive_links.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_invite_link_metrics.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_invite_link_details.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_google_profile_photo.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_default_login_organization.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_weekly_reports.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_urgency.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260911_assignment_notifications.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_comment_mentions.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_inventory_verifications.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_platform_admin.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_platform_admin_bootstrap.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260913_platform_admin_vertical_slice.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_email_password_auth.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_studio_reservations.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_client_portal.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_client_portal_google_oauth.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_client_portal_password_resets.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260913_client_portal_vertical_slice.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260913_inventory_advanced_traceability.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260913_ruc_collaboration.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260912_account_security.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_secure_deletion.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_destructive_email_reauth.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_client_commercial_lifecycle.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_inventory_storage_locations.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_salary_forecast.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_client_terms_and_planned_expenses.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_role_permissions.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260914_production_traceability.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_optional_commission_terms.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_billing_cadence_and_coupons.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_coupon_free_days.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_coupon_redemption_days.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_client_invoice_flags.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_planned_expense_kind.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_expenses.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_client_terms_end_date.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_platform_admin_roles.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_platform_owner_admin.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_inventory_photos.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_inventory_location_pipeline.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_inventory_category_icons.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260915_salary_override_signed.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260916_identity_photo_removal.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260917_identity_admin_photo.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260918_collaborator_role_and_project_archive.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260919_collaborator_role_member_checks.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260919_pipeline_stages.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260919_inventory_value_maintenance.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260920_platform_coupon_shape.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260920_currency_widening.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260921_users_role_default.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260921_role_permissions_audit.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260921_platform_extend_idempotency.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260923_agency_core_perf.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260924_inventory_photo_stamp.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260924_subscription_suspension_notice.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260929_notification_email_status.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260929_inventory_location_position.sql'),'utf8'));
-    await migration.query(await fs.readFile(path.join(root,'migrations/20260930_personal_data.sql'),'utf8'));
-    await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline'});
+    // Cadena curada: mismo orden que `scripts/migration-order.mjs`. Se pasa
+    // como `knownFiles` para que el baseline de una base nueva no registre como
+    // aplicados archivos que nunca corrieron (p. ej. migraciones sumadas
+    // después de la última entrada de esta cadena).
+    const migrationChain=[
+     "20260908_client_payment_status.sql",
+     "20260908_treasury_ledger.sql",
+     "20260908_google_oauth.sql",
+     "20260908_people_commissions_comments.sql",
+     "20260908_operations_complete.sql",
+     "20260908_referral_discounts.sql",
+     "20260908_collaborator_profiles.sql",
+     "20260908_agency_suite.sql",
+     "20260908_daily_controls.sql",
+     "20260910_productivity.sql",
+     "20260910_profile_identity.sql",
+     "20260910_demo_sessions.sql",
+     "20260910_notifications.sql",
+     "20260910_client_links.sql",
+     "20260910_client_lifecycle.sql",
+     "20260910_ruc_lookup.sql",
+     "20260910_presence.sql",
+     "20260910_invite_links.sql",
+     "20260910_currencies.sql",
+     "20260910_company_currency.sql",
+     "20260910_live_visitors.sql",
+     "20260910_global_identity.sql",
+     "20260911_demo_owner_identity.sql",
+     "20260910_project_assignees.sql",
+     "20260910_inventory_reservations.sql",
+     "20260910_work_checklists.sql",
+     "20260911_subscriptions.sql",
+     "20260913_pagaya_subscription_handoff.sql",
+     "20260911_trial_registration.sql",
+     "20260914_google_pending_trial_registration.sql",
+     "20260911_agency_reports.sql",
+     "20260911_drive_links.sql",
+     "20260911_invite_link_metrics.sql",
+     "20260911_invite_link_details.sql",
+     "20260911_google_profile_photo.sql",
+     "20260911_default_login_organization.sql",
+     "20260911_weekly_reports.sql",
+     "20260912_urgency.sql",
+     "20260911_assignment_notifications.sql",
+     "20260912_comment_mentions.sql",
+     "20260912_inventory_verifications.sql",
+     "20260912_platform_admin.sql",
+     "20260912_platform_admin_bootstrap.sql",
+     "20260913_platform_admin_vertical_slice.sql",
+     "20260912_email_password_auth.sql",
+     "20260912_studio_reservations.sql",
+     "20260912_client_portal.sql",
+     "20260912_client_portal_google_oauth.sql",
+     "20260912_client_portal_password_resets.sql",
+     "20260913_client_portal_vertical_slice.sql",
+     "20260913_inventory_advanced_traceability.sql",
+     "20260913_ruc_collaboration.sql",
+     "20260912_account_security.sql",
+     "20260914_secure_deletion.sql",
+     "20260914_destructive_email_reauth.sql",
+     "20260914_client_commercial_lifecycle.sql",
+     "20260914_inventory_storage_locations.sql",
+     "20260914_salary_forecast.sql",
+     "20260914_client_terms_and_planned_expenses.sql",
+     "20260914_role_permissions.sql",
+     "20260914_production_traceability.sql",
+     "20260915_optional_commission_terms.sql",
+     "20260915_billing_cadence_and_coupons.sql",
+     "20260915_coupon_free_days.sql",
+     "20260915_coupon_redemption_days.sql",
+     "20260915_client_invoice_flags.sql",
+     "20260915_planned_expense_kind.sql",
+     "20260915_expenses.sql",
+     "20260915_client_terms_end_date.sql",
+     "20260915_platform_admin_roles.sql",
+     "20260915_platform_owner_admin.sql",
+     "20260915_inventory_photos.sql",
+     "20260915_inventory_location_pipeline.sql",
+     "20260915_inventory_category_icons.sql",
+     "20260915_salary_override_signed.sql",
+     "20260916_identity_photo_removal.sql",
+     "20260917_identity_admin_photo.sql",
+     "20260918_collaborator_role_and_project_archive.sql",
+     "20260919_collaborator_role_member_checks.sql",
+     "20260919_pipeline_stages.sql",
+     "20260919_inventory_value_maintenance.sql",
+     "20260920_platform_coupon_shape.sql",
+     "20260920_currency_widening.sql",
+     "20260921_users_role_default.sql",
+     "20260921_role_permissions_audit.sql",
+     "20260921_platform_extend_idempotency.sql",
+     "20260923_agency_core_perf.sql",
+     "20260924_inventory_photo_stamp.sql",
+     "20260924_subscription_suspension_notice.sql",
+     "20260929_notification_email_status.sql",
+     "20260929_inventory_location_position.sql",
+     "20260929_member_purge.sql",
+     "20260929_destructive_platform_actions.sql",
+     "20260930_lead_contact_opposition.sql",
+     "20260930_personal_data.sql"
+    ];
+    for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
+    await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
     await migration.query('commit');
   }catch(error){await migration.query('rollback');throw error;}finally{migration.release();}
   async function provisionOwner(email, password) {
