@@ -117,7 +117,7 @@ test('vista previa: tarjetas editables, avisos reales, obligatorios e incluir/de
  assert(dialog.includes('Clientes <span'), 'hay una sección de clientes detectados');
  assert(dialog.includes('Equipos de inventario <span'), 'hay una sección de equipos detectados');
  assert(dialog.includes('<Checkbox label="Incluir"'), 'cada tarjeta se incluye o descarta');
- assert(dialog.includes('cliente.avisos.join') && dialog.includes('equipo.avisos.join'), 'los avisos del análisis viajan a la tarjeta');
+ assert(dialog.includes('<AvisosIa avisos={cliente.avisos}/>') && dialog.includes('<AvisosIa avisos={equipo.avisos}/>') && dialog.includes('clasificarAvisoIa'), 'los avisos del análisis viajan a la tarjeta con su tratamiento');
  assert(dialog.includes("intentado&&cliente.incluir&&cliente.decision==='crear'&&!nombreValido") && dialog.includes('Obligatorio: 2 caracteres o más.'), 'los obligatorios se marcan al intentar crear');
  assert(dialog.includes('SelectCustom label="Categoría"'), 'la categoría se edita con el objeto del sistema');
  assert(dialog.includes('PhoneField') && dialog.includes('EmailField') && dialog.includes('AmountInput'), 'los campos tipados usan los objetos compartidos');

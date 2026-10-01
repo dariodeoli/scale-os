@@ -26,8 +26,13 @@ import {normalizeSerial} from './field-rules';
 import {roleCan,BATCH_LIMITS,limitSelection} from './capabilities';
 import {notify} from './feedback';
 import {InventoryBarcode,printInventoryLabel} from './inventory-label';
+import {CATEGORY_ICONS,CategoryIcon,EquipmentPhoto} from './equipment-photo';
+// La foto/ícono del equipo viven en `equipment-photo.tsx` (una pieza para
+// inventario y Carga con IA, #103/#132); se reexporta el ícono para no romper
+// imports existentes.
+export {CategoryIcon} from './equipment-photo';
 import {DndContext,DragOverlay,KeyboardSensor,MouseSensor,TouchSensor,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
-import {BatteryCharging,Camera,HardDrive,Home,Lamp,Laptop,Lightbulb,Mic,Monitor,Package,Pencil,Plus,Speaker,Trash2,Video,X,type LucideIcon} from 'lucide-react';
+import {Pencil,Plus,Trash2,X} from 'lucide-react';
 import {buildInventoryPipelineColumns,depreciationFacts,depreciationValidation,depreciationMethodLabel,depreciationMethods,equipmentStatusLabel,filterInventoryItems,inventoryCanManageReservation,inventoryCanReturn,inventoryLocation,inventoryTotals,itemCode,itemStatuses,pipelineDropColumn,statusLabels,traceLabel,verificationLabel,type Category,type Context,type InventoryItem,type InventoryMaintenance,type InventoryReservation,type InventoryTrace,type InventoryVerification,type Person,type PipelineColumn,type StorageTemplate} from './inventory-data';
 import {OPS_TIME_ZONE,opsLocalTime,opsUtcTime} from './ops-time';
 import {useInventoryCatalog,useInventoryRecord} from './use-inventory-data';
@@ -56,11 +61,7 @@ const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-8 md:[&>butt
 // Las filas densas conservan el ícono de 28 px en escritorio (32 en tarjetas).
 const ROW_ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7';
 
-const categoryIconMap:Record<string,LucideIcon>={'camera':Camera,'video':Video,'mic':Mic,'lamp':Lamp,'lightbulb':Lightbulb,'monitor':Monitor,'laptop':Laptop,'speaker':Speaker,'hard-drive':HardDrive,'battery-charging':BatteryCharging,'package':Package,'home':Home};
-export function CategoryIcon({name,size=14}:{name?:string|null;size?:number}){const Icon=name?categoryIconMap[name]:undefined;return Icon?<Icon size={size} aria-hidden="true"/>:null;}
-
-const statusTone=(status:string)=>status==='available'?'ok':status==='in_use'?'info':status==='maintenance'?'warn':status==='retired'?'mute':'mute';
-const reservationTone=(status:InventoryReservation['status'])=>status==='reserved'?'info':status==='checked_out'?'warn':status==='returned'?'ok':'mute';
+const statusTone=(status:string)=>status==='available'?'ok':status==='in_use'?'info':status==='maintenance'?'warn':status==='retired'?'mute':'mute';const reservationTone=(status:InventoryReservation['status'])=>status==='reserved'?'info':status==='checked_out'?'warn':status==='returned'?'ok':'mute';
 const PHYSICAL_VERIFICATION_MAX_AGE_DAYS=30;
 const PHYSICAL_VERIFICATION_MAX_AGE_MS=PHYSICAL_VERIFICATION_MAX_AGE_DAYS*24*60*60*1000;
 type InventoryAttentionFilter='missing_value'|'physical_verification'|'';
@@ -81,16 +82,6 @@ function VerificationStamp({item,empty}:{item:InventoryItem;empty:ReactNode}){
   <span className="min-w-0 truncate text-xs text-mute" title={item.last_verifier_name||'Verificador'}>{primerNombre(item.last_verifier_name??'')||'Verificador'}</span>
   <time className="whitespace-nowrap text-[11px] tabular-nums text-mute" dateTime={item.last_verified_at}>{dateTime(item.last_verified_at)}</time>
  </span>;
-}
-
-/**
- * Foto o placeholder limpio (#103): nunca un ícono roto ni el texto «Foto». La
- * misma pieza dibuja tarjeta (56 px), fila (32 px) y pipeline (36 px).
- */
-function EquipmentPhoto({item,size='row'}:{item:InventoryItem;size?:'card'|'row'|'pipeline'}){
- const box=size==='card'?'h-14 w-14':size==='pipeline'?'h-9 w-9':'h-8 w-8';
- if(item.photo_url)return <img className={`${box} shrink-0 rounded-lg border border-ink-600 object-cover`} src={item.photo_url} alt={`Foto de ${item.name}`}/>;
- return <span className={`${box} grid shrink-0 place-items-center rounded-lg border border-ink-600 bg-ink-700/40 text-mute`} role="img" aria-label={`Sin foto: ${item.name}`} title="Sin foto"><CategoryIcon name={item.category_icon} size={size==='card'?20:14}/></span>;
 }
 
 /**
@@ -150,7 +141,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
  return <article data-grid-card="equipment" className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3.5">
   <div className="flex min-w-0 items-start gap-2.5">
    {selectable?<label className="flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
-   <EquipmentPhoto item={item} size="card"/>
+   <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="card"/>
    <div className="min-w-0 flex-1">
     <h3 className="truncate text-sm font-semibold text-fore" title={item.name}>{item.name}</h3>
     <InventoryItemMeta item={item} layout="card"/>
@@ -182,7 +173,7 @@ function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onD
  const code=itemCode(item),location=inventoryLocation(item);
  return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[56px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} data-status={item.status}>
   <span className="flex h-11 items-center md:h-auto">{selectable?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}</span>
-  <span className="flex items-center"><EquipmentPhoto item={item} size="row"/></span>
+  <span className="flex items-center"><EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="row"/></span>
   <span className="flex min-w-0 items-baseline gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b><code className="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">{code}</code></span>
   <span className={CELL}><InventoryItemMeta item={item} layout="row"/></span>
   <span className="flex justify-end whitespace-nowrap">{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency} className="text-[13px]"/>:<span className="text-[12px] text-mute">Sin valor</span>}</span>
@@ -278,7 +269,7 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
  const movedAt=item.location_type==='checked_out'?'En préstamo: devolvelo para cambiar su ubicación':item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación';
  return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-1.5 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab'}`}>
   <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 text-left md:min-h-0" title={`Abrir detalle: ${item.name}`} onClick={()=>onDetail(item)}>
-   <EquipmentPhoto item={item} size="pipeline"/>
+   <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="pipeline"/>
    <span className="min-w-0 flex-1">
     <b className="block truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b>
     <small className="block truncate text-[11px] leading-4 text-mute" title={`${itemCode(item)} · ${item.category_name||item.category||'Sin categoría'}`}>{itemCode(item)} · {item.category_name||item.category||'Sin categoría'}</small>
@@ -633,7 +624,7 @@ function CategoryForm({category,done}:{category:Category|null;done:(message:stri
  return <form className="grid gap-4" onSubmit={async event=>{event.preventDefault();if(busy)return;if(trimmed.length<2||trimmed.length>80){setError('El nombre debe tener entre 2 y 80 caracteres.');return;}setBusy(true);setError('');try{await api(`/api/agency/inventory-categories${category?`/${category.id}`:''}`,{name:trimmed,active,icon},category?'PATCH':'POST');done(category?'Categoría actualizada.':'Categoría creada.');}catch(error){setError(errorMessage(error));}finally{setBusy(false);}}}>
   <div><Label htmlFor="inventory-category-name">Nombre de la categoría</Label><Input id="inventory-category-name" value={name} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setName(event.target.value)} required minLength={2} maxLength={80}/></div>
   {category?<label className="flex min-h-11 items-center gap-2 text-sm text-fore md:min-h-0"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" checked={active} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setActive(event.target.checked)}/><span>Disponible para nuevos equipos</span></label>:null}
-  <fieldset className="grid gap-2"><legend className="text-[11px] font-medium uppercase tracking-wider text-mute">Ícono de categoría</legend><div className="flex flex-wrap gap-1" role="group" aria-label="Ícono de categoría"><button type="button" className={`grid h-11 w-11 place-items-center rounded-lg border md:h-9 md:w-9 ${icon===null?'border-fono bg-fono/15 text-fono-light':'border-ink-600 text-mute'}`} title="Sin ícono" aria-label="Sin ícono" aria-pressed={icon===null} onClick={()=>setIcon(null)}><X size={16}/></button>{Object.entries(categoryIconMap).map(([key,Icon])=><button key={key} type="button" className={`grid h-11 w-11 place-items-center rounded-lg border md:h-9 md:w-9 ${icon===key?'border-fono bg-fono/15 text-fono-light':'border-ink-600 text-mute'}`} title={key} aria-label={key} aria-pressed={icon===key} onClick={()=>setIcon(key)}><Icon size={16}/></button>)}</div></fieldset>
+  <fieldset className="grid gap-2"><legend className="text-[11px] font-medium uppercase tracking-wider text-mute">Ícono de categoría</legend><div className="flex flex-wrap gap-1" role="group" aria-label="Ícono de categoría"><button type="button" className={`grid h-11 w-11 place-items-center rounded-lg border md:h-9 md:w-9 ${icon===null?'border-fono bg-fono/15 text-fono-light':'border-ink-600 text-mute'}`} title="Sin ícono" aria-label="Sin ícono" aria-pressed={icon===null} onClick={()=>setIcon(null)}><X size={16}/></button>{Object.entries(CATEGORY_ICONS).map(([key,Icon])=><button key={key} type="button" className={`grid h-11 w-11 place-items-center rounded-lg border md:h-9 md:w-9 ${icon===key?'border-fono bg-fono/15 text-fono-light':'border-ink-600 text-mute'}`} title={key} aria-label={key} aria-pressed={icon===key} onClick={()=>setIcon(key)}><Icon size={16}/></button>)}</div></fieldset>
   {error?<Aviso tono="error">{error}</Aviso>:null}<SaveActions pendiente={busy}><Button type="submit" disabled={busy}>{busy?'Guardando…':'Guardar categoría'}</Button></SaveActions>
  </form>;
 }
