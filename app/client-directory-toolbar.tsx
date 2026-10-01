@@ -69,7 +69,10 @@ export function ClientDirectoryToolbar({
         </h1>
         <p className="directory-summary min-w-0 truncate text-[12px] leading-5 tabular-nums text-mute" role="status" aria-atomic="true" title={loading ? undefined : summary}>{loading ? 'Cargando el directorio…' : summary}</p>
       </div>
-      <SearchField className="client-directory-search w-full sm:w-72" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder={contactVisible?'Buscar por nombre, correo o teléfono':'Buscar por nombre'}/>
+      {/* El icono de la librería es absoluto y el padding base del shell lo pisa
+          (ui-system.css): se refuerza el pl/pr igual que Finanzas/Mora para que
+          el placeholder no quede debajo de la lupa. Causa raíz compartida: DSN. */}
+      <SearchField className="client-directory-search w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder={contactVisible?'Buscar por nombre, correo o teléfono':'Buscar por nombre'}/>
       <div className="min-w-0">
         <Label htmlFor="clientes-estado" className="sr-only">Estado</Label>
         <Select id="clientes-estado" aria-label="Estado" value={status} onChange={(event:ChangeEvent<HTMLSelectElement>)=>onStatusChange(event.target.value)} className="min-w-[11rem]">
