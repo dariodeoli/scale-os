@@ -1,10 +1,10 @@
 "use client";
-import {useEffect,useState, type ChangeEvent} from 'react';
-import {ChevronDown,ShieldCheck} from 'lucide-react';
-import {Aviso,Switch} from 'owncoding-ui';
+import {useEffect,useState} from 'react';
+import {Check,ChevronDown,ShieldCheck,X} from 'lucide-react';
+import {Aviso} from 'owncoding-ui';
 import {api,Dialog} from './operations';
 import {teamRoleLabels} from './team-directory';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock,StateChip} from './ui-v2';
 
 type MatrixRow={id:string;label:string;description:string;defaults:string[];overrides:Record<string,boolean|undefined>};
 type MatrixData={roles:string[];capabilities:MatrixRow[]};
@@ -43,13 +43,6 @@ function groupedRows(capabilities:MatrixRow[]):CapabilityGroup[]{
  return groups;
 }
 
-/** Superficie v2 de tarjeta: una sola pieza, sin bordes anidados. */
-const CARD='rounded-xl border border-ink-600 bg-ink-800 p-4';
-
-/** Matriz de permisos en v2: encabezado y filas comparten una sola plantilla (fila finita 44–52 px). */
-const MATRIX_TEMPLATE='grid-cols-[minmax(15rem,1.4fr)_minmax(0,2.6fr)]';
-const MATRIX_COLUMNS=[{key:'capability',label:'Capacidad'},{key:'roles',label:'Permisos por cargo'}];
-
 function RoleExplorer({data}:{data:MatrixData}){
  return <div className="grid gap-2">
   {Object.keys(teamRoleLabels).map(roleId=>{
@@ -80,6 +73,40 @@ function RoleExplorer({data}:{data:MatrixData}){
  </div>;
 }
 
+/**
+ * Vista por módulo (#143): reemplaza la tabla ancha por un acordeón donde cada
+ * capacidad muestra el estado por cargo en pastillas editables. El Dueño es el
+ * único que alterna (`aria-pressed` + `disabled`) y el API revalida cada PATCH.
+ */
+const ROLE_PILL='inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border px-2.5 text-[11.5px] font-semibold leading-none transition md:min-h-8';
+function ModulePermissions({data,owner,busy,toggle}:{data:MatrixData;owner:boolean;busy:boolean;toggle:(rowId:string,roleId:string,allowed:boolean)=>Promise<void>}){
+ return <div className="grid gap-3">
+  {groupedRows(data.capabilities).map((group,index)=>{
+   const adjustments=group.rows.reduce((total,row)=>total+overrideCount(row),0);
+   return <details className="group rounded-xl border border-ink-600 bg-ink-800" key={group.name} open={index===0}>
+    <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 p-4">
+     <h3 className="text-[15px] font-semibold tracking-tight text-fore">{group.name}</h3>
+     <span className="text-xs tabular-nums text-mute">{group.rows.length} capacidad{group.rows.length===1?'':'es'}{adjustments?` · ${adjustments} ajuste${adjustments===1?'':'s'} manual${adjustments===1?'':'es'}`:''}</span>
+     <ChevronDown className="ml-auto shrink-0 text-mute transition-transform group-open:rotate-180" size={16} aria-hidden="true"/>
+    </summary>
+    <div className="grid gap-4 border-t border-ink-600 p-4">
+     {group.rows.map(row=><article className="grid gap-2 lg:grid-cols-[minmax(14rem,1fr)_minmax(0,1.5fr)] lg:items-center lg:gap-4" key={row.id}>
+      <div className="min-w-0">
+       <b className="block text-[13.5px] font-semibold leading-[1.25] text-fore">{row.label}</b>
+       <small className="mt-0.5 block text-[11.5px] leading-[1.4] text-mute" title={`${row.description}${overrideCount(row)?` · ${overrideCount(row)} ajuste${overrideCount(row)===1?'':'s'} manual${overrideCount(row)===1?'':'es'}`:''}`}>{row.description}</small>
+      </div>
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Permisos de ${row.label}`}>
+       {data.roles.map(roleId=>{const checked=effective(row,roleId);return <button key={roleId} type="button" aria-pressed={checked} disabled={!owner||busy} title={`${row.label} · ${teamRoleLabels[roleId]||roleId}: ${checked?'habilitado':'sin permiso'}`} className={`${ROLE_PILL} ${checked?'border-ok/40 bg-ok/10 text-ok':'border-ink-600 bg-ink-700 text-mute'} ${owner?'':'cursor-default'}`} onClick={()=>{if(owner&&!busy)void toggle(row.id,roleId,!checked);}}>
+        {checked?<Check size={12} aria-hidden="true"/>:<X size={12} aria-hidden="true"/>}
+        {teamRoleLabels[roleId]||roleId}
+       </button>;})}
+      </div>
+     </article>)}
+    </div>
+   </details>;})}
+ </div>;
+}
+
 function MatrixView({role,explorer}:{role:string;explorer:boolean}){
  const [data,setData]=useState<MatrixData|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
  const [loading,setLoading]=useState(true);
@@ -95,31 +122,24 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
   {notice?<Aviso tono="ok" compact>{notice}</Aviso>:null}
   {loading?<LoadingBlock label="Cargando permisos…" lines={4}/>:!data?<EmptyBlock title="Sin datos de permisos" description="El API no devolvió la matriz de capacidades." action={<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>}/>:<>
    {explorer&&<>
-    <KpiStrip>
-     <Kpi label="Capacidades" valor={data.capabilities.length} hint="Acciones que controla el panel" destacado/>
+    <KpiStrip compact>
+     <Kpi label="Capacidades" valor={data.capabilities.length} hint="Acciones que controla el panel"/>
      <Kpi label="Cargos" valor={data.roles.length} hint="Roles configurables de la empresa"/>
      <Kpi label="Ajustes manuales" valor={manual} hint="Permisos fuera del valor por defecto"/>
     </KpiStrip>
-    <RoleExplorer data={data}/>
+    <details className="group rounded-xl border border-ink-600 bg-ink-800">
+     <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 p-4">
+      <h3 className="text-[15px] font-semibold tracking-tight text-fore">Permisos por cargo</h3>
+      <span className="min-w-0 flex-1 text-xs text-mute">Resumen de qué puede hacer cada cargo en todo el panel.</span>
+      <ChevronDown className="shrink-0 text-mute transition-transform group-open:rotate-180" size={16} aria-hidden="true"/>
+     </summary>
+     <div className="border-t border-ink-600 p-4"><RoleExplorer data={data}/></div>
+    </details>
    </>}
-   <ListGrid label="Roles y permisos" template={MATRIX_TEMPLATE} columns={MATRIX_COLUMNS} minWidthClass="min-w-[84rem]">
-    {groupedRows(data.capabilities).map(group=><div key={group.name} className="contents">
-     <p className="mt-3 mb-1 w-full font-mono text-[10px] uppercase tracking-[.13em] text-mute" role="row">{group.name}</p>
-     {group.rows.map(row=>{const manual=overrideCount(row);return <ListRow key={row.id} template={MATRIX_TEMPLATE}>
-      <div className="flex min-w-0 items-baseline gap-2">
-       <b className="whitespace-nowrap text-[13.5px] font-semibold leading-[1.2] text-fore">{row.label}</b>
-       <small className="min-w-0 truncate text-[11.5px] text-mute" title={`${row.description}${manual?` · ${manual} ajuste${manual===1?'':'s'} manual${manual===1?'':'es'}`:''}`}>{row.description}</small>
-       {manual?<small className="whitespace-nowrap text-[10.5px] text-info tabular-nums" title={`${manual} ajuste${manual===1?'':'s'} manual${manual===1?'':'es'}`}>· {manual} ajuste{manual===1?'':'s'}</small>:null}
-      </div>
-      <div className="flex min-w-0 items-center gap-x-4 whitespace-nowrap">
-       {data.roles.map(roleId=>{const checked=effective(row,roleId);return <label key={roleId} className="relative flex min-h-11 items-center gap-2 whitespace-nowrap md:min-h-0 after:absolute after:inset-x-0 after:-inset-y-3 after:content-['']">
-        <Switch checked={checked} disabled={!owner||busy} ariaLabel={`${row.label} · ${teamRoleLabels[roleId]||roleId}`} onChange={(event:ChangeEvent<HTMLInputElement>)=>void toggle(row.id,roleId,event.target.checked)}/>
-        <span className="text-[11.5px] text-mute">{teamRoleLabels[roleId]||roleId}</span>
-       </label>;})}
-      </div>
-     </ListRow>;})}
-    </div>)}
-   </ListGrid>
+   <div className="grid gap-3">
+    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h3 className="text-[15px] font-semibold tracking-tight text-fore">Permisos por módulo</h3><p className="text-xs text-mute">Tocá una pastilla para habilitar o quitar el permiso de ese cargo.</p></div>
+    <ModulePermissions data={data} owner={owner} busy={busy} toggle={toggle}/>
+   </div>
    {owner?<div className="flex justify-end"><button type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</button></div>:<p className="text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
   </>}
  </div>;
