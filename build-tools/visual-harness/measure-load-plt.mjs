@@ -76,7 +76,7 @@ const sleep=ms=>new Promise(resolveWait=>setTimeout(resolveWait,ms));
 const waitFor=async(expression,{timeout=90000,label=''}={})=>{
  const start=Date.now();
  while(Date.now()-start<timeout){
-  if(await evaluate(`Boolean(${expression})`))return Math.round(await evaluate('Math.round(performance.now())'));
+  try{if(await evaluate(`Boolean(${expression})`))return Math.round(await evaluate('Math.round(performance.now())'));}catch{/* navegación en curso: reintentar */}
   await sleep(120);
  }
  throw new Error(`timeout esperando ${label||expression}`);
