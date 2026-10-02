@@ -1,0 +1,158 @@
+[
+ {
+  "screen": "resumen",
+  "label": "antes",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 458,
+  "visibles": 1,
+  "details": [],
+  "pasosAlto": 199,
+  "lateralAlto": null
+ },
+ {
+  "screen": "equipo",
+  "label": "antes",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 308,
+  "visibles": 8,
+  "details": [],
+  "pasosAlto": null,
+  "lateralAlto": null
+ },
+ {
+  "screen": "configuracion",
+  "label": "antes",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 199,
+  "visibles": 1,
+  "details": [
+   "Ver cotizaciones guardadas",
+   "Qué está disponible hoy"
+  ],
+  "pasosAlto": null,
+  "lateralAlto": 277
+ },
+ {
+  "screen": "resumen",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 803,
+  "visibles": 0,
+  "details": [],
+  "pasosAlto": 231,
+  "lateralAlto": null
+ },
+ {
+  "screen": "equipo",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 615,
+  "visibles": 0,
+  "details": [],
+  "pasosAlto": null,
+  "lateralAlto": null
+ },
+ {
+  "screen": "configuracion",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 334,
+  "visibles": 0,
+  "details": [
+   "Ver cotizaciones guardadas",
+   "Qué está disponible hoy"
+  ],
+  "pasosAlto": null,
+  "lateralAlto": 337
+ },
+ {
+  "screen": "resumen",
+  "label": "antes",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 458,
+  "visibles": 1,
+  "details": [],
+  "pasosAlto": 199,
+  "lateralAlto": null
+ },
+ {
+  "screen": "equipo",
+  "label": "antes",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 308,
+  "visibles": 8,
+  "details": [],
+  "pasosAlto": null,
+  "lateralAlto": null
+ },
+ {
+  "screen": "configuracion",
+  "label": "antes",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 199,
+  "visibles": 1,
+  "details": [
+   "Ver cotizaciones guardadas",
+   "Qué está disponible hoy"
+  ],
+  "pasosAlto": null,
+  "lateralAlto": 277
+ },
+ {
+  "screen": "resumen",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 803,
+  "visibles": 0,
+  "details": [],
+  "pasosAlto": 231,
+  "lateralAlto": null
+ },
+ {
+  "screen": "equipo",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 615,
+  "visibles": 0,
+  "details": [],
+  "pasosAlto": null,
+  "lateralAlto": null
+ },
+ {
+  "screen": "configuracion",
+  "label": "antes",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 334,
+  "visibles": 0,
+  "details": [
+   "Ver cotizaciones guardadas",
+   "Qué está disponible hoy"
+  ],
+  "pasosAlto": null,
+  "lateralAlto": 337
+ }
+]
