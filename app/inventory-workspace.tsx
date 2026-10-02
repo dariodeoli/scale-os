@@ -774,7 +774,7 @@ export function InventoryCalendar({month,reservations}:{month:string;reservation
   {/* Mini calendario mensual (≥769px): 7 columnas y celdas bajas. */}
   <div data-calendar-month className="hidden gap-1 min-[769px]:grid">
    <div className="grid grid-cols-7 gap-1" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div>
-   <div className="grid grid-cols-7 gap-1">
+   <div className="grid grid-cols-7 items-start gap-1">
     {Array.from({length:offset},(_,index)=><div className="min-h-12 rounded-lg border border-transparent" key={`blank-${index}`}/>)}
     {Array.from({length:days},(_,index)=>{
      const day=`${month}-${String(index+1).padStart(2,'0')}`,rows=rowsFor(day);
