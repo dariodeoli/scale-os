@@ -24,7 +24,10 @@ function freePort() {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function launchChrome({chromePath = defaultChromePath, extraArgs = []} = {}) {
+// `CHROME_PATH` permite usar otro Chromium (Brave, Chrome Beta…) cuando el
+// binario por defecto no está disponible; el protocolo y el modo headless son
+// los mismos.
+export async function launchChrome({chromePath = process.env.CHROME_PATH || defaultChromePath, extraArgs = []} = {}) {
   const port = await freePort();
   const userDataDir = mkdtempSync(join(tmpdir(), 'sos-dsn-harness-'));
   const child = spawn(

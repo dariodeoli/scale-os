@@ -1,0 +1,25 @@
+{
+ "generatedAt": "2026-10-02T02:48:54.343Z",
+ "tag": "antes",
+ "checks": [],
+ "log": [
+  "\n──── 390×844 ────",
+  "· captura antes/produccion-tablero-390-light.jpg",
+  "· captura antes/produccion-tablero-390-dark.jpg",
+  "· captura antes/inventario-tarjeta-390-light.jpg",
+  "· captura antes/inventario-tarjeta-390-dark.jpg",
+  "· captura antes/inventario-lista-390-light.jpg",
+  "· captura antes/inventario-pipeline-390-light.jpg",
+  "· captura antes/estudio-vacio-390-light.jpg",
+  "· captura antes/estudio-vacio-390-dark.jpg",
+  "\n──── 1440×900 ────",
+  "· captura antes/produccion-tablero-1440-light.jpg",
+  "· captura antes/produccion-tablero-1440-dark.jpg",
+  "· captura antes/inventario-tarjeta-1440-light.jpg",
+  "· captura antes/inventario-tarjeta-1440-dark.jpg",
+  "· captura antes/inventario-lista-1440-light.jpg",
+  "· captura antes/inventario-pipeline-1440-light.jpg",
+  "· captura antes/estudio-vacio-1440-light.jpg",
+  "· captura antes/estudio-vacio-1440-dark.jpg"
+ ]
+}
