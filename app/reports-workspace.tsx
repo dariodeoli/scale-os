@@ -170,10 +170,10 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
    {rows.length&&!currencies.length?<EmptyBlock compact title="Sin importes para comparar todavía." description="El histórico tiene clientes pero ningún importe de facturación o cobro registrado en este período." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:null}
    {exportError?<Aviso tono="error">{exportError}</Aviso>:null}
    {partial?<Nota tono="warn">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
-   {rows.length?<Card className="grid grid-cols-1 gap-2 p-3 sm:p-4">
+   {rows.length?(comparison!.available?<Card className="grid grid-cols-1 gap-2 p-3 sm:p-4">
     <h3 className="text-[17px] font-semibold tracking-tight text-fore">Comparativa del período visible contra el anterior</h3>
     <p className="text-xs text-mute">Período visible: {monthRangeLabel(comparison!.currentStart, comparison!.currentEnd)} · período anterior: {comparison!.previousStart&&comparison!.previousEnd?monthRangeLabel(comparison!.previousStart, comparison!.previousEnd):'sin período anterior disponible'} ({months} meses por período).</p>
-    {comparison!.available?<DataTable
+    <DataTable
      columns={[{key:'label',label:'Métrica'},{key:'current',label:'Período visible'},{key:'previous',label:'Período anterior'},{key:'change',label:'Variación'}]}
      rows={comparison!.rows.map((row,index)=>({id:String(index),label:row.label,current:row.current,previous:row.previous,change:row.change}))}
      mobileCard={(row:{id:string;label:string;current:string;previous:string;change:string})=><div className="grid gap-1 rounded-lg border border-ink-600 bg-ink-900 p-3">
@@ -182,8 +182,11 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
       <FilaDato etiqueta="Período anterior" valor={row.previous}/>
       <FilaDato etiqueta="Variación" valor={row.change}/>
      </div>}
-    />:<EmptyState compact title={previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'} description={previousError?'Reintentá para volver a pedir la comparación contra el período anterior.':undefined} action={previousError?<button className="secondary" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button>:undefined}/>}
-   </Card>:null}
+    />
+   </Card>
+   // #142: sin comparación no se dibuja la tarjeta gigante; un aviso de una
+   // línea con la salida para comparar (reintentar o ampliar el histórico).
+   :<Nota tono={previousError?'warn':'neutro'} className="whitespace-normal">{previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'}{previousError?' Reintentá para volver a pedir la comparación. ':null}{' '}{previousError?<button className="text-button" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button>:months<24?<button className="text-button" type="button" onClick={()=>setMonths(24)}>Ampliar histórico a 24 meses</button>:null}</Nota>):null}
    {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<button className="secondary" onClick={()=>setMonth(rows[0].month)}>Ver {monthTitle(rows[0].month)}</button>:onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:<>
     <Card className="grid gap-4 p-3 sm:p-4">
      <div className="flex flex-wrap items-end justify-between gap-2"><div><h3 className="text-[17px] font-semibold tracking-tight text-fore">Resumen del período</h3><p className="text-xs text-mute">{monthTitle(month)} · {selectedCurrency}</p></div><div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-mute"><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-fono-light" aria-hidden="true"/>Facturado</span><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-ok" aria-hidden="true"/>Cobrado</span></div></div>

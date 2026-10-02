@@ -128,13 +128,14 @@ async function run(){
   month('2020-06');const compareCurrentRequest=latest();
   assert.match(compareCurrentRequest.url,/month=2020-06&months=12/);
   await respond(compareCurrentRequest,compareCurrent);
-  assert.match(text(),/Comparativa del período visible contra el anterior/);
+  assert.doesNotMatch(text(),/Comparativa del período visible contra el anterior/,'mientras espera no dibuja la tarjeta grande');
   assert.match(text(),/Sin comparación: no hay período anterior con datos/,'the comparison waits for its own previous-window response');
   const comparePreviousRequest=latest();
   assert.match(comparePreviousRequest.url,/month=2019-06&months=12$/,'the previous equal window is requested from the same API');
   assert.equal(requests.slice(compareBlockStart).filter(request=>request.url.includes('month=2019-06')).length,1,'the stale initial response never fires a previous window');
   await respond(comparePreviousRequest,comparePrevious);
   const comparisonText=()=>text(renderer.root.findAll(node=>node.type==='div'&&typeof node.props.className==='string'&&node.props.className.includes('rounded-xl')&&text(node).includes('Comparativa del período visible'))[0]);
+  const comparisonCards=()=>renderer.root.findAll(node=>node.type==='div'&&typeof node.props.className==='string'&&node.props.className.includes('rounded-xl')&&text(node).includes('Comparativa del período visible')).length;
   assert.match(comparisonText(),/Período visible: 1 jul\. 2019 — 30 jun\. 2020 · período anterior: 1 jul\. 2018 — 30 jun\. 2019 \(12 meses por período\)/,'both windows show the full year-dated range');
   act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange('USD'));
   const usdComparison=comparisonText();
@@ -170,14 +171,17 @@ async function run(){
   await respond(emptyCurrentRequest,{...compareCurrent,historySince:'2015-01-01T03:00:00Z'});
   const emptyPreviousRequest=latest();assert.match(emptyPreviousRequest.url,/month=2018-06&months=24$/);
   await respond(emptyPreviousRequest,{asOf:'2026-09-10T15:00:00Z',month:'2018-06',historySince:'2015-01-01T03:00:00Z',months:[]});
-  assert.match(comparisonText(),/Sin comparación: no hay período anterior con datos/,'an empty previous window renders the explicit state');
+  assert.match(text(),/Sin comparación: no hay período anterior con datos/,'an empty previous window renders the explicit notice');
+  assert.equal(comparisonCards(),0,'sin comparación no se dibuja la tarjeta gigante (#142)');
   history(12);const historyCurrentRequest=latest();assert.match(historyCurrentRequest.url,/months=12&previous=1$/);
   await respond(historyCurrentRequest,{...compareCurrent,historySince:'2018-07-15T03:00:00Z'});
   const historyPreviousRequest=latest();assert.match(historyPreviousRequest.url,/month=2019-06&months=12$/);
   await respond(historyPreviousRequest,{asOf:'2026-09-10T15:00:00Z',month:'2019-06',historySince:'2018-07-15T03:00:00Z',months:[
    compareRow('2019-05',{active:4,added:1,lost:0,financial:[moneyEntry('USD','200.00','250.00',4)]}),
   ]});
-  assert.match(comparisonText(),/Sin comparación: no hay período anterior con datos/,'history starting inside the previous window suppresses the comparison');
+  assert.match(text(),/Sin comparación: no hay período anterior con datos/,'history starting inside the previous window suppresses the comparison');
+  assert.equal(comparisonCards(),0,'la comparación sin datos no ocupa una tarjeta (#142)');
+  assert.match(text(),/Ampliar histórico a 24 meses/,'el aviso ofrece la acción para comparar');
   month('1900-01');const edgeRequest=latest();assert.match(edgeRequest.url,/month=1900-01&months=12/);
   const beforeEdge=requests.length;
   await respond(edgeRequest,{asOf:'2026-09-10T15:00:00Z',month:'1900-01',historySince:'1900-01-01T03:00:00Z',months:[compareRow('1900-01',{active:1,added:1,lost:0,financial:[moneyEntry('USD','10.00','10.00',1)]})]});
