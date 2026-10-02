@@ -37,6 +37,7 @@ import {request} from './workspace-request';
 import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,stageCountsFrom,projectedList,BUDGET_LIST_FIELDS,type ShellResource,type ShellScope} from './shell-data';
 import {LIST_WINDOW,appendPage,readPage,windowStateOf,type ListWindowState} from './list-window';
 import {prefetchSectionData} from './data-prefetch';
+import {prefetchSectionMetrics} from './metrics-prefetch';
 import './control-center.css';
 import {Dialog} from './dialog';
 import {completeSave} from './save-completion';
@@ -257,6 +258,16 @@ export default function Home() {
   useEffect(()=>{userRef.current=user;},[user]);
   // Invalidate before child loading effects can read a previous tenant/role cache.
   useLayoutEffect(()=>{setDataScope(operationalAccess&&user?`${user.id}:${user.organization_id}:${user.role}`:'');},[operationalAccess,user?.id,user?.organization_id,user?.role]);
+  // Precarga de KPIs de la sección pedida (#139): arranca con la identidad, en
+  // paralelo con los datos del shell, sin esperar la cascada listas → widgets.
+  const metricsPrefetched=useRef('');
+  useEffect(()=>{
+    if(!operationalAccess||!user||!workspaceScope)return;
+    const key=`${workspaceScope}:${requestedSection}`;
+    if(metricsPrefetched.current===key)return;
+    metricsPrefetched.current=key;
+    void prefetchSectionMetrics(requestedSection,workspaceScope,user.role);
+  },[operationalAccess,user?.id,user?.role,workspaceScope,requestedSection]);
   function prefetchSection(label:string){
     if(!operationalAccess||!user||!visibleModule(label,user.role))return;
     // Only warm the sections whose module the role can open: the same capability
