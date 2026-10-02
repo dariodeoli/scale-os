@@ -1095,6 +1095,7 @@ export default function Home() {
             loading={shellDataState==='loading'}
             canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
             contactVisible={clients.every(client=>client.contact_restricted!==true)}
+            planFilter={roleCan(user?.role,'commercial-terms.manage')}
             onCreate={()=>setModal('client')}
             onQueryChange={setClientSearch}
             onStatusChange={setClientStatusFilter}

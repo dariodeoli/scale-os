@@ -1,0 +1,130 @@
+[
+ {
+  "screen": "pipeline",
+  "phase": "antes",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "cardHeight": 215,
+  "cardText": "Oportunidad QA 12Gs. 4.000.00040%Dato de QA (ronda 6). Ver oportunidad",
+  "indicator": null,
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 1184
+  }
+ },
+ {
+  "screen": "clientes",
+  "phase": "antes",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "section": true,
+  "rowActions": [
+   "Aurora Café",
+   "Abrir ficha: Aurora Café",
+   "Archivar",
+   "Editar",
+   "Mover a la papelera"
+  ],
+  "cardActions": [],
+  "menuTrigger": false,
+  "emptyState": null
+ },
+ {
+  "screen": "pipeline",
+  "phase": "antes",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "cardHeight": 215,
+  "cardText": "Oportunidad QA 12Gs. 4.000.00040%Dato de QA (ronda 6). Ver oportunidad",
+  "indicator": null,
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 1184
+  }
+ },
+ {
+  "screen": "clientes",
+  "phase": "antes",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "section": true,
+  "rowActions": [
+   "Aurora Café",
+   "Abrir ficha: Aurora Café",
+   "Archivar",
+   "Editar",
+   "Mover a la papelera"
+  ],
+  "cardActions": [],
+  "menuTrigger": false,
+  "emptyState": null
+ },
+ {
+  "screen": "pipeline",
+  "phase": "antes",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "cardHeight": 259,
+  "cardText": "Oportunidad QA 12Gs. 4.000.00040%Dato de QA (ronda 6). Ver oportunidad",
+  "indicator": null,
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 358
+  }
+ },
+ {
+  "screen": "clientes",
+  "phase": "antes",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "section": true,
+  "rowActions": [],
+  "cardActions": [
+   "Alma Cocina",
+   "Abrir ficha: Alma Cocina",
+   "Archivar",
+   "Editar",
+   "Mover a la papelera"
+  ],
+  "menuTrigger": false,
+  "emptyState": null
+ },
+ {
+  "screen": "pipeline",
+  "phase": "antes",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "cardHeight": 259,
+  "cardText": "Oportunidad QA 12Gs. 4.000.00040%Dato de QA (ronda 6). Ver oportunidad",
+  "indicator": null,
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 358
+  }
+ },
+ {
+  "screen": "clientes",
+  "phase": "antes",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "section": true,
+  "rowActions": [],
+  "cardActions": [
+   "Alma Cocina",
+   "Abrir ficha: Alma Cocina",
+   "Archivar",
+   "Editar",
+   "Mover a la papelera"
+  ],
+  "menuTrigger": false,
+  "emptyState": null
+ }
+]

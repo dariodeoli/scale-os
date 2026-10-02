@@ -13,17 +13,23 @@ const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>;
 const labels:Record<string,string>={clients:'Cliente',projects:'Proyecto','work-orders':'Orden',leads:'Oportunidad',plans:'Plan',budgets:'Presupuesto',inventory:'Equipo de inventario',collaborators:'Colaborador',accounts:'Cuenta',members:'Acceso'}
 const errorMessage=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar la operación';
 
-export function RemoveRecord({kind,id,name,role,done,hideTrigger=false,open=false,onClose}:{kind:string;id:string;name:string;role:string;done:()=>Promise<void>;hideTrigger?:boolean;open?:boolean;onClose?:()=>void}){
- const [internal,setInternal]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+/** ¿Este rol puede mover el registro a la papelera? Fuente única con el NAV. */
+export function canRemoveRecord(kind:string,role:string){
  const capability=roles[kind];
- if(!capability||!roleCan(role,capability))return null;
+ return Boolean(capability&&roleCan(role,capability));
+}
+
+/**
+ * Confirmación de papelera controlada (Refs #140): el menú ⋯ abre el mismo
+ * diálogo que usaba el botón de la fila, sin duplicar el contrato ni la copia.
+ */
+export function RemoveRecordDialog({kind,id,name,role,done,open,onClose}:{kind:string;id:string;name:string;role:string;done:()=>Promise<void>;open:boolean;onClose:()=>void}){
+ const [busy,setBusy]=useState(false),[error,setError]=useState('');
+ // Cada apertura arranca limpia: un error viejo no reaparece al reabrir.
+ useEffect(()=>{if(open)setError('');},[open]);
+ if(!open)return null;
  const access=kind==='members';
- const visible=open||internal;
- const close=()=>{setInternal(false);onClose?.();};
- // `hideTrigger` + `open` dejan montar el diálogo desde un menú ⋯ (#141) con la
- // misma confirmación y el mismo endpoint, sin duplicar la pieza.
- return <>{hideTrigger?null:<button className="icon-button record-remove" type="button" title={access?'Quitar acceso':'Mover a la papelera'} aria-label={`${access?'Quitar acceso':'Mover a la papelera'}: ${name}`} onClick={()=>{setError('');setInternal(true);}}><Trash2 size={16} aria-hidden="true"/></button>}
- {visible&&<Dialog title={access?'Quitar acceso o invitación':'Mover a la papelera'} close={()=>{if(!busy)close();}}>
+ return <Dialog title={access?'Quitar acceso o invitación':'Mover a la papelera'} close={()=>{if(!busy)onClose();}}>
   <p><strong>{name}</strong></p>
   <p>{access?'Esta persona dejará de entrar a esta empresa, incluso con Google. Sus sesiones se cerrarán. No se borrarán sus comentarios, pagos ni su acceso a otras empresas. Podés invitarla nuevamente desde Equipo.':'Se quitará de las listas activas y quedará en la Papelera. Podés restaurarlo después.'}</p>
   {['clients','projects'].includes(kind)&&<p className="form-note">Sus proyectos u órdenes vinculados también quedarán ocultos mientras este registro esté en la papelera. Restaurarlo volverá a mostrarlos, salvo los eliminados por separado.</p>}
@@ -32,8 +38,22 @@ export function RemoveRecord({kind,id,name,role,done,hideTrigger=false,open=fals
   {kind==='collaborators'&&<p className="form-note">Esto retira el perfil del colaborador, no su acceso. Para revocar el acceso usá Equipo.</p>}
   {kind==='inventory'&&<p className="form-note">Archivar no equivale a dar de baja un activo: no modifica su valor patrimonial.</p>}
   {error&&<Aviso tono="error">{error}</Aviso>}
-  <div className="inline-actions"><button className="secondary" disabled={busy} onClick={close}>Cancelar</button><button className="secondary danger" disabled={busy} onClick={async()=>{setBusy(true);try{await api(`/api/agency/${kind}/${id}`,{},'DELETE');await done();close();}catch(e){setError(errorMessage(e));}finally{setBusy(false);}}}>{busy?'Procesando…':access?'Confirmar: quitar acceso':'Confirmar: mover a papelera'}</button></div>
- </Dialog>}</>;
+  <div className="inline-actions"><button className="secondary" disabled={busy} onClick={onClose}>Cancelar</button><button className="secondary danger" disabled={busy} onClick={async()=>{setBusy(true);try{await api(`/api/agency/${kind}/${id}`,{},'DELETE');await done();onClose();}catch(e){setError(errorMessage(e));}finally{setBusy(false);}}}>{busy?'Procesando…':access?'Confirmar: quitar acceso':'Confirmar: mover a papelera'}</button></div>
+ </Dialog>;
+}
+
+/**
+ * Disparador + diálogo para fila (modo interno) o menú ⋯ ya abierto
+ * (`hideTrigger` + `open`, #141); misma confirmación y mismo endpoint.
+ */
+export function RemoveRecord({kind,id,name,role,done,hideTrigger=false,open,onClose}:{kind:string;id:string;name:string;role:string;done:()=>Promise<void>;hideTrigger?:boolean;open?:boolean;onClose?:()=>void}){
+ const [internal,setInternal]=useState(false);
+ if(!canRemoveRecord(kind,role))return null;
+ const access=kind==='members';
+ const visible=open??internal;
+ const close=()=>{setInternal(false);onClose?.();};
+ return <>{hideTrigger?null:<button className="icon-button record-remove" type="button" title={access?'Quitar acceso':'Mover a la papelera'} aria-label={`${access?'Quitar acceso':'Mover a la papelera'}: ${name}`} onClick={()=>setInternal(true)}><Trash2 size={16} aria-hidden="true"/></button>}
+ <RemoveRecordDialog kind={kind} id={id} name={name} role={role} done={done} open={visible} onClose={close}/></>;
 }
 
 type Removed={kind:string;id:string;name:string;removed_at:string;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};

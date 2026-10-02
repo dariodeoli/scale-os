@@ -25,6 +25,8 @@ type ClientDirectoryToolbarProps = {
   children?: React.ReactNode;
   /** false = el rol no recibe contacto: el buscador solo promete nombre (#114). */
   contactVisible?: boolean;
+  /** Agrega el atajo «Sin plan y pago» al filtro de estados (#140). */
+  planFilter?: boolean;
   onCreate: () => void;
   onQueryChange: (query: string) => void;
   onStatusChange: (status: string) => void;
@@ -42,6 +44,7 @@ export function ClientDirectoryToolbar({
   canCreate,
   children,
   contactVisible = true,
+  planFilter = false,
   onCreate,
   onQueryChange,
   onStatusChange,
@@ -78,6 +81,7 @@ export function ClientDirectoryToolbar({
         <Select id="clientes-estado" aria-label="Estado" value={status} onChange={(event:ChangeEvent<HTMLSelectElement>)=>onStatusChange(event.target.value)} className="min-w-[11rem]">
           <option value="">Todos los estados</option>
           {clientStatuses.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
+          {planFilter ? <option value="sin_plan">Sin plan y pago</option> : null}
         </Select>
       </div>
       <div className="client-directory-view-controls" role="group" aria-label="Vista del directorio">

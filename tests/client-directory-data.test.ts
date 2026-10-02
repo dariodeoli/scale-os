@@ -31,6 +31,21 @@ test('client filtering searches name, email and phone and respects lifecycle',()
  assert.deepEqual(filterClientDirectory([record],'80012345','').map(client=>client.id),[],'other fields do not join the search');
 });
 
+test('el atajo «Sin plan y pago» filtra por contrato vigente (#140)',()=>{
+ // `true` = contrato vigente; `false`/ausente = le falta plan y pago. El
+ // sentinel no es un lifecycle: no debe mezclarse con los estados reales.
+ const directory=[
+  {id:'1',name:'Con contrato',email:null,phone:null,active:true,has_recurring_price:true},
+  {id:'2',name:'Sin plan cargado',email:null,phone:null,active:true,has_recurring_price:false},
+  {id:'3',name:'Sin el campo',email:null,phone:null,active:true},
+  {id:'4',name:'Archivado sin plan',email:null,phone:null,active:false},
+ ];
+ assert.deepEqual(filterClientDirectory(directory,'','sin_plan').map(client=>client.id),['2','3','4'],'lista a todos los que no tienen contrato vigente');
+ assert.deepEqual(filterClientDirectory(directory,'cargado','sin_plan').map(client=>client.id),['2'],'la búsqueda se combina con el atajo');
+ assert.deepEqual(filterClientDirectory(directory,'','active').map(client=>client.id),['1','2','3'],'los estados reales conservan el filtro de lifecycle');
+ assert.deepEqual(filterClientDirectory(directory,'','paused').map(client=>client.id),[],'«sin_plan» no se confunde con un estado real');
+});
+
 test('directory summary keeps singular and plural right',()=>{
  assert.equal(directorySummaryText(1,1),'Mostrando 1 cliente de 1 cliente');
  assert.equal(directorySummaryText(0,3),'Mostrando 0 clientes de 3 clientes');

@@ -1,0 +1,122 @@
+[
+ {
+  "screen": "pipeline",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "cardHeight": 169,
+  "cardText": "Oportunidad QA 12Gs. 4.000.00040%",
+  "indicator": "1 etapa fuera de vistaMostrando etapas 1–5 de 6",
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 1184
+  }
+ },
+ {
+  "screen": "clientes",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "section": true,
+  "rowActions": [
+   "Aurora Café",
+   "Abrir ficha: Aurora Café",
+   "⋮Acciones: Aurora Café"
+  ],
+  "cardActions": [],
+  "menuTrigger": true,
+  "emptyState": "Ver los 9 sin plan"
+ },
+ {
+  "screen": "pipeline",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "cardHeight": 169,
+  "cardText": "Oportunidad QA 12Gs. 4.000.00040%",
+  "indicator": "1 etapa fuera de vistaMostrando etapas 1–5 de 6",
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 1184
+  }
+ },
+ {
+  "screen": "clientes",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "section": true,
+  "rowActions": [
+   "Aurora Café",
+   "Abrir ficha: Aurora Café",
+   "⋮Acciones: Aurora Café"
+  ],
+  "cardActions": [],
+  "menuTrigger": true,
+  "emptyState": "Ver los 9 sin plan"
+ },
+ {
+  "screen": "pipeline",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "cardHeight": 213,
+  "cardText": "Oportunidad QA 12Gs. 4.000.00040%",
+  "indicator": "4 etapas fuera de vistaMostrando etapas 1–2 de 6",
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 358
+  }
+ },
+ {
+  "screen": "clientes",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "section": true,
+  "rowActions": [],
+  "cardActions": [
+   "Alma Cocina",
+   "Abrir ficha: Alma Cocina",
+   "⋮Acciones: Alma Cocina"
+  ],
+  "menuTrigger": true,
+  "emptyState": "Ver los 9 sin plan"
+ },
+ {
+  "screen": "pipeline",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "cardHeight": 213,
+  "cardText": "Oportunidad QA 12Gs. 4.000.00040%",
+  "indicator": "4 etapas fuera de vistaMostrando etapas 1–2 de 6",
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 358
+  }
+ },
+ {
+  "screen": "clientes",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "section": true,
+  "rowActions": [],
+  "cardActions": [
+   "Alma Cocina",
+   "Abrir ficha: Alma Cocina",
+   "⋮Acciones: Alma Cocina"
+  ],
+  "menuTrigger": true,
+  "emptyState": "Ver los 9 sin plan"
+ }
+]

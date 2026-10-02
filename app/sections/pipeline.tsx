@@ -2,13 +2,14 @@
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
-import {ArrowUpRight,Eye,GripVertical,Move,Plus,Settings2,TrendingUp} from 'lucide-react';
-import {Aviso,AvisoPrivacidad,Button,Input,Label,Select} from 'owncoding-ui';
+import {ArrowUpRight,GripVertical,Move,Plus,Settings2,TrendingUp,ChevronLeft,ChevronRight} from 'lucide-react';
+import {Aviso,AvisoPrivacidad,Button,IconAction,Input,Label,Select} from 'owncoding-ui';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '../pipeline-summary';
+import {boardColumnWindow,type BoardColumnWindow} from '../pipeline-board-window';
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
 import {PHONE_HELP} from '../field-rules';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_LEAD_FINALITY,PRIVACY_LEAD_DETAIL} from '../privacy-links';
@@ -67,9 +68,8 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
       {row.do_not_contact===true?<StateChip tone="warn" title="El titular pidió no ser contactado: el equipo conserva el registro y no inicia contacto.">No contactar</StateChip>:null}
       {hasProbability?<StateChip tone={probability>=75?'ok':probability>=40?'warn':'mute'} title={`Probabilidad ${probability}%`}>{probability}%</StateChip>:<span className="text-mute">Sin probabilidad cargada</span>}
     </div>
-    {str(row,'notes')?<p className="text-[11px] leading-4 text-mute [overflow-wrap:anywhere]">{str(row,'notes')}</p>:null}
     <footer className="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2">
-      <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-8" onClick={edit}><Eye aria-hidden="true" size={14}/> Ver oportunidad</Button>
+      <IconAction icon="eye" label={`Ver oportunidad: ${str(row,'name')}`} onClick={edit}/>
       <RemoveRecord kind="leads" id={String(row.id)} name={str(row,'name')} role={role} done={refresh}/>
     </footer>
   </article>;
@@ -117,6 +117,10 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   const [moreBusy,setMoreBusy]=useState(false);
   const [stagesWarning,setStagesWarning]=useState('');
   const [stagesKnown,setStagesKnown]=useState(false);
+  // Indicador de columnas ocultas (#140): el tablero conserva su scroll
+  // horizontal, pero dice cuántas etapas quedan fuera y da acceso con flechas.
+  const boardRef=useRef<HTMLDivElement|null>(null);
+  const [boardWindow,setBoardWindow]=useState<BoardColumnWindow>({from:0,to:0,total:0,hiddenBefore:0,hiddenAfter:0,hiddenTotal:0});
   const stagesLoaded=useRef(false);
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
   const role=user?.role||'viewer';
@@ -159,6 +163,30 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     }
   }
   useEffect(()=>{void load();void loadStages();},[]);
+  // Mide la ventana visible del tablero (solo en el navegador; en tests sin DOM
+  // las medidas no existen y el indicador no se dibuja).
+  useEffect(()=>{
+    const node=boardRef.current;
+    if(!node||typeof node.scrollLeft!=='number')return;
+    const measure=()=>{
+      // `offsetLeft` es relativo al ancestro posicionado común: se normaliza al
+      // borde del tablero para que la ventana compare con `scrollLeft`.
+      const columns=[...node.children].map(child=>{const element=child as HTMLElement;return{start:element.offsetLeft-node.offsetLeft,size:element.offsetWidth};});
+      const next=boardColumnWindow(columns,node.scrollLeft,node.clientWidth);
+      setBoardWindow(current=>current.from===next.from&&current.to===next.to&&current.total===next.total?current:next);
+    };
+    measure();
+    node.addEventListener('scroll',measure,{passive:true});
+    window.addEventListener('resize',measure);
+    return()=>{node.removeEventListener('scroll',measure);window.removeEventListener('resize',measure);};
+  },[rows,stages]);
+  const scrollBoard=(direction:1|-1)=>{
+    const node=boardRef.current;
+    if(!node||typeof node.scrollBy!=='function')return;
+    const first=node.children[0] as HTMLElement|undefined;
+    const step=(first?.offsetWidth||240)+12;
+    node.scrollBy({left:direction*step,behavior:'smooth'});
+  };
   // El diálogo refleja la oposición guardada al abrir cada oportunidad.
   useEffect(()=>{setDoNotContact(edit&&edit!=='new'?edit.do_not_contact===true:false);},[edit]);
 
@@ -269,8 +297,18 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       </div>:null}
 
       {rows.length?<div className="grid gap-2">
+        {/* Indicador fuerte de columnas ocultas (#140): conteo + posición y
+            flechas para recorrer el tablero sin adivinar que hay más etapas. */}
+        {boardWindow.hiddenTotal>0?<div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-mute" role="status" aria-live="polite">
+          <StateChip tone="info" title={`Hay ${boardWindow.hiddenTotal} ${boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista: usá las flechas o desplazá el tablero.`}>{boardWindow.hiddenTotal} {boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista</StateChip>
+          <span className="tabular-nums">Mostrando etapas {boardWindow.from+1}–{boardWindow.to+1} de {boardWindow.total}</span>
+          <div className="inline-actions gap-1">
+            <button type="button" className="icon-button" disabled={boardWindow.hiddenBefore===0} title="Ver etapa anterior" aria-label="Ver etapa anterior" onClick={()=>scrollBoard(-1)}><ChevronLeft size={16} aria-hidden="true"/></button>
+            <button type="button" className="icon-button" disabled={boardWindow.hiddenAfter===0} title="Ver etapa siguiente" aria-label="Ver etapa siguiente" onClick={()=>scrollBoard(1)}><ChevronRight size={16} aria-hidden="true"/></button>
+          </div>
+        </div>:null}
         <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+          <div ref={boardRef} className="flex gap-3 overflow-x-auto pb-2">
             {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label}} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(stage.value)}/>)}
             {looseSlugs.map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} rows={rows.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(value)} readOnly/>)}
           </div>

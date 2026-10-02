@@ -13,6 +13,8 @@ export type DirectoryClient = {
   phone: string | null;
   /** El API no entregó contacto a este rol (Ley 7593/2025, Refs #114). */
   contact_restricted?: boolean;
+  /** Contrato vigente: alimenta el filtro «Sin plan y pago» (Refs #140). */
+  has_recurring_price?: boolean;
 };
 
 /**
@@ -64,7 +66,11 @@ export function filterClientDirectory<T extends DirectoryClient>(
   const term = normalizeSearch(query);
 
   return clients.filter((client) => {
-    if (lifecycleStatus && clientState(client).value !== lifecycleStatus)
+    // «Sin plan y pago» (#140): el atajo del estado «Sin contratos» no es un
+    // estado de servicio; filtra por contrato vigente en lugar de por lifecycle.
+    if (lifecycleStatus === "sin_plan") {
+      if (client.has_recurring_price === true) return false;
+    } else if (lifecycleStatus && clientState(client).value !== lifecycleStatus)
       return false;
     if (!term) return true;
 
