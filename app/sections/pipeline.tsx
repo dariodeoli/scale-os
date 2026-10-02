@@ -331,14 +331,22 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {user?<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>:null}
 
       {edit&&canEdit?<Dialog title={row?'Editar oportunidad':'Nueva oportunidad'} busy={busy} close={()=>{if(!busy)setEdit(null);}}>
-        <AvisoPrivacidad finalidad={PRIVACY_LEAD_FINALITY} detalle={PRIVACY_LEAD_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
-        {/* Oposición (#114): se declara junto a los datos y viaja en el mismo
-            guardado; el titular puede revertirla cuando quiera. */}
-        <label className="mb-3 flex items-start gap-2.5 text-[12.5px] leading-5 text-mute">
-          <input type="checkbox" className="mt-0.5 h-5 w-5 flex-none accent-fono" checked={doNotContact} disabled={busy} onChange={event=>setDoNotContact(event.target.checked)}/>
-          <span><b className="text-fore">No contactar.</b> El titular pidió no ser contactado: conservamos el registro de la oportunidad y no iniciamos contacto.</span>
-        </label>
+        {/* #150: los campos van primero; el aviso legal se resume en una línea
+            con enlace y el detalle queda en la ayuda desplegable. */}
         <Editor columns fields={fields} defaults={defaults} save={async values=>{await api(`/api/agency/leads${row?`/${row.id}`:''}`,{...values,do_not_contact:doNotContact},row?'PATCH':'POST');await completeSave(()=>setEdit(null),load);}}/>
+        <div className="mt-3 grid gap-2">
+          {/* Oposición (#114): se declara junto a los datos y viaja en el mismo
+              guardado; el titular puede revertirla cuando quiera. */}
+          <label className="flex items-start gap-2.5 text-[12.5px] leading-5 text-mute">
+            <input type="checkbox" className="mt-0.5 h-5 w-5 flex-none accent-fono" checked={doNotContact} disabled={busy} onChange={event=>setDoNotContact(event.target.checked)}/>
+            <span><b className="text-fore">No contactar.</b> El titular pidió no ser contactado: conservamos el registro de la oportunidad y no iniciamos contacto.</span>
+          </label>
+          <p className="form-note m-0">Datos para gestionar la oportunidad y responderte; no los usamos para otro fin. <a className="text-button" href={PRIVACY_POLICY_URL} target="_blank" rel="noreferrer">Privacidad</a></p>
+          <details className="ops-profile-section">
+            <summary>Finalidad y tus derechos</summary>
+            <div className="pt-1"><AvisoPrivacidad finalidad={PRIVACY_LEAD_FINALITY} detalle={PRIVACY_LEAD_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact/></div>
+          </details>
+        </div>
         {row&&!row.client_id?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await api(`/api/agency/leads/${row.id}/convert`,{});setEdit(null);await load();}catch(reason){setError(err(reason));}finally{setBusy(false);}}}>Ganado: convertir a cliente</Button></div>:null}
       </Dialog>:null}
 
