@@ -344,9 +344,10 @@ test('el editor de cliente carga el plan sólo para los roles de términos comer
 });
 
 test('la ficha del cliente deja el CTA de plan donde hoy dice "Sin plan registrado"',()=>{
- const productivity=read('app/productivity-ui.tsx');
- assert.match(productivity,/Sin plan registrado[\s\S]{0,220}?RecordEditor kind="clients"[\s\S]{0,160}?planCta="text" actions=\{\[\]\}/,'la ficha monta el CTA de plan junto al dato faltante');
- assert.match(productivity,/!summary\.terms&&roleCan\(role,'commercial-terms\.manage'\)/,'sólo los roles que gestionan términos ven la acción');
+ const summary=read('app/client-commercial-summary.tsx');
+ assert.match(summary,/Sin plan registrado[\s\S]{0,260}?RecordEditor kind="clients"[\s\S]{0,160}?planCta="text" actions=\{\[\]\}/,'la ficha monta el CTA de plan junto al dato faltante');
+ assert.match(summary,/!summary\.terms && roleCan\(role, 'commercial-terms\.manage'\)/,'sólo los roles que gestionan términos ven la acción');
+ assert.match(summary,/clientDateSummary\(\{createdAt: s\(client, 'created_at'\), relationshipStartedOn: summary\.relationshipStartedOn\}\)/,'la ficha normaliza «Cliente desde» con la fuente única (#145)');
 });
 
 test('pipeline: el indicador de columnas ocultas y la tarjeta corta (#140)',()=>{
@@ -357,6 +358,9 @@ test('pipeline: el indicador de columnas ocultas y la tarjeta corta (#140)',()=>
  assert.match(pipeline,/Mostrando etapas \{boardWindow\.from\+1\}–\{boardWindow\.to\+1\} de \{boardWindow\.total\}/,'el indicador declara la posición real');
  assert.match(pipeline,/aria-label="Ver etapa anterior"/,'hay acceso por teclado a la etapa anterior');
  assert.match(pipeline,/aria-label="Ver etapa siguiente"/,'y a la siguiente');
+ // KPIs compactos en móvil (#145): conteos en una fila y el monto a ancho completo.
+ assert.match(pipeline,/KpiStrip aria-label="Resumen del pipeline" className="max-sm:grid-cols-3"/,'los KPIs de Pipeline compactan en móvil (#145)');
+ assert.match(pipeline,/max-sm:col-span-3[\s\S]{0,80}?label="Valor abierto"/,'el monto abierto conserva el ancho completo para no cortarse');
  // La tarjeta queda corta: la descripción sale y la acción pasa a icono.
  const card=pipeline.split('function LeadCard')[1].split('function LeadColumn')[0];
  assert.doesNotMatch(card,/notes/,'la descripción no alarga la tarjeta');

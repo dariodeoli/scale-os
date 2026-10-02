@@ -1,4 +1,5 @@
 import {diasHasta} from 'owncoding-ui/utils';
+import {fechaLista} from 'owncoding-ui';
 import {money} from './money-format';
 
 /**
@@ -22,6 +23,20 @@ export function currentAsuncionMonth(now: Date = new Date()): string {
 
 export function clientSince(value?: string): string | null {
   return value ? new Intl.DateTimeFormat('es-PY', { month: 'short', year: 'numeric', timeZone: 'America/Asuncion' }).format(new Date(value)) : null;
+}
+
+/**
+ * Etiquetas de fecha de la ficha con su fuente única (#145). «Cliente desde»
+ * es el alta real; la fecha real de relación sólo se devuelve aparte cuando su
+ * etiqueta difiere de la del alta (si coincide, repetirla sería ruido). El
+ * formato y el huso salen de `fechaLista` (librería), que además distingue
+ * fechas de calendario de timestamps: la misma fecha en todas las secciones.
+ */
+export function clientDateSummary(input: { createdAt?: string | null; relationshipStartedOn?: string | null }): { since: string | null; relationship: string | null } {
+  const label = (value?: string | null) => {const text = value ? fechaLista(value, '', { timeZone: 'America/Asuncion', hora: '' }) : ''; return text || null;};
+  const since = label(input.createdAt);
+  const relationship = label(input.relationshipStartedOn);
+  return { since, relationship: relationship && relationship !== since ? relationship : null };
 }
 
 /**

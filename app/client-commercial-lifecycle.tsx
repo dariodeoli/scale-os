@@ -32,7 +32,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
       className="min-w-0 [&_table]:min-w-[52rem]"
       columns={[
        {key:'effectiveOn',label:'Vigente desde',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><time dateTime={row.amendment.effectiveOn} className="whitespace-nowrap">{listDateFull(row.amendment.effectiveOn)}</time>},
-       {key:'activationDate',label:'Cliente desde',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=>row.amendment.activationDate?<time dateTime={row.amendment.activationDate} className="whitespace-nowrap">{listDateFull(row.amendment.activationDate)}</time>:<span className="text-mute">Sin fecha registrada</span>},
+       {key:'activationDate',label:'Activación comercial',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=>row.amendment.activationDate?<time dateTime={row.amendment.activationDate} className="whitespace-nowrap">{listDateFull(row.amendment.activationDate)}</time>:<span className="text-mute">Sin fecha registrada</span>},
        {key:'plan',label:'Plan',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><div className="grid gap-0.5"><strong className="text-fore">{row.amendment.planName}</strong><small className="text-[11px] text-mute">Versión contratada: {row.amendment.planVersionSnapshot}</small></div>},
        {key:'monthlyPrice',label:'Mensual',align:'right',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><MoneyText valor={row.amendment.monthlyPrice} currency={row.amendment.currency} className="text-fore"/>},
        {key:'discount',label:'Descuento',render:(row:{amendment:Parameters<typeof amendmentLabel>[0]})=><div className="grid gap-0.5"><span className="whitespace-nowrap text-fore">{amendmentLabel(row.amendment)}</span>{row.amendment.discountTerms?<small className="text-[11px] text-mute">{row.amendment.discountTerms}</small>:null}</div>},
@@ -47,7 +47,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
        </div>
        <p className="font-semibold text-fore">{amendment.planName}</p>
        <p className="text-xs text-mute">Versión contratada: {amendment.planVersionSnapshot}</p>
-       <p className="text-xs text-mute">Cliente desde: {amendment.activationDate?listDateFull(amendment.activationDate):'Sin fecha registrada'}</p>
+       <p className="text-xs text-mute">Activación comercial: {amendment.activationDate?listDateFull(amendment.activationDate):'Sin fecha registrada'}</p>
        <p className="text-xs text-mute">Descuento: {amendmentLabel(amendment)}{amendment.discountTerms?` · ${amendment.discountTerms}`:''}</p>
        <p className="text-xs text-mute">Extras: {amendment.extrasDeliverables||'Sin extras registrados'}</p>
       </div>;}}
@@ -56,7 +56,7 @@ function CommercialLifecycleEditor({id,writable,onSaved}:{id:string;writable:boo
    {editable&&!adding?<div><Button type="button" onClick={()=>{resetDraft();setAdding(true);}}>Registrar enmienda comercial</Button></div>:null}
    {editable&&adding?<form className="grid gap-3 md:grid-cols-2 xl:grid-cols-3" noValidate aria-busy={saving} onSubmit={save}>
     <FormField label="Vigente desde" htmlFor="lifecycle-effective-on"><Input id="lifecycle-effective-on" type="date" className="w-40" min="1900-01-01" max={todayAsuncion()} value={draft.effectiveOn} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('effectiveOn',event.target.value)}/></FormField>
-    <FormField label="Cliente desde (opcional)" htmlFor="lifecycle-activation-date"><Input id="lifecycle-activation-date" type="date" className="w-40" min="1900-01-01" max={todayAsuncion()} value={draft.activationDate} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('activationDate',event.target.value)}/></FormField>
+    <FormField label="Activación comercial (opcional)" htmlFor="lifecycle-activation-date"><Input id="lifecycle-activation-date" type="date" className="w-40" min="1900-01-01" max={todayAsuncion()} value={draft.activationDate} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('activationDate',event.target.value)}/></FormField>
     <FormField label="Nombre del plan" htmlFor="lifecycle-plan-name"><Input id="lifecycle-plan-name" value={draft.planName} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('planName',event.target.value)}/></FormField>
     <FormField label="Versión contratada" htmlFor="lifecycle-plan-version"><Input id="lifecycle-plan-version" value={draft.planVersionSnapshot} disabled={saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>update('planVersionSnapshot',event.target.value)}/></FormField>
     <FormField label="Precio mensual contratado" htmlFor="lifecycle-monthly-price"><MoneyInput id="lifecycle-monthly-price" className="w-44" currency={draft.currency} value={draft.monthlyPrice} disabled={saving} onValueChange={(value: unknown)=>update('monthlyPrice',String(value))}/></FormField>

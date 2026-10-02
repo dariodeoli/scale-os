@@ -53,6 +53,10 @@ try{
  await seedPrivateDemo(observed,org,owner);assert(before,'main seed must invoke the isolated report builder');
  assert.equal((await query('show timezone')).rows[0].TimeZone,'America/Asuncion','seed aligns original and historic invoice dates to the report timezone');
  const completed=await snapshot(org),reports=await report(org);
+ // #145: las notas que genera el fixture no llevan importes crudos.
+ const demoNotes=(await query("select notes from agency_clients where organization_id=$1 and notes like '%importe mensual acordado%' order by id limit 1",[org])).rows[0]?.notes||'';
+ assert.match(demoNotes,/importe mensual acordado Gs\.[\s\u00a0]3\.000\.000,/,'las notas de demo formatean el importe con el formato del sistema');
+ assert.doesNotMatch(demoNotes,/PYG 3000000\.00/,'sin importes crudos en las notas de la demo');
  const dates=(await query("select to_char(date_trunc('month',current_date)+n*interval '1 month','YYYY-MM') as month from generate_series(-6,0) n order by n")).rows.map(row=>row.month);
  assert.deepEqual(reports.months.map(month=>month.month),dates,'six complete months and current month, from SQL current_date');
  assert.deepEqual(reports.months.map(month=>month.clients.active),[4,6,7,10,13,18,20]);

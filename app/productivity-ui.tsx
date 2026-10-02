@@ -25,7 +25,7 @@ import {WhatsAppButton} from './whatsapp-button';
 import {OPS_TIME_ZONE} from './ops-time';
 import {ClientReporting} from './client-reporting';
 import {ClientCommercialLifecycle} from './client-commercial-lifecycle';
-import {clientState} from './client-status';
+import {ClientCommercialSummary,type ClientSummary,type ClientSummaryTerms} from './client-commercial-summary';
 import {ProjectPresence} from './presence';
 import {statuses} from './production-board';
 import {ActorIdentity} from './actor-identity';
@@ -33,7 +33,6 @@ import {RecordAssignees} from './record-assignees';
 import {WorkChecklist} from './work-checklist';
 import {CommentBody,CommentComposer} from './commenting';
 import {ClientRuc} from './client-ruc';
-import {RecordEditor} from './suite';
 import {DriveLinks,driveLinksText} from './drive-links';
 import {DueDate} from './due-date';
 import {WorkOrderLinks} from './work-order-links';
@@ -42,28 +41,12 @@ export type WorkItem={id:string;title:string;status:string;project_id:string;due
 /** Nombres de responsables para las listas (#73): `assignee_names` viaja liviano; las órdenes del tablero traen las completas. */
 const assigneeNames=(order:WorkItem)=>order.assignee_names?.length?order.assignee_names:(order.effective_assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean);
 const s=(r:Row,k:string)=>String(r[k]??'');
-type ClientSummaryTerms={planName:string;recurringAmount:string|number;currency:string;cadence:string;intervalMonths:number|null;invoiceRequired:boolean};
-type ClientSummary={relationshipStartedOn:string|null;terms:ClientSummaryTerms|null};
 const commercialReadRoles=['owner','admin','management','sales','finance'];
 const commercialFinancialRoles=['owner','admin','finance','management'];
 function isSummaryTerms(value:unknown):value is ClientSummaryTerms{
  if(!value||typeof value!=='object')return false;
  const t=value as Record<string,unknown>;
  return typeof t.planName==='string'&&(typeof t.recurringAmount==='string'||typeof t.recurringAmount==='number')&&typeof t.currency==='string'&&typeof t.cadence==='string'&&(t.intervalMonths===null||typeof t.intervalMonths==='number')&&typeof t.invoiceRequired==='boolean';
-}
-function cadenceLabel(terms:ClientSummaryTerms|null){
- if(!terms)return 'Sin datos';
- if(terms.cadence==='monthly')return 'Mensual';
- if(terms.cadence==='interval'){const n=Number(terms.intervalMonths)||1;return `Cada ${n} mes${n===1?'':'es'}`;}
- if(terms.cadence==='once')return 'Única vez';
- return 'Sin datos';
-}
-function monthsSinceLabel(value:string){
- if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
- const start=new Date(`${value}T12:00:00Z`),now=new Date();
- if(Number.isNaN(start.getTime())||start>now)return null;
- const months=(now.getUTCFullYear()-start.getUTCFullYear())*12+now.getUTCMonth()-start.getUTCMonth();
- return months<=0?'Este mes':`Hace ${months} mes${months===1?'':'es'}`;
 }
 const errorText=(e:unknown)=>e instanceof Error?e.message:'No se pudo completar';
 // El diccionario canónico de estados de pieza vive en production-board; acá
@@ -157,25 +140,13 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
   });
   return()=>{alive=false;};
  },[id,role]);
- const sinceValue=summary?.relationshipStartedOn||(data?String(data.client.created_at||'').slice(0,10):'');
  const canSeeContact=canSeeClientContact(role);
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error" role="alert">{error}</p>}{data?<>
   {['owner','admin','management','sales','finance'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
   {data.client.contact_restricted===true
    ? <p className="text-mute" title="Contacto y datos fiscales reservados para los roles que gestionan clientes (Ley 7593/2025).">Contacto y datos fiscales reservados para los roles que gestionan clientes.</p>
    : <><p><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/> · <PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>{canSeeContact?<WhatsAppButton className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))}/>:null}<p>{s(data.client,'notes')}</p></>}
-  {summary&&<section className="client-summary" aria-label="Resumen comercial del cliente">
-   <div className="client-summary-grid">
-    <article><span>Estado del servicio</span><strong>{clientState({lifecycle_status:s(data.client,'lifecycle_status'),active:data.client.active!==false}).label}</strong></article>
-    <article><span>Cobros</span><strong>{payStatus?payStatus.payment_status==='up_to_date'?'Al día':payStatus.payment_status==='due_soon'?`Vence ${fechaListaCorta(payStatus.next_due_on,'')||'próximamente'}`:`${payStatus.days_overdue} días de mora`:'Sin datos'}</strong>{payStatus&&payStatus.currency&&Number(payStatus.outstanding_amount)>0?<small title={`Pendiente ${money(Number(payStatus.outstanding_amount),payStatus.currency)}`}>Pendiente {money(Number(payStatus.outstanding_amount),payStatus.currency)}</small>:null}</article>
-    <article><span>Plan</span><strong title={summary.terms?.planName||undefined}>{summary.terms?.planName||'Sin plan registrado'}</strong>{!summary.terms&&roleCan(role,'commercial-terms.manage')?<RecordEditor kind="clients" recordId={id} name={s(data.client,'name')} role={role} refresh={reload} planCta="text" actions={[]}/>:null}</article>
-    <article><span>Pago mensual</span><strong title={summary.terms?money(String(summary.terms.recurringAmount),summary.terms.currency):undefined}>{summary.terms?money(String(summary.terms.recurringAmount),summary.terms.currency):'Sin datos'}</strong></article>
-    <article><span>Recurrencia</span><strong>{cadenceLabel(summary.terms)}</strong></article>
-    <article><span>Cliente desde</span><strong>{monthsSinceLabel(sinceValue)||'Sin fecha registrada'}</strong>{/^\d{4}-\d{2}-\d{2}$/.test(sinceValue)?<small>{fechaLista(sinceValue,'',{timeZone:OPS_TIME_ZONE})}</small>:null}</article>
-    <article><span>Factura</span><strong>{summary.terms?summary.terms.invoiceRequired?'Pide factura':'No pide factura':'Sin datos'}</strong></article>
-    <article><span>RUC</span><strong title={s(data.client,'tax_id')||undefined}>{s(data.client,'tax_id')||'Sin RUC registrado'}</strong>{s(data.client,'legal_name')&&s(data.client,'legal_name')!==s(data.client,'name')?<small title={s(data.client,'legal_name')}>{s(data.client,'legal_name')}</small>:null}</article>
-   </div>
-  </section>}
+  <ClientCommercialSummary id={id} client={data.client} payStatus={payStatus} summary={summary} role={role} reload={reload}/>
   {managers.includes(role)&&<div className="quick-actions"><button className="primary min-h-11 md:min-h-10" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button>{roleCan(role,'portal-access.manage')&&<ClientPortalAccess clientId={id}/>}</div>}
   <div className="choice-list">{['Producción',...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={`${tab===t?'choice active':'choice'} min-h-11 md:min-h-10`} onClick={()=>setTab(t)}>{t}</button>)}</div>
   {tab==='Producción'&&<><h3>Proyectos ({data.projects.length})</h3><div className="drawer-list">{data.projects.length?<div className="drawer-list-head" aria-hidden="true"><span>Proyecto</span><span>Enlaces</span></div>:null}{data.projects.map(p=><article className="activity-line" key={p.id}><b title={s(p,'name')}>{s(p,'name')}</b><DriveLinks value={p.drive_links} legacy={s(p,'drive_url')} compact/></article>)}</div><h3>Piezas recientes</h3><div className="drawer-list">{data.orders.length?<div className="drawer-list-head" aria-hidden="true"><span>Pieza</span><span>Estado</span></div>:null}{data.orders.map(o=><button className="work-list-row" key={o.id} onClick={()=>openOrder(String(o.id))}><b title={s(o,'title')}>{s(o,'title')}</b><span>{workStatusLabel(s(o,'status'))}</span></button>)}</div>{!data.projects.length&&<p className="empty-copy">Este cliente aún no tiene proyectos.</p>}</>}
