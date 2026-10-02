@@ -7,6 +7,7 @@ const suite=readFileSync(new URL('../app/suite.tsx',import.meta.url),'utf8');
 const workspace=workspaceSource();
 const guide=readFileSync(new URL('../app/workspace-guide.tsx',import.meta.url),'utf8');
 const styles=readFileSync(new URL('../app/settings-slice.css',import.meta.url),'utf8');
+const configuracion=readFileSync(new URL('../app/sections/configuracion.tsx',import.meta.url),'utf8');
 
 test('settings slice keeps the server-backed company update and its full validation form',()=>{
  assert.match(suite,/api<\{default_currency:typeof currencies\[number\]\['value'\]\}>\('\/api\/agency\/settings',\{\.\.\.v,onboarding_completed:true\},'PATCH'\)/);
@@ -19,7 +20,7 @@ test('settings slice keeps the server-backed company update and its full validat
 test('preferences remain scoped to local storage while settings use compact, accessible disclosure',()=>{
  assert.match(workspace,/useWorkspacePreferences\(signedIn\?String/);
  assert.match(workspace,/active==='Preferencias'/);
- assert.match(workspace,/updatePreferences\(\{startup:startup as StartupPreference\}\)/);
+ assert.match(workspace,/updatePreferences\(\{startup:[^}]+ as StartupPreference\}\)/);
  assert.match(styles,/min-height:44px/);
  assert.match(styles,/:focus-visible\{outline:3px/);
  assert.match(styles,/@media\(prefers-reduced-motion:reduce\)/);
@@ -31,4 +32,19 @@ test('integration rows communicate unconfigured status and company creation rema
  assert.match(guide,/<details className="settings-disclosure"><summary>Cómo funciona una empresa adicional<\/summary>/);
  assert(guide.includes("'/api/auth/organizations'"));
  assert(guide.includes("'/api/auth/switch-organization'"));
+});
+
+test('#139: el manual sale de Configuración y el lateral usa Cotización e Integraciones',()=>{
+ // La ayuda del panel (workspace-guide) conserva el manual; la sección de
+ // Configuración ya no lo embebe en su columna principal.
+ assert.match(guide,/ManualWorkspace/);
+ assert.doesNotMatch(suite,/ManualWorkspace/);
+ assert.doesNotMatch(suite,/<ManualWorkspace\/>/);
+ // El lateral de Suscripción suma la cotización y las integraciones debajo.
+ assert.match(configuracion,/settings-subscription[\s\S]*<ExchangeRateSettings\/>[\s\S]*<IntegrationSettings\/>/);
+ assert.match(configuracion,/import \{SettingsWorkspace,CouponRedeem,ExchangeRateSettings,IntegrationSettings\} from '\.\.\/suite'/);
+ // La empresa sigue siendo el único bloque de la columna principal.
+ const companyOnly=suite.slice(suite.indexOf('export function SettingsWorkspace'),suite.indexOf('export function ExchangeRateSettings'));
+ assert.match(companyOnly,/settings-company-card/);
+ assert.doesNotMatch(companyOnly,/exchange-settings-title|integration-settings-title/);
 });
