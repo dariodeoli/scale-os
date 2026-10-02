@@ -18,9 +18,9 @@ test('one monthly plan, two fixed alternatives and explicit trial/grace terms',(
  assert(text.includes('US$10/mes o G.50.000/mes'));
  assert(text.includes('precios alternativos de lanzamiento'));
  assert(text.includes('no una conversión'));
- assert(text.includes('30 días desde el alta de tu cuenta'));
+ assert(text.includes('30 días gratis desde el alta de tu cuenta'));
  assert(text.includes('la prueba empieza al completar el alta, no al hacer clic'));
- assert(text.includes('Sin tarjeta para iniciar'));
+ assert(text.includes('Sin tarjeta ni permanencia'));
  assert(text.includes('2 días de gracia'));
  assert(text.includes('Al tercer día sin pagar se suspende el acceso'));
  assert(text.includes('La suspensión no borra tus datos'));
@@ -40,7 +40,7 @@ test('signup CTAs lead only to registration; demo stays separate and isolated',(
  assert(links.filter(link=>link.attrs.includes('data-cta="demo"')).every(link=>link.href===demo));
  assert(links.some(link=>link.href===demo));
  assert(text.includes('copia aislada con datos ficticios, sin registro'));
- assert(text.includes('Explorar la demo pública no inicia esta prueba'));
+ assert(text.includes('no inicia la prueba'));
  assert(text.includes('registrarte con Google no habilita el acceso a una agencia ajena'));
  assert(links.every(link=>link.href?.startsWith('#')||link.href?.startsWith('https://')));
 });
@@ -87,11 +87,44 @@ test('semantic anchors, native FAQ and keyboard focus remain available without a
  for(const [,id] of html.matchAll(/href="#([^"]+)"/g))assert(ids.includes(id),'anchor '+id);
  for(const [,id] of html.matchAll(/aria-labelledby="([^"]+)"/g))assert(ids.includes(id),'label '+id);
  assert.equal((html.match(/<h1\b/g)||[]).length,1);
- assert.equal((html.match(/<details>/g)||[]).length,10);
- assert.equal((html.match(/<summary>/g)||[]).length,10);
+ // Cuenta los detalles reales (sin comentarios ni hojas): 3 pilares + 8 FAQ.
+ const sinComentarios=html.replace(/<!--[\s\S]*?-->/g,'').replace(/<style>[\s\S]*?<\/style>/g,'');
+ assert.equal((sinComentarios.match(/<details\b/g)||[]).length,11);
+ assert.equal((sinComentarios.match(/<summary>/g)||[]).length,11);
  assert(html.includes('class="skip" href="#contenido"'));
  assert(!/<script[^>]+src=|type="module"|maximum-scale|user-scalable=no/.test(html));
  for(const img of html.matchAll(/<img\b[^>]*>/g))assert(/\balt="[^"]*"/.test(img[0]));
+});
+
+test('landing #134: sin promesas vitalicias, una sola prueba, pilares y fundador junto al precio',()=>{
+ // 1 · Sin «para siempre» ni congelamiento vitalicio en ningún bloque.
+ assert(!/para siempre/i.test(html),'la landing no promete precios «para siempre»');
+ assert(!/US\$10\/mes para siempre/i.test(html));
+ // 2 · Sin citas genéricas: el bloque vive comentado para casos autorizados.
+ const visible=html.replace(/<!--[\s\S]*?-->/g,'').replace(/<style>[\s\S]*?<\/style>/g,'').replace(/<script\b[^>]*>[\s\S]*?<\/script>/g,'');
+ assert(!/id="testimonials"|quote-card|— Juan,|— Sofía,|— Carlos,/.test(visible),'no se publican citas inventadas');
+ // 3 · La prueba se menciona una sola vez en el contenido visible (junto al precio).
+ const cuerpo=visible.slice(visible.indexOf('<body'));
+ const textoVisible=cuerpo.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
+ assert.equal((textoVisible.match(/30 días/gi)||[]).length,1,'«30 días» una sola vez, en #precio');
+ assert(textoVisible.includes('30 días gratis desde el alta de tu cuenta'));
+ // 4 · Un CTA principal por bloque (nav, hero, precio y cierre) y todos al registro.
+ assert.equal((html.match(/data-cta="trial"/g)||[]).length,4);
+ assert((html.match(/Empezar gratis/g)||[]).length>=2,'hero y precio usan el mismo CTA corto');
+ // 5 · Funciones en 3 pilares con el resto expandible y sin perder ninguna función.
+ const funciones=visible.slice(visible.indexOf('<section id="funciones"'),visible.indexOf('</section>',visible.indexOf('<section id="funciones"')));
+ assert.equal((funciones.match(/<article class="pillar">/g)||[]).length,3);
+ for(const pilar of ['Operación','Clientes','Control financiero'])assert(funciones.includes(`<h3>${pilar}</h3>`),`pilar ${pilar}`);
+ assert.equal((funciones.match(/<article class="pillar-item">/g)||[]).length,9,'las 9 funciones siguen disponibles');
+ for(const titulo of ['Producción que avanza','Portal del cliente','El equipo, con contexto','Cada cliente, en su lugar','Ventas con seguimiento','Finanzas sin mezclar monedas','Equipos listos para producir','Estudio y agenda','Informes para decidir con datos'])assert(funciones.includes(titulo),`función presente: ${titulo}`);
+ // 6 · El beneficio fundador vive en #precio (con el chip y la nota canónica).
+ const precio=visible.slice(visible.indexOf('<section id="precio"'),visible.indexOf('</section>',visible.indexOf('<section id="precio"')));
+ assert(precio.includes('class="founder-chip"')&&precio.includes('data-founder-pricing'),'fundador junto al precio');
+ assert(!visible.slice(0,visible.indexOf('<section id="precio"')).includes('data-founder-pricing'),'el hero ya no vende el beneficio de fundador');
+ // 7 · El portal se rotula con lo que existe: acceso propio y aprobaciones por enlace.
+ assert(text.includes('Portal del cliente y aprobaciones por enlace privado'));
+ // 8 · La prueba real es el flujo de trabajo, sin nombres ni métricas inventadas.
+ assert(text.includes('Así se ve un trabajo real, sin nombres'));
 });
 
 test('CSS source provides shrinking grids at 320/360/390/768; not rendered visual QA',()=>{
