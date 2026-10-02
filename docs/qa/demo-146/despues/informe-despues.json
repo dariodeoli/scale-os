@@ -1,0 +1,161 @@
+{
+ "generatedAt": "2026-10-02T07:28:26.028Z",
+ "tag": "despues",
+ "projectAudits": [
+  {
+   "label": "con piezas",
+   "name": "Campaña · Aurora Café",
+   "card": "390",
+   "state": {
+    "count": 4,
+    "items": 4,
+    "empty": false
+   }
+  },
+  {
+   "label": "con piezas",
+   "name": "Campaña · Aurora Café",
+   "card": "1440",
+   "state": {
+    "count": 4,
+    "items": 4,
+    "empty": false
+   }
+  }
+ ],
+ "checks": [
+  {
+   "label": "proyectos 390 con piezas: el contador iguala la lista",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "proyectos 390 con piezas: la lista tiene piezas",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "calendario 390: agenda semanal de 7 días",
+   "ok": true,
+   "value": 7,
+   "expected": 7
+  },
+  {
+   "label": "calendario 390: días vacíos bajos (≤ 40 px)",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "calendario 390: «Semana siguiente» avanza",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "ubicaciones 390: el ⋯ reemplaza las flechas sueltas",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "ubicaciones 390: los lugares guardados ofrecen su menú ⋯",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "ubicaciones 390: filas guardadas compactas (≤ 52 px)",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "proyectos 1440 con piezas: el contador iguala la lista",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "proyectos 1440 con piezas: la lista tiene piezas",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "calendario 1440: mini calendario mensual de 7 columnas",
+   "ok": true,
+   "value": 7,
+   "expected": 7
+  },
+  {
+   "label": "calendario 1440: días vacíos bajos (≤ 56 px)",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "ubicaciones 1440: el ⋯ reemplaza las flechas sueltas",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "ubicaciones 1440: los lugares guardados ofrecen su menú ⋯",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "ubicaciones 1440: filas guardadas compactas (≤ 52 px)",
+   "ok": true,
+   "value": true,
+   "expected": true
+  }
+ ],
+ "log": [
+  "\n──── 390×844 ────",
+  "· captura despues/proyectos-lista-390-light.jpg",
+  "· proyectos 390 con piezas: «Campaña · Aurora Café» contador 4 · lista 4",
+  "· captura despues/proyecto-detalle-390-light.jpg",
+  "· captura despues/proyecto-detalle-390-dark.jpg",
+  "✓ proyectos 390 con piezas: el contador iguala la lista: true",
+  "✓ proyectos 390 con piezas: la lista tiene piezas: true",
+  "· proyectos 390: sin proyecto vacío para medir",
+  "· captura despues/inventario-calendario-390-light.jpg",
+  "· captura despues/inventario-calendario-390-dark.jpg",
+  "· calendario 390: agenda=true (7 días, vacíos 36 px) · mes=true (1 cols, vacíos 0 px) · alto 316 px",
+  "✓ calendario 390: agenda semanal de 7 días: 7",
+  "✓ calendario 390: días vacíos bajos (≤ 40 px): true",
+  "✓ calendario 390: «Semana siguiente» avanza: true",
+  "· captura despues/inventario-ubicaciones-390-light.jpg",
+  "· captura despues/inventario-ubicaciones-390-dark.jpg",
+  "· captura despues/inventario-guardado-390-light.jpg",
+  "· ubicaciones 390: encabezados [46,46,46,46,46,46,46] px · ⋯ 3/7 · filas guardadas [52,52] px",
+  "✓ ubicaciones 390: el ⋯ reemplaza las flechas sueltas: true",
+  "✓ ubicaciones 390: los lugares guardados ofrecen su menú ⋯: true",
+  "✓ ubicaciones 390: filas guardadas compactas (≤ 52 px): true",
+  "\n──── 1440×900 ────",
+  "· captura despues/proyectos-lista-1440-light.jpg",
+  "· proyectos 1440 con piezas: «Campaña · Aurora Café» contador 4 · lista 4",
+  "· captura despues/proyecto-detalle-1440-light.jpg",
+  "· captura despues/proyecto-detalle-1440-dark.jpg",
+  "✓ proyectos 1440 con piezas: el contador iguala la lista: true",
+  "✓ proyectos 1440 con piezas: la lista tiene piezas: true",
+  "· proyectos 1440: sin proyecto vacío para medir",
+  "· captura despues/inventario-calendario-1440-light.jpg",
+  "· captura despues/inventario-calendario-1440-dark.jpg",
+  "· calendario 1440: agenda=true (7 días, vacíos 0 px) · mes=true (7 cols, vacíos 48 px) · alto 309 px",
+  "✓ calendario 1440: mini calendario mensual de 7 columnas: 7",
+  "✓ calendario 1440: días vacíos bajos (≤ 56 px): true",
+  "· captura despues/inventario-ubicaciones-1440-light.jpg",
+  "· captura despues/inventario-ubicaciones-1440-dark.jpg",
+  "· captura despues/inventario-guardado-1440-light.jpg",
+  "· ubicaciones 1440: encabezados [46,46,46,46,46,46,46] px · ⋯ 3/7 · filas guardadas [36,36] px",
+  "✓ ubicaciones 1440: el ⋯ reemplaza las flechas sueltas: true",
+  "✓ ubicaciones 1440: los lugares guardados ofrecen su menú ⋯: true",
+  "✓ ubicaciones 1440: filas guardadas compactas (≤ 52 px): true"
+ ]
+}

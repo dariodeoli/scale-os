@@ -34,7 +34,7 @@ import {CATEGORY_ICONS,CategoryIcon,EquipmentPhoto} from './equipment-photo';
 export {CategoryIcon} from './equipment-photo';
 import {DndContext,DragOverlay,KeyboardSensor,MouseSensor,TouchSensor,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {Pencil,Plus,Trash2,X} from 'lucide-react';
-import {buildInventoryPipelineColumns,depreciationFacts,depreciationValidation,depreciationMethodLabel,depreciationMethods,equipmentStatusLabel,filterInventoryItems,inventoryCanManageReservation,inventoryCanReturn,inventoryLocation,inventoryTotals,itemCode,itemStatuses,pipelineDropColumn,statusLabels,traceLabel,verificationLabel,type Category,type Context,type InventoryItem,type InventoryMaintenance,type InventoryReservation,type InventoryTrace,type InventoryVerification,type Person,type PipelineColumn,type StorageTemplate} from './inventory-data';
+import {addDays,buildInventoryPipelineColumns,dayLabel,depreciationFacts,depreciationValidation,depreciationMethodLabel,depreciationMethods,equipmentStatusLabel,filterInventoryItems,inventoryCanManageReservation,inventoryCanReturn,inventoryLocation,inventoryTotals,itemCode,itemStatuses,pipelineDropColumn,startOfWeek,statusLabels,traceLabel,verificationLabel,weekDays,weekRangeLabel,type Category,type Context,type InventoryItem,type InventoryMaintenance,type InventoryReservation,type InventoryTrace,type InventoryVerification,type Person,type PipelineColumn,type StorageTemplate} from './inventory-data';
 import {OPS_TIME_ZONE,opsLocalTime,opsUtcTime} from './ops-time';
 import {useInventoryCatalog,useInventoryRecord} from './use-inventory-data';
 // El tope de unidades del alta en serie es el mismo de la Carga con IA (#130).
@@ -256,17 +256,23 @@ function PipelineColumn({column,canManage,canReorder=false,position=-1,total=0,o
  // La columna es el destino del arrastre (id = clave de la columna, la que resuelve
  // `pipelineDropColumn`); las de solo lectura no aceptan drops ni se resaltan.
  const droppable=useDroppable({id:column.key,disabled:column.readOnly});
- return <section ref={droppable.setNodeRef} data-board-column data-column-key={column.key} className={`flex min-w-0 w-[calc((100%-(var(--location-cols)-1)*0.75rem)/var(--location-cols))] shrink-0 snap-start flex-col gap-2 rounded-xl border p-3 transition ${droppable.isOver?'border-fono bg-fono/10':'border-ink-600 bg-ink-800/60'}`} data-readonly={column.readOnly?'true':undefined}>
-  <header data-board-head className="flex min-h-11 min-w-0 items-center gap-2">
+ // #146 (patrón #138): las acciones secundarias del lugar (orden y ocultar) van
+ // al menú ⋯ del encabezado; la tarjeta de la ubicación queda en una línea.
+ const canMove=Boolean(canReorder&&column.locationId&&onMove);
+ const locationActions=[
+  ...(canMove?[
+   {id:'before',label:'Mover antes',icono:'back',disabled:position<=0,onClick:()=>onMove!(String(column.locationId),-1)},
+   {id:'after',label:'Mover después',icono:'arrow',disabled:position<0||position>=total-1,onClick:()=>onMove!(String(column.locationId),1)},
+  ]:[]),
+  ...(column.key==='sin-ubicacion'?[{id:'hide',label:'Ocultar columna Sin ubicación',icono:'close',onClick:onHideUnassigned}]:[]),
+ ];
+ return <section ref={droppable.setNodeRef} data-board-column data-column-key={column.key} className={`flex min-w-0 w-[calc((100%-(var(--location-cols)-1)*0.75rem)/var(--location-cols))] shrink-0 snap-start flex-col gap-1.5 rounded-xl border p-2 transition md:gap-2 md:p-3 ${droppable.isOver?'border-fono bg-fono/10':'border-ink-600 bg-ink-800/60'}`} data-readonly={column.readOnly?'true':undefined}>
+  <header data-board-head className="flex min-h-9 min-w-0 items-center gap-2 md:min-h-11">
    {column.readOnly?<span className="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">🔒</span>:<span className="h-2 w-2 shrink-0 rounded-full bg-fono" aria-hidden="true"/>}
    <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-fore" title={column.title}>{column.title}</h3>
    {column.responsibleName?<span className="shrink-0" title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={safePhoto(column.responsiblePhoto)}/></span>:null}
-   {canReorder&&column.locationId&&onMove?<span className={`shrink-0 ${ICON_TARGETS}`} role="group" aria-label={`Ordenar ${column.title}`}>
-    <IconAction icon="back" label={`Mover antes: ${column.title}`} disabled={position<=0} onClick={()=>onMove(String(column.locationId),-1)}/>
-    <IconAction icon="arrow" label={`Mover después: ${column.title}`} disabled={position<0||position>=total-1} onClick={()=>onMove(String(column.locationId),1)}/>
-   </span>:null}
    <span className="ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums text-mute" title={`${column.rows.length} equipo(s) en esta ubicación`}>{column.rows.length}</span>
-   {column.key==='sin-ubicacion'?<span className={`shrink-0 ${ICON_TARGETS}`}><IconAction icon="close" label="Ocultar columna Sin ubicación" onClick={onHideUnassigned}/></span>:null}
+   {locationActions.length?<MenuDesplegable ariaLabel={`Acciones de la ubicación: ${column.title}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones de la ubicación: ${column.title}`} title={`Acciones de la ubicación: ${column.title}`}>⋮</span>} items={locationActions}/>:null}
   </header>
   <div className="grid gap-2">
    {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
@@ -498,13 +504,13 @@ function InventoryPanel(){
     <summary className="cursor-pointer text-sm font-semibold text-fore">Ubicaciones de guardado</summary>
     <p className="text-xs text-mute">Las ubicaciones archivadas dejan de estar disponibles para equipos nuevos. No se puede eliminar una ubicación con equipos asociados.</p>
     <div className="grid gap-2">
-     {storageTemplates.map(template=><div key={template.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-ink-600/60 px-3 py-2">
-      <div className="min-w-0"><b className="text-[13px] text-fore">{template.name}</b><small className="block text-xs text-mute">{template.item_count} equipo{template.item_count===1?'':'s'}{template.active?'':' · archivada'}</small></div>
-      <div className="flex flex-wrap items-center gap-2">
-       <Button type="button" variant="ghost" onClick={()=>setEditStorageTemplate(template)}>Renombrar</Button>
-       {template.active?<Button type="button" variant="ghost" onClick={async()=>{try{await api(`/api/agency/inventory-locations/${template.id}`,{name:template.name,active:false},'PATCH');refreshed('Ubicación archivada.');}catch(error){setError(errorMessage(error));}}}>Archivar</Button>:null}
-       <Button type="button" variant="ghost" disabled={template.item_count>0} title={template.item_count>0?'No se puede eliminar: hay equipos asociados.':'Eliminar ubicación'} onClick={async()=>{if(template.item_count>0)return;try{await api(`/api/agency/inventory-locations/${template.id}`,undefined,'DELETE');refreshed('Ubicación eliminada.');}catch(error){setError(errorMessage(error));}}}>Eliminar</Button>
-      </div>
+     {storageTemplates.map(template=><div key={template.id} data-location-row className="flex min-h-9 min-w-0 items-center justify-between gap-2 rounded-lg border border-ink-600/60 px-3 py-0.5">
+      <div className="flex min-w-0 items-baseline gap-2"><b className="truncate text-[13px] text-fore" title={template.name}>{template.name}</b><small className="shrink-0 text-xs text-mute">{template.item_count} equipo{template.item_count===1?'':'s'}{template.active?'':' · archivada'}</small></div>
+      <MenuDesplegable ariaLabel={`Acciones de la ubicación: ${template.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones de la ubicación: ${template.name}`} title={`Acciones de la ubicación: ${template.name}`}>⋮</span>} items={[
+       {id:'rename',label:'Renombrar',icono:'edit',onClick:()=>setEditStorageTemplate(template)},
+       ...(template.active?[{id:'archive',label:'Archivar',icono:'archive',onClick:async()=>{try{await api(`/api/agency/inventory-locations/${template.id}`,{name:template.name,active:false},'PATCH');refreshed('Ubicación archivada.');}catch(error){setError(errorMessage(error));}}}] : []),
+       {id:'delete',label:'Eliminar ubicación',icono:'trash',peligro:true,disabled:template.item_count>0,onClick:async()=>{if(template.item_count>0)return;try{await api(`/api/agency/inventory-locations/${template.id}`,undefined,'DELETE');refreshed('Ubicación eliminada.');}catch(error){setError(errorMessage(error));}}},
+      ]}/>
      </div>)}
      {!storageTemplates.length?<p className="text-xs text-mute">Todavía no hay ubicaciones guardadas.</p>:null}
      <div className="flex justify-start"><Button type="button" variant="ghost" onClick={()=>setEditStorageTemplate('new')}>Crear ubicación</Button></div>
@@ -734,12 +740,50 @@ export function InventoryTransitionForm({action,record,done}:{action:'checkout'|
 
 export function InventoryCalendar({month,reservations}:{month:string;reservations:InventoryReservation[]}){
  const [year,m]=month.split('-').map(Number),days=new Date(Date.UTC(year,m,0)).getUTCDate(),offset=(new Date(Date.UTC(year,m-1,1)).getUTCDay()+6)%7;
- return <div className="grid gap-2" aria-label="Calendario mensual de reservas">
-  <div className="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div>
-  <div className="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">{Array.from({length:offset},(_,index)=><div className="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key={`blank-${index}`}/>)}{Array.from({length:days},(_,index)=>{
-   const day=`${month}-${String(index+1).padStart(2,'0')}`,start=opsUtcTime(day+'T00:00'),nextDay=new Date(Date.UTC(year,m-1,index+2)).toISOString().slice(0,10),end=opsUtcTime(nextDay+'T00:00');
-   const rows=reservations.filter(r=>r.status!=='cancelled'&&r.starts_at<end&&r.ends_at>start);
-   return <div className="grid min-h-[4.25rem] content-start gap-1 rounded-lg border border-ink-600/60 p-2 min-[769px]:min-h-14 min-[769px]:p-1" key={day} aria-label={day}><time className="text-[11px] tabular-nums text-mute" dateTime={day}>{index+1}</time>{rows.map(r=><div className={`grid gap-0.5 rounded-md border px-1.5 py-1 text-[11px] ${r.status==='checked_out'?'border-warn/40 bg-warn/10 text-warn':r.status==='returned'?'border-ok/40 bg-ok/10 text-ok':'border-fono/30 bg-fono/10 text-fono-light'}`} key={r.id}><b className="break-words">{r.title}</b><small className="text-mute">{r.items.length} equipo(s) · {statusLabels[r.status]}</small></div>)}</div>;
-  })}</div>
+ const today=opsLocalTime(new Date()).slice(0,10),monthFirst=`${month}-01`;
+ // Semana visible en la agenda móvil: la de hoy cuando el mes lo contiene (o si
+ // no, la primera del mes elegido). Navegar el mes resetea la semana.
+ const [week,setWeek]=useState(()=>startOfWeek(today.startsWith(`${month}-`)?today:monthFirst));
+ useEffect(()=>{const day=opsLocalTime(new Date()).slice(0,10);setWeek(startOfWeek(day.startsWith(`${month}-`)?day:monthFirst));},[month,monthFirst]);
+ const rowsFor=(day:string)=>{
+  const start=opsUtcTime(`${day}T00:00`),end=opsUtcTime(`${addDays(day,1)}T00:00`);
+  return reservations.filter(r=>r.status!=='cancelled'&&r.starts_at<end&&r.ends_at>start);
+ };
+ const chipTone=(r:InventoryReservation)=>r.status==='checked_out'?'border-warn/40 bg-warn/10 text-warn':r.status==='returned'?'border-ok/40 bg-ok/10 text-ok':'border-fono/30 bg-fono/10 text-fono-light';
+ const todayInWeek=weekDays(week).includes(today);
+ return <div className="grid gap-2" aria-label="Calendario de reservas">
+  {/* Agenda semanal (móvil, #146): una fila baja por día; los días vacíos no
+      son tarjetas altas y la navegación es semana a semana. */}
+  <div data-calendar-agenda className="grid gap-1 min-[769px]:hidden">
+   <div className="flex items-center justify-between gap-2">
+    <Button type="button" variant="ghost" className="h-9 px-2" aria-label="Semana anterior" onClick={()=>setWeek(current=>addDays(current,-7))}>‹</Button>
+    <span className="min-w-0 truncate text-center text-xs font-semibold text-fore" title={`Semana del ${weekRangeLabel(week)}`}>Semana del {weekRangeLabel(week)}</span>
+    <span className="flex shrink-0 items-center">
+     {todayInWeek?null:<Button type="button" variant="ghost" className="h-9 px-2 text-xs" onClick={()=>setWeek(startOfWeek(today))}>Hoy</Button>}
+     <Button type="button" variant="ghost" className="h-9 px-2" aria-label="Semana siguiente" onClick={()=>setWeek(current=>addDays(current,7))}>›</Button>
+    </span>
+   </div>
+   {weekDays(week).map(day=>{
+    const rows=rowsFor(day);
+    return <div key={day} data-agenda-day={day} data-empty={rows.length?undefined:'true'} className="flex min-h-9 items-center gap-2 rounded-lg border border-ink-600/60 px-2 py-1">
+     <span className={`w-14 shrink-0 text-[11px] tabular-nums ${day===today?'font-semibold text-fore':'text-mute'}`}>{dayLabel(day)}</span>
+     {rows.length?<div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">{rows.map(r=><span key={r.id} className={`inline-flex max-w-full min-w-0 items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-[11px] ${chipTone(r)}`} title={`${r.title} · ${r.items.length} equipo(s) · ${statusLabels[r.status]}`}><b className="truncate">{r.title}</b><small className="shrink-0 text-mute">{r.items.length} equipos</small></span>)}</div>:<span className="text-[11px] text-mute">Sin reservas</span>}
+    </div>;
+   })}
+  </div>
+  {/* Mini calendario mensual (≥769px): 7 columnas y celdas bajas. */}
+  <div data-calendar-month className="hidden gap-1 min-[769px]:grid">
+   <div className="grid grid-cols-7 gap-1" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div>
+   <div className="grid grid-cols-7 items-start gap-1">
+    {Array.from({length:offset},(_,index)=><div className="min-h-12 rounded-lg border border-transparent" key={`blank-${index}`}/>)}
+    {Array.from({length:days},(_,index)=>{
+     const day=`${month}-${String(index+1).padStart(2,'0')}`,rows=rowsFor(day);
+     return <div className="grid min-h-12 content-start gap-0.5 rounded-lg border border-ink-600/60 p-1" key={day} aria-label={day} data-calendar-day={day} data-empty={rows.length?undefined:'true'}>
+      <time className="text-[11px] tabular-nums text-mute" dateTime={day}>{index+1}</time>
+      {rows.map(r=><span className={`grid gap-0.5 truncate rounded-md border px-1 py-0.5 text-[11px] ${chipTone(r)}`} key={r.id} title={`${r.title} · ${r.items.length} equipo(s) · ${statusLabels[r.status]}`}><b className="truncate">{r.title}</b><small className="text-mute">{r.items.length} equipo(s) · {statusLabels[r.status]}</small></span>)}
+     </div>;
+    })}
+   </div>
+  </div>
  </div>;
 }

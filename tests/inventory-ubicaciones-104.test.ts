@@ -45,8 +45,9 @@ assert.match(hook,/catch\(reason\)\{\s*setStorageTemplates\(snapshot\);\s*throw 
 
 const inventory=read('app/inventory-workspace.tsx');
 assert.match(inventory,/onReorder=\{context\?\.can_manage\?reorderLocations:undefined\}/,'sólo con permiso de gestión se reordena');
-assert.match(inventory,/label=\{`Mover antes: \$\{column\.title\}`\}/,'cada columna guardada ofrece mover antes');
-assert.match(inventory,/label=\{`Mover después: \$\{column\.title\}`\}/,'cada columna guardada ofrece mover después');
+assert.match(inventory,/\{id:'before',label:'Mover antes',icono:'back'/,'cada columna guardada ofrece mover antes en el menú ⋯ (#146)');
+assert.match(inventory,/\{id:'after',label:'Mover después',icono:'arrow'/,'cada columna guardada ofrece mover después en el menú ⋯ (#146)');
+assert.match(inventory,/ariaLabel=\{`Acciones de la ubicación: \$\{column\.title\}`\}/,'el menú de la ubicación se anuncia con su nombre');
 assert.match(inventory,/const next=\[...orderIds\];\[next\[index\],next\[target\]\]=\[next\[target\],next\[index\]\];/,'el orden viaja completo al API');
 assert.match(inventory,/catch\(reason\)\{setMoveError\(errorMessage\(reason\)\);\}/,'el fallo se avisa');
 assert.match(inventory,/<DndContext sensors=\{sensors\}/,'el arrastre de equipos sigue vivo');

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {opsLocalTime,opsMonthRange,opsUtcTime} from '../app/ops-time';
 import {
- buildInventoryPipelineColumns,depreciationFacts,depreciationMethodLabel,depreciationValidation,equipmentStatusLabel,
+ addDays,buildInventoryPipelineColumns,dayLabel,depreciationFacts,depreciationMethodLabel,depreciationValidation,equipmentStatusLabel,
  filterInventoryItems,inventoryCanManageReservation,inventoryCanReturn,inventoryLocation,inventorySearchText,inventoryTotals,
- itemCode,pipelineDropColumn,statusLabels,traceLabel,verificationLabel,
+ itemCode,pipelineDropColumn,startOfWeek,statusLabels,traceLabel,verificationLabel,weekDays,weekRangeLabel,
  type Context,type InventoryItem,type InventoryReservation,type StorageTemplate,
 } from '../app/inventory-data';
 
@@ -168,4 +168,14 @@ assert.equal(traceLabel('loan.checked_in'),'Devolución registrada');
 assert.equal(traceLabel('location.changed'),'Ubicación actualizada');
 assert.equal(traceLabel('custom.event'),'Movimiento registrado','un evento nuevo se dice en es-PY, nunca el código crudo');
 
-console.log('PASS: inventario — reloj operativo, identidad, permisos, filtros, KPIs, pipeline y valor/depreciación (incluye residual, vida útil cumplida y datos del API).');
+// --- Calendario (#146): sumas civiles, semana que arranca el lunes y etiquetas.
+assert.equal(addDays('2032-02-28',2),'2032-03-01','la suma cruza el mes en año bisiesto');
+assert.equal(addDays('2033-01-01',-1),'2032-12-31','la resta cruza el fin de año');
+assert.equal(startOfWeek('2032-12-01'),'2032-11-29','miércoles → lunes de esa semana');
+assert.equal(startOfWeek('2032-11-29'),'2032-11-29','un lunes se queda en su lugar');
+assert.equal(startOfWeek('2032-12-05'),'2032-11-29','domingo cierra la semana del lunes anterior');
+assert.deepEqual(weekDays('2032-11-29'),['2032-11-29','2032-11-30','2032-12-01','2032-12-02','2032-12-03','2032-12-04','2032-12-05'],'la semana tiene siete días civiles');
+assert.equal(weekRangeLabel('2032-11-29'),'29/11 al 05/12','la etiqueta no depende del locale');
+assert.equal(dayLabel('2032-12-01'),'mié 1','la agenda rotula el día con su nombre corto');
+
+console.log('PASS: inventario — reloj operativo, identidad, permisos, filtros, KPIs, pipeline, calendario y valor/depreciación (incluye residual, vida útil cumplida y datos del API).');

@@ -65,8 +65,12 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
     return()=>{alive=false;};
   },[project.id,reload]);
   const record=data?.record||project;
-  // El total de piezas viene del registro de la lista; el detalle puede no traerlo.
-  const piecesTotal=Math.max(Number(record.work_order_count||0),Number(project.work_order_count||0),pieces?.length||0);
+  // #146 · una sola fuente: el contador es la lista que devuelve la misma
+  // consulta del detalle (el registro individual no trae `work_order_count`).
+  // Los conteos del directorio solo cubren la carga y la ventana de 50 piezas.
+  const knownTotal=Math.max(Number(record.work_order_count||0),Number(project.work_order_count||0));
+  const piecesCount=pieces?pieces.length:knownTotal;
+  const piecesTotal=Math.max(piecesCount,knownTotal);
   const {links,legacy,count}=projectLinks(record);
   return <Drawer open onClose={onClose} title={record.name}>
     {error?<ErrorBlock title="No se pudo cargar el proyecto." description={error} onRetry={()=>setReload(value=>value+1)}/>:null}
@@ -81,7 +85,7 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Cliente</dt><dd className="min-w-0 shrink overflow-hidden"><span className="block truncate text-right" title={record.client_name}>{record.client_name}</span></dd></div>
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Inicio</dt><dd className="shrink-0 whitespace-nowrap">{fechaListaCorta(record.start_date,'')||'Sin fecha'}</dd></div>
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Entrega</dt><dd className="shrink-0 whitespace-nowrap" data-tone={hasDueWarning(record.due_date)?'warn':undefined}>{fechaListaCorta(record.due_date,'')||'Sin fecha'}</dd></div>
-          <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Piezas</dt><dd className="shrink-0 tabular-nums">{record.work_order_count||0}</dd></div>
+          <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Piezas</dt><dd className="shrink-0 tabular-nums" data-pieces-count={piecesCount}>{piecesCount}</dd></div>
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Enlaces</dt><dd className="shrink-0 whitespace-nowrap">{count?`${count} enlace${count===1?'':'s'}`:'Sin enlaces'}</dd></div>
           {record.updated_at?<div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Última actualización</dt><dd className="shrink-0 whitespace-nowrap">{fechaLista(record.updated_at,'',{timeZone:OPS_TIME_ZONE})}</dd></div>:null}
         </dl>
