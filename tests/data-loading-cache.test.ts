@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {clearDataCache,dataFetch,setDataScope} from '../app/data-cache';
 import {prefetchSectionData} from '../app/data-prefetch';
+import {prefetchSectionMetrics} from '../app/metrics-prefetch';
 import {workspaceSource} from './workspace-source';
 
 const endpoint='/core-api/api/agency/leads';
@@ -76,6 +77,28 @@ test('prefetch stays in the current scope and excludes fresh or unrelated endpoi
  assert.ok(urls.includes('/core-api/api/agency/accounts'),'Finanzas y Previsión calientan las cuentas');
  assert.equal(urls.filter(url=>url==='/core-api/api/agency/accounts').length,1,'las cuentas se piden una sola vez aunque dos secciones las calienten');
  setDataScope('');await prefetchSectionData('Pipeline','user:agency:owner');assert.equal(urls.length,8);
+});
+
+test('KPI prefetch of Resumen/Finanzas/Informes follows role capabilities and shares the cache (#139)',async t=>{
+ setDataScope('user:agency:owner');clearDataCache();const urls:string[]=[];
+ t.mock.method(globalThis,'fetch',async(url:RequestInfo|URL)=>{urls.push(String(url));return response();});
+ await prefetchSectionMetrics('Resumen','other:agency:owner','owner');assert.equal(urls.length,0,'otro alcance no adelanta lecturas');
+ await prefetchSectionMetrics('Resumen','user:agency:owner','owner');
+ assert.deepEqual(urls,['/core-api/api/agency/dashboard','/core-api/api/agency/control-center']);
+ urls.length=0;
+ await prefetchSectionMetrics('Finanzas','user:agency:owner','owner');
+ assert.equal(urls.length,1);assert.match(urls[0],/\/api\/agency\/forecast\?month=\d{4}-\d{2}$/);
+ urls.length=0;
+ await prefetchSectionMetrics('Informes','user:agency:owner','owner');
+ assert.equal(urls.length,1);assert.match(urls[0],/\/api\/agency\/reports\?month=\d{4}-\d{2}&months=12&previous=1$/);
+ // El widget consume la misma clave del caché: nunca dispara una segunda llamada.
+ const calls=urls.length;await dataFetch(urls[0],{credentials:'include'});assert.equal(urls.length,calls);
+ // Roles sin la capacidad no adelantan nada; el API revalida igual cada lectura.
+ urls.length=0;
+ for(const [section,role] of [['Resumen','viewer'],['Finanzas','sales'],['Informes','production']] as const)await prefetchSectionMetrics(section,'user:agency:owner',role);
+ assert.equal(urls.length,0);
+ // Una sección fuera del alcance de KPIs no inventa lecturas.
+ await prefetchSectionMetrics('Equipo','user:agency:owner','owner');assert.equal(urls.length,0);
 });
 
 test('a 200 with a non-JSON body never becomes empty workspace state',async()=>{

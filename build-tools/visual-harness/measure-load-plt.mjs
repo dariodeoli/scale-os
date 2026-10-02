@@ -56,6 +56,10 @@ const SCREENS={
  preferencias:{path:'/configuracion/preferencias',readyText:'Preferencias del espacio'},
  configuracion:{path:'/configuracion',ready:'.settings-slice .settings-card'},
  superadmin:{path:'/superadmin',ready:'.platform-admin-page',owner:true},
+ // #139: KPIs de Resumen, Finanzas e Informes en la primera llamada.
+ resumen:{path:'/resumen',ready:'.financial-summary',kpi:['/api/agency/dashboard','/api/agency/control-center']},
+ finanzas:{path:'/pagos',ready:'section[aria-label="Finanzas"]',kpi:['/api/agency/forecast']},
+ informes:{path:'/informes',readyText:'Informes',kpi:['/api/agency/reports']},
 };
 const wanted=(process.env.QA_SCREENS||Object.keys(SCREENS).join(',')).split(',').filter(Boolean);
 const sizes=(process.env.QA_SIZES||'1440x900,390x844').split(',').map(size=>size.split('x').map(Number));
@@ -72,7 +76,7 @@ const sleep=ms=>new Promise(resolveWait=>setTimeout(resolveWait,ms));
 const waitFor=async(expression,{timeout=90000,label=''}={})=>{
  const start=Date.now();
  while(Date.now()-start<timeout){
-  if(await evaluate(`Boolean(${expression})`))return Math.round(await evaluate('Math.round(performance.now())'));
+  try{if(await evaluate(`Boolean(${expression})`))return Math.round(await evaluate('Math.round(performance.now())'));}catch{/* navegación en curso: reintentar */}
   await sleep(120);
  }
  throw new Error(`timeout esperando ${label||expression}`);
@@ -101,11 +105,13 @@ try{
    await sleep(400);
    const metrics=await evaluate(`(()=>{
     const resources=performance.getEntriesByType('resource').filter(entry=>entry.name.includes('/core-api/'));
-    const api=resources.map(entry=>({url:entry.name.replace(location.origin,''),duration:Math.round(entry.duration),bytes:entry.transferSize||0}));
+    const api=resources.map(entry=>({url:entry.name.replace(location.origin,''),duration:Math.round(entry.duration),start:Math.round(entry.startTime),end:Math.round(entry.startTime+entry.duration),bytes:entry.transferSize||0}));
     const me=api.find(entry=>entry.url.startsWith('/core-api/api/auth/me'));
     const navigation=performance.getEntriesByType('navigation')[0]||{};
     const paint=performance.getEntriesByName('first-contentful-paint')[0];
     const slowest=api.slice().sort((a,b)=>b.duration-a.duration)[0]||null;
+    const kpiUrls=${JSON.stringify(screen.kpi||[])};
+    const kpiEntries=api.filter(entry=>kpiUrls.some(url=>entry.url.startsWith('/core-api'+url)));
     return {
      ttfb:Math.round((navigation.responseStart||0)-(navigation.requestStart||0)),
      loadMs:Math.round(navigation.loadEventEnd||0),
@@ -114,8 +120,10 @@ try{
      calls:api.length,
      bytes:api.reduce((sum,entry)=>sum+entry.bytes,0),
      rawBytes:api.reduce((sum,entry)=>sum+(entry.decodedBodySize||0),0),
+     kpiMs:kpiEntries.length?Math.max(...kpiEntries.map(entry=>entry.end)):null,
+     kpiCalls:kpiEntries.length,
      slowest:slowest?{url:slowest.url,duration:slowest.duration,bytes:slowest.bytes}:null,
-     api:api.map(entry=>({url:entry.url.replace('/core-api/api/',''),duration:entry.duration,bytes:entry.bytes})),
+     api:api.map(entry=>({url:entry.url.replace('/core-api/api/',''),duration:entry.duration,start:entry.start,bytes:entry.bytes})),
     };
    })()`);
    const row={screen:id,width,height,mobile,network:emulation?`${emulation.latency}ms/${Math.round(emulation.downloadThroughput*8/1024)}kbps`:'local',...metrics,contentMs};
@@ -125,8 +133,8 @@ try{
  }
  writeFileSync(resolve(OUT,'mediciones.json'),JSON.stringify({capturedAt:new Date().toISOString(),base:BASE,latency,rows},null,1));
  // Tabla Markdown para el handover.
- const md=['| Pantalla | Ancho | Red | TTFB | Auth | Lista lista | load page | Llamadas | Peso real (transferencia) | Más lenta |','| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'];
- for(const row of rows)md.push(`| ${row.screen} | ${row.width}×${row.height} | ${row.network} | ${row.ttfb} ms | ${row.authMs===null?'—':`${row.authMs} ms`} | ${row.contentMs} ms | ${row.loadMs} ms | ${row.calls} | ${(row.bytes/1024).toFixed(0)} KB | ${row.slowest?`${row.slowest.url.replace('/core-api/api/','')} (${row.slowest.duration} ms)`: '—'} |`);
+ const md=['| Pantalla | Ancho | Red | TTFB | Auth | Lista lista | KPIs listos | load page | Llamadas | Peso real (transferencia) | Más lenta |','| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'];
+ for(const row of rows)md.push(`| ${row.screen} | ${row.width}×${row.height} | ${row.network} | ${row.ttfb} ms | ${row.authMs===null?'—':`${row.authMs} ms`} | ${row.contentMs} ms | ${row.kpiMs===null?'—':`${row.kpiMs} ms`} | ${row.loadMs} ms | ${row.calls} | ${(row.bytes/1024).toFixed(0)} KB | ${row.slowest?`${row.slowest.url.replace('/core-api/api/','')} (${row.slowest.duration} ms)`: '—'} |`);
  writeFileSync(resolve(OUT,'mediciones.md'),md.join('\n')+'\n');
  console.log(`\n${md.join('\n')}\n\nMediciones en ${OUT}`);
 }catch(error){

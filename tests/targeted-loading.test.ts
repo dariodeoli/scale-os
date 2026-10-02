@@ -26,20 +26,41 @@ test('actual team loader: one team read feeds people, members and archived profi
  assert.deepEqual(state,{setPeople:[{id:'1'}],setMembers:[{id:'2'}],setArchivedProfiles:[]});
 });
 
-test('actual company loader renders settings before a slow/failed rate request and ignores unmounted results',async()=>{
+test('actual company loader renders settings without waiting for the rate request',async()=>{
  const {ast,fn}=component('suite.tsx','SettingsWorkspace');
  const effect=fn.body!.statements.find(n=>ts.isExpressionStatement(n)&&ts.isCallExpression(n.expression)&&n.expression.expression.getText(ast)==='useEffect') as ts.ExpressionStatement;
  const callback=(effect.expression as ts.CallExpression).arguments[0].getText(ast);
  for(const unmount of [false,true]){
   const pending=new Map<string,{resolve:(value:unknown)=>void;reject:(error:Error)=>void}>(),state:Record<string,unknown>={};
-  const start=execute('return '+callback,{api:(path:string)=>new Promise((resolve,reject)=>pending.set(path,{resolve,reject})),setSettings:(v:unknown)=>{state.settings=v;},setRates:(v:unknown)=>{state.rates=v;},setNotice:(v:unknown)=>{state.notice=v;},err:(e:Error)=>e.message});
-  const cleanup=start();assert.equal(pending.size,2);
+  const start=execute('return '+callback,{api:(path:string)=>new Promise((resolve,reject)=>pending.set(path,{resolve,reject})),setSettings:(v:unknown)=>{state.settings=v;},setNotice:(v:unknown)=>{state.notice=v;},err:(e:Error)=>e.message});
+  const cleanup=start();assert.equal(pending.size,1,'la empresa no espera la cotización');
   if(unmount)cleanup();
   pending.get('/api/agency/settings')!.resolve({settings:{id:'company'}});await Promise.resolve();await Promise.resolve();
   assert.deepEqual(state.settings,unmount?undefined:{id:'company'});
-  assert.equal(state.rates,undefined,'company no longer waits for exchange rates');
+  cleanup();
+ }
+});
+
+test('actual exchange loader publishes the rate and ignores unmounted results',async()=>{
+ const {ast,fn}=component('suite.tsx','ExchangeRateSettings');
+ const effect=fn.body!.statements.find(n=>ts.isExpressionStatement(n)&&ts.isCallExpression(n.expression)&&n.expression.expression.getText(ast)==='useEffect') as ts.ExpressionStatement;
+ const callback=(effect.expression as ts.CallExpression).arguments[0].getText(ast);
+ for(const unmount of [false,true]){
+  const pending=new Map<string,{resolve:(value:unknown)=>void;reject:(error:Error)=>void}>(),state:Record<string,unknown>={};
+  const start=execute('return '+callback,{api:(path:string)=>new Promise((resolve,reject)=>pending.set(path,{resolve,reject})),setRates:(v:unknown)=>{state.rates=v;},setNotice:(v:unknown)=>{state.notice=v;},err:(e:Error)=>e.message});
+  const cleanup=start();assert.equal(pending.size,1);assert.ok(pending.has('/api/agency/exchange-rates'));
+  if(unmount)cleanup();
+  pending.get('/api/agency/exchange-rates')!.resolve({records:[{usd_to_pyg:'6250'}]});await Promise.resolve();await Promise.resolve();
+  assert.deepEqual(state.rates,unmount?undefined:[{usd_to_pyg:'6250'}]);
+  cleanup();
+ }
+ for(const unmount of [false,true]){
+  const pending=new Map<string,{resolve:(value:unknown)=>void;reject:(error:Error)=>void}>(),state:Record<string,unknown>={};
+  const start=execute('return '+callback,{api:(path:string)=>new Promise((resolve,reject)=>pending.set(path,{resolve,reject})),setRates:(v:unknown)=>{state.rates=v;},setNotice:(v:unknown)=>{state.notice=v;},err:(e:Error)=>e.message});
+  const cleanup=start();if(unmount)cleanup();
   pending.get('/api/agency/exchange-rates')!.reject(Error('rates offline'));await Promise.resolve();await Promise.resolve();
-  assert.equal(state.notice,unmount?undefined:'rates offline');cleanup();
+  assert.equal(state.notice,unmount?undefined:'rates offline');
+  cleanup();
  }
 });
 

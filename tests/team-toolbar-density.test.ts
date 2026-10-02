@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 
-// Ronda 14 (#62) + compactación desktop (#92): contratos de la toolbar de
-// Equipo (una fila desde 1280 px, gap 12), el nombre en dos líneas de las
-// tarjetas, la franja de facturación (chip/Kpi) y los CTA de los vacíos.
+// Ronda 14 (#62) + compactación desktop (#92) + auditoría PLT (#139): contratos
+// de la toolbar de Equipo (una fila desde 1280 px, gap 12), el nombre en dos
+// líneas de las tarjetas, la salida de la franja de facturación y los CTA de
+// los vacíos.
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const operations=read('app/operations.tsx');
 const css=read('app/operations.css');
@@ -31,21 +32,18 @@ test('la toolbar de Equipo junta búsqueda, filtros, contador, vista y acciones 
  assert.doesNotMatch(css,/\.team-filters \{[^}]*max-width:440px/,'la toolbar ya no queda en una columna angosta');
 });
 
-test('la sección no repite la identidad del shell y la facturación vive en una franja',()=>{
+test('la sección no repite la identidad del shell y la facturación contratada ya no vive en Equipo (#139)',()=>{
  // El shell ya muestra «Equipo» + el apartado «Personas y accesos»: la sección
  // no dibuja un segundo título; conserva el nombre accesible.
  assert.doesNotMatch(operations,/Personas, accesos y remuneraciones<\/h2>/,'la sección no repite el título del shell');
  assert.match(operations,/aria-label="Personas, accesos y remuneraciones"/);
- // Sin contratos activos: chip pequeño con la explicación en el tooltip.
- assert.match(operations,/<p className="team-billing-note" aria-label="Facturación contratada">/);
- assert.match(operations,/team-billing-note[\s\S]{0,240}<StateChip tone="mute"/);
- assert.doesNotMatch(operations,/kpi-card tone-blue/,'la franja ya no usa la card azul de ancho completo');
- assert.match(operations,/sin contratos activos/);
- assert.match(operations,/no disponible/,'el fallo del centro de control no queda en «calculando» para siempre');
- // Con contratos: el monto en la misma franja, con el Kpi compartido.
- assert.match(operations,/billing\?\.length\?\([\s\S]{0,260}team-billing-strip[\s\S]{0,340}<Kpi/);
- assert.match(operations,/<MoneyText valor=\{Number\(item\.total\)\} currency=\{item\.currency\}/);
- assert.match(css,/\.team-billing-strip\{max-width:min\(100%,24rem\)/);
+ // #139: la franja de facturación contratada se retiró del directorio (no
+ // aportaba al listado; la expectativa comercial vive en Clientes y Resumen),
+ // junto con la lectura del centro de control que solo alimentaba ese Kpi.
+ assert.doesNotMatch(operations,/team-billing/,'sin la franja de facturación en la cabecera');
+ assert.doesNotMatch(operations,/agency\/control-center/,'Equipo ya no lee el centro de control');
+ assert.doesNotMatch(operations,/normalizeCommercialDashboard|CommercialDashboard/,'sin imports muertos del panel comercial');
+ assert.doesNotMatch(css,/\.team-billing/,'sin reglas CSS huérfanas de la franja');
 });
 
 test('la tarjeta de persona es compacta: identidad, correo, chips y acceso una sola vez',()=>{

@@ -5,7 +5,6 @@ import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
 import { useEffect, useState, useRef, useId } from "react";
-import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +18,7 @@ import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
 import {PersonPhotoField} from './person-photo';
 import {listDateShort} from './list-format';
-import {EmptyBlock,Kpi,LoadingBlock,MoneyText,StateChip,ViewSwitch} from './ui-v2';
+import {EmptyBlock,LoadingBlock,ViewSwitch} from './ui-v2';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {RemoveRecord} from './archive-controls';
@@ -254,8 +253,6 @@ function PeopleWorkspace({
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [edit, setEdit] = useState<Person | "new" | null>(null);
-  const [commercial, setCommercial] = useState<CommercialDashboard | null>(null);
-  const [commercialReady, setCommercialReady] = useState(false);
   const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
   // La preferencia Lista/Cuadrícula se recuerda por navegador (mismo criterio que Clientes).
   useEffect(()=>{try{setTeamView(localStorage.getItem('scale:team-view')==='list'?'list':'cards');}catch{/* Optional UI preference. */}},[]);
@@ -302,15 +299,6 @@ function PeopleWorkspace({
   // Equipo sigue a quienes gestionan personas o ven salarios (sin listas de roles paralelas).
   const salaryView = roleCan(role, "salary.view");
   const allowed = canOpenPeopleWorkspace(role);
-  useEffect(() => {
-    if (!allowed) return;
-    let alive = true;
-    setCommercial(null);setCommercialReady(false);
-    void api<unknown>("/api/agency/control-center")
-      .then(value => { if (alive) { setCommercial(normalizeCommercialDashboard(value));setCommercialReady(true); } })
-      .catch(() => { if (alive) { setCommercial(null);setCommercialReady(true); } });
-    return () => { alive = false; };
-  }, [allowed]);
   async function load() {
     const p = await api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>("/api/agency/team");
     setPeople(p.collaborators);
@@ -407,7 +395,6 @@ function PeopleWorkspace({
     const member=dialogMember&&!dialogMember.removed_at&&!(dialogMember.email===currentEmail||dialogMember.role==='owner'&&role!=='owner')?dialogMember:null;
     setAccessDraft(member?{role:member.role,active:String(member.active!==false)}:null);
   },[dialogMember?.id,dialogMember?.role,dialogMember?.active,dialogMember?.removed_at]);
-  const billing=commercial?.expectedMonthlyBilling;
   return (
     <div className="ops-stack">
       {/* Identidad en el shell (título + apartados): la sección no la repite; el
@@ -419,23 +406,6 @@ function PeopleWorkspace({
           </p>
         )}
         {notice && <p role="status">{notice}</p>}
-        {/* Franja compacta (#92): chip si no hay contratos activos, Kpi compartido
-            (112-140 px) con el monto cuando los hay. Nunca la card azul completa. */}
-        {billing?.length?(
-          <div className="team-billing-strip" aria-label="Facturación contratada">
-            <Kpi
-              label="Facturación contratada"
-              valor={<span className="team-billing-amounts">{billing.map(item=><span key={item.currency}><MoneyText valor={Number(item.total)} currency={item.currency}/><small>/ mes</small></span>)}</span>}
-              hint="Expectativa comercial vigente por moneda"
-            />
-          </div>
-        ):(
-          <p className="team-billing-note" aria-label="Facturación contratada">
-            <StateChip tone="mute" title={!commercialReady||!commercial||billing===undefined?'No se pudo consultar el centro de control; se reintenta al volver a la pantalla.':'Los contratos se activan en la ficha comercial del cliente: plan contratado y monto mensual.'}>
-              Facturación contratada: {!commercialReady?'calculando…':!commercial||billing===undefined?'no disponible':'sin contratos activos'}
-            </StateChip>
-          </p>
-        )}
         <div className="team-filters" aria-label="Controles del equipo">
           <SearchField className="team-search" label="Buscar persona" hideLabel value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
           <div className="choice-list compact" role="group" aria-label="Filtrar por estado laboral">
@@ -473,13 +443,12 @@ function PeopleWorkspace({
                   {accessRole?<span className="hub-chip" title={`Rol en el panel: ${accessRole}`}>{accessRole}</span>:null}
                   {p.started_on?<span className="hub-chip" title={`Ingreso ${listDateShort(p.started_on)}`}><span className="person-hub-meta-label">Ingreso </span>{listDateShort(p.started_on)}</span>:null}
                 </div>
-                {salaryView&&<div className="person-hub-chips">
-                  {!p.compensation_amount&&p.active?<span className="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span>:null}
+                {salaryView&&Number(p.compensation_amount)>0?<div className="person-hub-chips">
                   <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}</span>
-                  <span className="hub-chip">{p.payment_day?`Día de pago ${p.payment_day}`:'Día de pago sin definir'}</span>
+                  {p.payment_day?<span className="hub-chip">{`Día de pago ${p.payment_day}`}</span>:null}
                   {p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
                   {p.currency?<span className="hub-chip" title="Moneda de la remuneración">{p.currency}</span>:null}
-                </div>}
+                </div>:salaryView&&p.active?<div className="person-hub-chips"><span className="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span></div>:null}
                 {p.ended_on?<div className="person-hub-meta"><span className="hub-chip warn">Salió el {listDateShort(p.ended_on)}</span></div>:null}
                 {p.notes&&<p className="ops-note-preview" title={p.notes}>{p.notes}</p>}
                 <div className="person-hub-tail"><TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} refresh={load}/>

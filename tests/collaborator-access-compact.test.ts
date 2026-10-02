@@ -69,8 +69,9 @@ test('management reaches the team without individual salary amounts',()=>{
  assert.match(operations,/person-hub-comp">\{types\.find\(type=>type\.value===p\.compensation_type\)\?\.label\|\|'Sin modalidad'\}<\/span>/);
  assert.doesNotMatch(operations,/Salario reservado/,'the capsule never shows the individual amount');
  assert.doesNotMatch(operations,/setPay\(\{ person:/,'paying a collaborator lives in Finanzas, not in the team capsule');
- assert.match(operations,/!p\.compensation_amount&&p\.active/);
- assert.match(operations,/\{p\.payment_day\?`Día de pago \$\{p\.payment_day\}`:'Día de pago sin definir'\}/);
+ assert.match(operations,/salaryView&&Number\(p\.compensation_amount\)>0/,'los detalles de salario solo aparecen con monto real cargado (#139)');
+ assert.match(operations,/\{p\.payment_day\?<span className="hub-chip">\{`Día de pago \$\{p\.payment_day\}`\}<\/span>:null\}/,'sin día de pago no queda un chip vacío (#139)');
+ assert.match(operations,/<\/div>:salaryView&&p\.active\?<div className="person-hub-chips">/,'solo queda el aviso cuando falta el monto (#139)');
  assert.match(operations,/\{p\.invoices_company\?<span className="hub-chip">Emite factura<\/span>/);
  assert.match(operations,/\{p\.currency\?<span className="hub-chip" title="Moneda de la remuneración">\{p\.currency\}/,'la moneda de la remuneración es un chip');
  assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');

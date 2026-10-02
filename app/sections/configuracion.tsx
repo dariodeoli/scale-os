@@ -1,7 +1,7 @@
 "use client";
 import dynamic from 'next/dynamic';
 import {SectionLoading} from '../ui-v2';
-import {SettingsWorkspace,CouponRedeem} from '../suite';
+import {SettingsWorkspace,CouponRedeem,ExchangeRateSettings,IntegrationSettings} from '../suite';
 import {SubscriptionPanel} from '../subscription-panel';
 import {NewCompany} from '../workspace-guide';
 import {PrivacyPanel} from '../privacy-panel';
@@ -26,6 +26,8 @@ export function ConfiguracionSection({user, subscriptionError, refreshSubscripti
       <div className="min-w-0"><SettingsWorkspace/></div>
       <div className="grid min-w-0 content-start gap-4">
         <div id="settings-subscription"><SubscriptionPanel key={user?.organization_id} state={user?.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user?.organization_name}/></div>
+        <ExchangeRateSettings/>
+        <IntegrationSettings/>
         {!user?.demo_owner_user_id&&['owner','admin'].includes(user?.role||'')&&<CouponRedeem role={user?.role||''} onRedeemed={refreshSubscription}/>}
         {!user?.demo_owner_user_id&&<NewCompany/>}
       </div>
