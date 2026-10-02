@@ -26,7 +26,7 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
  const filters=preferences.production;
  const filterCount=[filters.clientId?1:0,filters.mine?1:0,filters.week?1:0].reduce((total,value)=>total+value,0);
  return <section className="grid gap-4" aria-label="Preferencias del espacio">
-  <KpiStrip>
+  <KpiStrip compact>
    <Kpi label="Inicio configurado" valor={startupLabel} hint="Solo se aplica al entrar a la raíz"/>
    <Kpi label="Filtros del tablero" valor={filterCount} hint="Se editan desde Producción"/>
    <Kpi label="Alcance" valor="Este navegador" hint="No se sincroniza entre dispositivos"/>

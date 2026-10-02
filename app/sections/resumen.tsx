@@ -4,11 +4,11 @@ import {ArrowUpRight} from 'lucide-react';
 import {ControlCenter} from '../control-center';
 import {WorkspaceGuide} from '../workspace-guide';
 import {statuses} from '../production-board';
-import {LoadingBlock, SectionLoading, StateChip, type ChipTone} from '../ui-v2';
+import {DashboardSkeleton, SectionLoading, StateChip, type ChipTone} from '../ui-v2';
 import type {ComponentProps} from 'react';
 import type {Project,Summary,User,WorkOrder} from '../workspace-types';
-const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner),{loading:()=> <SectionLoading label="Cargando el resumen…"/>});
-const InternalTasks=dynamic(()=>import('../work-history').then(m=>m.InternalTasks),{loading:()=> <SectionLoading label="Cargando el resumen…"/>});
+const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner),{loading:()=> <SectionLoading label="Cargando el resumen…" variant="cards"/>});
+const InternalTasks=dynamic(()=>import('../work-history').then(m=>m.InternalTasks),{loading:()=> <SectionLoading label="Cargando el resumen…" variant="cards"/>});
 
 // Resumen / Panel (referencia #42, arquetipo dashboard).
 // Datos reales: control-center (comercial + financiero), summary del shell y
@@ -28,8 +28,9 @@ type ResumenSectionProps = {
 };
 const STAGE_TONE: Record<string, ChipTone> = {red: 'bad', yellow: 'warn', green: 'ok', blue: 'info', teal: 'info', purple: 'info'};
 export function ResumenSection({dataState = 'ready', guideProps, user, orders, load, setActive, summary, stageCounts, projects, setDetail}: ResumenSectionProps){
-  // Primer dato en camino: esqueleto por bloque, sin pantalla vacía.
-  if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <LoadingBlock label="Cargando el panel…" lines={5}/>;
+  // Primer dato en camino: esqueleto con la forma real del panel (KPIs +
+  // tarjetas), sin pantalla vacía ni cifras inventadas (#138).
+  if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <DashboardSkeleton label="Cargando el panel…" kpis={4} cards={3}/>;
   return <div className="grid gap-5 [&>*]:min-w-0">
     <WorkspaceGuide {...guideProps} variant="card"/>
     <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary}/>

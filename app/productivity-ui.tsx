@@ -6,10 +6,10 @@ import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-re
 import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
-import {Aviso, Button, FilaDato, Nota, Subtabs, completeSave, fechaLista, fechaListaCorta} from 'owncoding-ui';
+import {Aviso, FilaDato, Nota, Subtabs, completeSave, fechaLista, fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning,PiiTexto} from './list-format';
 import {todayAsuncion} from './client-format';
-import {EmptyBlock, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
+import {EmptyBlock, EmptyCompact, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
 import {TabScroller} from './tab-scroller';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
@@ -229,7 +229,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
     <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{[o.estimated_hours?`${o.estimated_hours} h est.`:'',o.actual_hours?`${o.actual_hours} h reales`:''].filter(Boolean).join(' · ')||'—'}</span>
    </ListRow>)}
   </ListGrid>
-  {!visible.length?<EmptyBlock title={view==='Mi día'?'No tenés piezas pendientes asignadas.':'No hay piezas para esta vista.'} description={view==='Mi día'?'Podés elegir el tablero general desde el selector de vista.':'Probá con otro mes o cambiá de vista.'} icon="box" action={<Button type="button" variant="outline" onClick={()=>navigate('Producción')}>Abrir el tablero de Producción</Button>}/>:null}
+  {!visible.length?<EmptyCompact message={view==='Mi día'?'No tenés piezas pendientes asignadas.':'No hay piezas para esta vista. Probá con otro mes.'} action={<button type="button" className="secondary min-h-9" onClick={()=>navigate('Producción')}>Abrir Producción</button>}/>:null}
   {visible.length>100?<p className="text-xs text-mute" role="status">Mostrando 100 de {visible.length}. Filtrá por mes para acotar la lista.</p>:null}
   {batch?<BatchEditor orders={orders.filter(o=>selected.includes(String(o.id)))} close={()=>setBatch(false)} done={async()=>{await refresh();setSelected([]);setBatch(false);}}/>:null}
   {templatesOpen?<MonthlyTemplates projects={projects} close={()=>setTemplatesOpen(false)} refresh={refresh}/>:null}

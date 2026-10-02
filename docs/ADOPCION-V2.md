@@ -265,3 +265,23 @@ Evidencia visual: `docs/qa/a11y-124/` — 16 capturas 1440×900 y 390×844, clar
 oscuro (chips, botones llenos y enlaces, acciones de fila, pie institucional y
 pie del riel), sobre `build-tools/visual-harness/fixtures/a11y-124.mjs`
 (0 hallazgos de geometría).
+
+## 10. Tanda patrones de demo (Refs #138) — tarjetas, ⋯, esqueletos y vacíos
+
+Sin cambio de tag: la app suma envoltorios finos sobre objetos existentes y no
+crea una segunda implementación de nada.
+
+| Envoltorio de la app | Objeto de la librería | Qué aporta la app |
+| --- | --- | --- |
+| `ActionMenu` (`app/ui-v2.tsx`) | `MenuDesplegable` | Disparador ⋯ rotulado (44/32 px), confirmación por ítem (`ConfirmDialog`), teclado (flechas/Home/End, Escape al disparador) y `RecordMenuItem` como tipo único |
+| `CardSkeleton`/`CardGridSkeleton` | `Skeleton` | Estructura de tarjeta compacta (título, contexto, meta, avance) |
+| `DashboardSkeleton`/`TableSkeleton` | `Skeleton` | Forma real del arranque (KPIs + tarjetas) y de `ListGrid`/`ListRow` |
+| `EmptyCompact` | `EmptyState` (bloque centrado) | Vacío de una línea, accionable y descartable (`onDismiss`) |
+| `CompactCard`/`CompactQuickAction` | `Card`, `BarraProgreso` | Tarjeta compacta estándar (cinco datos + ⋯); la descripción va al detalle |
+| `KpiStrip compact` | `Stat` | KPI 44–64 px en mobile (rótulo + valor en una línea, hint debajo) |
+
+Evidencia: `docs/qa/patrones-138/` — 32 capturas 390×844 / 1440×900, claro y
+oscuro, antes/después de tarjeta, ⋯, esqueleto y vacío; baseline del harness en
+`work/visual-harness/patrones-138/baseline.md` (0 hallazgos). Contrato y guía de
+adopción en `DESIGN-SYSTEM.md`; guardas en `tests/ui-patterns-138.test.tsx`.
+

@@ -6,14 +6,115 @@
 // estado (`StateChip` sobre `Badge`) y un solo bloque de carga (`LoadingBlock`
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
-import {Badge, EmptyState, ErrorState, Label, ListGridToggle, Select, Skeleton, Stat} from 'owncoding-ui';
+import {Badge, BarraProgreso, ConfirmDialog, EmptyState, ErrorState, Label, ListGridToggle, MenuDesplegable, Select, Skeleton, Stat} from 'owncoding-ui';
+import {X} from 'lucide-react';
 import {currencyChoices} from './currencies';
 import {money} from './operations';
-import {createContext,useContext,useEffect,useRef,useState,type ChangeEvent,type HTMLAttributes,type ReactNode} from 'react';
+import {createContext,useContext,useEffect,useRef,useState,type ChangeEvent,type HTMLAttributes,type KeyboardEvent,type ReactNode} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
 const CHIP_COLOR: Record<ChipTone, string> = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
+
+/* ── Menú ⋯ de acciones (#138) ──────────────────────────────────────────────
+   Contrato único de las acciones secundarias de una tarjeta o fila: UNA acción
+   rápida visible y el resto dentro del menú ⋯. El motor visual sigue siendo
+   `MenuDesplegable` de la librería (no hay una segunda implementación); acá se
+   fija el disparador estándar, la confirmación de las acciones peligrosas y el
+   contrato de teclado (flechas/Home/End; Escape vuelve al disparador). */
+
+/** Ítem del menú ⋯ de una fila o tarjeta (misma forma que `MenuDesplegable`). */
+export type RecordMenuItem = {
+  id: string;
+  label: string;
+  icono?: string;
+  disabled?: boolean;
+  peligro?: boolean;
+  onClick: () => void;
+  /** Confirmación reforzada antes de ejecutar (eliminar, archivar, revertir). */
+  confirm?: {title?: string; description?: ReactNode; confirmLabel?: string; variant?: 'primary' | 'danger'};
+};
+
+/**
+ * Contrato puro de teclado del menú: índice del ítem que recibe el foco.
+ * Con `index = -1` (foco en el disparador) ArrowDown entra por el primero y
+ * ArrowUp por el último; `null` significa «esta tecla no mueve el foco».
+ */
+export function menuFocusIndex(key: string, index: number, count: number): number | null {
+  if (count <= 0) return null;
+  if (key === 'ArrowDown') return index < 0 ? 0 : (index + 1) % count;
+  if (key === 'ArrowUp') return index < 0 ? count - 1 : (index - 1 + count) % count;
+  if (key === 'Home') return 0;
+  if (key === 'End') return count - 1;
+  return null;
+}
+
+/**
+ * Ejecuta un ítem del menú: si pide confirmación, la delega (y devuelve
+ * `false`); si no, ejecuta la acción de una (`true`). Es el contrato puro que
+ * usa `ActionMenu` para que la confirmación no dependa del DOM.
+ */
+export function runMenuItem(item: RecordMenuItem, confirm: (item: RecordMenuItem) => void): boolean {
+  if (item.confirm) { confirm(item); return false; }
+  item.onClick();
+  return true;
+}
+
+/**
+ * Menú ⋯ canónico: disparador rotulado (44 px móvil / 32 px escritorio), ítems
+ * con `aria` del `MenuDesplegable` y confirmación cuando el ítem la pide.
+ * `label` nombra el registro y la acción ("Acciones de la pieza: Reel"); el
+ * texto visible de cada ítem es la acción completa ("Editar pieza").
+ */
+export function ActionMenu({label, items, align = 'right', className}: {label: string; items: RecordMenuItem[]; align?: 'left' | 'right'; className?: string}) {
+  const root = useRef<HTMLDivElement | null>(null);
+  const [confirming, setConfirming] = useState<RecordMenuItem | null>(null);
+  if (!items.length) return null;
+  const trigger = () => root.current?.querySelector<HTMLButtonElement>('button[aria-haspopup="menu"]') || null;
+  const options = () => Array.from(root.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') || []);
+  const focusTrigger = () => { if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => trigger()?.focus()); };
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const open = trigger()?.getAttribute('aria-expanded') === 'true';
+    if (!open && (event.key === 'ArrowDown' || event.key === 'ArrowUp') && event.target === trigger()) {
+      event.preventDefault();
+      trigger()?.click();
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => {
+        const items = options();
+        (event.key === 'ArrowDown' ? items[0] : items[items.length - 1])?.focus();
+      });
+      return;
+    }
+    if (!open) return;
+    if (event.key === 'Escape') {
+      // `MenuDesplegable` cierra con Escape desde document; devolvemos el foco.
+      focusTrigger();
+      return;
+    }
+    const current = typeof document === 'undefined' ? null : document.activeElement as HTMLElement | null;
+    const items = options();
+    const next = menuFocusIndex(event.key, items.indexOf(current as HTMLButtonElement), items.length);
+    if (next === null) return;
+    event.preventDefault();
+    items[next]?.focus();
+  };
+  const menuItems = items.map(item => ({...item, onClick: () => { runMenuItem(item, setConfirming); }}));
+  const pending = confirming?.confirm;
+  return <div ref={root} className={`relative ${className ?? ''}`} onKeyDown={onKeyDown}>
+    <MenuDesplegable ariaLabel={label} alineacion={align} items={menuItems} trigger={<>
+      <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-hidden="true">⋮</span>
+      <span className="sr-only">{label}</span>
+    </>}/>
+    <ConfirmDialog
+      open={Boolean(confirming)}
+      title={pending?.title || (confirming ? `Confirmar: ${confirming.label}` : '')}
+      description={pending?.description}
+      confirmLabel={pending?.confirmLabel || 'Confirmar'}
+      variant={pending?.variant || (confirming?.peligro ? 'danger' : 'primary')}
+      onCancel={() => setConfirming(null)}
+      onConfirm={() => { const item = confirming; setConfirming(null); item?.onClick(); }}
+    />
+  </div>;
+}
 
 /** Chip de estado único: tono semántico, sin wrap y con el texto completo. */
 export function StateChip({tone = 'mute', title, className, children}: {tone?: ChipTone; title?: string; className?: string; children: ReactNode}) {
@@ -77,9 +178,13 @@ export function CurrencyField({id, label, value, onChange, disabled = false, cla
   </div>;
 }
 
-/** Grilla de KPIs: 1 columna en móvil, 2 en tablet y 4 en escritorio. */
-export function KpiStrip({className, children, ...props}: {className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>{children}</div>;
+/**
+ * Grilla de KPIs: 1 columna en móvil, 2 en tablet y 4 en escritorio.
+ * `compact` (#138) apila los KPIs del borde como filas de 44–64 px en mobile
+ * (rótulo + valor en una línea, hint debajo); en escritorio no cambia nada.
+ */
+export function KpiStrip({compact = false, className, children, ...props}: {compact?: boolean; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${compact ? 'ui-kpi-strip-compact' : ''} ${className ?? ''}`}>{children}</div>;
 }
 
 /**
@@ -90,6 +195,143 @@ export function KpiStripSkeleton({count = 4, label = 'Cargando indicadores…', 
   return <div role="status" aria-busy="true" aria-label={label} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>
     {Array.from({length: Math.max(1, count)}, (_, index) => <Skeleton key={index} className="h-[110px] w-full rounded-xl"/>)}
   </div>;
+}
+
+/* ── Esqueletos con estructura real (#138) ──────────────────────────────────
+   Los loaders dibujan la forma del bloque que va a llegar (tarjeta, tabla,
+   dashboard), no una barra genérica: el contenido no salta al aparecer y la
+   espera se percibe como progreso. Todos anuncian con `role="status"` y no
+   inventan cifras ni estados. */
+
+/** Esqueleto de una tarjeta compacta: título, contexto, meta y avance. */
+export function CardSkeleton({className}: {className?: string}) {
+  return <div data-card-skeleton aria-hidden="true" className={`flex min-h-[7.5rem] flex-col gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3 ${className ?? ''}`}>
+    <div className="flex items-center justify-between gap-2"><Skeleton className="h-4 w-2/3 rounded-md"/><Skeleton className="h-7 w-7 rounded-lg"/></div>
+    <Skeleton className="h-3 w-1/2 rounded-full"/>
+    <Skeleton className="h-3 w-2/5 rounded-full"/>
+    <div className="mt-auto grid gap-1.5"><Skeleton className="h-1.5 w-full rounded-full"/><Skeleton className="h-3 w-1/3 rounded-full"/></div>
+  </div>;
+}
+
+/** Grilla de tarjetas en carga: misma cantidad de huecos y ancho que las reales. */
+export function CardGridSkeleton({count = 6, label = 'Cargando tarjetas…', className}: {count?: number; label?: string; className?: string}) {
+  return <div role="status" aria-busy="true" aria-label={label} className={`grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 ${className ?? ''}`}>
+    {Array.from({length: Math.max(1, count)}, (_, index) => <CardSkeleton key={index}/>)}
+  </div>;
+}
+
+/**
+ * Plantillas literales del esqueleto de tabla (2–6 columnas). Se usan literales
+ * completos para que Tailwind genere las clases y el hueco coincida con la
+ * `ListGrid` real; una tabla con plantilla propia la pasa por `template`.
+ */
+const TABLE_SKELETON_TEMPLATES: Record<number, string> = {
+  2: 'grid-cols-[minmax(11rem,1.6fr)_7rem]',
+  3: 'grid-cols-[minmax(11rem,1.6fr)_minmax(8rem,1fr)_7rem]',
+  4: 'grid-cols-[minmax(11rem,1.6fr)_minmax(8rem,1fr)_minmax(6rem,.8fr)_6.5rem]',
+  5: 'grid-cols-[minmax(11rem,1.6fr)_minmax(8rem,1fr)_minmax(6rem,.8fr)_6.5rem_6.5rem]',
+  6: 'grid-cols-[minmax(11rem,1.6fr)_minmax(8rem,1fr)_minmax(6rem,.8fr)_6.5rem_6.5rem_5.5rem]',
+};
+
+/** Plantilla del esqueleto de tabla para N columnas (2–6; el resto recorta). */
+export function tableSkeletonTemplate(columns: number) {
+  return TABLE_SKELETON_TEMPLATES[Math.max(2, Math.min(columns, 6))];
+}
+
+/**
+ * Esqueleto de una lista densa: mismo encabezado, misma plantilla y mismos
+ * altos de fila que `ListGrid`/`ListRow`, sin textos ni datos inventados.
+ */
+export function TableSkeleton({rows = 5, columns = 4, label = 'Cargando la lista…', template, className}: {rows?: number; columns?: number; label?: string; template?: string; className?: string}) {
+  const safeRows = Math.max(1, Math.min(rows, 12));
+  const safeColumns = Math.max(2, Math.min(columns, 6));
+  const tracks = template ?? tableSkeletonTemplate(safeColumns);
+  return <div role="status" aria-busy="true" aria-label={label} className={`silent-scroll min-w-0 overflow-x-auto ${className ?? ''}`}>
+    <div className="min-w-[44rem]">
+      <div aria-hidden="true" className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 ${tracks}`}>
+        {Array.from({length: safeColumns}, (_, index) => <Skeleton key={index} className={`h-3 rounded-full ${index === 0 ? 'w-20' : 'w-14'}`}/>)}
+      </div>
+      <div aria-hidden="true">
+        {Array.from({length: safeRows}, (_, index) => <div key={index} className={`grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-2 last:border-0 md:min-h-11 ${tracks}`}>
+          {Array.from({length: safeColumns}, (_, cell) => <Skeleton key={cell} className={`h-3.5 rounded-full ${cell === 0 ? 'w-4/5' : 'w-2/3'}`}/>)}
+        </div>)}
+      </div>
+    </div>
+  </div>;
+}
+
+/** Esqueleto del arranque del dashboard: tira de KPIs + panel de tarjetas. */
+export function DashboardSkeleton({kpis = 4, cards = 3, label = 'Cargando el panel…', className}: {kpis?: number; cards?: number; label?: string; className?: string}) {
+  return <div className={`grid gap-5 [&>*]:min-w-0 ${className ?? ''}`} aria-busy="true">
+    <KpiStripSkeleton count={kpis} label={label}/>
+    <section className="rounded-xl border border-ink-600 bg-ink-800 p-4 md:p-5">
+      <CardGridSkeleton count={cards} label={label}/>
+    </section>
+  </div>;
+}
+
+/* ── Tarjeta compacta estándar (#138) ───────────────────────────────────────
+   Título, contexto (cliente/proyecto), vencimiento, responsable y avance. La
+   descripción y las acciones secundarias NO viven acá: el detalle se abre desde
+   el título y las acciones van al menú ⋯ (una acción rápida visible). */
+
+export type CompactCardProgress = {
+  value: number;
+  max?: number;
+  label?: ReactNode;
+  tone?: 'fono' | 'ok' | 'warn' | 'bad' | 'mute' | 'onbrand';
+  ariaLabel?: string;
+};
+
+/**
+ * Tarjeta/fila compacta estándar: la usan los tableros, planificadores y
+ * listas de tarjetas. Mantiene el alto por contenido (no reserva 200 px) y en
+ * mobile el título y los controles conservan el target de 44 px.
+ */
+export function CompactCard({
+  title, onOpen, openLabel, context, due, responsible, progress, chips, quickAction, actions, menuLabel, className, children, ...props
+}: {
+  title: ReactNode;
+  onOpen?: () => void;
+  openLabel?: string;
+  context?: ReactNode;
+  due?: ReactNode;
+  responsible?: ReactNode;
+  progress?: CompactCardProgress;
+  chips?: ReactNode;
+  quickAction?: ReactNode;
+  actions?: RecordMenuItem[];
+  menuLabel?: string;
+  className?: string;
+  children?: ReactNode;
+} & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
+  const titleText = typeof title === 'string' ? title : '';
+  const menu = menuLabel || `Acciones${titleText ? `: ${titleText}` : ''}`;
+  return <article {...props} data-compact-card className={`flex min-w-0 flex-col gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3 shadow-sm ${className ?? ''}`}>
+    <header className="flex min-w-0 items-start justify-between gap-2">
+      {onOpen
+        ? <button type="button" className="min-h-11 min-w-0 flex-1 text-left text-[13.5px] font-semibold leading-5 text-fore outline-none transition-colors hover:text-fono-light focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0" aria-label={openLabel || `Abrir ${titleText}`} onClick={onOpen}>{title}</button>
+        : <h3 className="min-w-0 flex-1 truncate text-[13.5px] font-semibold leading-5 text-fore" title={titleText || undefined}>{title}</h3>}
+      {(quickAction || (actions && actions.length)) ? <span className="flex shrink-0 items-center gap-1">{quickAction}{actions && actions.length ? <ActionMenu label={menu} items={actions}/> : null}</span> : null}
+    </header>
+    {context ? <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] leading-4 text-mute">{context}</div> : null}
+    {chips ? <div className="flex min-w-0 flex-wrap items-center gap-1">{chips}</div> : null}
+    {due ? <div className="min-w-0">{due}</div> : null}
+    {responsible ? <div className="min-w-0">{responsible}</div> : null}
+    {progress ? <div className="grid min-w-0 gap-1">
+      <div className="flex min-w-0 items-center justify-between gap-2 text-[11px] text-mute">
+        {progress.label ? <span className="min-w-0 truncate" title={typeof progress.label === 'string' ? progress.label : undefined}>{progress.label}</span> : <span className="sr-only">{progress.ariaLabel || 'Avance'}</span>}
+        <span className="shrink-0 tabular-nums">{progress.value}{progress.max !== undefined && progress.max !== 100 ? `/${progress.max}` : ''}</span>
+      </div>
+      <BarraProgreso valor={progress.value} max={progress.max ?? 100} tono={progress.tone ?? 'fono'} alto="sm" etiqueta={progress.ariaLabel || (typeof progress.label === 'string' ? progress.label : 'Avance')}/>
+    </div> : null}
+    {children}
+  </article>;
+}
+
+/** Acción rápida canónica de una tarjeta compacta (mismo target que el ⋯). */
+export function CompactQuickAction({label, onClick, icon, disabled = false}: {label: string; onClick: () => void; icon: ReactNode; disabled?: boolean}) {
+  return <button type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-7 md:w-7" title={label} aria-label={label} disabled={disabled} onClick={onClick}>{icon}</button>;
 }
 
 /** Carga con esqueleto: anuncia con `role="status"` y no inventa datos. */
@@ -104,9 +346,17 @@ export function LoadingBlock({label = 'Cargando…', lines = 3, className}: {lab
  * Fallback de una sección lazy (chunk de `next/dynamic` en camino): el mismo
  * esqueleto del sistema sobre el panel de la sección, para que la navegación
  * muestre progreso en vez de pantalla en blanco (ronda 14, #67).
+ * `variant` (#138) ajusta la estructura a lo que va a llegar: `cards` para
+ * tableros de tarjetas, `table` para listas densas y `dashboard` para el
+ * arranque con KPIs.
  */
-export function SectionLoading({label = 'Cargando la sección…', lines = 4}: {label?: string; lines?: number}) {
-  return <div className="ops-stack"><section className="panel"><LoadingBlock label={label} lines={lines}/></section></div>;
+export function SectionLoading({label = 'Cargando la sección…', lines = 4, variant = 'lines'}: {label?: string; lines?: number; variant?: 'lines' | 'cards' | 'table' | 'dashboard'}) {
+  return <div className="ops-stack"><section className="panel">
+    {variant === 'cards' ? <CardGridSkeleton count={3} label={label}/>
+      : variant === 'table' ? <TableSkeleton rows={lines} columns={4} label={label}/>
+      : variant === 'dashboard' ? <div className="grid gap-5"><KpiStripSkeleton label={label}/><CardGridSkeleton count={3} label={label}/></div>
+      : <LoadingBlock label={label} lines={lines}/>}
+  </section></div>;
 }
 
 /** Superficie común de los estados de panel v2. */
@@ -133,6 +383,22 @@ export function EmptyBlock({title, description, action, icon, compact = false, c
  */
 export function EmptyCta({label, onClick, icon, className}: {label: string; onClick: () => void; icon?: ReactNode; className?: string}) {
   return <button type="button" className={`primary ${className ?? ''}`} onClick={onClick}>{icon}{label}</button>;
+}
+
+/**
+ * Estado vacío compacto (#138): UNA línea baja (44–52 px), accionable y
+ * descartable cuando aplica. Reemplaza al bloque centrado en vacíos de
+ * filtros, listas cortas y avisos: no ocupa el pliegue ni parece un error.
+ * El `message` dice qué falta y `action` resuelve el trabajo pendiente; el
+ * descarte (×) solo se dibuja con `onDismiss` y lo persiste quien lo usa.
+ */
+export function EmptyCompact({message, action, onDismiss, dismissLabel = 'Ocultar aviso', icon, className}: {message: ReactNode; action?: ReactNode; onDismiss?: () => void; dismissLabel?: string; icon?: ReactNode; className?: string}) {
+  return <div role="status" className={`flex min-h-11 min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-dashed border-ink-500 bg-ink-800/60 px-3 py-1.5 text-[12px] leading-5 text-mute ${className ?? ''}`}>
+    {icon ? <span className="shrink-0 text-mute" aria-hidden="true">{icon}</span> : null}
+    <p className="min-w-0 flex-1">{message}</p>
+    {action ? <span className="shrink-0">{action}</span> : null}
+    {onDismiss ? <button type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-8 md:w-8" title={dismissLabel} aria-label={dismissLabel} onClick={onDismiss}><X size={15} aria-hidden="true"/></button> : null}
+  </div>;
 }
 
 /** Error de panel con reintento: `ErrorState` de la librería, anunciado como alerta. */
