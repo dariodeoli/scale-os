@@ -135,7 +135,11 @@ assert.match(boardHook,/boardPlannerUrl\(plannerFields\(ORDER_FIELDS_BOARD\)/,'e
 assert.match(projectCard,/PROJECT_PIECES_LIMIT/,'el detalle de proyecto resume las piezas (no dibuja miles)');
 assert.match(projectCard,/fetchProjectPieces\(project\.id,/,'el detalle pide las piezas con el filtro negociado por proyecto (#58)');
 assert.match(projectCard,/remainingPiecesLabel\(piecesTotal/,'el resumen del resto usa el total del proyecto (registro de la lista)');
-assert.match(projectCard,/const piecesTotal=Math\.max\(Number\(record\.work_order_count/,'el total combina el registro del detalle y el de la lista');
+// #146: el contador sale de la misma lista que el detalle; el registro solo
+// cubre la carga y la ventana de 50.
+assert.match(projectCard,/const piecesCount=pieces\?pieces\.length:knownTotal/,'el contador usa la longitud de la lista del detalle');
+assert.match(projectCard,/data-pieces-count=\{piecesCount\}/,'el contador expone el valor medido para tests y harness');
+assert.match(projectCard,/const knownTotal=Math\.max\(Number\(record\.work_order_count/,'el total del directorio solo completa carga y ventana');
 const projectPieces=read('app/project-pieces.ts');
 assert.match(projectPieces,/PROJECT_PIECES_FIELDS='id,title,status,due_date,due_time,project_id'/,'la proyección mínima vive en el módulo de piezas');
 assert.match(projectPieces,/project_id=\$\{encodeURIComponent\(projectId\)\}/,'el filtro por proyecto se manda cuando el API lo soporta');

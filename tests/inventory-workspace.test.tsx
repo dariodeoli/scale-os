@@ -120,9 +120,28 @@ async function run(){
  const yearBoundary={...record,starts_at:'2033-01-01T01:00:00.000Z',ends_at:'2033-01-01T03:00:00.000Z'};
  await act(async()=>{renderer=create(<InventoryCalendar month="2032-12" reservations={[yearBoundary,{...yearBoundary,id:'31',status:'cancelled',title:'Cancelada invisible'}]}/>);});
  assert.match(text(renderer.root.findByProps({'aria-label':'2032-12-31'})),/Rodaje de prueba/);assert.doesNotMatch(tree(),/Cancelada invisible/);act(()=>renderer.unmount());
- await act(async()=>{renderer=create(<InventoryCalendar month="2033-01" reservations={[yearBoundary]}/>);});assert.doesNotMatch(tree(),/Rodaje de prueba/);act(()=>renderer.unmount());
+ await act(async()=>{renderer=create(<InventoryCalendar month="2033-01" reservations={[yearBoundary]}/>);});
+ // #146: la agenda semanal (móvil) sí muestra la semana que contiene el 31/12;
+ // el mini calendario de enero no debe adjudicarse la reserva.
+ const januaryGrid=()=>renderer.root.findAll(node=>node.props?.['data-calendar-month']!==undefined)[0];
+ assert.doesNotMatch(text(januaryGrid()),/Rodaje de prueba/,'el mes de enero no se adjudica la reserva del 31/12');
+ act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryCalendar month="2032-02" reservations={[{...record,starts_at:'2032-02-29T12:00:00.000Z',ends_at:'2032-03-01T03:00:00.000Z'}]}/>);});
  assert.match(text(renderer.root.findByProps({'aria-label':'2032-02-29'})),/Rodaje de prueba/);assert.equal(renderer.root.findAllByType('time').length,29);act(()=>renderer.unmount());
+ // #146: agenda semanal móvil — semana completa, días vacíos bajos y navegación.
+ await act(async()=>{renderer=create(<InventoryCalendar month="2032-12" reservations={[{...record,starts_at:'2032-12-01T12:00:00.000Z',ends_at:'2032-12-01T15:00:00.000Z'}]}/>);});
+ const agendaDays=()=>renderer.root.findAll(node=>node.props?.['data-agenda-day']!==undefined);
+ assert.equal(agendaDays().length,7,'la agenda muestra la semana completa');
+ assert.equal(agendaDays().filter(node=>node.props?.['data-empty']==='true').length,6,'los días sin reservas quedan vacíos y bajos');
+ assert.match(text(agendaDays().find(node=>node.props?.['data-agenda-day']==='2032-12-01')!),/Rodaje de prueba/,'la reserva aparece en su día de la agenda');
+ const weekPattern=/Semana del \d\d\/\d\d al \d\d\/\d\d/;
+ const firstWeek=text(renderer.root).match(weekPattern)?.[0];
+ assert(firstWeek,'la agenda rotula la semana visible');
+ act(()=>renderer.root.findAllByProps({'aria-label':'Semana siguiente'})[0].props.onClick());
+ assert.notEqual(text(renderer.root).match(weekPattern)?.[0],firstWeek,'la agenda avanza una semana');
+ act(()=>renderer.root.findAllByProps({'aria-label':'Semana anterior'})[0].props.onClick());
+ assert.equal(text(renderer.root).match(weekPattern)?.[0],firstWeek,'y vuelve a la semana anterior');
+ act(()=>renderer.unmount());
  // inventory.view covers every role, so sales and collaborators open the catalog too.
  const before=reads;await act(async()=>{renderer=create(<InventoryWorkspace role="sales"/>);});assert.notEqual(renderer.toJSON(),null,'sales reaches the inventory catalog');assert(reads>before,'the catalog is requested');act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<InventoryWorkspace role="collaborator"/>);});assert.notEqual(renderer.toJSON(),null,'collaborator reaches the inventory catalog');act(()=>renderer.unmount());
@@ -142,7 +161,9 @@ async function run(){
  assert.match(tree(),/Sin verificación/);assert.match(tree(),/Sin registro de ingreso a esta ubicación/);
  assert.match(tree(),/Sin equipos/,'empty location columns render with their count at zero');
  assert.match(tree(),/Sin ubicación/,'the unassigned column always exists so items can move back');
- act(()=>{renderer.root.findAllByProps({'aria-label':'Ocultar columna Sin ubicación'})[0].props.onClick();});
+ // #146: ocultar la columna vive en el ⋯ del encabezado.
+ act(()=>{renderer.root.findAllByProps({'aria-label':'Acciones de la ubicación: Sin ubicación'})[0].parent!.props.onClick();});
+ act(()=>{renderer.root.findAll(node=>node.props?.role==='menuitem').find(node=>text(node)==='Ocultar columna Sin ubicación')!.props.onClick();});
  assert.doesNotMatch(tree(),/Sin ubicación/,'the unassigned column can be hidden from the pipeline');
  assert.match(tree(),/sin ubicación no se muestran/,'hiding reports how many unassigned items are out of view');
  act(()=>{button('Mostrar columna').props.onClick();});
@@ -212,9 +233,18 @@ async function run(){
  act(()=>renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevos equipos'))!.findByType('input').props.onChange({target:{checked:false}}));
  await submit();
  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories/3');assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.active,false);assert(button('Accesorios archivados · archivada'));
- assert.match(text(renderer.root),/Ubicaciones de guardado/);assert.match(text(renderer.root),/Estante A/);assert(renderer.root.findAllByType('small').some(node=>text(node)==='1 equipo'));assert(button('Renombrar'));assert(button('Archivar'));
- const deleteButtons=renderer.root.findAllByType('button').filter(node=>text(node)==='Eliminar');assert.equal(deleteButtons[0].props.disabled,true,'referenced templates cannot be deleted');assert.equal(deleteButtons[1].props.disabled,false,'unreferenced templates stay deletable');
- act(()=>button('Renombrar').props.onClick());change('Nombre de la ubicación','Estante A principal');const availability=renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevas asignaciones'))!.findByType('input');act(()=>availability.props.onChange({target:{checked:false}}));await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-locations/storage-a');assert.deepEqual(writes.at(-1)!.body,{name:'Estante A principal',active:false,responsible_user_id:null});act(()=>renderer.unmount());
+ assert.match(text(renderer.root),/Ubicaciones de guardado/);assert.match(text(renderer.root),/Estante A/);assert(renderer.root.findAllByType('small').some(node=>text(node)==='1 equipo'));
+ // #146 (patrón #138): las acciones del lugar viven en el menú ⋯ de la fila.
+ const locationMenu=(name:string)=>renderer.root.findAllByProps({'aria-label':`Acciones de la ubicación: ${name}`})[0].parent!;
+ const locationMenuItems=()=>renderer.root.findAll(node=>node.props?.role==='menuitem');
+ const locationItem=(label:string)=>locationMenuItems().find(node=>text(node)===label)!;
+ const deleteDisabled=(name:string)=>{act(()=>locationMenu(name).props.onClick());const disabled=locationItem('Eliminar ubicación').props.disabled as boolean;act(()=>locationMenu(name).props.onClick());return disabled;};
+ assert.equal(deleteDisabled('Estante A'),true,'referenced templates cannot be deleted');
+ assert.equal(deleteDisabled('Estante B'),false,'unreferenced templates stay deletable');
+ assert.equal(deleteDisabled('Estante B'),false,'las acciones se repiten por fila');
+ act(()=>locationMenu('Estante A').props.onClick());
+ assert(locationItem('Renombrar')&&locationItem('Archivar'),'la fila ofrece renombrar y archivar en el ⋯');
+ act(()=>locationItem('Renombrar').props.onClick());change('Nombre de la ubicación','Estante A principal');const availability=renderer.root.findAllByType('label').find(node=>text(node).includes('Disponible para nuevas asignaciones'))!.findByType('input');act(()=>availability.props.onChange({target:{checked:false}}));await submit();assert.equal(writes.at(-1)!.path,'/api/agency/inventory-locations/storage-a');assert.deepEqual(writes.at(-1)!.body,{name:'Estante A principal',active:false,responsible_user_id:null});act(()=>renderer.unmount());
  let itemSaved=0;
  await act(async()=>{renderer=create(<InventoryItemForm item={null} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage createStorageTemplate={async name=>(await mockApi('/api/agency/inventory-locations',{name},'POST') as {location:StorageTemplate}).location} done={()=>{itemSaved++;}}/>);});
  assert.deepEqual(select('Ubicación').props.choices.map((choice:{value:string})=>choice.value),['','storage-a','storage-b'],'active templates plus custom fallback are selectable');
@@ -282,14 +312,19 @@ async function run(){
  act(()=>button('Ubicaciones').props.onClick());
  const columnTitles=()=>renderer.root.findAll(node=>node.props?.['data-board-head']!==undefined).map(node=>(node.findAllByType('h3')[0] as ReactTestInstance).children.join(''));
  assert.deepEqual(columnTitles().slice(0,3),['Estante A','Estante B','Depósito anterior'],'el pipeline arranca en el orden del API');
+ // #146: el orden de la columna vive en el menú ⋯ del encabezado.
+ const columnHead=(title:string)=>renderer.root.findAll(node=>node.props?.['data-board-head']!==undefined).find(node=>node.findAllByType('h3').some(head=>text(head)===title))!;
+ const columnMenu=(title:string)=>columnHead(title).findAllByProps({'aria-label':`Acciones de la ubicación: ${title}`})[0].parent!;
+ const columnItem=(label:string)=>renderer.root.findAll(node=>node.props?.role==='menuitem').find(node=>text(node)===label)!;
+ const moveAfter=async(title:string)=>{act(()=>columnMenu(title).props.onClick());await act(async()=>{await columnItem('Mover después').props.onClick();});};
  const beforeReorder=writes.length;
- await act(async()=>{await renderer.root.findAllByProps({'aria-label':'Mover después: Estante A'})[0].props.onClick();});
+ await moveAfter('Estante A');
  const orderWrite=writes.slice(beforeReorder).find(write=>write.path==='/api/agency/inventory-locations/order');
  assert(orderWrite,'el reordenamiento llama al endpoint de orden');
  assert.deepEqual((orderWrite!.body as {ids:string[]}).ids,['storage-b','storage-a','storage-old'],'viaja la lista completa en el orden elegido');
  assert.deepEqual(columnTitles().slice(0,3),['Estante B','Estante A','Depósito anterior'],'el orden optimista se ve al instante');
  reorderFails=true;
- await act(async()=>{await renderer.root.findAllByProps({'aria-label':'Mover después: Estante B'})[0].props.onClick();});
+ await moveAfter('Estante B');
  assert.deepEqual(columnTitles().slice(0,3),['Estante B','Estante A','Depósito anterior'],'si el API falla, la vista vuelve al orden anterior');
  assert.match(text(renderer.root),/No se pudo guardar el orden/,'el fallo se avisa');
  reorderFails=false;

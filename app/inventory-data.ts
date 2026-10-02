@@ -193,6 +193,38 @@ export function pipelineDropColumn(columns:PipelineColumn[],items:InventoryItem[
  return columns.find(candidate=>candidate.rows.some(row=>String(row.id)===String(item.id)))||null;
 }
 
+// ── Calendario de reservas (#146) ───────────────────────────────────────────
+// Fechas civiles AAAA-MM-DD sin zona del navegador: la agenda semanal y el mini
+// calendario comparten los mismos días, y los tests no dependen del reloj local.
+
+const isoDay=(date:Date)=>date.toISOString().slice(0,10);
+/** Suma (o resta) días a una fecha civil. */
+export function addDays(day:string,days:number):string{
+ const date=new Date(`${day}T00:00:00Z`);
+ date.setUTCDate(date.getUTCDate()+days);
+ return isoDay(date);
+}
+/** Lunes de la semana que contiene la fecha (semana que arranca el lunes). */
+export function startOfWeek(day:string):string{
+ const date=new Date(`${day}T00:00:00Z`);
+ return addDays(day,-((date.getUTCDay()+6)%7));
+}
+/** Los siete días civiles de la semana que arranca en `start`. */
+export function weekDays(start:string):string[]{
+ return Array.from({length:7},(_,index)=>addDays(start,index));
+}
+/** Etiqueta corta de la semana: «29/09 al 05/10». */
+export function weekRangeLabel(start:string):string{
+ const short=(day:string)=>`${day.slice(8,10)}/${day.slice(5,7)}`;
+ return `${short(start)} al ${short(addDays(start,6))}`;
+}
+/** «lun 6» para la agenda semanal móvil. */
+export function dayLabel(day:string):string{
+ const names=['dom','lun','mar','mié','jue','vie','sáb'];
+ const date=new Date(`${day}T00:00:00Z`);
+ return `${names[date.getUTCDay()]} ${date.getUTCDate()}`;
+}
+
 const round2=(value:number)=>Math.round(value*100)/100;
 const numberOrNull=(value:unknown):number|null=>{
  if(value===null||value===undefined||value==='')return null;
