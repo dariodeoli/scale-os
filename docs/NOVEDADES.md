@@ -2,6 +2,16 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.163
+
+### Landing
+
+- **Una sola promesa de prueba**: «Empezar gratis» con los 30 días explicados una vez, junto al precio; se termina la repetición de «sin compromiso» y las promesas de precio congelado «para siempre».
+- **Funciones en 3 pilares** (Operación, Clientes y Control financiero) con las 9 funciones intactas: el detalle se expande sin JavaScript y nada queda escondido.
+- **Sin citas genéricas**: el bloque de testimonios queda reservado para casos reales autorizados (no se publican citas inventadas).
+- **Beneficio de fundador junto al precio**: el chip y la nota canónica viven al lado del plan, donde se decide la compra, y el hero vuelve a vender el valor con un único CTA principal por bloque.
+- Evidencia antes/después en 1440 y 390 en `docs/qa/landing-134/`.
+
 ## v1.0.162
 
 ### Asistente «Carga con IA»
