@@ -411,8 +411,13 @@
 .activity-feed-row:hover{background:color-mix(in srgb,var(--violet-soft) 30%,transparent)}
 .activity-feed-row p{margin:0;min-width:0}
 .activity-feed-row small{color:var(--text-subtle,var(--text-muted));font-size:10.5px;white-space:nowrap}
+/* #143: el evento de negocio manda; el detalle técnico queda en escritorio y
+   desaparece en móvil (siempre disponible en el `title` de la fila). */
+.activity-feed-row .activity-feed-event{min-width:0}
+.activity-feed-row .activity-feed-context{color:var(--text-subtle,var(--text-muted));font-weight:500}
+.activity-feed-row .activity-feed-tech{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .activity-more{margin-top:14px}
-@media(max-width:700px){.activity-feed-row{grid-template-columns:1fr;gap:3px}.activity-feed-row small{white-space:normal}}
+@media(max-width:700px){.activity-feed-row{grid-template-columns:1fr;gap:3px}.activity-feed-row small{white-space:normal}.activity-feed-row .activity-feed-tech{display:none}.activity-feed-row p{white-space:normal;overflow:visible;text-overflow:clip}.activity-feed-row .activity-feed-record{white-space:normal}}
 
 /* Finanzas: cuentas como tarjetas y estado de factura con color. */
 .finance-account-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:10px}
