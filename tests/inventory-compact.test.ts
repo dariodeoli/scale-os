@@ -37,7 +37,8 @@ assert.match(source,/title=\{`Mostrando \$\{visible\.length\} de \$\{items\.leng
 assert.match(source,/\[&>div\]:lg:!flex \[&>div\]:lg:items-center \[&>div\]:lg:gap-2 \[&_\.ops-label\]:lg:mb-0 \[&_\.ops-label\]:lg:whitespace-nowrap/,'el select de categoría alinea su rótulo en desktop');
 
 // ── Mobile: tabs con scroll horizontal y targets de 44 px.
-assert.match(source,/max-lg:overflow-x-auto/,'los tabs scrollean en mobile');
+assert.match(source,/max-lg:flex-nowrap/,'los tabs no envuelven a una segunda línea en mobile (#137)');
+assert.match(source,/<TabScroller[^>]*label="vistas"/,'los tabs usan el carril desplazable con chevrones (#137)');
 assert.match(source,/\[&>button\]:min-h-11/,'los tabs conservan el target de 44 px en mobile');
 assert.match(source,/min-w-\[8rem\] flex-1 lg:max-w-72/,'la búsqueda es flexible y no empuja la fila');
 

@@ -69,8 +69,8 @@ test("workspace header retains visible focus, 40px desktop controls, 44px mobile
 test("mobile workspace header keeps the subscription notice visible in the compact status row", () => {
   assert.match(
     source,
-    /topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2/,
-    "the status takes its own row on mobile",
+    /topbar-status flex items-center gap-2 max-md:order-2/,
+    "the status flows after the utility controls on mobile (#137)",
   );
   assert.match(source, /topbar-status[\s\S]*?SubscriptionNotice/, "the compact row keeps the subscription notice");
   assert.doesNotMatch(drawer, /subscription-notice[\s\S]*?hidden/);

@@ -16,7 +16,7 @@ const history=read('app/work-history.tsx');
 // ── Producción: una fila en desktop, con el filtro de cliente en línea.
 assert.match(production,/production-command-toolbar mb-4 flex min-w-0 flex-col gap-3 lg:mb-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3/,'la barra de Producción va en una fila en desktop');
 assert.match(production,/<label className="production-client-filter flex items-center gap-2">/,'el filtro de cliente va en línea');
-assert.match(production,/silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0/,'los tabs scrollean en mobile y no se comprimen en desktop');
+assert.match(production,/<TabScroller className="production-view-tabs max-lg:min-w-0 max-lg:max-w-full lg:shrink-0" label="vistas">/,'los tabs scrollean con chevrones en mobile y no se comprimen en desktop (#137)');
 assert.match(production,/<DndContext sensors=\{sensors\}/,'el tablero conserva el drag & drop');
 assert.match(production,/<KanbanColumn/,'las columnas por etapa siguen siendo el objeto del tablero');
 
