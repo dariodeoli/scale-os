@@ -192,9 +192,13 @@ assert.match(studio,/para reservarlo después/,'el vacío explica para qué crea
 assert.match(productionSection,/\[--board-cols:1\] sm:\[--board-cols:2\] lg:\[--board-cols:4\]/,'el tablero muestra 1/2/4 etapas completas por página');
 assert.match(board,/w-\[calc\(\(100%-\(var\(--board-cols\)-1\)\*0\.75rem\)\/var\(--board-cols\)\)\]/,'el ancho de columna reparte la página sin cortar etapas');
 assert.match(productionSection,/node\.clientWidth\+12/,'la flecha avanza una página completa de etapas');
-assert.match(board,/line-clamp-2 text-\[11\.5px\] leading-5 text-mute/,'la descripción se resume a dos líneas');
-assert.match(board,/>Ver detalle<\/button>/,'el recorte de la descripción ofrece "Ver detalle"');
-assert.match(board,/node\.scrollHeight-node\.clientHeight>1/,'"Ver detalle" solo aparece si la descripción quedó recortada');
+// #141: tarjeta compacta — la descripción y las acciones secundarias salen de la tarjeta.
+assert.doesNotMatch(board,/line-clamp-2 text-\[11\.5px\] leading-5 text-mute/,'la tarjeta no repite la descripción');
+assert.doesNotMatch(board,/>Ver detalle<\/button>/,'la descripción ya no se resume en la tarjeta');
+assert.match(board,/MenuDesplegable ariaLabel=\{`Acciones de la pieza: \$\{order\.title\}`\}/,'las acciones secundarias viven en el menú ⋯ de la pieza');
+assert.match(board,/id:'edit',label:'Editar pieza'/,'el ⋯ ofrece editar la pieza');
+assert.match(board,/label:'Mover a la papelera'/,'el ⋯ ofrece mover a la papelera');
+assert.match(board,/hideTrigger open=\{archiveOpen\} onClose=\{\(\)=>setArchiveOpen\(false\)\}/,'la confirmación de papelera sigue siendo la pieza compartida');
 assert.match(checklistCss,/\.work-checklist-check input\[type=checkbox\]\{width:24px;height:24px;min-width:24px/,'el checkbox del checklist usa el control de 24 px');
 assert.equal((checklistCss.match(/input\[type=checkbox\]\{width:/g)||[]).length,1,'el checklist declara un solo tamaño de checkbox');
 assert.match(orderLinks,/className="h-6 w-6 p-0 accent-fono"/,'el checkbox de visibilidad del enlace usa el mismo control de 24 px');

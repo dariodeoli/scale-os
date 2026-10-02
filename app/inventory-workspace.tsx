@@ -103,9 +103,10 @@ function InventoryItemMeta({item,layout}:{item:InventoryItem;layout:'card'|'row'
 }
 
 /**
- * Acciones del equipo (#103): una sola lista alimenta los íconos alineados de la
- * tarjeta/fila y el menú desplegable del pipeline. Eliminar va siempre en rojo
- * con tooltip; en móvil los targets son de 44 px.
+ * Acciones del equipo (#103/#141): una sola lista alimenta la acción rápida
+ * visible y el menú ⋯ de la tarjeta, la fila y el pipeline. Verificar queda como
+ * la acción rápida (un solo flujo visible) y el detalle con resultado/notas pasa
+ * al menú; archivar va al final, separado y en rojo.
  */
 type InventoryItemActionContext={item:InventoryItem;canManage:boolean;verifying:boolean;onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void};
 function inventoryItemActionList({item,canManage,verifying,onDetail,onVerify,onVerifyDetail,onEdit,onArchive}:InventoryItemActionContext){
@@ -121,10 +122,22 @@ function inventoryItemActionList({item,canManage,verifying,onDetail,onVerify,onV
   ]:[]),
  ];
 }
+/** La acción rápida es verificar (gestión) o ver el detalle; el resto va al ⋯. */
+function inventoryItemActions(context:InventoryItemActionContext){
+ const actions=inventoryItemActionList(context);
+ const quick=actions.find(action=>action.key==='verify')||actions.find(action=>action.key==='detail')||null;
+ const menu=actions.filter(action=>action!==quick);
+ return {quick,menu};
+}
+function menuItemsFrom(menu:ReturnType<typeof inventoryItemActions>['menu']){
+ return menu.flatMap(action=>{const item={id:action.key,label:action.texto,icono:action.icon,disabled:action.disabled,peligro:action.peligro,onClick:action.onClick};return action.key==='archive'?[{separador:true},item]:[item];});
+}
 function InventoryItemActions(context:InventoryItemActionContext&{dense?:boolean}){
- const {dense=false}=context;
+ const {dense=false,item}=context;
+ const {quick,menu}=inventoryItemActions(context);
  return <span className={`flex shrink-0 flex-nowrap items-center justify-end gap-1 ${dense?ROW_ICON_TARGETS:ICON_TARGETS}`}>
-  {inventoryItemActionList(context).map(action=><IconAction key={action.key} icon={action.icon} tone={action.tone} disabled={action.disabled} label={action.label} onClick={action.onClick}/>)}
+  {quick?<IconAction icon={quick.icon} tone={quick.tone} disabled={quick.disabled} label={quick.label} onClick={quick.onClick}/>:null}
+  {menu.length?<MenuDesplegable ariaLabel={`Acciones del equipo: ${item.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones del equipo: ${item.name}`} title={`Acciones del equipo: ${item.name}`}>⋮</span>} items={menuItemsFrom(menu)}/>:null}
  </span>;
 }
 
@@ -267,6 +280,7 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
  const draggable=useDraggable({id:item.id,disabled});
  const verifying=verifyingId===String(item.id);
  const movedAt=item.location_type==='checked_out'?'En préstamo: devolvelo para cambiar su ubicación':item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación';
+ const {quick,menu}=inventoryItemActions({item,canManage,verifying,onDetail,onVerify:onQuickVerify,onVerifyDetail:onDetail,onEdit:onDetail,onArchive:onDetail});
  return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-1.5 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab'}`}>
   <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 text-left md:min-h-0" title={`Abrir detalle: ${item.name}`} onClick={()=>onDetail(item)}>
    <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="pipeline"/>
@@ -280,8 +294,8 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
   <div className="mt-auto flex min-w-0 items-center justify-between gap-2 border-t border-ink-600 pt-1.5">
    <StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip>
    <span className={`flex shrink-0 items-center gap-1 ${ROW_ICON_TARGETS}`}>
-    {canManage&&!disabled?<IconAction icon="check" tone="ok" disabled={verifying} label={verifying?'Verificando…':`Marcar verificado: ${item.name}`} onClick={()=>onQuickVerify(item)}/>:null}
-    <MenuDesplegable ariaLabel={`Acciones del equipo: ${item.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-hidden="true">⋮</span>} items={inventoryItemActionList({item,canManage,verifying,onDetail,onVerify:onQuickVerify,onVerifyDetail:onDetail,onEdit:onDetail,onArchive:onDetail}).map(action=>({id:action.key,label:action.texto,icono:action.icon,disabled:action.disabled,peligro:action.peligro,onClick:action.onClick}))}/>
+    {canManage&&!disabled&&quick?<IconAction icon={quick.icon} tone={quick.tone} disabled={quick.disabled} label={quick.label} onClick={quick.onClick}/>:null}
+    {menu.length?<MenuDesplegable ariaLabel={`Acciones del equipo: ${item.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones del equipo: ${item.name}`} title={`Acciones del equipo: ${item.name}`}>⋮</span>} items={menuItemsFrom(menu)}/>:null}
     {!disabled?<span className="select-none text-mute" role="img" aria-label={`Mover ${item.name}`} title={`Mover ${item.name}`}>⋮⋮</span>:null}
    </span>
   </div>

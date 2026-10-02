@@ -8,8 +8,9 @@
  * fechas, códigos ni seriales. El diccionario de estados sigue siendo la fuente
  * única del dominio (`statuses`).
  */
-import {useEffect,useRef,useState} from 'react';
+import {useState} from 'react';
 import {useDraggable,useDroppable} from '@dnd-kit/core';
+import {MenuDesplegable} from 'owncoding-ui';
 import {StateChip,type ChipTone} from './ui-v2';
 import {ClientIdentity} from './client-identity';
 import {UrgencyBadge} from './urgency';
@@ -72,18 +73,9 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
   const draggable = useDraggable({ id: order.id,disabled:!canMove });
   const links = (order.drive_links || []).filter(link => link?.url);
   const hours = hoursLabel(order);
-  // La descripción de Trello se resume a dos líneas; "Ver detalle" aparece solo
-  // cuando el texto quedó realmente recortado (medido, no supuesto).
-  const description=useRef<HTMLParagraphElement|null>(null);
-  const [clamped,setClamped]=useState(false);
-  useEffect(()=>{
-    const node=description.current;if(!node)return;
-    const measure=()=>setClamped(node.scrollHeight-node.clientHeight>1);
-    measure();
-    const observer=new ResizeObserver(measure);
-    observer.observe(node);
-    return()=>observer.disconnect();
-  },[order.description]);
+  const [archiveOpen,setArchiveOpen]=useState(false);
+  // Tarjeta compacta (#141): título, cliente, vencimiento, responsable y avance;
+  // la descripción y las acciones secundarias viven en el detalle o en el menú ⋯.
   return (
     <article
       ref={draggable.setNodeRef}
@@ -95,7 +87,10 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
     >
       <div className="flex items-start justify-between gap-2">
         <button type="button" className="min-h-11 min-w-11 flex-1 text-left text-[13px] font-semibold leading-5 text-fore outline-none transition-colors hover:text-fono-light focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
-        {canMove?<span className="flex h-11 w-11 shrink-0 select-none items-center justify-center rounded-md text-mute md:h-7 md:w-7" role="img" aria-label={`Mover ${order.title}`} title={`Mover ${order.title}`}>⋮⋮</span>:null}
+        <span className="flex shrink-0 items-center">
+          {canMove?<span className="flex items-center" onPointerDown={event=>event.stopPropagation()}><MenuDesplegable ariaLabel={`Acciones de la pieza: ${order.title}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones de la pieza: ${order.title}`} title={`Acciones de la pieza: ${order.title}`}>⋮</span>} items={[{id:'edit',label:'Editar pieza',icono:'edit',onClick:()=>openOrder(order.id,true)},{id:'archive',label:'Mover a la papelera',icono:'trash',peligro:true,onClick:()=>setArchiveOpen(true)}]}/></span>:null}
+          {canMove?<span className="flex h-11 w-11 shrink-0 select-none items-center justify-center rounded-md text-mute md:h-7 md:w-7" role="img" aria-label={`Mover ${order.title}`} title={`Mover ${order.title}`}>⋮⋮</span>:null}
+        </span>
       </div>
       <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] leading-4 text-mute">
         <ClientIdentity compact name={order.client_name} logo={order.client_logo_url} color={order.client_color_key}/>
@@ -112,17 +107,10 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
         {hours ? <span className="whitespace-nowrap text-[11px] text-mute" title={`Horas: ${hours}`}>{hours}</span> : null}
         {order.checklist_total ? <span className="whitespace-nowrap text-[11px] text-mute" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`} title={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</span> : null}
       </div>
-      {order.description ? <div className="grid gap-1">
-        <p ref={description} className="line-clamp-2 text-[11.5px] leading-5 text-mute" title={order.description}>{order.description}</p>
-        {clamped?<button type="button" className="text-button min-h-11 min-w-11 justify-self-start rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id)} title={`Ver la descripción completa de ${order.title}`}>Ver detalle</button>:null}
-      </div> : null}
       <DueDate value={order.due_date} time={order.due_time} compact/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2">
-        {canMove?<button className="text-button min-h-11 min-w-11 rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id,true)}>Editar</button>:<button className="text-button min-h-11 min-w-11 rounded-md px-1 outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" onClick={()=>openOrder(order.id)}>Ver más</button>}
-        {canMove?<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role}/>:null}
-      </div>
+      {canMove?<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role} hideTrigger open={archiveOpen} onClose={()=>setArchiveOpen(false)}/>:null}
     </article>
   );
 }
