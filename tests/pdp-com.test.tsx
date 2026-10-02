@@ -79,15 +79,18 @@ test('pipeline: oposición al contacto visible, editable y sin correo en la tarj
  await flush({records:[
   {id:'10',name:'Con oposición',stage:'lead',amount:'1',currency:'PYG',probability:10,email:'no-contactar@example.invalid',do_not_contact:true},
   {id:'11',name:'Contacto vigente',stage:'lead',amount:'2',currency:'PYG',probability:20,email:'si@example.invalid',do_not_contact:false},
+  {id:'12',name:'Con notas largas',stage:'lead',amount:'3',currency:'PYG',probability:30,notes:'Descripción que ya no debe viajar a la tarjeta.'},
  ]});
  await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'}]});
  const copy=text(renderer.root);
  assert.match(copy,/No contactar/,'la tarjeta declara la oposición');
  assert.equal(copy.includes('no-contactar@example.invalid')||copy.includes('si@example.invalid'),false,'el tablero no expone correos (minimización)');
+ assert.equal(copy.includes('Descripción que ya no debe viajar a la tarjeta.'),false,'la descripción no alarga la tarjeta (#140)');
+ assert.ok(renderer.root.findAllByType('button').some(candidate=>String(candidate.props['aria-label']||'').startsWith('Ver oportunidad')),'la acción de la tarjeta es un icono con nombre accesible (#140)');
 
  // El diálogo refleja la oposición guardada y la envía en el PATCH parcial.
  const flagged=renderer.root.findAllByType('article').find(node=>text(node).includes('Con oposición'))!;
- act(()=>{flagged.findAllByType('button').find(node=>text(node).includes('Ver oportunidad'))!.props.onClick();});
+ act(()=>{flagged.findAllByType('button').find(node=>String(node.props['aria-label']||'').startsWith('Ver oportunidad'))!.props.onClick();});
  const dialog=()=>renderer.root.findAllByProps({role:'dialog'})[0];
  assert.ok(dialog(),'la oportunidad abre su editor');
  assert.ok(renderer.root.findByProps({'data-testid':'aviso-privacidad'}),'el editor declara la finalidad con el aviso compartido');

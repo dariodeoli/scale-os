@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {pipelineSummary,stageTotals} from '../app/pipeline-summary';
+import {boardColumnWindow} from '../app/pipeline-board-window';
 import {childSections,legacyDestination,sectionPath} from '../app/navigation';
 const result=pipelineSummary([{stage:'lead',amount:3000000,currency:'PYG',notes:'Origen: landing Scale OS. Autorizó contacto.'},{stage:'proposal',amount:1200,currency:'USD'},{stage:'won',amount:100,currency:'USD'},{stage:'lost',amount:200,currency:'USD'}]);
 assert.deepEqual(result,{open:2,won:1,web:1,amounts:{PYG:3000000,USD:1200}});
@@ -23,4 +24,15 @@ assert.deepEqual(stageTotals([{stage:'',amount:999}],stages).find(entry=>entry.s
 assert.deepEqual(childSections('Pipeline'),['Pipeline','Métricas'],'Métricas es el tab de Pipeline en la única fuente');
 assert.equal(sectionPath('Métricas'),'/pipeline/metricas','Métricas tiene URL propia (deep link sin redirect muerto)');
 assert.equal(legacyDestination('metricas'),'/pipeline/metricas','el slug legacy apunta al tab real');
-console.log('PASS: unified Pipeline, open/won/web counts, isolated currency totals and per-stage weighted/open totals');
+
+// Ventana visible del tablero (#140): cuántas columnas quedan fuera de vista y
+// a cada lado; lógica pura para que el indicador se pueda testear sin DOM.
+const columns=[{start:0,size:240},{start:252,size:240},{start:504,size:240},{start:756,size:240}];
+assert.deepEqual(boardColumnWindow(columns,0,500),{from:0,to:1,total:4,hiddenBefore:0,hiddenAfter:2,hiddenTotal:2},'con el tablero al inicio se ven las dos primeras');
+assert.deepEqual(boardColumnWindow(columns,500,240),{from:2,to:2,total:4,hiddenBefore:2,hiddenAfter:1,hiddenTotal:3},'una columna parcialmente asomada cuenta como visible');
+assert.deepEqual(boardColumnWindow(columns,1000,500),{from:3,to:3,total:4,hiddenBefore:3,hiddenAfter:0,hiddenTotal:3},'al final quedan las anteriores fuera');
+assert.deepEqual(boardColumnWindow([],0,500),{from:0,to:0,total:0,hiddenBefore:0,hiddenAfter:0,hiddenTotal:0},'sin etapas no hay ventana');
+assert.deepEqual(boardColumnWindow(columns,0,0),{from:0,to:0,total:4,hiddenBefore:0,hiddenAfter:0,hiddenTotal:0},'sin ancho medible el indicador no afirma nada');
+assert.deepEqual(boardColumnWindow(columns,Number.NaN,500),{from:0,to:0,total:4,hiddenBefore:0,hiddenAfter:0,hiddenTotal:0},'un scroll inválido no rompe el conteo');
+assert.deepEqual(boardColumnWindow(columns,-10,500),{from:0,to:1,total:4,hiddenBefore:0,hiddenAfter:2,hiddenTotal:2},'el scroll negativo se ancla al inicio');
+console.log('PASS: unified Pipeline, open/won/web counts, isolated currency totals, per-stage weighted/open totals and board window');

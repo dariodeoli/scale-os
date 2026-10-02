@@ -52,7 +52,8 @@ for(const [capability,kind] of [['work-orders.manage','work-orders'],['inventory
  assert(read('app/capabilities.ts').includes(`${quoted}:'${capability}'`),`archive ${kind} follows ${capability}`);
 }
 assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'the trash uses the shared capability map from capabilities.ts');
-assert.match(archive,/if\(!capability\|\|!roleCan\(role,capability\)\)return null;/, 'a missing capability never renders the remove control');
+assert.match(archive,/export function canRemoveRecord\(kind:string,role:string\)/,'the remove gate is shared between the row button and the ⋯ menu (#140)');
+assert.match(archive,/Boolean\(capability&&roleCan\(role,capability\)\)/, 'a missing capability never renders the remove control');
 
 // 3. Topes de lote: la selección informa y no ofrece más de lo que el API acepta.
 assert.deepEqual(limitSelection(['1','2','3'],2),{selection:['1','2'],capped:true});

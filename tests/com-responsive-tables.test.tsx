@@ -22,7 +22,12 @@ require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports
 const composerPath=require.resolve('../app/quote-composer');
 require.cache[composerPath]={id:composerPath,filename:composerPath,loaded:true,exports:{QuoteComposer:()=><output>composer</output>}} as NodeModule;
 const archivePath=require.resolve('../app/archive-controls');
-require.cache[archivePath]={id:archivePath,filename:archivePath,loaded:true,exports:{RemoveRecord:({id}:{id:string})=><button type="button" aria-label={`Mover a la papelera: ${id}`}>Papelera</button>}} as NodeModule;
+const removeRoles=['owner','admin','management','sales','finance','collaborator'];
+require.cache[archivePath]={id:archivePath,filename:archivePath,loaded:true,exports:{
+ RemoveRecord:({id}:{id:string})=><button type="button" aria-label={`Mover a la papelera: ${id}`}>Papelera</button>,
+ canRemoveRecord:(_kind:string,role:string)=>removeRoles.includes(role),
+ RemoveRecordDialog:({name,open}:{name:string;open:boolean})=>open?<div role="dialog" aria-label={`Mover a la papelera: ${name}`}>Confirmar papelera {name}</div>:null,
+}} as NodeModule;
 const dndPath=require.resolve('@dnd-kit/core');
 require.cache[dndPath]={id:dndPath,filename:dndPath,loaded:true,exports:{
  DndContext:({children}:{children:React.ReactNode})=><div>{children}</div>,
@@ -188,10 +193,10 @@ test('presupuestos vacío: el CTA canónico sólo aparece con permiso',async()=>
 });
 
 const client=(extra:Record<string,unknown>={})=>({id:'9',name:'Cliente sin plan',active:true,created_at:'2025-01-10',email:'',phone:'',tax_id:'',logo_url:null,color_key:'violet',has_recurring_price:false,...extra} as never);
-const mountClientes=async(role:string,list:unknown[],width:number,canManageClients=false,canSeeBilling=false,commercialSummary:unknown=null,commercialState:'idle'|'loading'|'ready'|'error'='idle')=>{
+const mountClientes=async(role:string,list:unknown[],width:number,canManageClients=false,canSeeBilling=false,commercialSummary:unknown=null,commercialState:'idle'|'loading'|'ready'|'error'='idle',onStatusFilter?:(status:string)=>void)=>{
  await act(async()=>{
   renderer=create(<ClientesSection
-   dataState="ready" user={user(role)} clientView="list" clientStatusFilter="" setClientStatusFilter={()=>{}}
+   dataState="ready" user={user(role)} clientView="list" clientStatusFilter="" setClientStatusFilter={value=>{if(typeof value==='string')onStatusFilter?.(value);}}
    clientSearch="" setClientSearch={()=>{}} archiveBusy="" bulkBusy={false} selectedClients={[]} setSelectedClients={()=>{}}
    canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={list as never} displayedClients={list as never} liveClients={list as never}
    archivedClients={[]} paymentStatuses={[]} clientHubStats={new Map()} commercialSummary={commercialSummary as never} commercialState={commercialState}
@@ -255,6 +260,33 @@ test('clientes: el KPI de contratos usa el dato real y el estado chico (#91)',as
  act(()=>renderer.unmount());
 });
 
+test('clientes: el estado «Sin contratos» es accionable y filtra a los que no tienen plan (#140)',async()=>{
+ let filter='';
+ await mountClientes('owner',[client({id:'9',has_recurring_price:false}),client({id:'10',name:'Con contrato',has_recurring_price:true})],1400,true,true,{expectedMonthlyBilling:[]},'ready',status=>{filter=status;});
+ const copy=text(renderer.root);
+ assert.match(copy,/Sin contratos/,'el estado sigue chico');
+ assert.doesNotMatch(copy,/Sin contratos activos/,'no vuelve el titular de tres líneas');
+ const action=buttonWith(renderer,'Ver el cliente sin plan');
+ assert.ok(action,'con un solo cliente sin plan el atajo lo nombra');
+ act(()=>action!.props.onClick());
+ assert.equal(filter,'sin_plan','el atajo filtra el directorio por contrato vigente');
+ act(()=>renderer.unmount());
+});
+
+test('clientes: las acciones por fila se consolidan en un menú ⋯ (#140)',async()=>{
+ await mountClientes('owner',[client({has_recurring_price:false})],1400,true);
+ // El trabajo pendiente de la fila (cargar plan) sigue como acción rápida visible.
+ const planCta=renderer.root.findAll(node=>String(node.props['aria-label']||'').startsWith('Cargar plan y pago'));
+ assert.equal(planCta.length,1,'el CTA de plan queda a la vista (icono rotulado)');
+ // Editar/archivar/papelera dejan de ser botones sueltos: viven en el menú.
+ assert.equal(buttonWith(renderer,'Archivar'),undefined,'archivar no ocupa un botón de fila');
+ const menus=renderer.root.findAllByType('button').filter(candidate=>candidate.props['aria-haspopup']==='menu');
+ assert.equal(menus.length,1,'un solo disparador ⋯ por fila');
+ // El ⋮ es decorativo; el nombre accesible lo aporta el texto oculto.
+ assert.match(text(menus[0]),/Acciones: Cliente sin plan/,'el disparador se anuncia con el registro');
+ act(()=>renderer.unmount());
+});
+
 test('clientes vacío: el CTA canónico del directorio sólo aparece con permiso',async()=>{
  let created=0;
  const mountEmpty=async(role:string,canManage:boolean,onCreate:()=>void)=>{
@@ -315,4 +347,33 @@ test('la ficha del cliente deja el CTA de plan donde hoy dice "Sin plan registra
  const productivity=read('app/productivity-ui.tsx');
  assert.match(productivity,/Sin plan registrado[\s\S]{0,220}?RecordEditor kind="clients"[\s\S]{0,160}?planCta="text" actions=\{\[\]\}/,'la ficha monta el CTA de plan junto al dato faltante');
  assert.match(productivity,/!summary\.terms&&roleCan\(role,'commercial-terms\.manage'\)/,'sólo los roles que gestionan términos ven la acción');
+});
+
+test('pipeline: el indicador de columnas ocultas y la tarjeta corta (#140)',()=>{
+ const pipeline=read('app/sections/pipeline.tsx');
+ assert.match(pipeline,/import \{boardColumnWindow,type BoardColumnWindow\} from '\.\.\/pipeline-board-window'/,'la ventana del tablero usa la lógica pura');
+ assert.match(pipeline,/hiddenTotal>0/,'el indicador sólo aparece cuando hay etapas fuera');
+ assert.match(pipeline,/fuera de vista/,'el chip dice cuántas etapas quedan fuera');
+ assert.match(pipeline,/Mostrando etapas \{boardWindow\.from\+1\}–\{boardWindow\.to\+1\} de \{boardWindow\.total\}/,'el indicador declara la posición real');
+ assert.match(pipeline,/aria-label="Ver etapa anterior"/,'hay acceso por teclado a la etapa anterior');
+ assert.match(pipeline,/aria-label="Ver etapa siguiente"/,'y a la siguiente');
+ // La tarjeta queda corta: la descripción sale y la acción pasa a icono.
+ const card=pipeline.split('function LeadCard')[1].split('function LeadColumn')[0];
+ assert.doesNotMatch(card,/notes/,'la descripción no alarga la tarjeta');
+ assert.match(card,/<IconAction icon="eye" label=\{`Ver oportunidad: \$\{str\(row,'name'\)\}`\}/,'la acción rápida es un icono con nombre accesible');
+});
+
+test('el menú ⋯ del registro reemplaza a los botones sueltos cuando se pide (#140)',async()=>{
+ const {RecordEditor}=require('../app/suite') as typeof import('../app/suite');
+ const renderEditor=(menu:boolean)=>act(async()=>{renderer=create(<RecordEditor kind="clients" recordId="1" name="ACME" role="owner" refresh={async()=>{}} planCta="text" menu={menu} extraMenuItems={menu?[{id:'archive',label:'Archivar',icono:'archive',onClick:()=>{}}]:[]}/>);});
+ await renderEditor(false);
+ assert.equal(renderer.root.findAll(node=>node.props['aria-haspopup']==='menu').length,0,'sin menú no hay disparador');
+ assert.equal(renderer.root.findAll(node=>node.props.title==='Editar').length,1,'sin menú queda el lápiz de siempre');
+ act(()=>renderer.unmount());
+ await renderEditor(true);
+ assert.equal(renderer.root.findAll(node=>node.props.title==='Editar').length,0,'editar deja de ser un botón suelto');
+ const menu=renderer.root.findAll(node=>node.props['aria-haspopup']==='menu');
+ assert.equal(menu.length,1,'el registro expone un solo menú');
+ assert.match(text(menu[0]),/Acciones: ACME/,'el disparador se anuncia con el registro');
+ act(()=>renderer.unmount());
 });
