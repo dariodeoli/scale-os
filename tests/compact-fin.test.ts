@@ -11,11 +11,16 @@ const comisiones=sectionSource('comisiones.tsx');
 const pre=read('app/financial-forecast.tsx');
 const informes=read('app/reports-workspace.tsx');
 
-// ── Finanzas: KPIs y «Salarios» en franja; cuentas sin bloques altos.
-const salariosIndex=finanzas.indexOf('<SalariosPanel navigate={navigate}/>');
-const cuentasIndex=finanzas.indexOf('finance-accounts-title');
-assert(salariosIndex>0&&salariosIndex<cuentasIndex,'Salarios va antes de Cuentas: la franja queda junto a los KPIs');
-assert.match(finanzas,/rows\.length \? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">/,'las monedas de Salarios van en una sola fila');
+// ── Finanzas: primer pliegue en tres bloques (#142) e historial en tabs.
+const balancesIndex=finanzas.indexOf('id="finance-accounts-title"');
+const urgentIndex=finanzas.indexOf('id="finance-urgent-title"');
+const projectionIndex=finanzas.indexOf('<SalariosPanel navigate={navigate}/>');
+assert(balancesIndex>0&&urgentIndex>0&&projectionIndex>0,'el primer pliegue separa balances, cobros urgentes y proyección');
+assert(balancesIndex<urgentIndex&&urgentIndex<projectionIndex,'los tres bloques del pliegue van en orden');
+assert.match(finanzas,/xl:grid-cols-3/,'los tres bloques comparten la franja del pliegue');
+assert.equal((finanzas.match(/grid content-start gap-3/g)||[]).length,3,'los tres bloques del pliegue fijan su contenido arriba; no se reparten cuando otra columna es más alta');
+assert.match(finanzas,/<Subtabs value=\{historyTab\} onChange=\{setHistoryTab\} items=\{\[\['transferencias'/,'el historial vive en tabs (transferencias, cobros, movimientos)');
+assert.match(finanzas,/hidden=\{historyTab !== 'movimientos'\}><ReconciliationWorkspace/,'los movimientos de conciliación viven en su tab');
 assert.doesNotMatch(finanzas,/min-h-\[200px\]/,'las cuentas ya no reservan 200 px de alto');
 assert.match(finanzas,/grid-cols-\[auto_minmax\(0,1fr\)\] items-baseline/,'las filas de la cuenta acotan la columna del valor');
 assert.match(finanzas,/min-w-0 flex-1 truncate text-right text-fore/,'los datos secundarios de la cuenta recortan con tooltip');
@@ -40,4 +45,4 @@ assert.match(comisiones,/<Subtabs[\s\S]{0,700}value=\{section\}/,'las secciones 
 assert.match(comisiones,/title="Los porcentajes se calculan al registrar la comisión/,'la ayuda del panel sigue disponible como tooltip');
 assert.doesNotMatch(comisiones,/className="text-\[17px\] font-semibold tracking-tight text-fore">Comisiones y referidos/,'el panel no repite el título de la pantalla');
 
-console.log('PASS compactación FIN: Salarios en franja, headers en una fila, informes sin bloques altos y paneles densos (#95)');
+console.log('PASS compactación FIN: pliegue en tres bloques con historial en tabs, headers en una fila, informes sin bloques altos y paneles densos (#95, #142)');
