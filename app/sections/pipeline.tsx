@@ -265,11 +265,16 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
           <Button type="button" className="max-md:min-h-11" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
         </div>:null}
       </div>
-      <KpiStrip aria-label="Resumen del pipeline">
+      {/* KPIs compactos (#145, coordinación #138): en móvil los tres conteos
+          van en una fila y el valor abierto ocupa el ancho completo para que
+          el monto nunca se corte. Se reemplaza por el patrón de #138 cuando
+          DSN lo publique. */}
+      <KpiStrip aria-label="Resumen del pipeline" className="max-sm:grid-cols-3">
         <Kpi label="Oportunidades abiertas" valor={overview.open} destacado hint="Sin ganar ni perder"/>
         <Kpi label="Ganadas" valor={overview.won} hint="Conversiones cerradas"/>
         <Kpi label="Consultas web" valor={overview.web} hint="Origen: landing Scale OS"/>
         <Kpi
+          className="max-sm:col-span-3"
           label="Valor abierto"
           valor={openAmounts.length?<MoneyText valor={openAmounts[0][1]} currency={openAmounts[0][0]}/>:'Sin oportunidades abiertas'}
           hint={openAmounts.length>1?<>{openAmounts.slice(1).map(([currency,value])=><span key={currency}><MoneyText valor={value} currency={currency}/> · </span>)}Sin convertir monedas</>:'Sin convertir monedas'}
