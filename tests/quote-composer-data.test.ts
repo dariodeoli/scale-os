@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-const {SECTION_TYPE_LABELS,TAX_RATE_CHOICES,initialQuoteSections,normalizeQuoteItems,quoteRequest,quoteSchema,quoteTotals}=require('../app/quote-composer-data') as typeof import('../app/quote-composer-data');
+const {SECTION_TYPE_LABELS,TAX_RATE_CHOICES,initialQuoteSections,normalizeQuoteItems,quoteMissingText,quoteReadiness,quoteRequest,quoteSchema,quoteTotals}=require('../app/quote-composer-data') as typeof import('../app/quote-composer-data');
 
 const values=(overrides:Record<string,unknown>={})=>({title:'Campaña anual',clientId:'7',currency:'PYG' as const,tax_rate:'.1',notes:'',valid_until:'2026-10-31',sections:initialQuoteSections(),items:[{description:'Video institucional',quantity:'2',unitPrice:'1000'}],...overrides});
 const parse=(overrides:Record<string,unknown>={})=>quoteSchema.safeParse(values(overrides));
@@ -37,6 +37,20 @@ test('requests per mode match the API contract',()=>{
  assert.deepEqual(quoteRequest('plan','7',v),{path:'/api/agency/plans/7',method:'PATCH',body:{name:'Campaña anual',currency:'PYG',notes:'',items:v.items}});
  assert.deepEqual(quoteRequest('create',null,v),{path:'/api/agency/budgets',method:'POST',body:{...v,validUntil:'2026-10-31'}});
  assert.deepEqual(quoteRequest('budget','9',v),{path:'/api/agency/budgets/9',method:'PATCH',body:v});
+});
+
+test('readiness blocks the save until title, client and items are complete (#150)',()=>{
+ const complete=values();
+ assert.deepEqual(quoteReadiness(complete,'create'),{ready:true,missing:[]});
+ assert.deepEqual(quoteReadiness({...complete,title:' '},'create'),{ready:false,missing:['title']});
+ assert.deepEqual(quoteReadiness({...complete,clientId:''},'create'),{ready:false,missing:['client']});
+ assert.deepEqual(quoteReadiness({...complete,title:'',clientId:''},'create'),{ready:false,missing:['title','client']});
+ assert.deepEqual(quoteReadiness({...complete,items:[{description:'',quantity:'1',unitPrice:'0'}]},'create'),{ready:false,missing:['items']});
+ assert.deepEqual(quoteReadiness({...complete,items:[{description:'Video',quantity:'0',unitPrice:'1'}]},'create'),{ready:false,missing:['items']});
+ assert.deepEqual(quoteReadiness({...complete,items:[{description:'Video',quantity:'1',unitPrice:''}]},'create'),{ready:false,missing:['items']});
+ assert.deepEqual(quoteReadiness({...complete,clientId:''},'budget'),{ready:true,missing:[]},'editar un presupuesto no exige cliente');
+ assert.match(quoteMissingText(['title','client','items']),/Completá el título, el cliente y los ítems/,'una sola frase para el pie');
+ assert.equal(quoteMissingText([]),'');
 });
 
 test('section labels and tax choices are the canonical ones',()=>{
