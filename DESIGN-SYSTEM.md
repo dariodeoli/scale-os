@@ -229,8 +229,76 @@ y esta sección se actualiza.
 | `EmptyCta` | CTA canónico de un estado vacío: botón primario con label contextual. Es la llamada a la acción que recibe `EmptyBlock.action`. |
 | `ErrorBlock` | `ErrorState` de la librería con reintento, con `role="alert"`. |
 | `LoadingBlock` | `Skeleton` con `role="status"` y `aria-busy`; reemplaza los “Cargando…” sueltos de las páginas nuevas. |
-| `SectionLoading` | Fallback de una sección lazy (`next/dynamic`): el esqueleto de `LoadingBlock` sobre el panel del sistema, para que la transición muestre progreso en vez de pantalla en blanco mientras baja el chunk. |
+| `SectionLoading` | Fallback de una sección lazy (`next/dynamic`): el esqueleto del sistema sobre el panel. `variant` (`cards`/`table`/`dashboard`) dibuja la estructura de lo que llega. |
 | `Kpi`/`KpiStrip`, `StateChip` | Ya descriptos arriba: un solo KPI y un solo chip. |
+| `ActionMenu` + `RecordMenuItem` | Menú ⋯ único de filas y tarjetas: disparador rotulado (44/32 px), confirmación por ítem y teclado (flechas/Home/End; Escape vuelve al disparador). Envuelve `MenuDesplegable`; no hay variante paralela. |
+| `CompactCard` + `CompactQuickAction` | Tarjeta compacta estándar: título, contexto, vencimiento, responsable y avance; una acción rápida visible y el resto en el ⋯. La descripción vive en el detalle. |
+| `CardSkeleton` / `CardGridSkeleton` / `TableSkeleton` / `DashboardSkeleton` | Esqueletos con la forma real del bloque (tarjeta, tabla, dashboard) para el arranque y las lecturas; nunca dibujan cifras. |
+| `EmptyCompact` | Vacío de una línea, accionable y descartable (`onDismiss`): para filtros, listas cortas y avisos. El bloque centrado sigue siendo `EmptyBlock`. |
+
+### Tarjetas compactas + menú ⋯ (#138)
+
+Contrato que adoptan COM/OPS/FIN/PLT al tocar una tarjeta o fila:
+
+1. **Cinco datos a la vista**: título, contexto (cliente/proyecto), vencimiento,
+   responsable y avance. La descripción y las notas **no** van en la tarjeta:
+   viven en el detalle (el título lo abre) o en el diálogo de edición.
+2. **Una acción rápida visible** y el resto en el menú ⋯ (`ActionMenu`):
+   editar/imprimir/archivar/eliminar pasan al menú; el CTA del trabajo pendiente
+   real (cargar plan, verificar, aprobar) puede quedar a la vista. El menú cubre
+   44 px en móvil y 32 px en escritorio, y se anuncia con el registro
+   (“Acciones de la pieza: Reel”), no con el glifo.
+3. **Confirmación donde corresponde**: el ítem declara `confirm` (título,
+   descripción, label, variante) y `ActionMenu` la pide antes de ejecutar; las
+   acciones destructivas usan variante `danger`. La reautenticación sigue siendo
+   del formulario que la exige (`RemoveRecordDialog`).
+4. **Teclado**: flechas y Home/End mueven el foco entre ítems; Escape cierra y
+   devuelve el foco al disparador. El contrato puro es `menuFocusIndex`.
+5. **Adopción**: `suite.tsx` (`RecordEditor`) y los pendientes internos de
+   Resumen ya usan el patrón; Producción/Inventario migran su menú a medida que
+   se toquen.
+
+### Esqueletos con estructura real y precarga (#138)
+
+- El loader de un bloque dibuja **la forma de lo que va a llegar**:
+  `KpiStripSkeleton` (tira de KPIs), `CardGridSkeleton`/`CardSkeleton`
+  (tarjetas), `TableSkeleton` (lista densa con la plantilla y los altos de
+  `ListGrid`/`ListRow`) y `DashboardSkeleton` (KPIs + tarjetas para el arranque
+  del Resumen). `SectionLoading` acepta `variant` para los chunks lazy.
+- Todo esqueleto anuncia `role="status"` + `aria-busy` + `aria-label` y no
+  escribe cifras ni estados inventados; cuando el dato no llega, el texto del
+  widget no cambia (`—`/“Sin movimientos” siguen siendo del dato real).
+- La precarga de métricas clave (`app/metrics-prefetch.ts`, #139) arranca al
+  conocer la identidad: Resumen calienta `/dashboard` y `/control-center`;
+  Finanzas, `/forecast?month=<mes>`; Informes, `/reports?month=<mes>&months=12&previous=1`.
+  El widget aparece con dato o con esqueleto, nunca tarde y vacío. Las lecturas
+  se gatean por la capacidad del rol y el API las revalida.
+
+### Estados vacíos compactos (#138)
+
+- El vacío de un filtro, una lista corta o un bloque secundario es **una línea
+  baja** (`EmptyCompact`, 44–52 px): mensaje que dice qué falta + acción que
+  resuelve el trabajo pendiente + descarte (×) cuando el aviso se puede ocultar
+  (`onDismiss`; la persistencia la decide la pantalla).
+- El bloque centrado (`EmptyBlock`) queda para el vacío principal de una
+  pantalla o panel completo, donde sí conviene el CTA grande.
+- Un vacío nunca es mudo si el rol puede resolverlo y nunca ofrece una acción
+  que el rol no puede ejecutar.
+
+### KPIs compactos y tablas en móvil (#138)
+
+- **KPIs**: `KpiStrip compact` apila los KPIs del encabezado como filas en
+  mobile (rótulo y valor en la primera línea, hint en una segunda muted); en
+  escritorio conserva la tira de 110–140 px. Es la salida para Pipeline, Equipo
+  y Preferencias, que hoy apilan tres o más tarjetas verticales.
+- **Tablas**: cuando la plantilla densa no entra en el ancho real, la vista por
+  defecto es la tarjeta o la fila priorizada (`useDenseTableFit` +
+  `denseTableMinWidth`, §Tablas densas responsive). Ninguna columna se corta ni
+  se colapsa: o entra completa en scroll silencioso, o cambia de vista.
+- **Mobile**: la tarjeta compacta mantiene el orden título → contexto →
+  vencimiento → responsable → avance y las acciones en una sola línea (hasta 2
+  filas ordenadas al extremo); nunca se envuelven los botones de acción.
+
 
 ### Tablas densas responsive — estrategia común (ronda 14)
 
