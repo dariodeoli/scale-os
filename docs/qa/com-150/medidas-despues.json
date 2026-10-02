@@ -1,0 +1,358 @@
+[
+ {
+  "screen": "presupuesto-detalle",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "composer": false,
+  "saveDisabled": null,
+  "saveLabel": null,
+  "details": [],
+  "terms": false,
+  "text": "P-2026-0022 Descargar PDF Editar presupuesto Habilitar enlace público Borrador Alma Cocina Vigencia: 30-nov Producción audiovisual 2.00 × Gs. 1.250.000 Gs. 2.500.000 Fotografía de producto 1.00 × Gs. 750.000 Gs. 750.000 Subtotal · IVA excl. Gs. 3.250.000 IVA ("
+ },
+ {
+  "screen": "presupuesto-enlace",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "composer": false,
+  "saveDisabled": null,
+  "saveLabel": null,
+  "details": [],
+  "terms": true,
+  "text": "P-2026-0022 Descargar PDF Editar presupuesto Habilitar enlace público Alcance. Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta. Vencimiento. La vigencia cargada llega hasta el 30-nov; de"
+ },
+ {
+  "screen": "presupuesto-vacio",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "composer": true,
+  "saveDisabled": true,
+  "saveLabel": "Guardar",
+  "details": [
+   {
+    "summary": "Opciones del documento IVA, vigencia y secciones",
+    "open": false
+   },
+   {
+    "summary": "Vista previa",
+    "open": true
+   }
+  ],
+  "terms": false,
+  "text": "Nuevo presupuesto TÍTULO DEL PRESUPUESTOOBLIGATORIO CLIENTEOBLIGATORIO Elegí un cliente Alma Cocina Aurora Café Bosque Hogar Brisa Viajes Cumbre Seguros Faro Inmuebles Luna Moda Marea Cosmética Menta Salud Nova Energía Nube Software Órbita Fitness Pixel Academ"
+ },
+ {
+  "screen": "oportunidad-alta",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "nameField": true,
+  "fieldsIndex": 18,
+  "privacyLineIndex": 467,
+  "legalDetailIndex": -1,
+  "details": [
+   {
+    "summary": "Finalidad y tus derechos",
+    "open": false
+   }
+  ],
+  "first160": "Nueva oportunidad Empresa o prospecto Correo · Opcional Teléfono · Opcional 🇵🇾 +595 🇧🇷 +55 🇦🇷 +54 🇺🇸 +1 🇪🇸 +34 Elegí el país y escribí solo dígitos, s"
+ },
+ {
+  "screen": "oportunidad-privacidad",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "nameField": true,
+  "fieldsIndex": 18,
+  "privacyLineIndex": 467,
+  "legalDetailIndex": 583,
+  "details": [
+   {
+    "summary": "Finalidad y tus derechos",
+    "open": true
+   }
+  ],
+  "first160": "Nueva oportunidad Empresa o prospecto Correo · Opcional Teléfono · Opcional 🇵🇾 +595 🇧🇷 +55 🇦🇷 +54 🇺🇸 +1 🇪🇸 +34 Elegí el país y escribí solo dígitos, s"
+ },
+ {
+  "screen": "presupuesto-detalle",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "composer": false,
+  "saveDisabled": null,
+  "saveLabel": null,
+  "details": [],
+  "terms": false,
+  "text": "P-2026-0022 Descargar PDF Editar presupuesto Habilitar enlace público Borrador Alma Cocina Vigencia: 30-nov Producción audiovisual 2.00 × Gs. 1.250.000 Gs. 2.500.000 Fotografía de producto 1.00 × Gs. 750.000 Gs. 750.000 Subtotal · IVA excl. Gs. 3.250.000 IVA ("
+ },
+ {
+  "screen": "presupuesto-enlace",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "composer": false,
+  "saveDisabled": null,
+  "saveLabel": null,
+  "details": [],
+  "terms": true,
+  "text": "P-2026-0022 Descargar PDF Editar presupuesto Habilitar enlace público Alcance. Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta. Vencimiento. La vigencia cargada llega hasta el 30-nov; de"
+ },
+ {
+  "screen": "presupuesto-vacio",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "composer": true,
+  "saveDisabled": true,
+  "saveLabel": "Guardar",
+  "details": [
+   {
+    "summary": "Opciones del documento IVA, vigencia y secciones",
+    "open": false
+   },
+   {
+    "summary": "Vista previa",
+    "open": true
+   }
+  ],
+  "terms": false,
+  "text": "Nuevo presupuesto TÍTULO DEL PRESUPUESTOOBLIGATORIO CLIENTEOBLIGATORIO Elegí un cliente Alma Cocina Aurora Café Bosque Hogar Brisa Viajes Cumbre Seguros Faro Inmuebles Luna Moda Marea Cosmética Menta Salud Nova Energía Nube Software Órbita Fitness Pixel Academ"
+ },
+ {
+  "screen": "oportunidad-alta",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "nameField": true,
+  "fieldsIndex": 18,
+  "privacyLineIndex": 467,
+  "legalDetailIndex": -1,
+  "details": [
+   {
+    "summary": "Finalidad y tus derechos",
+    "open": false
+   }
+  ],
+  "first160": "Nueva oportunidad Empresa o prospecto Correo · Opcional Teléfono · Opcional 🇵🇾 +595 🇧🇷 +55 🇦🇷 +54 🇺🇸 +1 🇪🇸 +34 Elegí el país y escribí solo dígitos, s"
+ },
+ {
+  "screen": "oportunidad-privacidad",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "dialog": true,
+  "nameField": true,
+  "fieldsIndex": 18,
+  "privacyLineIndex": 467,
+  "legalDetailIndex": 583,
+  "details": [
+   {
+    "summary": "Finalidad y tus derechos",
+    "open": true
+   }
+  ],
+  "first160": "Nueva oportunidad Empresa o prospecto Correo · Opcional Teléfono · Opcional 🇵🇾 +595 🇧🇷 +55 🇦🇷 +54 🇺🇸 +1 🇪🇸 +34 Elegí el país y escribí solo dígitos, s"
+ },
+ {
+  "screen": "presupuesto-detalle",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "composer": false,
+  "saveDisabled": null,
+  "saveLabel": null,
+  "details": [],
+  "terms": false,
+  "text": "P-2026-0023 Descargar PDF Editar presupuesto Habilitar enlace público Borrador Alma Cocina Vigencia: 30-nov Producción audiovisual 2.00 × Gs. 1.250.000 Gs. 2.500.000 Fotografía de producto 1.00 × Gs. 750.000 Gs. 750.000 Subtotal · IVA excl. Gs. 3.250.000 IVA ("
+ },
+ {
+  "screen": "presupuesto-enlace",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "composer": false,
+  "saveDisabled": null,
+  "saveLabel": null,
+  "details": [],
+  "terms": true,
+  "text": "P-2026-0023 Descargar PDF Editar presupuesto Habilitar enlace público Alcance. Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta. Vencimiento. La vigencia cargada llega hasta el 30-nov; de"
+ },
+ {
+  "screen": "presupuesto-vacio",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "composer": true,
+  "saveDisabled": true,
+  "saveLabel": "Guardar",
+  "details": [
+   {
+    "summary": "Opciones del documento IVA, vigencia y secciones",
+    "open": false
+   },
+   {
+    "summary": "Vista previa",
+    "open": true
+   }
+  ],
+  "terms": false,
+  "text": "Nuevo presupuesto TÍTULO DEL PRESUPUESTOOBLIGATORIO CLIENTEOBLIGATORIO Elegí un cliente Alma Cocina Aurora Café Bosque Hogar Brisa Viajes Cumbre Seguros Faro Inmuebles Luna Moda Marea Cosmética Menta Salud Nova Energía Nube Software Órbita Fitness Pixel Academ"
+ },
+ {
+  "screen": "oportunidad-alta",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "nameField": true,
+  "fieldsIndex": 18,
+  "privacyLineIndex": 467,
+  "legalDetailIndex": -1,
+  "details": [
+   {
+    "summary": "Finalidad y tus derechos",
+    "open": false
+   }
+  ],
+  "first160": "Nueva oportunidad Empresa o prospecto Correo · Opcional Teléfono · Opcional 🇵🇾 +595 🇧🇷 +55 🇦🇷 +54 🇺🇸 +1 🇪🇸 +34 Elegí el país y escribí solo dígitos, s"
+ },
+ {
+  "screen": "oportunidad-privacidad",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "nameField": true,
+  "fieldsIndex": 18,
+  "privacyLineIndex": 467,
+  "legalDetailIndex": 583,
+  "details": [
+   {
+    "summary": "Finalidad y tus derechos",
+    "open": true
+   }
+  ],
+  "first160": "Nueva oportunidad Empresa o prospecto Correo · Opcional Teléfono · Opcional 🇵🇾 +595 🇧🇷 +55 🇦🇷 +54 🇺🇸 +1 🇪🇸 +34 Elegí el país y escribí solo dígitos, s"
+ },
+ {
+  "screen": "presupuesto-detalle",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "composer": false,
+  "saveDisabled": null,
+  "saveLabel": null,
+  "details": [],
+  "terms": false,
+  "text": "P-2026-0023 Descargar PDF Editar presupuesto Habilitar enlace público Borrador Alma Cocina Vigencia: 30-nov Producción audiovisual 2.00 × Gs. 1.250.000 Gs. 2.500.000 Fotografía de producto 1.00 × Gs. 750.000 Gs. 750.000 Subtotal · IVA excl. Gs. 3.250.000 IVA ("
+ },
+ {
+  "screen": "presupuesto-enlace",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "composer": false,
+  "saveDisabled": null,
+  "saveLabel": null,
+  "details": [],
+  "terms": true,
+  "text": "P-2026-0023 Descargar PDF Editar presupuesto Habilitar enlace público Alcance. Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta. Vencimiento. La vigencia cargada llega hasta el 30-nov; de"
+ },
+ {
+  "screen": "presupuesto-vacio",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "composer": true,
+  "saveDisabled": true,
+  "saveLabel": "Guardar",
+  "details": [
+   {
+    "summary": "Opciones del documento IVA, vigencia y secciones",
+    "open": false
+   },
+   {
+    "summary": "Vista previa",
+    "open": true
+   }
+  ],
+  "terms": false,
+  "text": "Nuevo presupuesto TÍTULO DEL PRESUPUESTOOBLIGATORIO CLIENTEOBLIGATORIO Elegí un cliente Alma Cocina Aurora Café Bosque Hogar Brisa Viajes Cumbre Seguros Faro Inmuebles Luna Moda Marea Cosmética Menta Salud Nova Energía Nube Software Órbita Fitness Pixel Academ"
+ },
+ {
+  "screen": "oportunidad-alta",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "nameField": true,
+  "fieldsIndex": 18,
+  "privacyLineIndex": 467,
+  "legalDetailIndex": -1,
+  "details": [
+   {
+    "summary": "Finalidad y tus derechos",
+    "open": false
+   }
+  ],
+  "first160": "Nueva oportunidad Empresa o prospecto Correo · Opcional Teléfono · Opcional 🇵🇾 +595 🇧🇷 +55 🇦🇷 +54 🇺🇸 +1 🇪🇸 +34 Elegí el país y escribí solo dígitos, s"
+ },
+ {
+  "screen": "oportunidad-privacidad",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "dialog": true,
+  "nameField": true,
+  "fieldsIndex": 18,
+  "privacyLineIndex": 467,
+  "legalDetailIndex": 583,
+  "details": [
+   {
+    "summary": "Finalidad y tus derechos",
+    "open": true
+   }
+  ],
+  "first160": "Nueva oportunidad Empresa o prospecto Correo · Opcional Teléfono · Opcional 🇵🇾 +595 🇧🇷 +55 🇦🇷 +54 🇺🇸 +1 🇪🇸 +34 Elegí el país y escribí solo dígitos, s"
+ }
+]
