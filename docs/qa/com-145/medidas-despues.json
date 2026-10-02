@@ -1,0 +1,110 @@
+[
+ {
+  "screen": "clientes",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "directory": "Aurora Caféhola@auroracafe.example+595 000 421 110 · RUC 80100000-1 · desde abr. 2026ActivoAl díaGs. 1.500.0001 proyectos · 18 piezasPróxima entrega 17-sept⋮Acciones: Aurora Café",
+  "ficha": true,
+  "sinceCard": "Cliente desde01 abr 26",
+  "relationshipCard": "Inicio de relación10 feb 26Fecha declarada por el equipo",
+  "rawAmounts": []
+ },
+ {
+  "screen": "pipeline",
+  "phase": "despues",
+  "theme": "light",
+  "width": 1440,
+  "height": 110,
+  "kpis": true,
+  "grid": "287px 287px 287px 287px",
+  "cards": [
+   110,
+   110,
+   110,
+   110
+  ]
+ },
+ {
+  "screen": "clientes",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "directory": "Aurora Caféhola@auroracafe.example+595 000 421 110 · RUC 80100000-1 · desde abr. 2026ActivoAl díaGs. 1.500.0001 proyectos · 18 piezasPróxima entrega 17-sept⋮Acciones: Aurora Café",
+  "ficha": true,
+  "sinceCard": "Cliente desde01 abr 26",
+  "relationshipCard": "Inicio de relación10 feb 26Fecha declarada por el equipo",
+  "rawAmounts": []
+ },
+ {
+  "screen": "pipeline",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 1440,
+  "height": 110,
+  "kpis": true,
+  "grid": "287px 287px 287px 287px",
+  "cards": [
+   110,
+   110,
+   110,
+   110
+  ]
+ },
+ {
+  "screen": "clientes",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "directory": "Aurora CaféActivoCorreohola@auroracafe.exampleTeléfono+595 000 421 110RUC80100000-1Cliente desdeabr. 2026Cartera1 proyectos · 18 piezas · próxima entrega 17-septAl díaGs. 1.500.000WhatsApp⋮Acciones: Aurora Café",
+  "ficha": true,
+  "sinceCard": "Cliente desde01 abr 26",
+  "relationshipCard": "Inicio de relación10 feb 26Fecha declarada por el equipo",
+  "rawAmounts": []
+ },
+ {
+  "screen": "pipeline",
+  "phase": "despues",
+  "theme": "light",
+  "width": 390,
+  "height": 248,
+  "kpis": true,
+  "grid": "111.328px 111.328px 111.344px",
+  "cards": [
+   126,
+   126,
+   126,
+   110
+  ]
+ },
+ {
+  "screen": "clientes",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "directory": "Aurora CaféActivoCorreohola@auroracafe.exampleTeléfono+595 000 421 110RUC80100000-1Cliente desdeabr. 2026Cartera1 proyectos · 18 piezas · próxima entrega 17-septAl díaGs. 1.500.000WhatsApp⋮Acciones: Aurora Café",
+  "ficha": true,
+  "sinceCard": "Cliente desde01 abr 26",
+  "relationshipCard": "Inicio de relación10 feb 26Fecha declarada por el equipo",
+  "rawAmounts": []
+ },
+ {
+  "screen": "pipeline",
+  "phase": "despues",
+  "theme": "dark",
+  "width": 390,
+  "height": 248,
+  "kpis": true,
+  "grid": "111.328px 111.328px 111.344px",
+  "cards": [
+   126,
+   126,
+   126,
+   110
+  ]
+ }
+]
