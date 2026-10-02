@@ -135,7 +135,7 @@ const LIST_HEAD = 'grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] 
 const LIST_ROW = 'grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700/40';
 /* Fila finita de la previsión: mismo contrato que app/financial-forecast.tsx. */
 const FORECAST_ROW = 'grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:py-2';
-const PERSON_COLS = 'grid-cols-[minmax(9.5rem,1fr)_7rem_7rem_7rem]';
+const PERSON_COLS = 'grid-cols-[minmax(8.5rem,1fr)_6.5rem_minmax(9rem,1.2fr)_6.5rem]';
 const CONTRACT_COLS = 'grid-cols-[minmax(11rem,1fr)_7rem_7rem_6rem]';
 const EXPENSE_COLS = 'grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS = 'grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';

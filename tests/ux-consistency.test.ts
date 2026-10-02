@@ -151,7 +151,7 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   assert.match(forecast,/forecast-person-who/,'avatar and name share the first column');
   assert.doesNotMatch(forecast,/forecast-person-override is-empty/,'el ajuste faltante ya no reserva columna: viaja inline en el cierre (#101)');
   assert.match(forecast,/Ajuste del mes: \$\{formatSignedMoney\(member.override_amount/,'el ajuste del mes se muestra inline con su tooltip');
-  assert.match(forecast,/const PERSON_COLS='grid-cols-\[minmax\(9\.5rem,1fr\)_7rem_7rem_7rem\]'/,'the payroll list declares one shared compact template');
+  assert.match(forecast,/const PERSON_COLS='grid-cols-\[minmax\(8\.5rem,1fr\)_6\.5rem_minmax\(9rem,1\.2fr\)_6\.5rem\]'/,'the payroll list declares one shared compact template con lugar para el ajuste inline');
   assert.match(forecast,/cn\(LIST_ROW,PERSON_COLS,'forecast-person-row'\)/,'payroll rows share the header template');
 });
 

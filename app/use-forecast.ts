@@ -96,15 +96,18 @@ export function useRealExpenses(month: string, data: ForecastData | null) {
 /**
  * Listado individual de gastos planificados del mes (`GET /api/agency/planned-expenses`).
  * Es un bloque aparte de la previsión: si falla, la pantalla sigue con los
- * agregados del forecast y el bloque muestra su propio error.
+ * agregados del forecast y el bloque muestra su propio error (con reintento).
+ * El payload queda atado a su mes: la pantalla ignora uno viejo mientras llega
+ * el del mes visible (#144).
  */
 export function usePlannedExpenses(month: string, data: ForecastData | null) {
   const [payload, setPayload] = useState<PlannedExpensesPayload | null>(null);
   const [error, setError] = useState('');
+  const [refresh, setRefresh] = useState(0);
   useEffect(() => {
+    setError('');
     if (!data || data.month !== month) return;
     let active = true;
-    setError('');
     void dataFetch(`/core-api/api/agency/planned-expenses?month=${encodeURIComponent(month)}`, {credentials: 'include'})
       .then(async response => {
         const result: unknown = await readJson(response);
@@ -115,6 +118,7 @@ export function usePlannedExpenses(month: string, data: ForecastData | null) {
       })
       .catch(cause => {if (active) setError(cause instanceof Error ? cause.message : 'No se pudieron cargar los gastos planificados');});
     return () => {active = false;};
-  }, [data, month]);
-  return {payload, error};
+  }, [data, month, refresh]);
+  const reload = useCallback(() => setRefresh(value => value + 1), []);
+  return {payload, error, reload};
 }

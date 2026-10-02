@@ -55,7 +55,7 @@ import {CurrencyField,LoadingBlock,PageHeader,StateChip,denseTableMinWidth,useDe
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
 // Compactas a propósito (#101): entran en media pantalla a 1440 para las
 // secciones pareadas; el ajuste del mes viaja inline en el cierre.
-const PERSON_COLS='grid-cols-[minmax(9.5rem,1fr)_7rem_7rem_7rem]';
+const PERSON_COLS='grid-cols-[minmax(8.5rem,1fr)_6.5rem_minmax(9rem,1.2fr)_6.5rem]';
 const CONTRACT_COLS='grid-cols-[minmax(11rem,1fr)_7rem_7rem_6rem]';
 const EXPENSE_COLS='grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
@@ -78,7 +78,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
  const [month,setMonth]=useState(()=>currentForecastMonth()),[horizon,setHorizon]=useState<Horizon>('1');
  const {data,error,reload,version,setError:setForecastError}=useForecast(month,horizon);
  const {accounts,expenses:realExpenses,error:realError,setError:setRealError}=useRealExpenses(month,data);
- const {payload:plannedExpenses,error:plannedError}=usePlannedExpenses(month,data);
+ const {payload:plannedExpenses,error:plannedError,reload:reloadPlanned}=usePlannedExpenses(month,data);
  const [expense,setExpense]=useState({cadence:'monthly' as 'monthly'|'recurring',category:'Operación',kind:'variable' as 'fixed'|'variable',amount:'',currency:'PYG' as MoneyCurrency,note:''});
  const [expenseError,setExpenseError]=useState(''),[expenseSaving,setExpenseSaving]=useState(false);
  const [realExpense,setRealExpense]=useState({accountId:'',category:'Operación',kind:'variable' as 'fixed'|'variable',amount:'',paidOn:todayAsuncion(),reference:''});
@@ -115,6 +115,10 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
  const contractedRows=data?.contracted_clients?.records??[];
  const openingBalance=data?.opening_balance?.records??[];
  const plannedFor=(currency:MoneyCurrency)=>plannedExpenseCounts(data!.planned_expenses).find(item=>item.currency===currency);
+ // #144: el detalle de gastos planificados es una lectura aparte del forecast.
+ // El vacío solo es honesto cuando la previsión del mes tampoco tiene totales.
+ const plannedReady=plannedExpenses?.month===month;
+ const plannedTotals=aggregates?.expenses.length??0;
 
  return <section className="grid gap-4" aria-label="Previsión financiera">
   <PageHeader
@@ -162,7 +166,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
    </Card>:null}
    {horizon==='1'?<Card className="grid gap-3 p-3 sm:p-4">
     <div className="grid gap-1 border-b border-ink-600 pb-3"><h3 className="text-[17px] font-semibold tracking-tight text-fore">Resumen por moneda</h3><p className="text-xs text-mute">Detalle para revisar de dónde viene cada total, sin convertir monedas.</p></div>
-    {financialCurrenciesInMonth.length?<div className="grid gap-3 lg:grid-cols-2">
+    {financialCurrenciesInMonth.length?<details className="settings-disclosure"><summary>Ver desglose</summary><div className="grid gap-3 lg:grid-cols-2">
      {financialCurrenciesInMonth.map(currency=>{const row=data.records.find(item=>item.currency===currency),personnel=data.personnel.records.find(item=>item.currency===currency),opening=amountFor(openingBalance,currency);return <article className="forecast-currency grid gap-1.5 rounded-xl border border-ink-600 bg-ink-900 p-3 sm:p-4" key={currency}>
       <div className="flex items-center justify-between gap-3 border-b border-ink-600 pb-2"><span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{currency}</span><span className="text-xs text-mute">Planificación del mes</span></div>
       <FilaDato etiqueta="Recurrente contratado" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.contracted,currency),currency))}/>
@@ -175,7 +179,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <FilaDato etiqueta="Gastos reales" valor={moneyNowrap(formatWholeMoney(realFor(currency),currency))}/>
       <FilaDato etiqueta={`Aceptado sin factura (${count(row?.budget_count)} presupuestos${count(row?.undated_budget_count)>0?` · ${count(row?.undated_budget_count)} sin fecha`:''})`} valor={moneyNowrap(formatWholeMoney(row?.accepted_uninvoiced_total,currency))}/>
      </article>;})}
-    </div>:<EmptyState compact title="Sin datos financieros para este mes."/>}
+    </div></details>:<EmptyState compact title="Sin datos financieros para este mes."/>}
    </Card>:<Card className="grid gap-3 p-4">
     <h3 className="text-[17px] font-semibold tracking-tight text-fore" title={data.definition.projected_cash}>Proyección de caja y resultado · {horizon} meses</h3>
     {projectionCurrenciesInHorizon.length?<div className="grid gap-4">
@@ -290,8 +294,9 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       {kinds?<small className="planned-expenses-kinds text-xs text-mute">{count(kinds.fixed_count)} fijos · {count(kinds.variable_count)} variables</small>:null}
      </article>;})}
     </div>:null}
-    {plannedError?<Aviso tono="error">{plannedError}</Aviso>:null}
-    {plannedExpenses?.records.length?<>
+    {plannedError?<ErrorState title="No se pudieron cargar los gastos planificados" description={plannedError} onRetry={()=>reloadPlanned()}/>:null}
+    {!plannedError&&!plannedReady?<LoadingBlock label="Cargando gastos planificados…" lines={2}/>:null}
+    {!plannedError&&plannedReady&&plannedExpenses.records.length?<>
     <div ref={plannedRef} className="min-w-0">
     {plannedDense?null:<div className="grid gap-2" aria-label="Gastos planificados del mes">
      {plannedExpenses.records.map(record=><article className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3" key={record.id}>
@@ -309,7 +314,9 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
      </div>)}</div>
     </div>:null}
     </div>
-    </>:<EmptyState compact title={`Sin gastos planificados para ${dateLabel(month)}.`} description="Agregá un gasto para que se incorpore al resultado estimado, sin registrar un pago real."/>}
+    </>:null}
+    {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals===0?<EmptyState compact title={`Sin gastos planificados para ${dateLabel(month)}.`} description="Agregá un gasto para que se incorpore al resultado estimado, sin registrar un pago real."/>:null}
+    {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals>0?<Aviso tono="warn" como="div">La previsión registra gastos planificados para {dateLabel(month)} y el desglose no llegó. <button type="button" className="text-button" onClick={()=>reloadPlanned()}>Reintentar</button></Aviso>:null}
    </Card>:null}
    {data&&horizon==='1'?<Card className="grid gap-4 p-3 sm:p-4">
     <div className="grid gap-3">
