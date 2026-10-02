@@ -71,9 +71,11 @@ export function ControlCenter({role,orders,refresh,navigate,signals}:{role:strin
     </article>)}
     <article className="financial-stat financial-result"><span>Resultado estimado del mes</span><div className="financial-amounts">{!data?<strong className="loading-value">Cargando…</strong>:resultCurrencies.length?resultCurrencies.map(currency=>{const value=resultByCurrency(currency);return <strong key={currency} data-negative={value<0||undefined}>{value<0?'−':''}{money(String(Math.abs(value)),currency)}</strong>;}):<strong className="no-movements">Sin ingreso esperado</strong>}</div><small>Ingreso esperado − gastos planificados y personal.</small></article>
    </div>}
-   {data&&!error&&financeGroups.length>0&&<div className="finance-compare">
-    {financeGroups.map(group=><div className="finance-compare-group" key={group.currency}><p className="finance-compare-currency">{group.currency}</p>{group.rows.map(row=><div className="finance-compare-row" key={row.key}><span className="finance-compare-label">{row.label}</span><span className="finance-compare-track" aria-hidden="true"><span className={`finance-compare-fill tone-${row.key}`} style={{width:`${row.width}%`}}/></span><strong className="finance-compare-value">{row.value<0?'−':''}{money(String(Math.abs(row.value)),group.currency)}</strong></div>)}</div>)}
-   </div>}
+   {data&&!error&&financeGroups.length>0&&<details className="settings-disclosure"><summary>Ver desglose</summary>
+    <div className="finance-compare">
+     {financeGroups.map(group=><div className="finance-compare-group" key={group.currency}><p className="finance-compare-currency">{group.currency}</p>{group.rows.map(row=><div className="finance-compare-row" key={row.key}><span className="finance-compare-label">{row.label}</span><span className="finance-compare-track" aria-hidden="true"><span className={`finance-compare-fill tone-${row.key}`} style={{width:`${row.width}%`}}/></span><strong className="finance-compare-value">{row.value<0?'−':''}{money(String(Math.abs(row.value)),group.currency)}</strong></div>)}</div>)}
+    </div>
+   </details>}
    {data&&!error&&data.inventory.length>0&&<p className="inventory-summary">Patrimonio en equipos <b>{data.inventory.map(r=>money(r.total,r.currency)).join(' · ')}</b><button className="text-button" onClick={()=>navigate('Inventario')}>Ver inventario<ArrowUpRight size={14}/></button></p>}
   </section>}
   <section className={`due-alert ${alerts.length?'has-overdue':'all-clear'}`} aria-label="Alertas de vencimiento">

@@ -1,9 +1,10 @@
 "use client";
 import {useEffect,useState} from 'react';
-import {ArrowUpRight,Building2,CircleHelp,EyeOff} from 'lucide-react';
+import {ArrowUpRight,Building2,ChevronDown,Circle,CircleCheck,CircleDashed,CircleHelp,EyeOff} from 'lucide-react';
 import {api,Dialog,Editor} from './operations';
 import {founderPricingNote} from './founder-pricing';
 import {CompanySettings} from './company-settings';
+import {ManualWorkspace} from './manual';
 import {sections} from './navigation';
 import {visibleModule} from './workspace-access';
 import {suggestedWorkspaceGuideStep,workspaceGuideScope,workspaceGuideSteps,workspaceGuideStorageKey,type WorkspaceGuideData,type WorkspaceGuideIdentity,type WorkspaceGuideStep} from './workspace-guide-data';
@@ -54,14 +55,40 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
  // vez en la barra de utilidades (variante `help`, icono con tooltip) en vez de
  // repetirse en el encabezado de cada página; la tarjeta de Resumen sigue como
  // acceso contextual a los primeros pasos.
- const guideDialog=open?<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}<p className="form-note">¿Algo no responde? Consultá el <a className="text-button" href="/status">estado del sistema</a>.</p><p className="form-note">Tus datos personales: <a className="text-button" href="/privacidad">Política de Privacidad</a> y tus derechos desde «Mis datos».</p></Dialog>:null;
+ const guideDialog=open?<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}<details className="settings-disclosure"><summary>Manual y ayudas del panel</summary><div className="mt-3"><ManualWorkspace/></div></details><p className="form-note">¿Algo no responde? Consultá el <a className="text-button" href="/status">estado del sistema</a>.</p><p className="form-note">Tus datos personales: <a className="text-button" href="/privacidad">Política de Privacidad</a> y tus derechos desde «Mis datos».</p></Dialog>:null;
  if(variant==='help')return <><button type="button" className="icon-button" title="Guía del panel" aria-label="Guía del panel" onClick={()=>setOpen(true)}><CircleHelp size={18}/></button>{guideDialog}</>;
  if(variant==='card'){
   if(!preference.ready||preference.dismissed)return null;
-  return <section className="panel" aria-label="Primeros pasos"><div className="panel-heading"><h2>Primeros pasos</h2><button type="button" className="text-button" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</button></div>
-   <p className="form-note">Una guía según tu rol. Podés volver a consultarla desde Guía del panel.</p>{demoNote}
-   <button type="button" className="secondary" aria-expanded={open} onClick={()=>setOpen(value=>!value)}>{open?'Cerrar pasos':'Ver primeros pasos'}</button>
-   {open&&<div className="ops-stack">{suggestion&&<GuideStep step={suggestion} navigate={go}/>}{steps.length>1&&<details><summary>Otros pasos disponibles</summary><div className="ops-stack">{steps.filter(step=>step.module!==suggestion?.module).map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div></details>}{!suggestion&&<p className="form-note">Consultá las herramientas disponibles para tu acceso.</p>}{directory}</div>}
+  // Checklist compacto (#139): una fila de resumen con el avance y el siguiente
+  // paso; el detalle se despliega y no ocupa el pliegue. Descartable por
+  // usuario/empresa/rol con la misma clave que la guía.
+  const listos=steps.filter(step=>step.state==='present').length;
+  const pasoIcon=(step:WorkspaceGuideStep)=>step.state==='present'?<CircleCheck size={15} aria-hidden="true"/>:step.state==='empty'?<Circle size={15} aria-hidden="true"/>:<CircleDashed size={15} aria-hidden="true"/>;
+  return <section className="rounded-xl border border-ink-600 bg-ink-800 px-4 py-2" aria-label="Primeros pasos">
+   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+    <button type="button" className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left" aria-expanded={open} onClick={()=>setOpen(value=>!value)}>
+     <span className="shrink-0 text-fono" aria-hidden="true"><CircleHelp size={16}/></span>
+     <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore">Primeros pasos</b>
+     <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute" role="status">{listos} de {steps.length} listos</span>
+     {suggestion?<span className="hidden min-w-0 flex-1 truncate text-[11.5px] text-mute sm:block" title={suggestion.description}>Siguiente: {suggestion.title}</span>:<span className="hidden min-w-0 flex-1 text-[11.5px] text-mute sm:block">Todo listo</span>}
+     <ChevronDown size={16} aria-hidden="true" className={`shrink-0 text-mute transition-transform ${open?'rotate-180':''}`}/>
+    </button>
+    <button type="button" className="text-button shrink-0" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</button>
+   </div>
+   {open&&<div className="grid gap-2 border-t border-ink-600 pb-2 pt-3">
+    <ul className="grid gap-1">
+     {steps.map(step=><li key={step.module}>
+      <button type="button" className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg px-2 text-left transition hover:bg-ink-700/40" data-state={step.state} aria-label={`Abrir ${step.module}: ${step.title}`} title={step.description} onClick={()=>go(step.module)}>
+       <span className={step.state==='present'?'shrink-0 text-ok':'shrink-0 text-mute'} aria-hidden="true">{pasoIcon(step)}</span>
+       <b className="min-w-0 truncate text-[12.5px] font-semibold text-fore">{step.title}</b>
+       <small className="ml-auto shrink-0 whitespace-nowrap text-[11px] text-mute">{step.statusLabel}</small>
+       <ArrowUpRight size={13} aria-hidden="true" className="shrink-0 text-mute"/>
+      </button>
+     </li>)}
+    </ul>
+    {demoNote}
+    <button type="button" className="secondary justify-self-start" onClick={()=>setOpen(true)}>Abrir guía completa</button>
+   </div>}
   </section>;
  }
  return <><button type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{guideDialog}</>;
