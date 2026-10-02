@@ -128,15 +128,24 @@ assert.match(read('app/sections/configuracion.tsx'), /grid gap-4 lg:grid-cols-\[
 for (const file of ['app/superadmin/catalog.tsx', 'app/superadmin/audit.tsx', 'app/superadmin/access.tsx'])
   assert.match(read(file), /<EmptyBlock\s+compact/, `los vacíos del panel global son compactos (${file})`);
 
-// QA ola 2 (#125): el Historial no pinta slugs crudos y los interruptores de la
-// matriz de permisos conservan un área táctil de 44 px también en tablet.
+// QA ola 2 (#125): el Historial no pinta slugs crudos.
 const history = read('app/work-history.tsx');
 assert.match(history, /workStatusLabel\(status\)/, 'el Historial traduce los estados de pieza con la fuente única');
 assert.match(history, /projectStatusLabels\[status\]/, 'los estados de proyecto del Historial tienen etiqueta');
 assert.match(history, /historyStatusLabel\(str\(r,'table_name'\),str\(r,'next_status'\)\)/, 'el Historial no pinta slugs crudos');
+// #143: la matriz ancha de 34 se reemplaza por la vista por módulo con pastillas
+// de rol editables (44 px en móvil) y la Actividad traduce eventos de negocio.
 const matrix = read('app/permissions-matrix.tsx');
-assert.match(matrix, /after:-inset-y-3/, 'el interruptor de la matriz tiene área táctil de 44 px');
-assert.doesNotMatch(matrix, /max-md:after:content-none/, 'el área táctil del interruptor no se apaga en tablet');
+assert.match(matrix, /ROLE_PILL='inline-flex min-h-11/, 'las pastillas de rol conservan 44 px en móvil');
+assert.match(matrix, /aria-pressed=\{checked\}/, 'cada pastilla anuncia su estado por rol');
+assert.match(matrix, /groupedRows\(data\.capabilities\)/, 'la vista de permisos se agrupa por módulo');
+assert.doesNotMatch(matrix, /MATRIX_TEMPLATE/, 'la tabla ancha de 34 filas se retiró');
+const activityFormat = read('app/activity-format.ts');
+assert.match(activityFormat, /agency_invoices: \{INSERT: 'Factura emitida'/, 'las facturas se leen como eventos de negocio');
+assert.match(activityFormat, /agency_payments: \{INSERT: 'Pago recibido'/, 'los pagos se leen como eventos de negocio');
+assert.match(activityFormat, /agency_projects: \{[^}]*DELETE: 'Proyecto archivado'/, 'los proyectos archivados se leen como eventos de negocio');
+assert.match(read('app/suite.tsx'), /activityEvent\(r\)/, 'el feed usa la fuente única de eventos');
+assert.match(read('app/sections/preferencias.tsx'), /<KpiStrip compact>/, 'Preferencias usa la franja compacta de KPIs (#143)');
 
 console.log(
   'PASS: retirados con reinvitación y lote resiliente, portal con invitaciones y reenvío de verificación, rutas/componentes muertos eliminados, cobro preseleccionado, /status desde la ayuda y correo comprobado contra el API',

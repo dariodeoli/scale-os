@@ -192,8 +192,15 @@ assert.equal((await call('/api/agency/settings','PATCH',{address:'x'.repeat(400)
 assert.equal((await call('/api/agency/settings','PATCH',{address:'x'.repeat(401)})).status,400);
 assert.equal((await call('/api/agency/dashboard')).inventory[0].total,'2000.00');
 await query("insert into agency_user_profiles(organization_id,user_id,full_name,photo_url) values($1,$2,'Autor local','https://example.invalid/actor.png')",[org,uid]);
+await query("insert into agency_invoices(organization_id,client_id,number,currency,total,status) values($1,$2,'F-ACT','USD',150.50,'issued')",[org,client]);
 const activity=await call('/api/agency/activity');assert.equal(activity.status,200);assert.ok(activity.records.length>=5);
 const authored=activity.records.find(row=>row.actor===String(uid));assert.equal(authored.actor_name,'Autor local');assert.equal(authored.actor_photo_url,'https://example.invalid/actor.png');assert.equal(authored.actor_verified,true);
+// #143: la actividad resuelve el contexto de negocio (cliente, referencia e importe).
+const invoiceActivity=activity.records.find(row=>row.table_name==='agency_invoices'&&row.reference==='F-ACT');
+assert.ok(invoiceActivity,'la factura aparece en la actividad con su referencia');
+assert.equal(invoiceActivity.client_name,'Renamed','la actividad resuelve el cliente de la factura');
+assert.equal(invoiceActivity.currency,'USD');
+assert.equal(Number(invoiceActivity.total),150.5);
 for(const role of ['owner','admin'])assert.equal((await call('/api/agency/activity','GET',{}, {...user,role})).status,200,`${role} ve la actividad`);
 for(const role of ['viewer','finance','sales','production','editor','collaborator'])assert.equal((await call('/api/agency/activity','GET',{}, {...user,role})).status,403,`${role} no ve la actividad`);
 assert.equal((await call('/api/agency/activity','GET',{}, {...user,role:'management'})).status,403,'gerencia no ve la actividad del equipo');

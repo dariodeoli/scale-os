@@ -6,7 +6,7 @@ import {notify} from './feedback';
 import {listDateFull} from './list-format';
 import {RotateCcw,Trash2} from 'lucide-react';
 import {ARCHIVE_KIND_CAPABILITIES,roleCan,type Capability} from './capabilities';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
 
 // Fuente única con la papelera del API: el NAV usa el mismo mapa.
 const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>;
@@ -105,7 +105,7 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
   </KpiStrip>
   {selected.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count"><b>{selected.length}</b> seleccionado{selected.length===1?'':'s'}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={()=>setSelected(allSelected?[]:records.map(keyOf))}>{allSelected?'Limpiar selección':'Seleccionar visibles'}</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()}>{bulkBusy?'Restaurando…':'Restaurar'}</button><button type="button" className="text-button" onClick={()=>setSelected([])}>Limpiar</button></div></div>:null}
    {loading?<LoadingBlock label="Cargando papelera…" lines={3}/>:!records.length?<EmptyBlock compact title="No hay registros en la papelera" description="Lo que se mueva a la papelera queda acá hasta que lo restaures."/>:
-    <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]">
+    <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]" pinnedActions>
      {records.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
       <label className="relative flex items-center after:absolute after:-inset-3.5 after:content-['']" title="Seleccionar registro"><input type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={selected.includes(keyOf(record))} onChange={()=>toggleSelected(keyOf(record))}/></label>
       <span className="whitespace-nowrap"><StateChip tone="mute">{labels[record.kind]||record.kind}</StateChip></span>
@@ -116,9 +116,9 @@ export function TrashWorkspace({refresh}:{refresh:()=>Promise<void>}){
         {listDateFull(record.removed_at)?<span className="shrink-0 whitespace-nowrap">· {listDateFull(record.removed_at)}</span>:null}
        </small>
       </div>
-      <div className="flex justify-end">
+      <ListActions>
        <button className="text-button" disabled={Boolean(busy)||bulkBusy} onClick={async()=>{setBusy(keyOf(record));setError('');try{await api(`/api/agency/${record.kind}/${record.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}><RotateCcw size={14} aria-hidden="true"/>{busy===keyOf(record)?'Restaurando…':'Restaurar'}</button>
-      </div>
+      </ListActions>
      </ListRow>)}
     </ListGrid>}
   <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs tabular-nums text-mute" role="status">{records.length} de {total} registros</span>{hasMore?<button type="button" className="secondary" disabled={loadingMore} onClick={()=>void more()}>{loadingMore?'Cargando…':'Ver más'}</button>:null}</div>

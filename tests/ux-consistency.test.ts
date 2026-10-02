@@ -81,6 +81,7 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
   assert.match(archive,/TRASH_COLUMNS=\[\{key:'select',label:''\},\{key:'kind',label:'Tipo'\},\{key:'record',label:'Registro'\},\{key:'actions',label:'Acciones'\}\]/,'the trash list shows its column header');
   assert.match(archive,/TRASH_TEMPLATE='grid-cols-\[2rem_8\.5rem_minmax\(16rem,2\.4fr\)_7rem\]'/,'the trash rows share the v2 template literal with their header');
   assert.match(archive,/ListGrid label="Papelera" template=\{TRASH_TEMPLATE\}/,'the trash list uses the shared v2 template');
+ assert.match(archive,/ListGrid label="Papelera"[^>]*pinnedActions/,'la acción de restaurar queda fija en móvil (#143)');
   const integrations=read('app/suite.tsx');
   assert.match(integrations,/settings-integration-head[\s\S]*?Integración[\s\S]*?Estado/,'the integrations list shows its header');
   const invites=read('app/invite-links.tsx');
