@@ -12,7 +12,8 @@ import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
 import {projectedList,BUDGET_LIST_FIELDS} from '../shell-data';
-import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,denseTableMinWidth,useDenseTableFit,type ChipTone,type Column} from '../ui-v2';
+import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,denseTableMinWidth,useDenseTableFit,type Column} from '../ui-v2';
+import {budgetState} from '../budget-status';
 import {EMPTY_WINDOW,windowLabel,type ListWindowState} from '../list-window';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
@@ -53,13 +54,6 @@ const BUDGET_COLUMNS: Column[] = [
 // en 1280 (58rem de pistas + 7 espacios de 8 px + 8 px de padding = 992 px).
 const BUDGET_TEMPLATE = 'grid-cols-[minmax(14rem,2fr)_minmax(8rem,1.1fr)_6rem_3.5rem_6rem_8rem_8rem_4.5rem]';
 const BUDGET_TABLE_MIN_WIDTH = denseTableMinWidth(58, 8);
-const BUDGET_STATE: Record<string,{label:string;tone:ChipTone}> = {
-  draft: {label:'Borrador', tone:'mute'},
-  sent: {label:'Enviado', tone:'info'},
-  accepted: {label:'Aceptado', tone:'ok'},
-  rejected: {label:'Rechazado', tone:'bad'},
-  expired: {label:'Vencido', tone:'warn'},
-};
 const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudo completar la operación';
 
 // Vista tarjeta (anchos medios, #62): mismo contrato que la fila densa
@@ -67,7 +61,7 @@ const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pud
 // cápsula `budget-hub-card` del sistema. Nada se recorta: el total va completo
 // y el pie queda anclado.
 function BudgetTile({budget,user,canManage,selected,onToggle,refresh}:{budget:Budget;user:User|null;canManage:boolean;selected:boolean;onToggle:()=>void;refresh:()=>Promise<void>}){
-  const state=BUDGET_STATE[budget.status]||{label:budget.status,tone:'mute' as ChipTone};
+  const state=budgetState(budget.status);
   const valid=fechaListaCorta(budget.valid_until,'Sin fecha');
   const tone=hasDueWarning(budget.valid_until);
   return <article className="ops-card budget-hub-card">
@@ -135,7 +129,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
   }
   const selectedTitles = selected.map(id=>budgets.find(budget=>String(budget.id)===id)).filter((budget):budget is Budget=>Boolean(budget)).map(budget=>budget.title);
   const row = (budget: Budget) => {
-    const state = BUDGET_STATE[budget.status] || {label: budget.status, tone: 'mute' as ChipTone};
+    const state = budgetState(budget.status);
     const valid = fechaListaCorta(budget.valid_until,'Sin fecha');
     const tone = hasDueWarning(budget.valid_until);
     return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
