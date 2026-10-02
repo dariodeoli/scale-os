@@ -7,6 +7,9 @@ const note='Historia ilustrativa de una demo privada: fechas relativas y movimie
 const completeNote=`${version}:complete · ${note}`;
 const fail=(message,status=409)=>{throw Object.assign(new Error(message),{status});};
 const validId=value=>/^[1-9]\d{0,18}$/.test(String(value));
+// Formato humano para textos generados por el fixture (#145): nunca “PYG
+// 3000000.00” en una nota; misma convención que el frente (PYG sin decimales).
+const moneyLabel=(value,currency)=>new Intl.NumberFormat('es-PY',{style:'currency',currency,maximumFractionDigits:currency==='PYG'?0:2}).format(Number(value));
 
 async function context(c,organizationId,userId){
  const organization=(await c.query(`select o.id,o.slug,o.demo_owner_user_id,o.active,
@@ -101,7 +104,7 @@ async function seedClientHistory(c,organizationId,{clients,calendar}){
     created_at=$5::date::timestamp at time zone 'America/Asuncion',
     notes=concat_ws(E'\n',notes,$6::text),updated_at=clock_timestamp()
    where organization_id=$1 and id=$2`,[organizationId,client.id,kind,plan.id,start,
-   `${note} Plan de referencia: ${plan.name}; importe mensual acordado ${client.currency} ${client.total}, conservado de su factura actual.`]);
+   `${note} Plan de referencia: ${plan.name}; importe mensual acordado ${moneyLabel(client.total,client.currency)}, conservado de su factura actual.`]);
   const snapshots=[{offset:client.startOffset,event:'created',status:'active'}];
   if(client.pauseOffset!==null)snapshots.push({offset:client.pauseOffset,event:'changed',status:'paused'},{offset:client.pauseOffset+1,event:'changed',status:'active'});
   for(const snapshot of snapshots){
