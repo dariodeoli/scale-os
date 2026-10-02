@@ -102,6 +102,20 @@ html[data-theme="dark"] .foto-perfil{background:#8329c9}
  .control-shell .ui-kpi>div:nth-child(2){font-size:28px;line-height:1.15}
 }
 
+/* ── KPIs compactos en mobile (#138) ───────────────────────────────────────
+   Las franjas de KPIs que lo piden (`KpiStrip compact`) se apilan como filas
+   de 44–64 px: rótulo y valor comparten la primera línea y el hint queda en
+   una segunda línea muted, sin perder información. En escritorio la tira
+   conserva sus 110–140 px (#89). Evita tres o más tarjetas verticales en las
+   preferencias y los encabezados de sección. */
+@media(max-width:767px){
+ .control-shell .ui-kpi-strip-compact{gap:var(--ui-space-2)}
+ .control-shell .ui-kpi-strip-compact .ui-kpi{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:var(--ui-space-3);row-gap:2px;padding:10px 12px}
+ .control-shell .ui-kpi-strip-compact .ui-kpi>div:nth-child(1){margin:0;min-width:0}
+ .control-shell .ui-kpi-strip-compact .ui-kpi>div:nth-child(2){margin:0;justify-self:end;font-size:20px;line-height:1.2;white-space:nowrap}
+ .control-shell .ui-kpi-strip-compact .ui-kpi>div:nth-child(3){grid-column:1/-1;margin:0;min-height:0}
+}
+
 /* ── Tabs de sección (#89) ──────────────────────────────────────────────────
    Una sola barra horizontal compacta (píldoras sobre el tinte hundido): en
    escritorio mide ≤48 px de alto; en móvil scrollea en horizontal sin apilarse

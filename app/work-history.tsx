@@ -1,15 +1,15 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {api,Editor} from './operations';
-import {listDateShort} from './list-format';
+import {listDateShort,hasDueWarning} from './list-format';
 import {Aviso,Button,Nota} from 'owncoding-ui';
-import {EmptyBlock, ErrorBlock, FilterToolbar, LoadingBlock} from './ui-v2';
+import {CardGridSkeleton,CompactCard,EmptyBlock,EmptyCompact,ErrorBlock,FilterToolbar,LoadingBlock,StateChip} from './ui-v2';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {ActorIdentity} from './actor-identity';
 import {workStatusLabel} from './productivity-ui';
 import './productivity.css';
-import {History,Pencil,Plus} from 'lucide-react';
+import {History,Plus} from 'lucide-react';
 import {roleCan} from './capabilities';
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
@@ -71,7 +71,7 @@ export function InternalTasks({role}:{role:string}){
  useEffect(()=>{void load();},[reload]);
  const record=edit&&edit!=='new'?edit:null;
  const visible=rows.slice(0,INTERNAL_TASKS_WINDOW);
- return <details className="panel"><summary>Pendientes internos · {rows.filter(r=>r.status!=='done').length}</summary><p className="form-note">Trabajo de la agencia, separado de los proyectos de clientes y sin efecto financiero.</p>{canEdit&&<button className="text-button" onClick={()=>setEdit('new')}><Plus size={14}/>Agregar tarea interna</button>}{error?<Aviso tono="error">{error} <button type="button" className="text-button" onClick={()=>setReload(v=>v+1)}>Reintentar</button></Aviso>:null}{loading&&!rows.length?<LoadingBlock label="Cargando pendientes internos…" lines={2}/>:null}{!loading&&!error&&!rows.length?<p className="form-note" role="status">No hay pendientes internos cargados.</p>:null}{visible.map(r=><article className="activity-line" key={r.id}><b>{str(r,'title')}</b><small>{internalTaskStatusLabel(str(r,'status'))} · {listDateShort(str(r,'due_date'))||'Sin fecha'}</small><p>{str(r,'description')}</p>{canEdit&&<button className="text-button" onClick={()=>setEdit(r)}><Pencil size={14}/>Editar tarea</button>}</article>)}{rows.length>visible.length?<p className="form-note" role="status">Mostrando {visible.length} de {rows.length} pendientes internos.</p>:null}
+ return <details className="panel"><summary>Pendientes internos · {rows.filter(r=>r.status!=='done').length}</summary><p className="form-note">Trabajo de la agencia, separado de los proyectos de clientes y sin efecto financiero.</p>{canEdit&&<button className="text-button" onClick={()=>setEdit('new')}><Plus size={14}/>Agregar tarea interna</button>}{error?<Aviso tono="error">{error} <button type="button" className="text-button" onClick={()=>setReload(v=>v+1)}>Reintentar</button></Aviso>:null}{loading&&!rows.length?<CardGridSkeleton count={2} label="Cargando pendientes internos…"/>:null}{!loading&&!error&&!rows.length?<EmptyCompact message="No hay pendientes internos cargados." action={canEdit?<button type="button" className="secondary min-h-9" onClick={()=>setEdit('new')}>Agregar tarea interna</button>:undefined}/>:null}{visible.length?<div className="mt-3 grid gap-2 sm:grid-cols-2">{visible.map(r=><CompactCard key={r.id} title={str(r,'title')||'Tarea interna'} chips={<StateChip tone={str(r,'status')==='done'?'ok':str(r,'status')==='in_progress'?'info':'mute'}>{internalTaskStatusLabel(str(r,'status'))}</StateChip>} due={str(r,'due_date')?<span className="whitespace-nowrap text-[11.5px] text-mute" data-tone={hasDueWarning(str(r,'due_date'))?'warn':undefined}>Entrega {listDateShort(str(r,'due_date'))}</span>:null} actions={canEdit?[{id:'edit',label:'Editar tarea',icono:'edit',onClick:()=>setEdit(r)}]:[]}/>)}</div>:null}{rows.length>visible.length?<p className="form-note" role="status">Mostrando {visible.length} de {rows.length} pendientes internos.</p>:null}
  {edit&&<Dialog title={record?'Editar tarea interna':'Nueva tarea interna'} close={()=>setEdit(null)}><Editor fields={[{key:'title',label:'Título'},{key:'description',label:'Detalle',type:'textarea',optional:true},{key:'due_date',label:'Fecha',type:'date',optional:true},...(record?[{key:'status',label:'Estado',choices:[{value:'pending',label:'Pendiente'},{value:'in_progress',label:'En curso'},{value:'done',label:'Lista'}]}]:[])]} defaults={{title:record?str(record,'title'):'',description:record?str(record,'description'):'',due_date:record?str(record,'due_date').slice(0,10):'',status:record?str(record,'status'):'pending'}} save={async v=>{await api(`/api/agency/productivity/internal-tasks${record?'/'+record.id:''}`,v,record?'PATCH':'POST');setEdit(null);await load();}}/></Dialog>}
  </details>;
 }
