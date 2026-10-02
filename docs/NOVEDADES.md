@@ -2,6 +2,24 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.166
+
+### Finanzas
+
+- **Previsión sin contradicciones**: si el mes tiene total planificado, el resumen ya no puede mostrar «Sin gastos planificados»; mientras llega el desglose se anuncia la carga y, si no llega, aparece un aviso con reintento.
+- **Desglose bimoneda plegado**: el detalle por moneda del resumen vive bajo «Ver desglose», y los datos quedan atados a su mes (un mes nunca muestra cifras de otro).
+- **Cierre de mes en Salarios**: la plantilla del cierre da lugar al ajuste inline sin cortes.
+- Evidencia antes/después 390/1440 en claro y oscuro en `docs/qa/prevision-144/` (#144).
+
+### Comercial
+
+- **Presupuesto en modo consulta**: abrir un presupuesto muestra primero sus condiciones, ítems y totales, con las acciones visibles arriba (PDF, enlace, factura); «Editar presupuesto» recién monta el compositor.
+- **Guardado cuidado**: no se puede guardar un presupuesto sin título, cliente o ítems; los campos obligatorios se marcan, el error aparece inline y el pie dice qué falta.
+- **Menos ruido en el editor**: IVA, vigencia y secciones pasan a «Opciones del documento» y la vista previa a su propio bloque.
+- **Enlace público con alcance claro**: antes de compartir se explican alcance, vencimiento y revocación, con confirmación al revocar.
+- **Oportunidad con campos primero**: en el alta, los campos van primero y el aviso legal queda como resumen de una línea con «Privacidad» y su detalle desplegable.
+- Evidencia antes/después 390/1440 en claro y oscuro en `docs/qa/com-150/` (#150).
+
 ## v1.0.165
 
 ### Diseño y móvil
