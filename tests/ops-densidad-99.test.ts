@@ -50,7 +50,8 @@ assert.doesNotMatch(studio,/max-h-10 overflow-hidden/,'no quedan notas recortada
 
 // ── Densidad de calendarios (56 px en desktop) y encabezados en una fila.
 assert.match(studio,/min-\[769px\]:min-h-14/,'el calendario del estudio es denso en desktop');
-assert.match(inventory,/min-\[769px\]:min-h-14/,'el calendario de inventario es denso en desktop');
+assert.match(inventory,/min-h-12 content-start gap-0\.5 rounded-lg border border-ink-600\/60 p-1/,'el calendario de inventario usa celdas bajas (#146)');
+assert.match(inventory,/data-calendar-agenda className="grid gap-1 min-\[769px\]:hidden"/,'y en móvil es una agenda semanal (#146)');
 assert.match(inventory,/<Label htmlFor="inventory-calendar-month" className="whitespace-nowrap">Mes<\/Label>/,'el mes del inventario comparte la fila');
 assert.match(history,/<div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">/,'el encabezado del historial sigue en una fila');
 
