@@ -10,6 +10,7 @@ import {Aviso, Button, FilaDato, Nota, Subtabs, completeSave, fechaLista, fechaL
 import {hasDueWarning,PiiTexto} from './list-format';
 import {todayAsuncion} from './client-format';
 import {EmptyBlock, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
+import {TabScroller} from './tab-scroller';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
 import {ClientReviewControl,ClientReviewPreview,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
@@ -199,7 +200,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
  return <section className="grid min-w-0 gap-4" aria-label="Planificador de producción">
   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
    <h2 className="text-[17px] font-semibold tracking-tight text-fore">{view==='Mi día'?'Trabajo diario':view}</h2>
-   {!initialView?<Subtabs value={view} onChange={setView} items={[['Mi día','Mi día'],['Calendario','Calendario'],['Lista y lotes','Lista y lotes']]} className="mb-0 [&>button]:min-h-11 md:[&>button]:min-h-9"/>:null}
+   {!initialView?<TabScroller className="mb-0 min-w-0" label="vistas"><Subtabs value={view} onChange={setView} items={[['Mi día','Mi día'],['Calendario','Calendario'],['Lista y lotes','Lista y lotes']]} className="mb-0 [&>button]:min-h-11 md:[&>button]:min-h-9 max-lg:flex-nowrap"/></TabScroller>:null}
   </div>
   {view==='Mi día'?<>
    <KpiStrip className="sm:grid-cols-2 xl:grid-cols-2">

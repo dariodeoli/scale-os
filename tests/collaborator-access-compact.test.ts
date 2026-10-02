@@ -109,8 +109,8 @@ test('the team access block renders only when it has actions',()=>{
 test('workspace density owns the header geometry across desktop and mobile',()=>{
  const source=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
  const drawer=readFileSync(new URL('../app/mobile-navigation.tsx',import.meta.url),'utf8');
- assert.match(source,/workspace-topbar sticky top-0 z-20[\s\S]*?max-md:z-30 max-md:grid/,'the workspace header owns its desktop and mobile geometry');
- assert.match(source,/topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2/,'the compact status keeps its own row on mobile');
+ assert.match(source,/workspace-topbar sticky top-0 z-20[\s\S]*?max-md:z-30 max-md:flex-wrap/,'the workspace header owns its desktop and mobile geometry');
+ assert.match(source,/topbar-status flex items-center gap-2 max-md:order-2/,'the compact status flows after the utility controls on mobile (#137)');
  assert.match(source,/topbar-presence min-w-0 shrink-0 max-\[520px\]:hidden/,'presence hides on the smallest screens');
  assert.doesNotMatch(control,/\.workspace-topbar/);
  assert.doesNotMatch(drawer,/workspace-topbar/);

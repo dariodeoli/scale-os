@@ -48,6 +48,7 @@ import {RecordEditor} from './suite';
 import {AssignedPeople} from './assigned-people';
 import {listDateShort,dueTone} from './list-format';
 import {PageTitleContext,StateChip,ViewSwitch} from './ui-v2';
+import {TabScroller} from './tab-scroller';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
@@ -1055,13 +1056,13 @@ export default function Home() {
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
-        <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 py-2 shadow-[0_1px_0_rgb(37_28_41_/_4%)] backdrop-blur motion-reduce:[&_*]:transition-none max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
-          <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3">
+        <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 py-2 shadow-[0_1px_0_rgb(37_28_41_/_4%)] backdrop-blur motion-reduce:[&_*]:transition-none max-md:z-30 max-md:flex-wrap max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
+          <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3 max-md:min-w-[12.5rem]">
             <div className="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2">
               <MobileNavigation>{sidebarContent('light')}</MobileNavigation>
             </div>
             <div className="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
-              <div className="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden max-md:[&_.workspace]:min-h-11">
+              <div className="topbar-company min-w-0 max-md:min-w-[9rem] [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden max-md:[&_.workspace]:min-h-11">
                 <CompanySelector name={companyLabel}/>
               </div>
               <div className="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio">
@@ -1070,12 +1071,12 @@ export default function Home() {
             </div>
           </div>
           <div className="topbar-utilities flex min-w-0 flex-wrap items-center justify-end gap-2 max-md:contents">
-            <div className="topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2">
+            <div className="topbar-status flex items-center gap-2 max-md:order-2">
               {user?.subscription&&<SubscriptionNotice state={user.subscription} onOpen={()=>{if(active==='Configuración')document.getElementById('settings-subscription')?.scrollIntoView({behavior:'smooth'});else setSubscriptionOpen(true);}}/>}
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
               <VersionNotice/>
             </div>
-            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
+            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
               <ThemeToggle/>
               <WorkspaceGuide {...guideProps} variant="help"/>
               {canIaCarga?<IaCargaButton onOpen={()=>setIaCarga(true)}/>:null}
@@ -1131,7 +1132,7 @@ export default function Home() {
             </div>
           </>}
         </header>
-        {active!=='Sin acceso'&&childSections(active).length>1&&<nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav>}
+        {active!=='Sin acceso'&&childSections(active).length>1&&<TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller>}
         {active==='Sin acceso'&&<SinAccesoSection/>}
         {active==='Equipo'&&<EquipoSection user={user}/>}
         {active==='Roles y permisos'&&<PermisosSection user={user}/>}

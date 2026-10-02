@@ -17,7 +17,10 @@ const CHIP_COLOR: Record<ChipTone, string> = {ok: 'green', warn: 'orange', bad: 
 
 /** Chip de estado único: tono semántico, sin wrap y con el texto completo. */
 export function StateChip({tone = 'mute', title, className, children}: {tone?: ChipTone; title?: string; className?: string; children: ReactNode}) {
-  return <Badge color={CHIP_COLOR[tone]} title={title} className={`whitespace-nowrap ${className ?? ''}`}>{children}</Badge>;
+  // El chip neutro (`slate`) pinta `text-mute` sobre `bg-ink-600`: en oscuro el
+  // par queda en 4.21:1 (< AA). En ese tema el texto sube a primer nivel, como
+  // ya hace la librería dentro de su scope `.tema-v2` (#137).
+  return <Badge color={CHIP_COLOR[tone]} title={title} className={`whitespace-nowrap ${tone === 'mute' ? 'dark:text-fore' : ''} ${className ?? ''}`}>{children}</Badge>;
 }
 
 /**
@@ -53,11 +56,14 @@ export function MoneyText({valor, currency = 'PYG', tono = '', className, title}
   return <span title={title} className={`inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className ?? ''}`}>{vacio ? '—' : money(Number(valor), currency)}</span>;
 }
 
+/** Vista de una colección: único tipo del selector lista/cuadrícula. */
+export type CollectionView = 'list' | 'grid';
+
 /**
  * Selector lista/cuadrícula v2: conserva el objeto de la librería pero con
  * targets de 44 px en móvil (36 px en escritorio). Un solo control de vista.
  */
-export function ViewSwitch({value, onChange, className}: {value: 'list' | 'grid'; onChange: (key: 'list' | 'grid') => void; className?: string}) {
+export function ViewSwitch({value, onChange, className}: {value: CollectionView; onChange: (key: CollectionView) => void; className?: string}) {
   return <ListGridToggle value={value} onChange={onChange} className={`[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-9 md:[&>button]:w-9 ${className ?? ''}`}/>;
 }
 

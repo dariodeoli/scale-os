@@ -265,6 +265,11 @@ export function OrderForm({
   });
   const [error, setError] = useState("");
   const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  // Paso 1 del alta (#137): primero el proyecto con buscador; el resto del
+  // formulario aparece recién al elegirlo (antes se listaban ~20 botones).
+  const projectId=form.watch("projectId");
+  const selectedProject=projects.find(project=>String(project.id)===projectId);
+  const projectChoices=projects.map(project=>({value:String(project.id),label:`${project.client_name} · ${project.name}`}));
   async function submit(values: OrderValues) {
     try {
       const data = await request<{ workOrder: WorkOrder }>(
@@ -282,6 +287,28 @@ export function OrderForm({
       noValidate
       onSubmit={submission.onSubmit}
     >
+      {selectedProject ? (
+        <div className="ops-wide flex min-w-0 items-center justify-between gap-3 rounded-xl border border-ink-600 bg-ink-800 px-3 py-2">
+          <span className="min-w-0">
+            <small className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Proyecto</small>
+            <b className="block truncate text-[13.5px] font-semibold text-fore" title={`${selectedProject.client_name} · ${selectedProject.name}`}>{selectedProject.client_name} · {selectedProject.name}</b>
+          </span>
+          <button type="button" className="text-button shrink-0" onClick={()=>form.setValue("projectId","",{shouldValidate:false,shouldDirty:true})}>Cambiar</button>
+        </div>
+      ) : (
+        <div className="ops-wide grid gap-1.5">
+          <SelectCustom label="Proyecto" value={projectId} choices={projectChoices} onChange={value=>form.setValue("projectId",value,{shouldValidate:true,shouldDirty:true})} invalid={Boolean(form.formState.errors.projectId)} describedBy={form.formState.errors.projectId?"order-project-error":undefined}/>
+          {form.formState.errors.projectId && (
+            <small className="error" role="alert" id="order-project-error">
+              {form.formState.errors.projectId.message}
+            </small>
+          )}
+          {!projects.length && (
+            <p className="form-note">Primero creá un proyecto.</p>
+          )}
+        </div>
+      )}
+      {selectedProject ? <>
       <label>
         Orden de trabajo
         <input {...form.register("title")} autoFocus />
@@ -290,32 +317,6 @@ export function OrderForm({
         )}
       </label>
       <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as OrderValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
-      <fieldset>
-        <legend>Proyecto</legend>
-        <div className="choice-list">
-          {projects.map((project) => (
-            <button
-              type="button"
-              className={
-                form.watch("projectId") === project.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("projectId", project.id, { shouldValidate: true })
-              }
-              key={project.id}
-            >
-              {project.client_name} · {project.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.projectId && (
-          <small className="error">
-            {form.formState.errors.projectId.message}
-          </small>
-        )}
-      </fieldset>
       <fieldset>
         <legend>Estado inicial</legend>
         <div className="choice-list compact">
@@ -357,13 +358,11 @@ export function OrderForm({
       {error && <p className="error">{error}</p>}
       <SaveActions pending={submission.pending}><button
         className="primary"
-        disabled={!projects.length || submission.pending}
+        disabled={submission.pending}
       >
         {submission.pending ? "Guardando…" : "Crear orden"}
       </button></SaveActions>
-      {!projects.length && (
-        <p className="form-note">Primero creá un proyecto.</p>
-      )}
+      </> : null}
     </form>
   );
 }

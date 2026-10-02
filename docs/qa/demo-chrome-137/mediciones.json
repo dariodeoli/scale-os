@@ -1,0 +1,474 @@
+[
+ {
+  "step": "header",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "lineas": 2,
+  "alto": 113,
+  "statusTop": 60,
+  "triggerTop": 60,
+  "triggerHeight": 44,
+  "inlineDemo": false
+ },
+ {
+  "step": "demo-drawer",
+  "theme": "light",
+  "width": 390,
+  "titulo": "Tu demo",
+  "selects": 1,
+  "reset": true,
+  "cliente": true
+ },
+ {
+  "step": "tabs-equipo",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "scrollWidth": 811,
+  "clientWidth": 258,
+  "scrollable": true,
+  "segundaLinea": false,
+  "chevrones": 2,
+  "prevDisabled": true,
+  "nextDisabled": false
+ },
+ {
+  "step": "tabs-equipo-scrolled",
+  "theme": "light",
+  "width": 390,
+  "scrollLeft": 206,
+  "prevDisabled": false
+ },
+ {
+  "step": "tabs-configuracion",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "scrollWidth": 457,
+  "clientWidth": 258,
+  "scrollable": true,
+  "segundaLinea": false,
+  "chevrones": 2,
+  "prevDisabled": true,
+  "nextDisabled": false
+ },
+ {
+  "step": "tabs-configuracion-scrolled",
+  "theme": "light",
+  "width": 390,
+  "scrollLeft": 199,
+  "prevDisabled": false
+ },
+ {
+  "step": "tabs-produccion",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "botones": 4,
+  "lineas": 1,
+  "scrollWidth": 432,
+  "clientWidth": 234,
+  "chevrones": 2
+ },
+ {
+  "step": "orden-paso1",
+  "theme": "light",
+  "width": 390,
+  "textarea": 0,
+  "inputs": 0,
+  "combo": 1
+ },
+ {
+  "step": "orden-combobox",
+  "theme": "light",
+  "width": 390,
+  "opciones": 20,
+  "buscador": true
+ },
+ {
+  "step": "orden-paso2",
+  "theme": "light",
+  "width": 390,
+  "textarea": 1,
+  "inputs": 3,
+  "cambiar": true
+ },
+ {
+  "step": "tabs-inventario",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "scrollWidth": 290,
+  "clientWidth": 290,
+  "lineas": 1,
+  "chevrones": 0,
+  "segundaLinea": false
+ },
+ {
+  "step": "tabs-planificador",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "scrollWidth": 358,
+  "clientWidth": 358,
+  "lineas": 1,
+  "chevrones": 0,
+  "segundaLinea": false
+ },
+ {
+  "step": "switch-vistas",
+  "theme": "light",
+  "width": 390,
+  "botones": 2,
+  "pressed": [
+   "true",
+   "false"
+  ],
+  "nombres": [
+   "Ver como lista",
+   "Ver como cuadrícula"
+  ],
+  "checkboxes": 0,
+  "altura": 44
+ },
+ {
+  "step": "header",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "lineas": 1,
+  "alto": 57,
+  "statusTop": 8,
+  "triggerTop": 0,
+  "triggerHeight": 0,
+  "inlineDemo": true
+ },
+ {
+  "step": "tabs-equipo",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "scrollWidth": 1184,
+  "clientWidth": 1184,
+  "scrollable": false,
+  "segundaLinea": false,
+  "chevrones": 0,
+  "prevDisabled": null,
+  "nextDisabled": null
+ },
+ {
+  "step": "tabs-configuracion",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "scrollWidth": 1184,
+  "clientWidth": 1184,
+  "scrollable": false,
+  "segundaLinea": false,
+  "chevrones": 0,
+  "prevDisabled": null,
+  "nextDisabled": null
+ },
+ {
+  "step": "tabs-produccion",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "botones": 4,
+  "lineas": 1,
+  "scrollWidth": 432,
+  "clientWidth": 432,
+  "chevrones": 0
+ },
+ {
+  "step": "orden-paso1",
+  "theme": "light",
+  "width": 1440,
+  "textarea": 0,
+  "inputs": 0,
+  "combo": 1
+ },
+ {
+  "step": "orden-combobox",
+  "theme": "light",
+  "width": 1440,
+  "opciones": 20,
+  "buscador": true
+ },
+ {
+  "step": "orden-paso2",
+  "theme": "light",
+  "width": 1440,
+  "textarea": 1,
+  "inputs": 3,
+  "cambiar": true
+ },
+ {
+  "step": "tabs-inventario",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "scrollWidth": 290,
+  "clientWidth": 290,
+  "lineas": 1,
+  "chevrones": 0,
+  "segundaLinea": false
+ },
+ {
+  "step": "tabs-planificador",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "scrollWidth": 285,
+  "clientWidth": 285,
+  "lineas": 1,
+  "chevrones": 0,
+  "segundaLinea": false
+ },
+ {
+  "step": "switch-vistas",
+  "theme": "light",
+  "width": 1440,
+  "botones": 2,
+  "pressed": [
+   "true",
+   "false"
+  ],
+  "nombres": [
+   "Ver como lista",
+   "Ver como cuadrícula"
+  ],
+  "checkboxes": 0,
+  "altura": 36
+ },
+ {
+  "step": "header",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "lineas": 2,
+  "alto": 113,
+  "statusTop": 60,
+  "triggerTop": 60,
+  "triggerHeight": 44,
+  "inlineDemo": false
+ },
+ {
+  "step": "demo-drawer",
+  "theme": "dark",
+  "width": 390,
+  "titulo": "Tu demo",
+  "selects": 1,
+  "reset": true,
+  "cliente": true
+ },
+ {
+  "step": "tabs-equipo",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "scrollWidth": 811,
+  "clientWidth": 258,
+  "scrollable": true,
+  "segundaLinea": false,
+  "chevrones": 2,
+  "prevDisabled": true,
+  "nextDisabled": false
+ },
+ {
+  "step": "tabs-configuracion",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "scrollWidth": 457,
+  "clientWidth": 258,
+  "scrollable": true,
+  "segundaLinea": false,
+  "chevrones": 2,
+  "prevDisabled": true,
+  "nextDisabled": false
+ },
+ {
+  "step": "tabs-produccion",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "botones": 4,
+  "lineas": 1,
+  "scrollWidth": 432,
+  "clientWidth": 234,
+  "chevrones": 2
+ },
+ {
+  "step": "orden-paso1",
+  "theme": "dark",
+  "width": 390,
+  "textarea": 0,
+  "inputs": 0,
+  "combo": 1
+ },
+ {
+  "step": "orden-combobox",
+  "theme": "dark",
+  "width": 390,
+  "opciones": 20,
+  "buscador": true
+ },
+ {
+  "step": "orden-paso2",
+  "theme": "dark",
+  "width": 390,
+  "textarea": 1,
+  "inputs": 3,
+  "cambiar": true
+ },
+ {
+  "step": "tabs-inventario",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "scrollWidth": 290,
+  "clientWidth": 290,
+  "lineas": 1,
+  "chevrones": 0,
+  "segundaLinea": false
+ },
+ {
+  "step": "tabs-planificador",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "scrollWidth": 358,
+  "clientWidth": 358,
+  "lineas": 1,
+  "chevrones": 0,
+  "segundaLinea": false
+ },
+ {
+  "step": "switch-vistas",
+  "theme": "dark",
+  "width": 390,
+  "botones": 2,
+  "pressed": [
+   "true",
+   "false"
+  ],
+  "nombres": [
+   "Ver como lista",
+   "Ver como cuadrícula"
+  ],
+  "checkboxes": 0,
+  "altura": 44
+ },
+ {
+  "step": "header",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "lineas": 1,
+  "alto": 57,
+  "statusTop": 8,
+  "triggerTop": 0,
+  "triggerHeight": 0,
+  "inlineDemo": true
+ },
+ {
+  "step": "tabs-equipo",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "scrollWidth": 1184,
+  "clientWidth": 1184,
+  "scrollable": false,
+  "segundaLinea": false,
+  "chevrones": 0,
+  "prevDisabled": null,
+  "nextDisabled": null
+ },
+ {
+  "step": "tabs-configuracion",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "scrollWidth": 1184,
+  "clientWidth": 1184,
+  "scrollable": false,
+  "segundaLinea": false,
+  "chevrones": 0,
+  "prevDisabled": null,
+  "nextDisabled": null
+ },
+ {
+  "step": "tabs-produccion",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "botones": 4,
+  "lineas": 1,
+  "scrollWidth": 432,
+  "clientWidth": 432,
+  "chevrones": 0
+ },
+ {
+  "step": "orden-paso1",
+  "theme": "dark",
+  "width": 1440,
+  "textarea": 0,
+  "inputs": 0,
+  "combo": 1
+ },
+ {
+  "step": "orden-combobox",
+  "theme": "dark",
+  "width": 1440,
+  "opciones": 20,
+  "buscador": true
+ },
+ {
+  "step": "orden-paso2",
+  "theme": "dark",
+  "width": 1440,
+  "textarea": 1,
+  "inputs": 3,
+  "cambiar": true
+ },
+ {
+  "step": "tabs-inventario",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "scrollWidth": 290,
+  "clientWidth": 290,
+  "lineas": 1,
+  "chevrones": 0,
+  "segundaLinea": false
+ },
+ {
+  "step": "tabs-planificador",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "scrollWidth": 285,
+  "clientWidth": 285,
+  "lineas": 1,
+  "chevrones": 0,
+  "segundaLinea": false
+ },
+ {
+  "step": "switch-vistas",
+  "theme": "dark",
+  "width": 1440,
+  "botones": 2,
+  "pressed": [
+   "true",
+   "false"
+  ],
+  "nombres": [
+   "Ver como lista",
+   "Ver como cuadrícula"
+  ],
+  "checkboxes": 0,
+  "altura": 36
+ }
+]

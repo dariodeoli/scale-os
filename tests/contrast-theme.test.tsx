@@ -128,3 +128,23 @@ test('chips, botones llenos y enlaces AA en claro y oscuro (owncoding-ui #13)',(
  const rieles=[[46,0,56],[37,0,47],[10,10,14],[16,16,22]];
  for(const fondo of rieles)for(const alfa of [0.78,0.72])near(ratio(sobre([255,255,255],alfa,fondo),fondo),4.5,`pie del riel ${alfa*100} %`);
 });
+
+// ── Texto secundario y chips neutros (#137) ─────────────────────────────────
+// La auditoría pidió revisar el contraste del texto secundario y de los chips
+// suaves con las guardas existentes. Acá se mide el par real de Scale OS.
+test('texto secundario y chip neutro sostienen AA en claro y oscuro (#137)',()=>{
+ const claro=bloquesDeTokens(tailwind,':root {');
+ const oscuro=bloquesDeTokens(tailwind,'html[data-theme="dark"] {');
+ for(const [tema,bloque] of [['claro',claro],['oscuro',oscuro]] as const){
+  for(const fondo of ['paper','ink','ink-800','ink-700','ink-900','ink-950']){
+   near(ratio(tokenDe(bloque,'mute'),tokenDe(bloque,fondo)),4.5,`${tema}: texto secundario sobre ${fondo}`);
+  }
+ }
+ // Claro: el chip neutro de la librería pinta `text-mute` sobre `bg-ink-600`.
+ near(ratio(tokenDe(claro,'mute'),tokenDe(claro,'ink-600')),4.5,'claro: chip neutro');
+ // Oscuro: `mute` sobre `ink-600` da 4.21:1 (bajo AA); `StateChip` sube el texto
+ // a primer nivel y el par vuelve a pasar.
+ const ui=read('app/ui-v2.tsx');
+ assert.match(ui,/tone === 'mute' \? 'dark:text-fore'/,'StateChip mute usa texto de primer nivel en oscuro');
+ near(ratio(tokenDe(oscuro,'fore'),tokenDe(oscuro,'ink-600')),4.5,'oscuro: chip neutro');
+});

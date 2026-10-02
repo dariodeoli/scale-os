@@ -15,6 +15,7 @@
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
 import {Aviso,BarraProgreso,Button,Card,CeldaMoneda,Drawer,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,MenuDesplegable,MoneyInput,Modal,Nota,SaveActions,SearchField,SegmentedField,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
 import {Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip} from './ui-v2';
+import {TabScroller} from './tab-scroller';
 import {fechaLista,fechaListaCorta} from 'owncoding-ui';
 import {api,Dialog,Editor,money} from './operations';
 import {ActorAvatar,ActorIdentity,safePhoto} from './actor-identity';
@@ -391,7 +392,7 @@ function InventoryPanel(){
       compactos debajo y la explicación solo a tooltip/expandible. */}
   <div className="grid min-w-0 gap-3" data-inventory-toolbar>
    <div className="flex min-w-0 flex-wrap items-end gap-3 xl:flex-nowrap">
-    <SegmentedField className="silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0 [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/>
+    <TabScroller className="max-lg:min-w-0 max-lg:max-w-full lg:shrink-0" label="vistas"><SegmentedField className="max-lg:flex-nowrap [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/></TabScroller>
     {view!=='reservations'?<>
      <SearchField className="min-w-[8rem] flex-1 lg:max-w-72" ariaLabel="Buscar equipo o ubicación" value={search} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setSearch(event.target.value)} placeholder="Memoria, DJI Mic, estante…"/>
      <div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/></div>
@@ -409,7 +410,7 @@ function InventoryPanel(){
     {attentionFilter?<Button type="button" variant="ghost" className="min-h-11 md:min-h-8" onClick={()=>setAttentionFilter('')}>Limpiar atención</Button>:null}
     <button type="button" className="text-button" aria-expanded={attentionHelp} title="Qué cuenta cada chip de atención" onClick={()=>setAttentionHelp(value=>!value)}>¿Qué es?</button>
     <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">
-     <SegmentedField className="silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0 [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
+     <TabScroller className="max-lg:min-w-0 max-lg:max-w-full lg:shrink-0" label="vistas"><SegmentedField className="max-lg:flex-nowrap [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/></TabScroller>
      {selectionEnabled&&visible.length?<button type="button" className="text-button" onClick={selectVisible}>Seleccionar visibles</button>:null}
     </div>
     {attentionHelp?<Nota tono="info" compact className="basis-full">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</Nota>:null}

@@ -117,6 +117,21 @@ html[data-theme="dark"] .foto-perfil{background:#8329c9}
  .control-shell .section-tabs>a{min-height:44px;padding:8px 12px}
 }
 
+/* ── Pestañas desplazables (#137) ───────────────────────────────────────────
+   Patrón único de las barras de pestañas (apartados del shell, Producción,
+   Inventario, planificador): el carril conserva UNA fila y scrollea en
+   horizontal; los chevrones aparecen solo cuando hay pestañas fuera de vista,
+   así ninguna queda cortada sin forma de llegar. En móvil miden 44 px. */
+.control-shell .tab-scroller,.tab-scroller{display:flex;align-items:center;gap:6px;min-width:0;max-width:100%}
+.tab-scroller-track{display:flex;align-items:center;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.tab-scroller-track::-webkit-scrollbar{display:none}
+.tab-scroller-track>*{flex:none}
+.control-shell .tab-scroller-track>.section-tabs{width:max-content;max-width:none;margin-bottom:0;overflow:visible}
+.tab-scroller-button{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-raised,var(--surface));color:var(--text-muted);box-shadow:var(--shadow-xs,var(--shadow-sm));transition:border-color var(--ease),background var(--ease),color var(--ease)}
+.tab-scroller-button:hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
+.tab-scroller-button:disabled{opacity:.4;cursor:default}
+@media(max-width:760px){.tab-scroller-button{width:44px;height:44px}}
+
 /* Stable geometry: selection, hover and focus never change sizes or weights. */
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,button.secondary,button.choice,a.primary,a.secondary){
  min-height:var(--ui-control-height);max-width:100%;padding:8px 14px;
