@@ -129,7 +129,7 @@ test('las secciones COM consumen la primitiva común (#63)',()=>{
  const pipeline=read('app/sections/pipeline.tsx');
  assert.match(pipeline,/<EmptyCta label="Nueva oportunidad"/,'el vacío del pipeline usa el CTA canónico');
  const toolbar=read('app/client-directory-toolbar.tsx');
- assert.match(toolbar,/import \{ViewSwitch\} from '\.\/ui-v2'/,'el toolbar importa la primitiva común');
+ assert.match(toolbar,/import \{ViewSwitch(?:, type CollectionView)?\} from '\.\/ui-v2'/,'el toolbar importa la primitiva común');
  assert.match(toolbar,/<div className="client-directory-view-controls" role="group" aria-label="Vista del directorio">[\s\S]*?<ViewSwitch value=\{view\} onChange=\{onViewChange\}\/>/,'el selector de vista sigue disponible y usable sin depender del ancho de la tabla');
 });
 

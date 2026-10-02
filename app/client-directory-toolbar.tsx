@@ -10,10 +10,9 @@
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
 import {Button, Label, SearchField, Select} from 'owncoding-ui';
-import {ViewSwitch} from './ui-v2';
+import {ViewSwitch, type CollectionView} from './ui-v2';
 import {directorySummaryText} from './client-directory-data';
 import { clientStatuses } from "./client-status";
-import type { CollectionView } from "./view-toggle";
 
 // La lógica pura vive en ./client-directory-data; se reexporta para no romper
 // a los consumidores existentes (el shell importa filterClientDirectory de acá).
