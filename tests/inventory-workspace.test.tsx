@@ -247,8 +247,9 @@ async function run(){
   act(()=>button('Cancelar').props.onClick());assert.equal(closed,closedBefore+1);act(()=>renderer.unmount());
  }
  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
- const archiveCardButton=()=>renderer.root.findAllByType('button').find(node=>String(node.props['aria-label']||'').startsWith('Archivar equipo'))!;
- act(()=>archiveCardButton().props.onClick());
+ // #141: archivar vive en el menú ⋯ de la tarjeta (misma confirmación compartida).
+ act(()=>renderer.root.findAllByType('button').find(node=>node.props['aria-haspopup']==='menu')!.props.onClick());
+ act(()=>renderer.root.findAllByType('button').find(node=>text(node)==='Archivar equipo')!.props.onClick());
  let archiving!:Promise<void>;delayWrites=true;
  act(()=>{archiving=button('Archivar equipo').props.onClick();});
  assert.equal(renderer.root.findByType(MockOverlay).props.busy,true);assert.equal(button('Archivando…').props.disabled,true);
@@ -261,7 +262,8 @@ async function run(){
  await act(async()=>{intervals.forEach(callback=>callback());});
  assert.match(text(renderer.root.findByProps({role:'dialog'})),/Conflicto de reserva/);
  act(()=>button('Cancelar').props.onClick());assert.equal(renderer.root.findAllByType(MockDialog).length,0);
- act(()=>archiveCardButton().props.onClick());assert.equal(renderer.root.findAllByProps({role:'alert'}).length,0,'reopening has no stale archive error');
+ act(()=>renderer.root.findAllByType('button').find(node=>node.props['aria-haspopup']==='menu')!.props.onClick());
+ act(()=>renderer.root.findAllByType('button').find(node=>text(node)==='Archivar equipo')!.props.onClick());assert.equal(renderer.root.findAllByProps({role:'alert'}).length,0,'reopening has no stale archive error');
  await act(async()=>{await button('Archivar equipo').props.onClick();});
  assert.equal(renderer.root.findAllByType(MockOverlay).length,0);assert.match(text(renderer.root),/Equipo archivado/);
  assert.equal(writes.at(-1)!.method,'DELETE');act(()=>renderer.unmount());assert.equal(intervals.size,0);

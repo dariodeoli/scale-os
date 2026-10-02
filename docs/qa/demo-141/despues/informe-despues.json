@@ -1,0 +1,206 @@
+{
+ "generatedAt": "2026-10-02T03:53:59.057Z",
+ "tag": "despues",
+ "checks": [
+  {
+   "label": "producción 390: la tarjeta no repite la descripción",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "producción 390: tarjeta con título/cliente/vence/responsable/avance",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "producción 390: acciones secundarias en el menú ⋯",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "producción 390: ⋯ con Editar y Mover a papelera",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 390: una acción rápida visible",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 390: menú ⋯ de acciones",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 390: sin la fila de seis iconos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 390: ⋯ con Ver detalle",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 390: ⋯ con Editar equipo",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 390: ⋯ con Imprimir etiqueta",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 390: ⋯ con Archivar equipo",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "estudio 390: empty state medido",
+   "ok": true,
+   "value": {
+    "empty": 238,
+    "panel": 280
+   }
+  },
+  {
+   "label": "producción 1440: la tarjeta no repite la descripción",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "producción 1440: tarjeta con título/cliente/vence/responsable/avance",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "producción 1440: acciones secundarias en el menú ⋯",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "producción 1440: ⋯ con Editar y Mover a papelera",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 1440: una acción rápida visible",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 1440: menú ⋯ de acciones",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 1440: sin la fila de seis iconos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 1440: ⋯ con Ver detalle",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 1440: ⋯ con Editar equipo",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 1440: ⋯ con Imprimir etiqueta",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 1440: ⋯ con Archivar equipo",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "estudio 1440: empty state medido",
+   "ok": true,
+   "value": {
+    "empty": 230,
+    "panel": 272
+   }
+  }
+ ],
+ "log": [
+  "\n──── 390×844 ────",
+  "· captura despues/produccion-tablero-390-light.jpg",
+  "· captura despues/produccion-tablero-390-dark.jpg",
+  "✓ producción 390: la tarjeta no repite la descripción: true",
+  "✓ producción 390: tarjeta con título/cliente/vence/responsable/avance: true",
+  "✓ producción 390: acciones secundarias en el menú ⋯: true",
+  "✓ producción 390: ⋯ con Editar y Mover a papelera: true",
+  "· captura despues/produccion-menu-390-light.jpg",
+  "· captura despues/produccion-detalle-390-light.jpg",
+  "· captura despues/inventario-tarjeta-390-light.jpg",
+  "· captura despues/inventario-tarjeta-390-dark.jpg",
+  "✓ inventario 390: una acción rápida visible: true",
+  "✓ inventario 390: menú ⋯ de acciones: true",
+  "✓ inventario 390: sin la fila de seis iconos: true",
+  "· inventario 390: 2 botones visibles — [\"Marcar verificado: Batería Sony\",\"Acciones del equipo: Batería Sony\"]",
+  "✓ inventario 390: ⋯ con Ver detalle: true",
+  "✓ inventario 390: ⋯ con Editar equipo: true",
+  "✓ inventario 390: ⋯ con Imprimir etiqueta: true",
+  "✓ inventario 390: ⋯ con Archivar equipo: true",
+  "· captura despues/inventario-menu-390-light.jpg",
+  "· captura despues/inventario-lista-390-light.jpg",
+  "· captura despues/inventario-pipeline-390-light.jpg",
+  "· captura despues/estudio-vacio-390-light.jpg",
+  "· captura despues/estudio-vacio-390-dark.jpg",
+  "· estudio 390: empty state 238 px · panel 280 px (patrón DSN #138 pendiente)",
+  "\n──── 1440×900 ────",
+  "· captura despues/produccion-tablero-1440-light.jpg",
+  "· captura despues/produccion-tablero-1440-dark.jpg",
+  "✓ producción 1440: la tarjeta no repite la descripción: true",
+  "✓ producción 1440: tarjeta con título/cliente/vence/responsable/avance: true",
+  "✓ producción 1440: acciones secundarias en el menú ⋯: true",
+  "✓ producción 1440: ⋯ con Editar y Mover a papelera: true",
+  "· captura despues/produccion-menu-1440-light.jpg",
+  "· captura despues/produccion-detalle-1440-light.jpg",
+  "· captura despues/inventario-tarjeta-1440-light.jpg",
+  "· captura despues/inventario-tarjeta-1440-dark.jpg",
+  "✓ inventario 1440: una acción rápida visible: true",
+  "✓ inventario 1440: menú ⋯ de acciones: true",
+  "✓ inventario 1440: sin la fila de seis iconos: true",
+  "· inventario 1440: 2 botones visibles — [\"Marcar verificado: Batería Sony\",\"Acciones del equipo: Batería Sony\"]",
+  "✓ inventario 1440: ⋯ con Ver detalle: true",
+  "✓ inventario 1440: ⋯ con Editar equipo: true",
+  "✓ inventario 1440: ⋯ con Imprimir etiqueta: true",
+  "✓ inventario 1440: ⋯ con Archivar equipo: true",
+  "· captura despues/inventario-menu-1440-light.jpg",
+  "· captura despues/inventario-lista-1440-light.jpg",
+  "· captura despues/inventario-pipeline-1440-light.jpg",
+  "· captura despues/estudio-vacio-1440-light.jpg",
+  "· captura despues/estudio-vacio-1440-dark.jpg",
+  "· estudio 1440: empty state 230 px · panel 272 px (patrón DSN #138 pendiente)"
+ ]
+}

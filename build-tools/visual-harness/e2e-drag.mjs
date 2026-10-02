@@ -197,7 +197,10 @@ const cardInColumn=(code,key)=>`(()=>{const c=${cardByCode(code)};return Boolean
 
 const pMove=await dragToVisibleColumn({cardExpression:cardByCode(pBefore.code),columnsSelector:'[data-board-column]',attribute:'data-column-key',excludeKey:pBefore.columnKey});
 await waitFor(cardInColumn(pBefore.code,pMove.key),{label:'tarjeta del pipeline en la nueva columna'});
-check('pipeline mouse: persistido',psql(`select coalesce(l.name,'(sin ubicación)') from agency_inventory i left join agency_inventory_storage_locations l on l.id=i.storage_location_id where i.inventory_code=${sqlText(pBefore.code)}`),pMove.title);
+// La columna «Sin ubicación» se persiste como location_id NULL: el título de la
+// UI no es el valor de la base, se normaliza para comparar.
+const expectedLocation=(move)=>move.key==='sin-ubicacion'?'(sin ubicación)':move.title;
+check('pipeline mouse: persistido',psql(`select coalesce(l.name,'(sin ubicación)') from agency_inventory i left join agency_inventory_storage_locations l on l.id=i.storage_location_id where i.inventory_code=${sqlText(pBefore.code)}`),expectedLocation(pMove));
 log.push(`· pipeline mouse: ${pBefore.column} → ${pMove.title}`);
 
 // Columna de solo lectura (custodia): el drop no debe cambiar nada.
@@ -229,7 +232,7 @@ log.push(`· pipeline touch: tarjeta ${p2.code} en «${p2.column}» (${p2.column
 const pTouch=await dragToVisibleColumn({cardExpression:cardByCode(p2.code),columnsSelector:'[data-board-column]',attribute:'data-column-key',excludeKey:p2.columnKey,mouse:false});
 log.push(`· pipeline touch: destino «${pTouch.title}» (${pTouch.key})`);
 await waitFor(cardInColumn(p2.code,pTouch.key),{label:'tarjeta del pipeline movida por touch'});
-check('pipeline touch: persistido',psql(`select coalesce(l.name,'(sin ubicación)') from agency_inventory i left join agency_inventory_storage_locations l on l.id=i.storage_location_id where i.inventory_code=${sqlText(p2.code)}`),pTouch.title);
+check('pipeline touch: persistido',psql(`select coalesce(l.name,'(sin ubicación)') from agency_inventory i left join agency_inventory_storage_locations l on l.id=i.storage_location_id where i.inventory_code=${sqlText(p2.code)}`),expectedLocation(pTouch));
 log.push(`· pipeline touch: ${p2.column} → ${pTouch.title}`);
 await send('Emulation.setTouchEmulationEnabled',{enabled:false,maxTouchPoints:1});
 
