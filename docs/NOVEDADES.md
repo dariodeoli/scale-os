@@ -2,6 +2,39 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.164
+
+### Plataforma
+
+- **Resumen sin ruido**: «Primeros pasos» pasa a checklist compacto y descartable, y el desglose bimoneda vive bajo «Ver desglose» — el primer pliegue muestra lo que importa.
+- **Equipo más honesto**: la cabecera deja la facturación contratada y los salarios sin monto real ya no muestran placeholders vacíos.
+- **Configuración más clara**: el manual/preview se muda a la ayuda y el lateral de Suscripción gana Cotización e Integraciones.
+- **Carga percibida**: Resumen, Finanzas e Informes piden sus KPIs en la primera llamada, sin cascadas de espera.
+
+### Operaciones
+
+- **Producción compacta**: la tarjeta muestra título, cliente, vencimiento, responsables y avance; descripción y acciones secundarias pasan al detalle o al menú ⋯, sin tocar el arrastre.
+- **Inventario con una sola verificación a la vista**: «Verificar con detalle» se muda al menú ⋯ junto a etiqueta, editar y archivar, con una acción rápida por fila.
+
+### Comercial
+
+- **Clientes**: el estado vacío «Sin contratos» queda en una línea accionable y las acciones por fila se consolidan en un menú ⋯ (la acción rápida sigue visible).
+- **Pipeline**: indicador fuerte de columnas ocultas con acceso directo a esas etapas y tarjetas más cortas: título, cliente, avance y lo esencial.
+
+### Finanzas
+
+- **Primer pliegue en tres bloques**: Balances (disponible por moneda y cuentas), Cobros urgentes (vencidas o por vencer en 7 días, con acceso a «Cobrar» y a Mora) y Proyección (caja, resultado y personal esperado del mes).
+- **Historial en tabs**: transferencias, cobros registrados y movimientos en un solo bloque con contador, sin apilar tres secciones.
+- **Informes**: sin período anterior comparable ya no se dibuja la tarjeta gigante; un aviso de una línea propone reintentar o «Ampliar histórico a 24 meses».
+
+### Diseño y móvil
+
+- **Header móvil en 2 filas**: el modo demo deja de ocupar una fila; «Demo / probar permiso / Así te ve tu cliente / Reiniciar» viven en un popup de 44 px.
+- **Pestañas desplazables**: un solo carril con chevrones cuando hay apartados fuera de vista (Equipo, Configuración, Producción, Inventario y planificador).
+- **Un solo selector de vistas** Lista/Cuadrícula con nombres accesibles, y el chip neutro gana contraste AA en oscuro.
+- **Nueva orden**: el proyecto se elige con combobox buscable y recién al elegir aparece el resto del formulario.
+- Evidencia antes/después 390/1440 en claro y oscuro en `docs/qa/` (#137, #139, #140, #141, #142).
+
 ## v1.0.163
 
 ### Landing
