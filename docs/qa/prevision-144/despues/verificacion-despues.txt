@@ -1,0 +1,24 @@
+✓ pausado (1440 light): el total está visible: true
+✓ pausado (1440 light): el vacío no se muestra: false
+✓ pausado (1440 dark): el total está visible: true
+✓ pausado (1440 dark): el vacío no se muestra: false
+✓ pausado (390 light): el total está visible: true
+✓ pausado (390 light): el vacío no se muestra: false
+✓ pausado (390 dark): el total está visible: true
+✓ pausado (390 dark): el vacío no se muestra: false
+✓ asentado (1440 light): el total está visible: true
+✓ asentado (1440 light): el vacío no se muestra: false
+✓ asentado (1440 light): el detalle del mes está listado: true
+✓ asentado (1440 light): «Ver desglose» está disponible: true
+✓ asentado (1440 dark): el total está visible: true
+✓ asentado (1440 dark): el vacío no se muestra: false
+✓ asentado (1440 dark): el detalle del mes está listado: true
+✓ asentado (1440 dark): «Ver desglose» está disponible: true
+✓ asentado (390 light): el total está visible: true
+✓ asentado (390 light): el vacío no se muestra: false
+✓ asentado (390 light): el detalle del mes está listado: true
+✓ asentado (390 light): «Ver desglose» está disponible: true
+✓ asentado (390 dark): el total está visible: true
+✓ asentado (390 dark): el vacío no se muestra: false
+✓ asentado (390 dark): el detalle del mes está listado: true
+✓ asentado (390 dark): «Ver desglose» está disponible: true
