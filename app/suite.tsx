@@ -10,10 +10,11 @@ import {ProjectPresence} from './presence';
 import {clientStatuses} from './client-status';
 import {ClientAppearance,ClientIdentity} from './client-identity';
 import {useEffect,useState} from 'react';
-import {EmptyBlock,LoadingBlock,ActionMenu,MoneyText,type RecordMenuItem} from './ui-v2';
+import {EmptyBlock,LoadingBlock,ActionMenu,MoneyText,StateChip,type RecordMenuItem} from './ui-v2';
+import {budgetState} from './budget-status';
 export type {RecordMenuItem} from './ui-v2';
 import {activityEvent} from './activity-format';
-import {Building2,ChartNoAxesCombined,CircleDollarSign,Eye,Link2Off,Pencil,Ticket} from 'lucide-react';
+import {Building2,ChartNoAxesCombined,CircleDollarSign,Copy,Eye,Link2,Link2Off,Pencil,Ticket} from 'lucide-react';
 import {api,Dialog,Editor,Field} from './operations';
 import {roleCan} from './capabilities';
 import {Aviso,AvisoPrivacidad,normalizarNombre} from 'owncoding-ui';
@@ -67,7 +68,85 @@ export function RecordEditor({kind,recordId,name,refresh,role,canManageTerms,pla
   ];
  return <>{planCta&&canPlan?planCta==='icon'?<button className="icon-button" type="button" title={`Cargar plan y pago: ${name||'cliente'}`} aria-label={`Cargar plan y pago: ${name||'cliente'}`} onClick={open}><CircleDollarSign size={16}/></button>:<button className="text-button" type="button" title={`Cargar plan y pago: ${name||'cliente'}`} onClick={open}><CircleDollarSign size={14} aria-hidden="true"/>Cargar plan</button>:null}{menu&&menuItems.length?<ActionMenu label={`Acciones: ${name||kind}`} items={menuItems}/>:<>{actions.includes('edit')?<button className="icon-button" type="button" title="Editar" aria-label={`Editar ${name||'registro'}`} onClick={open}><Pencil size={16}/></button>:null}{actions.includes('remove')?<RemoveRecord kind={kind} id={recordId} name={name||`Registro #${recordId}`} role={role} done={refresh}/>:null}</>}{removeOpen?<RemoveRecordDialog kind={kind} id={recordId} name={name||`Registro #${recordId}`} role={role} done={refresh} open onClose={()=>setRemoveOpen(false)}/>:null}{kind==='work-orders'&&['owner','admin','management','production','collaborator'].includes(role)&&<ClientReviewControl orderId={recordId}/>}{error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}{record&&<Dialog title={dialogTitles[kind]} close={()=>setRecord(null)}>{kind==='clients'?<ClientAppearance id={recordId} name={str(record,'name')} logo={str(record,'logo_url')} color={str(record,'color_key')} showIdentity={false} refresh={async()=>{await refresh();await open();}}/>:<ClientIdentity name={str(record,'client_name')} logo={str(record,'client_logo_url')} color={str(record,'client_color_key')}/>}{kind==='clients'&&<AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>}{kind==='projects'&&<ProjectPresence projectId={recordId}/>}{kind!=='clients'?<RecordAssignees kind={kind} id={recordId} role={role} updatedAt={str(record,'updated_at')} refresh={()=>completeSave(()=>setRecord(null),refresh)}>{save=><Editor columns fields={fields} defaults={Object.fromEntries(fields.map(f=>[f.key,f.key==='drive_links'?driveLinksText(record.drive_links,str(record,'drive_url')):f.type==='date'?str(record,f.key).slice(0,10):f.type==='time'?str(record,f.key).slice(0,5):str(record,f.key)]))} save={save}/>}</RecordAssignees>:<>{planError&&<Aviso tono="error" compact role="alert">{planError}</Aviso>}<Editor key={`${str(record,'updated_at')}:${canPlan?planData?terms?.updatedAt||'loaded':'loading':'off'}`} columns fields={clientFields} label='Guardar' defaults={{...clientDefaults,...planDefaults}} save={async v=>{const clientPayload={name:v.name,email:v.email,phone:v.phone,lifecycle_status:v.lifecycle_status,tax_id:v.tax_id,legal_name:v.legal_name,notes:v.notes};await api(`/api/agency/clients/${recordId}`,clientPayload,'PATCH');if(canPlan&&planData){if(!isWholeTransport(v.plan_amount,false))throw Error('Ingresá un importe mensual entero positivo.');if(!isDate(v.plan_starts_on))throw Error('Completá la fecha real de inicio comercial.');if(v.plan_ends_on&&(!isDate(v.plan_ends_on)||v.plan_ends_on<v.plan_starts_on))throw Error('La fecha de fin debe ser válida y posterior al inicio.');const activeTerms=planData.terms;await api(`/api/agency/clients/${recordId}/commercial-terms`,{planId:v.plan_plan_id,recurringAmount:v.plan_amount,currency:v.plan_currency,startsOn:v.plan_starts_on,endsOn:v.plan_ends_on||null,cadence:v.plan_cadence,intervalMonths:Number(v.plan_interval||1),invoiceRequired:v.plan_invoice_required==='true',commissionRecipientId:activeTerms?.commissionMode==='none'?null:activeTerms?.commissionRecipientId||null,commissionMode:activeTerms?.commissionMode||'none',commissionValue:activeTerms?.commissionMode==='none'?null:activeTerms?.commissionValue??null},'PATCH');}await completeSave(()=>setRecord(null),refresh);}}/></>}{kind==='work-orders'&&['owner','admin','management','production','collaborator'].includes(role)&&['review','approved'].includes(str(record,'status'))&&<button className="secondary" onClick={async()=>{try{await api(`/api/agency/work-orders/${recordId}/${record.status==='review'?'approve':'publish'}`,{});await refresh();await open();}catch(e){setError(err(e));}}}>{record.status==='review'?`Aprobar siguiente nivel (completados: ${str(record,'approval_step')})`:'Marcar publicado'}</button>}{error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}</Dialog>}</>;
 }
-export function BudgetActions({id,refresh,role,canInvoice,variant='text',label}:{id:string;refresh:()=>Promise<void>;role?:string;canInvoice?:boolean;variant?:'text'|'icon';label?:string}){const [record,setRecord]=useState<Row|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[publicUrl,setPublicUrl]=useState(''),[confirming,setConfirming]=useState<'revoke'|'invoice'|''>('');const invoiceAllowed=canInvoice??roleCan(role,'invoices.manage');const shared=Boolean(publicUrl)||record?.share_enabled===true;const open=async()=>{setError('');setNotice('');try{const d=await api<{budget:Row;items:unknown[]}>(`/api/agency/budgets/${id}`);setRecord({...d.budget,items:d.items});setConfirming('');}catch(e){setError(err(e));}};return <>{variant==='icon'?<button className="icon-button" type="button" title={label?`Abrir presupuesto: ${label}`:'Abrir presupuesto'} aria-label={label?`Abrir presupuesto: ${label}`:'Abrir presupuesto'} onClick={()=>void open()}><Eye size={16}/></button>:<button className="text-button" onClick={()=>void open()}><Eye size={14}/>Abrir presupuesto</button>}{error&&<Aviso tono="error" role="alert" compact>{error}</Aviso>}{notice&&<Aviso tono="ok" role="status" compact>{notice}</Aviso>}{record&&<Dialog title={str(record,'number')} close={()=>setRecord(null)}><div className="inline-actions"><a className="secondary" href={`/core-api/api/agency/budgets/${id}/pdf`} target="_blank" rel="noreferrer">Descargar PDF</a><button className="secondary" onClick={async()=>{setError('');setNotice('');try{setPublicUrl((await api<{url:string}>(`/api/agency/budgets/${id}/share`,{})).url);await refresh();}catch(e){setError(err(e));}}}>Habilitar enlace público</button>{shared?confirming==='revoke'?<><span role="alert">¿Desactivar el enlace público?</span><button className="secondary danger" onClick={async()=>{setError('');try{await api(`/api/agency/budgets/${id}/revoke`,{});setPublicUrl('');setConfirming('');await refresh();}catch(e){setError(err(e));}}}>Confirmar</button><button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button></>:<button className="text-button danger" onClick={()=>setConfirming('revoke')}><Link2Off size={14}/>Desactivar enlace</button>:null}</div>{publicUrl&&<p><a href={publicUrl} target="_blank" rel="noreferrer">{publicUrl}</a></p>}{error&&<Aviso tono="error" role="alert" compact>{error}</Aviso>}{record.status==='accepted'?<><p>{str(record,'accepted_by')?`Aceptado por ${str(record,'accepted_by')}. El contenido está protegido.`:'Aceptado. El contenido está protegido.'}</p>{invoiceAllowed?<>{confirming==='invoice'?<><span role="alert">¿Crear la factura de este presupuesto?</span><button className="primary" onClick={async()=>{setError('');try{await api(`/api/agency/budgets/${id}/invoice`,{});setConfirming('');setNotice('Factura creada o recuperada. La encontrás en Finanzas.');}catch(e){setError(err(e));}}}>Confirmar</button><button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button></>:<button className="primary" onClick={()=>setConfirming('invoice')}>Crear factura</button>}</>:null}</>:<QuoteComposer mode="budget" record={record} done={async()=>{await completeSave(()=>setRecord(null),refresh);}}/>}</Dialog>}</>;}
+const numberOrNull=(value:unknown)=>{if(value===null||value===undefined||value==='')return null;const parsed=Number(value);return Number.isFinite(parsed)?parsed:null;};
+function BudgetConsult({record}:{record:Row}){
+ const items=(Array.isArray(record.items)?record.items:[]) as Row[];
+ const state=budgetState(record.status);
+ const valid=str(record,'valid_until').slice(0,10);
+ const currency=str(record,'currency')||'PYG';
+ const subtotal=numberOrNull(record.subtotal),total=numberOrNull(record.total);
+ const taxes=subtotal!==null&&total!==null?total-subtotal:null;
+ return <section className="grid gap-3" aria-label="Detalle del presupuesto">
+  <header className="flex flex-wrap items-center gap-x-4 gap-y-2">
+   <StateChip tone={state.tone}>{state.label}</StateChip>
+   <span className="min-w-0 truncate text-sm text-fore" title={str(record,'client_name')}>{str(record,'client_name')||'Sin cliente'}</span>
+   <span className="text-xs text-mute">Vigencia: <span className="list-date">{valid?listDateShort(valid):'Sin vigencia'}</span></span>
+  </header>
+  {items.length?<div className="grid gap-1">
+   {items.map((item,index)=><div key={String(item.id??index)} className="flex items-baseline justify-between gap-3 border-b border-ink-600/60 pb-1.5 text-sm text-fore">
+    <span className="min-w-0 [overflow-wrap:anywhere]">{String(item.description||'Ítem')}<small className="mt-0.5 block text-[11px] text-mute">{String(item.quantity??0)} × <MoneyText valor={numberOrNull(item.unit_price)} currency={currency}/></small></span>
+    <MoneyText valor={numberOrNull(item.total)} currency={currency}/>
+   </div>)}
+  </div>:<p className="m-0 text-xs text-mute">Sin ítems guardados.</p>}
+  <dl className="m-0 grid gap-1 border-t border-ink-600 pt-2">
+   <div className="flex items-baseline justify-between gap-3 text-xs text-mute"><dt>Subtotal · IVA excl.</dt><dd className="m-0"><MoneyText valor={subtotal} currency={currency}/></dd></div>
+   <div className="flex items-baseline justify-between gap-3 text-xs text-mute"><dt>IVA ({Math.round(Number(record.tax_rate||0)*100)}%)</dt><dd className="m-0"><MoneyText valor={taxes} currency={currency}/></dd></div>
+   <div className="flex items-baseline justify-between gap-3 text-sm font-semibold text-fore"><dt>Total · IVA incl.</dt><dd className="m-0"><MoneyText valor={total} currency={currency}/></dd></div>
+  </dl>
+  {str(record,'notes')?<p className="m-0 text-xs leading-5 text-mute"><b className="text-fore">Condiciones: </b>{str(record,'notes')}</p>:null}
+ </section>;
+}
+export function BudgetActions({id,refresh,role,canInvoice,variant='text',label}:{id:string;refresh:()=>Promise<void>;role?:string;canInvoice?:boolean;variant?:'text'|'icon';label?:string}){
+ const [record,setRecord]=useState<Row|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[publicUrl,setPublicUrl]=useState(''),[confirming,setConfirming]=useState<'revoke'|'invoice'|'share'|''>(''),[editing,setEditing]=useState(false);
+ const invoiceAllowed=canInvoice??roleCan(role,'invoices.manage');
+ const shared=Boolean(publicUrl)||record?.share_enabled===true;
+ const valid=String(record?.valid_until||'').slice(0,10);
+ const accepted=record?.status==='accepted';
+ const open=async()=>{setError('');setNotice('');setEditing(false);setConfirming('');try{const d=await api<{budget:Row;items:unknown[]}>(`/api/agency/budgets/${id}`);setRecord({...d.budget,items:d.items});}catch(e){setError(err(e));}};
+ const updateShare=async(enabled:boolean)=>{setError('');setNotice('');try{
+  if(enabled){setPublicUrl((await api<{url:string}>(`/api/agency/budgets/${id}/share`,{})).url);setRecord(current=>current?{...current,share_enabled:true,status:current.status==='draft'?'sent':current.status}:current);}
+  else{await api(`/api/agency/budgets/${id}/revoke`,{});setPublicUrl('');setRecord(current=>current?{...current,share_enabled:false}:current);}
+  setConfirming('');await refresh();
+ }catch(e){setError(err(e));}};
+ const copyLink=async()=>{if(!publicUrl)return;try{await navigator.clipboard?.writeText(publicUrl);setNotice('Enlace copiado.');}catch{setNotice('No se pudo copiar; seleccioná el enlace y copialo a mano.');}};
+ return <>{variant==='icon'?<button className="icon-button" type="button" title={label?`Abrir presupuesto: ${label}`:'Abrir presupuesto'} aria-label={label?`Abrir presupuesto: ${label}`:'Abrir presupuesto'} onClick={()=>void open()}><Eye size={16}/></button>:<button className="text-button" onClick={()=>void open()}><Eye size={14}/>Abrir presupuesto</button>}
+ {!record&&error&&<Aviso tono="error" role="alert" compact>{error}</Aviso>}
+ {record&&<Dialog title={str(record,'number')||'Presupuesto'} close={()=>setRecord(null)}>
+  <div className="grid gap-4">
+   {error&&<Aviso tono="error" role="alert" compact>{error}</Aviso>}
+   {/* Acciones visibles primero (#150): consultar, descargar y compartir sin entrar al editor. */}
+   <div className="inline-actions">
+    <a className="secondary" href={`/core-api/api/agency/budgets/${id}/pdf`} target="_blank" rel="noreferrer">Descargar PDF</a>
+    {accepted||editing?null:<button className="secondary" onClick={()=>setEditing(true)}>Editar presupuesto</button>}
+    {shared
+     ?<button className="text-button danger" onClick={()=>{setConfirming('revoke');setNotice('');}}><Link2Off size={14}/>Desactivar enlace</button>
+     :<button className="secondary" onClick={()=>{setConfirming('share');setNotice('');}}><Link2 size={14}/>Habilitar enlace público</button>}
+   </div>
+   {publicUrl&&<p className="m-0 flex flex-wrap items-center gap-2 text-xs [overflow-wrap:anywhere]"><a href={publicUrl} target="_blank" rel="noreferrer" className="text-button">{publicUrl}</a><button type="button" className="text-button" onClick={()=>void copyLink()}><Copy size={12}/>Copiar enlace</button></p>}
+   {confirming==='share'&&<div className="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 text-xs leading-5 text-mute" role="group" aria-label="Condiciones del enlace público">
+    <p className="m-0"><b className="text-fore">Alcance.</b> Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta.</p>
+    <p className="m-0"><b className="text-fore">Vencimiento.</b> {valid?`La vigencia cargada llega hasta el ${listDateShort(valid)}; desde esa fecha el enlace deja de aceptar respuestas.`:'No hay vigencia cargada: el enlace sigue activo hasta que lo desactives.'}</p>
+    <p className="m-0"><b className="text-fore">Revocación.</b> Podés desactivarlo cuando quieras desde este diálogo; el enlace deja de funcionar al instante.</p>
+    <div className="inline-actions">
+     <button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button>
+     <button className="primary" onClick={()=>void updateShare(true)}>Habilitar enlace</button>
+    </div>
+   </div>}
+   {confirming==='revoke'&&<div className="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 text-xs leading-5 text-mute" role="group" aria-label="Revocar enlace público">
+    <p className="m-0"><b className="text-fore">¿Desactivar el enlace público?</b> El enlace deja de funcionar al instante; el presupuesto queda guardado y podés volver a habilitarlo cuando quieras.</p>
+    <div className="inline-actions">
+     <button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button>
+     <button className="secondary danger" onClick={()=>void updateShare(false)}>Confirmar</button>
+    </div>
+   </div>}
+   {accepted&&<><p className="m-0 text-sm text-fore">{str(record,'accepted_by')?`Aceptado por ${str(record,'accepted_by')}. El contenido está protegido.`:'Aceptado. El contenido está protegido.'}</p>{invoiceAllowed&&(confirming==='invoice'
+    ?<div className="inline-actions"><span role="alert" className="text-xs font-semibold text-warn">¿Crear la factura de este presupuesto?</span><button className="primary" onClick={async()=>{setError('');try{await api(`/api/agency/budgets/${id}/invoice`,{});setConfirming('');setNotice('Factura creada o recuperada. La encontrás en Finanzas.');}catch(e){setError(err(e));}}}>Confirmar</button><button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button></div>
+    :<div className="inline-actions"><button className="primary" onClick={()=>setConfirming('invoice')}>Crear factura</button></div>)}</>}
+   {editing&&!accepted?<QuoteComposer mode="budget" record={record} done={async()=>{await completeSave(()=>setRecord(null),refresh);}}/>:<BudgetConsult record={record}/>}
+   {notice&&<Aviso tono="ok" role="status" compact>{notice}</Aviso>}
+  </div>
+ </Dialog>}
+ </>;}
 export function ActivityWorkspace(){
  // Ventana de servidor (#106): el API entrega de a 20 con total honesto y el
  // front pide la página siguiente; el agrupado por día se mantiene sobre lo cargado.
