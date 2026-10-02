@@ -29,7 +29,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
    <h3 className="text-[17px] font-bold tracking-tight text-fore">Datos comerciales y reportes</h3>
    {data&&!editable?<span className="rounded-md border border-ink-600 bg-ink-700 px-2 py-0.5 text-xs font-medium text-mute">Solo lectura</span>:null}
   </div>
-  <Nota tono="info" compact>Registrá solo información conocida. Estos campos no reconstruyen automáticamente estados pasados. Si no conocés la fecha real de inicio, dejala vacía.</Nota>
+  <Nota tono="info" compact>Registrá solo información conocida. Estos campos no reconstruyen automáticamente estados pasados. Si no conocés la fecha de inicio de la relación, dejala vacía.</Nota>
   {!data&&!error?<LoadingBlock label="Cargando datos del cliente…" lines={3}/>:null}
   {data?<>
    {!writable?<p className="text-sm text-mute">Solo lectura: Finanzas puede consultar estos datos, no modificarlos.</p>:record?.archived?<p className="text-sm text-mute">El cliente está archivado. Esta ficha es de solo lectura.</p>:null}
@@ -56,7 +56,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
       {data.plans.map(plan=><option key={plan.id} value={String(plan.id)}>{plan.name}</option>)}
      </Select>
     </FormField>
-    <FormField label="Fecha real de inicio (opcional)" htmlFor="client-reporting-relationship">
+    <FormField label="Inicio de relación (opcional)" htmlFor="client-reporting-relationship">
      <Input id="client-reporting-relationship" type="date" className="w-40" min="1900-01-01" max={todayAsuncion()} value={draft.relationshipStartedOn} disabled={disabled} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setDraft(current=>({...current,relationshipStartedOn:event.target.value}))}/>
     </FormField>
     {financial&&termData?<>
