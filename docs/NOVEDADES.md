@@ -2,6 +2,33 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.165
+
+### Diseño y móvil
+
+- **Tarjetas compactas con menú ⋯**: las tarjetas de los tableros y listas adoptan el patrón estándar (título, contexto, meta y avance) con las acciones secundarias en un menú desplegable, sin perder la acción rápida.
+- **Carga con la forma real**: los esqueletos dibujan la estructura del bloque que va a llegar (tarjeta, tabla, panel) y los datos se piden antes, para que el contenido no salte al aparecer.
+- **Vacíos en una línea**: los bloques sin datos pasan a un aviso compacto y accionable, descartable cuando aplica; el vacío principal conserva su formato.
+
+### Comercial
+
+- **Ficha de cliente coherente**: «Cliente desde» pasa a ser el alta real del cliente (hora de Asunción) y «Inicio de relación» aparece solo cuando difiere; las etiquetas quedan únicas en toda la app.
+- **Montos formateados**: las notas del cliente y el fixture de demostración ya no muestran importes crudos («PYG 3000000.00» → «Gs. 3.000.000»).
+- **KPIs de Pipeline en móvil**: los indicadores se leen en una fila compacta en vez de cuatro tarjetas apiladas.
+
+### Operaciones
+
+- **Detalle de proyecto fiel**: el contador de piezas de la ficha usa la misma fuente que la lista (se terminó el «0 vs 4»).
+- **Calendario de Inventario**: agenda semanal en móvil (días vacíos bajos, navegación ‹ › + Hoy) y mini calendario mensual en escritorio, con las reservas a la vista.
+- **Ubicaciones compactas**: «Ordenar/Ocultar» pasan al menú ⋯ del encabezado y las filas de ubicaciones quedan en una línea.
+
+### Plataforma
+
+- **Permisos por módulo**: la tabla de 34 permisos se reemplaza por un acordeón por módulo con pastillas editables por cargo (44 px en móvil) y el resumen por cargo plegado; sin perder capacidades, ajustes ni la aclaración del Dueño.
+- **Actividad legible**: los eventos se leen como «Factura emitida» o «Pago recibido», con cliente, referencia e importe; el detalle técnico queda para escritorio y el tooltip.
+- **Papelera e Invitaciones**: «Restaurar» queda siempre visible en móvil y el bloqueo por demo pasa a un aviso compacto.
+- **Equipo y Preferencias**: los KPIs usan la franja compacta del sistema, sin variantes paralelas.
+
 ## v1.0.164
 
 ### Plataforma
