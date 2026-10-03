@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {clientPortal} from './client-portal.js';
+import {readClientPortalSession} from './client-portal-session.js';
 
 const pg=new PGlite();
 for(const file of ['schema.sql','migrations/20260908_google_oauth.sql','migrations/20260908_treasury_ledger.sql','migrations/20260908_people_commissions_comments.sql','migrations/20260908_operations_complete.sql','migrations/20260908_referral_discounts.sql','migrations/20260908_collaborator_profiles.sql','migrations/20260908_agency_suite.sql','migrations/20260908_daily_controls.sql','migrations/20260910_productivity.sql','migrations/20260910_work_checklists.sql','migrations/20260910_demo_sessions.sql','migrations/20260910_notifications.sql','migrations/20260910_project_assignees.sql','migrations/20260910_invite_links.sql','migrations/20260910_global_identity.sql','migrations/20260912_client_portal.sql','migrations/20260912_client_portal_password_resets.sql','migrations/20260913_client_portal_vertical_slice.sql','migrations/20260913_ruc_collaboration.sql','migrations/20260914_production_traceability.sql','migrations/20260930_personal_data.sql'])await pg.exec(await fs.readFile(file,'utf8'));
@@ -26,6 +27,8 @@ const publishedA=await call(`/api/agency/work-orders/${orderA}/client-portal-del
 assert.equal((await call(`/api/agency/work-orders/${orderB}/client-portal-delivery`,{method:'POST',payload:{assetUrl:'https://drive.google.com/b',assetName:'Archivo B'}})).status,200);
 const created=await call(`/api/agency/clients/${clientA}/client-portal-invites`,{method:'POST',payload:{email:'cliente@example.invalid'}});assert.equal(created.status,201);assert.match(created.url,/^https:\/\/app\.scaleparaguay\.com\/cliente\/invitacion\?token=/);const inviteToken=new URL(created.url).searchParams.get('token');assert.ok(inviteToken);
 assert.equal((await call('/api/client-portal/invites/preview?token='+inviteToken,{actor:null})).status,200);
+assert.equal((await call('/api/client-portal/invites/preview?token=no-es-token',{actor:null})).status,400,'un token mal formado no filtra estado');
+const unknownPreview=await call('/api/client-portal/invites/preview?token='+'a'.repeat(64),{actor:null});assert.equal(unknownPreview.status,410);assert.equal(unknownPreview.link_status,undefined,'un token desconocido no revela contenido');
 const originalPassword='Orquidea-seguro-123!';
 assert.equal((await call('/api/client-portal/invites/accept',{method:'POST',actor:null,payload:{token:inviteToken,fullName:'Cliente QA',password:originalPassword}})).status,201);
 const accepted=await call('/api/client-portal/invites/accept',{method:'POST',actor:null,payload:{token:inviteToken,fullName:'Cliente QA',password:originalPassword}});assert.equal(accepted.status,410);assert.equal(accepted.link_status,'used');
@@ -34,6 +37,7 @@ const revokedAccept=await call('/api/client-portal/invites/accept',{method:'POST
 const expiredInvite=await call(`/api/agency/clients/${clientA}/client-portal-invites`,{method:'POST',payload:{email:'expired@example.invalid'}});const expiredToken=new URL(expiredInvite.url).searchParams.get('token');await query("update client_portal_invites set expires_at=now()-interval '1 second' where email_normalized='expired@example.invalid'");const expiredPreview=await call('/api/client-portal/invites/preview?token='+expiredToken,{actor:null});assert.equal(expiredPreview.status,410);assert.equal(expiredPreview.link_status,'expired');
 const session=(await query('select token_hash from client_portal_sessions')).rows[0].token_hash; // raw token is returned only in Set-Cookie; obtain it from prior response below instead.
 const login=await call('/api/client-portal/auth/login',{method:'POST',actor:null,payload:{email:'cliente@example.invalid',password:originalPassword}});assert.equal(login.status,200);const sessionCookie=login.headers['Set-Cookie'];assert.match(sessionCookie,/__Host-scale_client_session=/);
+assert.match(sessionCookie,/HttpOnly/);assert.match(sessionCookie,/Secure/);assert.match(sessionCookie,/SameSite=Lax/);assert.match(sessionCookie,/Path=\//);assert.match(sessionCookie,/Max-Age=604800/);
 const passwordRequest=await call('/api/client-portal/auth/password/request',{method:'POST',actor:null,payload:{email:'cliente@example.invalid'}});assert.equal(passwordRequest.status,202);assert.equal(resetMails.length,1);
 const replacementPassword='Portal-nuevo-456!';
 assert.equal((await call('/api/client-portal/auth/password/reset',{method:'POST',actor:null,payload:{token:resetMails[0].raw,password:replacementPassword,email:'cliente@example.invalid'}})).status,200);
@@ -59,6 +63,8 @@ assert.ok(decisionNotice,'a client decision enqueues an internal notification fo
 assert.equal(String(decisionNotice.user_id),String(owner));assert.equal(decisionNotice.kind,'comment');assert.equal(decisionNotice.title,'El cliente pidió cambios en Entrega A');assert.equal(decisionNotice.body,'Ajustar el cierre del video');
 assert.equal((await call(`/api/client-portal/deliveries/${deliveryId}/decision`,{method:'POST',actor:null,cookie:renewedSessionCookie,payload:{decision:'approved',comment:'Revisamos y está aprobado'}})).status,200);
 assert.equal((await query('select count(*)::int as count from agency_notifications where dedupe_key=$1',[decisionDedupe])).rows[0].count,1,'re-deciding the same version never duplicates the internal notification');
+const boardWithDecision=(await call('/api/client-portal/deliveries',{actor:null,cookie:renewedSessionCookie})).deliveries.find(row=>String(row.id)===String(deliveryId));
+assert.equal(boardWithDecision.decision,'approved','el tablero expone la decisión de la versión vigente');
 assert.equal((await query('select status from agency_work_orders where id=$1',[orderA])).rows[0].status,'approved','la decisión del cliente no modifica el estado interno');
 assert.equal((await call(`/api/client-portal/deliveries/${deliveryId}/comments`,{method:'POST',actor:null,cookie:renewedSessionCookie,origin:'https://evil.example',payload:{body:'Intento externo'}})).status,403,'el portal rechaza escrituras desde otro origen');
 const otherInvite=await call(`/api/agency/clients/${clientB}/client-portal-invites`,{method:'POST',payload:{email:'cliente@example.invalid'}});const otherToken=new URL(otherInvite.url).searchParams.get('token');assert.equal((await call('/api/client-portal/invites/accept',{method:'POST',actor:null,payload:{token:otherToken,fullName:'Cliente QA',password:replacementPassword}})).status,409,'one portal account cannot be attached to a second client');
@@ -82,6 +88,13 @@ const orderReview=(await query("insert into agency_work_orders(organization_id,p
 assert.equal((await call(`/api/agency/work-orders/${orderReview}/client-portal-delivery`,{method:'POST',payload:{assetUrl:'https://drive.google.com/review',assetName:'Revisión'}})).status,409,'review status is not publishable');
 // Republish bumps the version; the audited bump joins the activity log.
 assert.equal((await call(`/api/agency/work-orders/${orderA}/client-portal-delivery`,{method:'POST',payload:{assetUrl:'https://drive.google.com/a-v2',assetName:'Archivo A v2'}})).status,200);
+const boardAfterRepublish=(await call('/api/client-portal/deliveries',{actor:null,cookie:renewedSessionCookie})).deliveries.find(row=>String(row.id)===String(deliveryId));
+assert.equal(boardAfterRepublish.decision,null,'una versión nueva no hereda la decisión anterior');
+assert.equal((await call(`/api/agency/work-orders/${orderA}/client-portal-delivery`,{method:'PATCH',payload:{visible:false}})).status,200);
+assert.equal((await call(`/api/agency/work-orders/${orderA}/client-portal-delivery`,{method:'PATCH',payload:{visible:true}})).status,200);
+const restored=(await query('select version,visible from client_portal_deliveries where work_order_id=$1',[orderA])).rows[0];
+assert.equal(restored.version,2,'mostrar de nuevo una entrega publicada no inventa una versión');
+assert.equal(restored.visible,true);
 const activity=await call(`/api/client-portal/deliveries/${deliveryId}/activity`,{actor:null,cookie:renewedSessionCookie});
 assert.equal(activity.status,200);assert.ok(Array.isArray(activity.activity));
 const kinds=activity.activity.map(entry=>entry.kind);
@@ -100,6 +113,9 @@ assert.equal((await call(`/api/agency/work-orders/${orderSilent}/client-portal-d
 const silentId=(await query('select id from client_portal_deliveries where work_order_id=$1',[orderSilent])).rows[0].id;
 const silentActivity=await call(`/api/client-portal/deliveries/${silentId}/activity`,{actor:null,cookie:renewedSessionCookie});
 assert.equal(silentActivity.status,200);assert.deepEqual(silentActivity.activity,[],'empty state renders for a delivery without activity');
+const noAssigneeComment=await call(`/api/client-portal/deliveries/${silentId}/comments`,{method:'POST',actor:null,cookie:renewedSessionCookie,payload:{body:'Sin responsables'}});
+assert.equal(noAssigneeComment.status,201,'comentar una entrega sin responsables no falla');
+assert.equal((await query('select count(*)::int as count from agency_notifications where work_order_id=$1',[orderSilent])).rows[0].count,0,'sin responsables no hay aviso interno');
 // CP-2 own-client scope: another client's delivery is unreachable.
 const deliveryB=(await query('select id from client_portal_deliveries where work_order_id=$1',[orderB])).rows[0].id;
 assert.equal((await call(`/api/client-portal/deliveries/${deliveryB}/activity`,{actor:null,cookie:renewedSessionCookie})).status,404,'a granted client never reads another client delivery');
@@ -130,4 +146,28 @@ await query('insert into agency_notification_preferences(organization_id,user_id
 const mutedComment=await call(`/api/client-portal/deliveries/${deliveryId}/comments`,{method:'POST',actor:null,cookie:renewedSessionCookie,payload:{body:'Comentario silencioso'}});
 assert.equal(mutedComment.status,201);
 assert.equal((await query('select count(*)::int as count from agency_notifications where dedupe_key=$1',[`portal-comment-${deliveryId}-${mutedComment.comment.id}`])).rows[0].count,0,'a member with comment notifications disabled is never notified');
+// QA #153: sesión vencida, usuario deshabilitado y logout cierran el portal;
+// la cookie del panel nunca es sesión del portal; la recuperación es uniforme.
+async function portalLogin(){const r=await call('/api/client-portal/auth/login',{method:'POST',actor:null,payload:{email:'cliente@example.invalid',password:replacementPassword}});assert.equal(r.status,200);return r.headers['Set-Cookie'];}
+const expirableCookie=await portalLogin();
+await query("update client_portal_sessions set expires_at=now()-interval '1 second' where portal_user_id=(select id from client_portal_users where email_normalized='cliente@example.invalid')");
+assert.equal((await call('/api/client-portal/deliveries',{actor:null,cookie:expirableCookie})).status,401,'una sesión vencida no entrega datos');
+const disabledCookie=await portalLogin();
+await query("update client_portal_users set disabled_at=now() where email_normalized='cliente@example.invalid'");
+assert.equal((await call('/api/client-portal/deliveries',{actor:null,cookie:disabledCookie})).status,401,'un usuario deshabilitado pierde el portal');
+await query("update client_portal_users set disabled_at=null where email_normalized='cliente@example.invalid'");
+const logoutCookie=await portalLogin();
+assert.equal((await call('/api/client-portal/auth/logout',{method:'POST',actor:null,cookie:logoutCookie})).status,200);
+assert.equal((await call('/api/client-portal/deliveries',{actor:null,cookie:logoutCookie})).status,401,'el logout borra la sesión');
+assert.equal(await readClientPortalSession(db,{headers:{cookie:'scale_session='+'b'.repeat(64)}}),null,'la cookie del panel no es sesión del portal');
+const mailsBefore=resetMails.length;
+const unknownRequest=await call('/api/client-portal/auth/password/request',{method:'POST',actor:null,payload:{email:'noexiste@example.invalid'}});
+assert.equal(unknownRequest.status,202);assert.equal(unknownRequest.message,passwordRequest.message,'la respuesta no revela si el correo existe');assert.equal(resetMails.length,mailsBefore,'un correo inexistente no recibe enlace');
+assert.equal((await call('/api/client-portal/auth/password/request',{method:'POST',actor:null,payload:{email:'cliente@example.invalid'}})).status,202);assert.equal(resetMails.length,mailsBefore+1);
+await query("update client_portal_password_resets set expires_at=now()-interval '1 second'");
+assert.equal((await call('/api/client-portal/auth/password/reset',{method:'POST',actor:null,payload:{token:resetMails.at(-1).raw,password:'Vencida-clave-321!',email:'cliente@example.invalid'}})).status,400,'un token de reset vencido se rechaza');
+const downloadsBefore=(await query('select count(*)::int as count from client_portal_delivery_downloads where delivery_id=$1',[deliveryId])).rows[0].count;
+const anonDownload=await call(`/api/client-portal/deliveries/${deliveryId}/download`,{actor:null});
+assert.equal(anonDownload.status,302,'sin sesión la descarga redirige al ingreso');assert.match(anonDownload.headers.Location,/\/cliente\/ingresar$/);
+assert.equal((await query('select count(*)::int as count from client_portal_delivery_downloads where delivery_id=$1',[deliveryId])).rows[0].count,downloadsBefore,'una descarga anónima no se audita como autorizada');
 assert.equal(session.length,64);await pg.close();console.log('PASS: isolated client identities, one-client accounts, authorized delivery downloads, comments, decisions and revocation, client-visible link filtering, scoped activity logs, private-by-default portal exposure, internal notifications for portal comments and decisions and immediate grant revocation');

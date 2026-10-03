@@ -103,7 +103,7 @@ const proxy=createServer(async(req,res)=>{
   const url=new URL(req.url,'http://127.0.0.1');
   const target=url.pathname.startsWith('/core-api/')?`http://127.0.0.1:${API_PORT}${url.pathname.replace('/core-api','')}${url.search}`:`http://127.0.0.1:${FRONT_PORT}${req.url}`;
   const body=req.method==='GET'||req.method==='HEAD'?undefined:await new Promise(r=>{const chunks=[];req.on('data',c=>chunks.push(c));req.on('end',()=>r(Buffer.concat(chunks)));});
-  const upstream=await fetch(target,{method:req.method,headers:{...req.headers,host:undefined},body,redirect:'manual'});
+  const upstream=await fetch(target,{method:req.method,headers:{...req.headers,host:'app.scaleparaguay.com'},body,redirect:'manual'});
   const headers={};upstream.headers.forEach((value,key)=>{if(!['content-encoding','transfer-encoding','content-length'].includes(key))headers[key]=value;});
   res.writeHead(upstream.status,headers);
   res.end(Buffer.from(await upstream.arrayBuffer()));
