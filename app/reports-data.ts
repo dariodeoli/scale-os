@@ -9,6 +9,7 @@
  */
 
 import {currentAsuncionMonth} from './client-format';
+import {listMonthLabel} from './month-format';
 
 export type ReportMonth = {
   month: string;
@@ -137,9 +138,7 @@ export function monthOf(value: string | null): string | null {
 
 /** Etiqueta corta de mes con el mismo formato de tabla que `list-format` (`01-jul`). */
 export function monthLabel(value: string): string {
-  const date = new Date(`${value}-01T12:00:00Z`);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('es-PY', {timeZone: 'America/Asuncion', day: '2-digit', month: 'short'}).format(date).replace(/\./g, '').replace(/\s+/g, '-');
+  return listMonthLabel(value) || value;
 }
 
 const monthRangeFormat = new Intl.DateTimeFormat('es-PY', {timeZone: 'America/Asuncion', day: 'numeric', month: 'short', year: 'numeric'});

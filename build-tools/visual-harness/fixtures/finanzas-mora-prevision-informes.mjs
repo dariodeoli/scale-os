@@ -365,14 +365,14 @@ const moraCobranzas = {
   ${v2Kpi('DSO · DÍAS EN CALLE', '<span class="flex flex-wrap items-baseline gap-2"><span class="whitespace-nowrap tabular-nums">PYG 23 días</span><span class="whitespace-nowrap tabular-nums">USD 47 días</span></span>', 'Saldo pendiente sobre lo facturado del mes, por moneda')}
  </div>
  <div class="mb-4 flex flex-wrap items-end gap-3">
-  <div class="flex flex-wrap gap-1" role="group" aria-label="Filtrar estado de cobro"><button class="choice active" type="button">Todos</button><button class="choice" type="button">Al día</button><button class="choice" type="button">Por vencer</button><button class="choice" type="button">En mora</button><button class="choice" type="button">Mora grave</button><button class="choice" type="button">Sin factura</button></div>
+  <div class="flex flex-wrap gap-1" role="group" aria-label="Filtrar estado de cobro"><button class="choice active" type="button">Todos</button><button class="choice" type="button">Sin mora</button><button class="choice" type="button">Por vencer</button><button class="choice" type="button">En mora</button><button class="choice" type="button">Mora grave</button><button class="choice" type="button">Sin factura</button></div>
   <div class="relative min-w-0 w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mute" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path><path d="M21 21l-4.3-4.3"></path></svg><input class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 text-fore h-11 md:h-9 text-base md:text-sm outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 placeholder:text-mute/60 pl-9 pr-9" placeholder="Buscar cliente…" aria-label="Buscar cliente en cobranza" value=""></div>
   <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">9 de 111</p>
  </div>
  ${v2Grid({label: 'Cobranza por cliente', template: 'grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', columns: ['Cliente', 'Estado', 'Vence', 'Antigüedad', 'Facturas', 'Pendiente'], minWidth: 'min-w-[58rem]', rows: [
   v2Row('grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', `<div class="min-w-0 flex-1"><strong class="block text-[13.5px] font-semibold text-fore">Industrias del Sur Sociedad Anónima</strong><small class="block truncate text-[11px] text-mute">PYG</small></div><div class="min-w-0 flex-1">${chip('bad', '45 días de mora')}</div><div class="min-w-0 flex-1"><span class="whitespace-nowrap tabular-nums font-semibold text-warn" title="18-sept-26">18-sept</span></div><div class="min-w-0 flex-1">${chip('bad', '+30 días')}</div><div class="min-w-0 flex-1"><span class="whitespace-nowrap tabular-nums text-fore" title="3 facturas">3</span></div><div class="min-w-0 text-right"><span class="whitespace-nowrap font-semibold tabular-nums text-fore">Gs. 45.678.900</span></div>`),
   v2Row('grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', `<div class="min-w-0 flex-1"><strong class="block text-[13.5px] font-semibold text-fore">Grupo Comercial del Este SRL</strong><small class="block truncate text-[11px] text-mute">USD</small></div><div class="min-w-0 flex-1">${chip('warn', 'Vence 24-sept')}</div><div class="min-w-0 flex-1"><span class="whitespace-nowrap tabular-nums text-fore" title="24-sept-26">24-sept</span></div><div class="min-w-0 flex-1"><span class="text-[11px] text-mute">Sin mora</span></div><div class="min-w-0 flex-1"><span class="whitespace-nowrap tabular-nums text-fore" title="1 factura">1</span></div><div class="min-w-0 text-right"><span class="whitespace-nowrap font-semibold tabular-nums text-fore">USD 12.500</span></div>`),
-  v2Row('grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', `<div class="min-w-0 flex-1"><strong class="block text-[13.5px] font-semibold text-fore">Fundación Cultural Paraguaya</strong><small class="block truncate text-[11px] text-mute">PYG</small></div><div class="min-w-0 flex-1">${chip('ok', 'Al día')}</div><div class="min-w-0 flex-1"><span class="text-[11px] text-mute">Sin fecha</span></div><div class="min-w-0 flex-1"><span class="text-[11px] text-mute">Sin mora</span></div><div class="min-w-0 flex-1"><span class="text-[11px] text-mute">Sin facturas</span></div><div class="min-w-0 text-right"><span class="whitespace-nowrap text-[11px] text-mute">Sin saldo pendiente</span></div>`),
+  v2Row('grid-cols-[minmax(11rem,1.5fr)_minmax(9rem,1.1fr)_6.5rem_9rem_6rem_8.5rem]', `<div class="min-w-0 flex-1"><strong class="block text-[13.5px] font-semibold text-fore">Fundación Cultural Paraguaya</strong><small class="block truncate text-[11px] text-mute">PYG</small></div><div class="min-w-0 flex-1">${chip('ok', 'Sin mora')}</div><div class="min-w-0 flex-1"><span class="text-[11px] text-mute">Sin fecha</span></div><div class="min-w-0 flex-1"><span class="text-[11px] text-mute">Sin mora</span></div><div class="min-w-0 flex-1"><span class="text-[11px] text-mute">Sin facturas</span></div><div class="min-w-0 text-right"><span class="whitespace-nowrap text-[11px] text-mute">Sin saldo pendiente</span></div>`),
  ]})}
 </section>`,
 };
@@ -453,7 +453,7 @@ const previsionResumen = {
   </div>
  </div>
  <div class="${CARD} grid gap-3">
-  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3><p class="text-xs text-mute">Gasto esperado al cierre de Septiembre 2026, sin pagos ni comisiones registrados.</p></div>
   <p role="status" class="text-xs text-mute">4 colaborador(es) activo(s) incluido(s).</p>
   <div class="grid gap-4">
    <div class="forecast-personnel-card grid gap-2">
@@ -471,7 +471,7 @@ const previsionResumen = {
  </div>
  <div class="${CARD} grid gap-4">
   <div class="grid gap-3">
-   <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos planificados · 01-sept</h3><p class="text-xs text-mute">Esto es planificación interna; no registra un pago, una factura ni una cuenta por pagar.</p></div>
+   <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos planificados · Septiembre 2026</h3><p class="text-xs text-mute">Esto es planificación interna; no registra un pago, una factura ni una cuenta por pagar.</p></div>
    <div class="grid gap-3 sm:grid-cols-2">
     <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">Gs. 12.000.000</strong><small class="planned-expenses-kinds text-xs text-mute">2 fijos · 2 variables</small></article>
     <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">USD · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">USD 4.300</strong><small class="planned-expenses-kinds text-xs text-mute">1 fijos · 1 variables</small></article>
@@ -486,7 +486,7 @@ const previsionResumen = {
  </div>
  <div class="${CARD} grid gap-4">
   <div class="grid gap-3">
-   <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos reales del mes · 01-sept</h3><p class="text-xs text-mute">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p></div>
+   <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos reales del mes · Septiembre 2026</h3><p class="text-xs text-mute">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p></div>
   </div>
   ${listWrap('40rem', `<div role="table" aria-label="Gastos reales del mes">
    <div role="row" class="${LIST_HEAD} ${EXPENSE_COLS}"><span role="columnheader">Gasto</span><span role="columnheader" class="text-right">Monto</span><span role="columnheader" class="text-right">Acciones</span></div>
@@ -505,7 +505,7 @@ const contractedRow = ({name, currency, endsOn, invoiceRequired, contracted, inv
  ${cell(`<b class="font-semibold text-fore">${name}</b><small class="ml-2 whitespace-nowrap text-xs text-mute">${currency}${endsOn ? ` · hasta ${endsOn}` : ''}</small>`, 'truncate text-sm')}
  ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${contracted}</strong>`, 'text-right')}
  ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${invoiced}</strong>`, 'text-right')}
- ${cell(missing ? chip('bad', 'Sin factura', 'Contrato con facturación requerida y sin factura emitida en el mes') : chip('ok', 'Al día'), 'flex justify-end')}
+ ${cell(missing ? chip('bad', 'Sin factura', 'Contrato con facturación requerida y sin factura emitida en el mes') : chip('ok', 'Facturado'), 'flex justify-end')}
 </div>`;
 const previsionContratos = {
   id: 'prevision-contratos',
@@ -542,8 +542,8 @@ const previsionProyeccion = {
 <div class="${CARD} grid gap-3">
  <h3 class="text-[17px] font-semibold tracking-tight text-fore">Proyección de caja y resultado · 6 meses</h3>
  <div class="grid gap-4">
-  ${projectionTable('PYG', [['01-sept', 'Gs. 620.000.000', 'Gs. 45.000.000'], ['01-oct', 'Gs. 650.000.000', '−Gs. 30.000.000'], ['01-nov', 'Gs. 700.000.000', 'Gs. 50.000.000'], ['01-dic', 'Gs. 1.100.000.000', 'Gs. 400.000.000'], ['01-ene', 'Gs. 1.250.000.000', 'Gs. 150.000.000'], ['01-feb', 'Gs. 1.260.000.000', '−Gs. 90.000.000']])}
-  ${projectionTable('USD', [['01-sept', 'USD 21.400', '−USD 3.905'], ['01-oct', 'USD 18.200', '−USD 3.200'], ['01-nov', 'USD 22.000', 'USD 3.800'], ['01-dic', 'USD 26.500', 'USD 4.500'], ['01-ene', 'USD 27.100', 'USD 600'], ['01-feb', 'USD 27.100', '']])}
+  ${projectionTable('PYG', [['Septiembre 2026', 'Gs. 620.000.000', 'Gs. 45.000.000'], ['Octubre 2026', 'Gs. 650.000.000', '−Gs. 30.000.000'], ['Noviembre 2026', 'Gs. 700.000.000', 'Gs. 50.000.000'], ['Diciembre 2026', 'Gs. 1.100.000.000', 'Gs. 400.000.000'], ['Enero 2027', 'Gs. 1.250.000.000', 'Gs. 150.000.000'], ['Febrero 2027', 'Gs. 1.260.000.000', '−Gs. 90.000.000']])}
+  ${projectionTable('USD', [['Septiembre 2026', 'USD 21.400', '−USD 3.905'], ['Octubre 2026', 'USD 18.200', '−USD 3.200'], ['Noviembre 2026', 'USD 22.000', 'USD 3.800'], ['Diciembre 2026', 'USD 26.500', 'USD 4.500'], ['Enero 2027', 'USD 27.100', 'USD 600'], ['Febrero 2027', 'USD 27.100', '']])}
  </div>
 </div>`,
 };
@@ -587,7 +587,7 @@ const informesIndicadores = {
  </div>
  <div class="reports-chart overflow-x-auto" role="img" aria-label="Facturado y cobrado mensual en PYG">
   <div class="flex min-w-full items-end gap-2 pb-1">
-   ${[['01-may', 62, 48, false], ['01-jun', 78, 55, false], ['01-jul', 100, 70, false], ['01-ago', 84, 66, false], ['01-sept', 90, 74, false], ['01-oct', 40, 30, true]].map(([month, invoiced, collected, partial]) => `<figure class="flex min-w-10 flex-1 flex-col items-center gap-1.5"><div class="flex h-[120px] items-end justify-center gap-[3px]"><span class="w-2.5 rounded-t bg-fono-light${partial ? ' opacity-50' : ''}" title="${month} · Facturado PYG 1.234.567.890" style="height:${invoiced}%"></span><span class="w-2.5 rounded-t bg-ok${partial ? ' opacity-50' : ''}" title="${month} · Cobrado PYG 987.654.321" style="height:${collected}%"></span></div><figcaption class="whitespace-nowrap text-[10px] text-mute">${month}${partial ? ' · parcial' : ''}</figcaption></figure>`).join('')}
+   ${[['Mayo 2026', 62, 48, false], ['Junio 2026', 78, 55, false], ['Julio 2026', 100, 70, false], ['Agosto 2026', 84, 66, false], ['Septiembre 2026', 90, 74, false], ['Octubre 2026', 40, 30, true]].map(([month, invoiced, collected, partial]) => `<figure class="flex min-w-10 flex-1 flex-col items-center gap-1.5"><div class="flex h-[120px] items-end justify-center gap-[3px]"><span class="w-2.5 rounded-t bg-fono-light${partial ? ' opacity-50' : ''}" title="${month} · Facturado PYG 1.234.567.890" style="height:${invoiced}%"></span><span class="w-2.5 rounded-t bg-ok${partial ? ' opacity-50' : ''}" title="${month} · Cobrado PYG 987.654.321" style="height:${collected}%"></span></div><figcaption class="whitespace-nowrap text-[10px] text-mute">${month}${partial ? ' · parcial' : ''}</figcaption></figure>`).join('')}
   </div>
  </div>
  <p class="text-xs text-mute">Barras: facturado (violeta) y cobrado (verde) por mes, en la moneda seleccionada. Los meses parciales se atenúan; la escala es relativa al valor máximo cargado, sin mezclar monedas.</p>
@@ -660,7 +660,7 @@ const comisionesLiquidacion = {
   <div class="min-w-0 flex-1"><p class="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Equipo</p><h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">Comisiones y referidos</h1><p class="mt-1 text-sm text-mute">Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados.</p></div>
   <div class="flex flex-wrap items-center gap-2"><button class="primary" type="button">+ Comisión</button></div>
  </header>
- ${v2KpiStrip([v2Kpi('ESPERADO · 01-sept', '<span class="flex flex-wrap items-baseline gap-2"><span>Gs. 250.000.000</span><span>USD 12.500</span></span>', 'Acuerdos comerciales vigentes con comisión asignada'), v2Kpi('PAGADO · 01-sept', '<span>Gs. 45.678.900</span>', 'Comisiones pagadas del mes'), v2Kpi('PENDIENTE · 01-sept', '<span>Gs. 12.000.000</span>', 'Registradas o aprobadas sin pagar', true)])}
+ ${v2KpiStrip([v2Kpi('ESPERADO · Septiembre 2026', '<span class="flex flex-wrap items-baseline gap-2"><span>Gs. 250.000.000</span><span>USD 12.500</span></span>', 'Acuerdos comerciales vigentes con comisión asignada'), v2Kpi('PAGADO · Septiembre 2026', '<span>Gs. 45.678.900</span>', 'Comisiones pagadas del mes'), v2Kpi('PENDIENTE · Septiembre 2026', '<span>Gs. 12.000.000</span>', 'Registradas o aprobadas sin pagar', true)])}
  <section class="${v2Card}" aria-labelledby="commissions-settlement-title">
   <div class="flex flex-wrap items-center justify-between gap-2">
    <div class="min-w-0 flex-1"><h3 id="commissions-settlement-title" class="text-[17px] font-semibold tracking-tight text-fore">Liquidación del mes</h3><p class="mt-1 text-xs text-mute">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
@@ -804,7 +804,7 @@ const previsionVacio = {
   ${v2Empty('Sin datos financieros para este mes.', 'Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance.', '<button class="primary" type="button">Registrar factura</button>')}
  </div>
  <div class="${CARD} grid gap-3 p-4">
-  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3><p class="text-xs text-mute">Gasto esperado al cierre de 01-sept, sin pagos ni comisiones registrados.</p></div>
+  <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3><p class="text-xs text-mute">Gasto esperado al cierre de Septiembre 2026, sin pagos ni comisiones registrados.</p></div>
   ${v2Empty('Sin salarios fijos mensuales incluidos para este mes.', 'Cargá el salario fijo de cada persona desde su ficha de equipo.', '<button class="secondary" type="button">Ver equipo</button>')}
  </div>
  <div class="${CARD} grid gap-3 p-4">

@@ -6,6 +6,7 @@ import {currencyChoices} from '../currencies';
 import {currentForecastMonth, todayAsuncion} from '../forecast-data';
 import {financeNoticeHref,financePurposeNotice} from '../finance-privacy';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
+import {listMonthLabel} from '../month-format';
 import {roleCan} from '../capabilities';
 import {
   COMMISSION_FILTERS,
@@ -172,7 +173,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const totalFor = (key: 'expected' | 'paid' | 'pending') => totals.length
     ? <span className="flex flex-wrap items-baseline gap-2">{totals.map(row => <MoneyText key={row.currency} valor={row[key]} currency={row.currency}/>)}</span>
     : null;
-  const monthLabel = listDateShort(`${month}-01`) || month;
+  const monthLabel = listMonthLabel(month) || month;
   const run = async (fn: () => Promise<void>, ok: string) => {
     if (busy) return;
     setBusy(true); setError(''); setNotice('');

@@ -2,10 +2,11 @@
 import {notify} from './feedback';
 import {APP_VERSION} from './app-version';
 import {listDateFull,listDateShort} from './list-format';
+import {listMonthLabel} from './month-format';
 import {count,hasMonthData,monthRangeLabel,reportComparison,reportMoney,type ReportMonth,type ReportsData} from './reports-data';
 
 function escapeHtml(value:string){return value.replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]!));}
-function monthLabel(value:string){return escapeHtml(listDateShort(`${value}-01`)||value);}
+function monthLabel(value:string){return escapeHtml(listMonthLabel(value)||value);}
 function money(value:string|null|undefined,currency:string){return escapeHtml(reportMoney(value??null,currency));}
 function monthDistance(from:string,to:string){const [fromYear,fromMonth]=from.split('-').map(Number),[toYear,toMonth]=to.split('-').map(Number);return fromYear*12+fromMonth-(toYear*12+toMonth);}
 function comparisonMarkup(data:ReportsData,previousData:ReportsData|null,currency:string,months:number){

@@ -306,8 +306,8 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         return;
       }
       const detallePartes=salida.pagos.length>1?` en ${salida.pagos.length} facturas`:'';
-      const parcial=salida.parcial?` · Pago parcial: quedan Gs ${salida.pending.toLocaleString('es-PY')} pendientes`:' · Saldo del cliente al día';
-      actualizar({estado:salida.parcial?'parcial':'ejecutada',mensaje:`${salida.yaRegistrado?'El cobro ya estaba registrado':'Cobro registrado'} · Gs ${salida.total.toLocaleString('es-PY')}${detallePartes}${parcial}.`});
+      const parcial=salida.parcial?` · Pago parcial: quedan ${money(salida.pending,'PYG')} pendientes`:' · Saldo del cliente al día';
+      actualizar({estado:salida.parcial?'parcial':'ejecutada',mensaje:`${salida.yaRegistrado?'El cobro ya estaba registrado':'Cobro registrado'} · ${money(salida.total,'PYG')}${detallePartes}${parcial}.`});
       // Un cobro ejecutado cambia datos de Finanzas: se refresca el panel.
       try{await onCreated();}catch{/* El resultado ya está visible en la tarjeta. */}
     }catch(cause){
@@ -748,7 +748,7 @@ function PartesDivision({fila,cuentas,disabled,onChange,onUnaCuenta}:{fila:Accio
    {fila.partes.length<IA_COBRO_PARTES_MAX
     ?<button type="button" className="text-button" disabled={disabled} onClick={agregar}>Agregar parte</button>
     :<span className="text-[11px] text-mute">Máximo {IA_COBRO_PARTES_MAX} partes.</span>}
-   <span className={`text-[11.5px] tabular-nums ${cuadra?'text-mute':'text-bad'}`} role="status">{`Suma: Gs ${suma.toLocaleString('es-PY')} de Gs ${total.toLocaleString('es-PY')}`}</span>
+   <span className={`text-[11.5px] tabular-nums ${cuadra?'text-mute':'text-bad'}`} role="status">{`Suma: ${money(suma,'PYG')} de ${money(total,'PYG')}`}</span>
   </div>
   <button type="button" className="text-button" disabled={disabled} onClick={onUnaCuenta}>Usar una sola cuenta</button>
  </div>;
