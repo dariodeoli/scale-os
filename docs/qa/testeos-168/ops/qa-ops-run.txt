@@ -149,3 +149,4 @@
 ✓ sesión vencida: sin shell interno: false
 ✓ sesión vencida: pantalla de acceso: true
 · captura sesion-vencida-1440-light.jpg
+Testeos #154 OPS: PASS

@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-03T05:34:45.610Z",
+ "generatedAt": "2026-10-03T05:54:32.944Z",
  "checks": [
   {
    "label": "tablero 390: 7 etapas",
@@ -152,6 +152,12 @@
    "expected": true
   },
   {
+   "label": "estudio 390: el espacio se crea",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
    "label": "estudio 390: la reserva se crea",
    "ok": true,
    "value": true,
@@ -159,6 +165,24 @@
   },
   {
    "label": "estudio 390: la reserva se cancela",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "historial 390: actividad del equipo",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "historial 390: sin error de carga",
+   "ok": true,
+   "value": false,
+   "expected": false
+  },
+  {
+   "label": "resumen 390: pendientes internos",
    "ok": true,
    "value": true,
    "expected": true
@@ -326,6 +350,24 @@
    "expected": true
   },
   {
+   "label": "historial 1440: actividad del equipo",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "historial 1440: sin error de carga",
+   "ok": true,
+   "value": false,
+   "expected": false
+  },
+  {
+   "label": "resumen 1440: pendientes internos",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
    "label": "viewer: sin menú ⋯ en la tarjeta",
    "ok": true,
    "value": false,
@@ -368,20 +410,9 @@
    "expected": true
   }
  ],
- "findings": [
-  {
-   "label": "OPS historial",
-   "detail": "timeout esperando historial",
-   "severity": "alta"
-  },
-  {
-   "label": "OPS historial",
-   "detail": "timeout esperando historial",
-   "severity": "alta"
-  }
- ],
+ "findings": [],
  "log": [
-  "· foto rota preparada en «Luces» (#58)",
+  "· foto rota preparada en «Batería Sony» (#83)",
   "\n──── 390×844 — OPS ────",
   "✓ tablero 390: 7 etapas: 7",
   "✓ tablero 390: piezas cargadas: true",
@@ -437,15 +468,20 @@
   "· captura inventario-calendario-390-dark.jpg",
   "✓ inventario 390: alta exige nombre: true",
   "· captura inventario-alta-390-light.jpg",
-  "· estudio 390: vacío inicial = false",
+  "· estudio 390: vacío inicial = true",
   "· captura estudio-390-light.jpg",
   "· captura estudio-390-dark.jpg",
-  "· estudio 390: el espacio ya existe (creado en el paso de 390)",
+  "✓ estudio 390: el espacio se crea: true",
+  "· captura estudio-espacio-390-light.jpg",
   "✓ estudio 390: la reserva se crea: true",
   "· captura estudio-reserva-390-light.jpg",
   "✓ estudio 390: la reserva se cancela: true",
   "· captura estudio-cancelada-390-light.jpg",
-  "⚠ alta: OPS historial — timeout esperando historial",
+  "✓ historial 390: actividad del equipo: true",
+  "✓ historial 390: sin error de carga: false",
+  "· captura historial-390-light.jpg",
+  "· captura historial-390-dark.jpg",
+  "✓ resumen 390: pendientes internos: true",
   "\n──── 1440×900 — OPS ────",
   "✓ tablero 1440: 7 etapas: 7",
   "✓ tablero 1440: piezas cargadas: true",
@@ -509,7 +545,11 @@
   "· captura estudio-reserva-1440-light.jpg",
   "✓ estudio 1440: la reserva se cancela: true",
   "· captura estudio-cancelada-1440-light.jpg",
-  "⚠ alta: OPS historial — timeout esperando historial",
+  "✓ historial 1440: actividad del equipo: true",
+  "✓ historial 1440: sin error de carga: false",
+  "· captura historial-1440-light.jpg",
+  "· captura historial-1440-dark.jpg",
+  "✓ resumen 1440: pendientes internos: true",
   "✓ viewer: sin menú ⋯ en la tarjeta: false",
   "✓ viewer: sin manija de arrastre: false",
   "· captura viewer-produccion-1440-light.jpg",
