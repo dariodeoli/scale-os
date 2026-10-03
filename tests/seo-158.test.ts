@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {existsSync, readFileSync} from 'node:fs';
+import {appRobotsTxt,landingRobotsTxt,landingSitemapXml} from '../app/seo';
 
 // SEO técnico (#158, parte front): metadatos únicos, canónicos, structured data
 // y reglas por host. La infraestructura de Search Console y el sitemap por host
@@ -60,13 +61,16 @@ test('#158: la imagen social existe y mide 1200×630',()=>{
 test('#158: robots y sitemap por host en el middleware',()=>{
  const middleware=file('middleware.ts');
  const sistema=middleware.slice(middleware.indexOf("host==='sistema.scaleparaguay.com'"));
- assert.match(sistema,/path==='\/robots\.txt'\)return new NextResponse\('User-agent: \*\\nAllow: \/\\nSitemap: https:\/\/sistema\.scaleparaguay\.com\/sitemap\.xml/,'el sitio permite el rastreo y declara el sitemap');
- const sitemap=sistema.match(/sitemap\.xml'\)return new NextResponse\('([^']+)'/)?.[1]||'';
+ assert.match(sistema,/path==='\/robots\.txt'\)return new NextResponse\(landingRobotsTxt\(\)/,'el sitio permite el rastreo con la fuente única');
+ assert.match(landingRobotsTxt(),/Allow: \/[\s\S]*Sitemap: https:\/\/sistema\.scaleparaguay\.com\/sitemap\.xml/,'robots permite el rastreo y declara el sitemap');
+ assert.match(sistema,/path==='\/sitemap\.xml'\)return new NextResponse\(landingSitemapXml\(\)/,'el sitemap sale de la fuente única');
+ const sitemap=landingSitemapXml();
  assert(sitemap.includes('https://sistema.scaleparaguay.com/')&&sitemap.includes('https://sistema.scaleparaguay.com/privacidad'),'el sitemap lista la landing y la política');
  assert(sitemap.includes('<?xml')&&sitemap.includes('urlset'),'sitemap XML válido');
  const cliente=middleware.slice(middleware.indexOf("host==='cliente.scaleparaguay.com'"));
- assert(cliente.includes('Disallow: /'),'el portal del cliente no se indexa');
- assert.match(middleware,/path==='\/robots\.txt'\)return new NextResponse\('User-agent: \*\\nDisallow: \/\\n'/,'el host de la app no se indexa');
+ assert(cliente.includes('appRobotsTxt()'),'el portal del cliente no se indexa');
+ assert.match(appRobotsTxt(),/Disallow: \//,'el robots privado cierra el rastreo');
+ assert.match(middleware,/path==='\/robots\.txt'\)return new NextResponse\(appRobotsTxt\(\)/,'el host de la app no se indexa');
  assert.match(middleware,/X-Robots-Tag','noindex, nofollow'/,'las superficies privadas viajan con noindex');
 });
 

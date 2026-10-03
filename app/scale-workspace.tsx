@@ -18,7 +18,7 @@ import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 import {IaCargaButton} from './ia-carga-button';
 import {VersionNotice} from './version-notice';
-import {GoogleSignIn} from './google-sign-in';
+import {ProviderSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
 import {LoadingScreen} from './loading-screen';
 import type {ReportsData} from './reports-workspace';
@@ -63,6 +63,7 @@ import {defaultWorkspacePreferences, workspacePreferenceKey} from './workspace-p
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {clientPortfolioStats,currentAsuncionMonth} from './client-format';
 import type {Account,AccountTransfer,Budget,Client,ClientPaymentStatus,Invoice,Member,MetricEvent,ModalKind,PaymentRecord,Project,Summary,User,WorkOrder} from './workspace-types';
+import {technicalEmail} from './field-rules';
 import {moraDsoDays,moraKpis} from './mora-data';
 import {SinAccesoSection} from './sections/sin-acceso';
 import {EquipoSection} from './sections/equipo';
@@ -191,7 +192,7 @@ const DATA_FRESH_MS=120000;
 export default function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [googleAvailable, setGoogleAvailable] = useState(false);
+  const [socialProviders, setSocialProviders] = useState<{google:boolean;microsoft:boolean;apple:boolean}>({google:false,microsoft:false,apple:false});
   const [authNotice, setAuthNotice] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -557,9 +558,9 @@ export default function Home() {
       setAuthNotice(authError);
       window.history.replaceState({}, "", window.location.pathname);
     }
-    request<{ google: boolean }>("/api/auth/providers")
-      .then((data) => setGoogleAvailable(data.google))
-      .catch(() => setGoogleAvailable(false));
+    request<{ google: boolean; microsoft?: boolean; apple?: boolean }>("/api/auth/providers")
+      .then((data) => setSocialProviders({google:!!data.google,microsoft:!!data.microsoft,apple:!!data.apple}))
+      .catch(() => setSocialProviders({google:false,microsoft:false,apple:false}));
     request<{ user: User }>("/api/auth/me")
       .then((data) => {
         const scope=identityScope(data.user);
@@ -929,7 +930,9 @@ export default function Home() {
               <p>{authNotice}</p>
             </div>
           )}
-          <GoogleSignIn disabled={!googleAvailable} label={googleAvailable?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
+          <ProviderSignIn provider="google" disabled={!socialProviders.google} label={socialProviders.google?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
+          {socialProviders.microsoft?<ProviderSignIn provider="microsoft" onClick={()=>{window.location.href='/core-api/api/auth/microsoft/start';}}/>:null}
+          {socialProviders.apple?<ProviderSignIn provider="apple" onClick={()=>{window.location.href='/core-api/api/auth/apple/start';}}/>:null}
           <div className="login-divider"><span>o ingresá con correo</span></div>
           <form noValidate onSubmit={login}>
             <label>
@@ -956,7 +959,7 @@ export default function Home() {
       </div>
     );
   const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
-  const firstName = user?.email.split("@")[0] || "U";
+  const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 

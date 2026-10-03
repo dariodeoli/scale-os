@@ -29,10 +29,14 @@ test('verified client invitation sends its token to the Google start endpoint',a
  const google=renderer.root.findAllByType('a').find(link=>link.props.href?.includes('/auth/google/start'))!;
  assert.equal(google.props.href,`/core-api/api/client-portal/auth/google/start?token=${token}`);
  assert.match(content(renderer),/cuenta de Google asociada a esta invitación/);
- const [name,password]=renderer.root.findAllByType('input');await act(async()=>{name.props.onChange({target:{value:'Ana Cliente'}});password.props.onChange({target:{value:'Una clave segura 123!'}});});
+ const consent=renderer.root.findAllByType('input').find(input=>input.props.type==='checkbox')!;
+ await act(async()=>{consent.props.onChange({target:{checked:true}});});
+ const [name,password]=renderer.root.findAllByType('input').filter(input=>input.props.type!=='checkbox');await act(async()=>{name.props.onChange({target:{value:'Ana Cliente'}});password.props.onChange({target:{value:'Una clave segura 123!'}});});
  const form=renderer.root.findByType('form');const submit=form.props.onSubmit({preventDefault(){}}) as Promise<void>;
- assert.equal(requests[1].url,'/core-api/api/client-portal/invites/accept');assert.deepEqual(JSON.parse(String(requests[1].init.body)),{token,fullName:'Ana Cliente',password:'Una clave segura 123!'});
- await act(async()=>{requests[1].resolve(new Response(JSON.stringify({})));await submit;});assert.equal(destination,'/cliente/entregas');renderer.unmount();
+ assert.equal(requests[1].url,'/core-api/api/client-portal/invites/accept');const acceptBody=JSON.parse(String(requests[1].init.body));assert.equal(acceptBody.token,token);assert.equal(acceptBody.fullName,'Ana Cliente');assert.equal(acceptBody.password,'Una clave segura 123!');assert.equal(acceptBody.privacy?.aceptado,true);assert.equal(acceptBody.privacy?.finalidad,'portal-cliente');
+ await act(async()=>{requests[1].resolve(new Response(JSON.stringify({})));});
+ await act(async()=>{if(requests[2])requests[2].resolve(new Response(JSON.stringify({ok:true}),{status:201}));});
+ await act(async()=>{await submit;});assert.equal(destination,'/cliente/entregas');renderer.unmount();
 });
 
 test('client invitation renders public expiry and exact terminal statuses without authorizing onboarding',async()=>{

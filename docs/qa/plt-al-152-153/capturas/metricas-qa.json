@@ -1,0 +1,326 @@
+[
+ {
+  "screen": "configuracion",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 348,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "preferencias",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 179,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-invitacion-valida",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-invitacion-vencida",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-invitacion-revocada",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-ingresar",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-recuperar",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-tablero",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 242,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-detalle",
+  "width": 390,
+  "height": 844,
+  "theme": "light",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "configuracion",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 259,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "preferencias",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 268,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-invitacion-valida",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 47,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-invitacion-vencida",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 278,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-invitacion-revocada",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 278,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-ingresar",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 118,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-recuperar",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 205,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-tablero",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 383,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-detalle",
+  "width": 1440,
+  "height": 900,
+  "theme": "light",
+  "contentTop": 34,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "configuracion",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 348,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "preferencias",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 179,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-invitacion-valida",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-invitacion-vencida",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-invitacion-revocada",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-ingresar",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-recuperar",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-tablero",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 242,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "portal-detalle",
+  "width": 390,
+  "height": 844,
+  "theme": "dark",
+  "contentTop": 12,
+  "scrollWidth": 390,
+  "clientWidth": 390
+ },
+ {
+  "screen": "configuracion",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 259,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "preferencias",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 268,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-invitacion-valida",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 47,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-invitacion-vencida",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 278,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-invitacion-revocada",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 278,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-ingresar",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 118,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-recuperar",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 205,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-tablero",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 383,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ },
+ {
+  "screen": "portal-detalle",
+  "width": 1440,
+  "height": 900,
+  "theme": "dark",
+  "contentTop": 34,
+  "scrollWidth": 1440,
+  "clientWidth": 1440
+ }
+]

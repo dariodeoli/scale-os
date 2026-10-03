@@ -124,7 +124,8 @@ assert.match(read('app/suite.tsx'), /de \$\{total\} cambios registrados por el s
 assert.match(read('app/presence.tsx'), /Últimos 30 días · tiempo activo estimado, no horas trabajadas/, 'el uso del equipo explica el alcance en una línea con el detalle en el tooltip');
 assert.match(read('app/archive-controls.tsx'), /<StateChip tone="mute">\{labels\[record\.kind\]/, 'la papelera muestra el tipo como chip');
 assert.match(read('app/archive-controls.tsx'), /TRASH_TEMPLATE='grid-cols-\[2rem_8\.5rem/, 'la columna del chip conserva su ancho');
-assert.match(read('app/sections/configuracion.tsx'), /grid gap-4 lg:grid-cols-\[minmax\(0,1\.6fr\)_minmax\(0,1fr\)\]/, 'Configuración usa la separación compacta entre columnas');
+assert.match(read('app/sections/configuracion.tsx'), /settings-block/, 'Configuración separa sus áreas por bloques (#152)');
+assert.match(read('app/sections/configuracion.tsx'), /settings-nav/, 'Configuración ofrece navegación entre bloques');
 for (const file of ['app/superadmin/catalog.tsx', 'app/superadmin/audit.tsx', 'app/superadmin/access.tsx'])
   assert.match(read(file), /<EmptyBlock\s+compact/, `los vacíos del panel global son compactos (${file})`);
 

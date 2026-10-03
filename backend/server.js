@@ -53,6 +53,7 @@ import {accountSecurity,googleRecentAuthBinding,issueGoogleRecentAuthHandoff} fr
 import {personalData} from './personal-data.js';
 import {startPrivacyRetention} from './personal-data-retention.js';
 import {iaCarga} from './ia-carga.js';
+import {socialProviderConfig,socialProvidersStatus,socialAuthorizeUrl,pkcePair,exchangeSocialCode,resolveSocialIdentity} from './social-auth.js';
 
 const { Pool } = pg;
 const port = Number(process.env.PORT || 3000);
@@ -103,9 +104,11 @@ const cookie = (name, value, maxAge) => `${name}=${value}; Max-Age=${maxAge}; Pa
 // The OAuth state cookie must cross hosts: it is issued through the app/portal
 // proxy and consumed at the admin-host callback. Domain-scoped with the same
 // HttpOnly/Secure/SameSite posture as the rest of the session cookies.
-const oauthStateCookie = (value, maxAge) => `scale_oauth_state=${value}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=.scaleparaguay.com`;
+const oauthStateCookie = (value, maxAge, provider = 'google') => `${provider === 'google' ? 'scale_oauth_state' : `scale_oauth_state_${provider}`}=${value}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=.scaleparaguay.com`;
 const parseCookies = (req) => Object.fromEntries((req.headers.cookie || '').split(';').filter(Boolean).map(v => { const i=v.indexOf('='); const raw=v.slice(i+1); let value=raw; try{value=decodeURIComponent(raw);}catch{/* Keep the raw value; a malformed cookie must not fail the whole request. */} return [v.slice(0,i).trim(), value]; }));
 const body = async (req) => { let s=''; for await (const c of req) {s += c;if(s.length>1048576)throw Object.assign(new Error('Solicitud demasiado grande'),{status:413});} if(!s)return {}; try{return JSON.parse(s);}catch{throw Object.assign(new Error('Cuerpo JSON inválido'),{status:400});} };
+// Apple responde el callback con `application/x-www-form-urlencoded` (form_post).
+const formBody = async (req) => { let s=''; for await (const c of req) {s += c;if(s.length>1048576)throw Object.assign(new Error('Solicitud demasiado grande'),{status:413});} return s; };
 const id = () => crypto.randomBytes(32).toString('hex');
 async function sendInvitation(email, organizationName, role) {
   return emailDelivery.send({to:email,message:invitationEmail({email,organizationName,role,appUrl})});
@@ -237,7 +240,8 @@ async function init() {
      "20260929_member_purge.sql",
      "20260929_destructive_platform_actions.sql",
      "20260930_lead_contact_opposition.sql",
-     "20260930_personal_data.sql"
+     "20260930_personal_data.sql",
+     "20261003_social_identities.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
@@ -402,7 +406,7 @@ const server = http.createServer(async (req,res) => {
       return send(res,200,{ok:true},{'Set-Cookie':cookie('scale_session',token,604800)});
     }
     if (url.pathname === '/api/auth/providers' && req.method === 'GET') {
-      return send(res,200,{google:Boolean(googleClientId && googleClientSecret)});
+      return send(res,200,socialProvidersStatus());
     }
     if (url.pathname === '/api/client-portal/auth/google/start' && req.method === 'GET') {
       if (!googleClientId || !googleClientSecret) return send(res,503,{error:'Google OAuth aún no está configurado'});
@@ -437,6 +441,45 @@ const server = http.createServer(async (req,res) => {
       if(invite)await db.query('update oauth_states set invite_link_id=$1 where state=$2',[invite.id,state]);
       const params = new URLSearchParams({ client_id: googleClientId, redirect_uri: googleRedirectUri, response_type: 'code', scope: 'openid email profile', state, prompt: 'select_account' });
       res.writeHead(302,{Location:`https://accounts.google.com/o/oauth2/v2/auth?${params}`,'Set-Cookie':oauthStateCookie(state,600)}); return res.end();
+    }
+    const socialStart=url.pathname.match(/^\/api\/auth\/(microsoft|apple)\/start$/);
+    if(socialStart&&req.method==='GET'){
+      const provider=socialStart[1],label=provider==='microsoft'?'Microsoft':'Apple',config=socialProviderConfig(provider);
+      if(!config)return send(res,503,{code:'PROVIDER_UNAVAILABLE',error:`El acceso con ${label} todavía no está configurado`});
+      const state=id(),{verifier,challenge}=pkcePair(),nonce=id();
+      await db.query("insert into oauth_states(state,organization_slug,redirect_uri,expires_at,provider,code_verifier,nonce) values($1,'',$2,now()+interval '10 minutes',$3,$4,$5)",[state,config.redirectUri,provider,verifier,nonce]);
+      res.writeHead(302,{Location:socialAuthorizeUrl(provider,{state,redirectUri:config.redirectUri,codeChallenge:challenge,nonce}),'Set-Cookie':oauthStateCookie(state,600,provider)});return res.end();
+    }
+    const socialCallback=url.pathname.match(/^\/api\/auth\/(microsoft|apple)\/callback$/);
+    if(socialCallback&&(req.method==='GET'||req.method==='POST')){
+      const provider=socialCallback[1],label=provider==='microsoft'?'Microsoft':'Apple';
+      let fields;
+      try{fields=req.method==='POST'?Object.fromEntries(new URLSearchParams(await formBody(req))):url.searchParams;}
+      catch{return send(res,400,{error:'Solicitud inválida'});}
+      const readField=name=>typeof fields.get==='function'?(fields.get(name)||''):(fields[name]||'');
+      const state=readField('state');
+      // Microsoft vuelve por GET y exige la cookie double-submit. Apple vuelve
+      // por form_post cross-site: la cookie SameSite=Lax no viaja, así que el
+      // binding es la fila de state single-use + PKCE + nonce (issue #159).
+      const cookieName=provider==='google'?'scale_oauth_state':`scale_oauth_state_${provider}`;
+      if(provider==='microsoft'&&(!state||parseCookies(req)[cookieName]!==state)){res.writeHead(302,{Location:`${appUrl}/?authError=${encodeURIComponent(`La sesión de ${label} venció. Intentá nuevamente desde esta pantalla.`)}`});return res.end();}
+      const saved=state?(await db.query('delete from oauth_states where state=$1 and provider=$2 and expires_at>now() returning redirect_uri,code_verifier,nonce,organization_slug',[state,provider])).rows[0]:null;
+      if(!saved)return send(res,400,{error:`Sesión de ${label} inválida o vencida`});
+      const failure=message=>{res.writeHead(302,{Location:`${appUrl}/?authError=${encodeURIComponent(message+' Intentá nuevamente desde esta pantalla.')}`,'Set-Cookie':oauthStateCookie('',0,provider)});return res.end();};
+      if(readField('error')||!readField('code'))return failure(`No se completó el acceso con ${label}.`);
+      let profile;
+      try{profile=await exchangeSocialCode(provider,{code:readField('code'),redirectUri:saved.redirect_uri,codeVerifier:saved.code_verifier,nonce:saved.nonce});}
+      catch(error){return failure(error.status?error.message:`No se pudo completar la conexión con ${label}.`);}
+      if(!profile?.emailVerified||!profile?.email)return failure(`${label} no confirmó un correo verificado.`);
+      const linked=await resolveSocialIdentity(db,profile);
+      if(!linked){res.writeHead(302,{Location:`${appUrl}/?authError=${encodeURIComponent(`Tu correo de ${label} todavía no está invitado a esta empresa. Registrate con correo o pedí una invitación al administrador.`)}`,'Set-Cookie':oauthStateCookie('',0,provider)});return res.end();}
+      const selected=await loginOrganization(db,{userId:linked.userId,orderByName:true});
+      const membership=selected||((await db.query("select l.organization_id from users u join agency_access_requests r on r.user_id=u.id join agency_invite_links l on l.id=r.link_id join organizations o on o.id=l.organization_id where u.id=$1 and r.status='pending' and o.active=true order by r.created_at desc limit 1",[linked.userId])).rows[0]||null);
+      if(!membership){res.writeHead(302,{Location:`${appUrl}/?authError=${encodeURIComponent('Tu correo todavía no fue invitado a esta empresa. Pedí una invitación al administrador.')}`,'Set-Cookie':oauthStateCookie('',0,provider)});return res.end();}
+      if((await db.query('select 1 from account_closure_requests where user_id=$1 and cancelled_at is null and recoverable_until>now()',[linked.userId])).rows.length)return failure('Esta cuenta tiene un cierre solicitado. Recuperala primero con correo y contraseña.');
+      const ticket=id();
+      await db.query("insert into oauth_handoffs(token_hash,user_id,organization_id,expires_at,normal_login) values($1,$2,$3,now()+interval '60 seconds',true)",[crypto.createHash('sha256').update(ticket).digest('hex'),linked.userId,membership.organization_id]);
+      res.writeHead(302,{'Location':`${appUrl}/core-api/api/auth/${provider}/complete?ticket=${ticket}`,'Set-Cookie':oauthStateCookie('',0,provider)});return res.end();
     }
     if (url.pathname === '/api/auth/google/callback' && req.method === 'GET') {
       const state = url.searchParams.get('state') || ''; const code = url.searchParams.get('code') || '';
@@ -530,7 +573,8 @@ const server = http.createServer(async (req,res) => {
       }catch(error){await c.query('rollback');return send(res,error.status||500,{error:error.status?error.message:'No se pudo iniciar la prueba. Intentá nuevamente.'});}
       finally{c.release();}
     }
-    if(url.pathname==='/api/auth/google/complete' && req.method==='GET') {
+    const socialComplete=url.pathname.match(/^\/api\/auth\/(google|microsoft|apple)\/complete$/);
+    if(socialComplete && req.method==='GET') {
       const ticket=url.searchParams.get('ticket')||'';
       const saved=await db.query('delete from oauth_handoffs where token_hash=$1 and expires_at>now() returning user_id,organization_id,trial_registration,normal_login',[crypto.createHash('sha256').update(ticket).digest('hex')]);
       if(!saved.rows[0]) {res.writeHead(302,{Location:`${appUrl}/?authError=El%20acceso%20venció.%20Intentá%20nuevamente.`});return res.end();}

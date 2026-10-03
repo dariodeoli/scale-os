@@ -28,7 +28,8 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
  const mounted=useRef(true);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  useEffect(()=>{let alive=true;setError('');void api<{profile:Profile}>('/api/agency/productivity/profile').then(d=>{if(alive)setCurrent(d.profile);}).catch(e=>{if(alive)setError(e instanceof Error?e.message:'No se pudo cargar tu perfil.');});return()=>{alive=false;};},[retry]);
- const name=current?.full_name||profile.email.split('@')[0];
+ const localPart=profile.email.split('@')[0];
+ const name=current?.full_name||(!/^(?:persona|visitante)[-_]/i.test(localPart)?localPart:'Integrante');
  async function save(values:Record<string,string>,closeOnSuccess=false){
   const data=await api<{profile:Profile}>('/api/agency/productivity/profile',values,'PATCH');
   if(!mounted.current)return;
@@ -52,7 +53,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
      <FotoPerfil nombre={name} foto={current.photo_url} tamano="2xl"/>
      <div className="min-w-0">
       <h3 id="my-profile-identity-title" className="truncate text-[15px] font-semibold text-fore">{name}</h3>
-      <p className="break-words text-[12px] text-mute">{current.email||profile.email}</p>
+      {current.identity_scope==='demo'?<p className="break-words text-[12px] text-mute">Acceso de demostración · sin correo real</p>:<p className="break-words text-[12px] text-mute">{current.email||profile.email}</p>}
      </div>
     </div>
     <p className="text-[11.5px] text-mute">{current.identity_scope==='demo'?'Los cambios de este perfil no modifican tus empresas reales.':'Tu correo de acceso se mantiene protegido. Nombre y foto se comparten entre tus empresas.'}</p>

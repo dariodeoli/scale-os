@@ -43,6 +43,24 @@ export function normalizeSerial(value: string): string {
   return (value || '').trim().replace(/[\s\-_]+/g, '').toUpperCase();
 }
 
+/**
+ * Correos técnicos de demo y fixtures (`persona-…@demo.example.invalid`,
+ * `visitante-…@demo.example.invalid`). `.invalid` es reservado por RFC 2606:
+ * nunca es un destino real ni un dato que deba verse en pantalla (issue #152).
+ */
+export function technicalEmail(value: unknown): boolean {
+  const email = String(value ?? '').trim();
+  return email.length > 0 && /@(?:[a-z0-9-]+\.)*invalid$/i.test(email);
+}
+
+/** Identidad visible de una persona: nombre, correo humano o el fallback del contexto. */
+export function personLabel(person: {full_name?: string | null; email?: string | null} | null | undefined, fallback = 'Integrante'): string {
+  const name = person?.full_name?.trim();
+  if (name) return name;
+  const email = String(person?.email ?? '').trim();
+  return email && !technicalEmail(email) ? email : fallback;
+}
+
 /** Limpia un decimal al tipear/pegar: un solo separador (coma o punto) y hasta 2 decimales. */
 export function decimalInput(value: string, maxDecimals = 2): string {
   const clean = (value || '').replace(',', '.').replace(/[^\d.]/g, '');

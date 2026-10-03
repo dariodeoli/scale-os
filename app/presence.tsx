@@ -63,7 +63,16 @@ export function BoardPresence({projectIds,children}:{projectIds:string[];childre
 }
 // El avatar de presencia usa el objeto único de foto de perfil (#107).
 function PersonPhoto({person}:{person:PresentPerson}){return <FotoPerfil nombre={person.name} foto={person.photo_url}/>;}
-export function PresenceAvatars({people,alwaysGreen=false}:{people:PresentPerson[];alwaysGreen?:boolean}){return <span className="presence-avatars">{people.slice(0,4).map(person=><span className="presence-person" key={person.id} title={`${person.name} · ${person.active?'Activo en este proyecto':'Viendo este proyecto'}`} aria-label={`${person.name} · ${person.active?'Activo en este proyecto':'Viendo este proyecto'}`}><PersonPhoto person={person}/><i data-active={alwaysGreen||!!person.active}/></span>)}{people.length>4&&<span className="presence-more" title={people.slice(4).map(p=>p.name).join(', ')}>+{people.length-4}</span>}</span>;}
+export function PresenceAvatars({people,alwaysGreen=false,context='project'}:{people:PresentPerson[];alwaysGreen?:boolean;context?:'project'|'workspace'}){
+ // El contexto manda: fuera de un proyecto no se puede afirmar «viendo este
+ // proyecto» (issue #152). En workspace el dueño ve presencia de empresa
+ // (`alwaysGreen`) y el resto, actividad por proyecto.
+ const label=(person:PresentPerson)=>{
+  if(context==='project')return person.active?'Activo en este proyecto':'Viendo este proyecto';
+  if(alwaysGreen)return 'En línea';
+  return person.active?'Activo ahora':'Viendo un proyecto';
+ };
+ return <span className="presence-avatars">{people.slice(0,4).map(person=><span className="presence-person" key={person.id} title={`${person.name} · ${label(person)}`} aria-label={`${person.name} · ${label(person)}`}><PersonPhoto person={person}/><i data-active={alwaysGreen||!!person.active}/></span>)}{people.length>4&&<span className="presence-more" title={people.slice(4).map(p=>p.name).join(', ')}>+{people.length-4}</span>}</span>;}
 export function ProjectCardPresence({projectId}:{projectId:string}){const people=useContext(BoardPeople).filter(person=>String(person.project_id)===String(projectId));return people.length?<div className="card-presence"><PresenceAvatars people={people}/><small>Viendo ahora</small></div>:null;}
 async function request<T>(path:string,body?:unknown,signal?:AbortSignal):Promise<T>{const res=await fetch('/core-api/api/agency/presence/'+path,{method:body?'POST':'GET',credentials:'include',cache:'no-store',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,keepalive:!!body,signal});const data=await res.json();if(!res.ok)throw new Error(data.error||'No disponible');return data;}
 type UsagePerson={id:string;name:string;actor_name?:string;actor_photo_url?:string|null;online?:boolean;active?:boolean};
@@ -89,8 +98,8 @@ export function WorkspacePresence({projectIds,role,compact=false}:{projectIds:st
  if(!people.length)return null;
  const names=people.map(person=>person.name).join(', ');
  const label=exact?`${names} · ${people.length} en línea`:`${names} · viendo proyectos ahora`;
- if(compact)return <div className="workspace-presence workspace-presence-compact" title={label} aria-label={label}><PresenceAvatars people={people} alwaysGreen={exact}/></div>;
- return <div className="workspace-presence" title={label} aria-label={label}><span className="presence-dot" aria-hidden="true"/><PresenceAvatars people={people}/><small>{exact?`${people.length} en línea`:`${people.length} viendo`}</small></div>;
+ if(compact)return <div className="workspace-presence workspace-presence-compact" title={label} aria-label={label}><PresenceAvatars people={people} alwaysGreen={exact} context="workspace"/></div>;
+ return <div className="workspace-presence" title={label} aria-label={label}><span className="presence-dot" aria-hidden="true"/><PresenceAvatars people={people} context="workspace"/><small>{exact?`${people.length} en línea`:`${people.length} viendo`}</small></div>;
 }
 export function PresenceTracker(){
  useEffect(()=>{

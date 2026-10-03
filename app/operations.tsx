@@ -12,7 +12,7 @@ import { z } from "zod";
 import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2 } from "lucide-react";
 import {ConfirmDialog} from 'owncoding-ui';
 import { AmountInput, SelectCustom } from './profile-controls';
-import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
+import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR, personLabel, technicalEmail} from './field-rules';
 import {PasswordField} from './password-field';
 import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
@@ -83,6 +83,8 @@ export type Field = {
   currency?: string;
   currencyFrom?: (values: Record<string, string>) => string;
   lookup?: {label: string; run: (value: string) => Promise<Record<string, string>>};
+  /** Deshabilita el campo según los valores actuales del formulario (p. ej. dependientes de un interruptor maestro). */
+  disabled?: boolean | ((values: Record<string, string>) => boolean);
 };
 const currencies = currencyChoices;
 export function Editor({
@@ -129,11 +131,14 @@ export function Editor({
     const id=`${formPrefix}-${f.key}`,invalid=!!form.formState.errors[f.key];
     const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null,lookupNotices[f.key]?`${id}-lookup`:null].filter(Boolean).join(' ')||undefined;
     const derivedCurrency=f.currencyFrom?(f.currencyFrom(form.watch() as Record<string,string>)):undefined;
+    // Un campo dependiente se deshabilita con los valores actuales (issue #152);
+    // el guardado del formulario conserva el valor tal como se guardó antes.
+    const fieldDisabled=pending||(typeof f.disabled==='boolean'?f.disabled:Boolean(f.disabled?.(form.watch() as Record<string,string>)));
     return <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
-      {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
+      {f.choices ? <SelectCustom label={`${f.label}${f.optional?' · Opcional':''}`} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<span className="field-optional"> · Opcional</span>}</span>
         {f.key==='drive_links' ? (
-          <DriveLinksInput value={form.watch(f.key)||''} disabled={pending} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <textarea id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={pending} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={pending} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={pending} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={pending||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
+          <DriveLinksInput value={form.watch(f.key)||''} disabled={fieldDisabled} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
@@ -266,7 +271,7 @@ function PeopleWorkspace({
     setPurgeBusy(true);setPurgeError('');
     try{
       await api(`/api/agency/members/${purgeTarget.id}/permanent`,{},'DELETE');
-      const label=purgeTarget.full_name||purgeTarget.email;
+      const label=personLabel(purgeTarget,'esta persona');
       setPurgeTarget(null);await load();
       notify({tone:'success',message:`${label} salió del equipo.`});
     }catch(e){setPurgeError(e instanceof Error?e.message:'No se pudo eliminar del equipo.');}
@@ -465,20 +470,20 @@ function PeopleWorkspace({
               </article>
             ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
               <header className="person-hub-head">
-                {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${entry.member.full_name||entry.member.email}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
+                {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${personLabel(entry.member,'Integrante')}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
                 <div className="ops-person" title={entry.member!.full_name||'Integrante sin ficha'}><PersonContainer size="md" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
               </header>
-              <p className="person-hub-mail" title={entry.member!.email||undefined}>{entry.member!.email}</p>
+              <p className="person-hub-mail" title={technicalEmail(entry.member!.email)?undefined:entry.member!.email||undefined}>{technicalEmail(entry.member!.email)?`Acceso de demostración · ${teamRoleLabels[entry.member!.role]||'Integrante'}`:entry.member!.email}</p>
               <div className="person-hub-chips"><span className="hub-chip muted" title="Agregá la ficha laboral para registrar remuneración, fechas y pagos.">Sin ficha laboral</span>{entry.ambiguous?<span className="hub-chip warn" title="Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.">Perfiles ambiguos</span>:null}</div>
-              <div className="person-hub-tail"><TeamAccess member={entry.member} email={entry.member!.email} role={role} refresh={load}/>
+              <div className="person-hub-tail"><TeamAccess member={entry.member} email={technicalEmail(entry.member!.email)?null:entry.member!.email} role={role} refresh={load}/>
               <footer className="person-hub-actions">
                 <div className="person-hub-buttons">
-                  {entry.archivedProfileId?<button className="icon-button" title={`Restaurar perfil: ${entry.member!.email}`} aria-label={`Restaurar perfil: ${entry.member!.email}`} onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={16}/></button>:!entry.ambiguous?<button className="icon-button" title={`Agregar ficha laboral: ${entry.member!.email}`} aria-label={`Agregar ficha laboral: ${entry.member!.email}`} onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={16}/></button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
-                  <button className="icon-button" title={`Editar ficha: ${entry.member!.email}`} aria-label={`Editar ficha: ${entry.member!.email}`} onClick={()=>{setSeedEmail(entry.member!.email);setEdit('new');}}>
+                  {entry.archivedProfileId?<button className="icon-button" title={`Restaurar perfil: ${personLabel(entry.member,'Integrante')}`} aria-label={`Restaurar perfil: ${personLabel(entry.member,'Integrante')}`} onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={16}/></button>:!entry.ambiguous?<button className="icon-button" title={`Agregar ficha laboral: ${personLabel(entry.member,'Integrante')}`} aria-label={`Agregar ficha laboral: ${personLabel(entry.member,'Integrante')}`} onClick={()=>{if(entry.member!.email&&!technicalEmail(entry.member!.email))setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={16}/></button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
+                  <button className="icon-button" title={`Editar ficha: ${personLabel(entry.member,'Integrante')}`} aria-label={`Editar ficha: ${personLabel(entry.member,'Integrante')}`} onClick={()=>{if(entry.member!.email&&!technicalEmail(entry.member!.email))setSeedEmail(entry.member!.email);setEdit('new');}}>
                     <Pencil size={16}/>
                   </button>
                 </div>
-                {canManageAccess&&(!entry.member!.active||Boolean(entry.member!.removed_at))&&entry.member!.email!==currentEmail&&!(entry.member!.role==='owner'&&role!=='owner')?<button type="button" className="icon-button record-remove" title={`Eliminar del equipo: ${entry.member!.email}`} aria-label={`Eliminar del equipo: ${entry.member!.email}`} onClick={()=>{setPurgeError('');setPurgeTarget(entry.member!);}}><Trash2 size={16} aria-hidden="true"/></button>:null}
+                {canManageAccess&&(!entry.member!.active||Boolean(entry.member!.removed_at))&&entry.member!.email!==currentEmail&&!(entry.member!.role==='owner'&&role!=='owner')?<button type="button" className="icon-button record-remove" title={`Eliminar del equipo: ${personLabel(entry.member,'Integrante')}`} aria-label={`Eliminar del equipo: ${personLabel(entry.member,'Integrante')}`} onClick={()=>{setPurgeError('');setPurgeTarget(entry.member!);}}><Trash2 size={16} aria-hidden="true"/></button>:null}
               </footer></div>
             </article>;})}
             {!visiblePeople.length && (
@@ -487,7 +492,7 @@ function PeopleWorkspace({
           </div>
         </>}
       </section>
-      {purgeTarget?<ConfirmDialog open busy={purgeBusy} variant="danger" title="Eliminar del equipo" confirmLabel="Eliminar del equipo" description={<><strong>{purgeTarget.full_name||purgeTarget.email}</strong>{' '}dejará de aparecer en Equipo y no podrá reingresar con este acceso; sus sesiones se cierran. El historial (piezas, reservas, pagos y comentarios) se conserva, y una nueva invitación la reactiva.{purgeError?<span role="alert" className="mt-2 block font-semibold text-bad">{purgeError}</span>:null}</>} onCancel={()=>{if(!purgeBusy)setPurgeTarget(null);}} onConfirm={()=>void purgeMember()}/>:null}
+      {purgeTarget?<ConfirmDialog open busy={purgeBusy} variant="danger" title="Eliminar del equipo" confirmLabel="Eliminar del equipo" description={<><strong>{personLabel(purgeTarget,'Esta persona')}</strong>{' '}dejará de aparecer en Equipo y no podrá reingresar con este acceso; sus sesiones se cierran. El historial (piezas, reservas, pagos y comentarios) se conserva, y una nueva invitación la reactiva.{purgeError?<span role="alert" className="mt-2 block font-semibold text-bad">{purgeError}</span>:null}</>} onCancel={()=>{if(!purgeBusy)setPurgeTarget(null);}} onConfirm={()=>void purgeMember()}/>:null}
       {edit && (
         <Dialog
           title={person ? "Editar persona" : "Nueva persona"}

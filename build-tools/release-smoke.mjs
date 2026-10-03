@@ -4,6 +4,7 @@ const release=JSON.parse(readFileSync(new URL('../release/version.json',import.m
 const expected=process.env.SCALE_EXPECTED_VERSION||release.version;
 const appOrigin=(process.env.SCALE_APP_ORIGIN||'https://app.scaleparaguay.com').replace(/\/$/,'');
 const apiOrigin=(process.env.SCALE_API_ORIGIN||'https://api.scaleparaguay.com').replace(/\/$/,'');
+const landingOrigin=(process.env.SCALE_LANDING_ORIGIN||'https://sistema.scaleparaguay.com').replace(/\/$/,'');
 const deadline=Date.now()+Number(process.env.SCALE_SMOKE_TIMEOUT_MS||240000),pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const probe=async(name,url,verify)=>{
  if(!url.startsWith('https://'))throw new Error(`${name} debe usar HTTPS: ${url}`);

@@ -184,6 +184,13 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
    }
    if(!['POST','PATCH'].includes(req.method))fail('Método no permitido',405);const b=await body(req);
    if(req.method==='PATCH'&&b.visible===false){await c.query('update client_portal_deliveries set visible=false,updated_at=now() where organization_id=$1 and work_order_id=$2',[employee.organization_id,order.id]);await c.query('commit');transaction=false;send(res,200,{ok:true});return true;}
+   // Mostrar de nuevo una entrega ya publicada no es una versión nueva (issue
+   // #153): sin assetUrl solo cambia la visibilidad, nunca bumpea la versión.
+   if(req.method==='PATCH'&&b.visible===true&&!b.assetUrl){
+    const shown=(await c.query('update client_portal_deliveries set visible=true,updated_at=now() where organization_id=$1 and work_order_id=$2 and asset_url is not null returning id',[employee.organization_id,order.id])).rows[0];
+    if(!shown)fail('Publicá un enlace HTTPS del archivo antes de mostrarlo');
+    await c.query('commit');transaction=false;send(res,200,{ok:true});return true;
+   }
    if(!['approved','published'].includes(order.status))fail('Sólo se pueden publicar entregables aprobados internamente',409);
    const title=text(b.title||order.title,180),summary=typeof b.summary==='string'?b.summary.trim().slice(0,2000):'',assetName=text(b.assetName||'Abrir archivo',180);
    // Sin enlace HTTPS no se publica: era un 500 de columna no nula.
@@ -241,11 +248,18 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
    await c.query('delete from client_portal_password_resets where portal_user_id=$1',[saved.portal_user_id]);
    await c.query('commit');transaction=false;send(res,200,{ok:true});return true;
   }
-  const user=await readClientPortalSession(db,req);if(!user)fail('Ingresá al portal de cliente',401);
+  const user=await readClientPortalSession(db,req);
+  if(!user){
+   // La descarga se abre en una pestaña nueva: sin sesión no se muestra JSON
+   // crudo, se vuelve al ingreso del portal (issue #153).
+   if(deliveryMatch?.[2]==='download'){res.writeHead(302,{Location:clientPortalUrl('ingresar'),'Cache-Control':'no-store'});res.end();return true;}
+   fail('Ingresá al portal de cliente',401);
+  }
   if(logout){if(req.method!=='POST')fail('Método no permitido',405);await db.query('delete from client_portal_sessions where token_hash=$1',[user.token_hash]);send(res,200,{ok:true},{'Set-Cookie':portalCookie('',0)});return true;}
   if(me){if(req.method!=='GET')fail('Método no permitido',405);const client=(await db.query('select o.name as organization_name,c.name as client_name from client_portal_users u join organizations o on o.id=u.organization_id join agency_clients c on c.id=u.client_id and c.organization_id=u.organization_id where u.id=$1 and o.active and c.active',[user.id])).rows[0]||null;send(res,200,{user:{fullName:user.full_name,email:user.email},client});return true;}
-  if(deliveries){if(req.method!=='GET')fail('Método no permitido',405);const rows=(await db.query(`select distinct d.id,d.title,d.summary,d.asset_name,d.version,d.published_at,w.title as work_order_title,to_char(w.due_date,'YYYY-MM-DD') as due_date,w.due_time,p.name as project_name,c.name as client_name
+  if(deliveries){if(req.method!=='GET')fail('Método no permitido',405);const rows=(await db.query(`select distinct d.id,d.title,d.summary,d.asset_name,d.version,d.published_at,w.title as work_order_title,to_char(w.due_date,'YYYY-MM-DD') as due_date,w.due_time,p.name as project_name,c.name as client_name,dec.decision,dec.updated_at as decision_at
    from client_portal_deliveries d join agency_work_orders w on w.id=d.work_order_id and w.organization_id=d.organization_id join agency_projects p on p.id=w.project_id and p.organization_id=d.organization_id join agency_clients c on c.id=p.client_id and c.organization_id=d.organization_id join organizations o on o.id=d.organization_id join client_portal_grants g on g.organization_id=d.organization_id and g.client_id=p.client_id and g.portal_user_id=$1 and g.active
+   left join client_portal_delivery_decisions dec on dec.organization_id=d.organization_id and dec.delivery_id=d.id and dec.portal_user_id=g.portal_user_id and dec.version=d.version
    where d.visible and d.asset_url is not null and w.status in ('approved','published') and c.active and o.active
     and ${visibleRecord('c','clients')} and ${visibleRecord('p','projects')} and ${visibleRecord('w','work-orders')} order by d.published_at desc,d.id desc`,[user.id])).rows;send(res,200,{deliveries:rows});return true;}
   c=await db.connect();await c.query('begin');transaction=true;const delivery=await scopedDelivery(c,user.id,deliveryMatch[1]);

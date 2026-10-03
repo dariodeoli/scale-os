@@ -57,16 +57,19 @@ async function main(){
    assert.equal(beats.length,0);assert.equal(viewEvents,0);
   });
   await check('visibility changes do not multiply polling; hidden boards do not poll',async()=>{
-   const before=reads.length;await render(board());assert.equal(reads.length,before+1);
+   const before=reads.length;await render(board(['9','8']));assert.equal(reads.length,before+1,'un lote nuevo lee una vez');
    for(let i=0;i<4;i++){visibility='hidden';await act(async()=>{fire(docListeners,'visibilitychange');});visibility='visible';await act(async()=>{fire(docListeners,'visibilitychange');});}
    assert.equal(reads.length,before+1,'returning within 30s does not send another request');
    visibility='hidden';await tick();assert.equal(reads.length,before+1);
-   visibility='visible';await act(async()=>{fire(docListeners,'visibilitychange');});assert.equal(reads.length,before+2);
+   visibility='visible';await act(async()=>{fire(docListeners,'visibilitychange');});assert.equal(reads.length,before+2,'el lote vencido vuelve a consultar al volver a visible');
   });
-  await check('batch cap, empty board and failed polling remove avatars',async()=>{
+  await check('batch cap, empty board and failed polling keep the last known avatars',async()=>{
    const before=reads.length;await render(board([]));assert.equal(reads.length,before);assert.equal(intervals.size,0);
    await render(board(Array.from({length:150},(_,i)=>String(i+1))));assert.equal(new URL(reads.at(-1)!.url,'https://test').searchParams.get('ids')!.split(',').length,100);
-   mode='error';await tick();assert.equal(renderer!.root.findAllByProps({className:'card-presence'}).length,0);
+   const shown=renderer!.root.findAllByProps({className:'card-presence'}).length;assert(shown>0,'la respuesta pinta avatares');
+   mode='error';await tick();assert.equal(renderer!.root.findAllByProps({className:'card-presence'}).length,shown,'un fallo transitorio conserva la última presencia conocida');
+   mode='success';await unmount();
+   mode='error';await render(board(['77','78']));await tick();assert.equal(renderer!.root.findAllByProps({className:'card-presence'}).length,0,'sin caché previa el fallo no inventa avatares');
   });
   await check('pending batch never overlaps; filter changes cancel and ignore late data',async()=>{
    mode='pending';await render(board());const old=pending[0],before=reads.length;
@@ -85,6 +88,10 @@ async function main(){
    await render(<PresenceAvatars people={Array.from({length:6},(_,i)=>({id:String(i),name:'Persona '+i}))}/>);assert.equal(renderer!.root.findAllByProps({className:'presence-person'}).length,4);assert(text().includes('+'));assert.equal(renderer!.root.findByProps({className:'presence-more'}).props.title,'Persona 4, Persona 5');
    assert(renderer!.root.findAllByType('i').every(icon=>icon.props['data-active']===false));
    await render(<PresenceAvatars people={[{id:'empty',name:'   ',photo_url:null}]}/>);assert(text().includes('?'),'blank name still has a visible fallback');
+   const titles=()=>renderer!.root.findAllByProps({className:'presence-person'}).map(node=>node.props.title);
+   await render(<PresenceAvatars people={people}/>);assert.equal(titles()[0],'Ana Pérez · Viendo este proyecto','el detalle del proyecto conserva su contexto');
+   await render(<PresenceAvatars people={people} context="workspace"/>);assert.deepEqual(titles(),['Ana Pérez · Viendo un proyecto','Bruno Díaz · Activo ahora','Carla · Viendo un proyecto'],'fuera de un proyecto no se afirma «este proyecto» (#152)');
+   await render(<PresenceAvatars people={people} context="workspace" alwaysGreen/>);assert.equal(titles()[0],'Ana Pérez · En línea','la presencia de empresa dice en línea');
   });
   await check('mounting tracker/board is not activity or a project view',async()=>{
    const before=beats.length,eventsBefore=viewEvents;

@@ -1,0 +1,4 @@
+# Tests incorporados por SOS-PLT (#152/#153/#158)
+tsx tests/plt-152.test.ts
+tsx tests/seo-158-infra.test.ts
+tsx tests/client-portal-integration.test.tsx

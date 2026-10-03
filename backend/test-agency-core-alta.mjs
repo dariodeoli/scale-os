@@ -29,7 +29,8 @@ function between(text,start,end){
 }
 const routes=[
  between(core,"    if (url.pathname === '/api/agency/clients' && req.method === 'POST') {","    if (url.pathname === '/api/agency/projects' && req.method === 'GET') {"),
- between(core,"    if (url.pathname === '/api/agency/budgets' && req.method === 'POST') {","    if (url.pathname === '/api/agency/accounts' && req.method === 'GET') {")
+ between(core,"    if (url.pathname === '/api/agency/budgets' && req.method === 'POST') {","    if (url.pathname === '/api/agency/accounts' && req.method === 'GET') {"),
+ between(core,"    if (url.pathname === '/api/agency/accounts' && req.method === 'GET') {","    if (url.pathname === '/api/agency/accounts' && req.method === 'POST') {")
 ].join('\n');
 const helpers=between(server,'const send =','const cookie =')+between(server,'const parseCookies =','const id =')+between(server,'const sessionCache =','async function session(req) {')+between(server,'async function session(req) {','function security(');
 const pg=new PGlite();
@@ -57,6 +58,11 @@ try{
   let result={status:0};
   const handled=await suite({req:request(path,'PATCH',payload,current),res:{},url:new URL(`https://test.invalid${path}`),db,session,body:async()=>payload,send:(_res,status,data)=>{result={status,...data};}});
   assert.equal(handled,true,`la edición cubre ${path}`);
+  return result;
+ }
+ async function get(path,current=token){
+  let result={status:0};
+  await post(request(path,'GET',{},current),{writeHead(status){result.status=status;},end(value){Object.assign(result,JSON.parse(value));}});
   return result;
  }
  const clientPaths={name:'Cliente paridad',email:'paridad@example.invalid',phone:'+595 981123456',tax_id:'80012345-6',legal_name:'Razón social de prueba',notes:'Nota de alta'};
@@ -112,6 +118,18 @@ try{
  assert.equal((await alta('/api/agency/budgets',{...budgetPaths,clientId:999999})).status,404,'cliente inexistente');
  assert.equal((await alta('/api/agency/clients',{...clientPaths,tax_id:'80012345-6'})).status,409,'RUC duplicado en la empresa');
  assert.equal((await alta('/api/agency/budgets',{...budgetPaths},otherToken)).status,404,'el cliente de otra empresa no es direccionable');
+ // #152/#149: la custodia resuelve nombre/foto; la UI prefiere el nombre al correo.
+ const demoCustodian=(await query("insert into users(email,password_hash) values('persona-99@demo.example.invalid','unused') returning id")).rows[0].id;
+ const realCustodian=(await query("insert into users(email,password_hash) values('custodia.real@estudio.com.py','unused') returning id")).rows[0].id;
+ await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'finance'),($1,$3,'finance')",[org,demoCustodian,realCustodian]);
+ await query("insert into agency_user_profiles(user_id,organization_id,full_name) values($1,$3,'Lucía Demo'),($2,$3,'Ana Real')",[demoCustodian,realCustodian,org]);
+ await query("insert into bank_accounts(organization_id,name,account_type,custodian_user_id) values($1,'Caja demo','cash',$2),($1,'Caja real','bank',$3)",[org,demoCustodian,realCustodian]);
+ const custodia=await get('/api/agency/accounts');
+ assert.equal(custodia.status,200,JSON.stringify(custodia));
+ const cajaDemo=custodia.accounts.find(a=>a.name==='Caja demo'),cajaReal=custodia.accounts.find(a=>a.name==='Caja real');
+ assert.equal(cajaDemo.custodian_name,'Lucía Demo','la custodia demo se identifica por nombre');
+ assert.equal(cajaReal.custodian_email,'custodia.real@estudio.com.py','la custodia real conserva su correo');
+ assert.equal(cajaReal.custodian_name,'Ana Real');
  const after=(await query('select count(*)::int as count from agency_budgets')).rows[0].count;
  assert.equal(after,1,'los rechazos no dejan presupuestos creados');
  console.log('PASS: el alta de clientes y presupuestos comparte validación, límites y redondeo con la edición; 21 rechazos (18 con 400, dos 404 y un 409), fechas civiles y montos a dos decimales. PGlite only; no server/init/network started.');
