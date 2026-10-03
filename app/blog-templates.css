@@ -1,0 +1,78 @@
+/* Plantillas del blog (#156/#157): listas y artículo con el sistema de marca.
+ * Usa los tokens de la app (claro/oscuro automáticos) y una única variable de
+ * acento para diferenciar Scale Paraguay (empresa) de Scale OS (producto).
+ * Lectura 65–72ch, targets 44 px en mobile y foco visible AA. */
+.blog-page{--blog-accent:var(--brand-600);display:flex;flex-direction:column;gap:clamp(20px,4vw,36px);min-height:100dvh;padding:clamp(18px,4vw,40px) clamp(16px,4vw,40px) 48px;background:var(--canvas);color:var(--text)}
+.blog--producto{--blog-accent:rgb(var(--c-fono))}
+.blog-page :is(a):focus-visible{outline:3px solid color-mix(in srgb,var(--blog-accent) 72%,white);outline-offset:3px;border-radius:6px}
+
+.blog-header,.blog-hero,.blog-featured,.blog-section-title,.blog-grid,.blog-article,.blog-cta-box,.blog-footer{width:100%;max-width:1100px;margin-inline:auto;min-width:0}
+.blog-header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.blog-site{font-size:18px;font-weight:800;letter-spacing:-.03em;color:var(--text);text-decoration:none}
+.blog-cta{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:999px;color:var(--text);font-size:13px;font-weight:650;text-decoration:none;transition:border-color 160ms,background 160ms}
+.blog-cta:hover{border-color:var(--blog-accent);background:color-mix(in srgb,var(--blog-accent) 8%,transparent)}
+
+.blog-hero{display:grid;gap:10px}
+.blog-eyebrow{margin:0;color:var(--blog-accent);font:700 10.5px 'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase}
+.blog-hero h1{margin:0;font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.035em;line-height:1.08}
+.blog-lead{margin:0;max-width:62ch;color:var(--text-muted);font-size:15px;line-height:1.65}
+.blog-categories{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.blog-categories a{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:999px;color:var(--text-muted);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.blog-categories a.is-active{border-color:var(--blog-accent);background:color-mix(in srgb,var(--blog-accent) 14%,transparent);color:var(--text)}
+.blog-count{font-size:11px;opacity:.75;font-variant-numeric:tabular-nums}
+.blog-rss{justify-self:start;color:var(--text-muted);font-size:12px;font-weight:650;text-decoration:underline;text-underline-offset:3px;min-height:44px;display:inline-flex;align-items:center}
+
+.blog-featured{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(16px,3vw,30px);border:1px solid var(--line);border-radius:20px;background:var(--surface);overflow:hidden}
+@media(min-width:768px){.blog-featured{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:center}}
+.blog-featured-body{display:grid;gap:10px;padding:clamp(18px,3vw,30px);text-decoration:none;color:inherit;align-content:start}
+.blog-featured-body h2{margin:0;font-size:clamp(24px,3.4vw,34px);font-weight:800;letter-spacing:-.03em;line-height:1.12}
+.blog-featured-body p{margin:0;color:var(--text-muted);font-size:14px;line-height:1.6}
+.blog-featured-cover{display:block;min-width:0;background:var(--surface-subtle,var(--violet-soft))}
+.blog-cover{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover}
+
+.blog-section-title{margin:0 0 14px;font-size:clamp(20px,2.4vw,26px);font-weight:750;letter-spacing:-.02em}
+.blog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:16px}
+.blog-card{min-width:0;border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden;transition:border-color 160ms,transform 160ms}
+.blog-card:hover{border-color:var(--blog-accent);transform:translateY(-1px)}
+.blog-card-link{display:grid;gap:8px;padding:18px;min-height:100%;text-decoration:none;color:inherit;align-content:start}
+.blog-card-link .blog-cover{margin:-18px -18px 4px;width:calc(100% + 36px)}
+.blog-card h3{margin:0;font-size:16.5px;font-weight:750;letter-spacing:-.02em;line-height:1.25}
+.blog-card p{margin:0;color:var(--text-muted);font-size:13px;line-height:1.55}
+.blog-chip{justify-self:start;display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:color-mix(in srgb,var(--blog-accent) 12%,transparent);color:var(--text);font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.blog-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0;color:var(--text-muted);font-size:12px;font-variant-numeric:tabular-nums}
+.blog-empty{max-width:1100px;margin-inline:auto;color:var(--text-muted);font-size:14px}
+
+.blog-article{display:grid;gap:18px}
+.blog-breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--text-muted);font-size:12.5px}
+.blog-breadcrumb a{color:var(--text-muted);text-decoration:underline;text-underline-offset:3px;min-height:44px;display:inline-flex;align-items:center}
+.blog-article-head{display:grid;gap:12px}
+.blog-article-head h1{margin:0;font-size:clamp(30px,5vw,48px);font-weight:800;letter-spacing:-.035em;line-height:1.08}
+.blog-article-cover{overflow:hidden;border:1px solid var(--line);border-radius:20px;background:var(--surface-subtle,var(--violet-soft))}
+.blog-tags{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+
+.blog-prose{width:100%;max-width:70ch;margin-inline:auto;font-size:17px;line-height:1.72;color:var(--text)}
+.blog-prose :is(h2,h3,h4){margin:1.7em 0 .55em;font-weight:750;letter-spacing:-.02em;line-height:1.2}
+.blog-prose h2{font-size:clamp(22px,3vw,28px)}
+.blog-prose h3{font-size:19px}
+.blog-prose :is(p,ul,ol,blockquote,pre,figure,table){margin:0 0 1.15em}
+.blog-prose :is(ul,ol){padding-left:1.25em}
+.blog-prose li{margin-bottom:.4em}
+.blog-prose blockquote{margin-inline:0;padding:2px 0 2px 16px;border-left:3px solid var(--blog-accent);color:var(--text-muted)}
+.blog-prose :is(code,kbd){font-family:'DM Mono',ui-monospace,monospace;font-size:.88em;background:var(--violet-soft);border-radius:6px;padding:2px 6px}
+.blog-prose pre{overflow-x:auto;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-subtle,var(--violet-soft));font-size:13.5px;line-height:1.6}
+.blog-prose pre code{background:none;padding:0;font-size:inherit}
+.blog-prose :is(img,video){max-width:100%;height:auto;border-radius:12px}
+.blog-prose a{color:var(--blog-accent);font-weight:600;text-underline-offset:3px}
+.blog-prose table{width:100%;border-collapse:collapse;font-size:14px}
+.blog-prose :is(th,td){border-bottom:1px solid var(--line);padding:8px 10px;text-align:left}
+.blog-prose hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+
+.blog-cta-box{display:grid;gap:12px;justify-items:start;padding:clamp(18px,3vw,28px);border:1px solid var(--line);border-radius:20px;background:var(--surface)}
+.blog-cta-box p{margin:0;max-width:60ch;font-size:14px;line-height:1.6;color:var(--text-muted)}
+.blog-button{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;background:var(--brand-700);color:rgb(var(--c-onbrand));font-size:14px;font-weight:750;text-decoration:none}
+.blog-button:hover{background:var(--brand-600)}
+
+.blog-footer{border-top:1px solid var(--line);padding-top:16px;color:var(--text-muted);font-size:12.5px}
+.blog-footer a{color:var(--text-muted);text-underline-offset:3px}
+
+@media(prefers-reduced-motion:reduce){.blog-card,.blog-cta{transition:none}.blog-card:hover{transform:none}}
