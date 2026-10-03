@@ -94,8 +94,8 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
         <DueDate value={s(order,'due_date')} time={s(order,'due_time')} compact done={s(order,'status')==='approved'||s(order,'status')==='published'}/>
       </div>
       <dl className="grid gap-1 text-xs sm:grid-cols-2">
-        <FilaDato etiqueta="Horas estimadas" etiquetaComo="dt" valorComo="dd" valor={hoursText(order.estimated_hours)??'—'}/>
-        <FilaDato etiqueta="Horas trabajadas" etiquetaComo="dt" valorComo="dd" valor={hoursText(order.actual_hours)??'—'}/>
+        <FilaDato etiqueta="Horas estimadas" etiquetaComo="dt" valorComo="dd" valor={hoursText(s(order,'estimated_hours'))??'—'}/>
+        <FilaDato etiqueta="Horas trabajadas" etiquetaComo="dt" valorComo="dd" valor={hoursText(s(order,'actual_hours'))??'—'}/>
         <FilaDato etiqueta="Niveles de aprobación completados" etiquetaComo="dt" valorComo="dd" valor={s(order,'approval_step')||'0'}/>
         <FilaDato etiqueta="Última actualización" etiquetaComo="dt" valorComo="dd" valor={<span className="whitespace-nowrap">{fechaLista(s(order,'updated_at'),'',{timeZone:OPS_TIME_ZONE})}</span>}/>
       </dl>
