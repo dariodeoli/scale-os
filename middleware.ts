@@ -1,8 +1,10 @@
 import {NextResponse,type NextRequest} from 'next/server';
 import {sections,legacyRoutes} from './app/navigation';
 import {resolveCoreApiOrigin} from './core-api-origin.mjs';
-import {appRobotsTxt,landingRobotsTxt,landingSitemapXml} from './app/seo';
+import {appRobotsTxt,blogRobotsTxt,landingRobotsTxt,landingSitemapXml,type BlogSection} from './app/seo';
 const workspaceRoots=new Set([...sections.map(([,slug])=>slug.split('/')[0]),...Object.keys(legacyRoutes)]);
+// Blogs con host propio (#156/#157): se reescriben a /blog/<sección>.
+const blogHosts:Record<string,BlogSection>={'blog.scaleparaguay.com':'empresa','producto.scaleparaguay.com':'producto'};
 export function middleware(request:NextRequest){
  const host=(request.headers.get('host')||'').split(':')[0].toLowerCase(),path=request.nextUrl.pathname;
  if(host==='admin.scaleparaguay.com'&&path==='/'){
@@ -41,6 +43,19 @@ export function middleware(request:NextRequest){
   if(path.startsWith('/brand/')||path.startsWith('/landing/')||path==='/favicon.ico'||path==='/site.webmanifest'||path==='/apple-touch-icon.png')return NextResponse.next();
   if(path==='/demo'||path.startsWith('/core-api/')||workspaceRoots.has(path.split('/')[1])){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
   return new NextResponse('Página no encontrada',{status:404,headers:{'X-Robots-Tag':'noindex'}});
+ }
+ // Blogs (#156/#157): hosts indexables con sitemap y RSS propios.
+ const blogSection=blogHosts[host];
+ if(blogSection){
+  if(path==='/robots.txt')return new NextResponse(blogRobotsTxt(blogSection),{headers:{'Content-Type':'text/plain'}});
+  const rewrite=(target:string)=>{const url=request.nextUrl.clone();url.pathname=target;return NextResponse.rewrite(url);};
+  if(path==='/'||path==='')return rewrite(`/blog/${blogSection}`);
+  if(path==='/rss.xml')return rewrite(`/blog/${blogSection}/rss.xml`);
+  if(path==='/sitemap.xml')return rewrite(`/blog/${blogSection}/sitemap.xml`);
+  if(path==='/privacidad')return NextResponse.redirect(new URL('https://sistema.scaleparaguay.com/privacidad'),307);
+  if(path.startsWith('/_next/')||path.startsWith('/brand/')||path.startsWith('/landing/')||path.startsWith('/fonts/')||path.startsWith('/core-api/')||path.startsWith('/api/'))return NextResponse.next();
+  if(/\.[a-z0-9]+$/i.test(path)||path==='/favicon.ico'||path==='/site.webmanifest'||path==='/apple-touch-icon.png')return NextResponse.next();
+  return rewrite(`/blog/${blogSection}${path.startsWith('/')?path:`/${path}`}`);
  }
  // The production fallback is deliberately available on the existing app
  // domain until cliente.scaleparaguay.com is provisioned. It remains private
