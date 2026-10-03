@@ -54,6 +54,7 @@ import {personalData} from './personal-data.js';
 import {startPrivacyRetention} from './personal-data-retention.js';
 import {iaCarga} from './ia-carga.js';
 import {socialProviderConfig,socialProvidersStatus,socialAuthorizeUrl,pkcePair,exchangeSocialCode,resolveSocialIdentity} from './social-auth.js';
+import {organizationSso,oidcStart,oidcCallback} from './organization-sso.js';
 
 const { Pool } = pg;
 const port = Number(process.env.PORT || 3000);
@@ -241,7 +242,8 @@ async function init() {
      "20260929_destructive_platform_actions.sql",
      "20260930_lead_contact_opposition.sql",
      "20260930_personal_data.sql",
-     "20261003_social_identities.sql"
+     "20261003_social_identities.sql",
+     "20261005_organization_sso.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
@@ -373,6 +375,7 @@ const server = http.createServer(async (req,res) => {
     if(await passwordAccess({req,res,url,db,body,send,sendReset,emailAvailable:emailDelivery.status.available}))return;
     if(await accountSecurity({req,res,url,db,session,body,send,parseCookies,cookie,throttle,sendDestructiveEmailCode,emailAvailable:emailDelivery.status.available}))return;
     if(await financeControls({req,res,url,db,session,body,send}))return;
+    if(await organizationSso({req,res,url,db,session,body,send}))return;
     if(await contentReview({req,res,url,db,session,body,send}))return;
     if(await productivity({req,res,url,db,session,body,send}))return;
     if(await weeklyReports({req,res,url,db,session,body,send}))return;
@@ -481,6 +484,15 @@ const server = http.createServer(async (req,res) => {
       await db.query("insert into oauth_handoffs(token_hash,user_id,organization_id,expires_at,normal_login) values($1,$2,$3,now()+interval '60 seconds',true)",[crypto.createHash('sha256').update(ticket).digest('hex'),linked.userId,membership.organization_id]);
       res.writeHead(302,{'Location':`${appUrl}/core-api/api/auth/${provider}/complete?ticket=${ticket}`,'Set-Cookie':oauthStateCookie('',0,provider)});return res.end();
     }
+    if(url.pathname==='/api/auth/oidc/start'&&req.method==='GET'){
+      return oidcStart({req,res,url,db,send,oauthStateCookie});
+    }
+    if(url.pathname==='/api/auth/oidc/callback'&&(req.method==='GET'||req.method==='POST')){
+      let fields;
+      try{fields=req.method==='POST'?Object.fromEntries(new URLSearchParams(await formBody(req))):Object.fromEntries(url.searchParams);}
+      catch{return send(res,400,{error:'Solicitud inválida'});}
+      return oidcCallback({req,res,url,db,send,parseCookies,oauthStateCookie,fields});
+    }
     if (url.pathname === '/api/auth/google/callback' && req.method === 'GET') {
       const state = url.searchParams.get('state') || ''; const code = url.searchParams.get('code') || '';
       if (!state || parseCookies(req).scale_oauth_state !== state) {res.writeHead(302,{Location:`${appUrl}/?authError=La%20sesión%20de%20Google%20venció.%20Intentá%20nuevamente.`});return res.end();}
@@ -573,7 +585,7 @@ const server = http.createServer(async (req,res) => {
       }catch(error){await c.query('rollback');return send(res,error.status||500,{error:error.status?error.message:'No se pudo iniciar la prueba. Intentá nuevamente.'});}
       finally{c.release();}
     }
-    const socialComplete=url.pathname.match(/^\/api\/auth\/(google|microsoft|apple)\/complete$/);
+    const socialComplete=url.pathname.match(/^\/api\/auth\/(google|microsoft|apple|oidc)\/complete$/);
     if(socialComplete && req.method==='GET') {
       const ticket=url.searchParams.get('ticket')||'';
       const saved=await db.query('delete from oauth_handoffs where token_hash=$1 and expires_at>now() returning user_id,organization_id,trial_registration,normal_login',[crypto.createHash('sha256').update(ticket).digest('hex')]);

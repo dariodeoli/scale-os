@@ -33,6 +33,13 @@ y `../VERSIONING.md`.
 - Base y red: `DATABASE_URL`, `DATABASE_SSL`, `PORT`.
 - Orígenes y sesiones: `APP_URL`, `PUBLIC_ORIGIN`, `CLIENT_PORTAL_ORIGIN`, `INVITE_LINK_SECRET`.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`.
+- SSO OIDC por organización (Fase 2A, #159): la configuración de cada IdP
+  (`issuer`, `client_id`, `client_secret`, `discovery_url`, `active`) y los dominios
+  verificados se administran desde la app (dueño/administración, capacidad
+  `settings.manage`) y viven en `organization_identity_providers` /
+  `organization_email_domains`. `OIDC_REDIRECT_URI` define la redirect URI
+  registrada en los IdP (default `https://admin.scaleparaguay.com/api/auth/oidc/callback`);
+  `ADMIN_URL` ajusta ese host base. El discovery OIDC se cachea 10 minutos por proceso.
 - Correo: `WEEM_EMAIL_RELAY_URL`, `WEEM_EMAIL_RELAY_TOKEN`, `EMAIL_FROM`, `RESEND_API_KEY`.
   Los avisos de la bandeja se derivan de `agency_notifications`; sin relay quedan **en cola**
   (nunca «enviados»). Contrato, estados canónicos y plantillas: `NOTIFICATIONS.md`.
