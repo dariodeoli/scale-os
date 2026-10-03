@@ -1,0 +1,25 @@
+✓ la app carga con la sesión inyectada
+· tablero: 80 tarjetas en 7 columnas; primera orden 958 en blocked
+✓ tablero mouse: blocked → to_record (UI): true
+✓ tablero mouse: persistido en Postgres: "to_record"
+✓ tablero mouse: vuelta a la etapa original (Postgres): "blocked"
+· tablero mouse: ida a to_record y vuelta a blocked
+· tablero con filtro «sin selector»: 80 tarjetas visibles
+✓ tablero con filtro: persistido: "to_record"
+· tablero con filtro: blocked → to_record
+✓ tablero touch: persistido: "to_record"
+· tablero touch: blocked → to_record
+✓ pipeline: la tarjeta en custodia está deshabilitada: "true"
+· pipeline: 3 columnas (1 de solo lectura); tarjeta INV-0083 en «Sin ubicación»
+✓ pipeline mouse: persistido: "QA destino"
+· pipeline mouse: Sin ubicación → QA destino
+✓ pipeline: la columna de solo lectura rechaza el drop: "QA destino"
+· pipeline: drop sobre la custodia «Con custodio registrado» rechazado
+· pipeline touch: tarjeta INV-0083 en «QA destino» (loc-154)
+· pipeline touch: destino «Sin ubicación» (sin-ubicacion)
+✓ pipeline touch: persistido: "(sin ubicación)"
+· pipeline touch: QA destino → Sin ubicación
+✓ viewer: la tarjeta se anuncia como no arrastrable: "true"
+✓ viewer: el arrastre no cambia el estado en Postgres: "blocked"
+· viewer: arrastre sobre la orden 944 sin efecto (estado blocked)
+PASS e2e drag & drop: tablero (mouse/touch/filtro) y pipeline (mouse/touch/solo lectura) contra la app real y Postgres.

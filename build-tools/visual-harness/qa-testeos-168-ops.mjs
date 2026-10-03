@@ -45,28 +45,15 @@ const waitFor=async(expression,{timeout=20000,label=''}={})=>{const start=Date.n
 const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 const capture=async(name)=>{const {data}=await send('Page.captureScreenshot',{format:'jpeg',quality:78});writeFileSync(resolve(out,`${name}.jpg`),Buffer.from(data,'base64'));note(`captura ${name}.jpg`);};
 const clickByText=(text,selector='button,a,summary')=>evaluate(`(()=>{const el=[...document.querySelectorAll(${JSON.stringify(selector)})].find(node=>node.textContent.trim()===${JSON.stringify(text)}&&node.getClientRects().length>0);if(!el)return false;el.focus?.();el.click();return true;})()`);
-const clickByLabel=(label,selector='button,a,[role=button]')=>evaluate(`(()=>{const el=[...document.querySelectorAll(${JSON.stringify(selector)})].find(node=>(node.getAttribute('aria-label')||'')===${JSON.stringify(label)}&&node.getClientRects().length>0);if(!el)return false;el.focus?.();el.click();return true;})()`);
 const fill=(selector,value,kind='input')=>evaluate(`(()=>{const el=document.querySelector(${JSON.stringify(selector)});if(!el)return false;const proto=${kind==='textarea'?'window.HTMLTextAreaElement':'window.HTMLInputElement'}.prototype;const setter=Object.getOwnPropertyDescriptor(proto,'value').set;setter.call(el,${JSON.stringify(value)});el.dispatchEvent(new Event('input',{bubbles:true}));return true;})()`);
 const select=(selector,value)=>evaluate(`(()=>{const el=document.querySelector(${JSON.stringify(selector)});if(!el)return false;const setter=Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype,'value').set;setter.call(el,${JSON.stringify(value)});el.dispatchEvent(new Event('change',{bubbles:true}));return true;})()`);
 const setTheme=async(theme)=>{await evaluate(`(()=>{localStorage.setItem('scale-theme',${JSON.stringify(theme)});if(${JSON.stringify(theme)}==='light')document.documentElement.removeAttribute('data-theme');else document.documentElement.dataset.theme=${JSON.stringify(theme)};return document.documentElement.dataset.theme||'light';})()`);await sleep(250);};
 const setViewport=async(width,height)=>{await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<768});await sleep(300);};
 const setSession=async(token)=>{await send('Network.setCookie',{name:'scale_session',value:token,url:BASE});};
-const navItem=async(name)=>evaluate(`(()=>{const side=document.querySelector('.desktop-sidebar'),drawer=document.querySelector('.mobile-sidebar');const roots=[side&&side.getBoundingClientRect().width>0?side:null,drawer].filter(Boolean);for(const root of roots){const el=[...root.querySelectorAll('button,a')].find(node=>node.textContent.trim()===${JSON.stringify(name)}&&node.getClientRects().length>0);if(el){el.focus?.();el.click();return true;}}return false;})()`);
-const ensureDrawer=async()=>{if(await evaluate(`!document.querySelector('.mobile-sidebar')&&(document.querySelector('.mobile-menu-trigger')?.getBoundingClientRect().width||0)>0`)){await clickByLabel('Abrir menú');await waitFor(`document.querySelector('.mobile-sidebar')`,{label:'drawer móvil',timeout:8000});}};
-const goTo=async(name)=>{
- if(await navItem(name)){await sleep(1400);return true;}
- await ensureDrawer();
- if(await navItem(name)){await sleep(1400);return true;}
- const groups=await evaluate(`(()=>{const root=document.querySelector('.mobile-sidebar')||document.querySelector('.desktop-sidebar');if(!root)return [];return [...root.querySelectorAll('.nav-group-toggle')].map(group=>group.textContent.trim());})()`);
- for(const group of groups){
-  await evaluate(`(()=>{const root=document.querySelector('.mobile-sidebar')||document.querySelector('.desktop-sidebar');const group=[...root.querySelectorAll('.nav-group-toggle')].find(node=>node.textContent.trim()===${JSON.stringify(group)});if(!group)return false;group.click();return true;})()`);
-  await sleep(1500);
-  await ensureDrawer();
-  if(await navItem(name)){await sleep(1400);return true;}
- }
- return false;
-};
 const closeDialog=()=>evaluate(`(()=>{const panel=[...document.querySelectorAll('[role="dialog"]')].find(node=>node.getClientRects().length>0);if(!panel)return false;const close=[...panel.querySelectorAll('button')].find(node=>(node.getAttribute('aria-label')||'').match(/cerrar|close|volver/i));if(close){close.click();return true;}return false;})()`);
+// Navegación por ruta directa (el riel lateral lo audita DSN); el estado del shell
+// se restaura igual que con un clic y evita depender de grupos colapsados.
+const goto=async(path,waitExpression)=>{await send('Page.navigate',{url:BASE+path});if(waitExpression)await waitFor(waitExpression,{label:path,timeout:25000});await sleep(700);};
 
 await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
 await setSession(session.OWNER_TOKEN);
@@ -95,8 +82,7 @@ for(const [width,height] of widths){
 
  // A) Producción · tablero.
  await step('OPS tablero',async()=>{
-  await goTo('Producción');
-  await waitFor(`document.querySelector('[data-order]')`,{label:'tablero'});
+  await goto('/produccion',`document.querySelector('[data-order]')`);
   await sleep(900);
   const board=await evaluate(`(()=>{const columns=[...document.querySelectorAll('[data-column]')];const cards=[...document.querySelectorAll('[data-order]')];const counts=columns.map(c=>c.querySelector(':scope > div em')?.textContent?.trim()||'');const first=cards[0];return {columns:columns.length,cards:cards.length,counts,hasTitle:Boolean(first?.querySelector('button[aria-label^="Abrir "]')),hasPeople:Boolean(first?.querySelector('.assigned-people')),hasDue:Boolean(first?.querySelector('.due-date'))};})()`);
   if(withChecks){
@@ -194,8 +180,7 @@ for(const [width,height] of widths){
 
  // D) Vistas del planificador.
  await step('OPS vistas',async()=>{
-  await goTo('Producción');
-  await waitFor(`document.querySelector('[data-order]')`,{label:'tablero'});
+  await goto('/produccion',`document.querySelector('[data-order]')`);
   for(const view of ['Mi día','Calendario','Lista y lotes']){
    await clickByText(view);
    await sleep(1400);
@@ -214,8 +199,7 @@ for(const [width,height] of widths){
 
  // E) Proyectos: lista y detalle fiel.
  await step('OPS proyectos',async()=>{
-  await goTo('Proyectos');
-  await waitFor(`document.querySelector('.project-entry,[data-project]')`,{label:'proyectos'});
+  await goto('/proyectos',`document.querySelector('.project-entry,[data-project]')`);
   await sleep(900);
   await capture(`proyectos-lista-${W}-light`);
   await setTheme('dark');await capture(`proyectos-lista-${W}-dark`);await setTheme('light');
@@ -233,8 +217,7 @@ for(const [width,height] of widths){
 
  // F) Inventario: casos borde.
  await step('OPS inventario',async()=>{
-  await goTo('Inventario');
-  await waitFor(`document.querySelector('[aria-label="Vista de inventario"]')`,{label:'inventario'});
+  await goto('/inventario',`document.querySelector('[aria-label="Vista de inventario"]')`);
   await sleep(900);
   // Lista.
   await evaluate(`(()=>{const control=document.querySelector('[aria-label="Vista de inventario"]');const el=control&&[...control.querySelectorAll('button')].find(n=>n.textContent.trim()==='Lista');if(el)el.click();return true;})()`);
@@ -288,7 +271,7 @@ for(const [width,height] of widths){
 
  // G) Estudio: alta de espacio + reserva + cancelación.
  await step('OPS estudio',async()=>{
-  await goTo('Estudio');
+  await goto('/estudio',`/Sin espacios todavía|Agregar espacio/.test(document.body.innerText)`);
   await sleep(1500);
   const empty=await evaluate(`/Sin espacios todavía/.test(document.body.innerText)`);
   note(`estudio ${W}: vacío inicial = ${empty}`);
@@ -332,15 +315,17 @@ for(const [width,height] of widths){
   }else{finding('estudio: reserva','no se encontró el botón Nueva reserva','media');}
  });
 
- // H) Historial (apartado dentro de Equipo; la ruta directa evita depender del riel).
+ // H) Historial (actividad) y Resumen (pendientes internos).
  await step('OPS historial',async()=>{
-  await send('Page.navigate',{url:BASE+'/equipo/historial'});
-  await waitFor(`/Pendientes internos|No hay pendientes internos/.test(document.body.innerText)`,{label:'historial',timeout:20000});
+  await goto('/equipo/historial',`/Ver historial importado de Trello/.test(document.body.innerText)`);
   await sleep(900);
-  const history=await evaluate(`(()=>{const text=document.body.innerText;return {tasks:/Pendientes internos|No hay pendientes internos/.test(text),activity:/Actividad|Sin actividad registrada|cambios registrados/.test(text),error:/No se pudo/.test(text)};})()`);
-  if(withChecks){check(`historial ${W}: secciones presentes`,history.tasks&&history.activity,true);check(`historial ${W}: sin error de carga`,history.error,false);}
+  const history=await evaluate(`(()=>{const text=document.body.innerText;return {feed:/Ver historial importado de Trello/.test(text),records:/Creó|Actualizó|Eliminó|Sin actividad registrada/.test(text),error:/No se pudo cargar el historial/.test(text)};})()`);
+  if(withChecks){check(`historial ${W}: actividad del equipo`,history.feed&&history.records,true);check(`historial ${W}: sin error de carga`,history.error,false);}
   await capture(`historial-${W}-light`);
   await setTheme('dark');await capture(`historial-${W}-dark`);await setTheme('light');
+  await goto('/resumen',`/Pendientes internos/.test(document.body.innerText)`);
+  const tasks=await evaluate(`/Pendientes internos/.test(document.body.innerText)&&!/No se pudieron cargar/.test(document.body.innerText)`);
+  if(withChecks)check(`resumen ${W}: pendientes internos`,tasks,true);
  });
 }
 
@@ -350,15 +335,13 @@ await step('OPS permisos viewer',async()=>{
  await send('Page.navigate',{url:BASE+'/'});
  await sleep(4500);
  await waitFor(`[...document.querySelectorAll('button,a')].some(n=>n.textContent.trim()==='Resumen')`,{label:'cáscara viewer',timeout:30000});
- await goTo('Producción');
- await waitFor(`document.querySelector('[data-order]')`,{label:'tablero viewer'});
+ await goto('/produccion',`document.querySelector('[data-order]')`);
  await sleep(800);
  const board=await evaluate(`(()=>{const card=document.querySelector('[data-order]');return {menu:Boolean(card?.querySelector('button[aria-haspopup="menu"]')),grip:Boolean(card&&[...card.querySelectorAll('[role="img"]')].some(n=>(n.getAttribute('aria-label')||'').startsWith('Mover ')))};})()`);
  if(withChecks){check('viewer: sin menú ⋯ en la tarjeta',board.menu,false);check('viewer: sin manija de arrastre',board.grip,false);}
  await capture('viewer-produccion-1440-light');
  await setTheme('dark');await capture('viewer-produccion-1440-dark');await setTheme('light');
- await goTo('Inventario');
- await waitFor(`document.querySelector('[aria-label="Vista de inventario"]')`,{label:'inventario viewer'});
+ await goto('/inventario',`document.querySelector('[aria-label="Vista de inventario"]')`);
  await sleep(900);
  const inventory=await evaluate(`(()=>{const text=document.body.innerText;return {add:/Agregar equipo/.test(text),reserve:/Reservar equipos/.test(text),verify:Boolean([...document.querySelectorAll('button')].find(b=>(b.getAttribute('aria-label')||'').startsWith('Marcar verificado:')))};})()`);
  if(withChecks){check('viewer: sin alta de equipos',inventory.add,false);check('viewer: sin reserva de equipos',inventory.reserve,false);check('viewer: sin verificación',inventory.verify,false);}
