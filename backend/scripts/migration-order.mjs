@@ -96,4 +96,5 @@ export const migrationOrder = [
   '20260930_lead_contact_opposition.sql',
   '20260930_personal_data.sql',
   '20261003_social_identities.sql',
+  '20261005_organization_sso.sql',
 ];

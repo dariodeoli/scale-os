@@ -5,6 +5,18 @@ export const SEO_LANDING_ORIGIN = 'https://sistema.scaleparaguay.com';
 export const SEO_APP_ORIGIN = 'https://app.scaleparaguay.com';
 export const SEO_LANDING_PATHS = ['/', '/privacidad'] as const;
 
+// Blogs (#156/#157): hosts propios, indexables, con sitemap y RSS por sección.
+export type BlogSection = 'empresa' | 'producto';
+export const BLOG_ORIGINS: Record<BlogSection, string> = {
+  empresa: 'https://blog.scaleparaguay.com',
+  producto: 'https://producto.scaleparaguay.com',
+};
+
+/** robots.txt de un blog: indexable, con su sitemap propio. */
+export function blogRobotsTxt(section: BlogSection): string {
+  return `User-agent: *\nAllow: /\nSitemap: ${BLOG_ORIGINS[section]}/sitemap.xml\n`;
+}
+
 /** robots.txt de la landing: indexable, con el sitemap canónico. */
 export function landingRobotsTxt(): string {
   return `User-agent: *\nAllow: /\nSitemap: ${SEO_LANDING_ORIGIN}/sitemap.xml\n`;
