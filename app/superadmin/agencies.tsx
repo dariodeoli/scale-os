@@ -3,9 +3,10 @@
 // estado + contador) y lista densa con tarjetas cuando la plantilla no entra.
 import {useMemo, useState} from "react";
 import {SearchField, Select} from "owncoding-ui";
-import {Trash2} from "lucide-react";
 import {dueTone, listDateShort} from "../list-format";
 import {
+  ActionMenu,
+  EmptyBlock,
   FilterToolbar,
   ListActions,
   ListGrid,
@@ -74,30 +75,34 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
     <StateChip tone={agency.active ? "ok" : "mute"}>{agency.active ? "Activa" : "Inactiva"}</StateChip>
     <StateChip tone={manualAccessTone(agency)}>{manualAccessLabel(agency)}</StateChip>
   </>;
+  // Acción primaria visible + resto en el ⋯ del sistema (#155 D). Eliminar
+  // conserva la confirmación reforzada existente (typed + reautenticación).
   const actions = (agency: Agency) => <>
     {writable && (
       <button
         type="button"
         className="text-button platform-admin-inline-action"
+        title="Activar, suspender o extender el acceso manual"
         disabled={busy}
         onClick={() => void manageSubscription(agency)}
       >
-        Gestionar estado manual
+        Gestionar suscripción
       </button>
     )}
     {writable && (
-      <button
-        type="button"
-        className="text-button platform-admin-danger"
-        disabled={busy}
-        onClick={() => {
-          setConfirming({ kind: "agency", agency });
-          setTyped("");
-        }}
-      >
-        <Trash2 size={14} aria-hidden="true" />
-        Eliminar agencia
-      </button>
+      <ActionMenu
+        label={`Acciones de la agencia: ${agency.name || "Agencia sin nombre"}`}
+        items={[{
+          id: "delete",
+          label: "Eliminar agencia",
+          icono: "trash",
+          peligro: true,
+          onClick: () => {
+            setConfirming({ kind: "agency", agency });
+            setTyped("");
+          },
+        }]}
+      />
     )}
   </>;
   return (
@@ -124,9 +129,17 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
         {(query || status) ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</button> : null}
       </FilterToolbar>
       <div ref={tableRef} className="min-w-0">
-        {tableFits ? (
+        {!visible.length ? (
+          <EmptyBlock
+            compact
+            icon="building"
+            title="No hay agencias que coincidan con el filtro."
+            description="Probá con otro nombre o restablecé los filtros."
+            action={<button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</button>}
+          />
+        ) : tableFits ? (
           <ListGrid label="Agencias y suscripciones" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[73.5rem]" pinnedActions className="platform-admin-table-wrap">
-            {visible.length ? visible.map((agency) => {
+            {visible.map((agency) => {
               const expiry = agencyExpiry(agency);
               return (
                 <ListRow key={agency.id} template={TEMPLATE}>
@@ -141,14 +154,14 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
                   {writable ? <ListActions>{actions(agency)}</ListActions> : null}
                 </ListRow>
               );
-            }) : <p role="row" className="px-1 py-3 text-xs text-mute">No hay agencias que coincidan con el filtro.</p>}
+            })}
           </ListGrid>
         ) : (
           <div className="platform-admin-agency-cards grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {visible.length ? visible.map((agency) => {
+            {visible.map((agency) => {
               const expiry = agencyExpiry(agency);
               return (
-                <article key={agency.id} className="flex min-h-[140px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+                <article key={agency.id} className="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
                   <div className="min-w-0">
                     <b className="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title={agency.name || "Agencia sin nombre"}>{agency.name || "Agencia sin nombre"}</b>
                     <small className="mt-0.5 block text-[11px] text-mute">{agency.slug || "Sin identificador"}</small>
@@ -162,7 +175,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
                   {writable ? <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">{actions(agency)}</div> : null}
                 </article>
               );
-            }) : <p className="text-xs text-mute">No hay agencias que coincidan con el filtro.</p>}
+            })}
           </div>
         )}
       </div>
