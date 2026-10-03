@@ -2,6 +2,16 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.170
+
+### Operaciones
+
+- **Tablero y detalle sin huecos**: las piezas terminadas ya no muestran «venció» y los campos vacíos dejan de ocupar lugar; las horas se leen en formato humano.
+- **Checklist con atribución honesta**: quién completó cada paso se muestra con nombre, sin «por» sueltos.
+- **Inventario más robusto**: si la foto de un equipo no carga, se ve un respaldo, y el nombre completo encabeza la lista.
+- **Identidad coherente**: tablero, checklist y contenedores de persona muestran el nombre real, nunca los correos técnicos del demo.
+- Evidencia 390/1440 en claro y oscuro del tablero, la pieza y el inventario (#151) y de la campaña de testeos (#154).
+
 ## v1.0.169
 
 ### Sitio público
