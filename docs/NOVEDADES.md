@@ -2,6 +2,26 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.172
+
+### Plataforma
+
+- **Configuración por bloques**: empresa, facturación/cotización, integraciones, suscripción y seguridad con navegación por anclas; la zona de peligro queda aparte con su propio encabezado.
+- **Preferencias de correo claras**: la campana siempre recibe los avisos in-app y el correo pasa a ser opt-in; los avisos dependientes se deshabilitan si el interruptor maestro está apagado.
+- **Demo limpia y presencia honesta**: se terminaron los correos técnicos en identidad, menciones, Mis datos y custodias; fuera de un proyecto ya no se afirma «viendo este proyecto».
+- **Portal del cliente más claro**: la decisión del usuario se ve en el tablero por versión, re-mostrar una entrega publicada no bumpea la versión, la descarga sin sesión lleva al ingreso y la invitación interpreta el error de Google.
+- **Acceso ampliado (Fase 1)**: Microsoft y Apple se suman a Google en el login social, con vinculación por correo verificado.
+
+### Sitio público
+
+- **Cada host con su regla**: la landing queda indexable y la app no indexable, con sitemap/robots, 404 y /status consistentes.
+- **Imagen social y datos estructurados reales**: la tarjeta de enlaces usa la pieza de marca y el schema queda consolidado con ofertas reales.
+- **Baseline de Core Web Vitals**: medición lab de arranque para móvil y escritorio.
+
+### Comercial
+
+- **Buscador de clientes corregido**: la ventana de filas ya no mide espaciadores ni desmonta la lista al buscar (#135/#154).
+
 ## v1.0.171
 
 ### Finanzas
