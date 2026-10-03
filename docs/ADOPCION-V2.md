@@ -14,7 +14,7 @@ para que los consumidores no cambien de ruta.
 
 | Punto | Estado | Evidencia |
 | --- | --- | --- |
-| Tag fijado | `git+https://github.com/dariodeoli/owncoding-ui.git#v0.59.0` (0.59.0 instalado) | `package.json`, `package-lock.json` |
+| Tag fijado | `github:dariodeoli/owncoding-ui#v0.61.0` (0.61.0 instalado; tandas previas v0.51→v0.59) | `package.json`, `package-lock.json` |
 | `npm ci` limpio | Verde, incluso con SSH deshabilitado (`GIT_SSH_COMMAND=false`, caché nueva): el build de Coolify no necesita llaves | verificación local del 29-09 |
 | Preset + `content` | `tailwind.config.mjs` usa el preset y suma `./node_modules/owncoding-ui/dist/**/*.js` | `tailwind.config.mjs` |
 | Orden de carga | `owncoding-ui/styles.css` primero; después `globals.css`/legacy, `ui-system.css`, `contrast.css` y `tailwind.css` | `app/layout.tsx` |
@@ -57,8 +57,8 @@ del pie los define el objeto.
 | Estados de carga/vacío/error | Envuelven objetos | `app/ui-v2.tsx`: `LoadingBlock`→`Skeleton`, `EmptyState`/`ErrorState`/`SectionState` directos de la librería |
 | Paleta `--c-*` | App (mapeo de marca) | `app/tailwind.css` traduce la identidad de Scale OS a los tokens del grupo; la biblioteca no conoce la marca |
 | `ThemeToggle` | App | Suma el **tercer tema** (alto contraste) sobre el contrato de tokens; el objeto de la librería sólo conoce claro/oscuro |
-| Toasts (`feedback.ts` + `notification-center.tsx` + `toast.css`) | **Pendiente P3** | Un solo sistema y sólo resultados de acciones en pantalla; `ToastProvider`/`useToast` no es incremental (ver P3) |
-| Guía del panel (`WorkspaceGuide`) y buscador (`WorkspaceSearch`) | **Pendiente P2** | `AyudaModulo`/`PaletaComandos` requieren migrar la guía por módulo y el buscador global (ver P2) |
+| Toasts (`feedback.ts` + `notification-center.tsx` + `toast.css`) | **Mantener — P3 cerrado con evaluación** | Un solo sistema y sólo resultados de acciones en pantalla; `ToastProvider`/`useToast` no es incremental (ver §11.2) |
+| Guía del panel (`WorkspaceGuide`) y buscador (`WorkspaceSearch`) | **Reemplazado (buscador) / puente (guía)** | `WorkspaceSearch` → `PaletaComandos`; la variante `help` → `AyudaModulo`; la tarjeta de primeros pasos y el manual siguen en la app (puente §11.1) |
 | Reglas del marco (nav, riel, drawer) | **Pendiente P1** | Viven en `app/tailwind.css` + `app/ui-system.css`; se retiran con el scope `tema-v2` |
 
 ## 5. Excepciones documentadas (§14, contenido canónico mantenido)
@@ -87,13 +87,13 @@ usarlo y conservan el contenido canónico (versión real + crédito):
 | §15.5 Una entidad, una fuente | ✅ Montos (`money`/`amount-format`), fechas (`list-format`), seriales (`SerialTexto`) y avisos (`avisoDeNotificacion`) comparten derivación | `app/amount-format.ts`, `app/list-format.tsx`, `tests/notification-inbox.test.tsx` | — |
 | §15.6 Microcopy es-PY | ✅ Aviso en segunda persona y vocabulario del negocio en el marco («No tenés avisos», «Probá con otra vista») | `app/notification-inbox.tsx`, `app/workspace-guide.tsx` | Revisión de textos por slot |
 | §15.7 Rutas canónicas | ✅ `app/navigation.ts` declara secciones y `legacyRoutes` redirige; sin slugs dinámicos duplicados | `tests/landing-routing.test.ts`, `tests/navigation-dialog.test.ts` | — |
-| §15.8 Búsqueda y atajos | ⚠️ `WorkspaceSearch` (un solo buscador) sin Ctrl/Cmd+K; la ayuda es `WorkspaceGuide`, no `AyudaModulo`; el estado del sistema ya se alcanza desde la ayuda (`href="/status"`) | `app/workspace-search.tsx`, `app/workspace-guide.tsx` | **P2**: evaluar `PaletaComandos`/`AyudaModulo` como migración dedicada |
+| §15.8 Búsqueda y atajos | ✅ `PaletaComandos` con ⌘/Ctrl+K, destinos/acciones reales y tope de registros; `AyudaModulo` por módulo con `/status` siempre accesible | `app/workspace-search.tsx`, `app/workspace-guide.tsx`, `tests/dsn-135-adopcion.test.tsx` | **P2 resuelto (#135)** — puente de onboarding documentado en §11.1 |
 | §15.9 Dinero y sensibilidad | ✅ Gates por rol (`capabilities.ts`/`workspace-access.ts` + `backend/permissions.js`) y auditoría del API | `tests/capability-gates.test.ts`, `tests/commercial-gates.test.tsx` | — |
 | §15.10 Versión visible y novedades | ✅ Pie con versión real; **aviso de versión nueva** con `hayVersionNueva` contra `/health` → `release.version` (`VersionNotice`); `/status` desde la ayuda | `tests/version-notice.test.tsx`, `tests/product-footer.test.tsx` | — |
-| §15.11 Rendimiento | ⚠️ Secciones pesadas lazy con esqueleto; listas acotadas por `BATCH_LIMITS`/proyecciones | `dynamic()` en `app/sections/*`, `app/capabilities.ts` | **P4**: `ventanaDeLista` en las listas más largas (dueño por dominio) |
+| §15.11 Rendimiento | ✅ Secciones pesadas lazy con esqueleto; listas acotadas por `BATCH_LIMITS`/proyecciones y las densas montan por `ventanaDeLista` | `app/list-window.ts`, `app/sections/clientes.tsx`, `app/sections/presupuestos.tsx`, `tests/dsn-135-adopcion.test.tsx` | **P4 piloto (#135)** — patrón listo para los demás dominios (§11.3) |
 | §16 Bandeja | ✅ `CampanaAvisos` con mapeo único (`avisoDeNotificacion`), vacío con acción y detalle con las acciones de la app | `tests/notification-inbox.test.tsx`, `tests/notifications-api-integration.test.tsx` (API real) | Contador del objeto acotado a los avisos cargados (P5) |
 | §16 Push | ⚠️ La app no tiene canal push | `rg payloadPush app` → 0 | **P6**: contrato futuro con `payloadPush`/`enHorarioSilencioso` (coord. #84, PLT) |
-| §16 Toast | ⚠️ Un solo sistema propio, sólo acciones en pantalla | `app/feedback.ts`, `app/notification-center.tsx`, `tests/toast-design.test.ts` | **P3**: evaluar `ToastProvider`/`useToast` (no incremental hoy) |
+| §16 Toast | ✅ Un solo sistema propio, sólo acciones en pantalla; `ToastProvider`/`useToast` no cumple duración 2–3 s ni «sin cerrar» | `app/feedback.ts`, `app/notification-center.tsx`, `tests/toast-design.test.ts` | **P3 cerrado (#135)**: se mantiene con evaluación fundada (§11.2) |
 
 ### Pendientes con motivo
 
@@ -102,19 +102,17 @@ usarlo y conservan el contenido canónico (versión real + crédito):
   `app/ui-system.css`. Retirarlas exige adoptar el scope en el shell y volver a
   medir contraste y geometría de las tres verticales; es un cambio de marco
   completo, no incremental para esta tanda.
-- **P2 · `PaletaComandos`/`AyudaModulo`.** El buscador ya es único
-  (`WorkspaceSearch`) pero no tiene Ctrl/Cmd+K, y la guía por módulo tiene
-  lógica propia (`workspace-guide-data.ts`). Migrar pide rediseñar la ayuda por
-  rol/módulo y el índice de búsqueda (hoy alimentado por clientes, proyectos y
-  piezas); se agenda como lote propio.
-- **P3 · `ToastProvider`/`useToast`.** El aviso nace en la capa de datos
-  (`notifyMutation` → evento `scale:feedback`) y el contrato propio pide 2–3 s y
-  sin botón de cerrar; el objeto usa 4 s fijos, botón de cerrar y un hook dentro
-  de React. Adoptarlo sería un refactor de ~34 sitios sin ganancia funcional:
-  el resultado (§16: sólo acciones en pantalla) ya se cumple.
-- **P4 · `ventanaDeLista`.** Ninguna lista virtualiza todavía; las largas se
-  acotan por proyección/lote. La virtualización toca cada dominio (Comercial,
-  Operaciones, Finanzas) y se despacha al slot dueño con el contrato del objeto.
+- **P2 · `PaletaComandos`/`AyudaModulo`.** ✅ Resuelto en la ronda 03-10 (#135):
+  el buscador global es `PaletaComandos` (⌘/Ctrl+K, destinos/acciones reales) y
+  la variante `help` es `AyudaModulo` con textos por módulo; el detalle y el
+  puente de onboarding viven en §11.1.
+- **P3 · `ToastProvider`/`useToast`.** ✅ Cerrado con evaluación en §11.2: el
+  objeto usa 4 s fijos y botón de cerrar; el contrato de Scale OS (2–3 s, sin
+  cerrar, sólo resultados de acciones) ya se cumple y migrar sería un refactor
+  sin ganancia. Se reabre si la biblioteca publica duración configurable.
+- **P4 · `ventanaDeLista`.** ✅ Piloto implementado en Clientes y Presupuestos
+  (§11.3) con `useFilasVisibles` como envoltorio de medición; el patrón queda
+  documentado para que los demás dominios lo apliquen en sus listas densas.
 - **P5 · Contador global de la bandeja.** `CampanaAvisos` deriva el contador de
   los avisos que recibe y el API pagina de a 30 con `unread` global. La app
   muestra el conteo de lo cargado (honesto) y el pie suma los pendientes del
@@ -284,4 +282,91 @@ Evidencia: `docs/qa/patrones-138/` — 32 capturas 390×844 / 1440×900, claro y
 oscuro, antes/después de tarjeta, ⋯, esqueleto y vacío; baseline del harness en
 `work/visual-harness/patrones-138/baseline.md` (0 hallazgos). Contrato y guía de
 adopción en `DESIGN-SYSTEM.md`; guardas en `tests/ui-patterns-138.test.tsx`.
+
+## 11. Tanda owncoding-ui v0.61.0 y ronda 03-10 (Refs #135 / #136 / #147 / #148)
+
+Tag fijado `github:dariodeoli/owncoding-ui#v0.61.0` (commit
+`5e0b92b086ae916cf03dba585de0f0deb8e3a4ce`, 0.61.0 instalado). Entra por la
+migración P2 (paleta y ayuda) y deja publicados `CargaIA`/`DialogoCargaIA` para
+la evaluación de #136.
+
+### 11.1 P2 · Paleta de comandos y ayuda por módulo (resuelto)
+
+| Ruta de la app | Objeto de la biblioteca | Qué aporta la app |
+| --- | --- | --- |
+| `app/workspace-search.tsx` | `PaletaComandos` | catálogo real: navegación por rol (misma fuente que el NAV), clientes/proyectos/piezas, crear contextual, ayuda y `/status`; etiquetas por tipo y tope de 30 registros |
+| `app/workspace-guide.tsx` (variante `help`) | `AyudaModulo` | textos por módulo (`app/module-help-data.ts`), enlaces a `/status` y `/privacidad`, y apertura controlada desde ⌘K |
+| `app/scale-workspace.tsx` | — | comparte `helpOpen` para que la paleta abra la misma ventana de ayuda |
+
+**Puente documentado:** la guía de primeros pasos (checklist por evidencia) y el
+manual siguen en la tarjeta de Resumen y en la variante por defecto, porque
+`AyudaModulo` es ayuda de módulo y no onboarding; no se pierde ninguna ruta. El
+buscador local se retiró y el atajo ⌘/Ctrl+K lo maneja el objeto (sin listener
+propio). Guardas: `tests/dsn-135-adopcion.test.tsx`,
+`tests/workspace-search.test.tsx`.
+
+### 11.2 P3 · Toasts — decisión: mantener el sistema propio (cerrado)
+
+Evaluación contra v0.61.0: `ToastProvider`/`useToast` usan **4 s fijos y botón
+de cerrar**, y el hook vive dentro de React. El contrato de Scale OS pide 2–3 s
+(éxito 2 s, error/advertencia 3 s), **sin botón de cerrar** y sólo resultados de
+acciones en pantalla; el aviso nace en la capa de datos (`notify()` → evento
+`scale:feedback`) y lo dibuja `notification-center.tsx`. Adoptarlo sería un
+refactor de ~34 sitios sin ganancia funcional, perdiendo dos reglas del §16.
+**No se migra**; se reabre si la biblioteca publica duración configurable y
+cierre opcional. Guarda vigente: `tests/toast-design.test.ts`.
+
+### 11.3 P4 · `ventanaDeLista` — piloto en Clientes y Presupuestos
+
+`app/list-window.ts` expone `useFilasVisibles`: mide el `[role="rowgroup"]`
+real, delega el rango en `ventanaDeLista` (margen 2 filas) y rellena los
+extremos con espaciadores que conservan la altura. Sin medición (SSR, tests o
+contenedor ausente) el rango es la **lista completa**: la ventana nunca esconde
+filas ni cambia contadores, KPIs ni selección.
+
+| Lista densa | Filas cargadas | Nodos montados antes | Nodos montados después (1440×900) |
+| --- | --- | --- | --- |
+| Clientes | 120 | 120 | 20 (18 visibles + 2 de margen) |
+| Presupuestos | 350 | 350 | 20 (18 visibles + 2 de margen) |
+
+Las cuadrículas de tarjetas conservan el montaje completo (altura variable) y
+el «Ver más» de la ventana de API (#105) no cambia. Medición de referencia:
+350 filas × 50 px, viewport 900 px → `{inicio:0, fin:20}`; al scrollear el tramo
+se mantiene ≤22 nodos. Patrón para los demás dominios: importar
+`useFilasVisibles`, pasar el ref del contenedor y partir la lista con
+`slice(inicio, fin)` + espaciadores. Guarda:
+`tests/dsn-135-adopcion.test.tsx`.
+
+### 11.4 #136 · Convergencia CargaIA — parte UI (evaluación)
+
+Comparación con hashes: `app/ia-carga.tsx` `450420b8f96f` ·
+`app/ia-carga-data.ts` `035c4689df4d` · `backend/ia-carga.js` `4c79723ad2e2`
+(igual en `origin/main`) · biblioteca v0.61.0 `dist/ia.js` `20fd4288513d` ·
+`dist/utils.js` `a161c96f0bad`.
+
+| Capacidad | `app/ia-carga.tsx` (Fase 2, Scale OS) | `CargaIA`/`DialogoCargaIA` v0.61.0 | Decisión UI |
+| --- | --- | --- | --- |
+| Texto → tarjetas por tipo | `IA_TIPOS` clientes/inventario + editor por campo | `EsquemaIA` genérico + `RegistroNormalizadoIA` | Equivalente: la app conserva su esquema |
+| Coincidencias locales | `coincidencias` con señales (`ruc_ci_exacto`, correo, teléfono, nombre) y estado nuevo/coincide/ambiguo | no las modela (sólo registros normalizados) | **Portar a la biblioteca** antes de adoptar |
+| Confianza % y decisión | `confianza`, `nivelConfianza`, `decisionPorConfianza` (≥60 preselecciona vincular) | no las modela | **Portar** |
+| Acciones confirmadas | `registrar_cobro` (cuenta, vencimiento) y ejecución posterior a confirmar | `crear` genérico | **Portar `acciones`** |
+| Imágenes/adjuntos | imágenes de los registros analizados | no aplica | Se queda en la app |
+| Avisos y privacidad | `clasificarAvisoIa`, límites de texto/registros y PDP | `enlacePrivacidad` + avisos | Equivalente |
+| Motor server | `backend/ia-carga.js` | motor portable `owncoding-ui/ia` | Alcance de PLT en #136 |
+
+**Recomendación:** convergencia parcial. Se mantiene la UI propia (no se parte
+el flujo en dos) y se propone a `owncoding-ui` sumar `coincidencias`,
+`confianza` y `acciones` al contrato de `CargaIA`; cuando estén publicadas, la
+adopción es reemplazar el diálogo conservando `app/ia-carga-data.ts`. El motor
+portable queda para la parte de PLT (#136), con su propio handover.
+
+### 11.5 #147/#148 · Estados y landing
+
+Los fixes de estados engañosos (#147) y la segunda pasada de la landing (#148,
+demo visible, disclaimer único, privacidad en un origen, capturas vender ·
+producir · cobrar, puesta en marcha y checkout no disponible) se documentan en
+sus issues con capturas 390/1440 claro-oscuro en `docs/qa/147-estados/` y
+`docs/qa/148-landing/`. Guardas: `tests/dsn-147-estados.test.tsx`,
+`tests/landing-sales.test.mjs`.
+
 
