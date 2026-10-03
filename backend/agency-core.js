@@ -579,7 +579,14 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/accounts' && req.method === 'GET') {
       const user=await session(req); if(!roleCan(user,'accounts.manage')) return send(res,403,{error:'Sin permiso'});
-      const r=await db.query(`select a.*,u.email as custodian_email from bank_accounts a left join users u on u.id=a.custodian_user_id where a.organization_id=$1 and ${visibleRecord('a','accounts')} order by a.active desc,a.name`,[user.organization_id]);
+      const r=await db.query(`select a.*,u.email as custodian_email,
+        coalesce(nullif(trim(i.full_name),''),nullif(trim(c.full_name),''),u.email) as custodian_name,
+        coalesce(i.photo_url,c.photo_url) as custodian_photo_url
+        from bank_accounts a
+        left join users u on u.id=a.custodian_user_id
+        left join organization_person_identity i on i.organization_id=a.organization_id and i.user_id=a.custodian_user_id
+        left join agency_collaborators c on c.organization_id=a.organization_id and c.user_id=a.custodian_user_id
+        where a.organization_id=$1 and ${visibleRecord('a','accounts')} order by a.active desc,a.name`,[user.organization_id]);
       return send(res,200,{accounts:r.rows});
     }
     if (url.pathname === '/api/agency/accounts' && req.method === 'POST') {
@@ -593,7 +600,16 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/agency/custodians' && req.method === 'GET') {
       const user=await session(req); if(!roleCan(user,'accounts.manage')) return send(res,403,{error:'Sin permiso'});
-      const r=await db.query('select u.id,u.email,m.role from organization_members m join users u on u.id=m.user_id where m.organization_id=$1 and m.active=true order by u.email',[user.organization_id]);
+      // Nombre y foto resueltos (identidad global o ficha de colaborador) para
+      // que custodias y cobros nunca muestren correos técnicos del demo (#149).
+      const r=await db.query(`select u.id,u.email,m.role,
+        coalesce(nullif(trim(i.full_name),''),nullif(trim(c.full_name),''),u.email) as full_name,
+        coalesce(i.photo_url,c.photo_url) as photo_url
+        from organization_members m
+        join users u on u.id=m.user_id
+        left join organization_person_identity i on i.organization_id=m.organization_id and i.user_id=m.user_id
+        left join agency_collaborators c on c.organization_id=m.organization_id and c.user_id=m.user_id
+        where m.organization_id=$1 and m.active=true order by full_name`,[user.organization_id]);
       return send(res,200,{members:r.rows});
     }
     if (url.pathname === '/api/agency/invoices' && req.method === 'GET') {

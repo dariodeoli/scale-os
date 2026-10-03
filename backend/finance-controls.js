@@ -75,7 +75,7 @@ export async function financeControls({req,res,url,db,session,body,send}){
     // Ventana por defecto de 20 cobros + `hasMore` (#67), el mismo patrón que
     // `/invoices`: `?limit=all` trae el histórico completo a demanda.
     const requested=url.searchParams.get('limit');
-    const columns=`select p.*,i.number as invoice_number,i.client_id::text as client_id,cl.name as client_name,a.name as account_name,a.account_type,a.currency,u.email as received_by_email,r.id as reversal_id,r.reason as reversal_reason,r.created_by_user_id as reversed_by_user_id,${dateText('p','received_on')},r.reversed_on::text as reversed_on from agency_payments p join agency_invoices i on i.id=p.invoice_id join agency_clients cl on cl.id=i.client_id join bank_accounts a on a.id=p.account_id left join users u on u.id=p.received_by_user_id left join agency_payment_reversals r on r.payment_id=p.id where p.organization_id=$1 order by p.received_on desc,p.id desc`;
+    const columns=`select p.*,i.number as invoice_number,i.client_id::text as client_id,cl.name as client_name,a.name as account_name,a.account_type,a.currency,u.email as received_by_email,nullif(trim(c.full_name),'') as received_by_name,c.photo_url as received_by_photo_url,r.id as reversal_id,r.reason as reversal_reason,r.created_by_user_id as reversed_by_user_id,${dateText('p','received_on')},r.reversed_on::text as reversed_on from agency_payments p join agency_invoices i on i.id=p.invoice_id join agency_clients cl on cl.id=i.client_id join bank_accounts a on a.id=p.account_id left join users u on u.id=p.received_by_user_id left join agency_collaborators c on c.organization_id=p.organization_id and c.user_id=p.received_by_user_id left join agency_payment_reversals r on r.payment_id=p.id where p.organization_id=$1 order by p.received_on desc,p.id desc`;
     if(requested==='all')result={payments:(await c.query(columns,[org])).rows,hasMore:false};
     else{const rows=(await c.query(`${columns} limit 21`,[org])).rows;result={payments:rows.slice(0,20),hasMore:rows.length>20};}
    }
@@ -215,6 +215,10 @@ export async function financeControls({req,res,url,db,session,body,send}){
    {rows:result.lines,userId:'matched_by_user_id',prefix:'match_actor'},
    {rows:result.expenses||result.expense,userId:'created_by_user_id',fallback:['created_by_email']},
   ]);
+  // Cobros: cuando la identidad del tenant no tiene nombre (demo), la ficha de
+  // colaborador evita que el correo @demo.example.invalid se muestre (#149).
+  const paymentRows=[...(Array.isArray(result.payments)?result.payments:[]),...(result.payment?[result.payment]:[])];
+  for(const row of paymentRows) if(row.received_by_name&&row.actor_name===row.received_by_email){row.actor_name=row.received_by_name;row.actor_photo_url=row.received_by_photo_url||row.actor_photo_url;}
   await c.query('commit');tx=false;send(res,status,result);
  }catch(e){if(tx)await c.query('rollback');const status=e.status||(e.code==='23505'?409:500);console.error(JSON.stringify({event:'finance_controls_error',status,code:e.code}));send(res,status,{error:e.status?e.message:e.code==='23505'?'El movimiento ya está conciliado o registrado.':'No se pudo completar la operación financiera'});}finally{c?.release();}
  return true;
