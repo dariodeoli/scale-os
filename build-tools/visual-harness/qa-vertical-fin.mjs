@@ -144,7 +144,7 @@ const modals=[
  {screen:screens[0],label:'Cuenta',long:true},
  {screen:screens[0],label:'Transferir',long:false},
  {screen:screens[4],label:'Comisión',long:true},
- {screen:screens[4],label:'Nuevo descuento',long:true},
+ {screen:screens[4],label:'Nuevo descuento',long:true,tab:'Descuentos'},
 ];
 for(const theme of ['dark']){
  for(const modal of modals){
@@ -152,6 +152,10 @@ for(const theme of ['dark']){
   await waitFor(`document.querySelector(${JSON.stringify(modal.screen.marker)})`,{timeout:45000,label:modal.screen.name});
   await setTheme(theme);
   await sleep(500);
+  if(modal.tab){
+   await evaluate(`(()=>{const el=[...document.querySelectorAll('button')].find(node=>node.textContent.trim().startsWith(${JSON.stringify(modal.tab)})&&node.getBoundingClientRect().height>0);if(el)el.click();return Boolean(el);})()`);
+   await sleep(400);
+  }
   const opened=await evaluate(`(()=>{document.querySelectorAll('[data-qa-trigger]').forEach(el=>el.removeAttribute('data-qa-trigger'));const section=document.querySelector(${JSON.stringify(modal.screen.marker)});const button=[...section.querySelectorAll('button,a[href]')].find(el=>el.getBoundingClientRect().height>0&&(el.getAttribute('aria-label')||el.textContent||'').trim()===${JSON.stringify(modal.label)});if(!button)return false;button.focus();button.setAttribute('data-qa-trigger','1');button.click();return true;})()`).catch(()=>false);
   if(!opened){check(`${modal.screen.name} · «${modal.label}»: disparador visible`,false);continue;}
   await waitFor(`document.querySelector('[role="dialog"]')`,{timeout:8000,label:`diálogo «${modal.label}»`});
@@ -179,6 +183,7 @@ for(const theme of ['dark']){
 await setViewport(390,true);
 await send('Page.navigate',{url:BASE+'/pagos/prevision'});
 await waitFor(`document.querySelector('section[aria-label="Previsión financiera"]')`,{timeout:45000,label:'Previsión'});
+await waitFor(`document.querySelector('section[aria-label="Previsión financiera"] form')`,{timeout:15000,label:'formularios de Previsión'}).catch(()=>note('Previsión: no aparecieron formularios visibles'));
 await sleep(700);
 const forms=await evaluate(`(()=>{const section=document.querySelector('section[aria-label="Previsión financiera"]');const list=[...section.querySelectorAll('form')];return list.map(form=>{const fields=[...form.querySelectorAll('input,select,textarea,button[type="submit"]')].filter(el=>el.getBoundingClientRect().height>0);const rect=form.getBoundingClientRect();return {fields:fields.length,minWidth:Math.min(...fields.map(el=>Math.round(el.getBoundingClientRect().width))),overflow:form.scrollWidth-form.clientWidth,width:Math.round(rect.width)};});})()`);
 check('Previsión: formularios sin desborde',forms.every(form=>form.overflow===0),true);
