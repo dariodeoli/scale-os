@@ -1,11 +1,13 @@
 "use client";
 // Foto y categoría del equipo (#103), una sola pieza para inventario y para el
 // asistente «Carga con IA» (#132): la foto con placeholder limpio —nunca un
-// ícono roto— y el ícono de categoría desde una lista única.
+// ícono roto— y el ícono de categoría desde una lista única. Si la imagen
+// falla (enlace caído), el estado cae al mismo placeholder (#151).
 //
 // `inventory-workspace.tsx` importa `EquipmentPhoto`/`CategoryIcon` de acá
 // (antes vivían adentro y sólo servían a esa pantalla); el asistente los usa en
 // las tarjetas y en los candidatos del match.
+import {useEffect,useState} from 'react';
 import {BatteryCharging,Camera,HardDrive,Home,Lamp,Laptop,Lightbulb,Mic,Monitor,Package,Speaker,Video,type LucideIcon} from 'lucide-react';
 
 const categoryIconMap:Record<string,LucideIcon>={'camera':Camera,'video':Video,'mic':Mic,'lamp':Lamp,'lightbulb':Lightbulb,'monitor':Monitor,'laptop':Laptop,'speaker':Speaker,'hard-drive':HardDrive,'battery-charging':BatteryCharging,'package':Package,'home':Home};
@@ -23,8 +25,12 @@ export type EquipmentPhotoSize='card'|'row'|'pipeline'|'chip';
  * (32 px), pipeline (36 px) y los chips del asistente (36 px).
  */
 export function EquipmentPhoto({nombre,foto,icono,size='row'}:{nombre:string;foto?:string|null;icono?:string|null;size?:EquipmentPhotoSize}){
+ const [fallo,setFallo]=useState(false);
+ const source=String(foto||'').trim();
+ // Cambiar de foto reintenta la carga y devuelve el fallback si vuelve a fallar.
+ useEffect(()=>setFallo(false),[source]);
  const box=size==='card'?'h-14 w-14':size==='pipeline'?'h-9 w-9':size==='chip'?'h-9 w-9':'h-8 w-8';
  const iconSize=size==='card'?20:size==='chip'?16:14;
- if(foto)return <img className={`${box} shrink-0 rounded-lg border border-ink-600 object-cover`} src={foto} alt={`Foto de ${nombre}`} loading="lazy" referrerPolicy="no-referrer"/>;
+ if(source&&!fallo)return <img className={`${box} shrink-0 rounded-lg border border-ink-600 object-cover`} src={source} alt={`Foto de ${nombre}`} loading="lazy" referrerPolicy="no-referrer" onError={()=>setFallo(true)}/>;
  return <span className={`${box} grid shrink-0 place-items-center rounded-lg border border-ink-600 bg-ink-700/40 text-mute`} role="img" aria-label={`Sin foto: ${nombre}`} title="Sin foto"><CategoryIcon name={icono} size={iconSize}/></span>;
 }
