@@ -1,0 +1,181 @@
+{
+ "generatedAt": "2026-10-03T10:59:21.030Z",
+ "tag": "ops-151",
+ "broken": {
+  "id": "630",
+  "name": "Batería Sony"
+ },
+ "checks": [
+  {
+   "label": "producción 390: sin «Sin definir»/«Sin clasificar»",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "producción 390: horas sin decimales vacíos",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "producción 390: aprobadas/publicadas no muestran «venció»",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "producción 390: ninguna pieza terminada queda en rojo",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "detalle 390: sin emails técnicos del demo",
+   "ok": true,
+   "value": false,
+   "expected": false
+  },
+  {
+   "label": "detalle 390: horas estimadas en formato humano",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "detalle 390: un ítem completado muestra su estado",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 390: ningún nombre visible recortado",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "inventario 390: la foto rota no deja <img> quebrada",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "inventario 390: la foto rota usa el placeholder de la casa",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "producción 1440: sin «Sin definir»/«Sin clasificar»",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "producción 1440: horas sin decimales vacíos",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "producción 1440: aprobadas/publicadas no muestran «venció»",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "producción 1440: ninguna pieza terminada queda en rojo",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "detalle 1440: sin emails técnicos del demo",
+   "ok": true,
+   "value": false,
+   "expected": false
+  },
+  {
+   "label": "detalle 1440: horas estimadas en formato humano",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "detalle 1440: un ítem completado muestra su estado",
+   "ok": true,
+   "value": true,
+   "expected": true
+  },
+  {
+   "label": "inventario 1440: ningún nombre visible recortado",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "inventario 1440: la foto rota no deja <img> quebrada",
+   "ok": true,
+   "value": 0,
+   "expected": 0
+  },
+  {
+   "label": "inventario 1440: la foto rota usa el placeholder de la casa",
+   "ok": true,
+   "value": true,
+   "expected": true
+  }
+ ],
+ "log": [
+  "· foto rota preparada en «Batería Sony» (#630)",
+  "\n──── 390×844 ────",
+  "· captura ops-151/produccion-tablero-390-light.jpg",
+  "· captura ops-151/produccion-tablero-390-dark.jpg",
+  "· captura ops-151/produccion-etapas-finales-390-light.jpg",
+  "· captura ops-151/produccion-etapas-finales-390-dark.jpg",
+  "✓ producción 390: sin «Sin definir»/«Sin clasificar»: 0",
+  "✓ producción 390: horas sin decimales vacíos: 0",
+  "✓ producción 390: aprobadas/publicadas no muestran «venció»: 0",
+  "✓ producción 390: ninguna pieza terminada queda en rojo: 0",
+  "· producción 390: 80 tarjetas",
+  "· captura ops-151/pieza-detalle-390-light.jpg",
+  "· captura ops-151/pieza-detalle-390-dark.jpg",
+  "· captura ops-151/pieza-checklist-390-light.jpg",
+  "· captura ops-151/pieza-checklist-390-dark.jpg",
+  "✓ detalle 390: sin emails técnicos del demo: false",
+  "✓ detalle 390: horas estimadas en formato humano: true",
+  "✓ detalle 390: un ítem completado muestra su estado: true",
+  "· detalle 390: horas «4 h»",
+  "· captura ops-151/inventario-lista-390-light.jpg",
+  "· captura ops-151/inventario-lista-390-dark.jpg",
+  "✓ inventario 390: ningún nombre visible recortado: 0",
+  "✓ inventario 390: la foto rota no deja <img> quebrada: 0",
+  "✓ inventario 390: la foto rota usa el placeholder de la casa: true",
+  "· inventario 390: 6 filas · placeholders 6 · recortadas []",
+  "\n──── 1440×900 ────",
+  "· captura ops-151/produccion-tablero-1440-light.jpg",
+  "· captura ops-151/produccion-tablero-1440-dark.jpg",
+  "· captura ops-151/produccion-etapas-finales-1440-light.jpg",
+  "· captura ops-151/produccion-etapas-finales-1440-dark.jpg",
+  "✓ producción 1440: sin «Sin definir»/«Sin clasificar»: 0",
+  "✓ producción 1440: horas sin decimales vacíos: 0",
+  "✓ producción 1440: aprobadas/publicadas no muestran «venció»: 0",
+  "✓ producción 1440: ninguna pieza terminada queda en rojo: 0",
+  "· producción 1440: 80 tarjetas",
+  "· captura ops-151/pieza-detalle-1440-light.jpg",
+  "· captura ops-151/pieza-detalle-1440-dark.jpg",
+  "· captura ops-151/pieza-checklist-1440-light.jpg",
+  "· captura ops-151/pieza-checklist-1440-dark.jpg",
+  "✓ detalle 1440: sin emails técnicos del demo: false",
+  "✓ detalle 1440: horas estimadas en formato humano: true",
+  "✓ detalle 1440: un ítem completado muestra su estado: true",
+  "· detalle 1440: horas «4 h»",
+  "· captura ops-151/inventario-lista-1440-light.jpg",
+  "· captura ops-151/inventario-lista-1440-dark.jpg",
+  "✓ inventario 1440: ningún nombre visible recortado: 0",
+  "✓ inventario 1440: la foto rota no deja <img> quebrada: 0",
+  "✓ inventario 1440: la foto rota usa el placeholder de la casa: true",
+  "· inventario 1440: 6 filas · placeholders 6 · recortadas []"
+ ]
+}

@@ -1,0 +1,12 @@
+✓ demo: sesión de producción: 201
+✓ demo: cookie: true
+✓ COM clientes: filas montadas: true
+✓ COM clientes: sin espaciador gigante: 0
+✓ COM clientes: scroll total acotado (<4000 px): true
+· COM clientes: 16 filas · scroll 998/998 px · espaciadores []
+· captura com-clientes-1440-light.jpg
+✓ COM presupuestos: filas montadas: true
+✓ COM presupuestos: sin espaciador gigante: 0
+✓ COM presupuestos: scroll total acotado (<4000 px): true
+· COM presupuestos: 14 filas · scroll 1011/1011 px · espaciadores []
+· captura com-presupuestos-1440-light.jpg

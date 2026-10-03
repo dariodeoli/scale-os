@@ -26,7 +26,7 @@ import {fileURLToPath} from 'node:url';
 const here=dirname(fileURLToPath(import.meta.url));
 const repo=resolve(here,'../..');
 const withChecks=process.argv.includes('--checks');
-const out=resolve(repo,'docs/qa/testeos-168/ops');
+const out=resolve(repo,process.env.QA_OUT||'docs/qa/testeos-168/ops');
 mkdirSync(out,{recursive:true});
 const session=Object.fromEntries(readFileSync(resolve(repo,'work/visual-harness/ops-qa-session.txt'),'utf8').split('\n').filter(Boolean).map((line)=>line.split('=')));
 const BASE=process.env.BASE_URL||session.BASE||'http://127.0.0.1:3006';

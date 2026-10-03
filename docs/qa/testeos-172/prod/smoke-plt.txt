@@ -1,0 +1,11 @@
+== smoke PLT v1.0.172 2026-10-03T11:04:28Z
+/status -> 200
+/robots.txt -> 200
+/sitemap.xml -> 200
+/cliente/ingresar -> 200
+/cliente/recuperar -> 200
+/demo -> 307
+/registro -> 200
+/api/auth/google/start -> 302 https://accounts.google.com/o/oauth2/v2/auth?client_id=500595134387-p2i5rm1e0ldjeptf2ggnvmmf0alhh31e.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fadmin.scaleparaguay.com%2Fapi%2Fauth%2Fgoogle%2Fcallback&response_type=code&scope=openid+email+profile&state=d1bcccc5edfb557a50f5e41a4a14ae722ddafe63732c91ae1e9e04d0caeae55a&prompt=select_account
+/api/auth/microsoft/start -> 503 
+/api/auth/apple/start -> 503 
