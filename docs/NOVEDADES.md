@@ -2,6 +2,21 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.168
+
+### Diseño y experiencia
+
+- **Paleta de comandos (⌘K)**: abrí la búsqueda rápida desde cualquier pantalla y saltá a módulos, vistas o acciones sin recorrer el menú.
+- **Ayuda por módulo**: cada sección estrena su guía con los objetos y flujos propios, accesible desde la misma pantalla.
+- **Listas con ventana densa**: Clientes y Presupuestos cargan las filas por ventana, con la misma plantilla y columnas, sin listas que cortan información.
+- **Estados honestos**: previews, guía, Mis datos, avisos, empresa y administración muestran carga, vacío y error reales; se terminaron los bloques en blanco.
+- **Biblioteca v0.61**: la interfaz adopta los objetos compartidos y el pie actualizado de `owncoding-ui` (toasts, cápsulas y ayuda coherentes).
+
+### Landing
+
+- **Capturas reales del producto**: la landing muestra el producto en acción por resultado (vender, producir, cobrar), con la demo visible y un único canal de contacto.
+- **Puesta en marcha clara**: los pasos de inicio y el pie quedan alineados con la versión publicada.
+
 ## v1.0.166
 
 ### Finanzas
