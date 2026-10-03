@@ -2,6 +2,20 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.171
+
+### Finanzas
+
+- **Alta y cobro a prueba de errores**: «Crear factura» y «Registrar cobro» quedan deshabilitados hasta tener cliente, factura, cuenta e importe, con el error inline y la ayuda al lado; los gastos planificados y reales bloquean sin monto positivo (y cuenta).
+- **Selector único con buscador**: cliente, factura y persona se eligen en el mismo buscador, con nombre, foto/logo y contexto (saldo pendiente, moneda, vencimiento, rol).
+- **Custodias con nombre y foto**: cuentas y cobros muestran la identidad real del custodio, sin correos técnicos del demo.
+- **Etiquetas y montos unificados**: meses largos («Octubre 2026») en Previsión, Informes y Comisiones; «Sin mora» reemplaza a «Al día» con saldo pendiente y los contratos facturados se rotulan «Facturado»; la IA de carga usa el formateador único de dinero.
+- Evidencia 390/1440 en claro y oscuro en `docs/qa/fin-149/` (#149) y de la campaña de testeos (#154).
+
+### Diseño
+
+- **Modo oscuro AA**: el botón de texto y el sello demo de la landing corrigen su contraste en oscuro.
+
 ## v1.0.170
 
 ### Operaciones
