@@ -29,8 +29,10 @@ test('demo limpia: sin correos técnicos en identidad, menciones y custodias',()
  assert.match(read('app/my-data.tsx'),/Cuenta de demostración/);
  assert.match(read('app/operations.tsx'),/personLabel\(entry\.member/);
  assert.match(read('app/sections/finanzas.tsx'),/account\.custodian_name/);
+ assert.match(read('app/sections/finanzas.tsx'),/PersonContainer[^>]*name=\{account\.custodian_name/,'la UI prefiere el nombre al correo');
  const core=read('backend/agency-core.js');
- assert.ok(core.includes("invalid$' then null else u.email end as custodian_email"),'el API oculta el correo técnico en custodias');
+ // FIN #149 resolvió la identidad de custodia en main (nombre/foto); PLT
+ // conserva sus guardas de correos técnicos en identidad y menciones.
  assert.ok(core.includes('custodian_name'),'el API entrega el nombre de custodia');
  assert.ok(core.includes('custodian_photo_url'),'el API entrega la foto de custodia');
 });
