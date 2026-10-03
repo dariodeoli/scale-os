@@ -68,7 +68,9 @@ await send('Network.enable');
 await send('Network.setCookie', {name: 'scale_session', value: session.SESSION, url: BASE, httpOnly: true});
 
 const SECTIONS = [
-  ['resumen', '/resumen', `document.body.textContent.includes('Resumen')`],
+  // En móvil el riel se oculta (chrome §141): «Resumen» no está en el DOM.
+  // El shell listo se verifica por el topbar; el contenido, por sus KPIs.
+  ['resumen', '/resumen', `document.querySelector('.workspace-topbar')`],
   ['pipeline', '/pipeline', `document.body.textContent.includes('Oportunidades abiertas')`],
   ['clientes', '/clientes', `document.body.textContent.includes('Clientes')`],
   ['presupuestos', '/presupuestos', `document.body.textContent.includes('Borradores')`],

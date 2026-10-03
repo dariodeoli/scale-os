@@ -1,0 +1,81 @@
+✓ sesión inyectada: la app carga: true
+· captura 00-resumen-1440.png
+· ── Pipeline
+✓ KPI «Oportunidades abiertas» = API: 30
+✓ KPI «Ganadas» = API: 4
+✓ KPI «Consultas web» = API: 0
+✓ columnas suman todas las oportunidades: 34
+· 34 oportunidades del API en 6 columnas: Lead · 0 oportunidades | Contactado · 17 oportunidades | Propuesta · 9 oportunidades | Negociación · 4 oportunidades | …
+✓ payload: pide la ventana de 300: true
+✓ payload: no pide la lista completa de órdenes: false
+✓ payload: oportunidades sin recorte: true
+· captura 01-pipeline-1440.png
+✓ D&D mouse: «Oportunidad QA 13» cambia de etapa (Postgres): true
+✓ D&D mouse: la columna de la UI coincide con Postgres: "Lead"
+· D&D mouse: contacted → lead (columna «Lead»)
+✓ D&D touch: «Oportunidad QA 13» cambia de etapa (Postgres): true
+✓ D&D touch: la columna de la UI coincide con Postgres: "Contactado"
+· D&D touch: lead → contacted (columna «Contactado»)
+✓ D&D: las oportunidades movidas quedan con updated_at fresco: 1
+✓ buscador: encuentra clientes del catálogo completo: true
+· buscador «Aurora» (diálogos=1, tipeo=true): 17 resultados CLIENTES Aurora Café hola@auroracafe.example PROYECTOS Campaña · Aurora Café Aurora Café · 18 piezas PRODUCCIÓN Pieza de volum
+✓ buscador: encuentra una orden dentro de la ventana: true
+· buscador «Pieza de volumen 220» (dentro de la ventana): 1 resultado PRODUCCIÓN Pieza de volumen 220 Aurora Café · Campaña · Aurora Café ↑ ↓ moverse Enter abrir Esc cerrar
+· buscador «Pieza de volumen 215» (fuera de la ventana de 300): 1 resultado PRODUCCIÓN Pieza de volumen 215 Marea Cosmética · Campaña · Marea Cosmética ↑ ↓ moverse Enter abrir Esc cerrar — limitación documentada del shell (#57)
+· ── Métricas
+· métricas: 180 eventos del API (page_view 969, móvil 450, whatsapp 120)
+✓ métricas: el tablero monta: true
+✓ payload métricas: ventana de 300: true
+· captura 02-metricas-1440.png
+· ── Presupuestos
+✓ lista: monta el tramo visible y conserva el resto (#135 P4): true
+· lista: 14 filas montadas + 11 en espaciadores = 25
+✓ lista: el scroll monta el resto de la ventana: true
+· lista: «PRES-2026-0020» visible tras el scroll: true
+✓ KPI «Presupuestos» = API: 25
+✓ encabezado completo: "[\"Presupuesto\",\"Cliente\",\"Estado\",\"Ítems\",\"Vigencia\",\"Sin IVA\",\"Total · IVA incl.\",\"Acciones\"]"
+✓ payload presupuestos: ventana de 300: true
+· presupuestos: 25 documentos (draft, rejected, sent, accepted)
+· captura 03-presupuestos-1440.png
+✓ compositor: el modal cabe a 1440: true
+· compositor: modal 820×910, body auto
+· captura 04-compositor-1440.png
+· compositor: ítems ["QA ítem A","QA ítem B"]
+✓ compositor: reordenar cambia el orden: true
+· compositor: después ["QA ítem B","QA ítem A"]
+✓ compositor: guardar persiste el documento: 26
+· compositor: primer ítem guardado «QA ítem B» (orden enviado: "QA ítem B")
+· ── Planes
+✓ comparador: una columna por plan del API: 4
+✓ payload planes: ventana de 300: true
+· planes: 4 planes (USD, PYG, PYG, PYG)
+· captura 05-planes-1440.png
+· ── Error de red
+✓ error: la pantalla avisa y no inventa datos: true
+· captura 07-presupuestos-error-1440.png
+✓ error: reintentar recupera la lista: true
+· captura 08-presupuestos-reintento-1440.png
+✓ compositor mobile 390: el modal cabe: true
+· compositor mobile: modal 390×743 (body auto)
+· captura 09-compositor-390.png
+· ── Mobile
+· 360px pipeline: docOverflow 0px, riel oculto
+· 360px presupuestos: docOverflow 0px, riel oculto
+· 360px metricas: docOverflow 0px, riel oculto
+· 360px planes: docOverflow 0px, riel oculto
+· 390px pipeline: docOverflow 0px, riel oculto
+· captura 06-pipeline-390.png
+· 390px presupuestos: docOverflow 0px, riel oculto
+· captura 06-presupuestos-390.png
+· 390px metricas: docOverflow 0px, riel oculto
+· captura 06-metricas-390.png
+· 390px planes: docOverflow 0px, riel oculto
+· captura 06-planes-390.png
+· 430px pipeline: docOverflow 0px, riel oculto
+· 430px presupuestos: docOverflow 0px, riel oculto
+· 430px metricas: docOverflow 0px, riel oculto
+· 430px planes: docOverflow 0px, riel oculto
+· consola: 0 errores capturados
+✓ consola sin errores: 0
+
+QA OK

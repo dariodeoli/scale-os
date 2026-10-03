@@ -1,0 +1,2367 @@
+{
+ "sweep": {
+  "resumen-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Resumen",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 4826,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 4882,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "pipeline-390-light": {
+   "overflowX": 0,
+   "wide": [
+    {
+     "tag": "span",
+     "cls": "text-mute",
+     "text": "Origen: landing Scale OS",
+     "rect": {
+      "x": 280,
+      "y": 435,
+      "w": 131,
+      "h": 16
+     }
+    },
+    {
+     "tag": "span",
+     "cls": "min-w-0 flex-1 truncate",
+     "text": "Origen: landing Scale OS",
+     "rect": {
+      "x": 280,
+      "y": 435,
+      "w": 131,
+      "h": 15
+     }
+    }
+   ],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Pipeline",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 5013,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 5069,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Clientes",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Alma Cocina",
+     "rect": {
+      "x": 42,
+      "y": 906,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Aurora Café",
+     "rect": {
+      "x": 42,
+      "y": 1258,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Bosque Hogar",
+     "rect": {
+      "x": 42,
+      "y": 1611,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Brisa Viajes",
+     "rect": {
+      "x": 42,
+      "y": 1964,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Cumbre Seguros",
+     "rect": {
+      "x": 42,
+      "y": 2316,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Faro Inmuebles",
+     "rect": {
+      "x": 42,
+      "y": 2669,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Luna Moda",
+     "rect": {
+      "x": 42,
+      "y": 3021,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Marea Cosmética",
+     "rect": {
+      "x": 42,
+      "y": 3374,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Menta Salud",
+     "rect": {
+      "x": 42,
+      "y": 3727,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Nova Energía",
+     "rect": {
+      "x": 42,
+      "y": 4079,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Nube Software",
+     "rect": {
+      "x": 42,
+      "y": 4432,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Órbita Fitness",
+     "rect": {
+      "x": 42,
+      "y": 4784,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Pixel Academy",
+     "rect": {
+      "x": 42,
+      "y": 5137,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Prisma Diseño",
+     "rect": {
+      "x": 42,
+      "y": 5490,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Punto Libros",
+     "rect": {
+      "x": 42,
+      "y": 5842,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Raíz Orgánica",
+     "rect": {
+      "x": 42,
+      "y": 6195,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Roble Muebles",
+     "rect": {
+      "x": 42,
+      "y": 6547,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Ruta Outdoor",
+     "rect": {
+      "x": 42,
+      "y": 6900,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Sol Pet",
+     "rect": {
+      "x": 42,
+      "y": 7253,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Sur Automotores",
+     "rect": {
+      "x": 42,
+      "y": 7605,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 8001,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 8057,
+   "title": "Scale OS",
+   "searchPadding": "36px"
+  },
+  "presupuestos-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Presupuestos",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0045 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 848,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0044 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 1200,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0043 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 1551,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0042 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 1903,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0041 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 2255,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0004 · Plan mensual Nube Sof",
+     "rect": {
+      "x": 46,
+      "y": 2607,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0014 · Plan mensual Ruta Out",
+     "rect": {
+      "x": 46,
+      "y": 2959,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0017 · Plan mensual Roble Mu",
+     "rect": {
+      "x": 46,
+      "y": 3311,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0013 · Plan mensual Alma Coc",
+     "rect": {
+      "x": 46,
+      "y": 3662,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0001 · Plan mensual Aurora C",
+     "rect": {
+      "x": 46,
+      "y": 4014,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0009 · Plan mensual Faro Inm",
+     "rect": {
+      "x": 46,
+      "y": 4366,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0011 · Plan mensual Sur Auto",
+     "rect": {
+      "x": 46,
+      "y": 4718,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0012 · Plan mensual Pixel Ac",
+     "rect": {
+      "x": 46,
+      "y": 5070,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0002 · Plan mensual Bosque H",
+     "rect": {
+      "x": 46,
+      "y": 5422,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0005 · Plan mensual Luna Mod",
+     "rect": {
+      "x": 46,
+      "y": 5774,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0003 · Plan mensual Órbita F",
+     "rect": {
+      "x": 46,
+      "y": 6125,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0007 · Plan mensual Prisma D",
+     "rect": {
+      "x": 46,
+      "y": 6477,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0015 · Plan mensual Nova Ene",
+     "rect": {
+      "x": 46,
+      "y": 6829,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0010 · Plan mensual Menta Sa",
+     "rect": {
+      "x": 46,
+      "y": 7181,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0016 · Plan mensual Marea Co",
+     "rect": {
+      "x": 46,
+      "y": 7533,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0018 · Plan mensual Cumbre S",
+     "rect": {
+      "x": 46,
+      "y": 7885,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0006 · Plan mensual Brisa Vi",
+     "rect": {
+      "x": 46,
+      "y": 8236,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0008 · Plan mensual Raíz Org",
+     "rect": {
+      "x": 46,
+      "y": 8588,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0019 · Plan mensual Punto Li",
+     "rect": {
+      "x": 46,
+      "y": 8940,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0020 · Plan mensual Sol Pet",
+     "rect": {
+      "x": 46,
+      "y": 9292,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 9679,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 9735,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "planes-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Planes",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 1359,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 1415,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "resumen-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 4221,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "pipeline-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 4213,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 5803,
+   "title": "Scale OS",
+   "searchPadding": "36px"
+  },
+  "presupuestos-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 9304,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "planes-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 1085,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "resumen-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Resumen",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 4826,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 4882,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "pipeline-390-dark": {
+   "overflowX": 0,
+   "wide": [
+    {
+     "tag": "span",
+     "cls": "text-mute",
+     "text": "Origen: landing Scale OS",
+     "rect": {
+      "x": 280,
+      "y": 435,
+      "w": 131,
+      "h": 16
+     }
+    },
+    {
+     "tag": "span",
+     "cls": "min-w-0 flex-1 truncate",
+     "text": "Origen: landing Scale OS",
+     "rect": {
+      "x": 280,
+      "y": 435,
+      "w": 131,
+      "h": 15
+     }
+    }
+   ],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Pipeline",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 5013,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 5069,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Clientes",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Alma Cocina",
+     "rect": {
+      "x": 42,
+      "y": 906,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Aurora Café",
+     "rect": {
+      "x": 42,
+      "y": 1258,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Bosque Hogar",
+     "rect": {
+      "x": 42,
+      "y": 1611,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Brisa Viajes",
+     "rect": {
+      "x": 42,
+      "y": 1964,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Cumbre Seguros",
+     "rect": {
+      "x": 42,
+      "y": 2316,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Faro Inmuebles",
+     "rect": {
+      "x": 42,
+      "y": 2669,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Luna Moda",
+     "rect": {
+      "x": 42,
+      "y": 3021,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Marea Cosmética",
+     "rect": {
+      "x": 42,
+      "y": 3374,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Menta Salud",
+     "rect": {
+      "x": 42,
+      "y": 3727,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Nova Energía",
+     "rect": {
+      "x": 42,
+      "y": 4079,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Nube Software",
+     "rect": {
+      "x": 42,
+      "y": 4432,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Órbita Fitness",
+     "rect": {
+      "x": 42,
+      "y": 4784,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Pixel Academy",
+     "rect": {
+      "x": 42,
+      "y": 5137,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Prisma Diseño",
+     "rect": {
+      "x": 42,
+      "y": 5490,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Punto Libros",
+     "rect": {
+      "x": 42,
+      "y": 5842,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Raíz Orgánica",
+     "rect": {
+      "x": 42,
+      "y": 6195,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Roble Muebles",
+     "rect": {
+      "x": 42,
+      "y": 6547,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Ruta Outdoor",
+     "rect": {
+      "x": 42,
+      "y": 6900,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Sol Pet",
+     "rect": {
+      "x": 42,
+      "y": 7253,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar Sur Automotores",
+     "rect": {
+      "x": 42,
+      "y": 7605,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 8001,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 8057,
+   "title": "Scale OS",
+   "searchPadding": "36px"
+  },
+  "presupuestos-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Presupuestos",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0045 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 848,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0044 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 1200,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0043 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 1551,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0042 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 1903,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar P-2026-0041 · QA ronda 6",
+     "rect": {
+      "x": 46,
+      "y": 2255,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0004 · Plan mensual Nube Sof",
+     "rect": {
+      "x": 46,
+      "y": 2607,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0014 · Plan mensual Ruta Out",
+     "rect": {
+      "x": 46,
+      "y": 2959,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0017 · Plan mensual Roble Mu",
+     "rect": {
+      "x": 46,
+      "y": 3311,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0013 · Plan mensual Alma Coc",
+     "rect": {
+      "x": 46,
+      "y": 3662,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0001 · Plan mensual Aurora C",
+     "rect": {
+      "x": 46,
+      "y": 4014,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0009 · Plan mensual Faro Inm",
+     "rect": {
+      "x": 46,
+      "y": 4366,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0011 · Plan mensual Sur Auto",
+     "rect": {
+      "x": 46,
+      "y": 4718,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0012 · Plan mensual Pixel Ac",
+     "rect": {
+      "x": 46,
+      "y": 5070,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0002 · Plan mensual Bosque H",
+     "rect": {
+      "x": 46,
+      "y": 5422,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0005 · Plan mensual Luna Mod",
+     "rect": {
+      "x": 46,
+      "y": 5774,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0003 · Plan mensual Órbita F",
+     "rect": {
+      "x": 46,
+      "y": 6125,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0007 · Plan mensual Prisma D",
+     "rect": {
+      "x": 46,
+      "y": 6477,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0015 · Plan mensual Nova Ene",
+     "rect": {
+      "x": 46,
+      "y": 6829,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0010 · Plan mensual Menta Sa",
+     "rect": {
+      "x": 46,
+      "y": 7181,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0016 · Plan mensual Marea Co",
+     "rect": {
+      "x": 46,
+      "y": 7533,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0018 · Plan mensual Cumbre S",
+     "rect": {
+      "x": 46,
+      "y": 7885,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0006 · Plan mensual Brisa Vi",
+     "rect": {
+      "x": 46,
+      "y": 8236,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0008 · Plan mensual Raíz Org",
+     "rect": {
+      "x": 46,
+      "y": 8588,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0019 · Plan mensual Punto Li",
+     "rect": {
+      "x": 46,
+      "y": 8940,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "input",
+     "cls": "",
+     "text": "Seleccionar PRES-2026-0020 · Plan mensual Sol Pet",
+     "rect": {
+      "x": 46,
+      "y": 9292,
+      "w": 18,
+      "h": 18
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 9679,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 9735,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "planes-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [
+    {
+     "tag": "button",
+     "cls": "grid h-9 w-9 place-items-center rounded-lg border border-ink-500 text-",
+     "text": "Guía del panel · Planes",
+     "rect": {
+      "x": 68,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "button",
+     "cls": "relative grid h-9 w-9 place-items-center rounded-lg border border-ink-",
+     "text": "Notificaciones",
+     "rect": {
+      "x": 204,
+      "y": 60,
+      "w": 36,
+      "h": 36
+     }
+    },
+    {
+     "tag": "a",
+     "cls": "",
+     "text": "Privacidad",
+     "rect": {
+      "x": 95,
+      "y": 1359,
+      "w": 52,
+      "h": 14
+     }
+    }
+   ],
+   "docH": 1415,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "resumen-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 4221,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "pipeline-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 4213,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 5803,
+   "title": "Scale OS",
+   "searchPadding": "36px"
+  },
+  "presupuestos-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 9304,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "planes-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "docH": 1085,
+   "title": "Scale OS",
+   "searchPadding": null
+  },
+  "clientes-cuadricula-390-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "cards": 20
+  },
+  "clientes-cuadricula-768-light": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "cards": 20
+  },
+  "clientes-cuadricula-390-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "cards": 20
+  },
+  "clientes-cuadricula-768-dark": {
+   "overflowX": 0,
+   "wide": [],
+   "targets": [],
+   "cards": 20
+  }
+ },
+ "modals": [
+  {
+   "id": "pipeline-alta-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 960,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "pipeline-alta-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 960,
+    "clientHeight": 531,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-nuevo-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 634,
+    "clientHeight": 583,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-nuevo-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 634,
+    "clientHeight": 583,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "a",
+     "text": "Política de privacidad",
+     "w": 115,
+     "h": 16
+    },
+    {
+     "tag": "a",
+     "text": "Tus derechos",
+     "w": 69,
+     "h": 16
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-editor-390-light",
+   "ok": false,
+   "error": "no se encontró el disparador"
+  },
+  {
+   "id": "cliente-editor-390-dark",
+   "ok": false,
+   "error": "no se encontró el disparador"
+  },
+  {
+   "id": "cliente-ficha-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 390,
+     "h": 844
+    },
+    "fit": true,
+    "scrollHeight": 5461,
+    "clientHeight": 772,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Elegir foto (JPG, PNG, WebP o HEIC; hast",
+     "w": 103,
+     "h": 22
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-ficha-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 390,
+     "h": 844
+    },
+    "fit": true,
+    "scrollHeight": 5461,
+    "clientHeight": 772,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Elegir foto (JPG, PNG, WebP o HEIC; hast",
+     "w": 103,
+     "h": 22
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-abrir-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 381,
+     "w": 390,
+     "h": 463
+    },
+    "fit": true,
+    "scrollHeight": 385,
+    "clientHeight": 385,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-abrir-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 381,
+     "w": 390,
+     "h": 463
+    },
+    "fit": true,
+    "scrollHeight": 385,
+    "clientHeight": 385,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-nuevo-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 1466,
+    "clientHeight": 491,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Mostrar sección Cliente y vigencia",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "Mostrar sección Condiciones",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-nuevo-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 1466,
+    "clientHeight": 491,
+    "scrollable": true
+   },
+   "targets": [
+    {
+     "tag": "input",
+     "text": "Mostrar sección Cliente y vigencia",
+     "w": 18,
+     "h": 18
+    },
+    {
+     "tag": "input",
+     "text": "Mostrar sección Condiciones",
+     "w": 18,
+     "h": 18
+    }
+   ],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "plan-nuevo-390-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 1310,
+    "clientHeight": 491,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "plan-nuevo-390-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 0,
+     "y": 101,
+     "w": 390,
+     "h": 743
+    },
+    "fit": true,
+    "scrollHeight": 1310,
+    "clientHeight": 491,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "pipeline-alta-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 142,
+     "w": 728,
+     "h": 740
+    },
+    "fit": true,
+    "scrollHeight": 599,
+    "clientHeight": 599,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "pipeline-alta-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 142,
+     "w": 728,
+     "h": 740
+    },
+    "fit": true,
+    "scrollHeight": 599,
+    "clientHeight": 599,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-nuevo-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 200,
+     "w": 728,
+     "h": 623
+    },
+    "fit": true,
+    "scrollHeight": 482,
+    "clientHeight": 482,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-nuevo-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 200,
+     "w": 728,
+     "h": 623
+    },
+    "fit": true,
+    "scrollHeight": 482,
+    "clientHeight": 482,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-editor-768-light",
+   "ok": false,
+   "error": "no se encontró el disparador"
+  },
+  {
+   "id": "cliente-editor-768-dark",
+   "ok": false,
+   "error": "no se encontró el disparador"
+  },
+  {
+   "id": "cliente-ficha-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 208,
+     "y": 0,
+     "w": 560,
+     "h": 1024
+    },
+    "fit": true,
+    "scrollHeight": 4028,
+    "clientHeight": 955,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "cliente-ficha-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 208,
+     "y": 0,
+     "w": 560,
+     "h": 1024
+    },
+    "fit": true,
+    "scrollHeight": 4028,
+    "clientHeight": 955,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-abrir-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 328,
+     "w": 728,
+     "h": 368
+    },
+    "fit": true,
+    "scrollHeight": 305,
+    "clientHeight": 305,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-abrir-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 328,
+     "w": 728,
+     "h": 368
+    },
+    "fit": true,
+    "scrollHeight": 305,
+    "clientHeight": 305,
+    "scrollable": false
+   },
+   "targets": [],
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-nuevo-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1284,
+    "clientHeight": 795,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "presupuesto-nuevo-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1284,
+    "clientHeight": 795,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "plan-nuevo-768-light",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1194,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  },
+  {
+   "id": "plan-nuevo-768-dark",
+   "ok": true,
+   "open": true,
+   "scrollLocked": true,
+   "focusInside": true,
+   "dialog": {
+    "rect": {
+     "x": 20,
+     "y": 20,
+     "w": 728,
+     "h": 984
+    },
+    "fit": true,
+    "scrollHeight": 1194,
+    "clientHeight": 843,
+    "scrollable": true
+   },
+   "targets": [],
+   "scrollWorks": true,
+   "escaped": true,
+   "focusReturned": false
+  }
+ ],
+ "forms": [
+  {
+   "id": "caret-monto",
+   "amountState": {
+    "focused": true,
+    "value": "0",
+    "selectionStart": 0
+   },
+   "amountTyped": {
+    "value": "1.234.567",
+    "selectionStart": 9,
+    "selectionEnd": 9
+   },
+   "amountBackspace": {
+    "value": "123.456",
+    "selectionStart": 7
+   }
+  },
+  {
+   "id": "select-teclado",
+   "selectBefore": "Lead",
+   "selectAfter": {
+    "label": "Contactado",
+    "open": false
+   }
+  },
+  {
+   "id": "validacion-oportunidad",
+   "saveClicked": true,
+   "errors": [
+    "Completá empresa o prospecto"
+   ]
+  }
+ ],
+ "search": {
+  "noResults": {
+   "text": true,
+   "reset": true,
+   "overflowX": 0,
+   "iconPadding": "36px"
+  }
+ },
+ "consoleErrors": [],
+ "planes": {
+  "scrollWidth": 1264,
+  "clientWidth": 356,
+  "scrollable": true,
+  "docOverflow": 0
+ }
+}

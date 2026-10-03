@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {EMPTY_WINDOW, LIST_WINDOW, appendPage, readPage, windowLabel, windowSlice, windowStateOf} from '../app/list-window';
+import {EMPTY_WINDOW, LIST_WINDOW, appendPage, readPage, ventanaFilas, windowLabel, windowSlice, windowStateOf} from '../app/list-window';
 
 // #105: ventanas de lista. El contrato es aditivo: sin `page` del API la
 // pantalla se comporta como antes (lista completa, sin promesa de más).
@@ -33,6 +33,23 @@ test('sumar una página no duplica filas y el corte respeta el tamaño',()=>{
  assert.deepEqual(windowSlice([1,2,3],2),[1,2]);
  assert.deepEqual(windowSlice([1,2],5),[1,2]);
  assert.deepEqual(windowSlice([],5),[]);
+});
+
+test('ventana de montaje: no desmonta fuera del viewport ni mide espaciadores (#154)',()=>{
+ const completa={inicio:0,fin:21,altoFila:50};
+ // Lista fuera del viewport (o layout todavía sin medir): se conserva el tramo.
+ assert.equal(ventanaFilas({total:21,anterior:completa,scrollTop:0,altoVista:0,altoFila:49}),completa,'altoVista 0 no cambia la ventana');
+ // Con viewport real el tramo se acota y conserva el alto medido de una fila real.
+ const acotada=ventanaFilas({total:21,anterior:completa,scrollTop:0,altoVista:450,altoFila:49});
+ assert(acotada.fin>=1&&acotada.fin<=21,'monta al menos una fila');
+ assert.equal(acotada.altoFila,49,'el alto de fila sale de la fila real, no del espaciador');
+ assert((21-acotada.fin)*acotada.altoFila<=21*49,'el espaciador no supera la lista completa');
+ // Aunque la medición venga absurda, nunca se montan cero filas.
+ const minima=ventanaFilas({total:21,anterior:completa,scrollTop:0,altoVista:1,altoFila:100000});
+ assert(minima.fin>=minima.inicio+1,'nunca queda el espaciador como único hijo');
+ const llena=ventanaFilas({total:5,anterior:{inicio:0,fin:5,altoFila:50},scrollTop:0,altoVista:5000,altoFila:49,margen:2});
+ assert.equal(llena.fin,5,'con viewport de sobra monta toda la lista');
+ assert.deepEqual(ventanaFilas({total:0,anterior:completa,scrollTop:0,altoVista:0,altoFila:49}),{inicio:0,fin:0,altoFila:50});
 });
 
 test('las ventanas por lista quedan acotadas y explícitas',()=>{

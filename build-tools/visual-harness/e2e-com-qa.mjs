@@ -68,8 +68,10 @@ const kpiNumber=async(label)=>{const text=await kpiValue(label);return text===nu
 await send('Page.enable');await send('Runtime.enable');await send('Network.enable');await send('Log.enable');
 await send('Emulation.setDeviceMetricsOverride',{width:1440,height:950,deviceScaleFactor:1,mobile:false});
 await send('Network.setCookie',{name:'scale_session',value:TOKEN,url:BASE,httpOnly:true});
-await go('/',`document.querySelector('.desktop-sidebar')&&document.body.textContent.includes('Pipeline')`,'app');
-check('sesión inyectada: la app carga',await evaluate(`document.body.textContent.includes('Pipeline')`),true);
+// El nav agrupa módulos (Flujo/Recursos/Finanzas) desde v1.0.168: el shell se
+// verifica por su sidebar, no por el texto de un módulo colapsado (#154).
+await go('/',`document.querySelector('.desktop-sidebar')`,'app');
+check('sesión inyectada: la app carga',await evaluate(`Boolean(document.querySelector('.desktop-sidebar'))`),true);
 await shot('00-resumen-1440');
 
 // ── Pipeline ────────────────────────────────────────────────────────────────
@@ -151,19 +153,24 @@ check('D&D: las oportunidades movidas quedan con updated_at fresco',freshMoves,n
 // Búsqueda global con la ventana (no debe perder clientes ni proyectos).
 const openSearch=await evaluate(`(()=>{const button=[...document.querySelectorAll('button')].find(b=>/Buscar|buscar/.test((b.getAttribute('aria-label')||'')+(b.getAttribute('title')||'')));if(!button)return false;button.click();return true;})()`);
 await settle(900);
-const typeSearch=async(text)=>evaluate(`(()=>{const input=document.querySelector('input[type=search],input[placeholder*="Buscar"],input[placeholder*="buscar"]');if(!input)return false;const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;setter.call(input,${JSON.stringify(text)});input.dispatchEvent(new Event('input',{bubbles:true}));return true;})()`);
+// La paleta de comandos (ADOPCION-V2 P2) usa un input de texto dentro del
+// `.unified-dialog`, sin el `[role=status]` de «N resultados» del buscador
+// viejo: la lista de resultados es la verdad (#154).
+const typeSearch=async(text)=>evaluate(`(()=>{const input=document.querySelector('.unified-dialog input,[role=dialog] input,input[type=search],input[placeholder*="Buscar"],input[placeholder*="buscar"]');if(!input)return false;const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;setter.call(input,${JSON.stringify(text)});input.dispatchEvent(new Event('input',{bubbles:true}));return true;})()`);
+const paletteText=async()=>{const value=await evaluate(`document.querySelector('.unified-dialog,[role=dialog]')?.innerText||''`);return value.replace(/\s+/g,' ').trim();};
 if(openSearch){
- await typeSearch('Aurora');await settle(1400);
- const clientResult=await evaluate(`document.querySelector('.unified-dialog [role=status]')?.textContent||''`);
- check('buscador: encuentra clientes del catálogo completo',/^([1-9]\d*) resultados/.test(clientResult),true);
- note(`buscador «Aurora»: ${clientResult}`);
+ const dialogs=await evaluate(`document.querySelectorAll('.unified-dialog,[role=dialog]').length`);
+ const typedAurora=await typeSearch('Aurora');await settle(1400);
+ const clientResult=await paletteText();
+ check('buscador: encuentra clientes del catálogo completo',clientResult.includes('Aurora Café'),true);
+ note(`buscador «Aurora» (diálogos=${dialogs}, tipeo=${typedAurora}): ${clientResult.slice(0,140)}`);
  await typeSearch('Pieza de volumen 220');await settle(1400);
- const insideResult=await evaluate(`document.querySelector('.unified-dialog [role=status]')?.textContent||''`);
- check('buscador: encuentra una orden dentro de la ventana',/^([1-9]\d*) resultados/.test(insideResult),true);
- note(`buscador «Pieza de volumen 220» (dentro de la ventana): ${insideResult}`);
+ const insideResult=await paletteText();
+ check('buscador: encuentra una orden dentro de la ventana',insideResult.includes('Pieza de volumen 220'),true);
+ note(`buscador «Pieza de volumen 220» (dentro de la ventana): ${insideResult.slice(0,140)}`);
  await typeSearch('Pieza de volumen 215');await settle(1400);
- const outsideResult=await evaluate(`document.querySelector('.unified-dialog [role=status]')?.textContent||''`);
- note(`buscador «Pieza de volumen 215» (fuera de la ventana de 300): ${outsideResult} — limitación documentada del shell (#57)`);
+ const outsideResult=await paletteText();
+ note(`buscador «Pieza de volumen 215» (fuera de la ventana de 300): ${outsideResult.slice(0,140)} — limitación documentada del shell (#57)`);
  await typeSearch('');await settle(500);
  await evaluate(`document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);
 }else{
@@ -189,8 +196,19 @@ note('── Presupuestos');
 t=Date.now();
 await go('/presupuestos',`document.querySelector('[role="table"]')`,'presupuestos');
 const budgets=(await api('/agency/budgets')).data.budgets;
-const rows=await evaluate(`document.querySelectorAll('[role="rowgroup"] [role="row"]').length`);
-check('lista: una fila por presupuesto del API',rows,budgets.length);
+// Ventana de montaje P4 (#135): la tabla densa monta el tramo visible y rellena
+// el resto con espaciadores que conservan la altura; las filas se montan al
+// scrollear. El contrato es que la suma visibles + espaciadores no pierda filas.
+const windowRows=async()=>evaluate(`(()=>{const grupo=document.querySelector('[role="rowgroup"]');if(!grupo)return null;const rows=[...grupo.querySelectorAll('[role="row"]')];const visibles=rows.filter(r=>r.getAttribute('aria-hidden')!=='true');const altos=rows.filter(r=>r.getAttribute('aria-hidden')==='true').map(r=>r.getBoundingClientRect().height);const alto=visibles[0]?visibles[0].getBoundingClientRect().height:0;const ocultas=altos.reduce((sum,value)=>sum+Math.round(value/(alto||1)),0);return{visibles:visibles.length,ocultas};})()`);
+const initialWindow=await windowRows();
+check('lista: monta el tramo visible y conserva el resto (#135 P4)',initialWindow&&initialWindow.visibles>0&&Math.abs(initialWindow.visibles+initialWindow.ocultas-budgets.length)<=2,true);
+note(`lista: ${initialWindow?.visibles} filas montadas + ${initialWindow?.ocultas} en espaciadores = ${budgets.length}`);
+const target=budgets[budgets.length-1]?.number;
+await evaluate(`window.scrollTo(0,document.body.scrollHeight)`);await settle(900);
+const scrolled=await evaluate(`document.body.textContent.includes(${JSON.stringify(target)})`);
+check('lista: el scroll monta el resto de la ventana',scrolled,true);
+note(`lista: «${target}» visible tras el scroll: ${scrolled}`);
+await evaluate(`window.scrollTo(0,0)`);await settle(400);
 check('KPI «Presupuestos» = API',await kpiNumber('Presupuestos'),budgets.length);
 const header=await evaluate(`(()=>[...document.querySelectorAll('[role="columnheader"]')].map(h=>h.textContent))()`);
 check('encabezado completo',JSON.stringify(header),JSON.stringify(['Presupuesto','Cliente','Estado','Ítems','Vigencia','Sin IVA','Total · IVA incl.','Acciones']));
