@@ -1,0 +1,14 @@
+{
+ "measuredAt": "2026-10-03T05:17:32.709Z",
+ "viewport": {
+  "width": 390,
+  "height": 844
+ },
+ "url": "https://sistema.scaleparaguay.com/",
+ "lcp": 484,
+ "cls": 0,
+ "shifts": 0,
+ "ttfb": 257,
+ "dcl": 460,
+ "load": 559
+}
