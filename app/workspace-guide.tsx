@@ -1,7 +1,9 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {ArrowUpRight,Building2,ChevronDown,Circle,CircleCheck,CircleDashed,CircleHelp,EyeOff} from 'lucide-react';
+import {AyudaModulo} from 'owncoding-ui';
 import {api,Dialog,Editor} from './operations';
+import {moduleHelp} from './module-help-data';
 import {founderPricingNote} from './founder-pricing';
 import {CompanySettings} from './company-settings';
 import {ManualWorkspace} from './manual';
@@ -16,6 +18,12 @@ export type WorkspaceGuideProps = WorkspaceGuideIdentity & {
  navigate:(module:string)=>void;
  data?:WorkspaceGuideData;
  variant?:'button'|'card'|'help';
+ /** Módulo activo para la ayuda contextual de la biblioteca (variant `help`). */
+ active?:string;
+ /** Apertura controlada de la ayuda por módulo (p. ej. desde la paleta ⌘K). */
+ helpOpen?:boolean;
+ onHelpOpen?:()=>void;
+ onHelpClose?:()=>void;
 };
 
 function GuideStep({step,navigate}:{step:WorkspaceGuideStep;navigate:(module:string)=>void}){
@@ -28,7 +36,7 @@ export function WorkspaceGuide(props:WorkspaceGuideProps){
  return <ScopedWorkspaceGuide key={key} {...props}/>;
 }
 
-function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,data,variant='button'}:WorkspaceGuideProps){
+function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,data,variant='button',active='Resumen',helpOpen,onHelpOpen,onHelpClose}:WorkspaceGuideProps){
  const [open,setOpen]=useState(false);
  const [preference,setPreference]=useState({ready:false,dismissed:false});
  const identity={role,userId,organizationId,demo};
@@ -56,7 +64,15 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
  // repetirse en el encabezado de cada página; la tarjeta de Resumen sigue como
  // acceso contextual a los primeros pasos.
  const guideDialog=open?<Dialog title="Empezar y descubrir funciones" close={()=>setOpen(false)}>{demoNote}<div className="ops-stack">{steps.map(step=><GuideStep key={step.module} step={step} navigate={go}/>)}</div>{directory}<details className="settings-disclosure"><summary>Manual y ayudas del panel</summary><div className="mt-3"><ManualWorkspace/></div></details><p className="form-note">¿Algo no responde? Consultá el <a className="text-button" href="/status">estado del sistema</a>.</p><p className="form-note">Tus datos personales: <a className="text-button" href="/privacidad">Política de Privacidad</a> y tus derechos desde «Mis datos».</p></Dialog>:null;
- if(variant==='help')return <><button type="button" className="icon-button" title="Guía del panel" aria-label="Guía del panel" onClick={()=>setOpen(true)}><CircleHelp size={18}/></button>{guideDialog}</>;
+ if(variant==='help'){
+  // Ayuda por módulo con `AyudaModulo` de la biblioteca (P2 #135): botón «?»,
+  // resumen, 3–5 puntos y enlaces, con /status siempre accesible. La guía de
+  // primeros pasos y el manual siguen en la tarjeta de Resumen y en la variante
+  // por defecto; el estado abierto viaja controlado para que la paleta ⌘K
+  // también pueda abrirla.
+  const help=moduleHelp(active);
+  return <AyudaModulo titulo={help.titulo} resumen={help.resumen} puntos={help.puntos} enlaces={help.enlaces} etiquetaBoton="Guía del panel" abierta={helpOpen} onAbrir={onHelpOpen} onCerrar={onHelpClose}/>;
+ }
  if(variant==='card'){
   if(!preference.ready||preference.dismissed)return null;
   // Checklist compacto (#139): una fila de resumen con el avance y el siguiente

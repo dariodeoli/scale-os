@@ -137,4 +137,11 @@ declare module 'owncoding-ui' {
   export const AvisoPrivacidad: any;
   export const ConsentimientoDatos: any;
   export function registroConsentimiento(datos?: {finalidad?: string; aceptado?: boolean; version?: string | number; canal?: string; fecha?: Date | string | number; titular?: string}): {finalidad: string; aceptado: boolean; version: string; canal: string; fecha: string; titular: string};
+
+  // Tanda v0.61 (ADOPCION-V2 P2/P4, Refs #135): búsqueda y atajos (§15.8) y
+  // ventana de listas largas (§15.11). El shim sólo declara lo que Scale OS
+  // adopta; la firma real vive en la biblioteca.
+  export const PaletaComandos: any;
+  export const AyudaModulo: any;
+  export function ventanaDeLista(opciones?: { total?: number; scrollTop?: number; altoVista?: number; altoFila?: number; margen?: number }): { inicio: number; fin: number };
 }
