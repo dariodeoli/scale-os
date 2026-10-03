@@ -2,6 +2,22 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.173
+
+### Blog
+
+- **Fase 1 de blogs con hosts propios**: `blog.scaleparaguay.com` (empresa) y `producto.scaleparaguay.com` (Scale OS) sirven sus artículos con rutas propias, canonical del host y datos estructurados Article.
+- **RSS y sitemap por sección**, con borradores fuera de índice; robots indexable solo en los hosts de blog.
+- **Plantillas de blog de Scale Paraguay y Scale OS** alineadas a marca, listas para el contenido inicial.
+
+### Plataforma
+
+- **SSO Fase 2A — OIDC por organización**: dominio verificado por DNS TXT, discovery OIDC con emisor validado, alta JIT de usuarios del dominio con rol viewer, vinculación de cuentas existentes y bitácora; el secreto nunca viaja en GET.
+
+### Administración
+
+- **Panel admin fase 2**: resumen útil, orden de tabs, skeleton de carga, avisos y acciones (superadmin).
+
 ## v1.0.172
 
 ### Plataforma
