@@ -36,7 +36,7 @@ export default function ClientInvitation(){
  useEffect(()=>{
   // Un fallo de Google vuelve con `?error=` y sin token: sin esto la pantalla
   // decía «enlace inválido» en vez del motivo real (#153).
-  const failure=(new URLSearchParams(window.location.search).get('error')||'').trim().replace(/\s+/g,' ').slice(0,200);
+  const failure=(new URL(window.location.href).searchParams.get('error')||'').trim().replace(/\s+/g,' ').slice(0,200);
   const value=extractTokenFromUrl(window.location.href||window.location.search);setToken(value);
   if(failure){setState({status:'server-error',message:failure});return;}
   if(!esToken(value)){setState({status:'invalid'});return;}
