@@ -121,7 +121,9 @@ test('las secciones COM consumen la primitiva común (#63)',()=>{
  assert.match(clientes,/<EmptyCta label="Nuevo cliente"/,'el vacío del directorio lleva el CTA canónico');
  const presupuestos=read('app/sections/presupuestos.tsx');
  assert.match(presupuestos,/useDenseTableFit\(BUDGET_TABLE_MIN_WIDTH\)/,'Presupuestos mide su contenedor con el hook común');
- assert.match(presupuestos,/tableFits \? \([\s\S]{0,260}?ListGrid label="Presupuestos"[\s\S]{0,160}?pinnedActions[\s\S]{0,80}?\) : \([\s\S]{0,80}?budget-hub-grid/,'la tabla sólo entra completa; si no, tarjetas');
+ // La rama densa monta sólo el tramo visible (#135 P4): entre `pinnedActions` y
+ // el cierre de la rama viven los espaciadores y el `slice`, no otra vista.
+ assert.match(presupuestos,/tableFits \? \([\s\S]{0,260}?ListGrid label="Presupuestos"[\s\S]{0,160}?pinnedActions[\s\S]{0,600}?\) : \([\s\S]{0,80}?budget-hub-grid/,'la tabla sólo entra completa; si no, tarjetas');
  assert.match(presupuestos,/<ListActions className="\[&_button\.icon-button\]:h-8/,'la fila de presupuestos usa la celda ListActions');
  // #100: pistas afinadas (58rem) para que la tabla entre a 1280–1440.
  assert.match(presupuestos,/const BUDGET_TEMPLATE = 'grid-cols-\[minmax\(14rem,2fr\)_minmax\(8rem,1\.1fr\)_6rem_3\.5rem_6rem_8rem_8rem_4\.5rem\]'/,'la plantilla densa de Presupuestos suma 58rem');
