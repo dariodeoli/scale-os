@@ -67,7 +67,7 @@ test('#151 contrato de las superficies de Producción, pieza e Inventario',()=>{
  assert.match(planner,/data-tone=\{hasDueWarning\(o\.due_date\)&&!\['approved','published'\]\.includes\(o\.status\)\?/,'el planificador no alerta piezas terminadas');
  assert.match(planner,/hoursSummary\(o\.estimated_hours,o\.actual_hours\)\|\|'—'/,'las horas del planificador son humanas');
  assert.doesNotMatch(planner,/workTypeLabels\[String\(o\.work_type\|\|''\)\]\|\|'Sin clasificar'/,'el planificador ya no escribe «Sin clasificar»');
- assert.match(planner,/hoursText\(order\.estimated_hours\)\?\?'—'/,'el detalle usa el formato humano');
+ assert.match(planner,/hoursText\(s\(order,'estimated_hours'\)\)\?\?'—'/,'el detalle usa el formato humano');
  // Checklist: terminado sin registro y «por» con nombre, nunca un correo crudo.
  assert.match(checklist,/Completado<span className="work-checklist-muted"> · sin registro<\/span>/,'el completado sin datos muestra su vacío honesto');
  assert.match(checklist,/personDisplayName\(item\.completed_by_name\)/,'la atribución pasa por la identidad visible');
