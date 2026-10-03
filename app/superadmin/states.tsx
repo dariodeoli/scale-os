@@ -19,12 +19,13 @@ export function PlatformRedirecting() {
   </section>;
 }
 
-export function PlatformAccessDenied() {
+export function PlatformAccessDenied({message}: {message?: string}) {
   return <section className={`${ROW} border-bad/30`} role="alert">
     <span className={`${ICON} text-bad`} aria-hidden="true"><ShieldAlert size={17}/></span>
     <div className="min-w-0">
       <b className="block text-[13.5px] font-semibold text-fore">No tenés acceso global</b>
-      <p className="mt-0.5 text-xs text-mute">Tu sesión está activa, pero no tiene el permiso necesario para administrar la plataforma.</p>
+      {/* El motivo del API conserva el contexto (demo, membresía ausente) #147. */}
+      <p className="mt-0.5 text-xs text-mute">{message || "Tu sesión está activa, pero no tiene el permiso necesario para administrar la plataforma."}</p>
       <Link className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" href={appHome()}><ArrowLeft size={14} aria-hidden="true"/>Volver al panel</Link>
     </div>
   </section>;

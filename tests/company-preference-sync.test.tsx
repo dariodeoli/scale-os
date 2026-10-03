@@ -16,7 +16,7 @@ const {CompanySettings}=require('../app/company-settings') as typeof import('../
 const eventName='scale:default-company-changed';
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
 
-async function harness(t:TestContext){
+async function harness(t:TestContext,oneCompany=false){
  let stored=1,delayReads=false,failWrite=false;
  const reads:{resolve:()=>void;reject:()=>void}[]=[],writes:number[]=[],requests:string[]=[];
  const events=new EventTarget();
@@ -35,13 +35,14 @@ async function harness(t:TestContext){
   assert.equal(path,'/core-api/api/auth/organizations','preference never switches tenant or loads private company data');
   assert.equal(init?.method,'GET');
   // Snapshot at request start to reproduce an older response arriving last.
-  const snapshot={organizations:[{id:1,name:'Agencia A',role:'owner'},{id:2,name:'Agencia B',role:'viewer'},{id:3,name:'Demo',role:'owner',isDemo:true}],currentOrganizationId:1,defaultOrganizationId:stored};
+  const snapshot={organizations:oneCompany?[{id:1,name:'Agencia A',role:'owner'}]:[{id:1,name:'Agencia A',role:'owner'},{id:2,name:'Agencia B',role:'viewer'},{id:3,name:'Demo',role:'owner',isDemo:true}],currentOrganizationId:1,defaultOrganizationId:stored};
   if(delayReads)return new Promise<Response>((resolve,reject)=>reads.push({resolve:()=>resolve(Response.json(snapshot)),reject:()=>reject(Error('obsolete GET failure'))}));
   return Response.json(snapshot);
  });
  let renderer!:ReactTestRenderer;
  await act(async()=>{renderer=create(<><CompanySelector name="Agencia A"/><CompanySettings/></>);});
- await act(async()=>{renderer.root.findByProps({className:'workspace'}).props.onClick();});
+ const trigger=renderer.root.findByProps({className:'workspace'});
+ if(typeof trigger.props.onClick==='function')await act(async()=>{trigger.props.onClick();});
  const settingsRows=()=>renderer.root.findAllByType('article');
  const selectorRows=()=>renderer.root.findAllByProps({className:'company-choice-row'});
  const preference=(row:ReactTestInstance)=>row.findAllByType('button').find(b=>/Predeterminada|Usar al iniciar/.test(text(b)))!;
@@ -106,4 +107,15 @@ test('unmount removes both event listeners and ignores outstanding reads',async 
  await h.unmount();
  await act(async()=>{h.reads.splice(0).forEach(read=>read.resolve());h.events.dispatchEvent(new Event(eventName));});
  assert.equal(h.requests.length,requestCount);assert.equal(h.renderer.toJSON(),null);
+});
+
+test('una sola empresa: el control explica en vez de abrir un desplegable vacío (#147)',async t=>{
+ const h=await harness(t,true);
+ const trigger=h.renderer.root.findByProps({className:'workspace'});
+ assert.equal(trigger.type,'span','no es un disparador de diálogo');
+ assert.equal(typeof trigger.props.onClick,'undefined');
+ assert.match(String(trigger.props.title),/Estás en Agencia A; no tenés otras empresas/);
+ assert.match(String(trigger.props['aria-label']),/Empresa actual: Agencia A\. No tenés otras empresas\./);
+ assert.equal(h.renderer.root.findAllByProps({className:'company-choice-row'}).length,0,'no queda un listado vacío');
+ assert.equal(h.renderer.root.findAllByProps({className:'ops-stack'}).length,0,'tampoco un diálogo abierto sin filas');
 });

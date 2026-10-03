@@ -22,4 +22,6 @@
 .manual-portal-state{margin-left:auto;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--success-soft);color:var(--success);white-space:nowrap}
 .manual-portal-actions{display:flex;gap:10px;margin-top:12px}
 .manual-portal-actions button:disabled{opacity:.7;cursor:not-allowed}
+.manual-portal-badge{margin:0 0 12px;justify-self:start;padding:4px 9px;border:1px solid var(--warning);border-radius:999px;background:var(--warning-soft);color:var(--text);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.manual-portal-preview[data-preview="inert"] .manual-portal-actions button.primary:disabled{border:1px solid var(--line);background:var(--surface-subtle);color:var(--text-muted);box-shadow:none;opacity:.6}
 .manual-portal-foot{margin:12px 0 0;color:var(--text-subtle,var(--text-muted));font-size:11px}

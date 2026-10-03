@@ -4,6 +4,8 @@ import {test,type TestContext} from 'node:test';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-test-renderer';
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+// owncoding-ui v0.61 usa rAF para devolver el foco; el doble de Node no lo trae.
+Object.assign(globalThis,{requestAnimationFrame:(callback:(time:number)=>void)=>{callback(Date.now());return 0;},cancelAnimationFrame:()=>{}});
 let destinations:string[]=[];
 const navigationId=require.resolve('next/navigation');
 require.cache[navigationId]={id:navigationId,filename:navigationId,loaded:true,exports:{useRouter:()=>({push:(path:string)=>destinations.push(path)})}} as NodeModule;
@@ -47,7 +49,13 @@ async function harness(t:TestContext,initialFailure=false){
  const button=(label:string)=>renderer.root.findAllByType('button').find(node=>text(node)===label||String(node.props['aria-label']||'').startsWith(label)||String(node.props.title||'')===label)!;
  const click=async(label:string)=>{const node=button(label);assert(node,label);assert(!node.props.disabled,label);await act(async()=>{node.props.onClick();});};
  const open=async()=>{await act(async()=>{renderer.root.findByProps({'data-testid':'campana-avisos'}).props.onClick();});};
- const items=()=>renderer.root.findAllByProps({role:'menuitem'});
+ // v0.61 dibuja los avisos como botones dentro del panel (ya no role=menuitem):
+ // el contenedor scrolleable del objeto es la fuente de las filas de la lista.
+ const items=()=>{
+  const panel=renderer.root.findAll(node=>node.props?.role==='dialog'&&typeof node.props['aria-labelledby']==='string').at(-1);
+  const scroller=panel?.findAll(node=>String(node.props?.className||'').includes('max-h-80')).at(-1);
+  return scroller?scroller.findAll(node=>node.type==='button'||node.type==='a'):[];
+ };
  const choose=async(title:string)=>{const item=items().find(node=>text(node).includes(title));assert(item,title);await act(async()=>{item.props.onClick();});};
  const copy=()=>text(renderer.root);
  t.after(()=>act(()=>renderer.unmount()));await open();
@@ -113,6 +121,20 @@ test('empty states are honest and always offer an action: unknown, retryable err
  await h.click('Marcar todas las notificaciones como leídas');await h.click('Sin leer');
  assert(h.copy().includes('No hay avisos para este filtro')&&h.copy().includes('Ver todas'),'el vacío filtrado ofrece salida');
  await h.click('Ver todas');assert(h.items().length===2,'volver a todas repuebla la bandeja');
+});
+
+test('bandeja sin avisos: un solo refresco, sin filtros apilados (#147)',async t=>{
+ const h=await harness(t);
+ const refresh=()=>h.renderer.root.findAllByType('button').filter(node=>String(node.props.title)==='Actualizar'||String(node.props['aria-label'])==='Actualizar notificaciones'||text(node)==='Actualizar');
+ assert.equal(refresh().length,1,'con avisos queda el refresco del pie');
+ const filters=()=>h.renderer.root.findAllByType('button').filter(node=>/^(Todas|Sin leer|Pendientes|Resueltas)$/.test(text(node)));
+ assert(filters().length>0,'los filtros acompañan a la lista con contenido');
+ act(()=>{h.rows.length=0;});
+ await h.click('Actualizar');
+ assert(h.copy().includes('No tenés avisos'),'el vacío honesto se mantiene');
+ assert.equal(refresh().length,1,'el vacío deja una sola acción de actualizar');
+ assert.equal(filters().length,0,'sin avisos no se apilan los cuatro filtros');
+ assert(h.button('Preferencias'),'las preferencias siguen accesibles desde el pie');
 });
 
 test('pagination keeps its filter, stale responses cannot replace a newer filter, and unmount clears polling',async t=>{

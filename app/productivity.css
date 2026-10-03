@@ -74,3 +74,8 @@
 .client-review-preview input,.client-review-preview textarea{border-radius:10px;background:var(--surface);opacity:.75}
 .review-preview-actions{justify-content:flex-start}
 .review-preview-actions button{min-height:42px}
+/* Vista previa inerte (#147): la réplica no ofrece CTAs ejecutables; el botón
+   principal deshabilitado pierde el relleno de marca y el badge lo declara. */
+.review-preview-badge{margin:0;justify-self:start;padding:4px 9px;border:1px solid var(--warning);border-radius:999px;background:var(--warning-soft);color:var(--text);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.client-review-preview[data-preview="inert"] .review-preview-actions button.primary:disabled{border:1px solid var(--line);background:var(--surface-subtle);color:var(--text-muted);box-shadow:none}
+.client-review-preview[data-preview="inert"] .review-preview-actions button{opacity:.6;cursor:not-allowed}

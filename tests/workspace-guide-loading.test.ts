@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
-import {workspaceGuideScope} from '../app/workspace-guide-data';
+import {guideCountsFrom,workspaceGuideScope} from '../app/workspace-guide-data';
 import {workspacePreferenceKey} from '../app/workspace-preferences';
+import {sectionScope,scopeResources,shellContract,shellDataUrl,shellSignature} from '../app/shell-data';
 
 // Execute Home's actual load function with transport/state doubles. This verifies
 // its integration without a browser, production API, or copied implementation.
@@ -13,12 +14,12 @@ const home=ast.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='H
 const load=home.body!.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='load')!;
 const compiled=ts.transpileModule(load.getText(ast)+'\nreturn load;',{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText;
 const identity={id:'1',organization_id:'7',role:'owner'};
-const result=(path:string,n:number)=>path.endsWith('/clients')?{clients:Array(n).fill({id:'1'})}:path.endsWith('/projects')?{projects:[]}:
- path.endsWith('/work-orders')?{workOrders:[]}:{summary:{active_clients:n}};
-function harness(request:(path:string)=>Promise<unknown>){
+const result=(path:string,n:number)=>{const clean=path.split('?')[0];return clean.endsWith('/clients')?{clients:Array(n).fill({id:'1'})}:clean.endsWith('/projects')?{projects:[]}:
+ clean.endsWith('/work-orders')?{workOrders:[]}:{summary:{active_clients:n}};};
+function harness(request:(path:string)=>Promise<unknown>,requestedSection='Resumen'){
  const state:Record<string,any>={};const sequence={current:0};
- const dependencies:Record<string,unknown>={user:null,dataLoadSequence:sequence,request,workspaceGuideScope,workspacePreferenceKey};
- for(const [setter,key] of [['setGuideData','guide'],['setClients','clients'],['setProjects','projects'],['setOrders','orders'],['setSummary','summary'],['setStartupDataScope','startup']])dependencies[setter]=(v:unknown)=>{state[key]=v;};
+ const dependencies:Record<string,unknown>={user:null,dataLoadSequence:sequence,request,workspaceGuideScope,workspacePreferenceKey,requestedSection,sectionScope,scopeResources,shellSignature,shellDataUrl,shellContract,guideCountsFrom,dataFreshness:{current:{}},identityLoads:{current:0},learnShellContract:()=>shellContract(),guideData:{status:'unknown'},clients:[],projects:[],orders:[],summary:null};
+ for(const [setter,key] of [['setGuideData','guide'],['setClients','clients'],['setProjects','projects'],['setOrders','orders'],['setSummary','summary'],['setStartupDataScope','startup'],['setIdentityLoading','identityLoading']])dependencies[setter]=(v:unknown)=>{state[key]=v;};
  return {state,sequence,load:new Function(...Object.keys(dependencies),compiled)(...Object.values(dependencies)) as (identity?:unknown)=>Promise<void>};
 }
 test('initial authenticated load uses supplied identity and reports ready counts only after all reads',async()=>{
@@ -28,6 +29,15 @@ test('initial authenticated load uses supplied identity and reports ready counts
  assert.deepEqual(h.state.guide,{scope:workspaceGuideScope({userId:'1',organizationId:'7',role:'owner'}),status:'ready',counts:{clients:2,projects:0,orders:0}});
  assert.equal(h.state.startup,workspacePreferenceKey('1','7'));
 });
+test('la sección sin órdenes en su alcance no inventa el conteo de piezas (#147)',async()=>{
+ const h=harness(async path=>result(path,2),'Producción');
+ await h.load(identity);
+ assert.deepEqual(h.state.guide,{scope:workspaceGuideScope({userId:'1',organizationId:'7',role:'owner'}),status:'ready',counts:{clients:2,projects:0}});
+ // `deepEqual` es un assert de tipo: re-leer el state evita el narrowing del expected.
+ const counts=(h.state.guide as {counts?:Record<string,number>}).counts;
+ assert.equal(counts?.orders,undefined,'Producción no lee órdenes: el conteo queda sin evidencia, no en cero');
+});
+
 test('failed reads report error, not empty records or completed setup',async()=>{
  const h=harness(async()=>{throw Error('Offline');});
  await assert.rejects(h.load(identity),/Offline/);

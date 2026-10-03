@@ -106,6 +106,7 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
  const avisos=data.notifications.map(avisoDeNotificacion);
  const pending=typeof data.pendingCount==='number'?`${data.pendingCount} pendientes`:'';
  const status=loaded?pending:'Estado no disponible.';
+ const sinAvisos=loaded&&!data.notifications.length&&filter==='all';
  const vacio=!loaded
   ?{titulo:loading?'Consultando avisos…':'No pudimos cargar los avisos',detalle:loading?'Un momento.':(message||'Volvé a intentar en un rato.')}
   :{titulo:filter==='all'?'No tenés avisos':'No hay avisos para este filtro',detalle:filter==='all'?'Acá aparecerán tus avisos de asignaciones, comentarios y entregas.':'Probá con otra vista o volvé a todas.'};
@@ -114,6 +115,9 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
   :filter==='all'
    ?<button type="button" className="secondary" onClick={()=>void load()}>Actualizar</button>
    :<button type="button" className="secondary" onClick={()=>changeFilter('all')}>Ver todas</button>;
+ // Bandeja vacía (#147): el vacío ofrece la única acción de refresco y no se
+ // apilan los cuatro filtros ni el icono duplicado; sin datos, sólo el estado.
+ const mostrarControles=loaded&&!sinAvisos;
  return <>
   <CampanaAvisos
    avisos={avisos}
@@ -126,13 +130,17 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
    pie={<div className="grid gap-2">
     <p role="status" className="px-1 text-[11px] tabular-nums text-mute">{status}</p>
     {message&&<p role="alert" className="rounded-lg border-l-[3px] border-bad bg-bad/10 px-2.5 py-1.5 text-[12px] leading-[1.4] text-fore">{message}</p>}
-    <SegmentedField value={filter} onChange={(value:string)=>changeFilter(value as Filter)} ariaLabel="Filtrar notificaciones" className="[&_button]:min-h-11 [&_button]:px-2 [&_button]:text-[11px]" options={filters.map(option=>[option.value,option.label] as [string,string])}/>
-    <div className="flex flex-wrap items-center gap-1" aria-label="Acciones de notificaciones">
-     <button type="button" className={ICON_ACTION} title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')}><CheckCheck size={18}/></button>
-     <button type="button" className={ICON_ACTION} title="Actualizar" aria-label="Actualizar notificaciones" disabled={busy||loading} onClick={()=>void load()}><RefreshCw size={17}/></button>
+    {mostrarControles?<>
+     <SegmentedField value={filter} onChange={(value:string)=>changeFilter(value as Filter)} ariaLabel="Filtrar notificaciones" className="[&_button]:min-h-11 [&_button]:px-2 [&_button]:text-[11px]" options={filters.map(option=>[option.value,option.label] as [string,string])}/>
+     <div className="flex flex-wrap items-center gap-1" aria-label="Acciones de notificaciones">
+      <button type="button" className={ICON_ACTION} title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')}><CheckCheck size={18}/></button>
+      <button type="button" className={ICON_ACTION} title="Actualizar" aria-label="Actualizar notificaciones" disabled={busy||loading} onClick={()=>void load()}><RefreshCw size={17}/></button>
+      <button type="button" className={ICON_ACTION} title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button>
+     </div>
+     {data.next&&!loading&&<button type="button" className="secondary" disabled={busy} onClick={()=>void more()}>Ver avisos anteriores</button>}
+    </>:sinAvisos?<div className="flex flex-wrap items-center gap-1" aria-label="Acciones de notificaciones">
      <button type="button" className={ICON_ACTION} title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button>
-    </div>
-    {data.next&&!loading&&<button type="button" className="secondary" disabled={busy} onClick={()=>void more()}>Ver avisos anteriores</button>}
+    </div>:null}
    </div>}
   />
   {selected&&<Dialog title={kindLabel(selected.kind)} close={()=>setSelected(null)} size="compact" busy={busy}><div className="grid min-w-0 max-w-full gap-3 [overflow-wrap:anywhere]">

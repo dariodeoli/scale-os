@@ -99,9 +99,15 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
    <section className={CARD} aria-labelledby="my-data-rights">
     <p id="my-data-rights" className={KICKER}>Ejercer tus derechos</p>
     <p className="text-[13px] leading-relaxed text-mute">Gratis y sin justificar el pedido. La respuesta llega dentro de {PRIVACY_RIGHTS_CHANNEL.slaDias} días corridos; acá ves el estado y el vencimiento de cada solicitud.</p>
-    <div className="flex flex-wrap gap-2">
+    {bridge?<ul className="grid gap-2" aria-label="Derechos con registro en preparación">
+     {REQUEST_TYPES.map(type=><li key={type.value} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg border border-ink-600 px-3 py-2">
+      <span className="text-[13px] text-mute">{type.label}</span>
+      <StateChip tone="mute">Próximamente</StateChip>
+     </li>)}
+    </ul>:<div className="flex flex-wrap gap-2">
      {REQUEST_TYPES.map(type=><button key={type.value} type="button" className={`secondary ${ACTION}`} onClick={()=>setRequestType(type.value)}>{type.label}</button>)}
-    </div>
+    </div>}
+    {bridge?<p className="text-[11.5px] leading-5 text-mute">Mientras la base técnica esté pendiente, estos pedidos se registran por el canal alternativo de arriba: el equipo los carga y podés seguirlos con tu referencia.</p>:null}
     {data?.exportPath?<a className={`secondary w-fit ${ACTION}`} href={`/core-api${data.exportPath}`}><Download size={15} aria-hidden="true"/>Descargar copia de mis datos</a>:<p className="text-[11.5px] text-mute">{bridge?'La descarga en autoservicio se habilita con la base del API; pedila por el canal alternativo y el equipo la prepara.':'Sin descarga disponible por ahora.'}</p>}
     {data&&data.requests.length?<ul className="grid gap-2" aria-label="Solicitudes registradas">
      {data.requests.map(request=>{const sla=slaLabel(request.due_at);return <li key={request.id} className="grid gap-1 rounded-lg border border-ink-600 px-3 py-2">

@@ -54,6 +54,7 @@ import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
 import {EmailField} from './email-field';
 import {WorkspaceGuide, workspaceGuideScope, visibleModule, type WorkspaceGuideData} from './workspace-guide';
+import {guideCountsFrom} from './workspace-guide-data';
 import {FXTransferForm} from './daily-controls';
 import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
@@ -506,7 +507,7 @@ export default function Home() {
     });
     if(!first)return;
     setStartupDataScope(loadedScope);
-    if(scopeReady(sectionScope(requestedSection,shellContract())))setGuideData({scope:guideScope,status:'ready',counts:{clients:first.clientData.clients.length,projects:first.projectData.projects.length,orders:first.orderData.workOrders.length}});
+    if(scopeReady(sectionScope(requestedSection,shellContract())))setGuideData({scope:guideScope,status:'ready',counts:guideCountsFrom(scopeResources(sectionScope(requestedSection,shellContract())),{clients:first.clientData.clients.length,projects:first.projectData.projects.length,orders:first.orderData.workOrders.length})});
     }catch(cause){
       if(sequence!==dataLoadSequence.current)return;
       if(guideData.status!=='ready')setGuideData({scope:guideScope,status:'error'});
