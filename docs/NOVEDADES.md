@@ -2,6 +2,13 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.169
+
+### Sitio público
+
+- **Landing y privacidad listas para buscadores**: la landing y la política de privacidad publican metadatos, Open Graph y datos estructurados, para que Scale OS se presente bien en Google y al compartir un enlace.
+- **Imagen de marca al compartir**: nueva pieza de marca para las vistas previas de enlaces y redes.
+
 ## v1.0.168
 
 ### Diseño y experiencia
