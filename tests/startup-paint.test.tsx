@@ -20,7 +20,7 @@ test('arranque #109: el shell pinta al conocer la identidad, no cuando llegan lo
  // El proveedor de Google no bloquea: viaja en el mismo efecto, en paralelo.
  const effectStart=shell.lastIndexOf('useEffect', shell.indexOf('request<{ user: User }>("/api/auth/me")'));
  const effect=shell.slice(effectStart, shell.indexOf('}, []);', effectStart)+8);
- assert(effect.includes('request<{ google: boolean }>("/api/auth/providers")'),'providers corre en el mismo efecto (paralelo)');
+ assert(effect.includes('("/api/auth/providers")'),'providers corre en el mismo efecto (paralelo)');
  assert(effect.indexOf('/api/auth/providers')<effect.indexOf('/api/auth/me'),'y no espera al usuario');
  // La identidad fresca (#81) se conserva: el alcance por sección y el estado de
  // identidad siguen igual.
