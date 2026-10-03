@@ -19,6 +19,7 @@ import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {ProjectCardPresence} from './presence';
 import {RemoveRecord} from './archive-controls';
 import {roleCan} from './capabilities';
+import {hoursSummary} from './hours-format';
 import {Paperclip} from 'lucide-react';
 
 export const statuses = [
@@ -62,11 +63,7 @@ export type WorkOrderCard = {
   checklist_completed?: number;
 };
 
-const hoursLabel = (order: WorkOrderCard) => {
-  const estimated = order.estimated_hours ? `${order.estimated_hours} h est.` : '';
-  const actual = order.actual_hours ? `${order.actual_hours} h reales` : '';
-  return [estimated, actual].filter(Boolean).join(' · ');
-};
+const hoursLabel = (order: WorkOrderCard) => hoursSummary(order.estimated_hours, order.actual_hours) || '';
 
 function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard;role:string;refresh:()=>Promise<void>;openOrder:(id:string,edit?:boolean)=>void }) {
   const canMove=roleCan(role,'work-orders.edit');
@@ -100,14 +97,15 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
       {/* La etapa ya vive en el encabezado de la columna y la auditoría en el
           detalle: acá solo van los datos que se deciden desde el tablero (#99). */}
       <div className="flex min-w-0 flex-wrap items-center gap-1">
-        <UrgencyBadge value={order.urgency}/>
-        <StateChip tone="info">{workTypeLabel(order.work_type)}</StateChip>
+        {/* Los campos vacíos no se anuncian (#151): solo lo que decide. */}
+        {order.urgency ? <UrgencyBadge value={order.urgency}/> : null}
+        {order.work_type ? <StateChip tone="info">{workTypeLabel(order.work_type)}</StateChip> : null}
         {order.approval_step ? <StateChip tone="ok" title={`Niveles de aprobación completados: ${order.approval_step}`}>Aprobaciones: {order.approval_step}</StateChip> : null}
         {links.length ? <span className="inline-flex min-w-0 items-center gap-1 text-[11px] text-mute" title={links.map(link => link.label || link.url).join(' · ')}><Paperclip size={12} aria-hidden="true"/>{links.length === 1 ? '1 enlace' : `${links.length} enlaces`}</span> : order.drive_url ? <a className="inline-flex min-h-11 min-w-11 items-center gap-1 text-[11px] text-fono-light outline-none hover:underline focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" href={order.drive_url} target="_blank" rel="noreferrer" onPointerDown={(event) => event.stopPropagation()}><Paperclip size={12} aria-hidden="true"/>Drive ↗</a> : null}
         {hours ? <span className="whitespace-nowrap text-[11px] text-mute" title={`Horas: ${hours}`}>{hours}</span> : null}
         {order.checklist_total ? <span className="whitespace-nowrap text-[11px] text-mute" aria-label={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`} title={`${order.checklist_completed||0} de ${order.checklist_total} pasos completados`}>☑ {order.checklist_completed||0}/{order.checklist_total} pasos</span> : null}
       </div>
-      <DueDate value={order.due_date} time={order.due_time} compact/>
+      <DueDate value={order.due_date} time={order.due_time} compact done={order.status==='approved'||order.status==='published'}/>
       <AssignedPeople people={order.effective_assignees} source={order.assignee_source}/>
       <ProjectCardPresence projectId={String(order.project_id)}/>
       {canMove?<RemoveRecord kind="work-orders" id={order.id} name={order.title} done={refresh} role={role} hideTrigger open={archiveOpen} onClose={()=>setArchiveOpen(false)}/>:null}
