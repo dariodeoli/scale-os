@@ -16,7 +16,7 @@ export async function GET(_request:Request,props:{params:Promise<{section:string
  if(!isBlogSection(section))return new Response('No encontrado',{status:404});
  const urls=[
   `  <url><loc>${BLOG_ORIGINS[section]}/</loc></url>`,
-  ...listPosts(section).map(post=>`  <url><loc>${escapeXml(postCanonical(section,post.slug,post.canonical))}</loc><lastmod>${post.date}</lastmod></url>`),
+  ...listPosts(section).map(post=>`  <url><loc>${escapeXml(postCanonical(post))}</loc><lastmod>${post.date}</lastmod></url>`),
  ];
  const xml=`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
  return new Response(xml,{headers:{'content-type':'application/xml; charset=utf-8'}});

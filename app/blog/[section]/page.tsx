@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
-import {BLOG_SECTIONS,isBlogSection,listPosts} from '../../blog-data';
+import {BLOG_SECTIONS,isBlogSection,listPosts,postPath} from '../../blog-data';
 import {BLOG_ORIGINS} from '../../seo';
 
 // Índice del blog por sección (#156/#157). En los hosts propios, el middleware
@@ -46,10 +46,10 @@ export default async function BlogIndex(props:{params:Promise<{section:string}>}
    {categories.length?<p className="blog-categories" aria-label="Categorías">{categories.map(category=><span key={category} className="blog-chip">{category}</span>)}</p>:null}
   </header>
   {posts.length?<div className="blog-list">{posts.map(post=><article className="blog-item" key={post.slug}>
-   {post.cover?<img className="blog-cover" src={post.cover} alt="" loading="lazy" decoding="async" width={640} height={360}/>:null}
+   {post.cover?<img className="blog-cover" src={post.cover} alt={post.coverAlt} loading="lazy" decoding="async" width={640} height={360}/>:null}
    <div className="blog-item-body">
     <p className="blog-meta"><time dateTime={post.date}>{dateLabel(post.date)}</time> · {post.author}</p>
-    <h2><Link href={`/${post.slug}`}>{post.title}</Link></h2>
+    <h2><Link href={postPath(post)}>{post.title}</Link></h2>
     <p className="blog-summary">{post.description}</p>
     {post.tags.length?<p className="blog-tags" aria-label="Etiquetas">{post.tags.map(tag=><span key={tag} className="blog-chip muted">{tag}</span>)}</p>:null}
    </div>
