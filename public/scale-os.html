@@ -192,6 +192,20 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .pillar-item h4{margin:0;font-size:14.5px;color:var(--ink)}
 .pillar-item p{margin:0;font-size:12.5px;line-height:1.65}
 .pillar-item .feature-note{margin:0;border:0;padding:0}
+/* Resultado explícito por pilar (#148): vender · producir · cobrar. */
+.pillar-outcome{margin:0 0 6px;color:var(--magenta);font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+/* Capturas reales del producto agrupadas por resultado (#148). */
+.shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0 26px}
+.shot{margin:0;display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--white);box-shadow:0 10px 24px rgb(49 15 57 / 6%)}
+.shot img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;object-position:top left;border-bottom:1px solid var(--line)}
+.shot figcaption{padding:10px 14px;color:var(--muted);font-size:12px;line-height:1.5}
+.shot strong{color:var(--ink)}
+/* Puesta en marcha (#148): migración, soporte, límites y condiciones. */
+.onboarding-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:22px}
+.onboarding-card{display:grid;gap:8px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--white);box-shadow:0 10px 24px rgb(49 15 57 / 5%)}
+.onboarding-card h3{margin:0;font-size:17px}
+.onboarding-card p{margin:0;font-size:13px;line-height:1.7}
+.onboarding-card a{color:var(--magenta);font-weight:650}
 .flow{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:56px;align-items:center;padding:clamp(30px,5.5vw,58px);border:1px solid #4e1159;border-radius:var(--radius);background:linear-gradient(130deg,var(--brand-deep),#470a55);box-shadow:var(--shadow-deep)}
 .flow::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgb(255 255 255 / .04) 1px,transparent 1px),linear-gradient(90deg,rgb(255 255 255 / .04) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:linear-gradient(180deg,#000,transparent 90%);mask-image:linear-gradient(180deg,#000,transparent 90%);pointer-events:none}
 .flow>*{position:relative;z-index:1}
@@ -309,6 +323,7 @@ footer a:hover{color:#f0b9eb}
  .feature,.feature:nth-child(1),.feature:nth-child(2),.feature:last-child{display:block;grid-column:auto}
  .pillars{grid-template-columns:minmax(0,1fr)}
  .pillar,.pillar:last-child{grid-column:auto}
+ .shots,.onboarding-grid{grid-template-columns:minmax(0,1fr)}
  .signal-strip{grid-template-columns:minmax(0,1fr)}
  .board{padding:15px}
  .preview-bar{gap:6px 10px;padding:11px 14px}
@@ -337,7 +352,7 @@ footer a:hover{color:#f0b9eb}
 <header class="site-header">
  <div class="wrap nav">
   <a href="#contenido" class="brand" aria-label="Scale OS, inicio"><img src="https://sistema.scaleparaguay.com/brand/icon-192.png" width="36" height="36" alt=""><span>scale<em>OS</em></span></a>
-  <nav aria-label="Navegación principal"><a href="#funciones">Funciones</a><a href="#precio">Precio</a><a href="https://app.scaleparaguay.com/">Ingresar</a><a class="button" data-cta="trial" href="https://app.scaleparaguay.com/registro">Probar gratis</a></nav>
+  <nav aria-label="Navegación principal"><a href="#funciones">Funciones</a><a href="#precio">Precio</a><a data-cta="demo" href="https://sistema.scaleparaguay.com/demo">Demo</a><a href="https://app.scaleparaguay.com/">Ingresar</a><a class="button" data-cta="trial" href="https://app.scaleparaguay.com/registro">Probar gratis</a></nav>
  </div>
 </header>
 <main id="contenido">
@@ -371,7 +386,7 @@ footer a:hover{color:#f0b9eb}
     </div>
    </div>
   </div>
-  <figcaption class="preview-note" id="preview-caption">Representación ilustrativa en HTML con datos ficticios; no es una captura ni actividad en vivo. <a href="https://sistema.scaleparaguay.com/demo">Probá la demo interactiva</a> en una copia aislada, sin registro y sin afectar datos reales. Explorá 20 clientes ficticios y 7 meses de historial ilustrativo, con fechas relativas al inicio de cada nueva demo.</figcaption>
+  <figcaption class="preview-note" id="preview-caption">Representación ilustrativa con datos ficticios; no es una captura ni actividad en vivo. <a href="https://sistema.scaleparaguay.com/demo">Probá la demo interactiva</a> en una copia aislada con datos ficticios, sin registro, y sin afectar datos reales. Explorá 20 clientes ficticios y 7 meses de historial ilustrativo, con fechas relativas al inicio de cada nueva demo.</figcaption>
  </figure>
  <div class="signal-strip" aria-label="Operación de agencia conectada">
   <div class="signal"><i aria-hidden="true">✓</i><div><strong>Producción con responsables</strong><span>Fechas, entregas, checklists, comentarios y enlaces con contexto.</span></div></div>
@@ -394,10 +409,16 @@ footer a:hover{color:#f0b9eb}
       </div>
      </section> -->
 <section id="funciones" class="wrap section" aria-labelledby="features-title">
- <div class="section-intro"><p class="eyebrow">Una operación conectada</p><h2 id="features-title">Menos perseguir información.<br>Más hacer avanzar el trabajo.</h2><p>Scale OS reúne lo que pasa con cada cliente, entrega y cobro, respetando el rol de cada persona. Tres pilares para entenderlo de un vistazo y todo el detalle a un clic.</p></div>
+ <div class="section-intro"><p class="eyebrow">Una operación conectada</p><h2 id="features-title">Menos perseguir información.<br>Más hacer avanzar el trabajo.</h2><p>Scale OS reúne lo que pasa con cada cliente, entrega y cobro, respetando el rol de cada persona. Tres resultados —vender, producir y cobrar— para entenderlo de un vistazo, con todo el detalle a un clic. Las capturas son del producto actual.</p></div>
+ <div class="shots" aria-label="Capturas actuales del producto por resultado">
+  <figure class="shot"><img src="https://sistema.scaleparaguay.com/landing/vender.jpg" alt="Pipeline y clientes de Scale OS: oportunidades, fichas y presupuestos" loading="lazy" width="1440" height="900"><figcaption><strong>Vender</strong> · pipeline, clientes y propuestas</figcaption></figure>
+  <figure class="shot"><img src="https://sistema.scaleparaguay.com/landing/producir.jpg" alt="Producción de Scale OS: tablero por etapas con responsables y entregas" loading="lazy" width="1440" height="900"><figcaption><strong>Producir</strong> · producción, proyectos y equipos</figcaption></figure>
+  <figure class="shot"><img src="https://sistema.scaleparaguay.com/landing/cobrar.jpg" alt="Finanzas de Scale OS: cuentas, facturas y cobros por moneda" loading="lazy" width="1440" height="900"><figcaption><strong>Cobrar</strong> · finanzas, cobros e informes</figcaption></figure>
+ </div>
  <div class="pillars">
   <article class="pillar">
    <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="18" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="11" rx="1.5"/><path d="M17.25 17.5h.01"/></svg></span>
+   <p class="pillar-outcome">Producir</p>
    <h3>Operación</h3>
    <p>Qué sigue, quién lo hace y con qué equipos: producción, equipo, inventario y estudio en el mismo tablero.</p>
    <p class="feature-note">4 funciones · producción · equipo · inventario · estudio</p>
@@ -412,6 +433,7 @@ footer a:hover{color:#f0b9eb}
   </article>
   <article class="pillar">
    <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="12" rx="2"/><path d="M8 20.5h8M12 16.5v4"/><path d="m9 9 2 2 4-4"/></svg></span>
+   <p class="pillar-outcome">Vender</p>
    <h3>Clientes</h3>
    <p>La relación completa: ficha, oportunidades, presupuestos, entregas y el portal con aprobaciones por enlace privado.</p>
    <p class="feature-note">3 funciones · portal · ficha · ventas</p>
@@ -425,6 +447,7 @@ footer a:hover{color:#f0b9eb}
   </article>
   <article class="pillar">
    <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6.5"/><circle cx="15.2" cy="12" r="6.5"/><path d="M9.4 9.4c1-.8 2.3-1.2 3.4-1"/><path d="M8.6 12.6c.4 1.5 1.4 2.5 3 2.8"/><path d="M15.2 8.8c.7.7 1.1 1.6 1.1 2.5"/></svg></span>
+   <p class="pillar-outcome">Cobrar</p>
    <h3>Control financiero</h3>
    <p>Cobros, monedas separadas, previsión de caja e informes para decidir con datos, con la mora de cada cliente a la vista.</p>
    <p class="feature-note">2 funciones · finanzas · informes</p>
@@ -443,12 +466,21 @@ footer a:hover{color:#f0b9eb}
   <ol class="steps"><li class="step"><div><strong>De la oportunidad a la propuesta</strong><small>Pipeline, clientes y presupuestos.</small></div></li><li class="step"><div><strong>De la propuesta a la producción</strong><small>Proyectos, piezas, responsables y reservas.</small></div></li><li class="step"><div><strong>De la entrega al seguimiento</strong><small>Aprobaciones, facturas, cobros y pendientes.</small></div></li></ol>
  </div>
 </section>
+<section id="puesta-en-marcha" class="wrap section" aria-labelledby="onboarding-title">
+ <div class="section-intro"><p class="eyebrow">Puesta en marcha</p><h2 id="onboarding-title">Arrancar también es parte del plan.</h2><p>Qué encontrás al crear tu espacio, cómo entran tus datos y cuáles son los límites y las condiciones del servicio.</p></div>
+ <div class="onboarding-grid">
+  <article class="onboarding-card"><h3>Migración de datos</h3><p>La Carga con IA convierte listas o mensajes pegados en clientes y equipos; el resto se carga a mano y hoy no hay importador masivo de otras plataformas. Los videos y documentos siguen en tu Drive: Scale OS guarda el enlace y no mueve tus archivos.</p></article>
+  <article class="onboarding-card"><h3>Soporte</h3><p>El equipo de Scale responde por WhatsApp o por el formulario de contacto, en horario laboral de Asunción. El estado técnico del sistema se consulta en /status, y cada persona accede sólo a los datos de su rol.</p></article>
+  <article class="onboarding-card"><h3>Límites claros</h3><p>El plan es por agencia, con todos sus integrantes incluidos y sin cobro por usuario. Scale OS registra y ordena tu operación: no mueve dinero, no cobra por vos ni reemplaza tu facturación fiscal. Los informes muestran hasta 24 meses de registros disponibles.</p></article>
+  <article class="onboarding-card"><h3>Servicio, suscripción y cancelación</h3><p>Empezás gratis sin tarjeta y continuás con el plan mensual cuando termine la prueba (ver <a href="#precio">Precio</a>). No hay permanencia: podés cancelar cuando quieras. Si el pago no llega, hay 2 días de gracia y el acceso se suspende sin borrar tus datos. La eliminación de la cuenta se pide desde Configuración → Zona de peligro, con vista previa, reautenticación y período recuperable.</p></article>
+ </div>
+</section>
 <section id="preguntas" class="wrap section split" aria-labelledby="faq-title">
  <div><p class="eyebrow">Sin letra chica escondida</p><h2 id="faq-title">Antes de dar<br>el primer paso.</h2></div>
  <div class="faq">
   <details><summary>¿Cuánto cuesta después de la prueba?</summary><p>El plan único cuesta US$10/mes o G.50.000/mes por agencia, con todos sus integrantes incluidos y sin cobro por usuario. Son precios alternativos de lanzamiento para el mismo plan, no una conversión según el tipo de cambio. Incluye todos los módulos, con acceso según el rol de cada integrante.</p></details>
   <details><summary>¿El precio puede subir? ¿Qué beneficio tiene un cliente fundador?</summary><p>El precio de lanzamiento puede cambiar en el futuro. Como cliente fundador, conservarás siempre una tarifa preferencial frente a los nuevos clientes, aunque el importe inicial se actualice.</p></details>
-  <details><summary>¿Cuándo empieza la prueba?</summary><p>Al dar de alta tu cuenta: te registrás con Google o correo, creás tu espacio de trabajo y empezás sin tarjeta; el botón de esta página lleva al registro y la prueba empieza al completar el alta, no al hacer clic. La demo abre una copia aislada con datos ficticios, sin registro, y no inicia la prueba.</p></details>
+  <details><summary>¿Cuándo empieza la prueba?</summary><p>Al dar de alta tu cuenta: te registrás con Google o correo, creás tu espacio de trabajo y empezás sin tarjeta; el botón de esta página lleva al registro y la prueba empieza al completar el alta, no al hacer clic. La demo no inicia la prueba.</p></details>
   <details><summary>¿Puedo cancelar cuando quiera?</summary><p>No hay permanencia. Podés dejar de pagar y el acceso se suspende tras 2 días de gracia. La suspensión no borra tus datos. La eliminación de la cuenta se pide desde Configuración → Zona de peligro: muestra una vista previa de consecuencias, pide reautenticación y conserva un período recuperable.</p></details>
   <details><summary>¿Trabajan con guaraníes y otras monedas?</summary><p>Sí: PYG, USD, EUR, BRL, ARS y MXN por separado, sin conversiones forzadas ni cotizaciones inventadas. Cada saldo queda en su moneda y la previsión de caja se proyecta por moneda.</p></details>
   <details><summary>¿Puedo traer mis datos actuales?</summary><p>De a poco: la Carga con IA convierte listas o mensajes pegados en clientes y equipos, y el resto se carga a mano; hoy no hay un importador masivo de otras plataformas. Los videos y documentos siguen en tu Drive: Scale OS guarda el enlace.</p></details>
@@ -481,7 +513,7 @@ footer a:hover{color:#f0b9eb}
     <div class="actions"><a class="button" data-cta="trial" href="https://app.scaleparaguay.com/registro">Empezar gratis <span aria-hidden="true">↗</span></a></div>
     <p class="fine">Sin tarjeta para iniciar. Después de la prueba, suscripción mensual.</p>
    </article>
-   <p class="payment-note">El pago en línea todavía no está habilitado. Las opciones de pago se mostrarán en la pantalla Suscripción cuando estén disponibles; esta página no realiza cobros.</p>
+   <p class="payment-note">El pago en línea todavía no está habilitado: no hay checkout en esta página. Cuando esté disponible, vas a gestionar la suscripción desde la pantalla Suscripción; esta página no realiza cobros.</p>
   </div>
  </div>
 </section>
@@ -492,7 +524,7 @@ footer a:hover{color:#f0b9eb}
  </div>
 </section>
 <section id="contacto" class="wrap section split" aria-labelledby="contact-title">
- <div class="contact-intro"><p class="eyebrow">Hablemos de tu agencia</p><h2 id="contact-title">¿Tenés alguna duda?</h2><p>Contanos qué necesitás. Scale Strategy Group recibirá tus datos para responder esta consulta y no los usará para otro fin; podés pedir acceso, corrección o eliminación en el <a href="https://app.scaleparaguay.com/privacidad">Aviso de privacidad y derechos</a>. Enviar este formulario no crea una cuenta ni inicia una suscripción o un cobro.</p><p class="fine">Tratamos estos datos sólo para responderte; podés pedir acceso, corrección o eliminación. <a href="https://sistema.scaleparaguay.com/privacidad">Política de Privacidad</a>.</p><a href="https://wa.me/595993391354?text=Hola%2C%20quiero%20coordinar%20una%20demo%20de%20Scale%20OS%20para%20mi%20agencia.">También podés consultar por WhatsApp ↗</a></div>
+ <div class="contact-intro"><p class="eyebrow">Hablemos de tu agencia</p><h2 id="contact-title">¿Tenés alguna duda?</h2><p>Contanos qué necesitás. Scale Strategy Group recibirá tus datos para responder esta consulta y no los usará para otro fin; podés pedir acceso, corrección o eliminación en el <a href="https://app.scaleparaguay.com/privacidad">Aviso de privacidad y derechos</a>. Enviar este formulario no crea una cuenta ni inicia una suscripción o un cobro.</p><p class="fine">Tratamos estos datos sólo para responderte; podés pedir acceso, corrección o eliminación desde el mismo aviso.</p><a href="https://wa.me/595993391354?text=Hola%2C%20quiero%20coordinar%20una%20demo%20de%20Scale%20OS%20para%20mi%20agencia.">También podés consultar por WhatsApp ↗</a></div>
 <form id="contact-form" class="contact-form"><label>Tu nombre<input name="name" required minlength="2" maxlength="100" autocomplete="name"></label><label>Empresa o agencia<input name="company" required minlength="2" maxlength="140" autocomplete="organization"></label><label>Correo<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label>WhatsApp (opcional)<input name="phone" type="tel" maxlength="50" autocomplete="tel"></label><label class="wide">¿Qué necesitás? (opcional)<textarea name="message" rows="4" maxlength="1500"></textarea></label><label class="trap" aria-hidden="true">No completar<input name="website" tabindex="-1" autocomplete="off"></label><label class="wide consent"><input type="checkbox" name="consent" required>Autorizo a Scale Strategy Group a contactarme sobre esta consulta. Puedo solicitar que eliminen mis datos.</label><button class="button wide" type="submit">Enviar consulta</button><p class="wide" role="status" id="contact-status" aria-live="polite"></p><noscript>Activá JavaScript para enviar el formulario o contactanos por WhatsApp.</noscript></form>
 </section>
 </main>
@@ -502,7 +534,7 @@ footer a:hover{color:#f0b9eb}
 function recordLanding(name){fetch('https://sistema.scaleparaguay.com/core-api/api/public/telemetry',{method:'POST',credentials:'omit',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({name})}).catch(()=>{});}
 recordLanding('page_view');if(matchMedia('(max-width:760px)').matches)recordLanding('mobile_view');document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a=>a.addEventListener('click',()=>recordLanding('whatsapp_click')));
 // SCROLL DEPTH TRACKING: measure which sections users actually see
-(function(){const sections=['hero','funciones','testimonials','flow','preguntas','precio','start','contacto'];const trackingState={};sections.forEach(id=>{trackingState[id]=false;});const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting&&!trackingState[entry.target.id]){trackingState[entry.target.id]=true;recordLanding('section_'+entry.target.id);}});},{threshold:0.2});sections.forEach(id=>{const elem=document.getElementById(id);if(elem)observer.observe(elem);});})();
+(function(){const sections=['hero','funciones','testimonials','flow','puesta-en-marcha','preguntas','precio','start','contacto'];const trackingState={};sections.forEach(id=>{trackingState[id]=false;});const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting&&!trackingState[entry.target.id]){trackingState[entry.target.id]=true;recordLanding('section_'+entry.target.id);}});},{threshold:0.2});sections.forEach(id=>{const elem=document.getElementById(id);if(elem)observer.observe(elem);});})();
 // BEGIN LIVE VISITORS: anonymous presence, independent of aggregate events and contact forms.
 (function(){
  const site='scale-os-landing';
@@ -546,5 +578,5 @@ recordLanding('page_view');if(matchMedia('(max-width:760px)').matches)recordLand
 (function(){if(!location.origin.includes('sistema.scaleparaguay.com'))return;const badge=document.getElementById('live-badge'),count=document.getElementById('live-count');if(!badge||!count)return;async function updateCount(){try{const r=await fetch('https://sistema.scaleparaguay.com/core-api/api/public/live-visitors/count',{method:'GET',credentials:'omit',cache:'no-store',headers:{'Accept':'application/json'}});if(r.ok){const data=await r.json();if(data.active_sessions&&data.active_sessions>0){count.textContent=data.active_sessions;badge.style.display='block';}}}catch{}}updateCount();setInterval(updateCount,60000);})();
 // END LIVE VISITORS
 const contactForm=document.getElementById('contact-form');
-contactForm.addEventListener('submit',async function(event){event.preventDefault();const button=this.querySelector('button'),status=document.getElementById('contact-status');button.disabled=true;status.textContent='Enviando consulta…';try{const values=Object.fromEntries(new FormData(this));values.consent=this.elements.consent.checked;const response=await fetch('https://sistema.scaleparaguay.com/core-api/api/public/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(values)});const data=await response.json();if(!response.ok)throw new Error(data.error||'No se pudo enviar. Intentá nuevamente.');status.textContent='Consulta recibida. El equipo de Scale se pondrá en contacto con vos.';this.reset();}catch(error){status.textContent=error.message||'No se pudo conectar. Intentá nuevamente.';}finally{button.disabled=false;}});
+if(contactForm)contactForm.addEventListener('submit',async function(event){event.preventDefault();const button=this.querySelector('button[type="submit"],button'),status=document.getElementById('contact-status');if(!button||button.disabled)return;const label=button.textContent;button.disabled=true;button.textContent='Enviando…';status.textContent='Enviando consulta…';try{const values=Object.fromEntries(new FormData(this));values.consent=this.elements.consent.checked;const response=await fetch('https://sistema.scaleparaguay.com/core-api/api/public/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(values)});const data=await response.json().catch(()=>null);if(!response.ok)throw new Error((data&&data.error)||'No se pudo enviar. Intentá nuevamente.');status.textContent='Consulta recibida. El equipo de Scale se pondrá en contacto con vos.';this.reset();}catch(error){status.textContent=(error&&error.message)||'No se pudo conectar. Intentá nuevamente.';}finally{button.disabled=false;button.textContent=label;}});
 </script>
