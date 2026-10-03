@@ -1,0 +1,46 @@
+✓ informes (1440 light): KPIs de facturación: true
+✓ informes (1440 light): mes y moneda consultables: true
+✓ informes (1440 light): sin correos técnicos: false
+✓ comisiones (1440 light): mes largo en KPIs: true
+✓ comisiones (1440 light): sin correos técnicos: false
+✓ comisiones (1440 light): el subtab Descuentos muestra el alta: true
+✓ comisiones (1440 light): el diálogo de descuento abre: true
+✓ salarios (1440 light): panel de salarios con personas: true
+✓ salarios (1440 light): sin correos técnicos: false
+✓ salarios (1440 light): monedas por separado: true
+✓ informes (1440 dark): KPIs de facturación: true
+✓ informes (1440 dark): mes y moneda consultables: true
+✓ informes (1440 dark): sin correos técnicos: false
+✓ comisiones (1440 dark): mes largo en KPIs: true
+✓ comisiones (1440 dark): sin correos técnicos: false
+✓ comisiones (1440 dark): el subtab Descuentos muestra el alta: true
+✓ comisiones (1440 dark): el diálogo de descuento abre: true
+✓ salarios (1440 dark): panel de salarios con personas: true
+✓ salarios (1440 dark): sin correos técnicos: false
+✓ salarios (1440 dark): monedas por separado: true
+✓ informes (390 light): KPIs de facturación: true
+✓ informes (390 light): mes y moneda consultables: true
+✓ informes (390 light): sin correos técnicos: false
+✓ comisiones (390 light): mes largo en KPIs: true
+✓ comisiones (390 light): sin correos técnicos: false
+✓ comisiones (390 light): el subtab Descuentos muestra el alta: true
+✓ comisiones (390 light): el diálogo de descuento abre: true
+✓ salarios (390 light): panel de salarios con personas: true
+✓ salarios (390 light): sin correos técnicos: false
+✓ salarios (390 light): monedas por separado: true
+✓ informes (390 dark): KPIs de facturación: true
+✓ informes (390 dark): mes y moneda consultables: true
+✓ informes (390 dark): sin correos técnicos: false
+✓ comisiones (390 dark): mes largo en KPIs: true
+✓ comisiones (390 dark): sin correos técnicos: false
+✓ comisiones (390 dark): el subtab Descuentos muestra el alta: true
+✓ comisiones (390 dark): el diálogo de descuento abre: true
+✓ salarios (390 dark): panel de salarios con personas: true
+✓ salarios (390 dark): sin correos técnicos: false
+✓ salarios (390 dark): monedas por separado: true
+✓ viewer (390 dark): sin «Registrar cobro»: false
+✓ viewer (390 dark): sin «Factura» en el encabezado: false
+✓ viewer (390 dark): sin «Cuenta» ni «Transferir»: false
+✓ viewer (390 dark): sin «Comisión»: false
+✓ viewer (390 dark): sin «Nuevo descuento»: false
+· rol restaurado a owner

@@ -1,0 +1,234 @@
+✓ Finanzas (light, 360): sin scroll horizontal del documento: 0
+✓ Finanzas (light, 360): targets ≥44: 0
+✓ Finanzas (light, 360): filas 44–52: true
+· Finanzas (light, 360): rieles internos ["964>294","480>294"]
+✓ Finanzas (light, 390): sin scroll horizontal del documento: 0
+✓ Finanzas (light, 390): targets ≥44: 0
+✓ Finanzas (light, 390): filas 44–52: true
+· Finanzas (light, 390): rieles internos ["964>324","480>324"]
+✓ Finanzas (light, 390): contraste texto AA: 0
+✓ Finanzas (light, 390): bordes de control 3:1: 0
+· Finanzas (390, light): /reports 0 · 
+· Finanzas pagos: https://app.scaleparaguay.com/core-api/api/agency/payments
+✓ Finanzas (light, 430): sin scroll horizontal del documento: 0
+✓ Finanzas (light, 430): targets ≥44: 0
+✓ Finanzas (light, 430): filas 44–52: true
+· Finanzas (light, 430): rieles internos ["964>364","480>364"]
+✓ Finanzas (light, 1280): sin scroll horizontal del documento: 0
+✓ Finanzas (light, 1280): filas 44–52: true
+✓ Finanzas (dark, 360): sin scroll horizontal del documento: 0
+✓ Finanzas (dark, 360): targets ≥44: 0
+✓ Finanzas (dark, 360): filas 44–52: true
+· Finanzas (dark, 360): rieles internos ["964>294","480>294"]
+✗ Finanzas (dark, 360): contraste texto AA: 1 (esperado 0)
+✓ Finanzas (dark, 360): bordes de control 3:1: 0
+·   contraste 4.38 (<4.5) «1» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+✓ Finanzas (dark, 390): sin scroll horizontal del documento: 0
+✓ Finanzas (dark, 390): targets ≥44: 0
+✓ Finanzas (dark, 390): filas 44–52: true
+· Finanzas (dark, 390): rieles internos ["964>324","480>324"]
+✗ Finanzas (dark, 390): contraste texto AA: 1 (esperado 0)
+✓ Finanzas (dark, 390): bordes de control 3:1: 0
+·   contraste 4.38 (<4.5) «1» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+· Finanzas (390, dark): /reports 0 · 
+· Finanzas pagos: https://app.scaleparaguay.com/core-api/api/agency/payments
+✓ Finanzas (dark, 430): sin scroll horizontal del documento: 0
+✓ Finanzas (dark, 430): targets ≥44: 0
+✓ Finanzas (dark, 430): filas 44–52: true
+· Finanzas (dark, 430): rieles internos ["964>364","480>364"]
+✗ Finanzas (dark, 430): contraste texto AA: 1 (esperado 0)
+✓ Finanzas (dark, 430): bordes de control 3:1: 0
+·   contraste 4.38 (<4.5) «1» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+✓ Finanzas (dark, 1280): sin scroll horizontal del documento: 0
+✓ Finanzas (dark, 1280): filas 44–52: true
+✗ Finanzas (dark, 1280): contraste texto AA: 1 (esperado 0)
+✓ Finanzas (dark, 1280): bordes de control 3:1: 0
+·   contraste 4.38 (<4.5) «1» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+✓ Mora (light, 360): sin scroll horizontal del documento: 0
+✓ Mora (light, 360): targets ≥44: 0
+✓ Mora (light, 360): filas 44–52: true
+· Mora (light, 360): rieles internos ["928>328"]
+✓ Mora (light, 390): sin scroll horizontal del documento: 0
+✓ Mora (light, 390): targets ≥44: 0
+✓ Mora (light, 390): filas 44–52: true
+· Mora (light, 390): rieles internos ["928>358"]
+✓ Mora (light, 390): contraste texto AA: 0
+✓ Mora (light, 390): bordes de control 3:1: 0
+· Mora (390, light): /reports 1 · month=2026-10&months=2
+✓ Mora (light, 430): sin scroll horizontal del documento: 0
+✓ Mora (light, 430): targets ≥44: 0
+✓ Mora (light, 1280): sin scroll horizontal del documento: 0
+✓ Mora (light, 1280): filas 44–52: true
+✓ Mora (dark, 360): sin scroll horizontal del documento: 0
+✓ Mora (dark, 360): targets ≥44: 0
+✓ Mora (dark, 360): filas 44–52: true
+· Mora (dark, 360): rieles internos ["928>328"]
+✓ Mora (dark, 360): contraste texto AA: 0
+✓ Mora (dark, 360): bordes de control 3:1: 0
+✓ Mora (dark, 390): sin scroll horizontal del documento: 0
+✓ Mora (dark, 390): targets ≥44: 0
+✓ Mora (dark, 390): filas 44–52: true
+· Mora (dark, 390): rieles internos ["928>358"]
+✓ Mora (dark, 390): contraste texto AA: 0
+✓ Mora (dark, 390): bordes de control 3:1: 0
+· Mora (390, dark): /reports 1 · month=2026-10&months=2
+✓ Mora (dark, 430): sin scroll horizontal del documento: 0
+✓ Mora (dark, 430): targets ≥44: 0
+✓ Mora (dark, 430): filas 44–52: true
+· Mora (dark, 430): rieles internos ["928>398"]
+✓ Mora (dark, 430): contraste texto AA: 0
+✓ Mora (dark, 430): bordes de control 3:1: 0
+✓ Mora (dark, 1280): sin scroll horizontal del documento: 0
+✓ Mora (dark, 1280): filas 44–52: true
+✓ Mora (dark, 1280): contraste texto AA: 0
+✓ Mora (dark, 1280): bordes de control 3:1: 0
+✓ Previsión (light, 360): sin scroll horizontal del documento: 0
+✓ Previsión (light, 360): targets ≥44: 0
+✓ Previsión (light, 390): sin scroll horizontal del documento: 0
+✓ Previsión (light, 390): targets ≥44: 0
+✓ Previsión (light, 390): contraste texto AA: 0
+✓ Previsión (light, 390): bordes de control 3:1: 0
+· Previsión (390, light): /reports 0 · 
+✓ Previsión (light, 430): sin scroll horizontal del documento: 0
+✓ Previsión (light, 430): targets ≥44: 0
+✓ Previsión (light, 1280): sin scroll horizontal del documento: 0
+✓ Previsión (light, 1280): filas 44–52: true
+✓ Previsión (dark, 360): sin scroll horizontal del documento: 0
+✓ Previsión (dark, 360): targets ≥44: 0
+✓ Previsión (dark, 360): contraste texto AA: 0
+✓ Previsión (dark, 360): bordes de control 3:1: 0
+✓ Previsión (dark, 390): sin scroll horizontal del documento: 0
+✓ Previsión (dark, 390): targets ≥44: 0
+✓ Previsión (dark, 390): contraste texto AA: 0
+✓ Previsión (dark, 390): bordes de control 3:1: 0
+· Previsión (390, dark): /reports 0 · 
+✓ Previsión (dark, 430): sin scroll horizontal del documento: 0
+✓ Previsión (dark, 430): targets ≥44: 0
+✓ Previsión (dark, 430): contraste texto AA: 0
+✓ Previsión (dark, 430): bordes de control 3:1: 0
+✓ Previsión (dark, 1280): sin scroll horizontal del documento: 0
+✓ Previsión (dark, 1280): filas 44–52: true
+✓ Previsión (dark, 1280): contraste texto AA: 0
+✓ Previsión (dark, 1280): bordes de control 3:1: 0
+✓ Informes (light, 360): sin scroll horizontal del documento: 0
+✓ Informes (light, 360): targets ≥44: 0
+· Informes (light, 360): rieles internos ["847>300"]
+✓ Informes (light, 390): sin scroll horizontal del documento: 0
+✓ Informes (light, 390): targets ≥44: 0
+✓ Informes (light, 390): contraste texto AA: 0
+✓ Informes (light, 390): bordes de control 3:1: 0
+· Informes (390, light): /reports 1 · month=2026-10&months=12&previous=1
+✓ Informes (390, light): una sola llamada a /reports: 1
+✓ Informes (light, 430): sin scroll horizontal del documento: 0
+✓ Informes (light, 430): targets ≥44: 0
+✓ Informes (light, 1280): sin scroll horizontal del documento: 0
+✓ Informes (dark, 360): sin scroll horizontal del documento: 0
+✓ Informes (dark, 360): targets ≥44: 0
+✓ Informes (dark, 360): contraste texto AA: 0
+✓ Informes (dark, 360): bordes de control 3:1: 0
+✓ Informes (dark, 390): sin scroll horizontal del documento: 0
+✓ Informes (dark, 390): targets ≥44: 0
+· Informes (dark, 390): rieles internos ["847>330"]
+✓ Informes (dark, 390): contraste texto AA: 0
+✓ Informes (dark, 390): bordes de control 3:1: 0
+· Informes (390, dark): /reports 1 · month=2026-10&months=12&previous=1
+✓ Informes (390, dark): una sola llamada a /reports: 1
+✓ Informes (dark, 430): sin scroll horizontal del documento: 0
+✓ Informes (dark, 430): targets ≥44: 0
+✓ Informes (dark, 430): contraste texto AA: 0
+✓ Informes (dark, 430): bordes de control 3:1: 0
+✓ Informes (dark, 1280): sin scroll horizontal del documento: 0
+· Informes (dark, 1280): rieles internos ["1073>990"]
+✓ Informes (dark, 1280): contraste texto AA: 0
+✓ Informes (dark, 1280): bordes de control 3:1: 0
+✓ Comisiones (light, 360): sin scroll horizontal del documento: 0
+✓ Comisiones (light, 360): targets ≥44: 0
+✓ Comisiones (light, 360): filas 44–52: true
+· Comisiones (light, 360): rieles internos ["992>294"]
+✓ Comisiones (light, 390): sin scroll horizontal del documento: 0
+✓ Comisiones (light, 390): targets ≥44: 0
+✓ Comisiones (light, 390): filas 44–52: true
+· Comisiones (light, 390): rieles internos ["992>324"]
+✓ Comisiones (light, 390): contraste texto AA: 0
+✓ Comisiones (light, 390): bordes de control 3:1: 0
+· Comisiones (390, light): /reports 0 · 
+✓ Comisiones (light, 430): sin scroll horizontal del documento: 0
+✓ Comisiones (light, 430): targets ≥44: 0
+✓ Comisiones (light, 430): filas 44–52: true
+· Comisiones (light, 430): rieles internos ["992>364"]
+✓ Comisiones (light, 1280): sin scroll horizontal del documento: 0
+✓ Comisiones (light, 1280): filas 44–52: true
+✓ Comisiones (dark, 360): sin scroll horizontal del documento: 0
+✓ Comisiones (dark, 360): targets ≥44: 0
+✓ Comisiones (dark, 360): filas 44–52: true
+· Comisiones (dark, 360): rieles internos ["992>294"]
+✗ Comisiones (dark, 360): contraste texto AA: 1 (esperado 0)
+✓ Comisiones (dark, 360): bordes de control 3:1: 0
+·   contraste 4.38 (<4.5) «2» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+✓ Comisiones (dark, 390): sin scroll horizontal del documento: 0
+✓ Comisiones (dark, 390): targets ≥44: 0
+✓ Comisiones (dark, 390): filas 44–52: true
+· Comisiones (dark, 390): rieles internos ["992>324"]
+✗ Comisiones (dark, 390): contraste texto AA: 1 (esperado 0)
+✓ Comisiones (dark, 390): bordes de control 3:1: 0
+·   contraste 4.38 (<4.5) «2» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+· Comisiones (390, dark): /reports 0 · 
+✓ Comisiones (dark, 430): sin scroll horizontal del documento: 0
+✓ Comisiones (dark, 430): targets ≥44: 0
+✓ Comisiones (dark, 430): filas 44–52: true
+· Comisiones (dark, 430): rieles internos ["992>364"]
+✗ Comisiones (dark, 430): contraste texto AA: 1 (esperado 0)
+✓ Comisiones (dark, 430): bordes de control 3:1: 0
+·   contraste 4.38 (<4.5) «2» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+✓ Comisiones (dark, 1280): sin scroll horizontal del documento: 0
+✓ Comisiones (dark, 1280): filas 44–52: true
+✗ Comisiones (dark, 1280): contraste texto AA: 1 (esperado 0)
+✓ Comisiones (dark, 1280): bordes de control 3:1: 0
+·   contraste 4.38 (<4.5) «2» ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabula
+✓ Finanzas · «Registrar cobro»: foco inicial adentro: true
+✓ Finanzas · «Registrar cobro»: dentro del viewport: true
+✓ Finanzas · «Registrar cobro»: sin scroll horizontal: 0
+✓ Finanzas · «Registrar cobro»: foco atrapado (18 tabs): true
+✓ Finanzas · «Registrar cobro»: cuerpo con scroll o completo: true
+✓ Finanzas · «Registrar cobro»: pie alcanzable: true
+✓ Finanzas · «Registrar cobro»: Escape cierra y devuelve el foco: true
+✓ Finanzas · «Factura»: foco inicial adentro: true
+✓ Finanzas · «Factura»: dentro del viewport: true
+✓ Finanzas · «Factura»: sin scroll horizontal: 0
+✓ Finanzas · «Factura»: foco atrapado (18 tabs): true
+✓ Finanzas · «Factura»: cuerpo con scroll o completo: true
+✓ Finanzas · «Factura»: pie alcanzable: true
+✓ Finanzas · «Factura»: Escape cierra y devuelve el foco: true
+✓ Finanzas · «Cuenta»: foco inicial adentro: true
+✓ Finanzas · «Cuenta»: dentro del viewport: true
+✓ Finanzas · «Cuenta»: sin scroll horizontal: 0
+✓ Finanzas · «Cuenta»: foco atrapado (18 tabs): true
+✓ Finanzas · «Cuenta»: cuerpo con scroll o completo: true
+✓ Finanzas · «Cuenta»: pie alcanzable: true
+✓ Finanzas · «Cuenta»: Escape cierra y devuelve el foco: true
+✓ Finanzas · «Transferir»: foco inicial adentro: true
+✓ Finanzas · «Transferir»: dentro del viewport: true
+✓ Finanzas · «Transferir»: sin scroll horizontal: 0
+✓ Finanzas · «Transferir»: foco atrapado (18 tabs): true
+✓ Finanzas · «Transferir»: Escape cierra y devuelve el foco: true
+✓ Comisiones · «Comisión»: foco inicial adentro: true
+✓ Comisiones · «Comisión»: dentro del viewport: true
+✓ Comisiones · «Comisión»: sin scroll horizontal: 0
+✓ Comisiones · «Comisión»: foco atrapado (18 tabs): true
+✓ Comisiones · «Comisión»: cuerpo con scroll o completo: true
+✓ Comisiones · «Comisión»: pie alcanzable: true
+✓ Comisiones · «Comisión»: Escape cierra y devuelve el foco: true
+✓ Comisiones · «Nuevo descuento»: foco inicial adentro: true
+✓ Comisiones · «Nuevo descuento»: dentro del viewport: true
+✓ Comisiones · «Nuevo descuento»: sin scroll horizontal: 0
+✓ Comisiones · «Nuevo descuento»: foco atrapado (18 tabs): true
+✓ Comisiones · «Nuevo descuento»: cuerpo con scroll o completo: true
+✓ Comisiones · «Nuevo descuento»: pie alcanzable: true
+✓ Comisiones · «Nuevo descuento»: Escape cierra y devuelve el foco: true
+✓ Previsión: formularios sin desborde: true
+· Previsión formularios: [{"fields":4,"minWidth":332,"overflow":0,"width":332},{"fields":4,"minWidth":332,"overflow":0,"width":332}]
+· Previsión reduced-motion: {"duration":"1e-05s","animation":"1e-05s"}
+✓ Finanzas: la lista de cobros llega con ventana de 20: 20
+✓ Finanzas: ofrece completar el histórico de cobros: true
+✓ Finanzas: «Ver todos los cobros» trae el histórico: true
+✓ Finanzas: el histórico se pide con limit=all: true
