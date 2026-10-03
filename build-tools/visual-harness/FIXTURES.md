@@ -74,6 +74,19 @@ objetivo del baseline, no un error del fixture.
 - Textos cortados: con `title` o sin recorte; montos/fechas/códigos nunca se cortan.
 - Superposiciones: ningún par de nodos visibles se pisa.
 
+## Ronda 03-10 (Refs #147/#135)
+
+`fixtures/al4-estados.mjs` cubre los estados de la auditoría (#147) y las
+adopciones de la biblioteca v0.61 (#135 P2). Los bloques de la app espejan el
+JSX real (`app/daily-controls.tsx`, `app/manual.tsx`, `app/my-data.tsx`,
+`app/operations.tsx`, `app/notification-inbox.tsx`,
+`app/superadmin/states.tsx`) con sus clases; `AyudaModulo` y `PaletaComandos`
+se renderizan con `renderToStaticMarkup` sobre el objeto real, abiertos.
+Fixtures: `al4-preview-cliente`, `al4-mis-datos`, `al4-empresa-unica`,
+`al4-bandeja-vacia`, `al4-admin-denegado`, `al4-ayuda-modulo` y
+`al4-paleta-comandos` (0 hallazgos a 390/1440, claro y oscuro). Capturas en
+`docs/qa/147-estados/` y `docs/qa/135-adopcion/`.
+
 ## Referencias v2 (campaña #41)
 
 `fixtures/referencias-v2.mjs` genera el markup con `renderToStaticMarkup` sobre
