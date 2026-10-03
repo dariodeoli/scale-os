@@ -4,6 +4,8 @@ import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-te
 import type {InventoryItem,InventoryReservation,StorageTemplate} from '../app/inventory-workspace';
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+// owncoding-ui v0.61 usa rAF para devolver el foco; el doble de Node no lo trae.
+Object.assign(globalThis,{requestAnimationFrame:(callback:(time:number)=>void)=>{callback(Date.now());return 0;},cancelAnimationFrame:()=>{}});
 const intervals=new Map<number,()=>void>();let timerId=0;
 const documentEvents=Object.assign(new EventTarget(),{visibilityState:'visible'});
 Object.defineProperty(globalThis,'document',{configurable:true,value:documentEvents});

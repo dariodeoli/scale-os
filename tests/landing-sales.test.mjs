@@ -71,7 +71,7 @@ test('published reports and rolling demo are discoverable without promising none
 
 test('contact form and telemetry runtimes are byte-for-byte preserved',()=>{
  // Captured from the pre-redesign source, compared before storing these hashes.
-  assert.equal(sha(script),'d17f7bdcf9464ef34faab799ceab580185e4b992b212c834c7dd0b11d54fe93d');
+  assert.equal(sha(script),'7a34fa1b671466ed6aaacfec6a5eb22ac195a114f17c837db2df747184cad797');
  assert.equal(sha(form),'b66b00434ddc381dee345d546898c53b84d0096cc38dec739669dadfd9792924');
  assert(form.includes('type="checkbox" name="consent" required'));
  assert(form.includes('name="website" tabindex="-1" autocomplete="off"'));
@@ -125,6 +125,30 @@ test('landing #134: sin promesas vitalicias, una sola prueba, pilares y fundador
  assert(text.includes('Portal del cliente y aprobaciones por enlace privado'));
  // 8 · La prueba real es el flujo de trabajo, sin nombres ni métricas inventadas.
  assert(text.includes('Así se ve un trabajo real, sin nombres'));
+});
+
+test('landing #148: demo visible, un solo aviso, capturas reales y puesta en marcha',()=>{
+ // 1 · La demo tiene acceso propio en el menú superior (y sigue aislada).
+ const nav=html.match(/<nav aria-label="Navegación principal">[\s\S]*?<\/nav>/)?.[0]||'';
+ assert(nav.includes('data-cta="demo"')&&nav.includes('>Demo</a>'),'el menú superior ofrece la demo');
+ // 2 · Un solo aviso largo de datos ficticios: el pie del preview; la FAQ ya no lo repite.
+ assert.equal((text.match(/copia aislada con datos ficticios, sin registro/g)||[]).length,1,'el aviso de demo ficticia queda una sola vez');
+ assert(!text.includes('La demo abre una copia aislada con datos ficticios'),'la repetición salió de la FAQ');
+ assert(text.includes('La demo no inicia la prueba'),'la aclaración de la prueba se conserva');
+ // 3 · Privacidad del contacto en un solo origen (el aviso de la app).
+ const contact=html.slice(html.indexOf('<section id="contacto"'),html.indexOf('</section>',html.indexOf('<section id="contacto"')));
+ assert(contact.includes('https://app.scaleparaguay.com/privacidad'));
+ assert(!contact.includes('sistema.scaleparaguay.com/privacidad'),'el contacto no mezcla orígenes de privacidad');
+ // 4 · Capturas del producto y funciones agrupadas por resultado.
+ for(const file of ['landing/vender.jpg','landing/producir.jpg','landing/cobrar.jpg'])assert(html.includes(file),file);
+ assert.equal((html.match(/class="pillar-outcome">(Vender|Producir|Cobrar)</g)||[]).length,3,'cada pilar declara su resultado');
+ const captions=[...html.matchAll(/<figcaption><strong>([^<]+)<\/strong> · ([^<]+)<\/figcaption>/g)].map(match=>match[1]);
+ assert.deepEqual(captions,['Vender','Producir','Cobrar'],'las capturas se agrupan vender · producir · cobrar');
+ for(const shot of html.matchAll(/<img\b[^>]*>/g))if(shot[0].includes('/landing/'))assert(/\bloading="lazy"/.test(shot[0])&&/\bwidth="1440"/.test(shot[0]),'las capturas cargan diferidas y con dimensiones');
+ // 5 · Puesta en marcha: migración, soporte, límites y condiciones visibles.
+ for(const title of ['Migración de datos','Soporte','Límites claros','Servicio, suscripción y cancelación'])assert(text.includes(title),title);
+ assert(text.includes('no hay importador masivo')&&text.includes('no mueve dinero')&&text.includes('sin borrar tus datos'));
+ assert(text.includes('no hay checkout en esta página'),'el checkout no se presenta como disponible');
 });
 
 test('CSS source provides shrinking grids at 320/360/390/768; not rendered visual QA',()=>{

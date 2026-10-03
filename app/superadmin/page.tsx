@@ -86,6 +86,7 @@ export default function PlatformAdmin() {
   const [emailCode, setEmailCode] = useState("");
   const [emailSending, setEmailSending] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [accessMessage, setAccessMessage] = useState("");
 
   function handlePlatformError(cause: unknown, fromLoad = false) {
     const status = errorStatus(cause);
@@ -105,6 +106,9 @@ export default function PlatformAdmin() {
       if (!fromLoad) return false;
       setState(null);
       setError("");
+      // El motivo real del 403 (demo sin acceso global, por ejemplo) conserva
+      // el contexto al volver al panel (#147) en vez de un texto genérico.
+      setAccessMessage(cause instanceof Error ? cause.message : "");
       setAccessDenied(true);
       return true;
     }
@@ -115,6 +119,7 @@ export default function PlatformAdmin() {
     setBusy(true);
     setError("");
     setAccessDenied(false);
+    setAccessMessage("");
     try {
       // The overview is the auth/authorization gate. It prevents parallel responses from rendering a generic error before a 401 or 403 is classified.
       // prettier-ignore
@@ -524,7 +529,7 @@ export default function PlatformAdmin() {
   const pageContent = redirecting ? (
     <PlatformRedirecting/>
   ) : accessDenied ? (
-    <PlatformAccessDenied/>
+    <PlatformAccessDenied message={accessMessage}/>
   ) : (
     <>
       <PlatformNotices state={state} error={error} bootstrap={bootstrap}/>
@@ -570,19 +575,24 @@ export default function PlatformAdmin() {
           <h1>Control de Scale OS</h1>
         </div>
         <div className="platform-admin-meta">
-          <StateChip tone={writable ? "ok" : "info"} title={writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}>{writable ? "Admin global" : "Solo lectura"}</StateChip>
+          {/* El estado del encabezado refleja el permiso real (#147): con el
+              acceso denegado no se anuncia «Solo lectura» (esa es la capacidad
+              de un viewer con overview cargado). Sin rol resuelto, sin chip. */}
+          {accessDenied ? <StateChip tone="bad">Acceso denegado</StateChip>
+           : myRole ? <StateChip tone={writable ? "ok" : "info"} title={writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}>{writable ? "Admin global" : "Solo lectura"}</StateChip>
+           : null}
           {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
         </div>
         <div className="platform-admin-actions">
-          <button
+          {!accessDenied && <button
             type="button"
             className="secondary"
             onClick={() => void load()}
-            disabled={busy || redirecting || accessDenied}
+            disabled={busy || redirecting}
           >
             <RefreshCw aria-hidden="true" />
             Actualizar
-          </button>
+          </button>}
           <Link className="secondary" href={appHome()}>
             <ArrowLeft aria-hidden="true" />
             Panel

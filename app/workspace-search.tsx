@@ -1,22 +1,123 @@
 "use client";
-import {useState} from 'react';
-import {SearchField} from './search-field';
-import {ArrowUpRight,Search} from 'lucide-react';
-import {Dialog} from './dialog';
+// Buscador global migrado a `PaletaComandos` (owncoding-ui §15.8, ADOPCION-V2
+// P2, Refs #135). La app aporta el catálogo real del shell —navegación por rol,
+// clientes/proyectos/piezas, crear registro contextual y ayuda—; el objeto de
+// la biblioteca dibuja el disparador, el atajo ⌘/Ctrl+K, el debounce, los
+// estados y la navegación por teclado. Sin lógica de UI duplicada.
+import {useCallback,useMemo} from 'react';
+import {PaletaComandos} from 'owncoding-ui';
 import {normalizeSearch} from './control-center-data';
-import {ClientIdentity} from './client-identity';
-import {ActorIdentity} from './actor-identity';
+import {sections} from './navigation';
+import {visibleModule} from './workspace-access';
 import type {AssignedPerson} from './assigned-people';
-export type SearchRecord={id:string;name:string;context:string;kind:'clients'|'projects'|'work-orders';clientName?:string;clientLogo?:string|null;clientColor?:string|null;assignees?:AssignedPerson[]};
-export const searchDestination=(kind:SearchRecord['kind'])=>kind==='clients'?'Clientes':kind==='projects'?'Proyectos':'Producción';
-const kindLabel:Record<SearchRecord['kind'],string>={clients:'Cliente',projects:'Proyecto','work-orders':'Orden'};
-function SearchAssignees({people=[]}:{people?:AssignedPerson[]}){
- const visible=people.slice(0,4);
- if(!visible.length)return null;
- return <div className="search-result-assignees" aria-label={`Responsables: ${visible.map(person=>person.full_name||person.email||'Integrante').join(', ')}`}><span>Responsables</span><div>{visible.map(person=><ActorIdentity key={person.id} name={person.full_name||person.email||'Integrante'} photoUrl={person.photo_url} verified/>)}</div>{people.length>visible.length&&<small>+{people.length-visible.length}</small>}</div>;
+
+export type SearchRecord = {
+  id: string;
+  name: string;
+  context: string;
+  kind: 'clients' | 'projects' | 'work-orders';
+  clientName?: string;
+  clientLogo?: string | null;
+  clientColor?: string | null;
+  assignees?: AssignedPerson[];
+};
+export const searchDestination = (kind: SearchRecord['kind']) => kind === 'clients' ? 'Clientes' : kind === 'projects' ? 'Proyectos' : 'Producción';
+
+/** Resultado canónico de la paleta: `tipo` agrupa y `datos` decide la acción. */
+export type CommandResult = {
+  id: string;
+  tipo: 'accion' | 'ir' | 'cliente' | 'proyecto' | 'pieza';
+  titulo: string;
+  detalle: string;
+  datos: {
+    accion: 'navegar' | 'registro' | 'crear' | 'ayuda' | 'status';
+    module?: string;
+    kind?: SearchRecord['kind'];
+    create?: 'order' | 'project' | 'budget';
+  };
+};
+export type CreateKind = NonNullable<CommandResult['datos']['create']>;
+
+/** Tope de registros visibles: los comandos y destinos nunca se recortan. */
+export const COMMAND_RECORD_LIMIT = 30;
+
+const CREATE_TARGET: Record<string, {create: CreateKind; label: string}> = {
+  Proyectos: {create: 'project', label: 'un proyecto'},
+  Presupuestos: {create: 'budget', label: 'un presupuesto'},
+  Producción: {create: 'order', label: 'una pieza'},
+  Resumen: {create: 'order', label: 'una pieza'},
+};
+
+/** Acciones reales del shell para la sección activa (mismas capacidades que el encabezado). */
+export function commandActions(active: string, canCreate: boolean): CommandResult[] {
+  const target = CREATE_TARGET[active];
+  const results: CommandResult[] = [];
+  if (canCreate && target) results.push({id: `crear-${target.create}`, tipo: 'accion', titulo: `Crear ${target.label}`, detalle: `Nuevo registro desde ${active}`, datos: {accion: 'crear', create: target.create}});
+  results.push({id: 'ayuda', tipo: 'accion', titulo: `Ayuda de ${active}`, detalle: 'Qué podés hacer en este módulo', datos: {accion: 'ayuda', module: active}});
+  results.push({id: 'estado', tipo: 'accion', titulo: 'Estado del sistema', detalle: 'Disponibilidad y comprobaciones en vivo', datos: {accion: 'status'}});
+  return results;
 }
-export function WorkspaceSearch({records,navigate}:{records:SearchRecord[];navigate:(label:string)=>void}){
- const [open,setOpen]=useState(false),[query,setQuery]=useState('');
- const term=normalizeSearch(query),matches=term?records.filter(r=>normalizeSearch(`${r.name} ${r.context}`).includes(term)):[];
- return <><button className="workspace-search-trigger flex min-w-0 max-w-[18rem] items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] text-mute transition hover:bg-ink-700 hover:text-fore max-md:min-h-11" aria-label="Buscar clientes, proyectos y órdenes" onClick={()=>setOpen(true)}><Search size={17} className="shrink-0"/><span className="truncate max-[430px]:hidden">Buscar cliente, proyecto u orden</span></button>{open&&<Dialog title="Buscar en esta empresa" close={()=>setOpen(false)}><SearchField label="Nombre, cliente o proyecto" value={query} onChange={setQuery} placeholder="Escribí para buscar…"/><p className="form-note" role="status">{term?`${matches.length} resultados${matches.length>30?' · mostrando los primeros 30':''}`:'Buscá entre los clientes, proyectos y órdenes de la empresa actual.'}</p><div className="search-results">{matches.slice(0,30).map(r=>{const destination=searchDestination(r.kind);return <article key={`${r.kind}-${r.id}`}><div className="search-result-main"><ClientIdentity compact name={r.clientName||r.name} logo={r.clientLogo} color={r.clientColor}/><div><small>{kindLabel[r.kind]}</small>{r.kind!=='clients'&&<h3>{r.name}</h3>}<p>{r.context}</p></div></div><SearchAssignees people={r.assignees}/><button className="text-button" onClick={()=>{navigate(destination);setOpen(false);}}>Ver {destination.toLocaleLowerCase('es')}<ArrowUpRight size={14}/></button></article>;})}</div></Dialog>}</>;
+
+/** Destinos de navegación visibles para el rol (misma fuente que el NAV). */
+export function commandNavigation(role: string): CommandResult[] {
+  return sections
+    .filter(([label]) => visibleModule(label, role))
+    .map(([label]) => ({id: `ir-${label}`, tipo: 'ir' as const, titulo: label, detalle: 'Abrir módulo', datos: {accion: 'navegar' as const, module: label}}));
+}
+
+/** Índice de registros del shell (clientes, proyectos y piezas). */
+export function commandRecords(records: SearchRecord[]): CommandResult[] {
+  return records.map((record) => ({
+    id: `registro-${record.kind}-${record.id}`,
+    tipo: record.kind === 'clients' ? 'cliente' : record.kind === 'projects' ? 'proyecto' : 'pieza',
+    titulo: record.name,
+    detalle: record.context,
+    datos: {accion: 'registro', kind: record.kind},
+  }));
+}
+
+/** Filtro puro: comandos primero, registros acotados al tope declarado. */
+export function filterCommands(catalog: CommandResult[], query: string, limit = COMMAND_RECORD_LIMIT): CommandResult[] {
+  const term = normalizeSearch(query);
+  if (!term) return [];
+  let records = 0;
+  return catalog.filter((item) => {
+    if (!normalizeSearch(`${item.titulo} ${item.detalle}`).includes(term)) return false;
+    if (item.tipo === 'accion' || item.tipo === 'ir') return true;
+    records += 1;
+    return records <= limit;
+  });
+}
+
+export function WorkspaceSearch({records, navigate, active = 'Resumen', role = 'viewer', canCreate = false, onCreate, onHelp}: {
+  records: SearchRecord[];
+  navigate: (label: string) => void;
+  active?: string;
+  role?: string;
+  canCreate?: boolean;
+  onCreate?: (kind: CreateKind) => void;
+  onHelp?: () => void;
+}) {
+  const catalog = useMemo(() => [...commandActions(active, canCreate), ...commandNavigation(role), ...commandRecords(records)], [active, canCreate, role, records]);
+  const buscar = useCallback(async (consulta: string) => filterCommands(catalog, consulta), [catalog]);
+  const elegir = useCallback((resultado: CommandResult) => {
+    const datos = resultado.datos;
+    if (datos.accion === 'navegar' && datos.module) navigate(datos.module);
+    else if (datos.accion === 'registro' && datos.kind) navigate(searchDestination(datos.kind));
+    else if (datos.accion === 'crear' && datos.create) onCreate?.(datos.create);
+    else if (datos.accion === 'ayuda') onHelp?.();
+    else if (datos.accion === 'status') window.location.assign('/status');
+  }, [navigate, onCreate, onHelp]);
+  return <PaletaComandos
+    boton
+    textoBoton="Buscar cliente, proyecto u orden"
+    titulo="Buscar en esta empresa"
+    ariaLabel="Buscar clientes, proyectos y órdenes"
+    placeholder="Nombre, cliente, proyecto o acción…"
+    buscar={buscar}
+    onElegir={elegir}
+    etiquetasTipo={{accion: 'Acciones', ir: 'Ir a', cliente: 'Clientes', proyecto: 'Proyectos', pieza: 'Producción'}}
+    minimo={2}
+    descripcionVacio="No encontramos nada para esa búsqueda. Probá con el nombre de un cliente, un proyecto, una pieza o un módulo."
+  />;
 }

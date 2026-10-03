@@ -70,15 +70,16 @@ export function ClientReviewControl({orderId}:{orderId:string}){
 export function ClientReviewPreview({title,assetUrl}:{title:string;assetUrl?:string|null}){
  const [open,setOpen]=useState(false);
  return <><button className="secondary" type="button" onClick={()=>setOpen(true)}><Eye size={14}/>Ver como cliente</button>{open&&<Dialog title="Vista previa del cliente" close={()=>setOpen(false)}>
-  <p className="form-note">Así ve el cliente el enlace de revisión. Las acciones están desactivadas: no se envía nada ni cambia el estado de la pieza.</p>
-  <article className="client-review-preview" aria-label="Vista previa de la revisión del cliente">
+  <p className="form-note">Así ve el cliente el enlace de revisión. <strong>Vista previa: no realiza acciones</strong>; no se envía nada ni cambia el estado de la pieza.</p>
+  <article className="client-review-preview" data-preview="inert" aria-label="Vista previa de la revisión del cliente">
+   <p className="review-preview-badge" role="note">Vista previa: no realiza acciones</p>
    <p className="review-eyebrow">REVISIÓN DE CONTENIDO</p>
    <h3>{title}</h3>
    <p>Revisá la pieza y dejá tu respuesta. El archivo se abre en su servicio de origen.</p>
-   {assetUrl?<a className="button" href={assetUrl} target="_blank" rel="noreferrer">Abrir pieza</a>:<p className="form-note">Esta versión todavía no tiene enlace de archivo. Agregalo en Enlaces para que el cliente pueda abrirla.</p>}
+   {assetUrl?<a className="secondary justify-self-start" href={assetUrl} target="_blank" rel="noreferrer">Abrir pieza</a>:<p className="form-note">Esta versión todavía no tiene enlace de archivo. Agregalo en Enlaces para que el cliente pueda abrirla.</p>}
    <label>Nombre completo<input disabled placeholder="Nombre y apellido" autoComplete="off"/></label>
    <label>Comentarios o cambios<textarea disabled rows={3} placeholder="Qué te gustaría ajustar"/></label>
-   <div className="inline-actions review-preview-actions"><button className="primary" type="button" disabled>Aprobar esta versión</button><button className="secondary" type="button" disabled>Solicitar cambios</button></div>
+   <div className="inline-actions review-preview-actions"><button className="primary" type="button" disabled aria-disabled="true">Aprobar esta versión</button><button className="secondary" type="button" disabled aria-disabled="true">Solicitar cambios</button></div>
    <p className="form-note">El enlace real vence a los siete días. El nombre declarado no equivale a una firma digital verificada.</p>
   </article>
  </Dialog>}</>;

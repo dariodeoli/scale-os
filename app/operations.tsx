@@ -628,6 +628,7 @@ export function CompanySelector({ name }: { name: string }) {
     >([]),
     [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false),
+    [loaded, setLoaded] = useState(false),
     [error, setError] = useState("");
   const [preferred,setPreferred]=useState<string|null>(null);
   const preferenceLock=useRef(false);
@@ -640,6 +641,7 @@ export function CompanySelector({ name }: { name: string }) {
         // It is never a company the person can browse to from a real workspace.
         const realCompanies=d.organizations.filter(company=>!company.isDemo);
         setCompanies(realCompanies);
+        setLoaded(true);
         setPreferred(d.defaultOrganizationId&&realCompanies.some(company=>String(company.id)===String(d.defaultOrganizationId))?String(d.defaultOrganizationId):null);
         if (
           initial && realCompanies.length > 1 &&
@@ -652,17 +654,29 @@ export function CompanySelector({ name }: { name: string }) {
     load(true);const refresh=()=>load();window.addEventListener('scale:default-company-changed',refresh);
     return()=>{alive=false;generation++;window.removeEventListener('scale:default-company-changed',refresh);};
   }, []);
+  // Con una sola empresa accesible (#147) no hay nada que elegir: el control
+  // deja de ser un disparador y explica dónde estás; la Configuración conserva
+  // la lista completa con la estrella de empresa predeterminada.
+  const singleCompany = loaded && !error && companies.length <= 1;
   return (
     <>
-      <button className="workspace" title={name} onClick={() => setOpen(true)}>
-        <Building2 size={16} />
-        <span className="company-name">{name}</span>
-      </button>
+      {singleCompany ? (
+        <span className="workspace" title={`Estás en ${name}; no tenés otras empresas`} aria-label={`Empresa actual: ${name}. No tenés otras empresas.`}>
+          <Building2 size={16} />
+          <span className="company-name">{name}</span>
+        </span>
+      ) : (
+        <button className="workspace" title={name} onClick={() => setOpen(true)}>
+          <Building2 size={16} />
+          <span className="company-name">{name}</span>
+        </button>
+      )}
       {open && (
         <Dialog title="Elegí la empresa" close={() => setOpen(false)}>
           <p className="form-note">
             Solo aparecen las empresas que te dieron acceso.
           </p>
+          {!companies.length && !error ? <p className="form-note" role="status">Cargando tus empresas…</p> : null}
           <div className="ops-stack">
             {companies.map((c) => (
               <div key={c.id} className="company-choice-row">

@@ -157,7 +157,14 @@ test("rediseño #102: consola con secciones, carga de la app y título único", 
   assert.doesNotMatch(page, /<KpiStrip[\s\S]{0,2000}?loading/, "las métricas no se inventan durante la carga");
   // Estado del encabezado: rol + última actualización en 24 h.
   assert.match(page, /platformTime\(updatedAt\)/);
-  assert.match(page, /<StateChip tone=\{writable \? "ok" : "info"\}/);
+  // #147: el acceso denegado no se anuncia «Solo lectura» y no ofrece refresco;
+  // el motivo del 403 conserva el contexto en el estado y en «Volver al panel».
+  assert.match(page, /accessDenied \? <StateChip tone="bad">Acceso denegado<\/StateChip>/);
+  assert.match(page, /myRole \? <StateChip tone=\{writable \? "ok" : "info"\}/);
+  assert.match(page, /\{!accessDenied && <button/);
+  assert.match(page, /<PlatformAccessDenied message=\{accessMessage\}\/>/);
+  assert.match(page, /setAccessMessage\(cause instanceof Error \? cause\.message : ""\)/);
+  assert.match(readFileSync(new URL('../app/superadmin/states.tsx', import.meta.url), 'utf8'), /\{message \|\| "Tu sesión está activa/);
   assert.match(page, /className="platform-admin-identity"/, "marca, rótulo y título comparten la fila del encabezado");
 });
 

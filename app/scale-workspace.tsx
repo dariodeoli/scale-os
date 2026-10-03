@@ -54,6 +54,7 @@ import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
 import {EmailField} from './email-field';
 import {WorkspaceGuide, workspaceGuideScope, visibleModule, type WorkspaceGuideData} from './workspace-guide';
+import {guideCountsFrom} from './workspace-guide-data';
 import {FXTransferForm} from './daily-controls';
 import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
@@ -208,6 +209,9 @@ export default function Home() {
   const [paymentInvoice,setPaymentInvoice]=useState('');
   const [myProfile,setMyProfile]=useState(false);
   const [iaCarga,setIaCarga]=useState(false);
+  // Ayuda por módulo (#135 P2): la paleta ⌘K y el botón «?» comparten el mismo
+  // estado para que la acción «Ayuda de X» abra el diálogo de la biblioteca.
+  const [helpOpen,setHelpOpen]=useState(false);
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string;anchor?:string;edit?:boolean}|null>(null);
   const [projectClient,setProjectClient]=useState('');
   const [clientMode,setClientMode]=useState(true);
@@ -506,7 +510,7 @@ export default function Home() {
     });
     if(!first)return;
     setStartupDataScope(loadedScope);
-    if(scopeReady(sectionScope(requestedSection,shellContract())))setGuideData({scope:guideScope,status:'ready',counts:{clients:first.clientData.clients.length,projects:first.projectData.projects.length,orders:first.orderData.workOrders.length}});
+    if(scopeReady(sectionScope(requestedSection,shellContract())))setGuideData({scope:guideScope,status:'ready',counts:guideCountsFrom(scopeResources(sectionScope(requestedSection,shellContract())),{clients:first.clientData.clients.length,projects:first.projectData.projects.length,orders:first.orderData.workOrders.length})});
     }catch(cause){
       if(sequence!==dataLoadSequence.current)return;
       if(guideData.status!=='ready')setGuideData({scope:guideScope,status:'error'});
@@ -1078,9 +1082,9 @@ export default function Home() {
             </div>
             <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
               <ThemeToggle/>
-              <WorkspaceGuide {...guideProps} variant="help"/>
+              <WorkspaceGuide {...guideProps} active={active} helpOpen={helpOpen} onHelpOpen={()=>setHelpOpen(true)} onHelpClose={()=>setHelpOpen(false)} variant="help"/>
               {canIaCarga?<IaCargaButton onOpen={()=>setIaCarga(true)}/>:null}
-              <WorkspaceSearch key={workspaceScope} navigate={setActive} records={[
+              <WorkspaceSearch key={workspaceScope} navigate={setActive} active={active} role={user?.role||'viewer'} canCreate={canCreateRecord(active)} onCreate={kind=>setModal(kind)} onHelp={()=>setHelpOpen(true)} records={[
                 ...clients.map(c=>({id:c.id,name:c.name,context:c.contact_restricted===true?'Contacto reservado':(canSeeClientContact(user?.role)?(c.email||'Sin correo registrado'):(c.email?maskEmail(c.email):'Sin correo registrado')),kind:'clients' as const,clientName:c.name,clientLogo:c.logo_url,clientColor:c.color_key})),
                 ...projects.map(p=>{const client=clients.find(c=>String(c.id)===String(p.client_id));return {id:p.id,name:p.name,context:`${p.client_name} · ${p.work_order_count} piezas`,kind:'projects' as const,clientName:p.client_name,clientLogo:client?.logo_url,clientColor:client?.color_key,assignees:p.assignees};}),
                 ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.assignee_names?.length?o.assignee_names.map(name=>({id:name,full_name:name,is_primary:false})):o.effective_assignees||o.assignees||project?.assignees};}),

@@ -20,6 +20,20 @@ export function workspaceGuideStorageKey(scope: string | null) {
   return scope ? `scale:workspace-guide:v1:${scope}` : null;
 }
 
+/**
+ * Sólo el conteo de un recurso que la sección realmente leyó es evidencia (#147):
+ * una lista que nunca se cargó no puede rotularse «sin registros». En el Demo,
+ * que abre en Producción (scope sin órdenes), esto evita el falso «Sin registros
+ * de ejemplo» mientras el tablero sí muestra piezas.
+ */
+export function guideCountsFrom(resources: readonly string[], counts: Partial<Record<GuideRecord, number>>): Partial<Record<GuideRecord, number>> {
+  const known: Partial<Record<GuideRecord, number>> = {};
+  for (const record of ['clients', 'projects', 'orders'] as const) {
+    if (resources.includes(record) && typeof counts[record] === 'number') known[record] = counts[record];
+  }
+  return known;
+}
+
 type StepDefinition = {module: string; title: string; description: string; record?: GuideRecord; canCreate?: boolean};
 export type WorkspaceGuideStep = StepDefinition & {
   state: 'available' | 'unknown' | 'loading' | 'error' | 'empty' | 'present';

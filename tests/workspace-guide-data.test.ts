@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {suggestedWorkspaceGuideStep,workspaceGuideScope,workspaceGuideSteps,type WorkspaceGuideIdentity,type WorkspaceGuideData} from '../app/workspace-guide-data';
+import {guideCountsFrom,suggestedWorkspaceGuideStep,workspaceGuideScope,workspaceGuideSteps,type WorkspaceGuideIdentity,type WorkspaceGuideData} from '../app/workspace-guide-data';
 
 const identity:WorkspaceGuideIdentity={userId:'1',organizationId:'10',role:'owner',demo:false};
 const scope=workspaceGuideScope(identity);
@@ -39,6 +39,23 @@ test('demo evidence is always example data and discarded on leaving demo',()=>{
  const data={scope:workspaceGuideScope(demo),status:'ready' as const,counts:{clients:20,projects:0,orders:80}};
  assert.deepEqual(records(data,demo).map(step=>step.statusLabel),['Datos de ejemplo disponibles','Sin registros de ejemplo','Datos de ejemplo disponibles']);
  assert(records(data).every(step=>step.state==='unknown'));
+});
+
+test('a count the section never read is not evidence of an empty list (#147)',()=>{
+ // Producción lee clientes/proyectos/resumen, no órdenes: el tablero es dueño
+ // de sus columnas. Sin el filtro, el demo que abre en Producción mostraba
+ // «Tu primera pieza · Sin registros de ejemplo» con ~80 órdenes en el tablero.
+ const counts=guideCountsFrom(['clients','projects','summary'],{clients:20,projects:4,orders:80});
+ assert.deepEqual(counts,{clients:20,projects:4});
+ const data:WorkspaceGuideData={scope,status:'ready',counts};
+ const orders=records(data).find(step=>step.record==='orders')!;
+ assert.equal(orders.state,'unknown');
+ assert.equal(orders.statusLabel,'Datos aún no disponibles');
+ const demo={...identity,demo:true};
+ const demoData:WorkspaceGuideData={scope:workspaceGuideScope(demo),status:'ready',counts:guideCountsFrom(['clients','projects','summary'],{clients:20,projects:4,orders:80})};
+ assert(records(demoData,demo).every(step=>step.statusLabel!=='Sin registros de ejemplo'),'sin lectura de órdenes no se afirma que el demo no tiene ejemplos');
+ // Un recurso leído conserva su conteo exacto, incluso si es cero.
+ assert.deepEqual(guideCountsFrom(['clients','orders'],{clients:0,projects:9,orders:0}),{clients:0,orders:0});
 });
 
 test('suggestions use known missing records, keep prerequisite order, and never infer progress from errors',()=>{

@@ -153,6 +153,8 @@ test('«Mis datos»: derechos, SLA y supresión con confirmación reforzada', ()
  assert(panel.includes('historial financiero y contable auditable se conserva'), 'la supresión explica la excepción fiscal');
  assert(panel.includes('registerPrivacyConsent') || panel.includes('revokePrivacyConsent'), 'la revocación usa el registro con trazabilidad');
  assert(panel.includes('#112'), 'el pendiente de la base técnica se declara en la vista');
+ assert(panel.includes('Derechos con registro en preparación') && panel.includes('Próximamente'), 'sin API los derechos no se ofrecen como activos: se marcan próximamente (#147)');
+ assert(panel.includes('estos pedidos se registran por el canal alternativo'), 'sin API el camino real es el canal de derechos');
 
  const profile = file('app/my-profile.tsx');
  assert(profile.includes('data-profile-section="data"'), 'el perfil tiene la sección de privacidad');

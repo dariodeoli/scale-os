@@ -2,6 +2,14 @@
 // (`?limit`/`?offset`) y ofrece «Ver más» mientras `page.hasMore`, con un
 // contador honesto (`page.total`). Sin `page` (respuestas viejas o listas
 // completas) todo se comporta como antes: la ventana es aditiva.
+//
+// Ventana de montaje (#135 P4): además de la página del API, las listas densas
+// largas montan sólo el tramo visible con `ventanaDeLista` de la biblioteca
+// (§15.11) y conservan la altura con espaciadores. Sin medición (SSR, tests o
+// contenedor ausente) el rango es la lista completa: nunca se esconden filas.
+import {useEffect,useState,type RefObject} from 'react';
+import {ventanaDeLista} from 'owncoding-ui';
+
 export type ListPage = { limit: number; offset: number; hasMore: boolean; total: number };
 
 /** Tamaño de la ventana por lista: acota el payload sin esconder trabajo diario. */
@@ -44,4 +52,43 @@ export function appendPage<T extends { id?: unknown }>(current: T[], incoming: r
 /** Cantidad de filas a montar: la ventana completa o el total si es menor. */
 export function windowSlice<T>(rows: readonly T[], size: number): T[] {
   return rows.length <= size ? [...rows] : rows.slice(0, size);
+}
+
+export type ListRowWindow = { inicio: number; fin: number; altoFila: number };
+
+/**
+ * Tramo de filas montado según el scroll (ADOPCION-V2 P4, §15.11): mide el
+ * `[role="rowgroup"]` del contenedor y delega el rango en `ventanaDeLista` de
+ * la biblioteca; los extremos se rellenan con espaciadores para conservar la
+ * altura. Con la lista completa dentro del viewport (o sin medición) el rango
+ * es la lista entera: la ventana nunca esconde filas ni cambia los conteos.
+ */
+export function useFilasVisibles(ref: RefObject<HTMLElement|null>, total: number, altoFilaInicial = 50, margen = 2): ListRowWindow {
+  const [ventana, setVentana] = useState<ListRowWindow>(() => ({inicio: 0, fin: total, altoFila: altoFilaInicial}));
+  useEffect(() => {
+    if (typeof window === 'undefined' || total <= 0) {
+      setVentana(anterior => anterior.inicio === 0 && anterior.fin === total && anterior.altoFila === altoFilaInicial ? anterior : {inicio: 0, fin: total, altoFila: altoFilaInicial});
+      return;
+    }
+    const contenedor = ref.current;
+    if (!contenedor) {
+      setVentana({inicio: 0, fin: total, altoFila: altoFilaInicial});
+      return;
+    }
+    const medir = () => {
+      const grupo = contenedor.querySelector<HTMLElement>('[role="rowgroup"]');
+      if (!grupo) return;
+      const fila = grupo.querySelector<HTMLElement>('[role="row"]');
+      const altoFila = fila ? Math.max(1, Math.round(fila.getBoundingClientRect().height)) : altoFilaInicial;
+      const rect = grupo.getBoundingClientRect();
+      const altoVista = Math.max(0, Math.min(window.innerHeight, rect.bottom) - Math.max(0, rect.top));
+      const {inicio, fin} = ventanaDeLista({total, scrollTop: Math.max(0, -rect.top), altoVista, altoFila, margen});
+      setVentana(anterior => anterior.inicio === inicio && anterior.fin === fin && anterior.altoFila === altoFila ? anterior : {inicio, fin, altoFila});
+    };
+    medir();
+    window.addEventListener('scroll', medir, {passive: true});
+    window.addEventListener('resize', medir);
+    return () => { window.removeEventListener('scroll', medir); window.removeEventListener('resize', medir); };
+  }, [ref, total, altoFilaInicial, margen]);
+  return ventana;
 }

@@ -21,7 +21,8 @@ const portalSteps=[
  {title:'Sin acceso a tu panel',detail:'El cliente solo ve lo que publicaste; nunca accede a clientes, finanzas ni equipo.'},
 ];
 export function PortalPreview(){
- return <div className="manual-portal-preview" aria-label="Vista previa del panel del cliente">
+ return <div className="manual-portal-preview" data-preview="inert" aria-label="Vista previa del panel del cliente">
+  <p className="manual-portal-badge" role="note">Vista previa: no realiza acciones</p>
   <header className="manual-portal-header"><span className="manual-portal-brand"><Globe size={15}/> Entrega para el cliente</span><span className="manual-portal-chip">Sin iniciar sesión</span></header>
   <h4>Reel de lanzamiento · Campaña de verano</h4>
   <p className="manual-portal-note">Tu agencia publicó esta pieza para tu revisión.</p>
