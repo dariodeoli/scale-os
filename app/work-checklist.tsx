@@ -2,7 +2,9 @@
 
 import {useEffect,useId,useRef,useState} from 'react';
 import {clearDataCache} from './data-cache';
-import {ActorIdentity} from './actor-identity';
+import {ActorAvatar,isTechnicalDemoEmail,personDisplayName} from './actor-identity';
+import {listDateFull} from './list-format';
+import {primerNombre} from 'owncoding-ui';
 import './work-checklist.css';
 import {roleCan} from './capabilities';
 
@@ -12,6 +14,8 @@ export type WorkChecklistProps={id:string|number;organizationId:string|number;ro
 // Same capabilities the API validates: work-checklists.view for reads, checklists.edit for writes.
 class ChecklistError extends Error {constructor(message:string,readonly status:number){super(message);}}
 const message=(error:unknown)=>error instanceof Error?error.message:'No se pudo cargar el checklist';
+// Nombre corto para la fila: primer nombre, nunca el correo técnico del demo (#151).
+const shortName=(value?:string|null)=>{const label=personDisplayName(value,'');return !label?'':isTechnicalDemoEmail(value)?label:primerNombre(label)||label;};
 async function request(path:string,init:RequestInit={}):Promise<WorkChecklistSnapshot>{
  const response=await fetch('/core-api'+path,{credentials:'include',cache:'no-store',...init});
  const data=await response.json();
@@ -78,11 +82,16 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
   <progress value={completed} max={Math.max(1,total)} aria-label="Progreso del checklist"/>
   {loading?<p role="status">Cargando checklist…</p>:null}
   {!loading&&snapshot&&!total?<p className="work-checklist-hint">Todavía no hay ítems.</p>:null}
-  {snapshot?<ul className="work-checklist-items">{snapshot.items.map(item=><li key={item.id} className={item.completed?'is-complete':''}>
+  {snapshot?<ul className="work-checklist-items">{snapshot.items.map(item=>{
+   const completedLabel=listDateFull(item.completed_at);
+   return <li key={item.id} className={item.completed?'is-complete':''}>
    <div className="work-checklist-item">
     <label className="work-checklist-check"><input type="checkbox" checked={item.completed} disabled={!editable||locked} onChange={event=>{void mutate('PATCH',item.id,{completed:event.target.checked});}}/><span>{item.text}</span></label>
-    {item.completed&&item.completed_by_name?<span className="work-checklist-actor" title="Quién completó este ítem">Completado por <ActorIdentity name={item.completed_by_name} photoUrl={item.completed_by_photo_url} verified={item.completed_by_verified===true} timestamp={item.completed_at||undefined}/></span>:null}
-    {item.actor_name?<span className="work-checklist-actor" title={`Agregado por ${item.actor_name}`}>por <ActorIdentity name={item.actor_name} photoUrl={item.actor_photo_url} verified={item.actor_verified===true}/></span>:null}
+    {/* Atribución (#151): terminado siempre dice su estado; sin nombre ni fecha
+        queda el vacío honesto, nunca un «por» suelto. */}
+    {item.completed?<span className="work-checklist-actor" data-state="complete" title={item.completed_by_name?`Completado por ${personDisplayName(item.completed_by_name)}${completedLabel?` · ${completedLabel}`:''}`:'Completado. No quedó registro de quién ni cuándo.'}>
+     {item.completed_by_name?<>Completado por <ActorAvatar name={personDisplayName(item.completed_by_name)} photo={item.completed_by_verified===true?item.completed_by_photo_url??'':''}/><b title={personDisplayName(item.completed_by_name)}>{shortName(item.completed_by_name)}</b>{completedLabel?<time className="work-checklist-time" dateTime={item.completed_at||undefined}>{completedLabel}</time>:null}</>:<>Completado<span className="work-checklist-muted"> · sin registro</span></>}
+    </span>:item.actor_name?<span className="work-checklist-actor" title={`Agregado por ${personDisplayName(item.actor_name)}`}>por <b title={personDisplayName(item.actor_name)}>{shortName(item.actor_name)}</b></span>:null}
     {editable?<div className="work-checklist-actions"><button type="button" disabled={locked||!!edit} aria-label={`Editar ítem: ${item.text}`} onClick={()=>{setRemoving(null);setEdit({id:item.id,text:item.text});}}>Editar</button><button type="button" disabled={locked||!!edit} aria-label={`Quitar ítem: ${item.text}`} onClick={()=>setRemoving(item.id)}>Quitar</button></div>:null}
    </div>
    {edit?.id===item.id?<div className="work-checklist-editor">
@@ -92,7 +101,7 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
    {removing===item.id?<div className="work-checklist-confirm" role="group" aria-label="Confirmar eliminación del ítem">
     <p>¿Quitar «{item.text}» del checklist?</p><div className="work-checklist-actions"><button type="button" autoFocus disabled={busy} onClick={()=>setRemoving(null)}>Conservar ítem</button><button type="button" disabled={locked} onClick={()=>{void mutate('DELETE',item.id);}}>Sí, quitar ítem</button></div>
    </div>:null}
-  </li>)}</ul>:null}
+  </li>;})}</ul>:null}
   {edit&&snapshot&&!snapshot.items.some(item=>item.id===edit.id)?<div className="work-checklist-editor">
    <label htmlFor={`${label}-pending`}>El ítem que editabas fue quitado. Tu texto pendiente:</label>
    <textarea id={`${label}-pending`} readOnly value={edit.text}/>

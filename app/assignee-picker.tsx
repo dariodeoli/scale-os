@@ -4,6 +4,7 @@ import {useId,useState} from 'react';
 import {SearchField} from './search-field';
 import './assignee-picker.css';
 import {PersonContainer} from './person-container';
+import {isTechnicalDemoEmail,personDisplayName} from './actor-identity';
 
 export type AssigneeMember={id:string|number;full_name?:string|null;email?:string;photo_url?:string|null;active:boolean;removed_at?:string|null};
 export type AssigneeSelection={assigned_user_ids:string[];assigned_user_id:string|null};
@@ -34,7 +35,10 @@ export function AssigneePicker({members,value,onChange,disabled=false,loading=fa
  const selected=assigneeSelection(value.assigned_user_ids,value.assigned_user_id);
  const options=new Map<string,AssigneeMember>();
  for(const member of members){const person=key(member.id);if(person&&member.active===true&&!member.removed_at&&!options.has(person))options.set(person,member);}
- const name=(person:string)=>{const member=options.get(person);return member?.full_name?.trim()||member?.email||'Persona no disponible';};
+ // Nunca se muestra el correo técnico del demo como identidad (#151): cae al
+ // nombre y, si falta, a la etiqueta base; el contacto técnico queda oculto.
+ const secondary=(member?:AssigneeMember)=>member?.full_name&&member?.email&&!isTechnicalDemoEmail(member.email)?member.email:undefined;
+ const name=(person:string)=>{const member=options.get(person);return personDisplayName(member?.full_name?.trim()||member?.email,'Persona no disponible');};
  const query=search.trim().toLocaleLowerCase('es');
  const visible=Array.from(options).filter(([,member])=>`${member.full_name||''} ${member.email||''}`.toLocaleLowerCase('es').includes(query));
  const locked=disabled||loading;
@@ -48,14 +52,14 @@ export function AssigneePicker({members,value,onChange,disabled=false,loading=fa
   <legend>{label} <span>({selected.assigned_user_ids.length})</span></legend>
   <p className="assignee-help" id={`${id}-help`}>Podés elegir varias personas. Una queda como responsable principal; sus permisos no cambian.</p>
   {selected.assigned_user_ids.length?<ul className="assignee-selected" aria-label="Responsables seleccionados">{selected.assigned_user_ids.map(person=><li key={person}>
-   <PersonContainer size="sm" name={name(person)} photoUrl={options.get(person)?.photo_url} secondary={options.get(person)?.full_name&&options.get(person)?.email?options.get(person)!.email:undefined} verified/>
+   <PersonContainer size="sm" name={name(person)} photoUrl={options.get(person)?.photo_url} secondary={secondary(options.get(person))} verified/>
    <button type="button" className="assignee-primary" disabled={locked||!options.has(person)} aria-pressed={selected.assigned_user_id===person} aria-label={`Usar como principal: ${name(person)}`} onClick={()=>{if(!locked&&options.has(person))onChange({...selected,assigned_user_id:person});}}>{selected.assigned_user_id===person?'Principal':'Hacer principal'}</button>
    <button type="button" className="assignee-remove" disabled={locked} aria-label={`Quitar a ${name(person)}`} title={`Quitar a ${name(person)}`} onClick={()=>toggle(person)}>×</button>
   </li>)}</ul>:<p className="assignee-help">Sin responsables asignados.</p>}
   <SearchField className="assignee-search" label="Buscar integrante" value={search} onChange={setSearch} placeholder="Nombre o correo" disabled={locked}/>
   {loading?<p role="status">Cargando integrantes…</p>:<div className="assignee-options">{visible.map(([person,member])=><label className="assignee-option" key={person}>
    <input type="checkbox" checked={selected.assigned_user_ids.includes(person)} disabled={locked||selected.assigned_user_ids.length>=100&&!selected.assigned_user_ids.includes(person)} onChange={()=>toggle(person)}/>
-   <span><PersonContainer name={name(person)} photoUrl={member.photo_url} secondary={member.full_name&&member.email?member.email:undefined} verified/></span>
+   <span><PersonContainer name={name(person)} photoUrl={member.photo_url} secondary={secondary(member)} verified/></span>
   </label>)}{!visible.length?<p className="assignee-help">{options.size?'No hay integrantes que coincidan.':'No hay integrantes activos disponibles.'}</p>:null}</div>}
   {selected.assigned_user_ids.some(person=>!options.has(person))&&!loading?<p role="status">Hay personas sin acceso activo. Quitalas de la selección antes de guardar.</p>:null}
   {selected.assigned_user_ids.length>=100?<p role="status">Máximo 100 responsables.</p>:null}

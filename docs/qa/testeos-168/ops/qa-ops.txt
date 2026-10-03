@@ -1,0 +1,142 @@
+· foto rota preparada en «Luces» (#58)
+
+──── 390×844 — OPS ────
+✓ tablero 390: 7 etapas: 7
+✓ tablero 390: piezas cargadas: true
+✓ tablero 390: conteos visibles: true
+✓ tablero 390: tarjeta con identidad/due/responsables: true
+· captura produccion-tablero-390-light.jpg
+· captura produccion-tablero-390-dark.jpg
+✓ tablero 390: filtro de cliente honesto: true
+· filtro 390: 4 de 80 órdenes · 4 tarjetas de «Aurora Café»
+✓ tablero 390: el riel avanza etapas: true
+· captura pieza-detalle-390-light.jpg
+· captura pieza-detalle-390-dark.jpg
+✓ detalle 390: historial con registro: true
+· captura pieza-comentarios-390-light.jpg
+✓ detalle 390: el comentario se publica: true
+✓ detalle 390: completar ítem deja estado: true
+· captura pieza-checklist-390-light.jpg
+· captura pieza-checklist-390-dark.jpg
+✓ detalle 390: quitar ítem del checklist: 3
+✓ aprobación 390: la pieza se aprueba o queda en revisión: true
+· captura pieza-aprobacion-390-light.jpg
+✓ vista Mi día 390: carga sin errores: true
+· captura produccion-mi-d-a-390-light.jpg
+· captura produccion-mi-d-a-390-dark.jpg
+✓ vista Calendario 390: carga sin errores: true
+· captura produccion-calendario-390-light.jpg
+· captura produccion-calendario-390-dark.jpg
+✓ vista Lista y lotes 390: carga sin errores: true
+· captura produccion-lista-y-lotes-390-light.jpg
+· captura produccion-lista-y-lotes-390-dark.jpg
+✓ vista Lista 390: filas visibles: true
+· captura proyectos-lista-390-light.jpg
+· captura proyectos-lista-390-dark.jpg
+✓ proyecto 390: contador = lista: true
+· captura proyecto-detalle-390-light.jpg
+· captura proyecto-detalle-390-dark.jpg
+✓ inventario 390: foto rota sin <img> quebrada: 0
+✓ inventario 390: la foto rota usa placeholder: true
+✓ inventario 390: nombres sin recortar: 0
+· captura inventario-lista-390-light.jpg
+· captura inventario-lista-390-dark.jpg
+✓ inventario 390: búsqueda vacía con salida: true
+· captura inventario-busqueda-vacia-390-light.jpg
+✓ inventario 390: verificación registrada: true
+✓ inventario 390: vista Cuadrícula: true
+· captura inventario-cuadrícula-390-light.jpg
+· captura inventario-cuadrícula-390-dark.jpg
+✓ inventario 390: vista Ubicaciones: true
+· captura inventario-ubicaciones-390-light.jpg
+· captura inventario-ubicaciones-390-dark.jpg
+✓ inventario 390: calendario sin errores: true
+· captura inventario-calendario-390-light.jpg
+· captura inventario-calendario-390-dark.jpg
+✓ inventario 390: alta exige nombre: true
+· captura inventario-alta-390-light.jpg
+· estudio 390: vacío inicial = false
+· captura estudio-390-light.jpg
+· captura estudio-390-dark.jpg
+· estudio 390: el espacio ya existe (creado en el paso de 390)
+✓ estudio 390: la reserva se crea: true
+· captura estudio-reserva-390-light.jpg
+✓ estudio 390: la reserva se cancela: true
+· captura estudio-cancelada-390-light.jpg
+⚠ alta: OPS historial — timeout esperando historial
+
+──── 1440×900 — OPS ────
+✓ tablero 1440: 7 etapas: 7
+✓ tablero 1440: piezas cargadas: true
+✓ tablero 1440: conteos visibles: true
+✓ tablero 1440: tarjeta con identidad/due/responsables: true
+· captura produccion-tablero-1440-light.jpg
+· captura produccion-tablero-1440-dark.jpg
+✓ tablero 1440: filtro de cliente honesto: true
+· filtro 1440: 4 de 80 órdenes · 4 tarjetas de «Aurora Café»
+✓ tablero 1440: el riel avanza etapas: true
+· captura pieza-detalle-1440-light.jpg
+· captura pieza-detalle-1440-dark.jpg
+✓ detalle 1440: historial con registro: true
+· captura pieza-comentarios-1440-light.jpg
+✓ detalle 1440: el comentario se publica: true
+✓ detalle 1440: completar ítem deja estado: true
+· captura pieza-checklist-1440-light.jpg
+· captura pieza-checklist-1440-dark.jpg
+✓ detalle 1440: quitar ítem del checklist: 3
+✓ aprobación 1440: la pieza se aprueba o queda en revisión: true
+· captura pieza-aprobacion-1440-light.jpg
+✓ vista Mi día 1440: carga sin errores: true
+· captura produccion-mi-d-a-1440-light.jpg
+· captura produccion-mi-d-a-1440-dark.jpg
+✓ vista Calendario 1440: carga sin errores: true
+· captura produccion-calendario-1440-light.jpg
+· captura produccion-calendario-1440-dark.jpg
+✓ vista Lista y lotes 1440: carga sin errores: true
+· captura produccion-lista-y-lotes-1440-light.jpg
+· captura produccion-lista-y-lotes-1440-dark.jpg
+✓ vista Lista 1440: filas visibles: true
+· captura proyectos-lista-1440-light.jpg
+· captura proyectos-lista-1440-dark.jpg
+✓ proyecto 1440: contador = lista: true
+· captura proyecto-detalle-1440-light.jpg
+· captura proyecto-detalle-1440-dark.jpg
+✓ inventario 1440: foto rota sin <img> quebrada: 0
+✓ inventario 1440: la foto rota usa placeholder: true
+✓ inventario 1440: nombres sin recortar: 0
+· captura inventario-lista-1440-light.jpg
+· captura inventario-lista-1440-dark.jpg
+✓ inventario 1440: búsqueda vacía con salida: true
+· captura inventario-busqueda-vacia-1440-light.jpg
+✓ inventario 1440: verificación registrada: true
+✓ inventario 1440: vista Cuadrícula: true
+· captura inventario-cuadrícula-1440-light.jpg
+· captura inventario-cuadrícula-1440-dark.jpg
+✓ inventario 1440: vista Ubicaciones: true
+· captura inventario-ubicaciones-1440-light.jpg
+· captura inventario-ubicaciones-1440-dark.jpg
+✓ inventario 1440: calendario sin errores: true
+· captura inventario-calendario-1440-light.jpg
+· captura inventario-calendario-1440-dark.jpg
+✓ inventario 1440: alta exige nombre: true
+· captura inventario-alta-1440-light.jpg
+· estudio 1440: vacío inicial = false
+· captura estudio-1440-light.jpg
+· captura estudio-1440-dark.jpg
+· estudio 1440: el espacio ya existe (creado en el paso de 390)
+✓ estudio 1440: la reserva se crea: true
+· captura estudio-reserva-1440-light.jpg
+✓ estudio 1440: la reserva se cancela: true
+· captura estudio-cancelada-1440-light.jpg
+⚠ alta: OPS historial — timeout esperando historial
+✓ viewer: sin menú ⋯ en la tarjeta: false
+✓ viewer: sin manija de arrastre: false
+· captura viewer-produccion-1440-light.jpg
+· captura viewer-produccion-1440-dark.jpg
+✓ viewer: sin alta de equipos: false
+✓ viewer: sin reserva de equipos: false
+✓ viewer: sin verificación: false
+· captura viewer-inventario-1440-light.jpg
+✓ sesión vencida: sin shell interno: false
+✓ sesión vencida: pantalla de acceso: true
+· captura sesion-vencida-1440-light.jpg

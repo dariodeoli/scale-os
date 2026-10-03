@@ -65,7 +65,7 @@ test('en tarjetas el nombre usa dos líneas con tooltip; la fila finita sigue en
  assert.match(css,/\.ops-grid:not\(\.ops-grid-list\)>\.person-hub-card \.person-container-name,[\s\S]*?\.team-directory-card \.person-container-name\{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere\}/);
  assert.match(operations,/<div className="ops-person" title=\{p\.full_name\}>/);
  assert.match(operations,/<div className="ops-person" title=\{entry\.member!\.full_name\|\|'Integrante sin ficha'\}>/);
- assert.match(read('app/person-container.tsx'),/className="person-container-name" title=\{name\}/);
+ assert.match(read('app/person-container.tsx'),/className="person-container-name" title=\{label\}/);
 });
 
 test('los vacíos de plataforma ofrecen el CTA contextual que corresponda',()=>{

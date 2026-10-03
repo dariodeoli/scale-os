@@ -1,5 +1,5 @@
 'use client';
-import {ActorIdentity} from './actor-identity';
+import {ActorIdentity,personDisplayName} from './actor-identity';
 import './assigned-people.css';
 
 // Server-resolved membership identities, never names matched to imported aliases.
@@ -20,7 +20,7 @@ export function AssignedPeople({people,source,loading=false,error}:AssignedPeopl
  return <section className="assigned-people" aria-label={ariaLabel}>
   <span className="assigned-people-label">{inherited?'Responsables del proyecto':'Responsables'}</span>
   {people.length?<ul className="assigned-people-list">{people.map(person=><li className="assigned-person" key={person.id}>
-   <ActorIdentity name={person.full_name?.trim()||person.email?.trim()||'Integrante sin nombre'} photoUrl={person.photo_url} verified/>
+   <ActorIdentity name={personDisplayName(person.full_name?.trim()||person.email,'Integrante sin nombre')} photoUrl={person.photo_url} verified/>
    {person.is_primary&&<span className="assigned-person-primary">{inherited?'Principal del proyecto':'Principal'}</span>}
   </li>)}</ul>:<span className="assigned-people-state">Sin responsables</span>}
  </section>;

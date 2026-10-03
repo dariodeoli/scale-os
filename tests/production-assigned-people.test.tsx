@@ -22,8 +22,9 @@ const people=Array.from({length:5},(_,i)=>({id:String(i+1),full_name:`Responsabl
 const order={id:'77',title:'Pieza',project_id:'12',client_name:'Cliente',project_name:'Proyecto',description:null,drive_url:null,assignees:people,effective_assignees:people,assignee_source:'direct',assigned_user_ids:people.map(p=>p.id)};
 const props={order,role:'viewer',refresh:async()=>{},openOrder:()=>{}};
 const view=create(<Card {...props}/>);
-assert.equal(view.root.findByType(UrgencyBadge).props.value,undefined);
-assert.match(JSON.stringify(view.toJSON()),/No disponible/,'missing urgency is not inferred');
+// #151: sin urgencia no se anuncia un estado vacío; con urgencia se muestra.
+assert.equal(view.root.findAllByType(UrgencyBadge).length,0,'missing urgency renders no badge');
+assert.doesNotMatch(JSON.stringify(view.toJSON()),/Sin definir|Sin clasificar/,'missing decision fields are not announced as chips');
 view.update(<Card {...props} order={{...order,urgency:5}}/>);
 assert.equal(view.root.findByType(UrgencyBadge).props.value,5);
 assert.match(JSON.stringify(view.toJSON()),/Crítica/);

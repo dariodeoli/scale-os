@@ -96,6 +96,19 @@ failStatus=409;await click('Guardar ítem');await click('Recargar checklist');
 assert.equal(renderer.root.findByType('textarea').props.value,'No perder este texto');
 await click('Descartar texto pendiente');
 
+// #151: completado sin registro y «por» con el nombre visible, nunca el correo técnico.
+saved={...empty(),items:[
+ {id:'90',text:'Ítem completado sin registro',completed:true,completed_at:null,completed_by_name:null,actor_name:'persona-11-1@demo.example.invalid'},
+ {id:'91',text:'Ítem pendiente',completed:false,actor_name:'persona-11-2@demo.example.invalid'},
+ {id:'92',text:'Ítem de Valentina',completed:false,actor_name:'Valentina Sol'},
+],total:3,completed:1};
+props={...props,id:'44'};await act(async()=>renderer.update(<WorkChecklist {...props}/>));
+const attribution=tree();
+assert.match(attribution,/Completado/,'el ítem completado sin datos muestra su estado');
+assert.match(attribution,/sin registro/,'el vacío de atribución se dice, no se omite');
+assert.match(attribution,/Valentina/,'quién agregó muestra su primer nombre');
+assert.doesNotMatch(attribution,/demo\.example\.invalid/,'ningún correo técnico del demo llega al checklist');
+
 // El checklist tiene capacidad propia (issue #18): inventario ya no lo cubre,
 // así que estos roles dejan de recibir el componente en lugar de verlo en solo lectura.
 for(const role of ['viewer','finance','sales']){

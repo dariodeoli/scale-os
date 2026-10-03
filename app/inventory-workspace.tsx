@@ -52,7 +52,9 @@ const dateTime=(value:string)=>fechaLista(value,'',{timeZone:OPS_TIME_ZONE});
 
 // Plantilla única por lista: el encabezado y las filas comparten la grilla, el
 // gap-x y el padding. La variable se declara en el contenedor una sola vez.
-const EQUIPMENT_COLS='[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem]';
+// Identidad con el mayor `fr` y un mínimo amplio (#151): el nombre del equipo
+// no se recorta antes de tiempo; el código sigue sin cortarse.
+const EQUIPMENT_COLS='[--eq-cols:2rem_2.25rem_minmax(11rem,1.8fr)_minmax(7rem,1fr)_7rem_6.5rem_minmax(6.5rem,0.9fr)_minmax(9.5rem,1.1fr)_12rem]';
 const EQUIPMENT_GRID='grid grid-cols-[var(--eq-cols)] items-center gap-x-2';
 const RESERVATION_COLS='[--rsv-cols:minmax(9.5rem,1.3fr)_minmax(6.5rem,1fr)_minmax(15.5rem,1.2fr)_minmax(7.5rem,1fr)_minmax(7.5rem,1fr)_minmax(7rem,1fr)_9rem]';
 const RESERVATION_GRID='grid grid-cols-[var(--rsv-cols)] items-center gap-x-2';

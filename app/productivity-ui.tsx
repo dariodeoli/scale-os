@@ -8,6 +8,7 @@ import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {Aviso, FilaDato, Nota, Subtabs, completeSave, fechaLista, fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning,PiiTexto} from './list-format';
+import {hoursSummary,hoursText} from './hours-format';
 import {todayAsuncion} from './client-format';
 import {EmptyBlock, EmptyCompact, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
 import {TabScroller} from './tab-scroller';
@@ -86,15 +87,15 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
    {error?<Aviso tono="error" className="mb-3">{error} <button type="button" className="text-button" onClick={()=>{setError('');void load().catch(cause=>setError(errorText(cause)));}}>Reintentar</button></Aviso>:null}
    {!order?<LoadingBlock label="Cargando pieza…" lines={4}/>:<>
     <section className="mb-4 grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/><UrgencyBadge value={order.urgency}/></div>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/>{order.urgency?<UrgencyBadge value={order.urgency}/>:null}</div>
       <div className="flex flex-wrap items-center gap-1.5">
         <StateChip tone={s(order,'status')==='approved'||s(order,'status')==='published'?'ok':s(order,'status')==='review'?'warn':'info'}>{workStatusLabel(s(order,'status'))}</StateChip>
-        <StateChip tone="info">{workTypeLabels[s(order,'work_type')]||'Sin clasificar'}</StateChip>
-        <DueDate value={s(order,'due_date')} time={s(order,'due_time')} compact/>
+        {workTypeLabels[s(order,'work_type')]?<StateChip tone="info">{workTypeLabels[s(order,'work_type')]}</StateChip>:null}
+        <DueDate value={s(order,'due_date')} time={s(order,'due_time')} compact done={s(order,'status')==='approved'||s(order,'status')==='published'}/>
       </div>
       <dl className="grid gap-1 text-xs sm:grid-cols-2">
-        <FilaDato etiqueta="Horas estimadas" etiquetaComo="dt" valorComo="dd" valor={order.estimated_hours==null||order.estimated_hours===''?'—':`${order.estimated_hours} h`}/>
-        <FilaDato etiqueta="Horas trabajadas" etiquetaComo="dt" valorComo="dd" valor={order.actual_hours==null||order.actual_hours===''?'—':`${order.actual_hours} h`}/>
+        <FilaDato etiqueta="Horas estimadas" etiquetaComo="dt" valorComo="dd" valor={hoursText(s(order,'estimated_hours'))??'—'}/>
+        <FilaDato etiqueta="Horas trabajadas" etiquetaComo="dt" valorComo="dd" valor={hoursText(s(order,'actual_hours'))??'—'}/>
         <FilaDato etiqueta="Niveles de aprobación completados" etiquetaComo="dt" valorComo="dd" valor={s(order,'approval_step')||'0'}/>
         <FilaDato etiqueta="Última actualización" etiquetaComo="dt" valorComo="dd" valor={<span className="whitespace-nowrap">{fechaLista(s(order,'updated_at'),'',{timeZone:OPS_TIME_ZONE})}</span>}/>
       </dl>
@@ -192,12 +193,12 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
      {view==='Lista y lotes'&&makers.includes(role)?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${o.title}`} checked={selected.includes(String(o.id))} disabled={['approved','published'].includes(o.status)} onChange={e=>setSelected(ids=>e.target.checked?[...ids,String(o.id)]:ids.filter(id=>id!==String(o.id)))}/></label>:null}
      <button type="button" className="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0" onClick={openPiece(String(o.id))}><b className="block truncate text-[13px] font-semibold text-fore" title={o.title}>{o.title}</b><small className="block truncate text-[11px] text-mute" title={`${o.client_name||''} · ${o.project_name||''}`}>{o.client_name} · {o.project_name}</small></button>
     </span>
-    <span className="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute" data-tone={hasDueWarning(o.due_date)?'warn':undefined} title={o.due_date?`Entrega ${fechaListaCorta(o.due_date,'')}${o.due_time?` · ${o.due_time.slice(0,5)} h`:''}`:undefined}>{o.due_date?<><span className="list-date">{fechaListaCorta(o.due_date,'')}</span>{o.due_time?` · ${o.due_time.slice(0,5)}`:''}</>:'Sin fecha'}</span>
+    <span className="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute" data-tone={hasDueWarning(o.due_date)&&!['approved','published'].includes(o.status)?'warn':undefined} title={o.due_date?`Entrega ${fechaListaCorta(o.due_date,'')}${o.due_time?` · ${o.due_time.slice(0,5)} h`:''}`:undefined}>{o.due_date?<><span className="list-date">{fechaListaCorta(o.due_date,'')}</span>{o.due_time?` · ${o.due_time.slice(0,5)}`:''}</>:'Sin fecha'}</span>
     <span className="min-w-0"><StateChip tone={o.status==='approved'||o.status==='published'?'ok':o.status==='review'?'warn':o.status==='blocked'?'bad':'info'}>{workStatusLabel(o.status)}</StateChip></span>
-    <span className="min-w-0"><StateChip tone="info">{workTypeLabels[String(o.work_type||'')]||'Sin clasificar'}</StateChip></span>
+    <span className="min-w-0">{workTypeLabels[String(o.work_type||'')]?<StateChip tone="info">{workTypeLabels[String(o.work_type||'')]}</StateChip>:<span className="text-mute">—</span>}</span>
     <span className="min-w-0 truncate text-[11.5px] text-mute" title={assigneeNames(o).join(', ')||undefined}>{assigneeNames(o).join(', ')||'Sin responsables'}</span>
     <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{o.checklist_total?`☑ ${o.checklist_completed||0}/${o.checklist_total}`:'—'}</span>
-    <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{[o.estimated_hours?`${o.estimated_hours} h est.`:'',o.actual_hours?`${o.actual_hours} h reales`:''].filter(Boolean).join(' · ')||'—'}</span>
+    <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{hoursSummary(o.estimated_hours,o.actual_hours)||'—'}</span>
    </ListRow>)}
   </ListGrid>
   {!visible.length?<EmptyCompact message={view==='Mi día'?'No tenés piezas pendientes asignadas.':'No hay piezas para esta vista. Probá con otro mes.'} action={<button type="button" className="secondary min-h-9" onClick={()=>navigate('Producción')}>Abrir Producción</button>}/>:null}
