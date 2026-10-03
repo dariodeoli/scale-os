@@ -150,10 +150,10 @@ test("rediseño #102: consola con secciones, carga de la app y título único", 
     assert.match(page, new RegExp(`\\{id: "${view}", label:`), `la vista ${view} existe`);
   }
   assert.equal((page.match(/\{view === "/g) ?? []).length, 5, "cada sección renderiza su vista");
-  assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{setView\}\/>/);
-  // Carga inicial con la pantalla de la app (variante neutra, sin sesión).
-  assert.match(page, /import \{LoadingScreen\} from "\.\.\/loading-screen"/);
-  assert.match(page, /if \(busy && !state && !error && !redirecting && !accessDenied\) return <LoadingScreen\/>/);
+  assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{setView\} bootstrap=\{bootstrap\}\/>/);
+  // Carga inicial con el skeleton propio del panel (#155 C).
+  assert.match(page, /import \{PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting\} from "\.\/states"/);
+  assert.match(page, /if \(busy && !state && !error && !redirecting && !accessDenied\) return <PlatformAdminSkeleton\/>/);
   assert.doesNotMatch(page, /<KpiStrip[\s\S]{0,2000}?loading/, "las métricas no se inventan durante la carga");
   // Estado del encabezado: rol + última actualización en 24 h.
   assert.match(page, /platformTime\(updatedAt\)/);
@@ -185,8 +185,8 @@ test("rediseño #102: ninguna capacidad del panel se pierde", () => {
   ]) {
     assert(page.includes(endpoint), `el endpoint ${endpoint} sigue en el panel`);
   }
-  // Agencias: gestionar estado manual + eliminar.
-  assert.match(page, /Gestionar estado manual/);
+  // Agencias: gestionar suscripción (acción primaria) + eliminar en el ⋯.
+  assert.match(page, /Gestionar suscripción/);
   assert.match(page, /Eliminar agencia/);
   // Cupones: crear + pausar/reactivar.
   assert.match(page, /Crear cupón/);
@@ -204,6 +204,33 @@ test("rediseño #102: ninguna capacidad del panel se pierde", () => {
   assert.match(page, /<Select aria-label="Filtrar por acción"/);
   // Permisos: viewer nunca ve controles mutantes (mismo gate de siempre).
   assert.match(page, /const writable = myRole === "admin"/);
+});
+
+test("rediseño #155 fase 2: resumen útil, orden de secciones y estados propios", () => {
+  // A · Resumen con riel de atención/atajos, tres paneles y suscripciones.
+  assert.match(page, /export function platformAttention/);
+  assert.match(page, /Requiere tu atención/);
+  assert.match(page, /Atajos/);
+  assert.match(page, /Suscripciones por estado/);
+  assert.match(page, /xl:grid-cols-\[minmax\(0,1fr\)_22rem\]/);
+  assert.match(page, /id: "bootstrap"/);
+  // B · Orden aprobado (personas antes que catálogo) y tabs con indicador.
+  assert.ok(page.indexOf('{id: "accesos", label:') < page.indexOf('{id: "cupones", label:'), "Accesos antes que Cupones");
+  assert.match(page, /platform-admin-tabs-wrap/);
+  assert.match(styles, /\.platform-admin-tabs \[aria-pressed="true"\] \{ box-shadow: inset 0 -2px 0 0 rgb\(var\(--c-fono\)\) \}/);
+  assert.match(styles, /\.platform-admin-tabs-wrap::after/);
+  // C · Skeleton propio, avisos con borde de contraste y recuperación.
+  assert.doesNotMatch(page, /LoadingScreen/);
+  assert.match(readFileSync(new URL("../app/superadmin/states.tsx", import.meta.url), "utf8"), /export function PlatformAdminSkeleton/);
+  assert.match(page, /onRetry=\{\(\) => void load\(\)\}/);
+  assert.match(readFileSync(new URL("../app/superadmin/states.tsx", import.meta.url), "utf8"), /border-warn-text\/45/);
+  // D · Acción primaria visible + ⋯ del sistema y tarjetas de 200 px.
+  assert.match(readFileSync(new URL("../app/superadmin/agencies.tsx", import.meta.url), "utf8"), /<ActionMenu/);
+  assert.match(readFileSync(new URL("../app/superadmin/agencies.tsx", import.meta.url), "utf8"), /min-h-\[200px\]/);
+  assert.match(readFileSync(new URL("../app/superadmin/agencies.tsx", import.meta.url), "utf8"), /No hay agencias que coincidan con el filtro/);
+  // Mobile del encabezado en 3 filas y contador de toolbar en su línea.
+  assert.match(styles, /\.platform-admin-identity h1 \{ overflow: hidden; font-size: clamp\(15px, 5vw, 17px\)/);
+  assert.match(styles, /\.platform-admin-page \[data-toolbar="filtros"\] > p \{ order: 3; width: 100%/);
 });
 
 test("rediseño #102: densidad y filtros de las listas del panel", () => {

@@ -31,11 +31,10 @@ import {
   type Subscription,
 } from "./model";
 import {SegmentedField} from "owncoding-ui";
-import {LoadingScreen} from "../loading-screen";
 import {StateChip} from "../ui-v2";
 import {PlatformOverview} from "./overview";
 import {notify} from "../feedback";
-import {PlatformAccessDenied, PlatformNotices, PlatformRedirecting} from "./states";
+import {PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting} from "./states";
 import {PlatformAgencies} from "./agencies";
 import {PlatformAccess} from "./access";
 import {PlatformCatalog} from "./catalog";
@@ -519,11 +518,12 @@ export default function PlatformAdmin() {
 
   // Vistas del panel (#102): una consola con secciones y contadores en vez de
   // un scroll largo; todas las capacidades siguen disponibles por vista.
+  // Orden aprobado (#155 B): personas (Accesos) antes que catálogo (Cupones).
   const views: {id: PlatformView; label: string; icon: string; count?: number}[] = [
     {id: "resumen", label: "Resumen", icon: "overview"},
     {id: "agencias", label: "Agencias", icon: "building", count: state?.agencies.length},
-    {id: "cupones", label: "Cupones", icon: "tag", count: state?.coupons.length},
     {id: "accesos", label: "Accesos", icon: "shield", count: state?.users.length},
+    {id: "cupones", label: "Cupones", icon: "tag", count: state?.coupons.length},
     {id: "auditoria", label: "Auditoría", icon: "audit", count: state?.audit.length},
   ];
   const pageContent = redirecting ? (
@@ -532,17 +532,20 @@ export default function PlatformAdmin() {
     <PlatformAccessDenied message={accessMessage}/>
   ) : (
     <>
-      <PlatformNotices state={state} error={error} bootstrap={bootstrap}/>
+      <PlatformNotices state={state} error={error} bootstrap={bootstrap} onRetry={() => void load()}/>
       {state ? (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           {/* Barra de secciones: `div` (no `nav`) para no heredar el ancho
               completo de la regla legacy `nav button` del shell; el objeto
-              `SegmentedField` ya declara su propio `role="group"`. */}
-          <div className="platform-admin-tabs silent-scroll">
-            <SegmentedField className="w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" value={view} onChange={(value:string)=>setView(value as PlatformView)} ariaLabel="Secciones del panel global" options={views.map((item)=>[item.id, item.label, item.icon, item.count] as [string,string,string,number|undefined])}/>
+              `SegmentedField` ya declara su propio `role="group"`. El wrapper
+              aporta la sombra de continuidad del scroll en mobile (#155 B). */}
+          <div className="platform-admin-tabs-wrap">
+            <div className="platform-admin-tabs silent-scroll">
+              <SegmentedField className="w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" value={view} onChange={(value:string)=>setView(value as PlatformView)} ariaLabel="Secciones del panel global" options={views.map((item)=>[item.id, item.label, item.icon, item.count] as [string,string,string,number|undefined])}/>
+            </div>
           </div>
 
-          {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={setView}/> : null}
+          {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={setView} bootstrap={bootstrap}/> : null}
 
           {view === "agencias" ? <PlatformAgencies busy={busy} state={state} page={state.pages.agencies} onMore={()=>void loadMore('agencies')} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/> : null}
 
@@ -561,9 +564,9 @@ export default function PlatformAdmin() {
   );
 
   const updated = platformTime(updatedAt);
-  // Carga inicial: la misma pantalla de carga de la app (variante neutra, sin
-  // sesión) mientras llega el overview, que además es la puerta de permisos.
-  if (busy && !state && !error && !redirecting && !accessDenied) return <LoadingScreen/>;
+  // Carga inicial (#155 C): skeleton con la forma del panel (encabezado, tabs,
+  // KPIs y paneles) mientras llega el overview, que además es la puerta de permisos.
+  if (busy && !state && !error && !redirecting && !accessDenied) return <PlatformAdminSkeleton/>;
   return (
     <main className="platform-admin-page control-shell">
       <header className="platform-admin-header">

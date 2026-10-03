@@ -100,6 +100,7 @@ tsx tests/dsn-135-adopcion.test.tsx
 tsx tests/workspace-search.test.tsx
 tsx tests/list-window.test.ts
 tsx tests/seo-158.test.ts
+tsx tests/blog-templates.test.tsx
 tsx tests/ia-carga-118.test.tsx
 tsx tests/ia-carga-119.test.ts
 tsx tests/pdp-ops.test.ts

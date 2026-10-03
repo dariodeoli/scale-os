@@ -310,6 +310,157 @@ const loadingPage = `
  </div>
 </div>`;
 
+/* ── Rediseño #155 fase 2 (después) ─────────────────────────────────────────
+ * Espeja el panel con la propuesta aprobada: Resumen con riel de atención y
+ * atajos, tabs con Accesos antes que Cupones, skeleton propio, acciones de
+ * agencia (primaria + ⋯) y tarjetas de 200 px. El CSS real (platform-admin.css)
+ * aporta el indicador activo y la sombra de scroll del wrapper. */
+const tabs2 = (active, counts = {agencias: 4, accesos: 3, cupones: 3, auditoria: 50}) => `
+<div class="platform-admin-tabs-wrap">
+ <div class="platform-admin-tabs silent-scroll">
+  <div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap" role="group" aria-label="Secciones del panel global">
+   ${[['resumen', 'Resumen', undefined], ['agencias', 'Agencias', counts.agencias], ['accesos', 'Accesos', counts.accesos], ['cupones', 'Cupones', counts.cupones], ['auditoria', 'Auditoría', counts.auditoria]].map(([id, label, count]) => `<button type="button" aria-pressed="${id === active}" aria-label="${label}${count === undefined ? '' : ` (${count})`}" title="${label}" class="inline-flex min-h-11 flex-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium md:min-h-8 ${id === active ? 'bg-fono/15 text-fono-text' : 'text-mute'}">${label}${count === undefined ? '' : `<span class="text-xs opacity-75">${count}</span>`}</button>`).join('')}
+  </div>
+ </div>
+</div>`;
+
+const overview2 = () => `
+<div class="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+ <div class="grid min-w-0 gap-4">
+  <div class="ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumen de plataforma">
+   ${kpi({label: 'Agencias activas', valor: '128', hint: 'de 134 agencias', destacado: true})}
+   ${kpi({label: 'Usuarios registrados', valor: '1.284', hint: 'Cuentas de todas las agencias'})}
+   ${kpi({label: 'Cupones activos', valor: '6', hint: 'de 9 códigos'})}
+   ${kpi({label: 'Suscripciones', valor: '121', hint: '121 active · 13 trialing'})}
+  </div>
+  <div class="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+   <section class="panel" aria-labelledby="platform-expiring-title">
+    <div class="mb-2 flex min-w-0 items-center justify-between gap-3"><h2 id="platform-expiring-title" class="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Agencias por vencer</h2><button type="button" class="text-button min-h-11 md:min-h-8">Ver agencias${I.arrow}</button></div>
+    <div>${AGENCIES.slice(0, 3).map((agency) => row(
+      `<span class="min-w-0"><b class="block truncate text-[13px] font-semibold text-fore" title="${agency.name}">${agency.name}</b><small class="block truncate text-[11px] text-mute" title="${agency.slug}">${agency.slug}</small></span>`,
+      `<span class="flex shrink-0 items-center gap-2">${chip(manualLabel(agency.manual), manualTone(agency.manual))}<span class="list-date text-[12px] tabular-nums" data-tone="${dueTone(agency.expiry, agency.expiring)}" title="Vence ${agency.expiry}">${shortDate(agency.expiry)}</span></span>`)).join('')}</div>
+   </section>
+   <section class="panel" aria-labelledby="platform-recent-title">
+    <div class="mb-2 flex min-w-0 items-center justify-between gap-3"><h2 id="platform-recent-title" class="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Últimas acciones</h2><button type="button" class="text-button min-h-11 md:min-h-8">Ver auditoría${I.arrow}</button></div>
+    <div>${AUDIT.map((entry) => row(
+      `<span class="min-w-0"><b class="block truncate text-[13px] font-semibold text-fore" title="${entry.actor}">${entry.actor}</b><small class="block truncate text-[11px] text-mute" title="${entry.action} · ${entry.target} #${entry.id}">${entry.target} #${entry.id}</small></span>`,
+      `<span class="flex shrink-0 items-center gap-2">${chip(entry.action, 'info', entry.action)}<span class="list-date text-[12px] tabular-nums" title="${longDate(entry.when)}">${shortDate(entry.when)}</span></span>`)).join('')}</div>
+   </section>
+   <section class="panel" aria-labelledby="platform-subscriptions-title">
+    <div class="mb-2 flex min-w-0 items-center justify-between gap-3"><h2 id="platform-subscriptions-title" class="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Suscripciones por estado</h2><button type="button" class="text-button min-h-11 md:min-h-8">Ver agencias${I.arrow}</button></div>
+    <div>${[['active', '121'], ['trialing', '13']].map(([status, total]) => row(
+      `<span class="min-w-0"><b class="block truncate text-[13px] font-semibold text-fore" title="${status}">${status}</b><small class="block text-[11px] text-mute">Estado informado por la plataforma</small></span>`,
+      `<span class="shrink-0 text-[13px] font-semibold tabular-nums text-fore">${total}</span>`)).join('')}</div>
+   </section>
+  </div>
+ </div>
+ <aside class="grid min-w-0 content-start gap-4" aria-label="Requiere tu atención">
+  <section class="panel" aria-labelledby="platform-attention-title">
+   <h2 id="platform-attention-title" class="mb-2 text-[15px] font-semibold tracking-tight text-fore">Requiere tu atención</h2>
+   <div>
+    <button type="button" class="flex w-full min-w-0 items-start justify-between gap-3 border-b border-ink-600/60 py-2.5 text-left transition last:border-0 hover:bg-ink-700/40"><span class="min-w-0"><b class="block text-[13px] font-semibold leading-snug text-fore">1 agencia con acceso suspendido</b><small class="mt-0.5 block text-[11px] text-mute">Revisá el estado manual</small></span>${chip('Revisar', 'bad')}</button>
+    <button type="button" class="flex w-full min-w-0 items-start justify-between gap-3 border-b border-ink-600/60 py-2.5 text-left transition last:border-0 hover:bg-ink-700/40"><span class="min-w-0"><b class="block text-[13px] font-semibold leading-snug text-fore">2 agencias vencen en 7 días</b><small class="mt-0.5 block text-[11px] text-mute">Prueba o facturación</small></span>${chip('Atender', 'warn')}</button>
+    <button type="button" class="flex w-full min-w-0 items-start justify-between gap-3 border-b border-ink-600/60 py-2.5 text-left transition last:border-0 hover:bg-ink-700/40"><span class="min-w-0"><b class="block text-[13px] font-semibold leading-snug text-fore">13 suscripciones fuera de «active»</b><small class="mt-0.5 block text-[11px] text-mute">Seguimiento de cobro</small></span>${chip('Seguir', 'info')}</button>
+   </div>
+  </section>
+  <section class="panel" aria-labelledby="platform-shortcuts-title">
+   <h2 id="platform-shortcuts-title" class="mb-2 text-[15px] font-semibold tracking-tight text-fore">Atajos</h2>
+   <div class="grid gap-1.5">
+    ${[['Gestionar agencias', 'Estado manual, plan y vencimiento'], ['Crear cupón', 'Código, tipo y valor'], ['Revisar accesos', 'Roles globales y límites'], ['Ver auditoría', 'Últimas operaciones sensibles']].map(([label, detail]) => `<button type="button" class="flex min-h-11 items-center gap-3 rounded-lg border border-ink-600 px-3 py-2 text-left transition hover:border-fono hover:bg-fono/10"><span class="shrink-0 text-fono" aria-hidden="true">◆</span><span class="min-w-0"><b class="block truncate text-[13px] font-semibold text-fore">${label}</b><small class="block truncate text-[11px] text-mute">${detail}</small></span></button>`).join('')}
+   </div>
+  </section>
+ </aside>
+</div>`;
+
+const agencyRows2 = AGENCIES.map((agency) => `
+<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]">
+ <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${agency.name}">${agency.name}</b><small class="list-secondary" title="${agency.slug}">${agency.slug}</small></div>
+ <div role="cell" class="flex min-w-0 flex-wrap items-center gap-1.5">${chip(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'ok' : 'mute')}${chip(manualLabel(agency.manual), manualTone(agency.manual))}</div>
+ <span role="cell" class="text-right"><span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums text-fore">${agency.amount || '—'}</span></span>
+ <span role="cell" class="text-right text-[12.5px] font-semibold tabular-nums text-fore">${agency.users}</span>
+ <span role="cell" class="list-date min-w-0" data-tone="${dueTone(agency.expiry, agency.expiring)}" title="${agency.expiry ? `Vence ${agency.expiry}` : 'Sin vencimiento registrado'}">${shortDate(agency.expiry)}</span>
+ <div role="cell" class="list-actions"><span class="inline-actions flex flex-nowrap items-center justify-end gap-2"><button type="button" class="text-button platform-admin-inline-action" title="Activar, suspender o extender el acceso manual">Gestionar suscripción</button><span class="relative"><button type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de la agencia: ${agency.name}" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7"><span role="img" aria-hidden="true">⋮</span></button></span></span></div>
+</div>`).join('');
+
+const agenciesView2 = () => `
+<section class="panel" aria-labelledby="platform-agencies-title">
+ ${panelHead('platform-agencies-title', 'Agencias y suscripciones', '134', 'Gestioná el acceso manual junto a cada registro')}
+ ${toolbar('4 de 134')}
+ <div class="min-w-0 platform-admin-table-wrap">
+  <div role="table" aria-label="Agencias y suscripciones" class="silent-scroll min-w-0 overflow-x-auto">
+   <div class="min-w-[73.5rem]">
+    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]"><span role="columnheader">Agencia</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right">Plan</span><span role="columnheader" class="text-right">Usuarios</span><span role="columnheader">Prueba / vencimiento</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
+    <div role="rowgroup">${agencyRows2}</div>
+   </div>
+  </div>
+ </div>
+ <div class="platform-admin-agency-cards platform-admin-mobile-cards grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+  ${AGENCIES.map((agency) => `
+  <article class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+   <div class="min-w-0"><b class="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title="${agency.name}">${agency.name}</b><small class="mt-0.5 block text-[11px] text-mute">${agency.slug}</small></div>
+   <div class="flex flex-wrap gap-1.5">${chip(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'ok' : 'mute')}${chip(manualLabel(agency.manual), manualTone(agency.manual))}</div>
+   <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
+    <div><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Plan</dt><dd class="mt-0.5 font-semibold text-fore">${agency.amount || '—'}</dd></div>
+    <div><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Usuarios</dt><dd class="mt-0.5 font-semibold tabular-nums text-fore">${agency.users}</dd></div>
+    <div class="col-span-2"><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Prueba / vencimiento</dt><dd class="list-date mt-0.5" data-tone="${dueTone(agency.expiry, agency.expiring)}">${agency.expiry || '—'}</dd></div>
+   </dl>
+   <div class="mt-auto flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3"><button type="button" class="text-button platform-admin-inline-action" title="Activar, suspender o extender el acceso manual">Gestionar suscripción</button><span class="relative"><button type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de la agencia: ${agency.name}" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7"><span role="img" aria-hidden="true">⋮</span></button></span></div>
+  </article>`).join('')}
+ </div>
+</section>`;
+
+const menuOpen2 = `
+<div class="grid gap-2">
+ <p class="text-xs text-mute">El ⋯ de cada agencia es el menú del sistema; la eliminación vive ahí y conserva la confirmación reforzada.</p>
+ <div class="relative inline-flex w-fit flex-col items-end">
+  <button type="button" aria-haspopup="menu" aria-expanded="true" aria-label="Acciones de la agencia: Cooperativa Multiactiva de Servicios Múltiples Limitada" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7"><span role="img" aria-hidden="true">⋮</span></button>
+  <div role="menu" aria-label="Acciones de la agencia" class="absolute right-0 top-12 z-20 min-w-48 rounded-xl border border-ink-500 bg-ink p-1 shadow-float md:top-9">
+   <button type="button" role="menuitem" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-bad-text transition hover:bg-bad/10">${I.trash}<span class="min-w-0 flex-1 truncate">Eliminar agencia</span></button>
+  </div>
+ </div>
+</div>`;
+
+const skeleton2 = `
+<header class="platform-admin-header" aria-hidden="true">
+ <span class="block h-9 w-9 animate-pulse rounded-xl bg-fore/5"></span>
+ <div class="platform-admin-identity"><span class="block h-3 w-28 animate-pulse rounded-lg bg-fore/5"></span><span class="mt-1 block h-5 w-44 animate-pulse rounded-lg bg-fore/5"></span></div>
+ <div class="platform-admin-meta"><span class="block h-6 w-24 animate-pulse rounded-full bg-fore/5"></span><span class="block h-3 w-24 animate-pulse rounded-lg bg-fore/5"></span></div>
+ <div class="platform-admin-actions"><span class="block h-11 w-28 animate-pulse rounded-lg bg-fore/5 md:h-9"></span><span class="block h-11 w-24 animate-pulse rounded-lg bg-fore/5 md:h-9"></span></div>
+</header>
+<div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+ <div class="silent-scroll flex w-max gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
+  ${['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size) => `<span class="block h-11 ${size} animate-pulse rounded-lg bg-fore/5 md:h-8"></span>`).join('')}
+ </div>
+ <div class="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+  <div class="grid min-w-0 gap-4">
+   <div class="ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    ${[0, 1, 2, 3].map(() => '<div class="rounded-xl border border-ink-600 bg-ink-800 p-4"><span class="block h-3 w-24 animate-pulse rounded-lg bg-fore/5"></span><span class="mt-2 block h-7 w-20 animate-pulse rounded-lg bg-fore/5"></span><span class="mt-2 block h-3 w-28 animate-pulse rounded-lg bg-fore/5"></span></div>').join('')}
+   </div>
+   <div class="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+    ${[0, 1, 2].map(() => '<div class="panel grid gap-2"><span class="block h-4 w-36 animate-pulse rounded-lg bg-fore/5"></span><span class="block h-10 w-full animate-pulse rounded-lg bg-fore/5"></span><span class="block h-10 w-full animate-pulse rounded-lg bg-fore/5"></span></div>').join('')}
+   </div>
+  </div>
+  <div class="grid content-start gap-4">
+   ${[0, 1].map(() => '<div class="panel grid gap-2"><span class="block h-4 w-32 animate-pulse rounded-lg bg-fore/5"></span><span class="block h-10 w-full animate-pulse rounded-lg bg-fore/5"></span><span class="block h-10 w-full animate-pulse rounded-lg bg-fore/5"></span></div>').join('')}
+  </div>
+ </div>
+</div>`;
+
+const notices2 = `
+<div class="grid gap-3">
+ <p class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-1 text-[12px] leading-[1.45] text-mute"><strong class="font-semibold text-fore">Acceso separado por plataforma.</strong><span>Ser dueño de una agencia no habilita este panel ni sus datos.</span></p>
+ <section class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3 border-warn-text/45" role="status">
+  <span class="grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-warn" aria-hidden="true">▲</span>
+  <div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Primer acceso global pendiente</b><p class="mt-0.5 text-xs text-mute">La cuenta configurada debe existir, tener correo verificado y acceso activo a una agencia.</p></div>
+ </section>
+ <section class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3 border-bad-text/40" role="alert">
+  <span class="grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-bad" aria-hidden="true">⚠</span>
+  <div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">No pudimos actualizar el control global</b><span class="mt-1 inline-flex items-start gap-2 rounded-lg border border-bad/30 bg-bad/10 px-2.5 py-1.5 text-[12px] text-fore">La sesión venció. Volvé a iniciar sesión para reintentar.</span>
+   <button type="button" class="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8">↻ Reintentar</button>
+  </div>
+ </section>
+</div>`;
+
 export default [
   {
     id: 'admin-carga',
@@ -374,5 +525,75 @@ export default [
       {container: '[role="table"][aria-label="Actividad de administración global"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría (#102)', rowHeight: [44, 52]},
     ],
     body: shell('auditoria', auditView()),
+  },
+
+  /* ── #155 fase 2 (después) ─────────────────────────────────────────────── */
+  {
+    id: 'admin2-resumen',
+    section: 'Superadmin',
+    surface: 'Resumen con riel de atención/atajos y suscripciones (#155)',
+    kind: 'plain',
+    body: `<main class="platform-admin-page control-shell"><style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${header()}${tabs2('resumen')}${overview2()}</main>`,
+  },
+  {
+    id: 'admin2-agencias',
+    section: 'Superadmin',
+    surface: 'Agencias: acción primaria + ⋯, tarjetas 200 px (#155 D)',
+    kind: 'plain',
+    lists: [
+      {container: '.platform-admin-table-wrap [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · agencias (#155)', exemptBelow: 760},
+    ],
+    body: `<main class="platform-admin-page control-shell"><style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${header()}${tabs2('agencias')}${agenciesView2()}</main>`,
+  },
+  {
+    id: 'admin2-menu',
+    section: 'Superadmin',
+    surface: 'Menú ⋯ de agencia con la eliminación (#155 D)',
+    kind: 'plain',
+    body: `<main class="platform-admin-page control-shell">${menuOpen2}</main>`,
+  },
+  {
+    id: 'admin2-cupones',
+    section: 'Superadmin',
+    surface: 'Cupones con el orden de tabs aprobado (#155 B)',
+    kind: 'plain',
+    lists: [
+      {container: '[role="table"][aria-label="Cupones"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · cupones (#155)', exemptBelow: 430},
+    ],
+    body: `<main class="platform-admin-page control-shell">${header()}${tabs2('cupones')}${couponsView()}</main>`,
+  },
+  {
+    id: 'admin2-accesos',
+    section: 'Superadmin',
+    surface: 'Accesos antes que Cupones en la barra (#155 B)',
+    kind: 'plain',
+    lists: [
+      {container: '[role="table"][aria-label="Accesos entre agencias"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · accesos (#155)', exemptBelow: 430},
+    ],
+    body: `<main class="platform-admin-page control-shell">${header()}${tabs2('accesos')}${accessView()}</main>`,
+  },
+  {
+    id: 'admin2-auditoria',
+    section: 'Superadmin',
+    surface: 'Auditoría con el nuevo encabezado de secciones (#155)',
+    kind: 'plain',
+    lists: [
+      {container: '[role="table"][aria-label="Actividad de administración global"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría (#155)', rowHeight: [44, 52]},
+    ],
+    body: `<main class="platform-admin-page control-shell">${header()}${tabs2('auditoria')}${auditView()}</main>`,
+  },
+  {
+    id: 'admin2-skeleton',
+    section: 'Superadmin',
+    surface: 'Skeleton propio del panel durante la carga (#155 C)',
+    kind: 'plain',
+    body: `<main class="platform-admin-page control-shell" aria-busy="true">${skeleton2}</main>`,
+  },
+  {
+    id: 'admin2-avisos',
+    section: 'Superadmin',
+    surface: 'Avisos con borde de contraste y Reintentar (#155 C)',
+    kind: 'plain',
+    body: `<main class="platform-admin-page control-shell">${header()}${notices2}</main>`,
   },
 ];

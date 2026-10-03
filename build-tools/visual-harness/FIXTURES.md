@@ -87,6 +87,14 @@ Fixtures: `al4-preview-cliente`, `al4-mis-datos`, `al4-empresa-unica`,
 `al4-paleta-comandos` (0 hallazgos a 390/1440, claro y oscuro). Capturas en
 `docs/qa/147-estados/` y `docs/qa/135-adopcion/`.
 
+## Rediseño admin fase 2 (Refs #155)
+
+`fixtures/admin-redesign.mjs` suma las superficies `admin2-*` (resumen con riel
+de atención/atajos, agencias con acción primaria + ⋯, menú abierto, cupones,
+accesos, auditoría, skeleton y avisos) que espejan la fase 2 aprobada; los
+fixtures `admin-*` quedan como estado anterior. Capturas en
+`docs/qa/admin-redesign-2/` (390/1440 × claro/oscuro/alto contraste).
+
 ## Referencias v2 (campaña #41)
 
 `fixtures/referencias-v2.mjs` genera el markup con `renderToStaticMarkup` sobre

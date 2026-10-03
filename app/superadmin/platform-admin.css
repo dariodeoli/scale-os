@@ -63,13 +63,23 @@
 @media (max-width: 760px) { .platform-admin-page .panel { padding: var(--ui-card-padding, 16px) } }
 
 /* ── Secciones (tabs): barra compacta con scroll silencioso en móvil ─────── */
+.platform-admin-tabs-wrap { position: relative; min-width: 0 }
 .platform-admin-tabs { display: flex; min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none }
 .platform-admin-tabs::-webkit-scrollbar { display: none }
 .platform-admin-tabs > div { flex: none }
 .platform-admin-tabs [aria-pressed] { flex: 0 0 auto; width: auto }
+/* Indicador activo (#155 B): barra inferior de marca además del fondo tenue,
+   visible también en alto contraste. */
+.platform-admin-tabs [aria-pressed="true"] { box-shadow: inset 0 -2px 0 0 rgb(var(--c-fono)) }
 
 /* La toolbar de filtros del panel no deja campos pegados al borde. */
 .platform-admin-page [data-toolbar="filtros"] { gap: var(--ui-control-gap-lg, 12px); margin-bottom: var(--ui-space-3, 12px) }
+/* Mobile (#155 D): el contador «N de M» pasa a su propia línea, debajo de los
+   controles, en vez de apretarse contra el select. */
+@media(max-width:760px){
+  .platform-admin-page [data-toolbar="filtros"] { align-items: stretch }
+  .platform-admin-page [data-toolbar="filtros"] > p { order: 3; width: 100%; margin-left: 0 }
+}
 
 /* ── Cupones: alta en una fila flexible (campos 9–12 rem + CTA) ─────────── */
 .platform-admin-coupon {
@@ -100,12 +110,19 @@
 /* Mobile: la tabla densa no entra; va la cuadrícula de tarjetas. El encabezado
    pasa a dos filas (identidad / controles) con targets de 44 px. */
 @media(max-width:760px){
-  .platform-admin-header { position: static; grid-template-columns: auto minmax(0, 1fr); gap: 8px 10px }
+  .platform-admin-header { position: static; grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px }
+  /* Identidad compacta en la fila de la marca: máximo 3 filas en total
+     (identidad, meta y acciones) en vez de cuatro (#155 B). */
+  .platform-admin-identity { display: grid; align-content: center; gap: 0 }
+  .platform-admin-identity .eyebrow { font-size: 9px }
+  .platform-admin-identity h1 { overflow: hidden; font-size: clamp(15px, 5vw, 17px); text-overflow: ellipsis; white-space: nowrap }
   .platform-admin-meta { grid-column: 1 / -1 }
   .platform-admin-actions { grid-column: 1 / -1; width: 100% }
   .platform-admin-actions .secondary { flex: 1; min-height: 44px }
   .platform-admin-updated { white-space: normal }
   .platform-admin-table-wrap { display: none; }
+  /* Señal de continuidad del scroll en la barra de secciones (390). */
+  .platform-admin-tabs-wrap::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 28px; pointer-events: none; background: linear-gradient(90deg, transparent, var(--canvas, #f7f6f8)) }
 }
 
 @media(prefers-reduced-transparency:reduce){
