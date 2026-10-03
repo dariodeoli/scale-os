@@ -2,6 +2,7 @@
 
 import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
 import {PersonContainer} from './person-container';
+import {isTechnicalDemoEmail,personDisplayName} from './actor-identity';
 import {AssigneePicker,assigneeSelection,type AssigneeMember,type AssigneeSelection,type AssigneeSnapshot} from './assignee-picker';
 import {clearDataCache} from './data-cache';
 import {notifyMutation} from './feedback';
@@ -91,7 +92,7 @@ function RecordAssigneesForm({kind,id,role,refresh,updatedAt,children}:RecordAss
   <div className="record-assignees-heading"><strong>Responsables</strong>{editable&&saved?<button type="button" className="text-button" aria-expanded={expanded} aria-controls={panelId} disabled={loading||busy} onClick={()=>{setExpanded(open=>!open);}}><Pencil size={14}/>Cambiar responsables</button>:null}</div>
   {loading?<p role="status">Cargando responsables…</p>:saved?<div className="record-assignees-summary" aria-label="Responsables actuales">{draft.assigned_user_ids.length?draft.assigned_user_ids.map(person=>{
    const member=members.find(member=>String(member.id)===person);
-   return <span className="record-assignee-chip" key={person}><PersonContainer size="sm" name={member?.full_name?.trim()||member?.email||'Persona no disponible'} photoUrl={member?.photo_url} secondary={member?.full_name&&member?.email?member.email:undefined} verified/>{draft.assigned_user_id===person?<small>Principal</small>:null}</span>;
+   return <span className="record-assignee-chip" key={person}><PersonContainer size="sm" name={personDisplayName(member?.full_name?.trim()||member?.email,'Persona no disponible')} photoUrl={member?.photo_url} secondary={member?.full_name&&member?.email&&!isTechnicalDemoEmail(member.email)?member.email:undefined} verified/>{draft.assigned_user_id===person?<small>Principal</small>:null}</span>;
   }):<span>Sin responsables asignados.</span>}</div>:null}
   {expanded&&editable&&saved?<div id={panelId} className="record-assignees-editor">
    <AssigneePicker members={members} value={draft} onChange={value=>{setDraft(value);setNotice('');}} disabled={busy||conflict} loading={loading} error={error}/>

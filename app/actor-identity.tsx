@@ -16,8 +16,24 @@ export function safePhoto(value?:string|null){
  if(/^\/core-api\/api\/agency\/media\/(?:person|collaborator|client)\/\d+\?v=[a-f0-9]{10}$/.test(value))return value;
  try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password?value:'';}catch{return '';}
 }
+/**
+ * Correo técnico de una demo (`…@demo.example.invalid`, `…@scale-demo.example.invalid`):
+ * identificador interno del fixture, nunca una identidad visible (#151).
+ */
+export function isTechnicalDemoEmail(value?:string|null){
+ return /^[^@\s]+@(?:scale-)?demo\.example\.invalid$/i.test(String(value||'').trim());
+}
+/**
+ * Nombre visible de una persona: vacío cae al texto base; un correo técnico del
+ * demo se reemplaza por una etiqueta humana en vez de mostrarse crudo (#151).
+ */
+export function personDisplayName(name?:string|null,emptyLabel='Sistema'){
+ const value=name?.trim();
+ if(!value)return emptyLabel;
+ return isTechnicalDemoEmail(value)?'Persona del demo':value;
+}
 export function ActorIdentity({name,photoUrl,verified=false,imported=false,timestamp}:ActorIdentityProps){
- const label=name?.trim()||(imported?'Autor importado':'Sistema');
+ const label=personDisplayName(name,imported?'Autor importado':'Sistema');
  const photo=verified&&!imported?safePhoto(photoUrl):'';
  // Keying the image state to both author and URL also retries a changed photo.
  const date=timestamp?new Date(timestamp):null;
