@@ -10,7 +10,7 @@ import {clientSince, moneyKpi} from '../client-format';
 import {ClientIdentity} from '../client-identity';
 import {Dialog} from '../dialog';
 import {notify} from '../feedback';
-import {LIST_WINDOW,windowSlice} from '../list-window';
+import {LIST_WINDOW,useFilasVisibles,windowSlice} from '../list-window';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
 import {CLIENT_TABLE_MIN_WIDTH} from '../client-directory-data';
@@ -254,6 +254,10 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
             : {valor: '—', hint: <><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip>{canManageTerms && sinPlan > 0 ? <> · <button type="button" className="text-button min-h-11 md:min-h-0" onClick={() => setClientStatusFilter('sin_plan')}>{sinPlan === 1 ? 'Ver el cliente sin plan' : `Ver los ${sinPlan} sin plan`}</button></> : null}</>};
 
   const mountedLive = windowSlice(liveClients, visible);
+  // Ventana de montaje (#135 P4): la tabla densa monta sólo el tramo visible
+  // del tramo ya cargado; la cuadrícula (tarjetas de altura variable) y el
+  // contador honesto de «Ver más» no cambian.
+  const filasVisibles = useFilasVisibles(tableRef, mountedLive.length);
   const hidden = liveClients.length - mountedLive.length;
   return <section ref={tableRef} className="directory grid gap-4" aria-label="Directorio de clientes">
     {dataState === 'loading' && !clients.length ? <KpiStripSkeleton label="Cargando el directorio…"/> : <KpiStrip>
@@ -297,7 +301,11 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       // `overflow-x-visible` (Refs #140): la tabla sólo se monta cuando entra
       // completa, y el menú ⋯ necesita salir del contenedor; se retira cuando
       // #138 publique el patrón con portal/popover (hoy el ⋯ vive adentro).
-      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(mountedLive, false)}</ListGrid>
+      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[64.5rem]" pinnedActions>
+        {filasVisibles.inicio > 0 ? <div role="row" aria-hidden="true" style={{height: filasVisibles.inicio * filasVisibles.altoFila}}/> : null}
+        {renderClients(mountedLive.slice(filasVisibles.inicio, filasVisibles.fin), false)}
+        {filasVisibles.fin < mountedLive.length ? <div role="row" aria-hidden="true" style={{height: (mountedLive.length - filasVisibles.fin) * filasVisibles.altoFila}}/> : null}
+      </ListGrid>
       : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(mountedLive, true)}</div>}
 
     {hidden > 0 ? <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-lg border border-ink-600 bg-ink-800 px-3 py-2" role="status" aria-live="polite">

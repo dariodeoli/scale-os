@@ -14,7 +14,7 @@ import {request} from '../workspace-request';
 import {projectedList,BUDGET_LIST_FIELDS} from '../shell-data';
 import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,denseTableMinWidth,useDenseTableFit,type Column} from '../ui-v2';
 import {budgetState} from '../budget-status';
-import {EMPTY_WINDOW,windowLabel,type ListWindowState} from '../list-window';
+import {EMPTY_WINDOW,useFilasVisibles,windowLabel,type ListWindowState} from '../list-window';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
 // Presupuestos (SOS-COM, campaña #41 / spec #43 §4).
@@ -97,6 +97,9 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
   const canManage = roleCan(user?.role,'budgets.manage');
   // Tabla densa sólo si entra completa; si no, tarjetas (#62).
   const {ref: tableRef, fits: tableFits} = useDenseTableFit(BUDGET_TABLE_MIN_WIDTH);
+  // Ventana de montaje (#135 P4): la tabla densa monta sólo el tramo visible;
+  // las tarjetas (altura variable) conservan el montaje completo.
+  const filasVisibles = useFilasVisibles(tableRef, budgets.length);
   const totals = Array.from(budgetKpis.totals);
   const [selected,setSelected]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false),[confirmOpen,setConfirmOpen]=useState(false),[bulkError,setBulkError]=useState('');
   const reload = async () => { setBudgets((await projectedList('budgets','/api/agency/budgets',BUDGET_LIST_FIELDS,path=>request<{budgets:Budget[]}>(path))).budgets); };
@@ -192,7 +195,9 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
       {budgets.length ? (
         tableFits ? (
           <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[62rem]" pinnedActions>
-            {budgets.map(row)}
+            {filasVisibles.inicio > 0 ? <div role="row" aria-hidden="true" style={{height: filasVisibles.inicio * filasVisibles.altoFila}}/> : null}
+            {budgets.slice(filasVisibles.inicio, filasVisibles.fin).map(row)}
+            {filasVisibles.fin < budgets.length ? <div role="row" aria-hidden="true" style={{height: (budgets.length - filasVisibles.fin) * filasVisibles.altoFila}}/> : null}
           </ListGrid>
         ) : (
           <div className="budget-hub-grid">
