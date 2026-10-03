@@ -85,17 +85,24 @@ for(const [width,height] of widths){
  await sleep(900);
  await capture(`produccion-tablero-${W}-light`);
  await setTheme('dark');await capture(`produccion-tablero-${W}-dark`);await setTheme('light');
+ // Las etapas finales muestran la entrega cumplida, no «venció» (#151).
+ await evaluate(`(()=>{const next=document.querySelector('[data-board-next]');for(let i=0;i<3;i++)next?.click();return true;})()`);
+ await sleep(900);
+ await capture(`produccion-etapas-finales-${W}-light`);
+ await setTheme('dark');await capture(`produccion-etapas-finales-${W}-dark`);await setTheme('light');
+ await evaluate(`(()=>{const prev=document.querySelector('[data-board-prev]');for(let i=0;i<3;i++)prev?.click();return true;})()`);
+ await sleep(700);
  if(withChecks){
   const board=await evaluate(`(()=>{const cards=[...document.querySelectorAll('[data-order]')];const text=cards.map(card=>card.innerText).join('\\n');
    const noisy=cards.filter(card=>/Sin definir|Sin clasificar/.test(card.innerText)).length;
    const fracHours=(text.match(/\\d+\\.\\d{2} h/g)||[]);
    const overdueDone=cards.filter(card=>['approved','published'].includes(card.getAttribute('data-status'))&&/(venció|overdue)/.test(card.innerText)).length;
-   const overdueClasses=cards.filter(card=>card.querySelector('.due-date.overdue')).length;
-   return {cards:cards.length,noisy,fracHours,overdueDone,overdueClasses};})()`);
+   const doneInRed=cards.filter(card=>['approved','published'].includes(card.getAttribute('data-status'))&&card.querySelector('.due-date.overdue')).length;
+   return {cards:cards.length,noisy,fracHours,overdueDone,doneInRed};})()`);
   check(`producción ${W}: sin «Sin definir»/«Sin clasificar»`,board.noisy,0);
   check(`producción ${W}: horas sin decimales vacíos`,board.fracHours.length,0);
   check(`producción ${W}: aprobadas/publicadas no muestran «venció»`,board.overdueDone,0);
-  check(`producción ${W}: ninguna pieza terminada queda en rojo`,board.overdueClasses,0);
+  check(`producción ${W}: ninguna pieza terminada queda en rojo`,board.doneInRed,0);
   note(`producción ${W}: ${board.cards} tarjetas`);
  }
 
@@ -107,6 +114,11 @@ for(const [width,height] of widths){
  await sleep(600);
  await capture(`pieza-detalle-${W}-light`);
  await setTheme('dark');await capture(`pieza-detalle-${W}-dark`);await setTheme('light');
+ // Checklist: la atribución se lee dentro del pliegue (#151).
+ await evaluate(`(()=>{const panel=document.querySelector('[role="dialog"]');const checklist=panel&&panel.querySelector('.work-checklist');if(checklist)checklist.scrollIntoView({block:'center'});return Boolean(checklist);})()`);
+ await sleep(700);
+ await capture(`pieza-checklist-${W}-light`);
+ await setTheme('dark');await capture(`pieza-checklist-${W}-dark`);await setTheme('light');
  if(withChecks){
   const detail=await evaluate(`(()=>{const panel=document.querySelector('[role="dialog"]');const text=panel?panel.innerText:'';
    return {hasRawDemoEmail:/@(?:scale-)?demo\\.example\\.invalid/.test(text),hasHours:/(?:^|\\n)Horas estimadas\\n[^\\n]+/.test(text),hoursLabel:(text.match(/Horas estimadas\\n([^\\n]+)/)||[])[1]||'',checklistComplete:/Completado/.test(text)};})()`);
