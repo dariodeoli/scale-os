@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {componerTelefono, parseTelefono, soloDigitos, telefonoValido, whatsappUrl} from 'owncoding-ui';
-import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, PHONE_ERROR, decimalInput, emailSuggestions, normalizeSerial, phoneNational, phoneValid} from '../app/field-rules';
+import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, PHONE_ERROR, decimalInput, emailSuggestions, normalizeSerial, personLabel, phoneNational, phoneValid, technicalEmail} from '../app/field-rules';
 
 // Lógica compartida (owncoding-ui v0.12.0): una sola fuente para el grupo.
 assert.equal(soloDigitos('+595 (981) 123-456'), '595981123456');
@@ -41,6 +41,20 @@ assert.equal(PHONE_ERROR, 'Ingresá un teléfono válido: código de país y nú
 assert.equal(normalizeSerial(' sn-123 456 '), 'SN123456');
 assert.equal(normalizeSerial('dji_mic_2'), 'DJIMIC2');
 assert.equal(normalizeSerial(''), '');
+
+// Demo limpia (#152): los correos técnicos de fixtures nunca son identidad visible.
+assert.equal(technicalEmail('persona-3-0@demo.example.invalid'), true);
+assert.equal(technicalEmail('visitante-abc@demo.example.invalid'), true);
+assert.equal(technicalEmail('cliente@example.invalid'), true);
+assert.equal(technicalEmail('lucia.acosta@horizonte.example'), false);
+assert.equal(technicalEmail('persona@scale-demo.example.invalid'), true);
+assert.equal(technicalEmail(''), false);
+assert.equal(technicalEmail(null), false);
+assert.equal(personLabel({full_name:'Lucía Acosta',email:'persona-3-0@demo.example.invalid'}), 'Lucía Acosta');
+assert.equal(personLabel({full_name:'  ',email:'persona-3-0@demo.example.invalid'}), 'Integrante');
+assert.equal(personLabel({full_name:null,email:'ana@estudio.com.py'}), 'ana@estudio.com.py');
+assert.equal(personLabel({full_name:null,email:'persona-3-0@demo.example.invalid'},'Sin nombre'), 'Sin nombre');
+assert.equal(personLabel(null), 'Integrante');
 
 assert.equal(decimalInput('12,5'), '12.5', 'una coma se normaliza a punto');
 assert.equal(decimalInput('12..5'), '12.5', 'un solo separador');

@@ -4,7 +4,7 @@
 import {ActorIdentity} from './actor-identity';
 import {useEffect,useState} from 'react';
 import {NotificationInbox} from './notification-inbox';
-import {api,Editor} from './operations';
+import {api,Editor,type Field} from './operations';
 import {Dialog} from './dialog';
 import {notify} from './feedback';
 import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip} from './ui-v2';
@@ -17,7 +17,17 @@ export function NotificationBell({openOrder}:{openOrder:(id:string,anchor?:strin
 function Preferences({close}:{close:()=>void}){
  const [values,setValues]=useState<Record<string,string>|null>(null),[message,setMessage]=useState('');
  useEffect(()=>{let alive=true;void api<{preferences:Record<string,boolean>}>('/api/agency/notifications/preferences').then(d=>{if(alive)setValues(Object.fromEntries(Object.entries(d.preferences).map(([k,v])=>[k,String(v)])));}).catch(e=>{if(alive)setMessage(error(e));});return()=>{alive=false;};},[]);
- return <Dialog title="Preferencias de notificaciones" close={close}><div className="grid gap-3"><p className="text-sm text-mute">Estas preferencias solo afectan tu usuario en esta empresa. Los correos operativos son opcionales; no cambian las invitaciones ni la recuperación de contraseña.</p>{message?<p role="alert" className="rounded-lg border-l-[3px] border-bad bg-bad/10 px-3 py-2 text-[13px] text-fore">{message}</p>:null}{values?<Editor fields={[['email_enabled','Recibir también por correo'],['assignment','Asignaciones'],['comment','Comentarios y menciones por @correo'],['due','Entregas pendientes']].map(([key,label])=>({key,label,choices:[{value:'true',label:'Sí'},{value:'false',label:'No'}]}))} defaults={values} save={async v=>{await api('/api/agency/notifications/preferences',Object.fromEntries(Object.entries(v).map(([k,val])=>[k,val==='true'])),'PATCH');close();}}/>:<LoadingBlock label="Cargando preferencias…" lines={2}/>}</div></Dialog>;
+ // Modelo claro (#152): la campana siempre recibe los avisos in-app; el
+ // interruptor maestro suma el correo y los dependientes eligen qué se envía.
+ // Con el correo apagado, los dependientes quedan deshabilitados y sin efecto.
+ const emailOn=values?.email_enabled==='true';
+ const fields:Field[]=[
+  {key:'email_enabled',label:'Recibir avisos por correo',choices:[{value:'true',label:'Sí'},{value:'false',label:'No'}],help:'La campana de Scale OS siempre muestra los avisos in-app de esta empresa; este interruptor suma el envío por correo.'},
+  {key:'assignment',label:'Asignaciones por correo',choices:[{value:'true',label:'Sí'},{value:'false',label:'No'}],disabled:v=>v.email_enabled!=='true'},
+  {key:'comment',label:'Comentarios y menciones por correo',choices:[{value:'true',label:'Sí'},{value:'false',label:'No'}],disabled:v=>v.email_enabled!=='true'},
+  {key:'due',label:'Entregas pendientes por correo',choices:[{value:'true',label:'Sí'},{value:'false',label:'No'}],disabled:v=>v.email_enabled!=='true'},
+ ];
+ return <Dialog title="Preferencias de notificaciones" close={close}><div className="grid gap-3"><p className="text-sm text-mute">Estas preferencias solo afectan tu usuario en esta empresa. La campana recibe siempre los avisos in-app; acá elegís qué se envía además por correo. No cambian las invitaciones ni la recuperación de contraseña.</p>{message?<p role="alert" className="rounded-lg border-l-[3px] border-bad bg-bad/10 px-3 py-2 text-[13px] text-fore">{message}</p>:null}{values?<>{!emailOn&&<p className="form-note" role="status">El correo está apagado: las opciones de abajo no tienen efecto hasta activarlo.</p>}<Editor fields={fields} defaults={values} save={async v=>{await api('/api/agency/notifications/preferences',Object.fromEntries(Object.entries(v).map(([k,val])=>[k,val==='true'])),'PATCH');close();}}/></>:<LoadingBlock label="Cargando preferencias…" lines={2}/>}</div></Dialog>;
 }
 
 type Schedule={actor_name?:string;actor_photo_url?:string;actor_verified?:boolean;id:string;template_name:string;project_name:string;next_month:string;active:boolean};

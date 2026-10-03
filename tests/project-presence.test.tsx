@@ -85,6 +85,10 @@ async function main(){
    await render(<PresenceAvatars people={Array.from({length:6},(_,i)=>({id:String(i),name:'Persona '+i}))}/>);assert.equal(renderer!.root.findAllByProps({className:'presence-person'}).length,4);assert(text().includes('+'));assert.equal(renderer!.root.findByProps({className:'presence-more'}).props.title,'Persona 4, Persona 5');
    assert(renderer!.root.findAllByType('i').every(icon=>icon.props['data-active']===false));
    await render(<PresenceAvatars people={[{id:'empty',name:'   ',photo_url:null}]}/>);assert(text().includes('?'),'blank name still has a visible fallback');
+   const titles=()=>renderer!.root.findAllByProps({className:'presence-person'}).map(node=>node.props.title);
+   await render(<PresenceAvatars people={people}/>);assert.equal(titles()[0],'Ana Pérez · Viendo este proyecto','el detalle del proyecto conserva su contexto');
+   await render(<PresenceAvatars people={people} context="workspace"/>);assert.deepEqual(titles(),['Ana Pérez · Viendo un proyecto','Bruno Díaz · Activo ahora','Carla · Viendo un proyecto'],'fuera de un proyecto no se afirma «este proyecto» (#152)');
+   await render(<PresenceAvatars people={people} context="workspace" alwaysGreen/>);assert.equal(titles()[0],'Ana Pérez · En línea','la presencia de empresa dice en línea');
   });
   await check('mounting tracker/board is not activity or a project view',async()=>{
    const before=beats.length,eventsBefore=viewEvents;

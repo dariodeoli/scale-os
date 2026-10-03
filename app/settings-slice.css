@@ -36,3 +36,32 @@
 @media(hover:hover) and (pointer:fine){.settings-integration-list article{transition:background 160ms ease-out}.settings-integration-list article:hover{background:var(--surface-sunken)}.settings-card-actions .secondary:active,.settings-card .form-actions .primary:active{transform:scale(.97)}}
 @media(max-width:700px){.settings-page,.settings-slice,.settings-slice.ops-stack{gap:12px}.settings-layout,.settings-column{gap:12px}.settings-card{gap:14px;padding:var(--ui-card-padding,14px)}.settings-card .form-actions{display:grid;grid-template-columns:1fr}.settings-card .form-actions .primary{width:100%}.settings-integration-list article{grid-template-columns:1fr;gap:6px;padding:10px 12px}.settings-integration-list p{white-space:normal;overflow:visible}.settings-status{justify-self:start}.preferences-row,.preferences-card .preferences-row{grid-template-columns:1fr;gap:10px}.preferences-row .ops-select-trigger{min-height:44px}.settings-card-actions{justify-content:stretch}.settings-card-actions .secondary{width:100%}.settings-history p{align-items:flex-start;flex-direction:column;gap:2px}.settings-danger-wrap .settings-card,.settings-danger-wrap>section{border-radius:14px}}
 @media(prefers-reduced-motion:reduce){.settings-card *{transition-duration:.01ms!important}.settings-card :is(button,a):active{transform:none!important}}
+
+/* Configuración por bloques (#152): nav de anclas + un bloque por área, con la
+   zona de peligro separada al final. El nav no crea rutas ni duplica los tabs
+   del shell: solo ordena la lectura y evita el scroll largo sin referencias. */
+.settings-slice.settings-page{display:grid;gap:0}
+.settings-nav{position:sticky;top:60px;z-index:5;display:flex;align-items:center;gap:6px;width:100%;max-width:100%;margin-bottom:16px;padding:4px;border:1px solid var(--border-subtle,var(--line));border-radius:12px;background:color-mix(in srgb,var(--surface-raised,var(--surface)) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overflow-x:auto;scrollbar-width:none}
+.settings-nav::-webkit-scrollbar{display:none}
+.settings-nav-label{flex:none;padding:0 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.07em;text-transform:uppercase}
+.settings-nav a{flex:none;display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border-radius:8px;color:var(--text-subtle,var(--text-muted));font-size:12px;font-weight:650;letter-spacing:.01em;text-decoration:none;white-space:nowrap}
+.settings-nav a:hover{background:var(--surface-sunken);color:var(--text)}
+.settings-nav a:focus-visible{outline:3px solid var(--focus-ring,var(--brand-600));outline-offset:2px}
+.settings-nav a.danger{color:var(--danger)}
+.settings-block{display:grid;gap:12px;padding:16px 0 20px;border-top:1px solid var(--border-subtle,var(--line));scroll-margin-top:84px}
+.settings-block-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
+.settings-block-heading>div{min-width:0}
+.settings-block-heading h2{margin:0;font-size:17px;font-weight:700;letter-spacing:-.02em;color:var(--text-strong,var(--text))}
+.settings-block-heading p{margin:4px 0 0;max-width:70ch;color:var(--text-muted);font-size:12px;line-height:1.5}
+.settings-block-top{flex:none;white-space:nowrap}
+.settings-danger-block{margin-top:8px;padding-top:20px;border-top:3px solid var(--danger-600,var(--danger,var(--brand-700)))}
+.settings-danger-heading h2{color:var(--danger)}
+@media(max-width:700px){
+ .settings-nav{position:static;margin-bottom:12px}
+ .settings-nav a{min-height:44px}
+ .settings-nav-label{display:none}
+ .settings-block{padding:14px 0 18px;scroll-margin-top:76px}
+ .settings-block-heading{flex-direction:column}
+ .settings-block-top{align-self:flex-start}
+}
+@media(prefers-reduced-motion:reduce){.settings-nav a{transition:none}}

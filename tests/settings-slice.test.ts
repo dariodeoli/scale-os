@@ -34,16 +34,23 @@ test('integration rows communicate unconfigured status and company creation rema
  assert(guide.includes("'/api/auth/switch-organization'"));
 });
 
-test('#139: el manual sale de Configuración y el lateral usa Cotización e Integraciones',()=>{
+test('#139/#152: el manual sale de Configuración y las áreas quedan separadas por bloques',()=>{
  // La ayuda del panel (workspace-guide) conserva el manual; la sección de
  // Configuración ya no lo embebe en su columna principal.
  assert.match(guide,/ManualWorkspace/);
  assert.doesNotMatch(suite,/ManualWorkspace/);
  assert.doesNotMatch(suite,/<ManualWorkspace\/>/);
- // El lateral de Suscripción suma la cotización y las integraciones debajo.
- assert.match(configuracion,/settings-subscription[\s\S]*<ExchangeRateSettings\/>[\s\S]*<IntegrationSettings\/>/);
+ // #152: bloques por área con anclas y zona de peligro aparte.
+ for(const block of ['settings-company','settings-billing','settings-integrations','settings-subscription','settings-security','settings-danger'])
+  assert.match(configuracion,new RegExp(`id="${block}"`),`Configuración separa ${block}`);
+ assert.match(configuracion,/className="settings-nav"/);
+ assert.match(configuracion,/settings-danger-block/);
+ assert.match(configuracion,/<SettingsWorkspace\/>/);
+ assert.match(configuracion,/<ExchangeRateSettings\/>/);
+ assert.match(configuracion,/<IntegrationSettings\/>/);
+ assert.match(configuracion,/<DeletionDangerZone/);
  assert.match(configuracion,/import \{SettingsWorkspace,CouponRedeem,ExchangeRateSettings,IntegrationSettings\} from '\.\.\/suite'/);
- // La empresa sigue siendo el único bloque de la columna principal.
+ // La empresa sigue siendo el único bloque de la columna principal del formulario.
  const companyOnly=suite.slice(suite.indexOf('export function SettingsWorkspace'),suite.indexOf('export function ExchangeRateSettings'));
  assert.match(companyOnly,/settings-company-card/);
  assert.doesNotMatch(companyOnly,/exchange-settings-title|integration-settings-title/);

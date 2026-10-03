@@ -21,7 +21,7 @@ const control=read('app/control-center.css');
 
 test('collaborator identity is rendered by its card, while access keeps only state and actions',()=>{
  assert.match(operations,/person-hub-mail/);
- assert.match(operations,/\{entry\.member!\.email\}/);
+ assert.match(operations,/technicalEmail\(entry\.member!\.email\)/,'el acceso sin ficha oculta correos técnicos de demo');
  assert.match(operations,/\{p\.email\|\|'Sin correo'\}/);
  assert.doesNotMatch(operations,/Cargo: \{p\.job_title/);
  assert.doesNotMatch(operations,/person-hub-facts/,'la tarjeta ya no usa el bloque grande Correo/Acceso/Ingreso');

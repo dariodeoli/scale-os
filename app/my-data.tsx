@@ -6,6 +6,7 @@ import {listDateFull,dueTone} from './list-format';
 import {Dialog} from './dialog';
 import {notify} from './feedback';
 import {PRIVACY_NOTICE,PRIVACY_PURPOSES,PRIVACY_RIGHTS_CHANNEL,type PrivacyPurpose} from './privacy-notice';
+import {technicalEmail} from './field-rules';
 import {PrivacyApiUnavailableError,loadPrivacyData,pendingPrivacyConsents,requestPrivacyAction,revokePrivacyConsent,type PrivacyConsent,type PrivacyData,type PrivacyRequest,type PrivacyRequestKind,type PrivacyRequestStatus} from './privacy-data';
 
 /**
@@ -77,7 +78,7 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
     <p id="my-data-summary" className={KICKER}>Resumen y finalidades</p>
     <p className="text-[13px] leading-relaxed text-mute">Estos son los datos de tu cuenta y las finalidades con las que los tratamos. El detalle completo, con conservación y destinatarios, está en el <a className="text-fono-dark hover:underline" href="/privacidad">Aviso de Privacidad {PRIVACY_NOTICE.version}</a> ({PRIVACY_NOTICE.fechaLabel}).</p>
     <dl className="grid gap-1 text-[13px]">
-     <div className="flex flex-wrap items-center gap-x-2"><dt className="font-semibold text-fore">Correo de la cuenta</dt><dd className="break-all text-mute">{profile.email}</dd></div>
+     <div className="flex flex-wrap items-center gap-x-2"><dt className="font-semibold text-fore">Correo de la cuenta</dt><dd className="break-all text-mute">{technicalEmail(profile.email)?'Cuenta de demostración · sin correo real':profile.email}</dd></div>
      {profile.full_name?<div className="flex flex-wrap items-center gap-x-2"><dt className="font-semibold text-fore">Nombre</dt><dd className="text-mute">{profile.full_name}</dd></div>:null}
     </dl>
     <ul className="grid gap-2">

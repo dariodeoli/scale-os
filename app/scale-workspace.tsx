@@ -63,6 +63,7 @@ import {defaultWorkspacePreferences, workspacePreferenceKey} from './workspace-p
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {clientPortfolioStats,currentAsuncionMonth} from './client-format';
 import type {Account,AccountTransfer,Budget,Client,ClientPaymentStatus,Invoice,Member,MetricEvent,ModalKind,PaymentRecord,Project,Summary,User,WorkOrder} from './workspace-types';
+import {technicalEmail} from './field-rules';
 import {moraDsoDays,moraKpis} from './mora-data';
 import {SinAccesoSection} from './sections/sin-acceso';
 import {EquipoSection} from './sections/equipo';
@@ -956,7 +957,7 @@ export default function Home() {
       </div>
     );
   const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
-  const firstName = user?.email.split("@")[0] || "U";
+  const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
 
