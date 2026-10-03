@@ -2,7 +2,14 @@ import type {Metadata} from 'next';
 import {AccessLayout} from '../access-layout';
 import {PRIVACY_NOTICE,PRIVACY_NOTICE_PATH,PRIVACY_RIGHTS_CHANNEL,PRIVACY_SECTIONS,type PrivacyNoticeState} from '../privacy-notice';
 
-export const metadata:Metadata={title:'Política de Privacidad',description:'Aviso de Privacidad versionado de Scale OS: finalidades, derechos del titular y canales de contacto (Ley N° 7593/2025).'};
+export const metadata:Metadata={
+ title:'Política de Privacidad',
+ description:'Aviso de Privacidad versionado de Scale OS: finalidades, derechos del titular y canales de contacto (Ley N° 7593/2025).',
+ // La política pública vive en el host del sitio (sistema); el resto de los
+ // hosts la sirven sólo como referencia interna sin indexar (middleware).
+ alternates:{canonical:'https://sistema.scaleparaguay.com/privacidad'},
+ openGraph:{type:'article',url:'https://sistema.scaleparaguay.com/privacidad',title:'Política de Privacidad · Scale OS',description:'Finalidades, derechos del titular y canales de contacto (Ley N° 7593/2025).'},
+};
 
 const STATE_LABEL:Record<PrivacyNoticeState,string>={revision:'Texto en revisión del responsable',aprobado:'Versión aprobada por el responsable'};
 const STATE_CLASS:Record<PrivacyNoticeState,string>={revision:'border-warn/40 text-warn',aprobado:'border-ok/40 text-ok'};

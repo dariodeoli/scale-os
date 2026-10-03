@@ -121,9 +121,14 @@ const agencyRows = AGENCIES.map((agency) => `
  <div role="cell" class="list-actions"><span class="inline-actions flex flex-nowrap items-center justify-end gap-2"><button type="button" class="text-button platform-admin-inline-action">Gestionar estado manual</button><button type="button" class="text-button platform-admin-danger">${I.trash}Eliminar agencia</button></span></div>
 </div>`).join('');
 
-const toolbar = (summary, extra = '') => `
+/* SearchField de owncoding-ui v0.61 (icono + Input con `w-full`) + Select; el
+   label visual no existe en la fuente: el placeholder y el aria-label nombran. */
+const toolbar = (summary, extra = '', placeholder = 'Nombre o identificador', ariaLabel = 'Buscar agencia') => `
 <div data-toolbar="filtros" class="mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap" style="gap:12px">
- <div class="search-field grid gap-1.5 min-w-[12rem] flex-1 sm:max-w-72"><label class="text-[12px] font-semibold text-mute">Buscar</label><div class="relative"><input type="search" placeholder="Nombre o identificador" value=""/></div></div>
+ <div class="relative min-w-0 min-w-[12rem] flex-1 sm:max-w-72">
+  <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+  <input type="search" aria-label="${ariaLabel}" placeholder="${placeholder}" value="" class="w-full rounded-lg border border-interactivo bg-ink-800 px-3.5 pl-9 pr-9 text-fore h-11 md:h-9 text-base md:text-sm outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 placeholder:text-mute/60"/>
+ </div>
  <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Estado<select aria-label="Filtrar por estado" class="min-w-[11rem]"><option>Todas</option><option>Activas</option><option>Inactivas</option><option>Con cambio manual</option><option>Vencen en 7 días</option></select></label>
  ${extra}
  <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">${summary}</p>
@@ -148,7 +153,8 @@ const agenciesView = () => `
     <div role="rowgroup">${agencyRows}</div>
    </div>
   </div>
-  <div class="platform-admin-agency-cards grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+ </div>
+ <div class="platform-admin-agency-cards platform-admin-mobile-cards grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
    ${AGENCIES.map((agency) => `
    <article class="flex min-h-[140px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
     <div class="min-w-0"><b class="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title="${agency.name}">${agency.name}</b><small class="mt-0.5 block text-[11px] text-mute">${agency.slug}</small></div>
@@ -160,7 +166,6 @@ const agenciesView = () => `
     </dl>
     <div class="mt-auto flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3"><button type="button" class="text-button platform-admin-inline-action">Gestionar estado manual</button><button type="button" class="text-button platform-admin-danger">${I.trash}Eliminar agencia</button></div>
    </article>`).join('')}
-  </div>
  </div>
 </section>`;
 
@@ -173,7 +178,7 @@ const couponsView = () => `
   <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Valor<input value="10" inputmode="numeric"/></label>
   <button type="button" class="primary min-h-11 md:min-h-10">Crear cupón</button>
  </form>
- <div class="min-w-0">
+ <div class="min-w-0 platform-admin-table-wrap">
   <div role="table" aria-label="Cupones" class="silent-scroll min-w-0 overflow-x-auto">
    <div class="min-w-[25rem]">
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(10rem,1fr)_6.5rem_8rem]"><span role="columnheader">Cupón</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
@@ -186,13 +191,21 @@ const couponsView = () => `
    </div>
   </div>
  </div>
+ <div class="platform-admin-mobile-cards grid gap-3 sm:grid-cols-2">
+  ${COUPONS.map((coupon) => `
+  <article class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+   <div class="min-w-0"><b class="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title="${coupon.code}">${coupon.code}</b><small class="mt-0.5 block text-[11px] text-mute">${coupon.detail}</small></div>
+   <div class="flex flex-wrap items-center gap-2">${chip(coupon.active ? 'Activo' : 'Pausado', coupon.active ? 'ok' : 'mute')}</div>
+   <div class="mt-auto border-t border-ink-600 pt-3"><button type="button" class="text-button ${coupon.active ? 'warn' : 'positive'}">${coupon.active ? I.pause + 'Pausar' : I.play + 'Reactivar'}</button></div>
+  </article>`).join('')}
+ </div>
 </section>`;
 
 const accessView = () => `
 <section class="panel" aria-labelledby="platform-access-title">
  ${panelHead('platform-access-title', 'Accesos entre agencias', '1.284', 'El acceso global no cambia los permisos de cada agencia')}
  ${toolbar('3 de 1.284')}
- <div class="min-w-0">
+ <div class="min-w-0 platform-admin-table-wrap">
   <div role="table" aria-label="Accesos entre agencias" class="silent-scroll min-w-0 overflow-x-auto">
    <div class="min-w-[45rem]">
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(11rem,1fr)_7rem_25rem]"><span role="columnheader">Usuario</span><span role="columnheader">Acceso</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
@@ -204,6 +217,14 @@ const accessView = () => `
     </div>`).join('')}</div>
    </div>
   </div>
+ </div>
+ <div class="platform-admin-mobile-cards grid gap-3 sm:grid-cols-2">
+  ${USERS.map((person) => `
+  <article class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
+   <div class="min-w-0"><b class="block text-[13px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title="${person.email}">${person.email}</b><small class="mt-0.5 block text-[11px] text-mute">${person.agencies} agencias activas${person.self ? ' · Vos' : ''}</small></div>
+   <div class="flex flex-wrap gap-1.5">${chip(person.role === 'admin' ? 'Admin global' : person.role === 'viewer' ? 'Solo lectura' : 'Acceso de agencia', person.role === 'admin' ? 'ok' : person.role === 'viewer' ? 'info' : 'mute')}</div>
+   <div class="mt-auto flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">${person.self ? `<button type="button" class="text-button platform-admin-danger">${I.trash}Eliminar mi cuenta</button>` : `${person.role !== 'admin' ? `<button type="button" class="text-button">${I.shield}Hacer admin global</button>` : ''}${person.role ? '<button type="button" class="text-button">Quitar acceso</button>' : ''}<button type="button" class="text-button platform-admin-danger">${I.trash}Eliminar usuario</button>`}</div>
+  </article>`).join('')}
  </div>
 </section>`;
 
@@ -227,7 +248,7 @@ const auditView = () => `
  </div>
 </section>`;
 
-const shell = (view, body) => `<main class="platform-admin-page control-shell">${header()}${tabs(view)}${body}</main>`;
+const shell = (view, body) => `<main class="platform-admin-page control-shell"><style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${header()}${tabs(view)}${body}</main>`;
 
 /* ── «Antes»: diseño anterior con su CSS acotado ─────────────────────────── */
 const OLD_CSS = `<style>
