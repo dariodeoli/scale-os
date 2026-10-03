@@ -18,11 +18,13 @@ content/blog/producto/AAAA-MM-slug.mdx
 
 | Blog | Host | Patrón |
 |---|---|---|
-| Empresa | `blog.scaleparaguay.com` | `/{categoria}/{slug}` |
-| Producto | `producto.scaleparaguay.com` | `/{categoria}/{slug}` |
+| Empresa | `blog.scaleparaguay.com` | `/<slug>` |
+| Producto | `producto.scaleparaguay.com` | `/<slug>` |
 
-Categorías válidas: empresa `servicios · casos · cultura · noticias`; producto
-`novedades · guias · changelog · casos`.
+Categorías (etiqueta visible en el artículo, no segmento de URL): empresa
+`Servicios · Casos · Cultura · Noticias`; producto `Novedades · Guías · Changelog
+· Casos`. El middleware reescribe el host al índice del blog y las URLs de los
+posts son `/<slug>`; el H1 lo dibuja la plantilla (el cuerpo no repite `#`).
 
 ## Frontmatter
 
@@ -48,7 +50,8 @@ Decisiones que le toca cerrar a PLT/DSN:
 
 1. **Portadas**: los artículos van sin imagen (`cover: ""`) hasta que DSN
    defina el set visual. La plantilla debe tolerar el vacío con un fallback de
-   marca; cuando existan assets, se completan `cover` y `coverAlt`.
+   marca; cuando exista una portada, `coverAlt` es obligatorio (a11y) y se
+   completa junto con `cover`.
 2. **Autores**: por ahora `author` es texto (`Dario De Oliveira` en empresa;
    `Equipo de Scale OS` en producto). Si PLT implementa entidad de autor
    (bio/foto/rol), el frontmatter pasa a `authors: [slug]` con un directorio
@@ -57,6 +60,16 @@ Decisiones que le toca cerrar a PLT/DSN:
    la publicación real ocurre cuando el PR integra, como cualquier release.
 4. **Cross-blog**: no se agrega campo; los enlaces van en el cuerpo con UTM
    (`utm_source=blog-scale|blog-producto&utm_medium=cross`).
+
+Notas del contrato que valida `tests/blog-content-156-157.test.ts`:
+
+- **`canonical` es opcional** (`canonical?` en `docs/BLOG-PROPUESTA.md`): el
+  render puede derivarla del host y el slug; si un artículo la declara, debe
+  pertenecer al host del blog y terminar en su slug.
+- El test corre en dos capas: contrato de plataforma sobre **todos** los
+  `.mdx` (campos base, fecha/nombre, canonical opcional, alt con portada y un
+  solo H1) y reglas editoriales sobre los **ocho artículos de la ronda**
+  (límites SEO, taxonomía, hasta 3 etiquetas, extensión, CTA y enlaces).
 
 ## Cuerpo
 

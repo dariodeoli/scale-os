@@ -9,10 +9,10 @@ frontmatter usado está en [`frontmatter-fase1.md`](frontmatter-fase1.md)
 
 | # | Título | URL (canonical) | Keyword (hipótesis) | Intención | Estado |
 |---|---|---|---|---|---|
-| 1 | Qué publicar en Instagram cuando tu negocio no vende solo | `/servicios/que-publicar-en-instagram` | `qué publicar en instagram` | Informacional (TOFU) | listo |
-| 2 | Calendario de contenidos: planificá un mes en dos horas | `/servicios/calendario-de-contenidos` | `calendario de contenidos` | Informacional (TOFU/MOFU) | listo |
-| 3 | Reels que venden: estructura, guion y llamado a la acción | `/servicios/reels-que-venden` | `reels que venden` · `guion para reels` | Informacional (MOFU) | listo |
-| 4 | Agencia, freelancer o equipo interno: la cuenta real | `/servicios/agencia-freelancer-o-equipo-interno` | `contratar agencia de marketing paraguay` | Comercial (MOFU) | `draft: true` (menciona modelos comerciales; espera OK del dueño) |
+| 1 | Qué publicar en Instagram cuando tu negocio no vende solo | `/que-publicar-en-instagram` | `qué publicar en instagram` | Informacional (TOFU) | listo |
+| 2 | Calendario de contenidos: planificá un mes en dos horas | `/calendario-de-contenidos` | `calendario de contenidos` | Informacional (TOFU/MOFU) | listo |
+| 3 | Reels que venden: estructura, guion y llamado a la acción | `/reels-que-venden` | `reels que venden` · `guion para reels` | Informacional (MOFU) | listo |
+| 4 | Agencia, freelancer o equipo interno: la cuenta real | `/agencia-freelancer-o-equipo-interno` | `contratar agencia de marketing paraguay` | Comercial (MOFU) | `draft: true` (menciona modelos comerciales; espera OK del dueño) |
 
 CTA: análisis gratuito (WhatsApp o formulario de contacto). En el #4 hay además
 un CTA segmentado a Scale OS (lectores que administran una agencia).
@@ -21,10 +21,10 @@ un CTA segmentado a Scale OS (lectores que administran una agencia).
 
 | # | Título | URL (canonical) | Keyword (hipótesis) | Intención | Estado |
 |---|---|---|---|---|---|
-| 1 | Cómo ordenar la producción de una agencia sin planillas | `/guias/ordenar-la-produccion-de-una-agencia` | `software para agencias` · `producción agencia` | Informacional (TOFU/MOFU) | listo |
-| 2 | Del presupuesto al cobro: que no se te escape una factura | `/guias/del-presupuesto-al-cobro` | `facturación para agencias` · `cobranza` | Informacional/BOFU | listo |
-| 3 | Portal del cliente: menos «¿cómo va?» y más aprobaciones | `/guias/portal-del-cliente` | `portal del cliente agencia` | Informacional (MOFU) | listo |
-| 4 | Cómo elegir software de gestión para tu agencia (checklist) | `/guias/elegir-software-de-gestion` | `software de gestión para agencias` | Comercial (BOFU) | `draft: true` (compara herramientas, incluida Scale OS; espera OK del dueño) |
+| 1 | Cómo ordenar la producción de una agencia sin planillas | `/ordenar-la-produccion-de-una-agencia` | `software para agencias` · `producción agencia` | Informacional (TOFU/MOFU) | listo |
+| 2 | Del presupuesto al cobro: que no se te escape una factura | `/del-presupuesto-al-cobro` | `facturación para agencias` · `cobranza` | Informacional/BOFU | listo |
+| 3 | Portal del cliente: menos «¿cómo va?» y más aprobaciones | `/portal-del-cliente` | `portal del cliente agencia` | Informacional (MOFU) | listo |
+| 4 | Cómo elegir software de gestión para tu agencia (checklist) | `/elegir-software-de-gestion` | `software de gestión para agencias` | Comercial (BOFU) | `draft: true` (compara herramientas, incluida Scale OS; espera OK del dueño) |
 
 CTA: demo interactiva (`sistema.scaleparaguay.com/demo`) + alta con 30 días
 gratis. Enlaces internos entre guías y un enlace cruzado con el blog de empresa
