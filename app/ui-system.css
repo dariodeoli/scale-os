@@ -168,6 +168,11 @@ html[data-theme="dark"] .foto-perfil{background:#8329c9}
 :is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{width:var(--ui-control-height);min-height:var(--ui-control-height);flex-shrink:0}
 :is(.control-shell,.unified-dialog,.photo-dialog) button:disabled{cursor:not-allowed;opacity:.55}
 :is(.control-shell,.unified-dialog,.photo-dialog) .text-button{display:inline-flex;align-items:center;gap:6px;line-height:1.4;min-height:32px;text-align:left}
+/* AA en oscuro (#154): el texto de acción de marca usa el token de texto
+   (5.27:1 sobre el tinte); con `--brand-600` quedaba en 3.77/2.98 sobre las
+   superficies oscuras. El subrayado del hover conserva la señal. */
+html[data-theme="dark"] .text-button{color:rgb(var(--c-fono-text))}
+html[data-theme="dark"] .text-button:hover{color:rgb(var(--c-fono-light))}
 .control-shell .header-actions :is(.primary,.secondary){min-height:var(--ui-control-height)}
 .control-shell .header-actions .secondary{border:1px solid var(--ui-field-border);background:var(--surface);color:var(--text-muted)}
 .control-shell .demo-tools>select{min-height:32px;padding:5px 8px;font-size:11px}
