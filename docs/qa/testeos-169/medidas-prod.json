@@ -1,0 +1,538 @@
+[
+ {
+  "screen": "clientes-directorio",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "total": 5,
+  "cards": 0,
+  "overflow": 0
+ },
+ {
+  "screen": "clientes-vacio",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "typed": true,
+  "empty": true,
+  "overflow": 0
+ },
+ {
+  "screen": "clientes-alta",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "opened": true,
+  "required": 0
+ },
+ {
+  "screen": "clientes-ficha",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "opened": true,
+  "hasAmounts": true
+ },
+ {
+  "screen": "pipeline-tablero",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "columns": 6,
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 1184
+  },
+  "overflow": 0
+ },
+ {
+  "screen": "pipeline-dnd",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "name": "Prospecto Aurora Café",
+  "fromColumn": "Lead",
+  "from": {
+   "x": 424,
+   "y": 393
+  },
+  "to": {
+   "x": 596,
+   "y": 423
+  },
+  "toColumn": "Contactado",
+  "moved": true
+ },
+ {
+  "screen": "presupuestos-lista",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "total": 5,
+  "overflow": 0
+ },
+ {
+  "screen": "presupuestos-consulta",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "consult": true,
+  "terms": false
+ },
+ {
+  "screen": "presupuestos-enlace",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "conditions": "Alcance. Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta. Vencimiento. La vigencia cargada llega hasta el 18-oct; desde esa fecha el enlace deja d",
+  "sharedUrl": "",
+  "demoBlocked": true
+ },
+ {
+  "screen": "presupuestos-compositor",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "options": true,
+  "collapsed": true
+ },
+ {
+  "screen": "planes",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "plans": 3,
+  "overflow": 0
+ },
+ {
+  "screen": "metricas",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "events": null,
+  "overflow": 0
+ },
+ {
+  "screen": "busqueda-global",
+  "theme": "light",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "typed": true,
+  "results": "6 resultados CLIENTES Aurora Café hola@auroracafe.example PROYECTOS Campaña · Aurora Café Aurora Café · 4 piezas PRODUCCIÓN Video de testimonio Aurora Café · Campaña · Aurora Café Carrusel de producto"
+ },
+ {
+  "screen": "clientes-directorio",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "total": 5,
+  "cards": 0,
+  "overflow": 0
+ },
+ {
+  "screen": "clientes-vacio",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "typed": true,
+  "empty": true,
+  "overflow": 0
+ },
+ {
+  "screen": "clientes-alta",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "opened": true,
+  "required": 0
+ },
+ {
+  "screen": "clientes-ficha",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "opened": true,
+  "hasAmounts": true
+ },
+ {
+  "screen": "pipeline-tablero",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "columns": 6,
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 1184
+  },
+  "overflow": 0
+ },
+ {
+  "screen": "pipeline-dnd",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "name": "Prospecto Roble Muebles",
+  "fromColumn": "Contactado",
+  "from": {
+   "x": 676,
+   "y": 393
+  },
+  "to": {
+   "x": 344,
+   "y": 423
+  },
+  "toColumn": "Lead",
+  "moved": true
+ },
+ {
+  "screen": "presupuestos-lista",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "total": 5,
+  "overflow": 0
+ },
+ {
+  "screen": "presupuestos-consulta",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "consult": true,
+  "terms": false
+ },
+ {
+  "screen": "presupuestos-enlace",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "conditions": "Alcance. Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta. Vencimiento. La vigencia cargada llega hasta el 18-oct; desde esa fecha el enlace deja d",
+  "sharedUrl": "",
+  "demoBlocked": true
+ },
+ {
+  "screen": "presupuestos-compositor",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "options": true,
+  "collapsed": true
+ },
+ {
+  "screen": "planes",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "plans": 3,
+  "overflow": 0
+ },
+ {
+  "screen": "metricas",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "events": null,
+  "overflow": 0
+ },
+ {
+  "screen": "busqueda-global",
+  "theme": "dark",
+  "width": 1440,
+  "height": 900,
+  "ok": true,
+  "typed": true,
+  "results": "6 resultados CLIENTES Aurora Café hola@auroracafe.example PROYECTOS Campaña · Aurora Café Aurora Café · 4 piezas PRODUCCIÓN Video de testimonio Aurora Café · Campaña · Aurora Café Carrusel de producto"
+ },
+ {
+  "screen": "clientes-directorio",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "total": 20,
+  "cards": 20,
+  "overflow": 0
+ },
+ {
+  "screen": "clientes-vacio",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "typed": true,
+  "empty": true,
+  "overflow": 0
+ },
+ {
+  "screen": "clientes-alta",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "opened": true,
+  "required": 0
+ },
+ {
+  "screen": "clientes-ficha",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "opened": true,
+  "hasAmounts": true
+ },
+ {
+  "screen": "pipeline-tablero",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "columns": 6,
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 358
+  },
+  "overflow": 0
+ },
+ {
+  "screen": "pipeline-dnd",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "name": "Prospecto Roble Muebles",
+  "fromColumn": "Lead",
+  "from": {
+   "x": 208,
+   "y": 350
+  },
+  "to": {
+   "x": 366,
+   "y": 349
+  },
+  "toColumn": "Propuesta",
+  "moved": true
+ },
+ {
+  "screen": "presupuestos-lista",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "total": 20,
+  "overflow": 0
+ },
+ {
+  "screen": "presupuestos-consulta",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "consult": true,
+  "terms": false
+ },
+ {
+  "screen": "presupuestos-enlace",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "conditions": "Alcance. Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta. Vencimiento. La vigencia cargada llega hasta el 18-oct; desde esa fecha el enlace deja d",
+  "sharedUrl": "",
+  "demoBlocked": true
+ },
+ {
+  "screen": "presupuestos-compositor",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "options": true,
+  "collapsed": true
+ },
+ {
+  "screen": "planes",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "plans": 3,
+  "overflow": 0
+ },
+ {
+  "screen": "metricas",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "events": null,
+  "overflow": 0
+ },
+ {
+  "screen": "busqueda-global",
+  "theme": "light",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "typed": true,
+  "results": "6 resultados CLIENTES Aurora Café hola@auroracafe.example PROYECTOS Campaña · Aurora Café Aurora Café · 4 piezas PRODUCCIÓN Video de testimonio Aurora Café · Campaña · Aurora Café Carrusel de producto"
+ },
+ {
+  "screen": "clientes-directorio",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "total": 20,
+  "cards": 20,
+  "overflow": 0
+ },
+ {
+  "screen": "clientes-vacio",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "typed": true,
+  "empty": true,
+  "overflow": 0
+ },
+ {
+  "screen": "clientes-alta",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "opened": true,
+  "required": 0
+ },
+ {
+  "screen": "clientes-ficha",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "opened": true,
+  "hasAmounts": true
+ },
+ {
+  "screen": "pipeline-tablero",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "columns": 6,
+  "board": {
+   "scrollWidth": 1500,
+   "clientWidth": 358
+  },
+  "overflow": 0
+ },
+ {
+  "screen": "pipeline-dnd",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "name": "Prospecto Marea Cosmética",
+  "fromColumn": "Contactado",
+  "from": {
+   "x": 267,
+   "y": 350
+  },
+  "to": {
+   "x": 24,
+   "y": 349
+  },
+  "toColumn": "Lead",
+  "moved": true
+ },
+ {
+  "screen": "presupuestos-lista",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "total": 20,
+  "overflow": 0
+ },
+ {
+  "screen": "presupuestos-consulta",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "consult": true,
+  "terms": false
+ },
+ {
+  "screen": "presupuestos-enlace",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "conditions": "Alcance. Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta. Vencimiento. La vigencia cargada llega hasta el 18-oct; desde esa fecha el enlace deja d",
+  "sharedUrl": "",
+  "demoBlocked": true
+ },
+ {
+  "screen": "presupuestos-compositor",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "options": true,
+  "collapsed": true
+ },
+ {
+  "screen": "planes",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "plans": 3,
+  "overflow": 0
+ },
+ {
+  "screen": "metricas",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "events": null,
+  "overflow": 0
+ },
+ {
+  "screen": "busqueda-global",
+  "theme": "dark",
+  "width": 390,
+  "height": 844,
+  "ok": true,
+  "typed": true,
+  "results": "6 resultados CLIENTES Aurora Café hola@auroracafe.example PROYECTOS Campaña · Aurora Café Aurora Café · 4 piezas PRODUCCIÓN Video de testimonio Aurora Café · Campaña · Aurora Café Carrusel de producto"
+ }
+]
