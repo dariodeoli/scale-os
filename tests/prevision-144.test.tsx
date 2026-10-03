@@ -35,6 +35,14 @@ async function run(){
  await respond(requests.at(-1)!,base);
  assert.match(rendered(),/total planificado/,'el total planificado del forecast se dibuja');
  assert.equal(renderer.root.findAllByType('summary').some(node=>String(node.children).includes('Ver desglose')),true,'el detalle bimoneda vive bajo «Ver desglose»');
+ // #149: gastos planificados y reales bloquean hasta completar sus obligatorios.
+ const expenseButton=()=>renderer.root.findAllByType('button').find(button=>String(button.props.children).includes('Agregar gasto planificado'))!;
+ assert.equal(expenseButton().props.disabled,true,'sin monto no se agrega un gasto planificado');
+ const expenseAmount=renderer.root.findAll(node=>node.type==='input').find(node=>node.props.id==='forecast-expense-amount')!;
+ act(()=>expenseAmount.props.onChange({target:{value:'250000'}}));
+ assert.equal(expenseButton().props.disabled,false,'con monto positivo se habilita el gasto planificado');
+ const realButton=()=>renderer.root.findAllByType('button').find(button=>String(button.props.children).includes('Registrar gasto real'))!;
+ assert.equal(realButton().props.disabled,true,'sin cuenta ni monto no se registra un gasto real');
  assert.match(rendered(),/Cargando gastos planificados/,'mientras llega el detalle se anuncia la carga');
  assert.doesNotMatch(rendered(),/Sin gastos planificados/,'el detalle en curso no puede leerse como vacío');
  // El detalle llega: se lista y desaparecen carga y vacío.
@@ -59,7 +67,7 @@ async function run(){
  await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});
  await respond(requests.at(-1)!,{...base,planned_expenses:{month:'2026-09',records:[]}});
  await respond(plannedRequest(),{month:'2026-09',records:[],totals:[]});
- assert.match(rendered(),/Sin gastos planificados para 01-sept/,'sin totales ni detalle el vacío es honesto');
+ assert.match(rendered(),/Sin gastos planificados para Septiembre 2026/,'sin totales ni detalle el vacío es honesto');
  assert.doesNotMatch(rendered(),/La previsión registra gastos planificados/);
  act(()=>renderer.unmount());
  console.log('PASS previsión #144: el estado vacío de gastos planificados respeta el total del forecast (carga, detalle, fallo y vacío honesto) y el detalle bimoneda vive bajo «Ver desglose»');
