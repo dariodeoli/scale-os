@@ -57,38 +57,57 @@ export function windowSlice<T>(rows: readonly T[], size: number): T[] {
 export type ListRowWindow = { inicio: number; fin: number; altoFila: number };
 
 /**
+ * Próximo tramo a montar a partir de una medición (puro y testeable).
+ *
+ * Guardas contra el desborde de la ventana (#154): con el grupo fuera del
+ * viewport (`altoVista <= 0`) se conserva el tramo anterior — desmontar todo
+ * convertía el espaciador en la «primera fila» y su alto (miles de px) se
+ * medía como alto de fila, inflando el scroll. Nunca se monta menos de una
+ * fila, así el espaciador no queda como único hijo del `rowgroup`.
+ */
+export function ventanaFilas({total, anterior, scrollTop, altoVista, altoFila, margen = 2}: {total: number; anterior: ListRowWindow; scrollTop: number; altoVista: number; altoFila: number; margen?: number}): ListRowWindow {
+ if (total <= 0) return {inicio: 0, fin: 0, altoFila: anterior.altoFila || 50};
+ const alto = Math.max(1, Math.round(altoFila) || anterior.altoFila || 50);
+ if (altoVista <= 0) return anterior;
+ const {inicio, fin} = ventanaDeLista({total, scrollTop, altoVista, altoFila: alto, margen});
+ const finSeguro = Math.min(total, Math.max(fin, inicio + 1));
+ return anterior.inicio === inicio && anterior.fin === finSeguro && anterior.altoFila === alto ? anterior : {inicio, fin: finSeguro, altoFila: alto};
+}
+
+/**
  * Tramo de filas montado según el scroll (ADOPCION-V2 P4, §15.11): mide el
  * `[role="rowgroup"]` del contenedor y delega el rango en `ventanaDeLista` de
  * la biblioteca; los extremos se rellenan con espaciadores para conservar la
  * altura. Con la lista completa dentro del viewport (o sin medición) el rango
  * es la lista entera: la ventana nunca esconde filas ni cambia los conteos.
+ *
+ * El alto de fila sale solo de una fila real (`:not([aria-hidden="true"])`):
+ * un espaciador nunca se mide como fila.
  */
 export function useFilasVisibles(ref: RefObject<HTMLElement|null>, total: number, altoFilaInicial = 50, margen = 2): ListRowWindow {
-  const [ventana, setVentana] = useState<ListRowWindow>(() => ({inicio: 0, fin: total, altoFila: altoFilaInicial}));
-  useEffect(() => {
-    if (typeof window === 'undefined' || total <= 0) {
-      setVentana(anterior => anterior.inicio === 0 && anterior.fin === total && anterior.altoFila === altoFilaInicial ? anterior : {inicio: 0, fin: total, altoFila: altoFilaInicial});
-      return;
-    }
-    const contenedor = ref.current;
-    if (!contenedor) {
-      setVentana({inicio: 0, fin: total, altoFila: altoFilaInicial});
-      return;
-    }
-    const medir = () => {
-      const grupo = contenedor.querySelector<HTMLElement>('[role="rowgroup"]');
-      if (!grupo) return;
-      const fila = grupo.querySelector<HTMLElement>('[role="row"]');
-      const altoFila = fila ? Math.max(1, Math.round(fila.getBoundingClientRect().height)) : altoFilaInicial;
-      const rect = grupo.getBoundingClientRect();
-      const altoVista = Math.max(0, Math.min(window.innerHeight, rect.bottom) - Math.max(0, rect.top));
-      const {inicio, fin} = ventanaDeLista({total, scrollTop: Math.max(0, -rect.top), altoVista, altoFila, margen});
-      setVentana(anterior => anterior.inicio === inicio && anterior.fin === fin && anterior.altoFila === altoFila ? anterior : {inicio, fin, altoFila});
-    };
-    medir();
-    window.addEventListener('scroll', medir, {passive: true});
-    window.addEventListener('resize', medir);
-    return () => { window.removeEventListener('scroll', medir); window.removeEventListener('resize', medir); };
-  }, [ref, total, altoFilaInicial, margen]);
-  return ventana;
+ const [ventana, setVentana] = useState<ListRowWindow>(() => ({inicio: 0, fin: total, altoFila: altoFilaInicial}));
+ useEffect(() => {
+  if (typeof window === 'undefined' || total <= 0) {
+   setVentana(anterior => anterior.inicio === 0 && anterior.fin === total && anterior.altoFila === altoFilaInicial ? anterior : {inicio: 0, fin: total, altoFila: altoFilaInicial});
+   return;
+  }
+  const contenedor = ref.current;
+  if (!contenedor) {
+   setVentana({inicio: 0, fin: total, altoFila: altoFilaInicial});
+   return;
+  }
+  const medir = () => {
+   const grupo = contenedor.querySelector<HTMLElement>('[role="rowgroup"]');
+   if (!grupo) return;
+   const fila = grupo.querySelector<HTMLElement>('[role="row"]:not([aria-hidden="true"])');
+   const rect = grupo.getBoundingClientRect();
+   const altoVista = Math.max(0, Math.min(window.innerHeight, rect.bottom) - Math.max(0, rect.top));
+   setVentana(anterior => ventanaFilas({total, anterior, scrollTop: Math.max(0, -rect.top), altoVista, altoFila: fila ? fila.getBoundingClientRect().height : anterior.altoFila, margen}));
+  };
+  medir();
+  window.addEventListener('scroll', medir, {passive: true});
+  window.addEventListener('resize', medir);
+  return () => { window.removeEventListener('scroll', medir); window.removeEventListener('resize', medir); };
+ }, [ref, total, altoFilaInicial, margen]);
+ return ventana;
 }
