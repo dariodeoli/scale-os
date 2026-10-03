@@ -36,9 +36,9 @@ rama; los visuales del preview quedan en #147.
 
 - `node backend/test-client-portal.mjs` → PASS con todos los casos de la matriz
   (incluye los agregados de esta ronda).
-- Capturas 390/1440 en claro y oscuro: ver `docs/qa/portal-153/capturas/`
-  (invitación vencida/revocada, ingreso, tablero y detalle) y
-  `docs/qa/plt-152/capturas/` (Configuración y Preferencias).
+- Capturas 390/1440 en claro y oscuro: ver `docs/qa/plt-al-152-153/capturas/`
+  (invitación válida/vencida/revocada, ingreso, recuperar, tablero y detalle del
+  portal; Configuración y diálogo de preferencias).
 
 ## Hallazgos y arreglos de esta ronda
 

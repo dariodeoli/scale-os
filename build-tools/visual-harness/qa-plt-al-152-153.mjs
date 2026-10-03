@@ -46,13 +46,13 @@ const deliveryId=psql(`select id from client_portal_deliveries where organizatio
 
 // Usuario, grant y sesión de portal controlados (sin enviar correo ni aceptar nada real).
 const rawSession=hash('qa153-session-'+Date.now());
-psql(`delete from client_portal_sessions where portal_user_id in (select id from client_portal_users where organization_id=${ORG} and email_normalized='qa-portal@example.invalid')`);
-psql(`delete from client_portal_grants where portal_user_id in (select id from client_portal_users where organization_id=${ORG} and email_normalized='qa-portal@example.invalid')`);
-psql(`delete from client_portal_users where organization_id=${ORG} and email_normalized='qa-portal@example.invalid'`);
+psql(`delete from client_portal_sessions where portal_user_id in (select id from client_portal_users where email_normalized='qa-portal@example.invalid')`);
+psql(`delete from client_portal_grants where portal_user_id in (select id from client_portal_users where email_normalized='qa-portal@example.invalid')`);
+psql(`delete from client_portal_users where email_normalized='qa-portal@example.invalid'`);
 psql(`insert into client_portal_users(organization_id,client_id,email,email_normalized,password_hash,full_name) values(${ORG},${clientId},'qa-portal@example.invalid','qa-portal@example.invalid','qa-no-login','Cliente QA')`);
 const portalUserId=psql(`select id from client_portal_users where organization_id=${ORG} and email_normalized='qa-portal@example.invalid'`);
 psql(`insert into client_portal_grants(organization_id,client_id,portal_user_id,granted_by_user_id) values(${ORG},${clientId},${portalUserId},${ownerId})`);
-psql(`insert into client_portal_sessions(token_hash,portal_user_id,expires_at) values('${rawSession}',${portalUserId},now()+interval '7 days')`);
+psql(`insert into client_portal_sessions(token_hash,portal_user_id,expires_at) values('${hash(rawSession)}',${portalUserId},now()+interval '7 days')`);
 psql(`insert into client_portal_delivery_decisions(organization_id,delivery_id,portal_user_id,version,decision) values(${ORG},${deliveryId},${portalUserId},1,'approved') on conflict(delivery_id,portal_user_id,version) do update set decision=excluded.decision,updated_at=now()`);
 
 const rawValid=hash('qa153-valid-'+Date.now()),rawExpired=hash('qa153-expired-'+Date.now()),rawRevoked=hash('qa153-revoked-'+Date.now());

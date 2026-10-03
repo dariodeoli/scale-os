@@ -14,7 +14,7 @@ import {execFileSync, spawn} from 'node:child_process';
 import {existsSync, mkdirSync, writeFileSync, appendFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {createServer} from 'node:http';
+import {createServer,request as httpRequest} from 'node:http';
 
 const here=dirname(fileURLToPath(import.meta.url));
 const repo=resolve(here,'../..');
@@ -98,16 +98,17 @@ log(`PLT: org scale ${org} · dueño ${owner} · demo ${demoOrg}`);
 const front=spawn('npx',['next','start','-p',String(FRONT_PORT),'-H','127.0.0.1'],{cwd:repo,env:{...process.env,SCALE_API_ORIGIN:`http://127.0.0.1:${API_PORT}`},stdio:['ignore','pipe','pipe']});
 front.stdout.on('data',d=>appendFileSync(LOG,`[front] ${d}`));front.stderr.on('data',d=>appendFileSync(LOG,`[front:err] ${d}`));
 await waitFor(async()=>{if(front.exitCode!==null)throw new Error(`el front terminó con código ${front.exitCode}`);const res=await fetch(`http://127.0.0.1:${FRONT_PORT}/status`);return res.ok;},{label:'front'});
-const proxy=createServer(async(req,res)=>{
- try{
-  const url=new URL(req.url,'http://127.0.0.1');
-  const target=url.pathname.startsWith('/core-api/')?`http://127.0.0.1:${API_PORT}${url.pathname.replace('/core-api','')}${url.search}`:`http://127.0.0.1:${FRONT_PORT}${req.url}`;
-  const body=req.method==='GET'||req.method==='HEAD'?undefined:await new Promise(r=>{const chunks=[];req.on('data',c=>chunks.push(c));req.on('end',()=>r(Buffer.concat(chunks)));});
-  const upstream=await fetch(target,{method:req.method,headers:{...req.headers,host:'app.scaleparaguay.com'},body,redirect:'manual'});
-  const headers={};upstream.headers.forEach((value,key)=>{if(!['content-encoding','transfer-encoding','content-length'].includes(key))headers[key]=value;});
-  res.writeHead(upstream.status,headers);
-  res.end(Buffer.from(await upstream.arrayBuffer()));
- }catch(error){res.writeHead(502,{'content-type':'text/plain'});res.end(`proxy: ${error.message}`);}
+const proxy=createServer((req,res)=>{
+ // `fetch` de Node ignora el header `host` (forbidden); con http.request el
+ // front recibe app.scaleparaguay.com y su middleware sirve /cliente/* en QA.
+ const url=new URL(req.url,'http://127.0.0.1');
+ const target=url.pathname.startsWith('/core-api/')?{port:API_PORT,path:url.pathname.replace('/core-api','')+url.search}:{port:FRONT_PORT,path:req.url};
+ const upstream=httpRequest({hostname:'127.0.0.1',port:target.port,path:target.path,method:req.method,headers:{...req.headers,host:'app.scaleparaguay.com'}},response=>{
+  res.writeHead(response.statusCode||502,response.headers);
+  response.pipe(res);
+ });
+ upstream.on('error',error=>{if(!res.headersSent)res.writeHead(502,{'content-type':'text/plain'});res.end(`proxy: ${error.message}`);});
+ req.pipe(upstream);
 });
 await new Promise(r=>proxy.listen(PROXY_PORT,'127.0.0.1',r));
 writeFileSync(WORK_SESSION,`BASE=http://127.0.0.1:${PROXY_PORT}\nORG=${demoOrg}\nSESSION=${cookie}\nDEMO_ROLE=owner\nOWNER_SESSION=${ownerCookie}\n`);
