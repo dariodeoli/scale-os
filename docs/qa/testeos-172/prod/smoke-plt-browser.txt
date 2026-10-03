@@ -1,0 +1,29 @@
+· proveedores configurados: {"google":true,"microsoft":false,"apple":false}
+✓ acceso 1440 light: pantalla de acceso: true
+✓ acceso 1440 light: Google visible: true
+✓ acceso 1440 light: Microsoft oculto (no configurado): false
+✓ acceso 1440 light: Apple oculto (no configurado): false
+· captura acceso-1440-light.jpg
+✓ portal 1440 light: ingreso del cliente: true
+· captura portal-ingresar-1440-light.jpg
+✓ acceso 1440 dark: pantalla de acceso: true
+✓ acceso 1440 dark: Google visible: true
+✓ acceso 1440 dark: Microsoft oculto (no configurado): false
+✓ acceso 1440 dark: Apple oculto (no configurado): false
+· captura acceso-1440-dark.jpg
+✓ portal 1440 dark: ingreso del cliente: true
+· captura portal-ingresar-1440-dark.jpg
+✓ acceso 390 light: pantalla de acceso: true
+✓ acceso 390 light: Google visible: true
+✓ acceso 390 light: Microsoft oculto (no configurado): false
+✓ acceso 390 light: Apple oculto (no configurado): false
+· captura acceso-390-light.jpg
+✓ portal 390 light: ingreso del cliente: true
+· captura portal-ingresar-390-light.jpg
+✓ acceso 390 dark: pantalla de acceso: true
+✓ acceso 390 dark: Google visible: true
+✓ acceso 390 dark: Microsoft oculto (no configurado): false
+✓ acceso 390 dark: Apple oculto (no configurado): false
+· captura acceso-390-dark.jpg
+✓ portal 390 dark: ingreso del cliente: true
+· captura portal-ingresar-390-dark.jpg

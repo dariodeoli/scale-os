@@ -17,7 +17,7 @@ const repo=resolve(here,'../..');
 const arg=(name,fallback='')=>{const index=process.argv.indexOf(`--${name}`);return index>=0&&process.argv[index+1]?process.argv[index+1]:fallback;};
 const tag=arg('tag','despues');
 const withChecks=process.argv.includes('--checks');
-const out=resolve(repo,'docs/qa/demo-151',tag);
+const out=resolve(repo,process.env.QA_OUT||'docs/qa/demo-151',tag);
 mkdirSync(out,{recursive:true});
 const session=Object.fromEntries(readFileSync(resolve(repo,'work/visual-harness/ops-qa-session.txt'),'utf8').split('\n').filter(Boolean).map((line)=>line.split('=')));
 const BASE=process.env.BASE_URL||session.BASE||'http://127.0.0.1:3006';
