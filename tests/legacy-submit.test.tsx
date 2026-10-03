@@ -48,6 +48,11 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  // dialog environment, fixtures and initial field values are local doubles.
   const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
+   EntityPicker:({legend}:{legend:string})=>React.createElement('fieldset',{'aria-label':legend}),
+   isPositiveInput:(value:string)=>/^[1-9]\d*$/.test(value),
+   listDateShort:(value:string|null|undefined)=>value||null,
+   money:(value:string|number,currency:string)=>`${currency} ${value}`,
+   teamRoleLabels:{admin:'Administrador'} as Record<string,string>,
    SelectCustom:({label,value,onChange,disabled}:{label:string;value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':label,value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    useCompanyCurrency:()=>({currency:'USD'}),
   useForm:(options:Parameters<typeof useForm>[0])=>useForm({...options,defaultValues:{...options?.defaultValues,...defaults}}),

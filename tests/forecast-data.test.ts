@@ -115,7 +115,7 @@ assert.equal(normalizePlannedExpenses({...plannedPayload, totals: [{currency: 'P
 assert.equal(normalizePlannedExpenses({month: '2026-09'}), null, 'sin listas no hay payload');
 
 // --- Fechas y entradas ------------------------------------------------------
-assert.equal(dateLabel('2026-09'), '01-sept');
+assert.equal(dateLabel('2026-09'), 'Septiembre 2026');
 assert.equal(dateLabel('2026-09-17'), '17-sept');
 assert.equal(dateLabel(''), '');
 assert.equal(currentForecastMonth(new Date('2026-10-01T02:59:59Z')), '2026-09');

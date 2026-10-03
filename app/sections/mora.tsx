@@ -42,7 +42,7 @@ const MORA_COLUMNS: Column[] = [
 const STATUS_TONE: Record<ClientPaymentStatus['payment_status'], ChipTone> = {up_to_date: 'ok', due_soon: 'warn', late: 'warn', severe: 'bad'};
 
 function statusLabel(client: ClientPaymentStatus) {
-  if (client.payment_status === 'up_to_date') return 'Al día';
+  if (client.payment_status === 'up_to_date') return 'Sin mora';
   if (client.payment_status === 'due_soon') return `Vence ${listDateShort(client.next_due_on) || 'próximamente'}`;
   return `${client.days_overdue} días de mora`;
 }
@@ -93,7 +93,7 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
     {/* La toolbar vive en su propia fila compacta (≥1280, #89): el header
         conserva el título completo y los filtros no lo recortan (#95). */}
     <FilterToolbar summary={`${visible.length} de ${paymentStatuses.length}`}>
-      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Al día'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
+      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Sin mora'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
       <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar cliente en cobranza" value={moraSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setMoraSearch(event.target.value)} placeholder="Buscar cliente…"/>
     </FilterToolbar>
 
@@ -105,7 +105,7 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
     : null}
 
     <KpiStrip>
-      <Kpi label="Al día" valor={kpis.alDia} hint="Sin saldo vencido"/>
+      <Kpi label="Sin mora" valor={kpis.alDia} hint="Sin saldo vencido"/>
       <Kpi label="Por vencer" valor={kpis.porVencer} hint="Vencen en los próximos días"/>
       <Kpi label="En mora" valor={kpis.enMora} hint="Tarde o mora grave" destacado={kpis.enMora > 0}/>
       <Kpi

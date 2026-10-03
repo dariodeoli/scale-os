@@ -1,6 +1,7 @@
 import {currentAsuncionMonth,todayAsuncion} from './client-format';
 import {currencyCodes,type Currency} from './currencies';
 import {listDateShort} from './list-format';
+import {listMonthLabel} from './month-format';
 
 /**
  * Capa de datos de la Previsión financiera (`/pagos/prevision`).
@@ -88,7 +89,8 @@ export function normalizePlannedExpenses(value: unknown): PlannedExpensesPayload
 }
 
 export function dateLabel(value: string): string {
-  return /^\d{4}-\d{2}$/.test(value) ? listDateShort(`${value}-01`) || value : listDateShort(value) || value;
+  if (/^\d{4}-\d{2}$/.test(value)) return listMonthLabel(value) || value;
+  return listDateShort(value) || value;
 }
 
 export function currentForecastMonth(now = new Date()) {

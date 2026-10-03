@@ -1,0 +1,48 @@
+✓ finanzas (1440 light): el titular es de Horizonte: true
+✓ finanzas (1440 light): sin Scale Strategy Group en la demo: false
+✓ factura (1440 light): «Crear factura» deshabilitado en vacío: true
+✓ factura (1440 light): muestra el buscador de clientes: true
+✓ cobro (1440 light): «Registrar cobro» deshabilitado en vacío: true
+✓ cobro (1440 light): sin correos demo: false
+✓ cobro (1440 light): el custodio muestra nombre: true
+✓ previsión (1440 light): mes largo visible: true
+✓ previsión (1440 light): «Agregar gasto planificado» bloqueado: true
+✓ previsión (1440 light): «Registrar gasto real» bloqueado: true
+✓ mora (1440 light): «Sin mora» visible: true
+✓ mora (1440 light): «Al día» retirado: false
+✓ finanzas (1440 dark): el titular es de Horizonte: true
+✓ finanzas (1440 dark): sin Scale Strategy Group en la demo: false
+✓ factura (1440 dark): «Crear factura» deshabilitado en vacío: true
+✓ factura (1440 dark): muestra el buscador de clientes: true
+✓ cobro (1440 dark): «Registrar cobro» deshabilitado en vacío: true
+✓ cobro (1440 dark): sin correos demo: false
+✓ cobro (1440 dark): el custodio muestra nombre: true
+✓ previsión (1440 dark): mes largo visible: true
+✓ previsión (1440 dark): «Agregar gasto planificado» bloqueado: true
+✓ previsión (1440 dark): «Registrar gasto real» bloqueado: true
+✓ mora (1440 dark): «Sin mora» visible: true
+✓ mora (1440 dark): «Al día» retirado: false
+✓ finanzas (390 light): el titular es de Horizonte: true
+✓ finanzas (390 light): sin Scale Strategy Group en la demo: false
+✓ factura (390 light): «Crear factura» deshabilitado en vacío: true
+✓ factura (390 light): muestra el buscador de clientes: true
+✓ cobro (390 light): «Registrar cobro» deshabilitado en vacío: true
+✓ cobro (390 light): sin correos demo: false
+✓ cobro (390 light): el custodio muestra nombre: true
+✓ previsión (390 light): mes largo visible: true
+✓ previsión (390 light): «Agregar gasto planificado» bloqueado: true
+✓ previsión (390 light): «Registrar gasto real» bloqueado: true
+✓ mora (390 light): «Sin mora» visible: true
+✓ mora (390 light): «Al día» retirado: false
+✓ finanzas (390 dark): el titular es de Horizonte: true
+✓ finanzas (390 dark): sin Scale Strategy Group en la demo: false
+✓ factura (390 dark): «Crear factura» deshabilitado en vacío: true
+✓ factura (390 dark): muestra el buscador de clientes: true
+✓ cobro (390 dark): «Registrar cobro» deshabilitado en vacío: true
+✓ cobro (390 dark): sin correos demo: false
+✓ cobro (390 dark): el custodio muestra nombre: true
+✓ previsión (390 dark): mes largo visible: true
+✓ previsión (390 dark): «Agregar gasto planificado» bloqueado: true
+✓ previsión (390 dark): «Registrar gasto real» bloqueado: true
+✓ mora (390 dark): «Sin mora» visible: true
+✓ mora (390 dark): «Al día» retirado: false

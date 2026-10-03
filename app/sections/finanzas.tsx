@@ -2,6 +2,7 @@
 import {useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction} from 'react';
 import {ArrowLeftRight, Plus} from 'lucide-react';
 import {ActorAvatar, safePhoto} from '../actor-identity';
+import {PersonContainer} from '../person-container';
 import {ReceiptReversal, ReconciliationWorkspace} from '../daily-controls';
 import {RemoveRecord} from '../archive-controls';
 import {moneyKpi} from '../client-format';
@@ -186,7 +187,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               {account.institution ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.institution}>{account.institution}</dd></div> : null}
               {account.account_number ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd className="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title={account.account_number}>{account.account_number}</dd></div> : null}
               {account.holder_name ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.holder_name}>{account.holder_name}</dd></div> : null}
-              {account.custodian_email ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.custodian_email}>{account.custodian_email}</dd></div> : null}
+              {account.custodian_name||account.custodian_email ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd className="flex min-w-0 justify-end" title={account.custodian_name||account.custodian_email||undefined}><PersonContainer size="sm" name={account.custodian_name||account.custodian_email!} photoUrl={account.custodian_photo_url}/></dd></div> : null}
             </dl>
             <footer className="mt-auto flex items-center justify-end gap-1 border-t border-ink-600/60 pt-2">
               <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>

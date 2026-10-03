@@ -59,7 +59,7 @@ assert.equal(validMonth('2026-09'), true);
 assert.equal(validMonth('2026-13'), false);
 assert.equal(monthOf('2026-09-10T15:00:00Z'), '2026-09');
 assert.equal(monthOf(null), null);
-assert.equal(monthLabel('2026-09'), '01-sept');
+assert.equal(monthLabel('2026-09'), 'Septiembre 2026');
 // Rango de período (ronda 14, #62): completo, ordenado y con año visible.
 assert.equal(monthRangeLabel('2025-10', '2026-09'), '1 oct. 2025 — 30 sept. 2026', 'el ejemplo del pedido se arma tal cual');
 assert.equal(monthRangeLabel('2026-04', '2026-09'), '1 abr. 2026 — 30 sept. 2026', 'histórico de 6 meses cierra en el último día');

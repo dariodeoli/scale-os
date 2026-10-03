@@ -8,6 +8,12 @@ const {SelectCustom}=require('../app/profile-controls') as typeof import('../app
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
+// La pantalla consulta el mes de Asunción por defecto: reloj fijo para que el
+// fixture (2026-09) no dependa del mes calendario real.
+const RealDate=Date;
+const FIXED_NOW=RealDate.parse('2026-09-10T15:00:00Z');
+class FixedDate extends RealDate{constructor(...args:unknown[]){if(args.length)super(...(args as [string|number]));else super(FIXED_NOW);}static now(){return FIXED_NOW;}}
+globalThis.Date=FixedDate as DateConstructor;
 const {FinancialForecast}=require('../app/financial-forecast') as typeof import('../app/financial-forecast');
 const {currentForecastMonth}=require('../app/forecast-data') as typeof import('../app/forecast-data');
 const {formatWholeMoney,formatSignedMoney}=require('../app/amount-format') as typeof import('../app/amount-format');
@@ -63,7 +69,7 @@ async function run(){
  assert.equal(renderer.root.findAllByType(SelectCustom).length,6,'horizon buttons keep the expense form selects in place');
  act(()=>horizonButtons[1].props.onClick());
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09&months=3','horizon changes fetch months');await respond(requests.at(-1)!,multiFixture);
- assert.match(rendered(),/Proyección de caja y resultado/);assert.match(rendered(),/1,860/);assert.match(rendered(),/2,060/);assert.match(rendered(),/−/,'negative projection renders a minus sign');assert.match(rendered(),/01-sept/);
+ assert.match(rendered(),/Proyección de caja y resultado/);assert.match(rendered(),/1,860/);assert.match(rendered(),/2,060/);assert.match(rendered(),/−/,'negative projection renders a minus sign');assert.match(rendered(),/Septiembre 2026/);
  assert.equal(renderer.root.findAllByType('table').length,2,'one compact table per currency');
  assert.match(rendered(),/Sin factura/,'contracted clients remain visible in the horizon view');
  assert.equal(renderer.root.findAllByType(SelectCustom).length,0,'month tools hide in the horizon view');
@@ -123,8 +129,9 @@ async function run(){
  // El salario se guarda en la moneda de la ficha, sin el par limitado a PYG|USD.
  const salaryButton=renderer.root.findAllByType('button').find(button=>String(button.props.title||'').startsWith('Editar salario'))!;
  act(()=>salaryButton.props.onClick());
- const salaryFields=renderer.root.findAllByProps({className:'amount-field'});
- assert.equal(salaryFields.at(-1)!.props['data-currency'],'EUR','the salary field draws the record currency');
+ const {AmountInput}=require('../app/profile-controls') as typeof import('../app/profile-controls');
+ const salaryFields=renderer.root.findAllByType(AmountInput);
+ assert.equal(salaryFields.at(-1)!.props.currency,'EUR','the salary field draws the record currency');
  act(()=>{void renderer.root.findAllByType('form').at(-1)!.props.onSubmit({preventDefault(){}});});
  const salaryPatch=requests.at(-1)!;
  assert.equal(salaryPatch.url,'/core-api/api/agency/collaborators/11');

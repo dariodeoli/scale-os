@@ -12,6 +12,11 @@ import {currencyCodes} from './currencies';
 import {financeNoticeHref,financePurposeNotice} from './finance-privacy';
 import {AmountInput,SelectCustom} from './profile-controls';
 import {UrgencySelect} from './urgency';
+import {EntityPicker,type EntityOption} from './entity-picker';
+import {isPositiveInput} from './forecast-data';
+import {listDateShort} from './list-format';
+import {money} from './money-format';
+import {teamRoleLabels} from './team-directory';
 import {PHONE_ERROR, phoneValid} from './field-rules';
 import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
@@ -400,6 +405,7 @@ export function AccountForm({
   });
   const [error, setError] = useState("");
   const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  const custodianOptions:EntityOption[]=custodians.map(member=>({id:String(member.id),name:member.full_name?.trim()||member.email,secondary:teamRoleLabels[member.role]||member.role,photoUrl:member.photo_url,person:true,searchText:member.email}));
   async function submit(values: AccountValues) {
     try {
       const data = await request<{ account: Account }>("/api/agency/accounts", {
@@ -470,34 +476,16 @@ export function AccountForm({
           placeholder="Empresa, socio o familiar"
         />
       </label>
-      <fieldset>
-        <legend>Quién custodia este dinero</legend>
-        <div className="choice-list compact">
-          <button
-            type="button"
-            className={
-              !form.watch("custodianUserId") ? "choice active" : "choice"
-            }
-            onClick={() => form.setValue("custodianUserId", "")}
-          >
-            Sin asignar
-          </button>
-          {custodians.map((member) => (
-            <button
-              type="button"
-              className={
-                form.watch("custodianUserId") === member.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("custodianUserId", member.id)}
-              key={member.id}
-            >
-              {member.email}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <EntityPicker
+        legend="Quién custodia este dinero"
+        options={custodianOptions}
+        value={form.watch("custodianUserId")||""}
+        onChange={value=>form.setValue("custodianUserId",value,{shouldValidate:true,shouldDirty:true})}
+        placeholder="Buscar persona…"
+        searchLabel="Buscar persona"
+        allowEmpty
+        emptyLabel="Sin asignar"
+      />
       <fieldset>
         <legend>Moneda</legend>
         <div className="choice-list compact">
@@ -525,7 +513,7 @@ export function AccountForm({
 }
 const invoiceSchema = z.object({
   clientId: z.string().min(1, "Elegí un cliente."),
-  total: z.string().min(1, "Ingresá el importe.").refine(value=>Number.isFinite(Number(value))&&Number(value)>=0, "El importe no puede ser negativo."),
+  total: z.string().min(1, "Ingresá el importe.").refine(value=>Number.isFinite(Number(value))&&Number(value)>0, "El importe debe ser mayor a cero."),
   currency: z.enum(currencyCodes),
   dueOn: z.string().optional(),
 });
@@ -542,10 +530,14 @@ export function InvoiceForm({
   const {currency:defaultCurrency}=useCompanyCurrency();
   const form = useForm<InvoiceValues>({
     resolver: zodResolver(invoiceSchema),
-    defaultValues: { clientId: "", total: "0", currency: defaultCurrency, dueOn: "" },
+    mode: "onChange",
+    defaultValues: { clientId: "", total: "", currency: defaultCurrency, dueOn: "" },
   });
+  const clientId=form.watch("clientId"),total=form.watch("total");
+  const clientOptions:EntityOption[]=clients.map(client=>({id:client.id,name:client.name,secondary:client.legal_name?.trim()||client.tax_id?.trim()||undefined,photoUrl:client.logo_url,logo:true,searchText:`${client.legal_name||''} ${client.tax_id||''}`}));
   const [error, setError] = useState("");
   const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  const canSubmit=Boolean(clientId)&&isPositiveInput(total)&&!submission.pending;
   async function submit(values: InvoiceValues) {
     try {
       const data = await request<{ invoice: Invoice }>("/api/agency/invoices", {
@@ -565,37 +557,20 @@ export function InvoiceForm({
       noValidate
       onSubmit={submission.onSubmit}
     >
-      <fieldset>
-        <legend>Cliente</legend>
-        <div className="choice-list">
-          {clients.map((client) => (
-            <button
-              type="button"
-              className={
-                form.watch("clientId") === client.id
-                  ? "choice active max-w-full !whitespace-normal break-words text-left"
-                  : "choice max-w-full !whitespace-normal break-words text-left"
-              }
-              onClick={() =>
-                form.setValue("clientId", client.id, { shouldValidate: true })
-              }
-              key={client.id}
-              title={client.name}
-            >
-              {client.name}
-            </button>
-          ))}
-        </div>
-        {form.formState.errors.clientId && (
-          <small className="error">
-            {form.formState.errors.clientId.message}
-          </small>
-        )}
-      </fieldset>
+      <EntityPicker
+        legend="Cliente"
+        options={clientOptions}
+        value={clientId}
+        onChange={value=>form.setValue("clientId",value,{shouldValidate:true,shouldDirty:true})}
+        error={form.formState.errors.clientId?.message}
+        placeholder="Buscar cliente…"
+        searchLabel="Buscar cliente"
+      />
       <label>
         Total sin IVA
         <AmountInput value={form.watch('total')||''} currency={form.watch('currency')} invalid={!!form.formState.errors.total} onChange={value=>form.setValue('total',value,{shouldValidate:true,shouldDirty:true})}/>
       </label>
+      {form.formState.errors.total?<small className="error" role="alert">{form.formState.errors.total.message}</small>:null}
       <fieldset>
         <legend>Moneda</legend>
         <div className="choice-list compact">
@@ -618,9 +593,10 @@ export function InvoiceForm({
         <input type="date" {...form.register("dueOn")} />
       </label>
       {error && <p className="error">{error}</p>}
+      {!canSubmit&&!submission.pending?<p className="field-help">Completá el cliente y un importe mayor a cero para crear la factura.</p>:null}
       <SaveActions pending={submission.pending}><button
         className="primary"
-        disabled={!clients.length || submission.pending}
+        disabled={!canSubmit}
       >
         {submission.pending ? "Creando…" : "Crear factura"}
       </button></SaveActions>
@@ -655,10 +631,11 @@ export function PaymentForm({
   const [requestId]=useState(()=>crypto.randomUUID());
   const form = useForm<PaymentValues>({
     resolver: zodResolver(paymentSchema),
+    mode: "onChange",
     defaultValues: {
       invoiceId: preselectInvoiceId,
       accountId: "",
-      amount: "0",
+      amount: "",
       receivedOn: new Date().toISOString().slice(0, 10),
       reference: "",
       receivedByUserId: "",
@@ -666,6 +643,15 @@ export function PaymentForm({
   });
   const [error, setError] = useState("");
   const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  const invoiceId=form.watch("invoiceId"),accountId=form.watch("accountId"),amount=form.watch("amount");
+  const canSubmit=Boolean(invoiceId)&&Boolean(accountId)&&isPositiveInput(amount)&&!submission.pending;
+  const invoiceOptions:EntityOption[]=invoices
+    .filter((invoice) => invoice.status !== "paid")
+    .map((invoice) => {
+      const pending=Number(invoice.total)-Number(invoice.paid_amount);
+      return {id:invoice.id,name:`${invoice.number} · ${invoice.client_name}`,secondary:`Vence ${listDateShort(invoice.due_on)||'sin fecha'}`,context:`${money(pending,invoice.currency)} pendiente`,searchText:`${invoice.number} ${invoice.client_name}`};
+    });
+  const custodianOptions:EntityOption[]=custodians.map(member=>({id:String(member.id),name:member.full_name?.trim()||member.email,secondary:teamRoleLabels[member.role]||member.role,photoUrl:member.photo_url,person:true,searchText:member.email}));
   async function submit(values: PaymentValues) {
     try {
       await request("/api/agency/payments", {
@@ -687,51 +673,23 @@ export function PaymentForm({
       noValidate
       onSubmit={submission.onSubmit}
     >
-      <fieldset>
-        <legend>Factura</legend>
-        <div className="choice-list">
-          {invoices
-            .filter((invoice) => invoice.status !== "paid")
-            .map((invoice) => (
-              <button
-                type="button"
-                className={
-                  form.watch("invoiceId") === invoice.id
-                    ? "choice active max-w-full !whitespace-normal break-words text-left"
-                    : "choice max-w-full !whitespace-normal break-words text-left"
-                }
-                onClick={() =>
-                  form.setValue("invoiceId", invoice.id, {
-                    shouldValidate: true,
-                  })
-                }
-                key={invoice.id}
-                title={`${invoice.number} · ${invoice.client_name}`}
-              >
-                {invoice.number} · {invoice.client_name}
-              </button>
-            ))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Quién recibió el cobro</legend>
-        <div className="choice-list">
-          {custodians.map((member) => (
-            <button
-              type="button"
-              className={
-                form.watch("receivedByUserId") === member.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("receivedByUserId", member.id)}
-              key={member.id}
-            >
-              {member.email}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <EntityPicker
+        legend="Factura"
+        options={invoiceOptions}
+        value={invoiceId}
+        onChange={value=>form.setValue("invoiceId",value,{shouldValidate:true,shouldDirty:true})}
+        error={form.formState.errors.invoiceId?.message}
+        placeholder="Buscar factura o cliente…"
+        searchLabel="Buscar factura"
+      />
+      {custodianOptions.length?<EntityPicker
+        legend="Quién recibió el cobro"
+        options={custodianOptions}
+        value={form.watch("receivedByUserId")||""}
+        onChange={value=>form.setValue("receivedByUserId",value,{shouldValidate:true,shouldDirty:true})}
+        placeholder="Buscar persona…"
+        searchLabel="Buscar persona"
+      />:null}
       <fieldset>
         <legend>Cuenta de ingreso</legend>
         <div className="choice-list">
@@ -754,10 +712,12 @@ export function PaymentForm({
           ))}
         </div>
       </fieldset>
+      {form.formState.errors.accountId?<small className="error" role="alert">{form.formState.errors.accountId.message}</small>:null}
       <label>
         Importe cobrado
         <AmountInput value={form.watch('amount')||''} currency={accounts.find(account=>account.id===form.watch('accountId'))?.currency||'PYG'} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
       </label>
+      {form.formState.errors.amount?<small className="error" role="alert">{form.formState.errors.amount.message}</small>:null}
       <label>
         Fecha
         <input type="date" {...form.register("receivedOn")} />
@@ -769,12 +729,12 @@ export function PaymentForm({
           placeholder="Transferencia / comprobante"
         />
       </label>
-      {Object.keys(form.formState.errors).length>0?<p className="error" role="alert">Elegí la factura, la cuenta y un importe mayor a cero.</p>:null}
       {error && <p className="error">{error}</p>}
+      {!canSubmit&&!submission.pending?<p className="field-help">Elegí la factura, la cuenta y un importe mayor a cero para registrar el cobro.</p>:null}
       <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <SaveActions pending={submission.pending}><button
         className="primary"
-        disabled={!accounts.length || submission.pending}
+        disabled={!canSubmit}
       >
         {submission.pending ? "Guardando…" : "Registrar cobro"}
       </button></SaveActions>

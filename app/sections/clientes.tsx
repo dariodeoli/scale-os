@@ -38,7 +38,7 @@ const CLIENT_TEMPLATE = 'grid-cols-[minmax(11rem,1.35fr)_minmax(9.5rem,1.15fr)_6
 const STATE_TONE: Record<string, ChipTone> = {active: 'ok', paused: 'warn', cancelled: 'bad', expired: 'warn', inactive: 'mute'};
 const moraTone = (pay: ClientPaymentStatus): ChipTone => pay.payment_status === 'up_to_date' ? 'ok' : pay.payment_status === 'due_soon' ? 'warn' : pay.days_overdue > 30 ? 'bad' : 'warn';
 const moraLabel = (pay: ClientPaymentStatus) => pay.payment_status === 'up_to_date'
-  ? 'Al día'
+  ? 'Sin mora'
   : pay.payment_status === 'due_soon'
     ? `Vence ${fechaListaCorta(pay.next_due_on,'próximamente')}`
     : `${pay.days_overdue} días de mora`;

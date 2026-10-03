@@ -72,6 +72,9 @@ export type Account = {
   holder_name: string | null;
   custodian_user_id: string | null;
   custodian_email?: string | null;
+  /** Identidad resuelta para mostrar la custodia sin correos técnicos (#149). */
+  custodian_name?: string | null;
+  custodian_photo_url?: string | null;
 };
 export type PaymentRecord = {
   id: string;
@@ -104,7 +107,7 @@ export type Invoice = {
   issued_on?: string | null;
   notes?: string | null;
 };
-export type Member = { id: string; email: string; role: string; active?:boolean; created_at: string };
+export type Member = { id: string; email: string; role: string; active?:boolean; created_at: string; full_name?: string | null; photo_url?: string | null };
 export type Budget = {
   id: string;
   number: string;

@@ -87,7 +87,7 @@ assert.equal(Number(accounts[1].balance),1000000);
 const continental=(await c.query("select name,institution,account_number,holder_name from bank_accounts where organization_id=$1 and account_number='310056630007'",[first])).rows[0];
 assert.equal(continental.name,'Banco Continental · Caja de ahorro en guaraníes');
 assert.equal(continental.institution,'Banco Continental');
-assert.equal(continental.holder_name,'SCALE STRATEGY GROUP E.A.S.');
+assert.equal(continental.holder_name,'Agencia Horizonte E.A.S.');
 assert.equal((await c.query('select name from organizations where id=$1',[first])).rows[0].name,'Agencia Horizonte');
 await assert.rejects(()=>demoOrganization(c,{userId:users[1],sourceId:first,demoKey:'other'}),{status:403});
 const fresh=(await c.query("insert into users(email,password_hash) values('fresh-owner@example.invalid','none') returning id")).rows[0].id;
