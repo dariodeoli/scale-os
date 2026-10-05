@@ -1,18 +1,23 @@
 # Propuesta editorial de blogs (Scale Paraguay · Scale OS)
 
-Documentación de la **propuesta para aprobación del dueño** (issues
-[#156](https://github.com/dariodeoli/scale-os/issues/156) y
-[#157](https://github.com/dariodeoli/scale-os/issues/157)).
-No hay implementación: acá viven el contenido, la estructura editorial y los
-requisitos que la plataforma (PLT) debe cumplir.
+Documentación de la propuesta editorial y del **contenido inicial** de los
+blogs (issues [#156](https://github.com/dariodeoli/scale-os/issues/156) y
+[#157](https://github.com/dariodeoli/scale-os/issues/157)). La propuesta está
+aprobada y la Fase 1 MDX ya tiene sus primeros artículos en `content/blog/`.
 
 ## Documentos
 
-| Archivo | Issue | Qué propone |
+| Archivo | Issue | Qué contiene |
 |---|---|---|
 | [`156-scale-paraguay.md`](156-scale-paraguay.md) | #156 | Blog de la empresa: categorías, autores, plantillas, calendario, 10 títulos con intención/keyword, tono y CTAs hacia Scale OS |
 | [`157-scale-os.md`](157-scale-os.md) | #157 | Blog de producto: series (novedades, guías, casos), 12 títulos, cross-linking con Scale Paraguay |
 | [`requisitos-plataforma.md`](requisitos-plataforma.md) | #156/#157/#158 | Requisitos de contenido para la plataforma y el SEO técnico (autores, imágenes, on-page, feed, flujo editorial) |
+| [`frontmatter-fase1.md`](frontmatter-fase1.md) | #156/#157 | Contrato MDX usado por los artículos (campos, rutas y pendientes para PLT/DSN) |
+| [`contenido-inicial.md`](contenido-inicial.md) | #156/#157 | Inventario de los 8 artículos iniciales con intención de búsqueda y estado |
+
+Los artículos viven en `content/blog/empresa/` y `content/blog/producto/`, con
+el contrato validado por `tests/blog-content-156-157.test.ts` (cadena de
+regresión).
 
 ## Reglas de la propuesta
 

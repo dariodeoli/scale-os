@@ -48,8 +48,8 @@ Etiquetas transversales de audiencia (la sección no cambia): `profesionales`,
 `podcast`, `eventos`, `metricas`.
 
 Reglas de categoría: 1 sola categoría principal por artículo (mapea a
-`categories` del frontmatter) + hasta 3 etiquetas libres; las URLs son
-`/{categoria}/{slug}`; una sección sin al menos 5 artículos no se publica como
+`categories` del frontmatter) + hasta 3 etiquetas libres; la categoría es una etiqueta visible (chip) y la URL del artículo es
+`/<slug>` en el host del blog; una sección sin al menos 5 artículos no se publica como
 portada propia (queda listada sin menú hasta completarla).
 
 ### 2.2 Autores
