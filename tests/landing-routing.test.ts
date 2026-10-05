@@ -4,7 +4,7 @@ import {middleware} from '../middleware';
 import {readFileSync} from 'node:fs';
 import {sections,legacyRoutes} from '../app/navigation';
 function request(host:string,path='/'){return middleware(new NextRequest('https://'+host+path,{headers:{host}}));}
-assert.equal(request('sistema.scaleparaguay.com').headers.get('x-middleware-rewrite'),'https://sistema.scaleparaguay.com/scale-os.html');
+assert.equal(request('sistema.scaleparaguay.com').headers.get('x-middleware-rewrite'),'https://sistema.scaleparaguay.com/public-landing');
 assert.equal(request('app.scaleparaguay.com','/equipo').headers.get('x-robots-tag'),'noindex, nofollow');
 assert.equal(request('app.scaleparaguay.com','/demo').headers.get('location'),'https://sistema.scaleparaguay.com/demo');
 assert.equal(request('sistema.scaleparaguay.com','/core-api/api/auth/me').status,200);

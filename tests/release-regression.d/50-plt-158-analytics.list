@@ -1,0 +1,2 @@
+# Network-free public analytics configuration, runtime, payload and privacy guards (#158)
+tsx tests/umami-analytics.test.ts

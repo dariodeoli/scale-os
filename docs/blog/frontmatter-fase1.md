@@ -58,8 +58,9 @@ Decisiones que le toca cerrar a PLT/DSN:
    `content/blog/autores`.
 3. **`draft: false`** habilita la publicación solo cuando `date` ya llegó en
    `America/Asuncion`. Hasta entonces, el artículo no aparece en el índice, su URL
-   directa, RSS ni sitemap. Como la salida es estática, se hace visible en el primer
-   build ejecutado en esa fecha o después; un build ya desplegado no cambia solo.
+   directa, RSS ni sitemap. Las rutas permitidas, RSS y sitemap se fijan en el build;
+   una URL nueva se habilita en el primer build ejecutado en esa fecha o después.
+   El índice y detalle con chrome de analítica validan además cada solicitud.
    `includeDrafts: true` conserva el acceso editorial a borradores y programados.
 4. **Cross-blog**: no se agrega campo; los enlaces van en el cuerpo con UTM
    (`utm_source=blog-scale|blog-producto&utm_medium=cross`).

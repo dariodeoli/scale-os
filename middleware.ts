@@ -1,4 +1,5 @@
 import {NextResponse,type NextRequest} from 'next/server';
+import {ANALYTICS_COLLECT,ANALYTICS_LOADER,isAnalyticsHost} from './app/public-analytics';
 import {sections,legacyRoutes} from './app/navigation';
 import {resolveCoreApiOrigin} from './core-api-origin.mjs';
 import {appRobotsTxt,blogRobotsTxt,landingRobotsTxt,landingSitemapXml,type BlogSection} from './app/seo';
@@ -7,6 +8,10 @@ const workspaceRoots=new Set([...sections.map(([,slug])=>slug.split('/')[0]),...
 const blogHosts:Record<string,BlogSection>={'blog.scaleparaguay.com':'empresa','producto.scaleparaguay.com':'producto'};
 export function middleware(request:NextRequest){
  const host=(request.headers.get('host')||'').split(':')[0].toLowerCase(),path=request.nextUrl.pathname;
+ if(path===ANALYTICS_LOADER||path===ANALYTICS_COLLECT){
+  if(isAnalyticsHost(request.headers.get('host')?.toLowerCase()||''))return NextResponse.next();
+  return new NextResponse(null,{status:404,headers:{'X-Robots-Tag':'noindex, nofollow'}});
+ }
  if(host==='admin.scaleparaguay.com'&&path==='/'){
   const url=request.nextUrl.clone();url.pathname='/superadmin';
   const response=NextResponse.rewrite(url);response.headers.set('X-Robots-Tag','noindex, nofollow');return response;
@@ -34,7 +39,7 @@ export function middleware(request:NextRequest){
  if(host==='sistema.scaleparaguay.com'){
   if(path==='/robots.txt')return new NextResponse(landingRobotsTxt(),{headers:{'Content-Type':'text/plain'}});
   if(path==='/sitemap.xml')return new NextResponse(landingSitemapXml(),{headers:{'Content-Type':'application/xml'}});
-  if(path==='/')return NextResponse.rewrite(new URL('/scale-os.html',request.url));
+  if(path==='/')return NextResponse.rewrite(new URL('/public-landing',request.url));
   if(path==='/scale-os.html')return NextResponse.redirect(new URL('https://sistema.scaleparaguay.com/'),308);
   if(path==='/registro')return NextResponse.redirect(new URL('https://app.scaleparaguay.com/registro'),307);
   // `/status` vive en la app; la landing lo enlaza sin host (issue #158).

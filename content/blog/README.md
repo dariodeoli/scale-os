@@ -38,9 +38,10 @@ content/blog/producto/AAAA-MM-slug.mdx   → https://producto.scaleparaguay.com/
 - `draft: true` mantiene el artículo fuera del índice, la URL directa, RSS y sitemap.
 - `draft: false` con una `date` futura programa el artículo: esas mismas superficies
   permanecen embargadas hasta esa fecha civil en `America/Asuncion`.
-- Como los blogs se generan de forma estática, el artículo aparece en el primer build
-  ejecutado en su fecha de publicación o después. Cambiar el reloj no publica un build
-  ya desplegado: hace falta un nuevo build/deploy.
+- RSS, sitemap y parámetros de rutas se generan en el build. El índice y el detalle
+  con chrome de analítica se validan también al servir cada solicitud, pero una URL
+  de artículo nuevo aparece en el primer build ejecutado en su fecha o después.
+  Cambiar el reloj no crea una ruta ya embargada: hace falta un nuevo build/deploy.
 - Las herramientas editoriales que usan `includeDrafts: true` siguen viendo borradores
   y publicaciones programadas para revisión.
 
