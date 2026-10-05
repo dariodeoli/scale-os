@@ -1,9 +1,17 @@
 import assert from 'node:assert/strict';
-import {test} from 'node:test';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {after,before,mock,test} from 'node:test';
 import {NextRequest} from 'next/server';
 import {middleware} from '../middleware';
-import {BLOG_CATEGORIES,BLOG_SECTIONS,getPost,isBlogSection,listPosts,parseBlogPost,postCanonical,postPath} from '../app/blog-data';
+import {BLOG_CATEGORIES,BLOG_SECTIONS,asuncionPublicationDate,getPost,isBlogSection,isPublicBlogPost,listPosts,parseBlogPost,postCanonical,postPath} from '../app/blog-data';
 import {BLOG_ORIGINS} from '../app/seo';
+import BlogIndex from '../app/blog/[section]/page';
+import BlogPostPage,{generateStaticParams as postParams,generateMetadata as postMetadata} from '../app/blog/[section]/[slug]/page';
+
+// Keep real content fixtures deterministic even after their scheduled dates pass.
+before(()=>mock.timers.enable({apis:['Date'],now:Date.parse('2026-10-05T15:00:00Z')}));
+after(()=>mock.timers.reset());
 import {GET as rssGet} from '../app/blog/[section]/rss.xml/route';
 import {GET as sitemapGet} from '../app/blog/[section]/sitemap.xml/route';
 
@@ -50,6 +58,52 @@ test('blog: slug sin fecha, canonical derivado y categoría nombre→slug',()=>{
  assert.equal(isBlogSection('empresa'),true);assert.equal(isBlogSection('otro'),false);
 });
 
+test('blog: la fecha de Asunción embarga hasta el día exacto y editorial conserva acceso',()=>{
+ const before=new Date('2026-10-20T02:59:59.999Z');
+ const exact=new Date('2026-10-20T03:00:00.000Z');
+ assert.equal(asuncionPublicationDate(before),'2026-10-19');
+ assert.equal(asuncionPublicationDate(exact),'2026-10-20');
+ assert.throws(()=>asuncionPublicationDate(new Date(NaN)),/fecha válida/);
+ const scheduled={date:'2026-10-20',draft:false};
+ assert.equal(isPublicBlogPost(scheduled,asuncionPublicationDate(before)),false,'el día anterior sigue embargado');
+ assert.equal(isPublicBlogPost(scheduled,asuncionPublicationDate(exact)),true,'el día exacto se publica');
+ assert.equal(isPublicBlogPost({date:'2026-10-01',draft:true},asuncionPublicationDate(exact)),false,'un borrador sigue privado');
+ assert.equal(getPost('empresa','que-publicar-en-instagram',{now:before}),null,'la consulta directa respeta el embargo');
+ assert.ok(getPost('empresa','que-publicar-en-instagram',{now:exact}),'la consulta directa publica en la fecha exacta');
+ const editorial=listPosts('empresa',{includeDrafts:true,now:before});
+ assert.ok(editorial.some(post=>post.slug==='que-publicar-en-instagram'&&!post.draft),'editorial ve publicaciones programadas');
+ assert.ok(editorial.some(post=>post.slug==='trabajar-por-entregas-sin-perder-el-hilo'&&post.draft),'editorial ve borradores');
+ assert.ok(getPost('empresa','trabajar-por-entregas-sin-perder-el-hilo',{includeDrafts:true,now:before}),'la consulta editorial directa ve borradores');
+});
+
+test('blog: static params and public metadata exclude scheduled posts',async()=>{
+ const params=postParams();
+ for(const section of BLOG_SECTIONS){
+  for(const post of listPosts(section,{includeDrafts:true})){
+   const publicPost=isPublicBlogPost(post,'2026-10-05');
+   assert.equal(params.some(value=>value.section===section&&value.slug===post.slug),publicPost);
+   const metadata=await postMetadata({params:Promise.resolve({section,slug:post.slug})});
+   if(!publicPost){
+    assert.deepEqual(metadata,{});
+    await assert.rejects(()=>BlogPostPage({params:Promise.resolve({section,slug:post.slug})}),/404/);
+   }
+  }
+ }
+});
+
+test('blog: rendered indexes exclude drafts and scheduled content',async()=>{
+ const previous=(globalThis as any).React;
+ Object.assign(globalThis,{React});
+ try{
+  for(const section of BLOG_SECTIONS){
+   const html=renderToStaticMarkup(await BlogIndex({params:Promise.resolve({section})}));
+   for(const post of listPosts(section,{includeDrafts:true})){
+    assert.equal(html.includes(`href="/${post.slug}"`),isPublicBlogPost(post,'2026-10-05'));
+   }
+  }
+ }finally{(globalThis as any).React=previous;}
+});
+
 test('blog: el parser acepta nombre o slug de categoría y canonical opcional',()=>{
  const parsed=parseBlogPost('empresa','2026-10-mi-post.mdx',validRaw());
  assert.equal(parsed.slug,'mi-post');
@@ -82,14 +136,27 @@ test('blog: el middleware enruta hosts y posts por slug',()=>{
 });
 
 test('blog: RSS y sitemap usan host/slug y excluyen borradores',async()=>{
+ const today=asuncionPublicationDate(new Date());
+ const futurePosts=BLOG_SECTIONS.flatMap(section=>listPosts(section,{includeDrafts:true}).filter(post=>!post.draft&&post.date>today));
+ for(const section of BLOG_SECTIONS){
+  for(const handler of [rssGet,sitemapGet]){
+   const xml=await (await call(handler,section)).text();
+   for(const post of listPosts(section,{includeDrafts:true})){
+    assert.equal(xml.includes(postCanonical(post)),isPublicBlogPost(post,today),`${section}/${post.slug} publication policy`);
+   }
+  }
+ }
  const rss=await call(rssGet,'empresa');const rssText=await rss.text();
  assert.match(rss.headers.get('content-type')||'',/rss\+xml/);
  assert.ok(rssText.includes('https://blog.scaleparaguay.com/atencion-al-cliente-que-ordena-la-operacion'));
  assert.ok(!rssText.includes('trabajar-por-entregas'),'el borrador no entra al RSS');
+ for(const post of futurePosts.filter(post=>post.section==='empresa'))assert.ok(!rssText.includes(postCanonical(post)),`${post.slug} sigue fuera del RSS hasta ${post.date}`);
  const sitemap=await (await call(sitemapGet,'producto')).text();
  assert.ok(sitemap.includes('<loc>https://producto.scaleparaguay.com/</loc>'));
  assert.ok(sitemap.includes('https://producto.scaleparaguay.com/scale-os-v1-0-173'));
  assert.ok(!sitemap.includes('slash'),'sin rutas con categoría');
+ for(const post of futurePosts.filter(post=>post.section==='producto'))assert.ok(!sitemap.includes(postCanonical(post)),`${post.slug} sigue fuera del sitemap hasta ${post.date}`);
+ for(const lastmod of sitemap.matchAll(/<lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod>/g))assert.ok(lastmod[1]<=today,`lastmod futuro: ${lastmod[1]}`);
 });
 
-console.log('PASS: blogs #156/#157 — contrato único (slug sin fecha, canonical opcional, categoría nombre→slug), hosts, RSS y sitemap.');
+console.log('PASS: blogs #156/#157/#158 — publicación programada en Asunción, contrato de contenido, hosts, RSS y sitemap.');

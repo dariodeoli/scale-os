@@ -37,6 +37,12 @@ export const BLOG_CATEGORIES: Record<BlogSection, readonly {slug: string; name: 
 };
 const CONTENT_DIR = join(process.cwd(), 'content', 'blog');
 const FILE = /^(\d{4}-\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\.mdx$/;
+const PUBLICATION_TIME_ZONE = 'America/Asuncion';
+
+export type BlogPublicationOptions = {
+  includeDrafts?: boolean;
+  now?: Date;
+};
 
 export function isBlogSection(value: unknown): value is BlogSection {
   return typeof value === 'string' && (BLOG_SECTIONS as readonly string[]).includes(value);
@@ -46,6 +52,24 @@ const fail = (file: string, message: string): never => {
   throw new Error(`Blog · ${file}: ${message}`);
 };
 const normalize = (value: unknown) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+
+/** Fecha civil AAAA-MM-DD de un instante en la zona editorial del blog. */
+export function asuncionPublicationDate(instant: Date): string {
+  if (Number.isNaN(instant.getTime())) throw new Error('Blog: el instante de publicación debe ser una fecha válida.');
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: PUBLICATION_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(instant);
+  const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
+/** Un post público no es borrador y su fecha editorial ya llegó en Asunción. */
+export function isPublicBlogPost(post: Pick<BlogPost, 'date' | 'draft'>, publicationDate: string): boolean {
+  return !post.draft && post.date <= publicationDate;
+}
 
 /** Ruta pública del post en el host de su blog (contrato: `/<slug>`). */
 export function postPath(post: Pick<BlogPost, 'slug'>): string {
@@ -111,8 +135,8 @@ export function parseBlogPost(section: BlogSection, fileName: string, raw: strin
 
 const cache = new Map<BlogSection, BlogPost[]>();
 
-/** Posts de una sección, más nuevos primero. Los borradores no se listan. */
-export function listPosts(section: BlogSection, {includeDrafts = false}: {includeDrafts?: boolean} = {}): BlogPost[] {
+/** Posts de una sección, más nuevos primero. Editorial puede incluir todo. */
+export function listPosts(section: BlogSection, {includeDrafts = false, now = new Date()}: BlogPublicationOptions = {}): BlogPost[] {
   let posts = cache.get(section);
   if (!posts) {
     const dir = join(CONTENT_DIR, section);
@@ -121,13 +145,13 @@ export function listPosts(section: BlogSection, {includeDrafts = false}: {includ
       .map(name => parseBlogPost(section, name, readFileSync(join(dir, name), 'utf8'), `${section}/${name}`));
     cache.set(section, posts);
   }
+  const publicationDate = asuncionPublicationDate(now);
   return posts
-    .filter(post => includeDrafts || !post.draft)
+    .filter(post => includeDrafts || isPublicBlogPost(post, publicationDate))
     .sort((left, right) => right.date.localeCompare(left.date) || right.slug.localeCompare(left.slug));
 }
 
-/** Post publicado por slug; `null` para inexistentes o borradores. */
-export function getPost(section: BlogSection, slug: string): BlogPost | null {
-  const post = listPosts(section).find(candidate => candidate.slug === slug);
-  return post && !post.draft ? post : null;
+/** Post por slug; el acceso público excluye borradores y publicaciones futuras. */
+export function getPost(section: BlogSection, slug: string, options: BlogPublicationOptions = {}): BlogPost | null {
+  return listPosts(section, options).find(candidate => candidate.slug === slug) ?? null;
 }

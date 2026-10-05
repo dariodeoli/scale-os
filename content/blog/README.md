@@ -33,6 +33,17 @@ content/blog/producto/AAAA-MM-slug.mdx   → https://producto.scaleparaguay.com/
 | `draft` | boolean | sí | `true` = no se publica ni indexa (404) |
 | `canonical` | string | no | Si se declara, debe ser exactamente `https://<host>/<slug>`; si falta, la plantilla y el sitemap la derivan |
 
+## Publicación programada
+
+- `draft: true` mantiene el artículo fuera del índice, la URL directa, RSS y sitemap.
+- `draft: false` con una `date` futura programa el artículo: esas mismas superficies
+  permanecen embargadas hasta esa fecha civil en `America/Asuncion`.
+- Como los blogs se generan de forma estática, el artículo aparece en el primer build
+  ejecutado en su fecha de publicación o después. Cambiar el reloj no publica un build
+  ya desplegado: hace falta un nuevo build/deploy.
+- Las herramientas editoriales que usan `includeDrafts: true` siguen viendo borradores
+  y publicaciones programadas para revisión.
+
 Categorías (nombre visible → slug interno):
 - **empresa**: Servicios · Casos · Cultura · Noticias.
 - **producto**: Novedades · Guías · Changelog · Casos.

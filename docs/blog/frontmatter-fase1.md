@@ -56,8 +56,11 @@ Decisiones que le toca cerrar a PLT/DSN:
    `Equipo de Scale OS` en producto). Si PLT implementa entidad de autor
    (bio/foto/rol), el frontmatter pasa a `authors: [slug]` con un directorio
    `content/blog/autores`.
-3. **`draft: false`** solo significa “contenido listo para revisar en el PR”;
-   la publicación real ocurre cuando el PR integra, como cualquier release.
+3. **`draft: false`** habilita la publicación solo cuando `date` ya llegó en
+   `America/Asuncion`. Hasta entonces, el artículo no aparece en el índice, su URL
+   directa, RSS ni sitemap. Como la salida es estática, se hace visible en el primer
+   build ejecutado en esa fecha o después; un build ya desplegado no cambia solo.
+   `includeDrafts: true` conserva el acceso editorial a borradores y programados.
 4. **Cross-blog**: no se agrega campo; los enlaces van en el cuerpo con UTM
    (`utm_source=blog-scale|blog-producto&utm_medium=cross`).
 
