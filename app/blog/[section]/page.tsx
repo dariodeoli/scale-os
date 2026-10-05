@@ -37,7 +37,7 @@ export default async function BlogIndex(props:{params:Promise<{section:string}>}
  const {section}=await props.params;
  if(!isBlogSection(section))notFound();
  const posts=listPosts(section);
- const categories=Array.from(new Set(posts.flatMap(post=>post.categories))).sort();
+ const categories=Array.from(new Set(posts.flatMap(post=>post.categoryNames))).sort();
  return <section className="blog-index" aria-labelledby="blog-title">
   <header className="blog-index-header">
    <p className="blog-kicker">{section==='empresa'?'Scale Paraguay':'Scale OS · Producto'}</p>
