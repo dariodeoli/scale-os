@@ -2,6 +2,14 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.174
+
+### Blog
+
+- **Contenido inicial en los dos blogs**: artículos de Scale Paraguay (servicios, redes y casos reales) y de Scale OS (guías de gestión y producto), con portada, taxonomía y llamado a la acción.
+- **URLs limpias `/<slug>`** en `blog.scaleparaguay.com` y `producto.scaleparaguay.com`, con canonical derivada del host, sitemap y RSS alineados, y borradores fuera del índice.
+- **Contrato de contenido estable**: las categorías se declaran por nombre visible (`Servicios`, `Guías`, …) y se mapean a su slug; el canonical es opcional y se genera si falta.
+
 ## v1.0.173
 
 ### Blog
