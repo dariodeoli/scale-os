@@ -47,6 +47,13 @@ export default function PlatformAdmin() {
   const router = useRouter();
   const [state, setState] = useState<State | null>(null);
   const [view, setView] = useState<PlatformView>("resumen");
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  function changeView(nextView: PlatformView) {
+    if (nextView === view) return;
+    setView(nextView);
+    headerRef.current?.scrollIntoView({block: "start", behavior: "instant"});
+  }
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -535,17 +542,14 @@ export default function PlatformAdmin() {
       <PlatformNotices state={state} error={error} bootstrap={bootstrap} onRetry={() => void load()}/>
       {state ? (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
-          {/* Barra de secciones: `div` (no `nav`) para no heredar el ancho
-              completo de la regla legacy `nav button` del shell; el objeto
-              `SegmentedField` ya declara su propio `role="group"`. El wrapper
-              aporta la sombra de continuidad del scroll en mobile (#155 B). */}
+          {/* Keep the shared segmented control outside legacy nav button rules. */}
           <div className="platform-admin-tabs-wrap">
             <div className="platform-admin-tabs silent-scroll">
-              <SegmentedField className="w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" value={view} onChange={(value:string)=>setView(value as PlatformView)} ariaLabel="Secciones del panel global" options={views.map((item)=>[item.id, item.label, item.icon, item.count] as [string,string,string,number|undefined])}/>
+              <SegmentedField className="w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" value={view} onChange={(value:string)=>changeView(value as PlatformView)} ariaLabel="Secciones del panel global" options={views.map((item)=>[item.id, item.label, item.icon, item.count] as [string,string,string,number|undefined])}/>
             </div>
           </div>
 
-          {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={setView} bootstrap={bootstrap}/> : null}
+          {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={changeView} bootstrap={bootstrap}/> : null}
 
           {view === "agencias" ? <PlatformAgencies busy={busy} state={state} page={state.pages.agencies} onMore={()=>void loadMore('agencies')} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/> : null}
 
@@ -569,7 +573,7 @@ export default function PlatformAdmin() {
   if (busy && !state && !error && !redirecting && !accessDenied) return <PlatformAdminSkeleton/>;
   return (
     <main className="platform-admin-page control-shell">
-      <header className="platform-admin-header">
+      <header ref={headerRef} className="platform-admin-header">
         <Link className="platform-admin-brand" href={appHome()} aria-label="Scale OS">
           <WorkspaceBrand />
         </Link>

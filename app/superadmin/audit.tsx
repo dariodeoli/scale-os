@@ -5,14 +5,16 @@
 import {useMemo, useState} from "react";
 import {SearchField, Select} from "owncoding-ui";
 import {listDateFull} from "../list-format";
-import {EmptyBlock, FilterToolbar, ListGrid, ListRow, StateChip, type Column} from "../ui-v2";
+import {EmptyBlock, FilterToolbar, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type AuditAction, type CollectionPage} from "./model";
 import {PlatformMore} from "./states";
 
 const TEMPLATE = "grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]";
+const MIN_WIDTH = denseTableMinWidth(47.5, 4);
 const COLUMNS: Column[] = [{key: "date", label: "Fecha"}, {key: "actor", label: "Actor"}, {key: "action", label: "Acción"}, {key: "target", label: "Destino"}];
 
 export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]; page: CollectionPage; busy: boolean; onMore: () => void}) {
+  const {ref: tableRef, fits: tableFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
   const [query, setQuery] = useState("");
   const [action, setAction] = useState("");
   // Tipos de acción presentes en lo cargado: filtro real, sin taxonomía inventada.
@@ -44,7 +46,8 @@ export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]
       </label>
       {(query || action) ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setAction("");}}>Limpiar filtros</button> : null}
     </FilterToolbar>
-    {visible.length ? (
+    <div ref={tableRef} className="min-w-0">
+    {visible.length ? (tableFits ? (
       <ListGrid label="Actividad de administración global" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[49.5rem]">
         {visible.map((entry) => <ListRow key={entry.id} template={TEMPLATE}>
           <span role="cell" className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{listDateFull(entry.created_at) || "—"}</span>
@@ -57,6 +60,18 @@ export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]
         </ListRow>)}
       </ListGrid>
     ) : (
+      <div className="platform-admin-audit-cards grid gap-3 sm:grid-cols-2">
+        {visible.map((entry) => <article key={entry.id} className="rounded-xl border border-ink-600 bg-ink-800 p-4">
+          <dl className="grid gap-3">
+            <div><dt>Fecha</dt><dd>{listDateFull(entry.created_at) || "—"}</dd></div>
+            <div><dt>Actor</dt><dd>{entry.actor_email || "Sistema"}</dd></div>
+            <div><dt>Acción</dt><dd>{entry.action}</dd></div>
+            <div><dt>Destino</dt><dd>{entry.target_type}{entry.target_id ? ` #${formatPlatformMetric(entry.target_id)}` : ""}</dd></div>
+            {entry.metadata && typeof entry.metadata === "object" && !Array.isArray(entry.metadata) && Object.keys(entry.metadata as object).length ? <div><dt>Metadatos</dt><dd>{JSON.stringify(entry.metadata)}</dd></div> : null}
+          </dl>
+        </article>)}
+      </div>
+    )) : (
       <EmptyBlock
         compact
         icon="report"
@@ -64,6 +79,7 @@ export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]
         description={audit.length ? "Probá con otro actor, acción o texto." : "Las operaciones sensibles de la plataforma quedan acá con su actor, su acción y el destino."}
       />
     )}
+    </div>
     <PlatformMore loaded={audit.length} total={page.total} hasMore={page.hasMore} busy={busy} onMore={onMore} label="acciones"/>
   </section>;
 }

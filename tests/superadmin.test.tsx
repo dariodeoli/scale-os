@@ -150,7 +150,7 @@ test("rediseño #102: consola con secciones, carga de la app y título único", 
     assert.match(page, new RegExp(`\\{id: "${view}", label:`), `la vista ${view} existe`);
   }
   assert.equal((page.match(/\{view === "/g) ?? []).length, 5, "cada sección renderiza su vista");
-  assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{setView\} bootstrap=\{bootstrap\}\/>/);
+  assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{changeView\} bootstrap=\{bootstrap\}\/>/);
   // Carga inicial con el skeleton propio del panel (#155 C).
   assert.match(page, /import \{PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting\} from "\.\/states"/);
   assert.match(page, /if \(busy && !state && !error && !redirecting && !accessDenied\) return <PlatformAdminSkeleton\/>/);
@@ -218,7 +218,7 @@ test("rediseño #155 fase 2: resumen útil, orden de secciones y estados propios
   assert.ok(page.indexOf('{id: "accesos", label:') < page.indexOf('{id: "cupones", label:'), "Accesos antes que Cupones");
   assert.match(page, /platform-admin-tabs-wrap/);
   assert.match(styles, /\.platform-admin-tabs \[aria-pressed="true"\] \{ box-shadow: inset 0 -2px 0 0 rgb\(var\(--c-fono\)\) \}/);
-  assert.match(styles, /\.platform-admin-tabs-wrap::after/);
+  assert.match(styles, /\.platform-admin-tabs > div \{ width: 100%; flex-wrap: wrap; gap: 8px \}/);
   // C · Skeleton propio, avisos con borde de contraste y recuperación.
   assert.doesNotMatch(page, /LoadingScreen/);
   assert.match(readFileSync(new URL("../app/superadmin/states.tsx", import.meta.url), "utf8"), /export function PlatformAdminSkeleton/);

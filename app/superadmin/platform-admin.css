@@ -121,8 +121,11 @@
   .platform-admin-actions .secondary { flex: 1; min-height: 44px }
   .platform-admin-updated { white-space: normal }
   .platform-admin-table-wrap { display: none; }
-  /* Señal de continuidad del scroll en la barra de secciones (390). */
-  .platform-admin-tabs-wrap::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 28px; pointer-events: none; background: linear-gradient(90deg, transparent, var(--canvas, #f7f6f8)) }
+  /* Expose every section without requiring horizontal discovery. */
+  .platform-admin-tabs { overflow: visible }
+  .platform-admin-tabs > div { width: 100%; flex-wrap: wrap; gap: 8px }
+  .platform-admin-tabs [aria-pressed] { min-height: 44px; min-width: 44px }
+
 }
 
 @media(prefers-reduced-transparency:reduce){
@@ -132,3 +135,9 @@
 /* El micro-rótulo del panel pasa AA también en oscuro (el violeta de marca
  * legible sobre superficie oscura es `--brand-700`). */
 html[data-theme="dark"] .platform-admin-page .eyebrow { color: var(--brand-700) }
+
+/* Audit cards retain the full record on containers too narrow for the table. */
+.platform-admin-audit-cards article { min-width: 0 }
+.platform-admin-audit-cards :is(dt, dd) { overflow-wrap: anywhere }
+.platform-admin-audit-cards dt { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em }
+.platform-admin-audit-cards dd { margin: 2px 0 0; color: var(--text); font-size: 12.5px; line-height: 1.5 }

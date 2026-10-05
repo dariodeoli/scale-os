@@ -233,7 +233,8 @@ const auditView = () => `
  ${panelHead('platform-audit-title', 'Actividad de administración global', '50', 'Cada operación sensible queda registrada con actor, acción y destino')}
  ${toolbar('3 de 50', '<label class="grid gap-1.5 text-[11px] font-semibold text-mute">Acción<select aria-label="Filtrar por acción" class="min-w-[13rem]"><option>Todas las acciones</option><option>platform.agency.delete</option></select></label>')}
  <div class="min-w-0">
-  <div role="table" aria-label="Actividad de administración global" class="silent-scroll min-w-0 overflow-x-auto">
+  <style>.admin-audit-fixture-cards{display:none}@media(max-width:855px){.admin-audit-fixture-table{display:none}.admin-audit-fixture-cards{display:grid}}</style>
+  <div role="table" aria-label="Actividad de administración global" class="admin-audit-fixture-table silent-scroll min-w-0 overflow-x-auto">
    <div class="min-w-[49.5rem]">
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]"><span role="columnheader">Fecha</span><span role="columnheader">Actor</span><span role="columnheader">Acción</span><span role="columnheader">Destino</span></div>
     <div role="rowgroup">${AUDIT.map((entry) => `
@@ -244,6 +245,9 @@ const auditView = () => `
      <div role="cell" class="min-w-0"><span class="block break-words text-[12.5px] text-fore">${entry.target} #${entry.id}</span><small class="mt-1 block truncate text-[11px] text-mute" title='{"days":30,"reason":"Pago manual recibido"}'>{"days":30,"reason":"Pago manual recibido"}</small></div>
     </div>`).join('')}</div>
    </div>
+  </div>
+  <div class="admin-audit-fixture-cards platform-admin-audit-cards grid gap-3 sm:grid-cols-2">
+   ${AUDIT.map(entry => `<article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><dl class="grid gap-3"><div><dt>Fecha</dt><dd>${longDate(entry.when)}</dd></div><div><dt>Actor</dt><dd>${entry.actor}</dd></div><div><dt>Acción</dt><dd>${entry.action}</dd></div><div><dt>Destino</dt><dd>${entry.target} #${entry.id}</dd></div><div><dt>Metadatos</dt><dd>{"days":30,"reason":"Pago manual recibido"}</dd></div></dl></article>`).join('')}
   </div>
  </div>
 </section>`;
@@ -578,7 +582,7 @@ export default [
     surface: 'Auditoría con el nuevo encabezado de secciones (#155)',
     kind: 'plain',
     lists: [
-      {container: '[role="table"][aria-label="Actividad de administración global"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría (#155)', rowHeight: [44, 52]},
+      {container: '[role="table"][aria-label="Actividad de administración global"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría (#155)', rowHeight: [44, 52], exemptBelow: 856},
     ],
     body: `<main class="platform-admin-page control-shell">${header()}${tabs2('auditoria')}${auditView()}</main>`,
   },
