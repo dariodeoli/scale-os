@@ -6,8 +6,11 @@ import {NextRequest} from 'next/server';
 import {middleware} from '../middleware';
 import {BLOG_CATEGORIES,BLOG_SECTIONS,asuncionPublicationDate,getPost,isBlogSection,isPublicBlogPost,listPosts,parseBlogPost,postCanonical,postPath} from '../app/blog-data';
 import {BLOG_ORIGINS} from '../app/seo';
-import BlogIndex from '../app/blog/[section]/page';
 import BlogPostPage,{generateStaticParams as postParams,generateMetadata as postMetadata} from '../app/blog/[section]/[slug]/page';
+
+// The real index now loads the editorial template's scoped stylesheet.
+require.extensions['.css'] = () => {};
+const {default: BlogIndex} = require('../app/blog/[section]/page') as typeof import('../app/blog/[section]/page');
 
 // Keep real content fixtures deterministic even after their scheduled dates pass.
 before(()=>mock.timers.enable({apis:['Date'],now:Date.parse('2026-10-05T15:00:00Z')}));

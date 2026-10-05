@@ -3,7 +3,6 @@
 // la app aporta los datos (frontmatter MDX) y estas piezas el sistema de marca.
 // Misma base para los dos blogs; `variant` cambia el acento (empresa | producto).
 import "./blog-templates.css";
-import {fechaDia} from "owncoding-ui";
 
 export type BlogVariant = "empresa" | "producto";
 export type BlogCategory = {slug: string; label: string; count?: number};
@@ -18,6 +17,7 @@ export type BlogPostSummary = {
   readingMinutes?: number;
   cover?: string | null;
   coverAlt?: string | null;
+  tags?: string[];
 };
 export type BlogPost = BlogPostSummary & {updated?: string | null; tags?: string[]};
 
@@ -27,8 +27,10 @@ const SITE: Record<BlogVariant, {name: string; home: string; cta: {label: string
 };
 
 function longDate(value: string) {
-  const formatted = fechaDia(value, "", {timeZone: "America/Asuncion"});
-  return formatted || value;
+  // Frontmatter dates are civil days, not UTC instants; retain the live format.
+  const [year, month, day] = value.split("-").map(Number);
+  return new Intl.DateTimeFormat("es-PY", {day: "numeric", month: "long", year: "numeric", timeZone: "UTC"})
+    .format(new Date(Date.UTC(year, month - 1, day, 12)));
 }
 
 function readingLabel(post: Pick<BlogPostSummary, "readingMinutes">) {
@@ -51,7 +53,19 @@ function Cover({post, sizes}: {post: BlogPostSummary; sizes: string}) {
   return <img className="blog-cover" src={post.cover} alt={post.coverAlt || ""} width={1200} height={630} sizes={sizes} loading="lazy" decoding="async"/>;
 }
 
-export function BlogListTemplate({variant = "empresa", title, description, posts, categories = [], activeCategory = "", basePath = "/blog", rssHref}: {
+function CardTags({post}: {post: BlogPostSummary}) {
+  return post.tags?.length ? <ul className="blog-tags" aria-label="Etiquetas">
+    {post.tags.map(tag => <li key={tag}><span className="blog-chip">{tag}</span></li>)}
+  </ul> : null;
+}
+
+function CardCover({post, variant, sizes}: {post: BlogPostSummary; variant: BlogVariant; sizes: string}) {
+  return post.cover ? <Cover post={post} sizes={sizes}/> : <div className="blog-cover-fallback" aria-hidden="true">
+    <span>{SITE[variant].name}</span><span>{post.category.label}</span>
+  </div>;
+}
+
+export function BlogListTemplate({variant = "empresa", title, description, posts, categories = [], activeCategory = "", basePath = "/blog", rssHref, sitemapHref, embedded = false}: {
   variant?: BlogVariant;
   title: string;
   description: string;
@@ -60,37 +74,45 @@ export function BlogListTemplate({variant = "empresa", title, description, posts
   activeCategory?: string;
   basePath?: string;
   rssHref?: string;
+  sitemapHref?: string;
+  embedded?: boolean;
 }) {
   const site = SITE[variant];
   const [featured, ...rest] = posts;
-  return <main className={`blog-page blog--${variant} control-shell`}>
-    <header className="blog-header">
+  const Root = embedded ? "section" : "main";
+  return <Root className={`blog-page blog--${variant} ${embedded ? "blog-embedded" : "control-shell"}`} aria-labelledby="blog-title">
+    {!embedded ? <header className="blog-header">
       <a className="blog-site" href={site.home} aria-label={`${site.name}, inicio`}>{site.name}</a>
       <a className="blog-cta" href={site.cta.href}>{site.cta.label}</a>
-    </header>
+    </header> : null}
 
     <section className="blog-hero" aria-labelledby="blog-title">
-      <p className="blog-eyebrow">Blog</p>
+      <p className="blog-eyebrow">{embedded ? variant === "empresa" ? "Scale Paraguay" : "Scale OS · Producto" : "Blog"}</p>
       <h1 id="blog-title">{title}</h1>
       <p className="blog-lead">{description}</p>
-      {categories.length ? <nav className="blog-categories" aria-label="Categorías del blog">
+      {categories.length && embedded ? <p className="blog-categories" aria-label="Categorías">
+        {categories.map(category => <span key={category.slug} className="blog-chip">{category.label}</span>)}
+      </p> : categories.length ? <nav className="blog-categories" aria-label="Categorías del blog">
         <a href={basePath} aria-current={activeCategory ? undefined : "page"} className={activeCategory ? "" : "is-active"}>Todas</a>
         {categories.map((category) => <a key={category.slug} href={`${basePath}/categoria/${category.slug}`} aria-current={activeCategory === category.slug ? "page" : undefined} className={activeCategory === category.slug ? "is-active" : ""}>
           {category.label}{typeof category.count === "number" ? <span className="blog-count">{category.count}</span> : null}
         </a>)}
       </nav> : null}
-      {rssHref ? <a className="blog-rss" href={rssHref} type="application/rss+xml">RSS</a> : null}
+      {rssHref && !embedded ? <a className="blog-rss" href={rssHref} type="application/rss+xml">RSS</a> : null}
     </section>
 
     {featured ? <article className="blog-featured">
-      <a className="blog-featured-body" href={`${basePath}/${featured.slug}`}>
+      <a className="blog-featured-link" href={`${basePath}/${featured.slug}`}>
+       <div className="blog-featured-body">
         <span className="blog-chip">{featured.category.label}</span>
         <h2>{featured.title}</h2>
         <p>{featured.excerpt}</p>
         <Meta post={featured}/>
-      </a>
-      <a className="blog-featured-cover" href={`${basePath}/${featured.slug}`} tabIndex={-1} aria-hidden="true">
-        <Cover post={featured} sizes="(max-width: 767px) 100vw, 34rem"/>
+        <CardTags post={featured}/>
+       </div>
+       <div className="blog-featured-cover">
+        <CardCover post={featured} variant={variant} sizes="(max-width: 767px) 100vw, 34rem"/>
+       </div>
       </a>
     </article> : <p className="blog-empty" role="status">Todavía no hay artículos publicados.</p>}
 
@@ -99,20 +121,24 @@ export function BlogListTemplate({variant = "empresa", title, description, posts
       <div className="blog-grid">
         {rest.map((post) => <article className="blog-card" key={post.slug}>
           <a className="blog-card-link" href={`${basePath}/${post.slug}`}>
-            <Cover post={post} sizes="(max-width: 767px) 100vw, 22rem"/>
+            <CardCover post={post} variant={variant} sizes="(max-width: 767px) 100vw, 34rem"/>
             <span className="blog-chip">{post.category.label}</span>
             <h3>{post.title}</h3>
             <p>{post.excerpt}</p>
             <Meta post={post} as="div"/>
+            <CardTags post={post}/>
           </a>
         </article>)}
       </div>
     </section> : null}
 
-    <footer className="blog-footer">
+    {embedded ? <p className="blog-index-feeds">
+      {rssHref ? <a href={rssHref} type="application/rss+xml">RSS</a> : null}
+      {sitemapHref ? <a href={sitemapHref}>Sitemap</a> : null}
+    </p> : <footer className="blog-footer">
       <p>{site.name} · <a href={site.cta.href}>{site.cta.label}</a></p>
-    </footer>
-  </main>;
+    </footer>}
+  </Root>;
 }
 
 export function BlogArticleTemplate({variant = "empresa", post, related = [], basePath = "/blog", siteUrl = "", children}: {

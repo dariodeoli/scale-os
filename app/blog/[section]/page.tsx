@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
-import Link from 'next/link';
 import {notFound} from 'next/navigation';
-import {BLOG_SECTIONS,isBlogSection,listPosts,postPath} from '../../blog-data';
+import {BLOG_SECTIONS,isBlogSection,listPosts} from '../../blog-data';
+import {BlogListTemplate} from '../../blog-templates';
 import {BLOG_ORIGINS} from '../../seo';
 
 // Índice del blog por sección (#156/#157). En los hosts propios, el middleware
@@ -28,32 +28,16 @@ export async function generateMetadata(props:{params:Promise<{section:string}>})
  };
 }
 
-const dateLabel=(value:string)=>{
- const [year,month,day]=value.split('-').map(Number);
- return new Intl.DateTimeFormat('es-PY',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(year,month-1,day,12)));
-};
-
 export default async function BlogIndex(props:{params:Promise<{section:string}>}){
  const {section}=await props.params;
  if(!isBlogSection(section))notFound();
  const posts=listPosts(section);
  const categories=Array.from(new Set(posts.flatMap(post=>post.categoryNames))).sort();
- return <section className="blog-index" aria-labelledby="blog-title">
-  <header className="blog-index-header">
-   <p className="blog-kicker">{section==='empresa'?'Scale Paraguay':'Scale OS · Producto'}</p>
-   <h1 id="blog-title">{section==='empresa'?'Historias de la agencia':'Novedades de producto'}</h1>
-   <p className="blog-lead">{section==='empresa'?'Casos, cultura y noticias del equipo.':'Guías, lanzamientos y cómo usar Scale OS de punta a punta.'}</p>
-   {categories.length?<p className="blog-categories" aria-label="Categorías">{categories.map(category=><span key={category} className="blog-chip">{category}</span>)}</p>:null}
-  </header>
-  {posts.length?<div className="blog-list">{posts.map(post=><article className="blog-item" key={post.slug}>
-   {post.cover?<img className="blog-cover" src={post.cover} alt={post.coverAlt} loading="lazy" decoding="async" width={640} height={360}/>:null}
-   <div className="blog-item-body">
-    <p className="blog-meta"><time dateTime={post.date}>{dateLabel(post.date)}</time> · {post.author}</p>
-    <h2><Link href={postPath(post)}>{post.title}</Link></h2>
-    <p className="blog-summary">{post.description}</p>
-    {post.tags.length?<p className="blog-tags" aria-label="Etiquetas">{post.tags.map(tag=><span key={tag} className="blog-chip muted">{tag}</span>)}</p>:null}
-   </div>
-  </article>)}</div>:<p className="blog-empty">Todavía no hay artículos publicados. Volvé pronto.</p>}
-  <p className="blog-feeds"><a href="/rss.xml">RSS</a> · <a href={`${BLOG_ORIGINS[section]}/sitemap.xml`}>Sitemap</a></p>
- </section>;
+ return <BlogListTemplate embedded variant={section}
+  title={section==='empresa'?'Historias de la agencia':'Novedades de producto'}
+  description={section==='empresa'?'Casos, cultura y noticias del equipo.':'Guías, lanzamientos y cómo usar Scale OS de punta a punta.'}
+  categories={categories.map(name=>({slug:name,label:name}))}
+  posts={posts.map(post=>({slug:post.slug,title:post.title,excerpt:post.description,date:post.date,author:post.author,
+   category:{slug:post.categories[0],label:post.categoryNames[0]},tags:post.tags,cover:post.cover,coverAlt:post.coverAlt}))}
+  basePath="" rssHref="/rss.xml" sitemapHref={`${BLOG_ORIGINS[section]}/sitemap.xml`}/>;
 }
