@@ -127,7 +127,7 @@ function LeadCard({row,edit,role,canMove,refresh,won=false,actions}:{row:Row;edi
       openLabel={`Ver oportunidad: ${facts.name}`}
       menuLabel={`Acciones de la oportunidad: ${facts.name}`}
       actions={menu.items}
-      quickAction={canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${facts.name}`} aria-label={`Mover ${facts.name}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:undefined}
+      quickAction={canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:undefined}
       context={<>
         <MoneyText valor={facts.amount} currency={facts.currency} className="text-sm text-fore"/>
         {facts.updated?<span className="whitespace-nowrap tabular-nums" title={`Última actualización ${facts.updatedFull||facts.updated}`}>· Actualizado {facts.updated}</span>:null}
