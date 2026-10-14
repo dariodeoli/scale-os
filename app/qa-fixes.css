@@ -4,7 +4,6 @@
 .client-list{grid-template-columns:minmax(0,1fr)}
 .payment-row{min-width:0;max-width:100%}
 .payment-row small{overflow-wrap:anywhere}
-.kanban{grid-template-columns:repeat(7,minmax(220px,1fr))}
 .work-card{touch-action:pan-y}
 .work-card .icon-button{touch-action:none}
 .production-filters{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 20px}

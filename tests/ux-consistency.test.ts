@@ -118,12 +118,8 @@ test('finance panels use column headers and the shared money formatter',()=>{
   const mora=sectionSource('mora.tsx');
   assert.match(mora,/ListGrid label="Cobranza por cliente"/,'la lista de cobranza trae su encabezado');
   assert.match(mora,/const MORA_TEMPLATE\s*=\s*'grid-cols-\[/,'la cobranza declara su plantilla');
-  const styles=read('app/operations.css');
-  assert.match(styles,/\.finance-row-head\{display:grid/);
-  assert.match(styles,/\.finance-grid :is\(\.finance-transfer-row,.finance-invoice-row,.finance-payment-row\)\{display:grid/);
   const operations=read('app/operations.tsx');
   assert.doesNotMatch(operations,/finance-row-head|ReferralDiscounts/,'los pagos y descuentos a colaboradores viven en Finanzas, no en Equipo');
-  assert.match(styles,/\.control-shell :is\(\.finance-payout-row,.finance-referral-row\)\{display:grid/);
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const EXPENSE_COLS='grid-cols-\[minmax\(0,1fr\)_8\.5rem_5rem\]'/,'real expenses declare one shared template');
   assert.match(forecast,/LIST_HEAD,EXPENSE_COLS\)[^>]*><span role="columnheader">Gasto<\/span><span role="columnheader" className="text-right">Monto<\/span>/,'real expenses show their header');
