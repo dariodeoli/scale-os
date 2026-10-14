@@ -46,6 +46,7 @@ import {PlatformCatalog} from "./catalog";
 import {SubscriptionDialog} from "./subscription-dialog";
 import {PlatformAudit} from "./audit";
 import {PlatformUsage} from "./usage";
+import {PlatformTraffic} from "./traffic";
 import {PlatformInquiries} from "./inquiries";
 import {PlatformAnnouncements} from "./announcements";
 import {PlatformMaintenance} from "./maintenance";
@@ -690,6 +691,7 @@ export default function PlatformAdmin() {
     {id: "uso", label: "Uso", icon: "chart"},
     {id: "comunicados", label: "Comunicados", icon: "megaphone"},
     {id: "mantenimiento", label: "Mantenimiento", icon: "wrench"},
+    {id: "trafico", label: "Tráfico y demos", icon: "chart"},
   ];
   const pageContent = redirecting ? (
     <PlatformRedirecting/>
@@ -724,6 +726,7 @@ export default function PlatformAdmin() {
           {view === "comunicados" ? <PlatformAnnouncements writable={writable} agencies={state.agencies} onError={handlePlatformError}/> : null}
 
           {view === "mantenimiento" ? <PlatformMaintenance writable={writable} onError={handlePlatformError}/> : null}
+          {view === "trafico" ? <PlatformTraffic onError={handlePlatformError}/> : null}
 
           {writable && subscriptionAgency ? (
             <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension} grantGrace={grantGrace} applyCoupon={setApplyAgency}/>

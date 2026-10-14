@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {inviteLinks,resolveInvite,claimInvite} from './invite-links.js';
 import {publicExperience} from './public-experience.js';
+import {demoVisitor} from './public-analytics-core.js';
 import {migrationOrder} from './scripts/migration-order.mjs';
 process.env.INVITE_LINK_SECRET??='test-invite-secret-fixture-32-chars-long';
 const pg=new PGlite();await pg.exec(await fs.readFile('schema.sql','utf8'));
@@ -53,6 +54,9 @@ const before=(await query('select count(*)::int as n from agency_clients where o
 const demo=await call('/api/demo/start','POST',{},null,publicExperience);assert.equal(demo.status,201);assert(demo.headers['Set-Cookie']);
 const demoOrg=(await query('select id from organizations where demo_owner_user_id is not null order by id desc limit 1')).rows[0].id;
 assert.equal((await query('select count(*)::int as n from agency_clients where organization_id=$1',[demoOrg])).rows[0].n,20);
+// Analítica de demo (panel global): el inicio queda como evento con hash de la demo, nunca el id crudo.
+const started=(await query("select visitor,label from public_analytics_events where surface='demo' and event='demo_start'")).rows;
+assert.deepEqual(started,[{visitor:demoVisitor(demoOrg),label:'publica'}]);
 assert.equal((await query('select count(distinct role)::int as n from organization_members where organization_id=$1',[demoOrg])).rows[0].n,6);
 assert.equal((await query('select count(*)::int as n from agency_clients where organization_id=$1',[org])).rows[0].n,before);
 assert.equal((await call('/api/demo/role','POST',{role:'owner'},actor,publicExperience)).status,403);

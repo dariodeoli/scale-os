@@ -1,0 +1,2 @@
+# Tráfico y demos del panel global: períodos de Asunción, deltas, tab con y sin datos, tracker de la landing y demo
+tsx tests/superadmin-traffic.test.tsx
