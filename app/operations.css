@@ -422,7 +422,7 @@
 
 /* Presupuestos: tarjetas con estado, datos y total destacado. */
 .budget-hub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,272px),1fr));gap:12px}
-.budget-hub-card{display:flex;flex-direction:column;gap:10px;min-height:var(--ui-card-min-height,120px)}
+.budget-hub-card{display:flex;flex-direction:column;gap:10px;min-height:var(--ui-card-min-height,200px)}
 .budget-hub-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
 .budget-number{font:700 11px 'DM Mono',monospace;letter-spacing:.08em;color:var(--brand-700);white-space:nowrap}
 
