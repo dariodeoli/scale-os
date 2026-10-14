@@ -56,7 +56,7 @@ test('resumen comercial: la expectativa contratada usa la derivación compartida
  assert.match(control, /billingEstado==='sin-contratos'\?<><strong className="no-movements">—<\/strong><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos<\/StateChip><\/>/, 'sin contratos es `—` + chip secundario');
  assert.doesNotMatch(control, /Sin contratos activos<\/strong>/, 'no vuelve el titular largo');
  const css=read('app/control-center.css');
- assert.match(css, /\.finance-compare\{display:grid;gap:10px;grid-template-columns:repeat\(auto-fit,minmax\(340px,1fr\)\);margin:10px 2px 0\}/, 'la comparativa financiera usa grilla auto-fit: dos monedas caben al lado');
+ assert.match(css, /\.finance-compare\{display:grid;gap:10px;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,340px\),1fr\)\);margin:10px 2px 0\}/, 'la comparativa financiera usa grilla auto-fit: dos monedas caben al lado');
 });
 
 test('planes: la acción vive en la fila de la leyenda y el KPI no se estira',()=>{
