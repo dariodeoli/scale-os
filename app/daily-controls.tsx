@@ -129,7 +129,7 @@ export function ReconciliationWorkspace({accounts}:{accounts:Account[]}){
    {lines.length?<div className="min-w-0 overflow-x-auto" role="table" aria-label="Movimientos del extracto"><div className="min-w-[40rem]">
     <div role="row" className={cn(STATEMENT_HEAD,STATEMENT_COLS)}><span role="columnheader">Extracto</span><span role="columnheader">Estado</span><span role="columnheader" className="text-right">Monto</span><span role="columnheader" className="text-right">Acciones</span></div>
     <div role="rowgroup">{lines.map(l=><div role="row" className={cn(STATEMENT_ROW,STATEMENT_COLS)} key={l.id}>
-     <span className="min-w-0 text-sm"><b className="font-semibold text-fore">{listDateShort(l.booked_on)||'—'}</b><small className="ml-2 text-xs text-mute">{l.reference||l.external_id}</small></span>
+     <span className="flex min-w-0 items-baseline text-sm"><b className="flex-none font-semibold text-fore">{listDateShort(l.booked_on)||'—'}</b><small className="ml-2 min-w-0 truncate text-xs text-mute" title={l.reference||l.external_id}>{l.reference||l.external_id}</small></span>
      <span className="min-w-0"><StateChip tone={l.match_id?'ok':'warn'}>{l.match_id?'Conciliado':'Pendiente'}</StateChip></span>
      <span className={cn('min-w-0','text-right')}><MoneyText valor={l.amount} currency={currency}/></span>
      <span className={cn('min-w-0','flex justify-end')}>{l.match_id
