@@ -13,7 +13,7 @@ import {X} from 'lucide-react';
 import {currencyChoices} from './currencies';
 export {useBulkSelection,type BulkSelection,type BulkSelectionOptions} from './bulk-selection';
 import {money} from './operations';
-import {createContext,useContext,useEffect,useRef,useState,type ChangeEvent,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
+import {Children,Fragment,cloneElement,createContext,isValidElement,useContext,useEffect,useRef,useState,type ChangeEvent,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -535,7 +535,8 @@ export function FilterToolbar({children, summary, className}: {children: ReactNo
  * densas de la ronda 14). Se usa junto con la `ListActions` de cada fila.
  */
 export function ListGrid({label, template, columns, children, minWidthClass = 'min-w-[48rem]', pinnedActions = false, className}: {label: string; template: string; columns: Column[]; children: ReactNode; minWidthClass?: string; pinnedActions?: boolean; className?: string}) {
-  return <div role="table" aria-label={label} className={`silent-scroll relative min-w-0 overflow-x-auto ${className ?? ''}`}>
+  // tabIndex: el scroll horizontal silencioso debe poder recorrerse con teclado (WCAG 2.1.1).
+  return <div role="table" aria-label={label} tabIndex={0} className={`silent-scroll relative min-w-0 overflow-x-auto ${className ?? ''}`}>
     <div className={minWidthClass}>
       <div role="row" className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`}>
         {columns.map((column, index) => (
@@ -547,9 +548,34 @@ export function ListGrid({label, template, columns, children, minWidthClass = 'm
   </div>;
 }
 
+const CELL_ROLES = new Set(['cell', 'gridcell', 'rowheader', 'columnheader']);
+// Contenedores sin semántica propia: reciben `role="cell"` sin cambiar el DOM.
+const PLAIN_CELL_TAGS = new Set(['div', 'span', 'p', 'b', 'strong', 'small', 'em', 'time', 'code', 'output']);
+
+/**
+ * Cada hijo directo de la fila es una columna de la plantilla y, para lectores
+ * de pantalla, una celda (`role="row"` solo admite celdas). Los contenedores
+ * neutros se marcan con `role="cell"` en el mismo nodo; los controles
+ * (botones, enlaces, inputs) y los componentes se envuelven en una celda
+ * `display: contents`, así la grilla y la medición siguen viendo el mismo
+ * item. `ListActions` ya es celda.
+ */
+function asCells(children: ReactNode): ReactNode {
+  return Children.map(children, (child, index) => {
+    if (child === null || child === undefined || typeof child === 'boolean') return child;
+    if (isValidElement(child) && child.type === Fragment) return asCells((child as ReactElement<{children?: ReactNode}>).props.children);
+    if (isValidElement(child)) {
+      const element = child as ReactElement<{role?: string}>;
+      if (element.type === ListActions || CELL_ROLES.has(String(element.props.role ?? ''))) return element;
+      if (typeof element.type === 'string' && PLAIN_CELL_TAGS.has(element.type) && !element.props.role) return cloneElement(element, {role: 'cell'});
+    }
+    return <div role="cell" className="contents" key={isValidElement(child) && child.key !== null ? child.key : `cell-${index}`}>{child}</div>;
+  });
+}
+
 /** Fila finita v2: misma plantilla que el encabezado; una celda sin dato reserva su lugar. */
 export function ListRow({template, className, children, ...props}: {template: string; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  return <div role="row" {...props} className={`list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{children}</div>;
+  return <div role="row" {...props} className={`list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{asCells(children)}</div>;
 }
 
 /**

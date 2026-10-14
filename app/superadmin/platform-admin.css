@@ -44,6 +44,9 @@
 .platform-admin-tabs-wrap { position: relative; min-width: 0 }
 .platform-admin-tabs { display: flex; min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none }
 .platform-admin-tabs::-webkit-scrollbar { display: none }
+/* El contador de cada pestaña (SegmentedField lo atenúa con opacity-75) queda
+   bajo 4.5:1 sobre el fondo claro; se muestra con el color pleno de la pestaña. */
+.platform-admin-tabs .opacity-75 { opacity: 1 }
 .platform-admin-tabs > div { flex: none }
 .platform-admin-tabs [aria-pressed] { flex: 0 0 auto; width: auto }
 /* Indicador activo (#155 B): barra inferior de marca además del fondo tenue,

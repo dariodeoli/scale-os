@@ -62,7 +62,7 @@ export function ProyectosSection({bulkBusy, bulk, projectRow, projectsState, can
       toolbar={<FilterToolbar className="mb-0" summary={projectsState==='loading'&&!projects.length?undefined:`${liveProjects.length} proyecto${liveProjects.length===1?'':'s'}`}>
         <div className="w-full sm:w-56"><SelectCustom label="Cliente" choices={clientChoices} value={projectClientFilter} onChange={setProjectClientFilter}/></div>
         {projectClientFilter?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setProjectClientFilter('')}><X size={14}/>Limpiar filtro</button>:null}
-        {canManageProjects&&liveProjects.length?<button type="button" className="text-button min-h-11 lg:ml-2 md:min-h-8" title={`Selecciona hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={()=>bulk.selectVisible(liveProjects.map(project=>String(project.id)))}>Seleccionar visibles</button>:null}
+        {canManageProjects&&liveProjects.length?<button type="button" className="text-button min-h-11 lg:ml-2 md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={()=>bulk.selectVisible(liveProjects.map(project=>String(project.id)))}>Seleccionar visibles</button>:null}
       </FilterToolbar>}
       kpis={projectsState === 'loading' && !projects.length ? <KpiStripSkeleton label="Cargando proyectos…"/> : <KpiStrip className="kpi-strip" aria-label="Métricas de proyectos">
         <Kpi label="Activos" valor={projectKpis.active} hint="Con trabajo en curso" destacado/>

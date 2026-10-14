@@ -68,7 +68,7 @@ type Resultado = {
 
 type CategoriaOpcion = {value: string; label: string};
 
-const CARD = 'grid gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3.5 transition [&[data-off="true"]]:opacity-70';
+const CARD = 'grid gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3.5 transition [&[data-off="true"]]:border-dashed [&[data-off="true"]]:bg-ink-900/50';
 const CARD_TITLE = 'min-w-0 truncate text-[13.5px] font-semibold text-fore';
 const CONTADOR = 'text-[11px] tabular-nums text-mute';
 const OPCION = 'inline-flex w-full min-h-11 flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-lg border border-ink-500 px-2.5 py-1.5 text-left text-[11.5px] font-medium text-mute transition hover:border-fono hover:text-fore aria-pressed:border-fono aria-pressed:bg-fono/10 aria-pressed:text-fore sm:w-auto md:min-h-9';

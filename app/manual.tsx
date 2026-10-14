@@ -15,9 +15,9 @@ const modules=[
  {name:'Configuración',summary:'Datos de la empresa, moneda predeterminada, cotización USD/PYG, integraciones, permisos, papelera y este manual.'},
 ];
 const portalSteps=[
- {title:'Ingresa con tu enlace',detail:'El cliente recibe un enlace directo a su entrega; no necesita crear cuenta.'},
- {title:'Revisa la pieza',detail:'Ve el archivo publicado con los comentarios internos resueltos.'},
- {title:'Aprueba o pide cambios',detail:'Su respuesta llega al tablero de producción como aprobación o como solicitud de cambios.'},
+ {title:'Ingresá con tu enlace',detail:'El cliente recibe un enlace directo a su entrega; no necesita crear cuenta.'},
+ {title:'Revisá la pieza',detail:'Ve el archivo publicado con los comentarios internos resueltos.'},
+ {title:'Aprobá o pedí cambios',detail:'Su respuesta llega al tablero de producción como aprobación o como solicitud de cambios.'},
  {title:'Sin acceso a tu panel',detail:'El cliente solo ve lo que publicaste; nunca accede a clientes, finanzas ni equipo.'},
 ];
 export function PortalPreview(){

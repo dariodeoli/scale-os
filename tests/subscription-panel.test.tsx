@@ -17,6 +17,8 @@ globalThis.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{
  const url=String(input);assert(['/core-api/api/billing/checkout','/core-api/api/billing/portal'].includes(url),'No private agency reads, external calls or polling');
  assert.equal(init?.method,'POST');assert.equal(init?.credentials,'include');requests.push({url,init});return response();
 }) as typeof fetch;
+// El clic resuelve `import('./operations')` antes del fetch: puede tardar varios ticks.
+async function until(check:()=>boolean,label:string){for(let i=0;i<200&&!check();i++)await new Promise(done=>setTimeout(done,1));assert(check(),label);}
 function deferred<T>(){let resolve!:(value:T)=>void;const promise=new Promise<T>(done=>{resolve=done;});return {promise,resolve};}
 async function main(){
  // El panel carga ./operations en la primera acción (import dinámico): se precarga para que los clics sean deterministas.
@@ -142,7 +144,7 @@ async function main(){
   const slow=deferred<Response>();response=()=>slow.promise;
   await render(state);await consent();const checkout=findButton('Activar');let pending:Promise<void>;
   const count=requests.length;
-  await act(async()=>{pending=checkout.props.onClick();});assert.equal(requests.length,count+1);
+  await act(async()=>{pending=checkout.props.onClick();await until(()=>requests.length===count+1,'the first click starts one checkout');});assert.equal(requests.length,count+1);
   await act(async()=>{await checkout.props.onClick();});assert.equal(requests.length,count+1,'Repeated click must not create a second checkout');
   const beforeStale=redirects.length;
   await act(async()=>{renderer!.update(<SubscriptionPanel state={{...state,canManage:false}}/>);});

@@ -1,0 +1,2 @@
+# Guarda estática de accesibilidad: icon-buttons con nombre, campos con etiqueta, alt, teclado, diálogos con nombre, ids únicos
+node tests/a11y-static.test.mjs
