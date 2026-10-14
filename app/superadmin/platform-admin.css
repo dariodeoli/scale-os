@@ -119,7 +119,8 @@
 .ui-kpi.bg-gradient-to-br .platform-kpi-delta[data-tone] { color: inherit }
 .platform-kpi-empty { font-size: 15px; font-weight: 600; color: var(--text-muted) }
 .platform-sparkline { flex: none; overflow: visible }
-.platform-sparkline path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round }
+.platform-sparkline rect { fill: currentColor; opacity: .8 }
+.platform-sparkline rect[data-zero] { opacity: .25 }
 .platform-metric-note { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: 11px; line-height: 1.35 }
 .platform-metric-note > span { font-weight: 600 }
 .ui-kpi.bg-gradient-to-br .platform-metric-note { color: inherit; opacity: .85 }

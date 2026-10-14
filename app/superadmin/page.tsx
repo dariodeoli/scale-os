@@ -736,7 +736,7 @@ export default function PlatformAdmin() {
           <WorkspaceBrand />
         </Link>
         <PageHeader
-          className="min-w-0 flex-[1_1_16rem] !mb-0"
+          className="min-w-0 flex-[1_1_20rem] !mb-0"
           title={current.title || current.label}
           subtitle={<span className="platform-admin-meta">
             {/* El estado refleja el permiso real del API (#147); sin rol resuelto, sin chip. */}

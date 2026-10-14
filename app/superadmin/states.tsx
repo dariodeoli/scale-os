@@ -49,8 +49,10 @@ export function PlatformAdminSkeleton() {
   return <main className="platform-admin-page control-shell platform-shell" aria-busy="true">
     <p className="sr-only" role="status">Cargando…</p>
     <aside className="platform-sidebar" aria-hidden="true">
-      <Skeleton className="mb-3 h-9 w-9 rounded-xl"/>
-      {[0, 1, 2, 3, 4, 5, 6].map((index) => <Skeleton key={index} className="h-9 w-full shrink-0 rounded-lg max-[760px]:w-24"/>)}
+      <Skeleton className="mb-3 h-9 w-9 rounded-xl max-[760px]:hidden"/>
+      <div className="platform-sidebar-nav flex min-w-0 flex-1 gap-1 overflow-hidden min-[761px]:flex-col">
+        {[0, 1, 2, 3, 4, 5, 6].map((index) => <Skeleton key={index} className={`h-9 w-full shrink-0 rounded-lg max-[760px]:w-24 ${index > 2 ? "max-[760px]:hidden" : ""}`}/>)}
+      </div>
     </aside>
     <div className="platform-admin-top" aria-hidden="true">
       <div className="grid min-w-0 flex-1 gap-1">

@@ -129,7 +129,7 @@ test("superadmin panel uses the shared v2 surface and the one notification syste
   // Jerarquía ejecutiva del sistema: KPIs, paneles, listas densas y chips
   // compartidos; sin toasts ni chips propios del panel.
   assert.match(page, /from "\.\.\/ui-v2"/);
-  assert.match(page, /<KpiStrip aria-label="Resumen de plataforma" dense>/);
+  assert.match(page, /<KpiStrip aria-label="Resumen de plataforma" compact>/);
   assert.match(page, /<KpiStrip aria-label="Indicadores del período"/);
   assert.match(page, /<Kpi label="Agencias activas"/);
   assert.match(page, /<Kpi label="Suscripciones"/);

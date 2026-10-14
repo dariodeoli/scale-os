@@ -11,8 +11,8 @@ import {periodQuery, type PlatformPeriodId} from "./period";
 
 /** Procedencia de cada indicador: «fuente · cálculo» (visible bajo el valor). */
 export const METRIC_NOTES = {
-  agencies: {source: "Altas de agencias", calc: "creadas por día de Asunción, sin demos ni de prueba"},
-  users: {source: "Cuentas de usuario", calc: "creadas en el período, sin demos ni eliminadas"},
+  agencies: {source: "Altas de agencias", calc: "por día de Asunción, sin demos"},
+  users: {source: "Cuentas de usuario", calc: "creadas, sin demos ni eliminadas"},
   active_users: {source: "Sesiones de uso", calc: "usuarios distintos con al menos una sesión"},
   sessions: {source: "Sesiones de uso", calc: "sesiones iniciadas en agencias reales"},
   inquiries: {source: "Formulario de la landing", calc: "consultas recibidas"},
@@ -42,6 +42,11 @@ export function PlatformMetrics({period, onError}: {period: PlatformPeriodId; on
 
   if (error) return <ErrorBlock title="No pudimos cargar los indicadores del período" description={error} onRetry={() => void load(period)}/>;
   if (!data) return <KpiStripSkeleton count={6} label="Cargando indicadores del período…"/>;
+  return <MetricsBody data={data} loading={loading}/>;
+}
+
+/** Cuerpo de los indicadores (sin estado): lo usan el Resumen y los fixtures del harness. */
+export function MetricsBody({data, loading = false}: {data: PlatformMetricsPayload; loading?: boolean}) {
   // Una respuesta sin indicadores se muestra como «Sin datos todavía», nunca como ceros.
   const k: Partial<PlatformMetricsPayload["kpis"]> = data.kpis ?? {};
   return <section aria-labelledby="platform-metrics-title" aria-busy={loading} className={`grid min-w-0 gap-2 ${loading ? "opacity-70 transition-opacity" : ""}`}>

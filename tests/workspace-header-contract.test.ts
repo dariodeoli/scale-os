@@ -94,8 +94,10 @@ test("manual subscription management renders immediately after agency records", 
     new URL("../app/superadmin/agencies.tsx", import.meta.url),
     "utf8",
   );
-  order(superadmin, '<PlatformAgencies', '<SubscriptionDialog');
-  // El panel ya no usa dos columnas: cada vista (resumen, agencias, cupones…) es una pestaña y los diálogos
+  // La vista activa (agencias incluida) sale de la lista única de secciones y se monta
+  // antes de los diálogos de gestión.
+  order(superadmin, '<Section {...sectionProps}/>', '<SubscriptionDialog');
+  // El panel ya no usa dos columnas: cada vista (resumen, agencias, cupones…) es una sección y los diálogos
   // de gestión (suscripción y confirmación) se montan después de las vistas.
   order(superadmin, '<SubscriptionDialog', '<PlatformConfirmDialog');
   assert.doesNotMatch(superadmin, /platform-admin-two-columns/, 'the legacy two-column layout is gone');

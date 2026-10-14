@@ -8,7 +8,7 @@
 //  - `component` recibe `PlatformSectionProps` (permiso real, período compartido,
 //    manejo de errores del panel y navegación). Sus datos los pide al API (siempre
 //    detrás del guard de backend/platform-router.js), nunca los trae precargados.
-//  - `count` (opcional) devuelve el número del badge; `usesPeriod` muestra los chips
+//  - `count`, si existe, devuelve el número del badge; `usesPeriod` muestra los chips
 //    de período compartidos; `aliases` agrega ids de deep link; `href` hace de la
 //    entrada un enlace a otra ruta (sin componente).
 import type {ComponentType, FormEvent} from "react";

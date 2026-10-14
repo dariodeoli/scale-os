@@ -11,15 +11,13 @@ export function MetricNote({source, calc, className = ""}: {source: string; calc
   return <small className={`platform-metric-note ${className}`} title={`Fuente: ${source}. Cálculo: ${calc}.`}><span>{source}</span> · {calc}</small>;
 }
 
-/** Línea mínima de la serie diaria (sin ejes): la tendencia, no el dato exacto. */
+/** Barras mínimas de la serie diaria (sin ejes): la tendencia, no el dato exacto.
+ * Barras y no línea: son conteos por día y muchos días en cero no deben dibujar picos. */
 export function Sparkline({series, label}: {series: number[]; label: string}) {
   if (series.length < 2) return null;
-  const W = 72, H = 22, max = Math.max(1, ...series);
-  const x = (i: number) => (i / (series.length - 1)) * (W - 2) + 1;
-  const y = (v: number) => H - 2 - (v / max) * (H - 4);
-  const d = series.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("");
+  const W = 72, H = 22, max = Math.max(1, ...series), step = W / series.length, bar = Math.max(1, step - 1);
   return <svg className="platform-sparkline" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`Tendencia diaria de ${label}`}>
-    <path d={d}/>
+    {series.map((v, i) => { const h = v > 0 ? Math.max(1.5, (v / max) * (H - 2)) : 1; return <rect key={i} x={(i * step).toFixed(2)} y={(H - h).toFixed(2)} width={bar.toFixed(2)} height={h.toFixed(2)} rx={0.5} data-zero={v > 0 ? undefined : "true"}/>; })}
   </svg>;
 }
 
@@ -31,7 +29,7 @@ export function MetricKpi({label, metric, source, calc, destacado = false, live 
   const hint = <span className="platform-kpi-hint">
     <span className="platform-kpi-trend">
       {empty
-        ? <span className="platform-kpi-delta">Sin datos todavía</span>
+        ? <span className="platform-kpi-delta">La fuente todavía no tiene registros</span>
         : live
           ? <span className="platform-kpi-delta">En vivo · sin comparación</span>
           : <span className="platform-kpi-delta" data-tone={tone} title={`Período anterior: ${formatPlatformMetric(metric.previous)}`}>{deltaLabel(metric.value, metric.previous)}</span>}

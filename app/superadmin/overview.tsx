@@ -58,8 +58,8 @@ const SHORTCUTS: {id: string; label: string; detail: string; view: PlatformView;
   {id: "audit", label: "Ver auditoría", detail: "Últimas operaciones sensibles", view: "auditoria", icon: ScrollText},
 ];
 
-/** Pista de un KPI de foto actual con su nota «fuente · cálculo». */
-const snapshotHint = (hint: string, source: string, calc: string) => <span className="platform-kpi-hint"><span className="platform-kpi-delta" title={hint}>{hint}</span><MetricNote source={source} calc={calc}/></span>;
+/** Pista de un KPI de foto actual: su nota «fuente · cálculo» (el detalle va en el cálculo). */
+const snapshotHint = (source: string, calc: string) => <span className="platform-kpi-hint"><MetricNote source={source} calc={calc}/></span>;
 
 export function PlatformOverview({state, audit, onGoTo, bootstrap = null, period = "30d", onError}: {state: State; audit: AuditAction[]; onGoTo: (view: PlatformView) => void; bootstrap?: BootstrapStatus | null; period?: PlatformPeriodId; onError?: (cause: unknown) => boolean}) {
   const subscriptions = state.overview.subscriptions || [];
@@ -73,14 +73,14 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null, period
     <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
     <div className="grid min-w-0 gap-4">
       {/* Foto actual: estado de hoy, sin período (no hay historia para compararlo). */}
-      <KpiStrip aria-label="Resumen de plataforma" dense>
-        <Kpi label="Agencias activas" valor={formatPlatformMetric(state.overview.agencies?.active)} hint={snapshotHint(`de ${formatPlatformMetric(state.overview.agencies?.total)} agencias`, "Agencias", "activas hoy, sin demos")}/>
-        <Kpi label="Usuarios registrados" valor={formatPlatformMetric(state.overview.users?.total)} hint={snapshotHint("Cuentas de todas las agencias", "Cuentas de usuario", "totales hoy, sin demos")}/>
-        <Kpi label="Cupones activos" valor={formatPlatformMetric(state.overview.coupons?.active)} hint={snapshotHint(`de ${formatPlatformMetric(state.overview.coupons?.total)} códigos`, "Cupones", "vigentes hoy")}/>
-        <Kpi label="Suscripciones" valor={subscriptionsEmpty ? <span className="platform-kpi-empty">Sin datos todavía</span> : formatPlatformMetric(activeSubscriptions ?? 0)} hint={snapshotHint(subscriptionsEmpty ? "Todavía no hay suscripciones" : subscriptionSummary(subscriptions), "Suscripciones", "activas hoy, por estado efectivo")}/>
+      <KpiStrip aria-label="Resumen de plataforma" compact>
+        <Kpi label="Agencias activas" valor={formatPlatformMetric(state.overview.agencies?.active)} hint={snapshotHint("Agencias", `activas hoy de ${formatPlatformMetric(state.overview.agencies?.total)}, sin demos`)}/>
+        <Kpi label="Usuarios registrados" valor={formatPlatformMetric(state.overview.users?.total)} hint={snapshotHint("Cuentas", "de todas las agencias, sin demos")}/>
+        <Kpi label="Cupones activos" valor={formatPlatformMetric(state.overview.coupons?.active)} hint={snapshotHint("Cupones", `vigentes de ${formatPlatformMetric(state.overview.coupons?.total)} códigos`)}/>
+        <Kpi label="Suscripciones" valor={subscriptionsEmpty ? <span className="platform-kpi-empty">Sin datos todavía</span> : formatPlatformMetric(activeSubscriptions ?? 0)} hint={snapshotHint("Suscripciones", subscriptionsEmpty ? "todavía no hay registros" : `activas hoy · ${subscriptionSummary(subscriptions)}`)}/>
       </KpiStrip>
 
-      <div className="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
         <section className="panel" aria-labelledby="platform-expiring-title">
           <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
             <h2 id="platform-expiring-title" className="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Agencias por vencer</h2>
