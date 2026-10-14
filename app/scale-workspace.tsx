@@ -61,7 +61,7 @@ import {filterProductionOrders} from './production-filter';
 import type {Status} from './production-board';
 import {defaultWorkspacePreferences, workspacePreferenceKey} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
-import {clientPortfolioStats,currentAsuncionMonth} from './client-format';
+import {clientPortfolioStats,currentAsuncionMonth,dueWithinDays} from './client-format';
 import type {Account,AccountTransfer,Budget,Client,ClientPaymentStatus,Invoice,Member,MetricEvent,ModalKind,PaymentRecord,Project,Summary,User,WorkOrder} from './workspace-types';
 import {technicalEmail} from './field-rules';
 import {moraDsoDays,moraKpis} from './mora-data';
@@ -455,13 +455,11 @@ export default function Home() {
     const active = clients.filter(client => client.active).length;
     const paused = clients.length - active;
     const activeProjects = projects.filter(project => project.status === "active").length;
-    const today = new Date(), week = new Date(Date.now() + 7 * 86400000);
     // El total de entregas próximas sale del agregado del API (exacto también
     // cuando la sección pide una ventana de órdenes); la lista es el respaldo.
     const deliveries = summary.upcoming_deliveries ?? orders.filter(order => {
       if (!order.due_date || ["approved", "published"].includes(order.status)) return false;
-      const due = new Date(order.due_date);
-      return !Number.isNaN(due.getTime()) && due >= today && due <= week;
+      return dueWithinDays(order.due_date, 7);
     }).length;
     return { active, paused, activeProjects, deliveries };
   }, [clients, projects, orders, summary.upcoming_deliveries]);

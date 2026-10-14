@@ -1,9 +1,19 @@
 import assert from 'node:assert/strict';
-import {clientDateSummary,clientSince,daysUntil,todayAsuncion,moneyKpi} from '../app/client-format';
+import {clientDateSummary,clientSince,daysUntil,todayAsuncion,moneyKpi,dueWithinDays,addCivilDays} from '../app/client-format';
 import {money} from '../app/money-format';
 
 function main(){
  const now=new Date('2026-09-18T15:00:00Z');
+ // #170: una entrega de hoy cuenta a las 22:00 locales (01:00Z del día siguiente) y el borde de 7 días es inclusivo.
+ const night=new Date('2026-09-19T01:00:00Z');
+ assert.equal(todayAsuncion(night),'2026-09-18');
+ assert.equal(dueWithinDays('2026-09-18',7,night),true);
+ assert.equal(dueWithinDays('2026-09-18T00:00:00.000Z',7,night),true);
+ assert.equal(dueWithinDays('2026-09-25',7,night),true);
+ assert.equal(dueWithinDays('2026-09-26',7,night),false);
+ assert.equal(dueWithinDays('2026-09-17',7,night),false);
+ assert.equal(dueWithinDays(null,7,night),false);
+ assert.equal(addCivilDays('2026-12-30',3),'2027-01-02');
  // Un dato, un formato: el agregado de KPI comparte el formateador de las filas
  // y conserva los centavos de toda moneda no-PYG.
  assert.equal(moneyKpi(1234.56,'USD'),money(1234.56,'USD'));
