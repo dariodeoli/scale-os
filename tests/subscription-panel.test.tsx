@@ -11,7 +11,7 @@ const state:SubscriptionState={status:'trialing',hasAccess:true,currency:'USD',a
 const originalFetch=globalThis.fetch,originalWindow=Object.getOwnPropertyDescriptor(globalThis,'window');
 const redirects:string[]=[],requests:Array<{url:string;init?:RequestInit}>=[];
 const browserLocation={href:'https://scale.invalid/',assign:(url:string)=>redirects.push(url)};
-Object.defineProperty(globalThis,'window',{configurable:true,value:{location:browserLocation,history:{state:null,replaceState:(_state:unknown,_title:string,url:URL|string)=>{browserLocation.href=String(url);}}}});
+Object.defineProperty(globalThis,'window',{configurable:true,value:{location:browserLocation,dispatchEvent:()=>true,history:{state:null,replaceState:(_state:unknown,_title:string,url:URL|string)=>{browserLocation.href=String(url);}}}});
 let response=async()=>new Response(JSON.stringify({url:'https://checkout.stripe.com/c/pay/cs_test_local'}));
 globalThis.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{
  const url=String(input);assert(['/core-api/api/billing/checkout','/core-api/api/billing/portal'].includes(url),'No private agency reads, external calls or polling');
@@ -19,6 +19,8 @@ globalThis.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{
 }) as typeof fetch;
 function deferred<T>(){let resolve!:(value:T)=>void;const promise=new Promise<T>(done=>{resolve=done;});return {promise,resolve};}
 async function main(){
+ // El panel carga ./operations en la primera acción (import dinámico): se precarga para que los clics sean deterministas.
+ await import('../app/operations');
  let renderer:ReactTestRenderer|undefined,refreshes=0;
  const text=()=>JSON.stringify(renderer!.toJSON());
  const buttons=()=>renderer!.root.findAllByType('button');

@@ -15,7 +15,7 @@ function execute(code:string,deps:Record<string,unknown>){
  return new Function(...Object.keys(deps),js)(...Object.values(deps));
 }
 test('actual team loader: one team read feeds people, members and archived profiles',async()=>{
- const {ast,fn}=component('operations.tsx','PeopleWorkspace');
+ const {ast,fn}=component('team-workspace.tsx','PeopleWorkspace');
  const load=fn.body!.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='load')!;
  const calls:string[]=[],resolvers:(()=>void)[]=[],state:Record<string,unknown>={};
  const deps:Record<string,unknown>={api:(path:string)=>{calls.push(path);return new Promise(resolve=>resolvers.push(()=>resolve({collaborators:[{id:'1'}],members:[{id:'2'}],archivedProfiles:[]})))}};
@@ -32,8 +32,8 @@ test('actual company loader renders settings without waiting for the rate reques
  const callback=(effect.expression as ts.CallExpression).arguments[0].getText(ast);
  for(const unmount of [false,true]){
   const pending=new Map<string,{resolve:(value:unknown)=>void;reject:(error:Error)=>void}>(),state:Record<string,unknown>={};
-  const start=execute('return '+callback,{api:(path:string)=>new Promise((resolve,reject)=>pending.set(path,{resolve,reject})),setSettings:(v:unknown)=>{state.settings=v;},setNotice:(v:unknown)=>{state.notice=v;},err:(e:Error)=>e.message});
-  const cleanup=start();assert.equal(pending.size,1,'la empresa no espera la cotización');
+  const start=execute('return '+callback,{api:(path:string)=>new Promise((resolve,reject)=>pending.set(path,{resolve,reject})),setSettings:(v:unknown)=>{state.settings=v;},setLoadError:(v:unknown)=>{state.loadError=v;},err:(e:Error)=>e.message});
+  const cleanup=start();assert.equal(pending.size,1,'la empresa no espera la cotización');assert.equal(state.loadError,'','arranca sin error de carga');
   if(unmount)cleanup();
   pending.get('/api/agency/settings')!.resolve({settings:{id:'company'}});await Promise.resolve();await Promise.resolve();
   assert.deepEqual(state.settings,unmount?undefined:{id:'company'});

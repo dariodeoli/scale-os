@@ -10,6 +10,7 @@ const {completeSave}=require('../app/save-completion') as typeof import('../app/
 const cases=[
  ['suite','RecordEditor','Editor','save'],
  ['suite','RecordEditor','RecordAssignees','refresh'],
+ ['client-editor','ClientEditorDialog','ClientEditor','onSaved'],
  ['suite','BudgetActions','QuoteComposer','done'],
  ['team-access','TeamAccess','Editor','save'],
 ] as const;
@@ -31,7 +32,9 @@ for(const [module,name,component,attribute] of cases)test(`${name} ${component}:
  };
  visit(parent);
  if(name==='RecordEditor'&&component==='Editor'){
-  assert.equal(callbacks.length,2,'client detail saves directly; project/work detail delegates to the unified save');
+  // El detalle de cliente ya no vive acá (ClientEditorDialog, caso aparte): el
+  // Editor de proyecto/pieza solo reenvía el guardado unificado de RecordAssignees.
+  assert.equal(callbacks.length,1,'project/work detail delegates to the unified save');
   const delegated=callbacks.filter(ts.isIdentifier);
   assert.equal(delegated.length,1);
   assert.equal(delegated[0].text,'save');
@@ -40,18 +43,20 @@ for(const [module,name,component,attribute] of cases)test(`${name} ${component}:
   assert(enclosing&&ts.isArrowFunction(enclosing));
   assert.equal(enclosing.parameters.length,1);
   assert.equal(enclosing.parameters[0].name.getText(file),'save','Editor forwards the render-prop save supplied by RecordAssignees');
+  return;
  }
- else assert.equal(callbacks.length,1);
+ assert.equal(callbacks.length,1);
  const inline=callbacks.filter(node=>ts.isArrowFunction(node));
  assert.equal(inline.length,1,'exactly one persistence/completion callback per save path');
  const callbackSource=inline[0].getText(file);
- assert(callbackSource.includes(attribute==='refresh'?'completeSave(':'await completeSave('));
+ assert(callbackSource.includes(attribute==='save'||attribute==='done'?'await completeSave(':'completeSave('));
  let closed=false,refreshes=0,writes=0;
  let persist:()=>Promise<unknown>=async()=>{throw Error('Persist failed');};
  const close=(value:unknown)=>{assert(value===null||value===false);closed=true;};
  const refresh=async()=>{refreshes++;assert.equal(closed,true,'close precedes any refresh');throw Error('Refresh unavailable');};
+ const closeProp=()=>{closed=true;};
  const scope={completeSave,api:async()=>{writes++;return persist();},refresh,load:refresh,
-  setEdit:close,setOpen:close,setRecord:close,setInvite:close,
+  close:closeProp,setEdit:close,setOpen:close,setRecord:close,setInvite:close,
   member:{id:'7'},recordId:'8',kind:'leads',row:{id:'9'},
   planData:null,canPlan:false,isDate:()=>true,
  };
@@ -79,11 +84,13 @@ for(const [module,name,component,attribute] of cases)test(`${name} ${component}:
 test('completion covers main save paths including unified assignments, not secondary actions',()=>{
  const suite=readFileSync(new URL('../app/suite.tsx',import.meta.url),'utf8');
  const access=readFileSync(new URL('../app/team-access.tsx',import.meta.url),'utf8');
- assert.equal((suite.match(/await completeSave\(/g)||[]).length,2,'client detail and budget invoice keep their completion');
- assert.equal((suite.match(/\bcompleteSave\(/g)||[]).length,3,'unified assignment completion is also covered');
+ const client=readFileSync(new URL('../app/client-editor.tsx',import.meta.url),'utf8');
+ assert.equal((suite.match(/await completeSave\(/g)||[]).length,1,'budget detail keeps its completion');
+ assert.equal((client.match(/\bcompleteSave\(/g)||[]).length,1,'client detail completion lives in ClientEditorDialog');
+ assert.equal((suite.match(/\bcompleteSave\(/g)||[]).length,2,'unified assignment completion is also covered');
  assert.equal((access.match(/await completeSave\(/g)||[]).length,1);
- assert(suite.includes('refresh={async()=>{await refresh();await open();}}'),'appearance partial saves retain their reload behavior');
- for(const source of [suite,access]){
+ assert(suite.includes('await refresh();await open();'),'secondary approve/publish actions keep reloading the open record instead of closing it');
+ for(const source of [suite,access,client]){
   const file=ts.createSourceFile('source.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   const visit=(node:ts.Node)=>{
    if(ts.isJsxAttribute(node)&&node.name.getText(file)==='onClick')assert(!node.getText(file).includes('completeSave'),'secondary button actions must stay untouched');

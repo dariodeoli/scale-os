@@ -15,6 +15,9 @@ globalThis.fetch=(input,init)=>new Promise<Response>(resolve=>requests.push({url
 let renderer:ReactTestRenderer;
 const latest=()=>requests[requests.length-1];
 const rendered=()=>JSON.stringify(renderer.toJSON());
+// El histórico es un ListGrid (role=table / role=row con cabecera role=columnheader), no un <table>.
+const historyGrids=()=>renderer.root.findAll(node=>typeof node.type==='string'&&node.props.role==='table'&&node.props['aria-label']==='Evolución mensual por mes');
+const historyRows=()=>historyGrids()[0].findAll(node=>typeof node.type==='string'&&node.props.role==='row'&&node.findAll(cell=>cell.props.role==='columnheader').length===0);
 function text(node:any=renderer.toJSON()):string{return typeof node==='string'?node:Array.isArray(node)?node.map(text).join(''):node?.children?.map(text).join('')||'';}
 async function respond(request:Request,data:unknown,status=200){await act(async()=>{request.resolve(new Response(JSON.stringify(data),{status}));});}
 function row(month:string,active:number|null=4,isPartial=false):ReportMonth{return {month,isPartial,clients:{active,added:1,lost:1,retentionPercent:75,averageTenureDays:100,tenureKnown:3,types:[{kind:'company',count:1},{kind:'unknown',count:3}],plans:[{planId:'2',name:'Mensual',count:1},{planId:null,name:null,count:3}]},financial:[{currency:'USD',invoiced:'9007199254740993.1234',collected:'-10.00',invoiceCount:2,billedClients:1,averageTicket:'4503599627370496.56',averageRevenuePerClient:'9007199254740993.12'},{currency:'PYG',invoiced:'50000',collected:'40000',invoiceCount:1,billedClients:1,averageTicket:'50000',averageRevenuePerClient:'50000'}]};}
@@ -68,9 +71,9 @@ async function run(){
  assert.equal(occurrences('1 · 25,0 %'),2,'las dos distribuciones muestran su cuota');
  assert.equal(occurrences('3 · 75,0 %'),2,'las dos distribuciones muestran su cuota');
  assert.equal(renderer.root.findAll(node=>node.type==='div'&&node.props.role==='progressbar').length,4,'cada fila con cuota dibuja su barra');
- assert.equal(renderer.root.findAllByType('tbody').at(-1)!.findAllByType('tr').length,2,'el histórico lista un mes por fila');
+ assert.equal(historyRows().length,2,'el histórico lista un mes por fila');
  assert.match(text(),/Evolución mensual · PYG/);
- assert(renderer.root.findAllByType('table').length>=1,'el histórico es una tabla real');
+ assert.equal(historyGrids().length,1,'el histórico es una tabla accesible (role=table)');
  act(()=>renderer.root.findAllByType(SelectCustom)[0].props.onChange('USD'));
  assert.match(text(),/USD 9\.007\.199\.254\.740\.993,1234/);
  assert.doesNotMatch(text(),/PYG 50\.000/,'financial currencies are not summed or displayed together');
@@ -85,7 +88,7 @@ async function run(){
  assert.match(text(),/Sin comparación: mes parcial/,'past incomplete coverage also disables comparisons');
  await respond(staleSix,{error:'old failure'},500);assert.doesNotMatch(text(),/old failure/);
  history(12);await respond(latest(),{error:'No autorizado'},403);
- assert.match(text(),/No autorizado/);assert.equal(renderer.root.findAllByType('table').length,0);
+ assert.match(text(),/No autorizado/);assert.equal(historyGrids().length,0);
  act(()=>renderer.root.findAllByType("button").find(node=>String(node.props.children).includes("Reintentar"))!.props.onClick());
  await respond(latest(),{...fixture('2020-06',[{...row('2020-06',null),financial:[]}]),historySince:null});
  assert.match(rendered(),/Histórico confiable desde: sin fecha confirmada/);
@@ -110,7 +113,7 @@ async function run(){
  assert.match(text(),/Datos al 09 sept 26 · 22:15/,'cutoff respects the previous local day');
  assert.match(rendered(),/Histórico confiable desde: 31 ago 26 · 22:00/,'coverage date respects Asuncion rather than UTC');
   act(()=>renderer.update(<ReportsWorkspace key="org2" role="viewer" organizationName="Scale"/>));
-  assert.equal(renderer.root.findAllByType('table').length,0,'permission removal clears private report');
+  assert.equal(historyGrids().length,0,'permission removal clears private report');
   act(()=>renderer.unmount());
 
   // Previous equal window: a second API call, real per-currency variations,

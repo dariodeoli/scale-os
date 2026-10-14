@@ -1,7 +1,12 @@
 import React from 'react';
 import assert from 'node:assert/strict';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
-import PendingAccess from '../app/acceso-pendiente/page';
+
+require.extensions['.css']=()=>{};
+// next/link usa `self`/requestIdleCallback del navegador: se reemplaza por un <a> (el contrato acá es el sondeo de aprobación).
+const linkId=require.resolve('next/link');
+require.cache[linkId]={id:linkId,filename:linkId,loaded:true,exports:{__esModule:true,default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}} as NodeModule;
+const PendingAccess=require('../app/acceso-pendiente/page').default as typeof import('../app/acceso-pendiente/page').default;
 
 async function run(){
  const reactDescriptor=Object.getOwnPropertyDescriptor(globalThis,'React');
