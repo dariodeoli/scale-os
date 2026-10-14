@@ -83,4 +83,4 @@
 .activity-list-row .activity-feed-event p{margin:0;min-width:0}
 .activity-list-row .activity-feed-context{color:var(--text-subtle,var(--text-muted));font-weight:500}
 .activity-list-row .activity-feed-tech{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-subtle,var(--text-muted));font-size:10.5px}
-.activity-list-row .activity-feed-record{justify-self:end;color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.activity-list-row .activity-feed-record{text-align:right;color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
