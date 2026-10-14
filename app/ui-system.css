@@ -71,7 +71,8 @@
    de `object-fit`/`object-position` para fotos de persona en la app. */
 .foto-perfil{--foto-perfil-size:28px;--foto-perfil-font:calc(var(--foto-perfil-size) * .38);position:relative;display:grid;place-items:center;flex:none;width:var(--foto-perfil-size);height:var(--foto-perfil-size);padding:0;border:0;border-radius:50%;overflow:hidden;background:var(--brand-700);color:rgb(var(--c-onbrand));font-family:inherit;font-size:var(--foto-perfil-font);font-weight:600;line-height:1}
 .foto-perfil img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
-.foto-perfil-cuadrado{border-radius:var(--ui-radius-control,10px)}
+/* Cuadrado proporcional: en tamaños chicos (logo xs del selector de empresa, 22 px) un radio fijo de 10 px lo volvía círculo. */
+.foto-perfil-cuadrado{border-radius:min(var(--ui-radius-control,10px),calc(var(--foto-perfil-size) * .25))}
 .foto-perfil-logo{background:var(--surface-raised,var(--surface));color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line-strong) 70%,transparent)}
 .foto-perfil-logo img{object-fit:contain;object-position:center;padding:calc(var(--foto-perfil-size) * .08)}
 .foto-perfil-xs{--foto-perfil-size:22px}
@@ -90,6 +91,8 @@ button.foto-perfil:focus-visible{outline:3px solid var(--focus-ring,var(--brand-
 .activity-feed-row .foto-perfil{--foto-perfil-size:24px}
 .assigned-people .foto-perfil{--foto-perfil-size:22px}
 .presence-person .foto-perfil{--foto-perfil-size:24px}
+/* En la presencia compacta del topbar el aro mide 23 px con borde de 2 px: la foto ocupa el interior (19 px) y no desborda el aro. */
+.workspace-presence .presence-person .foto-perfil{--foto-perfil-size:19px}
 /* Iniciales en oscuro: el violeta #8329c9 lleva tinta clara (6.7:1); --c-onbrand en oscuro es tinta
    oscura (2.6:1). El logo conserva su superficie neutra con texto del tema. */
 html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;color:#fff}
