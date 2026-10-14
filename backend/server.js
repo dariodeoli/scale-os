@@ -522,7 +522,9 @@ const server = http.createServer(async (req,res) => {
       if(saved.rows[0].recent_auth_preview_hash){
         try{
           const handoff=await issueGoogleRecentAuthHandoff(db,{userId:saved.rows[0].recent_auth_user_id,previewHash:saved.rows[0].recent_auth_preview_hash,profile});
-          const target=new URL('/configuracion',appUrl);target.searchParams.set('recentAuthTicket',handoff.ticket);
+          // Las eliminaciones del panel global vuelven al superadmin; el resto a Configuración.
+          const previewAction=(await db.query('select action from destructive_action_previews where token_hash=$1',[saved.rows[0].recent_auth_preview_hash])).rows[0]?.action||'';
+          const target=new URL(previewAction.startsWith('platform.')?'/superadmin':'/configuracion',appUrl);target.searchParams.set('recentAuthTicket',handoff.ticket);
           res.writeHead(302,{Location:target.href,'Set-Cookie':oauthStateCookie('',0)});return res.end();
         }catch(error){return oauthFailure(error.status?error.message:'No se pudo confirmar tu identidad con Google.');}
       }
