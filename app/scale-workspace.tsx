@@ -1019,8 +1019,8 @@ export default function Home() {
   return (
     <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
-      <DesktopSidebar>{(collapsed)=><>
-        <div className="sidebar-brand"><WorkspaceBrand/></div>
+      <DesktopSidebar>{(collapsed,toggle)=><>
+        <div className="sidebar-brand"><WorkspaceBrand/>{toggle}</div>
         {sidebarContent('rail',collapsed)}
       </>}</DesktopSidebar>
       {/* El content ocupa el ancho restante por flex (`flex-1`), no por un
