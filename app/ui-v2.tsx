@@ -496,8 +496,8 @@ export const PageChromeContext = createContext<ReactNode>(null);
 export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis, bulk, children, className, rootRef, ...props}: {rootRef?: Ref<HTMLElement>; title?: string; eyebrow?: string; subtitle?: ReactNode; primaryAction?: ReactNode; toolbar?: ReactNode; kpis?: ReactNode; bulk?: ReactNode; children?: ReactNode; className?: string} & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
   const pageTitle = useContext(PageTitleContext);
   const tabs = useContext(PageChromeContext);
-  return <section ref={rootRef} data-list-page className={`grid min-w-0 gap-4 ${className ?? ''}`} {...props}>
-    <div className="grid gap-3">
+  return <section ref={rootRef} data-list-page className={`grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 ${className ?? ''}`} {...props}>
+    <div className="grid min-w-0 gap-3">
       <PageTitleContext.Provider value="">
         <PageHeader eyebrow={eyebrow} title={title ?? pageTitle} subtitle={subtitle} actions={primaryAction} className="!mb-0"/>
       </PageTitleContext.Provider>

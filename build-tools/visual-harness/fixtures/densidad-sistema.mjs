@@ -14,7 +14,7 @@ const plus = icon('<path d="M5 12h14"/><path d="M12 5v14"/>', 18);
 
 const card = (title, body) => `
 <article class="ops-card">
- <header class="flex min-w-0 items-center justify-between gap-2"><span class="person-container person-container-md"><span class="foto-perfil" aria-hidden="true">FD</span><span class="person-container-details"><span class="person-container-name">${title}</span><span class="person-container-secondary">${body.split(' · ')[0]}</span></span></span><span class="state-chip">Activo</span></header>
+ <header class="flex min-w-0 items-center justify-between gap-2"><span class="person-container person-container-md"><span class="foto-perfil" aria-hidden="true">FD</span><span class="person-container-details"><span class="person-container-name" title="${title}">${title}</span><span class="person-container-secondary">${body.split(' · ')[0]}</span></span></span><span class="state-chip">Activo</span></header>
  <p class="form-note">${body}</p>
 </article>`;
 
