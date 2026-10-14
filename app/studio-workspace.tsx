@@ -117,7 +117,7 @@ function StudioPanel(){
   <div className="w-full sm:w-44"><SelectCustom label="Estado" choices={statusChoices} value={statusFilter} onChange={setStatusFilter}/></div>
   <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
   {filtersActive?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={clearFilters}>Limpiar filtros</button>:null}
-  {visibleSelectable.length?<button type="button" className="text-button min-h-11 md:min-h-8" title={`Selecciona hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations}>Seleccionar visibles</button>:null}
+  {visibleSelectable.length?<button type="button" className="text-button min-h-11 md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations}>Seleccionar visibles</button>:null}
  </FilterToolbar>:undefined;
  const bulkBar=!loading&&!error?<BulkBar count={bulk.count} total={BATCH_LIMITS.studioReservations} label="seleccionada" onClear={bulk.clear}>
   <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkCancel(true)}>Cancelar</button>

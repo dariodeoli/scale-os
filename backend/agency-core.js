@@ -151,7 +151,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     }
     if (url.pathname === '/api/metrics' && req.method === 'GET') {
       const user=await session(req); if(!user) return send(res,401,{error:'No autenticado'});
-      if(!roleCan(user,'metrics.view')) return send(res,403,{error:'Sin permiso'});
+      if(!roleCan(user,'metrics.view')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const from=url.searchParams.get('from') || new Date(Date.now()-366*86400000).toISOString().slice(0,10);
       const to=url.searchParams.get('to') || new Date().toISOString().slice(0,10);
       if(!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to) return send(res,400,{error:'Rango inválido'});
@@ -159,7 +159,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,200,{events:r.rows});
     }
     if (url.pathname === '/api/hub/organizations' && req.method === 'GET') {
-      const user=await session(req); if(!roleCan(user,'company.create')) return send(res,403,{error:'Sin permiso'});
+      const user=await session(req); if(!roleCan(user,'company.create')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const r=await db.query('select o.slug,o.name,o.active,m.role from organizations o join organization_members m on m.organization_id=o.id where m.user_id=$1 and m.active=true and m.removed_at is null order by o.name',[user.id]);
       return send(res,200,{organizations:r.rows});
     }
@@ -197,7 +197,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       finally { client.release(); }
     }
     if (url.pathname === '/api/agency/client-payment-status' && req.method === 'GET') {
-      const user=await session(req); if(!roleCan(user,'billing.view')) return send(res,403,{error:'Sin permiso'});
+      const user=await session(req); if(!roleCan(user,'billing.view')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const status=url.searchParams.get('status');
       const statuses=['up_to_date','due_soon','late','severe'];
       if(status && !statuses.includes(status)) return send(res,400,{error:'Estado de cobro inválido'});
@@ -234,7 +234,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,200,{clients:rows,...windowPage});
     }
     if (url.pathname === '/api/agency/clients' && req.method === 'POST') {
-      const user = await session(req); if (!roleCan(user,'clients.manage')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!roleCan(user,'clients.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       // Mismos límites que el PATCH del suite: nombre 120, RUC 60, razón social
       // 160 y notas 2000 (antes el alta guardaba cualquier largo y la edición
       // después rechazaba el registro).
@@ -316,7 +316,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,200,{projects:rows});
     }
     if (url.pathname === '/api/agency/projects' && req.method === 'POST') {
-      const user = await session(req); if (!roleCan(user,'projects.manage')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!roleCan(user,'projects.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const {name='',clientId,driveUrl:rawDriveUrl=null,urgency=null}=await body(req);
       const driveUrl=externalLink(rawDriveUrl);
       if (typeof name !== 'string' || name.trim().length < 2 || !Number.isInteger(Number(clientId))) return send(res,400,{error:'Proyecto inválido'});
@@ -430,7 +430,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,200,{workOrders:rows,...(paginated?{page:{limit,offset,hasMore}}:{}),...(stageCounts?{stage_counts:stageCounts}:{})});
     }
     if (url.pathname === '/api/agency/work-orders' && req.method === 'POST') {
-      const user = await session(req); if (!roleCan(user,'work-orders.edit')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!roleCan(user,'work-orders.edit')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const {title='',projectId,status='to_record',description=null,driveUrl:rawDriveUrl=null,urgency=null,work_type=null,due_time=null}=await body(req);
       const driveUrl=externalLink(rawDriveUrl);
       const workType=work_type===undefined||work_type===null||work_type===''?null:['video','reedicion','foto','produccion','entregable'].includes(work_type)?work_type:null;
@@ -445,7 +445,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,201,{workOrder:r.rows[0]});
     }
     if (url.pathname === '/api/agency/members' && req.method === 'GET') {
-      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const r = await db.query('select u.id,u.email,m.role,m.active,m.created_at from organization_members m join users u on u.id=m.user_id where m.organization_id=$1 and m.removed_at is null and m.purged_at is null order by m.created_at asc',[user.organization_id]);
       return send(res,200,{members:r.rows});
     }
@@ -454,7 +454,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       // retirado/suspendido. La membresía se marca purgada (no se borra la fila
       // porque el historial referencia (organization_id,user_id)); desaparece del
       // directorio y una nueva invitación la reactiva.
-      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const target = Number(url.pathname.split('/')[4]);
       if (!Number.isSafeInteger(target) || target <= 0) return send(res,400,{error:'Miembro inválido'});
       if (target === user.id) return send(res,400,{error:'No podés eliminarte a vos mismo del equipo'});
@@ -473,7 +473,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
     if (url.pathname === '/api/agency/members' && req.method === 'POST') {
-      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const {email='',password='',role='viewer'} = await body(req);
       let normalizedEmail='';try{normalizedEmail=validEmail(email)||'';}catch{return send(res,400,{error:'Datos de invitación inválidos'});}
       if (!normalizedEmail || (password && (typeof password !== 'string' || password.length < 8)) || !memberRoles.includes(role) || (role === 'owner' && user.role !== 'owner')) return send(res,400,{error:'Datos de invitación inválidos'});
@@ -501,7 +501,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
     if (url.pathname.match(/^\/api\/agency\/members\/\d+\/photo$/) && req.method === 'PATCH') {
-      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const target = Number(url.pathname.split('/')[4]);
       if (!Number.isSafeInteger(target) || target <= 0) return send(res,400,{error:'Miembro inválido'});
       const {photo_url} = await body(req); if (typeof photo_url !== 'string') return send(res,400,{error:'Foto inválida'});
@@ -526,7 +526,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
     if (url.pathname === '/api/agency/budgets' && req.method === 'GET') {
-      const user = await session(req); if (!roleCan(user,'budgets.manage')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!roleCan(user,'budgets.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       // Proyección y ventana opcionales (#71/#105): sin `limit` la lista
       // completa queda igual; con `limit` la consulta se pagina y suma `page`.
       let fields=null,window=null;
@@ -543,7 +543,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,200,{budgets:projectRows(dropWindowTotal(cut.rows),fields),...(window.paginated?{hasMore:cut.hasMore,page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{})});
     }
     if (url.pathname === '/api/agency/budgets' && req.method === 'POST') {
-      const user = await session(req); if (!roleCan(user,'budgets.manage')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!roleCan(user,'budgets.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       // Mismos límites y redondeo que el PATCH del suite (título 160, ítems 1–100
       // con cantidad ≤999999, importes a 2 decimales y vigencia en fecha civil).
       const incoming=await body(req);
@@ -578,7 +578,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       } catch (error) { await client.query('rollback'); throw error; } finally { client.release(); }
     }
     if (url.pathname === '/api/agency/accounts' && req.method === 'GET') {
-      const user=await session(req); if(!roleCan(user,'accounts.manage')) return send(res,403,{error:'Sin permiso'});
+      const user=await session(req); if(!roleCan(user,'accounts.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const r=await db.query(`select a.*,u.email as custodian_email,
         coalesce(nullif(trim(i.full_name),''),nullif(trim(c.full_name),''),u.email) as custodian_name,
         coalesce(i.photo_url,c.photo_url) as custodian_photo_url
@@ -590,7 +590,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,200,{accounts:r.rows});
     }
     if (url.pathname === '/api/agency/accounts' && req.method === 'POST') {
-      const user=await session(req); if(!roleCan(user,'accounts.manage')) return send(res,403,{error:'Sin permiso'});
+      const user=await session(req); if(!roleCan(user,'accounts.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const {name='',accountType='bank',currency=user.default_currency??'PYG',institution=null,accountNumber=null,holderName=null,custodianUserId=null}=await body(req);
       if(typeof name !== 'string' || name.trim().length<2 || !['bank','cash','digital','investment'].includes(accountType) || !currencies.includes(currency)) return send(res,400,{error:'Cuenta inválida'});
       const custodianId=custodianUserId === null || custodianUserId === '' ? null : Number(custodianUserId);
@@ -599,7 +599,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,201,{account:r.rows[0]});
     }
     if (url.pathname === '/api/agency/custodians' && req.method === 'GET') {
-      const user=await session(req); if(!roleCan(user,'accounts.manage')) return send(res,403,{error:'Sin permiso'});
+      const user=await session(req); if(!roleCan(user,'accounts.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       // Nombre y foto resueltos (identidad global o ficha de colaborador) para
       // que custodias y cobros nunca muestren correos técnicos del demo (#149).
       const r=await db.query(`select u.id,u.email,m.role,
@@ -613,7 +613,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,200,{members:r.rows});
     }
     if (url.pathname === '/api/agency/invoices' && req.method === 'GET') {
-      const user=await session(req); if(!roleCan(user,'invoices.manage')) return send(res,403,{error:'Sin permiso'});
+      const user=await session(req); if(!roleCan(user,'invoices.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const requested=new URL(url,'https://scale.local').searchParams.get('limit');
       // La ventana de la lista no puede dejar afuera impagas viejas: el saldo por
       // moneda viaja siempre (mismo agregado que /dashboard), no derivado de la página.
@@ -626,7 +626,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,200,{invoices:r.rows.slice(0,20),hasMore:r.rows.length>20,receivables});
     }
     if (url.pathname === '/api/agency/invoices' && req.method === 'POST') {
-      const user=await session(req); if(!roleCan(user,'invoices.manage')) return send(res,403,{error:'Sin permiso'});
+      const user=await session(req); if(!roleCan(user,'invoices.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const {clientId,total,currency=user.default_currency??'PYG',dueOn=null,notes=null}=await body(req); const amount=Number(total);
       if(!Number.isInteger(Number(clientId)) || !Number.isFinite(amount) || amount<0 || !currencies.includes(currency)) return send(res,400,{error:'Factura inválida'});
       const client=await db.query(`select id from agency_clients c where id=$1 and organization_id=$2 and ${visibleRecord('c','clients')}`,[Number(clientId),user.organization_id]); if(!client.rows[0]) return send(res,404,{error:'Cliente no encontrado'});
@@ -641,7 +641,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     // en silencio.
     const orderMatch = url.pathname.match(/^\/api\/agency\/work-orders\/(\d+)$/);
     if (orderMatch && req.method === 'PATCH') {
-      const user = await session(req); if (!roleCan(user,'work-orders.edit')) return send(res,403,{error:'Sin permiso'});
+      const user = await session(req); if (!roleCan(user,'work-orders.edit')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const { status } = await body(req);
       if (!workOrderStatuses.includes(status)) return send(res,400,{error:'Estado inválido'});
       const r=await db.query('update agency_work_orders set status=$1,updated_at=now() where id=$2 and organization_id=$3 returning *',[status,Number(orderMatch[1]),user.organization_id]);

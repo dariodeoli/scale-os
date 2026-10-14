@@ -6,6 +6,7 @@ import {ActorAvatar,isTechnicalDemoEmail,personDisplayName} from './actor-identi
 import {listDateFull} from './list-format';
 import {primerNombre} from 'owncoding-ui';
 import './work-checklist.css';
+import {EmptyBlock} from './ui-v2';
 import {roleCan} from './capabilities';
 import {ConfirmDialog} from './dialog';
 
@@ -82,7 +83,7 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
   <div className="work-checklist-heading"><h3 id={`${label}-title`}>Checklist</h3><span aria-live="polite">{completed} de {total}</span></div>
   <progress value={completed} max={Math.max(1,total)} aria-label="Progreso del checklist"/>
   {loading?<p role="status">Cargando checklist…</p>:null}
-  {!loading&&snapshot&&!total?<p className="work-checklist-hint">Todavía no hay ítems.</p>:null}
+  {!loading&&snapshot&&!total?<EmptyBlock compact title="Todavía no hay ítems" description={editable?"Agregá el primer ítem para seguir el avance de esta pieza.":"Quien gestione esta pieza puede agregar ítems para seguir su avance."}/>:null}
   {snapshot?<ul className="work-checklist-items">{snapshot.items.map(item=>{
    const completedLabel=listDateFull(item.completed_at);
    return <li key={item.id} className={item.completed?'is-complete':''}>
