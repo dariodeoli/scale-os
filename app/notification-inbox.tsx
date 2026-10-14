@@ -30,13 +30,15 @@ function short(value:string,limit:number){const text=oneLine(value);return text.
 /** Tono del aviso: lo nuevo se pinta, lo leído queda neutro y lo resuelto en verde. */
 function tonoDeAviso(notice:Notice):Aviso['tono']{if(notice.resolved_at)return 'ok';if(notice.read_at)return 'mute';return notice.kind==='due'?'warn':'info';}
 function iconoDeAviso(notice:Notice){if(notice.resolved_at)return 'check';return ({assignment:'user',comment:'megaphone',due:'clock'} as Record<string,string>)[notice.kind||'']||'bell';}
-/** Mapeo único al contrato de la bandeja (§16): título corto sin punto final,
- *  detalle en una línea y fecha ya formateada. La ruta del destino la resuelve
+/** Mapeo único al contrato de la bandeja (§16): título completo sin punto final
+ *  (el objeto lo recorta con elipsis según el ancho; no se pre-recorta acá para no
+ *  perder texto en pantallas anchas), detalle acotado a una vista previa (el texto
+ *  completo se abre al elegir el aviso) y fecha ya formateada. La ruta del destino la resuelve
  *  la app al abrir el detalle (la pieza no tiene ruta canónica propia). */
 export function avisoDeNotificacion(notice:Notice):Aviso{
  return {
   id:String(notice.id),
-  titulo:short(notice.title||'Aviso',90).replace(/\.+$/,''),
+  titulo:oneLine(notice.title||'Aviso').replace(/\.+$/,''),
   detalle:short(notice.body||'',140),
   tono:tonoDeAviso(notice),
   fecha:dateLabel(notice.created_at),
