@@ -416,9 +416,9 @@ const agenciesView2 = () => `
 const menuOpen2 = `
 <div class="grid gap-2">
  <p class="text-xs text-mute">El ⋯ de cada agencia es el menú del sistema; la eliminación vive ahí y conserva la confirmación reforzada.</p>
- <div class="relative inline-flex w-fit flex-col items-end">
+ <div class="relative inline-flex w-fit flex-col items-start">
   <button type="button" aria-haspopup="menu" aria-expanded="true" aria-label="Acciones de la agencia: Cooperativa Multiactiva de Servicios Múltiples Limitada" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7"><span role="img" aria-hidden="true">⋮</span></button>
-  <div role="menu" aria-label="Acciones de la agencia" class="absolute right-0 top-12 z-20 min-w-48 rounded-xl border border-ink-500 bg-ink p-1 shadow-float md:top-9">
+  <div role="menu" aria-label="Acciones de la agencia" class="absolute left-0 top-12 z-20 min-w-48 rounded-xl border border-ink-500 bg-ink p-1 shadow-float md:top-9">
    <button type="button" role="menuitem" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-bad-text transition hover:bg-bad/10">${I.trash}<span class="min-w-0 flex-1 truncate">Eliminar agencia</span></button>
   </div>
  </div>
@@ -432,8 +432,8 @@ const skeleton2 = `
  <div class="platform-admin-actions"><span class="block h-11 w-28 animate-pulse rounded-lg bg-fore/5 md:h-9"></span><span class="block h-11 w-24 animate-pulse rounded-lg bg-fore/5 md:h-9"></span></div>
 </header>
 <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
- <div class="silent-scroll flex w-max gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
-  ${['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size) => `<span class="block h-11 ${size} animate-pulse rounded-lg bg-fore/5 md:h-8"></span>`).join('')}
+ <div class="silent-scroll flex w-max min-w-0 max-w-full gap-1 overflow-x-auto rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
+  ${['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size) => `<span class="block h-11 shrink-0 ${size} animate-pulse rounded-lg bg-fore/5 md:h-8"></span>`).join('')}
  </div>
  <div class="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
   <div class="grid min-w-0 gap-4">

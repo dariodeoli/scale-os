@@ -579,7 +579,7 @@ export default function PlatformAdmin() {
         </Link>
         <div className="platform-admin-identity">
           <p className="eyebrow">Administración global</p>
-          <h1>Control de Scale OS</h1>
+          <h1 title="Control de Scale OS">Control de Scale OS</h1>
         </div>
         <div className="platform-admin-meta">
           {/* El estado del encabezado refleja el permiso real (#147): con el

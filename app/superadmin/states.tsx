@@ -78,8 +78,8 @@ export function PlatformAdminSkeleton() {
       </div>
     </header>
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
-      <div className="silent-scroll flex w-max gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
-        {['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size, index) => <Skeleton key={index} className={`h-11 rounded-lg md:h-8 ${size}`}/>)}
+      <div className="silent-scroll flex w-max min-w-0 max-w-full gap-1 overflow-x-auto rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
+        {['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size, index) => <Skeleton key={index} className={`h-11 shrink-0 rounded-lg md:h-8 ${size}`}/>)}
       </div>
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="grid min-w-0 gap-4">

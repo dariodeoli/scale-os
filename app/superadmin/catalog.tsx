@@ -26,16 +26,19 @@ const TEMPLATE = "grid-cols-[minmax(10rem,1fr)_6.5rem_8rem]";
 const COLUMNS: Column[] = [
   {key: "coupon", label: "Cupón"},
   {key: "status", label: "Estado"},
-  {key: "actions", label: "Acciones"},
+  {key: "actions", label: "Acciones", align: "end"},
 ];
-const MIN_WIDTH = denseTableMinWidth(23.5, 3);
+const MIN_WIDTH = denseTableMinWidth(24.5, 3);
+const TEMPLATE_READONLY = "grid-cols-[minmax(10rem,1fr)_6.5rem]";
+const COLUMNS_READONLY = COLUMNS.slice(0, -1);
+const MIN_WIDTH_READONLY = denseTableMinWidth(16.5, 2);
 
 const FIELD = "grid gap-1.5 text-[11px] font-semibold text-mute";
 
 export function PlatformCatalog({busy, state, page, onMore, writable, coupon, setCoupon, toggleCoupon, createCoupon}: PlatformCatalogProps){
   // El vacío de cupones lleva al formulario de creación que vive arriba.
   const codeRef=useRef<HTMLInputElement|null>(null);
-  const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
+  const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(writable ? MIN_WIDTH : MIN_WIDTH_READONLY);
   const detail = (item: Coupon) => `${item.discount_type === "percent" ? `${formatPlatformMetric(item.discount_value)}%` : item.discount_type === "days" ? `${formatPlatformMetric(item.discount_value)} días gratis` : money(item.discount_value, item.currency)} · ${item.max_redemptions === null ? "Sin límite de usos" : `${formatPlatformMetric(item.max_redemptions)} usos máximos`}`;
   return (
     <section className="panel h-full" aria-labelledby="platform-catalog-title">
@@ -94,9 +97,9 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
       )}
       <div ref={listRef} className="mt-4 min-w-0">
         {state.coupons.length ? (listFits ? (
-          <ListGrid label="Cupones" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[25rem]" pinnedActions>
+          <ListGrid label="Cupones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[26rem]" : "min-w-[18rem]"} pinnedActions={writable}>
             {state.coupons.map((item) => (
-              <ListRow key={item.id} template={TEMPLATE}>
+              <ListRow key={item.id} template={writable ? TEMPLATE : TEMPLATE_READONLY}>
                 <div role="cell" className="min-w-0">
                   <b className="list-identity text-fore" title={item.code || "Cupón sin código"}>{item.code || "Cupón sin código"}</b>
                   <small className="list-secondary" title={detail(item)}>{detail(item)}</small>
