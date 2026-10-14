@@ -9,7 +9,14 @@ export async function redeemCoupon(c,{code=null,couponId=null,organizationId,use
  if(!coupon)fail('Cupón inválido o desactivado',400);
  if(couponExpired(coupon))fail('El cupón venció',409);
  if(coupon.organization_id!==null&&String(coupon.organization_id)!==String(organizationId))fail('Este cupón no corresponde a tu empresa',409);
- if(coupon.max_redemptions!==null&&Number(coupon.used)>=Number(coupon.max_redemptions))fail('Este cupón ya alcanzó su límite de usos',400);
+ // El conteo se relee después de tomar el lock del cupón: la subconsulta de arriba usa la
+ // foto de la sentencia (anterior a la espera del lock) y no ve canjes que otra empresa
+ // confirmó mientras tanto, así que dos canjes concurrentes podían pasar el límite.
+ if(coupon.max_redemptions!==null){
+  const used=Number((await c.query('select count(*)::int as n from platform_coupon_redemptions where coupon_id=$1',[coupon.id])).rows[0]?.n??0);
+  coupon.used=used;
+  if(used>=Number(coupon.max_redemptions))fail('Este cupón ya alcanzó su límite de usos',400);
+ }
  if((await c.query('select 1 from platform_coupon_redemptions where coupon_id=$1 and organization_id=$2',[coupon.id,organizationId])).rows[0])fail('Tu empresa ya canjeó este cupón',409);
  let sub=(await c.query('select due_at,paid_through_at from organization_subscriptions where organization_id=$1 for update',[organizationId])).rows[0];
  if(!sub){

@@ -36,8 +36,8 @@ act(()=>renderer.unmount());
 const layout=readFileSync(new URL('../app/(workspace)/layout.tsx',import.meta.url),'utf8');
 assert(layout.includes('workspace={<ScaleWorkspace/>}'));assert(!layout.includes('key='));
 const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
-const backgroundRefresh=workspace.slice(workspace.indexOf('if(lastDataPath.current===pathname)'),workspace.indexOf('},[pathname,signedIn]);'));
-assert(backgroundRefresh.includes('void load()'));assert(!backgroundRefresh.includes('setLoading'));assert(!backgroundRefresh.includes('/api/auth/me'));
+const backgroundRefresh=workspace.slice(workspace.indexOf('const pathChanged=lastDataPath.current!==pathname;'),workspace.indexOf('},[pathname,requestedSection,signedIn]);'));
+assert(backgroundRefresh.length>0&&backgroundRefresh.includes('void load(user,stale)'),'navegar refresca en segundo plano solo los recursos vencidos de la sección');assert(!backgroundRefresh.includes('setLoading'));assert(!backgroundRefresh.includes('/api/auth/me'));
 for(const path of ['page.tsx','[section]/page.tsx','[section]/[view]/page.tsx']){
  const page=readFileSync(new URL('../app/(workspace)/'+path,import.meta.url),'utf8');
  assert(!page.includes('ScaleWorkspace'));assert(page.includes('return null'));assert(!existsSync(new URL('../app/'+path,import.meta.url)));

@@ -12,6 +12,9 @@ require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports
  useDialogClose:()=>undefined,
  useDialogPending:()=>undefined,
 }} as NodeModule;
+// next/dynamic no resuelve imports en Node: los paneles cargados con dynamic() se montan como null.
+const dynamicPath=require.resolve('next/dynamic');
+require.cache[dynamicPath]={id:dynamicPath,filename:dynamicPath,loaded:true,exports:{__esModule:true,default:()=>()=>null}} as NodeModule;
 // Paneles laterales: fuera del alcance de este contrato (leen su propio endpoint).
 const growthPath=require.resolve('../app/growth-dashboard');
 require.cache[growthPath]={id:growthPath,filename:growthPath,loaded:true,exports:{GrowthDashboard:()=><div>Tablero de crecimiento</div>}} as NodeModule;

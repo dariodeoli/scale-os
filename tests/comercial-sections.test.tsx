@@ -22,10 +22,13 @@ const composerPath=require.resolve('../app/quote-composer');
 require.cache[composerPath]={id:composerPath,filename:composerPath,loaded:true,exports:{QuoteComposer:({mode,record}:{mode:string;record?:{id?:string}|null})=><output>{`composer:${mode}:${record&&record.id?record.id:'new'}`}</output>}} as NodeModule;
 const archivePath=require.resolve('../app/archive-controls');
 require.cache[archivePath]={id:archivePath,filename:archivePath,loaded:true,exports:{RemoveRecord:({id}:{id:string})=><button type="button" aria-label={`Mover a la papelera: ${id}`}>Papelera</button>}} as NodeModule;
+// `__esModule:true` es necesario: la sección carga estos módulos con `dynamic(() => import(x).then(m => m.Nombre))` y tsx
+// solo desenvuelve `default` cuando trae ese marcador; sin él, según la versión de Node, `m.Nombre` queda undefined
+// y React falla con «Element type is invalid» (fallaba en local con Node 22.22 y pasaba en CI).
 const growthPath=require.resolve('../app/growth-dashboard');
-require.cache[growthPath]={id:growthPath,filename:growthPath,loaded:true,exports:{GrowthDashboard:({events}:{events:{count:number}[]})=><div data-events={events.length}>Tablero de crecimiento</div>}} as NodeModule;
+require.cache[growthPath]={id:growthPath,filename:growthPath,loaded:true,exports:{__esModule:true,GrowthDashboard:({events}:{events:{count:number}[]})=><div data-events={events.length}>Tablero de crecimiento</div>}} as NodeModule;
 const visitorsPath=require.resolve('../app/live-visitors');
-require.cache[visitorsPath]={id:visitorsPath,filename:visitorsPath,loaded:true,exports:{LiveVisitors:()=><div>Viendo ahora</div>}} as NodeModule;
+require.cache[visitorsPath]={id:visitorsPath,filename:visitorsPath,loaded:true,exports:{__esModule:true,LiveVisitors:()=><div>Viendo ahora</div>}} as NodeModule;
 // DnD: el contexto expone el arrastre como un botón para poder dispararlo; el
 // evento es configurable por test (etapa destino u `over: null`).
 let dragEvent:unknown={active:{id:'10'},over:{id:'stage-won'}};
@@ -48,6 +51,9 @@ type Pending={url:string;init:RequestInit;resolve:(response:Response)=>void};
 let requests:Pending[]=[];
 globalThis.fetch=(input,init={})=>new Promise<Response>(resolve=>{requests.push({url:String(input),init,resolve});});
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
+// Los componentes `dynamic()` se resuelven con un import() nativo (varios ticks de macrotarea, según el Node):
+// se espera a que el lazy termine de montarse en vez de asumir que un solo flush de act() alcanza.
+const lazyLoaded=async(done:()=>boolean)=>{for(let attempt=0;attempt<200&&!done();attempt++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});};
 const user=(role:string):User=>({id:'1',role,organization_id:'7',full_name:'Prueba',organization_slug:''} as unknown as User);
 const pending=()=>requests.shift()!;
 async function flush(data:unknown,status=200){const request=pending();await act(async()=>{request.resolve(new Response(JSON.stringify(data),{status}));});}
@@ -370,7 +376,7 @@ test('métricas: acceso por rol y estados sin eventos',async()=>{
  assert.match(text(renderer.root),/Todavía no hay eventos de captación/);
  act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<MetricasSection user={user('admin')} metrics={[{name:'page_view',event_date:'2026-09-22',count:3}] as never}/>);});
- assert.match(text(renderer.root),/Tablero de crecimiento/);
+ await lazyLoaded(()=>/Tablero de crecimiento/.test(text(renderer.root)));assert.match(text(renderer.root),/Tablero de crecimiento/);
  assert.equal(renderer.root.findByProps({'data-events':1}).props['data-events'],1);
  act(()=>renderer.unmount());
 });

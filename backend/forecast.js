@@ -171,18 +171,20 @@ export async function financialForecast({req,res,url,db,session,send}) {
     from agency_client_commercial_terms t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
     left join agency_plans pl on pl.organization_id=t.organization_id and pl.id=t.plan_id
     where t.organization_id=$1 and t.starts_on<($2::date+interval '1 month')::date and (t.ends_on is null or t.ends_on>=$2::date) and c.active=true and ${visibleRecord('c','clients')}
-   ), unplanned as (
-    select c.id as client_id,$3::text as currency,false as invoice_required,null::text as ends_on,null::text as plan_name,0::numeric as contracted_amount
-    from agency_clients c
-    where c.organization_id=$1 and c.active=true and ${visibleRecord('c','clients')}
-     and not exists(select 1 from terms x where x.client_id=c.id)
-   ), all_terms as (
-    select * from terms union all select * from unplanned
    ), invoiced as (
     select i.client_id,i.currency,coalesce(sum(i.total),0) as invoiced_amount
     from agency_invoices i cross join bounds d
     where i.organization_id=$1 and i.status in ('issued','partial','paid','overdue') and i.issued_on>=d.start_on and i.issued_on<d.end_on
     group by i.client_id,i.currency
+   ), unplanned as (
+    -- Sin plan: una fila por cada moneda facturada en el mes (lo facturado en otra moneda
+    -- no se pierde) y, si no hubo facturas, una fila en la moneda de la empresa.
+    select c.id as client_id,coalesce(iv.currency,$3::text) as currency,false as invoice_required,null::text as ends_on,null::text as plan_name,0::numeric as contracted_amount
+    from agency_clients c left join invoiced iv on iv.client_id=c.id
+    where c.organization_id=$1 and c.active=true and ${visibleRecord('c','clients')}
+     and not exists(select 1 from terms x where x.client_id=c.id)
+   ), all_terms as (
+    select * from terms union all select * from unplanned
    )
    select t.client_id::text as client_id,c.name as client_name,t.currency,t.contracted_amount,coalesce(i.invoiced_amount,0) as invoiced_amount,t.invoice_required,t.ends_on,t.plan_name,
     (t.invoice_required and coalesce(i.invoiced_amount,0)=0) as missing_invoice

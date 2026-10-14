@@ -11,13 +11,15 @@ const brand = `<span class="workspace-brand" aria-label="Scale OS"><img src="/br
 const bar = `<span class="h-1.5 w-40 overflow-hidden rounded-full bg-ink-700" aria-hidden="true"><span class="loading-bar-fill block h-full w-1/2 rounded-full bg-fono"></span></span>`;
 
 const card = (identity) => `
-<div class="loading-page" role="status" aria-live="polite">
+<div class="loading-page">
  <div class="loading-stage flex w-full max-w-[20rem] min-w-0 flex-col items-center gap-6 text-center" data-loading-card>
-  <span class="loading-brand">${brand}</span>
-  ${identity ? `<span class="max-w-full rounded-full border border-ink-600 bg-ink-800/80 py-1.5 pl-1.5 pr-4 shadow-[0_10px_30px_rgb(37_28_41_/_8%)]">${person('Lucía Acosta', 'Propietaria')}</span>` : ''}
-  <div class="flex w-full min-w-0 flex-col items-center gap-2.5">
-   ${bar}
-   <p class="text-[12px] text-mute">${identity ? 'Cargando tu espacio…' : 'Un momento, estamos preparando todo…'}</p>
+  <div class="flex w-full min-w-0 flex-col items-center gap-6" role="status" aria-live="polite">
+   <span class="loading-brand">${brand}</span>
+   ${identity ? `<span class="max-w-full rounded-full border border-ink-600 bg-ink-800/80 py-1.5 pl-1.5 pr-4 shadow-[0_10px_30px_rgb(37_28_41_/_8%)]">${person('Lucía Acosta', 'Propietaria')}</span>` : ''}
+   <div class="flex w-full min-w-0 flex-col items-center gap-2.5">
+    ${bar}
+    <p class="text-[12px] text-mute">${identity ? 'Cargando tu espacio…' : 'Un momento, estamos preparando todo…'}</p>
+   </div>
   </div>
  </div>
 </div>`;

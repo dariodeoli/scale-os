@@ -34,6 +34,18 @@ async function run(){
  await act(async()=>{await form.props.onSubmit({preventDefault(){}});});
  assert.equal(saved.at(-1),'https://example.invalid/foto.png','link saves after confirming');
  await act(async()=>{renderer!.unmount();});
- console.log('PASS: compact profile photo auto-saves uploads and persists links through the confirm button');
+ // Logo: el mismo control nombra «logo» en botones, avisos y aria; la persona conserva «foto».
+ let logoRenderer:ReturnType<typeof create>;
+ await act(async()=>{logoRenderer=create(<ProfilePhoto logo label="Logo de la agencia" photo={null} name="Estudio" save={async()=>{}}/>);});
+ const flat=(node:any):string=>typeof node==='string'?node:Array.isArray(node)?node.map(flat).join(''):node?.children?flat(node.children):'';
+ const logoText=flat(logoRenderer!.toJSON());
+ assert(logoText.includes('Elegir logo')&&logoText.includes('Quitar logo'),'el control de logo dice «logo»');
+ assert(!/Elegir foto|Quitar foto/.test(logoText),'el control de logo no habla de «foto»');
+ const logoFile=logoRenderer!.root.findByProps({type:'file'});
+ assert.match(logoFile.props['aria-label'],/^Elegir logo /);
+ await act(async()=>{await logoFile.props.onChange({currentTarget:{files:[new (globalThis as any).File()],value:''}});});
+ assert(flat(logoRenderer!.toJSON()).includes('Logo guardado'),'aviso de guardado del logo');
+ await act(async()=>{logoRenderer!.unmount();});
+ console.log('PASS: compact profile photo auto-saves uploads and persists links through the confirm button; logo wording');
 }
 void run();

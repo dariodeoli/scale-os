@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {EMAIL_TEMPLATE_VERSION,EMAIL_LOGO_URL,emailShell} from './email-brand.js';
+import {EMAIL_TEMPLATE_VERSION,EMAIL_LOGO_URL,emailShell,emailHref} from './email-brand.js';
 import {invitationEmail,resetEmail,verificationEmail,accessGrantedEmail,destructiveReauthEmail} from './invitation-email.js';
 import {trialStartedEmail,suspensionEmail,paymentFailedEmail} from './billing-email.js';
 import {notificationEmail} from './notifications.js';
@@ -45,4 +45,14 @@ for(const name of ['invitation','access','trial','suspension','failed','notifica
 assert.ok(emails.portalInvite.m.html.includes('a=1&amp;b=2'),'hrefs escaped once');
 assert.ok(!emailShell({title:'T',lead:'L'}).includes('Si el botón no funciona'),'no CTA, no fallback');
 assert.ok(emailShell({title:'T',preheader:'P'}).includes('>P&nbsp;'),'explicit preheader');
+// Regresión: el href del CTA y del respaldo solo admite https (o http://localhost);
+// javascript:, data:, otros esquemas, credenciales o basura caen al origen de la app.
+const ctaHrefs=html=>[...html.matchAll(/<a href="([^"]+)"/g)].map(m=>m[1]);
+for(const bad of ['javascript:alert(1)','JaVaScRiPt:alert(1)',' javascript:alert(1)','data:text/html,<script>x</script>','vbscript:x','mailto:a@b.example','http://evil.example/x','https://user:pw@evil.example/','not a url']){
+ const hrefs=ctaHrefs(emailShell({title:'T',cta:{label:'Abrir',href:bad}}));
+ assert.equal(hrefs.length,2,'CTA and fallback rendered for '+JSON.stringify(bad));
+ for(const href of hrefs)assert.ok(/^https:\/\/[^/"]+\/?$/.test(href)&&!/javascript|data:|vbscript|mailto|evil/i.test(href),'unsafe href falls back to the app origin: '+JSON.stringify(bad)+' -> '+href);
+}
+assert.equal(emailHref('https://app.scaleparaguay.com/cliente/x?a=1&b=2'),'https://app.scaleparaguay.com/cliente/x?a=1&b=2','https links are kept');
+assert.equal(emailHref('http://localhost:3000/x'),'http://localhost:3000/x','http only towards localhost (tests)');
 console.log('PASS: every transactional email uses the shared layout (600px tables, preheader, CTA + fallback, logo, text alternative, escaped names)');

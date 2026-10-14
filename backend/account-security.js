@@ -237,11 +237,15 @@ export async function createPlatformPreview(db,{userId,action,organizationId=nul
 }
 
 /** Consume la prueba y la vista previa de un borrado global antes de ejecutarlo. */
-export async function consumePlatformDeletionProof(c,{userId,previewId,confirmation,recentAuthProof,action,organizationId=null}){
+export async function consumePlatformDeletionProof(c,{userId,previewId,confirmation,recentAuthProof,action,organizationId=null,targetId=null}){
  // Primero la prueba: sin ella no hay operación que valga (401 claro, no un 409 de vista previa).
  assertProofFormat(recentAuthProof);
  const preview=await previewByRaw(c,userId,previewId,{lock:true});
  if(preview.action!==action||!same(preview.organization_id,organizationId))fail('La vista previa no corresponde a esta operación.',409,'DELETION_SCOPE_MISMATCH');
+ // El objetivo de la ruta debe ser el de la vista previa: el borrado de usuarios no
+ // tiene organización que lo ate, y sin esto la vista previa (y la confirmación con el
+ // correo) de una persona servía para borrar a otra.
+ if(targetId!==null&&!same(preview.payload?.target?.id,targetId))fail('La vista previa no corresponde a esta operación.',409,'DELETION_SCOPE_MISMATCH');
  if(confirmation!==preview.confirmation)fail(`Escribí exactamente “${preview.confirmation}” para confirmar.`,400,'CONFIRMATION_MISMATCH');
  const proof=await lockValidProof(c,{userId,preview,recentAuthProof});
  const current=await assertFreshPreview(c,preview,{lock:true});

@@ -79,7 +79,7 @@ test("mobile workspace header keeps the subscription notice visible in the compa
 test("the company name truncates in the topbar and wraps inside the switcher", () => {
   assert.match(
     source,
-    /topbar-company min-w-0 \[&_\.company-name\]:truncate/,
+    /topbar-company min-w-0[^"]*\[&_\.company-name\]:truncate/,
     "a long company name truncates in the topbar instead of widening the shell",
   );
   const operations = readFileSync(new URL("../app/operations.tsx", import.meta.url), "utf8");
@@ -95,6 +95,9 @@ test("manual subscription management renders immediately after agency records", 
     "utf8",
   );
   order(superadmin, '<PlatformAgencies', '<SubscriptionDialog');
-  order(superadmin, '<SubscriptionDialog', 'className="platform-admin-two-columns"');
+  // El panel ya no usa dos columnas: cada vista (resumen, agencias, cupones…) es una pestaña y los diálogos
+  // de gestión (suscripción y confirmación) se montan después de las vistas.
+  order(superadmin, '<SubscriptionDialog', '<PlatformConfirmDialog');
+  assert.doesNotMatch(superadmin, /platform-admin-two-columns/, 'the legacy two-column layout is gone');
   assert.match(agencies, /<h2 id="platform-agencies-title"[^>]*>Agencias y suscripciones<\/h2>/);
 });

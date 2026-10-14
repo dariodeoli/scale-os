@@ -12,7 +12,7 @@ for(const role of ['owner','admin','management','finance','sales','production','
 }
 const workspace=workspaceSource();
 assert(workspace.includes("dynamic(()=>import('../reports-workspace')"));
-assert(workspace.includes('["Informes", BarChart3]'));
+assert(workspace.includes('Informes:BarChart3'));
 assert(workspace.includes("active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>"));
 assert(workspace.includes("const openInvoice = () => {setActive('Finanzas');setModal('invoice');}"),'los vacíos FIN abren el alta de factura en Finanzas (ronda 14, #62)');
 assert(workspace.includes('<MoraSection user={user}')&&workspace.includes('onCreateInvoice={openInvoice}'));

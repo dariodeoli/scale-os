@@ -21,8 +21,8 @@ async function run(){
  }finally{globalThis.fetch=originalFetch;setDataScope('');clearDataCache();if(descriptor)Object.defineProperty(globalThis,'window',descriptor);else Reflect.deleteProperty(globalThis,'window');}
  const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
  assert(workspace.includes('if(user?.subscription?.hasAccess===false)return <main'));
- assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)return load(data.user)'));
- assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)await load(data.user)'));
+ assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)void load(data.user,sectionScope(sectionLabel(pathname)))'),'la carga inicial solo corre con acceso vigente y es por sección');
+ assert(workspace.includes('if(data.user.subscription?.hasAccess!==false)await load(data.user,sectionScope(requestedSection))'),'el cambio de empresa solo carga con acceso vigente y por sección');
  assert(workspace.includes('previousBillingAccess.current===false&&next===true'));
   assert(workspace.includes('operationalAccess && (active === "Mora" || active === "Clientes")'));
   for(const section of ['Presupuestos','Finanzas'])assert(workspace.includes(`operationalAccess && active === "${section}"`));
@@ -30,7 +30,7 @@ async function run(){
  assert(workspace.includes("window.removeEventListener('scale:billing-refresh',refresh)"));
  const form=readFileSync(new URL('../app/registro/page.tsx',import.meta.url),'utf8');
  assert(form.includes("window.location.assign('/core-api/api/auth/google/start?signup=1');"));
- assert(form.includes("JSON.stringify({ticket:googleTicket,company:company.trim(),currency,consent:true})"));
+ assert(form.includes("JSON.stringify({ticket:googleTicket,company:company.trim(),currency,consent:true,privacy"));
  assert(!form.includes("company:company.trim(),currency,consent:'1'"));
  assert(form.includes("if(!consent){setError('Aceptá las condiciones de la prueba y suscripción para continuar.');return false;}"));
  assert(form.includes('checked={consent}'));assert(form.includes('onChange={event=>setConsent(event.target.checked)}'));

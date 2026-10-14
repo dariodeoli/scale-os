@@ -11,7 +11,7 @@ const state:SubscriptionState={status:'trialing',hasAccess:true,currency:'USD',a
 const originalFetch=globalThis.fetch,originalWindow=Object.getOwnPropertyDescriptor(globalThis,'window');
 const redirects:string[]=[],requests:Array<{url:string;init?:RequestInit}>=[];
 const browserLocation={href:'https://scale.invalid/',assign:(url:string)=>redirects.push(url)};
-Object.defineProperty(globalThis,'window',{configurable:true,value:{location:browserLocation,history:{state:null,replaceState:(_state:unknown,_title:string,url:URL|string)=>{browserLocation.href=String(url);}}}});
+Object.defineProperty(globalThis,'window',{configurable:true,value:{location:browserLocation,dispatchEvent:()=>true,history:{state:null,replaceState:(_state:unknown,_title:string,url:URL|string)=>{browserLocation.href=String(url);}}}});
 let response=async()=>new Response(JSON.stringify({url:'https://checkout.stripe.com/c/pay/cs_test_local'}));
 globalThis.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{
  const url=String(input);assert(['/core-api/api/billing/checkout','/core-api/api/billing/portal'].includes(url),'No private agency reads, external calls or polling');
@@ -19,6 +19,8 @@ globalThis.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{
 }) as typeof fetch;
 function deferred<T>(){let resolve!:(value:T)=>void;const promise=new Promise<T>(done=>{resolve=done;});return {promise,resolve};}
 async function main(){
+ // El panel carga ./operations en la primera acción (import dinámico): se precarga para que los clics sean deterministas.
+ await import('../app/operations');
  let renderer:ReactTestRenderer|undefined,refreshes=0;
  const text=()=>JSON.stringify(renderer!.toJSON());
  const buttons=()=>renderer!.root.findAllByType('button');
@@ -215,7 +217,7 @@ async function main(){
   assert(source.includes('min-h-11 min-w-0 items-center justify-center')&&source.includes('subscription-currency-segments'),'los segmentos de moneda conservan 44 px');
   assert(primary.includes('text-onbrand'),'el botón primario usa el texto sobre marca');
   assert(classDecl('STATE_BOX').includes('text-fore')&&source.includes("bg-warn/10"),'los avisos de estado usan el token de advertencia con texto legible');
-  assert(source.includes("trialing:'border-fono/30 bg-fono/10 text-fono-light'")&&source.includes("active:'border-ok/30 bg-ok/10 text-ok'")&&source.includes("grace:'border-warn/40 bg-warn/10 text-warn'")&&source.includes("suspended:'border-bad/30 bg-bad/10 text-bad'"),'cada estado usa su token semántico con contraste AA');
+  assert(source.includes("trialing:'border-fono/30 bg-fono/10 text-fono-light'")&&source.includes("active:'border-ok/30 bg-ok/10 text-ok'")&&source.includes("grace:'border-warn/40 bg-warn/10 text-warn'")&&source.includes("suspended:'border-bad/30 bg-bad/10 text-bad-text'"),'cada estado usa su token semántico con contraste AA');
   assert(!/transition\s*:\s*all\b/.test(source),'las transiciones nombran las propiedades afectadas');
   const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
   assert(workspace.includes("query.get('scaleBilling')||query.get('billing')"));assert(workspace.includes("if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true)"));

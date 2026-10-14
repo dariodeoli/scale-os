@@ -7,6 +7,7 @@ import {visibleModule} from '../app/workspace-access';
 import {founderPricingNote} from '../app/founder-pricing';
 import {workspaceGuideScope,workspaceGuideStorageKey,type WorkspaceGuideIdentity} from '../app/workspace-guide-data';
 
+require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 // Isolate the shared portal/editor and API; these tests never use a browser or network.
 function DialogStub({title,children,close}:{title:string;children:React.ReactNode;close:()=>void}){return <section role="dialog" aria-label={title}>{children}<button onClick={close}>Cerrar</button></section>;}
@@ -25,6 +26,8 @@ if(originalOperations)require.cache[operationsPath]=originalOperations;else dele
 let renderer:ReactTestRenderer;
 const label=(node:any)=>node.children.filter((child:unknown)=>typeof child==='string').join('');
 const button=(name:string)=>renderer.root.findAllByType('button').find(node=>label(node)===name)!;
+const toggle=()=>renderer.root.findAllByType('button').find(node=>node.props['aria-expanded']!==undefined)!;
+const step=(module:string)=>renderer.root.findAllByType('button').find(node=>String(node.props['aria-label']||'').startsWith(`Abrir ${module}:`));
 const names=()=>renderer.root.findByProps({className:'ops-job-list'}).findAllByType('button').map(node=>label(node));
 const open=()=>act(()=>button('Guía del panel').props.onClick());
 const close=()=>act(()=>renderer.unmount());
@@ -39,8 +42,8 @@ test('guide uses every canonical section except embedded Metrics and preserves a
   assert.equal(available.length,new Set(available).size);
   assert(available.includes('Producción'));
   assert.equal(available.includes('Informes'),['owner','admin','finance','sales'].includes(role));
-  assert.equal(available.includes('Historial de trabajo'),['owner','admin','finance'].includes(role));
-  assert.equal(available.includes('Invitaciones'),['owner','admin'].includes(role));
+  assert(available.includes('Historial de trabajo'),'el historial propio lo ve cualquier rol (workspace-access)');
+  assert.equal(available.includes('Invitaciones'),['owner','admin','management'].includes(role));
   assert(!available.includes('Métricas'));
   close();
  }
@@ -115,11 +118,11 @@ test('card is opt-in, inline, locally discardable and the manual guide remains a
  const props={...identity,navigate:(module:string)=>navigated.push(module)};
  try{
   act(()=>{renderer=create(<WorkspaceGuide {...props} variant="card"/>);});
-  assert(button('Ver primeros pasos'));assert(!button('Abrir Configuración'));
+  assert(toggle());assert.equal(toggle().props['aria-expanded'],false);assert(!step('Configuración'));
   assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0);assert.equal(stored.size,0);
-  act(()=>button('Ver primeros pasos').props.onClick());assert(button('Abrir Configuración'));
+  act(()=>toggle().props.onClick());assert(step('Configuración'));
   assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0);
-  act(()=>button('Cerrar pasos').props.onClick());assert(!button('Abrir Configuración'));
+  act(()=>toggle().props.onClick());assert(!step('Configuración'));
   act(()=>button('Ocultar primeros pasos').props.onClick());assert.equal(renderer.toJSON(),null);
   assert.deepEqual(Array.from(stored),[[workspaceGuideStorageKey(workspaceGuideScope(identity)),'dismissed']]);
   close();act(()=>{renderer=create(<WorkspaceGuide {...props} variant="card"/>);});assert.equal(renderer.toJSON(),null);close();
@@ -141,8 +144,8 @@ test('card dismissal and open state are isolated by user, organization, role and
   act(()=>button('Ocultar primeros pasos').props.onClick());
   for(const change of [{userId:'2'},{organizationId:'20'},{role:'viewer'},{demo:true}]){
    act(()=>renderer.update(<WorkspaceGuide {...identity} {...change} variant="card" navigate={navigate}/>));
-   assert(button('Ver primeros pasos'));assert(!button('Abrir Configuración'));
-   act(()=>button('Ver primeros pasos').props.onClick());
+   assert(toggle());assert(!step('Configuración'));
+   act(()=>toggle().props.onClick());
    act(()=>renderer.update(<WorkspaceGuide {...identity} variant="card" navigate={navigate}/>));assert.equal(renderer.toJSON(),null);
   }
   close();assert.equal(stored.size,1,'mounting a new scope must not persist another scope’s dismissal');
@@ -157,8 +160,8 @@ test('unavailable storage does not prevent opening, navigating or dismissing',()
  const navigated:string[]=[];
  try{
   act(()=>{renderer=create(<WorkspaceGuide role="viewer" userId="1" organizationId="10" variant="card" navigate={module=>navigated.push(module)}/>);});
-  act(()=>button('Ver primeros pasos').props.onClick());act(()=>button('Abrir Clientes').props.onClick());
-  assert.deepEqual(navigated,['Clientes']);assert(button('Ver primeros pasos'));
+  act(()=>toggle().props.onClick());act(()=>step('Clientes')!.props.onClick());
+  assert.deepEqual(navigated,['Clientes']);assert(toggle());
   act(()=>button('Ocultar primeros pasos').props.onClick());assert.equal(renderer.toJSON(),null);close();
   assert.equal(calls.length,0);
  }finally{

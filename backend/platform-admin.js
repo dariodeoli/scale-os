@@ -220,7 +220,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    const deleted=await mutation(db,async client=>{
     const target=(await client.query(`select o.id,o.name,o.slug from organizations o where o.id=$1 and ${realOrganization('o')} for update`,[routeId(agencyPath[1])])).rows[0];
     if(!target)fail('Agencia no encontrada o protegida.',404);
-    await consumePlatformDeletionProof(client,{userId:user.id,previewId:input?.previewId,confirmation:input?.confirmation,recentAuthProof:input?.recentAuthProof,action:'platform.agency.delete',organizationId:target.id});
+    await consumePlatformDeletionProof(client,{userId:user.id,previewId:input?.previewId,confirmation:input?.confirmation,recentAuthProof:input?.recentAuthProof,action:'platform.agency.delete',organizationId:target.id,targetId:target.id});
     await client.query('update organizations set active=false,deleted_at=now(),deleted_by_user_id=$2 where id=$1',[target.id,user.id]);
     await client.query('delete from sessions where organization_id=$1',[target.id]);
     await audit(client,user,'agency.delete','organization',target.id,{name:target.name,slug:target.slug});
@@ -312,7 +312,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    const deleted=await mutation(db,async client=>{
     const target=(await client.query(`select id from users where id=$1 and ${realUser('users')} for update`,[targetId])).rows[0];
     if(!target)fail('Usuario no encontrado.',404);
-    await consumePlatformDeletionProof(client,{userId:user.id,previewId:input?.previewId,confirmation:input?.confirmation,recentAuthProof:input?.recentAuthProof,action:'platform.user.delete',organizationId:null});
+    await consumePlatformDeletionProof(client,{userId:user.id,previewId:input?.previewId,confirmation:input?.confirmation,recentAuthProof:input?.recentAuthProof,action:'platform.user.delete',organizationId:null,targetId:target.id});
     if(!self){
      const adminRow=(await client.query("select 1 from platform_administrators where user_id=$1 and active=true and role='admin'",[targetId])).rows[0];
      if(adminRow)fail('No podés eliminar a otro administrador global.',403);

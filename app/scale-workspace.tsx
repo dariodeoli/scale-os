@@ -1061,7 +1061,7 @@ export default function Home() {
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
               <VersionNotice/>
             </div>
-            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11 max-xl:[&_button.toque-44>span]:hidden max-xl:[&_button.toque-44>kbd]:hidden">
+            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11 [&>div>button]:min-h-10 [&>div>button]:min-w-10 max-md:[&>div>button]:min-h-11 max-md:[&>div>button]:min-w-11 max-xl:[&_button.toque-44>span]:hidden max-xl:[&_button.toque-44>kbd]:hidden">
               <ThemeToggle/>
               <WorkspaceGuide {...guideProps} active={active} helpOpen={helpOpen} onHelpOpen={()=>setHelpOpen(true)} onHelpClose={()=>setHelpOpen(false)} variant="help"/>
               {canIaCarga?<IaCargaButton onOpen={()=>setIaCarga(true)}/>:null}

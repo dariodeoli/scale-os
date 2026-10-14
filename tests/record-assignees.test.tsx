@@ -16,7 +16,7 @@ const initial:AssigneeSnapshot={assigned_user_ids:['1'],assigned_user_id:'1',ass
 const people={people:[{id:'1',full_name:'Ana',email:'ana@example.invalid'},{id:'2',full_name:'Bruno',email:'bruno@example.invalid'}]};
 let renderer!:ReactTestRenderer,refreshes=0;
 const refresh=async()=>{refreshes++;};
-const props:RecordAssigneesProps={kind:'work-orders',id:'42',role:'editor',organizationId:'one',refresh};
+const props:RecordAssigneesProps={kind:'work-orders',id:'42',role:'production',organizationId:'one',refresh};
 const json=()=>JSON.stringify(renderer.toJSON());
 const button=(label:string)=>renderer.root.findAllByType('button').find(node=>String(node.children).includes(label))!;
 async function mount(p:RecordAssigneesProps=props){await act(async()=>{renderer=create(<RecordAssignees {...p}/>);});}

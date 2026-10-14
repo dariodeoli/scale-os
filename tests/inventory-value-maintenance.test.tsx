@@ -33,7 +33,9 @@ const CloseContext=React.createContext<(()=>void)|undefined>(undefined);
 function MockDialog({title,children,close}:{title?:string;children:React.ReactNode;close?:()=>void}){return <CloseContext.Provider value={close}><section role="dialog" aria-label={title}>{children}</section></CloseContext.Provider>;}
 require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(value:string|number,currency:string)=>`${currency} ${value}`,Dialog:MockDialog,Editor:MockEditor}} as NodeModule;
 const dialogPath=require.resolve('../app/dialog');
-require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:()=>undefined}} as NodeModule;
+require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,
+ // Doble de ConfirmDialog con su contrato (confirmar/cancelar); el diálogo real se cubre en su propio test.
+ ConfirmDialog:({open=true,title,description,confirmLabel='Confirmar',cancelLabel='Cancelar',busy=false,onCancel,onConfirm}:{open?:boolean;title:string;description?:string;confirmLabel?:string;cancelLabel?:string;busy?:boolean;onCancel:()=>void;onConfirm:()=>void})=>open?<section role="dialog" aria-label={title}>{description?<p>{description}</p>:null}<button type="button" disabled={busy} onClick={onCancel}>{cancelLabel}</button><button type="button" disabled={busy} onClick={onConfirm}>{confirmLabel}</button></section>:null,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:()=>undefined}} as NodeModule;
 // Overlays de owncoding-ui (Modal/Drawer/SaveActions): sin DOM real en el
 // entorno de test se usan dobles con el mismo contrato de contexto.
 const uiPath=require.resolve('owncoding-ui');

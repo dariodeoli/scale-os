@@ -299,6 +299,12 @@ const unplanned=clientRows.find(row=>String(row.client_id)===String(noPlanClient
 assert.ok(unplanned,'active clients without a plan are listed');
 assert.deepEqual({plan:unplanned.plan_name,contracted:unplanned.contracted_amount,required:unplanned.invoice_required,missing:unplanned.missing_invoice},{plan:null,contracted:0,required:false,missing:false},'unplanned clients carry no plan or amount');
 assert.equal(typeof clientRows.find(row=>String(row.client_id)===String(contractClient)).plan_name,'string','planned clients expose the plan name');
+// Regresión multimoneda: un cliente sin plan facturado en otra moneda que la de la empresa
+// (PYG) muestra lo facturado en esa moneda en vez de una fila PYG en cero.
+const noPlanUsdClient=(await query("insert into agency_clients(organization_id,name) values($1,'Sin plan en USD') returning id",[org])).rows[0].id;
+await query("insert into agency_invoices(organization_id,client_id,number,currency,total,status,issued_on) values($1,$2,'F-NOPLAN-USD','USD',450,'issued','2026-09-10')",[org,noPlanUsdClient]);
+const usdUnplanned=(await call('/api/agency/forecast?month=2026-09')).contracted_clients.records.filter(row=>String(row.client_id)===String(noPlanUsdClient));
+assert.deepEqual(usdUnplanned.map(row=>({currency:row.currency,contracted:row.contracted_amount,invoiced:row.invoiced_amount,plan:row.plan_name})),[{currency:'USD',contracted:0,invoiced:450,plan:null}],'an unplanned client keeps its invoiced currency');
 assert.equal(multiMonth.contracted_clients.month,'2026-09');
 const missingInvoice=clientRows.find(row=>String(row.client_id)===String(contractClient));
 assert.ok(missingInvoice,'contracted client without an invoice is listed');

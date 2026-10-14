@@ -25,7 +25,7 @@ const ICON = {
 };
 const initials = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 const chip = (label, tone) => {
-  const tones = {ok: 'bg-ok/15 text-ok border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn border-warn/25', bad: 'bg-bad/15 text-bad border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
+  const tones = {ok: 'bg-ok/15 text-ok-text border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn-text border-warn/25', bad: 'bg-bad/15 text-bad-text border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
   return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${tones[tone]}">${label}</span>`;
 };
 const avatar = (name) => `<span class="foto-perfil" aria-hidden="true">${initials(name)}</span>`;

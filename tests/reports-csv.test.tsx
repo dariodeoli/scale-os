@@ -62,15 +62,17 @@ test('report CSV download uses loaded data only, respects roles and filters, and
  URL.revokeObjectURL=url=>{revoked.push(url);};
  globalThis.setTimeout=((fn:()=>void,ms?:number)=>{if(ms===1000){cleanup.push(fn);return 0;}return originalTimeout(fn,ms);}) as typeof setTimeout;
  Object.defineProperty(globalThis,'document',{configurable:true,value:{body:{appendChild(){}},createElement(tag:string){assert.equal(tag,'a');return {href:'',download:'',click(){filenames.push(this.download);},remove(){removed++;}};}}});
- const button=()=>renderer!.root.findAllByType('button').find(b=>String(b.props.children).startsWith('Exportar histórico CSV'));
+ // El botón CSV de la cabecera siempre está presente (acción primaria de ListPage) y queda deshabilitado sin datos cargados.
+ const button=()=>renderer!.root.findAllByType('button').find(b=>String(b.props.children).startsWith('CSV'));
+ const live=()=>{const found=button();return found&&!found.props.disabled?found:undefined;};
   const respond=async()=>{const req=requests.filter(r=>r.url?.includes('/reports?')).at(-1)!,month=new URL(req.url,'https://fixture.invalid').searchParams.get('month')!;await act(async()=>req.resolve(new Response(JSON.stringify(data(month)))));};
  try{
  for(const role of ['viewer','editor','production','management']){
-  await act(async()=>{renderer=create(<ReportsWorkspace role={role} organizationName="Scale"/>);});assert.equal(button(),undefined);await act(async()=>renderer!.unmount());
+  await act(async()=>{renderer=create(<ReportsWorkspace role={role} organizationName="Scale"/>);});assert.equal(live(),undefined);await act(async()=>renderer!.unmount());
  }
  assert.equal(requests.length,0);
  for(const role of ['owner','admin','finance','sales']){
-   await act(async()=>{renderer=create(<ReportsWorkspace role={role} organizationName="Scale"/>);});assert.equal(button(),undefined);
+   await act(async()=>{renderer=create(<ReportsWorkspace role={role} organizationName="Scale"/>);});assert.equal(live(),undefined);
    await respond();
    await act(async()=>renderer!.root.findAllByType(SelectCustom)[0].props.onChange('USD'));
    const count:number=requests.length;
@@ -88,14 +90,14 @@ test('report CSV download uses loaded data only, respects roles and filters, and
   failDownload=false;await act(async()=>button()!.props.onClick());
   assert(!JSON.stringify(renderer!.toJSON()).includes('No se pudo descargar el CSV'));
   await act(async()=>renderer!.root.findAllByType('button').find(node=>node.props.title==='Últimos 6 meses')!.props.onClick());
-  assert.equal(button(),undefined,'changed filters hide stale export immediately');
+  assert.equal(live(),undefined,'changed filters hide stale export immediately');
   const req=requests.at(-1)!;await act(async()=>req.resolve(new Response(JSON.stringify({error:'Sin acceso'}),{status:403})));
-  assert.equal(button(),undefined,'failed report fetch offers no export');
+  assert.equal(live(),undefined,'failed report fetch offers no export');
   await act(async()=>renderer!.root.findAllByType("button").find(node=>String(node.props.children).includes("Reintentar"))!.props.onClick());
   const empty=requests.at(-1)!,month=new URL(empty.url,'https://fixture.invalid').searchParams.get('month')!;
   await act(async()=>empty.resolve(new Response(JSON.stringify({...data(month),months:[]}))));
   assert.equal(button()!.props.disabled,true);
-  await act(async()=>renderer!.update(<ReportsWorkspace role="viewer" organizationName="Scale"/>));assert.equal(button(),undefined);
+  await act(async()=>renderer!.update(<ReportsWorkspace role="viewer" organizationName="Scale"/>));assert.equal(live(),undefined);
   assert.equal(revoked.length,0);cleanup.forEach(fn=>fn());
   assert.equal(revoked.length,blobs.length);assert.equal(removed,blobs.length);
  }finally{

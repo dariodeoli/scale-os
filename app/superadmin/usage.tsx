@@ -2,7 +2,7 @@
 // Uso de la plataforma (#191): solo administradores globales (el API revalida).
 // Todo sale de `GET /api/platform/usage`; no hay métricas inventadas ni datos
 // financieros. Días y horas en America/Asuncion.
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {SearchField, SegmentedField, Select} from "owncoding-ui";
 import {platformApi} from "../platform-admin-api";
 import {listDateFull} from "../list-format";
@@ -36,15 +36,20 @@ export function PlatformUsage({onError}: {onError?: (cause: unknown) => boolean}
   const [data, setData] = useState<UsagePayload | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  // Solo la última consulta pinta: si se cambia de período antes de que llegue la
+  // respuesta anterior, esa respuesta (o su error) se descarta y no pisa el rango elegido.
+  const latest = useRef(0);
   const load = useCallback(async (range: number) => {
+    const request = ++latest.current;
     setLoading(true);
     setError("");
     try {
-      setData(await platformApi<UsagePayload>(`/api/platform/usage${usageQuery(range)}`));
+      const next = await platformApi<UsagePayload>(`/api/platform/usage${usageQuery(range)}`);
+      if (request === latest.current) setData(next);
     } catch (cause) {
-      if (!onError?.(cause)) setError(cause instanceof Error ? cause.message : "No pudimos cargar el uso de la plataforma.");
+      if (request === latest.current && !onError?.(cause)) setError(cause instanceof Error ? cause.message : "No pudimos cargar el uso de la plataforma.");
     } finally {
-      setLoading(false);
+      if (request === latest.current) setLoading(false);
     }
   }, [onError]);
   useEffect(() => { void load(days); }, [days]); // eslint-disable-line react-hooks/exhaustive-deps

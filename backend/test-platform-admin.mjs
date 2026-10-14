@@ -5,6 +5,7 @@ import {platformAdmin,platformBootstrapEmail,platformBootstrapStatus,bootstrapIn
 import {agencyCore} from './agency-core.js';
 import bcrypt from 'bcryptjs';
 import {accountSecurity} from './account-security.js';
+import {redeemCoupon} from './coupon-redemption.js';
 const pg=new PGlite();
 await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./schema.sql',import.meta.url),'utf8'));
 await pg.exec(`
@@ -322,6 +323,12 @@ assert.equal((await pg.query('select count(*)::int as n from agency_inventory_ve
 assert.equal((await pg.query('select count(*)::int as n from destructive_email_challenges where user_id=11')).rows[0].n,0,'destructive challenges are removed with the user');
 const viewerPreview=await destructivePreview(platformActor,'platform.user.delete',3);
 const viewerAuth=await recentAuth(platformActor,viewerPreview.data.preview.id);
+// Regresión: la vista previa (y la confirmación con el correo) de una persona no sirve
+// para borrar a otra; el intento no consume la prueba ni toca a ninguna de las dos.
+await pg.query("insert into users(id,email,password_hash,email_verified_at,is_demo_guest) values(912,'bystander@scale.example','unused',now(),false)");
+const crossTarget=await call('/api/platform/users/912',{method:'DELETE',payload:{previewId:viewerPreview.data.preview.id,confirmation:'member@agency.example',recentAuthProof:viewerAuth.proof}});
+assert.equal(crossTarget.status,409,'a user-delete preview is bound to its target user');
+assert.equal((await pg.query('select deleted_at is null as alive from users where id=912')).rows[0].alive,true,'the other user survives a cross-target delete');
 const removedViewer=await call('/api/platform/users/3',{method:'DELETE',payload:{previewId:viewerPreview.data.preview.id,confirmation:'member@agency.example',recentAuthProof:viewerAuth.proof}});
 assert.equal(removedViewer.status,200);assert.deepEqual(removedViewer.data.deleted,{userId:3,self:false,agencies:[]});
 assert.ok(!(await call('/api/platform/users?limit=100')).data.users.some(row=>row.email==='member@agency.example'),'deleted users leave the global listing');
@@ -334,5 +341,21 @@ const selfDeleted=await call('/api/platform/users/2',{method:'DELETE',payload:{p
 assert.equal(selfDeleted.status,200);assert.equal(selfDeleted.data.deleted.self,true,'only the admin themselves can delete their own account');
 assert.equal((await pg.query('select deleted_at is not null as gone from users where id=2')).rows[0].gone,true);
 assert.equal((await pg.query('select count(*)::int as n from platform_administrators where active=true')).rows[0].n,0,'self-deletion also removes the global role');
+// Regresión (concurrencia de canjes): en Postgres READ COMMITTED la subconsulta `used`
+// del SELECT ... FOR UPDATE usa la foto previa a la espera del lock y no ve el canje que
+// otra empresa confirmó mientras tanto. El límite se revalida con un conteo posterior.
+{
+ const writes=[];
+ const stale={query:async(sql,params)=>{
+  if(/from platform_coupons where/.test(sql))return {rows:[{id:77,code:'RACE1',max_redemptions:1,discount_type:'days',discount_value:3,currency:null,expires_at:null,organization_id:null,used:0}]};
+  if(/^select count\(\*\)::int as n from platform_coupon_redemptions where coupon_id=\$1$/.test(sql.trim()))return {rows:[{n:1}]};
+  if(/^select 1 from platform_coupon_redemptions/.test(sql.trim()))return {rows:[]};
+  if(/^select due_at,paid_through_at/.test(sql.trim()))return {rows:[{due_at:new Date().toISOString(),paid_through_at:null}]};
+  if(/^(insert|update)/.test(sql.trim()))writes.push(sql);
+  return {rows:[]};
+ }};
+ await assert.rejects(redeemCoupon(stale,{couponId:77,organizationId:99,userId:2}),error=>error.status===400&&/límite de usos/.test(error.message),'a concurrent redemption committed while waiting for the coupon lock counts against max_redemptions');
+ assert.equal(writes.length,0,'the over-limit redemption writes nothing');
+}
 await pg.close();
 console.log('PASS: separated platform admin authorization, scoped lists, one-time explicit bootstrap and audit, explicit admin/viewer roles with write gating, /api/auth/me exposes the live global role (admin/viewer/null) and the startup wiring keeps the configured owner as active admin, re-authenticated global deletions (preview + single-use proof, forged/replayed/cross-preview rejection, demo targets protected), self-protected admins, and audited user/agency deletion.');

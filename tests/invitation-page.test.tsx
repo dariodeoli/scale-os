@@ -10,6 +10,7 @@ const listFormatId=require.resolve('../app/list-format');
 require.cache[listFormatId]={id:listFormatId,filename:listFormatId,loaded:true,exports:{listDateShort:(value:unknown)=>String(value??''),listDateFull:(value:unknown)=>String(value??''),dueTone:()=>undefined,SerialTexto:()=>null}} as NodeModule;
 const footerId=require.resolve('../app/workspace-footer');
 require.cache[footerId]={id:footerId,filename:footerId,loaded:true,exports:{WorkspaceFooter:()=>null}} as NodeModule;
+require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 const InvitationPage=require('../app/invitacion/page').default;
 const token='a'.repeat(43),originalFetch=globalThis.fetch;

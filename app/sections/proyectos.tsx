@@ -72,7 +72,7 @@ export function ProyectosSection({bulkBusy, bulk, projectRow, projectsState, can
       </KpiStrip>}
       bulk={canManageProjects?<BulkBar count={bulk.count} total={BATCH_LIMITS.projects} onClear={bulk.clear}><button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button></BulkBar>:undefined}
     >
-      {projectsState === 'error' && projects.length ? <p className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-sm text-bad" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={retry}>Reintentar</button></p> : null}
+      {projectsState === 'error' && projects.length ? <p className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-sm text-bad-text" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={retry}>Reintentar</button></p> : null}
       {projectsState === 'loading' && !projects.length ? <LoadingBlock label="Cargando proyectos…" lines={4}/> : null}
       {projectsState === 'error' && !projects.length ? <ErrorBlock title="No se pudieron cargar los proyectos." onRetry={retry}/> : null}
       {liveProjects.length ? collection(liveProjects, 'Proyectos') : null}

@@ -113,7 +113,7 @@ test('Home wiring gates startup on current operational data and preserves explic
  assert(home.includes('startupDataScope===preferenceScope'));
  assert(home.includes('enabled:operationalAccess'));
  assert(home.includes('preferencesReady&&!loading'));
- assert.equal((home.match(/load\(data.user\)/g)||[]).length,2,'bootstrap and password login capture authenticated identity');
+ assert.equal((home.match(/load\(data\.user,sectionScope\(/g)||[]).length,2,'bootstrap and password login capture authenticated identity');
  assert(home.includes('setStartupDataScope(loadedScope)'));
  assert(!/setDetail\(null\);setProductionClientId/.test(home),'path changes no longer reset saved filters');
  const logout=home.slice(home.indexOf('async function logout()'),home.indexOf('async function onDragEnd'));
@@ -121,12 +121,14 @@ test('Home wiring gates startup on current operational data and preserves explic
   const cleanup=home.slice(home.indexOf('function clearScopedShellData()'),home.indexOf('function clearSessionState()'));
  assert(cleanup.includes("setStartupDataScope('')"));assert(!cleanup.includes('updatePreferences'));
  assert(home.includes("active==='Preferencias'"));
- assert(home.includes('preferencesReady?<SelectCustom'));
+ const preferencias=readFileSync(new URL('../app/sections/preferencias.tsx',import.meta.url),'utf8'),produccion=readFileSync(new URL('../app/sections/produccion.tsx',import.meta.url),'utf8');
+ assert(preferencias.includes('preferencesReady?'),'la sección Preferencias espera las preferencias cargadas antes de mostrar los selectores');
+ assert(preferencias.includes('<SelectCustom'));
  assert(home.includes('productionFiltersDialogScope===preferenceScope'));
  assert(home.includes('filterProductionOrders(orders, projects, selectedProductionClient,{...preferences.production'));
  assert(home.includes('userId:String(user?.id||\'\'),today:productionToday'));
- assert(home.includes('key={productionView} initialView={productionView} orders={orders}'),'saved board filters do not reinterpret explicit planner views');
- assert(home.includes('label="Al entrar a Scale OS"'));
+ assert(produccion.includes('key={productionView} initialView={productionView} orders={boardData.plannerOrders}'),'saved board filters do not reinterpret explicit planner views');
+ assert(preferencias.includes('label="Al entrar a Scale OS"'));
  assert(home.includes('Vencen esta semana (hora local)'));
  assert(home.includes('production:defaultWorkspacePreferences().production'));
 });
