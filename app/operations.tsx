@@ -129,7 +129,10 @@ export function Editor({
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
   const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,string>>({});
   const pending=form.formState.isSubmitting||savingNow;
-  useDialogPending(pending);
+  // Cambios sin guardar (aviso al cerrar): solo cuenta lo que la persona tocó; una
+  // normalización del campo al montar no convierte el formulario en «sucio».
+  const [interacted,setInteracted]=useState(false);
+  useDialogPending(pending,interacted&&form.formState.isDirty&&!pending);
   // Secciones (issue #183): grupos plegables, resumen de errores y, en móvil con
   // 3 o más secciones, pasos Anterior/Siguiente. Sin `section` nada de esto aparece.
   const sectionNames=Array.from(new Set(fields.map(f=>f.section).filter((name):name is string=>Boolean(name))));
@@ -150,7 +153,7 @@ export function Editor({
   const errorSections=sectionNames.filter(name=>sectionErrorCount(name)>0);
   const showSectionSummary=form.formState.submitCount>0&&errorSections.length>0;
   const revealSection=(name:string)=>{setSectionOpen(name,true);const index=sectionNames.indexOf(name);if(index>=0)setStep(index);};
-  useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.();}},[saved,pending,requestClose]);
+  useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.({afterSave:true});}},[saved,pending,requestClose]);
   async function runLookup(f:Field){if(!f.lookup||pending||lookupBusy)return;const value=(form.getValues(f.key)||'').trim();setLookupNotices(current=>({...current,[f.key]:''}));if(!value){setLookupNotices(current=>({...current,[f.key]:`Escribí ${f.label} primero.`}));return;}setLookupBusy(f.key);setError('');try{const found=await f.lookup.run(value);for(const [key,next] of Object.entries(found))form.setValue(key,String(next),{shouldValidate:true,shouldDirty:true});setLookupNotices(current=>({...current,[f.key]:'Datos encontrados. Revisá y guardá.'}));}catch(cause){setLookupNotices(current=>({...current,[f.key]:cause instanceof Error?cause.message:'No se pudo completar la consulta.'}));}finally{setLookupBusy('');}}
   const renderField = (f: Field) => {
     const id=`${formPrefix}-${f.key}`,invalid=!!form.formState.errors[f.key];
@@ -184,6 +187,9 @@ export function Editor({
           // so every existing form remains simple and type-safe.
           await saveFn(values as unknown as Record<string, string>);
           if(resetOnSave||another){form.reset(defaults);if(another){const first=fields[0]?.key;if(first)form.setFocus(first);}}
+          // Lo guardado pasa a ser la base: cerrar después no pide descartar nada.
+          else form.reset(v);
+          setInteracted(false);
           // Most existing editors close in their own success callback. Only
           // simple edit dialogs opt in; multi-action detail drawers stay open.
           if(closeOnSave&&!another)setSaved(true);
@@ -203,6 +209,8 @@ export function Editor({
       className={columns ? "form-stack ops-form-grid" : "form-stack"}
       noValidate
       aria-busy={pending}
+      onKeyDownCapture={()=>{if(!interacted)setInteracted(true);}}
+      onPointerDownCapture={()=>{if(!interacted)setInteracted(true);}}
       onSubmit={submitWith(save)}
     >
       {fields.some(f=>f.key==='drive_url'||f.key==='drive_links')&&<div className="ops-wide"><DriveLinkNote multiple={fields.some(f=>f.key==='drive_links')}/></div>}
@@ -228,7 +236,7 @@ export function Editor({
           {error}
         </p>
       )}
-      <FormActions>{requestClose&&cancelLabel&&<button className="secondary" type="button" disabled={pending} onClick={requestClose}>{cancelLabel}</button>}{secondaryAction&&<button className="secondary" type="button" disabled={pending} onClick={()=>void submitWith(secondaryAction.save,true)()}>{secondaryAction.label}</button>}<button type="submit" className="primary ops-wide" disabled={pending}>
+      <FormActions>{requestClose&&cancelLabel&&<button className="secondary" type="button" disabled={pending} onClick={()=>requestClose()}>{cancelLabel}</button>}{secondaryAction&&<button className="secondary" type="button" disabled={pending} onClick={()=>void submitWith(secondaryAction.save,true)()}>{secondaryAction.label}</button>}<button type="submit" className="primary ops-wide" disabled={pending}>
         {pending ? "Guardando…" : label}
       </button></FormActions>
     </form>

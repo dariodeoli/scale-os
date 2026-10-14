@@ -24,8 +24,20 @@ function focusFirst(panel:HTMLElement|null){
  // querySelector fallback also supports useOverlay consumers with minimal host refs.
  (first||(!panel?.querySelectorAll?panel?.querySelector<HTMLElement>(focusSelector):null)||panel)?.focus();
 }
-type OverlayOptions={busy?:boolean};
-function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false}:OverlayOptions={}){
+// Formularios: el foco inicial va al primer campo del cuerpo (no a «Cerrar»), salvo
+// con puntero táctil, donde abrir el teclado al aparecer la hoja tapa el contenido.
+const fieldSelector='input,select,textarea,[aria-haspopup="listbox"],[contenteditable="true"]';
+export function dialogInitialFocus(panel:HTMLElement|null):HTMLElement|null{
+ const body=panel?.querySelector?.<HTMLElement>('.dialog-body');
+ if(!body?.classList?.contains('dialog-body'))return null;
+ const view=panel?.ownerDocument?.defaultView;
+ if(typeof view?.matchMedia==='function'&&view.matchMedia('(pointer: coarse)').matches)return null;
+ const items=focusable(body);
+ return items.find(el=>el.matches('[data-autofocus]'))||items.find(el=>el.matches(fieldSelector)&&!el.matches('[readonly],[type="search"]'))||null;
+}
+type OverlayOptions={busy?:boolean;initialFocus?:(panel:HTMLElement|null)=>HTMLElement|null};
+function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false,initialFocus}:OverlayOptions={}){
+ const initialFocusRef=useRef(initialFocus);initialFocusRef.current=initialFocus;
  const id=useRef(Symbol('overlay')).current,parents=useContext(OverlayContext);
  const closeRef=useRef(close),busyRef=useRef(busy);closeRef.current=close;busyRef.current=busy;
  const requestClose=useCallback(()=>{if(layers.isTop(id)&&!busyRef.current)closeRef.current();},[id]);
@@ -43,7 +55,7 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
   overlays.forEach(item=>layers.remove(item.id));overlays.forEach(item=>layers.add(item.id));
   notifyOverlayChange();
   document.body.style.overflow='hidden';
-  if(layers.isTop(id))focusFirst(panel.current);
+  if(layers.isTop(id)){const field=initialFocusRef.current?.(panel.current);if(field)field.focus();else focusFirst(panel.current);}
   const keyboard=(event:KeyboardEvent)=>{
    if(event.defaultPrevented||!layers.isTop(id))return;
    if(event.key==='Escape'){
@@ -84,14 +96,21 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
 export function useOverlay(panel:RefObject<HTMLElement>,close:()=>void,options:OverlayOptions={}){
  return useOverlayState(panel,close,options).requestClose;
 }
-type DialogControls={requestClose:()=>void;setPending:(id:symbol,pending:boolean)=>void};
+/** `afterSave`: cierre posterior a un guardado exitoso; no pregunta por cambios sin guardar. */
+export type DialogCloseOptions={afterSave?:boolean};
+type DialogControls={requestClose:(options?:DialogCloseOptions)=>void;setPending:(id:symbol,pending:boolean)=>void;setDirty:(id:symbol,dirty:boolean)=>void};
 const DialogContext=createContext<DialogControls|null>(null);
-/** Opt-in dismissal; undefined for inline forms rendered outside a Dialog. */
+/** Opt-in dismissal; undefined for inline forms rendered outside a Dialog. Con cambios sin guardar pide confirmar, salvo `{afterSave:true}`. */
 export function useDialogClose(){return useContext(DialogContext)?.requestClose;}
-/** Each form owns one registration. One idle form cannot unlock another saving form. */
-export function useDialogPending(pending:boolean){
+/**
+ * Each form owns one registration. One idle form cannot unlock another saving form.
+ * `dirty`: el formulario tiene cambios sin guardar; Escape, el fondo, «Cerrar» y
+ * «Cancelar» piden confirmar antes de descartarlos.
+ */
+export function useDialogPending(pending:boolean,dirty=false){
  const controls=useContext(DialogContext),id=useRef(Symbol('dialog-form')).current;
  useLayoutEffect(()=>{controls?.setPending(id,pending);return()=>controls?.setPending(id,false);},[controls,id,pending]);
+ useLayoutEffect(()=>{controls?.setDirty(id,dirty);return()=>controls?.setDirty(id,false);},[controls,id,dirty]);
 }
 /** Tamaños nombrados (issue #183). `compact` y `wide` se aceptan como alias de `corto` y `amplio`. */
 export type DialogSize='corto'|'default'|'amplio'|'drawer';
@@ -104,18 +123,24 @@ export function Dialog({title,close,children,variant='modal',busy=false,size:req
  const panel=useRef<HTMLElement>(null),heading=useId();
  const [footer,setFooter]=useState<HTMLDivElement|null>(null);
  const pendingForms=useRef(new Set<symbol>()),[formBusy,setFormBusy]=useState(false);
+ const dirtyForms=useRef(new Set<symbol>()),[discardAsked,setDiscardAsked]=useState(false);
  const blocked=busy||formBusy;
- const guardedClose=useCallback(()=>{if(!pendingForms.current.size)close();},[close]);
+ const closeRef=useRef(close);closeRef.current=close;
+ const savedClose=useRef(false);
+ const guardedClose=useCallback(()=>{if(pendingForms.current.size)return;if(dirtyForms.current.size&&!savedClose.current){setDiscardAsked(true);return;}closeRef.current();},[]);
  // The registry ref releases synchronously in child layout effects, before an Editor's
  // post-save passive effect requests close; rendering aria-busy must not delay it.
- const {id,parents,requestClose,isTop}=useOverlayState(panel,guardedClose,{busy});
+ const {id,parents,requestClose,isTop}=useOverlayState(panel,guardedClose,{busy,initialFocus:dialogInitialFocus});
  const setPending=useCallback((id:symbol,pending:boolean)=>{if(pending)pendingForms.current.add(id);else pendingForms.current.delete(id);setFormBusy(pendingForms.current.size>0);},[]);
- const controls=useMemo(()=>({requestClose,setPending}),[requestClose,setPending]);
+ const setDirty=useCallback((id:symbol,dirty:boolean)=>{if(dirty)dirtyForms.current.add(id);else dirtyForms.current.delete(id);},[]);
+ const contextClose=useCallback((options?:DialogCloseOptions)=>{savedClose.current=options?.afterSave===true;try{requestClose();}finally{savedClose.current=false;}},[requestClose]);
+ const controls=useMemo(()=>({requestClose:contextClose,setPending,setDirty}),[contextClose,setPending,setDirty]);
  const ancestry=useMemo(()=>[...parents,id],[parents,id]);
  return createPortal(<div className={`ops-overlay${drawer?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal={isTop?'true':undefined} aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
   <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} aria-label="Cerrar"><X size={18}/></button></div>
   <OverlayContext.Provider value={ancestry}><DialogContext.Provider value={controls}><FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider></DialogContext.Provider></OverlayContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>
+  {discardAsked?<OverlayContext.Provider value={ancestry}><ConfirmDialog title="¿Descartar los cambios?" description="Hay datos sin guardar en este formulario. Si cerrás ahora, se pierden." confirmLabel="Descartar cambios" cancelLabel="Seguir editando" variant="danger" onCancel={()=>setDiscardAsked(false)} onConfirm={()=>{setDiscardAsked(false);dirtyForms.current.clear();closeRef.current();}}/></OverlayContext.Provider>:null}
  </section></div>,document.body);
 }
 // The footer stays outside the scroll area. Native form association preserves

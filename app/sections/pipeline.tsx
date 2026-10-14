@@ -17,6 +17,8 @@ import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '
 import {boardColumnWindow,type BoardColumnWindow} from '../pipeline-board-window';
 import {ActionMenu,BulkBar,CompactCard,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,SectionLoading,StateChip,ViewSwitch,type CollectionView,type Column,type RecordMenuItem} from '../ui-v2';
 import {SelectCustom} from '../profile-controls';
+import {currencyChoices} from '../currencies';
+import {useCompanyCurrency} from '../currency-provider';
 import {SaveActions} from '../save-actions';
 import {PHONE_HELP} from '../field-rules';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_LEAD_FINALITY,PRIVACY_LEAD_DETAIL} from '../privacy-links';
@@ -40,6 +42,8 @@ type PipelineSectionProps = {
   onRetryMetrics?: () => void;
   /** Navegación del shell (misma vía que los tabs). */
   navigate?: (label: string) => void;
+  /** Abre la ficha del cliente vinculado (la misma del directorio de Clientes). */
+  openClient?: (id: string) => void;
 };
 type Row=LeadOpportunity;
 type RawRow=Record<string,unknown>;
@@ -59,7 +63,7 @@ const stageKindChoices=[{value:'open',label:'Abierta (oportunidad en curso)'},{v
 // no tiene puntero, cae al rectángulo que se cruza.
 const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(args);return within.length?within:rectIntersection(args);};
 
-type LeadActions={moveTo:(row:Row)=>void;convert:(row:Row)=>void};
+type LeadActions={moveTo:(row:Row)=>void;convert:(row:Row)=>void;openClient?:(row:Row)=>void};
 // Dato ausente = vacío explícito: no se inventa un monto 0 ni una probabilidad 0.
 // Una sola lectura del dato para la tarjeta y la fila de la lista.
 function leadFacts(row:Row){
@@ -97,6 +101,7 @@ function useLeadMenu({row,role,canMove,actions,edit,refresh}:{row:Row;role:strin
   const items:RecordMenuItem[]=[
     ...(canMove&&actions?[{id:'move',label:'Mover a etapa…',onClick:()=>actions.moveTo(row)}]:[]),
     ...(convertible?[{id:'convert',label:'Convertir a cliente',onClick:()=>actions!.convert(row)}]:[]),
+    ...(row.client_id&&actions?.openClient?[{id:'client',label:'Ver cliente',onClick:()=>actions.openClient!(row)}]:[]),
     ...(mayEdit?[{id:'edit',label:'Editar oportunidad',onClick:edit}]:[]),
     ...(canRemoveLead(role)?[{id:'delete',label:'Mover a la papelera',peligro:true,onClick:()=>setRemoving(true)}]:[]),
   ];
@@ -205,7 +210,8 @@ function LeadListRow({row,stageLabel,editable,selected,onSelect,edit,role,canMov
   </ListRow>;
 }
 
-export function PipelineSection({user, metricsState='ready', onRetryMetrics, navigate}: PipelineSectionProps){
+export function PipelineSection({user, metricsState='ready', onRetryMetrics, navigate, openClient}: PipelineSectionProps){
+  const companyCurrency=useCompanyCurrency().currency;
   const [rows,setRows]=useState<Row[]>([]);
   const [stages,setStages]=useState<Stage[]>(fallbackStages);
   const [state,setState]=useState<LeadsState>('loading');
@@ -340,7 +346,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     {key:'phone',label:'Teléfono',type:'phone',optional:true,help:PHONE_HELP},
     {key:'stage',label:'Etapa',choices:stageChoices},
     {key:'amount',label:'Valor de la oportunidad',type:'money'},
-    {key:'currency',label:'Moneda',choices:[{value:'PYG',label:'PYG · Guaraníes'},{value:'USD',label:'USD · Dólares'},{value:'EUR',label:'EUR · Euros'},{value:'BRL',label:'BRL · Reales'},{value:'ARS',label:'ARS · Pesos argentinos'},{value:'MXN',label:'MXN · Pesos mexicanos'}]},
+    {key:'currency',label:'Moneda',choices:currencyChoices},
     {key:'probability',label:'Probabilidad (%)',type:'number',integer:true},
     {key:'notes',label:'Próximo paso y notas',type:'textarea',optional:true},
     // Oposicion al contacto (#114): campo del Editor (Si/No), viaja en el mismo guardado.
@@ -348,7 +354,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   ];
   const newDefaultStage=activeStages.find(stage=>stage.value===newStage);
   const newProbability=newDefaultStage?.kind==='won'?'100':newDefaultStage?.kind==='lost'?'0':'10';
-  const defaults:Record<string,string>=row?{...Object.fromEntries(fields.map(field=>[field.key,str(row,field.key)])),do_not_contact:row.do_not_contact===true?'yes':'no'}:{currency:'PYG',stage:newDefaultStage?newDefaultStage.value:defaultStage,amount:'0',probability:newProbability,name:'',email:'',phone:'',notes:'',do_not_contact:'no'};
+  const defaults:Record<string,string>=row?{...Object.fromEntries(fields.map(field=>[field.key,str(row,field.key)])),do_not_contact:row.do_not_contact===true?'yes':'no'}:{currency:companyCurrency,stage:newDefaultStage?newDefaultStage.value:defaultStage,amount:'0',probability:newProbability,name:'',email:'',phone:'',notes:'',do_not_contact:'no'};
 
   // Solo las etapas activas aceptan drops: ganar fija 100% y perder 0%; el resto
   // conserva la probabilidad cargada. El movimiento es optimista: la tarjeta
@@ -387,7 +393,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     catch(reason){setError(err(reason));setConvertOffer(null);}
     finally{setBusy(false);}
   }
-  const leadActions:LeadActions={moveTo:setMoveTarget,convert:setConvertOffer};
+  const leadActions:LeadActions={moveTo:setMoveTarget,convert:setConvertOffer,...(openClient?{openClient:(target:Row)=>openClient(String(target.client_id))}:{})};
   const openCreate=(stage:string)=>{setNewStage(stage);setEdit('new');};
 
   // Filtros, vista y lote (#182). La etapa elegida deja solo su columna en el
@@ -578,6 +584,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
           </details>
         </div>
         {row&&!row.client_id?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={()=>void convertLead(row)}>Ganado: convertir a cliente</Button></div>:null}
+        {row&&row.client_id&&openClient?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={()=>{const id=String(row.client_id);setEdit(null);openClient(id);}}>Ver cliente vinculado</Button></div>:null}
       </Dialog>:null}
 
       {bulkMove&&canEdit?<Dialog title={`Mover ${selected.length} oportunidad${selected.length===1?'':'es'} a etapa`} busy={bulkBusy} close={()=>{if(!bulkBusy)setBulkMove(false);}}>

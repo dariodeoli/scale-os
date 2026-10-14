@@ -58,6 +58,7 @@ console.log(`PASS bordes de control ≥3:1: oscuro ${darkBorder} y controles de 
 
 // Tabla densa responsive (ronda 14, ítem 1): columna de acciones fija.
 assert(css.includes('.list-actions-head,')&&css.includes('.list-actions{position:sticky;right:0'),'la columna de acciones se fija al borde derecho del scroll');
+assert(css.includes('.list-actions:has([aria-expanded="true"]){z-index:6}'),'con el menú abierto la celda fija queda sobre la fila siguiente (la primera opción no se tapa)');
 assert(css.includes('--list-actions-bg'),'el fondo de la columna fija sale de una variable por superficie');
 assert(css.includes('.list-row:hover .list-actions'),'la columna fija acompaña el hover de la fila');
 console.log('PASS tabla densa: acciones fijas con fondo por superficie y hover de fila');

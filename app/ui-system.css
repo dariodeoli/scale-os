@@ -237,6 +237,9 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
    superficie del panel). El hairline izquierdo marca la columna fija. */
 .list-actions-head,
 .list-actions{position:sticky;right:0;z-index:2;background:var(--list-actions-bg,rgb(var(--c-paper)));box-shadow:inset 1px 0 0 rgb(var(--c-ink-600) / .6)}
+/* Cada celda fija crea su propio contexto de apilado: con el menú ⋯ abierto la fila
+   siguiente tapaba la primera opción («Editar…»). La celda con el menú abierto sube. */
+.list-actions:has([aria-expanded="true"]){z-index:6}
 .list-actions-head{z-index:3;display:inline-flex;align-items:center;justify-content:flex-end;padding-left:10px}
 .list-actions{display:flex;min-width:0;align-items:center;justify-content:flex-end;gap:6px;padding-left:10px}
 .list-row:hover .list-actions{background:color-mix(in srgb,rgb(var(--c-ink-700)) 40%,var(--list-actions-bg,rgb(var(--c-paper))))}

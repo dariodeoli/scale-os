@@ -207,6 +207,21 @@ async function run(){
  await setSearch(renderer,'beta');
  assert.equal(listRowsOf(renderer).length,1,'el viewer sí filtra');
  act(()=>renderer.unmount());
+
+ // 10. Oportunidad ↔ cliente: la vinculada ofrece «Ver cliente» (abre la ficha) y el alta usa la moneda de la empresa.
+ const {CompanyCurrencyProvider}=require('../app/currency-provider') as typeof import('../app/currency-provider');
+ const opened:string[]=[];requests=[];
+ await act(async()=>{renderer=create(<CompanyCurrencyProvider organizationId="7" defaultCurrency="USD"><PipelineSection user={user('owner')} openClient={id=>opened.push(id)}/></CompanyCurrencyProvider>);});
+ await flush({records:leads});await flush({stages});
+ const linkedMenu=menuOf(renderer,'Beta').props.items;
+ assert.deepEqual(linkedMenu.map((item:{id:string})=>item.id),['move','client','edit','delete'],'la oportunidad convertida ofrece ver su cliente en lugar de convertir');
+ act(()=>{linkedMenu.find((item:{id:string})=>item.id==='client').onClick();});
+ assert.deepEqual(opened,['9'],'abre la ficha del cliente vinculado');
+ assert.equal(menuOf(renderer,'Acme SA').props.items.some((item:{id:string})=>item.id==='client'),false,'sin cliente no hay atajo');
+ act(()=>{renderer.root.findAllByType('button').find(button=>/Nueva oportunidad/.test(text(button))||/^Nueva oportunidad/.test(String(button.props['aria-label']||'')))!.props.onClick();});
+ const currencyField=renderer.root.findAll(node=>typeof node.type!=='string'&&node.props.label==='Moneda'&&typeof node.props.onChange==='function')[0];
+ assert.equal(currencyField.props.value,'USD','el alta arranca en la moneda de la empresa, no en PYG fijo');
+ act(()=>renderer.unmount());
  console.log('PASS: pipeline UX (#182): mover a etapa por menu con el mismo PATCH, convertir visible solo en ganado y con capacidad, columnas vacias con alta por etapa y totales sin recorte, filtros en tablero y lista, misma informacion en tarjeta y fila, lote optimista y viewer sin acciones.');
 }
 void run();
