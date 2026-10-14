@@ -101,7 +101,7 @@ assert.match(read('app/status/page.tsx'), /api\/auth\/email-status/, 'el correo 
 
 // #98 densidad integral: selección masiva contextual en las listas del slot y
 // filas finas en el historial.
-assert.match(read('app/archive-controls.tsx'), /selected\.length\?<div className="bulk-bar"/, 'la papelera muestra el lote solo con selección');
+assert.match(read('app/archive-controls.tsx'), /<BulkBar count={bulk.count}/, 'la papelera muestra el lote solo con selección (BulkBar oculta con count 0)');
 assert.doesNotMatch(read('app/archive-controls.tsx'), /Seleccioná varios para restaurar en lote/, 'sin la fila permanente de instrucciones de lote');
 const workHistory = read('app/work-history.tsx');
 assert.match(workHistory, /px-3 py-2/, 'las filas del historial usan padding compacto');
