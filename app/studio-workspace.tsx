@@ -101,11 +101,11 @@ function StudioPanel(){
       {context?.can_reserve?<Button type="button" disabled={!activeSpaces.length} onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:null}
      </div>
     </div>
-    <div data-grid="studio-spaces" className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="grid min-w-0 gap-1.5 rounded-xl border border-ink-600 bg-ink-800/60 p-3" key={space.id}>
+    <div data-grid="studio-spaces" className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="flex min-h-[200px] min-w-0 flex-col gap-1.5 rounded-xl border border-ink-600 bg-ink-800/60 p-4" key={space.id}>
      <div className="flex min-w-0 items-center justify-between gap-2"><h3 className="truncate text-sm font-semibold text-fore" title={space.name}>{space.name}</h3><StateChip tone={space.active?'ok':'mute'}>{space.active?'Disponible':'Inactivo'}</StateChip></div>
      <p className="truncate text-xs text-mute" title={space.scenario||'Escenario sin especificar'}>{space.scenario||'Escenario sin especificar'}</p>
      {space.notes?<small className="line-clamp-2 text-xs leading-5 text-mute" title={space.notes}>{space.notes}</small>:null}
-     {context?.can_manage?<div className={`mt-1 flex justify-end ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar espacio: ${space.name}`} onClick={()=>setEditSpace(space)}/></div>:null}
+     {context?.can_manage?<div className={`mt-auto flex justify-end pt-1 ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar espacio: ${space.name}`} onClick={()=>setEditSpace(space)}/></div>:null}
     </article>)}</div>
    </>}
   </Card>
@@ -133,7 +133,7 @@ function StudioPanel(){
     </article>)}
     {!reservations.length?<EmptyState compact icon="calendar" title="No hay reservas en este mes." description="Elegí un espacio y una franja para reservarlo." action={context?.can_reserve&&activeSpaces.length?<Button type="button" onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:undefined}/>:null}
    </div>
-   <div data-list="studio-reservations" className="hidden min-w-0 overflow-x-auto md:block">
+   <div data-list="studio-reservations" className="silent-scroll hidden min-w-0 overflow-x-auto md:block">
     <div className={`${RESERVATION_COLS} grid min-w-[64rem] gap-2`}>
     {reservations.length?<div data-list-head="studio-reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true"><span/><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span className="text-right">Acciones</span></div>:null}
     {reservations.map(reservation=><div data-list-row="studio-reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} min-h-[48px] content-center rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} key={reservation.id}>

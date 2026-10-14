@@ -154,7 +154,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
  const facts=depreciationFacts(item);
- return <article data-grid-card="equipment" className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3.5">
+ return <article data-grid-card="equipment" className="flex min-h-[200px] min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4">
   <div className="flex min-w-0 items-start gap-2.5">
    {selectable?<label className="flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
    <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="card"/>
@@ -187,7 +187,7 @@ function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onD
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
  const code=itemCode(item),location=inventoryLocation(item);
- return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[56px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} data-status={item.status}>
+ return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[44px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} data-status={item.status}>
   <span className="flex h-11 items-center md:h-auto">{selectable?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}</span>
   <span className="flex items-center"><EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="row"/></span>
   <span className="flex min-w-0 items-baseline gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b><code className="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">{code}</code></span>
@@ -452,7 +452,7 @@ function InventoryPanel(){
     </div>
    </div>
    <InventoryCalendar month={month} reservations={reservations}/>
-   <div data-list="reservations" className="min-w-0 overflow-x-auto">
+   <div data-list="reservations" className="silent-scroll min-w-0 overflow-x-auto">
     <div className={`${RESERVATION_COLS} grid min-w-[67.5rem] gap-2`}>
     {reservations.length?<div data-list-head="reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
      <span>Producción</span><span>Proyecto</span><span>Fechas</span><span>Equipos</span><span>Responsables</span><span>Devuelve</span><span className="text-right">Acciones</span>
@@ -487,9 +487,9 @@ function InventoryPanel(){
    {equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onReorder={context?.can_manage?reorderLocations:undefined} onDetail={setDetail} onAdd={context?.can_manage?()=>setEditItem('new'):undefined} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally}/>:null}
    {equipmentView!=='pipeline'?<>
     <InventorySummary items={items} onAddValue={context?.can_manage&&itemWithoutValue?()=>setEditItem(itemWithoutValue):undefined}/>
-    {equipmentView==='list'?<div data-list="equipment" className="min-w-0 overflow-x-auto">
-     <div className={`${EQUIPMENT_COLS} grid min-w-[68rem] gap-2`}>
-     <div data-list-head="equipment" className={`${EQUIPMENT_GRID} px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
+    {equipmentView==='list'?<div data-list="equipment" className="silent-scroll min-w-0 overflow-x-auto">
+     <div className={`${EQUIPMENT_COLS} grid min-w-[69.5rem] gap-2`}>
+     <div data-list-head="equipment" className={`${EQUIPMENT_GRID} border border-transparent px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
       <span/><span>Foto</span><span>Artículo</span><span>Detalles</span><span className="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span className="text-right">Acciones</span>
      </div>
      {visible.map(item=><EquipmentRow key={item.id} item={item} selectable={selectionEnabled&&item.status!=='retired'} selected={selectedItems.includes(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} canManage={Boolean(context?.can_manage)} verifying={verifyingId===String(item.id)} onDetail={setDetail} onVerify={quickVerify} onVerifyDetail={setVerification} onEdit={setEditItem} onArchive={setArchive}/>)}

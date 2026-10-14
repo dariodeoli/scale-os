@@ -87,9 +87,9 @@ const inventoryDetailBody = `
 
 /* ----------------------------------------------------- pieza (drawer) */
 const pieceDetailBody = `
- <div class="grid min-w-0 gap-4">
+ <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
   <section class="grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
-   <div class="flex min-w-0 flex-wrap items-center justify-between gap-2"><span class="client-identity identity-teal"><span class="foto-perfil">CM</span><span class="actor-identity-name" title="Cooperativa de Servicios Múltiples de Prueba Limitada">Cooperativa de Servicios Múltiples de Prueba Limitada</span></span><span class="urgency-badge">5 · Crítica</span></div>
+   <div class="flex min-w-0 flex-wrap items-center justify-between gap-2"><span class="min-w-0 max-w-full [&_.client-identity]:max-w-full [&_.identity-name]:overflow-hidden [&_.identity-name]:text-ellipsis [&_.identity-name]:whitespace-nowrap" title="Cooperativa de Servicios Múltiples de Prueba Limitada"><span class="client-identity identity-teal"><span class="foto-perfil">CM</span><span class="identity-name" title="Cooperativa de Servicios Múltiples de Prueba Limitada">Cooperativa de Servicios Múltiples de Prueba Limitada</span></span></span><span class="urgency-badge">5 · Crítica</span></div>
    <div class="flex flex-wrap items-center gap-1.5">${chip('En revisión', 'warn')}${chip('Video', 'mute')}<span class="due-date overdue compact" title="Entrega: 28 ago. 2026 09:30">Entrega 28 ago. 2026 · 09:30 h · venció hace 23 días</span></div>
    <dl class="grid gap-1 text-xs sm:grid-cols-2">
     <div class="flex min-w-0 items-center justify-between gap-3"><dt class="min-w-0 text-mute">Horas estimadas</dt><dd class="shrink-0 font-semibold tabular-nums">12 h</dd></div>
@@ -99,8 +99,8 @@ const pieceDetailBody = `
    </dl>
    <span class="project-presence">Viendo ahora: ${avatar('Mateo Ríos de Prueba')}</span>
   </section>
-  <div class="mb-5 flex flex-wrap gap-2 rounded-2xl border border-fore/10 bg-ink p-2 [&>button]:min-h-11 md:[&>button]:min-h-9" role="tablist"><button type="button" role="tab" aria-selected="true" class="rounded-xl bg-fono px-3 py-2 text-sm font-medium text-onbrand">Detalle</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Comentarios (2)</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Historial</button></div>
-  <div class="grid gap-4">
+  <div class="mb-5 flex min-w-0 max-w-full flex-wrap gap-2 rounded-2xl border border-fore/10 bg-ink p-2 [&>button]:min-h-11 md:[&>button]:min-h-9" role="tablist"><button type="button" role="tab" aria-selected="true" class="rounded-xl bg-fono px-3 py-2 text-sm font-medium text-onbrand">Detalle</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Comentarios (2)</button><button type="button" role="tab" aria-selected="false" class="rounded-xl px-3 py-2 text-sm font-medium text-mute">Historial</button></div>
+  <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
    <div class="flex flex-wrap items-center gap-2"><button class="secondary">${svg(ICON.pencil, 14)}Editar pieza</button></div>
    <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Descripción</h4><p class="whitespace-pre-line text-[13px] text-mute">Reel de lanzamiento para la nueva línea de productos — corte final con subtítulos, corrección de color y mezcla. Falta la aprobación del cliente sobre la música.</p></section>
    <section class="grid gap-1"><h4 class="text-sm font-semibold text-fore">Responsables</h4><section class="assigned-people" aria-label="Responsables asignados"><span class="assigned-people-label">Responsables</span><ul class="assigned-people-list"><li class="assigned-person">${actorIdentity('Sofía Benítez de Prueba', '18 sept 26 · 16:20')}<span class="assigned-person-primary">Principal</span></li><li class="assigned-person">${actorIdentity('Marcos Rojas de Prueba', '17 sept 26 · 09:48')}</li></ul></section></section>
