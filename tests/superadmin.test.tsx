@@ -99,7 +99,7 @@ test("superadmin keeps its operational controls accessible and responsive", () =
   );
   assert.match(styles, /\.platform-admin-page \{[\s\S]*?overflow-x: clip;/);
   // Targets móviles del panel (el escritorio usa el control de 40 px del sistema).
-  assert.match(styles, /\.platform-admin-actions \.secondary \{ flex: 1; min-height: 44px \}/);
+  assert.match(styles, /\.platform-admin-actions \.secondary \{ flex: none; min-height: 44px; min-width: 44px;/);
   assert.match(
     styles,
     /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
@@ -121,7 +121,7 @@ test("la vuelta al panel es determinista en SSR y cliente, sin depender de windo
   assert.match(page, /from "\.\.\/brand-metadata"/, "el fallback comparte el origen de la app");
   // Los tres puntos usan el helper: brand, «Panel» del header y «Volver al panel».
   assert.match(page, /<Link className="platform-admin-brand" href=\{appHome\(\)\} aria-label="Scale OS">/);
-  assert.match(page, /<Link className="secondary" href=\{appHome\(\)\}>/);
+  assert.match(page, /<Link className="secondary" href=\{appHome\(\)\} aria-label="Volver al panel"/);
   assert.match(page, /<Link className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" href=\{appHome\(\)\}>/);
 });
 
@@ -151,10 +151,10 @@ test("rediseño #102: consola con secciones, carga de la app y título único", 
   // Consola: encabezado compacto + barra de secciones con contadores + vistas.
   assert.match(page, /<div className="platform-admin-tabs silent-scroll">/, "la barra de secciones es un contenedor sin la regla legacy `nav button`");
   assert.match(page, /ariaLabel="Secciones del panel global"/);
-  for (const view of ["resumen", "agencias", "cupones", "accesos", "auditoria", "uso"]) {
+  for (const view of ["resumen", "consultas", "agencias", "cupones", "accesos", "auditoria", "uso"]) {
     assert.match(page, new RegExp(`\\{id: "${view}", label:`), `la vista ${view} existe`);
   }
-  assert.equal((page.match(/\{view === "/g) ?? []).length, 6, "cada sección renderiza su vista");
+  assert.equal((page.match(/\{view === "/g) ?? []).length, 7, "cada sección renderiza su vista");
   assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{changeView\} bootstrap=\{bootstrap\}\/>/);
   // Carga inicial con el skeleton propio del panel (#155 C).
   assert.match(page, /import \{PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting\} from "\.\/states"/);
@@ -171,7 +171,11 @@ test("rediseño #102: consola con secciones, carga de la app y título único", 
   assert.match(page, /setAccessMessage\(cause instanceof Error \? cause\.message : ""\)/);
   assert.match(readFileSync(new URL('../app/superadmin/states.tsx', import.meta.url), 'utf8'), /\{message \|\| "Tu sesión está activa/);
   // #181: el encabezado es el `PageHeader` del sistema; la marca, el permiso real y la hora quedan como meta/acciones.
-  assert.match(page, /<PageHeader[\s\S]*?eyebrow="Administración global"[\s\S]*?title="Control de Scale OS"/, "rótulo y título salen del PageHeader único");
+  // Encabezado compacto: el título sale del PageHeader único, sin el rótulo redundante;
+  // el aviso de acceso separado vive en el tooltip del chip de permiso.
+  assert.match(page, /<PageHeader\s+className="min-w-0 flex-\[1_1_20rem\] !mb-0"\s+title="Control de Scale OS"/, "título del PageHeader único");
+  assert.doesNotMatch(page, /eyebrow="Administración global"/, "sin rótulo redundante sobre el título");
+  assert.match(page, /\$\{PLATFORM_ACCESS_NOTE\}/, "el aviso de acceso separado queda en el tooltip del permiso");
   assert.match(page, /subtitle=\{<span className="platform-admin-meta">[\s\S]*?Actualizado \{updated\}/, "el permiso y la hora de actualización viajan como meta del encabezado");
   assert.match(page, /actions=\{<div className="platform-admin-actions">/, "Actualizar y Panel son las acciones del encabezado");
   assert.doesNotMatch(page, /<header[^>]*className="platform-admin-header"/, "sin encabezado propio paralelo");
@@ -228,7 +232,8 @@ test("rediseño #155 fase 2: resumen útil, orden de secciones y estados propios
   assert.ok(page.indexOf('{id: "accesos", label:') < page.indexOf('{id: "cupones", label:'), "Accesos antes que Cupones");
   assert.match(page, /platform-admin-tabs-wrap/);
   assert.match(styles, /\.platform-admin-tabs \[aria-pressed="true"\] \{ box-shadow: inset 0 -2px 0 0 rgb\(var\(--c-fono\)\) \}/);
-  assert.match(styles, /\.platform-admin-tabs > div \{ width: 100%; flex-wrap: wrap; gap: 8px \}/);
+  // Mobile: las pestañas son una tira horizontal con scroll silencioso.
+  assert.match(styles, /\.platform-admin-tabs > div \{ flex-wrap: nowrap; gap: 4px \}/);
   // C · Skeleton propio, avisos con borde de contraste y recuperación.
   assert.doesNotMatch(page, /LoadingScreen/);
   assert.match(readFileSync(new URL("../app/superadmin/states.tsx", import.meta.url), "utf8"), /export function PlatformAdminSkeleton/);

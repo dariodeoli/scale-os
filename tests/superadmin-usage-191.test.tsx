@@ -109,8 +109,8 @@ test('a user without global access never fetches usage and an admin only fetches
     await act(async () => { renderer = mount(); });
     assert.equal(urls.some(url => url.includes('/usage')), false, 'la carga inicial del panel no pide el uso');
     const tabs = renderer.root.findByProps({'aria-label': 'Secciones del panel global'}).findAllByType('button');
-    assert.equal(text(tabs[5].children).includes('Uso'), true);
-    await act(async () => { tabs[5].props.onClick(); });
+    assert.equal(text(tabs[6].children).includes('Uso'), true);
+    await act(async () => { tabs[6].props.onClick(); });
     assert.equal(urls.filter(url => url.includes('/usage')).length, 1);
     assert.ok(rendered(renderer).includes('Uso por agencia'));
   } finally { if (renderer) act(() => renderer.unmount()); restore(); }

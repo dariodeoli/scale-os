@@ -28,6 +28,10 @@ import {
   type Person,
   type CollectionPage,
   type PlatformView,
+  PLATFORM_VIEWS,
+  PLATFORM_ACCESS_NOTE,
+  type InquiryCounts,
+  type InquiryPage,
   type State,
   type Subscription,
 } from "./model";
@@ -42,6 +46,7 @@ import {PlatformCatalog} from "./catalog";
 import {SubscriptionDialog} from "./subscription-dialog";
 import {PlatformAudit} from "./audit";
 import {PlatformUsage} from "./usage";
+import {PlatformInquiries} from "./inquiries";
 import {PlatformConfirmDialog, type PlatformAuthMethod} from "./confirm";
 import {ApplyCouponDialog} from "./apply-coupon-dialog";
 import {preflightGoogleStart} from "../deletion-danger-zone";
@@ -52,6 +57,14 @@ export default function PlatformAdmin() {
   const [state, setState] = useState<State | null>(null);
   const [view, setView] = useState<PlatformView>("resumen");
   const headerRef = useRef<HTMLDivElement | null>(null);
+  // Contadores de Consultas: la pestaña muestra las nuevas sin abrirla.
+  const [inquiryCounts, setInquiryCounts] = useState<InquiryCounts | null>(null);
+  // Enlace directo a una sección (`?vista=consultas`, el CTA del correo de aviso).
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.location) return;
+    const requested = new URLSearchParams(window.location.search).get("vista") as PlatformView | null;
+    if (requested && PLATFORM_VIEWS.includes(requested)) setView(requested);
+  }, []);
 
   function changeView(nextView: PlatformView) {
     if (nextView === view) return;
@@ -169,6 +182,10 @@ export default function PlatformAdmin() {
         },
       });
       setUpdatedAt(new Date().toISOString());
+      // Sin bloquear el panel: si la bandeja no responde, la pestaña queda sin contador.
+      void platformApi<InquiryPage>("/api/platform/inquiries?limit=1")
+        .then((page) => { if (page?.counts) setInquiryCounts(page.counts); })
+        .catch(() => undefined);
     } catch (cause) {
       if (!handlePlatformError(cause, true))
         setError(
@@ -663,6 +680,7 @@ export default function PlatformAdmin() {
   // Orden aprobado (#155 B): personas (Accesos) antes que catálogo (Cupones).
   const views: {id: PlatformView; label: string; icon: string; count?: number}[] = [
     {id: "resumen", label: "Resumen", icon: "overview"},
+    {id: "consultas", label: "Consultas", icon: "mail", count: inquiryCounts?.new ? inquiryCounts.new : undefined},
     {id: "agencias", label: "Agencias", icon: "building", count: state?.agencies.length},
     {id: "accesos", label: "Accesos", icon: "shield", count: state?.users.length},
     {id: "cupones", label: "Cupones", icon: "tag", count: state?.coupons.length},
@@ -686,6 +704,8 @@ export default function PlatformAdmin() {
           </div>
 
           {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={changeView} bootstrap={bootstrap}/> : null}
+
+          {view === "consultas" ? <PlatformInquiries writable={writable} onError={(cause) => handlePlatformError(cause)} onCounts={setInquiryCounts}/> : null}
 
           {view === "agencias" ? <PlatformAgencies busy={busy} state={state} page={state.pages.agencies} onMore={()=>void loadMore('agencies')} writable={writable} setConfirming={setConfirming} manageSubscription={manageSubscription} applyCoupon={setApplyAgency}/> : null}
 
@@ -718,18 +738,19 @@ export default function PlatformAdmin() {
         <Link className="platform-admin-brand" href={appHome()} aria-label="Scale OS">
           <WorkspaceBrand />
         </Link>
-        {/* Encabezado único de la app (`PageHeader`): marca aparte, rótulo + título,
-            permiso real y «actualizado» como meta, y las acciones a la derecha. */}
+        {/* Encabezado único de la app (`PageHeader`) en una sola fila compacta:
+            marca, título, permiso real + «actualizado» como meta y acciones
+            ícono+texto a la derecha (solo ícono en mobile). El aviso de acceso
+            separado vive en el tooltip del chip de permiso. */}
         <PageHeader
           className="min-w-0 flex-[1_1_20rem] !mb-0"
-          eyebrow="Administración global"
           title="Control de Scale OS"
           subtitle={<span className="platform-admin-meta">
             {/* El estado del encabezado refleja el permiso real (#147): con el
                 acceso denegado no se anuncia «Solo lectura» (esa es la capacidad
                 de un viewer con overview cargado). Sin rol resuelto, sin chip. */}
             {accessDenied ? <StateChip tone="bad">Acceso denegado</StateChip>
-             : myRole ? <StateChip tone={writable ? "ok" : "info"} title={writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}>{writable ? "Admin global" : "Solo lectura"}</StateChip>
+             : myRole ? <StateChip tone={writable ? "ok" : "info"} title={`${writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}. ${PLATFORM_ACCESS_NOTE}`}>{writable ? "Admin global" : "Solo lectura"}</StateChip>
              : null}
             {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
           </span>}
@@ -739,13 +760,15 @@ export default function PlatformAdmin() {
               className="secondary"
               onClick={() => void load()}
               disabled={busy || redirecting}
+              aria-label="Actualizar"
+              title="Actualizar los datos del panel"
             >
               <RefreshCw aria-hidden="true" />
-              Actualizar
+              <span className="platform-admin-action-label">Actualizar</span>
             </button>}
-            <Link className="secondary" href={appHome()}>
+            <Link className="secondary" href={appHome()} aria-label="Volver al panel" title="Volver al panel de la agencia">
               <ArrowLeft aria-hidden="true" />
-              Panel
+              <span className="platform-admin-action-label">Panel</span>
             </Link>
           </div>}
         />
