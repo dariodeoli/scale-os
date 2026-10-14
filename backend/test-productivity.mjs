@@ -20,6 +20,8 @@ await pg.exec(await fs.readFile('migrations/20260914_production_traceability.sql
 await pg.exec(await fs.readFile('migrations/20260910_client_links.sql','utf8'));
 await pg.exec(await fs.readFile('migrations/20260910_client_lifecycle.sql','utf8'));
 await pg.exec(await fs.readFile('migrations/20260910_client_lifecycle.sql','utf8'));
+// La ficha del cliente lee las oportunidades vinculadas con la etiqueta de su etapa.
+await pg.exec(await fs.readFile('migrations/20260919_pipeline_stages.sql','utf8'));
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const other=(await query("insert into organizations(slug,name) values('productivity-other','Other') returning id")).rows[0].id;
 const uid=(await query("insert into users(email,password_hash) values('productivity@example.invalid','unused') returning id")).rows[0].id;
