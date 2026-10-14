@@ -34,9 +34,9 @@ test('el selector lista/cuadrícula usa aria-pressed con nombres accesibles',asy
 // Las tres pantallas que mostraban el par comparten el objeto; la variante
 // paralela (`ViewToggle`) quedó retirada en este pase.
 test('las pantallas de lista/cuadrícula usan el selector único sin variantes muertas',()=>{
- const screens={equipo:read('app/operations.tsx'),proyectos:read('app/scale-workspace.tsx'),clientes:read('app/client-directory-toolbar.tsx')};
+ const screens={equipo:read('app/team-workspace.tsx'),proyectos:read('app/scale-workspace.tsx'),clientes:read('app/client-directory-toolbar.tsx')};
  for(const [name,source] of Object.entries(screens))assert.match(source,/ViewSwitch/,`${name} usa el selector único`);
- assert.match(screens.equipo!,/<ViewSwitch value=\{teamView==='list'\?'list':'grid'\} onChange=\{changeTeamView\}\/>/);
+ assert.match(screens.equipo!,/<ViewSwitch value=\{view\} onChange=\{changeView\}\/>/);
  assert.match(screens.proyectos!,/<ViewSwitch value=\{projectView as 'list'\|'grid'\} onChange=\{changeProjectView\}\/>/);
  assert.match(screens.clientes!,/<ViewSwitch value=\{view\} onChange=\{onViewChange\}\/>/);
  assert.equal(existsSync(new URL('../app/view-toggle.tsx',import.meta.url)),false,'no hay una segunda implementación del selector');

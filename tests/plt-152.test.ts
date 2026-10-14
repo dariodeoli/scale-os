@@ -27,7 +27,7 @@ test('demo limpia: sin correos técnicos en identidad, menciones y custodias',()
  assert.match(read('app/comment-composer.tsx'),/technicalEmail/);
  assert.match(read('app/my-profile.tsx'),/Acceso de demostración/);
  assert.match(read('app/my-data.tsx'),/Cuenta de demostración/);
- assert.match(read('app/operations.tsx'),/personLabel\(entry\.member/);
+ assert.match(read('app/team-workspace.tsx'),/personLabel\(purgeTarget[\s\S]*technicalEmail\(m\.email\)/);
  assert.match(read('app/sections/finanzas.tsx'),/account\.custodian_name/);
  assert.match(read('app/sections/finanzas.tsx'),/PersonContainer[^>]*name=\{account\.custodian_name/,'la UI prefiere el nombre al correo');
  const core=read('backend/agency-core.js');

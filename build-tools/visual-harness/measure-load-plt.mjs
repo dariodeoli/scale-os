@@ -47,7 +47,7 @@ const latency=(()=>{
 })();
 
 const SCREENS={
- equipo:{path:'/equipo',ready:'.team-filters'},
+ equipo:{path:'/equipo',ready:'[data-toolbar="filtros"]'},
  actividad:{path:'/equipo/actividad',ready:'.activity-feed'},
  historial:{path:'/equipo/historial',readyText:'Historial de trabajo'},
  invitaciones:{path:'/equipo/invitaciones',readyText:'Invitaciones y solicitudes',owner:true},

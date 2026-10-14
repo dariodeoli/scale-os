@@ -150,7 +150,7 @@ const MARKS_SCRIPT = `(()=>{
       const now=performance.now();
       if(!marks.shell&&document.querySelector('main.shell'))marks.shell=Math.round(now);
       if(!marks.loading&&dark&&!document.querySelector('.loading-page'))marks.loading=Math.round(now);
-      if(!marks.content&&document.querySelector('.shell [role="rowgroup"] [role="row"],.shell .client-hub-card,.shell .person-hub-card,.shell .work-card,.shell .inventory-equipment,.shell .ui-kpi'))marks.content=Math.round(now);
+      if(!marks.content&&document.querySelector('.shell [role="rowgroup"] [role="row"],.shell .client-hub-card,.shell [data-compact-card],.shell .work-card,.shell .inventory-equipment,.shell .ui-kpi'))marks.content=Math.round(now);
       if(!marks.dataReady&&document.querySelector('[data-shell-data="ready"]'))marks.dataReady=Math.round(now);
       requestAnimationFrame(raf);
     };

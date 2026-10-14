@@ -23,11 +23,11 @@ const OUT=resolve(repo,DIR);
 mkdirSync(OUT,{recursive:true});
 
 const SCREENS={
- equipo:{path:'/equipo',ready:'.team-filters',content:'.person-hub-card'},
- 'equipo-lista':{path:'/equipo',ready:'.team-filters',content:'.ops-grid-list .list-row',list:true},
- 'equipo-alta':{path:'/equipo',ready:'.team-filters',content:'.ops-dialog',click:'Agregar persona'},
- 'equipo-permisos':{path:'/equipo',ready:'.team-filters',content:'.ops-dialog',click:'Permisos del panel'},
- 'equipo-vacio':{path:'/equipo',ready:'.team-filters',content:'.empty-block, [class*=empty]',search:'zzzz-sin-resultados'},
+ equipo:{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'[data-compact-card],[role="rowgroup"] [role="row"]'},
+ 'equipo-lista':{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'[role="rowgroup"] [role="row"]',list:true},
+ 'equipo-alta':{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'.ops-dialog',click:'Agregar persona'},
+ 'equipo-permisos':{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'.ops-dialog',click:'Permisos del panel'},
+ 'equipo-vacio':{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'.empty-block, [class*=empty]',search:'zzzz-sin-resultados'},
  invitaciones:{path:'/equipo/invitaciones',readyText:'Invitaciones y solicitudes',content:'.list-row',owner:true},
  permisos:{path:'/equipo/permisos',readyText:'Roles y permisos',content:'.list-row'},
  actividad:{path:'/equipo/actividad',ready:'.activity-feed',content:'.activity-feed-row'},
@@ -37,7 +37,7 @@ const SCREENS={
  papelera:{path:'/configuracion/papelera',readyText:'Papelera',content:'.list-row'},
  'papelera-vacia':{path:'/configuracion/papelera',readyText:'No hay registros en la papelera',content:'.empty-block',owner:true},
  'historial-vacio':{path:'/equipo/historial',readyText:'Historial de trabajo',content:'.empty-block',owner:true},
- perfil:{path:'/equipo',ready:'.team-filters',content:'.ops-dialog',clickAria:'Abrir mi perfil',scroll:'bottom'},
+ perfil:{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'.ops-dialog',clickAria:'Abrir mi perfil',scroll:'bottom'},
  superadmin:{path:'/superadmin',ready:'.platform-admin-page',content:'.list-row,.platform-admin-agency-cards article,.ops-card',owner:true,superadmin:true},
  login:{path:'/',ready:'form',public:true},
  registro:{path:'/registro',ready:'form',public:true,scroll:'bottom'},

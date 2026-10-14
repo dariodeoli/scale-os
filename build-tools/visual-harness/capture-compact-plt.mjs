@@ -30,8 +30,8 @@ const OUT=resolve(repo,DIR);
 mkdirSync(OUT,{recursive:true});
 
 const SCREENS={
- equipo:{path:'/equipo',ready:'.team-filters',content:'.person-hub-card'},
- 'equipo-alta':{path:'/equipo',ready:'.team-filters',content:'.team-filters',click:'Agregar persona'},
+ equipo:{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'[data-compact-card],[role="rowgroup"] [role="row"]'},
+ 'equipo-alta':{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'[data-toolbar="filtros"]',click:'Agregar persona'},
  historial:{path:'/equipo/historial',readyText:'Historial de trabajo',content:'section[aria-label="Historial de trabajo"] li'},
  configuracion:{path:'/configuracion',ready:'.settings-slice .settings-card',content:'.settings-slice .settings-card'},
  preferencias:{path:'/configuracion/preferencias',readyText:'Preferencias del espacio',content:'div.rounded-xl'},

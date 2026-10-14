@@ -249,7 +249,7 @@
     out.bledPaths = rawOverflow.filter((entry) => entry.kind !== 'scrollable').map((entry) => entry.selector);
 
     /* ---- bleed outside card/panel padding boxes ------------------------ */
-    const CARD_SELECTOR = '.panel,.ops-card,.metric,.kpi-card,.work-card,.client-hub-card,.project-entry,.person-hub-card,.budget-hub-card,.financial-stat,.inventory-equipment,.studio-reservation,.delivery,.login-card,.client-portal-card,.status-shell,.settings-card,.catalog-card';
+    const CARD_SELECTOR = '.panel,.ops-card,.metric,.kpi-card,.work-card,.client-hub-card,.project-entry,[data-compact-card],.budget-hub-card,.financial-stat,.inventory-equipment,.studio-reservation,.delivery,.login-card,.client-portal-card,.status-shell,.settings-card,.catalog-card';
     const rawCardBleed = [];
     for (const el of all) {
       if (!visible(el)) continue;
