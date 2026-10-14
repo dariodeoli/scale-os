@@ -332,7 +332,7 @@ function InventoryPanel(){
  const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
  const bulk=useBulkSelection({limit:BATCH_LIMITS.inventory,noun:'equipos'});
  const selectedItems=bulk.ids;
- const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0),[attentionHelp,setAttentionHelp]=useState(false);
+ const [actionError,setError]=useState(''),[refresh,setRefresh]=useState(0),[attentionHelp,setAttentionHelp]=useState(false);
  const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate,moveItemLocally,reorderLocations}=useInventoryCatalog(month,refresh);
  // El error del catálogo sólo existe cuando nunca hubo datos y bloquea la vista; el de una
  // acción se avisa aparte y NUNCA esconde el catálogo que ya está en pantalla.
@@ -369,11 +369,12 @@ function InventoryPanel(){
   const data=await api<{moved:number}>('/api/agency/inventory/batch',{ids,change:{location}},'POST');
   setBatchLocation(null);bulk.clear();refreshed(`Ubicación actualizada en ${data.moved??ids.length} equipo${(data.moved??ids.length)===1?'':'s'}.`);
  }
- function saved(message='Cambios guardados.'){setEditItem(null);setEditReservation(null);setEditCategory(null);setEditStorageTemplate(null);setVerification(null);setAction(null);setArchive(null);bulk.clear();setReserveIds([]);setNotice(message);setRefresh(n=>n+1);}
+ function saved(message='Cambios guardados.'){setEditItem(null);setEditReservation(null);setEditCategory(null);setEditStorageTemplate(null);setVerification(null);setAction(null);setArchive(null);bulk.clear();setReserveIds([]);notify({tone:'success',message});setRefresh(n=>n+1);}
  // Editors own their successful close so their footer form association is
  // released before the same dialog can be opened again. This only refreshes
  // the workspace after a persisted inventory/category mutation.
- function refreshed(message:string){setNotice(message);setRefresh(n=>n+1);}
+ // Éxito: solo el toast (`notify`, reemplaza al genérico del guardado); sin banner en línea.
+ function refreshed(message:string){notify({tone:'success',message});setRefresh(n=>n+1);}
  const filteredItems=useMemo(()=>filterInventoryItems(items,{search,categoryId:categoryFilter}),[items,search,categoryFilter]);
  // Local attention signals mirror the 30-day operational control window and
  // deliberately leave the catalog/API contract unchanged.
@@ -429,7 +430,6 @@ function InventoryPanel(){
   {/* Estados de la pantalla, compartidos por equipos y calendario: un fallo de
       acción no reemplaza el contenido ya cargado. */}
   {refreshError?<Aviso tono="warn">No se pudo actualizar: {refreshError}. Se muestra la última información recibida.</Aviso>:null}
-  {notice?<Aviso tono="ok">{notice}</Aviso>:null}
   {actionError?<Aviso tono="error">{actionError}</Aviso>:null}
   {error?<ErrorState title="No se pudo cargar el inventario." description={error} onRetry={()=>setRefresh(n=>n+1)}/>:null}
   {loading&&!error?<LoadingBlock label="Cargando inventario…" lines={6}/>:null}
@@ -524,7 +524,7 @@ function InventoryPanel(){
    </details>
   </Card>:null}
 
-  {editItem&&context?.can_manage?<Dialog size="amplio" title={editItem==='new'?'Nuevo equipo':'Editar equipo'} close={()=>setEditItem(null)}><InventoryItemForm item={editItem==='new'?null:editItem} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage={context.can_manage} createStorageTemplate={async name=>{const result=await api<{location:StorageTemplate}>('/api/agency/inventory-locations',{name},'POST');addStorageTemplate(result.location);setRefresh(current=>current+1);return result.location;}} done={(count=1,keepOpen=false)=>{if(keepOpen){setNotice('');setRefresh(current=>current+1);return;}saved(count>1?`${count} equipos guardados.`:'Equipo guardado.');}}/></Dialog>:null}
+  {editItem&&context?.can_manage?<Dialog size="amplio" title={editItem==='new'?'Nuevo equipo':'Editar equipo'} close={()=>setEditItem(null)}><InventoryItemForm item={editItem==='new'?null:editItem} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage={context.can_manage} createStorageTemplate={async name=>{const result=await api<{location:StorageTemplate}>('/api/agency/inventory-locations',{name},'POST');addStorageTemplate(result.location);setRefresh(current=>current+1);return result.location;}} done={(count=1,keepOpen=false)=>{if(keepOpen){setRefresh(current=>current+1);return;}saved(count>1?`${count} equipos guardados.`:'Equipo guardado.');}}/></Dialog>:null}
   {editStorageTemplate&&context?.can_manage?<Dialog title={editStorageTemplate==='new'?'Nueva ubicación':'Editar ubicación'} close={()=>setEditStorageTemplate(null)}><StorageTemplateForm template={editStorageTemplate==='new'?null:editStorageTemplate} members={context.members} done={message=>saved(message)}/></Dialog>:null}
   {verification&&context?.can_manage?<Dialog title={`Verificar con detalle · ${verification.name}`} close={()=>setVerification(null)}><InventoryVerificationForm item={verification} done={()=>saved('Verificación física registrada.')}/></Dialog>:null}
   {batchLocation?<Dialog title={`Mover ${batchLocation.length} equipo${batchLocation.length===1?'':'s'} de ubicación`} close={()=>setBatchLocation(null)}>{storageTemplates.some(template=>template.active)?<Editor columns fields={[{key:'location',label:'Ubicación',choices:storageTemplates.filter(template=>template.active).map(template=>({value:String(template.id),label:template.name}))},{key:'storage_row',label:'Fila / posición',optional:true}]} defaults={{location:String(storageTemplates.find(template=>template.active)?.id||''),storage_row:''}} label="Mover" save={async values=>{await batchMoveLocation(values.location,values.storage_row);}}/>:<Editor columns fields={[{key:'storage_shelf',label:'Ubicación',help:'Sin lugares configurados: escribí dónde se guardan.'},{key:'storage_row',label:'Fila / posición',optional:true}]} defaults={{storage_shelf:'',storage_row:''}} label="Mover" save={async values=>{await batchMoveLocation('',values.storage_row,values.storage_shelf);}}/>}</Dialog>:null}
