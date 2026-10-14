@@ -60,12 +60,12 @@ function RoleExplorer({data}:{data:MatrixData}){
     </summary>
     <div className="grid gap-4 border-t border-ink-600 p-4 sm:grid-cols-2">
      <div className="min-w-0">
-      <h4 className="mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute">Qué puede hacer</h4>
-      {granted.length?<ul className="grid gap-2">{granted.map(row=><li key={row.id} className="min-w-0"><b className="block text-[13px] text-fore">{row.label}</b><small className="block text-[11.5px] text-mute">{row.description}</small></li>)}</ul>:<p className="text-xs text-mute">No tiene permisos habilitados.</p>}
+      <h4 className="m-0 mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute">Qué puede hacer</h4>
+      {granted.length?<ul className="grid gap-2">{granted.map(row=><li key={row.id} className="min-w-0"><b className="block text-[13px] text-fore">{row.label}</b><small className="block text-[11.5px] text-mute">{row.description}</small></li>)}</ul>:<p className="m-0 text-xs text-mute">No tiene permisos habilitados.</p>}
      </div>
      <div className="min-w-0">
-      <h4 className="mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute">Qué no puede</h4>
-      {denied.length?<ul className="grid gap-2">{denied.map(row=><li key={row.id} className="min-w-0"><b className="block text-[13px] text-fore">{row.label}</b><small className="block text-[11.5px] text-mute">{row.description}</small></li>)}</ul>:<p className="text-xs text-mute">Nada: tiene todos los permisos del panel.</p>}
+      <h4 className="m-0 mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute">Qué no puede</h4>
+      {denied.length?<ul className="grid gap-2">{denied.map(row=><li key={row.id} className="min-w-0"><b className="block text-[13px] text-fore">{row.label}</b><small className="block text-[11.5px] text-mute">{row.description}</small></li>)}</ul>:<p className="m-0 text-xs text-mute">Nada: tiene todos los permisos del panel.</p>}
      </div>
     </div>
    </details>;
@@ -87,7 +87,7 @@ function ModulePermissions({data,owner,busy,toggle}:{data:MatrixData;owner:boole
    const adjustments=group.rows.reduce((total,row)=>total+overrideCount(row),0);
    return <details className="group rounded-xl border border-ink-600 bg-ink-800" key={group.name} open={index===0}>
     <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 p-4">
-     <h3 className="text-[15px] font-semibold tracking-tight text-fore">{group.name}</h3>
+     <h3 className="m-0 text-[15px] font-semibold tracking-tight text-fore">{group.name}</h3>
      <span className="text-xs tabular-nums text-mute">{group.rows.length} capacidad{group.rows.length===1?'':'es'}{adjustments?` · ${adjustments} ajuste${adjustments===1?'':'s'} manual${adjustments===1?'':'es'}`:''}</span>
      <ChevronDown className="ml-auto shrink-0 text-mute transition-transform group-open:rotate-180" size={16} aria-hidden="true"/>
     </summary>
@@ -119,19 +119,19 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
  async function toggle(rowId:string,roleId:string,allowed:boolean){if(!owner)return;setBusy(true);setError('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:rowId,role:roleId,allowed},'PATCH');setData(updated);notify({tone:'success',message:'Permiso guardado. Los cambios se aplican desde la próxima acción de esa persona.'});}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
  async function resetAll(){if(!owner)return;setBusy(true);setError('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:null,role:null,allowed:null},'PATCH');setData(updated);notify({tone:'success',message:'Todos los permisos volvieron a los valores por defecto.'});}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
  const manual=data?data.capabilities.reduce((total,row)=>total+overrideCount(row),0):0;
- const kpis=explorer&&data?<KpiStrip compact>
+ const kpis=explorer&&data?<KpiStrip compact className="xl:!grid-cols-3">
    <Kpi label="Capacidades" valor={data.capabilities.length} hint="Acciones que controla el panel"/>
    <Kpi label="Cargos" valor={data.roles.length} hint="Roles configurables de la empresa"/>
    <Kpi label="Ajustes manuales" valor={manual} hint="Permisos fuera del valor por defecto"/>
   </KpiStrip>:undefined;
  const body=<>
-  <p className="flex items-start gap-2 text-xs text-mute"><ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0"/> Definí qué puede hacer cada cargo. El Dueño siempre conserva todos los permisos. Los cambios se guardan por empresa y se auditan.</p>
+  <p className="m-0 flex items-start gap-2 text-xs text-mute"><ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0"/> Definí qué puede hacer cada cargo. El Dueño siempre conserva todos los permisos. Los cambios se guardan por empresa y se auditan.</p>
   {error?<ErrorBlock title="No pudimos guardar el permiso" description={error} onRetry={()=>void load()}/>:null}
   {loading?<LoadingBlock label="Cargando permisos…" lines={4}/>:!data?<EmptyBlock title="Sin datos de permisos" description="El API no devolvió la matriz de capacidades." action={<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>}/>:<>
    {explorer&&<>
     <details className="group rounded-xl border border-ink-600 bg-ink-800">
      <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 p-4">
-      <h3 className="text-[15px] font-semibold tracking-tight text-fore">Permisos por cargo</h3>
+      <h3 className="m-0 text-[15px] font-semibold tracking-tight text-fore">Permisos por cargo</h3>
       <span className="min-w-0 flex-1 text-xs text-mute">Resumen de qué puede hacer cada cargo en todo el panel.</span>
       <ChevronDown className="shrink-0 text-mute transition-transform group-open:rotate-180" size={16} aria-hidden="true"/>
      </summary>
@@ -139,10 +139,10 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
     </details>
    </>}
    <div className="grid gap-3">
-    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h3 className="text-[15px] font-semibold tracking-tight text-fore">Permisos por módulo</h3><p className="text-xs text-mute">Tocá una pastilla para habilitar o quitar el permiso de ese cargo.</p></div>
+    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h3 className="m-0 text-[15px] font-semibold tracking-tight text-fore">Permisos por módulo</h3><p className="m-0 text-xs text-mute">Tocá una pastilla para habilitar o quitar el permiso de ese cargo.</p></div>
     <ModulePermissions data={data} owner={owner} busy={busy} toggle={toggle}/>
    </div>
-   {owner?<div className="flex justify-end"><button type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</button></div>:<p className="text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
+   {owner?<div className="flex justify-end"><button type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</button></div>:<p className="m-0 text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
   </>}
  </>;
  return explorer?<ListPage aria-label="Roles y permisos" aria-busy={loading||busy} kpis={kpis}>{body}</ListPage>:<div className="grid gap-4" aria-busy={loading||busy}>{body}</div>;
