@@ -72,57 +72,6 @@ const financeAccountCard = ({name, type, currency, balance, number, holder, cust
  <footer class="finance-card-actions">${removeRecord(name)}</footer>
 </article>`;
 
-/* Fila de transferencia: app/scale-workspace.tsx 1573-1589. */
-const transferRow = ({from, to, date, actor, initials, reference, amount, received}) => `
-<div class="payment-row finance-transfer-row">
- <div>
-  <b>${from} → ${to}</b>
-  <small>${date} · ${actorIdentity(initials, actor)}${reference ? ` · ${reference}` : ''}</small>
-  ${received ? `<small>Recibido: ${received}</small>` : ''}
- </div>
- <strong>${amount}</strong>
-</div>`;
-
-/* Fila de cobro pendiente: app/scale-workspace.tsx 1624-1638. */
-const invoiceRow = ({number, client, status, statusLabel, pending, total}) => `
-<div class="payment-row finance-invoice-row">
- <div>
-  <b>${number} · ${client}</b>
-  <small><span class="finance-state" data-status="${status}">${statusLabel}</span> · pendiente ${pending}</small>
- </div>
- <strong>${total}</strong>
-</div>`;
-
-/* Fila de cobro registrado: app/scale-workspace.tsx 1657-1673 (+ ReceiptReversal). */
-const paymentRow = ({client, invoice, date, account, accountType, actor, initials, reference, amount, reversed}) => `
-<div class="payment-row finance-payment-row">
- <div>
-  <b>${client} · ${invoice}</b>
-  <small>${date} · ${account} (${accountType}) · recibió ${actorIdentity(initials, actor)}${reference ? ` · ${reference}` : ''}</small>
-  ${reversed ? `<small>Revertido · ${reversed}</small>` : `<button class="text-button warn" type="button">${undoIcon(14)}Revertir cobro</button>`}
- </div>
- <strong>${amount}</strong>
-</div>`;
-
-const financePanelHeading = (eyebrow, title, actions = '') => `
-<div class="panel-heading">
- <div><p class="eyebrow">${eyebrow}</p><h2>${title}</h2></div>
- ${actions}
-</div>`;
-
-/* ------------------------------------------------------------------------ Mora */
-
-/* Fila de mora: app/scale-workspace.tsx 1252-1283 + app/client-directory.css 51-58. */
-const moraRow = ({initial, tone, name, statusText, chip, invoices, amount}) => `
-<div class="client-row">
- <div class="client-avatar ${tone}">${initial}</div>
- <div>
-  <b>${name}</b>
-  <small>${statusText}${chip}${invoices}</small>
- </div>
- <span class="client-row-amount">${amount}</span>
-</div>`;
-
 /* ------------------------------------------------- Sistema v2 (Tailwind + owncoding-ui)
    Previsión (app/financial-forecast.tsx), Informes (app/reports-workspace.tsx),
    conciliación (app/daily-controls.tsx) y producción semanal (app/weekly-automatic.tsx):

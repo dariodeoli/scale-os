@@ -196,6 +196,8 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(productivity,/drawer-list-head[\s\S]*?Proyecto[\s\S]*?Pieza[\s\S]*?Presupuesto[\s\S]*?Factura/,'the client drawer lists show their headers');
   const productivityCss=read('app/productivity.css');
   assert.match(productivityCss,/\.drawer-list\{--drawer-cols:[\s\S]*?\.drawer-list \.activity-line\{display:grid;grid-template-columns:var\(--drawer-cols\)[\s\S]*?min-height:44px/,'drawer rows use thin shared templates');
+  assert.match(productivityCss,/\.drawer-list\{--drawer-cols:minmax\(0,1fr\) 10rem\}/,'la columna de importes del drawer es fija (10rem), sin pistas auto (#174)');
+  assert.doesNotMatch(productivityCss,/--(?:drawer|work)-cols:[^;}]*\bauto\b/,'las plantillas del drawer no usan pistas auto');
 });
 
 test('dense list templates keep a silent horizontal escape hatch',()=>{
