@@ -5,7 +5,7 @@ const trial=trialStartedEmail({email:'test@example.invalid',organizationName:'Ag
 assert.ok(trial.subject.includes('Tu prueba de 30 días comenzó'));
 assert.ok(!/[\u0000-\u001f\u007f\u2028\u2029]/.test(trial.subject));
 assert.ok(trial.html.includes('Agencia &amp; Partners &lt;Test&gt;'),'identity is escaped');
-assert.ok(trial.html.includes('template-version" content="v2.0.0"'));
+assert.ok(trial.html.includes('template-version" content="v3.0.0"'));
 assert.equal((trial.html.match(/Agencia &amp; Partners/g)||[]).length,1,'the organization appears once, not duplicated');
 const failed=paymentFailedEmail({organizationName:'Agencia A',appUrl});
 assert.ok(failed.subject.includes('No pudimos cobrar tu suscripción'));
