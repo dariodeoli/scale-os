@@ -113,4 +113,29 @@ assert.equal(photos.agencies.find(row=>row.id===10).logo_url,'https://img.exampl
 assert.equal(photos.agencies.find(row=>row.id===20).logo_url,null,'un logo de 300 KB o más no viaja en el listado');
 const custom=await call(`/api/platform/usage?from=${dayAt(-2)}&to=${dayAt(-1)}`);
 assert.equal(custom.data.daily.length,2);assert.equal(custom.data.totals.unique_users,3);
+// Regresión (índices de uso): cada filtro por día local lleva un rango sargable sobre la
+// columna cruda. Quitarlo (marcadores /*idx:...*/) no cambia ni un dato de la respuesta,
+// y con el rango el plan puede usar los índices de 20261014_usage_indexes.
+async function callWith(database,path){
+ let answer;
+ await platformUsage({req:{method:'GET',headers:{}},res:{},url:new URL(path,'https://isolated.invalid'),db:database,session:async()=>({id:2,email:'platform@scale.example'}),body:async()=>({}),send:(_r,status,data)=>{answer={status,data};}});
+ return answer;
+}
+const captured=[];
+const indexedDb={query:(sql,values)=>{captured.push({sql,values});return pg.query(sql,values);}};
+const unindexedDb={query:(sql,values)=>pg.query(sql.replace(/\/\*idx:start\*\/[^]*?\/\*idx:end\*\//g,''),values)};
+for(const path of ['/api/platform/usage',`/api/platform/usage?from=${dayAt(-2)}&to=${dayAt(-1)}`,`/api/platform/usage?from=${dayAt(-1)}&to=${dayAt(-1)}`,`/api/platform/usage?from=${dayAt(-179)}&to=${today}`]){
+ const [withRange,withoutRange]=[await callWith(indexedDb,path),await callWith(unindexedDb,path)];
+ assert.equal(withRange.status,200);
+ assert.deepEqual(withRange.data,withoutRange.data,'the sargable range keeps the response identical for '+path);
+}
+const usageQueries=captured.filter(({sql})=>/agency_usage_sessions|from users u|from organizations o/.test(sql));
+assert.ok(usageQueries.length&&usageQueries.every(({sql})=>sql.includes('/*idx:start*/')),'every usage query carries a raw-column range');
+await pg.exec('set enable_seqscan=off');
+const daily=captured.find(({sql})=>/count\(ev\.user_id\)::int as sessions/.test(sql));
+const plan=(await pg.query('explain '+daily.sql,daily.values)).rows.map(row=>row['QUERY PLAN']).join('\n');
+assert.match(plan,/Index Scan on agency_usage_first_seen[^]*?Index Cond: \(\(first_seen_at >=/,'daily sessions can use the first_seen_at index');
+const signupPlan=captured.find(({sql})=>/as agencies\s+from generate_series/.test(sql));
+assert.match((await pg.query('explain '+signupPlan.sql,signupPlan.values)).rows.map(row=>row['QUERY PLAN']).join('\n'),/users_created_at_idx/,'daily signups can use the users created_at index');
+await pg.exec('reset enable_seqscan');
 console.log('platform usage ok');

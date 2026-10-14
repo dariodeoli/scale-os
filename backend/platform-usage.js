@@ -21,10 +21,21 @@ const identity=alias=>`coalesce(nullif(trim(pi.full_name),''),nullif(trim(${alia
 const photo=platformPersonPhoto;
 const local=column=>`(${column} at time zone '${ZONE}')`;
 
+// Rango sargable sobre la columna cruda (índices de 20261014_usage_indexes): el filtro por
+// día local (`at time zone`) no puede usar un índice, así que se le suma un rango sobre el
+// timestamptz con un día de margen a cada lado. Es un superconjunto del filtro local, que
+// sigue aplicándose: los resultados no cambian. Los marcadores permiten a los tests
+// quitarlo y comparar que la salida sea idéntica.
+const midnight=day=>`((${day})::timestamp at time zone '${ZONE}')`;
+const indexed=sql=>`/*idx:start*/ and ${sql} /*idx:end*/`;
+const rawRange=(column,fromDay,toDayExclusive)=>indexed(`${column}>=${midnight(fromDay)}-interval '1 day' and ${column}<${midnight(toDayExclusive)}+interval '1 day'`);
+const RANGE='$1::date',RANGE_END='$2::date+1';
+
 // Sesiones de organizaciones y usuarios reales (sin demos), con el día/hora local de Asunción.
-const EVENTS=`select s.user_id,s.organization_id,s.first_seen_at,s.last_seen_at,${local('s.first_seen_at')} as local_at
+const events=(bound='')=>`select s.user_id,s.organization_id,s.first_seen_at,s.last_seen_at,${local('s.first_seen_at')} as local_at
   from agency_usage_sessions s join organizations o on o.id=s.organization_id join users u on u.id=s.user_id
-  where ${realOrganization('o')} and ${realUser('u')}`;
+  where ${realOrganization('o')} and ${realUser('u')} ${bound}`;
+const inPeriod=events(rawRange('s.first_seen_at',RANGE,RANGE_END));
 
 export async function platformUsageData(db,{from,to}){
  const days=Math.round((to-from)/86400000)+1,prevFrom=shift(from,-days);
@@ -32,33 +43,34 @@ export async function platformUsageData(db,{from,to}){
  const inRange='local_at>=$1::date and local_at<$2::date+1';
  const sessionsInRange=`${local('s.first_seen_at')}>=$1::date and ${local('s.first_seen_at')}<$2::date+1`;
  const [daily,prevDaily,signups,hourly,totals,monthly,agencies,users]=await Promise.all([
-  db.query(`with ev as (${EVENTS}) select g.d::date::text as day,count(distinct ev.user_id)::int as users,count(ev.user_id)::int as sessions
+  db.query(`with ev as (${inPeriod}) select g.d::date::text as day,count(distinct ev.user_id)::int as users,count(ev.user_id)::int as sessions
     from generate_series($1::date,$2::date,'1 day') g(d) left join ev on ev.local_at::date=g.d::date group by g.d order by g.d`,[f,t]),
-  db.query(`with ev as (${EVENTS}) select g.d::date::text as day,count(distinct ev.user_id)::int as users
+  db.query(`with ev as (${inPeriod}) select g.d::date::text as day,count(distinct ev.user_id)::int as users
     from generate_series($1::date,$2::date,'1 day') g(d) left join ev on ev.local_at::date=g.d::date group by g.d order by g.d`,[p,pt]),
   db.query(`select g.d::date::text as day,
-    (select count(*)::int from users u where ${realUser('u')} and ${local('u.created_at')}::date=g.d::date) as users,
-    (select count(*)::int from organizations o where ${realOrganization('o')} and ${local('o.created_at')}::date=g.d::date) as agencies
+    (select count(*)::int from users u where ${realUser('u')} and ${local('u.created_at')}::date=g.d::date ${rawRange('u.created_at','g.d::date','g.d::date+1')}) as users,
+    (select count(*)::int from organizations o where ${realOrganization('o')} and ${local('o.created_at')}::date=g.d::date ${rawRange('o.created_at','g.d::date','g.d::date+1')}) as agencies
     from generate_series($1::date,$2::date,'1 day') g(d) order by g.d`,[f,t]),
-  db.query(`with ev as (${EVENTS}) select h::int as hour,count(distinct ev.user_id)::int as users
+  db.query(`with ev as (${inPeriod}) select h::int as hour,count(distinct ev.user_id)::int as users
     from generate_series(0,23) h left join ev on extract(hour from ev.local_at)=h and ev.${inRange.replace(' and ',' and ev.')} group by h order by h`,[f,t]),
-  db.query(`with ev as (${EVENTS}),cur as (select * from ev where ${inRange}),
+  db.query(`with ev as (${events(rawRange('s.first_seen_at','$3::date',RANGE_END))}),cur as (select * from ev where ${inRange}),
     rec as (select user_id from cur group by user_id having count(distinct local_at::date)>=2)
     select (select count(distinct user_id)::int from cur) as unique_users,
       (select count(*)::int from rec) as recurring_users,
       (select count(*)::int from cur) as sessions,
       (select count(distinct user_id)::int from ev where local_at>=$3::date and local_at<$1::date) as previous_unique_users,
-      (select count(distinct user_id)::int from ev where last_seen_at>now()-interval '5 minutes') as active_now`,[f,t,p]),
+      (select count(distinct live.user_id)::int from (${events(indexed("s.last_seen_at>now()-interval '5 minutes'"))}) live where live.last_seen_at>now()-interval '5 minutes') as active_now`,[f,t,p]),
   db.query(`with m as (select date_trunc('month',(now() at time zone '${ZONE}'))-(n||' month')::interval as start from generate_series(0,3) n),
-    ev as (${EVENTS})
+    ev as (${events(indexed(`s.first_seen_at>=((date_trunc('month',(now() at time zone '${ZONE}'))-interval '3 month') at time zone '${ZONE}')-interval '1 day'`))})
     select to_char(m.start,'YYYY-MM') as month,
-      (select count(*)::int from users u where ${realUser('u')} and ${local('u.created_at')}>=m.start and ${local('u.created_at')}<m.start+interval '1 month') as signups,
+      (select count(*)::int from users u where ${realUser('u')} and ${local('u.created_at')}>=m.start and ${local('u.created_at')}<m.start+interval '1 month'
+        ${indexed(`u.created_at>=(m.start at time zone '${ZONE}')-interval '1 day' and u.created_at<((m.start+interval '1 month') at time zone '${ZONE}')+interval '1 day'`)}) as signups,
       (select count(distinct ev.user_id)::int from ev where ev.local_at>=m.start and ev.local_at<m.start+interval '1 month') as active_users
     from m order by m.start`),
   db.query(`select o.id,o.name,${platformOrganizationLogo('o')} as logo_url,
      (select count(distinct s.user_id)::int from agency_usage_sessions s join users u on u.id=s.user_id where s.organization_id=o.id and ${realUser('u')} and s.last_seen_at>now()-interval '7 days') as active7,
      (select count(distinct s.user_id)::int from agency_usage_sessions s join users u on u.id=s.user_id where s.organization_id=o.id and ${realUser('u')} and s.last_seen_at>now()-interval '30 days') as active30,
-     (select count(*)::int from agency_usage_sessions s where s.organization_id=o.id and ${sessionsInRange}) as sessions,
+     (select count(*)::int from agency_usage_sessions s where s.organization_id=o.id and ${sessionsInRange} ${rawRange('s.first_seen_at',RANGE,RANGE_END)}) as sessions,
      (select max(s.last_seen_at) from agency_usage_sessions s where s.organization_id=o.id) as last_seen_at,
      ow.id as owner_id,${identity('ow')} as owner_name,${photo('ow')} as owner_avatar,ow.email as owner_email
     from organizations o
@@ -72,7 +84,7 @@ export async function platformUsageData(db,{from,to}){
       join organizations o on o.id=s.organization_id where ${realOrganization('o')}
       order by s.user_id,s.last_seen_at desc)
     select u.id,${identity('u')} as name,${photo('u')} as avatar_url,u.email,o.name as agency,l.last_seen_at,
-      (select count(*)::int from agency_usage_sessions s where s.user_id=u.id and ${sessionsInRange}) as sessions
+      (select count(*)::int from agency_usage_sessions s where s.user_id=u.id and ${sessionsInRange} ${rawRange('s.first_seen_at',RANGE,RANGE_END)}) as sessions
     from last l join users u on u.id=l.user_id join organizations o on o.id=l.organization_id
     left join user_personal_identities pi on pi.user_id=u.id
     where ${realUser('u')} order by l.last_seen_at desc,u.id limit 50`,[f,t])
