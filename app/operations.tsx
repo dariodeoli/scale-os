@@ -4,7 +4,7 @@ import {currencyChoices} from "./currencies";
 import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
-import { useEffect, useState, useRef, useId } from "react";
+import { useEffect, useState, useRef, useId, type ReactNode } from "react";
 import {ConfirmDialog,Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -84,6 +84,10 @@ export type Field = {
   lookup?: {label: string; run: (value: string) => Promise<Record<string, string>>};
   /** Deshabilita el campo según los valores actuales del formulario (p. ej. dependientes de un interruptor maestro). */
   disabled?: boolean | ((values: Record<string, string>) => boolean);
+  /** Regla propia del campo: devuelve el mensaje de error o null/'' si es válido (se aplica solo con valor). */
+  validate?: (value: string) => string | null | undefined;
+  /** Contenido contextual bajo el campo (p. ej. la tarjeta de confirmación de una consulta). */
+  after?: ReactNode;
 };
 const currencies = currencyChoices;
 export function Editor({
@@ -96,6 +100,7 @@ export function Editor({
   resetOnSave = false,
   cancelLabel = 'Cancelar',
   collapseSections = false,
+  secondaryAction,
 }: {
   fields: Field[];
   defaults: Record<string, string>;
@@ -107,6 +112,8 @@ export function Editor({
   cancelLabel?: string | false;
   /** Secciones (`Field.section`) colapsadas salvo la primera; la primera con error se abre sola. */
   collapseSections?: boolean;
+  /** Segundo guardado (p. ej. «Guardar y crear otro»): misma validación, deja el formulario limpio y enfocado en el primer campo. */
+  secondaryAction?: {label: string; save: (v: Record<string, string>) => Promise<void>};
 }) {
   const shape: Record<string, z.ZodString> = {};
   for (const f of fields) {
@@ -115,7 +122,8 @@ export function Editor({
     if(f.integer)s=s.refine(value=>value===''||/^\d+$/.test(value),'Ingresá un número entero.');
     if(f.type==='phone')s=s.refine(value=>value===''||phoneValid(value),PHONE_ERROR);
     if(f.type==='email')s=s.refine(value=>value===''||emailValid(value),EMAIL_ERROR);
-    shape[f.key] = s;
+    const check=f.validate;
+    shape[f.key] = check?s.superRefine((value,ctx)=>{const problem=value===''?null:check(value);if(problem)ctx.addIssue({code:'custom',message:problem});}):s;
   }
   const form = useForm<Record<string, string>>({
     resolver: zodResolver(z.object(shape)),
@@ -165,14 +173,10 @@ export function Editor({
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
       {lookupNotices[f.key]&&<small id={`${id}-lookup`} className="field-help ops-lookup-note" role="status">{lookupNotices[f.key]}</small>}
+      {f.after}
     </div>;
   };
-  return (
-    <form
-      className={columns ? "form-stack ops-form-grid" : "form-stack"}
-      noValidate
-      aria-busy={pending}
-      onSubmit={form.handleSubmit(async (v) => {
+  const submitWith=(saveFn:(v:Record<string,string>)=>Promise<void>,another=false)=>form.handleSubmit(async (v) => {
         if(saving.current)return;
         saving.current=true;
         setSavingNow(true);
@@ -183,11 +187,11 @@ export function Editor({
           // `drive_links` is normalized to structured link objects just before
           // sending it to the API. Keep the public Editor contract string-based
           // so every existing form remains simple and type-safe.
-          await save(values as unknown as Record<string, string>);
-          if(resetOnSave)form.reset(defaults);
+          await saveFn(values as unknown as Record<string, string>);
+          if(resetOnSave||another){form.reset(defaults);if(another){const first=fields[0]?.key;if(first)form.setFocus(first);}}
           // Most existing editors close in their own success callback. Only
           // simple edit dialogs opt in; multi-action detail drawers stay open.
-          if(closeOnSave)setSaved(true);
+          if(closeOnSave&&!another)setSaved(true);
         } catch (e) {
           setError(message(e));
         } finally {
@@ -198,7 +202,13 @@ export function Editor({
         // La primera sección con error se abre sola (y en móvil se salta a su paso).
         const first=sectionNames.find(name=>fields.some(f=>f.section===name&&invalid[f.key]));
         if(first)revealSection(first);
-      })}
+      });
+  return (
+    <form
+      className={columns ? "form-stack ops-form-grid" : "form-stack"}
+      noValidate
+      aria-busy={pending}
+      onSubmit={submitWith(save)}
     >
       {fields.some(f=>f.key==='drive_url'||f.key==='drive_links')&&<div className="ops-wide"><DriveLinkNote multiple={fields.some(f=>f.key==='drive_links')}/></div>}
       {fields.filter(f=>!f.section).map(renderField)}
@@ -223,7 +233,7 @@ export function Editor({
           {error}
         </p>
       )}
-      <FormActions>{requestClose&&cancelLabel&&<button className="secondary" type="button" disabled={pending} onClick={requestClose}>{cancelLabel}</button>}<button type="submit" className="primary ops-wide" disabled={pending}>
+      <FormActions>{requestClose&&cancelLabel&&<button className="secondary" type="button" disabled={pending} onClick={requestClose}>{cancelLabel}</button>}{secondaryAction&&<button className="secondary" type="button" disabled={pending} onClick={()=>void submitWith(secondaryAction.save,true)()}>{secondaryAction.label}</button>}<button type="submit" className="primary ops-wide" disabled={pending}>
         {pending ? "Guardando…" : label}
       </button></FormActions>
     </form>

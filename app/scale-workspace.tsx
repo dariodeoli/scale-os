@@ -26,7 +26,7 @@ const DemoToolbar=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoToolbar));
 const DemoWelcome=dynamic(()=>import('./demo-toolbar').then(m=>m.DemoWelcome));
 const MyProfile=dynamic(()=>import('./my-profile').then(m=>m.MyProfile));
 const IaCargaDialog=dynamic(()=>import('./ia-carga').then(m=>m.IaCargaDialog));
-const ClientRuc=dynamic(()=>import('./client-ruc').then(m=>m.ClientRuc));
+const ClientEditorDialog=dynamic(()=>import('./client-editor').then(m=>m.ClientEditorDialog));
 const PresenceTracker=dynamic(()=>import('./presence').then(m=>m.PresenceTracker),{ssr:false});
 import {WorkspacePresence} from './presence';
 import {CompanyCurrencyProvider} from './currency-provider';
@@ -89,10 +89,9 @@ import {ClientesSection} from './sections/clientes';
 import {MoraSection} from './sections/mora';
 import {ProyectosSection} from './sections/proyectos';
 import {ResumenSection} from './sections/resumen';
-import {AccountForm,ClientForm,InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
+import {AccountForm,InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
 import {notify} from './feedback';
 import {AvisoPrivacidad} from 'owncoding-ui';
-import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_CLIENT_FINALITY,PRIVACY_CLIENT_DETAIL} from './privacy-links';
 import {SubscriptionPanel, SubscriptionNotice} from './subscription-panel';
 import './settings-slice.css';
 
@@ -204,7 +203,6 @@ export default function Home() {
   const [helpOpen,setHelpOpen]=useState(false);
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string;anchor?:string;edit?:boolean}|null>(null);
   const [projectClient,setProjectClient]=useState('');
-  const [clientMode,setClientMode]=useState(true);
   const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState(''),[clientSearch,setClientSearch]=useState('');
   const [projectView,setProjectView]=useState('grid');
   const [archiveBusy,setArchiveBusy]=useState('');
@@ -1160,30 +1158,20 @@ export default function Home() {
       {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
-        <Dialog title="Nuevo cliente" close={close}>
-          {/* Finalidad declarada donde la agencia carga datos de un tercero (#114):
-              cubre tanto la consulta por RUC como la carga manual. */}
-          <AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
-          <div className="choice-list compact" role="group" aria-label="Cómo cargar el cliente">
-            <button type="button" className={clientMode?'choice active':'choice'} aria-pressed={clientMode} onClick={()=>setClientMode(true)}>Completar desde RUC</button>
-            <button type="button" className={!clientMode?'choice active':'choice'} aria-pressed={!clientMode} onClick={()=>setClientMode(false)}>Carga manual</button>
-          </div>
-          {clientMode ? (
-            <ClientRuc embedded refresh={load} onCreated={close}/>
-          ) : (
-            <ClientForm
-              request={request}
-              done={(client, keepOpen) => {
-                setClients((current) => [client, ...current]);
-                setSummary((current) => ({
-                  ...current,
-                  active_clients: current.active_clients + 1,
-                }));
-                if (!keepOpen) close();
-              }}
-            />
-          )}
-        </Dialog>
+        <ClientEditorDialog
+          mode="create"
+          role={user?.role||'viewer'}
+          close={close}
+          refresh={load}
+          onCreated={(client, keepOpen) => {
+            setClients((current) => [client as unknown as Client, ...current]);
+            setSummary((current) => ({
+              ...current,
+              active_clients: current.active_clients + 1,
+            }));
+            if (!keepOpen) close();
+          }}
+        />
       )}
       {modal === "project" && (
         <Dialog title="Nuevo proyecto" close={close}>

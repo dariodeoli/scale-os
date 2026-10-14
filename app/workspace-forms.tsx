@@ -1,5 +1,5 @@
 "use client";
-import {useRef,useState} from 'react';
+import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
@@ -17,116 +17,9 @@ import {isPositiveInput} from './forecast-data';
 import {listDateShort} from './list-format';
 import {money} from './money-format';
 import {teamRoleLabels} from './team-directory';
-import {PHONE_ERROR, phoneValid} from './field-rules';
-import {PhoneField} from './phone-field';
-import {EmailField} from './email-field';
-import {Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid} from 'owncoding-ui';
 
 
-export const clientSchema = z.object({
-  name: z.string().trim().min(2, "Escribí el nombre del cliente.").max(120, "El nombre no puede superar los 120 caracteres."),
-  email: z.string().email("Email inválido.").or(z.literal("")),
-  phone: z.string().max(40).optional().refine(value => !value || phoneValid(value), PHONE_ERROR),
-  // Mismo RUC que el modo «Completar desde RUC» (#129): se acepta con puntos o
-  // espacios y se guarda normalizado; el dígito verificador nunca se inventa.
-  tax_id: z.string().trim().max(60, "El RUC no puede superar los 60 caracteres.").optional().refine(value => !value || taxIdValid(normalizeTaxId(value) || ''), MENSAJE_RUC),
-  legal_name: z.string().trim().max(160, "La razón social no puede superar los 160 caracteres.").optional(),
-});
-type ClientValues = z.infer<typeof clientSchema>;
-type SavedClient = { id: string; name: string; email: string | null; phone: string | null; active: boolean; [key: string]: unknown };
 type WorkspaceRequest = <T>(path: string, init?: RequestInit) => Promise<T>;
-export function ClientForm({ request, done }: { request: WorkspaceRequest; done: (client: SavedClient, keepOpen?: boolean) => void }) {
-  const form = useForm<ClientValues>({
-    resolver: zodResolver(clientSchema),
-    defaultValues: { name: "", email: "", phone: "", tax_id: "", legal_name: "" },
-  });
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  // «Guardar y crear otro» (#129): la carga en serie reusa el mismo guardado
-  // (una sola llamada a la API) y deja el formulario listo para el siguiente.
-  const keepOpen = useRef(false);
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
-  async function submit(values: ClientValues) {
-    const keepOpenNow = keepOpen.current;
-    keepOpen.current = false;
-    setError("");
-    setNotice("");
-    try {
-      const data = await request<{ client: SavedClient }>("/api/agency/clients", {
-        method: "POST",
-        body: JSON.stringify({
-          name: values.name,
-          email: values.email,
-          phone: values.phone || "",
-          tax_id: normalizeTaxId(values.tax_id || "") || "",
-          legal_name: (values.legal_name || "").trim(),
-        }),
-      });
-      if (!keepOpenNow) { done(data.client); return; }
-      setNotice(`Cliente «${data.client.name}» creado. Podés cargar el siguiente.`);
-      form.reset({ name: "", email: "", phone: "", tax_id: "", legal_name: "" });
-      form.setFocus("name");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
-    }
-  }
-  const startAnother = () => {
-    keepOpen.current = true;
-    void Promise.resolve(submission.onSubmit()).finally(() => { keepOpen.current = false; });
-  };
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-    >
-      {/* El aviso de la serie queda a la vista al reenfocar el nombre (#129). */}
-      {notice && <Aviso tono="ok" como="div" role="status" compact className="ops-wide">{notice}</Aviso>}
-      <label>
-        Nombre
-        <input {...form.register("name")} autoFocus />
-        {form.formState.errors.name && (
-          <small className="error">{form.formState.errors.name.message}</small>
-        )}
-      </label>
-      <label>
-        Email
-        <EmailField value={form.watch('email')||''} onChange={value=>form.setValue('email',value,{shouldValidate:true,shouldDirty:true})}/>
-        {form.formState.errors.email && (
-          <small className="error">{form.formState.errors.email.message}</small>
-        )}
-      </label>
-      <label>
-        Teléfono / WhatsApp · Opcional
-        <PhoneField value={form.watch('phone')||''} onChange={value=>form.setValue('phone',value,{shouldValidate:true,shouldDirty:true})}/>
-        <small className="field-help">Elegí el país; al guardar se conserva el código internacional y se habilita el acceso directo a WhatsApp.</small>
-      </label>
-      <label>
-        RUC · Opcional
-        <input inputMode="text" autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={14} placeholder="80168807-8" {...form.register("tax_id")} aria-invalid={!!form.formState.errors.tax_id} aria-describedby="client-tax-help"/>
-        <small id="client-tax-help" className="field-help">Podés pegarlo con puntos o espacios; se guarda normalizado y no se consulta al proveedor. Si no lo tenés, dejalo vacío.</small>
-        {form.formState.errors.tax_id && (
-          <small className="error" role="alert">{form.formState.errors.tax_id.message}</small>
-        )}
-      </label>
-      <label className="ops-wide">
-        Razón social · Opcional
-        <input maxLength={160} autoComplete="organization" {...form.register("legal_name")}/>
-        <small className="field-help">Nombre legal para facturas y documentos. Si coincide con el nombre comercial, podés dejarla vacía.</small>
-        {form.formState.errors.legal_name && (
-          <small className="error">{form.formState.errors.legal_name.message}</small>
-        )}
-      </label>
-      {error && <p className="error ops-wide">{error}</p>}
-      <SaveActions pending={submission.pending}>
-        <button type="button" className="secondary" disabled={submission.pending} onClick={startAnother}>Guardar y crear otro</button>
-        <button className="primary" disabled={submission.pending}>
-          {submission.pending ? "Guardando…" : "Crear cliente"}
-        </button>
-      </SaveActions>
-    </form>
-  );
-}
 export const driveLinkSchema=z.string().trim().max(2048).refine(value=>{if(!value)return true;try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password;}catch{return false;}},'Pegá un enlace HTTPS válido de archivo o carpeta.');
 const projectSchema = z.object({
   urgency:z.enum(["","1","2","3","4","5"]),

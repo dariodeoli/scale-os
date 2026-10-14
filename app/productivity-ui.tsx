@@ -16,7 +16,8 @@ import {TabScroller} from './tab-scroller';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
 import {ClientReviewControl,ClientReviewPreview,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
-import {ClientAppearance,ClientIdentity} from './client-identity';
+import {ClientIdentity} from './client-identity';
+import {ClientEditorDialog} from './client-editor';
 import './productivity.css';
 
 /** Aviso del ciclo de guardado de la librería: el refresco falló pero el guardado quedó. */
@@ -34,7 +35,6 @@ import {ActorIdentity} from './actor-identity';
 import {RecordAssignees} from './record-assignees';
 import {WorkChecklist} from './work-checklist';
 import {CommentBody,CommentComposer} from './commenting';
-import {ClientRuc} from './client-ruc';
 import {DriveLinks,driveLinksText} from './drive-links';
 import {DueDate} from './due-date';
 import {WorkOrderLinks} from './work-order-links';
@@ -126,7 +126,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
 export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id:string;role:string;close:()=>void;refresh:()=>Promise<void>;createProject:(id:string)=>void;openOrder:(id:string)=>void}){
  const [data,setData]=useState<{client:Row;projects:Row[];orders:Row[];invoices?:Row[];payments?:Row[];budgets?:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Producción');
  const [payStatus,setPayStatus]=useState<{payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}|null>(null);
- const [summary,setSummary]=useState<ClientSummary|null>(null);
+ const [summary,setSummary]=useState<ClientSummary|null>(null),[editing,setEditing]=useState(false);
  async function reload(){setData(await api(`/api/agency/productivity/clients/${id}`));await refresh();}
  useEffect(()=>{void api<typeof data>(`/api/agency/productivity/clients/${id}`).then(setData).catch(e=>setError(errorText(e)));},[id]);
  useEffect(()=>{let alive=true;void api<{clients:{client_id:string;payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}[]}>('/api/agency/client-payment-status').then(response=>{if(alive)setPayStatus(response.clients.find(client=>String(client.client_id)===String(id))||null);}).catch(()=>{if(alive)setPayStatus(null);});return()=>{alive=false;};},[id]);
@@ -144,7 +144,8 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
  },[id,role]);
  const canSeeContact=canSeeClientContact(role);
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error" role="alert">{error}</p>}{data?<>
-  {['owner','admin','management','sales','finance'].includes(role)?<><ClientAppearance id={id} name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')} showIdentity={false} refresh={reload}/><ClientRuc embedded refresh={reload} existing={{id,name:s(data.client,'name'),legalName:s(data.client,'legal_name'),taxId:s(data.client,'tax_id'),onUpdated:reload}}/></>:<ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>}
+  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>{['owner','admin','management','sales','finance','collaborator'].includes(role)&&<button type="button" className="secondary min-h-11 md:min-h-10" title={`Editar cliente: ${s(data.client,'name')}`} aria-label={`Editar cliente: ${s(data.client,'name')}`} onClick={()=>setEditing(true)}><Pencil size={14}/>Editar</button>}</div>
+  {editing&&<ClientEditorDialog mode="edit" clientId={id} role={role} close={()=>setEditing(false)} refresh={reload}/>}
   {data.client.contact_restricted===true
    ? <p className="text-mute" title="Contacto y datos fiscales reservados para los roles que gestionan clientes (Ley 7593/2025).">Contacto y datos fiscales reservados para los roles que gestionan clientes.</p>
    : <><p><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/> · <PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>{canSeeContact?<WhatsAppButton className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))}/>:null}<p>{s(data.client,'notes')}</p></>}
@@ -156,7 +157,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
   {tab==='Cobros'&&<><h3>Facturas y pendientes</h3><div className="drawer-list">{data.invoices?.length?<div className="drawer-list-head" aria-hidden="true"><span>Factura</span><span>Cobrado y pendiente</span></div>:null}{data.invoices?.map(i=>{const detail=`Cobrado ${money(s(i,'paid_amount'),s(i,'currency'))} · Pendiente ${money(Math.max(0,Number(i.total)-Number(i.paid_amount)),s(i,'currency'))}`;return <article className="activity-line" key={i.id}><b title={s(i,'number')}>{s(i,'number')}</b><span className="drawer-amounts" title={detail}><small>Cobrado {money(s(i,'paid_amount'),s(i,'currency'))}</small><small>Pendiente {money(Math.max(0,Number(i.total)-Number(i.paid_amount)),s(i,'currency'))}</small></span></article>;})}</div><h3>Quién recibió y dónde</h3>{data.payments?.length?<div className="drawer-list"><div className="drawer-list-head" aria-hidden="true"><span>Cobro</span><span>Quién recibió</span></div>{data.payments.slice(0,10).map(p=><article className="activity-line" key={p.id}><b title={`${money(s(p,'amount'),s(p,'currency'))} · ${s(p,'account_name')}`}>{money(s(p,'amount'),s(p,'currency'))} · {s(p,'account_name')}</b><div className="payment-cell"><ActorIdentity name={s(p,'actor_name')||s(p,'received_by_email')||'Sin persona registrada'} photoUrl={s(p,'actor_photo_url')} verified={p.actor_verified===true}/><small title={s(p,'received_on')||undefined}>{fechaListaCorta(s(p,'received_on'),'')}</small></div></article>)}</div>:null}{data.payments&&data.payments.length>10?<p className="form-note">Mostrando los últimos 10 de {data.payments.length} cobros registrados.</p>:null}</>}
   <ClientReporting key={id} id={id} role={role} onSaved={reload}/>
   <ClientCommercialLifecycle key={`commercial-${id}`} id={id} role={role} onSaved={reload}/>
-  {data.client.contact_restricted!==true&&<ClientLinks id={id} value={data.client.social_links} phone={s(data.client,'phone')} canEdit={['owner','admin','management','sales'].includes(role)} refresh={reload}/>}
+  {data.client.contact_restricted!==true&&<ClientLinks value={data.client.social_links} phone={s(data.client,'phone')}/>}
   <p className="form-note">Historial de hasta 100 registros por categoría. Los movimientos financieros solo aparecen con permiso.</p>
  </>:<p role="status">Cargando cliente…</p>}</Dialog>;
 }

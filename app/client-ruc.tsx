@@ -1,35 +1,37 @@
 "use client";
-import {useState} from 'react';
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {z} from 'zod';
-import {api,Editor} from './operations';
-import {Dialog,FormActions} from './dialog';
-import {notify} from './feedback';
+import {api} from './operations';
 import {MENSAJE_RUC,normalizarNombre,normalizeTaxId,taxIdValid} from 'owncoding-ui';
 import {listDateFull} from './list-format';
-import {Search,X} from 'lucide-react';
+
+// Consulta de RUC del ClientEditor (#184): una sola tarjeta de confirmación
+// para alta y edición. La consulta nunca escribe nada: el nombre legal y el RUC
+// del proveedor sólo llegan a la ficha si la persona los confirma con «Aplicar».
 // La regla del RUC es la de la librería (#75): normaliza puntos/espacios y valida
 // 5–8 dígitos con dígito verificador opcional (nunca se inventa).
-const schema=z.object({ruc:z.string().trim().transform(v=>normalizeTaxId(v)||'').refine(v=>taxIdValid(v),MENSAJE_RUC)});
-type Record={name:string;tax_id:string;tax_state:string;publication_date:string;source:string};
-type ExistingClient={id:string;name:string;legalName?:string;taxId?:string;onUpdated:()=>Promise<void>|void};
-export function ClientRuc({refresh,embedded=false,onCreated,existing}:{refresh:()=>Promise<void>;embedded?:boolean;onCreated?:()=>void;existing?:ExistingClient}){
- const [open,setOpen]=useState(false),[record,setRecord]=useState<Record|null>(null),[error,setError]=useState(''),[refreshPreview,setRefreshPreview]=useState(false),[applying,setApplying]=useState(false),[notice,setNotice]=useState('');
- const form=useForm<z.input<typeof schema>,unknown,z.output<typeof schema>>({resolver:zodResolver(schema),defaultValues:{ruc:''}});
- // El proveedor de RUC devuelve nombres de persona en mayúsculas y "apellidos primero"; la librería los reordena y respeta las razones sociales.
- const providerName=record?normalizarNombre(record.name,{apellidosPrimero:'sifen'}):'';
- function close(){if(form.formState.isSubmitting||applying)return;setOpen(false);setRecord(null);setError('');setNotice('');setRefreshPreview(false);form.reset();}
- async function previewRefresh(){if(!existing)return;setError('');setNotice('');setRefreshPreview(true);try{const data=await api<{record:Record|null}>(`/api/agency/clients/${existing.id}/ruc-refresh`,{},'POST');setRecord(data.record);if(!data.record)setNotice('No encontramos datos publicados para actualizar. La ficha del cliente no cambió.');}catch(cause){setError(cause instanceof Error?cause.message:'No se pudo actualizar el RUC.');}finally{setRefreshPreview(false);}}
- async function applyRefresh(){if(applying||!existing||!record)return;setApplying(true);setError('');try{await api(`/api/agency/clients/${existing.id}/ruc-refresh`,{apply:true},'POST');await refresh();await existing.onUpdated();setRecord(null);setNotice('Datos fiscales del RUC actualizados. Los datos comerciales de la ficha no cambiaron.');}catch(cause){setError(cause instanceof Error?cause.message:'No se pudo aplicar la actualización.');}finally{setApplying(false);}}
- const body=<>
- <p className="form-note">La consulta usa un proveedor configurado por el servidor. Revisá los datos antes de crear un cliente. No se guarda nada sin tu confirmación. Consultamos el RUC sólo para completar la ficha; <a className="text-button" href="/privacidad">Política de Privacidad</a>.</p>
- {existing&&!record?<div className="inline-actions"><button type="button" className="secondary" disabled={refreshPreview} onClick={()=>void previewRefresh()}>{refreshPreview?'Consultando RUC…':'Actualizar datos RUC'}</button><small className="form-note">Consulta el RUC actual y muestra una vista previa. No modifica nombre, contactos ni notas.</small></div>:null}
- {!record&&!existing?<form noValidate className="form-stack" onSubmit={form.handleSubmit(async value=>{setError('');try{const data=await api<{record:Record|null}>('/api/agency/ruc-lookup',value);setRecord(data.record);if(!data.record)setNotice('No encontramos una ficha publicada para ese RUC. Podés crear el cliente manualmente.');}catch(e){setError(e instanceof Error?e.message:'No se pudo consultar.');}})}><label>RUC<input inputMode="text" autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={14} placeholder="80168807-8" {...form.register('ruc')} aria-invalid={!!form.formState.errors.ruc} aria-describedby="ruc-help"/></label><p id="ruc-help" className="form-note">Podés pegarlo con puntos o espacios. Si tenés solo el número base, lo buscamos sin inventar el dígito verificador. Ejemplo: 80168807-8.</p>{form.formState.errors.ruc&&<p className="error" role="alert">{form.formState.errors.ruc.message}</p>}<FormActions><button className="primary" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting?'Consultando…':'Buscar RUC'}</button></FormActions></form>:record?<>
- <div className="ops-card"><b>{providerName}</b><p>RUC: {record.tax_id}</p><small>Estado tributario: {record.tax_state||'No informado'} · Fuente publicada: {listDateFull(record.publication_date)||'No informada'}</small><a href="https://ruc.sun.com.py/api-docs" target="_blank" rel="noreferrer">Fuente y documentación ↗</a></div><p className="form-note">El estado tributario no cambia el estado del servicio ni el saldo del cliente.</p>
-   {existing?<div className="inline-actions"><button type="button" className="primary" disabled={applying} onClick={()=>void applyRefresh()}>{applying?'Aplicando…':'Confirmar actualización fiscal'}</button><button type="button" className="text-button" disabled={applying} onClick={()=>{setRecord(null);setError('');}}><X size={14}/>Cancelar vista previa</button></div>:<><Editor fields={[{key:'name',label:'Nombre comercial'},{key:'legal_name',label:'Razón social'}]} defaults={{name:providerName.slice(0,120),legal_name:providerName}} save={async values=>{await api('/api/agency/clients/from-ruc',{...values,ruc:record.tax_id});setOpen(false);setRecord(null);form.reset();notify({tone:'success',message:'Cliente creado con los datos confirmados.'});await refresh();onCreated?.();}}/><button type="button" className="text-button" onClick={()=>{setRecord(null);setError('');}}><Search size={14}/>Consultar otro RUC</button></>}</>:null}
- {notice&&<p role="status">{notice}</p>}{error&&<p className="error" role="alert">{error}</p>}<p className="form-note">El límite y la configuración del proveedor pertenecen al servidor; no se exponen credenciales en Scale OS.</p>
- </>;
- if(embedded)return <section className="client-ruc-inline grid gap-3 rounded-lg border border-ink-600 bg-ink-700/40 p-4 [&>div:first-child]:flex [&>div:first-child]:flex-wrap [&>div:first-child]:items-baseline [&>div:first-child]:justify-between [&>div:first-child]:gap-2 [&_small]:text-xs [&_small]:text-mute" aria-label={existing?'Actualizar cliente desde RUC':'Completar cliente desde RUC'}><div><strong>{existing?'Actualizar desde RUC':'Completar desde RUC'}</strong><small>{existing?'Consultá, revisá y aplicá razón social y RUC a esta ficha.':'Opcional · verificá razón social antes de crear.'}</small></div>{body}</section>;
- return <><button type="button" className="secondary" onClick={()=>setOpen(true)}>{existing?'Actualizar cliente desde RUC':'Agregar cliente por RUC'}</button>{open&&<Dialog title={existing?'Actualizar cliente desde RUC':'Agregar cliente por RUC'} busy={applying} close={close}>{body}</Dialog>}</>;
+export type RucRecord={name:string;tax_id:string;tax_state:string;publication_date:string;source:string};
+
+/** Datos que «Aplicar» vuelca a la ficha: RUC del proveedor y razón social normalizada. */
+export function rucApplyValues(record:RucRecord){
+ // El proveedor devuelve nombres de persona en mayúsculas y "apellidos primero"; la librería los reordena y respeta las razones sociales.
+ return {tax_id:record.tax_id,legal_name:normalizarNombre(record.name,{apellidosPrimero:'sifen'})};
+}
+
+/** Consulta al proveedor con el RUC tal como se escribió (sin inventar el dígito verificador). */
+export async function lookupRuc(raw:string):Promise<RucRecord>{
+ const ruc=normalizeTaxId(raw)||'';
+ if(!taxIdValid(ruc))throw new Error(MENSAJE_RUC);
+ const data=await api<{record:RucRecord|null}>('/api/agency/ruc-lookup',{ruc});
+ if(!data.record)throw new Error('No encontramos una ficha publicada para ese RUC. Podés cargar los datos manualmente.');
+ return data.record;
+}
+
+export function RucConfirmCard({record,onApply,onDiscard}:{record:RucRecord;onApply:()=>void;onDiscard:()=>void}){
+ const name=rucApplyValues(record).legal_name;
+ return <section className="client-ruc-inline ops-card grid gap-2" aria-label="Confirmar datos del RUC" role="group">
+  <b>{name}</b>
+  <p>RUC: {record.tax_id}</p>
+  <small>Estado tributario: {record.tax_state||'No informado'} · Fuente: {record.source||'No informada'} · Publicado: {listDateFull(record.publication_date)||'No informado'}</small>
+  <p className="form-note">Revisá los datos: se aplican al RUC y la razón social de esta ficha sólo si confirmás. No cambian el nombre comercial, el estado del servicio ni el saldo. Consultamos el RUC sólo para completar la ficha; <a className="text-button" href="/privacidad">Política de Privacidad</a>.</p>
+  <div className="inline-actions"><button type="button" className="primary" onClick={onApply}>Aplicar</button><button type="button" className="text-button" onClick={onDiscard}>Descartar</button></div>
+ </section>;
 }
