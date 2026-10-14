@@ -31,7 +31,7 @@ test('pipeline: la toolbar va en una fila, los KPIs no se estiran y los totales 
  // Los totales por etapa viven en la columna (sin bloque que repita el encabezado, #100).
  assert.doesNotMatch(pipeline, /aria-label="Totales por etapa"/, 'no vuelve el bloque de totales que duplicaba los encabezados de columna');
  assert.match(pipeline, /totals\?\.weighted\|\|weightedAmounts\(rows\)/, 'la columna lee el ponderado de la derivación compartida');
- assert.match(pipeline, /ponderado\{open\[currency\]/, 'la columna muestra el abierto sin repetir el encabezado');
+ assert.match(pipeline, /ponderado<\/span>\{open\[currency\]/, 'la columna muestra el abierto sin repetir el encabezado');
  assert.doesNotMatch(pipeline, /GrowthDashboard/, 'el Pipeline no embebe la pantalla completa de Métricas (#100)');
  assert.match(pipeline, /Captación digital y visitas/, 'la captación se resume en un chip con enlace');
  assert.match(pipeline, /onClick=\{\(\)=>navigate\('Métricas'\)\}/, 'el chip navega a Métricas con la vía del shell (sin duplicar la pantalla)');

@@ -129,7 +129,8 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
  const reload=pending();
  assert.equal(reload.url,`/core-api/api/agency/leads?limit=300&fields=${LEAD_LIST_FIELDS}`,'el movimiento recarga la lista proyectada');
  await act(async()=>{reload.resolve(new Response(JSON.stringify({records:[]}),{status:200}));});
- assert.match(text(renderer.root),/Todavía no hay oportunidades/);
+ assert.match(text(renderer.root),/Sin oportunidades\./,'sin oportunidades el tablero conserva sus etapas (#182)');
+ assert.doesNotMatch(text(renderer.root),/Todavía no hay oportunidades/,'el vacío global solo aparece sin etapas');
  act(()=>renderer.unmount());
 
  // viewer: sin alta, sin etapas y sin manija de arrastre.

@@ -94,9 +94,9 @@ test('pipeline: oposición al contacto visible, editable y sin correo en la tarj
  const dialog=()=>renderer.root.findAllByProps({role:'dialog'})[0];
  assert.ok(dialog(),'la oportunidad abre su editor');
  assert.ok(renderer.root.findByProps({'data-testid':'aviso-privacidad'}),'el editor declara la finalidad con el aviso compartido');
- const oppose=()=>renderer.root.findAllByType('input').find(input=>input.props.type==='checkbox')!;
- assert.equal(oppose().props.checked,true,'la casilla refleja la oposición guardada');
- act(()=>{oppose().props.onChange({target:{checked:false}});});
+ const oppose=()=>renderer.root.findAll(node=>typeof node.type!=='string'&&node.props.label==='No contactar'&&typeof node.props.onChange==='function')[0];
+ assert.equal(oppose().props.value,'yes','el campo Sí/No refleja la oposición guardada (#182)');
+ act(()=>{oppose().props.onChange('no');});
  await act(async()=>{dialog().findAllByType('form')[0].props.onSubmit({preventDefault(){}});});
  await act(async()=>{});
  const patch=requests.shift()!;
@@ -114,11 +114,11 @@ test('pipeline: oposición al contacto visible, editable y sin correo en la tarj
  await flush({records:[]});
  await flush({stages:[{id:'1',slug:'lead',label:'Lead',position:0,active:true,kind:'open'}]});
  act(()=>{button(renderer,'Nueva oportunidad')!.props.onClick();});
- const newOppose=()=>renderer.root.findAllByType('input').find(input=>input.props.type==='checkbox')!;
- assert.equal(newOppose().props.checked,false,'la oposición nunca viene premarcada');
+ const newOppose=()=>renderer.root.findAll(node=>typeof node.type!=='string'&&node.props.label==='No contactar'&&typeof node.props.onChange==='function')[0];
+ assert.equal(newOppose().props.value,'no','la oposición nunca viene premarcada');
  const nameField=renderer.root.findAllByType('input').find(input=>String(input.props.id||'').endsWith('-name'))!;
  act(()=>{nameField.props.onChange({target:{id:nameField.props.id,name:'name',value:'Prospecto PDP'}});});
- act(()=>{newOppose().props.onChange({target:{checked:true}});});
+ act(()=>{newOppose().props.onChange('yes');});
  await act(async()=>{renderer.root.findAllByProps({role:'dialog'})[0].findAllByType('form')[0].props.onSubmit({preventDefault(){}});});
  await act(async()=>{});
  const post=requests.shift()!;
