@@ -80,7 +80,7 @@ assert.match(inventory,/role="region" aria-label="Pipeline de ubicaciones"/,'el 
 
 // ── Barcode, drawer de trazabilidad y búsqueda real del API.
 assert.match(inventory,/<InventoryBarcode code=\{code\}/);
-assert.match(inventory,/<Drawer open/,'la ficha de trazabilidad abre en el Drawer de owncoding-ui');
+assert.match(inventory,/<Dialog size="drawer"/,'la ficha de trazabilidad abre en el Dialog con tamaño drawer');
 assert.match(inventory,/busyVerification|\/api\/agency\/inventory\/\$\{item\.id\}/);
 
 // ── Accesibilidad de las grillas: encabezados de columna y control de vistas.
@@ -256,7 +256,7 @@ assert.match(projects,/ListGrid label=\{label\} template="grid-cols-\[var\(--pro
 assert.match(projects,/de \{BATCH_LIMITS\.projects\} seleccionado/,'el lote muestra el tope del API');
 assert.match(projectCard,/\[\.project-list_&\]:grid-cols-\[var\(--project-cols\)\]/,'la tarjeta consume la plantilla en modo lista');
 assert.doesNotMatch(projectCard,/min-h-\[200px\]/,'la cuadrícula no reserva 200 px: la altura la define el contenido (#99)');
-assert.match(projectCard,/<Drawer open/,'el detalle del proyecto abre en el Drawer de owncoding-ui');
+assert.match(projectCard,/<Dialog size="drawer"/,'el detalle del proyecto abre en el Dialog con tamaño drawer');
 assert.match(projectCard,/\/api\/agency\/projects\/\$\{project\.id\}/,'el detalle lee la ficha real del API');
 assert.match(projectCard,/approval_levels/,'el detalle muestra los niveles de aprobación');
 assert.match(projectCard,/drive_links/,'el detalle muestra todos los enlaces');

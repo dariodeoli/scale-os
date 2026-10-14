@@ -1,7 +1,7 @@
 "use client";
-import {Aviso} from 'owncoding-ui';
 import {useEffect,useState} from 'react';
-import {api,Dialog} from './operations';
+import {api} from './operations';
+import {ConfirmDialog} from './dialog';
 import {notify} from './feedback';
 import {listDateFull} from './list-format';
 import {RotateCcw,Trash2} from 'lucide-react';
@@ -29,17 +29,14 @@ export function RemoveRecordDialog({kind,id,name,role,done,open,onClose}:{kind:s
  useEffect(()=>{if(open)setError('');},[open]);
  if(!open)return null;
  const access=kind==='members';
- return <Dialog title={access?'Quitar acceso o invitación':'Mover a la papelera'} close={()=>{if(!busy)onClose();}}>
-  <p><strong>{name}</strong></p>
+ const description=<><p><strong>{name}</strong></p>
   <p>{access?'Esta persona dejará de entrar a esta empresa, incluso con Google. Sus sesiones se cerrarán. No se borrarán sus comentarios, pagos ni su acceso a otras empresas. Podés invitarla nuevamente desde Equipo.':'Se quitará de las listas activas y quedará en la Papelera. Podés restaurarlo después.'}</p>
   {['clients','projects'].includes(kind)&&<p className="form-note">Sus proyectos u órdenes vinculados también quedarán ocultos mientras este registro esté en la papelera. Restaurarlo volverá a mostrarlos, salvo los eliminados por separado.</p>}
   {kind==='budgets'&&<p className="form-note">El enlace público dejará de funcionar. Restaurar el presupuesto no volverá a publicarlo automáticamente.</p>}
   {kind==='accounts'&&<p className="form-note">Solo se pueden retirar cuentas con saldo cero. Su historial seguirá disponible.</p>}
   {kind==='collaborators'&&<p className="form-note">Esto retira el perfil del colaborador, no su acceso. Para revocar el acceso usá Equipo.</p>}
-  {kind==='inventory'&&<p className="form-note">Archivar no equivale a dar de baja un activo: no modifica su valor patrimonial.</p>}
-  {error&&<Aviso tono="error">{error}</Aviso>}
-  <div className="inline-actions"><button className="secondary" disabled={busy} onClick={onClose}>Cancelar</button><button className="secondary danger" disabled={busy} onClick={async()=>{setBusy(true);try{await api(`/api/agency/${kind}/${id}`,{},'DELETE');await done();onClose();}catch(e){setError(errorMessage(e));}finally{setBusy(false);}}}>{busy?'Procesando…':access?'Confirmar: quitar acceso':'Confirmar: mover a papelera'}</button></div>
- </Dialog>;
+  {kind==='inventory'&&<p className="form-note">Archivar no equivale a dar de baja un activo: no modifica su valor patrimonial.</p>}</>;
+ return <ConfirmDialog open variant="danger" title={access?'Quitar acceso o invitación':'Mover a la papelera'} description={description} error={error} busy={busy} confirmLabel={access?'Confirmar: quitar acceso':'Confirmar: mover a papelera'} onCancel={()=>{if(!busy)onClose();}} onConfirm={async()=>{setBusy(true);try{await api(`/api/agency/${kind}/${id}`,{},'DELETE');await done();onClose();}catch(e){setError(errorMessage(e));}finally{setBusy(false);}}}/>;
 }
 
 /**

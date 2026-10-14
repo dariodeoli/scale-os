@@ -7,6 +7,7 @@ import {listDateFull} from './list-format';
 import {primerNombre} from 'owncoding-ui';
 import './work-checklist.css';
 import {roleCan} from './capabilities';
+import {ConfirmDialog} from './dialog';
 
 export type WorkChecklistItem={id:string;text:string;completed:boolean;completed_at?:string|null;completed_by_name?:string|null;completed_by_photo_url?:string|null;completed_by_verified?:boolean;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 export type WorkChecklistSnapshot={version:string;items:WorkChecklistItem[];total:number;completed:number;max_items:number};
@@ -98,9 +99,7 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
     <label htmlFor={`${label}-edit`}>Texto del ítem</label><input id={`${label}-edit`} autoFocus maxLength={500} value={edit.text} disabled={locked} onChange={event=>setEdit({...edit,text:event.target.value})} onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();if(!busy)setEdit(null);}if(event.key==='Enter'){event.preventDefault();if(edit.text.trim())void mutate('PATCH',item.id,{text:edit.text.trim()});}}}/>
     <div className="work-checklist-actions"><button type="button" disabled={locked||!edit.text.trim()} onClick={()=>{void mutate('PATCH',item.id,{text:edit.text.trim()});}}>Guardar ítem</button><button type="button" disabled={busy} onClick={()=>setEdit(null)}>Cancelar edición</button></div>
    </div>:null}
-   {removing===item.id?<div className="work-checklist-confirm" role="group" aria-label="Confirmar eliminación del ítem">
-    <p>¿Quitar «{item.text}» del checklist?</p><div className="work-checklist-actions"><button type="button" autoFocus disabled={busy} onClick={()=>setRemoving(null)}>Conservar ítem</button><button type="button" disabled={locked} onClick={()=>{void mutate('DELETE',item.id);}}>Sí, quitar ítem</button></div>
-   </div>:null}
+   {removing===item.id?<ConfirmDialog open variant="danger" title="Quitar ítem" description={<>¿Quitar «{item.text}» del checklist?</>} cancelLabel="Conservar ítem" confirmLabel="Sí, quitar ítem" busy={locked} onCancel={()=>setRemoving(null)} onConfirm={()=>{void mutate('DELETE',item.id);}}/>:null}
   </li>;})}</ul>:null}
   {edit&&snapshot&&!snapshot.items.some(item=>item.id===edit.id)?<div className="work-checklist-editor">
    <label htmlFor={`${label}-pending`}>El ítem que editabas fue quitado. Tu texto pendiente:</label>

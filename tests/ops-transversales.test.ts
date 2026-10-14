@@ -69,7 +69,7 @@ assert.match(inventory,/\{view==='reservations'&&!loading&&!error\?<Card/,'las r
 assert.match(inventory,/await api<\{verified:number\}>|data\.verified\?\?/,'verificar en lote usa el conteo del API');
 assert.match(studio,/const error=loadError;/,'el error de acción no bloquea la vista del estudio');
 assert.match(studio,/\{actionError\?<Aviso tono="error">\{actionError\}<\/Aviso>:null\}/,'el error del lote se muestra en el estudio');
-assert.match(studio,/\{actionError\?<Aviso tono="error" className="mt-3">\{actionError\}<\/Aviso>:null\}/,'el error del lote se muestra dentro del modal');
+assert.match(studio,/ConfirmDialog[^\n]*error=\{actionError\}/,'el error del lote se muestra dentro de la confirmación');
 
 // ── §15.4 Toque 44: los controles propios de OPS crecen en móvil.
 assert.match(inventory,/<button type="button" className="flex min-h-11 min-w-0 items-center gap-2 text-left md:min-h-0" title=\{`Abrir detalle/,'la tarjeta del pipeline tiene target de 44 px');
