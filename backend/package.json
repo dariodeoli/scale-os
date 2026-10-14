@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "dev:local": "node scripts/dev-local.mjs",
     "test:secure-deletion": "node test-secure-deletion.mjs",
     "test:billing": "node test-subscription-billing.mjs && node test-pagaya-subscription-handoff.mjs",
     "test:postgres": "node test-treasury-concurrency.mjs && node test-inventory-postgres.mjs",
