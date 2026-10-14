@@ -5,7 +5,7 @@
 // Todo sale de los datos ya cargados: sin endpoints nuevos.
 import {ArrowRight, Building2, ScrollText, ShieldCheck, Tag} from "lucide-react";
 import {dueTone, listDateShort} from "../list-format";
-import {Kpi, KpiStrip, StateChip} from "../ui-v2";
+import {EmptyBlock, Kpi, KpiStrip, StateChip} from "../ui-v2";
 import {
   expiringAgencies,
   formatPlatformMetric,
@@ -83,7 +83,7 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null}: {stat
               <StateChip tone={manualAccessTone(agency)}>{manualAccessLabel(agency)}</StateChip>
               <span className="list-date text-[12px] tabular-nums" data-tone={dueTone(expiry) || undefined} title={`Vence ${platformDate(expiry)}`}>{listDateShort(expiry) || "—"}</span>
             </span>
-          </div>)}</div> : <p className="py-3 text-xs text-mute">Sin vencimientos en los próximos 7 días.</p>}
+          </div>)}</div> : <EmptyBlock compact title="Sin vencimientos en los próximos 7 días" description="Las empresas con suscripción por vencer aparecen acá."/>}
         </section>
 
         <section className="panel" aria-labelledby="platform-recent-title">
@@ -100,7 +100,7 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null}: {stat
               <StateChip tone="info" title={entry.action}>{entry.action}</StateChip>
               <span className="list-date text-[12px] tabular-nums" title={platformDate(entry.created_at)}>{listDateShort(entry.created_at) || "—"}</span>
             </span>
-          </div>)}</div> : <p className="py-3 text-xs text-mute">Sin acciones registradas.</p>}
+          </div>)}</div> : <EmptyBlock compact title="Sin acciones registradas" description="Las acciones de administración quedan registradas acá."/>}
         </section>
 
         <section className="panel" aria-labelledby="platform-subscriptions-title">
@@ -114,7 +114,7 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null}: {stat
               <small className="block text-[11px] text-mute">Estado informado por la plataforma</small>
             </span>
             <span className="shrink-0 text-[13px] font-semibold tabular-nums text-fore">{formatPlatformMetric(row.total)}</span>
-          </div>)}</div> : <p className="py-3 text-xs text-mute">Sin datos de suscripciones.</p>}
+          </div>)}</div> : <EmptyBlock compact title="Sin datos de suscripciones" description="Todavía no hay suscripciones para resumir por estado."/>}
         </section>
       </div>
     </div>
@@ -128,7 +128,7 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null}: {stat
             <small className="mt-0.5 block text-[11px] text-mute">{row.detail}</small>
           </span>
           <StateChip tone={row.tone === "bad" ? "bad" : row.tone === "warn" ? "warn" : "info"}>{row.tone === "bad" ? "Revisar" : row.tone === "warn" ? "Atender" : "Seguir"}</StateChip>
-        </button>)}</div> : <p className="py-2 text-xs text-mute" role="status">Nada pendiente por ahora.</p>}
+        </button>)}</div> : <EmptyBlock compact title="Nada pendiente por ahora" description="Cuando algo requiera tu atención, aparece acá."/>}
       </section>
 
       <section className="panel" aria-labelledby="platform-shortcuts-title">
