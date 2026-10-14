@@ -5,6 +5,7 @@ import {teamRoleLabels} from './team-directory';
 import {Dialog} from './dialog';
 import {Info,RotateCcw} from 'lucide-react';
 import {PortalPreview} from './manual';
+import {useDemoAnalytics} from './demo-analytics';
 
 const DEMO_INFO = <>
   <p>Sin dinero real. Tus cambios no afectan a otras personas.</p>
@@ -13,6 +14,8 @@ const DEMO_INFO = <>
 </>;
 
 export function DemoToolbar({role}:{role:string}){
+ // Pantallas y tiempo visible de la demo para el panel global (sin datos personales).
+ useDemoAnalytics();
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[info,setInfo]=useState(false),[clientView,setClientView]=useState(false),[controls,setControls]=useState(false);
  async function changeRole(nextRole:string){
   setBusy(true);setError('');
