@@ -2,9 +2,6 @@
  * Panel admin (superadmin) — rediseño a ciegas (#102, SOS-DSN).
  *
  * Fixtures de medición y evidencia:
- *   - `admin-antes`: réplica fiel del diseño anterior (scroll largo: header,
- *     avisos, KPIs, agencias, dos columnas y auditoría) con su CSS de pantalla
- *     embebido y acotado, para el antes/después.
  *   - `admin-resumen` / `admin-agencias` / `admin-cupones` / `admin-accesos` /
  *     `admin-auditoria`: la consola nueva (encabezado compacto, barra de
  *     secciones con contadores y cada vista) espejando
@@ -54,9 +51,9 @@ const AUDIT = [
   {action: 'platform.coupon.create', target: 'coupon', id: 15, actor: 'compras@coopservicios.com.py', when: '2026-09-28T11:05:00.000Z'},
 ];
 const COUPONS = [
-  {code: 'FUNDADOR30', detail: '30% · Sin límite de usos', active: true},
-  {code: 'LANZAMIENTO', detail: 'Gs. 25.000 · 100 usos máximos', active: true},
-  {code: 'PRUEBA-EXTENDIDA', detail: '15 días gratis · 50 usos máximos', active: false},
+  {code: 'FUNDADOR30', detail: '30% · Sin límite de usos', discount: '30%', uses: 'Sin límite', active: true},
+  {code: 'LANZAMIENTO', detail: 'Gs. 25.000 · 100 usos máximos', discount: 'Gs. 25.000', uses: '100', active: true},
+  {code: 'PRUEBA-EXTENDIDA', detail: '15 días gratis · 50 usos máximos', discount: '15 días', uses: '50', active: false},
 ];
 
 /* ── Encabezado y secciones (consola nueva) ──────────────────────────────── */
@@ -180,11 +177,13 @@ const couponsView = () => `
  </form>
  <div class="min-w-0 platform-admin-table-wrap">
   <div role="table" aria-label="Cupones" class="silent-scroll min-w-0 overflow-x-auto">
-   <div class="min-w-[25rem]">
-    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(10rem,1fr)_6.5rem_8rem]"><span role="columnheader">Cupón</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
+   <div class="min-w-[44rem]">
+    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]"><span role="columnheader">Cupón</span><span role="columnheader" class="text-right">Descuento</span><span role="columnheader" class="text-right">Usos máximos</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
     <div role="rowgroup">${COUPONS.map((coupon) => `
-    <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(10rem,1fr)_6.5rem_8rem]">
-     <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${coupon.code}">${coupon.code}</b><small class="list-secondary" title="${coupon.detail}">${coupon.detail}</small></div>
+    <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]">
+     <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${coupon.code}">${coupon.code}</b></div>
+     <span role="cell" class="text-right"><span class="list-amount text-fore">${coupon.discount}</span></span>
+     <span role="cell" class="whitespace-nowrap text-right text-[12.5px] font-semibold tabular-nums text-fore">${coupon.uses}</span>
      <span role="cell">${chip(coupon.active ? 'Activo' : 'Pausado', coupon.active ? 'ok' : 'mute')}</span>
      <div role="cell" class="list-actions"><button type="button" class="text-button ${coupon.active ? 'warn' : 'positive'}">${coupon.active ? I.pause + 'Pausar' : I.play + 'Reactivar'}</button></div>
     </div>`).join('')}</div>
@@ -239,68 +238,21 @@ const auditView = () => `
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]"><span role="columnheader">Fecha</span><span role="columnheader">Actor</span><span role="columnheader">Acción</span><span role="columnheader">Destino</span></div>
     <div role="rowgroup">${AUDIT.map((entry) => `
     <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]">
-     <span role="cell" class="whitespace-nowrap text-[11.5px] tabular-nums text-mute">${longDate(entry.when)}</span>
-     <span role="cell" class="min-w-0 truncate text-[12.5px] text-fore" title="${entry.actor}">${entry.actor}</span>
+     <span role="cell" class="list-date" title="${longDate(entry.when)}">${longDate(entry.when)}</span>
+     <span role="cell" class="list-identity text-fore" title="${entry.actor}">${entry.actor}</span>
      <span role="cell" class="min-w-0">${chip(entry.action, 'info', entry.action)}</span>
-     <div role="cell" class="min-w-0"><span class="block break-words text-[12.5px] text-fore">${entry.target} #${entry.id}</span><small class="mt-1 block truncate text-[11px] text-mute" title='{"days":30,"reason":"Pago manual recibido"}'>{"days":30,"reason":"Pago manual recibido"}</small></div>
+     <span role="cell" class="list-secondary text-[12.5px] text-fore" title='${entry.target} #${entry.id} · {"days":30,"reason":"Pago manual recibido"}'>${entry.target} #${entry.id}<span class="text-mute"> · {"days":30,"reason":"Pago manual recibido"}</span></span>
     </div>`).join('')}</div>
    </div>
   </div>
   <div class="admin-audit-fixture-cards platform-admin-audit-cards grid gap-3 sm:grid-cols-2">
-   ${AUDIT.map(entry => `<article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><dl class="grid gap-3"><div><dt>Fecha</dt><dd>${longDate(entry.when)}</dd></div><div><dt>Actor</dt><dd>${entry.actor}</dd></div><div><dt>Acción</dt><dd>${entry.action}</dd></div><div><dt>Destino</dt><dd>${entry.target} #${entry.id}</dd></div><div><dt>Metadatos</dt><dd>{"days":30,"reason":"Pago manual recibido"}</dd></div></dl></article>`).join('')}
+   ${AUDIT.map(entry => `<article class="min-w-0 rounded-xl border border-ink-600 bg-ink-800 p-4"><dl class="grid gap-3 [&_dd]:mt-0.5 [&_dd]:text-[12.5px] [&_dd]:leading-normal [&_dd]:text-fore [&_dd]:[overflow-wrap:anywhere] [&_dt]:text-[10px] [&_dt]:font-bold [&_dt]:uppercase [&_dt]:tracking-[.06em] [&_dt]:text-mute"><div><dt>Fecha</dt><dd>${longDate(entry.when)}</dd></div><div><dt>Actor</dt><dd>${entry.actor}</dd></div><div><dt>Acción</dt><dd>${entry.action}</dd></div><div><dt>Destino</dt><dd>${entry.target} #${entry.id}</dd></div><div><dt>Metadatos</dt><dd>{"days":30,"reason":"Pago manual recibido"}</dd></div></dl></article>`).join('')}
   </div>
  </div>
 </section>`;
 
 const shell = (view, body) => `<main class="platform-admin-page control-shell"><style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${header()}${tabs(view)}${body}</main>`;
 
-/* ── «Antes»: diseño anterior con su CSS acotado ─────────────────────────── */
-const OLD_CSS = `<style>
-[data-antes] .platform-admin-page{gap:clamp(14px,1.6vw,20px);width:min(1600px,100%);margin:0 auto;padding:clamp(12px,2.4vw,32px)}
-[data-antes] .platform-admin-header{position:sticky;top:0;z-index:40;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:clamp(10px,1.6vw,18px);min-height:64px;margin-inline:calc(clamp(12px,2.4vw,32px) * -1);padding:9px clamp(12px,2.4vw,32px);border-bottom:1px solid color-mix(in srgb,var(--line) 86%,transparent);background:color-mix(in srgb,var(--surface,var(--canvas)) 92%,transparent)}
-[data-antes] .platform-admin-title{display:grid;min-width:0;gap:2px}
-[data-antes] .platform-admin-title h1{margin:0;font-size:clamp(20px,1.8vw,25px);font-weight:760;letter-spacing:-.04em;line-height:1.1}
-[data-antes] .platform-admin-title>span{overflow:hidden;color:var(--text-muted);font-size:12px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
-[data-antes] .platform-admin-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
-[data-antes] .platform-admin-actions :is(button,a){display:inline-flex;align-items:center;justify-content:center;gap:7px;padding-inline:13px;white-space:nowrap}
-[data-antes] .platform-admin-two-columns{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(14px,1.6vw,20px);min-width:0}
-[data-antes] .platform-admin-page :is(button,a,input,select,textarea){min-height:44px}
-[data-antes] .platform-admin-page .panel{padding:20px}
-[data-antes] .platform-admin-page .list-actions :is(button,a){min-height:38px}
-[data-antes] .platform-admin-page .list-row{padding-block:4px}
-@media(max-width:1080px){[data-antes] .platform-admin-two-columns{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:760px){[data-antes] .platform-admin-table-wrap{display:none}}
-</style>`;
-
-const oldHeader = `
-<header class="platform-admin-header platform-admin-header--global">
- <a href="#" aria-label="Scale OS">${brand}</a>
- <div class="platform-admin-title"><p class="eyebrow">ADMINISTRACIÓN GLOBAL</p><h1>Control de Scale OS</h1><span>Operación, acceso y catálogo comercial</span></div>
- <div class="platform-admin-actions"><button type="button" class="secondary">${I.refresh}Actualizar</button><a class="text-button" href="#">${I.back}Panel</a></div>
-</header>`;
-
-const oldNotice = `
-<section class="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4 sm:grid-cols-[auto_minmax(0,1fr)]">
- <span class="grid size-10 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute" aria-hidden="true">${I.shield}</span>
- <span class="min-w-0 text-xs text-mute"><strong class="text-fore">Acceso separado por plataforma.</strong> Ser dueño de una agencia no habilita este panel ni sus datos.</span>
-</section>`;
-
-const oldStats = `
-<div class="ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
- ${kpi({label: 'Agencias activas', valor: '128', hint: 'de 134 agencias', destacado: true})}
- ${kpi({label: 'Usuarios registrados', valor: '1.284', hint: 'Cuentas de todas las agencias'})}
- ${kpi({label: 'Cupones activos', valor: '6', hint: 'de 9 códigos'})}
- ${kpi({label: 'Suscripciones', valor: '121', hint: '121 active · 13 trialing'})}
-</div>`;
-
-const oldAuditPanel = `
-<section class="panel" aria-labelledby="platform-audit-title">
- <div class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-1"><div class="min-w-0"><p class="eyebrow">Auditoría</p><h2 id="platform-audit-title" class="text-[17px] font-semibold tracking-tight text-fore">Actividad de administración global</h2></div><span class="whitespace-nowrap text-xs tabular-nums text-mute">50 acciones recientes</span></div>
- <div class="min-w-0"><div role="table" aria-label="Actividad de administración global" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[49.5rem]">
-  <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]"><span role="columnheader">Fecha</span><span role="columnheader">Actor</span><span role="columnheader">Acción</span><span role="columnheader">Destino</span></div>
-  <div role="rowgroup">${AUDIT.map((entry) => `<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]"><span role="cell" class="whitespace-nowrap text-[11.5px] tabular-nums text-mute">${longDate(entry.when)}</span><span role="cell" class="min-w-0 truncate text-[12.5px] text-fore" title="${entry.actor}">${entry.actor}</span><span role="cell" class="min-w-0">${chip(entry.action, 'info', entry.action)}</span><div role="cell" class="min-w-0"><span class="block break-words text-[12.5px] text-fore">${entry.target} #${entry.id}</span></div></div>`).join('')}</div>
- </div></div></div>
-</section>`;
 
 /* Carga inicial: app/loading-screen.tsx sin sesión (variante neutra). */
 const loadingPage = `
@@ -474,16 +426,6 @@ export default [
     body: loadingPage,
   },
   {
-    id: 'admin-antes',
-    section: 'Superadmin',
-    surface: 'Panel admin — diseño anterior (#80/v1.0.143, scroll largo)',
-    kind: 'plain',
-    lists: [
-      {container: '.platform-admin-table-wrap [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · agencias (antes)', exemptBelow: 760},
-    ],
-    body: `${OLD_CSS}<div data-antes><main class="platform-admin-page">${oldHeader}${oldNotice}${oldStats}${agenciesView().replace('<section class="panel" aria-labelledby="platform-agencies-title">', '<section class="panel platform-admin-agencies" aria-labelledby="platform-agencies-title">')}<div class="platform-admin-two-columns" aria-label="Catálogo comercial y accesos">${couponsView()}${accessView()}</div>${oldAuditPanel}</main></div>`,
-  },
-  {
     id: 'admin-resumen',
     section: 'Superadmin',
     surface: 'Panel admin · Resumen (#102)',
@@ -526,7 +468,7 @@ export default [
     surface: 'Panel admin · Auditoría (#102)',
     kind: 'plain',
     lists: [
-      {container: '[role="table"][aria-label="Actividad de administración global"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría (#102)', rowHeight: [44, 52]},
+      {container: '[role="table"][aria-label="Actividad de administración global"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría (#102)', rowHeight: [44, 52], exemptBelow: 856},
     ],
     body: shell('auditoria', auditView()),
   },
