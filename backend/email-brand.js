@@ -1,20 +1,46 @@
-// Shared branded email shell. Template version v1.0.3: tighter spacing, single
-// CTA with a subtle fallback link, and no repeated identity. Table-based.
-export const EMAIL_TEMPLATE_VERSION='v1.0.3';
-const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const line=value=>String(value??'').replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ').trim();
+// Shared branded email layout. Template version v2.0.0: único layout para todos
+// los correos (tablas + estilos en línea, 600px, preheader oculto, CTA con botón
+// a prueba de clientes y enlace de respaldo). Todo dato dinámico se escapa acá.
+export const EMAIL_TEMPLATE_VERSION='v2.0.0';
+// Mismo activo de marca que ya publica el sitio (public/brand/icon-512.png).
+export const EMAIL_LOGO_URL='https://scaleparaguay.com/brand/icon-512.png';
+export const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export const line=value=>String(value??'').replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ').trim();
 
-export function emailShell({eyebrow='Scale OS',title='',lead='',body='',cta=null,footer='',footerNote=''}){
+const FONT="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const BRAND='#7a1f8f',INK='#251c29',BODY='#3f3745',MUTED='#6b6270',RULE='#e8e3ea';
+
+// Párrafo de cuerpo (texto escapado). Usar para contenido adicional al lead.
+export const emailParagraph=text=>`<p style="margin:0 0 16px;${FONT};font-size:15px;line-height:1.6;color:${BODY}">${escape(text)}</p>`;
+
+// Ficha de datos clave/valor (claves fijas del template, valores escapados).
+export const emailFacts=rows=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;border:1px solid ${RULE};border-radius:8px;background-color:#f9f6fb"><tr><td style="padding:16px 20px">${rows.map(([k,v],i)=>`<p style="margin:${i?'8px':'0'} 0 0;${FONT};font-size:14px;line-height:1.5;color:${BODY}"><strong style="color:#4d065b">${escape(k)}:</strong> ${escape(v)}</p>`).join('')}</td></tr></table>`;
+
+// Código de un solo uso: grande, monoespaciado y espaciado.
+export const emailCode=code=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px"><tr><td align="center" style="padding:20px 16px;border:1px solid ${RULE};border-radius:8px;background-color:#f9f6fb;font-family:'SFMono-Regular',Menlo,Consolas,'Courier New',monospace;font-size:32px;line-height:1.2;font-weight:bold;letter-spacing:8px;color:#4d065b">${escape(code)}</td></tr></table>`;
+
+export function emailShell({eyebrow='Scale OS',title='',lead='',body='',cta=null,footer='',footerNote='',preheader=''}){
  const safeEyebrow=escape(line(eyebrow));
  const safeTitle=escape(line(title));
  const safeLead=escape(lead);
- const ctaBlock=cta?.label&&cta?.href
-  ?`<p style="margin:24px 0 0;text-align:center"><a href="${escape(cta.href)}" style="display:inline-block;padding:12px 24px;border-radius:999px;background:linear-gradient(135deg,#c05fd8,#7a1f8f);color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px">${escape(cta.label)}</a></p>`+
-   `<p style="margin:10px 0 0;text-align:center;font-size:11px;color:#9a929f;overflow-wrap:anywhere">Si el botón no abre, copiá esta dirección:<br>${escape(cta.href)}</p>`
+ const safePreheader=escape(line(preheader||lead||title).slice(0,140));
+ const href=cta?.label&&cta?.href?escape(cta.href):'';
+ const ctaBlock=href
+  ?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:8px auto 0"><tr><td align="center" bgcolor="${BRAND}" style="border-radius:8px;background-color:${BRAND}"><a href="${href}" target="_blank" style="display:inline-block;padding:14px 32px;border-radius:8px;background-color:${BRAND};color:#ffffff;${FONT};font-size:16px;line-height:20px;font-weight:bold;text-decoration:none">${escape(cta.label)}</a></td></tr></table>`+
+   `<p style="margin:16px 0 0;text-align:center;${FONT};font-size:13px;line-height:1.5;color:${MUTED};word-break:break-all">Si el botón no funciona, copiá y pegá esta dirección en tu navegador:<br><a href="${href}" style="color:${BRAND};text-decoration:underline">${href}</a></p>`
   :'';
- // El contrato del shell escapa todo lo dinámico: el pie incluido.
  const safeFooter=escape(line(footer));
  const safeFooterNote=escape(line(footerNote));
- return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="template-version" content="${EMAIL_TEMPLATE_VERSION}"></head><body style="margin:0;background:#f4f2f5;color:#251c29;font:16px/1.6 Arial,sans-serif"><table role="presentation" style="width:100%;border:0"><tr><td style="padding:24px 12px"><main style="max-width:560px;margin:auto;background:#ffffff;border:1px solid #e8e3ea;border-radius:16px;overflow:hidden"><div style="background:linear-gradient(120deg,#31003c,#4d065b 62%,#6b1592);padding:13px 26px"><p style="margin:0;color:#f7acff;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase">${safeEyebrow}</p></div><div style="padding:22px 26px 24px"><h1 style="font-size:22px;line-height:1.3;margin:0 0 12px">${safeTitle}</h1>${safeLead?`<p style="margin:0 0 14px;color:#4b4252">${safeLead}</p>`:''}${body}${ctaBlock}${safeFooter?`<hr style="border:0;border-top:1px solid #e8e3ea;margin:18px 0 12px"><p style="font-size:12px;color:#746c78;margin:0">${safeFooter}</p>`:''}${safeFooterNote?`<p style="font-size:10.5px;color:#9a929f;margin:12px 0 0">${safeFooterNote}</p>`:''}</div></main></td></tr></table></body></html>`;
+ return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><meta name="template-version" content="${EMAIL_TEMPLATE_VERSION}"><title>${safeTitle}</title><style>@media only screen and (max-width:620px){.sx-outer{padding:16px!important}.sx-card{padding:24px!important}.sx-head{padding:16px 24px!important}.sx-title{font-size:22px!important}}</style></head><body style="margin:0;padding:0;background-color:#f4f2f5;color:${INK};${FONT}">`+
+  `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px;mso-hide:all">${safePreheader}${'&nbsp;&zwnj;'.repeat(40)}</div>`+
+  `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f2f5"><tr><td align="center" class="sx-outer" style="padding:32px">`+
+  `<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px">`+
+  `<tr><td class="sx-head" style="padding:20px 40px;background-color:#31003c;border-radius:12px 12px 0 0"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right:12px;vertical-align:middle"><img src="${EMAIL_LOGO_URL}" width="36" height="36" alt="Scale OS" style="display:block;border:0;border-radius:8px"></td><td style="vertical-align:middle;${FONT};font-size:12px;line-height:1.3;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#f7acff">${safeEyebrow}</td></tr></table></td></tr>`+
+  `<tr><td class="sx-card" style="padding:40px;background-color:#ffffff;border:1px solid ${RULE};border-top:0;border-radius:0 0 12px 12px">`+
+  `<h1 class="sx-title" style="margin:0 0 16px;${FONT};font-size:26px;line-height:1.3;font-weight:bold;color:${INK}">${safeTitle}</h1>`+
+  `${safeLead?`<p style="margin:0 0 24px;${FONT};font-size:16px;line-height:1.6;color:${BODY}">${safeLead}</p>`:''}${body}${ctaBlock}`+
+  `${safeFooter?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0 0"><tr><td style="border-top:1px solid ${RULE};padding-top:20px;${FONT};font-size:13px;line-height:1.6;color:${MUTED}">${safeFooter}</td></tr></table>`:''}`+
+  `</td></tr>`+
+  `<tr><td align="center" style="padding:24px 16px 0;${FONT};font-size:12px;line-height:1.6;color:${MUTED}">${safeFooterNote}</td></tr>`+
+  `</table></td></tr></table></body></html>`;
 }
-

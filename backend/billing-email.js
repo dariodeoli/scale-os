@@ -1,5 +1,4 @@
-import {emailShell} from './email-brand.js';
-const line=value=>String(value??'').replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ').trim();
+import {emailShell,emailParagraph,line} from './email-brand.js';
 function appLink(appUrl){
  const url=new URL(appUrl);
  if(url.protocol!=='https:'||url.username||url.password)throw new Error('Email URL must use HTTPS without credentials');
@@ -16,7 +15,7 @@ export function trialStartedEmail({email,organizationName,trialEndsOn,appUrl}){
   eyebrow:organization,
   title:'Tu prueba de 30 días comenzó',
   lead:'Todos los módulos incluidos para tu equipo. Sin tarjeta para iniciar.',
-  body:ends?`<p style="margin:0;font-size:13px;color:#4b4252">Tu prueba vence el <strong>${ends}</strong>. Después podés continuar con el plan mensual.</p>`:'',
+  body:ends?emailParagraph(`Tu prueba vence el ${ends}. Después podés continuar con el plan mensual.`):'',
   cta:{label:'Entrar a Scale OS',href:url.href},
   footer:'Cualquier duda, contactá a quien administra tu cuenta.',
   footerNote:'Scale OS · Gestión de agencias · Desarrollado por Owncoding',
