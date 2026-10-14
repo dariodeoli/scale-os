@@ -4,8 +4,11 @@ import {seedPrivateDemo} from './demo-session.js';
 import {accessRoles} from './invite-links.js';
 import {phone as normalizePhone} from './suite-validation.js';
 import {ensureConsent} from './personal-data.js';
+import {recordInquiry} from './platform-inquiries.js';
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
-export async function publicExperience({req,res,url,db,session,body,send,cookie,parseCookies}){
+// `onInquiry` (opcional) recibe la consulta guardada después de responder: el aviso
+// por correo nunca demora ni rompe el envío público.
+export async function publicExperience({req,res,url,db,session,body,send,cookie,parseCookies,onInquiry}){
  if(!['/api/demo/start','/api/demo/role','/api/public/contact','/api/public/telemetry'].includes(url.pathname))return false;
  let c;
  try{
@@ -43,7 +46,11 @@ export async function publicExperience({req,res,url,db,session,body,send,cookie,
     // con la versión vigente del aviso y el origen.
     await ensureConsent(c,{organizationId:org.id,subjectKind:'lead',subjectId:String(lead.id),purpose:'contact',source:'landing',basis:'consent',evidence:{channel:'landing_form'}});
    }
-   await c.query('commit');send(res,202,{ok:true});return true;
+   // Cada envío queda además como consulta del panel global (Consultas).
+   const inquiry=await recordInquiry(c,{name,company,email,phone:phoneNumber,message,consent:true,sourceUrl:req.headers?.referer||req.headers?.origin},req);
+   await c.query('commit');c.release();c=null;send(res,202,{ok:true});
+   if(onInquiry)await Promise.resolve().then(()=>onInquiry(inquiry)).catch(()=>console.warn(JSON.stringify({event:'platform_inquiry_notify_failed'})));
+   return true;
   }
   // Fresh browser session, never copied from a real agency. No reusable demo password.
   c=await db.connect();await c.query('begin');

@@ -39,6 +39,7 @@ import {presence} from './presence.js';
 import {demoOrganization} from './demo-session.js';
 import {inviteLinks,resolveInvite,claimInvite,accessRequestState} from './invite-links.js';
 import {publicExperience} from './public-experience.js';
+import {platformInquiries,notifyInquiry,platformContactEmail} from './platform-inquiries.js';
 import {notifications} from './notifications.js';
 import {automationApi,startAutomation} from './automation.js';
 import {subscriptionBilling,subscriptionState} from './subscription-billing.js';
@@ -248,7 +249,8 @@ async function init() {
      "20261014_coupon_grace.sql",
      "20261014_usage_indexes.sql",
      "20261014_organization_logo.sql",
-     "20261014_inventory_default_categories.sql"
+     "20261014_inventory_default_categories.sql",
+     "20261015_platform_inquiries.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
@@ -342,6 +344,7 @@ const server = http.createServer(async (req,res) => {
     if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
     if(await subscriptionBilling({req,res,url,db,session,body,send,sendPaymentFailed}))return;
     if(await platformUsage({req,res,url,db,session,body,send}))return;
+    if(await platformInquiries({req,res,url,db,session,body,send}))return;
     if(await platformAdmin({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
     // Billing is separate from membership: suspended owners retain billing,
     // logout and company switching, but no private operational reads/writes.
@@ -364,7 +367,7 @@ const server = http.createServer(async (req,res) => {
     if(await projectAssignees({req,res,url,db,session,body,send}))return;
     if(await inventoryReservations({req,res,url,db,session,body,send}))return;
     if(await workChecklists({req,res,url,db,session,body,send}))return;
-    if(await publicExperience({req,res,url,db,session,body,send,cookie,parseCookies}))return;
+    if(await publicExperience({req,res,url,db,session,body,send,cookie,parseCookies,onInquiry:inquiry=>notifyInquiry({send:emailDelivery.send,inquiry,appUrl,to:platformContactEmail()})}))return;
     if(await personalData({req,res,url,db,session,body,send}))return;
     if(await iaCarga({req,res,url,db,session,body,send}))return;
     if(await clientPortal({req,res,url,db,session,body,send,sendPasswordReset:sendClientPortalReset,sendInvite:sendClientPortalInvite,emailAvailable:emailDelivery.status.available}))return;
