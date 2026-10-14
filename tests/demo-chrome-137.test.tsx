@@ -24,5 +24,5 @@ test('el topbar móvil ya no reserva una fila para el modo demo',()=>{
  assert.match(shell,/className="topbar-status flex items-center gap-2 max-md:order-2"/,'los avisos van después de los controles');
  assert.doesNotMatch(shell,/max-md:col-span-full max-md:row-start-2/,'los avisos ya no fuerzan una segunda fila fija');
  assert.match(shell,/className="topbar-utility-actions[^"]*max-md:order-1/,'búsqueda, tema y notificaciones van primero en móvil');
- assert.match(shell,/className="topbar-primary flex min-w-0 flex-1 items-center gap-3 max-md:min-w-\[12\.5rem\]"/,'la agencia tiene piso de ancho en móvil y empuja los controles a su fila');
+ assert.match(shell,/className="topbar-primary flex min-w-0 flex-1 items-center gap-3 max-md:min-w-\[12\.5rem\] md:min-w-\[9rem\]"/,'la agencia tiene piso de ancho en móvil y empuja los controles a su fila');
 });
