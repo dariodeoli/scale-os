@@ -75,6 +75,18 @@ y `../VERSIONING.md`.
 - Los logs del contenedor son JSON por request (`request_error`, `email_delivery_readiness`);
   no imprimen valores de variables ni credenciales.
 
+## QA local (API + front en tu máquina)
+
+- `npm --prefix backend run dev:local` levanta un PostgreSQL temporal (`initdb`/`pg_ctl`; como root usa
+  el usuario `postgres`), el API con schema + migraciones y un proxy en `http://127.0.0.1:4100` que vuelve
+  host-only las cookies `Domain=.scaleparaguay.com; Secure` para que funcionen en `localhost`.
+- Front: `SCALE_API_ORIGIN=http://127.0.0.1:4100 npm run dev` (el origen admite http solo contra loopback).
+- Dueño de `scale` y admin global: `owner@scale.local` / `ScaleLocal-2026!` (`SCALE_DEV_OWNER_*` los cambia).
+- Los correos no salen: quedan en `mailbox.jsonl` de la carpeta de la base (ruta en consola) con los
+  enlaces en http. Los enlaces de invitación se muestran con `https://localhost:3000`: abrilos en http.
+- `SCALE_DEV_PG_DIR=<carpeta>` conserva la base entre arranques; sin ella, Ctrl+C la borra.
+- Google/Microsoft/Apple OAuth, Stripe/Pagaya, RUC externo y la carga con IA no se ejercitan en local.
+
 ## Suites
 
 | Suite | Comando | Requisitos |

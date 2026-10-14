@@ -24,7 +24,10 @@ export default function Registration(){
  // Consentimiento de datos personales (Ley 7593/2025, Refs #113): casilla
  // explícita, nunca premarcada, con la versión del aviso a la vista. Se envía
  // al registro y, además, se registra en el API de #112 (o en la cola local
- // documentada) con canal y fecha reales.
+ // documentada) con canal y fecha reales. El alta en el API ya graba el
+ // consentimiento (`registerTrial` → `grantConsent`); el registro adicional es
+ // complementario: en el alta por correo todavía no hay sesión (401), así que su
+ // fallo nunca puede presentar como fallida una cuenta que sí se creó.
  const privacyRecord=()=>registroConsentimiento({finalidad:'cuenta-y-prestacion',aceptado:true,version:PRIVACY_NOTICE.version,canal:'registro-cuenta',titular:email.trim().toLowerCase()});
  function nextFromEmail(event:FormEvent<HTMLFormElement>){event.preventDefault();clearFeedback();if(!validEmail()){setError('Ingresá un correo válido para continuar.');return;}setStep(2);}
  function validateAgency(){clearFeedback();if(company.trim().length<2){setError('Indicá el nombre de tu agencia para continuar.');return false;}if(!consent){setError('Aceptá las condiciones de la prueba y suscripción para continuar.');return false;}if(!privacyConsent){setPrivacyError('Necesitamos tu aceptación para crear la cuenta y tratar tus datos con esa finalidad.');return false;}return true;}
@@ -32,7 +35,7 @@ export default function Registration(){
  async function completeGoogleRegistration(){
   if(!validateAgency())return;
   setSubmitting(true);
-  try{const response=await fetch('/core-api/api/auth/google/registration/complete',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticket:googleTicket,company:company.trim(),currency,consent:true,privacy:privacyRecord()}),referrerPolicy:'no-referrer'}),data=await response.json().catch(()=>null);if(!response.ok)throw Error(data?.error||'No se pudo crear la cuenta. Intentá nuevamente.');await registerPrivacyConsent({finalidad:'cuenta-y-prestacion',canal:'registro-google'});window.location.assign(data?.redirect||'/produccion');}
+  try{const response=await fetch('/core-api/api/auth/google/registration/complete',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticket:googleTicket,company:company.trim(),currency,consent:true,privacy:privacyRecord()}),referrerPolicy:'no-referrer'}),data=await response.json().catch(()=>null);if(!response.ok)throw Error(data?.error||'No se pudo crear la cuenta. Intentá nuevamente.');await registerPrivacyConsent({finalidad:'cuenta-y-prestacion',canal:'registro-google'}).catch(()=>{});window.location.assign(data?.redirect||'/produccion');}
   catch(cause){setError(cause instanceof Error?cause.message:'No se pudo crear la cuenta.');}finally{setSubmitting(false);}
  }
  async function registerWithPassword(){
@@ -40,7 +43,7 @@ export default function Registration(){
   if(!validEmail()){setStep(1);setError('Ingresá un correo válido para continuar.');return;}
   if(password!==confirmPassword){setError('Las contraseñas no coinciden.');return;}
   setSubmitting(true);
-  try{const response=await fetch('/core-api/api/auth/password/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.trim(),password,full_name:fullName.trim(),company:company.trim(),currency,consent:true,privacy:privacyRecord()}),referrerPolicy:'no-referrer'}),data=await response.json().catch(()=>null);if(!response.ok)throw Error(data?.error||'No se pudo crear la cuenta. Intentá nuevamente.');await registerPrivacyConsent({finalidad:'cuenta-y-prestacion',canal:'registro-cuenta',titular:email.trim().toLowerCase()});setNotice(data?.message||'Revisá tu correo para verificar tu cuenta.');}
+  try{const response=await fetch('/core-api/api/auth/password/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.trim(),password,full_name:fullName.trim(),company:company.trim(),currency,consent:true,privacy:privacyRecord()}),referrerPolicy:'no-referrer'}),data=await response.json().catch(()=>null);if(!response.ok)throw Error(data?.error||'No se pudo crear la cuenta. Intentá nuevamente.');await registerPrivacyConsent({finalidad:'cuenta-y-prestacion',canal:'registro-cuenta',titular:email.trim().toLowerCase()}).catch(()=>{});setNotice(data?.message||'Revisá tu correo para verificar tu cuenta.');}
   catch(cause){setError(cause instanceof Error?cause.message:'No se pudo crear la cuenta.');}finally{setSubmitting(false);}
  }
  return <AccessLayout eyebrow="Tu agencia, tu espacio">

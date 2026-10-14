@@ -34,3 +34,18 @@ export function filterBudgets<T extends {number: string; title: string; client_n
     return !query || `${budget.number} ${budget.title} ${budget.client_name}`.toLowerCase().includes(query);
   });
 }
+
+// KPI del encabezado de Presupuestos. El indicador se rotula «Total sin IVA»:
+// suma el subtotal (sin IVA) por moneda, nunca el total con IVA incluido.
+export function budgetKpisOf(budgets: readonly {subtotal: unknown; currency: string; status: string; valid_until: string | null}[], now = Date.now()) {
+  const totals = new Map<string, number>();
+  let drafts = 0, accepted = 0, expiring = 0;
+  for (const budget of budgets) {
+    const amount = Number(budget.subtotal);
+    if (Number.isFinite(amount) && amount > 0) totals.set(budget.currency, (totals.get(budget.currency) || 0) + amount);
+    if (budget.status === 'draft') drafts += 1;
+    if (budget.status === 'accepted') accepted += 1;
+    if (budgetExpiresSoon(budget, now)) expiring += 1;
+  }
+  return {totals, drafts, accepted, expiring};
+}
