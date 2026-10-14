@@ -19,6 +19,7 @@ import {extname, join, resolve, dirname} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {launchChrome, openTarget, defaultChromePath} from './chrome.mjs';
 import {buildFindings, renderBaselineMarkdown} from './report.mjs';
+import {mirrorListGrid} from './fixtures/_list-cells.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..', '..');
@@ -73,6 +74,9 @@ for (const name of readdirSync(fixturesDir).sort()) {
   if (Array.isArray(list)) registry.push(...list);
   else if (list) registry.push(list);
 }
+// Las listas densas a mano siguen el contrato de ListGrid/ListRow (celdas y
+// scroll enfocable); los fixtures que renderizan los componentes ya lo traen.
+for (const fixture of registry) if (typeof fixture.body === 'string') fixture.body = mirrorListGrid(fixture.body);
 const filtered = only
   ? registry.filter((fixture) => String(only).split(',').some((value) => fixture.id.includes(value.trim())))
   : registry;

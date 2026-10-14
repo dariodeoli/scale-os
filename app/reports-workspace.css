@@ -14,6 +14,7 @@
 .reports-chart .chart-bar.collected{background:var(--success)}
 .reports-chart .chart-bar.is-partial{opacity:.5}
 .reports-chart figcaption{font-size:10px;color:var(--text-subtle,var(--text-muted));white-space:nowrap}
+.reports-chart:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px}
 .live-visitors{grid-template-columns:1fr;margin-bottom:20px}
 .live-visitors>article{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .live-visitors .live-visitors-copy h3{margin:0 0 6px}

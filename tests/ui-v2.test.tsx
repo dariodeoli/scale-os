@@ -1,7 +1,7 @@
 import React from 'react';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {act,create} from 'react-test-renderer';
+import {act,create,type ReactTestInstance} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 const {CurrencyField,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,SectionLoading,StateChip,ViewSwitch}=require('../app/ui-v2') as typeof import('../app/ui-v2');
@@ -94,7 +94,13 @@ test('tablas densas y vacíos: acciones fijas y CTA contextual en las primitivas
  assert(list.includes('list-row'),'la fila declara la clase del patrón de tabla densa');
  assert(list.includes('list-actions'),'la celda de acciones se fija al borde del scroll');
  assert(list.includes('list-actions-head'),'el encabezado de acciones se fija con la misma pista');
- assert.equal(renderer.root.findByProps({role:'cell'}).props.className.includes('list-actions'),true,'la celda conserva su rol de tabla');
+ const cells=renderer.root.findAll((node:ReactTestInstance)=>typeof node.type==='string'&&node.props.role==='cell');
+ assert.equal(cells.length,3,'cada columna de la fila es una celda (role="row" solo admite celdas)');
+ assert.equal(cells[2].props.className.includes('list-actions'),true,'la celda de acciones conserva su rol de tabla sin anidar otra');
+ assert.deepEqual(cells.slice(0,2).map((cell:ReactTestInstance)=>cell.type),['span','span'],'los contenedores neutros se marcan en el mismo nodo, sin envoltorio');
+ await act(async()=>{renderer=create(<ListRow template={template}><b>Estudio</b><button type="button">Abrir</button>{null}<>{'x'}</></ListRow>);});
+ const wrapped=renderer.root.findAll((node:ReactTestInstance)=>typeof node.type==='string'&&node.props.role==='cell');
+ assert.deepEqual(wrapped.map((cell:ReactTestInstance)=>[cell.type,cell.props.className??'']),[['b',''],['div','contents'],['div','contents']],'controles y texto suelto van en una celda display:contents que no altera la grilla');
  await act(async()=>{renderer=create(<ListGrid label="Clientes" template={template} columns={columns}><ListRow template={template}><span>Estudio</span><span>Activo</span><span>Editar</span></ListRow></ListGrid>);});
  assert(!JSON.stringify(renderer.toJSON()).includes('list-actions-head'),'sin pinnedActions el encabezado no se fija (no se crean columnas fantasma)');
 

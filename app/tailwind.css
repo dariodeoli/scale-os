@@ -163,6 +163,15 @@ html[data-theme="dark"] :is(.shell,.control-shell)>.desktop-sidebar {
 .silent-scroll::-webkit-scrollbar {
   display: none;
 }
+/* El contenedor es foco de teclado (flechas = scroll); el anillo solo aparece
+   con teclado, nunca al tocar o clicar una fila. */
+.silent-scroll:focus {
+  outline: none;
+}
+.silent-scroll:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
 
 /* ── Convivencia con la base de la librería ─────────────────────────────────
    `owncoding-ui/styles.css` entra primero (tokens `--c-*` y base del grupo) y
