@@ -143,9 +143,14 @@ html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;c
    de cada lista (p. ej. Clientes, 28 px). */
 @media(min-width:768px){
  .control-shell .list-row .list-actions :where(button.icon-button){width:32px;min-width:32px;height:32px;min-height:32px}
- /* Disparador del menú ⋯ (`MenuDesplegable`, min-h-11 de la librería): en la
-    fila fina mide lo que su ícono (28–32 px), no 44. */
- .control-shell :is(.list-row,[data-list-row]) button[aria-haspopup="menu"]{min-height:0}
+}
+
+/* ── Disparador del menú ⋯ (`MenuDesplegable`) ─────────────────────────────
+   La librería le pone `toque-44 min-h-11` en todos los anchos: en filas finas y
+   tarjetas estiraba la línea a 44–56 px. Con puntero fino en escritorio mide
+   32 px (botón de acción de lista); en mobile/táctil conserva el target de 44. */
+@media(min-width:768px) and (hover:hover) and (pointer:fine){
+ :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]{min-width:32px;min-height:32px;justify-content:center}
 }
 
 /* ── Tabs de sección (#89) ──────────────────────────────────────────────────
