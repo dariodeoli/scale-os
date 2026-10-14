@@ -215,7 +215,7 @@ async function main(){
   assert(source.includes('min-h-11 min-w-0 items-center justify-center')&&source.includes('subscription-currency-segments'),'los segmentos de moneda conservan 44 px');
   assert(primary.includes('text-onbrand'),'el botón primario usa el texto sobre marca');
   assert(classDecl('STATE_BOX').includes('text-fore')&&source.includes("bg-warn/10"),'los avisos de estado usan el token de advertencia con texto legible');
-  assert(source.includes("trialing:'border-fono/30 bg-fono/10 text-fono-light'")&&source.includes("active:'border-ok/30 bg-ok/10 text-ok'")&&source.includes("grace:'border-warn/40 bg-warn/10 text-warn'")&&source.includes("suspended:'border-bad/30 bg-bad/10 text-bad'"),'cada estado usa su token semántico con contraste AA');
+  assert(source.includes("trialing:'border-fono/30 bg-fono/10 text-fono-light'")&&source.includes("active:'border-ok/30 bg-ok/10 text-ok'")&&source.includes("grace:'border-warn/40 bg-warn/10 text-warn'")&&source.includes("suspended:'border-bad/30 bg-bad/10 text-bad-text'"),'cada estado usa su token semántico con contraste AA');
   assert(!/transition\s*:\s*all\b/.test(source),'las transiciones nombran las propiedades afectadas');
   const workspace=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
   assert(workspace.includes("query.get('scaleBilling')||query.get('billing')"));assert(workspace.includes("if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true)"));

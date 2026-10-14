@@ -245,7 +245,7 @@ html[data-theme="dark"] {
   --c-ink-700: 33 33 40; /* surface-subtle #212128 */
   --c-ink-600: 62 62 76; /* line #3e3e4c */
   --c-ink-500: 90 90 108; /* line-strong #5a5a6c */
-  --c-mute: 167 162 173; /* text-muted #a7a2ad */
+  --c-mute: 177 170 182; /* text-muted #b1aab6 (4.65:1 sobre ink-600: chips neutros AA) */
   --c-fono: 192 107 208; /* brand-700 #c06bd0 */
   --c-fono-dark: 160 79 175; /* brand-600 #a04faf */
   --c-fono-light: 209 138 217; /* interactive-hover #d18ad9 */

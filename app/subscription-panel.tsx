@@ -89,7 +89,7 @@ const STATUS_TONE:Record<SubscriptionState['status'],string>={
  trialing:'border-fono/30 bg-fono/10 text-fono-light',
  active:'border-ok/30 bg-ok/10 text-ok',
  grace:'border-warn/40 bg-warn/10 text-warn',
- suspended:'border-bad/30 bg-bad/10 text-bad',
+ suspended:'border-bad/30 bg-bad/10 text-bad-text',
 };
 const PRIMARY='subscription-primary inline-flex min-h-11 min-w-11 max-w-full items-center justify-center gap-2 whitespace-normal rounded-lg border border-fono bg-fono px-4 py-2 text-center text-[13px] font-bold leading-5 text-onbrand transition-colors [overflow-wrap:anywhere] hover:bg-fono-dark disabled:cursor-not-allowed disabled:border-ink-600 disabled:bg-ink-700 disabled:text-mute';
 const SECONDARY='subscription-secondary inline-flex min-h-11 min-w-11 max-w-full items-center justify-center gap-2 whitespace-normal rounded-lg border border-ink-600 bg-ink-800 px-4 py-2 text-center text-[13px] font-bold leading-5 text-fore transition-colors [overflow-wrap:anywhere] hover:bg-ink-700 disabled:cursor-not-allowed disabled:text-mute';
@@ -186,7 +186,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
     <span className="subscription-badge inline-flex min-h-6 items-center rounded-full border border-current/30 px-2 py-0.5 text-[11px] font-bold leading-tight [white-space:nowrap]" role="status">Estado actual</span>
     <div className="grid min-w-0 gap-1"><h3 className="text-[17px] font-semibold tracking-tight">{titles[state.status]}</h3><p className="text-[13px] leading-[1.5]">{description(state)}</p></div>
    </header>
-   {!state.hasAccess&&state.status!=='suspended'?<p className="subscription-error rounded-lg border-l-[3px] border-bad bg-bad/10 p-3 text-[13px] text-bad" role="alert">El servidor informa que el acceso está bloqueado.</p>:null}
+   {!state.hasAccess&&state.status!=='suspended'?<p className="subscription-error rounded-lg border-l-[3px] border-bad bg-bad/10 p-3 text-[13px] text-bad-text" role="alert">El servidor informa que el acceso está bloqueado.</p>:null}
    {managed(state)?<>
     <dl className="subscription-dates grid gap-2 sm:grid-cols-2 xl:grid-cols-3" aria-label="Fechas de la suscripción">
      <div className="grid min-w-0 gap-0.5 rounded-lg border border-ink-600 bg-ink-700 px-3 py-2"><dt className="text-[11px] font-bold uppercase tracking-[.035em] text-mute">Plan</dt><dd className="text-sm font-bold tabular-nums text-fore">{monthlyLabels[currency]}</dd></div>
@@ -237,7 +237,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
     </>}
    </>:null}
   </div>}
-  {actionError?<p className="subscription-error mt-3 rounded-lg border-l-[3px] border-bad bg-bad/10 p-3 text-[13px] text-bad" role="alert">{actionError}</p>:null}
+  {actionError?<p className="subscription-error mt-3 rounded-lg border-l-[3px] border-bad bg-bad/10 p-3 text-[13px] text-bad-text" role="alert">{actionError}</p>:null}
   {verification?<p className="subscription-feedback mt-3 border-l-2 border-fono px-3 text-xs leading-[1.45] text-mute" role="status" aria-live="polite" aria-atomic="true">{verification}</p>:null}
   {onRefresh?<div className="subscription-refresh mt-3 flex justify-start"><button type="button" className={SECONDARY} disabled={busy} onClick={refresh}>{pending==='refresh'?'Actualizando…':error||!state||actionError?'Reintentar':'Actualizar estado'}</button></div>:null}
  </section>;
