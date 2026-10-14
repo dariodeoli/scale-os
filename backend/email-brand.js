@@ -4,6 +4,20 @@
 export const EMAIL_TEMPLATE_VERSION='v2.0.0';
 // Mismo activo de marca que sirve la app (public/brand/icon-512.png en APP_URL).
 export const EMAIL_LOGO_URL=`${(process.env.APP_URL||'https://app.scaleparaguay.com').replace(/\/$/,'')}/brand/icon-512.png`;
+// Origen de respaldo para enlaces: el de APP_URL (o el público de la app).
+const LOCAL_HOSTS=['localhost','127.0.0.1'];
+const APP_ORIGIN=(()=>{try{const u=new URL(process.env.APP_URL||'');if(u.protocol==='https:'||(u.protocol==='http:'&&LOCAL_HOSTS.includes(u.hostname)))return u.origin;}catch{/* APP_URL ausente o inválida */}return 'https://app.scaleparaguay.com';})();
+// El botón y el enlace de respaldo solo admiten https: (http: únicamente hacia localhost,
+// para pruebas) y sin credenciales; cualquier otro esquema (javascript:, data:, mailto:…)
+// o una URL inválida cae al origen de la app en vez de llegar al correo.
+export const emailHref=value=>{
+ try{
+  const u=new URL(String(value??'').trim());
+  const local=u.protocol==='http:'&&LOCAL_HOSTS.includes(u.hostname);
+  if((u.protocol==='https:'||local)&&u.hostname&&!u.username&&!u.password)return u.href;
+ }catch{/* URL inválida */}
+ return APP_ORIGIN;
+};
 export const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const line=value=>String(value??'').replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ').trim();
 
@@ -24,7 +38,7 @@ export function emailShell({eyebrow='Scale OS',title='',lead='',body='',cta=null
  const safeTitle=escape(line(title));
  const safeLead=escape(lead);
  const safePreheader=escape(line(preheader||lead||title).slice(0,140));
- const href=cta?.label&&cta?.href?escape(cta.href):'';
+ const href=cta?.label&&cta?.href?escape(emailHref(cta.href)):'';
  const ctaBlock=href
   ?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:8px auto 0"><tr><td align="center" bgcolor="${BRAND}" style="border-radius:8px;background-color:${BRAND}"><a href="${href}" target="_blank" style="display:inline-block;padding:14px 32px;border-radius:8px;background-color:${BRAND};color:#ffffff;${FONT};font-size:16px;line-height:20px;font-weight:bold;text-decoration:none">${escape(cta.label)}</a></td></tr></table>`+
    `<p style="margin:16px 0 0;text-align:center;${FONT};font-size:13px;line-height:1.5;color:${MUTED};word-break:break-all">Si el botón no funciona, copiá y pegá esta dirección en tu navegador:<br><a href="${href}" style="color:${BRAND};text-decoration:underline">${href}</a></p>`

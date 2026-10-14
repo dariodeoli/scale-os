@@ -67,6 +67,14 @@ assert(create(<LoadingScreen/>).root.findAllByProps({'aria-hidden':'true'}).leng
   const slow=JSON.stringify(renderer.toJSON());
   assert(slow.includes('Está tardando más de lo normal')&&slow.includes('Recargar'),'la carga lenta ofrece recargar');
   assert(slow.indexOf('loading-bar-fill')<slow.indexOf('Recargar'),'el aviso va debajo de la barra');
+  // Regresión a11y: el aviso lento y su botón quedan fuera de la región viva (role=status),
+  // dentro de la misma columna visual que la barra.
+  const status=renderer.root.findByProps({role:'status'});
+  assert.equal(status.findAll(node=>node.type==='button').length,0,'la región viva no contiene el botón Recargar');
+  assert.equal(status.findAll(node=>node.children.some(child=>typeof child==='string'&&child.includes('Está tardando'))).length,0,'el aviso lento no se anuncia dentro del estado');
+  const stage=renderer.root.findByProps({'data-loading-card':true});
+  assert.equal(stage.findAllByProps({'data-loading-slow':true}).length,1,'el aviso sigue en la misma columna de la carga');
+  assert.equal(stage.findAllByProps({role:'status'}).length,1,'la región viva vive dentro de la columna');
   globalThis.setTimeout=realSetTimeout;globalThis.clearTimeout=realClear;
 }
 const css=readFileSync('app/tailwind.css','utf8');
