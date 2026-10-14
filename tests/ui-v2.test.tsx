@@ -54,7 +54,7 @@ test('KpiStrip y LoadingBlock: grilla responsive y carga anunciada sin inventar 
  let renderer:any;
  await act(async()=>{renderer=create(<KpiStrip><Kpi label="A" valor={1}/><Kpi label="B" valor={2}/></KpiStrip>);});
  const grid=JSON.stringify(renderer.toJSON());
- assert(grid.includes('grid-cols-1')&&grid.includes('sm:grid-cols-2')&&grid.includes('xl:grid-cols-4'),'la grilla de KPIs es 1/2/4 columnas');
+ assert(grid.includes('grid-cols-1')&&grid.includes('sm:grid-cols-2')&&grid.includes('xl:grid-cols-2'),'la grilla de KPIs es 1/2 y en escritorio tantas columnas como KPIs (dos → 2)');
  assert(grid.includes('ui-kpi-strip'),'la grilla expone el hook del sistema (#89)');
  await act(async()=>{renderer=create(<LoadingBlock label="Cargando clientes…" lines={2}/>);});
  const carga=renderer.root.findByProps({role:'status'});
