@@ -55,6 +55,7 @@ Por cada fixture y cada ancho:
 |---|---|---|
 | Overflow horizontal | `scrollWidth > clientWidth` del fixture | `overflow-documento` |
 | Bleed | nodo fuera de la caja de la tarjeta/panel (sin scroll intencional) | `bleed` / `bleed-clip` |
+| Bleed contra el padre (#178) | hijo visible que excede al rect de su padre en >1 px (izq./der.) cuando el padre es caja de bloque con `overflow` visible y no hay scroller; ignora `absolute`/`fixed` | `bleed` (con `vs: 'parent'`) |
 | Pseudo-elementos decorativos | `::before/::after` que agrandan el área scrolleable | `pseudo-overflow` (+ `contributes`, `clipped`) |
 | Texto recortado sin salida | `ellipsis`/`clip`/`line-clamp` sin `title` (propio o en ancestro) | `texto-cortado` |
 | Superposiciones | intersección real entre rects de nodos visibles (excluye contención, controles internos, avatares apilados) | `superposicion` |
@@ -72,7 +73,10 @@ la landing incluyen su documento real (`public/scale-os.html`) instrumentado.
    ruta del workspace (leído de `.next/server/app/index.html`) y luego el resto,
    para conservar la cascada real.
 2. Arma un documento con un fixture por sección (`kind: workspace` usa el shell
-   real: sidebar + `.content` + topbar) y lo sirve por HTTP local junto con
+   real: sidebar + `.content` + topbar; el topbar estático espeja el JSX de
+   `app/scale-workspace.tsx` —`topbar-primary`/`topbar-company`, `topbar-status` y
+   `topbar-utility-actions` con búsqueda, ayuda, IA, tema y campana—, así que se
+   re-sincroniza cuando ese JSX cambie) y lo sirve por HTTP local junto con
    `public/` (fuentes e imágenes reales).
 3. Chrome headless expone CDP; el harness emula cada ancho con
    `Emulation.setDeviceMetricsOverride` (mobile real por debajo de 768 px) y

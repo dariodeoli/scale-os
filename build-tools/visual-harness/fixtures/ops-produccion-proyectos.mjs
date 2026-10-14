@@ -40,7 +40,7 @@ const chip = (label, tone) => {
   return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${tones[tone]}">${label}</span>`;
 };
 const clientIdentity = (name, color) => `<span class="client-identity identity-${color}"><span class="foto-perfil">${initials(name)}</span><span class="actor-identity-name" title="${name}">${name}</span></span>`;
-const urgencyBadge = (label) => `<span class="urgency-badge" title="Urgencia: ${label}"><span class="urgency-dots">•••••</span>${label}</span>`;
+const urgencyBadge = (label) => `<span class="urgency-badge" title="Urgencia: ${label}">${label}</span>`;
 const dueDate = (text, overdue = false) => `<span class="due-date${overdue ? ' overdue' : ''} compact" title="Entrega: ${text}">${text}</span>`;
 /* Responsables (#99): una línea compacta con rótulo + chips; los estados sin
    dato son texto auxiliar, sin caja. */
