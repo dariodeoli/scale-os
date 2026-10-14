@@ -182,7 +182,7 @@ export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail
         {check(entry,facts,true)}
         <div className="min-w-0" title={facts.name}><PersonContainer size="md" name={facts.name} photoUrl={facts.photo||undefined} secondary={facts.secondary} verified/></div>
       </div>
-      <span role="cell" className="min-w-0 truncate text-[12px] leading-tight text-mute" title={[facts.emailTitle||facts.email,...facts.meta].join(' · ')}>{facts.email}{facts.meta.map(item=>` · ${item}`).join('')}</span>
+      <span role="cell" className="flex min-w-0 items-baseline gap-x-1.5 text-[12px] leading-tight text-mute" title={[facts.emailTitle||facts.email,...facts.meta].join(' · ')}><span className="min-w-0 truncate">{facts.email}</span>{facts.meta.map(item=><span key={item} className="shrink-0 whitespace-nowrap text-[11px] opacity-80">· {item}</span>)}</span>
       <span role="cell" className="min-w-0"><StateChip tone={facts.status.tone} title={facts.status.title}>{facts.status.label}</StateChip></span>
       <span role="cell" className="flex min-w-0 items-center gap-1.5" title={facts.access.title}>{facts.access.role?<span className="min-w-0 truncate text-[12px] text-mute">{facts.access.role}</span>:null}<StateChip tone={facts.access.tone}>{facts.access.label}</StateChip></span>
       <ListActions>{items.length?<ActionMenu label={menuLabel(facts)} items={items}/>:null}</ListActions>
