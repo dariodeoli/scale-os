@@ -63,7 +63,7 @@ test('published reports and rolling demo are discoverable without promising none
  assert(text.includes('Informes para decidir con datos'));
  for(const metric of ['clientes activos, facturación, cobros y ticket promedio','retención','antigüedad','empresas y profesionales'])assert(text.includes(metric));
  assert(text.includes('Hasta 24 meses por consulta, monedas separadas y datos según los registros disponibles'));
-  assert(text.includes('Solo líderes ven los números, así corresponde.'));
+ assert(text.includes('finanzas y salarios quedan para dueño, administración y finanzas'),'los números quedan para los roles que corresponden');
  assert(text.includes('20 clientes ficticios y 7 meses de historial ilustrativo'));
  assert(text.includes('fechas relativas al inicio de cada nueva demo'));
  assert(html.includes('<li>Informes mensuales de clientes y facturación</li>'));
@@ -87,10 +87,13 @@ test('semantic anchors, native FAQ and keyboard focus remain available without a
  for(const [,id] of html.matchAll(/href="#([^"]+)"/g))assert(ids.includes(id),'anchor '+id);
  for(const [,id] of html.matchAll(/aria-labelledby="([^"]+)"/g))assert(ids.includes(id),'label '+id);
  assert.equal((html.match(/<h1\b/g)||[]).length,1);
- // Cuenta los detalles reales (sin comentarios ni hojas): 3 pilares + 8 FAQ.
+ // Cuenta los detalles reales (sin comentarios ni hojas): las 8 preguntas frecuentes.
  const sinComentarios=html.replace(/<!--[\s\S]*?-->/g,'').replace(/<style>[\s\S]*?<\/style>/g,'');
- assert.equal((sinComentarios.match(/<details\b/g)||[]).length,11);
- assert.equal((sinComentarios.match(/<summary>/g)||[]).length,11);
+ assert.equal((sinComentarios.match(/<details\b/g)||[]).length,8);
+ assert.equal((sinComentarios.match(/<summary>/g)||[]).length,8);
+ // Jerarquía: h1 único, después h2 por sección y h3 dentro de cada bloque.
+ const headings=[...sinComentarios.matchAll(/<h([1-6])\b/g)].map(match=>Number(match[1]));
+ headings.forEach((level,index)=>{if(index)assert(level<=headings[index-1]+1,'sin saltos de encabezado');});
  assert(html.includes('class="skip" href="#contenido"'));
  assert(!/<script[^>]+src=|type="module"|maximum-scale|user-scalable=no/.test(html));
  for(const img of html.matchAll(/<img\b[^>]*>/g))assert(/\balt="[^"]*"/.test(img[0]));
@@ -111,12 +114,13 @@ test('landing #134: sin promesas vitalicias, una sola prueba, pilares y fundador
  // 4 · Un CTA principal por bloque (nav, hero, precio y cierre) y todos al registro.
  assert.equal((html.match(/data-cta="trial"/g)||[]).length,4);
  assert((html.match(/Empezar gratis/g)||[]).length>=2,'hero y precio usan el mismo CTA corto');
- // 5 · Funciones en 3 pilares con el resto expandible y sin perder ninguna función.
- const funciones=visible.slice(visible.indexOf('<section id="funciones"'),visible.indexOf('</section>',visible.indexOf('<section id="funciones"')));
- assert.equal((funciones.match(/<article class="pillar">/g)||[]).length,3);
- for(const pilar of ['Operación','Clientes','Control financiero'])assert(funciones.includes(`<h3>${pilar}</h3>`),`pilar ${pilar}`);
- assert.equal((funciones.match(/<article class="pillar-item">/g)||[]).length,9,'las 9 funciones siguen disponibles');
- for(const titulo of ['Producción que avanza','Portal del cliente','El equipo, con contexto','Cada cliente, en su lugar','Ventas con seguimiento','Finanzas sin mezclar monedas','Equipos listos para producir','Estudio y agenda','Informes para decidir con datos'])assert(funciones.includes(titulo),`función presente: ${titulo}`);
+ // 5 · Funciones por área (rediseño): 8 tarjetas visibles, sin detalle escondido.
+ const seccion=id=>visible.slice(visible.indexOf(`<section id="${id}"`),visible.indexOf('</section>',visible.indexOf(`<section id="${id}"`)));
+ const funciones=seccion('funciones')+seccion('gestion');
+ assert.equal((funciones.match(/<article class="card feature">/g)||[]).length,8);
+ for(const area of ['Comercial','Operaciones','Recursos','Portal del cliente','Finanzas','Informes','Equipo','IA y avisos'])assert(funciones.includes(`<p class="area">${area}</p>`),`área ${area}`);
+ for(const titulo of ['Ventas con seguimiento','Producción que avanza','Inventario y estudio','Aprobaciones sin perseguir','Cobrar sin perder el hilo','Informes para decidir con datos','El equipo, con contexto'])assert(funciones.includes(titulo),`función presente: ${titulo}`);
+ for(const capacidad of ['conversión a cliente','Presupuestos con planes reutilizables','tablero por etapas','Reservas, retiros, devoluciones y verificaciones','Espacios del estudio','mora y cobranza','Previsión de caja','matriz de permisos','comisiones','Carga con IA','por correo'])assert(funciones.includes(capacidad),`capacidad real: ${capacidad}`);
  // 6 · El beneficio fundador vive en #precio (con el chip y la nota canónica).
  const precio=visible.slice(visible.indexOf('<section id="precio"'),visible.indexOf('</section>',visible.indexOf('<section id="precio"')));
  assert(precio.includes('class="founder-chip"')&&precio.includes('data-founder-pricing'),'fundador junto al precio');
@@ -141,7 +145,6 @@ test('landing #148: demo visible, un solo aviso, capturas reales y puesta en mar
  assert(!contact.includes('sistema.scaleparaguay.com/privacidad'),'el contacto no mezcla orígenes de privacidad');
  // 4 · Capturas del producto y funciones agrupadas por resultado.
  for(const file of ['landing/vender.jpg','landing/producir.jpg','landing/cobrar.jpg'])assert(html.includes(file),file);
- assert.equal((html.match(/class="pillar-outcome">(Vender|Producir|Cobrar)</g)||[]).length,3,'cada pilar declara su resultado');
  const captions=[...html.matchAll(/<figcaption><strong>([^<]+)<\/strong> · ([^<]+)<\/figcaption>/g)].map(match=>match[1]);
  assert.deepEqual(captions,['Vender','Producir','Cobrar'],'las capturas se agrupan vender · producir · cobrar');
  for(const shot of html.matchAll(/<img\b[^>]*>/g))if(shot[0].includes('/landing/'))assert(/\bloading="lazy"/.test(shot[0])&&/\bwidth="1440"/.test(shot[0]),'las capturas cargan diferidas y con dimensiones');
@@ -168,19 +171,28 @@ test('CSS source provides shrinking grids at 320/360/390/768; not rendered visua
   return value;
  }
  for(const width of [320,360,390,768]){
-  for(const selector of ['.hero-top','.pricing-layout','.split'])assert.equal(property(selector,'grid-template-columns',width),'minmax(0,1fr)',selector+' '+width);
+  // Mobile-first: la base es una columna y las grillas se abren con min-width.
+  for(const selector of ['.hero-top','.pricing-layout','.split','.versus','.duo','.faq'])assert.equal(property(selector,'grid-template-columns',width),'minmax(0,1fr)',selector+' '+width);
   assert.equal(property('.board','min-width',width),'0');
   assert.equal(property('.contact-form','min-width',width),'0');
-  assert.equal(property('.column','display',width),undefined,'do not hide preview columns on mobile');
+  assert.equal(property('.column','display',width),undefined,'the preview columns stay visible');
   if(width<=640){
-   for(const selector of ['.columns','.feature-grid','.contact-form'])assert.equal(property(selector,'grid-template-columns',width),'minmax(0,1fr)');
+   for(const selector of ['.feature-grid','.onboarding-grid','.steps','.shots','.contact-form','.plan-includes'])assert.equal(property(selector,'grid-template-columns',width),'minmax(0,1fr)',selector+' '+width);
    assert.equal(property('.nav nav','width',width),'100%');
   }
+  if(width<=480)assert.equal(property('.columns','grid-template-columns',width),'repeat(2,minmax(0,1fr))','the preview keeps two readable columns on phones');
  }
  assert(css.includes('@media(prefers-reduced-motion:reduce)'));
  assert(css.includes('animation:none!important;transition:none!important'));
  assert(css.includes(':focus-visible{outline:3px solid'));
  assert(!/body[^}]*overflow(?:-x)?:hidden/.test(css),'do not mask overflow on the body');
+ // Claro y oscuro según el sistema, sin JS: tokens en :root y redefinidos para dark.
+ assert(css.includes('@media(prefers-color-scheme:dark){:root{'),'dark tokens');
+ assert(html.includes('<meta name="color-scheme" content="light dark">'));
+ // Cada sección entra en una pantalla de notebook: padding y títulos atados al alto.
+ assert(css.includes('--pad:clamp(32px,6vh,72px)'));
+ assert(/h2\{font-size:clamp\([^)]*vh/.test(css),'h2 scales with the viewport height');
+ assert(css.includes('@media(min-width:900px) and (max-height:700px)'),'short laptop screens get a compact scale');
 });
 
 test('contact input boundaries remain distinguishable from white and page backgrounds',()=>{
