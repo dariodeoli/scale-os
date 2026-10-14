@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import dns from 'node:dns/promises';
 import {roleCan} from './permissions.js';
+import {assertOutboundUrl,hostAllowed,outboundAllowlist,safeFetch} from './outbound-allowlist.js';
 import {decodeJwtPayload, pkcePair} from './social-auth.js';
 
 // SSO Fase 2A (#159): OIDC por organización (Entra ID / Google Workspace).
@@ -80,6 +81,8 @@ export function providerInput(input,{partial=false}={}){
  }
  const issuer=valueOf('issuer','issuer');
  if(issuer!==undefined)result.issuer=httpsUrl(issuer,'El emisor (issuer)');
+ // Lista cerrada anti-SSRF: un IdP propio se habilita con OUTBOUND_ALLOWED_HOSTS.
+ for(const value of [result.issuer]){if(value&&!hostAllowed(new URL(value).hostname,outboundAllowlist()))fail('El emisor no está en la lista de proveedores permitidos. Pedí a soporte que lo habilite.',400,'IDP_NO_PERMITIDO');}
  const clientId=valueOf('client_id','clientId');
  if(clientId!==undefined){
   const value=typeof clientId==='string'?clientId.trim():'';
@@ -95,6 +98,7 @@ export function providerInput(input,{partial=false}={}){
  const discovery=valueOf('discovery_url','discoveryUrl');
  if(Object.hasOwn(source,'discovery_url')||Object.hasOwn(source,'discoveryUrl')){
   result.discoveryUrl=discovery===undefined||discovery===null||discovery===''?null:httpsUrl(discovery,'La URL de descubrimiento (discovery_url)');
+  if(result.discoveryUrl&&!hostAllowed(new URL(result.discoveryUrl).hostname,outboundAllowlist()))fail('La URL de descubrimiento no está en la lista de proveedores permitidos. Pedí a soporte que la habilite.',400,'IDP_NO_PERMITIDO');
  }
  if(Object.hasOwn(source,'active')){
   if(typeof source.active!=='boolean')fail('Estado del proveedor inválido.');
@@ -136,17 +140,20 @@ const httpsEndpoint=value=>{
  * `discovery_url` o por `issuer/.well-known/openid-configuration`; el emisor
  * descubierto debe coincidir con el configurado. `fetchImpl` es inyectable.
  */
-export async function fetchDiscovery(provider,{fetchImpl=fetch,force=false}={}){
+export async function fetchDiscovery(provider,{fetchImpl=fetch,force=false,allowedHosts=outboundAllowlist()}={}){
  const url=discoveryUrlFor(provider);
  const cached=discoveryCache.get(url);
  if(!force&&cached&&cached.expires>Date.now())return cached.value;
- const response=await fetchImpl(url,{headers:{accept:'application/json'}});
+ // Anti-SSRF: el emisor lo carga la empresa; solo se llama a hosts de la lista cerrada.
+ const response=await safeFetch(url,{headers:{accept:'application/json'}},{fetchImpl,allowedHosts,label:'El proveedor de identidad'});
  if(!response||!response.ok)fail('No se pudo leer la configuración del proveedor de identidad.',502,'DISCOVERY_FALLIDO');
  const data=await response.json().catch(()=>null);
  if(!data||typeof data!=='object'||Array.isArray(data))fail('El proveedor de identidad devolvió una configuración inválida.',502,'DISCOVERY_INVALIDA');
  const authorizationEndpoint=httpsEndpoint(data.authorization_endpoint);
  const tokenEndpoint=httpsEndpoint(data.token_endpoint);
  if(!authorizationEndpoint||!tokenEndpoint)fail('La configuración del proveedor está incompleta (authorization_endpoint/token_endpoint).',502,'DISCOVERY_INCOMPLETA');
+ // Los endpoints descubiertos también deben estar en la lista cerrada (el documento podría apuntar adentro).
+ for(const endpoint of [tokenEndpoint,httpsEndpoint(data.userinfo_endpoint)].filter(Boolean))assertOutboundUrl(endpoint,{allowedHosts,label:'Un endpoint del proveedor de identidad'});
  const expectedIssuer=String(provider.issuer||'').replace(/\/$/,'');
  const discoveredIssuer=typeof data.issuer==='string'?data.issuer.replace(/\/$/,''):expectedIssuer;
  if(discoveredIssuer!==expectedIssuer)fail('El proveedor no coincide con el emisor configurado.',502,'EMISOR_INCORRECTO');
@@ -368,7 +375,7 @@ export async function oidcStart({req,res,url,db,send,oauthStateCookie,fetchImpl=
    provider=await providerForEmail(db,email);
    if(!provider)fail('No hay un proveedor de identidad para ese correo.',404,'SSO_NO_DISPONIBLE');
   }
-  const discovery=await fetchDiscovery(provider,{fetchImpl});
+  const discovery=await fetchDiscovery(provider,{fetchImpl,allowedHosts:outboundAllowlist({...process.env,...env})});
   const state=crypto.randomBytes(32).toString('hex');
   const {verifier,challenge}=pkcePair();
   const nonce=crypto.randomBytes(32).toString('hex');
@@ -410,11 +417,12 @@ export async function oidcCallback({req,res,url,db,send,parseCookies,oauthStateC
   if(!provider)return failure('El acceso SSO de la organización ya no está disponible.');
   if(read.error||!read.code)return failure('No se completó el acceso con el proveedor de identidad.');
   let discovery;
-  try{discovery=await fetchDiscovery(provider,{fetchImpl});}
+  const allowedHosts=outboundAllowlist({...process.env,...env});
+  try{discovery=await fetchDiscovery(provider,{fetchImpl,allowedHosts});}
   catch(error){return failure(error.status?error.message:'No se pudo leer la configuración del proveedor.');}
   let tokenData;
   try{
-   const response=await fetchImpl(discovery.tokenEndpoint,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded',accept:'application/json'},body:new URLSearchParams({grant_type:'authorization_code',code:String(read.code),redirect_uri:saved.redirect_uri,client_id:provider.client_id,client_secret:provider.client_secret,code_verifier:saved.code_verifier||''})});
+   const response=await safeFetch(discovery.tokenEndpoint,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded',accept:'application/json'},body:new URLSearchParams({grant_type:'authorization_code',code:String(read.code),redirect_uri:saved.redirect_uri,client_id:provider.client_id,client_secret:provider.client_secret,code_verifier:saved.code_verifier||''})},{fetchImpl,allowedHosts,label:'El proveedor de identidad'});
    if(!response||!response.ok)return failure('No se pudo validar el acceso con el proveedor.');
    tokenData=await response.json().catch(()=>null);
    if(!tokenData||typeof tokenData!=='object'||Array.isArray(tokenData))return failure('El proveedor no devolvió una respuesta válida.');
@@ -430,7 +438,7 @@ export async function oidcCallback({req,res,url,db,send,parseCookies,oauthStateC
   let profile=null;
   if(discovery.userinfoEndpoint&&typeof tokenData.access_token==='string'&&tokenData.access_token){
    try{
-    const response=await fetchImpl(discovery.userinfoEndpoint,{headers:{authorization:`Bearer ${tokenData.access_token}`,accept:'application/json'}});
+    const response=await safeFetch(discovery.userinfoEndpoint,{headers:{authorization:`Bearer ${tokenData.access_token}`,accept:'application/json'}},{fetchImpl,allowedHosts,label:'El proveedor de identidad'});
     if(!response||!response.ok)return failure('No se pudo obtener el perfil del proveedor.');
     profile=await response.json().catch(()=>null);
     if(!profile||typeof profile!=='object'||Array.isArray(profile))return failure('El proveedor no devolvió un perfil válido.');

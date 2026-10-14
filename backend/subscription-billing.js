@@ -1,6 +1,7 @@
 import {createHmac,timingSafeEqual,randomUUID} from 'node:crypto';
 import {redactPiiText} from './pii-safety.js';
 import {redeemCoupon} from './coupon-redemption.js';
+import {safeFetch} from './outbound-allowlist.js';
 
 const DAY=86400000,GRACE=2*DAY,VERSION='2025-03-31.basil';
 const plans={USD:{amount:10,minor:1000},PYG:{amount:50000,minor:50000}};
@@ -119,7 +120,7 @@ function pagayaOffer(currency){return currency==='USD'?'scale_monthly_usd':'scal
 async function callPagaya(cfg,enrollment,user){
  const raw=JSON.stringify({enrollmentId:enrollment.id,offerCode:pagayaOffer(enrollment.currency),...(typeof user.email==='string'&&user.email?{customerEmail:user.email.toLowerCase()}:{})});
  const timestamp=String(Math.floor(Date.now()/1000)),nonce=randomUUID();let response,result;
- try{response=await fetch(`${cfg.origin}/api/integrations/scale/subscriptions`,{method:'POST',headers:{'Content-Type':'application/json','x-scale-timestamp':timestamp,'x-scale-nonce':nonce,'x-scale-signature':signPagayaMessage(cfg.requestSecret,timestamp,nonce,raw)},body:raw,redirect:'error',signal:AbortSignal.timeout(10000)});result=await response.json();}catch{fail('PagaYa no respondió; reintentá sin crear otra operación',503,'BILLING_PROVIDER_UNAVAILABLE');}
+ try{response=await safeFetch(`${cfg.origin}/api/integrations/scale/subscriptions`,{method:'POST',headers:{'Content-Type':'application/json','x-scale-timestamp':timestamp,'x-scale-nonce':nonce,'x-scale-signature':signPagayaMessage(cfg.requestSecret,timestamp,nonce,raw)},body:raw,redirect:'error',signal:AbortSignal.timeout(10000)});result=await response.json();}catch{fail('PagaYa no respondió; reintentá sin crear otra operación',503,'BILLING_PROVIDER_UNAVAILABLE');}
  if(!response.ok||typeof result?.checkoutSessionId!=='string'||!/^cs_[A-Za-z0-9_]+$/.test(result.checkoutSessionId))fail('PagaYa no pudo crear el checkout',503,'BILLING_PROVIDER_UNAVAILABLE');
  return {checkoutSessionId:result.checkoutSessionId,url:stripeUrl(result.checkoutUrl,'checkout.stripe.com')};
 }

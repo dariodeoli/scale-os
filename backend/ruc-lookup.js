@@ -1,5 +1,9 @@
 import {roleCan} from './permissions.js';
 import {fail,text} from './suite-validation.js';
+import {throttle} from './request-guard.js';
+import {outboundAllowlist,safeFetch} from './outbound-allowlist.js';
+// Consultas por usuario cada 15 min, antes de mirar la caché (que revela si un RUC ya se consultó).
+export const RUC_LOOKUPS_PER_WINDOW=40;
 
 const defaultProviderUrl='https://ruc.sun.com.py/api/ruc';
 const numberSetting=(value,fallback,min,max)=>{
@@ -27,11 +31,11 @@ export function rucLookupConfig(env=process.env){
   monthlyLimit:numberSetting(env.RUC_LOOKUP_MONTHLY_LIMIT,100,1,100),
  };
 }
-export function createRucProvider({baseUrl=defaultProviderUrl,fetcher=fetch,timeoutMs=12000}={}){
+export function createRucProvider({baseUrl=defaultProviderUrl,fetcher=fetch,timeoutMs=12000,allowedHosts=outboundAllowlist()}={}){
  const endpoint=String(baseUrl).replace(/\/+$/,'');
  return {name:'configured-ruc-provider',async lookup(ruc){
   let response;
-  try{response=await fetcher(`${endpoint}/${encodeURIComponent(ruc)}`,{signal:AbortSignal.timeout(timeoutMs),headers:{Accept:'application/json'},redirect:'error'});}catch{throw Object.assign(Error('Proveedor de RUC no disponible'),{status:503});}
+  try{response=await safeFetch(`${endpoint}/${encodeURIComponent(ruc)}`,{signal:AbortSignal.timeout(timeoutMs),headers:{Accept:'application/json'}},{fetchImpl:fetcher,allowedHosts,label:'El proveedor de RUC'});}catch{throw Object.assign(Error('Proveedor de RUC no disponible'),{status:503});}
   if(response.status===404)return null;
   if(!response.ok)throw Object.assign(Error('Proveedor de RUC no disponible'),{status:503});
   try{return await response.json();}catch{throw Object.assign(Error('Proveedor de RUC devolvió una respuesta inválida'),{status:503});}
@@ -87,6 +91,7 @@ export async function rucLookup({req,res,url,db,session,body,send,provider,confi
   if(!roleCan(user,'clients.manage'))fail('Sin permiso para gestionar clientes',403);
   if(user.demo_owner_user_id)fail('El Demo no consume consultas reales de RUC. Usá esta función en tu agencia.',403);
   if(req.method!=='POST')fail('Método no permitido',405);
+  if(!url.pathname.endsWith('from-ruc')&&!await throttle(db,'ruc-lookup:'+user.id,RUC_LOOKUPS_PER_WINDOW))fail('Hiciste muchas consultas de RUC seguidas. Esperá unos minutos.',429);
   const b=await body(req);
   const settings=config||rucLookupConfig();
   const service=provider||createRucProvider({baseUrl:settings.providerUrl,fetcher,timeoutMs:settings.timeoutMs});

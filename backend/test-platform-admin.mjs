@@ -285,7 +285,10 @@ assert.equal((await call('/api/platform/agencies/20',{method:'DELETE',actor:{id:
 assert.equal((await call('/api/platform/users/2',{method:'PATCH',payload:{platform_access:'viewer'}})).status,400,'an admin cannot change its own global access');
 assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'bogus'}})).status,400);
 assert.equal((await call('/api/platform/users/999',{method:'PATCH',payload:{platform_access:'admin'}})).status,404);
-assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'admin'}})).status,200);
+// Compare-and-set (guía §6): `expected_access` distinto del vigente → 409 sin escribir.
+assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'admin',expected_access:'viewer'}})).status,409,'acceso global cambiado por otra persona: 409');
+assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'admin',expected_access:'none'}})).status,200);
+assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'viewer',expected_access:'none'}})).status,409,'el segundo pedido con el valor viejo no pisa al primero');
 // #69: `/api/auth/me` refleja el rol global vigente (admin / viewer / null).
 let sessionMe=await me({id:2,email:'platform@scale.example'});
 assert.equal(sessionMe.status,200);

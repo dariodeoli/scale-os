@@ -116,10 +116,14 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
    if(req.method!=='PATCH'||action)fail('Método no permitido',405);
    const b=await body(req),role=option(b.role??current.role,roles),active=b.active??current.active;
    if(typeof active!=='boolean')fail('Estado inválido');
+   // Compare-and-set: el cliente manda el rol/estado que estaba viendo; si otra persona lo cambió antes, 409.
+   if(b.expected_role!==undefined&&b.expected_role!==current.role)fail('Otra persona cambió el rol de este integrante. Recargá para ver el valor actual.',409);
+   if(b.expected_active!==undefined&&b.expected_active!==current.active)fail('Otra persona cambió el acceso de este integrante. Recargá para ver el valor actual.',409);
    if(BigInt(key)===BigInt(user.id)&&(role!==current.role||!active))fail('No podés quitarte tu propio acceso');
    if(user.role!=='owner'&&(current.role==='owner'||role==='owner'))fail('Solo el propietario puede cambiar este rol',403);
    if(current.role==='owner'&&(!active||role!=='owner')){const n=await c.query("select count(*)::int as count from organization_members where organization_id=$1 and role='owner' and active=true",[org]);if(n.rows[0].count<=1)fail('Debe quedar al menos un propietario activo');}
-   await c.query('update organization_members set role=$1,active=$2 where user_id=$3 and organization_id=$4',[role,active,key,org]);await c.query('delete from sessions where user_id=$1 and organization_id=$2',[key,org]);result={ok:true};
+   const swapped=(await c.query('update organization_members set role=$1,active=$2 where user_id=$3 and organization_id=$4 and role=$5 and active=$6 returning user_id',[role,active,key,org,current.role,current.active])).rows[0];
+   if(!swapped)fail('Otra persona cambió el rol de este integrante. Recargá para ver el valor actual.',409);await c.query('delete from sessions where user_id=$1 and organization_id=$2',[key,org]);result={ok:true};
    if(!current.active&&active&&typeof sendAccessGranted==='function')grantedNotify={email:current.email,organizationName:user.organization_name,role};
   }else if(action==='batch'&&(kind==='clients'||kind==='projects'||kind==='budgets')){result=await batchArchive(c,user,org,kind,await body(req));}
   else if(kind==='clients'||kind==='projects'||kind==='work-orders'){

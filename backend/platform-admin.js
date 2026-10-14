@@ -318,11 +318,17 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    requireWrite(role);
    const targetId=Number(userPath[1]);
    if(targetId===user.id)fail('No podés cambiar tu propio acceso global.',400);
-   const input=only((await body(req))||{},['platform_access']);
+   const input=only((await body(req))||{},['platform_access','expected_access']);
    if(!['admin','viewer','none'].includes(input.platform_access))fail('El acceso global debe ser admin, viewer o none.');
    const access=await mutation(db,async client=>{
-    const target=(await client.query(`select id from users where id=$1 and ${realUser('users')}`,[targetId])).rows[0];
+    const target=(await client.query(`select id from users where id=$1 and ${realUser('users')} for update`,[targetId])).rows[0];
     if(!target)fail('Usuario no encontrado.',404);
+    // Compare-and-set: con `expected_access` (el acceso que mostraba la pantalla) un cambio simultáneo no se pisa.
+    if(input.expected_access!==undefined){
+     const now=(await client.query('select role,active from platform_administrators where user_id=$1',[targetId])).rows[0];
+     const currentAccess=now?.active?now.role:'none';
+     if(input.expected_access!==currentAccess)fail('Otra persona cambió este acceso global. Recargá para ver el valor actual.',409);
+    }
     if(input.platform_access==='none'){
      const revoked=(await client.query('update platform_administrators set active=false where user_id=$1 returning user_id',[targetId])).rows[0];
      if(revoked)await audit(client,user,'platform_access.revoke','platform_administrator',targetId,{role:'none'});

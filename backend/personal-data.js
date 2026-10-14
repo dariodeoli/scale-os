@@ -5,6 +5,7 @@
 import {roleCan} from './permissions.js';
 import {readClientPortalSession} from './client-portal-session.js';
 import {privacyRetentionPolicies} from './personal-data-retention.js';
+import {csvCell} from './csv-safety.js';
 
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 
@@ -176,10 +177,6 @@ export async function buildPersonalDataExport(c,{organizationId,subjectKind,subj
  };
 }
 
-const csvCell=value=>{
- const text=value===null||value===undefined?'':value instanceof Date?value.toISOString():typeof value==='boolean'?(value?'Sí':'No'):String(value);
- return /[",\r\n]/.test(text)?`"${text.replaceAll('"','""')}"`:text;
-};
 /** CSV legible del mismo export: una fila por campo, sin perder secciones. */
 export function personalDataExportCsv(data){
  const rows=[['seccion','campo','valor'],['titular','tipo',data.subject.kind],['titular','id',data.subject.id],['titular','nombre',data.subject.name||''],['titular','correo',data.subject.email||''],['aviso','version',data.notice_version],['exportado','fecha',data.generated_at]];
