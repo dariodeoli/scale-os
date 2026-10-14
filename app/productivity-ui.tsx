@@ -16,7 +16,8 @@ import {TabScroller} from './tab-scroller';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
 import {ClientReviewControl,ClientReviewPreview,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
-import {ClientIdentity} from './client-identity';
+import {ClientIdentity,identityColor} from './client-identity';
+import {FotoPerfil} from './foto-perfil';
 import {ClientEditorDialog} from './client-editor';
 import './productivity.css';
 
@@ -144,11 +145,23 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
  },[id,role]);
  const canSeeContact=canSeeClientContact(role);
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error" role="alert">{error}</p>}{data?<>
-  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>{['owner','admin','management','sales','finance','collaborator'].includes(role)&&<button type="button" className="secondary min-h-11 md:min-h-10" title={`Editar cliente: ${s(data.client,'name')}`} aria-label={`Editar cliente: ${s(data.client,'name')}`} onClick={()=>setEditing(true)}><Pencil size={14}/>Editar</button>}</div>
+  {/* Encabezado de la ficha en una fila (pase de densidad): el nombre ya es
+      el título del panel, así que acá va solo el logo + contacto en línea +
+      WhatsApp (ícono) + Editar; las notas siguen debajo, sin márgenes sueltos. */}
+  <header className="client-detail-head mb-3 grid min-w-0 gap-2">
+   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+    <span className={`client-identity identity-${identityColor(s(data.client,'color_key'))} inline-flex shrink-0`}><FotoPerfil nombre={s(data.client,'name')} foto={s(data.client,'logo_url')} tamano="xl" variante="logo" className="identity-avatar"/></span>
+    {data.client.contact_restricted===true
+     ? <p className="m-0 min-w-0 flex-1 text-[13px] text-mute" title="Contacto y datos fiscales reservados para los roles que gestionan clientes (Ley 7593/2025).">Contacto y datos fiscales reservados para los roles que gestionan clientes.</p>
+     : <p className="m-0 min-w-0 flex-1 text-[13px] text-fore [overflow-wrap:anywhere]"><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/><span className="text-mute"> · </span><PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>}
+    <span className="flex shrink-0 items-center gap-2">
+     {data.client.contact_restricted!==true&&canSeeContact?<WhatsAppButton compact className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))} label={`WhatsApp: ${s(data.client,'name')}`}/>:null}
+     {['owner','admin','management','sales','finance','collaborator'].includes(role)&&<button type="button" className="secondary min-h-11 md:min-h-9" title={`Editar cliente: ${s(data.client,'name')}`} aria-label={`Editar cliente: ${s(data.client,'name')}`} onClick={()=>setEditing(true)}><Pencil size={14}/>Editar</button>}
+    </span>
+   </div>
+   {data.client.contact_restricted!==true&&s(data.client,'notes')?<p className="m-0 whitespace-pre-line text-[13px] leading-5 text-mute">{s(data.client,'notes')}</p>:null}
+  </header>
   {editing&&<ClientEditorDialog mode="edit" clientId={id} role={role} close={()=>setEditing(false)} refresh={reload}/>}
-  {data.client.contact_restricted===true
-   ? <p className="text-mute" title="Contacto y datos fiscales reservados para los roles que gestionan clientes (Ley 7593/2025).">Contacto y datos fiscales reservados para los roles que gestionan clientes.</p>
-   : <><p><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/> · <PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>{canSeeContact?<WhatsAppButton className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))}/>:null}<p>{s(data.client,'notes')}</p></>}
   <ClientCommercialSummary id={id} client={data.client} payStatus={payStatus} summary={summary} role={role} reload={reload}/>
   {managers.includes(role)&&<div className="quick-actions"><button className="primary min-h-11 md:min-h-10" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button>{roleCan(role,'portal-access.manage')&&<ClientPortalAccess clientId={id}/>}</div>}
   <div className="choice-list">{['Producción',...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={`${tab===t?'choice active':'choice'} min-h-11 md:min-h-10`} onClick={()=>setTab(t)}>{t}</button>)}</div>
