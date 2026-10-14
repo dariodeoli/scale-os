@@ -322,6 +322,12 @@ assert.equal((await pg.query('select count(*)::int as n from agency_inventory_ve
 assert.equal((await pg.query('select count(*)::int as n from destructive_email_challenges where user_id=11')).rows[0].n,0,'destructive challenges are removed with the user');
 const viewerPreview=await destructivePreview(platformActor,'platform.user.delete',3);
 const viewerAuth=await recentAuth(platformActor,viewerPreview.data.preview.id);
+// Regresión: la vista previa (y la confirmación con el correo) de una persona no sirve
+// para borrar a otra; el intento no consume la prueba ni toca a ninguna de las dos.
+await pg.query("insert into users(id,email,password_hash,email_verified_at,is_demo_guest) values(912,'bystander@scale.example','unused',now(),false)");
+const crossTarget=await call('/api/platform/users/912',{method:'DELETE',payload:{previewId:viewerPreview.data.preview.id,confirmation:'member@agency.example',recentAuthProof:viewerAuth.proof}});
+assert.equal(crossTarget.status,409,'a user-delete preview is bound to its target user');
+assert.equal((await pg.query('select deleted_at is null as alive from users where id=912')).rows[0].alive,true,'the other user survives a cross-target delete');
 const removedViewer=await call('/api/platform/users/3',{method:'DELETE',payload:{previewId:viewerPreview.data.preview.id,confirmation:'member@agency.example',recentAuthProof:viewerAuth.proof}});
 assert.equal(removedViewer.status,200);assert.deepEqual(removedViewer.data.deleted,{userId:3,self:false,agencies:[]});
 assert.ok(!(await call('/api/platform/users?limit=100')).data.users.some(row=>row.email==='member@agency.example'),'deleted users leave the global listing');
