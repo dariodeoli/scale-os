@@ -47,6 +47,8 @@ import {SubscriptionDialog} from "./subscription-dialog";
 import {PlatformAudit} from "./audit";
 import {PlatformUsage} from "./usage";
 import {PlatformInquiries} from "./inquiries";
+import {PlatformAnnouncements} from "./announcements";
+import {PlatformMaintenance} from "./maintenance";
 import {PlatformConfirmDialog, type PlatformAuthMethod} from "./confirm";
 import {ApplyCouponDialog} from "./apply-coupon-dialog";
 import {preflightGoogleStart} from "../deletion-danger-zone";
@@ -686,6 +688,8 @@ export default function PlatformAdmin() {
     {id: "cupones", label: "Cupones", icon: "tag", count: state?.coupons.length},
     {id: "auditoria", label: "Auditoría", icon: "audit", count: state?.audit.length},
     {id: "uso", label: "Uso", icon: "chart"},
+    {id: "comunicados", label: "Comunicados", icon: "megaphone"},
+    {id: "mantenimiento", label: "Mantenimiento", icon: "wrench"},
   ];
   const pageContent = redirecting ? (
     <PlatformRedirecting/>
@@ -716,6 +720,10 @@ export default function PlatformAdmin() {
           {view === "auditoria" ? <PlatformAudit audit={state.audit} page={state.pages.audit} busy={busy} onMore={()=>void loadMore('audit')}/> : null}
 
           {view === "uso" ? <PlatformUsage onError={handlePlatformError}/> : null}
+
+          {view === "comunicados" ? <PlatformAnnouncements writable={writable} agencies={state.agencies} onError={handlePlatformError}/> : null}
+
+          {view === "mantenimiento" ? <PlatformMaintenance writable={writable} onError={handlePlatformError}/> : null}
 
           {writable && subscriptionAgency ? (
             <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension} grantGrace={grantGrace} applyCoupon={setApplyAgency}/>
