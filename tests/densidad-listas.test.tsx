@@ -14,9 +14,14 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 // KPIs densos: opt-in, 2×2 en mobile; la tira por defecto no cambia.
 const dense=create(<KpiStrip dense><span>a</span></KpiStrip>).toJSON() as unknown as {props:{className:string}};
 assert.match(dense.props.className,/ui-kpi-strip-dense grid-cols-2/,'la tira densa va 2×2 en mobile');
-const normal=create(<KpiStrip><span>a</span></KpiStrip>).toJSON() as unknown as {props:{className:string}};
-assert.doesNotMatch(normal.props.className,/ui-kpi-strip-dense/,'la tira por defecto no es densa');
-assert.match(normal.props.className,/grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4/,'la tira por defecto conserva 1/2/4');
+const strip=(count:number)=>(create(<KpiStrip>{Array.from({length:count},(_,i)=><span key={i}>{i}</span>)}</KpiStrip>).toJSON() as unknown as {props:{className:string}}).props.className;
+assert.doesNotMatch(strip(4),/ui-kpi-strip-dense/,'la tira por defecto no es densa');
+assert.match(strip(4),/grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4/,'cuatro KPIs conservan 1/2/4');
+// Columnas de escritorio según la cantidad: sin medias filas vacías.
+assert.match(strip(1),/sm:grid-cols-1 xl:grid-cols-1/);
+assert.match(strip(2),/sm:grid-cols-2 xl:grid-cols-2/);
+assert.match(strip(3),/sm:grid-cols-2 xl:grid-cols-3/);
+assert.match(strip(6),/sm:grid-cols-2 xl:grid-cols-4/,'5 o más envuelven en filas de 4');
 const skeleton=JSON.stringify(create(<KpiStripSkeleton dense count={2}/>).toJSON());
 assert.match(skeleton,/h-\[60px\]/,'el esqueleto denso tiene el alto de la tira densa');
 
