@@ -38,7 +38,8 @@ export function platformAttention(state: State, bootstrap: BootstrapStatus | nul
     rows.push({id: "expiring", label: `${formatPlatformMetric(expiring)} ${expiring === 1 ? "agencia vence" : "agencias vencen"} en 7 días`, detail: "Prueba o facturación", view: "agencias", tone: "warn"});
   }
   const pendingSubscriptions = (state.overview.subscriptions || [])
-    .filter((row) => row.status !== "active")
+    // Una prueba vigente no requiere seguimiento de cobro.
+    .filter((row) => row.status !== "active" && row.status !== "trialing")
     .reduce((total, row) => total + (Number(row.total) || 0), 0);
   if (pendingSubscriptions) {
     rows.push({id: "subscriptions", label: `${formatPlatformMetric(pendingSubscriptions)} suscripciones fuera de «active»`, detail: "Seguimiento de cobro", view: "agencias", tone: "info"});

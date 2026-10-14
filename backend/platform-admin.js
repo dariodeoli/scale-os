@@ -109,7 +109,9 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    const [agencies,users,subscriptions,coupons]=(await Promise.all([
     db.query(`select count(*)::int as total,count(*) filter(where active)::int as active from organizations where ${realOrganization('organizations')}`),
     db.query(`select count(*)::int as total from users where ${realUser('users')}`),
-    db.query(`select s.stripe_status as status,count(*)::int as total from organization_subscriptions s join organizations o on o.id=s.organization_id where ${realOrganization('o')} group by s.stripe_status order by s.stripe_status`),
+    // Sin Stripe (`stripe_status` nulo) el estado sale de las fechas, con la misma
+    // regla que `subscriptionState`: una prueba vigente es «trialing», no «Sin estado».
+    db.query(`select status,count(*)::int as total from (select coalesce(s.stripe_status,case when s.trial_ends_at is null then null when now()<s.trial_ends_at then 'trialing' when s.paid_through_at is not null and now()<s.paid_through_at then 'active' when s.due_at is not null and now()<s.due_at+interval '2 days' then 'grace' else 'suspended' end) as status from organization_subscriptions s join organizations o on o.id=s.organization_id where ${realOrganization('o')}) effective group by status order by status`),
     db.query('select count(*)::int as total,count(*) filter(where active)::int as active from platform_coupons')
    ])).map(result=>result.rows);
    send(res,200,{agencies:agencies[0],users:users[0],subscriptions,coupons:coupons[0]});return true;
