@@ -21,3 +21,10 @@
 
 /* Mobile form controls remain comfortably tappable without widening their dialogs. */
 @media(max-width:760px){.dialog-body :is(button.icon-button,.text-button,.secondary){min-width:44px;min-height:44px}.dialog-body .form-stack>label{gap:8px}.dialog-body input::placeholder,.dialog-body textarea::placeholder{color:var(--text-subtle,var(--text-muted));opacity:.82}.login-page .login-card{border:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-card)}}
+
+/* Login · ronda visual 2 (#190): el error de credenciales es un aviso legible
+   junto al botón (no una línea de 12 px) y el enlace de registro pasa a ser un
+   CTA secundario de tamaño táctil. Solo CSS: la lógica y el texto no cambian. */
+.login-card form>.error{margin:0;padding:10px 12px;border:1px solid color-mix(in srgb,var(--danger) 32%,transparent);border-radius:12px;background:color-mix(in srgb,var(--danger) 8%,transparent);font-size:13px;line-height:1.45}
+.login-signup{margin-top:var(--ui-space-4,16px);font-size:13px}
+.login-signup a{font-size:13px}

@@ -15,7 +15,7 @@ const h = React.createElement;
 const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
 const StateChip = ({tone = 'mute', children}) => h(Badge, {color: CHIP[tone], className: 'whitespace-nowrap'}, children);
 
-const Frame = ({children, wide = false, eyebrow}) => h('main', {className: 'flex min-h-screen items-center justify-center bg-paper px-4 py-10'},
+const Frame = ({children, wide = false, eyebrow}) => h('main', {'data-surface': 'acceso', className: 'flex min-h-screen items-center justify-center bg-paper px-4 py-10'},
   h('div', {className: `w-full min-w-0 ${wide ? 'max-w-3xl' : 'max-w-[30rem]'}`},
     h('section', {className: 'grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 rounded-2xl border border-ink-600 bg-ink-800 p-6 md:p-7'},
       h('header', {className: 'flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3'},
@@ -24,7 +24,7 @@ const Frame = ({children, wide = false, eyebrow}) => h('main', {className: 'flex
       children,
       h('p', {className: 'text-center text-[11px] text-mute'}, 'Scale OS · v1.0.104'))));
 
-const INPUT = 'h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition md:h-9 md:text-sm';
+const INPUT = 'min-h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore';
 const LABEL = 'grid gap-1.5 text-xs text-mute';
 const Field = (label, value) => h('label', {key: label, className: LABEL}, label, h('span', {className: `${INPUT} flex min-w-0 items-center`}, h('span', {className: 'min-w-0 break-words'}, value)));
 
@@ -32,11 +32,11 @@ const Field = (label, value) => h('label', {key: label, className: LABEL}, label
 
 /* Registro: paso 1 (identidad) con el progreso v2. */
 const registro = h(Frame, {eyebrow: 'Tu agencia, tu espacio'},
-  h('ol', {className: 'grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-3'},
+  h('ol', {className: 'flex gap-2'},
     [['Identidad', 1, 'current'], ['Agencia', 2, 'todo'], ['Acceso', 3, 'todo']].map(([label, value, state]) =>
-      h('li', {key: label, 'aria-current': state === 'current' ? 'step' : undefined, className: `flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] ${state === 'current' ? 'border-fono text-fore' : 'border-ink-600 text-mute'}`},
-        h('span', {className: 'grid size-5 place-items-center rounded-full border border-current text-[10px] font-bold tabular-nums'}, String(value)),
-        h('b', {className: 'font-semibold'}, label)))),
+      h('li', {key: label, 'aria-current': state === 'current' ? 'step' : undefined, className: `flex min-w-0 items-center justify-center gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] sm:flex-1 ${state === 'current' ? 'flex-1 border-fono text-fore' : 'flex-none border-ink-600 text-mute sm:flex-1'}`},
+        h('span', {className: 'grid size-5 shrink-0 place-items-center rounded-full border border-current text-[10px] font-bold tabular-nums'}, String(value)),
+        h('b', {className: `font-semibold ${state === 'current' ? '' : 'max-sm:sr-only'}`}, label)))),
   h('h1', {className: 'text-2xl font-bold tracking-tight text-fore'}, 'Empecemos con tu identidad.'),
   h('p', {className: 'text-sm text-mute'}, 'Primero verificamos cómo querés identificarte. Después configurás tu agencia.'),
   h(Button, {variant: 'outline'}, 'Continuar con Google'),

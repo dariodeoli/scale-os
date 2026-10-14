@@ -84,3 +84,17 @@
 .activity-list-row .activity-feed-context{color:var(--text-subtle,var(--text-muted));font-weight:500}
 .activity-list-row .activity-feed-tech{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-subtle,var(--text-muted));font-size:10.5px}
 .activity-list-row .activity-feed-record{text-align:right;color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* Configuración · ronda visual 2 (#190). Sin preflight, el `h2` de cada tarjeta
+   conservaba 13 px de margen arriba y abajo y separaba el título de su
+   descripción; el título y el texto quedan como un solo bloque, centrado con el
+   icono. Tamaños de campo por tipo (AGENTS «Diseño»): fecha ~9–10 rem, código
+   corto 16 rem; ningún input ocupa una pantalla entera. */
+.settings-card-heading{align-items:center}
+.settings-card-heading h2{margin:0}
+.settings-card-heading p{margin-top:2px}
+.control-shell .settings-card input[type=date]{max-width:10rem}
+.control-shell .settings-card input[type=time]{max-width:7rem}
+.control-shell .settings-card[aria-labelledby=coupon-redeem-title] input{max-width:16rem}
+.settings-block-heading{align-items:center}
+@media(max-width:700px){.settings-block-heading{align-items:flex-start}}
