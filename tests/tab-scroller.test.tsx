@@ -45,12 +45,14 @@ test('las barras de pestañas de los módulos usan el patrón único desplazable
  const ui=read('app/ui-system.css');
  assert.match(ui,/\.tab-scroller-track\{[^}]*overflow-x:auto/,'el carril scrollea en horizontal');
  assert.match(ui,/@media\(max-width:760px\)\{\.tab-scroller-button\{width:44px;height:44px\}\}/,'los chevrones conservan 44 px en móvil');
- for(const [file,count] of [['app/scale-workspace.tsx',1],['app/sections/produccion.tsx',1],['app/inventory-workspace.tsx',2],['app/productivity-ui.tsx',1]] as const){
+ for(const [file,count] of [['app/scale-workspace.tsx',1],['app/ui-v2.tsx',1],['app/sections/produccion.tsx',0],['app/inventory-workspace.tsx',0],['app/productivity-ui.tsx',1]] as const){
   const source=read(file);
   assert.equal((source.match(/<TabScroller/g)||[]).length,count,`${file} usa TabScroller`);
  }
  assert.match(read('app/scale-workspace.tsx'),/<TabScroller className="mb-3" label="apartados"><nav className="section-tabs/,'los apartados del shell scrollean con chevrones');
- for(const file of ['app/sections/produccion.tsx','app/inventory-workspace.tsx','app/productivity-ui.tsx']){
+ assert.equal((read('app/sections/produccion.tsx').match(/<ViewTabs/g)||[]).length,1,'Producción usa ViewTabs');
+ assert.equal((read('app/inventory-workspace.tsx').match(/<ViewTabs/g)||[]).length,2,'Inventario usa ViewTabs');
+ for(const file of ['app/ui-v2.tsx','app/productivity-ui.tsx']){
   assert.match(read(file),/max-lg:flex-nowrap/,'las barras de módulo no envuelven en móvil');
  }
  assert.ok(!/silent-scroll max-lg:max-w-full max-lg:overflow-x-auto/.test(read('app/inventory-workspace.tsx')),'Inventario dejó el scroll silencioso sin afordancia');

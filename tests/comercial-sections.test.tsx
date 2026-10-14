@@ -64,7 +64,7 @@ test('planes: una lectura, KPIs reales, estados y editor por rol',async()=>{
  const copy=text(renderer.root);
  assert.match(copy,/Plan integral/);assert.match(copy,/Retainer/);assert.match(copy,/Archivado/);
  assert.match(copy,/Valor de ítems([^·]*Gs[^·]*2\.000\.000)/,'el KPI usa el comparador para el total');
- assert.match(copy,/Activos1/);assert.match(copy,/Archivados1/);
+ assert.match(copy,/1 activo · 1 archivado/,'el conteo de activos y archivados viaja en el KPI de planes (#185)');assert.equal(copy.includes('Archivados1'),false,'sin KPI redundante de archivados');
  assert.equal(copy.includes('Monedas'),false,'sin KPI redundante de monedas (#100)');
  // owner edita: alta disponible y el diálogo monta el compositor en modo plan.
  const buttons=()=>renderer.root.findAllByType('button');

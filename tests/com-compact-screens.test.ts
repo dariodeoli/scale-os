@@ -59,10 +59,10 @@ test('resumen comercial: la expectativa contratada usa la derivación compartida
  assert.match(css, /\.finance-compare\{display:grid;gap:10px;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,340px\),1fr\)\);margin:10px 2px 0\}/, 'la comparativa financiera usa grilla auto-fit: dos monedas caben al lado');
 });
 
-test('planes: la acción vive en la fila de la leyenda y el KPI no se estira',()=>{
+test('planes: la acción vive en el encabezado ListPage y el KPI no se estira',()=>{
  const planes=read('app/sections/planes.tsx');
- assert.match(planes, /acciones=\{state==='ready'&&canEdit\?<Button type="button" className="max-md:min-h-11" onClick=\{\(\)=>setEdit\('new'\)\}/, 'Nuevo plan viaja como acción de la fila del comparador');
- assert.doesNotMatch(planes, /flex flex-wrap items-center justify-end">\s*<Button type="button" onClick=\{\(\)=>setEdit\('new'\)\}/, 'la acción no tiene fila propia');
+ assert.match(planes, /primaryAction=\{state==='ready'&&canEdit\?<Button type="button" className="max-md:min-h-11" onClick=\{\(\)=>setEdit\('new'\)\}/, 'Nuevo plan viaja como acción primaria del encabezado');
+ assert.doesNotMatch(planes, /acciones=\{/, 'el comparador ya no recibe la acción: vive en el encabezado');
  const comparison=read('app/plan-comparison.tsx');
  assert.match(comparison, /acciones\?:ReactNode/, 'el comparador acepta la acción de la pantalla');
  assert.match(comparison, /flex flex-wrap items-center justify-between gap-x-3 gap-y-2/, 'leyenda y acción comparten fila');
@@ -73,7 +73,7 @@ test('presupuestos: la franja de KPIs y la barra de lote quedan en el contrato c
  const presupuestos=read('app/sections/presupuestos.tsx');
  assert.match(presupuestos, /<KpiStrip aria-label="Métricas de presupuestos">/, 'la franja de KPIs es la del sistema');
  assert.match(presupuestos, /hint=\{totals\.length \? `Total sin IVA:/, 'el total por moneda viaja en la línea de explicación');
- assert.match(presupuestos, /className="bulk-bar"/, 'la barra de lote sigue siendo la primitiva compartida (no se creó variante)');
+ assert.match(presupuestos, /<BulkBar count=\{bulk\.count\}/, 'la barra de lote es la primitiva compartida BulkBar (no se creó variante)');
  assert.doesNotMatch(presupuestos, /Intl\.NumberFormat/, 'los montos salen de los formateadores compartidos');
 });
 
@@ -81,7 +81,8 @@ test('presupuestos: la franja de KPIs y la barra de lote quedan en el contrato c
 test('selección masiva contextual: la barra sólo existe con algo seleccionado (#100)',()=>{
  for(const [nombre,ruta] of [['Clientes','app/sections/clientes.tsx'],['Presupuestos','app/sections/presupuestos.tsx']] as const){
   const source=read(ruta);
-  assert.match(source, /\{canManage[A-Za-z]* && selected[A-Za-z]*\.length \? <div className="bulk-bar"/, `${nombre}: la barra depende de la selección`);
+  if(nombre==='Presupuestos')assert.match(source, /bulk=\{canManage \? <BulkBar count=\{bulk\.count\}/, `${nombre}: BulkBar sólo existe con permiso y se oculta sin selección`);
+  else assert.match(source, /\{canManage[A-Za-z]* && selected[A-Za-z]*\.length \? <div className="bulk-bar"/, `${nombre}: la barra depende de la selección`);
   assert.doesNotMatch(source, /bulk-hint">Seleccioná varios para operar en lote/, `${nombre}: sin selección no hay fila de lote`);
  }
  // Pipeline y Planes no tienen lote: su `bulk-bar` es la ventana (#105), no

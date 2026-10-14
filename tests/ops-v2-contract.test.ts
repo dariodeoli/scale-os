@@ -89,17 +89,17 @@ assert.match(inventory,/ariaLabel="Vista de inventario"/);
 assert.match(inventory,/ariaLabel="Vistas de inventario"/);
 assert.match(studio,/studioCanManageReservation/,'los permisos de la reserva siguen en la capa de datos');
 // ── Lote en Reservas de Estudio (#59): patrón `bulk-bar` de Equipo/Clientes.
-assert.match(studio,/const \[selectedReservations,setSelectedReservations\]=useState<string\[\]>/,'el estudio guarda la selección de reservas');
+assert.match(studio,/const bulk=useBulkSelection\(\{limit:BATCH_LIMITS\.studioReservations/,'el estudio guarda la selección de reservas con el hook compartido');
 assert.match(studio,/const reservationSelectable=\(reservation:StudioReservation\)=>Boolean\(context&&studioCanManageReservation\(context,reservation\)&&reservation\.status==='reserved'\)/,'solo se seleccionan reservas gestionables y vigentes');
-assert.match(studio,/<div className="bulk-bar" role="status" aria-live="polite">/,'la barra de lote es la canónica');
-assert.match(studio,/className="bulk-count"/,'el contador usa la clase compartida');
-assert.match(studio,/Seleccionar visibles/,'la barra ofrece seleccionar visibles');
-assert.match(studio,/limitSelection\(visibleSelectable,BATCH_LIMITS\.studioReservations\)/,'la selección respeta el tope del endpoint');
+assert.match(studio,/<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.studioReservations\}/,'la barra de lote es la canónica (BulkBar)');
+assert.match(read('app/ui-v2.tsx'),/className="bulk-count"/,'el contador usa la clase compartida');
+assert.match(studio,/Seleccionar visibles/,'el toolbar ofrece seleccionar visibles');
+assert.match(studio,/bulk\.selectVisible\(visibleSelectable\)/,'la selección respeta el tope del endpoint vía el hook');
 assert.match(studio,/\/api\/agency\/studio-reservations\/batch/,'el lote llama al endpoint de batch (#59)');
 assert.match(studio,/\/api\/agency\/studio-reservations\/\$\{id\}\/cancel/,'sin endpoint de lote cae a los cancels unitarios con versión');
 assert.match(studio,/expected_version:row\?\.version/,'el respaldo conserva la versión por fila');
 const studioListAt=studio.indexOf('data-list="studio-reservations"');
-assert(studio.indexOf('bulk-bar')<studioListAt,'la barra de lote vive antes de la lista');
+assert(studio.indexOf('<BulkBar')<studioListAt,'la barra de lote vive antes de la lista');
 assert(studio.indexOf('Seleccionar visibles')<studioListAt,'la acción de seleccionar vive antes de la lista');
 assert.match(studio,/<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote">/,'la celda de selección es táctil de 44 px en mobile');
 assert.match(studio,/\[--studio-cols:2\.25rem_/,'la plantilla compartida suma la columna de selección');
@@ -210,9 +210,9 @@ assert.match(orderLinks,/min-h-11 items-center gap-2 md:min-h-0/,'el checkbox de
 assert.match(planner,/className="h-6 w-6 p-0 accent-fono"/,'la selección de piezas del planificador también es de 24 px');
 // ── Ronda 16 (#70) + compactación #94: el lote aparece con la selección y la
 // pista viaja en el title del acceso directo del toolbar.
-assert.match(studio,/\{selectedReservations\.length\?<div className="bulk-bar"/,'el lote del Estudio aparece con la selección');
+assert.match(read('app/ui-v2.tsx'),/if \(!count \|\| role === 'viewer'\) return null;/,'BulkBar sólo aparece con la selección y nunca para viewer');
 assert.match(studio,/title=\{`Selecciona hasta \$\{BATCH_LIMITS\.studioReservations\} reservas/,'la pista del lote de Estudio viaja en el title');
-assert.match(projects,/\{canManageProjects&&selectedProjects\.length\?<div className="bulk-bar"/,'el lote de Proyectos aparece con la selección');
+assert.match(projects,/\{canManageProjects\?<BulkBar count=\{bulk\.count\}/,'el lote de Proyectos usa BulkBar con permiso');
 assert.match(projects,/title=\{`Selecciona hasta \$\{BATCH_LIMITS\.projects\} proyectos visibles/,'la pista del lote de Proyectos viaja en el title');
 assert.match(orderLinks,/className="comment-link-chip min-h-11 md:min-h-0"/,'el chip de enlace de la pieza es táctil en mobile');
 assert.match(inventory,/grid h-11 w-11 place-items-center rounded-lg border md:h-9 md:w-9/,'el selector de íconos de categoría es táctil en mobile');
@@ -253,7 +253,7 @@ assert.match(planner,/<SelectCustom label="Qué cambiar"/,'el lote conserva su e
 assert.match(projects,/PROJECT_COLUMNS: Column\[\]/,'la lista de proyectos declara sus columnas');
 assert.match(projects,/PROJECT_COLS = '\[--project-cols:/,'la sección declara la plantilla compartida');
 assert.match(projects,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'encabezado y filas comparten --project-cols');
-assert.match(projects,/de \{BATCH_LIMITS\.projects\} seleccionado/,'el lote muestra el tope del API');
+assert.match(projects,/total=\{BATCH_LIMITS\.projects\}/,'el lote muestra el tope del API');
 assert.match(projectCard,/\[\.project-list_&\]:grid-cols-\[var\(--project-cols\)\]/,'la tarjeta consume la plantilla en modo lista');
 assert.doesNotMatch(projectCard,/min-h-\[200px\]/,'la cuadrícula no reserva 200 px: la altura la define el contenido (#99)');
 assert.match(projectCard,/<Dialog size="drawer"/,'el detalle del proyecto abre en el Dialog con tamaño drawer');
@@ -295,7 +295,7 @@ assert.match(uiV2,/silent-scroll min-w-0 overflow-x-auto/,'las listas v2 contien
 assert.match(productionSection,/silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto/,'el tablero contiene su scroll por bloques');
 // Toolbars que envuelven y campos a ancho completo en mobile (#94: fila única en desktop).
 assert.match(uiV2,/mb-4 flex flex-wrap items-end gap-3/,'la toolbar de filtros envuelve en mobile');
-assert.match(productionSection,/production-command-toolbar mb-4 flex min-w-0 flex-col gap-3 lg:mb-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3/,'la barra de producción apila en mobile y va en una fila en desktop');
+assert.match(productionSection,/production-command-toolbar flex min-w-0 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3/,'la barra de producción apila en mobile y va en una fila en desktop');
 assert.match(productionSection,/<label className="production-client-filter flex items-center gap-2">/,'el filtro de cliente va en línea con su rótulo');
 assert.match(projects,/<label className="flex items-center gap-2">/,'el filtro de proyectos va en línea con su rótulo');
 // Hojas mobile: el harness mide la geometría real del diálogo (cabe y scrollea adentro).
