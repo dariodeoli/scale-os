@@ -258,4 +258,14 @@ assert.equal((await call('/api/agency/commissions','GET',{},await capabilityUser
 assert.equal((await permissionCall('PATCH',{capability:'commissions.manage',role:'management',allowed:null})).status,200);
 assert.equal((await call('/api/agency/commissions','GET',{},await capabilityUser('management'))).status,403,'and management returns to its default without the capability');
 assert.equal((await permissionCall('GET')).capabilities.find(capability=>capability.id==='commissions.manage').overrides.management,undefined,'the panel clears the override');
+// Smoke e2e local: la factura recién creada viaja con `client_name` (mismo
+// contrato que el GET); sin él el selector de cobro mostraba «F-… · undefined».
+{
+ let response;
+ const handled=await agencyCore({req:{method:'POST',socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test/api/agency/invoices'),db:{query:sql,connect:async()=>({query:sql,release(){}})},session:async()=>user,body:async()=>({clientId:client,total:1000,currency:'USD',dueOn:'2026-10-30'}),send:(_,status,data)=>response={status,...data},auditedQuery:async(_actor,_req,text,params)=>sql(text,params)});
+ assert.equal(handled,true);assert.equal(response.status,201);
+ assert.equal(response.invoice.client_name,'Test','the created invoice carries the client name like the list');
+ const listed=(await sql('select c.name from agency_invoices i join agency_clients c on c.id=i.client_id where i.id=$1',[response.invoice.id])).rows[0].name;
+ assert.equal(response.invoice.client_name,listed);
+}
 await pg.close();console.log('PASS: collaborators, comments, commissions, payouts, tenant isolation, profile photos, unified directory, permission boundaries, archived profiles, duplicate prevention and audit');

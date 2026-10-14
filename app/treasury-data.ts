@@ -106,3 +106,10 @@ export function transferPreview({fromCurrency,toCurrency,amount,receivedAmount}:
     : null;
   return {mismatch, rate};
 }
+
+/** Moneda del importe cobrado: la de la cuenta elegida; antes de elegirla, la de la factura (nunca «Gs» para una factura en USD). */
+export function paymentCurrency(accounts: readonly {id: string | number; currency: string}[], invoices: readonly {id: string | number; currency: string}[], accountId?: string, invoiceId?: string) {
+  return accounts.find(account => String(account.id) === String(accountId))?.currency
+    || invoices.find(invoice => String(invoice.id) === String(invoiceId))?.currency
+    || 'PYG';
+}

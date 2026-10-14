@@ -14,9 +14,11 @@ import {AmountInput,SelectCustom} from './profile-controls';
 import {UrgencySelect} from './urgency';
 import {EntityPicker,type EntityOption} from './entity-picker';
 import {isPositiveInput} from './forecast-data';
+import {todayAsuncion} from './client-format';
 import {listDateShort} from './list-format';
 import {money} from './money-format';
 import {teamRoleLabels} from './team-directory';
+import {paymentCurrency} from './treasury-data';
 
 
 type WorkspaceRequest = <T>(path: string, init?: RequestInit) => Promise<T>;
@@ -529,7 +531,7 @@ export function PaymentForm({
       invoiceId: preselectInvoiceId,
       accountId: "",
       amount: "",
-      receivedOn: new Date().toISOString().slice(0, 10),
+      receivedOn: todayAsuncion(),
       reference: "",
       receivedByUserId: "",
     },
@@ -608,7 +610,7 @@ export function PaymentForm({
       {form.formState.errors.accountId?<small className="error" role="alert">{form.formState.errors.accountId.message}</small>:null}
       <label>
         Importe cobrado
-        <AmountInput value={form.watch('amount')||''} currency={accounts.find(account=>account.id===form.watch('accountId'))?.currency||'PYG'} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
+        <AmountInput value={form.watch('amount')||''} currency={paymentCurrency(accounts,invoices,form.watch('accountId'),invoiceId)} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
       </label>
       {form.formState.errors.amount?<small className="error" role="alert">{form.formState.errors.amount.message}</small>:null}
       <label>

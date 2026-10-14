@@ -37,6 +37,7 @@ import {setDataScope, clearDataCache, dataFetch} from './data-cache';
 import {request} from './workspace-request';
 import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,stageCountsFrom,projectedList,BUDGET_LIST_FIELDS,type ShellResource,type ShellScope} from './shell-data';
 import {LIST_WINDOW,appendPage,readPage,windowStateOf,type ListWindowState} from './list-window';
+import {budgetKpisOf} from './budget-status';
 import {prefetchSectionData} from './data-prefetch';
 import {prefetchSectionMetrics} from './metrics-prefetch';
 import './control-center.css';
@@ -389,25 +390,15 @@ export default function Home() {
   const [moraReportsError, setMoraReportsError] = useState(false);
   const [moraState, setMoraState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [moraReload, setMoraReload] = useState(0);
+  // El tablero de Producción carga sus columnas por su cuenta (use-board-data):
+  // `load()` del shell no lo refresca. Cada alta o edición de orden sube esta
+  // versión para que la pieza nueva aparezca sin recargar la página.
+  const [boardVersion, setBoardVersion] = useState(0);
+  const reloadWithBoard = async () => { await load(); setBoardVersion((value) => value + 1); };
   // Una sola derivación del DSO: la vista usa la misma fuente que la sección
   // (`app/mora-data.ts`), no una copia paralela en el shell.
   const moraDso = useMemo(() => moraDsoDays(paymentStatuses, moraReports), [moraReports, paymentStatuses]);
-  const budgetKpis = useMemo(() => {
-    const totals = new Map<string, number>();
-    let drafts = 0, accepted = 0, expiring = 0;
-    const today = new Date(), week = new Date(Date.now() + 7 * 86400000);
-    for (const budget of budgets) {
-      const amount = Number(budget.total);
-      if (Number.isFinite(amount) && amount > 0) totals.set(budget.currency, (totals.get(budget.currency) || 0) + amount);
-      if (budget.status === "draft") drafts += 1;
-      if (budget.status === "accepted") accepted += 1;
-      if (budget.valid_until && budget.status !== "accepted") {
-        const until = new Date(budget.valid_until);
-        if (!Number.isNaN(until.getTime()) && until >= today && until <= week) expiring += 1;
-      }
-    }
-    return { totals, drafts, accepted, expiring };
-  }, [budgets]);
+  const budgetKpis = useMemo(() => budgetKpisOf(budgets), [budgets]);
   const projectKpis = useMemo(() => {
     let active = 0, paused = 0, completed = 0, pieces = 0;
     for (const project of projects) {
@@ -618,6 +609,10 @@ export default function Home() {
   }
   // «Ver más» del listado: siguiente página con el offset de lo ya cargado.
   const loadMoreBudgets = () => loadBudgets(budgets.length, true);
+  // Un refresco completo (sin `limit`, tras crear, editar o borrar) trae la
+  // lista entera sin página: la ventana pasa a «todo cargado» y el total deja
+  // de ser el de la carga anterior (evita «1 de 0» y el KPI en 0).
+  const replaceBudgets = (list: Budget[]) => { setBudgets(list); setBudgetsWindow(windowStateOf(null, list.length)); };
   useEffect(() => {
     if (operationalAccess && active === "Presupuestos") void loadBudgets();
   }, [active, operationalAccess]);
@@ -1122,11 +1117,11 @@ export default function Home() {
         {active==='Preferencias'&&<PreferenciasSection user={user} preferencesReady={preferencesReady} preferences={preferences} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences}/>}
         {active==='Papelera'&&<PapeleraSection load={load}/>}
         {active === "Resumen" && <ResumenSection dataState={shellDataState} guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail} onCreateOrder={canCreateRecord('Resumen')?()=>setModal('order'):undefined}/>}
-        {active==='Producción'&&<ProduccionSection identityLoading={identityLoading} productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} createOrder={canCreateRecord('Producción')?()=>setModal('order'):undefined} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
+        {active==='Producción'&&<ProduccionSection identityLoading={identityLoading} productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} createOrder={canCreateRecord('Producción')?()=>setModal('order'):undefined} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load} boardRefresh={boardVersion}/>}
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraState={moraState} onRetry={()=>setMoraReload(value=>value+1)} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso} onCreateInvoice={openInvoice}/>}
         {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail} onCreate={()=>setModal('client')}/>}
         {active==='Proyectos'&&<ProyectosSection bulkBusy={bulkBusy} projectRow={projectRowEntry} bulk={projectBulk} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}
-        {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} windowState={budgetsWindow} onLoadMore={loadMoreBudgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={()=>loadBudgets()} setBudgets={setBudgets} onCreate={()=>setModal('budget')}/>}
+        {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} windowState={budgetsWindow} onLoadMore={loadMoreBudgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={()=>loadBudgets()} setBudgets={replaceBudgets} onCreate={()=>setModal('budget')}/>}
         {active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>}
         {active==='Finanzas'&&<FinanzasSection user={user} navigate={setActive} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} paymentHasMore={paymentHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} loadAllPayments={loadAllPayments} setModal={setModal} openPayment={openPayment}/>}
         {active==='Previsión'&&<PrevisionSection user={user} navigate={setActive} onCreateInvoice={openInvoice}/>}
@@ -1136,8 +1131,8 @@ export default function Home() {
         </PageTitleContext.Provider>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
-      {iaCarga&&user&&<IaCargaDialog role={user.role||'viewer'} close={()=>setIaCarga(false)} onCreated={()=>load()}/>}
-      {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
+      {iaCarga&&user&&<IaCargaDialog role={user.role||'viewer'} close={()=>setIaCarga(false)} onCreated={()=>reloadWithBoard()}/>}
+      {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={reloadWithBoard}/>}
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
         <ClientEditorDialog
@@ -1147,6 +1142,9 @@ export default function Home() {
           refresh={load}
           onCreated={(client, keepOpen) => {
             setClients((current) => [client as unknown as Client, ...current]);
+            // El estado de cobro viaja aparte: sin recargarlo, el cliente nuevo
+            // queda «Sin datos de cobro» y los KPI de cobros no lo cuentan.
+            setMoraReload((value) => value + 1);
             setSummary((current) => ({
               ...current,
               active_clients: current.active_clients + 1,
@@ -1173,14 +1171,14 @@ export default function Home() {
             request={request}
             projects={projects}
             done={async () => {
-              await completeSave(close,load);
+              await completeSave(close,reloadWithBoard);
             }}
           />
         </Dialog>
       )}
       {modal === "budget" && (
         <Dialog title="Nuevo presupuesto" close={close}>
-          <QuoteComposer mode="create" done={()=>completeSave(close,async()=>{setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets);})}/>
+          <QuoteComposer mode="create" done={()=>completeSave(close,async()=>{replaceBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets);})}/>
         </Dialog>
       )}
       {modal === "account" && (

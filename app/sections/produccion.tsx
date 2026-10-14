@@ -50,14 +50,16 @@ type ProduccionSectionProps = {
   setDraggedOrderId?: Dispatch<SetStateAction<string | null>>;
   onDragEnd?: (event: DragEndEvent) => Promise<void>;
   load?: () => Promise<void>;
+  /** Versión del shell: sube tras crear o editar una orden y relee las columnas. */
+  boardRefresh?: number;
 };
 const VIEW_OPTIONS: [string, string, string][] = [['Tablero','Tablero','grid'],['Mi día','Mi día','clock'],['Calendario','Calendario','calendar'],['Lista y lotes','Lista y lotes','list']];
-export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, updatePreferences, projects, user, setActive, setDetail, createOrder, identityLoading=false}: ProduccionSectionProps){
+export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, updatePreferences, projects, user, setActive, setDetail, createOrder, identityLoading=false, boardRefresh=0}: ProduccionSectionProps){
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
   const today=useLocalCalendarDay();
   const filters=useMemo(()=>({clientId:selectedProductionClient,mine:preferences.production.mine,week:preferences.production.week,userId:String(user?.id||''),today}),[selectedProductionClient,preferences.production.mine,preferences.production.week,user?.id,today]);
   const filtered=boardFiltersActive(filters);
-  const boardData=useBoardData({board:productionView==='Tablero',planner:productionView!=='Tablero',filters,refresh:0});
+  const boardData=useBoardData({board:productionView==='Tablero',planner:productionView!=='Tablero',filters,refresh:boardRefresh});
   // La tarjeta dibuja el logo y el color del cliente: se decoran las filas cargadas.
   const decorate=(order:WorkOrder)=>{const project=projects.find(candidate=>String(candidate.id)===String(order.project_id));const client=clients.find(candidate=>String(candidate.id)===String(project?.client_id));return {...order,client_logo_url:identityLoading?undefined:client?.logo_url,client_color_key:identityLoading?undefined:client?.color_key};};
   const visibleColumns=useMemo(()=>{

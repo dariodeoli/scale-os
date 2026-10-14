@@ -1,0 +1,5 @@
+# Regresiones del smoke e2e local (lanzador dev:local): registro, presupuestos,
+# clientes, producción, cobros, previsión, superadmin y zona de peligro.
+tsx tests/registration-consent-e2e.test.tsx
+tsx tests/prevision-moneda-empresa.test.tsx
+tsx tests/qa-e2e-local.test.tsx

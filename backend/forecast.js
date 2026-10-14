@@ -137,7 +137,13 @@ const projectionFor=(snapshots,openingBalance)=>{
   const planned=amount(snapshot.planned,currency);
   const commission=amount(snapshot.commissions,currency);
   const collected=amount(snapshot.collected,currency);
-  const projectedCash=(carry.get(currency)??opening(currency))+(collected!==0?collected:expected)-personnel-planned-commission;
+  // Los cobros registrados ya están dentro del saldo de las cuentas (cada pago
+  // acredita su cuenta al registrarse), así que el saldo inicial los incluye sin
+  // importar su fecha. Por mes y moneda solo se suma lo que falta cobrar de la
+  // facturación esperada: max(0, esperado − cobrado en el mes). Así un cobro
+  // cuenta una sola vez (en el saldo) y un cobro parcial no borra el saldo pendiente.
+  const inflow=Math.max(0,expected-collected);
+  const projectedCash=(carry.get(currency)??opening(currency))+inflow-personnel-planned-commission;
   carry.set(currency,projectedCash);
   records.push({month:snapshot.label,currency,projected_cash:projectedCash,projected_result:expected-personnel-planned-commission,collected,expected,personnel,planned_expenses:planned,commission_forecast:commission});
  }
@@ -212,7 +218,7 @@ export async function financialForecast({req,res,url,db,session,send}) {
     commission_forecast:'Comisiones previstas de acuerdos vigentes de clientes y destinatarios activos; las porcentuales se redondean al entero más cercano.',
     planned_expenses:'Gastos mensuales del mes seleccionado y gastos recurrentes vigentes desde su mes efectivo; no son pagos reales.',
     opening_balance:'Saldo actual de las cuentas activas por moneda; es la base de caja del primer mes de la proyección.',
-    projected_cash:'Caja proyectada: parte del saldo de cuentas activas y acumula cada mes los cobros registrados (o la facturación esperada si el mes no tiene cobros) menos personal, gastos planificados y comisiones.',
+    projected_cash:'Caja proyectada: parte del saldo de cuentas activas, que ya incluye los cobros registrados, y acumula cada mes la facturación esperada que falta cobrar (esperado menos cobrado en el mes, nunca negativo), menos personal, gastos planificados y comisiones. Un cobro registrado cuenta una sola vez.',
     projected_result:'Resultado estimado: emitido más aceptado sin factura del mes, menos personal, gastos planificados y comisiones; sigue el resultado estimado del panel.',
     contracted_clients:'Todos los clientes activos con su plan y monto mensual vigente (los que no tienen plan figuran sin plan) y lo facturado en el mes seleccionado. Sin factura marca contratos con facturación requerida y sin factura emitida en el mes.'
    }});

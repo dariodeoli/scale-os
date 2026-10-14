@@ -78,7 +78,7 @@ async function recentAuth(actor,previewId,password='fixture-password'){
 const platformActor={id:2,email:'platform@scale.example'};
 const destructivePreview=(actor,action,targetId)=>call('/api/platform/destructive/preview',{method:'POST',actor,payload:{action,targetId}});
 const platformSource=fs.readFileSync(new URL('./platform-admin.js',import.meta.url),'utf8');
-assert(platformSource.includes('stripe_status as status'),'global subscription summary must use the production stripe_status column');
+assert(platformSource.includes('coalesce(s.stripe_status,'),'global subscription summary must use the production stripe_status column (with the date-derived state when Stripe has none)');
 assert(platformSource.includes('s.stripe_status as subscription_status'),'global agency list must use the production stripe_status column');
 assert(platformSource.includes("case s.currency when 'USD' then 10::numeric when 'PYG' then 50000::numeric"),'global agency list must derive the launch price from the supported subscription currency');
 assert(platformSource.includes('platform_administrators'),'the global guard must remain independent from agency membership');
@@ -94,6 +94,13 @@ assert.deepEqual((await call('/api/platform/bootstrap-status',{actor:null,bootst
 assert.equal((await call('/api/platform/overview',{actor:{id:1,email:'owner@agency.example'}})).status,403,'agency owner must not inherit platform access');
 assert.equal((await call('/api/platform/overview',{actor:{id:2,email:'platform@scale.example',demo_owner_user_id:2}})).status,403,'a Demo context cannot access platform administration');
 const overview=await call('/api/platform/overview');assert.equal(overview.status,200);assert.equal(overview.data.agencies.total,2,'metadata and canonical demo organizations are excluded');assert.equal(overview.data.users.total,3,'both demo email domains and demo guests are excluded');assert.deepEqual(overview.data.subscriptions.map(row=>row.status),['active','trialing'],'demo organization subscriptions are excluded from aggregates');
+// Smoke e2e local: sin Stripe (`stripe_status` nulo) una prueba vigente se cuenta
+// como «trialing» (no «Sin estado»), y una prueba vencida sin pago, como «grace»/«suspended».
+await pg.query("update organization_subscriptions set stripe_status=null,trial_ends_at=now()+interval '20 days',due_at=now()+interval '20 days' where organization_id=20");
+assert.deepEqual((await call('/api/platform/overview')).data.subscriptions,[{status:'trialing',total:2}],'an unbilled trial reports its effective state');
+await pg.query("update organization_subscriptions set trial_ends_at=now()-interval '1 day',due_at=now()-interval '1 day' where organization_id=20");
+assert.deepEqual((await call('/api/platform/overview')).data.subscriptions.map(row=>row.status),['grace','trialing'],'an expired trial without payment is in grace');
+await pg.query("update organization_subscriptions set stripe_status='active',trial_ends_at=null,due_at=null where organization_id=20");
 // #106: la ventana informa total y si queda más (aditivo, sin romper el consumidor).
 const agencyWindow=await call('/api/platform/agencies?limit=1');assert.equal(agencyWindow.status,200);assert.equal(agencyWindow.data.agencies.length,1);assert.equal(agencyWindow.data.total,2);assert.equal(agencyWindow.data.hasMore,true,'la lista de agencias informa total y que queda más');
 const agencyNext=await call('/api/platform/agencies?limit=1&offset=1');assert.equal(agencyNext.data.agencies.length,1);assert.equal(agencyNext.data.hasMore,false,'la última página no anuncia más');

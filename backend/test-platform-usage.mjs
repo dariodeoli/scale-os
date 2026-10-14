@@ -80,7 +80,11 @@ assert.equal(signups[dayAt(-3)].users,1);assert.equal(signups[dayAt(-2)].users,1
 assert.equal(signups[dayAt(-2)].agencies,1,'la agencia demo no es alta real');
 assert.equal(signups[today].users,1);
 assert.equal(d.hourly.length,24);
-assert.equal(d.hourly[11].users+d.hourly[12].users,3,'15:00Z cae en 11–12 h locales según horario: usuarios 1, 3 y 4');
+// La hora local de 15:00Z se calcula (11 o 12 según el horario). Sumar 11+12 fallaba
+// cuando el test corría entre las 11:00 y las 12:59 de Asunción: la sesión «live»
+// del usuario 4 caía en la otra franja y lo contaba dos veces.
+const hourOf15z=Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Asuncion',hour:'2-digit',hourCycle:'h23'}).format(new Date(`${dayAt(-1)}T15:00:00Z`)));
+assert.equal(d.hourly[hourOf15z].users,3,'15:00Z cae en la misma hora local para los usuarios 1, 3 y 4');
 assert.equal(d.monthly.length,4);
 assert.equal(d.monthly.at(-1).month,new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7));
 assert(d.monthly.at(-1).active_users>=1);
