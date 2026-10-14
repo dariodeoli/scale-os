@@ -35,8 +35,8 @@ test("superadmin sends the real re-authentication proof on global deletions", ()
   assert.match(page, /\/api\/auth\/account\/recent-auth\/password/);
   assert.match(page, /confirmation, recentAuthProof \}/);
   assert.match(page, /autoComplete="current-password"/);
-  assert.match(page, /authMethod === "password"\s*\? !confirmPassword/);
-  assert.match(page, /emailCode\.length !== 8/);
+  assert.match(page, /authMethod === "password" && !confirmPassword/);
+  assert.match(page, /authMethod === "email" && emailCode\.length !== 8/);
   assert.match(page, /code === "PASSWORD_REAUTH_FAILED"/);
   assert.match(page, /code === "PASSWORD_REAUTH_UNAVAILABLE"/);
   assert.match(page, /code === "RECENT_AUTH_REQUIRED"/);
@@ -71,8 +71,8 @@ test("superadmin offers the email code re-authentication for passwordless admins
   assert.match(page, /authMethod === "email"\s*\?/);
   assert.match(page, /EMAIL_REAUTH_INVALID/);
   assert.match(page, /autoComplete="one-time-code"/);
-  assert.match(page, /setAuthMethod\("email"\)/, "una cuenta sin contraseña cambia al código sin redirigir");
-  assert.match(page, /authPreviewId/, "el código reusa la vista previa ya creada");
+  assert.match(page, /setAuthMethod\("google"\)/, "una cuenta sin contraseña vuelve a Google sin redirigir");
+  assert.match(page, /authPreview/, "el código reusa la vista previa ya creada");
 });
 
 test("superadmin normalizes absent and invalid dashboard metric values", () => {
@@ -147,10 +147,10 @@ test("rediseño #102: consola con secciones, carga de la app y título único", 
   // Consola: encabezado compacto + barra de secciones con contadores + vistas.
   assert.match(page, /<div className="platform-admin-tabs silent-scroll">/, "la barra de secciones es un contenedor sin la regla legacy `nav button`");
   assert.match(page, /ariaLabel="Secciones del panel global"/);
-  for (const view of ["resumen", "agencias", "cupones", "accesos", "auditoria"]) {
+  for (const view of ["resumen", "agencias", "cupones", "accesos", "auditoria", "uso"]) {
     assert.match(page, new RegExp(`\\{id: "${view}", label:`), `la vista ${view} existe`);
   }
-  assert.equal((page.match(/\{view === "/g) ?? []).length, 5, "cada sección renderiza su vista");
+  assert.equal((page.match(/\{view === "/g) ?? []).length, 6, "cada sección renderiza su vista");
   assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{changeView\} bootstrap=\{bootstrap\}\/>/);
   // Carga inicial con el skeleton propio del panel (#155 C).
   assert.match(page, /import \{PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting\} from "\.\/states"/);
@@ -203,7 +203,8 @@ test("rediseño #102: ninguna capacidad del panel se pierde", () => {
   assert.match(page, /Eliminar mi cuenta/);
   assert.match(page, /Eliminar usuario/);
   // Confirmación reforzada + re-autenticación + auditoría con filtros.
-  assert.match(page, /Escribí <strong>\{target\}<\/strong> para confirmar/);
+  assert.match(page, /requireText=\{PLATFORM_DELETE_WORD\}/);
+  assert.match(page, /export const PLATFORM_DELETE_WORD = "ELIMINAR"/);
   assert.match(page, /PlatformConfirmDialog/);
   assert.match(page, /ariaLabel="Buscar en la auditoría"/);
   assert.match(page, /<Select aria-label="Filtrar por acción"/);

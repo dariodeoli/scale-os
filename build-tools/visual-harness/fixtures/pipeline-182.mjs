@@ -53,8 +53,8 @@ const card = (l) => {
 };
 
 const column = (label, rows, totals) => `
-<section aria-label="${label} · ${rows.length} oportunidades" class="grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border p-3 border-ink-600 bg-ink-800">
- <header class="flex items-baseline justify-between gap-2"><h3 class="m-0 text-sm font-bold text-fore">${label}</h3><span class="text-xs tabular-nums text-mute">${rows.length}</span></header>
+<section aria-label="${label} · ${rows.length} oportunidades" class="grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border p-3 transition-colors border-ink-600 bg-ink-700/40">
+ <header class="flex items-center justify-between gap-2"><h3 class="m-0 flex min-w-0 items-center gap-2 text-sm font-bold text-fore"><span aria-hidden="true" class="h-2 w-2 shrink-0 rounded-full bg-fono"></span><span class="min-w-0 truncate" title="${label}">${label}</span></h3><span class="min-w-6 shrink-0 rounded-full bg-ink-600 px-2 py-0.5 text-center text-xs font-semibold tabular-nums text-fore">${rows.length}</span></header>
  ${totals ? `<div class="grid gap-0.5 text-[10.5px] tabular-nums text-mute"><span class="flex flex-wrap items-baseline gap-x-1"><span class="whitespace-nowrap tabular-nums">${totals}</span></span></div>` : ''}
  ${rows.map(card).join('')}
 </section>`;

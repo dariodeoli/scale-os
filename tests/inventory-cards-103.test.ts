@@ -50,7 +50,7 @@ assert.match(inventory,/className="min-h-11 shrink-0 text-\[11px\] font-semibold
 // ── Ubicaciones: ancho fluido, encabezado fijo y estructura interna fija.
 assert.match(inventory,/\[--location-cols:1\] sm:\[--location-cols:2\] xl:\[--location-cols:3\]/,'las columnas del pipeline se reparten por breakpoint (no quedan cortadas)');
 assert.match(inventory,/<header data-board-head className="flex min-h-9 min-w-0 items-center gap-2 md:min-h-11">/,'los encabezados comparten altura compacta (#146)');
-assert.match(inventory,/ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums text-mute/,'el contador va alineado a la derecha');
+assert.match(inventory,/ml-auto min-w-6 shrink-0 whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-center text-xs font-semibold tabular-nums text-fore/,'el contador va alineado a la derecha');
 assert.match(inventory,/Aquí desde \$\{dateTime\(item\.location_changed_at\)\}/,'«aquí desde» es metadata secundaria');
 assert.match(inventory,/title=\{movedAt\}/,'la metadata secundaria tiene tooltip');
 

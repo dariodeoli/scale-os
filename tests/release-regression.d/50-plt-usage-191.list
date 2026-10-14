@@ -1,0 +1,2 @@
+# Panel de uso de plataforma: KPIs, gráficos y listas desde el API real (#191)
+tsx tests/superadmin-usage-191.test.tsx

@@ -217,10 +217,10 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
             {monthly.map(row => <ListRow key={`${row.recipient_id ?? `unlinked-${row.name ?? ''}`}-${row.currency}`} template={SETTLEMENT_TEMPLATE}>
               <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={row.name || 'Sin colaborador vinculado'}>{row.name || 'Sin colaborador vinculado'}</b><small className="block text-[11px] text-mute">{row.currency}</small></div>
               <div className="min-w-0 text-right"><MoneyText valor={row.expected_amount} currency={row.currency}/></div>
-              <div className="min-w-0 text-right"><MoneyText valor={row.recorded_amount} currency={row.currency}/></div>
-              <div className="min-w-0 text-right"><MoneyText valor={row.approved_amount} currency={row.currency}/></div>
-              <div className="min-w-0 text-right"><MoneyText valor={row.paid_amount} currency={row.currency}/></div>
-              <div className="min-w-0 text-right"><MoneyText valor={row.pending_amount} currency={row.currency}/></div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.recorded_amount} currency={row.currency} tono="mute" className="!font-normal"/></div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.approved_amount} currency={row.currency} tono="mute" className="!font-normal"/></div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.paid_amount} currency={row.currency} tono={Number(row.paid_amount) > 0 ? 'ok' : ''}/></div>
+              <div className="min-w-0 text-right"><MoneyText valor={row.pending_amount} currency={row.currency} tono={Number(row.pending_amount) > 0 ? 'warn' : ''}/></div>
             </ListRow>)}
           </ListGrid>
           : <EmptyBlock compact title="Sin comisiones ni acuerdos comerciales para este mes." description="Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada)." action={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Registrar comisión</button> : undefined}/>}

@@ -919,7 +919,7 @@ export default function Home() {
               required
             />
             <PasswordPanel/>
-            {toast && <p className="error">{toast}</p>}
+            {toast && <p className="error" role="alert">{toast}</p>}
             <button className="primary login-button">Continuar</button>
           </form>
           <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>

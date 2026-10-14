@@ -24,6 +24,11 @@ export type Agency = {
   due_at: string | null;
   internal_subscription_state?: "active" | "suspended" | null;
   internal_subscription_expires_at?: string | null;
+  /** Propietario/administrador principal (solo nombre, correo y foto; #189). */
+  owner_name?: string | null;
+  owner_email?: string | null;
+  owner_photo_url?: string | null;
+  extra_admins?: number;
 };
 export type Subscription = {
   internal_state: "active" | "suspended" | null;
@@ -38,6 +43,10 @@ export type Person = {
   active_agencies: number;
   platform_admin: boolean;
   platform_role?: "admin" | "viewer" | null;
+  /** Identidad visible y agencias (máx. 3) a las que pertenece (#189). */
+  full_name?: string | null;
+  photo_url?: string | null;
+  agency_names?: string[] | null;
 };
 export type Coupon = {
   id: number;
@@ -47,7 +56,25 @@ export type Coupon = {
   currency: string | null;
   active: boolean;
   max_redemptions: number | null;
+  expires_at?: string | null;
+  organization_id?: number | string | null;
+  organization_name?: string | null;
+  note?: string | null;
+  redemptions?: number;
+  expired?: boolean;
 };
+
+/** Estado visible del cupón: pausado manualmente, vencido o vigente (#189). */
+export function couponStatus(item: Coupon): { label: "Vigente" | "Vencido" | "Pausado"; tone: "ok" | "warn" | "mute" } {
+  if (!item.active) return { label: "Pausado", tone: "mute" };
+  if (item.expired) return { label: "Vencido", tone: "warn" };
+  return { label: "Vigente", tone: "ok" };
+}
+
+/** Usos del cupón como «n/max» (∞ sin límite). */
+export function couponUses(item: Coupon) {
+  return `${formatPlatformMetric(item.redemptions ?? 0)}/${item.max_redemptions === null ? "∞" : formatPlatformMetric(item.max_redemptions)}`;
+}
 export type AuditAction = {
   id: string;
   action: string;
@@ -199,7 +226,20 @@ export function newExtendKey(){
 export type ConfirmRequest = { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null;
 
 /** Vistas del panel (#102): una consola con secciones, no un scroll largo. */
-export type PlatformView = "resumen" | "agencias" | "cupones" | "accesos" | "auditoria";
+export type PlatformView = "resumen" | "agencias" | "cupones" | "accesos" | "auditoria" | "uso";
+
+/** Contrato de `GET /api/platform/usage` (#191): solo presencia y altas, sin datos financieros. */
+export type UsagePerson = { name: string; avatar_url: string | null; email: string };
+export type UsagePayload = {
+  range: { from: string; to: string; days: number; previous_from: string; previous_to: string; timezone: string };
+  totals: { unique_users: number; recurring_users: number; sessions: number; previous_unique_users: number; active_now: number };
+  daily: { day: string; users: number; sessions: number; previous_day: string | null; previous_users: number }[];
+  signups: { day: string; users: number; agencies: number }[];
+  hourly: { hour: number; users: number }[];
+  monthly: { month: string; signups: number; active_users: number }[];
+  agencies: { id: number | string; name: string; active7: number; active30: number; sessions: number; last_seen_at: string | null; owner: UsagePerson | null }[];
+  users: { id: number | string; name: string; avatar_url: string | null; email: string; agency: string; last_seen_at: string | null; sessions: number }[];
+};
 
 /** Hora de Asunción en 24 h para el chip «Actualizado» del encabezado. */
 export function platformTime(value: string | null) {
@@ -225,4 +265,9 @@ export function expiringAgencies(agencies: Agency[], days = 7) {
     })
     .sort((a, b) => a.time - b.time);
 }
-export type CouponDraft = { code: string; discount_value: string; discount_type: "percent" | "fixed" | "days"; currency: string };
+export type CouponDraft = { code: string; discount_value: string; discount_type: "percent" | "fixed" | "days"; currency: string; expires_at: string; organization_id: string; note: string };
+
+/** Clave de sesión donde se guarda la eliminación pendiente durante la ida a Google. */
+export const PLATFORM_GOOGLE_STORAGE_KEY = "scale.platform.recent-auth-google";
+/** Palabra corta que confirma una eliminación global (la re-autenticación es el control real). */
+export const PLATFORM_DELETE_WORD = "ELIMINAR";
