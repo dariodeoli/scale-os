@@ -34,6 +34,16 @@
  *  - app/workspace-footer.tsx lines 4-6 + app/workspace-footer.css
  */
 
+import React from 'react';
+import {readFileSync} from 'node:fs';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {AyudaModulo, CampanaAvisos, PaletaComandos, ProductFooter} from 'owncoding-ui';
+import {Building2, Menu, Sparkles, Sun} from 'lucide-react';
+
+/* Versión real del pie: se lee de release/version.json al armar el fixture. */
+const releaseVersion = JSON.parse(readFileSync(new URL('../../../release/version.json', import.meta.url), 'utf8')).version;
+const markup = (type, props = {}, ...children) => renderToStaticMarkup(React.createElement(type, props, ...children));
+
 /* ---------------------------------------------------------------- icons --- */
 /* Inline stand-ins for the lucide icons used by the JSX, at the same sizes. */
 const svg = (body, size = 16) =>
@@ -576,30 +586,48 @@ const sidebar = ({collapsed = false, active = 'Resumen'} = {}) => `
 const workspaceShell = ({collapsed = false, active = 'Resumen', topbar: topbarHtml = '', content}) => `
 <main class="shell control-shell">
  ${sidebar({collapsed, active})}
- <section class="content flex min-h-dvh min-w-0 flex-1 flex-col">${topbarHtml}<div class="flex min-w-0 flex-1 flex-col px-4 pb-8 pt-5 md:px-6 lg:px-8 xl:px-12">${content}</div></section>
+ <section class="content flex min-h-dvh min-w-0 flex-1 flex-col">${topbarHtml}<div class="workspace-content flex min-w-0 flex-1 flex-col">${content}</div></section>
 </main>`;
 
 /* ==================================================== 9. TOPBAR / MOBILE ==
- * app/scale-workspace.tsx lines 995-1024 (workspace-topbar) and
- * app/mobile-navigation.tsx lines 17-22 + 36-37 (drawer + trigger).
+ * app/scale-workspace.tsx (workspace-topbar, ~líneas 1044-1076) y
+ * app/mobile-navigation.tsx (trigger). Los objetos de la librería (ayuda,
+ * buscador ⌘K y campana) se renderizan reales con renderToStaticMarkup, igual
+ * que en la app; lo propio de Scale OS (CompanySelector de app/operations.tsx,
+ * presencia de app/presence.tsx, ThemeToggle, IaCargaButton) espeja su JSX.
  * ========================================================================= */
-const topbar = `
-<div class="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 px-4 py-2 md:px-6 lg:px-8 xl:px-12 max-md:z-30 max-md:grid max-md:grid-cols-1 max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
- <div class="topbar-primary flex min-w-0 flex-1 items-center gap-3">
-  <div class="topbar-identity flex min-w-0 items-center gap-2"><button class="icon-button mobile-menu-trigger hidden h-11 w-11 place-items-center max-md:grid" type="button" title="Abrir menú" aria-label="Abrir menú" aria-expanded="false" aria-haspopup="dialog">${svg(I.menu, 22)}</button></div>
+const COMPANY = 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima';
+const fotoPerfil = (initials) => `<span class="foto-perfil foto-perfil-md foto-perfil-circulo foto-perfil-persona" aria-hidden="true"><span class="foto-perfil-iniciales" aria-hidden="true">${initials}</span></span>`;
+/* CompanyMark: con logo usa FotoPerfil (xs, cuadrado, variante logo); sin logo, el edificio. */
+const companyMark = (logo) => logo
+  ? `<span class="foto-perfil foto-perfil-xs foto-perfil-cuadrado foto-perfil-logo company-mark" aria-hidden="true"><img src="${logo}" alt="" referrerpolicy="no-referrer" loading="lazy"></span>`
+  : markup(Building2, {size: 16});
+const companySelector = (logo) => `<button class="workspace" title="${COMPANY}">${companyMark(logo)}<span class="company-name">${COMPANY}</span></button>`;
+const presencePeople = [['LA', 'Lucía Acosta'], ['AG', 'Ana Giménez'], ['MR', 'Marcos Rojas'], ['SB', 'Sofía Benítez'], ['DA', 'Daniela Ayala'], ['CN', 'Carlos Núñez'], ['LO', 'Lucía Ortega']];
+const presenceLabel = `${presencePeople.map(([, name]) => name).join(', ')} · ${presencePeople.length} en línea`;
+const presence = `<div class="workspace-presence workspace-presence-compact" title="${presenceLabel}" aria-label="${presenceLabel}"><span class="presence-avatars">${presencePeople.slice(0, 4).map(([initials, name]) => `<span class="presence-person" title="${name} · En línea" aria-label="${name} · En línea">${fotoPerfil(initials)}<i data-active="true"></i></span>`).join('')}<span class="presence-more" title="${presencePeople.slice(4).map(([, name]) => name).join(', ')}">+${presencePeople.length - 4}</span></span></div>`;
+const themeToggle = `<button type="button" class="theme-toggle" aria-label="Cambiar tema (ahora: Tema claro)" title="Tema claro · clic para el siguiente" data-theme-state="light">${markup(Sun, {size: 18})}</button>`;
+const iaCargaButton = `<button type="button" class="secondary ia-carga-button whitespace-nowrap" aria-haspopup="dialog" aria-label="Carga con IA" title="Carga con IA · pegá un texto y revisá antes de crear">${markup(Sparkles, {size: 16, 'aria-hidden': 'true'})}<span class="hidden xl:inline">Carga con IA</span></button>`;
+const helpButton = markup(AyudaModulo, {titulo: 'Pipeline', resumen: 'Oportunidades por etapa.', puntos: ['Arrastrá una tarjeta a otra etapa.', 'Filtrá por etapa o moneda.', 'Abrí una oportunidad para ver su historial.'], enlaces: [], etiquetaBoton: 'Guía del panel', abierta: false, onAbrir() {}, onCerrar() {}});
+const searchButton = markup(PaletaComandos, {boton: true, textoBoton: 'Buscar cliente, proyecto u orden', titulo: 'Buscar en esta empresa', ariaLabel: 'Buscar clientes, proyectos y órdenes', placeholder: 'Nombre, cliente, proyecto o acción…', buscar: async () => [], onElegir() {}, minimo: 2});
+const bellAvisos = Array.from({length: 120}, (_, index) => ({id: String(index), titulo: `Aviso ${index + 1}`, detalle: 'Pieza asignada', tono: 'info', fecha: '2026-10-14T10:00:00Z', leido: false, icono: 'bell'}));
+const bellButton = markup(CampanaAvisos, {avisos: bellAvisos, ariaLabel: 'Notificaciones', onAbrir() {}, onElegir() {}, vacioTitulo: 'Sin avisos', vacioDetalle: 'Todo al día.'});
+const topbarHtml = ({logo = '/brand/icon-192.png'} = {}) => `
+<div class="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 py-2 shadow-[0_1px_0_rgb(37_28_41_/_4%)] backdrop-blur motion-reduce:[&_*]:transition-none max-md:z-30 max-md:flex-wrap max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
+ <div class="topbar-primary flex min-w-0 flex-1 items-center gap-3 max-md:min-w-[12.5rem] md:min-w-[9rem]">
+  <div class="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2"><button class="icon-button mobile-menu-trigger hidden h-11 w-11 place-items-center max-md:grid" type="button" title="Abrir menú" aria-label="Abrir menú" aria-expanded="false" aria-haspopup="dialog">${markup(Menu, {size: 22})}</button></div>
   <div class="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
-   <div class="topbar-company min-w-0 [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden"><button class="workspace" title="Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima">${svg(I.building, 16)}<span class="company-name">Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima</span></button></div>
-   <div class="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio"><div class="workspace-presence workspace-presence-compact" title="Lucía Acosta, Ana Giménez, Marcos Rojas, Sofía Benítez, Daniela Ayala, Carlos Núñez, Lucía Ortega · 7 en línea" aria-label="Lucía Acosta, Ana Giménez, Marcos Rojas, Sofía Benítez, Daniela Ayala, Carlos Núñez, Lucía Ortega · 7 en línea"><span class="presence-avatars"><span class="presence-person" title="Lucía Acosta · Activo en este proyecto" aria-label="Lucía Acosta · Activo en este proyecto"><span aria-hidden="true">LA</span><i data-active="true"></i></span><span class="presence-person" title="Ana Giménez · Viendo este proyecto" aria-label="Ana Giménez · Viendo este proyecto"><span aria-hidden="true">AG</span><i data-active="false"></i></span><span class="presence-person" title="Marcos Rojas · Activo en este proyecto" aria-label="Marcos Rojas · Activo en este proyecto"><span aria-hidden="true">MR</span><i data-active="true"></i></span><span class="presence-person" title="Sofía Benítez · Activo en este proyecto" aria-label="Sofía Benítez · Activo en este proyecto"><span aria-hidden="true">SB</span><i data-active="true"></i></span><span class="presence-more" title="Daniela Ayala, Carlos Núñez, Lucía Ortega">+3</span></span></div></div>
+   <div class="topbar-company min-w-0 max-md:min-w-[9rem] md:min-w-[9rem] [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden max-md:[&_.workspace]:min-h-11">${companySelector(logo)}</div>
+   <div class="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio">${presence}</div>
   </div>
  </div>
  <div class="topbar-utilities flex min-w-0 flex-wrap items-center justify-end gap-2 max-md:contents">
-  <div class="topbar-status flex items-center gap-2 max-md:col-span-full max-md:row-start-2"></div>
-  <div class="topbar-utility-actions flex min-w-0 items-center gap-2 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">   <button type="button" class="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">${svg(I.moon, 18)}</button>
-   <button class="workspace-search-trigger" aria-label="Buscar clientes, proyectos y órdenes">${svg(I.search, 17)}<span>Buscar cliente, proyecto u orden</span></button>
-   <button type="button" class="icon-button notification-trigger" title="Notificaciones" aria-haspopup="dialog" aria-expanded="false" aria-label="Notificaciones, 99+ sin leer">${svg(I.bell, 19)}<span class="notification-badge" aria-hidden="true">99+</span></button>
-  </div>
+  <div class="topbar-status flex items-center gap-2 max-md:order-2"></div>
+  <div class="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11 [&>div>button]:min-h-10 [&>div>button]:min-w-10 max-md:[&>div>button]:min-h-11 max-md:[&>div>button]:min-w-11 max-xl:[&_button.toque-44>span]:hidden max-xl:[&_button.toque-44>kbd]:hidden">${themeToggle}${helpButton}${iaCargaButton}${searchButton}${bellButton}</div>
  </div>
 </div>`;
+const topbar = topbarHtml();
+const topbarSinLogo = topbarHtml({logo: ''});
 
 const mobileDrawer = `
 <div class="relative min-h-[100dvh]">
@@ -628,13 +656,11 @@ const toastStack = `
 </div>`;
 
 /* ========================================================== 11. FOOTER ===
- * app/workspace-footer.tsx lines 4-6 (workspace variant).
+ * app/workspace-footer.tsx: el pie real (ProductFooter de owncoding-ui) con la
+ * versión de release/version.json y el enlace a Privacidad del marco interno;
+ * en el marco va anclado al pie (`mt-auto pt-6`, app/scale-workspace.tsx).
  * ========================================================================= */
-const workspaceFooter = `
-<footer class="workspace-footer">
- <span>© 2026 Scale OS. Todos los derechos reservados. · v1.0.97</span>
- <span>Desarrollado por <a href="https://owncoding.dev/" target="_blank" rel="noopener noreferrer">Owncoding</a></span>
-</footer>`;
+const workspaceFooter = `<div class="mt-auto pt-6">${markup(ProductFooter, {nombre: 'Scale OS', version: `v${releaseVersion}`, className: 'workspace-footer'}, React.createElement('a', {href: '/privacidad'}, 'Privacidad'))}</div>`;
 
 /* ======================================================== export default == */
 export default [
@@ -679,6 +705,17 @@ export default [
       active: 'Pipeline',
       topbar,
       content: `<header class="workspace-page-header mb-5 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 max-md:grid max-md:grid-cols-1"><div class="page-heading flex min-w-0 items-center gap-2"><h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">Pipeline</h1><span class="page-count">128 oportunidades</span></div></header>${workspaceFooter}`,
+    }),
+  },
+  {
+    id: 'shell-topbar-sin-logo',
+    section: 'Shell',
+    surface: 'Topbar sin logo de empresa (fallback al edificio)',
+    kind: 'plain',
+    body: workspaceShell({
+      active: 'Pipeline',
+      topbar: topbarSinLogo,
+      content: '<header class="workspace-page-header mb-5"><div class="page-heading flex min-w-0 items-center gap-2"><h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">Pipeline</h1></div></header>',
     }),
   },
   {
