@@ -98,7 +98,8 @@ function formatExpiry(value:string){
 }
 
 /* Superficies v2 de la zona de peligro (una sola pieza por tipo). */
-const FLOW='grid min-w-0 gap-3 rounded-xl border border-bad/25 bg-ink-800 p-4 shadow-xs';
+// Columna única acotada: un nombre de empresa largo no ensancha la tarjeta en mobile.
+const FLOW='grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-bad/25 bg-ink-800 p-4 shadow-xs';
 const DETAILS='grid gap-3 rounded-lg border border-ink-600 bg-ink-700 p-3';
 const STEP='flex items-start gap-3 pt-1';
 const STEP_MARK='grid size-6 shrink-0 place-items-center rounded-full bg-bad/15 text-[11px] font-extrabold text-bad';
@@ -267,7 +268,7 @@ function DeletionFlow({kind,organizationId,organizationName,resume,onSuccess}:{k
  const title=kind==='account'?'Eliminar mi cuenta':'Eliminar esta empresa';
  return <article className={FLOW} aria-labelledby={headingId} aria-busy={Boolean(busy)}>
   <div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-bad/15 text-bad" aria-hidden="true">{kind==='account'?<UserRoundX size={20}/>:<Building2 size={20}/>}</span><div><h3 id={headingId} className="text-[15px] font-semibold text-fore">{title}</h3><p className="mt-1 text-xs leading-5 text-mute">{kind==='account'?'Esta acción es irreversible: perderás tu acceso personal y se cerrarán todas tus sesiones.':'Esta acción es irreversible: la empresa se desactivará, todos perderán acceso y sus datos quedarán inaccesibles.'}</p></div></div>
-  {!preview&&<button type="button" className={`secondary deletion-review justify-self-start max-md:w-full ${busy==='preview'?'':''}`} disabled={busy==='preview'} onClick={()=>void fetchPreview()}>{busy==='preview'?'Preparando vista previa…':kind==='account'?'Revisar eliminación de mi cuenta':`Revisar eliminación de ${organizationName}`}</button>}
+  {!preview&&<button type="button" className={`secondary deletion-review max-w-full justify-self-start !whitespace-normal break-words max-md:w-full ${busy==='preview'?'':''}`} title={kind==='account'?'Revisar eliminación de mi cuenta':`Revisar eliminación de ${organizationName}`} disabled={busy==='preview'} onClick={()=>void fetchPreview()}>{busy==='preview'?'Preparando vista previa…':kind==='account'?'Revisar eliminación de mi cuenta':`Revisar eliminación de ${organizationName}`}</button>}
   {preview&&<div className="grid min-w-0 gap-3 outline-none" ref={previewFocus} tabIndex={-1}>
    <div className={STEP}><span className={STEP_MARK}>1</span><div className="grid gap-0.5"><strong className="text-[13px] text-fore">Revisá la vista previa del servidor</strong><small className="text-[11px] leading-[1.45] text-mute">Válida {formatExpiry(preview.expiresAt)}.</small></div></div>
    {preview.action==='account.delete'?<AccountConsequences preview={preview}/>:<OrganizationConsequences preview={preview}/>}
