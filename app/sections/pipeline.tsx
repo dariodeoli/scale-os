@@ -22,7 +22,7 @@ import {PHONE_HELP} from '../field-rules';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_LEAD_FINALITY,PRIVACY_LEAD_DETAIL} from '../privacy-links';
 import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
 import {EMPTY_WINDOW,LIST_WINDOW,appendPage,readPage,windowLabel,windowSlice,windowStateOf,type ListWindowState} from '../list-window';
-import {useDialogPending} from '../dialog';
+import {ConfirmDialog,useDialogPending} from '../dialog';
 import type {User} from '../workspace-types';
 
 const LiveVisitors=dynamic(()=>import('../live-visitors').then(m=>m.LiveVisitors),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
@@ -578,13 +578,11 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         <MoveStageForm current="" choices={activeStages.map(stage=>({value:stage.value,label:stage.label}))} busy={bulkBusy} onMove={value=>{void moveMany(value);}}/>
       </Dialog>:null}
 
-      {bulkDelete&&canBulkDelete?<Dialog title="Mover a la papelera" busy={bulkBusy} close={()=>{if(!bulkBusy){setBulkDelete(false);setBulkError('');}}}>
+      {bulkDelete&&canBulkDelete?<ConfirmDialog title="Mover a la papelera" variant="danger" confirmLabel="Confirmar: mover a papelera" busy={bulkBusy} error={bulkError||undefined} onCancel={()=>{if(!bulkBusy){setBulkDelete(false);setBulkError('');}}} onConfirm={()=>void deleteMany()}>
         <p><strong>{selected.length===1?selectedNames[0]:`${selected.length} oportunidades`}</strong></p>
         {selected.length>1?<p>{selectedNames.slice(0,3).join(' · ')}{selected.length>3?` y ${selected.length-3} más`:''}</p>:null}
         <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés restaurarlas después.</p>
-        {bulkError?<Aviso tono="error" role="alert">{bulkError}</Aviso>:null}
-        <div className="inline-actions"><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>{setBulkDelete(false);setBulkError('');}}>Cancelar</button><button type="button" className="secondary danger" disabled={bulkBusy} onClick={()=>void deleteMany()}>{bulkBusy?'Procesando…':'Confirmar: mover a papelera'}</button></div>
-      </Dialog>:null}
+      </ConfirmDialog>:null}
 
       {moveTarget&&canEdit?<Dialog title={`Mover a etapa: ${str(moveTarget,'name')}`} busy={busy} close={()=>{if(!busy)setMoveTarget(null);}}>
         <MoveStageForm current={str(moveTarget,'stage')} choices={activeStages.map(stage=>({value:stage.value,label:stage.label}))} busy={busy} onMove={value=>{const id=String(moveTarget.id);setMoveTarget(null);void moveLead(id,value);}}/>
