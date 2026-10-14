@@ -132,7 +132,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
           </label>
           <div className="production-filter-actions flex flex-wrap items-center gap-2">
             <button type="button" className="text-button" disabled={!preferencesReady} onClick={()=>setProductionFiltersDialogScope(preferenceScope)}><SlidersHorizontal size={14}/>Filtros{hasProductionFilters?` · ${Number(!!productionClientId)+Number(preferences.production.mine)+Number(preferences.production.week)}`:''}</button>
-            <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite">{counterText}</p>
+            <p className="m-0 whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite">{counterText}</p>
             {hasProductionFilters && <button type="button" className="text-button" onClick={() => updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>}
           </div>
         </div>}
@@ -140,8 +140,8 @@ export function ProduccionSection({productionView, preferences, changeProduction
   );
   return (
     <ListPage aria-label="Producción" primaryAction={createOrder?<button type="button" className="primary" onClick={createOrder}><Plus size={18}/> Nueva orden</button>:undefined} toolbar={toolbar}>
-      {productionView==='Tablero'&&hasProductionFilters&&<p className="mb-3 text-xs text-mute" role="status">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
-      {productionView==='Tablero'&&preferenceWarning?<p className="mb-3 text-xs text-mute" role="status">{preferenceWarning}</p>:null}
+      {productionView==='Tablero'&&hasProductionFilters&&<p className="m-0 text-xs text-mute" role="status">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
+      {productionView==='Tablero'&&preferenceWarning?<p className="m-0 text-xs text-mute" role="status">{preferenceWarning}</p>:null}
       {/* El planificador comparte la carga con el tablero: con error no se pinta un
           vacío falso ("No hay piezas") y con la primera carga va el esqueleto. */}
       {productionView!=="Tablero"&&(boardData.error
@@ -156,7 +156,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
         {boardEmpty?<EmptyBlock compact icon="box" title="Todavía no hay órdenes en producción." description="Creá la primera pieza y seguila por las siete etapas hasta publicarla." action={createOrder?<Button type="button" onClick={createOrder}><Plus size={16}/>Nueva pieza</Button>:undefined}/>:null}
         {!boardEmpty&&!filteredEmpty&&<BoardPresence key={String(user?.organization_id)} projectIds={Object.values(visibleColumns).flat().map(order=>String(order.project_id))}><DndContext sensors={sensors} onDragStart={event=>setDraggedOrderId(String(event.active.id))} onDragCancel={()=>setDraggedOrderId(null)} onDragEnd={onDrop}>
           <div className="production-stage-controls flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p>
+            <p className="m-0 text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p>
             {boardWindow.scrollable?<div className="flex items-center gap-1" role="group" aria-label="Recorrido del tablero" data-board-window>
               <button type="button" data-board-prev className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-interactivo text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas anteriores" title="Etapas anteriores" disabled={boardWindow.atStart} onClick={()=>scrollBoard(-1)}><ChevronLeft size={14}/></button>
               <span className="whitespace-nowrap text-[11px] tabular-nums text-mute" title={`Se ven las etapas ${boardWindow.first} a ${boardWindow.last} de ${statuses.length}. Usá las flechas o deslizá el tablero.`}>{boardWindowLabel(boardWindow,statuses.length)}</span>
