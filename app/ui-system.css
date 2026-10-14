@@ -185,6 +185,12 @@ html[data-theme="dark"] .text-button:hover{color:rgb(var(--c-fono-light))}
  font:400 14px/1.4 Outfit,Arial,sans-serif;
 }
 :is(.control-shell,.unified-dialog,.photo-dialog) textarea{min-height:96px;resize:vertical}
+/* Campos de owncoding-ui con icono, prefijo o botón de limpiar: el reset de arriba (y el de globals.css)
+   no pisa el hueco que pide la librería; si no, el icono de búsqueda tapa el placeholder antes de medir. */
+[data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pl-10{padding-left:2.5rem}
+[data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pl-12{padding-left:3rem}
+[data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pr-9{padding-right:2.25rem}
+[data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pr-10{padding-right:2.5rem}
 :is(.control-shell,.unified-dialog) :is(input,textarea,select):disabled,
 :is(.control-shell,.unified-dialog) .ops-select-trigger:disabled{background:var(--surface-subtle);color:var(--text-muted);cursor:not-allowed}
 :is(.control-shell,.unified-dialog) .form-stack{gap:var(--ui-space-3)}
