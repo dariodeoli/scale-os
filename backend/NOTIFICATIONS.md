@@ -47,8 +47,11 @@ enlace visible de respaldo; lo dibuja `emailShell`) → **cierre** es-PY → **f
 - **Facturación**: prueba, suspensión y cobro rechazado (`billing-email.js`).
 - **Portal del cliente**: restablecer contraseña e invitación (`client-portal.js`).
 
-Las plantillas usan `emailShell` (versión `v1.0.3`), que escapa todo lo dinámico y dibuja el
-enlace de respaldo debajo del botón.
+Las plantillas usan `emailShell` (`backend/email-brand.js`, versión `v3.0.0`), que escapa todo
+lo dinámico y dibuja el enlace de respaldo debajo del botón. Desde v3 hay un solo encabezado
+(fila de marca compacta con el contexto —empresa, portal— y después el título, sin banda de
+color) y el correo se adapta a modo claro y oscuro (`color-scheme`, `prefers-color-scheme` y
+ganchos de Outlook.com) con contraste ≥4.5:1; vista previa: `node backend/email-preview.mjs <dir>`.
 
 ## Derivación única por canal
 
