@@ -59,8 +59,7 @@ test('enlaces de privacidad y captación de la landing',()=>{
  assert.doesNotMatch(html,/name="consent"[^>]*checked/,'el consentimiento de la landing nunca viaja premarcado');
  // Los puntos de captura de la agencia montan el aviso compartido con la finalidad.
  for(const [surface,source,constant] of [
-  ['editor de clientes','app/suite.tsx','PRIVACY_CLIENT_FINALITY'],
-  ['alta de cliente','app/scale-workspace.tsx','PRIVACY_CLIENT_FINALITY'],
+  ['editor de clientes (alta y edición, #184)','app/client-editor.tsx','PRIVACY_CLIENT_FINALITY'],
   ['acceso del portal','app/daily-controls.tsx','PRIVACY_PORTAL_FINALITY'],
   ['editor de oportunidad','app/sections/pipeline.tsx','PRIVACY_LEAD_FINALITY'],
  ] as const){
