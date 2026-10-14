@@ -4,7 +4,7 @@ import {optionalUpdate,createPlatformPreview,consumePlatformDeletionProof} from 
 import {redactPiiText} from './pii-safety.js';
 
 const currencies=['USD','PYG'];
-const realUser=alias=>`not ${alias}.is_demo_guest and ${alias}.deleted_at is null and ${alias}.email not ilike '%@demo.example.invalid' and ${alias}.email not ilike '%@scale-demo.example.invalid'`;
+export const realUser=alias=>`not ${alias}.is_demo_guest and ${alias}.deleted_at is null and ${alias}.email not ilike '%@demo.example.invalid' and ${alias}.email not ilike '%@scale-demo.example.invalid'`;
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 // `Number.isInteger(1e21)` es true pero Postgres no acepta ese bigint: se exige safe integer.
 const integer=(value,fallback=0)=>{if(value===null||value===undefined||value==='')return fallback;const parsed=Number(value);return Number.isSafeInteger(parsed)&&parsed>=0?parsed:fallback;};
@@ -23,7 +23,7 @@ const couponCurrency=value=>{if(value===null||value===undefined||value==='')retu
 const couponLifetime=value=>{if(value===undefined)return false;if(typeof value!=='boolean')fail('La elegibilidad vitalicia debe ser booleana.');return value;};
 const object=value=>{if(!value||typeof value!=='object'||Array.isArray(value))fail('Solicitud inválida.');return value;};
 const only=(value,keys)=>{if(Object.keys(value).some(key=>!keys.includes(key)))fail('La solicitud contiene campos no permitidos.');return value;};
-async function actor(db,session,req){
+export async function actor(db,session,req){
  const user=await session(req);if(!user)fail('No autenticado',401);
  if(user.demo_owner_user_id||user.demo_source_id)fail('El Demo no accede a la administración global.',403);
  const membership=(await db.query('select role from platform_administrators where user_id=$1 and active=true',[user.id])).rows[0];
