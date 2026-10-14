@@ -1,36 +1,18 @@
 "use client";
-// Rediseño v2 (campaña #41 / spec #43 §3): KPIs con `Stat`, serie con barras
-// Tailwind y datos diarios con `DataTable` (tabla en escritorio, tarjetas en
-// móvil). La lógica vive en ./growth-dashboard-data.
-import {useState} from 'react';
-import {Card,DataTable,Nota,Select,Stat,fechaListaCorta} from 'owncoding-ui';
-import {formatoNumero} from 'owncoding-ui/utils';
+// Rediseño v2 (campaña #41 / spec #43 §3): serie con barras Tailwind y datos
+// diarios con `DataTable` (tabla en escritorio, tarjetas en móvil). La lógica vive en ./growth-dashboard-data.
+import {Card,DataTable,Nota,fechaListaCorta} from 'owncoding-ui';
 import {growthSeries,type GrowthEvent} from './growth-dashboard-data';
 // La lógica de datos vive en ./growth-dashboard-data (funciones puras); se
 // reexporta para no romper imports existentes.
 export type {GrowthEvent} from './growth-dashboard-data';
 export {growthSeries,growthWindow,growthSum,growthVariation,metricSeries} from './growth-dashboard-data';
 
-const PERIODS=[{value:'7',label:'Últimos 7 días'},{value:'30',label:'Últimos 30 días'},{value:'90',label:'Últimos 90 días'}];
-
-export function GrowthDashboard({events}:{events:GrowthEvent[]}){
- const [days,setDays]=useState(30),{sum,points,metrics}=growthSeries(events,days),max=Math.max(1,...points.map(point=>point.count));
+// El período y los KPIs viven en la página (`MetricasSection`: FilterToolbar +
+// KpiStrip); acá queda la serie diaria y los datos del período elegido.
+export function GrowthDashboard({events,days=30}:{events:GrowthEvent[];days?:number}){
+ const {sum,points}=growthSeries(events,days),max=Math.max(1,...points.map(point=>point.count));
  return <Card className="grid gap-4">
-  <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-   <div className="min-w-0">
-    <p className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Captación digital</p>
-    <h2 className="m-0 mt-0.5 text-[17px] font-bold tracking-tight text-fore">Visitas y crecimiento</h2>
-   </div>
-   <label className="flex shrink-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-mute">
-    Período
-    <Select aria-label="Período" className="w-44" value={String(days)} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setDays(Number(event.target.value))}>
-     {PERIODS.map(period=><option key={period.value} value={period.value}>{period.label}</option>)}
-    </Select>
-   </label>
-  </header>
-  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-   {metrics.map(({name,label,current,variation})=><Stat key={name} label={label} valor={formatoNumero(current)} delta={variation??undefined} sub={variation===null?'Sin base anterior':'vs. período anterior'}/>)}
-  </div>
   <section aria-labelledby="growth-evolution">
    <h3 id="growth-evolution" className="m-0 text-sm font-bold text-fore">Evolución diaria · páginas vistas</h3>
    {/* La serie de 30 días conserva el gráfico propio: `GraficoBarras` de la

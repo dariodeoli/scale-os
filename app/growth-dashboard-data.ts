@@ -11,6 +11,9 @@ export const GROWTH_METRICS:{name:GrowthMetricName;label:string}[]=[
  {name:'whatsapp_click',label:'Clics en WhatsApp'},
 ];
 
+/** Períodos del filtro de Métricas (días). */
+export const GROWTH_PERIODS=[{value:'7',label:'Últimos 7 días'},{value:'30',label:'Últimos 30 días'},{value:'90',label:'Últimos 90 días'}];
+
 export type GrowthWindow={currentStart:Date;previousStart:Date;end:Date;dayKeys:string[]};
 
 /** Clave YYYY-MM-DD en calendario local (el shell ya usa hora del dispositivo). */
