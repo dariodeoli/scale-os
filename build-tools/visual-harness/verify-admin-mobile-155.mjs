@@ -41,7 +41,7 @@ try {
       assert.ok(await cdp.evaluate('window.scrollY > 300'), 'Fixture produces deep Access scroll');
       await cdp.evaluate(`document.querySelectorAll('.platform-admin-tabs button')[4].click()`);
       await waitFor(`document.querySelector('.platform-admin-audit-cards article')`);
-      assert.ok(await cdp.evaluate(`document.querySelector('.platform-admin-header').getBoundingClientRect().top >= 0`), 'Section switch reveals header');
+      assert.ok(await cdp.evaluate(`document.querySelector('.platform-admin-top').getBoundingClientRect().top >= 0`), 'Section switch reveals header');
       const record = await cdp.evaluate(`document.querySelector('.platform-admin-audit-cards article').textContent`);
       assert.ok(record.includes(JSON.stringify(auditMetadata)));
       for (const label of ['Fecha', 'Actor', 'Acción', 'Destino', 'Metadatos']) assert.ok(record.includes(label));

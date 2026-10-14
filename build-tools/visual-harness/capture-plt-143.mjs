@@ -24,7 +24,7 @@ const OUT=resolve(repo,DIR);
 mkdirSync(OUT,{recursive:true});
 
 const SCREENS={
- equipo:{path:'/equipo',ready:'.team-filters',content:'.person-hub-card'},
+ equipo:{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'[data-compact-card],[role="rowgroup"] [role="row"]'},
  'equipo-permisos':{path:'/equipo/permisos',readyText:'Roles y permisos',content:'[aria-label="Roles y permisos"]'},
  actividad:{path:'/equipo/actividad',ready:'.activity-feed',content:'.activity-feed-row'},
  papelera:{path:'/configuracion/papelera',ready:'[aria-label="Papelera de esta empresa"]',content:'.list-row'},

@@ -39,9 +39,9 @@ function xPadding(padding){
  return parts.length>=2?parts[1]:parts[0];
 }
 
-const lists=[
- {name:'equipo',vars:'operations.css',source:'operations.css',head:'.person-hub-head-row',row:'.person-hub-card.is-list',decl:'.ops-grid-list'},
-];
+// Equipo (#186) pasó a ListGrid/ListRow v2: su plantilla única se verifica en
+// `tests/ux-consistency.test.ts`; ya no hay hoja CSS con `--person-cols`.
+const lists=[];
 // Inventario y reservas se rediseñaron con Tailwind + owncoding-ui (campaña #41,
 // spec #44): su plantilla ya no vive en una hoja CSS. El contrato v2 de esas
 // listas se verifica en `tests/ops-v2-contract.test.ts` (una sola plantilla por
@@ -78,9 +78,7 @@ for(const list of lists){
  });
 }
 
-const cells={
- equipo:{file:'operations.css',selectors:['.person-hub-facts','.person-hub-state','.person-hub-chips','.person-hub-actions','.team-access']},
-};
+const cells={};
 for(const [name,{file,selectors}] of Object.entries(cells)){
  test(`${name}: ninguna celda no-identidad se fuerza a la columna 1`,()=>{
   const desktop=css(file);

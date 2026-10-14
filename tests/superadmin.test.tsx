@@ -100,11 +100,12 @@ test("superadmin keeps its operational controls accessible and responsive", () =
     styles,
     /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
   );
-  // Densidad (#97/#102): ritmo de página por token, encabezado de 56 px alineado
-  // con las cards y sin aire extra arriba.
+  // Densidad (#97/#102): ritmo de página por token, encabezado del sistema (PageHeader)
+  // y sin aire extra arriba.
   assert.match(styles, /padding: var\(--ui-space-2, 8px\) var\(--ui-page-padding, 16px\) var\(--ui-space-6, 24px\)/);
-  assert.match(styles, /min-height: 56px/);
-  assert.match(styles, /border-radius: var\(--ui-radius-card, 12px\)/);
+  // El encabezado de 56–64 px lo aporta el `PageHeader` del sistema (ui-system.css `.ui-page-header`).
+  assert.match(page, /import \{PageHeader, StateChip\} from "\.\.\/ui-v2"/);
+  assert.match(readFileSync(new URL('../app/ui-system.css', import.meta.url), 'utf8'), /\.ui-page-header/);
   assert.match(page, /className="platform-admin-page control-shell"/);
 });
 
@@ -165,7 +166,11 @@ test("rediseño #102: consola con secciones, carga de la app y título único", 
   assert.match(page, /<PlatformAccessDenied message=\{accessMessage\}\/>/);
   assert.match(page, /setAccessMessage\(cause instanceof Error \? cause\.message : ""\)/);
   assert.match(readFileSync(new URL('../app/superadmin/states.tsx', import.meta.url), 'utf8'), /\{message \|\| "Tu sesión está activa/);
-  assert.match(page, /className="platform-admin-identity"/, "marca, rótulo y título comparten la fila del encabezado");
+  // #181: el encabezado es el `PageHeader` del sistema; la marca, el permiso real y la hora quedan como meta/acciones.
+  assert.match(page, /<PageHeader[\s\S]*?eyebrow="Administración global"[\s\S]*?title="Control de Scale OS"/, "rótulo y título salen del PageHeader único");
+  assert.match(page, /subtitle=\{<span className="platform-admin-meta">[\s\S]*?Actualizado \{updated\}/, "el permiso y la hora de actualización viajan como meta del encabezado");
+  assert.match(page, /actions=\{<div className="platform-admin-actions">/, "Actualizar y Panel son las acciones del encabezado");
+  assert.doesNotMatch(page, /<header[^>]*className="platform-admin-header"/, "sin encabezado propio paralelo");
 });
 
 test("rediseño #102: ninguna capacidad del panel se pierde", () => {
@@ -229,7 +234,8 @@ test("rediseño #155 fase 2: resumen útil, orden de secciones y estados propios
   assert.match(readFileSync(new URL("../app/superadmin/agencies.tsx", import.meta.url), "utf8"), /min-h-\[200px\]/);
   assert.match(readFileSync(new URL("../app/superadmin/agencies.tsx", import.meta.url), "utf8"), /No hay agencias que coincidan con el filtro/);
   // Mobile del encabezado en 3 filas y contador de toolbar en su línea.
-  assert.match(styles, /\.platform-admin-identity h1 \{ overflow: hidden; font-size: clamp\(15px, 5vw, 17px\)/);
+  assert.match(styles, /\.platform-admin-top \{ display: flex; flex-wrap: wrap; align-items: center;/);
+  assert.doesNotMatch(styles, /\.platform-admin-header|\.platform-admin-identity/, "el CSS del encabezado propio se retiró");
   assert.match(styles, /\.platform-admin-page \[data-toolbar="filtros"\] > p \{ order: 3; width: 100%/);
 });
 

@@ -16,9 +16,9 @@ const session=Object.fromEntries(readFileSync(resolve(repo,'work/visual-harness'
 const BASE=session.BASE;
 
 const CASES=[
- {name:'equipo-alta', path:'/equipo', ready:'.team-filters', owner:false, open:{text:'Agregar persona'}, submit:'Guardar'},
- {name:'equipo-permisos', path:'/equipo', ready:'.team-filters', owner:false, open:{text:'Permisos del panel'}},
- {name:'perfil', path:'/equipo', ready:'.team-filters', owner:false, open:{aria:'Abrir mi perfil'}},
+ {name:'equipo-alta', path:'/equipo', ready:'[data-toolbar="filtros"]', owner:false, open:{text:'Agregar persona'}, submit:'Guardar'},
+ {name:'equipo-permisos', path:'/equipo', ready:'[data-toolbar="filtros"]', owner:false, open:{text:'Permisos del panel'}},
+ {name:'perfil', path:'/equipo', ready:'[data-toolbar="filtros"]', owner:false, open:{aria:'Abrir mi perfil'}},
  {name:'nueva-empresa', path:'/configuracion', ready:'.settings-slice .settings-card', owner:true, open:{text:'Crear otra empresa'}, submit:'Crear empresa e iniciar prueba'},
 ];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));

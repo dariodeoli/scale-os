@@ -43,7 +43,7 @@ const TARGETS = [
   {key: 'tabs', label: 'Barra de tabs', selectors: ['.section-tabs'], criterio: 'horizontal compacta'},
   {key: 'tabsItem', label: 'Ítem de tab', selectors: ['.section-tabs > a'], criterio: '≥44 px en móvil'},
   {key: 'kpi', label: 'KPI', selectors: ['.ui-kpi', '.kpi-card', '.metric'], criterio: '112–140 px desktop'},
-  {key: 'toolbar', label: 'Toolbar de filtros', selectors: ['[data-toolbar="filtros"]', '.client-directory-toolbar', '.team-filters'], criterio: 'una fila ≥1280, gap 12–16'},
+  {key: 'toolbar', label: 'Toolbar de filtros', selectors: ['[data-toolbar="filtros"]', '.client-directory-toolbar'], criterio: 'una fila ≥1280, gap 12–16'},
   {key: 'card', label: 'Card', selectors: ['.ops-card', '.inventory-equipment', '.client-hub-card'], criterio: 'padding 16–20'},
   {key: 'content', label: 'Ritmo de página', selectors: ['.workspace-content'], criterio: '24–32 desktop / 16 móvil'},
   {key: 'contentBefore', label: 'Ritmo de página (antes)', selectors: ['[data-ritmo="antes"] .content > div'], criterio: 'referencia 48 px en xl'},

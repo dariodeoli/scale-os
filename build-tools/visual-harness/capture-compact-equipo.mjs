@@ -75,7 +75,7 @@ try{
    const mobile=width<768;
    await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
    await send('Page.navigate',{url:BASE+'/equipo'});
-   await waitFor(`document.querySelector('.team-filters')&&(document.querySelector('.person-hub-card')||document.body.innerText.includes('Todavía no hay personas'))`,{label:`Equipo (${width} ${theme})`});
+   await waitFor(`document.querySelector('[data-toolbar="filtros"]')&&(document.querySelector('[data-compact-card],[role="rowgroup"] [role="row"]')||document.body.innerText.includes('Todavía no hay personas'))`,{label:`Equipo (${width} ${theme})`});
    await sleep(1200);
    await evaluate(`(()=>{try{localStorage.setItem('scale-theme',${JSON.stringify(theme)})}catch{};document.documentElement.dataset.theme=${JSON.stringify(theme==='dark'?'dark':'')};return true;})()`);
    await warmImages();
@@ -84,11 +84,11 @@ try{
    // Zoom de la franja de facturación y de la barra de controles (evidencia del cambio).
    const strip=await rectOf('.team-billing-strip,.team-billing-note,.kpi-strip');
    if(strip)await shot(`facturacion-${LABEL}${BILLING==='real'?'':'-'+BILLING+'-contratos'}-${width}-${theme}.jpg`,strip);
-   const bar=await rectOf('.team-filters');
+   const bar=await rectOf('[data-toolbar="filtros"]');
    if(bar)await shot(`barra-${LABEL}-${width}-${theme}.jpg`,bar);
    // Cuánto contenido útil entra en el pliegue: distancia a la primera persona y
    // tarjetas completas visibles sin scroll.
-   const metrics=await evaluate(`(()=>{const first=document.querySelector('.person-hub-card');const cards=[...document.querySelectorAll('.person-hub-card')];const bar=document.querySelector('.team-filters');const height=window.innerHeight;return {barTop:bar?Math.round(bar.getBoundingClientRect().top):null,cardTop:first?Math.round(first.getBoundingClientRect().top):null,tarjetasVisibles:cards.filter(card=>{const box=card.getBoundingClientRect();return box.top>=0&&box.bottom<=height;}).length};})()`);
+   const metrics=await evaluate(`(()=>{const first=document.querySelector('[data-compact-card],[role="rowgroup"] [role="row"]');const cards=[...document.querySelectorAll('[data-compact-card],[role="rowgroup"] [role="row"]')];const bar=document.querySelector('[data-toolbar="filtros"]');const height=window.innerHeight;return {barTop:bar?Math.round(bar.getBoundingClientRect().top):null,cardTop:first?Math.round(first.getBoundingClientRect().top):null,tarjetasVisibles:cards.filter(card=>{const box=card.getBoundingClientRect();return box.top>=0&&box.bottom<=height;}).length};})()`);
    console.log(`métricas ${width}×${height} ${theme}:`,JSON.stringify(metrics));
    measurements.push({label:LABEL,billing:BILLING,width,height,theme,...metrics});
   }

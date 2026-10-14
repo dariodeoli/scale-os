@@ -9,24 +9,24 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 const missing = (path: string) => !existsSync(new URL(`../${path}`, import.meta.url));
 
 // Equipo: el lote no ofrece filas retiradas y una fila vencida no lo aborta.
-const operations = read('app/operations.tsx');
+const operations = read('app/team-workspace.tsx');
 assert.match(
   operations,
-  /selectVisibleAccess[\s\S]*?entry\.member&&!entry\.member\.removed_at&&entry\.member\.email!==currentEmail/,
+  /const selectable=\(entry:Entry\)=>Boolean\(canManageAccess&&entry\.member&&!entry\.member\.removed_at&&entry\.member\.email!==currentEmail\)/,
   'la selección masiva excluye los accesos retirados',
 );
 assert.ok(
-  (operations.match(/entry\.member&&!entry\.member\.removed_at/g) ?? []).length >= 2,
+  (operations.match(/selectable\(entry\)|\.filter\(selectable\)/g) ?? []).length >= 3,
   'el checkbox seleccionable y la selección de visibles comparten el mismo filtro de retirados',
 );
 assert.match(
   operations,
-  /canManageAccess&&selectedAccess\.length\?<div className="bulk-bar"/,
-  'la barra de lote aparece solo cuando hay selección (selección contextual)',
+  /<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.members\} role=\{role\}/,
+  'la barra de lote (BulkBar) aparece solo cuando hay selección (selección contextual)',
 );
 assert.match(
   operations,
-  /for\(const id of selectedAccess\)\{\s*try\{[\s\S]*?catch\{failed\+=1;\}/,
+  /for\(const id of bulk\.ids\)\{\s*try\{[\s\S]*?catch\{failed\+=1;\}/,
   'una fila retirada o vencida no aborta el lote a mitad',
 );
 assert.doesNotMatch(operations, /Acceso retirado'/, 'la tarjeta no repite el estado: sale de TeamAccess');

@@ -1,36 +1,30 @@
 "use client";
 import {money} from './money-format';
 import {currencyChoices} from "./currencies";
-import {SearchField} from './search-field';
-import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
 import { useEffect, useState, useRef, useId, type ReactNode } from "react";
-import {ConfirmDialog,Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
+import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2 } from "lucide-react";
+import { Building2, MessageSquare, Star } from "lucide-react";
 import { AmountInput, SelectCustom } from './profile-controls';
-import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR, personLabel, technicalEmail} from './field-rules';
+import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
 import {PasswordField} from './password-field';
 import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
-import {PersonPhotoField} from './person-photo';
-import {listDateShort} from './list-format';
-import {EmptyBlock,LoadingBlock,ViewSwitch} from './ui-v2';
+import {EmptyBlock,LoadingBlock} from './ui-v2';
 import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
-import {RemoveRecord} from './archive-controls';
 import {ActorIdentity} from './actor-identity';
 import {PersonContainer} from './person-container';
 import {CommentBody,CommentComposer} from './commenting';
-import {notify,notifyMutation} from './feedback';
-import {teamDirectory,filterTeamEntries,TeamMember,ArchivedProfile,teamRoleLabels} from './team-directory';
-import {TeamAccess} from './team-access';
-import {PermissionsMatrix} from './permissions-matrix';
+import {notifyMutation} from './feedback';
+import {teamRoleLabels} from './team-directory';
+import {PeopleWorkspace} from './team-workspace';
 import {dataFetch} from './data-cache';
 import {transporteError} from './workspace-request';
-import {canOpenPeopleWorkspace,roleCan} from './capabilities';
+import {canOpenPeopleWorkspace} from './capabilities';
 
 export async function api<T>(
   path: string,
@@ -239,30 +233,6 @@ export function Editor({
     </form>
   );
 }
-type Person = {
-  id: string;
-  full_name: string;
-  email: string | null;
-  photo_url: string | null;
-  job_title: string | null;
-  compensation_type: string;
-  compensation_amount: string;
-  currency: string;
-  invoices_company: boolean;
-  started_on: string | null;
-  ended_on: string | null;
-  payment_day: number | null;
-  active: boolean;
-  notes: string | null;
-  user_id: string | null;
-  access_email: string | null;
-};
-const types = [
-  { value: "fixed", label: "Fijo mensual" },
-  { value: "variable", label: "Variable" },
-  { value: "hourly", label: "Por hora" },
-  { value: "per_project", label: "Por proyecto" },
-];
 export function OperationsWorkspace({
   role,
   currentEmail='',
@@ -292,324 +262,6 @@ function TeamDirectoryView({organizationName}:{organizationName:string}){
     </section>
   </div>;
 }
-function PeopleWorkspace({
-  role,
-  currentEmail='',
-}: {
-  role: string;
-  currentEmail?:string;
-}) {
-  const {currency:defaultCurrency}=useCompanyCurrency();
-  const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[seedEmail,setSeedEmail]=useState(''),[search,setSearch]=useState('');
-  const [people, setPeople] = useState<Person[]>([]);
-  const [permissionsOpen, setPermissionsOpen] = useState(false);
-  const [loading, setLoading] = useState(true),
-    [error, setError] = useState(""),
-    [notice, setNotice] = useState(""),
-    [edit, setEdit] = useState<Person | "new" | null>(null);
-  const [teamView,setTeamView]=useState<'cards'|'list'>('cards');
-  // La preferencia Lista/Cuadrícula se recuerda por navegador (mismo criterio que Clientes).
-  useEffect(()=>{try{setTeamView(localStorage.getItem('scale:team-view')==='list'?'list':'cards');}catch{/* Optional UI preference. */}},[]);
-  function changeTeamView(value:string){const next=value==='list'?'list':'cards';setTeamView(next);try{localStorage.setItem('scale:team-view',next);}catch{/* Optional UI preference. */}}
-  const [teamFilter,setTeamFilter]=useState<'all'|'active'|'inactive'>('all');
-  const [purgeTarget,setPurgeTarget]=useState<TeamMember|null>(null),[purgeBusy,setPurgeBusy]=useState(false),[purgeError,setPurgeError]=useState('');
-  const canManageAccess=roleCan(role,'members.manage');
-  // Eliminación definitiva (Equipo): solo para accesos ya retirados/suspendidos.
-  async function purgeMember(){
-    if(!purgeTarget||purgeBusy)return;
-    setPurgeBusy(true);setPurgeError('');
-    try{
-      await api(`/api/agency/members/${purgeTarget.id}/permanent`,{},'DELETE');
-      const label=personLabel(purgeTarget,'esta persona');
-      setPurgeTarget(null);await load();
-      notify({tone:'success',message:`${label} salió del equipo.`});
-    }catch(e){setPurgeError(e instanceof Error?e.message:'No se pudo eliminar del equipo.');}
-    finally{setPurgeBusy(false);}
-  }
-  const [selectedAccess,setSelectedAccess]=useState<string[]>([]),[bulkAccessBusy,setBulkAccessBusy]=useState(false);
-  function toggleAccessSelected(id:string){setSelectedAccess(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);}
-  function selectVisibleAccess(){
-    const ids=visiblePeople.filter(entry=>entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail).map(entry=>String(entry.member!.id));
-    setSelectedAccess(current=>{const all=ids.length>0&&ids.every(id=>current.includes(id));return all?current.filter(id=>!ids.includes(id)):[...new Set([...current,...ids])];});
-  }
-  async function batchSetAccess(active:boolean){
-    if(bulkAccessBusy||!selectedAccess.length)return;
-    setBulkAccessBusy(true);setError('');
-    const total=selectedAccess.length;
-    let done=0,failed=0;
-    try{
-      // Una fila retirada o vencida no aborta el lote: se cuenta y se sigue (issue #22).
-      for(const id of selectedAccess){
-        try{await api(`/api/agency/members/${id}`,{active},'PATCH');done+=1;}
-        catch{failed+=1;}
-      }
-      setSelectedAccess([]);await load();
-      const action=active?'reactivado':'suspendido';
-      const plural=(count:string)=>`${count} acceso${count==='1'?'':'s'} ${action}${count==='1'?'':'s'}.`;
-      notify({tone:failed?'warning':'success',message:failed?`${plural(String(done))} ${failed} no se pudieron actualizar (acceso ya retirado).`:plural(String(done))});
-    }catch(cause){setError(message(cause));await load().catch(()=>{});}
-    finally{setBulkAccessBusy(false);}
-  }
-  // Equipo sigue a quienes gestionan personas o ven salarios (sin listas de roles paralelas).
-  const salaryView = roleCan(role, "salary.view");
-  const allowed = canOpenPeopleWorkspace(role);
-  async function load() {
-    const p = await api<{ collaborators: Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[] }>("/api/agency/team");
-    setPeople(p.collaborators);
-    setMembers(p.members||[]);setArchivedProfiles(p.archivedProfiles||[]);
-  }
-  useEffect(() => {
-    if (allowed)
-      load()
-        .catch((e) => setError(message(e)))
-        .finally(() => setLoading(false));
-  }, [allowed]);
-  useEffect(()=>{
-    if(!allowed)return;
-    const refreshIdentity=()=>{void load().catch(e=>setError(message(e)));};
-    window.addEventListener('scale:identity-changed',refreshIdentity);
-    return()=>window.removeEventListener('scale:identity-changed',refreshIdentity);
-  },[allowed]);
-  async function done() {
-    await load();
-    setEdit(null);
-    setNotice("Guardado correctamente.");
-  }
-  if (!allowed)
-    return (
-      <EmptyBlock title="Información restringida" description="Solo administración y finanzas pueden ver remuneraciones y comisiones."/>
-    );
-  const person = edit && edit !== "new" ? edit : null;
-  const empty = { value: "", label: "Sin vincular" };
-  const personFields: Field[] = [
-    { key: "full_name", label: "Nombre completo" },
-    { key: "email", label: "Correo de contacto", type: "email", optional: true },
-    { key: "job_title", label: "Cargo", optional: true },
-    {
-      key: "active", label: "Estado laboral", choices: [
-        { value: "true", label: "Activo" }, { value: "false", label: "Inactivo" },
-      ],
-    },
-    {
-      key: "started_on",
-      label: "Fecha de ingreso",
-      type: "date",
-      optional: true,
-      section: 'Fechas',
-    },
-    { key: "ended_on", label: "Fecha de salida", type: "date", optional: true, section: 'Fechas' },
-    { key: "compensation_type", label: "Modalidad", choices: types, section: 'Remuneración y pagos' },
-    { key: "compensation_amount", label: "Importe acordado", type: "money", section: 'Remuneración y pagos' },
-    { key: "currency", label: "Moneda", choices: currencies, section: 'Remuneración y pagos' },
-    {
-      key: "invoices_company",
-      label: "¿Emite factura?",
-      section: 'Remuneración y pagos',
-      choices: [
-        { value: "true", label: "Sí" },
-        { value: "false", label: "No" },
-      ],
-    },
-    {
-      key: "payment_day",
-      label: "Día de pago (1–31)",
-      choices: [{value:'',label:'Sin definir'},...Array.from({length:31},(_,i)=>({value:String(i+1),label:String(i+1)}))],
-      optional: true,
-      section: 'Remuneración y pagos',
-    },
-    { key: "notes", label: "Condiciones y notas", type: "textarea", optional: true },
-  ];
-  const directory=teamDirectory(people,members,archivedProfiles);
-  const query=search.trim().toLowerCase();
-  const visiblePeople=filterTeamEntries(directory,search,teamFilter);
-  const hasFilters=Boolean(query)||teamFilter!=='all';
-  const peopleSummary=`${visiblePeople.length} de ${directory.length} ${directory.length===1?'persona':'personas'}`;
-  // Un pago sin nombre en el modo activo no se lista: el encabezado de columnas
-  // solo aparece cuando hay filas visibles que lo justifiquen.
-  const personDefaults: Record<string, string> = {
-    full_name: person?.full_name || members.find(member=>member.email===seedEmail)?.full_name || "",
-    job_title: person?.job_title || "",
-    email: person?.email || seedEmail,
-    compensation_type: person?.compensation_type || "fixed",
-    compensation_amount: person?.compensation_amount || "0",
-    currency: person?.currency || defaultCurrency,
-    invoices_company: String(person?.invoices_company || false),
-    started_on: person?.started_on?.slice(0, 10) || "",
-    ended_on: person?.ended_on?.slice(0, 10) || "",
-    payment_day: String(person?.payment_day || 5),
-    active: String(person?.active ?? true),
-    notes: person?.notes || "",
-  };
-  const dialogMember = person
-    ? directory.find(entry=>entry.profile?.id===person.id)?.member || null
-    : members.find(member=>member.email===seedEmail) || null;
-  const [accessDraft,setAccessDraft]=useState<{role:string;active:string}|null>(null);
-  const [accessBusy,setAccessBusy]=useState(false);
-  useEffect(()=>{
-    const member=dialogMember&&!dialogMember.removed_at&&!(dialogMember.email===currentEmail||dialogMember.role==='owner'&&role!=='owner')?dialogMember:null;
-    setAccessDraft(member?{role:member.role,active:String(member.active!==false)}:null);
-  },[dialogMember?.id,dialogMember?.role,dialogMember?.active,dialogMember?.removed_at]);
-  return (
-    <div className="ops-stack">
-      {/* Identidad en el shell (título + apartados): la sección no la repite; el
-          nombre accesible queda en el `aria-label`. */}
-      <section className="panel" aria-label="Personas, accesos y remuneraciones">
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
-        {notice && <p role="status">{notice}</p>}
-        <div className="team-filters" aria-label="Controles del equipo">
-          <SearchField className="team-search" label="Buscar persona" hideLabel value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
-          <div className="choice-list compact" role="group" aria-label="Filtrar por estado laboral">
-            <button type="button" className={teamFilter==='all'?'choice active':'choice'} aria-pressed={teamFilter==='all'} onClick={()=>setTeamFilter('all')}>Todos</button>
-            <button type="button" className={teamFilter==='active'?'choice active':'choice'} aria-pressed={teamFilter==='active'} onClick={()=>setTeamFilter('active')}>Activos</button>
-            <button type="button" className={teamFilter==='inactive'?'choice active':'choice'} aria-pressed={teamFilter==='inactive'} onClick={()=>setTeamFilter('inactive')}>Inactivos</button>
-          </div>
-          <p className="team-count" role="status" aria-atomic="true">{peopleSummary}</p>
-          <div className="workspace-view-controls"><ViewSwitch value={teamView==='list'?'list':'grid'} onChange={changeTeamView}/></div>
-          <div className="team-actions">
-            {roleCan(role,'settings.manage')&&<button type="button" className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>}
-            <button type="button" className="primary" onClick={() => {setSeedEmail('');setEdit("new");}}>
-              <Plus size={16} />
-              Agregar persona
-            </button>
-          </div>
-        </div>
-        {loading ? (
-          <LoadingBlock label="Cargando equipo…" lines={4}/>
-        ) : <>
-          {canManageAccess&&selectedAccess.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count"><b>{selectedAccess.length}</b> seleccionado{selectedAccess.length===1?'':'s'}</span><div className="inline-actions bulk-actions"><button type="button" className="text-button" onClick={selectVisibleAccess}>Seleccionar visibles</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button><button type="button" className="secondary" disabled={bulkAccessBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button><button type="button" className="text-button" onClick={()=>setSelectedAccess([])}>Limpiar</button></div></div>:null}
-          <div className={`ops-grid${teamView==='list'?' ops-grid-list':''}`}>
-            {teamView==='list'?<div className="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Correo</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>:null}
-            {visiblePeople.map((entry) => {const p=entry.profile;const accessRole=entry.member?teamRoleLabels[entry.member.role]||entry.member.role:'';return p?(
-              <article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={p.id}>
-                <header className="person-hub-head">
-                  {canManageAccess&&entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${p.full_name}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
-                  <div className="ops-person" title={p.full_name}>
-                    <PersonContainer size="md" name={p.full_name} photoUrl={p.photo_url||undefined} secondary={p.job_title||'Sin cargo'} verified/>
-                  </div>
-                  <span className="person-hub-state" data-state={p.active?'active':'inactive'}>{p.active?'Activo':'Inactivo'}</span>
-                </header>
-                <p className="person-hub-mail" title={p.email||undefined}>{p.email||'Sin correo'}</p>
-                <div className="person-hub-meta">
-                  {accessRole?<span className="hub-chip" title={`Rol en el panel: ${accessRole}`}>{accessRole}</span>:null}
-                  {p.started_on?<span className="hub-chip" title={`Ingreso ${listDateShort(p.started_on)}`}><span className="person-hub-meta-label">Ingreso </span>{listDateShort(p.started_on)}</span>:null}
-                </div>
-                {salaryView&&Number(p.compensation_amount)>0?<div className="person-hub-chips">
-                  <span className="person-hub-comp">{types.find(type=>type.value===p.compensation_type)?.label||'Sin modalidad'}</span>
-                  {p.payment_day?<span className="hub-chip">{`Día de pago ${p.payment_day}`}</span>:null}
-                  {p.invoices_company?<span className="hub-chip">Emite factura</span>:null}
-                  {p.currency?<span className="hub-chip" title="Moneda de la remuneración">{p.currency}</span>:null}
-                </div>:salaryView&&p.active?<div className="person-hub-chips"><span className="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span></div>:null}
-                {p.ended_on?<div className="person-hub-meta"><span className="hub-chip warn">Salió el {listDateShort(p.ended_on)}</span></div>:null}
-                {p.notes&&<p className="ops-note-preview" title={p.notes}>{p.notes}</p>}
-                <div className="person-hub-tail"><TeamAccess member={entry.member} ambiguous={entry.ambiguous} email={p.email} role={role} refresh={load}/>
-                {entry.ambiguous&&<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>}
-                <footer className="person-hub-actions">
-                  <div className="person-hub-buttons">
-                    <button className="text-button" onClick={() => setEdit(p)}>
-                      <Pencil size={14} />
-                      Perfil
-                    </button>
-                  </div>
-                  <div className="ops-card-actions"><RemoveRecord kind="collaborators" id={p.id} name={p.full_name} role={role} done={load}/></div>
-                </footer></div>
-              </article>
-            ):<article className={`ops-card person-hub-card${teamView==='list'?' is-list':''}`} key={entry.key}>
-              <header className="person-hub-head">
-                {canManageAccess&&entry.member&&entry.member.email!==currentEmail?<label className="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${personLabel(entry.member,'Integrante')}`} checked={selectedAccess.includes(String(entry.member.id))} onChange={()=>toggleAccessSelected(String(entry.member!.id))}/></label>:null}
-                <div className="ops-person" title={entry.member!.full_name||'Integrante sin ficha'}><PersonContainer size="md" name={entry.member!.full_name||'Integrante sin ficha'} photoUrl={entry.member!.photo_url} verified/></div>
-              </header>
-              <p className="person-hub-mail" title={technicalEmail(entry.member!.email)?undefined:entry.member!.email||undefined}>{technicalEmail(entry.member!.email)?`Acceso de demostración · ${teamRoleLabels[entry.member!.role]||'Integrante'}`:entry.member!.email}</p>
-              <div className="person-hub-chips"><span className="hub-chip muted" title="Agregá la ficha laboral para registrar remuneración, fechas y pagos.">Sin ficha laboral</span>{entry.ambiguous?<span className="hub-chip warn" title="Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.">Perfiles ambiguos</span>:null}</div>
-              <div className="person-hub-tail"><TeamAccess member={entry.member} email={technicalEmail(entry.member!.email)?null:entry.member!.email} role={role} refresh={load}/>
-              <footer className="person-hub-actions">
-                <div className="person-hub-buttons">
-                  {entry.archivedProfileId?<button className="icon-button" title={`Restaurar perfil: ${personLabel(entry.member,'Integrante')}`} aria-label={`Restaurar perfil: ${personLabel(entry.member,'Integrante')}`} onClick={async()=>{try{await api(`/api/agency/collaborators/${entry.archivedProfileId}/restore`,{});await load();}catch(e){setError(message(e));}}}><RotateCcw size={16}/></button>:!entry.ambiguous?<button className="icon-button" title={`Agregar ficha laboral: ${personLabel(entry.member,'Integrante')}`} aria-label={`Agregar ficha laboral: ${personLabel(entry.member,'Integrante')}`} onClick={()=>{if(entry.member!.email&&!technicalEmail(entry.member!.email))setSeedEmail(entry.member!.email);setEdit('new');}}><Plus size={16}/></button>:<p>Hay varios perfiles con este correo. Revisalos en Equipo y Papelera.</p>}
-                  <button className="icon-button" title={`Editar ficha: ${personLabel(entry.member,'Integrante')}`} aria-label={`Editar ficha: ${personLabel(entry.member,'Integrante')}`} onClick={()=>{if(entry.member!.email&&!technicalEmail(entry.member!.email))setSeedEmail(entry.member!.email);setEdit('new');}}>
-                    <Pencil size={16}/>
-                  </button>
-                </div>
-                {canManageAccess&&(!entry.member!.active||Boolean(entry.member!.removed_at))&&entry.member!.email!==currentEmail&&!(entry.member!.role==='owner'&&role!=='owner')?<button type="button" className="icon-button record-remove" title={`Eliminar del equipo: ${personLabel(entry.member,'Integrante')}`} aria-label={`Eliminar del equipo: ${personLabel(entry.member,'Integrante')}`} onClick={()=>{setPurgeError('');setPurgeTarget(entry.member!);}}><Trash2 size={16} aria-hidden="true"/></button>:null}
-              </footer></div>
-            </article>;})}
-            {!visiblePeople.length && (
-              <EmptyBlock className="[grid-column:1/-1]" title={hasFilters?'Sin coincidencias':'Todavía no hay personas'} description={hasFilters?'Probá con otro nombre, correo o cargo, o cambiá el filtro.':'Agregá la primera persona del equipo para registrar accesos y remuneraciones.'} action={hasFilters?<button type="button" className="text-button" onClick={()=>{setSearch('');setTeamFilter('all');}}>Limpiar filtros</button>:<button type="button" className="primary" onClick={()=>{setSeedEmail('');setEdit("new");}}><Plus size={16} aria-hidden="true"/>Agregar primera persona</button>}/>
-            )}
-          </div>
-        </>}
-      </section>
-      {purgeTarget?<ConfirmDialog open busy={purgeBusy} variant="danger" title="Eliminar del equipo" confirmLabel="Eliminar del equipo" description={<><strong>{personLabel(purgeTarget,'Esta persona')}</strong>{' '}dejará de aparecer en Equipo y no podrá reingresar con este acceso; sus sesiones se cierran. El historial (piezas, reservas, pagos y comentarios) se conserva, y una nueva invitación la reactiva.{purgeError?<span role="alert" className="mt-2 block font-semibold text-bad">{purgeError}</span>:null}</>} onCancel={()=>{if(!purgeBusy)setPurgeTarget(null);}} onConfirm={()=>void purgeMember()}/>:null}
-      {edit && (
-        <Dialog
-          title={person ? "Editar persona" : "Nueva persona"}
-          close={() => setEdit(null)}
-          size="amplio"
-        >
-          <p className="form-note">
-            {person ? 'El estado laboral no modifica el acceso al panel.' : ['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso; los permisos existentes se conservan.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
-          </p>
-          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.85fr)]">
-            <div className="min-w-0">
-              <Editor
-                columns
-                fields={salaryView?personFields:personFields.filter(field=>!['compensation_amount','currency','payment_day','invoices_company'].includes(field.key))}
-                defaults={personDefaults}
-                save={async (v) => {
-                  const result = await api<{access?:{status:string;emailSent?:boolean}}>(
-                    `/api/agency/collaborators${person ? `/${person.id}` : ""}`,
-                    {
-                      ...v,
-                      ...(person?{invoices_company: v.invoices_company === "true"}:{}),
-                      active: v.active === "true",
-                    },
-                    person ? "PATCH" : "POST",
-                  );
-                  if(accessDraft&&dialogMember)await api(`/api/agency/members/${dialogMember.id}`,{role:accessDraft.role,active:accessDraft.active==='true'},'PATCH');
-                  await done();
-                  if(result.access?.status==='suspended'){setNotice('Perfil guardado. Su acceso sigue suspendido; se administra desde Equipo.');return;}
-                  setNotice(result.access?.status==='invited' ? result.access.emailSent ? 'Colaborador guardado. Acceso habilitado e invitación enviada.' : 'Colaborador guardado y acceso habilitado. No se pudo enviar el correo; puede entrar con Google usando el correo registrado.' : result.access?.status==='linked' ? 'Perfil guardado y acceso vinculado.' : result.access?.status==='needs_admin' ? 'Perfil guardado. Administración debe habilitar el acceso.' : 'Perfil guardado.');
-                }}
-              />
-            </div>
-            {(person||(dialogMember&&!dialogMember.removed_at))&&<aside className="min-w-0 space-y-3">
-              <PersonPhotoField
-                key={person?String(person.id):`member-${dialogMember?.id}`}
-                photo={person?person.photo_url:dialogMember?.photo_url??null}
-                name={person?person.full_name:dialogMember?.full_name||dialogMember?.email||'Integrante'}
-                save={async value=>{
-                  if(person){const result=await api<{collaborator:Person}>(`/api/agency/collaborators/${person.id}`,{photo_url:value},'PATCH');await load();setEdit(result.collaborator);}
-                  else if(dialogMember){await api<{member:{photo_url:string}}>(`/api/agency/members/${dialogMember.id}/photo`,{photo_url:value},'PATCH');await load();}
-                }}
-              />
-              {dialogMember&&!dialogMember.removed_at?<section className="ops-profile-section person-access-panel" aria-label="Acceso al panel">
-                <h3>Acceso al panel</h3>
-                <div className="person-access-body">
-                  {accessDraft?<>
-                    <div className="ops-form-grid">
-                      <SelectCustom label="Permiso" choices={[...(role==='owner'?['owner']:[]),'admin','management','finance','sales','production','editor','viewer','collaborator'].map(v=>({value:v,label:teamRoleLabels[v]||v}))} value={accessDraft.role} onChange={value=>setAccessDraft(draft=>({...draft!,role:value}))}/>
-                      <SelectCustom label="Estado de acceso" choices={[{value:'true',label:'Activo'},{value:'false',label:'Suspendido'}]} value={accessDraft.active} onChange={value=>setAccessDraft(draft=>({...draft!,active:value}))}/>
-                    </div>
-                    <p className="form-note">Cambiar el permiso o suspender el acceso cierra sus sesiones en esta empresa.</p>
-                    <div className="person-access-actions">
-                      {dialogMember.active!==false&&<button type="button" className="secondary" disabled={accessBusy} onClick={async()=>{setAccessBusy(true);try{const d=await api<{emailSent:boolean}>(`/api/agency/members/${dialogMember.id}/resend`,{});setNotice(d.emailSent?'Invitación enviada.':'El proveedor no pudo enviar el correo.');}catch(e){setError(message(e));}finally{setAccessBusy(false);}}}>Reenviar invitación</button>}
-                      <RemoveRecord kind="members" id={dialogMember.id} name={dialogMember.email} role={role} done={load}/>
-                    </div>
-                  </>:<p className="form-note">Tu propio acceso se administra desde Mi perfil; el de otros dueños, desde Equipo.</p>}
-                </div>
-              </section>:person?<TeamAccess member={dialogMember} ambiguous={directory.find(entry=>entry.profile?.id===person.id)?.ambiguous} email={person.email} role={role} refresh={load}/>:null}
-            </aside>}
-          </div>
-        </Dialog>
-      )}
-      {permissionsOpen&&<PermissionsMatrix role={role} close={()=>setPermissionsOpen(false)}/>}
-    </div>
-  );
-}
-
-
 export function ProjectComments({
   projectId,
   name,

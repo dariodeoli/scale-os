@@ -6,24 +6,26 @@
  * Preferencias, Mi perfil, Superadmin, Acceso) se miden en `plt-v2.mjs`,
  * `plt-superadmin-v2.mjs` y `acceso-v2.mjs`; este archivo no las duplica.
  *
- * Espeja el JSX real de: app/operations.tsx (PeopleWorkspace), app/work-history.tsx
+ * Espeja el JSX real de: app/team-workspace.tsx (PeopleWorkspace: ListPage + ListGrid +
+ * CompactCard), app/team-person-sheet.tsx + app/person-sheet.tsx (ficha con pestañas),
+ * app/work-history.tsx
  * (historial v2 de OPS: feed de bloques apilados), app/suite.tsx (Activity/Settings),
  * app/presence.tsx UsagePanel, app/company-settings.tsx y app/scale-workspace.tsx
  * (ajustes).
  * CSS contracts: app/operations.css, app/settings-slice.css, app/company-settings.css,
  * app/dialog.css y los primitivos de app/ui-system.css.
  *
- * Ronda 14 (#62): la toolbar de Equipo junta búsqueda, filtros, contador, vista y
- * acciones en una fila (app/operations.css `.team-filters`), el nombre de las
- * tarjetas usa dos líneas (`.person-container-name` en `.ops-grid`) y el estado
- * vacío lleva CTA ("Agregar primera persona").
+ * #186: Equipo es `ListPage` + `FilterToolbar` (SegmentedField + búsqueda), lista
+ * `ListGrid` (Persona · Datos · Estado · Acceso · Acciones, una plantilla), tarjetas
+ * `CompactCard` y el menú ⋯ (Perfil · Acceso · Eliminar); la ficha de persona es un
+ * `Dialog` drawer con pestañas Perfil · Acceso · Remuneración.
  *
  * Datos de estrés deliberados: nombres/correos largos, montos grandes, fechas con
  * vencimiento y accesos suspendidos. Este archivo no arregla dominio.
  */
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {EmptyState, ListGridToggle} from 'owncoding-ui';
+import {Badge, EmptyState, ListGridToggle, SearchField, SegmentedField} from 'owncoding-ui';
 
 const h = React.createElement;
 /* Vista lista/cuadrícula v2: envuelve ListGridToggle como app/ui-v2.tsx (ViewSwitch). */
@@ -100,68 +102,106 @@ const actorIdentity = ({name, photo = '', timestamp = '', timeText = '', verifie
 };
 const selectCustom = ({label, value}) => `<div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" title="${value}" aria-haspopup="listbox" aria-expanded="false"><span>${value}</span>${svg(ICON.chevron, 16)}</button></div>`;
 const searchField = ({label, placeholder, className = ''}) => `<label class="search-field${className ? ' ' + className : ''}"><span class="search-field-label">${label}</span><span class="search-field-box">${svg(ICON.search, 16)}<input type="search" value="" placeholder="${placeholder}" autocomplete="off"></span></label>`;
-/* Diálogo de persona (app/operations.tsx: Dialog + Editor). Formulario largo con
-   identidad, acceso y secciones plegables; en ≤540 el Dialog es hoja inferior
-   (app/dialog.css) con cuerpo scrolleable y acciones al pie. */
-const equipoDialog = () => `<div class="grid min-w-0 gap-4">
+/* Ficha de persona (app/team-person-sheet.tsx + app/person-sheet.tsx): Dialog
+   drawer con pestañas Perfil · Acceso · Remuneración; cada pestaña guarda por
+   separado. En ≤540 el Dialog es hoja inferior (app/dialog.css). */
+const sheetTabs = (labels, active) => `<div class="view-tabs max-lg:min-w-0 max-lg:max-w-full lg:shrink-0">${renderToStaticMarkup(h(SegmentedField, {className: 'max-lg:flex-nowrap [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8', ariaLabel: 'Secciones de la ficha', value: active, onChange: () => {}, options: labels.map((label) => [label, label])}))}</div>`;
+const equipoDialog = (tab = 'Perfil') => `<div class="grid min-w-0 gap-4">
  <div class="mx-auto flex w-full min-w-0 flex-col overflow-hidden rounded-[20px] border border-ink-600 bg-ink-800" style="max-height:min(88dvh,calc(100dvh - env(safe-area-inset-top)))">
   <div class="dialog-heading"><h2 class="min-w-0">Editar persona</h2><button type="button" class="icon-button" title="Cerrar" aria-label="Cerrar">${svg(ICON.x, 18)}</button></div>
   <div class="dialog-body">
-   <p class="form-note">Al guardar un colaborador activo con correo, vinculamos su acceso automáticamente. El estado laboral no revoca accesos existentes.</p>
-   <div class="person-identity-panel">
-    <section class="ops-profile-section profile-photo-section is-compact person-photo-field" aria-label="Foto de perfil">
-     <div class="profile-photo-summary">
-      <button type="button" class="foto-perfil" aria-label="Cambiar foto de ${people[0].name}"><img src="/brand/icon-192.png" alt="Foto de ${people[0].name}"></button>
-      <div class="profile-photo-controls">
-       <label class="photo-upload">Elegir foto<input type="file" aria-label="Elegir foto (JPG, PNG o WebP; hasta 4 MB)"></label>
-       <button type="button" class="text-button">${svg(ICON.link2, 14)}Usar enlace</button>
-       <button type="button" class="text-button danger">${svg(ICON.trash, 14)}Quitar foto</button>
+   <div class="person-sheet grid min-w-0 gap-4">
+    ${sheetTabs(['Perfil', 'Acceso', 'Remuneración'], tab)}
+    ${tab === 'Perfil' ? `<div role="group" aria-label="Perfil" class="grid min-w-0 gap-4">
+     <p class="form-note">El estado laboral no modifica el acceso al panel.</p>
+     <section class="ops-profile-section profile-photo-section is-compact person-photo-field" aria-label="Foto de perfil">
+      <div class="profile-photo-summary">
+       <button type="button" class="foto-perfil foto-perfil-xl foto-perfil-circulo foto-perfil-persona" aria-label="Cambiar foto de ${people[0].name}"><img src="/brand/icon-192.png" alt=""></button>
+       <div class="profile-photo-controls">
+        <label class="photo-upload">Elegir foto<input type="file" aria-label="Elegir foto (JPG, PNG, WebP o HEIC; hasta 4 MB)"></label>
+        <button type="button" class="text-button">${svg(ICON.link2, 14)}Usar enlace</button>
+        <button type="button" class="text-button danger">${svg(ICON.trash, 14)}Quitar foto</button>
+       </div>
       </div>
+      <p class="form-note">JPG, PNG, WebP o HEIC · Hasta 4 MB. Al subir se guarda automáticamente.</p>
+     </section>
+     <form class="form-stack ops-form-grid" novalidate>
+      <div><label><span>Nombre completo</span><input value="${people[0].name}" maxlength="120"></label></div>
+      <div><label><span>Correo de contacto<span class="field-optional"> · Opcional</span></span><input type="email" value="${people[0].email}"></label></div>
+      <div><label><span>Cargo<span class="field-optional"> · Opcional</span></span><input value="${people[0].cargo}"></label></div>
+      <div>${selectCustom({label: 'Estado laboral', value: 'Activo'})}</div>
+      <details class="ops-profile-section ops-wide" open><summary>Fechas</summary><div class="ops-form-grid">
+       <div><label><span>Fecha de ingreso<span class="field-optional"> · Opcional</span></span><input type="date" value="2023-03-14"></label></div>
+       <div><label><span>Fecha de salida<span class="field-optional"> · Opcional</span></span><input type="date" value=""></label></div>
+      </div></details>
+      <div class="ops-wide"><label><span>Condiciones y notas<span class="field-optional"> · Opcional</span></span><textarea maxlength="2000">Coordina la planificación trimestral de producción y la relación con los clientes de mayor volumen.</textarea></label></div>
+      <div class="ops-wide"><div class="dialog-actions"><button type="submit" class="primary">Guardar perfil</button></div></div>
+     </form>
+    </div>` : tab === 'Acceso' ? `<section class="grid min-w-0 gap-3" aria-label="Acceso al panel">
+     <section class="team-access" aria-label="Acceso al panel">${chipEstado({estado:'activo', etiqueta:'Acceso habilitado', tono:'ok', icono:'badgeCheck'})}</section>
+     <div class="ops-form-grid">
+      ${selectCustom({label: 'Permiso', value: 'Gerencia'})}
+      ${selectCustom({label: 'Estado de acceso', value: 'Activo'})}
      </div>
-     <p class="form-note">JPG, PNG o WebP · Hasta 4 MB. Al subir se guarda automáticamente.</p>
-    </section>
-    <section class="ops-profile-section person-access-panel" aria-label="Acceso al panel">
-     <h3>Acceso al panel</h3>
-     <div class="person-access-body">
-      <p class="form-note">${chipEstado({estado:'activo', etiqueta:'Acceso habilitado', tono:'ok', icono:'badgeCheck'})}</p>
-      <div class="ops-form-grid">
-       ${selectCustom({label: 'Permiso', value: 'Gerencia'})}
-       ${selectCustom({label: 'Acceso', value: 'Activo'})}
-      </div>
-      <p class="form-note">El permiso y el acceso se guardan junto con el perfil. Cambiar permisos o suspender cierra las sesiones de esta persona en esta empresa.</p>
-      <div class="person-access-actions"><button type="button" class="secondary">Reenviar invitación</button>${iconButton({title: 'Quitar acceso', label: 'Quitar acceso', path: ICON.trash, tone: 'record-remove'})}</div>
-     </div>
-    </section>
+     <p class="form-note">Cambiar el permiso o suspender el acceso cierra sus sesiones en esta empresa.</p>
+     <div class="inline-actions"><button type="button" class="primary">Guardar acceso</button><button type="button" class="secondary">Reenviar invitación</button>${iconButton({title: 'Quitar acceso', label: 'Quitar acceso: ' + people[0].email, path: ICON.trash, tone: 'record-remove'})}</div>
+    </section>` : `<div role="group" aria-label="Remuneración" class="grid min-w-0 gap-4">
+     <p class="form-note">La remuneración solo la ven y editan administración y finanzas.</p>
+     <form class="form-stack ops-form-grid" novalidate>
+      ${selectCustom({label: 'Modalidad', value: 'Fijo mensual'})}
+      <div><label><span>Importe acordado</span><span class="amount-field" data-currency="PYG"><span class="amount-currency" aria-hidden="true">Gs</span><input type="text" inputmode="numeric" value="4.500.000"></span></label></div>
+      ${selectCustom({label: 'Moneda', value: 'Guaraníes (PYG)'})}
+      ${selectCustom({label: '¿Emite factura?', value: 'Sí'})}
+      ${selectCustom({label: 'Día de pago (1–31)', value: '15'})}
+      <div class="ops-wide"><div class="dialog-actions"><button type="submit" class="primary">Guardar remuneración</button></div></div>
+     </form>
+    </div>`}
    </div>
-   <form class="form-stack ops-form-grid" novalidate>
-    <div><label><span>Nombre completo</span><input value="${people[0].name}" maxlength="120"></label></div>
-    <div><label><span>Correo de contacto<span class="field-optional"> · Opcional</span></span><input type="email" value="${people[0].facts.email}"></label></div>
-    <div>${selectCustom({label: 'Estado laboral', value: 'Activo'})}</div>
-    <details class="ops-profile-section ops-wide" open><summary>Fechas</summary><div class="ops-form-grid">
-     <div><label><span>Fecha de ingreso<span class="field-optional"> · Opcional</span></span><input type="date" value="2023-03-14"></label></div>
-     <div><label><span>Fecha de salida<span class="field-optional"> · Opcional</span></span><input type="date" value=""></label></div>
-    </div></details>
-    <details class="ops-profile-section ops-wide" open><summary>Remuneración y pagos</summary><div class="ops-form-grid">
-     ${selectCustom({label: 'Modalidad', value: 'Fijo mensual'})}
-     <div><label><span>Importe acordado</span><span class="amount-field" data-currency="PYG"><span class="amount-currency" aria-hidden="true">Gs</span><input type="text" inputmode="numeric" value="4.500.000"></span></label></div>
-     ${selectCustom({label: 'Moneda', value: 'Guaraníes (PYG)'})}
-     ${selectCustom({label: 'Día de pago (1–31)', value: '15'})}
-    </div></details>
-    <div class="ops-wide"><label><span>Condiciones y notas<span class="field-optional"> · Opcional</span></span><textarea maxlength="2000">Coordina la planificación trimestral de producción y la relación con los clientes de mayor volumen.</textarea></label></div>
-   </form>
   </div>
-  <div class="dialog-footer"><div class="dialog-actions"><button type="button" class="secondary">Cancelar</button><button type="button" class="primary">Guardar</button></div></div>
+  <div class="dialog-footer"></div>
  </div>
 </div>`;
 
-/* Toolbar del equipo (app/operations.tsx): búsqueda, filtros, contador, vista y
-   acciones en la misma fila (`.team-filters`). */
-const teamToolbar = (count = '5 de 5 personas') => `<div class="team-filters" aria-label="Controles del equipo">
- ${searchField({label: 'Buscar persona', placeholder: 'Nombre, correo o cargo', className: 'team-search'})}
- <div class="choice-list compact" role="group" aria-label="Filtrar por estado laboral"><button type="button" class="choice active" aria-pressed="true">Todos</button><button type="button" class="choice" aria-pressed="false">Activos</button><button type="button" class="choice" aria-pressed="false">Inactivos</button></div>
- <p class="team-count" role="status" aria-atomic="true">${count}</p>
- <div class="workspace-view-controls">${viewSwitch('grid')}</div>
- <div class="team-actions"><button type="button" class="secondary">Permisos del panel</button><button type="button" class="primary">${svg(ICON.plus, 16)}Agregar persona</button></div>
+/* «Mi perfil» (app/my-profile.tsx): la misma ficha en modo propio — Perfil · Acceso ·
+   Mis datos, sin Remuneración. Identidad, foto (PersonPhotoField) y nombre. */
+const perfilPropio = () => `<div class="grid min-w-0 gap-4">
+ <div class="mx-auto flex w-full min-w-0 flex-col overflow-hidden rounded-[20px] border border-ink-600 bg-ink-800" style="max-height:min(88dvh,calc(100dvh - env(safe-area-inset-top)))">
+  <div class="dialog-heading"><h2 class="min-w-0">Mi perfil</h2><button type="button" class="icon-button" title="Cerrar" aria-label="Cerrar">${svg(ICON.x, 18)}</button></div>
+  <div class="dialog-body">
+   <div class="person-sheet grid min-w-0 gap-4">
+    ${sheetTabs(['Perfil', 'Acceso', 'Mis datos'], 'Perfil')}
+    <div role="group" aria-label="Perfil" class="grid min-w-0 gap-4">
+     <section class="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4" data-profile-section="identity">
+      <p class="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Identidad personal</p>
+      <div class="flex min-w-0 items-center gap-3"><span class="foto-perfil foto-perfil-2xl foto-perfil-circulo foto-perfil-persona" aria-hidden="true"><span class="foto-perfil-iniciales">LA</span></span><div class="min-w-0"><h3 class="truncate text-[15px] font-semibold text-fore">Lucía Acosta</h3><p class="break-words text-[12px] text-mute">lucia.acosta.con.un.correo.largo@estudiocomunicacionparaguay.com.py</p></div></div>
+      <p class="text-[11.5px] text-mute">Tu correo de acceso se mantiene protegido. Nombre y foto se comparten entre tus empresas.</p>
+     </section>
+     <section class="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" data-profile-section="edit">
+      <p class="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Editar perfil</p>
+      <section class="ops-profile-section profile-photo-section is-compact person-photo-field" aria-label="Foto de perfil">
+       <div class="profile-photo-summary">
+        <button type="button" class="foto-perfil foto-perfil-xl foto-perfil-circulo foto-perfil-persona" aria-label="Elegir foto de Lucía Acosta"><span class="foto-perfil-iniciales" aria-hidden="true">LA</span></button>
+        <div class="profile-photo-controls"><label class="photo-upload">Elegir foto<input type="file" aria-label="Elegir foto (JPG, PNG, WebP o HEIC; hasta 4 MB)"></label><button type="button" class="text-button">${svg(ICON.link2, 14)}Usar enlace</button></div>
+       </div>
+       <p class="form-note">JPG, PNG, WebP o HEIC · Hasta 4 MB. Al subir se guarda automáticamente.</p>
+      </section>
+      <form class="form-stack" novalidate><div><label><span>Nombre completo</span><input value="Lucía Acosta" maxlength="120"></label></div><div class="dialog-actions"><button type="button" class="secondary">Cancelar</button><button type="submit" class="primary">Guardar nombre</button></div></form>
+      <p class="text-[11.5px] text-mute">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
+     </section>
+    </div>
+   </div>
+  </div>
+  <div class="dialog-footer"></div>
+ </div>
+</div>`;
+
+/* Encabezado + toolbar del equipo (app/team-workspace.tsx): ListPage con acción
+   primaria + ViewSwitch a la derecha y FilterToolbar con filtros segmentados. */
+const teamHeader = (view = 'list') => `<div class="grid gap-3"><header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 !mb-0"><div class="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3"></div><div class="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap"><button type="button" class="secondary">Permisos del panel</button><button type="button" class="primary">${svg(ICON.plus, 16)}Agregar persona</button>${viewSwitch(view)}</div></header></div>`;
+const teamToolbar = (count = '5 de 5 personas') => `<div data-toolbar="filtros" class="mb-0 flex flex-wrap items-end gap-3 xl:flex-nowrap">
+ ${renderToStaticMarkup(h(SegmentedField, {className: '[&>button]:min-h-11 md:[&>button]:min-h-8', ariaLabel: 'Filtrar por estado laboral', value: 'all', onChange: () => {}, options: [['all', 'Todos'], ['active', 'Activos'], ['inactive', 'Inactivos']]}))}
+ ${renderToStaticMarkup(h(SearchField, {value: '', onChange: () => {}, onClear: () => {}, placeholder: 'Nombre, correo o cargo', ariaLabel: 'Buscar persona', className: 'w-full sm:w-72'}))}
+ <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute"><span role="status" aria-atomic="true">${count}</span></p>
 </div>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
 const amountCell = (text) => `<dd class="list-amount">${text}</dd>`;
@@ -169,118 +209,52 @@ const amountCell = (text) => `<dd class="list-amount">${text}</dd>`;
 const PHONE_HELP = 'Elegí el país y escribí solo dígitos, sin el 0 inicial. Paraguay: 9 dígitos para móvil, 8 para fijo; el resto: 6 a 12.';
 
 /* ---------------------------------------------------------------- equipo */
-/* El perfil laboral reserva las tres filas (Correo, Acceso, Ingreso); el miembro
-   sin ficha solo muestra Correo y Acceso (operations.tsx 572-605). */
-const personFacts = ({email, accessRole, accessState, startedOn}, member = false) => `<dl class="person-hub-facts">
- <div><dt>Correo</dt><dd title="${email}">${email}</dd></div>
- <div><dt>Acceso</dt><dd title="${accessRole} · ${accessState}">${accessRole} · ${accessState}</dd></div>
- ${member ? '' : `<div><dt>Ingreso</dt><dd class="list-date">${startedOn || 'Sin fecha'}</dd></div>`}
-</dl>`;
-/* Lista: markup real de Equipo (correo y datos como celdas propias de la plantilla). */
-const personListFacts = ({email, accessRole, startedOn}, member = false) => `<p class="person-hub-mail" title="${email}">${email}</p>
- <div class="person-hub-meta"><span class="hub-chip" title="Rol en el panel: ${accessRole}">${accessRole}</span>${member || !startedOn ? '' : `<span class="hub-chip"><span class="person-hub-meta-label">Ingreso </span>${startedOn}</span>`}</div>`;
+const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
+const stateChip = (tone, text, title = '') => renderToStaticMarkup(h(Badge, {color: CHIP[tone], title: title || undefined, className: 'whitespace-nowrap'}, text));
 /* ChipEstado de owncoding-ui v0.39: mismo markup y tonos que el objeto. */
 const CHIP_TONES = {ok:'border-ok/30 bg-ok/10 text-ok-text',warn:'border-warn/30 bg-warn/10 text-warn-text',bad:'border-bad/30 bg-bad/10 text-bad-text',mute:'border-ink-600 bg-ink-800/40 text-mute'};
-const chipEstado = ({estado = 'pendiente', etiqueta, tono = 'mute', icono = 'circleX'}) => `<span data-estado="${estado}" title="${etiqueta}" class="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[11px] font-semibold ${CHIP_TONES[tono]}">${svg(ICON[icono] || ICON.circleX, 12)}${etiqueta}</span>`;
-const ACCESS_CHIP = {'is-active':{estado:'activo',tono:'ok',icono:'badgeCheck'},'is-suspended':{estado:'suspendido',tono:'bad',icono:'triangle'},'is-none':{estado:'pendiente',tono:'mute',icono:'refresh'},'is-removed':{estado:'anulado',tono:'mute',icono:'x'}};
-const teamAccess = ({statusLabel, statusClass, action}) => `<section class="team-access" aria-label="Acceso al panel">
- ${chipEstado({...(ACCESS_CHIP[statusClass] || ACCESS_CHIP['is-none']), etiqueta: statusLabel})}
- ${action ? `<div class="team-access-actions"><button type="button" class="secondary">${action}</button></div>` : ''}
-</section>`;
-const personActions = (person) => `<footer class="person-hub-actions">
- <div class="person-hub-buttons">${person.actions.profile ? `<button class="text-button">${svg(ICON.pencil, 14)}Perfil</button>` : ''}</div>
- ${person.actions.remove ? `<div class="ops-card-actions">${iconButton({title: 'Mover a la papelera', label: `Mover a la papelera: ${person.name}`, path: ICON.trash, tone: 'record-remove'})}</div>` : ''}
-</footer>`;
-
-const people = [
-  {
-    kind: 'profile',
-    name: 'María José Fernández de la Vega y Rivarola',
-    photo: '/brand/icon-192.png',
-    role: 'Gerencia',
-    state: 'Activo',
-    facts: {email: 'maria.jose.fernandez.delavega@estudiocomunicacionparaguay.com.py', accessRole: 'Gerencia', accessState: 'Acceso habilitado', startedOn: '14-mar'},
-    chips: '<span class="person-hub-comp">Fijo mensual</span><span class="hub-chip">Día de pago 15</span><span class="hub-chip">Emite factura</span>',
-    notes: 'Coordina la planificación trimestral de producción, el calendario de rodajes y la relación con los clientes de mayor volumen.',
-    access: {statusLabel: 'Acceso habilitado', statusClass: 'is-active', action: ''},
-    actions: {profile: true, remove: true},
-  },
-  {
-    kind: 'profile',
-    name: 'Carlos Ramón Ovelar Giménez',
-    photo: '',
-    role: 'Producción',
-    state: 'Inactivo',
-    facts: {email: 'carlos.ramon.ovelar.gimenez@productora-paraguay.com.py', accessRole: 'Producción', accessState: 'Acceso suspendido', startedOn: '02-feb'},
-    chips: '<span class="person-hub-comp">Por hora</span><span class="hub-chip">Día de pago 30</span><span class="hub-chip warn">Salió el 12-sept</span>',
-    notes: 'Acceso suspendido mientras se revisa la asignación de equipos del último rodaje. Conserva pagos y comentarios.',
-    access: {statusLabel: 'Acceso suspendido', statusClass: 'is-suspended', action: ''},
-    actions: {profile: true, remove: true},
-  },
-  {
-    kind: 'profile',
-    name: 'Ana Paula Benítez de la Cruz',
-    photo: '/brand/icon-192.png',
-    role: 'Finanzas',
-    state: 'Activo',
-    salaryMissing: true,
-    facts: {email: 'ana.paula.benitez.delacruz@estudiocomunicacionparaguay.com.py', accessRole: 'Finanzas', accessState: 'Acceso habilitado', startedOn: '20-jul-2023'},
-    chips: '<span class="person-hub-comp">Fijo mensual</span><span class="hub-chip">Día de pago 5</span><span class="hub-chip">Emite factura</span>',
-    notes: '',
-    access: {statusLabel: 'Acceso habilitado', statusClass: 'is-active', action: ''},
-    actions: {profile: true, remove: true},
-  },
-  {
-    kind: 'member',
-    name: 'Fabrizio Dellacasa Reyes',
-    photo: '/brand/icon-192.png',
-    memberActive: true,
-    accessRole: 'Producción',
-    accessState: 'Acceso habilitado',
-    facts: {email: 'fabrizio.dellacasa.reyes@estudiocomunicacionparaguay.com.py', accessRole: 'Producción', accessState: 'Acceso habilitado', startedOn: ''},
-    access: {statusLabel: 'Acceso habilitado', statusClass: 'is-active', action: 'Invitar al panel'},
-    actions: {profile: false, remove: false},
-  },
-  {
-    kind: 'member',
-    name: 'Ramón Augusto Villalba de Jesús',
-    photo: '',
-    memberActive: false,
-    accessRole: 'Editor',
-    accessState: 'Acceso suspendido',
-    facts: {email: 'ramon.augusto.villalba.dejesus@estudiocomunicacionparaguay.com.py', accessRole: 'Editor', accessState: 'Acceso suspendido', startedOn: ''},
-    access: {statusLabel: 'Acceso suspendido', statusClass: 'is-suspended', action: 'Reinvitar'},
-    actions: {profile: false, remove: false},
-  },
-];
-
-const personCard = (person, list = false) => {
-  const isMember = person.kind === 'member';
-  // En lista la app baja el contenedor a 32px (PersonContainer md) y en cuadrícula a 48px (lg).
-  const initials = person.name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase();
-  const avatar = `<div class="ops-person" title="${person.name}"><span class="person-container person-container-${list ? 'md' : 'lg'}"><span class="foto-perfil" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : initials}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span>${person.role ? `<span class="person-container-secondary" title="${person.role}">${person.role}</span>` : ''}</span></span></div>`;
-  const stateLabel = isMember ? (person.memberActive ? 'Acceso activo' : 'Acceso suspendido') : person.state;
-  const stateAttr = isMember ? (person.memberActive ? 'active' : 'inactive') : (person.state === 'Activo' ? 'active' : 'inactive');
-  const chips = isMember
-    ? `<div class="person-hub-chips">${person.salaryMissing ? '<span class="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span>' : ''}<span class="hub-chip muted">Sin ficha laboral: agregala para registrar remuneración, fechas y pagos.</span></div>`
-    : `<div class="person-hub-chips">${person.salaryMissing ? '<span class="hub-chip warn" title="Sin salario definido: abrí Perfil y completá la remuneración.">Sin salario definido</span>' : ''}${person.chips}</div>`;
-  // Las notas son hijas directas de la tarjeta: en lista ocupan la fila 2
-  // (.person-hub-card.is-list>.ops-note-preview) y nunca viajan dentro del pie.
-  const note = person.notes ? `<p class="ops-note-preview" title="${person.notes}">${person.notes}</p>` : '';
-  const tail = `<div class="person-hub-tail">${teamAccess(person.access)}${isMember ? `<footer class="person-hub-actions"><div class="person-hub-buttons"><button class="text-button">${svg(ICON.plus, 14)}Agregar ficha laboral</button><button class="text-button">${svg(ICON.pencil, 14)}Editar</button></div></footer>` : personActions(person)}</div>`;
-  return `
-<article class="ops-card person-hub-card${list ? ' is-list' : ''}">
- <header class="person-hub-head">
-  <label class="select-check" title="Seleccionar integrante"><input type="checkbox" aria-label="Seleccionar ${person.name}"></label>
-  ${avatar}
-  <span class="person-hub-state" data-state="${stateAttr}">${stateLabel}</span>
- </header>
- ${list ? personListFacts(person.facts, isMember) : personFacts(person.facts, isMember)}
- ${chips}
- ${note}
- ${tail}
-</article>`;
+const chipEstado = ({estado = 'pendiente', etiqueta, tono = 'mute', icono = 'circleX'}) => `<span data-estado="${estado}" title="${etiqueta}" class="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-xs font-semibold ${CHIP_TONES[tono]}">${svg(ICON[icono], 14)}${etiqueta}</span>`;
+const TEAM_TEMPLATE = 'grid-cols-[minmax(13rem,1.6fr)_minmax(12rem,1.3fr)_6rem_minmax(9rem,0.9fr)_4.5rem]';
+const ACCESS = {
+  activo: ['ok', 'Habilitado', 'Acceso habilitado'],
+  suspendido: ['bad', 'Suspendido', 'Acceso suspendido'],
+  anulado: ['mute', 'Retirado', 'Acceso retirado'],
+  pendiente: ['mute', 'Sin acceso', 'Sin acceso al panel'],
 };
+const menuTrigger = (label) => `<button type="button" aria-haspopup="menu" aria-expanded="false" class="inline-flex items-center gap-2 rounded-lg transition"><span class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-hidden="true">⋮</span><span class="sr-only">${label}</span></button>`;
+const initialsOf = (name) => name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join('').toUpperCase();
+const personContainer = (person) => `<span class="person-container person-container-md"><span class="foto-perfil foto-perfil-lg foto-perfil-circulo foto-perfil-persona" aria-hidden="true">${person.photo ? `<img src="${person.photo}" alt="" referrerpolicy="no-referrer">` : `<span class="foto-perfil-iniciales" aria-hidden="true">${initialsOf(person.name)}</span>`}</span><span class="person-container-details"><span class="person-container-name" title="${person.name}">${person.name}</span>${person.cargo ? `<span class="person-container-secondary" title="${person.cargo}">${person.cargo}</span>` : ''}</span></span>`;
+const people = [
+  {kind: 'profile', name: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', cargo: 'Gerente de producción', email: 'maria.jose.fernandez.delavega@estudiocomunicacionparaguay.com.py', meta: ['Ingreso 14-mar', 'Fijo mensual'], active: true, role: 'Gerencia', access: 'activo'},
+  {kind: 'profile', name: 'Carlos Ramón Ovelar Giménez', photo: '', cargo: 'Productor audiovisual', email: 'carlos.ramon.ovelar.gimenez@productora-paraguay.com.py', meta: ['Ingreso 02-feb', 'Salió 12-sept', 'Por hora'], active: false, role: 'Producción', access: 'suspendido'},
+  {kind: 'profile', name: 'Ana Paula Benítez de la Cruz', photo: '/brand/icon-192.png', cargo: 'Contadora', email: 'ana.paula.benitez.delacruz@estudiocomunicacionparaguay.com.py', meta: ['Ingreso 20-jul', 'Sin salario definido'], active: true, role: 'Finanzas', access: 'activo'},
+  {kind: 'profile', name: 'Lucía Fernanda Centurión Aquino', photo: '', cargo: '', email: 'lucia@estudio.com.py', meta: ['Ingreso 05-ene'], active: true, role: 'Ventas', access: 'pendiente'},
+  {kind: 'member', name: 'Fabrizio Dellacasa Reyes', photo: '/brand/icon-192.png', cargo: '', email: 'fabrizio.dellacasa.reyes@estudiocomunicacionparaguay.com.py', meta: [], active: true, role: 'Producción', access: 'activo'},
+  {kind: 'member', name: 'Ramón Augusto Villalba de Jesús', photo: '', cargo: '', email: 'ramon.augusto.villalba.dejesus@estudiocomunicacionparaguay.com.py', meta: [], active: false, role: 'Editor', access: 'suspendido'},
+];
+const factsTitle = (person) => [person.email, ...person.meta].join(' · ');
+const statusChip = (person) => person.kind === 'member' ? stateChip('mute', 'Sin ficha', 'Agregá la ficha laboral para registrar fechas y pagos.') : person.active ? stateChip('ok', 'Activo') : stateChip('warn', 'Inactivo');
+const accessChipOf = (person) => { const [tone, label, title] = ACCESS[person.access]; return stateChip(tone, label, title); };
+const teamRow = (person) => `<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 team-row ${TEAM_TEMPLATE}">
+ <div role="cell" class="flex min-w-0 items-center gap-1"><label class="select-check flex h-11 w-8 shrink-0 items-center justify-center md:h-8" title="Seleccionar integrante"><input type="checkbox" aria-label="Seleccionar ${person.name}"></label><div class="min-w-0" title="${person.name}">${personContainer(person)}</div></div>
+ <span role="cell" class="min-w-0 truncate text-[12px] leading-tight text-mute" title="${factsTitle(person)}">${person.email}${person.meta.map((item) => ` · ${item}`).join('')}</span>
+ <span role="cell" class="min-w-0">${statusChip(person)}</span>
+ <span role="cell" class="flex min-w-0 items-center gap-1.5" title="${person.role} · ${ACCESS[person.access][2]}"><span class="min-w-0 truncate text-[12px] text-mute">${person.role}</span>${accessChipOf(person)}</span>
+ <div role="cell" class="list-actions">${menuTrigger('Acciones de ' + person.name)}</div>
+</div>`;
+const teamList = (rows) => `<div role="table" aria-label="Equipo" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[48rem]">
+ <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${TEAM_TEMPLATE}"><span role="columnheader" class="text-left whitespace-nowrap">Persona</span><span role="columnheader" class="text-left whitespace-nowrap">Datos</span><span role="columnheader" class="text-left whitespace-nowrap">Estado</span><span role="columnheader" class="text-left whitespace-nowrap">Acceso</span><span role="columnheader" class="text-right whitespace-nowrap list-actions-head">Acciones</span></div>
+ <div role="rowgroup">${rows.map(teamRow).join('')}</div>
+</div></div>`;
+const teamCard = (person) => `<article data-compact-card class="flex min-w-0 flex-col gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3 shadow-sm">
+ <header class="flex min-w-0 items-start justify-between gap-2">
+  <button type="button" class="min-h-11 min-w-0 flex-1 text-left text-[13.5px] font-semibold leading-5 text-fore outline-none transition-colors hover:text-fono-light md:min-h-0" aria-label="Abrir ${person.name}">${personContainer(person)}</button>
+  <span class="flex shrink-0 items-center gap-1"><label class="select-check flex h-11 w-8 shrink-0 items-center justify-center md:h-8" title="Seleccionar integrante"><input type="checkbox" aria-label="Seleccionar ${person.name}"></label><div class="relative">${menuTrigger('Acciones de ' + person.name)}</div></span>
+ </header>
+ <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] leading-4 text-mute"><span class="min-w-0 truncate" title="${person.email}">${person.email}</span>${person.meta.map((item) => `<span class="whitespace-nowrap">· ${item}</span>`).join('')}</div>
+ <div class="flex min-w-0 flex-wrap items-center gap-1">${statusChip(person)}<span class="text-[11.5px] text-mute">${person.role}</span>${accessChipOf(person)}</div>
+</article>`;
+const bulkBar = (count) => `<div role="status" aria-live="polite" data-bulk-bar class="bulk-bar"><span class="bulk-count"><b>${count}</b> de 50 seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button min-h-11 md:min-h-8">Seleccionar visibles</button><button type="button" class="secondary min-h-11 md:min-h-10">Suspender acceso</button><button type="button" class="secondary min-h-11 md:min-h-10">Reactivar acceso</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button></div></div>`;
 
 /* ---------------------------------------------------- historial / actividad */
 const historyLine = ({actor, photo = '', timestamp, title, meta}) => `<li class="grid min-w-0 gap-1 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3">
@@ -336,26 +310,22 @@ export default [
   {
     id: 'equipo-lista',
     section: 'Equipo',
-    surface: 'Personas en lista',
+    surface: 'Personas en lista (ListGrid v2)',
     kind: 'workspace',
     lists: [{
-      container: '.ops-grid.ops-grid-list',
-      head: '.person-hub-head-row',
-      row: '.person-hub-card',
+      container: '[role="table"]',
+      head: '[role="row"]',
+      row: '[role="rowgroup"] [role="row"]',
       label: 'Equipo · lista',
-      template: '--person-cols',
       rowHeight: [44, 52],
       exemptBelow: 767,
     }],
     body: `
-<section class="panel">
- <div class="mb-3 min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Equipo de Estudio de Comunicación y Producción Audiovisual del Paraguay: directorio, roles y estado de cada integrante.</p></div>
+<section data-list-page class="grid min-w-0 gap-4 directory grid-cols-[minmax(0,1fr)]" aria-label="Personas, accesos y remuneraciones">
+ ${teamHeader('list')}
  ${teamToolbar()}
- <div class="ops-grid ops-grid-list">
-  <div class="bulk-bar" role="status" aria-live="polite"><span class="bulk-count"><b>2</b> seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button">Seleccionar visibles</button><button type="button" class="secondary">Suspender acceso</button><button type="button" class="secondary">Reactivar acceso</button><button type="button" class="text-button">Limpiar</button></div></div>
-  <div class="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Correo</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>
-  ${people.map((person) => personCard(person, true)).join('')}
- </div>
+ ${bulkBar(2)}
+ ${teamList(people)}
 </section>`,
   },
 
@@ -365,35 +335,65 @@ export default [
     surface: 'Personas · estado vacío con CTA',
     kind: 'workspace',
     body: `
-<section class="panel">
- <div class="mb-3 min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Personas, accesos y remuneraciones</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Equipo de Estudio de Comunicación y Producción Audiovisual del Paraguay: directorio, roles y estado de cada integrante.</p></div>
+<section data-list-page class="grid min-w-0 gap-4 directory grid-cols-[minmax(0,1fr)]" aria-label="Personas, accesos y remuneraciones">
+ ${teamHeader('list')}
  ${teamToolbar('0 de 0 personas')}
- <div class="ops-grid">
-  ${emptyBlock({title: 'Todavía no hay personas', description: 'Agregá la primera persona del equipo para registrar accesos y remuneraciones.', action: h('button', {type: 'button', className: 'primary'}, h('svg', {width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': 'true'}, h('path', {d: 'M12 5v14M5 12h14'})), 'Agregar primera persona'), className: '[grid-column:1/-1]'})}
- </div>
+ ${emptyBlock({title: 'Todavía no hay personas', description: 'Agregá la primera persona del equipo para registrar accesos y remuneraciones.', action: h('button', {type: 'button', className: 'primary'}, h('svg', {width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': 'true', dangerouslySetInnerHTML: {__html: ICON.plus}}), 'Agregar primera persona')})}
 </section>`,
   },
 
   {
     id: 'equipo-cuadricula',
     section: 'Equipo',
-    surface: 'Personas en cuadrícula',
+    surface: 'Personas en cuadrícula (CompactCard)',
     kind: 'workspace',
-    grids: [{container: '.ops-grid', card: '.person-hub-card', label: 'Equipo · cuadrícula', minHeight: 200}],
-    body: `<div class="ops-grid">${people.map((person) => personCard(person, false)).join('')}</div>`,
+    grids: [],
+    body: `
+<section data-list-page class="grid min-w-0 gap-4 directory grid-cols-[minmax(0,1fr)]" aria-label="Personas, accesos y remuneraciones">
+ ${teamHeader('grid')}
+ ${teamToolbar()}
+ <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">${people.map(teamCard).join('')}</div>
+</section>`,
   },
-
-
-
 
   {
     id: 'equipo-dialogo',
     section: 'Equipo',
-    surface: 'Diálogo de persona (formulario largo)',
+    surface: 'Ficha de persona · pestaña Perfil (drawer)',
     kind: 'workspace',
     lists: [],
     grids: [],
-    body: equipoDialog(),
+    body: equipoDialog('Perfil'),
+  },
+
+  {
+    id: 'equipo-dialogo-acceso',
+    section: 'Equipo',
+    surface: 'Ficha de persona · pestaña Acceso (drawer)',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: equipoDialog('Acceso'),
+  },
+
+  {
+    id: 'equipo-dialogo-remuneracion',
+    section: 'Equipo',
+    surface: 'Ficha de persona · pestaña Remuneración (solo salary.view)',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: equipoDialog('Remuneración'),
+  },
+
+  {
+    id: 'perfil-ficha-propia',
+    section: 'Equipo',
+    surface: 'Mi perfil · ficha propia (Perfil · Acceso · Mis datos)',
+    kind: 'workspace',
+    lists: [],
+    grids: [],
+    body: perfilPropio(),
   },
 
   {

@@ -55,14 +55,14 @@ const rectOf=selector=>evaluate(`(()=>{const element=document.querySelector(${JS
 
 // Mide el corte real de cada nombre: `scrollWidth > clientWidth` significa ellipsis.
 const measure=()=>evaluate(`(()=>{
- const grid=document.querySelector('.ops-grid-list,.ops-grid');
- const rows=[...document.querySelectorAll('.person-hub-card')];
+ const grid=document.querySelector('[role="table"],[data-list-page]');
+ const rows=[...document.querySelectorAll('[data-compact-card],[role="rowgroup"] [role="row"]')];
  const names=rows.map(row=>{
   const el=row.querySelector('.person-container-name'),sec=row.querySelector('.person-container-secondary');
   const rect=el?el.getBoundingClientRect():null;
   return {name:el?el.textContent.trim():'',width:rect?Math.round(rect.width):0,scroll:el?el.scrollWidth:0,client:el?el.clientWidth:0,cut:el?el.scrollWidth>el.clientWidth+1:false,cargo:sec?sec.textContent.trim():'',cargoCut:sec?sec.scrollWidth>sec.clientWidth+1:false,title:el?el.getAttribute('title')||'':''};
  });
- const mail=rows.map(row=>row.querySelector('.person-hub-mail')).filter(Boolean);
+ const mail=rows.map(row=>row.querySelector('[role="cell"].truncate')).filter(Boolean);
  const style=grid?getComputedStyle(grid):null;
  return {rows:rows.length,names,cols:style?style.getPropertyValue('--person-cols').trim():'',template:style?style.gridTemplateColumns:'',gridWidth:grid?Math.round(grid.getBoundingClientRect().width):0,mailSize:mail.length,mailCut:mail.filter(el=>el.scrollWidth>el.clientWidth+1).length,mailTitled:mail.filter(el=>el.title).length};
 })()`);
@@ -74,10 +74,10 @@ const openEquipo=async({view,theme,width,height,label})=>{
  const mobile=width<768;
  await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
  await send('Page.navigate',{url:BASE+'/equipo'});
- await waitFor(`document.querySelector('.team-filters')||document.body.innerText.includes('Cerrar sesión')`,{label:`Equipo base (${label})`});
+ await waitFor(`document.querySelector('[data-toolbar="filtros"]')||document.body.innerText.includes('Cerrar sesión')`,{label:`Equipo base (${label})`});
  await evaluate(`(()=>{try{localStorage.setItem('scale-theme',${JSON.stringify(theme)});localStorage.setItem('scale:team-view',${JSON.stringify(view)});}catch{};return true;})()`);
  await send('Page.navigate',{url:BASE+'/equipo'});
- await waitFor(view==='list'?`document.querySelector('.person-hub-card.is-list')||document.body.innerText.includes('Todavía no hay personas')`:`document.querySelector('.person-hub-card:not(.is-list)')||document.body.innerText.includes('Todavía no hay personas')`,{label:`Equipo ${view} (${label})`});
+ await waitFor(view==='list'?`document.querySelector('[role="rowgroup"] [role="row"]')||document.body.innerText.includes('Todavía no hay personas')`:`document.querySelector('[data-compact-card],[role="rowgroup"] [role="row"]:not(.is-list)')||document.body.innerText.includes('Todavía no hay personas')`,{label:`Equipo ${view} (${label})`});
  await warmImages();
  await evaluate(`(()=>{document.documentElement.dataset.theme=${JSON.stringify(theme==='dark'?'dark':'')};return true;})()`);
  await sleep(300);
@@ -91,8 +91,8 @@ try{
    const data=await measure();
    measurements.push({label:LABEL,view:'list',width,height,theme,...data});
    await shot(`equipo-lista-${LABEL}-${width}-${theme}.jpg`);
-   const list=await rectOf('.ops-grid-list');
-   const head=await rectOf('.person-hub-head-row');
+   const list=await rectOf('[role="table"]');
+   const head=await rectOf('[role="table"] [role="row"]:first-child');
    if(list&&head)await shot(`equipo-lista-encabezado-filas-${LABEL}-${width}-${theme}.jpg`,{x:list.x,y:head.y,width:list.width,height:Math.min(list.height,head.height+4*48+24)});
   }
  }

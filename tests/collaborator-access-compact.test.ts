@@ -3,10 +3,12 @@ import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import {visibleModule} from '../app/workspace-access';
 import {workspaceSource} from './workspace-source';
+import {teamSheetSource,teamWorkspaceSource} from './team-source';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const operations=read('app/operations.tsx');
-const operationsCss=read('app/operations.css');
+const team=teamWorkspaceSource();
+const sheet=teamSheetSource();
 const archive=read('app/archive-controls.tsx');
 const suite=read('app/suite.tsx');
 const production=read('app/production-board.tsx');
@@ -19,12 +21,11 @@ const photo=read('app/profile-photo.tsx');
 const photoCss=read('app/photo-cropper.css');
 const control=read('app/control-center.css');
 
-test('collaborator identity is rendered by its card, while access keeps only state and actions',()=>{
- assert.match(operations,/person-hub-mail/);
- assert.match(operations,/technicalEmail\(entry\.member!\.email\)/,'el acceso sin ficha oculta correos técnicos de demo');
- assert.match(operations,/\{p\.email\|\|'Sin correo'\}/);
- assert.doesNotMatch(operations,/Cargo: \{p\.job_title/);
- assert.doesNotMatch(operations,/person-hub-facts/,'la tarjeta ya no usa el bloque grande Correo/Acceso/Ingreso');
+test('collaborator identity is rendered by its row, while access keeps only state and actions',()=>{
+ assert.match(team,/technicalEmail\(m\.email\)/,'el acceso sin ficha oculta correos técnicos de demo');
+ assert.match(team,/email:p\.email\|\|'Sin correo'/);
+ assert.doesNotMatch(team,/Cargo: \{p\.job_title/);
+ assert.doesNotMatch(team,/person-hub/,'sin el markup de tarjeta legacy');
  assert.doesNotMatch(access,/ActorIdentity|team-access-member|team-access-help/);
  assert.match(access,/ChipEstado/);
 });
@@ -33,19 +34,18 @@ test('suspended access uses the canonical chip with bad tone and collaborator ph
  assert.match(access,/estado:'suspendido',etiqueta:'Acceso suspendido',tono:'bad'/);
  assert.doesNotMatch(accessCss,/#(?:b42318|fef0ef|8d1812)/,'el chip ya no hardcodea colores');
  assert.match(accessCss,/\.team-access-status\{max-width:60%/);
- assert.match(operations,/<PersonPhotoField/);
+ assert.match(sheet,/<PersonPhotoField/);
  assert.match(photo,/compact=false/);
  assert.match(photo,/profile-photo-progressive/);
  assert.match(readFileSync(new URL('../app/profile-photo.tsx',import.meta.url),'utf8'),/tamano=\{compact\?'xl':'3xl'\}/,'la preview compacta usa el objeto único con su tamaño');
 });
 
-test('team list view renders a compact single-column list and contact data is never cut',()=>{
- assert.match(operations,/ops-grid\$\{teamView==='list'\?' ops-grid-list':''\}/);
- assert.match(operationsCss,/\.control-shell \.ops-grid\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\)/);
- assert.match(operationsCss,/\.person-hub-card\.is-list \.team-access\{grid-column:6;grid-row:1;display:flex/);
- assert.match(operationsCss,/--person-cols:minmax\(14rem,2\.4fr\)/,'la plantilla de la fila finita declara sus columnas con Persona priorizada (#110)');
- assert.match(operationsCss,/\.person-hub-card\.is-list \.person-hub-mail\{grid-column:2/,'el correo tiene su columna en la fila densa');
- assert.match(operations,/person-hub-mail" title=\{p\.email/);
+test('team list view is a thin ListGrid with one shared template and contact data is never cut',()=>{
+ assert.match(team,/const TEAM_TEMPLATE='grid-cols-\[minmax\(13rem,1\.6fr\)_minmax\(12rem,1\.3fr\)_6rem_minmax\(9rem,0\.9fr\)_4\.5rem\]'/,'Persona tiene el mayor fr de la plantilla');
+ assert.match(team,/<ListGrid label="Equipo" template=\{TEAM_TEMPLATE\} columns=\{TEAM_COLUMNS\}/);
+ assert.match(team,/<ListRow key=\{facts\.key\} template=\{TEAM_TEMPLATE\}/,'el encabezado y las filas comparten la plantilla');
+ for(const label of ['Persona','Datos','Estado','Acceso','Acciones'])assert.match(team,new RegExp(`label:'${label}'`),`columna ${label}`);
+ assert.match(team,/title=\{\[facts\.emailTitle\|\|facts\.email,\.\.\.facts\.meta\]\.join\(' · '\)\}/,'el correo truncado conserva su tooltip');
 });
 
 test('team directory keeps normal roles on photo, name and cargo only',()=>{
@@ -63,17 +63,16 @@ test('budgets reach production while the pipeline does not',()=>{
 });
 
 test('management reaches the team without individual salary amounts',()=>{
- assert.match(operations,/const allowed = canOpenPeopleWorkspace\(role\);/);
- assert.match(operations,/const salaryView = roleCan\(role, "salary\.view"\);/);
- assert.match(operations,/fields=\{salaryView\?personFields:personFields\.filter\(field=>!\['compensation_amount','currency','payment_day','invoices_company'\]\.includes\(field\.key\)\)\}/);
- assert.match(operations,/person-hub-comp">\{types\.find\(type=>type\.value===p\.compensation_type\)\?\.label\|\|'Sin modalidad'\}<\/span>/);
- assert.doesNotMatch(operations,/Salario reservado/,'the capsule never shows the individual amount');
- assert.doesNotMatch(operations,/setPay\(\{ person:/,'paying a collaborator lives in Finanzas, not in the team capsule');
- assert.match(operations,/salaryView&&Number\(p\.compensation_amount\)>0/,'los detalles de salario solo aparecen con monto real cargado (#139)');
- assert.match(operations,/\{p\.payment_day\?<span className="hub-chip">\{`Día de pago \$\{p\.payment_day\}`\}<\/span>:null\}/,'sin día de pago no queda un chip vacío (#139)');
- assert.match(operations,/<\/div>:salaryView&&p\.active\?<div className="person-hub-chips">/,'solo queda el aviso cuando falta el monto (#139)');
- assert.match(operations,/\{p\.invoices_company\?<span className="hub-chip">Emite factura<\/span>/);
- assert.match(operations,/\{p\.currency\?<span className="hub-chip" title="Moneda de la remuneración">\{p\.currency\}/,'la moneda de la remuneración es un chip');
+ assert.match(team,/const allowed=canOpenPeopleWorkspace\(role\);/);
+ assert.match(team,/const salaryView=roleCan\(role,'salary\.view'\);/);
+ // La pestaña Remuneración no se arma sin `salary.view` (ni su contenido ni sus datos).
+ assert.match(sheet,/if\(salaryView&&person\)tabs\.push\(\{id:'remuneracion'/);
+ assert.match(sheet,/tab\.id!=='remuneracion'\|\|\(mode==='team'&&salaryView\)/,'el filtro de la carcasa repite la regla');
+ assert.doesNotMatch(sheet.split('function PayTab')[0].split('const payFields')[0].split('const profileFields')[1]||'',/compensation_amount|payment_day|invoices_company/,'el perfil no envía ningún campo salarial');
+ assert.match(team,/if\(salaryView\)meta\.push\(/,'la modalidad solo se muestra a quien ve remuneraciones');
+ assert.doesNotMatch(team,/Salario reservado/,'the capsule never shows the individual amount');
+ assert.doesNotMatch(team,/compensation_amount\}|formatMoney|money\(/,'la lista y la cuadrícula nunca dibujan el monto individual');
+ assert.doesNotMatch(team,/setPay\(\{ person:/,'paying a collaborator lives in Finanzas, not in the team capsule');
  assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');
  assert.match(read('app/capabilities.ts'),/collaborators:'members\.manage'/);
  assert.match(access,/const manage=roleCan\(role,'members\.manage'\)/);

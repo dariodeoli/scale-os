@@ -53,14 +53,6 @@
    vista y acciones en una sola fila desde 1280 px; debajo envuelve sin huecos y
    en mobile el buscador toma su propia fila con targets de 44 px. El buscador
    absorbe el espacio libre y el bloque vista+acciones cierra a la derecha. */
-.team-filters{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-3,12px);margin-top:0}
-.team-filters .team-search{flex:1 1 11rem;min-width:11rem;max-width:17rem}
-.team-filters .choice-list.compact{flex:none;align-items:center}
-.team-filters .team-count{display:flex;align-items:center;margin:0;font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--text-subtle,var(--text-muted));white-space:nowrap}
-.team-filters .workspace-view-controls{margin-left:auto}
-.team-filters .team-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-2,8px) var(--ui-space-3,12px)}
-@media(min-width:1280px){.team-filters{flex-wrap:nowrap}.team-filters .team-search{flex:1 1 auto;max-width:none}}
-@media(max-width:620px){.team-filters .team-search{flex:1 1 100%;max-width:100%}.team-filters .workspace-view-controls{margin-left:0}.team-filters .choice{padding-inline:8px}}
 /* El avatar de personas lo dibuja `FotoPerfil` (#107). */
 .ops-person-info {
   font-size: 13px;
@@ -238,35 +230,13 @@
 @media(max-width:640px){.person-identity-panel{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:760px){.ops-form-grid :is(input,textarea,select),.ops-select-trigger{min-height:44px}.ops-select-options button,.dialog-actions :is(button,.primary,.secondary),.form-actions :is(button,.primary,.secondary){min-height:44px}.ops-card:hover{transform:none}}
 
-/* Equipo (densidad #98): identidad y estado en la cabecera, correo en una línea
-   secundaria, rol/ingreso y remuneración como chips y las acciones al pie sin
-   reservar alto. «Acceso habilitado» aparece una sola vez (chip de TeamAccess). */
-.person-hub-card{display:flex;flex-direction:column;gap:8px}
-.person-hub-head{display:flex;align-items:center;gap:8px;min-width:0}
-.person-hub-head .ops-person{flex:1 1 auto;min-width:0}
-.person-hub-state{border-color:color-mix(in srgb,var(--success) 22%,var(--line));background:var(--success-soft);color:var(--success)}
-.person-hub-state[data-state=inactive]{border-color:color-mix(in srgb,var(--warning) 24%,var(--line));background:var(--warning-soft);color:var(--warning)}
-.person-hub-mail{margin:0;min-width:0;font-size:12.5px;line-height:1.35;color:var(--text-subtle,var(--text-muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.person-hub-meta,.person-hub-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .commission-hub-facts,.budget-hub-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0;padding:11px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
 .commission-hub-facts dt,
 .commission-hub-facts dd,.budget-hub-facts dd{margin:3px 0 0;font-size:12.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.person-hub-comp{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border-radius:999px;background:var(--violet-soft);color:var(--brand-700);font-size:11px;font-weight:650;white-space:nowrap}
-.person-hub-comp b{font-variant-numeric:tabular-nums}
-.person-hub-comp em{font-style:normal;color:var(--warning)}
 .hub-chip.warn{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
 .hub-chip.muted{font-weight:600}
 /* Tarjeta de equipo: el chip informativo largo envuelve en vez de estirar la tarjeta. */
-.ops-grid:not(.ops-grid-list)>.person-hub-card .hub-chip{white-space:normal;overflow-wrap:anywhere;max-width:100%}
-/* Ronda 14 (#62): en tarjetas el nombre completo se lee hasta en dos líneas
-   (el tooltip conserva el texto íntegro); la fila finita de lista sigue en una. */
-/* La nota del integrante se recorta a una línea en la tarjeta (el tooltip conserva el texto). */
-.ops-grid:not(.ops-grid-list)>.person-hub-card .ops-note-preview{-webkit-line-clamp:1}
-.ops-grid:not(.ops-grid-list)>.person-hub-card .person-container-name,
 .team-directory-card .person-container-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere}
-.person-hub-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-.person-hub-actions::-webkit-scrollbar{display:none}
-.person-hub-buttons{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
 /* Comisiones: liquidación en tabla y tarjetas con jerarquía. */
 .commission-hub-card{display:flex;flex-direction:column;gap:10px;min-height:var(--ui-card-min-height,120px)}
@@ -283,97 +253,6 @@
 .commission-hub-actions{margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle,var(--line));justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .commission-hub-actions::-webkit-scrollbar{display:none}
 
-/* Equipo: la vista lista mantiene su propia densidad (ver bloques de medios). */
-
-
-
-
-/* La lista del equipo conserva su plantilla de 6 columnas y se desplaza en silencio
-   cuando el riel deja menos ancho que el mínimo de la plantilla (861–1049 px). */
-/* La lista del equipo: la especificidad le gana a `.control-shell .ops-grid` (la
-   grilla de tarjetas) y conserva su plantilla de 6 columnas con scroll en silencio
-   cuando el riel deja menos ancho que el mínimo (861–1049 px). */
-/* La barra de lote del equipo envuelve sin estirar el documento en anchos chicos. */
-.control-shell .ops-grid.ops-grid-list>.bulk-bar .bulk-actions{flex:1 1 100%;min-width:0;max-width:100%;justify-content:flex-start;flex-wrap:wrap;overflow:visible}
-.control-shell .ops-grid.ops-grid-list>.bulk-bar .bulk-actions>*{flex:0 0 auto}
-.control-shell .ops-grid.ops-grid-list{grid-template-columns:minmax(0,1fr);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;--person-cols:minmax(14rem,2.4fr) minmax(7rem,.75fr) minmax(9rem,1fr) 4.5rem minmax(10rem,1.15fr) minmax(7.5rem,.8fr) 7rem;--person-min:calc(59rem + 72px)}
-.control-shell .ops-grid.ops-grid-list::-webkit-scrollbar{display:none}
-/* La fila finita (≥861 px) vive en el bloque de medios de abajo; hasta 860 px la lista
-   se apila como tarjeta con los hechos alineados por columna. */
-
-/* En tarjeta, el pie (acceso + acciones) se ancla al borde inferior en una sola
-   línea y el pie no reserva alto extra. */
-.person-hub-card:not(.is-list)>.person-hub-tail{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:8px;border-top:1px solid var(--border-subtle,var(--line))}
-.person-hub-actions .ops-card-actions{margin:0;padding:0;border:0;display:flex;justify-content:flex-end}
-.person-hub-head-row{grid-column:1/-1;display:none}
-/* Densidad de la fila finita (≥768 px): una sola línea por persona, encabezado incluido. */
-@media(min-width:768px){
- .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list,.control-shell .ops-grid.ops-grid-list>.person-hub-head-row{min-width:var(--person-min)}
- .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list{display:grid;grid-template-columns:var(--person-cols);align-items:center;gap:4px 8px;padding:4px 12px;min-height:44px}
- .person-hub-card.is-list .person-hub-head{display:contents}
- .person-hub-card.is-list .select-check{grid-column:1;grid-row:1;align-self:center;justify-self:start;z-index:1}
- .person-hub-card.is-list .ops-person{grid-column:1;grid-row:1;align-self:center;min-width:0;padding-left:26px}
- .person-hub-card.is-list .person-container-details{display:flex;align-items:baseline;gap:6px;min-width:0}
- /* #110: el nombre nunca cede ancho con sobra de espacio: el cargo (secundario)
-    absorbe el recorte primero y el nombre sólo entra en ellipsis como último
-    recurso cuando la columna ya no da para el mínimo del cargo. */
- .person-hub-card.is-list .person-container-name{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;line-height:1.25}
- .person-hub-card.is-list .person-container-secondary{flex:0 999 auto;min-width:3.5rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;line-height:1.2}
- .person-hub-card.is-list .person-hub-mail{grid-column:2;grid-row:1;align-self:center;min-width:0;font-size:12px;color:var(--text)}
- .person-hub-card.is-list .person-hub-meta{grid-column:3;grid-row:1;align-self:center;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
- .person-hub-card.is-list .person-hub-meta-label{display:none}
- .person-hub-card.is-list .person-hub-meta::-webkit-scrollbar{display:none}
- .person-hub-card.is-list .person-hub-state{grid-column:4;grid-row:1;justify-self:start;align-self:center}
- .person-hub-card.is-list .person-hub-chips{grid-column:5;grid-row:1;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
- .person-hub-card.is-list .person-hub-chips::-webkit-scrollbar{display:none}
- .person-hub-card.is-list .team-access{grid-column:6;grid-row:1;display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:8px;height:32px;padding:0;overflow-x:auto;scrollbar-width:none}
- .person-hub-card.is-list .team-access::-webkit-scrollbar{display:none}
- .person-hub-card.is-list .person-hub-tail{display:contents}
- .person-hub-card.is-list .person-hub-actions{grid-column:7;grid-row:1;justify-content:flex-end;flex-wrap:nowrap;margin-top:0;padding-top:0;overflow-x:auto;scrollbar-width:none}
- .person-hub-card.is-list .person-hub-actions::-webkit-scrollbar{display:none}
- .person-hub-card.is-list .person-hub-buttons{flex-wrap:nowrap;gap:8px}
- .person-hub-card.is-list .person-hub-buttons>button{flex:none;white-space:nowrap}
- /* La fila finita no repite divisores internos ni arrastra el pie de la tarjeta. */
- .person-hub-card.is-list :is(.team-access,.person-hub-actions,.person-hub-buttons,.ops-card-actions){border-top:0;border-bottom:0}
- .person-hub-card.is-list :is(.person-hub-buttons,.ops-card-actions){margin-top:0;padding-top:0}
- .person-hub-card.is-list .team-access-actions button,.person-hub-card.is-list .person-hub-buttons .text-button,.person-hub-card.is-list .ops-card-actions button{min-height:32px;padding:4px 8px}
- .person-hub-card.is-list .ops-card-actions button{width:32px}
- .person-hub-card.is-list .foto-perfil{--foto-perfil-size:32px}
- /* La columna «Acceso» ya está rotulada por el encabezado: el chip no envuelve
-    ni estira la fila. */
- .person-hub-card.is-list .team-access-status{white-space:nowrap;max-width:100%}
- /* La fila finita es de una sola línea: la nota vive en la tarjeta y en el `title`. */
- .person-hub-card.is-list>.ops-note-preview,.person-hub-card.is-list>.person-hub-tail>.form-note{display:none}
- .person-hub-card.is-list>.person-access-panel{grid-column:1/-1;grid-row:2}
- .person-hub-head-row{display:grid;grid-template-columns:var(--person-cols);gap:0 8px;padding:0 12px 6px;border-inline:1px solid transparent;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
- .person-hub-head-row span:first-child{padding-left:26px}
- .person-hub-head-row span:last-child{text-align:right}
-}
-/* Hasta 767 px la fila vuelve a tarjeta: contenido en una columna y texto que envuelve. */
-@media(max-width:767px){
- .control-shell .ops-grid.ops-grid-list>.person-hub-card.is-list{grid-template-columns:minmax(0,1fr);gap:8px;padding:16px;min-height:0}
- .person-hub-card.is-list .person-hub-head{display:flex;flex-wrap:wrap;gap:8px}
- .person-hub-card.is-list .person-hub-head .select-check{flex:none}
- /* Apilada, la identidad usa el ancho completo: el nombre no se parte en una columna angosta. */
- .person-hub-card.is-list .person-hub-head .ops-person{flex:1 1 100%;min-width:0}
- .person-hub-card.is-list :is(.ops-person,.person-hub-state,.person-hub-mail,.person-hub-meta,.person-hub-chips,.team-access,.person-hub-actions,.ops-note-preview,.person-access-panel,.form-note){grid-column:auto;grid-row:auto;justify-content:flex-start;overflow:visible}
- .person-hub-card.is-list :is(.person-hub-meta,.person-hub-chips){flex-wrap:wrap;overflow:visible}
- .person-hub-card.is-list .person-hub-mail{white-space:normal;overflow-wrap:anywhere;font-size:12.5px}
- .person-hub-card.is-list .ops-person>div{min-width:0}
- .person-hub-card.is-list .ops-person h3{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}
- .person-hub-card.is-list .ops-person small{white-space:normal}
- .person-hub-card.is-list :is(.person-hub-chips,.team-access,.person-hub-actions,.person-hub-buttons){flex-wrap:wrap;overflow:visible}
- /* Apilada, la tarjeta no recorta: el chip informativo y el nombre del integrante envuelven. */
- .person-hub-card.is-list .hub-chip{white-space:normal;overflow-wrap:anywhere;max-width:100%}
- .person-hub-card.is-list .person-container-name{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}
- /* Targets táctiles de la tarjeta: selección 44 px y foto con área ampliada. */
- .person-hub-card.is-list .select-check{min-width:44px;min-height:44px;justify-content:center}
- /* La cuadrícula también selecciona en mobile: misma área táctil de 44 px. */
- .person-hub-card .select-check{min-width:44px;min-height:44px;justify-content:center}
- .person-hub-card.is-list .photo-preview-button{width:44px!important;height:44px!important}
- /* Apilada, la fila vuelve a tarjeta: la nota y el aviso de perfiles ambiguos se leen. */
- .person-hub-card.is-list>.ops-note-preview,.person-hub-card.is-list>.person-hub-tail>.form-note{display:block}
-}
 
 /* Actividad: feed agrupado por día con filas compactas. */
 .activity-feed .panel-heading{margin-bottom:6px}
