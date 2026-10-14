@@ -11,7 +11,8 @@ import {count, currentForecastMonth} from '../forecast-data';
 import {useForecast} from '../use-forecast';
 import {Aviso, FilaDato, SearchField, Subtabs} from 'owncoding-ui';
 import {EmptyBlock, ErrorBlock, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
-import {FilterToolbar} from '../ui-v2';
+import {FilterToolbar, ListPage} from '../ui-v2';
+import {notify} from '../feedback';
 import type {Account, AccountTransfer, Invoice, ModalKind, PaymentRecord, User} from '../workspace-types';
 
 // Finanzas (arquetipo dashboard + listas): disponibilidad, cuentas, transferencias,
@@ -35,7 +36,6 @@ type FinanzasSectionProps = {
   setModal: Dispatch<SetStateAction<ModalKind>>;
   /** Abre “Registrar cobro”; con una factura, el modal la deja preseleccionada. */
   openPayment: (invoiceId?: string) => void;
-  setToast: Dispatch<SetStateAction<string>>;
 };
 
 /** El tipo compartido no declara todavía los campos que el API ya devuelve. */
@@ -104,14 +104,14 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
   </section>;
 }
 
-export function FinanzasSection({user, navigate, financeState, accounts, invoices, transfers, payments, invoiceHasMore, paymentHasMore, financeEmpty, loadFinance, loadAllInvoices, loadAllPayments, setModal, openPayment, setToast}: FinanzasSectionProps) {
+export function FinanzasSection({user, navigate, financeState, accounts, invoices, transfers, payments, invoiceHasMore, paymentHasMore, financeEmpty, loadFinance, loadAllInvoices, loadAllPayments, setModal, openPayment}: FinanzasSectionProps) {
   const [invoiceFilter, setInvoiceFilter] = useState('all');
   const [invoiceSearch, setInvoiceSearch] = useState('');
   // Historial en tabs (#142): transferencias, cobros registrados y movimientos
   // (conciliación) comparten un solo bloque para no alargar la página.
   const [historyTab, setHistoryTab] = useState('transferencias');
 
-  const retry = () => void loadFinance().catch(cause => setToast(cause instanceof Error ? cause.message : 'No se pudieron cargar las finanzas.'));
+  const retry = () => void loadFinance().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar las finanzas.'}));
 
   const availability = useMemo(() => {
     const totals = new Map<string, number>();
@@ -162,7 +162,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
     ? <span className="flex flex-wrap items-baseline gap-2">{Array.from(totals).map(([currency, total]) => <span key={currency}>{moneyKpi(total, currency)}</span>)}</span>
     : null;
 
-  return <section className="grid gap-4" aria-label="Finanzas">
+  return <ListPage aria-label="Finanzas" primaryAction={<button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button>}>
     {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <button type="button" className="text-button" onClick={retry}>Reintentar</button></Aviso> : null}
 
     {/* Primer pliegue (#142): balances, cobros urgentes y proyección, sin mezclar todo en una vista. */}
@@ -233,7 +233,6 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
         <div className="flex flex-wrap items-center gap-1">
           {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
           <button className="text-button" onClick={() => setModal('invoice')}><Plus size={14} aria-hidden="true"/>Factura</button>
-          <button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button>
         </div>
       </div>
       <FilterToolbar summary={`${visibleInvoices.length} de ${invoices.length}`}>
@@ -256,7 +255,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
           </ListRow>)}
         </ListGrid>
         : <EmptyBlock compact title={invoices.length ? 'No hay facturas con este filtro.' : 'Todavía no hay facturas registradas.'} description={invoices.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Creá la primera factura para registrar cobros.'} action={invoices.length ? <button className="secondary" onClick={() => { setInvoiceFilter('all'); setInvoiceSearch(''); }}>Limpiar filtros</button> : <button className="primary" onClick={() => setModal('invoice')}><Plus size={16} aria-hidden="true"/>Crear factura</button>}/>}
-      {invoiceHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllInvoices().catch(cause => setToast(cause instanceof Error ? cause.message : 'No se pudieron cargar todas las facturas.'))}>Ver todas las facturas</button></div> : null}
+      {invoiceHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllInvoices().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todas las facturas.'}))}>Ver todas las facturas</button></div> : null}
     </section>
 
     {/* Historial en tabs (#142): transferencias, cobros registrados y movimientos. */}
@@ -306,10 +305,10 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
             </ListRow>)}
           </ListGrid>
           : <EmptyBlock compact title="Aún no hay cobros registrados." description="Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial." action={receivable.pendingCount ? <button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button> : undefined}/>}
-        {paymentHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllPayments().catch(cause => setToast(cause instanceof Error ? cause.message : 'No se pudieron cargar todos los cobros.'))}>Ver todos los cobros</button></div> : null}
+        {paymentHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllPayments().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todos los cobros.'}))}>Ver todos los cobros</button></div> : null}
       </section></div>
 
       <div hidden={historyTab !== 'movimientos'}><ReconciliationWorkspace accounts={accounts}/></div>
     </section>
-  </section>;
+  </ListPage>;
 }
