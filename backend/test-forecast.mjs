@@ -284,11 +284,11 @@ const usdRows=projected.records.filter(row=>row.currency==='USD'),pygRows=projec
 assert.equal(usdRows.length,3);assert.equal(pygRows.length,3);
 assert.equal(projected.records.some(row=>row.currency==='EUR'),false,'all-zero currencies stay out of the projection');
 assert.deepEqual(usdRows.map(row=>row.month),['2026-09','2026-10','2026-11'],'series months follow calendar order');
-assert.deepEqual(usdRows.map(row=>row.projected_cash),[1860,1960,2060],'projected cash accumulates opening balance plus monthly flows');
+assert.deepEqual(usdRows.map(row=>row.projected_cash),[1860,1460,1260],'projected cash accumulates opening balance plus monthly flows; registered collections are already in the balance');
 assert.deepEqual(usdRows.map(row=>row.projected_result),[60,2209,100],'projected result follows issued plus accepted minus costs');
 assert.deepEqual(usdRows.map(row=>row.collected),[0,500,300],'collections land in their month');
 assert.deepEqual(usdRows.map(row=>row.expected),[260,2609,300],'expected billing lands in its month');
-assert.deepEqual(pygRows.map(row=>row.projected_cash),[-490,-2979,-5468],'cash projection stays deterministic when costs exceed inflows');
+assert.deepEqual(pygRows.map(row=>row.projected_cash),[-990,-3479,-5968],'cash projection stays deterministic when costs exceed inflows');
 assert.deepEqual(pygRows.map(row=>row.projected_result),[510,-2489,-2489]);
 assert.deepEqual(pygRows.map(row=>row.personnel),[1000,1999,1999],'fixed monthly salaries project through the series');
 assert.equal(typeof multiMonth.definition.projected_cash,'string');assert.equal(typeof multiMonth.definition.projected_result,'string');
@@ -441,5 +441,17 @@ assert.equal(eurExpense.expense.currency,'EUR');assert.equal(eurExpense.expense.
 assert.equal((await query('select balance from bank_accounts where id=$1',[eurAccount])).rows[0].balance,'780.00','the EUR expense debits its own account');
 assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,currency:'GBP',accountId:String(eurAccount),amount:'10'},financeUser)).status,400,'unknown currency codes stay rejected');
 assert.equal((await call(realExpensesPath,'GET',{},financeUser)).expenses.some(expense=>expense.currency==='EUR'),true,'the EUR expense stays in the month list');
+// Regresión E2E: una cuenta en 0 y un cobro de USD 400 registrado en el mes mostraba
+// «Caja proyectada» USD 800 (el cobro entraba en el saldo y otra vez como ingreso).
+const cashOrg=(await query("insert into organizations(slug,name) values('forecast-cash-once','Cash once') returning id")).rows[0].id;
+const cashUser={...user,organization_id:cashOrg};
+const cashClient=(await query("insert into agency_clients(organization_id,name) values($1,'Cobro único') returning id",[cashOrg])).rows[0].id;
+const cashAccount=(await query("insert into bank_accounts(organization_id,name,account_type,currency,balance) values($1,'Caja USD','bank','USD',0) returning id",[cashOrg])).rows[0].id;
+const cashInvoice=await invoice({organization:cashOrg,customer:cashClient,total:400,issued:'2031-03-05'});
+await query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference) values($1,$2,$3,400,'2031-03-10','Cobro único')",[cashOrg,cashInvoice,cashAccount]);
+const cashOnce=await call('/api/agency/forecast?month=2031-03','GET',{},cashUser);
+assert.deepEqual(cashOnce.opening_balance.records,[{currency:'USD',amount:400}],'the registered payment is already in the account balance');
+const cashRow=cashOnce.projection.records.find(row=>row.currency==='USD');
+assert.deepEqual({cash:cashRow.projected_cash,collected:cashRow.collected,expected:cashRow.expected,result:cashRow.projected_result},{cash:400,collected:400,expected:400,result:400},'a collected payment counts once in projected cash (400, not 800)');
 await pg.close();
 console.log('PASS: forecast dates, timezone, fixed-salary authorization, signed salary overrides and per-person members, commercial-term role and integer validation, auditable planned-expense recurrence, revenue/payment segregation, leap/year boundaries, exact totals, zero, no pipeline, invoice/budget dedup, cancelled/draft/archive exclusion, role and tenant isolation; multi-month cash projection and estimated result per currency, contracted versus invoiced per client, six default currencies, partial settings, new versus existing records, real expenses with debits, cash movements, idempotent reversals and tenant isolation, no external writes');
