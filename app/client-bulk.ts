@@ -6,10 +6,11 @@ import type {Client,ClientPaymentStatus} from './workspace-types';
 export type ClientActivity={projects:number;pieces:number;nextDue:string|null};
 export type CsvOptions={canSeeContact:boolean;canSeeBilling:boolean;payments:ClientPaymentStatus[];activity:Map<string,ClientActivity>;stateLabel:(client:Client)=>string};
 
-// Evita la inyección de fórmulas al abrir el CSV en una planilla (=, +, -, @).
+// Evita la inyección de fórmulas al abrir el CSV en una planilla (=, +, -, @);
+// los números y el teléfono normalizado (+595 981 123456) pasan tal cual.
 const cell=(value:unknown)=>{
   let text=String(value??'');
-  if(/^[=+\-@\t\r]/.test(text)&&!/^-?\d+(\.\d+)?$/.test(text))text=`'${text}`;
+  if(/^[=+\-@\t\r]/.test(text)&&!/^(-?\d+(\.\d+)?|\+\d+( \d+)*)$/.test(text))text=`'${text}`;
   return /[",\n\r;]/.test(text)?`"${text.replace(/"/g,'""')}"`:text;
 };
 
