@@ -164,7 +164,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
   </section>
  </details>
  {error&&<div className="lg:col-span-2"><Aviso tono="error" role="alert" compact>{error}</Aviso></div>}
- <div className="lg:col-span-2"><SaveActions pending={submission.pendiente}>
+ <div className="lg:col-span-2"><SaveActions pending={submission.pendiente} dirty={form.formState.isDirty}>
   {!readiness.ready&&<span className="self-center text-xs text-mute" role="status">{quoteMissingText(readiness.missing)}</span>}
   <button className="primary" disabled={submission.pendiente||!readiness.ready}>{submission.pendiente?'Guardando…':'Guardar'}</button>
  </SaveActions></div>

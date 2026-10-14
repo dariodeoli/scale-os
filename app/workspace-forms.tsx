@@ -98,7 +98,7 @@ export function ProjectForm({
         <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
       </label>
       {error && <p className="error" role="alert">{error}</p>}
-      <SaveActions pending={submission.pending}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
         className="primary"
         disabled={!clients.length || submission.pending}
       >
@@ -248,7 +248,7 @@ export function OrderForm({
         <textarea {...form.register("description")} />
       </label>
       {error && <p className="error" role="alert">{error}</p>}
-      <SaveActions pending={submission.pending}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
         className="primary"
         disabled={submission.pending}
       >
@@ -392,7 +392,7 @@ export function AccountForm({
       </fieldset>
       {error && <p className="error" role="alert">{error}</p>}
       <p className="field-help">{financePurposeNotice('treasury')} · <a href={financeNoticeHref('treasury')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
-      <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button className="primary" disabled={submission.pending}>
         {submission.pending ? "Creando…" : "Crear cuenta"}
       </button></SaveActions>
     </form>
@@ -481,7 +481,7 @@ export function InvoiceForm({
       </label>
       {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Completá el cliente y un importe mayor a cero para crear la factura.</p>:null}
-      <SaveActions pending={submission.pending}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
         className="primary"
         disabled={!canSubmit}
       >
@@ -619,7 +619,7 @@ export function PaymentForm({
       {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Elegí la factura, la cuenta y un importe mayor a cero para registrar el cobro.</p>:null}
       <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
-      <SaveActions pending={submission.pending}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
         className="primary"
         disabled={!canSubmit}
       >
