@@ -2,6 +2,7 @@
 // Diálogo de suscripción manual (estado, gracia en un clic y opciones avanzadas).
 // #189: arriba el estado actual y las gracias rápidas (+7 días, +1 mes, +3 meses);
 // el override manual y el pago manual siguen debajo, plegados.
+import {OptionalMark} from '../field-label';
 import {useRef, useState, type FormEvent, type MutableRefObject} from "react";
 import {Dialog, ConfirmDialog} from "../dialog";
 import {agencyExpiry, newExtendKey, platformDate, type Agency, type Subscription} from "./model";
@@ -170,7 +171,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                     />
                   </label>
                   <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
-                    Vence (opcional)
+                    Vence<OptionalMark/>
                     <input
                       type="datetime-local"
                       value={subscriptionExpiryValue}

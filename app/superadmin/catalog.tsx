@@ -1,6 +1,7 @@
 "use client";
 // Catálogo comercial (cupones) del panel global.
 // Rediseño #80: panel del sistema, formulario de alta y lista densa v2.
+import {OptionalMark,optionalLabel} from '../field-label';
 import {useRef} from "react";
 import {PauseCircle, PlayCircle} from "lucide-react";
 import {ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, MoneyText, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
@@ -106,12 +107,12 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
             <SelectCustom label="Moneda" choices={[{value:'USD',label:'USD'},{value:'PYG',label:'PYG'}]} value={coupon.currency} onChange={value=>setCoupon({...coupon,currency:value})}/>
         ) : null}
         <label className={FIELD}>
-          Vence (opcional)
+          Vence<OptionalMark/>
           <input type="date" value={coupon.expires_at} min={todayAsuncion()} onChange={(event) => setCoupon({...coupon, expires_at: event.target.value})}/>
         </label>
-        <SelectCustom label="Empresa (opcional)" choices={[{value:'',label:'Todas las empresas'}, ...state.agencies.map(agency=>({value:String(agency.id),label:agency.name||`Agencia #${agency.id}`}))]} value={coupon.organization_id} onChange={value=>setCoupon({...coupon,organization_id:value})}/>
+        <SelectCustom label={optionalLabel("Empresa")} choices={[{value:'',label:'Todas las empresas'}, ...state.agencies.map(agency=>({value:String(agency.id),label:agency.name||`Agencia #${agency.id}`}))]} value={coupon.organization_id} onChange={value=>setCoupon({...coupon,organization_id:value})}/>
         <label className={`${FIELD} platform-admin-coupon-note`}>
-          Nota interna (opcional)
+          Nota interna<OptionalMark/>
           <textarea value={coupon.note} rows={2} maxLength={2000} onChange={(event) => setCoupon({...coupon, note: event.target.value})} placeholder="Ej.: gracia acordada por WhatsApp"/>
         </label>
         <button className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy}>

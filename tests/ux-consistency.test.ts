@@ -309,3 +309,20 @@ test('los formularios del shell anuncian sus errores (role=alert) y el enlace in
   assert.match(forms,/id="order-drive-error"/,'la orden muestra por qué un enlace de Drive no se acepta');
   assert.match(forms,/<SelectCustom label="Cliente"/,'el proyecto elige cliente con el desplegable con buscador, no un botón por cliente');
 });
+
+test('convención única de campos: «· Opcional» en el opcional y sin marca en el obligatorio',async()=>{
+  const {readdirSync,statSync}=await import('node:fs');
+  const files:string[]=[];
+  const walk=(dir:string)=>{for(const name of readdirSync(new URL(`../${dir}`,import.meta.url))){const path=`${dir}/${name}`;if(statSync(new URL(`../${path}`,import.meta.url)).isDirectory()){if(!['blog'].includes(name))walk(path);}else if(path.endsWith('.tsx'))files.push(path);}};
+  walk('app');
+  for(const file of files){
+    const source=read(file);
+    assert.doesNotMatch(source,/\(opcional\)/i,`${file} usa OptionalMark/optionalLabel en vez de «(opcional)»`);
+    assert.doesNotMatch(source,/>Obligatorio</,`${file} no marca obligatorios`);
+  }
+  const editor=read('app/operations.tsx');
+  assert.match(editor,/optionalLabel\(f\.label,Boolean\(f\.optional\)\)/,'el Editor usa la marca compartida en desplegables');
+  assert.match(editor,/\{f\.optional&&<OptionalMark\/>\}/,'y en campos de texto');
+  const {optionalLabel}=await import('../app/field-label');
+  assert.equal(optionalLabel('Empresa'),'Empresa · Opcional');assert.equal(optionalLabel('Nombre',false),'Nombre');
+});
