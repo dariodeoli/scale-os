@@ -30,12 +30,12 @@ assert.match(mora,/<FilterToolbar summary=\{`\$\{visible\.length\} de \$\{paymen
 assert.doesNotMatch(mora,/<PageHeader[\s\S]{0,400}<SegmentedField/,'los filtros no recortan el título del header');
 
 // ── Previsión: mes y horizonte en el header; sin caja de toolbar ni nota suelta.
-assert.match(pre,/<PageHeader[\s\S]{0,1200}id="forecast-month"[\s\S]{0,1200}Horizonte de proyección[\s\S]{0,300}\/>/,'mes y horizonte viven en el header');
+assert.match(pre,/<ListPage [\s\S]{0,1200}toolbar=\{<FilterToolbar[\s\S]{0,1200}id="forecast-month"[\s\S]{0,1200}Horizonte de proyección[\s\S]{0,300}<\/FilterToolbar>\}/,'mes y horizonte viven en la FilterToolbar de ListPage');
 assert.doesNotMatch(pre,/bg-ink-900\/60 px-3 py-2\.5/,'la caja de la toolbar se retiró');
 assert.doesNotMatch(pre,/<Nota tono="neutro">Planificación mensual/,'la nota de alcance pasa al subtítulo');
 
 // ── Informes: el corte vive en el header; export en franja; widget al final.
-assert.match(informes,/<PageHeader[\s\S]{0,2000}id="reports-month"[\s\S]{0,2000}Meses de histórico[\s\S]{0,2000}Moneda[\s\S]{0,300}\/>/,'el corte (mes, histórico y moneda) vive en el header');
+assert.match(informes,/<ListPage [\s\S]{0,2000}toolbar=\{\s*<FilterToolbar[\s\S]{0,2000}id="reports-month"[\s\S]{0,2000}Meses de histórico[\s\S]{0,2000}Moneda[\s\S]{0,300}<\/FilterToolbar>\s*\}/,'el corte (mes, histórico y moneda) vive en la FilterToolbar de ListPage');
 assert.doesNotMatch(informes,/Período y moneda/,'la tarjeta «Período y moneda» se retiró');
 assert.doesNotMatch(informes,/sm:grid-cols-\[minmax\(0,1fr\)_auto\] sm:items-center sm:p-4/,'la exportación dejó de ser una tarjeta alta');
 assert(informes.indexOf('<LiveVisitorsWidget/>')>informes.indexOf('Resumen del período'),'los visitantes en vivo cierran la pantalla, no empujan el informe');

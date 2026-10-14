@@ -23,9 +23,10 @@ import {
   type Payout,
   type ReferralDiscount,
 } from '../commission-data';
-import {Aviso,Subtabs} from 'owncoding-ui';
+import {Aviso,FormField,Input,Subtabs} from 'owncoding-ui';
+import {notify} from '../feedback';
 import {ConfirmDialog} from '../dialog';
-import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, FilterToolbar, ListGrid, ListPage, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {User} from '../workspace-types';
 
 // Comisiones y referidos (dominio FIN). La sección es dueña de sus datos: liquidación
@@ -78,7 +79,6 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const [newCommission, setNewCommission] = useState(false);
   const [pay, setPay] = useState<Commission | null>(null);
   const [newDiscount, setNewDiscount] = useState(false);
-  const [notice, setNotice] = useState('');
   // Subtabs de la pantalla (#101): cada sección vive en su panel y solo se
   // muestra la activa; el DOM se conserva con `hidden` para no perder estado.
   const [section, setSection] = useState<'liquidacion' | 'comisiones' | 'descuentos' | 'pagos'>('liquidacion');
@@ -177,8 +177,8 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const monthLabel = listMonthLabel(month) || month;
   const run = async (fn: () => Promise<void>, ok: string) => {
     if (busy) return;
-    setBusy(true); setError(''); setNotice('');
-    try { await fn(); setNotice(ok); await load(); }
+    setBusy(true); setError('');
+    try { await fn(); notify({tone: 'success', message: ok}); await load(); }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo completar la operación.'); setErrorScope('action'); }
     finally { setBusy(false); }
   };
@@ -191,10 +191,8 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     return <Aviso tono="error" como="div">{catalogError.message} <button type="button" className="text-button" onClick={() => void ensureCatalog(failedKey)}>Reintentar</button></Aviso>;
   };
 
-  return <section className="grid grid-cols-1 gap-4" aria-label="Comisiones y referidos">
-    <PageHeader eyebrow="Equipo" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." actions={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>
+  return <ListPage aria-label="Comisiones y referidos" eyebrow="Equipo" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." primaryAction={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}>
     {error ? <ErrorBlock title="No pudimos completar la operación" description={error} onRetry={() => void load()}/> : null}
-    {notice ? <Aviso tono="ok">{notice}</Aviso> : null}
     {loading ? <LoadingBlock label="Cargando comisiones…" lines={4}/> : <>
       {errorScope === 'load' && !commissions.length && !monthly.length && !discounts.length ? null : <>
       <KpiStrip>
@@ -210,10 +208,10 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       />
 
       <div hidden={section!=='liquidacion'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Liquidación del mes">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p></div>
-          <label className="grid gap-1.5"><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mes</span><input type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={event => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value); }}/></label>
-        </div>
+        <p className="min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p>
+        <FilterToolbar className="mb-0">
+          <FormField label="Mes" htmlFor="commissions-month"><Input id="commissions-month" type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={(event: React.ChangeEvent<HTMLInputElement>) => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value); }}/></FormField>
+        </FilterToolbar>
         {monthly.length
           ? <ListGrid label="Comisiones del mes por colaborador" template={SETTLEMENT_TEMPLATE} columns={SETTLEMENT_COLUMNS} minWidthClass="min-w-[55rem]">
             {monthly.map(row => <ListRow key={`${row.recipient_id ?? `unlinked-${row.name ?? ''}`}-${row.currency}`} template={SETTLEMENT_TEMPLATE}>
@@ -229,10 +227,10 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       </section></div>
 
       <div hidden={section!=='comisiones'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Comisiones registradas">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p></div>
+        <p className="min-w-0 truncate text-xs text-mute" title="Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p>
+        <FilterToolbar className="mb-0" summary={`${visible.length} de ${commissions.length}`}>
           <div className="flex flex-wrap gap-1">{COMMISSION_FILTERS.map(value => <button key={value} type="button" className={filter === value ? 'choice active' : 'choice'} onClick={() => setFilter(value)}>{value === 'all' ? 'Todas' : commissionStatusLabel(value)}</button>)}</div>
-        </div>
+        </FilterToolbar>
         {visible.length
           ? <ListGrid label="Comisiones y referidos" template={COMMISSION_TEMPLATE} columns={COMMISSION_COLUMNS} minWidthClass="min-w-[66.5rem]">
             {visible.map(commission => {
@@ -327,7 +325,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         {key: 'amount', label: 'Importe aprobado', type: 'money', currency: pay.currency},
         {key: 'paid_on', label: 'Fecha', type: 'date'},
         {key: 'reference', label: 'Referencia'},
-      ]} defaults={{account_id: '', amount: pay.amount, paid_on: todayAsuncion(), reference: ''}} label="Confirmar pago" save={async values => { await api('/api/agency/payouts', {...values, commission_id: pay.id}); setPay(null); setNotice('Pago registrado.'); await load(); }}/>
+      ]} defaults={{account_id: '', amount: pay.amount, paid_on: todayAsuncion(), reference: ''}} label="Confirmar pago" save={async values => { await api('/api/agency/payouts', {...values, commission_id: pay.id}); setPay(null); notify({tone: 'success', message: 'Pago registrado.'}); await load(); }}/>
     </Dialog> : null}
 
     {newDiscount ? <Dialog title="Descuento por referido" close={() => setNewDiscount(false)}>
@@ -338,11 +336,11 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         {key: 'referrer', label: 'Quién refirió al cliente'},
         {key: 'amount', label: 'Descuento en la moneda de la factura', type: 'money', currencyFrom: values => invoices.find(invoice => String(invoice.id) === values.invoice_id)?.currency || 'PYG'},
         {key: 'reason', label: 'Motivo o acuerdo', type: 'textarea'},
-      ]} defaults={{invoice_id: '', referrer: '', amount: '', reason: ''}} label="Aplicar descuento" save={async values => { await api('/api/agency/referral-discounts', values); setNewDiscount(false); setNotice('Descuento aplicado.'); await load(); }}/>
+      ]} defaults={{invoice_id: '', referrer: '', amount: '', reason: ''}} label="Aplicar descuento" save={async values => { await api('/api/agency/referral-discounts', values); setNewDiscount(false); notify({tone: 'success', message: 'Descuento aplicado.'}); await load(); }}/>
     </Dialog> : null}
 
     {cancelTarget ? <ConfirmDialog open busy={busy} variant="danger" title="Cancelar comisión" confirmLabel="Cancelar comisión" description={<>Se cancelará la comisión de {cancelTarget.beneficiary_name} por {money(Number(cancelTarget.amount), cancelTarget.currency)}{cancelTarget.invoice_number ? ` (factura ${cancelTarget.invoice_number})` : ''}. Queda en el historial como cancelada y no se puede reactivar.</>} onCancel={() => { if (!busy) setCancelTarget(null); }} onConfirm={() => void run(async () => { await api(`/api/agency/commissions/${cancelTarget.id}`, {status: 'cancelled'}, 'PATCH'); setCancelTarget(null); }, 'Comisión cancelada.')}/> : null}
 
     {revertTarget ? <ConfirmDialog open busy={busy} variant="danger" title="Revertir descuento" confirmLabel="Revertir descuento" description={<>Se revertirá el descuento de {revertTarget.referrer} por {money(Number(revertTarget.amount), revertTarget.currency)} sobre la factura {revertTarget.invoice_number}. El saldo pendiente vuelve a subir y el historial conserva la reversión.</>} onCancel={() => { if (!busy) setRevertTarget(null); }} onConfirm={() => void run(async () => { await api(`/api/agency/referral-discounts/${revertTarget.id}`, {}, 'PATCH'); setRevertTarget(null); }, 'Descuento revertido.')}/> : null}
-  </section>;
+  </ListPage>;
 }

@@ -32,8 +32,8 @@ for(const [name,source] of [['previsión',pre],['informes',informes],['producci�
 // sin tracks `auto` que desalineen, con scroll horizontal silencioso.
 for(const cols of ['PERSON_COLS','CONTRACT_COLS','EXPENSE_COLS','PLANNED_COLS']){
  assert.match(pre,new RegExp(`const ${cols}='grid-cols-`),`${cols} declara la plantilla de la lista`);
- assert.match(pre,new RegExp(`cn\\(LIST_HEAD,${cols}\\)`),`el encabezado de ${cols} comparte la plantilla`);
- assert.match(pre,new RegExp(`cn\\(LIST_ROW,${cols}`),`las filas de ${cols} comparten la plantilla`);
+ assert.match(pre,new RegExp(`<ListRow template=\\{${cols}\\}`),`las filas de ${cols} comparten la plantilla con el encabezado de ListGrid`);
+ assert.match(pre,new RegExp(`<ListGrid [^>]*template=\\{${cols}\\} columns=\\{`),`el encabezado de ${cols} sale de ListGrid con la misma plantilla`);
 }
 assert.match(treasury,/const STATEMENT_COLS='grid-cols-/);
 assert.match(treasury,/const STATEMENT_HEAD=/);assert.match(treasury,/const STATEMENT_ROW=/);
@@ -46,11 +46,9 @@ for(const [name,source,cols] of [['previsión',pre,['PERSON_COLS','CONTRACT_COLS
  }
 }
 assert.doesNotMatch(pre,/overflow-x-auto/,'las listas de la previsión no dependen del scroll horizontal (#101)');
-for(const hook of ['PERSONNEL_MIN_WIDTH','CONTRACTS_MIN_WIDTH','PLANNED_MIN_WIDTH','REAL_MIN_WIDTH']){
-  assert.match(pre,new RegExp(`useDenseTableFit<HTMLDivElement>\\([^)]*${hook}`),`${hook}: una sola rama por ancho medido (#101)`);
-}
+assert.doesNotMatch(pre,/useDenseTableFit|LIST_ROW|LIST_HEAD/,'las listas de la previsión usan ListGrid/ListRow de ui-v2 (sin ramas por ancho ni filas propias)');
 assert.match(treasury,/min-w-0 overflow-x-auto/,'el extracto scrollea en silencio');
-assert.match(pre,/const LIST_ROW='grid min-h-11 items-center gap-x-2/,'las filas finitas de la previsión conservan 44 px');
+assert.match(pre,/<ListGrid /,'las listas finitas de la previsión salen de ListGrid (fila de 44 px)');
 assert.match(treasury,/const STATEMENT_ROW='grid min-h-11 items-center gap-x-2/,'la fila del extracto conserva 44 px');
 
 // ── Fila finita: el texto libre se recorta con ellipsis + `title`; montos,

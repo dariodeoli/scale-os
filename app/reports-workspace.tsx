@@ -44,12 +44,29 @@ import {
   SegmentedField,
   cn,
 } from 'owncoding-ui';
-import {Kpi,KpiStrip,EmptyBlock,FilterToolbar,LoadingBlock,PageHeader} from './ui-v2';
+import {notify} from './feedback';
+import {Kpi,KpiStrip,EmptyBlock,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,type Column} from './ui-v2';
 
 // La descomposición del shell (#47) sigue importando el tipo desde este módulo.
 export type {ReportMonth, ReportsData} from './reports-data';
 
 const HISTORY_OPTIONS: [string, string][] = [[6, 'Últimos 6 meses'], [12, 'Últimos 12 meses'], [24, 'Últimos 24 meses']].map(([value, label]) => [String(value), String(label)]);
+
+// Evolución mensual: una plantilla compartida por encabezado y filas (ListGrid).
+const EVOLUTION_TEMPLATE='grid-cols-[6.5rem_4.5rem_6.5rem_7.5rem_5.5rem_8rem_9.5rem_9rem_6rem_8.5rem_9rem]';
+const EVOLUTION_COLUMNS:Column[]=[
+ {key:'month',label:'Mes'},
+ {key:'active',label:'Activos',align:'end'},
+ {key:'added',label:'Incorporados',align:'end'},
+ {key:'lost',label:'Bajas de actividad',align:'end'},
+ {key:'retention',label:'Retención %',align:'end'},
+ {key:'tenure',label:'Antigüedad (días · con fecha)',align:'end'},
+ {key:'invoiced',label:'Facturado con impuestos',align:'end'},
+ {key:'collected',label:'Cobrado neto',align:'end'},
+ {key:'invoices',label:'Facturas · clientes',align:'end'},
+ {key:'ticket',label:'Ticket por factura',align:'end'},
+ {key:'average',label:'Promedio por cliente facturado',align:'end'},
+];
 
 function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
  const series=chartSeries(months,currency);
@@ -102,6 +119,7 @@ function LiveVisitorsWidget(){
   timer=setInterval(fetch_live,30000);
   return()=>{alive=false;if(timer)clearInterval(timer);};
  },[]);
+ useEffect(()=>{if(failed)notify({tone:'warning',message:'Visitantes en vivo sin actualizar. Se reintenta solo.'});},[failed]);
  const changePercent=prior&&visitors&&prior!==0?Math.round(((visitors-prior)/prior)*100):null;
  return <Card className="flex flex-wrap items-center justify-between gap-4" role="region" aria-label="Visitantes en vivo del landing">
   <div className="grid gap-1">
@@ -111,7 +129,7 @@ function LiveVisitorsWidget(){
   <div className="text-right">
    <strong className="block text-2xl font-semibold tabular-nums text-ok">{failed&&visitors===null?'No disponible':visitors===null?'—':visitors}</strong>
    {failed
-    ? <span role="status" className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-warn"><span className="h-2 w-2 rounded-full bg-warn" aria-hidden="true"/>Sin actualizar · se reintenta solo</span>
+    ? <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-warn"><span className="h-2 w-2 rounded-full bg-warn" aria-hidden="true"/>Sin actualizar · se reintenta solo</span>
     : <span className={cn('inline-flex items-center gap-1.5 whitespace-nowrap text-xs',trend==='down'?'text-warn':'text-ok')}>
       <span className={cn('h-2 w-2 rounded-full',trend==='down'?'bg-warn':'bg-ok')} aria-hidden="true"/>
       {trend==='up'&&changePercent!==null?`↑ +${changePercent}%`:trend==='down'&&changePercent!==null?`↓ ${changePercent}%`:'—'}
@@ -136,14 +154,11 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
  const selected=rows.find(row=>row.month===month),prior=rows.find(row=>row.month===previousMonth(month));
  const partial=!!(selected?.isPartial||prior?.isPartial);
  const tiles=reportTiles(selected,prior,selectedCurrency);
- return <section className="grid gap-5" aria-label="Reportes de la agencia">
-  {/* Header compacto (#95): el corte (mes, histórico y moneda) vive en la misma
-      fila del título en ≥1280; el informe arranca sin bloques altos encima. */}
-  <PageHeader
-   eyebrow="Informes"
-   title="Evolución mensual"
-   subtitle="Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado."
-   actions={<>
+ return <ListPage aria-label="Reportes de la agencia"
+  eyebrow="Informes"
+  title="Evolución mensual"
+  subtitle="Importes registrados, no utilidad ni rentabilidad. Las monedas se consultan por separado."
+  primaryAction={<>
     <Button type="button" className="min-h-11 justify-center md:min-h-9" variant="outline" disabled={!rows.length} title={selectedCurrency?`Exportar el período visible en ${selectedCurrency}`:'Elegí una moneda para exportar'} onClick={()=>{
      if(!rows.length)return;
      setExportError('');
@@ -154,16 +169,16 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
      setExportError('');
      try{printReportsPdf({data:data!,previousData,currency:selectedCurrency,organizationName});}catch{setExportError('No se pudo exportar el PDF. Intentá nuevamente.');}
     }}>PDF{selectedCurrency?` · ${selectedCurrency}`:''}</Button>
-   </>}
-  />
-  <FilterToolbar summary={data?<span title={`Datos al ${listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: ${listDateFull(data.historySince)||'sin fecha confirmada'}.`}>Datos al {listDateFull(data.asOf)||'sin fecha confirmada'}</span>:undefined}>
+</>}
+  toolbar={  <FilterToolbar summary={data?<span title={`Datos al ${listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: ${listDateFull(data.historySince)||'sin fecha confirmada'}.`}>Datos al {listDateFull(data.asOf)||'sin fecha confirmada'}</span>:undefined}>
    <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44 max-md:w-full" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
    <div className="grid gap-1">
     <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>
     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Meses de histórico" value={String(months)} options={HISTORY_OPTIONS} onChange={(value:string)=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/>
    </div>
    <SelectCustom label="Moneda" choices={currencies.length?currencies.map(value=>({value,label:value})):[{value:'',label:'Sin datos monetarios'}]} value={selectedCurrency} disabled={!currencies.length} onChange={setCurrency}/>
-  </FilterToolbar>
+  </FilterToolbar>}
+ >
   {error?<ErrorState title="No se pudo cargar el reporte" description={error} onRetry={()=>setRetry(value=>value+1)}/>
   :!data?<LoadingBlock label="Cargando reportes…" lines={4}/>
   :<>
@@ -200,51 +215,21 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
    </>}
    <Card className="grid grid-cols-1 gap-3 p-3 sm:p-4">
     <div className="flex flex-wrap items-baseline justify-between gap-1"><h3 className="text-sm font-semibold text-fore">Evolución mensual · {selectedCurrency||'sin moneda disponible'}</h3><p className="text-xs text-mute">“Sin datos” no significa cero.</p></div>
-    <DataTable
-     columns={[
-      {key:'month',label:'Mes',render:(row:{month:string})=><span className="whitespace-nowrap">{row.month}</span>},
-      {key:'active',label:'Activos',align:'right'},
-      {key:'added',label:'Incorporados',align:'right'},
-      {key:'lost',label:'Bajas de actividad',align:'right'},
-      {key:'retention',label:'Retención %',align:'right'},
-      {key:'tenure',label:'Antigüedad (días · con fecha)',align:'right',render:(row:any)=><span className="whitespace-nowrap tabular-nums" title={`Antigüedad promedio: ${count(row.raw?.clients.averageTenureDays)} días · ${row.raw?.clients.tenureKnown} de ${count(row.raw?.clients.active)} clientes con fecha conocida`}>{row.tenure}</span>},
-      {key:'invoiced',label:'Facturado con impuestos',align:'right'},
-      {key:'collected',label:'Cobrado neto',align:'right'},
-      {key:'invoices',label:'Facturas · clientes',align:'right',render:(row:any)=><span className="whitespace-nowrap tabular-nums" title={`${row.invoices} facturas · ${row.billed} clientes facturados`}>{row.invoices}</span>},
-      {key:'ticket',label:'Ticket por factura',align:'right'},
-      {key:'average',label:'Promedio por cliente facturado',align:'right'},
-     ]}
-     rows={rows.map(row=>{const money=row.financial.find(item=>item.currency===selectedCurrency);return {
-      id:row.month,
-      month:row.month+(row.isPartial?' · parcial':''),
-      active:count(row.clients.active),
-      added:count(row.clients.added),
-      lost:count(row.clients.lost),
-      retention:count(row.clients.retentionPercent),
-      tenure:row.clients.averageTenureDays===null?'Sin datos':`${count(row.clients.averageTenureDays)} · ${row.clients.tenureKnown}/${count(row.clients.active)}`,
-      raw:row,
-      invoiced:reportMoney(money?.invoiced,selectedCurrency),
-      collected:reportMoney(money?.collected,selectedCurrency),
-      invoices:money?`${count(money.invoiceCount)} · ${count(money.billedClients)}`:count(null),
-      billed:count(money?.billedClients),
-      ticket:reportMoney(money?.averageTicket,selectedCurrency),
-      average:reportMoney(money?.averageRevenuePerClient,selectedCurrency),
-     };})}
-     emptyLabel="Sin meses registrados."
-     mobileCard={(row:any)=><div className="grid gap-1 rounded-lg border border-ink-600 bg-ink-900 p-3">
-      <b className="text-sm font-semibold text-fore">{row.month}</b>
-      <FilaDato etiqueta="Activos" valor={row.active}/>
-      <FilaDato etiqueta="Incorporados" valor={row.added}/>
-      <FilaDato etiqueta="Bajas de actividad" valor={row.lost}/>
-      <FilaDato etiqueta="Retención %" valor={row.retention}/>
-      <FilaDato etiqueta="Antigüedad (días · con fecha)" valor={row.tenure}/>
-      <FilaDato etiqueta="Facturado con impuestos" valor={row.invoiced}/>
-      <FilaDato etiqueta="Cobrado neto" valor={row.collected}/>
-      <FilaDato etiqueta="Facturas · clientes" valor={row.invoices}/>
-      <FilaDato etiqueta="Ticket por factura" valor={row.ticket}/>
-      <FilaDato etiqueta="Promedio por cliente facturado" valor={row.average}/>
-     </div>}
-    />
+    {rows.length?<ListGrid label="Evolución mensual por mes" template={EVOLUTION_TEMPLATE} columns={EVOLUTION_COLUMNS} minWidthClass="min-w-[78rem]">
+     {rows.map(row=>{const money=row.financial.find(item=>item.currency===selectedCurrency);return <ListRow template={EVOLUTION_TEMPLATE} key={row.month}>
+      <span className="min-w-0 whitespace-nowrap tabular-nums text-fore">{row.month+(row.isPartial?' · parcial':'')}</span>
+      <span className="min-w-0 whitespace-nowrap text-right tabular-nums">{count(row.clients.active)}</span>
+      <span className="min-w-0 whitespace-nowrap text-right tabular-nums">{count(row.clients.added)}</span>
+      <span className="min-w-0 whitespace-nowrap text-right tabular-nums">{count(row.clients.lost)}</span>
+      <span className="min-w-0 whitespace-nowrap text-right tabular-nums">{count(row.clients.retentionPercent)}</span>
+      <span className="min-w-0 whitespace-nowrap text-right tabular-nums" title={`Antigüedad promedio: ${count(row.clients.averageTenureDays)} días · ${row.clients.tenureKnown} de ${count(row.clients.active)} clientes con fecha conocida`}>{row.clients.averageTenureDays===null?'Sin datos':`${count(row.clients.averageTenureDays)} · ${row.clients.tenureKnown}/${count(row.clients.active)}`}</span>
+      <span className="min-w-0 whitespace-nowrap text-right font-semibold tabular-nums text-fore">{reportMoney(money?.invoiced,selectedCurrency)}</span>
+      <span className="min-w-0 whitespace-nowrap text-right font-semibold tabular-nums text-fore">{reportMoney(money?.collected,selectedCurrency)}</span>
+      <span className="min-w-0 whitespace-nowrap text-right tabular-nums" title={`${money?`${count(money.invoiceCount)} · ${count(money.billedClients)}`:count(null)} facturas · ${count(money?.billedClients)} clientes facturados`}>{money?`${count(money.invoiceCount)} · ${count(money.billedClients)}`:count(null)}</span>
+      <span className="min-w-0 whitespace-nowrap text-right tabular-nums">{reportMoney(money?.averageTicket,selectedCurrency)}</span>
+      <span className="min-w-0 whitespace-nowrap text-right tabular-nums">{reportMoney(money?.averageRevenuePerClient,selectedCurrency)}</span>
+     </ListRow>;})}
+    </ListGrid>:<EmptyBlock compact title="Sin meses registrados."/>}
    </Card>
    <details className="rounded-xl border border-ink-600 bg-ink-800/40 p-3">
     <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-fore md:min-h-0">Cómo leer el informe</summary>
@@ -260,5 +245,5 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
   {/* El widget en vivo no es el informe: cierra la pantalla para no empujar la
       comparativa y el resumen fuera del pliegue (#95). */}
   <LiveVisitorsWidget/>
- </section>;
+ </ListPage>;
 }
