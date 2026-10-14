@@ -14,9 +14,15 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 // KPIs densos: opt-in, 2×2 en mobile; la tira por defecto no cambia.
 const dense=create(<KpiStrip dense><span>a</span></KpiStrip>).toJSON() as unknown as {props:{className:string}};
 assert.match(dense.props.className,/ui-kpi-strip-dense grid-cols-2/,'la tira densa va 2×2 en mobile');
-const normal=create(<KpiStrip><span>a</span></KpiStrip>).toJSON() as unknown as {props:{className:string}};
-assert.doesNotMatch(normal.props.className,/ui-kpi-strip-dense/,'la tira por defecto no es densa');
-assert.match(normal.props.className,/grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4/,'la tira por defecto conserva 1/2/4');
+const strip=(count:number)=>(create(<KpiStrip>{Array.from({length:count},(_,i)=><span key={i}>{i}</span>)}</KpiStrip>).toJSON() as unknown as {props:{className:string}}).props.className;
+assert.doesNotMatch(strip(4),/ui-kpi-strip-dense/,'la tira por defecto no es densa');
+assert.match(strip(4),/grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4/,'cuatro KPIs conservan 1/2/4');
+// Columnas de escritorio según la cantidad: sin medias filas vacías.
+assert.match(strip(1),/sm:grid-cols-1 xl:grid-cols-1/);
+assert.match(strip(2),/sm:grid-cols-2 xl:grid-cols-2/);
+assert.match(strip(3),/sm:grid-cols-2 xl:grid-cols-3/);
+assert.match(strip(6),/sm:grid-cols-2 xl:grid-cols-4/,'5 o más envuelven en filas de 4');
+assert.match((create(<KpiStrip columns={4}><span>a</span><span>b</span><span className="xl:col-span-2">c</span></KpiStrip>).toJSON() as unknown as {props:{className:string}}).props.className,/xl:grid-cols-4/,'columns explícito manda cuando un hijo ocupa varias pistas');
 const skeleton=JSON.stringify(create(<KpiStripSkeleton dense count={2}/>).toJSON());
 assert.match(skeleton,/h-\[60px\]/,'el esqueleto denso tiene el alto de la tira densa');
 
@@ -36,7 +42,8 @@ assert.match(JSON.stringify(create(<AssignedPeople people={undefined} compact/>)
 // Fila fina: íconos de 32 px y disparador ⋯ sin el min-h-11 de la librería (escritorio).
 const ui=read('app/ui-system.css');
 assert.match(ui,/@media\(min-width:768px\)\{\n \.control-shell \.list-row \.list-actions :where\(button\.icon-button\)\{width:32px;min-width:32px;height:32px;min-height:32px\}/,'acciones de ícono de 32 px en la fila');
-assert.match(ui,/\.control-shell :is\(\.list-row,\[data-list-row\]\) button\[aria-haspopup="menu"\]\{min-height:0\}/,'el ⋯ mide lo que su ícono en la fila');
+assert.match(ui,/@media\(min-width:768px\) and \(pointer:coarse\)\{\n :is\(\.control-shell,\.unified-dialog\) button\.toque-44\[aria-haspopup="menu"\]\{min-width:44px;min-height:44px\}/,'táctil conserva 44 px');
+assert.match(ui,/@media\(min-width:768px\)\{\n :is\(\.control-shell,\.unified-dialog\) button\.toque-44\[aria-haspopup="menu"\]\{min-width:32px;min-height:32px;justify-content:center\}/,'el ⋯ mide 32 px en escritorio y 44 en táctil');
 assert.match(ui,/\.control-shell \.ui-kpi-strip-dense \.ui-kpi\{display:grid;/,'la tira densa define su grilla');
 
 // Pantallas: adoptan las primitivas y el orden por importancia.

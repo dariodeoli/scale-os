@@ -9,7 +9,9 @@ Object.assign(globalThis,{requestAnimationFrame:(callback:(time:number)=>void)=>
 const intervals=new Map<number,()=>void>();let timerId=0;
 const documentEvents=Object.assign(new EventTarget(),{visibilityState:'visible'});
 Object.defineProperty(globalThis,'document',{configurable:true,value:documentEvents});
-Object.defineProperty(globalThis,'window',{configurable:true,value:{setInterval(callback:()=>void,ms:number){assert.equal(ms,30000);intervals.set(++timerId,callback);return timerId;},clearInterval(id:number){intervals.delete(id);},dispatchEvent(){return true;}}});
+// Éxitos: el inventario los anuncia solo con el toast (`notify` → evento en window).
+const toasts:string[]=[];
+Object.defineProperty(globalThis,'window',{configurable:true,value:{setInterval(callback:()=>void,ms:number){assert.equal(ms,30000);intervals.set(++timerId,callback);return timerId;},clearInterval(id:number){intervals.delete(id);},dispatchEvent(event:{detail?:{message?:string}}){if(event?.detail?.message)toasts.push(event.detail.message);return true;}}});
 const context={user_id:'10',role:'production',can_manage:false,can_reserve:true,time_zone:'America/Asuncion',members:[{id:'10',name:'Cámara'},{id:'11',name:'Sonido'}],projects:[{id:'20',name:'Proyecto de prueba'}]};
 const equipment:InventoryItem[]=[{id:'1',name:'Memoria SD',category:'Memoria',category_id:'1',serial_number:null,value:'0',currency:'PYG',status:'available',storage_shelf:'Estante A',storage_row:'2',custodian_user_id:null,location_type:'storage'},{id:'2',name:'DJI Mic',category:'Audio',category_id:'2',serial_number:null,value:'100',currency:'USD',status:'available',storage_shelf:'Estante B',storage_row:'1',custodian_user_id:null,location_type:'storage'}];
 const record:InventoryReservation={id:'30',title:'Rodaje de prueba',project_id:'20',project_name:'Proyecto de prueba',starts_at:'2026-09-10T12:00:00.000Z',ends_at:'2026-09-10T15:00:00.000Z',status:'reserved',created_by_user_id:'10',return_user_id:'11',return_user_name:'Sonido',custodian_user_id:null,custodian_name:null,responsible_members:context.members,items:equipment.map(i=>({id:i.id,name:i.name,storage_shelf:i.storage_shelf,storage_row:i.storage_row})),notes:'',version:0};
@@ -292,7 +294,7 @@ async function run(){
  act(()=>renderer.root.findAllByType('button').find(node=>node.props['aria-haspopup']==='menu')!.props.onClick());
  act(()=>renderer.root.findAllByType('button').find(node=>text(node)==='Archivar equipo')!.props.onClick());assert.equal(renderer.root.findAllByProps({role:'alert'}).length,0,'reopening has no stale archive error');
  await act(async()=>{await button('Archivar equipo').props.onClick();});
- assert.equal(renderer.root.findAllByType(MockOverlay).length,0);assert.match(text(renderer.root),/Equipo archivado/);
+ assert.equal(renderer.root.findAllByType(MockOverlay).length,0);assert.ok(toasts.some(message=>/Equipo archivado/.test(message)),'el éxito llega por el toast');assert.doesNotMatch(text(renderer.root),/Equipo archivado/,'sin banner en línea que duplique el toast');
  assert.equal(writes.at(-1)!.method,'DELETE');act(()=>renderer.unmount());assert.equal(intervals.size,0);
  // Un fallo de acción no esconde el catálogo: se avisa y el contenido sigue a la vista.
  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});

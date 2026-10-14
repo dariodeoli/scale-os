@@ -146,14 +146,14 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
         </span>
       </> : <span className="text-[11px] text-mute">Sin acceso a cobros</span>}
     </div>
-    <dl className="m-0 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11.5px] leading-4">
-      {client.contact_restricted ? <div className="col-span-2 min-w-0"><dt className={dt}>Contacto y datos fiscales</dt><dd className="m-0 truncate text-mute" title="Reservados para los roles que gestionan clientes (Ley 7593/2025).">Reservados para los roles que gestionan clientes</dd></div> : <>
-      <div className="min-w-0"><dt className={dt}>Correo</dt><dd className="m-0 truncate text-fore" title={canSeeContact ? client.email || 'Sin correo registrado' : 'Dato protegido para tu rol'}><PiiTexto kind="email" value={client.email} masked={!canSeeContact} fallback="Sin correo registrado"/></dd></div>
-      <div className="min-w-0"><dt className={dt}>Teléfono</dt><dd className="m-0 whitespace-nowrap text-fore"><PiiTexto kind="telefono" value={client.phone} masked={!canSeeContact} fallback="Sin teléfono"/></dd></div>
-      <div className="min-w-0"><dt className={dt}>RUC</dt><dd className="m-0 whitespace-nowrap text-fore"><PiiTexto kind="documento" value={client.tax_id} masked={!canSeeContact} fallback="Sin RUC registrado"/></dd></div>
+    <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11.5px] leading-4">
+      {client.contact_restricted ? <div className="col-span-2 min-w-0"><dt className={dt}>Contacto y datos fiscales</dt><dd className="truncate text-mute" title="Reservados para los roles que gestionan clientes (Ley 7593/2025).">Reservados para los roles que gestionan clientes</dd></div> : <>
+      <div className="min-w-0"><dt className={dt}>Correo</dt><dd className="truncate text-fore" title={canSeeContact ? client.email || 'Sin correo registrado' : 'Dato protegido para tu rol'}><PiiTexto kind="email" value={client.email} masked={!canSeeContact} fallback="Sin correo registrado"/></dd></div>
+      <div className="min-w-0"><dt className={dt}>Teléfono</dt><dd className="whitespace-nowrap text-fore"><PiiTexto kind="telefono" value={client.phone} masked={!canSeeContact} fallback="Sin teléfono"/></dd></div>
+      <div className="min-w-0"><dt className={dt}>RUC</dt><dd className="whitespace-nowrap text-fore"><PiiTexto kind="documento" value={client.tax_id} masked={!canSeeContact} fallback="Sin RUC registrado"/></dd></div>
       </>}
-      <div className="min-w-0"><dt className={dt}>Cliente desde</dt><dd className="m-0 whitespace-nowrap text-fore">{since || 'Sin fecha de alta'}</dd></div>
-      <div className="col-span-2 min-w-0"><dt className={dt}>Actividad</dt><dd className="m-0 truncate text-fore" title={activity}>{activity}</dd></div>
+      <div className="min-w-0"><dt className={dt}>Cliente desde</dt><dd className="whitespace-nowrap text-fore">{since || 'Sin fecha de alta'}</dd></div>
+      <div className="col-span-2 min-w-0"><dt className={dt}>Actividad</dt><dd className="truncate text-fore" title={activity}>{activity}</dd></div>
     </dl>
     <footer className="client-card-actions silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-2 [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>

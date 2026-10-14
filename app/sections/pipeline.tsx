@@ -16,7 +16,7 @@ import {filterLeads,leadCurrencies,leadFiltersActive,NO_LEAD_FILTERS,type LeadFi
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '../pipeline-summary';
 import {boardColumnWindow,type BoardColumnWindow} from '../pipeline-board-window';
-import {ActionMenu,BulkBar,CompactCard,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,SectionLoading,StateChip,ViewSwitch,type CollectionView,type Column,type RecordMenuItem} from '../ui-v2';
+import {ActionMenu,BulkBar,ListPage,CompactCard,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,SectionLoading,StateChip,ViewSwitch,type CollectionView,type Column,type RecordMenuItem} from '../ui-v2';
 import {SelectCustom} from '../profile-controls';
 import {currencyChoices} from '../currencies';
 import {useCompanyCurrency} from '../currency-provider';
@@ -463,12 +463,16 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   }
 
   return (
-    <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4" aria-label="Pipeline">
+    // Encabezado propio (ownsHeader): título del shell + acciones primarias en
+    // la misma fila; la toolbar queda para filtros, vista y contador.
+    <ListPage aria-label="Pipeline" primaryAction={canEdit?<>
+      <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
+      <Button type="button" className="max-md:min-h-11" onClick={()=>openCreate('')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
+    </>:undefined}>
       {/* Filtros (#182): buscador + etapa + moneda, válidos para el tablero y la
           lista. No hay «responsable» en las oportunidades del API: no se ofrece. */}
-      {/* Reorganización IA: el título ya lo dibuja el shell; las acciones viven
-          al final de la misma fila que los filtros (una sola fila en escritorio)
-          en vez de ocupar una fila propia sin título. */}
+      {/* Reorganización IA: el título y las acciones primarias comparten la fila
+          del encabezado (ListPage); acá quedan filtros, vista y contador. */}
       <FilterToolbar>
         <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" type="search" ariaLabel="Buscar oportunidades" value={filters.query} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setFilter({query:event.target.value})} placeholder="Buscar por nombre, contacto o notas…"/>
         <div className="min-w-0">
@@ -490,10 +494,6 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         {view==='list'&&canEdit&&listRows.length?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>:null}
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {state==='ready'||rows.length?<p className="m-0 whitespace-nowrap text-xs tabular-nums text-mute">{filtering?`${filtered.length} de ${rows.length} oportunidades · indicadores y totales del filtro`:`${rows.length} oportunidad${rows.length===1?'':'es'}`}</p>:null}
-          {canEdit?<>
-            <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
-            <Button type="button" className="max-md:min-h-11" onClick={()=>openCreate('')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
-          </>:null}
         </div>
       </FilterToolbar>
       {view==='list'&&canEdit&&selected.length?<BulkBar count={selected.length} busy={bulkBusy} onClear={()=>setSelected([])}>
@@ -612,7 +612,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {stagePanel&&canEdit?<Dialog title="Etapas del pipeline" close={()=>setStagePanel(false)}>
         <StageManager stages={stages} reload={async()=>{await Promise.all([loadStages(),load()]);}}/>
       </Dialog>:null}
-    </section>
+    </ListPage>
   );
 }
 

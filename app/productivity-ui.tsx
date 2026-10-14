@@ -193,7 +193,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
    {!initialView?<TabScroller className="mb-0 min-w-0" label="vistas"><Subtabs value={view} onChange={setView} items={[['Mi día','Mi día'],['Calendario','Calendario'],['Lista y lotes','Lista y lotes']]} className="mb-0 [&>button]:min-h-11 md:[&>button]:min-h-9 max-lg:flex-nowrap"/></TabScroller>:null}
   </div>
   {view==='Mi día'?<>
-   <KpiStrip>
+   <KpiStrip columns={['owner','admin','finance'].includes(role)?4:2}>
     {/* Reorganización IA: los accesos a cobros y efectivo ocupan la otra mitad
         de la fila de KPIs en vez de una fila propia. */}
     <Kpi label="Entregas para hoy o vencidas" valor={dueToday} hint="Piezas asignadas con entrega hasta hoy"/>

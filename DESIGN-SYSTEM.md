@@ -267,13 +267,15 @@ Reglas que deja el pase (todas en primitivas compartidas):
   Actividad · Datos · Acciones).
 - **Acciones de ícono en filas finas = 32 px** en escritorio (`.list-row
   .list-actions :where(button.icon-button)`) y el disparador ⋯ de
-  `MenuDesplegable` mide lo que su ícono dentro de `.list-row`/`[data-list-row]`
-  (la librería le pone `min-h-11`, que estiraba la fila a 54–56 px). En mobile
-  se conservan los 44 px.
+  `MenuDesplegable` mide 32 px en escritorio (44 con puntero táctil), en todo el shell y
+  los diálogos (la librería le pone `min-h-11`, que estiraba filas y tarjetas a
+  54–56 px). En mobile/táctil se conservan los 44 px.
+- **Sin márgenes del navegador en el contenido**: `:where(.workspace-content)`
+  reinicia `h2`/`h3`/`p`/`dl`/`dd` (especificidad cero; cualquier clase manda).
+- **KpiStrip** deriva sus columnas de escritorio de la cantidad de KPIs (1–4; 5
+  o más envuelven en filas de 4).
 - **Ranuras de acción reservadas**: si falta WhatsApp o el aviso de precio, su
   lugar queda vacío y el resto no se corre (Clientes).
-- **Sin margen del navegador** en `h3`/`dl`/`dd` de tarjetas (preflight
-  apagado: `m-0`), que inflaba las tarjetas de Clientes y Proyectos.
 - **Sin card contenedora** alrededor de KPIs + lista en Inventario.
 - La auditoría «Actualizado …» sale de la tarjeta de proyecto (vive en el
   detalle, como en Producción #99).

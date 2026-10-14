@@ -283,7 +283,8 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(uiSystem,/@media\(min-width:768px\)\{[\s\S]{0,160}?\.control-shell \.ui-kpi>div:nth-child\(2\)\{font-size:28px;line-height:1\.15\}/,'el KPI compacta su valor en escritorio');
  assert.doesNotMatch(controlCenter,/\.control-shell \.section-tabs\{/,'las reglas legadas de tabs se retiraron: fuente única en ui-system.css');
  assert.match(read('app/ui-v2.tsx'),/data-toolbar="filtros" className=\{`mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap/,'la toolbar declara su hook y una fila desde xl');
- assert.match(read('app/ui-v2.tsx'),/ui-kpi-strip grid \$\{dense \? 'ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'\} sm:grid-cols-2 xl:grid-cols-4/,'el strip de KPIs conserva su grilla 1/2/4 (la variante densa va 2/2/4)');
+ assert.match(read('app/ui-v2.tsx'),/ui-kpi-strip grid \$\{dense \? 'ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'\} \$\{kpiStripColumns\(count\)\}/,'el strip de KPIs deriva sus columnas de la cantidad (1/2/4 con cuatro; la variante densa va 2/2/4)');
+ assert.match(read('app/ui-v2.tsx'),/return 'sm:grid-cols-2 xl:grid-cols-4';/,'cuatro o más KPIs van en filas de 4');
  // FOUT (#76): las fuentes críticas del marco se precargan y no hacen swap.
  const layoutSource=read('app/layout.tsx');
  assert.match(layoutSource,/rel="preload" href="\/fonts\/s\/outfit\/v15\/QGYvz_MVcBeNP4NJtEtqUYLknw\.woff2" as="font" type="font\/woff2" crossOrigin="anonymous"/,'Outfit latin se precarga como fuente');

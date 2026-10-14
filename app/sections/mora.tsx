@@ -1,7 +1,7 @@
 "use client";
 import type {ChangeEvent, Dispatch, SetStateAction} from 'react';
 import {Plus} from 'lucide-react';
-import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
+import {EmptyBlock, ErrorBlock, FilterToolbar, ListPage, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {Aviso, SearchField, SegmentedField} from 'owncoding-ui';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
 import {roleCan} from '../capabilities';
@@ -83,7 +83,8 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
   const updated = moraUpdated ? listDateFull(moraUpdated.toISOString()) : null;
   const loading = (moraState === 'loading' || moraState === 'idle') && !paymentStatuses.length;
   const failed = moraState === 'error';
-  return <section className="grid gap-4" aria-label="Cobranza y mora">
+  // Encabezado propio (ownsHeader): título del shell + «Registrar factura» en una fila.
+  return <ListPage aria-label="Cobranza y mora" primaryAction={onCreateInvoice && roleCan(user?.role, 'invoices.manage') ? <button type="button" className="primary" onClick={() => onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar factura</button> : undefined}>
     {loading ? <LoadingBlock label="Cargando cobranza…" lines={5}/>
     : failed && !paymentStatuses.length ? <ErrorBlock title="No se pudo cargar la cobranza" description="Reintentá para ver el saldo pendiente, la antigüedad de cada cliente y el DSO del mes." onRetry={onRetry}/>
     : <>
@@ -130,5 +131,5 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
       </ListGrid>
       : <EmptyBlock title={paymentStatuses.length ? 'No hay clientes en esta categoría.' : 'Sin registros de cobranza todavía.'} description={paymentStatuses.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Emití la primera factura para seguir el saldo y la antigüedad de cada cliente.'} action={paymentStatuses.length ? <button className="secondary" onClick={() => { setMoraFilter(''); setMoraSearch(''); }}>Limpiar filtros</button> : onCreateInvoice ? <button className="primary" onClick={() => onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button> : undefined}/>}
     </>}
-  </section>;
+  </ListPage>;
 }
