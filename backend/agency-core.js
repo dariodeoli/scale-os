@@ -630,10 +630,12 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const user=await session(req); if(!roleCan(user,'invoices.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const {clientId,total,currency=user.default_currency??'PYG',dueOn=null,notes=null}=await body(req); const amount=Number(total);
       if(!Number.isInteger(Number(clientId)) || !Number.isFinite(amount) || amount<0 || !currencies.includes(currency)) return send(res,400,{error:'Factura inválida'});
-      const client=await db.query(`select id from agency_clients c where id=$1 and organization_id=$2 and ${visibleRecord('c','clients')}`,[Number(clientId),user.organization_id]); if(!client.rows[0]) return send(res,404,{error:'Cliente no encontrado'});
+      const client=await db.query(`select id,name from agency_clients c where id=$1 and organization_id=$2 and ${visibleRecord('c','clients')}`,[Number(clientId),user.organization_id]); if(!client.rows[0]) return send(res,404,{error:'Cliente no encontrado'});
       const number=`F-${new Date().getFullYear()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
       const r=await auditedQuery(user,req,'insert into agency_invoices(organization_id,client_id,number,total,currency,due_on,notes) values($1,$2,$3,$4,$5,$6,$7) returning *',[user.organization_id,Number(clientId),number,amount,currency,dueOn || null,notes || null]);
-      return send(res,201,{invoice:r.rows[0]});
+      // Mismo contrato que el GET: la factura nueva viaja con `client_name` (sin él, el
+      // selector de cobro y la lista mostraban «F-… · undefined» hasta recargar).
+      return send(res,201,{invoice:{...r.rows[0],client_name:client.rows[0].name}});
     }
     // /api/agency/payments y /api/agency/transfers los sirve finance-controls.js,
     // que corre antes que este módulo en server.js (issue #13). Las copias legacy

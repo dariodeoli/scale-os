@@ -505,6 +505,12 @@ const paymentSchema = z.object({
   receivedByUserId: z.string().optional(),
 });
 type PaymentValues = z.infer<typeof paymentSchema>;
+/** Moneda del importe cobrado: la de la cuenta elegida; antes de elegirla, la de la factura (nunca «Gs» para una factura en USD). */
+export function paymentCurrency(accounts: Pick<Account,'id'|'currency'>[], invoices: Pick<Invoice,'id'|'currency'>[], accountId?: string, invoiceId?: string) {
+  return accounts.find(account=>String(account.id)===String(accountId))?.currency
+    || invoices.find(invoice=>String(invoice.id)===String(invoiceId))?.currency
+    || 'PYG';
+}
 export function PaymentForm({
   invoices,
   accounts,
@@ -608,7 +614,7 @@ export function PaymentForm({
       {form.formState.errors.accountId?<small className="error" role="alert">{form.formState.errors.accountId.message}</small>:null}
       <label>
         Importe cobrado
-        <AmountInput value={form.watch('amount')||''} currency={accounts.find(account=>account.id===form.watch('accountId'))?.currency||'PYG'} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
+        <AmountInput value={form.watch('amount')||''} currency={paymentCurrency(accounts,invoices,form.watch('accountId'),invoiceId)} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
       </label>
       {form.formState.errors.amount?<small className="error" role="alert">{form.formState.errors.amount.message}</small>:null}
       <label>

@@ -50,6 +50,7 @@ import {
   cn,
 } from 'owncoding-ui';
 import {ConfirmDialog} from './dialog';
+import {useCompanyCurrency} from './currency-provider';
 import {CurrencyField,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,type Column} from './ui-v2';
 
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
@@ -76,7 +77,9 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
  const {data,error,reload,version,setError:setForecastError}=useForecast(month,horizon);
  const {accounts,expenses:realExpenses,error:realError,setError:setRealError}=useRealExpenses(month,data);
  const {payload:plannedExpenses,error:plannedError,reload:reloadPlanned}=usePlannedExpenses(month,data);
- const [expense,setExpense]=useState({cadence:'monthly' as 'monthly'|'recurring',category:'Operación',kind:'variable' as 'fixed'|'variable',amount:'',currency:'PYG' as MoneyCurrency,note:''});
+ // Moneda inicial = la de la empresa (regla de valores predeterminados), no PYG fijo.
+ const {currency:companyCurrency}=useCompanyCurrency();
+ const [expense,setExpense]=useState(()=>({cadence:'monthly' as 'monthly'|'recurring',category:'Operación',kind:'variable' as 'fixed'|'variable',amount:'',currency:(isCurrency(companyCurrency)?companyCurrency:'PYG') as MoneyCurrency,note:''}));
  const [expenseError,setExpenseError]=useState(''),[expenseSaving,setExpenseSaving]=useState(false);
  const [realExpense,setRealExpense]=useState({accountId:'',category:'Operación',kind:'variable' as 'fixed'|'variable',amount:'',paidOn:todayAsuncion(),reference:''});
  const [realSaving,setRealSaving]=useState(false),[realDeleting,setRealDeleting]=useState('');
