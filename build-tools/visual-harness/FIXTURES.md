@@ -96,6 +96,18 @@ accesos, auditoría, skeleton y avisos) que espejan la fase 2 aprobada; los
 fixtures `admin-*` quedan como estado anterior. Capturas en
 `docs/qa/admin-redesign-2/` (390/1440 × claro/oscuro/alto contraste).
 
+## Consultas y encabezado compacto del panel global
+
+`fixtures/admin-redesign.mjs` suma `admin3-consultas` (bandeja de consultas de la
+landing: Fecha · Nombre/empresa · Contacto · Mensaje · Estado · Acciones, con
+tarjetas en mobile) y actualiza el encabezado compartido de las superficies
+`admin2-*`: una sola fila (marca + título + permiso + «Actualizado»), sin el
+rótulo «Administración global» ni la fila «Acceso separado por plataforma» (el
+aviso vive en el tooltip del chip de permiso), acciones ícono+texto (solo ícono
+en mobile) y la pestaña «Consultas» con insignia. Espeja
+`app/superadmin/{page,inquiries,states}.tsx` y `platform-admin.css`.
+0 hallazgos a 390/1440.
+
 ## Referencias v2 (campaña #41)
 
 `fixtures/referencias-v2.mjs` genera el markup con `renderToStaticMarkup` sobre

@@ -30,16 +30,17 @@ try {
     await cdp.send('Page.navigate', {url: `${base}/superadmin`});
     await waitFor(`document.querySelector('.platform-admin-tabs button')`);
     const tabs = await cdp.evaluate(`Array.from(document.querySelectorAll('.platform-admin-tabs button')).map(el=>({text:el.title,top:el.getBoundingClientRect().top,right:el.getBoundingClientRect().right,height:el.getBoundingClientRect().height}))`);
-    assert.equal(tabs.length, 5);
-    assert.deepEqual(tabs.map(tab => tab.text), ['Resumen', 'Agencias', 'Accesos', 'Cupones', 'Auditoría']);
+    assert.equal(tabs.length, 7);
+    assert.deepEqual(tabs.map(tab => tab.text), ['Resumen', 'Consultas', 'Agencias', 'Accesos', 'Cupones', 'Auditoría', 'Uso']);
     if (width === 390) {
-      assert.ok(new Set(tabs.map(tab => tab.top)).size > 1, 'Mobile tabs wrap');
-      assert.ok(tabs.every(tab => tab.right <= width && tab.height >= 44), 'Every tab is visible with a 44px target');
-      await cdp.evaluate(`document.querySelectorAll('.platform-admin-tabs button')[2].click()`);
+      // Tira horizontal con scroll silencioso: una sola fila, targets de 44 px.
+      assert.equal(new Set(tabs.map(tab => tab.top)).size, 1, 'Mobile tabs are one scrollable strip');
+      assert.ok(tabs.every(tab => tab.height >= 44), 'Every tab keeps a 44px target');
+      await cdp.evaluate(`document.querySelector('.platform-admin-tabs button[title="Accesos"]').click()`);
       await waitFor(`document.querySelector('[aria-labelledby="platform-access-title"]')`);
       await cdp.evaluate(`window.scrollTo(0, document.body.scrollHeight)`);
       assert.ok(await cdp.evaluate('window.scrollY > 300'), 'Fixture produces deep Access scroll');
-      await cdp.evaluate(`document.querySelectorAll('.platform-admin-tabs button')[4].click()`);
+      await cdp.evaluate(`document.querySelector('.platform-admin-tabs button[title="Auditoría"]').click()`);
       await waitFor(`document.querySelector('.platform-admin-audit-cards article')`);
       assert.ok(await cdp.evaluate(`document.querySelector('.platform-admin-top').getBoundingClientRect().top >= 0`), 'Section switch reveals header');
       const record = await cdp.evaluate(`document.querySelector('.platform-admin-audit-cards article').textContent`);
@@ -48,14 +49,14 @@ try {
       assert.ok(await cdp.evaluate(`document.documentElement.scrollWidth <= innerWidth`), 'No horizontal overflow');
       await cdp.evaluate(`window.scrollTo(0, 140)`);
       const before = await cdp.evaluate('scrollY');
-      await cdp.evaluate(`document.querySelectorAll('.platform-admin-tabs button')[4].click()`);
+      await cdp.evaluate(`document.querySelector('.platform-admin-tabs button[title="Auditoría"]').click()`);
       assert.equal(await cdp.evaluate('scrollY'), before, 'Same view preserves scroll');
       await cdp.evaluate(`document.querySelector('.platform-admin-actions button').click()`);
       await waitFor(`!document.querySelector('.platform-admin-actions button').disabled`);
       assert.equal(await cdp.evaluate('scrollY'), before, 'Refresh preserves scroll');
     } else {
       assert.equal(new Set(tabs.map(tab => tab.top)).size, 1, 'Desktop strip is unchanged');
-      await cdp.evaluate(`document.querySelectorAll('.platform-admin-tabs button')[4].click()`);
+      await cdp.evaluate(`document.querySelector('.platform-admin-tabs button[title="Auditoría"]').click()`);
       await waitFor(`document.querySelector('[role="table"][aria-label="Actividad de administración global"]')`);
     }
     mkdirSync('work/visual-harness/ux-gaps', {recursive: true});
