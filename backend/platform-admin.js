@@ -108,13 +108,20 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
      s.stripe_status as subscription_status,s.currency as subscription_currency,
      case s.currency when 'USD' then 10::numeric when 'PYG' then 50000::numeric else null end as subscription_amount,
      s.trial_ends_at,s.due_at,ps.state as internal_subscription_state,ps.expires_at as internal_subscription_expires_at,
-     count(m.user_id) filter(where m.active and m.removed_at is null and ${realUser('u')})::int as active_users
+     count(m.user_id) filter(where m.active and m.removed_at is null and ${realUser('u')})::int as active_users,
+     adm.owner_name,adm.owner_email,adm.owner_photo_url,adm.extra_admins
      from organizations o left join organization_subscriptions s on s.organization_id=o.id
+     left join lateral (
+      select nullif(g.full_name,'') as owner_name,u3.email as owner_email,g.photo_url as owner_photo_url,
+       greatest(0,(select count(*)::int from organization_members m4 join users u4 on u4.id=m4.user_id where m4.organization_id=o.id and m4.active and m4.removed_at is null and m4.role in ('owner','admin') and ${realUser('u4')})-1) as extra_admins
+      from organization_members m3 join users u3 on u3.id=m3.user_id left join user_personal_identities g on g.user_id=u3.id
+      where m3.organization_id=o.id and m3.active and m3.removed_at is null and m3.role in ('owner','admin') and ${realUser('u3')}
+      order by (m3.role='owner') desc,m3.user_id limit 1) adm on true
      left join platform_subscription_states ps on ps.organization_id=o.id
      left join organization_members m on m.organization_id=o.id
      left join users u on u.id=m.user_id
      where ${realOrganization('o')} ${where}
-     group by o.id,s.stripe_status,s.currency,s.trial_ends_at,s.due_at,ps.state,ps.expires_at order by o.created_at desc limit $1 offset $2`,values);
+     group by o.id,s.stripe_status,s.currency,s.trial_ends_at,s.due_at,ps.state,ps.expires_at,adm.owner_name,adm.owner_email,adm.owner_photo_url,adm.extra_admins order by o.created_at desc limit $1 offset $2`,values);
    send(res,200,{agencies:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   const subscriptionPath=url.pathname.match(/^\/api\/platform\/agencies\/(\d+)\/subscription$/);
@@ -211,7 +218,11 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    const {limit,offset}=page(url),q=search(url),where=q?'and u.email ilike $3':'';
    const values=q?[limit,offset,'%'+q+'%']:[limit,offset];
    const total=Number((await db.query(`select count(*)::int as n from users u where ${realUser('u')} ${q?'and u.email ilike $1':''}`,q?['%'+q+'%']:[])).rows[0].n);
+   // Solo identidad visible (nombre, foto) y nombres de agencia: nunca salarios ni datos sensibles.
    const result=await db.query(`select u.id,u.email,u.created_at,
+     (select nullif(g.full_name,'') from user_personal_identities g where g.user_id=u.id) as full_name,
+     (select g.photo_url from user_personal_identities g where g.user_id=u.id) as photo_url,
+     (select coalesce(jsonb_agg(x.name order by x.name),'[]'::jsonb) from (select o2.name from organization_members m2 join organizations o2 on o2.id=m2.organization_id where m2.user_id=u.id and m2.active and m2.removed_at is null and ${realOrganization('o2')} order by o2.name limit 3) x) as agency_names,
      count(m.organization_id) filter(where m.active and m.removed_at is null and ${realOrganization('o')})::int as active_agencies,
      exists(select 1 from platform_administrators pa where pa.user_id=u.id and pa.active) as platform_admin,
      (select pa.role from platform_administrators pa where pa.user_id=u.id and pa.active) as platform_role
