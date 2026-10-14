@@ -20,7 +20,7 @@ const trash = icon('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"
 
 const chip = (text, color) => `<span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium ${color} whitespace-nowrap">${text}</span>`;
 const tones = {
-  ok: 'bg-ok/15 text-ok border-ok/25', warn: 'bg-warn/15 text-warn-text border-warn/25',
+  ok: 'bg-ok/15 text-ok-text border-ok/25', warn: 'bg-warn/15 text-warn-text border-warn/25',
   info: 'bg-fono/15 text-fono-text border-fono/25', mute: 'bg-ink-600 text-mute border-ink-500 dark:text-fore',
 };
 const tone = (p) => (p >= 75 ? 'ok' : p >= 40 ? 'warn' : 'mute');

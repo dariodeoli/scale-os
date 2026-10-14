@@ -42,7 +42,7 @@ const avatar = (name) => `<span class="foto-perfil" aria-hidden="true" style="wi
 const money = (text) => `<span class="inline-flex shrink-0 items-center justify-end gap-1 font-semibold tabular-nums">${text}</span>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
 const badge = (label, tone, fluid = false) => {
-  const tones = {ok: 'bg-ok/15 text-ok border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn border-warn/25', bad: 'bg-bad/15 text-bad border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
+  const tones = {ok: 'bg-ok/15 text-ok-text border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn-text border-warn/25', bad: 'bg-bad/15 text-bad-text border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
   return `<span${fluid ? ` title="${label}"` : ''} class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${fluid ? 'min-w-0 max-w-full truncate ' : ''}${tones[tone]}">${label}</span>`;
 };
 const iconAction = ({icon, label, tone = 'mute', disabled = false, dense = false}) => {
@@ -52,7 +52,7 @@ const iconAction = ({icon, label, tone = 'mute', disabled = false, dense = false
   return `<button type="button" title="${label}" aria-label="${label}"${disabled ? ' disabled' : ''} class="inline-flex h-11 w-11 items-center justify-center rounded-lg border transition ${size} ${tones[tone]}">${svg(ICON[icon], 16, 'h-4 w-4')}</button>`;
 };
 const button = (label, variant = 'primary') => {
-  const variants = {primary: 'bg-fono text-onbrand hover:bg-fono-light', outline: 'bg-transparent text-fore border border-ink-500 hover:border-fono hover:bg-fono/10', ghost: 'bg-transparent text-mute hover:bg-ink-700 hover:text-fore'};
+  const variants = {primary: 'bg-fono text-onbrand hover:bg-fono-light', outline: 'bg-transparent text-fore border border-interactivo hover:border-fono hover:bg-fono/10', ghost: 'bg-transparent text-mute hover:bg-ink-700 hover:text-fore'};
   return `<button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition md:h-9 ${variants[variant]}">${label}</button>`;
 };
 const segmented = (label, options, active, extra = '') => `<div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 ${extra}" role="group" aria-label="${label}">${options.map(([id, text, icon]) => `<button type="button" aria-pressed="${id === active}" aria-label="${text}" title="${text}" class="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 md:min-h-8 text-sm font-medium transition ${extra ? 'shrink-0 ' : ''}${id === active ? 'bg-fono/15 text-fono-light' : 'text-mute hover:bg-fore/5 hover:text-fore'}">${svg(ICON[icon], 16, 'h-4 w-4 shrink-0')}<span class="min-w-0 truncate">${text}</span></button>`).join('')}</div>`;
@@ -67,7 +67,7 @@ const emptyState = (title, description, action = '', compact = false, icon = ICO
 const textButton = (label) => `<button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-mute transition hover:bg-ink-700 hover:text-fore md:h-8">${label}</button>`;
 
 const aviso = (tono, text) => {
- const tones = {error: 'border-bad/30 bg-bad/10 text-bad', ok: 'border-ok/30 bg-ok/10 text-ok', warn: 'border-warn/30 bg-warn/10 text-warn'};
+ const tones = {error: 'border-bad/30 bg-bad/10 text-bad-text', ok: 'border-ok/30 bg-ok/10 text-ok-text', warn: 'border-warn/30 bg-warn/10 text-warn-text'};
  return `<p role="${tono === 'error' ? 'alert' : 'status'}" class="rounded-lg border px-3 py-2 text-sm ${tones[tono]}">${text}</p>`;
 };
 const errorState = (title, description) => `<div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-bad/25 bg-bad/10 text-bad">${svg(ICON.alert, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p><button type="button" class="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore transition hover:border-fono hover:bg-fono/10 md:h-9">Reintentar</button></div>`;
