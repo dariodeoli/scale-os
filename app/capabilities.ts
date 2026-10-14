@@ -98,6 +98,7 @@ export const BATCH_LIMITS = {
  budgets: 50,
  clients: 50,
  inventory: 50,
+ leads: 50,
  projects: 50,
  reservationItems: 50,
  studioReservations: 50,
