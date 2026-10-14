@@ -1,0 +1,2 @@
+# Hallazgos del e2e local (fix3): día de Asunción por defecto y «Mis datos» contra el API real.
+tsx tests/today-asuncion-guard.test.ts

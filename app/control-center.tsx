@@ -7,6 +7,7 @@ import {DueAlert,CommercialDashboard,billingExpectationState,groupDueAlerts,norm
 import {Kpi,KpiStrip,MoneyText,StateChip} from './ui-v2';
 import {RecordEditor} from './suite';
 import {ORDER_FIELDS_SEARCH} from './shell-data';
+import {todayAsuncion} from './client-format';
 type Total={currency:string;total:string};
 type Dashboard={cash:Total[];receivables:Total[];collections:Total[];inventory:Total[];expenses:Total[];personnel:Total[];expected:Total[];alerts:DueAlert[]};
 type Order={id:string;title:string;status:string;due_date?:string|null;client_name:string;project_name:string};
@@ -31,7 +32,7 @@ export function ControlCenter({role,orders,refresh,navigate,signals}:{role:strin
   return()=>{live=false;};},[allowed,orders]);
  useEffect(()=>{let live=true;if(allowed){setError('');void api<Dashboard>('/api/agency/dashboard').then(value=>{if(live)setData(value);}).catch(e=>{if(live)setError(e instanceof Error?e.message:'No se pudo cargar el resumen financiero.');});}return()=>{live=false;};},[allowed,orders]);
  useEffect(()=>{let live=true;setCommercial(null);setCommercialError('');if(commercialAllowed)void api<unknown>('/api/agency/control-center').then(value=>{const normalized=normalizeCommercialDashboard(value);if(live)setCommercial(normalized);}).catch(e=>{if(live)setCommercialError(e instanceof Error?e.message:'No se pudo cargar el resumen comercial.');});return()=>{live=false;};},[commercialAllowed,orders]);
- const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const today=todayAsuncion();
  const orderAlerts:DueAlert[]=orders.filter(o=>o.due_date&&o.due_date.slice(0,10)<today&&!['approved','published'].includes(o.status)).map(o=>({id:o.id,type:'work_order',name:o.title,due:o.due_date!.slice(0,10),context:`${o.client_name} · ${o.project_name}`}));
  // `alerts` puede faltar en una respuesta vieja/parcial del API: sin la guarda
  // `data.alerts.length` volteaba la pantalla antes de llegar a `groupDueAlerts`.

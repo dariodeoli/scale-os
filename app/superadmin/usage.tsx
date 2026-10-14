@@ -6,6 +6,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {SearchField, SegmentedField, Select} from "owncoding-ui";
 import {platformApi} from "../platform-admin-api";
 import {listDateFull} from "../list-format";
+import {todayAsuncion} from "../client-format";
 import {PersonContainer} from "../person-container";
 import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, StateChip, type Column} from "../ui-v2";
 import {formatPlatformMetric, type UsagePayload} from "./model";
@@ -23,7 +24,7 @@ const MONTH_NAMES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "se
 
 /** Rango en días de Asunción terminado hoy; el API valida y vuelve a calcular. */
 export function usageQuery(days: number, now = new Date()) {
-  const today = new Intl.DateTimeFormat("en-CA", {timeZone: "America/Asuncion", year: "numeric", month: "2-digit", day: "2-digit"}).format(now);
+  const today = todayAsuncion(now);
   const end = new Date(`${today}T00:00:00Z`);
   const start = new Date(end.getTime() - (days - 1) * 86400000);
   return `?from=${start.toISOString().slice(0, 10)}&to=${today}`;

@@ -15,6 +15,7 @@ import {EmailField} from '../app/email-field';
 import {Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid} from 'owncoding-ui';
 import {financeNoticeHref,financePurposeNotice} from '../app/finance-privacy';
 import {paymentCurrency} from '../app/treasury-data';
+import {todayAsuncion} from '../app/client-format';
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
@@ -52,6 +53,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
    EntityPicker:({legend}:{legend:string})=>React.createElement('fieldset',{'aria-label':legend}),
    isPositiveInput:(value:string)=>/^[1-9]\d*$/.test(value),
    paymentCurrency,
+   todayAsuncion,
    listDateShort:(value:string|null|undefined)=>value||null,
    money:(value:string|number,currency:string)=>`${currency} ${value}`,
    teamRoleLabels:{admin:'Administrador'} as Record<string,string>,

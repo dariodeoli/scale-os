@@ -5,6 +5,7 @@ import {useRef} from "react";
 import {PauseCircle, PlayCircle} from "lucide-react";
 import {ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, MoneyText, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {dueTone, listDateFull, listDateShort} from "../list-format";
+import {todayAsuncion} from "../client-format";
 import {couponStatus, couponUses, formatPlatformMetric, money, type CollectionPage, type Coupon, type CouponDraft, type State} from "./model";
 import {PlatformMore} from "./states";
 import {SelectCustom} from "../profile-controls";
@@ -106,7 +107,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
         ) : null}
         <label className={FIELD}>
           Vence (opcional)
-          <input type="date" value={coupon.expires_at} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setCoupon({...coupon, expires_at: event.target.value})}/>
+          <input type="date" value={coupon.expires_at} min={todayAsuncion()} onChange={(event) => setCoupon({...coupon, expires_at: event.target.value})}/>
         </label>
         <SelectCustom label="Empresa (opcional)" choices={[{value:'',label:'Todas las empresas'}, ...state.agencies.map(agency=>({value:String(agency.id),label:agency.name||`Agencia #${agency.id}`}))]} value={coupon.organization_id} onChange={value=>setCoupon({...coupon,organization_id:value})}/>
         <label className={`${FIELD} platform-admin-coupon-note`}>

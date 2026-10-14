@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useState,type ChangeEvent,type ReactNode} from 'react';
 import {ActorIdentity} from './actor-identity';
+import {todayAsuncion} from './client-format';
 import {listDateShort} from './list-format';
 import {Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,Input,Nota} from 'owncoding-ui';
 import {LoadingBlock} from './ui-v2';
@@ -17,9 +18,7 @@ export function weekMonday(day:string){
  date.setUTCDate(date.getUTCDate()-((date.getUTCDay()+6)%7));return date.toISOString().slice(0,10);
 }
 function currentWeek(){
- const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
- const get=(key:string)=>parts.find(p=>p.type===key)!.value;
- return weekMonday(`${get('year')}-${get('month')}-${get('day')}`);
+ return weekMonday(todayAsuncion());
 }
 function lastDay(week:string){const d=new Date(week+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+6);return d.toISOString().slice(0,10);}
 async function request(week:string,scope:string):Promise<WeeklyAutomaticResult>{

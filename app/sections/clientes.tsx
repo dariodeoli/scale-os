@@ -6,7 +6,7 @@ import {BATCH_LIMITS, roleCan, canSeeClientContact} from '../capabilities';
 import {PiiTexto, maskEmail} from '../list-format';
 import {clientState} from '../client-status';
 import {clientWhatsappUrl} from '../client-links';
-import {clientSince, moneyKpi} from '../client-format';
+import {clientSince, moneyKpi, todayAsuncion} from '../client-format';
 import {ClientIdentity} from '../client-identity';
 import {ConfirmDialog} from '../dialog';
 import {notify} from '../feedback';
@@ -201,7 +201,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
   function exportCsv() {
     const chosen = clients.filter(client => selectedClients.includes(String(client.id)));
     const csv = clientsCsv(chosen, {canSeeContact, canSeeBilling, payments: paymentStatuses, activity: clientHubStats, stateLabel: client => clientState(client).label});
-    if (downloadCsv(`clientes-${new Date().toISOString().slice(0, 10)}.csv`, csv)) notify({tone: 'success', message: `Se exportaron ${chosen.length} ${chosen.length === 1 ? 'cliente' : 'clientes'}.`});
+    if (downloadCsv(`clientes-${todayAsuncion()}.csv`, csv)) notify({tone: 'success', message: `Se exportaron ${chosen.length} ${chosen.length === 1 ? 'cliente' : 'clientes'}.`});
     else notify({tone: 'error', message: 'Tu navegador no permite descargar el archivo.'});
   }
   async function runBatch(archived: boolean) {

@@ -14,6 +14,7 @@ import {AmountInput,SelectCustom} from './profile-controls';
 import {UrgencySelect} from './urgency';
 import {EntityPicker,type EntityOption} from './entity-picker';
 import {isPositiveInput} from './forecast-data';
+import {todayAsuncion} from './client-format';
 import {listDateShort} from './list-format';
 import {money} from './money-format';
 import {teamRoleLabels} from './team-directory';
@@ -530,7 +531,7 @@ export function PaymentForm({
       invoiceId: preselectInvoiceId,
       accountId: "",
       amount: "",
-      receivedOn: new Date().toISOString().slice(0, 10),
+      receivedOn: todayAsuncion(),
       reference: "",
       receivedByUserId: "",
     },
