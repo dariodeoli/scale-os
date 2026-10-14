@@ -146,20 +146,20 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
     {financialCurrenciesInMonth.length?<div className="grid gap-3 lg:grid-cols-2">
      {balanceRows.map(row=><article className="forecast-balance-card grid gap-2 rounded-xl border border-ink-600 bg-ink-900 p-3 sm:p-4" key={row.currency}>
       <div className="flex items-center justify-between gap-3"><span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{row.currency}</span><span className="text-xs text-mute">Movimiento del mes</span></div>
-      <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_auto] items-center gap-2">
+      <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2">
        <span className="text-xs font-medium text-mute">Ingresos</span>
        <BarraProgreso valor={row.income} max={row.max} tono="ok" etiqueta={`Ingresos en ${row.currency}`}/>
-       <strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.income,row.currency)}</strong>
+       <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.income,row.currency)}</strong>
       </div>
-      <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_auto] items-center gap-2">
+      <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2">
        <span className="text-xs font-medium text-mute">Gastos</span>
        <BarraProgreso valor={row.expense} max={row.max} tono="bad" etiqueta={`Gastos en ${row.currency}`}/>
-       <strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.expense,row.currency)}</strong>
+       <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.expense,row.currency)}</strong>
       </div>
-      <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_auto] items-center gap-2 border-t border-ink-600 pt-2">
+      <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2 border-t border-ink-600 pt-2">
        <span className="text-xs font-semibold text-fore">Resultado</span>
        <BarraProgreso valor={Math.abs(row.result)} max={row.max} tono={row.result<0?'bad':'fono'} etiqueta={`Resultado en ${row.currency}`}/>
-       <strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',row.result<0?'text-bad':'text-fore')}>{formatSignedMoney(row.result,row.currency)}</strong>
+       <strong className={cn('whitespace-nowrap text-right text-sm font-semibold tabular-nums',row.result<0?'text-bad':'text-fore')}>{formatSignedMoney(row.result,row.currency)}</strong>
       </div>
      </article>)}
     </div>:<EmptyState compact title="Sin datos financieros para este mes." description="Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
@@ -252,11 +252,11 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
         </article>;})}
        </div>}
        {personnelDense?<div className="forecast-person-list min-w-0" role="table" aria-label="Salarios">
-        <div role="row" className={cn(LIST_HEAD,PERSON_COLS)}><span role="columnheader">Persona</span><span role="columnheader">Salario base</span><span role="columnheader">Cierre del mes</span><span role="columnheader" className="text-right">Acciones</span></div>
+        <div role="row" className={cn(LIST_HEAD,PERSON_COLS)}><span role="columnheader">Persona</span><span role="columnheader" className="text-right">Salario base</span><span role="columnheader" className="text-right">Cierre del mes</span><span role="columnheader" className="text-right">Acciones</span></div>
         <div role="rowgroup">{row.members.map(member=>{const {adjustment,total}=personnelAmounts(member);return <div role="row" className={cn(LIST_ROW,PERSON_COLS,'forecast-person-row')} key={String(member.collaborator_id)}>
          <span className="min-w-0"><span className="forecast-person-who flex min-w-0 items-center gap-2"><ActorAvatar name={member.name} photo={safePhoto(member.photo_url)}/><span className="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title={member.name}>{member.name}</span>{member.base_amount===0?<small className="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>:null}</span></span>
-         <span className={cn('min-w-0','forecast-person-base')}><strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(member.base_amount,member.currency)}</strong></span>
-         <span className={cn('min-w-0','forecast-person-total')}><strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',total!==null&&total<0?'text-bad':'text-fore')}>{total===null?'Sin dato':total<0?formatSignedMoney(total,member.currency):formatWholeMoney(total,member.currency)}</strong>{adjustment!==null&&adjustment!==0?<small className="ml-1.5 whitespace-nowrap text-[11px] font-semibold tabular-nums text-warn" title={`Ajuste del mes: ${formatSignedMoney(member.override_amount,member.currency)}`}>{formatSignedMoney(member.override_amount,member.currency)}</small>:null}</span>
+         <span className={cn('min-w-0 text-right','forecast-person-base')}><strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(member.base_amount,member.currency)}</strong></span>
+         <span className={cn('min-w-0 text-right','forecast-person-total')}><strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',total!==null&&total<0?'text-bad':'text-fore')}>{total===null?'Sin dato':total<0?formatSignedMoney(total,member.currency):formatWholeMoney(total,member.currency)}</strong>{adjustment!==null&&adjustment!==0?<small className="ml-1.5 whitespace-nowrap text-[11px] font-semibold tabular-nums text-warn" title={`Ajuste del mes: ${formatSignedMoney(member.override_amount,member.currency)}`}>{formatSignedMoney(member.override_amount,member.currency)}</small>:null}</span>
          {member.base_amount!==null?<span className="forecast-person-actions flex justify-end gap-1.5">
           <span className={ICON_TARGETS}><IconAction icon="edit" label={`Editar salario: ${member.name}`} onClick={()=>openSalary(member)}/></span>
           <span className={ICON_TARGETS}><IconAction icon="sliders" label={`Ajuste del mes: ${member.name}`} onClick={()=>void openAdjustment(member)}/></span>
