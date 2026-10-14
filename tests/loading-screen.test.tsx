@@ -8,7 +8,7 @@ require.extensions['.css']=()=>{};
 // El transform de `tsx` compila el JSX de los módulos de la app en modo
 // clásico: el shim global es lo que permite renderizarlos fuera de Next.
 (globalThis as unknown as {React:typeof React}).React=React;
-const {LoadingScreen}=require('../app/loading-screen') as typeof import('../app/loading-screen');
+const {LoadingScreen,LOADING_SLOW_MS}=require('../app/loading-screen') as typeof import('../app/loading-screen');
 
 const render=(element:React.ReactElement)=>{
   let renderer!:ReactTestRenderer;
@@ -52,5 +52,24 @@ assert(initials.includes('LA')&&initials.includes('foto-perfil-iniciales'),'sin 
 const statusProps=create(<LoadingScreen/>).root.findByProps({role:'status'}).props;
 assert(statusProps['aria-live']==='polite','la pantalla se anuncia sin interrumpir');
 assert(create(<LoadingScreen/>).root.findAllByProps({'aria-hidden':'true'}).length>=1,'la barra es decorativa (aria-hidden)');
+
+// Carga lenta: pasado el umbral aparece el aviso y el botón Recargar (no antes).
+{
+  const realSetTimeout=globalThis.setTimeout, realClear=globalThis.clearTimeout;
+  const timers:(()=>void)[]=[];let delay=0;
+  (globalThis as any).setTimeout=(fn:()=>void,ms:number)=>{timers.push(fn);delay=ms;return timers.length;};
+  (globalThis as any).clearTimeout=()=>{};
+  let renderer!:ReactTestRenderer;
+  act(()=>{renderer=create(<LoadingScreen name="Lucía Acosta" roleLabel="Propietario"/>);});
+  assert(!JSON.stringify(renderer.toJSON()).includes('Recargar'),'una carga normal no ofrece recargar');
+  assert.equal(delay,LOADING_SLOW_MS,'el aviso espera el umbral de carga lenta');
+  act(()=>{timers.forEach(fn=>fn());});
+  const slow=JSON.stringify(renderer.toJSON());
+  assert(slow.includes('Está tardando más de lo normal')&&slow.includes('Recargar'),'la carga lenta ofrece recargar');
+  assert(slow.indexOf('loading-bar-fill')<slow.indexOf('Recargar'),'el aviso va debajo de la barra');
+  globalThis.setTimeout=realSetTimeout;globalThis.clearTimeout=realClear;
+}
+const css=readFileSync('app/tailwind.css','utf8');
+assert(/prefers-reduced-motion[\s\S]{0,120}\.loading-stage \{ animation: none/.test(css),'el fundido de entrada se apaga con prefers-reduced-motion');
 
 console.log('PASS: una sola pantalla de carga con marca estática, identidad y barra debajo del nombre (issue #64)');
