@@ -1,6 +1,6 @@
 "use client";
 import dynamic from 'next/dynamic';
-import {SectionLoading} from '../ui-v2';
+import {ListPage,SectionLoading} from '../ui-v2';
 import {SettingsWorkspace,CouponRedeem,ExchangeRateSettings,IntegrationSettings} from '../suite';
 import {SubscriptionPanel} from '../subscription-panel';
 import {NewCompany} from '../workspace-guide';
@@ -38,6 +38,7 @@ function SettingsBlock({id,title,description,children,aside,full=false}:{id:stri
 export function ConfiguracionSection({user, subscriptionError, refreshSubscription, exitDemoSimulation, deletionSignedOut}: ConfiguracionSectionProps){
   const demo = !!user?.demo_owner_user_id || user?.organization_slug === 'scale-demo-controles-20260908';
   return (
+    <ListPage aria-label="Configuración">
     <div id="settings-nav" className="settings-page settings-slice">
       <nav className="settings-nav" aria-label="Bloques de configuración">
         <span className="settings-nav-label">Ir a</span>
@@ -80,5 +81,6 @@ export function ConfiguracionSection({user, subscriptionError, refreshSubscripti
         </div>
       </section>
     </div>
+    </ListPage>
   );
 }

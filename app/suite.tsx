@@ -8,8 +8,8 @@ import {ClientReviewControl} from './daily-controls';
 import {ProjectPresence} from './presence';
 import {ClientIdentity} from './client-identity';
 import {ClientEditorDialog} from './client-editor';
-import {useEffect,useState} from 'react';
-import {EmptyBlock,LoadingBlock,ActionMenu,MoneyText,StateChip,type RecordMenuItem} from './ui-v2';
+import {Fragment,useEffect,useState} from 'react';
+import {EmptyBlock,ErrorBlock,LoadingBlock,ActionMenu,ListGrid,ListRow,MoneyText,StateChip,type Column,type RecordMenuItem} from './ui-v2';
 import {budgetState} from './budget-status';
 export type {RecordMenuItem} from './ui-v2';
 import {activityEvent} from './activity-format';
@@ -18,6 +18,8 @@ import {api,Dialog,Editor,Field} from './operations';
 import {ConfirmDialog} from './dialog';
 import {roleCan} from './capabilities';
 import {Aviso} from 'owncoding-ui';
+import {notify} from './feedback';
+import {todayAsuncion} from './client-format';
 import {PHONE_HELP} from './field-rules';
 import {QuoteComposer} from './quote-composer';
 import {completeSave} from './save-completion';
@@ -119,6 +121,11 @@ export function BudgetActions({id,refresh,role,canInvoice,variant='text',label}:
   </div>
  </Dialog>}
  </>;}
+// Una sola plantilla para el encabezado y las filas del feed (lista finita v2).
+const ACTIVITY_TEMPLATE='grid-cols-[minmax(12rem,1.1fr)_minmax(16rem,2fr)_7rem]';
+const ACTIVITY_COLUMNS:Column[]=[{key:'person',label:'Persona'},{key:'event',label:'Evento'},{key:'record',label:'Registro',align:'end'}];
+// El día del grupo es el de Asunción: el mismo que dibuja la hora de cada fila.
+const activityDay=(value:string)=>{const date=new Date(value);return Number.isNaN(date.valueOf())?value.slice(0,10):todayAsuncion(date);};
 export function ActivityWorkspace(){
  // Ventana de servidor (#106): el API entrega de a 20 con total honesto y el
  // front pide la página siguiente; el agrupado por día se mantiene sobre lo cargado.
@@ -137,40 +144,32 @@ export function ActivityWorkspace(){
   finally{setLoadingMore(false);}
  }
  const groups:Row[][]=[];
- for(const row of rows){const day=str(row,'created_at').slice(0,10);const last=groups[groups.length-1];if(last&&str(last[0],'created_at').slice(0,10)===day)last.push(row);else groups.push([row]);}
- const dayLabel=(value:string)=>{const [y,m,d]=value.split('-').map(Number);if(!Number.isInteger(y))return value;return new Intl.DateTimeFormat('es-PY',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(y,m-1,d,12)));};
- return <section className="panel activity-feed"><p className="mb-3 text-xs tabular-nums text-mute" role="status">{total===null?`Mostrando ${rows.length} cambios registrados por el servidor`:`Mostrando ${rows.length} de ${total} cambios registrados por el servidor en esta empresa`}</p>{error&&<p className="error">{error}</p>}{groups.map(group=><section className="activity-day" key={str(group[0],'created_at').slice(0,10)}><h3 className="activity-day-title">{dayLabel(str(group[0],'created_at').slice(0,10))} <span>{group.length}</span></h3><div className="activity-day-rows">{group.map(r=>{const event=activityEvent(r);const context=[event.client,event.subject].filter(Boolean).join(' · ');return <div className="activity-feed-row" key={r.id}><ActorIdentity name={str(r,'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} timestamp={str(r,'created_at')}/><div className="activity-feed-event" title={[event.label,context,event.amount?`${event.amount} ${event.currency}`:'',event.reference,event.technical].filter(Boolean).join(' · ')}><p><b>{event.label}</b>{context?<span className="activity-feed-context"> · {context}</span>:null}{event.amount&&event.currency?<><span className="activity-feed-context"> · </span><MoneyText valor={event.amount} currency={event.currency}/></>:null}{event.reference?<span className="activity-feed-context"> · {event.reference}</span>:null}</p><small className="activity-feed-tech">{event.technical}</small></div><small className="activity-feed-record" title="Identificador técnico del registro">Registro {event.record||'—'}</small></div>;})}</div></section>)}{hasMore?<div className="inline-actions activity-more"><button className="secondary" disabled={loadingMore} onClick={()=>void more()}>{loadingMore?'Cargando…':'Cargar 20 más'}</button></div>:null}{!rows.length&&!error?(loaded?<EmptyBlock title="Sin actividad registrada" description="Los cambios de esta empresa aparecen acá a medida que el equipo opera."/>:<LoadingBlock label="Cargando registros…" lines={4}/>):null}</section>;}
+ for(const row of rows){const day=activityDay(str(row,'created_at'));const last=groups[groups.length-1];if(last&&activityDay(str(last[0],'created_at'))===day)last.push(row);else groups.push([row]);}
+ const dayLabel=(value:string)=>{const [y,m,d]=value.split('-').map(Number);if(!Number.isInteger(y))return value;return new Intl.DateTimeFormat('es-PY',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC',hourCycle:'h23'}).format(new Date(Date.UTC(y,m-1,d,12)));};
+ return <section className="panel activity-feed"><p className="mb-3 text-xs tabular-nums text-mute" role="status">{total===null?`Mostrando ${rows.length} cambios registrados por el servidor`:`Mostrando ${rows.length} de ${total} cambios registrados por el servidor en esta empresa`}</p>{error&&<ErrorBlock title="No se pudo cargar la actividad." description={error}/>}{rows.length?<ListGrid label="Actividad de la empresa" template={ACTIVITY_TEMPLATE} columns={ACTIVITY_COLUMNS} minWidthClass="min-w-[40rem]">{groups.map(group=>{const day=activityDay(str(group[0],'created_at'));return <Fragment key={day}><div role="row" className="activity-day-row"><h3 role="cell" className="activity-day-title">{dayLabel(day)} <span>{group.length}</span></h3></div>{group.map(r=>{const event=activityEvent(r);const context=[event.client,event.subject].filter(Boolean).join(' · ');return <ListRow key={r.id} template={ACTIVITY_TEMPLATE} className="activity-list-row"><div role="cell" className="min-w-0"><ActorIdentity name={str(r,'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} timestamp={str(r,'created_at')}/></div><div role="cell" className="activity-feed-event" title={[event.label,context,event.amount?`${event.amount} ${event.currency}`:'',event.reference,event.technical].filter(Boolean).join(' · ')}><p><b>{event.label}</b>{context?<span className="activity-feed-context"> · {context}</span>:null}{event.amount&&event.currency?<><span className="activity-feed-context"> · </span><MoneyText valor={event.amount} currency={event.currency}/></>:null}{event.reference?<span className="activity-feed-context"> · {event.reference}</span>:null}</p><small className="activity-feed-tech">{event.technical}</small></div><small role="cell" className="activity-feed-record" title="Identificador técnico del registro">Registro {event.record||'—'}</small></ListRow>;})}</Fragment>;})}</ListGrid>:null}{hasMore?<div className="inline-actions activity-more"><button className="secondary" disabled={loadingMore} onClick={()=>void more()}>{loadingMore?'Cargando…':'Cargar 20 más'}</button></div>:null}{!rows.length&&!error?(loaded?<EmptyBlock title="Sin actividad registrada" description="Los cambios de esta empresa aparecen acá a medida que el equipo opera."/>:<LoadingBlock label="Cargando registros…" lines={4}/>):null}</section>;}
 const validPygRate=(value:unknown)=>{const rate=Number(value);return Number.isSafeInteger(rate)&&rate>=1000&&rate<=100000;};
 const formatPygRate=(value:unknown)=>new Intl.NumberFormat('es-PY',{maximumFractionDigits:0}).format(Number(value));
 
 export function CouponRedeem({role,onRedeemed}:{role:string;onRedeemed?:()=>void|Promise<void>}){
- const [code,setCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  if(!['owner','admin'].includes(role))return null;
- async function redeem(event:React.FormEvent){event.preventDefault();if(busy)return;setBusy(true);setError('');setNotice('');
-  try{
-   const result=await api<{ok:boolean;message:string}>(`/api/billing/coupon-redeem`,{code:code.trim()},'POST');
-   setNotice(result.message||'Cupón canjeado: se agregó un mes a tu suscripción.');setCode('');
-   if(onRedeemed)try{await onRedeemed();}catch{}
-  }catch(cause){setError(cause instanceof Error?cause.message:'No se pudo canjear el cupón.');}
-  finally{setBusy(false);}
- }
  return <section className="panel settings-card" aria-labelledby="coupon-redeem-title">
   <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Ticket size={18}/></span><div><h2 id="coupon-redeem-title">Cupones</h2><p>Canjeá un código de la administración global para sumar un mes gratis a tu suscripción.</p></div></div>
-  <form className="form-stack" noValidate aria-busy={busy} onSubmit={redeem}>
-   <label>Código del cupón<input value={code} disabled={busy} placeholder="SCALE10" maxLength={40} onChange={event=>setCode(event.target.value.toUpperCase())}/></label>
-   <button className="primary" type="submit" disabled={busy||code.trim().length<3}>{busy?'Canjeando…':'Canjear cupón'}</button>
-  </form>
-  {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
+  <Editor columns={false} resetOnSave label="Canjear cupón" fields={[{key:'code',label:'Código del cupón',maxLength:40,help:'Ejemplo: SCALE10.',validate:value=>value.trim().length<3?'El código tiene al menos 3 caracteres.':null}]} defaults={{code:''}} save={async values=>{
+   const result=await api<{ok:boolean;message:string}>(`/api/billing/coupon-redeem`,{code:values.code.trim().toUpperCase()},'POST');
+   notify({tone:'success',message:result.message||'Cupón canjeado: se agregó un mes a tu suscripción.'});
+   if(onRedeemed)try{await onRedeemed();}catch{/* El canje ya quedó registrado; el refresco es opcional. */}
+  }}/>
   <p className="form-note">Cada cupón se puede canjear una sola vez por empresa. No cobra ni guarda datos de pago.</p>
  </section>;
 }
-export function SettingsWorkspace(){ const {setCurrency}=useCompanyCurrency();const [settings,setSettings]=useState<Row|null>(null),[notice,setNotice]=useState(''),[noticeTone,setNoticeTone]=useState<'ok'|'danger'>('ok');
- useEffect(()=>{let active=true;void api<{settings:Row}>('/api/agency/settings').then(s=>{if(active)setSettings(s.settings);}).catch(e=>{if(active){setNotice(err(e));setNoticeTone('danger');}});return()=>{active=false;};},[]);
+export function SettingsWorkspace(){ const {setCurrency}=useCompanyCurrency();const [settings,setSettings]=useState<Row|null>(null),[loadError,setLoadError]=useState(''),[attempt,setAttempt]=useState(0);
+ useEffect(()=>{let active=true;setLoadError('');void api<{settings:Row}>('/api/agency/settings').then(s=>{if(active)setSettings(s.settings);}).catch(e=>{if(active)setLoadError(err(e));});return()=>{active=false;};},[attempt]);
  return <div className="settings-slice ops-stack">
   <section className="panel settings-card settings-company-card" aria-labelledby="company-settings-title">
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Building2 size={18}/></span><div><h2 id="company-settings-title">Empresa</h2><p>Datos que identifican a esta empresa y valores predeterminados para nuevos formularios.</p></div></div>
-   {notice&&<Aviso tono={noticeTone}>{notice}</Aviso>}
-   {settings&&<Editor columns fields={[{key:'name',label:'Nombre de la empresa'},{key:'legal_name',label:'Razón social',optional:true,section:'Datos fiscales y contacto'},{key:'tax_id',label:'RUC',optional:true,section:'Datos fiscales y contacto'},{key:'phone',label:'Teléfono',type:'phone',optional:true,section:'Datos fiscales y contacto',help:PHONE_HELP},{key:'address',label:'Dirección',optional:true,wide:true,section:'Datos fiscales y contacto'},{key:'default_currency',label:'Moneda predeterminada',choices:currencies}]} defaults={Object.fromEntries(['name','legal_name','tax_id','phone','address','default_currency'].map(k=>[k,str(settings,k)]))} save={async v=>{const result=await api<{default_currency:typeof currencies[number]['value']}>('/api/agency/settings',{...v,onboarding_completed:true},'PATCH');setCurrency(result.default_currency);setSettings({...settings,...v,default_currency:result.default_currency});setNotice('Datos guardados. La moneda predeterminada se aplicará a nuevos formularios.');setNoticeTone('ok');}}/>}
+   {loadError&&<ErrorBlock title="No se pudo cargar la empresa." description={loadError} onRetry={()=>setAttempt(value=>value+1)}/>}
+   {!settings&&!loadError&&<LoadingBlock label="Cargando la empresa…" lines={3}/>}
+   {settings&&<Editor columns fields={[{key:'name',label:'Nombre de la empresa',section:'Identidad y valores predeterminados'},{key:'default_currency',label:'Moneda predeterminada',choices:currencies,section:'Identidad y valores predeterminados',help:'Se aplicará a los nuevos formularios.'},{key:'legal_name',label:'Razón social',optional:true,section:'Datos fiscales y contacto'},{key:'tax_id',label:'RUC',optional:true,section:'Datos fiscales y contacto'},{key:'phone',label:'Teléfono',type:'phone',optional:true,section:'Datos fiscales y contacto',help:PHONE_HELP},{key:'address',label:'Dirección',optional:true,wide:true,section:'Datos fiscales y contacto'}]} defaults={Object.fromEntries(['name','legal_name','tax_id','phone','address','default_currency'].map(k=>[k,str(settings,k)]))} save={async v=>{const result=await api<{default_currency:typeof currencies[number]['value']}>('/api/agency/settings',{...v,onboarding_completed:true},'PATCH');setCurrency(result.default_currency);setSettings({...settings,...v,default_currency:result.default_currency});}}/>}
   </section>
  </div>;
 }
@@ -184,7 +183,7 @@ export function ExchangeRateSettings(){ const [rates,setRates]=useState<Row[]>([
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><ChartNoAxesCombined size={18}/></span><div><h2 id="exchange-settings-title">Cotización USD / PYG</h2><p>Referencia por fecha; no modifica saldos ni convierte movimientos anteriores.</p></div></div>
    {notice&&<Aviso tono="danger">{notice}</Aviso>}
    {latestRate&&!rateIsValid&&<p className="form-error-summary" role="alert">La cotización guardada está fuera de rango. Se preparó G. 6.000 como referencia para que la revises y guardes.</p>}
-   <Editor columns fields={[{key:'rate_date',label:'Fecha',type:'date'},{key:'usd_to_pyg',label:'Guaraníes por dólar',type:'money',help:'Solo enteros entre G. 1.000 y G. 100.000. Referencia indicada: G. 6.000/USD.'}]} key={rates.length} defaults={{rate_date:new Date().toISOString().slice(0,10),usd_to_pyg:rateIsValid?str(latestRate!,'usd_to_pyg'):'6000'}} save={async v=>{if(!validPygRate(v.usd_to_pyg))throw Error('Ingresá una cotización entera entre G. 1.000 y G. 100.000 por USD.');await api('/api/agency/exchange-rates',{...v,usd_to_pyg:Number(v.usd_to_pyg)});setRates((await api<{records:Row[]}>('/api/agency/exchange-rates')).records);}}/>
+   <Editor columns fields={[{key:'rate_date',label:'Fecha',type:'date'},{key:'usd_to_pyg',label:'Guaraníes por dólar',type:'money',help:'Solo enteros entre G. 1.000 y G. 100.000. Referencia indicada: G. 6.000/USD.'}]} key={rates.length} defaults={{rate_date:todayAsuncion(),usd_to_pyg:rateIsValid?str(latestRate!,'usd_to_pyg'):'6000'}} save={async v=>{if(!validPygRate(v.usd_to_pyg))throw Error('Ingresá una cotización entera entre G. 1.000 y G. 100.000 por USD.');await api('/api/agency/exchange-rates',{...v,usd_to_pyg:Number(v.usd_to_pyg)});setRates((await api<{records:Row[]}>('/api/agency/exchange-rates')).records);}}/>
    {rates.some(r=>validPygRate(r.usd_to_pyg))&&<details className="settings-disclosure"><summary>Ver cotizaciones guardadas</summary><div className="settings-history">{rates.map((r,i)=>validPygRate(r.usd_to_pyg)?<p key={i}><span className="list-date">{listDateShort(str(r,'rate_date'))||str(r,'rate_date')}</span><strong>G. {formatPygRate(r.usd_to_pyg)}/USD</strong></p>:null)}</div></details>}
   </section>;
 }

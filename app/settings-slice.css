@@ -65,3 +65,22 @@
  .settings-block-top{align-self:flex-start}
 }
 @media(prefers-reduced-motion:reduce){.settings-nav a{transition:none}}
+
+/* Feed de actividad en lista finita (ListGrid/ListRow): la persona y el evento
+   van en una línea y se recortan con `title`; el detalle técnico queda como
+   línea muted de auditoría. Las columnas se conservan también en mobile. */
+.activity-feed .activity-day-row{margin-top:10px}
+.activity-feed .activity-day-title{margin:0 0 4px}
+:is(.activity-list-row,.work-history-row){font-size:12px}
+:is(.activity-list-row,.work-history-row) :is(.actor-identity,.actor-identity-details){min-width:0}
+:is(.activity-list-row,.work-history-row) .actor-identity{padding:0 6px;gap:6px}
+:is(.activity-list-row,.work-history-row) .actor-identity-details{flex-direction:row;align-items:baseline;gap:8px}
+:is(.activity-list-row,.work-history-row) .actor-identity-avatar{flex:0 0 24px;width:24px;height:24px;font-size:10px}
+:is(.activity-list-row,.work-history-row) .actor-identity-name,.activity-list-row .activity-feed-event p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:is(.activity-list-row,.work-history-row) .actor-identity-time{flex:none;white-space:nowrap}
+:is(.activity-list-row,.work-history-row) .foto-perfil{--foto-perfil-size:24px}
+.activity-list-row .activity-feed-event{min-width:0}
+.activity-list-row .activity-feed-event p{margin:0;min-width:0}
+.activity-list-row .activity-feed-context{color:var(--text-subtle,var(--text-muted));font-weight:500}
+.activity-list-row .activity-feed-tech{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-subtle,var(--text-muted));font-size:10.5px}
+.activity-list-row .activity-feed-record{justify-self:end;color:var(--text-subtle,var(--text-muted));font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
