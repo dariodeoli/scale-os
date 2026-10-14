@@ -166,21 +166,29 @@ export async function financialForecast({req,res,url,db,session,send}) {
   const contractedClients=(await db.query(`
    with bounds as (select $2::date as start_on,($2::date+interval '1 month')::date as end_on),
    terms as (
-    select t.client_id,t.currency,t.invoice_required,t.ends_on::text as ends_on,
+    select t.client_id,t.currency,t.invoice_required,t.ends_on::text as ends_on,coalesce(nullif(t.plan_name,''),pl.name) as plan_name,
      coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint) as contracted_amount
     from agency_client_commercial_terms t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
+    left join agency_plans pl on pl.organization_id=t.organization_id and pl.id=t.plan_id
     where t.organization_id=$1 and t.starts_on<($2::date+interval '1 month')::date and (t.ends_on is null or t.ends_on>=$2::date) and c.active=true and ${visibleRecord('c','clients')}
+   ), unplanned as (
+    select c.id as client_id,$3::text as currency,false as invoice_required,null::text as ends_on,null::text as plan_name,0::numeric as contracted_amount
+    from agency_clients c
+    where c.organization_id=$1 and c.active=true and ${visibleRecord('c','clients')}
+     and not exists(select 1 from terms x where x.client_id=c.id)
+   ), all_terms as (
+    select * from terms union all select * from unplanned
    ), invoiced as (
     select i.client_id,i.currency,coalesce(sum(i.total),0) as invoiced_amount
     from agency_invoices i cross join bounds d
     where i.organization_id=$1 and i.status in ('issued','partial','paid','overdue') and i.issued_on>=d.start_on and i.issued_on<d.end_on
     group by i.client_id,i.currency
    )
-   select t.client_id::text as client_id,c.name as client_name,t.currency,t.contracted_amount,coalesce(i.invoiced_amount,0) as invoiced_amount,t.invoice_required,t.ends_on,
+   select t.client_id::text as client_id,c.name as client_name,t.currency,t.contracted_amount,coalesce(i.invoiced_amount,0) as invoiced_amount,t.invoice_required,t.ends_on,t.plan_name,
     (t.invoice_required and coalesce(i.invoiced_amount,0)=0) as missing_invoice
-   from terms t join agency_clients c on c.id=t.client_id and c.organization_id=$1
+   from all_terms t join agency_clients c on c.id=t.client_id and c.organization_id=$1
    left join invoiced i on i.client_id=t.client_id and i.currency=t.currency
-   order by c.name,t.currency`,[user.organization_id,`${month}-01`])).rows.map(row=>projectMoney(row,['contracted_amount','invoiced_amount']));
+   order by c.name,t.currency`,[user.organization_id,`${month}-01`,await companyCurrency(db,user.organization_id)])).rows.map(row=>projectMoney(row,['contracted_amount','invoiced_amount']));
   const projection=projectionFor(snapshots,openingBalance);
   send(res,200,{month,months,time_zone:forecastTimezone,records:projectedRecords,
    contracted_recurring:{month,records:projectedSeries(first.contractedRecurring)},
@@ -204,7 +212,7 @@ export async function financialForecast({req,res,url,db,session,send}) {
     opening_balance:'Saldo actual de las cuentas activas por moneda; es la base de caja del primer mes de la proyección.',
     projected_cash:'Caja proyectada: parte del saldo de cuentas activas y acumula cada mes los cobros registrados (o la facturación esperada si el mes no tiene cobros) menos personal, gastos planificados y comisiones.',
     projected_result:'Resultado estimado: emitido más aceptado sin factura del mes, menos personal, gastos planificados y comisiones; sigue el resultado estimado del panel.',
-    contracted_clients:'Contratos vigentes por cliente con lo facturado en el mes seleccionado. Sin factura marca contratos con facturación requerida y sin factura emitida en el mes.'
+    contracted_clients:'Todos los clientes activos con su plan y monto mensual vigente (los que no tienen plan figuran sin plan) y lo facturado en el mes seleccionado. Sin factura marca contratos con facturación requerida y sin factura emitida en el mes.'
    }});
  }catch(error){send(res,error.status||500,{error:error.status?error.message:'No se pudo cargar la previsión'});}
  return true;

@@ -65,7 +65,19 @@ a {
 .loading-bar-fill {
   animation: loading-bar 1.15s cubic-bezier(.4, 0, .2, 1) infinite;
 }
+/* Fundido corto con retraso: una carga rápida no llega a mostrarse (sin parpadeo). */
+@keyframes loading-stage-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.loading-stage {
+  animation: loading-stage-in 240ms cubic-bezier(.23, 1, .32, 1) 180ms both;
+}
+.loading-brand .workspace-brand { gap: 11px; }
+.loading-brand .workspace-brand img { width: 44px; height: 44px; border-radius: 12px; }
+.loading-brand .workspace-wordmark { font-size: 27px; }
 @media (prefers-reduced-motion: reduce) {
+  .loading-stage { animation: none; }
   .loading-bar-fill {
     animation: none;
     transform: none;

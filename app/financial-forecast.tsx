@@ -55,12 +55,12 @@ import {CurrencyField,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,State
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
 // Compactas a propósito (#101): entran en media pantalla a 1440 para las
 // secciones pareadas; el ajuste del mes viaja inline en el cierre.
-const PERSON_COLS='grid-cols-[minmax(8.5rem,1fr)_6.5rem_minmax(9rem,1.2fr)_6.5rem]';
-const CONTRACT_COLS='grid-cols-[minmax(11rem,1fr)_7rem_7rem_6rem]';
+const PERSON_COLS='grid-cols-[minmax(7rem,1fr)_7.5rem_minmax(8.5rem,1.2fr)_6rem]';
+const CONTRACT_COLS='grid-cols-[minmax(7.5rem,1.2fr)_minmax(6rem,1fr)_6.5rem_6.5rem_5.5rem]';
 const EXPENSE_COLS='grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
 const PERSON_COLUMNS:Column[]=[{key:'person',label:'Persona'},{key:'base',label:'Salario base',align:'end'},{key:'total',label:'Cierre del mes',align:'end'},{key:'actions',label:'Acciones',align:'end'}];
-const CONTRACT_COLUMNS:Column[]=[{key:'client',label:'Cliente'},{key:'contracted',label:'Contratado',align:'end'},{key:'invoiced',label:'Facturado',align:'end'},{key:'state',label:'Estado',align:'end'}];
+const CONTRACT_COLUMNS:Column[]=[{key:'client',label:'Cliente'},{key:'plan',label:'Plan'},{key:'contracted',label:'Contratado',align:'end'},{key:'invoiced',label:'Facturado',align:'end'},{key:'state',label:'Estado',align:'end'}];
 const PLANNED_COLUMNS:Column[]=[{key:'expense',label:'Gasto'},{key:'cadence',label:'Cadencia'},{key:'amount',label:'Monto',align:'end'},{key:'actions',label:'Acciones',align:'end'}];
 const EXPENSE_COLUMNS:Column[]=[{key:'expense',label:'Gasto'},{key:'amount',label:'Monto',align:'end'},{key:'actions',label:'Acciones',align:'end'}];
 
@@ -127,7 +127,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
   :!data?<LoadingBlock label="Cargando previsión…" lines={4}/>
   :<>
    {horizon==='1'&&!data.records.length?<EmptyState compact title="Sin facturas emitidas ni presupuestos aceptados pendientes para este mes." description="Cuando emitas una factura o se acepte un presupuesto, la previsión del mes se completa sola." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>:null}
-  <div className={horizon==='1'?'grid gap-4 min-[1440px]:grid-cols-2 min-[1440px]:items-start':'grid gap-4'}>
+  <div className={horizon==='1'?'grid gap-4 min-[1440px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] min-[1440px]:items-start':'grid gap-4'}>
    {horizon==='1'?<Card className="grid gap-3 p-3 sm:p-4">
     <div className="grid gap-1 border-b border-ink-600 pb-3">
      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h3 className="text-[17px] font-semibold tracking-tight text-fore" title={`${data.definition.issued} ${data.definition.accepted_uninvoiced}`}>Ingresos vs gastos</h3><span className="text-xs font-medium text-mute">Resumen del mes</span></div>
@@ -193,14 +193,15 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
     </div>:<EmptyState compact title="Sin datos financieros para el horizonte." description="Emití una factura o aceptá un presupuesto para proyectar caja y resultado." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
    </Card>}
    </div>
-  <div className={horizon==='1'?'grid gap-4 min-[1440px]:grid-cols-2 min-[1440px]:items-start':'grid gap-4'}>
+  <div className={horizon==='1'?'grid gap-4 min-[1440px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] min-[1440px]:items-start':'grid gap-4'}>
   <div className="min-w-0">{data.contracted_clients?<Card className="grid gap-3 p-3 sm:p-4">
     <div className="grid gap-1 border-b border-ink-600 pb-3"><h3 className="text-[17px] font-semibold tracking-tight text-fore" title={data.definition.contracted_clients}>Contratos vs facturación</h3><p className="text-xs text-mute">Controlá lo contratado, lo facturado y lo que todavía requiere emisión.</p></div>
     <div className="grid gap-2">
     {contractedRows.length?<>
-    <ListGrid label="Contratos vigentes contra facturación" template={CONTRACT_COLS} columns={CONTRACT_COLUMNS} minWidthClass="min-w-[31rem]">
+    <ListGrid label="Contratos vigentes contra facturación" template={CONTRACT_COLS} columns={CONTRACT_COLUMNS} minWidthClass="min-w-[36rem]">
      {contractedRows.map(row=><ListRow template={CONTRACT_COLS} key={`${row.client_id}-${row.currency}`}>
       <span className="min-w-0 truncate text-sm leading-snug" title={`${row.client_name} · ${row.currency}${row.ends_on?` · hasta ${listDateFull(row.ends_on)}`:''}${row.invoice_required?' · factura requerida':' · sin factura requerida'}`}><b className="font-semibold text-fore">{row.client_name}</b><small className="ml-2 whitespace-nowrap text-xs text-mute">{row.currency}{row.ends_on?` · hasta ${listDateFull(row.ends_on)}`:''}</small></span>
+      <span className="min-w-0 truncate text-sm" title={row.plan_name?`Plan: ${row.plan_name}`:'Sin plan vigente'}>{row.plan_name?<span className="text-fore">{row.plan_name}</span>:<span className="text-mute">Sin plan</span>}</span>
       <span className="min-w-0 text-right"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.contracted_amount,row.currency)}</span></span>
       <span className="min-w-0 text-right"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.invoiced_amount,row.currency)}</span></span>
       <span className="min-w-0 flex justify-end">{row.missing_invoice?<StateChip tone="bad" title="Contrato con facturación requerida y sin factura emitida en el mes">Sin factura</StateChip>:<StateChip tone="ok" title={row.invoice_required?'Factura emitida en el mes':'El contrato no requiere factura'}>{row.invoice_required?'Facturado':'No requiere'}</StateChip>}</span>
@@ -227,10 +228,10 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
         <span>Salario base ({count(row.base_count)}): <b className="font-semibold tabular-nums text-fore">{formatWholeMoney(row.base_amount,row.currency)}</b></span>
         {count(row.override_count)>0?<span>Ajustes del mes ({count(row.override_count)}): <b className="font-semibold tabular-nums text-fore">{formatSignedMoney(row.override_amount,row.currency)}</b></span>:null}
        </div>
-       <ListGrid label="Salarios" template={PERSON_COLS} columns={PERSON_COLUMNS} minWidthClass="min-w-[30.5rem]" className="forecast-person-list">
+       <ListGrid label="Salarios" template={PERSON_COLS} columns={PERSON_COLUMNS} minWidthClass="min-w-[31.5rem]" className="forecast-person-list">
         {row.members.map(member=>{const {adjustment,total}=personnelAmounts(member);return <ListRow template={PERSON_COLS} className="forecast-person-row" key={String(member.collaborator_id)}>
-         <span className="min-w-0"><span className="forecast-person-who flex min-w-0 items-center gap-2"><ActorAvatar name={member.name} photo={safePhoto(member.photo_url)}/><span className="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title={member.name}>{member.name}</span>{member.base_amount===0?<small className="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>:null}</span></span>
-         <span className="forecast-person-base min-w-0 text-right"><strong className="whitespace-nowrap text-sm font-normal tabular-nums text-mute">{formatWholeMoney(member.base_amount,member.currency)}</strong></span>
+         <span className="min-w-0"><span className="forecast-person-who flex min-w-0 items-center gap-2"><ActorAvatar name={member.name} photo={safePhoto(member.photo_url)}/><span className="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title={member.name}>{member.name}</span></span></span>
+         <span className="forecast-person-base min-w-0 text-right">{member.base_amount===0?<small className="whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>:<strong className="whitespace-nowrap text-sm font-normal tabular-nums text-mute">{formatWholeMoney(member.base_amount,member.currency)}</strong>}</span>
          <span className="forecast-person-total min-w-0 text-right"><strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',total!==null&&total<0?'text-bad':'text-fore')}>{total===null?'Sin dato':total<0?formatSignedMoney(total,member.currency):formatWholeMoney(total,member.currency)}</strong>{adjustment!==null&&adjustment!==0?<small className="ml-1.5 whitespace-nowrap text-[11px] font-semibold tabular-nums text-warn" title={`Ajuste del mes: ${formatSignedMoney(member.override_amount,member.currency)}`}>{formatSignedMoney(member.override_amount,member.currency)}</small>:null}</span>
          {member.base_amount!==null?<span className="forecast-person-actions flex justify-end gap-1.5">
           <span className={ICON_TARGETS}><IconAction icon="edit" label={`Editar salario: ${member.name}`} onClick={()=>openSalary(member)}/></span>

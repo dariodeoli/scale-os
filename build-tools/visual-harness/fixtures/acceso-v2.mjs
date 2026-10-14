@@ -15,14 +15,35 @@ const h = React.createElement;
 const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
 const StateChip = ({tone = 'mute', children}) => h(Badge, {color: CHIP[tone], className: 'whitespace-nowrap'}, children);
 
+/* Panel de marca (app/auth-brand-panel.tsx): solo desde 1024 px, nunca en `wide`. */
+const BENEFITS = [
+  ['Producción por etapas', 'Proyectos y piezas con responsables, checklists, horas estimadas y fecha de entrega.'],
+  ['Portal del cliente', 'Cada entrega se aprueba o se comenta por enlace privado y la respuesta vuelve al tablero.'],
+  ['Finanzas con previsión de caja', 'Cobros en monedas separadas y la mora de cada cliente a la vista.'],
+];
+const Brand = () => h('span', {className: 'workspace-brand', 'aria-label': 'Scale OS'},
+  h('img', {src: '/brand/icon-192.png', width: 34, height: 34, alt: ''}),
+  h('span', {className: 'workspace-wordmark'}, 'scale', h('span', null, 'OS')));
+const BrandPanel = () => h('aside', {className: 'auth-brand-panel', 'aria-label': 'Qué es Scale OS'},
+  h('a', {className: 'auth-brand-home', href: 'https://sistema.scaleparaguay.com/', 'aria-label': 'Scale OS · Volver al sitio'}, h(Brand)),
+  h('div', {className: 'auth-brand-copy'},
+    h('p', {className: 'auth-brand-eyebrow'}, 'Una operación conectada'),
+    h('p', {className: 'auth-brand-title'}, 'Menos perseguir información. Más hacer avanzar el trabajo.'),
+    h('ul', {className: 'auth-brand-benefits'}, BENEFITS.map(([title, detail]) => h('li', {key: title},
+      h('span', {className: 'auth-brand-check', 'aria-hidden': 'true'}, '✓'),
+      h('span', null, h('b', null, title), h('span', null, detail)))))),
+  h('p', {className: 'auth-brand-note'}, 'Por agencia, con todos sus integrantes incluidos. Sin tarjeta para iniciar.'));
+
 const Frame = ({children, wide = false, eyebrow}) => h('main', {'data-surface': 'acceso', className: 'flex min-h-screen items-center justify-center bg-paper px-4 py-10'},
-  h('div', {className: `w-full min-w-0 ${wide ? 'max-w-3xl' : 'max-w-[30rem]'}`},
-    h('section', {className: 'grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 rounded-2xl border border-ink-600 bg-ink-800 p-6 md:p-7'},
-      h('header', {className: 'flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3'},
-        h('span', {className: 'inline-flex items-center gap-2 text-lg font-bold tracking-tight text-fore'}, 'ScaleOS'),
-        eyebrow ? h('p', {className: 'font-mono text-[10px] uppercase tracking-[.13em] text-mute'}, eyebrow) : null),
-      children,
-      h('p', {className: 'text-center text-[11px] text-mute'}, 'Scale OS · v1.0.104'))));
+  h('div', {className: wide ? 'contents' : 'auth-split'},
+    wide ? null : h(BrandPanel),
+    h('div', {className: `auth-form-slot w-full min-w-0 ${wide ? 'max-w-3xl' : 'max-w-[30rem]'}`},
+      h('section', {className: 'auth-form-card grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6 rounded-2xl border border-ink-600 bg-ink-800 p-6 md:p-10'},
+        h('header', {className: 'flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3'},
+          h('a', {className: 'auth-card-brand inline-flex min-h-11 items-center gap-2', href: 'https://sistema.scaleparaguay.com/', 'aria-label': 'Scale OS · Volver al sitio'}, h(Brand)),
+          eyebrow ? h('p', {className: 'font-mono text-[10px] uppercase tracking-[.13em] text-mute'}, eyebrow) : null),
+        children,
+        h('p', {className: 'text-center text-[11px] text-mute'}, 'Scale OS · v1.0.104')))));
 
 const INPUT = 'min-h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore';
 const LABEL = 'grid gap-1.5 text-xs text-mute';

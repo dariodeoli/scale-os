@@ -1,13 +1,11 @@
-import {emailShell} from './email-brand.js';
-const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const singleLine=value=>String(value??'').replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ').trim();
+import {emailShell,emailFacts,emailParagraph,emailCode,line as singleLine} from './email-brand.js';
 function appLink(appUrl){
  const url=new URL(appUrl);
  if(url.protocol!=='https:'||url.username||url.password)throw new Error('Email URL must use HTTPS without credentials');
  return url;
 }
 const roles={owner:'Dueño',admin:'Administrador',management:'Gerencia',finance:'Finanzas',sales:'Ventas',production:'Producción',editor:'Editor',viewer:'Solo lectura',collaborator:'Colaborador'};
-const facts=rows=>`<div style="margin:0 0 14px;padding:12px 14px;border:1px solid #e8e3ea;border-radius:10px;background:#f9f6fb">${rows.map(([k,v])=>`<p style="margin:0;font-size:13px"><strong style="color:#4d065b">${k}:</strong> ${escape(v)}</p>`).join('')}</div>`;
+const facts=emailFacts;
 
 export function invitationEmail({email,organizationName,role,appUrl}){
  const url=appLink(appUrl);
@@ -17,7 +15,7 @@ export function invitationEmail({email,organizationName,role,appUrl}){
  const html=emailShell({
   title:`Te invitaron a ${organization}`,
   lead:'Ya podés entrar al espacio de trabajo de esta empresa.',
-  body:facts([['Tu permiso',permission],['Correo con acceso',email]])+`<p style="margin:0;font-size:13px;color:#4b4252">Ingresá con Google usando ese mismo correo, o con tu contraseña si ya la configuraste. Si participás en varias empresas, podrás elegir en cuál trabajar.</p>`,
+  body:facts([['Tu permiso',permission],['Correo con acceso',email]])+emailParagraph('Ingresá con Google usando ese mismo correo, o con tu contraseña si ya la configuraste. Si participás en varias empresas, podrás elegir en cuál trabajar.'),
   cta:{label:'Abrir Scale OS',href:url.href},
   footer:'¿No esperabas esta invitación? Podés ignorarla. No se crea una cuenta de Google ni se comparte tu acceso con otras personas.',
   footerNote:'Scale OS · Gestión de agencias · Desarrollado por Owncoding.',
@@ -68,7 +66,7 @@ export function accessGrantedEmail({email,organizationName,role,appUrl}){
  const html=emailShell({
   title:`Tu acceso a ${organization} está habilitado`,
   lead:'Ya podés entrar al espacio de trabajo.',
-  body:facts([['Tu permiso',permission],['Correo con acceso',email]])+'<p style="margin:0;font-size:13px;color:#4b4252">Ingresá con Google usando ese mismo correo, o con tu contraseña si ya la configuraste.</p>',
+  body:facts([['Tu permiso',permission],['Correo con acceso',email]])+emailParagraph('Ingresá con Google usando ese mismo correo, o con tu contraseña si ya la configuraste.'),
   cta:{label:'Entrar a Scale OS',href:url.href},
   footer:'¿No reconocés este acceso? Avisale al administrador de tu empresa.',
   footerNote:'Scale OS · Gestión de agencias · Desarrollado por Owncoding',
@@ -85,7 +83,7 @@ export function destructiveReauthEmail({code}){
   eyebrow:'Seguridad de cuenta',
   title:'Confirmá la eliminación',
   lead:instructions,
-  body:`<p style="margin:18px 0 4px;text-align:center"><span style="display:inline-block;padding:12px 24px;border:1px solid #e8e3ea;border-radius:10px;background:#f7f3fa;font-size:26px;font-weight:bold;letter-spacing:.14em;color:#4d065b">${escape(code)}</span></p>`,
+  body:emailCode(code),
   footerNote:'Scale OS · Gestión de agencias · Desarrollado por Owncoding.',
  });
  return{subject,text,html};

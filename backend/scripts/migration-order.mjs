@@ -99,4 +99,5 @@ export const migrationOrder = [
   '20261005_organization_sso.sql',
   '20261014_coupon_grace.sql',
   '20261014_usage_indexes.sql',
+  '20261014_organization_logo.sql',
 ];

@@ -84,10 +84,19 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
     if (!label) return <span className="list-secondary">—</span>;
     const extra = agency.extra_admins ?? 0;
     return <span className="flex min-w-0 items-center gap-1.5" title={[agency.owner_name, agency.owner_email].filter(Boolean).join(" · ")}>
-      <PersonContainer name={label} photoUrl={agency.owner_photo_url} secondary={agency.owner_name ? agency.owner_email : null} size="sm"/>
+      <PersonContainer name={label} photoUrl={agency.owner_photo_url} secondary={agency.owner_name ? agency.owner_email : null} size="sm" verified/>
       {extra > 0 ? <StateChip tone="mute" title={`${extra} administrador${extra === 1 ? "" : "es"} más`}>{`+${extra}`}</StateChip> : null}
     </span>;
   };
+  // Identidad de la agencia: logo (o iniciales) con la misma cápsula de persona, variante logo.
+  const identity = (agency: Agency, size: "sm" | "md") => <PersonContainer
+    variante="logo"
+    size={size}
+    name={agency.name || "Agencia sin nombre"}
+    photoUrl={agency.logo_url}
+    secondary={agency.slug || "Sin identificador"}
+    verified
+  />;
   const badges = (agency: Agency) => <>
     <StateChip tone={agency.active ? "ok" : "mute"}>{agency.active ? "Activa" : "Inactiva"}</StateChip>
     <StateChip tone={manualAccessTone(agency)}>{manualAccessLabel(agency)}</StateChip>
@@ -164,10 +173,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
               const expiry = agencyExpiry(agency);
               return (
                 <ListRow key={agency.id} template={writable ? TEMPLATE : TEMPLATE_READONLY}>
-                  <div role="cell" className="min-w-0">
-                    <b className="list-identity text-fore" title={agency.name || "Agencia sin nombre"}>{agency.name || "Agencia sin nombre"}</b>
-                    <small className="list-secondary" title={agency.slug || "Sin identificador"}>{agency.slug || "Sin identificador"}</small>
-                  </div>
+                  <div role="cell" className="min-w-0">{identity(agency, "sm")}</div>
                   <div role="cell" className="min-w-0">{owner(agency)}</div>
                   <div role="cell" className="flex min-w-0 flex-wrap items-center gap-1.5">{badges(agency)}</div>
                   <span role="cell" className="text-right"><MoneyText valor={agency.subscription_amount} currency={agency.subscription_currency || undefined} className="text-fore"/></span>
@@ -184,10 +190,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
               const expiry = agencyExpiry(agency);
               return (
                 <article key={agency.id} className="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
-                  <div className="min-w-0">
-                    <b className="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title={agency.name || "Agencia sin nombre"}>{agency.name || "Agencia sin nombre"}</b>
-                    <small className="mt-0.5 block text-[11px] text-mute">{agency.slug || "Sin identificador"}</small>
-                  </div>
+                  <div className="min-w-0">{identity(agency, "md")}</div>
                   <div className="flex flex-wrap gap-1.5">{badges(agency)}</div>
                   <div className="min-w-0">{owner(agency)}</div>
                   <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">

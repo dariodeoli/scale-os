@@ -1,7 +1,7 @@
 /*
  * Auth, portal del cliente y landing.
  * Markup mirrors:
- *   - app/scale-workspace.tsx (login card, lines ~905-950)
+ *   - app/scale-workspace.tsx (login card) + app/auth-brand-panel.tsx (panel ≥1024 px)
  *   - app/access-layout.tsx + app/registro/page.tsx + app/registro/registration.css
  *   - app/verificar-correo/page.tsx, app/recuperar-cuenta/page.tsx, app/invitacion/page.tsx + app/invitacion/status.css
  *   - app/acceso-pendiente/page.tsx, app/demo/page.tsx, app/status/page.tsx + app/status/status.css
@@ -32,6 +32,21 @@ const globe17 = svg('globe', 17, '<circle cx="12" cy="12" r="10"/><path d="M12 2
 
 const googleMark = `<svg class="google-g" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.27c0-.71-.06-1.39-.18-2.04H12v3.86h5.24a4.48 4.48 0 0 1-1.94 2.94v2.5h3.15c1.84-1.69 2.9-4.18 2.9-7.26Z"/><path fill="#34A853" d="M12 21.75c2.63 0 4.84-.87 6.45-2.22l-3.15-2.5c-.87.59-1.99.94-3.3.94-2.54 0-4.69-1.72-5.46-4.03H3.29v2.58A9.75 9.75 0 0 0 12 21.75Z"/><path fill="#FBBC04" d="M6.54 13.94A5.87 5.87 0 0 1 6.23 12c0-.67.11-1.32.31-1.94V7.48H3.29A9.72 9.72 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.52l3.25-2.58Z"/><path fill="#EA4335" d="M12 6.03c1.43 0 2.71.49 3.72 1.46l2.79-2.79C16.84 3.13 14.63 2.25 12 2.25a9.75 9.75 0 0 0-8.71 5.23l3.25 2.58C7.31 7.75 9.46 6.03 12 6.03Z"/></svg>`;
 const brand = '<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>';
+// Panel de marca del acceso (app/auth-brand-panel.tsx): visible desde 1024 px.
+const check14 = svg('check', 14, '<path d="M20 6 9 17l-5-5"/>', ' stroke-width="2.5"');
+const brandPanel = `<aside class="auth-brand-panel" aria-label="Qué es Scale OS">
+ <a class="auth-brand-home" href="https://sistema.scaleparaguay.com/" aria-label="Scale OS · Volver al sitio">${brand}</a>
+ <div class="auth-brand-copy">
+  <p class="auth-brand-eyebrow">Una operación conectada</p>
+  <p class="auth-brand-title">Menos perseguir información. Más hacer avanzar el trabajo.</p>
+  <ul class="auth-brand-benefits">${[
+   ['Producción por etapas', 'Proyectos y piezas con responsables, checklists, horas estimadas y fecha de entrega.'],
+   ['Portal del cliente', 'Cada entrega se aprueba o se comenta por enlace privado y la respuesta vuelve al tablero.'],
+   ['Finanzas con previsión de caja', 'Cobros en monedas separadas y la mora de cada cliente a la vista.'],
+  ].map(([title, detail]) => `<li><span class="auth-brand-check" aria-hidden="true">${check14}</span><span><b>${title}</b><span>${detail}</span></span></li>`).join('')}</ul>
+ </div>
+ <p class="auth-brand-note">Por agencia, con todos sus integrantes incluidos. Sin tarjeta para iniciar.</p>
+</aside>`;
 // El pie se renderiza con el objeto real (#82): app/workspace-footer.tsx es el puente.
 const footer = renderToStaticMarkup(React.createElement(ProductFooter, {nombre: 'Scale OS', version: `v${releaseVersion}`, className: 'workspace-footer'}));
 const passwordField = (label, name, value, autoComplete, placeholder) => `<label class="password-field"><span>${label}</span><span class="password-field-control"><input name="${name}" type="password" value="${value}" autocomplete="${autoComplete}"${placeholder ? ` placeholder="${placeholder}"` : ''} maxlength="128"/><button type="button" class="password-visibility" title="Mostrar contraseña" aria-label="Mostrar contraseña" aria-pressed="false">${eye18}</button></span></label>`;
@@ -49,7 +64,7 @@ export default [
     surface: 'Inicio de sesión',
     kind: 'plain',
     body: `
-<div class="login-page"><div class="login-card">
+<div class="login-page"><div class="auth-split">${brandPanel}<div class="login-card">
  <button type="button" class="theme-toggle login-theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">${moon18}</button>
  <div class="login-header"><div class="login-brand">${brand}</div><span class="login-badge">30 DÍAS GRATIS</span></div>
  <div class="login-intro"><h1>Qué bueno verte de nuevo.</h1><p class="login-copy">Clientes, proyectos y operación en un solo lugar.</p></div>
@@ -65,7 +80,7 @@ export default [
  </form>
  <p class="login-signup"><a href="/registro">Crear mi agencia con 30 días gratis</a></p>
  ${footer}
-</div></div>`,
+</div></div></div>`,
   },
   {
     id: 'portal-ingresar',

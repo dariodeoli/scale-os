@@ -1,0 +1,2 @@
+# Previsión: todos los clientes activos con su plan y salarios con nombre siempre visible
+tsx tests/prevision-clientes-salarios.test.tsx

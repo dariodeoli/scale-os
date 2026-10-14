@@ -13,7 +13,7 @@ export function safePhoto(value?:string|null){
  if(/^data:image\/(?:png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/.test(value))return value;
  // Medios de identidad (#108): la API sirve las fotos guardadas como URL interna
  // cacheable (mismo origen) en vez de repetir el base64 en cada listado.
- if(/^\/core-api\/api\/agency\/media\/(?:person|collaborator|client)\/\d+\?v=[a-f0-9]{10}$/.test(value))return value;
+ if(/^\/core-api\/api\/agency\/media\/(?:person|collaborator|client|organization)\/\d+\?v=[a-f0-9]{10}$/.test(value))return value;
  try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password?value:'';}catch{return '';}
 }
 /**
