@@ -80,7 +80,7 @@ function invoice(sub,{start=Math.floor(clock/1000),end=start+30*86400,status='pa
 try{
  for(const key of Object.keys(settings))delete process.env[key];
  await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
- for(const name of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260910_demo_sessions.sql','20260911_subscriptions.sql','20260912_platform_admin.sql','20260913_platform_admin_vertical_slice.sql','20260914_client_commercial_lifecycle.sql','20260915_billing_cadence_and_coupons.sql','20260915_coupon_free_days.sql','20260915_coupon_redemption_days.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
+ for(const name of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260910_demo_sessions.sql','20260911_subscriptions.sql','20260912_platform_admin.sql','20260913_platform_admin_vertical_slice.sql','20260914_client_commercial_lifecycle.sql','20260915_billing_cadence_and_coupons.sql','20260915_coupon_free_days.sql','20260915_coupon_redemption_days.sql','20261014_coupon_grace.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
  await pg.exec(await fs.readFile(new URL('./migrations/20260911_subscriptions.sql',import.meta.url),'utf8'));
  const uid=(await query("insert into users(email,password_hash) values('subscription-owner@example.invalid','unused') returning id")).rows[0].id;
  async function tenant(label){const id=(await query('insert into organizations(slug,name) values($1,$2) returning id',[`billing-${label}`,`Fixture ${label}`])).rows[0].id;await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner')",[id,uid]);return {id:uid,organization_id:id,role:'owner'};}
@@ -247,6 +247,14 @@ try{
  assert.match(adminRedeem.data.message,/5 días gratis/);
  for(const actor of actors.slice(1))assert.equal((await call('/api/billing/coupon-redeem','POST',{code:'ADMIN5'},actor)).status,403,`${actor.role} cannot redeem coupons`);
  assert.equal((await call('/api/billing/coupon-redeem','POST',{code:'ADMIN5'},{...actors.at(-1),role:'admin'})).status,403,'a stale elevated session role cannot redeem without current membership permission');
+ // #189: cupones vencidos o dirigidos a otra empresa se rechazan con 409; el dirigido a la propia sí canjea.
+ await query("insert into platform_coupons(code,discount_type,discount_value,currency,expires_at,created_by_user_id) values('EXPIRED5','days',5,null,now()-interval '1 day',$1)",[uid]);
+ const expiredRedeem=await call('/api/billing/coupon-redeem','POST',{code:'EXPIRED5'},owner);
+ assert.equal(expiredRedeem.status,409);assert.match(expiredRedeem.data.error,/venci/);
+ await query("insert into platform_coupons(code,discount_type,discount_value,currency,organization_id,created_by_user_id) values('OTHERORG5','days',5,null,$1,$2),('OWNORG5','days',5,null,$3,$2)",[other.organization_id,uid,owner.organization_id]);
+ const restricted=await call('/api/billing/coupon-redeem','POST',{code:'OTHERORG5'},owner);
+ assert.equal(restricted.status,409);assert.match(restricted.data.error,/no corresponde a tu empresa/);
+ assert.equal((await call('/api/billing/coupon-redeem','POST',{code:'OWNORG5'},owner)).status,200,'un cupón dirigido a la propia empresa canjea');
  // Companies without any subscription row still open their runway with a coupon.
  const couponless=await tenant('couponless');
  await query("insert into platform_coupons(code,discount_type,discount_value,currency,created_by_user_id) values('DAYS5','days',5,null,$1)",[uid]);

@@ -17,6 +17,7 @@ import {
   errorStatus,
   loginReturnPath,
   newExtendKey,
+  PLATFORM_GOOGLE_STORAGE_KEY,
   type Agency,
   type AuditAction,
   type BootstrapStatus,
@@ -40,7 +41,9 @@ import {PlatformAccess} from "./access";
 import {PlatformCatalog} from "./catalog";
 import {SubscriptionDialog} from "./subscription-dialog";
 import {PlatformAudit} from "./audit";
-import {PlatformConfirmDialog} from "./confirm";
+import {PlatformConfirmDialog, type PlatformAuthMethod} from "./confirm";
+import {ApplyCouponDialog} from "./apply-coupon-dialog";
+import {preflightGoogleStart} from "../deletion-danger-zone";
 
 
 export default function PlatformAdmin() {
@@ -64,6 +67,9 @@ export default function PlatformAdmin() {
     discount_value: "10",
     discount_type: "percent" as "percent" | "fixed" | "days",
     currency: "USD",
+    expires_at: "",
+    organization_id: "",
+    note: "",
   });
   const [bootstrap, setBootstrap] = useState<BootstrapStatus | null>(null);
   const [subscriptionAgency, setSubscriptionAgency] = useState<Agency | null>(
@@ -84,10 +90,13 @@ export default function PlatformAdmin() {
   const [myRole, setMyRole] = useState<"admin" | "viewer" | null>(null);
   const [myUserId, setMyUserId] = useState("");
   const [confirming, setConfirming] = useState<ConfirmRequest>(null);
-  const [typed, setTyped] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [authMethod, setAuthMethod] = useState<"password" | "email">("password");
-  const [authPreviewId, setAuthPreviewId] = useState("");
+  // Google es el camino principal (un clic); contraseña y código por correo son alternativas.
+  const [authMethod, setAuthMethod] = useState<PlatformAuthMethod>("google");
+  const [authPreview, setAuthPreview] = useState<{ id: string; confirmation: string } | null>(null);
+  const [googleProof, setGoogleProof] = useState("");
+  const [googleStarting, setGoogleStarting] = useState(false);
+  const [applyAgency, setApplyAgency] = useState<Agency | null>(null);
   const [emailSent, setEmailSent] = useState(false);
   const [emailCode, setEmailCode] = useState("");
   const [emailSending, setEmailSending] = useState(false);
@@ -248,11 +257,11 @@ export default function PlatformAdmin() {
       const action =
         confirming.kind === "user" ? "platform.user.delete" : "platform.agency.delete";
       const targetId = confirming.kind === "user" ? confirming.person.id : confirming.agency.id;
-      const preview = await platformApi<{ preview: { id: string } }>(
+      const preview = await platformApi<{ preview: { id: string; confirmation: string } }>(
         "/api/platform/destructive/preview",
         { method: "POST", body: JSON.stringify({ action, targetId }) },
       );
-      setAuthPreviewId(preview.preview.id);
+      setAuthPreview({ id: preview.preview.id, confirmation: preview.preview.confirmation });
       await platformApi("/api/auth/account/recent-auth/email/request", {
         method: "POST",
         body: JSON.stringify({ previewId: preview.preview.id }),
@@ -275,47 +284,149 @@ export default function PlatformAdmin() {
     }
   }
 
-  async function removeConfirmed() {
-    if (
-      busy ||
-      !confirming ||
-      typed !== (confirming.kind === "user" ? confirming.person.email : confirming.agency.name)
-    )
+  function resetConfirm() {
+    setConfirming(null);
+    setConfirmPassword("");
+    setAuthMethod("google");
+    setAuthPreview(null);
+    setGoogleProof("");
+    setGoogleStarting(false);
+    setEmailSent(false);
+    setEmailCode("");
+    setActionError("");
+  }
+
+  function deletionTarget(request: NonNullable<ConfirmRequest>) {
+    return request.kind === "user"
+      ? { action: "platform.user.delete", targetId: request.person.id }
+      : { action: "platform.agency.delete", targetId: request.agency.id };
+  }
+
+  // La vista previa del servidor trae el texto de confirmación que el API exige:
+  // el usuario confirma con la palabra corta y el marco lo envía tal cual.
+  async function ensurePreview(request: NonNullable<ConfirmRequest>) {
+    if (authPreview) return authPreview;
+    const created = await platformApi<{ preview: { id: string; confirmation: string } }>("/api/platform/destructive/preview", {
+      method: "POST",
+      body: JSON.stringify(deletionTarget(request)),
+    });
+    const preview = { id: created.preview.id, confirmation: created.preview.confirmation };
+    setAuthPreview(preview);
+    return preview;
+  }
+
+  async function startGoogle() {
+    if (!confirming || busy || googleStarting) return;
+    setGoogleStarting(true);
+    setActionError("");
+    try {
+      const preview = await ensurePreview(confirming);
+      const startPath = `/api/auth/account/recent-auth/google/start?previewId=${encodeURIComponent(preview.id)}`;
+      await preflightGoogleStart(startPath);
+      const request = confirming.kind === "user"
+        ? { kind: "user", id: confirming.person.id, email: confirming.person.email, full_name: confirming.person.full_name ?? null }
+        : { kind: "agency", id: confirming.agency.id, name: confirming.agency.name };
+      try {
+        sessionStorage.setItem(PLATFORM_GOOGLE_STORAGE_KEY, JSON.stringify({ preview, request }));
+      } catch {
+        throw new Error("No pudimos conservar la confirmación durante la verificación. Habilitá el almacenamiento de sesión e intentá nuevamente.");
+      }
+      window.location.assign(`/core-api${startPath}`);
+    } catch (cause) {
+      const code = errorCode(cause);
+      if (code === "GOOGLE_REAUTH_NOT_ALLOWED") {
+        setAuthMethod("password");
+        setActionError("Tu cuenta tiene contraseña: confirmá con ella o pedí un código por correo.");
+      } else if (code === "GOOGLE_REAUTH_UNAVAILABLE") {
+        setAuthMethod("password");
+        setActionError("Google no está disponible en este momento. Usá tu contraseña o el código por correo.");
+      } else if (!handlePlatformError(cause)) {
+        setActionError(cause instanceof Error ? cause.message : "No pudimos iniciar la verificación con Google.");
+      }
+      setGoogleStarting(false);
+    }
+  }
+
+  // Vuelta de Google: el API redirige acá con un ticket de un solo uso; se canjea
+  // por la prueba de identidad y se restaura la eliminación que quedó pendiente.
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.location) return;
+    const query = new URLSearchParams(window.location.search);
+    const ticket = query.get("recentAuthTicket");
+    if (!ticket) return;
+    query.delete("recentAuthTicket");
+    query.delete("error");
+    const rest = query.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${rest ? `?${rest}` : ""}${window.location.hash}`);
+    let stored: { preview?: { id?: unknown; confirmation?: unknown }; request?: Record<string, unknown> } | null = null;
+    try {
+      stored = JSON.parse(sessionStorage.getItem(PLATFORM_GOOGLE_STORAGE_KEY) || "null");
+      sessionStorage.removeItem(PLATFORM_GOOGLE_STORAGE_KEY);
+    } catch {
+      stored = null;
+    }
+    const request = stored?.request;
+    if (typeof stored?.preview?.id !== "string" || typeof stored.preview.confirmation !== "string" || !request) {
+      notify({ tone: "error", message: "La verificación con Google venció. Volvé a iniciar la eliminación." });
       return;
-    if (authMethod === "password" && !confirmPassword) {
+    }
+    const preview = { id: stored.preview.id, confirmation: stored.preview.confirmation };
+    void platformApi<{ proof: string }>("/api/auth/account/recent-auth/google/complete", {
+      method: "POST",
+      body: JSON.stringify({ ticket }),
+    }).then((auth) => {
+      setConfirming(
+        request.kind === "user"
+          ? { kind: "user", person: { id: Number(request.id), email: String(request.email ?? ""), full_name: typeof request.full_name === "string" ? request.full_name : null, active_agencies: 0, platform_admin: false } }
+          : { kind: "agency", agency: { id: Number(request.id), name: String(request.name ?? ""), slug: "", active: true, active_users: 0, subscription_status: null, subscription_currency: null, subscription_amount: null, trial_ends_at: null, due_at: null } },
+      );
+      setAuthPreview(preview);
+      setGoogleProof(auth.proof);
+      setAuthMethod("google");
+      setActionError("");
+    }).catch((cause) => {
+      if (!handlePlatformError(cause)) notify({ tone: "error", message: cause instanceof Error ? cause.message : "No pudimos confirmar tu identidad con Google." });
+    });
+  }, []);
+
+  async function removeConfirmed() {
+    if (busy || !confirming) return;
+    if (!googleProof && authMethod === "google") {
+      setActionError("Confirmá tu identidad con Google antes de eliminar.");
+      return;
+    }
+    if (!googleProof && authMethod === "password" && !confirmPassword) {
       setActionError("Ingresá tu contraseña actual para confirmar la eliminación.");
       return;
     }
-    if (authMethod === "email" && emailCode.length !== 8) {
+    if (!googleProof && authMethod === "email" && emailCode.length !== 8) {
       setActionError("Ingresá el código de 8 dígitos que enviamos a tu correo.");
       return;
     }
     // El API exige vista previa + prueba de re-autenticación (issue #22).
-    const confirmation = typed;
-    const action = confirming.kind === "user" ? "platform.user.delete" : "platform.agency.delete";
-    const targetId = confirming.kind === "user" ? confirming.person.id : confirming.agency.id;
     setBusy(true);
     setActionError("");
     try {
-      const preview = authPreviewId
-        ? { preview: { id: authPreviewId } }
-        : await platformApi<{ preview: { id: string } }>("/api/platform/destructive/preview", {
-            method: "POST",
-            body: JSON.stringify({ action, targetId }),
-          });
+      const previewData = await ensurePreview(confirming);
+      const preview = { preview: previewData };
+      const confirmation = previewData.confirmation;
       let recentAuthProof: string;
       try {
-        const auth =
-          authMethod === "email"
-            ? await platformApi<{ proof: string }>("/api/auth/account/recent-auth/email/complete", {
-                method: "POST",
-                body: JSON.stringify({ previewId: preview.preview.id, code: emailCode }),
-              })
-            : await platformApi<{ proof: string }>("/api/auth/account/recent-auth/password", {
-                method: "POST",
-                body: JSON.stringify({ previewId: preview.preview.id, password: confirmPassword }),
-              });
-        recentAuthProof = auth.proof;
+        if (googleProof) {
+          recentAuthProof = googleProof;
+        } else {
+          const auth =
+            authMethod === "email"
+              ? await platformApi<{ proof: string }>("/api/auth/account/recent-auth/email/complete", {
+                  method: "POST",
+                  body: JSON.stringify({ previewId: preview.preview.id, code: emailCode }),
+                })
+              : await platformApi<{ proof: string }>("/api/auth/account/recent-auth/password", {
+                  method: "POST",
+                  body: JSON.stringify({ previewId: preview.preview.id, password: confirmPassword }),
+                });
+          recentAuthProof = auth.proof;
+        }
       } catch (cause) {
         const code = errorCode(cause);
         if (code === "PASSWORD_REAUTH_FAILED") {
@@ -323,8 +434,8 @@ export default function PlatformAdmin() {
           return;
         }
         if (code === "PASSWORD_REAUTH_UNAVAILABLE") {
-          setAuthMethod("email");
-          setActionError("Esta cuenta no usa contraseña: pedí el código de 8 dígitos a tu correo.");
+          setAuthMethod("google");
+          setActionError("Esta cuenta no usa contraseña: confirmá con Google o pedí el código de 8 dígitos a tu correo.");
           return;
         }
         if (code === "EMAIL_REAUTH_INVALID") {
@@ -362,12 +473,7 @@ export default function PlatformAdmin() {
         });
         notify({ tone: "success", message: `Agencia ${confirming.agency.name} eliminada.` });
       }
-      setConfirmPassword("");
-      setAuthPreviewId("");
-      setEmailSent(false);
-      setEmailCode("");
-      setConfirming(null);
-      setTyped("");
+      resetConfirm();
       await load();
     } catch (cause) {
       const code = errorCode(cause);
@@ -475,6 +581,26 @@ export default function PlatformAdmin() {
     }
   }
 
+  // Gracia en un clic (#189): reutiliza el endpoint de pago manual con un motivo editable.
+  async function grantGrace(days: number, reason: string, key: string) {
+    if (!subscriptionAgency) return "";
+    const agency = subscriptionAgency;
+    try {
+      await platformApi(`/api/platform/agencies/${agency.id}/subscription/extend`, {
+        method: "POST",
+        headers: { "Idempotency-Key": key },
+        body: JSON.stringify({ days, reason }),
+      });
+    } catch (cause) {
+      if (handlePlatformError(cause)) return "";
+      return cause instanceof Error ? cause.message : "No pudimos dar la gracia.";
+    }
+    notify({ tone: "success", message: `Gracia de ${days} días otorgada a ${agency.name}.` });
+    await load();
+    await manageSubscription(agency);
+    return "";
+  }
+
   async function toggleCoupon(item: Coupon) {
     setBusy(true);
     setError("");
@@ -506,8 +632,13 @@ export default function PlatformAdmin() {
       await platformApi("/api/platform/coupons", {
         method: "POST",
         body: JSON.stringify({
-          ...coupon,
+          code: coupon.code,
+          discount_type: coupon.discount_type,
+          discount_value: coupon.discount_value,
           currency: coupon.discount_type === "fixed" ? coupon.currency : null,
+          ...(coupon.expires_at ? { expires_at: coupon.expires_at } : {}),
+          ...(coupon.organization_id ? { organization_id: coupon.organization_id } : {}),
+          ...(coupon.note.trim() ? { note: coupon.note.trim() } : {}),
         }),
       });
       setCoupon({
@@ -515,6 +646,9 @@ export default function PlatformAdmin() {
         discount_value: "10",
         discount_type: "percent",
         currency: "USD",
+        expires_at: "",
+        organization_id: "",
+        note: "",
       });
       await load();
     } catch (cause) {
@@ -551,16 +685,19 @@ export default function PlatformAdmin() {
 
           {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={changeView} bootstrap={bootstrap}/> : null}
 
-          {view === "agencias" ? <PlatformAgencies busy={busy} state={state} page={state.pages.agencies} onMore={()=>void loadMore('agencies')} writable={writable} setConfirming={setConfirming} setTyped={setTyped} manageSubscription={manageSubscription}/> : null}
+          {view === "agencias" ? <PlatformAgencies busy={busy} state={state} page={state.pages.agencies} onMore={()=>void loadMore('agencies')} writable={writable} setConfirming={setConfirming} manageSubscription={manageSubscription} applyCoupon={setApplyAgency}/> : null}
 
           {view === "cupones" ? <PlatformCatalog busy={busy} state={state} page={state.pages.coupons} onMore={()=>void loadMore('coupons')} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/> : null}
 
-          {view === "accesos" ? <PlatformAccess busy={busy} state={state} page={state.pages.users} onMore={()=>void loadMore('users')} writable={writable} setConfirming={setConfirming} setTyped={setTyped} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/> : null}
+          {view === "accesos" ? <PlatformAccess busy={busy} state={state} page={state.pages.users} onMore={()=>void loadMore('users')} writable={writable} setConfirming={setConfirming} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/> : null}
 
           {view === "auditoria" ? <PlatformAudit audit={state.audit} page={state.pages.audit} busy={busy} onMore={()=>void loadMore('audit')}/> : null}
 
           {writable && subscriptionAgency ? (
-            <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension}/>
+            <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension} grantGrace={grantGrace} applyCoupon={setApplyAgency}/>
+          ) : null}
+          {writable && applyAgency ? (
+            <ApplyCouponDialog agency={applyAgency} onClose={() => setApplyAgency(null)} onApplied={() => load()} onFailure={(cause) => handlePlatformError(cause)}/>
           ) : null}
         </div>
       ) : null}
@@ -617,13 +754,13 @@ export default function PlatformAdmin() {
           self={confirmingSelf}
           error={actionError}
           emailSending={emailSending}
-          typed={typed}
-          setTyped={setTyped}
+          googleStarting={googleStarting}
+          googleVerified={Boolean(googleProof)}
           confirmPassword={confirmPassword}
           setConfirmPassword={setConfirmPassword}
           authMethod={authMethod}
-          onSwitchAuth={() => {
-            setAuthMethod(authMethod === "password" ? "email" : "password");
+          setAuthMethod={(method) => {
+            setAuthMethod(method);
             setActionError("");
           }}
           emailSent={emailSent}
@@ -631,15 +768,9 @@ export default function PlatformAdmin() {
           setEmailCode={setEmailCode}
           onClose={() => {
             if (busy) return;
-            setConfirming(null);
-            setTyped("");
-            setConfirmPassword("");
-            setAuthMethod("password");
-            setAuthPreviewId("");
-            setEmailSent(false);
-            setEmailCode("");
-            setActionError("");
+            resetConfirm();
           }}
+          onGoogle={() => void startGoogle()}
           onRequestEmailCode={() => void requestEmailCode()}
           onRemove={() => void removeConfirmed()}
         />

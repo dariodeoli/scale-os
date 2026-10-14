@@ -28,6 +28,8 @@ await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migra
 await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20260921_platform_extend_idempotency.sql',import.meta.url),'utf8'));
 // La forma coherente de los cupones también se exige en la base.
 await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20260920_platform_coupon_shape.sql',import.meta.url),'utf8'));
+await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20261014_coupon_grace.sql',import.meta.url),'utf8'));
+await pg.exec(`create table platform_coupon_redemptions(id bigserial primary key,coupon_id bigint not null references platform_coupons(id) on delete restrict,organization_id bigint not null references organizations(id) on delete cascade,months_granted integer not null default 1 check(months_granted >= 0),redeemed_by_user_id bigint not null references users(id) on delete restrict,created_at timestamptz not null default now(),unique(coupon_id,organization_id))`);
 await pg.exec(`
   create table if not exists oauth_states(id bigint primary key,recent_auth_user_id bigint);
   create table if not exists destructive_action_previews(token_hash text primary key,user_id bigint,action text not null default 'account.delete',organization_id bigint,state_hash text not null default 'fixture',confirmation text not null default 'Eliminar',payload jsonb not null default '{}'::jsonb,expires_at timestamptz not null default now()+interval '5 minutes',consumed_at timestamptz,created_at timestamptz not null default now());
@@ -80,6 +82,7 @@ assert(platformSource.includes('platform_administrators'),'the global guard must
 // #69: el arranque del servidor liga el correo configurado al bootstrap y a la
 // reafirmación idempotente del dueño como admin global activo.
 const serverSource=fs.readFileSync(new URL('./server.js',import.meta.url),'utf8');
+assert.match(serverSource,/previewAction\.startsWith\('platform\.'\)\?'\/superadmin':'\/configuracion'/,'#189: la vuelta de Google de una eliminación global regresa al superadmin');
 assert.match(serverSource,/const initialPlatformAdminEmail = process\.env\.SCALE_INITIAL_PLATFORM_ADMIN_EMAIL/,'el correo del admin inicial sale del entorno del servidor');
 assert.match(serverSource,/await bootstrapInitialPlatformAdmin\(db,initialPlatformAdminEmail\)/,'el arranque ejecuta el bootstrap del admin inicial');
 assert.match(serverSource,/await ensurePlatformOwnerAdmin\(db,initialPlatformAdminEmail\)/,'el arranque reafirma al dueño configurado como admin activo');
@@ -94,6 +97,13 @@ const agencyNext=await call('/api/platform/agencies?limit=1&offset=1');assert.eq
 const userWindow=await call('/api/platform/users?limit=1');assert.equal(userWindow.data.users.length,1);assert.equal(userWindow.data.total,3);assert.equal(userWindow.data.hasMore,true);
 const agencies=await call('/api/platform/agencies?limit=100');assert.equal(agencies.status,200);assert.deepEqual(agencies.data.agencies.map(row=>row.id).sort((a,b)=>a-b),[10,20]);assert.equal(agencies.data.agencies.find(row=>row.id===10).active_users,2,'demo-domain accounts and demo guests do not inflate real-agency counts');assert(!Object.keys(agencies.data.agencies[0]).some(k=>k.includes('stripe')||k.includes('password')));
 const users=await call('/api/platform/users?limit=100');assert.equal(users.status,200);assert.deepEqual(users.data.users.map(row=>row.email).sort(),['member@agency.example','owner@agency.example','platform@scale.example']);assert.equal(users.data.users.find(row=>row.email==='platform@scale.example').active_agencies,1,'a real superadmin remains visible and only real organizations are counted');
+// #189: accesos y agencias muestran solo identidad visible (nombre, foto, agencias), sin datos sensibles.
+await pg.query("insert into user_personal_identities(user_id,full_name,photo_url) values(1,'Ana Dueña','https://cdn.example/ana.webp')");
+const owner1=(await call('/api/platform/users?limit=100')).data.users.find(row=>row.email==='owner@agency.example');
+assert.equal(owner1.full_name,'Ana Dueña');assert.equal(owner1.photo_url,'https://cdn.example/ana.webp');assert.deepEqual(owner1.agency_names,['Agency One']);
+assert(!Object.keys(owner1).some(k=>/salary|password|compensation/.test(k)),'la lista de accesos no expone datos sensibles');
+const agency10=(await call('/api/platform/agencies?limit=100')).data.agencies.find(row=>row.id===10);
+assert.equal(agency10.owner_email,'owner@agency.example');assert.equal(agency10.owner_name,'Ana Dueña');assert.equal(agency10.owner_photo_url,'https://cdn.example/ana.webp');assert.equal(agency10.extra_admins,0);
 assert.equal((await call('/api/platform/agencies/10/subscription',{actor:{id:1,email:'owner@agency.example'}})).status,403,'agency ownership cannot inspect platform subscription controls');
 const inspected=await call('/api/platform/agencies/10/subscription');assert.equal(inspected.status,200);assert.equal(inspected.data.subscription.currency,'USD');assert.equal(inspected.data.subscription.internal_state,null);
 const updated=await call('/api/platform/agencies/10/subscription',{method:'PATCH',payload:{state:'suspended',reason:'Security review',expires_at:null}});assert.equal(updated.status,200);assert.equal(updated.data.subscription.internal_state,'suspended');assert.equal(updated.data.subscription.internal_reason,'Security review');
@@ -137,6 +147,54 @@ await pg.query("insert into agency_settings(organization_id,default_currency) va
 await pg.query('delete from organization_subscriptions where organization_id=20');
 const opened=await call('/api/platform/agencies/20/subscription/extend',{method:'POST',payload:{days:5,reason:'Efectivo en guaraníes'}});
 assert.equal(opened.status,200);
+// #189: cupones de gracia — vencimiento, empresa destino, nota y aplicación desde el superadmin.
+{
+ const dueOf=async id=>new Date((await pg.query('select due_at from organization_subscriptions where organization_id=$1',[id])).rows[0].due_at).getTime();
+ const day=offset=>new Date(Date.now()+offset*86400000).toISOString().slice(0,10);
+ await pg.query("insert into organizations(id,name,slug) values(66,'Agency Sixty Six','agency-sixty-six') on conflict do nothing");
+ const created=await call('/api/platform/coupons',{method:'POST',payload:{code:'GRACE7',discount_type:'days',discount_value:7,currency:null,max_redemptions:1,expires_at:day(5),organization_id:'20',note:'Gracia acordada por WhatsApp'}});
+ assert.equal(created.status,201);
+ assert.equal(String(created.data.coupon.organization_id),'20');assert.equal(created.data.coupon.organization_name,'Agency Two');
+ assert.equal(created.data.coupon.note,'Gracia acordada por WhatsApp');assert.equal(created.data.coupon.redemptions,0);assert.equal(created.data.coupon.expired,false);assert(created.data.coupon.expires_at);
+ assert.equal((await call('/api/platform/coupons',{method:'POST',payload:{code:'PASTDUE',discount_type:'days',discount_value:3,currency:null,expires_at:day(-2)}})).status,400,'el vencimiento debe ser futuro al crear');
+ assert.equal((await call('/api/platform/coupons',{method:'POST',payload:{code:'NOORG',discount_type:'days',discount_value:3,currency:null,organization_id:'99999'}})).status,404,'la empresa destino debe existir');
+ assert.equal((await call('/api/platform/coupons',{method:'POST',payload:{code:'LONGNOTE',discount_type:'days',discount_value:3,currency:null,note:'x'.repeat(2001)}})).status,400,'la nota admite hasta 2000 caracteres');
+ const id=created.data.coupon.id;
+ // Aplicable solo a su empresa destino.
+ assert.deepEqual((await call('/api/platform/coupons?organization=20')).data.coupons.map(c=>c.code).sort(),['DAYS30','GRACE7']);
+ assert.equal((await call('/api/platform/coupons?organization=66')).data.coupons.some(c=>c.code==='GRACE7'),false,'un cupón dirigido no es aplicable a otra empresa');
+ const apply=(org,payload,opts={})=>call(`/api/platform/agencies/${org}/coupons/apply`,{method:'POST',payload,...opts});
+ assert.equal((await apply(20,{coupon_id:id},{actor:{id:3,email:'member@agency.example'}})).status,403,'solo un admin global aplica cupones');
+ assert.equal((await apply(66,{coupon_id:id,reason:'Prueba'})).status,409,'un cupón dirigido a otra empresa se rechaza');
+ const before=await dueOf(20);
+ const key='coupon-apply-fixture-01';
+ const applied=await apply(20,{coupon_id:id,idempotency_key:key,reason:'Gracia por mora'});
+ assert.equal(applied.status,200);assert.equal(applied.data.coupon.code,'GRACE7');
+ const after=await dueOf(20);assert(after-before>=6.9*86400000,'el cupón extiende los días en la suscripción');
+ const row=(await pg.query("select action,target_type,target_id,metadata from platform_audit_log where action='coupon.apply'")).rows;
+ assert.equal(row.length,1);assert.equal(row[0].metadata.code,'GRACE7');assert.equal(row[0].metadata.discount_type,'days');assert.equal(Number(row[0].metadata.discount_value),7);assert.equal(row[0].metadata.reason,'Gracia por mora');
+ const replay=await apply(20,{coupon_id:id,idempotency_key:key});
+ assert.equal(replay.status,200);assert.equal(replay.data.idempotent_replay,true);assert.equal(await dueOf(20),after,'la misma clave no suma días dos veces');
+ assert.equal((await pg.query("select count(*)::int as n from platform_coupon_redemptions where coupon_id=$1",[id])).rows[0].n,1);
+ assert.equal((await apply(20,{coupon_id:id})).status,400,'el cupón de un solo uso queda agotado');
+ const open=(await call('/api/platform/coupons')).data.coupons.find(c=>c.code==='DAYS30');
+ assert.equal((await apply(66,{coupon_id:open.id})).status,200);
+ assert.equal((await apply(66,{coupon_id:open.id})).status,409,'una empresa canjea el cupón una sola vez');
+ assert.equal((await call('/api/platform/coupons?organization=20')).data.coupons.some(c=>c.code==='GRACE7'),false,'el cupón ya usado deja de ser aplicable');
+ const listed=(await call('/api/platform/coupons')).data.coupons.find(c=>c.id===id);assert.equal(listed.redemptions,1);
+ // Máximo de usos: un cupón global de un solo uso se agota tras la primera empresa.
+ const single=(await call('/api/platform/coupons',{method:'POST',payload:{code:'ONCE3',discount_type:'days',discount_value:3,currency:null,max_redemptions:1}})).data.coupon;
+ assert.equal((await apply(20,{coupon_id:single.id})).status,200);
+ assert.equal((await apply(66,{coupon_id:single.id})).status,400,'se respeta max_redemptions');
+ // Vencido: se rechaza al aplicar y la lista lo marca.
+ const old=(await call('/api/platform/coupons',{method:'POST',payload:{code:'OLD3',discount_type:'days',discount_value:3,currency:null}})).data.coupon;
+ await pg.query("update platform_coupons set expires_at=now()-interval '1 day' where id=$1",[old.id]);
+ assert.equal((await apply(66,{coupon_id:old.id})).status,409,'un cupón vencido no se aplica');
+ assert.equal((await call('/api/platform/coupons')).data.coupons.find(c=>c.id===old.id).expired,true);
+ assert.equal((await apply(66,{})).status,400,'falta el cupón');
+ const patched=await call('/api/platform/coupons/'+id,{method:'PATCH',payload:{note:'Actualizada',organization_id:null,expires_at:null}});
+ assert.equal(patched.status,200);assert.equal(patched.data.coupon.organization_id,null);assert.equal(patched.data.coupon.expires_at,null);assert.equal(patched.data.coupon.note,'Actualizada');
+}
 assert.equal((await pg.query('select currency from organization_subscriptions where organization_id=20')).rows[0].currency,'PYG','the manual runway uses the company currency');
 await pg.query("insert into sessions(id,user_id,organization_id,expires_at) values('1',1,10,now()+interval '7 days')");
 // Borrado global (issue #22): sin prueba de re-autenticación no hay borrado.
