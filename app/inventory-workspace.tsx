@@ -154,7 +154,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
  const facts=depreciationFacts(item);
- return <article data-grid-card="equipment" className="flex min-h-[200px] min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4">
+ return <article data-grid-card="equipment" className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4">
   <div className="flex min-w-0 items-start gap-2.5">
    {selectable?<label className="flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
    <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="card"/>

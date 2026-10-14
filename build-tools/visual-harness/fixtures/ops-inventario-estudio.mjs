@@ -240,7 +240,7 @@ const spaces = [
   {name: 'Estudio B · escenario de ladrillo', scenario: 'Ladrillo visto · chimenea', notes: 'En refacción hasta octubre.', active: false},
 ];
 const spaceCard = (space) => `
-<article data-grid-card="studio-spaces" class="flex min-h-[200px] min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
+<article data-grid-card="studio-spaces" class="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
  <div class="flex items-start justify-between gap-3"><h3 class="break-words text-sm font-semibold text-fore">${space.name}</h3>${badge(space.active ? 'Disponible' : 'Inactivo', space.active ? 'ok' : 'mute')}</div>
  <p class="text-sm text-mute">${space.scenario}</p>${space.notes ? `<small class="line-clamp-2 text-xs text-mute" title="${space.notes}">${space.notes}</small>` : ''}
  <div class="mt-auto flex justify-end">${iconAction({icon: 'edit', label: `Editar espacio: ${space.name}`})}</div>

@@ -101,7 +101,7 @@ function StudioPanel(){
       {context?.can_reserve?<Button type="button" disabled={!activeSpaces.length} onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:null}
      </div>
     </div>
-    <div data-grid="studio-spaces" className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="flex min-h-[200px] min-w-0 flex-col gap-1.5 rounded-xl border border-ink-600 bg-ink-800/60 p-4" key={space.id}>
+    <div data-grid="studio-spaces" className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{spaces.map(space=><article data-grid-card="studio-spaces" className="flex min-w-0 flex-col gap-1.5 rounded-xl border border-ink-600 bg-ink-800/60 p-4" key={space.id}>
      <div className="flex min-w-0 items-center justify-between gap-2"><h3 className="truncate text-sm font-semibold text-fore" title={space.name}>{space.name}</h3><StateChip tone={space.active?'ok':'mute'}>{space.active?'Disponible':'Inactivo'}</StateChip></div>
      <p className="truncate text-xs text-mute" title={space.scenario||'Escenario sin especificar'}>{space.scenario||'Escenario sin especificar'}</p>
      {space.notes?<small className="line-clamp-2 text-xs leading-5 text-mute" title={space.notes}>{space.notes}</small>:null}

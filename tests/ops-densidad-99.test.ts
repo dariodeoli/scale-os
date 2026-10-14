@@ -26,8 +26,8 @@ assert.match(board,/aria-label=\{`\$\{order\.checklist_completed\|\|0\} de \$\{o
 assert.match(board,/<DndContext|<DraggableOrder/,'la tarjeta sigue siendo arrastrable');
 assert.match(board,/STATUS_TONE\[status\.id\]/,'la columna conserva su badge de etapa');
 
-// ── Sin altura artificial en las tarjetas de proyecto (#99); la de equipo cumple la cuadrícula (#168).
-assert.match(inventory,/min-h-\[200px\]/,'la tarjeta de equipo cumple el contrato de cuadrícula (≥200 px, #168)');
+// ── Sin altura artificial en las tarjetas del dominio (#99).
+assert.doesNotMatch(inventory,/min-h-\[200px\]/,'la tarjeta de equipo no reserva altura');
 assert.doesNotMatch(projectCard,/min-h-\[200px\]/,'la tarjeta de proyecto no reserva altura');
 
 // ── Responsables: una línea compacta, sin caja ni altura reservada.
