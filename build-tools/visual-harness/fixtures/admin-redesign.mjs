@@ -54,9 +54,9 @@ const AUDIT = [
   {action: 'platform.coupon.create', target: 'coupon', id: 15, actor: 'compras@coopservicios.com.py', when: '2026-09-28T11:05:00.000Z'},
 ];
 const COUPONS = [
-  {code: 'FUNDADOR30', detail: '30% · Sin límite de usos', active: true},
-  {code: 'LANZAMIENTO', detail: 'Gs. 25.000 · 100 usos máximos', active: true},
-  {code: 'PRUEBA-EXTENDIDA', detail: '15 días gratis · 50 usos máximos', active: false},
+  {code: 'FUNDADOR30', detail: '30% · Sin límite de usos', discount: '30%', uses: 'Sin límite', active: true},
+  {code: 'LANZAMIENTO', detail: 'Gs. 25.000 · 100 usos máximos', discount: 'Gs. 25.000', uses: '100', active: true},
+  {code: 'PRUEBA-EXTENDIDA', detail: '15 días gratis · 50 usos máximos', discount: '15 días', uses: '50', active: false},
 ];
 
 /* ── Encabezado y secciones (consola nueva) ──────────────────────────────── */
@@ -180,11 +180,13 @@ const couponsView = () => `
  </form>
  <div class="min-w-0 platform-admin-table-wrap">
   <div role="table" aria-label="Cupones" class="silent-scroll min-w-0 overflow-x-auto">
-   <div class="min-w-[25rem]">
-    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(10rem,1fr)_6.5rem_8rem]"><span role="columnheader">Cupón</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
+   <div class="min-w-[44rem]">
+    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]"><span role="columnheader">Cupón</span><span role="columnheader" class="text-right">Descuento</span><span role="columnheader" class="text-right">Usos máximos</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
     <div role="rowgroup">${COUPONS.map((coupon) => `
-    <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(10rem,1fr)_6.5rem_8rem]">
-     <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${coupon.code}">${coupon.code}</b><small class="list-secondary" title="${coupon.detail}">${coupon.detail}</small></div>
+    <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]">
+     <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${coupon.code}">${coupon.code}</b></div>
+     <span role="cell" class="text-right"><span class="list-amount text-fore">${coupon.discount}</span></span>
+     <span role="cell" class="whitespace-nowrap text-right text-[12.5px] font-semibold tabular-nums text-fore">${coupon.uses}</span>
      <span role="cell">${chip(coupon.active ? 'Activo' : 'Pausado', coupon.active ? 'ok' : 'mute')}</span>
      <div role="cell" class="list-actions"><button type="button" class="text-button ${coupon.active ? 'warn' : 'positive'}">${coupon.active ? I.pause + 'Pausar' : I.play + 'Reactivar'}</button></div>
     </div>`).join('')}</div>
@@ -239,15 +241,15 @@ const auditView = () => `
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]"><span role="columnheader">Fecha</span><span role="columnheader">Actor</span><span role="columnheader">Acción</span><span role="columnheader">Destino</span></div>
     <div role="rowgroup">${AUDIT.map((entry) => `
     <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]">
-     <span role="cell" class="whitespace-nowrap text-[11.5px] tabular-nums text-mute">${longDate(entry.when)}</span>
-     <span role="cell" class="min-w-0 truncate text-[12.5px] text-fore" title="${entry.actor}">${entry.actor}</span>
+     <span role="cell" class="list-date" title="${longDate(entry.when)}">${longDate(entry.when)}</span>
+     <span role="cell" class="list-identity text-fore" title="${entry.actor}">${entry.actor}</span>
      <span role="cell" class="min-w-0">${chip(entry.action, 'info', entry.action)}</span>
-     <div role="cell" class="min-w-0"><span class="block break-words text-[12.5px] text-fore">${entry.target} #${entry.id}</span><small class="mt-1 block truncate text-[11px] text-mute" title='{"days":30,"reason":"Pago manual recibido"}'>{"days":30,"reason":"Pago manual recibido"}</small></div>
+     <span role="cell" class="list-secondary text-[12.5px] text-fore" title='${entry.target} #${entry.id} · {"days":30,"reason":"Pago manual recibido"}'>${entry.target} #${entry.id}<span class="text-mute"> · {"days":30,"reason":"Pago manual recibido"}</span></span>
     </div>`).join('')}</div>
    </div>
   </div>
   <div class="admin-audit-fixture-cards platform-admin-audit-cards grid gap-3 sm:grid-cols-2">
-   ${AUDIT.map(entry => `<article class="rounded-xl border border-ink-600 bg-ink-800 p-4"><dl class="grid gap-3"><div><dt>Fecha</dt><dd>${longDate(entry.when)}</dd></div><div><dt>Actor</dt><dd>${entry.actor}</dd></div><div><dt>Acción</dt><dd>${entry.action}</dd></div><div><dt>Destino</dt><dd>${entry.target} #${entry.id}</dd></div><div><dt>Metadatos</dt><dd>{"days":30,"reason":"Pago manual recibido"}</dd></div></dl></article>`).join('')}
+   ${AUDIT.map(entry => `<article class="min-w-0 rounded-xl border border-ink-600 bg-ink-800 p-4"><dl class="grid gap-3 [&_dd]:mt-0.5 [&_dd]:text-[12.5px] [&_dd]:leading-normal [&_dd]:text-fore [&_dd]:[overflow-wrap:anywhere] [&_dt]:text-[10px] [&_dt]:font-bold [&_dt]:uppercase [&_dt]:tracking-[.06em] [&_dt]:text-mute"><div><dt>Fecha</dt><dd>${longDate(entry.when)}</dd></div><div><dt>Actor</dt><dd>${entry.actor}</dd></div><div><dt>Acción</dt><dd>${entry.action}</dd></div><div><dt>Destino</dt><dd>${entry.target} #${entry.id}</dd></div><div><dt>Metadatos</dt><dd>{"days":30,"reason":"Pago manual recibido"}</dd></div></dl></article>`).join('')}
   </div>
  </div>
 </section>`;
