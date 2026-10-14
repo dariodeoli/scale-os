@@ -306,7 +306,7 @@ const platformStats = `
 
 /* Lista densa v2: ListGrid/ListRow/ListActions de app/ui-v2.tsx. */
 const listGrid = ({label, template, minWidth = 'min-w-[48rem]', columns, rows, className = '', pinned = false}) => `
-<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto ${className}">
+<div role="table" aria-label="${label}" class="silent-scroll relative min-w-0 overflow-x-auto ${className}">
  <div class="${minWidth}">
   <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">
    ${columns.map((column, index) => `<span role="columnheader" class="${index === columns.length - 1 ? `text-right${pinned ? ' list-actions-head' : ''}` : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}

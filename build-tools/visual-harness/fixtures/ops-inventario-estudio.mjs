@@ -479,7 +479,7 @@ export default [
  <div class="grid min-w-0 gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">
  <div class="flex min-w-0 flex-wrap items-center gap-3"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2><p class="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Horario de Asunción. Una reserva activa bloquea únicamente su espacio.">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p></div>
  ${studioCalendar}
- <div data-list="studio-reservations" class="min-w-0"><div role="table" aria-label="Reservas del estudio" class="silent-scroll min-w-0 overflow-x-auto [--studio-cols:minmax(13rem,1.5fr)_minmax(14rem,1.2fr)_minmax(7.5rem,1fr)_minmax(8.5rem,1fr)_6.5rem_5rem]"><div class="min-w-[60rem]">${studioReservationHead}<div role="rowgroup">${studioReservations.map(studioReservationRow).join('')}</div></div></div></div>
+ <div data-list="studio-reservations" class="min-w-0"><div role="table" aria-label="Reservas del estudio" class="silent-scroll relative min-w-0 overflow-x-auto [--studio-cols:minmax(13rem,1.5fr)_minmax(14rem,1.2fr)_minmax(7.5rem,1fr)_minmax(8.5rem,1fr)_6.5rem_5rem]"><div class="min-w-[60rem]">${studioReservationHead}<div role="rowgroup">${studioReservations.map(studioReservationRow).join('')}</div></div></div></div>
 </div></div>`,
   },
 ];

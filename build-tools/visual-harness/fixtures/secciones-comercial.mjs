@@ -53,7 +53,7 @@ const budgetBulkBar = (selected = 0) => `<div class="bulk-bar" role="status" ari
   ${selected ? '<button type="button" class="secondary danger min-h-11 md:min-h-10">🗑 Mover a la papelera</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button>' : ''}
  </div>
 </div>`;
-const budgetList = (rows) => `<div role="table" aria-label="Presupuestos" class="silent-scroll min-w-0 overflow-x-auto">
+const budgetList = (rows) => `<div role="table" aria-label="Presupuestos" class="silent-scroll relative min-w-0 overflow-x-auto">
  <div class="min-w-[93rem]">
   <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${BUDGET_TEMPLATE}">${BUDGET_COLUMNS.map((column, index) => `<span role="columnheader" class="${index === BUDGET_COLUMNS.length - 1 ? 'text-right list-actions-head' : index >= 3 && index <= 6 ? 'text-right' : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}</div>
   <div role="rowgroup">${rows.join('')}</div>

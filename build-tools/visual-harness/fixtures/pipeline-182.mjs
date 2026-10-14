@@ -111,7 +111,7 @@ const list = `
 <section class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4" aria-label="Pipeline">
 ${pageHeader}${toolbar('5 oportunidades', true)}
 <div role="status" aria-live="polite" class="bulk-bar"><span class="bulk-count"><b>2</b> seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="secondary min-h-11 md:min-h-10">${move}Mover a etapa</button><button type="button" class="secondary danger min-h-11 md:min-h-10">${trash}Eliminar</button><button type="button" class="text-button">Limpiar</button></div></div>
-<div class="grid min-w-0 gap-2"><div role="table" aria-label="Oportunidades" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[64rem]">
+<div class="grid min-w-0 gap-2"><div role="table" aria-label="Oportunidades" class="silent-scroll relative min-w-0 overflow-x-auto"><div class="min-w-[64rem]">
  <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${EDIT}">${COLS.map((c, i) => `<span role="columnheader" class="${c === 'Valor' || c === 'Acciones' ? 'text-right' : 'text-left'} whitespace-nowrap ${i === COLS.length - 1 ? 'list-actions-head' : ''}">${c}</span>`).join('')}</div>
  <div role="rowgroup">${LEADS.map((l, i) => row(l, i < 2)).join('')}</div>
 </div></div></div></section>`;

@@ -134,7 +134,7 @@ const plannerBody = `
  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-lg font-bold text-fore">Trabajo diario</h2></div>
  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-2">${kpi('Entregas para hoy o vencidas', '2', 'Piezas asignadas con entrega hasta hoy')}${kpi('Piezas asignadas pendientes', '4', 'Sin aprobar ni publicar')}</div>
  <div class="flex flex-wrap items-center gap-2"><button type="button" class="text-button">Revisar cobros pendientes${svg(ICON.arrowUp, 14)}</button><button type="button" class="text-button">Disponibilidad y efectivo${svg(ICON.arrowUp, 14)}</button></div>
- <div role="table" aria-label="Piezas" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map(plannerRow).join('')}</div></div></div>
+ <div role="table" aria-label="Piezas" class="silent-scroll relative min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map(plannerRow).join('')}</div></div></div>
 </div>`;
 
 /* --------------------------------------------------------------- proyectos */
@@ -303,7 +303,7 @@ export default [
 <div class="grid min-w-0 gap-4" aria-label="Planificador de producción">
  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Lista y lotes</h2></div>
  <div class="flex flex-wrap items-center gap-2"><button class="secondary" type="button">Cambiar 1 piezas</button><button class="text-button" type="button">Quitar selección</button><button class="text-button" type="button">${svg(ICON.calendar, 14)}Plantillas mensuales</button></div>
- <div role="table" aria-label="Piezas en lista y lotes" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map((order, index) => plannerRow({...order, selected: index === 0})).join('')}</div></div></div>
+ <div role="table" aria-label="Piezas en lista y lotes" class="silent-scroll relative min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map((order, index) => plannerRow({...order, selected: index === 0})).join('')}</div></div></div>
 </div>`,
   },
   {

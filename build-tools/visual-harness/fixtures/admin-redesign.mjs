@@ -144,7 +144,7 @@ const agenciesView = () => `
  ${panelHead('platform-agencies-title', 'Agencias y suscripciones', '134', 'Gestioná el acceso manual junto a cada registro')}
  ${toolbar('4 de 134')}
  <div class="min-w-0 platform-admin-table-wrap">
-  <div role="table" aria-label="Agencias y suscripciones" class="silent-scroll min-w-0 overflow-x-auto">
+  <div role="table" aria-label="Agencias y suscripciones" class="silent-scroll relative min-w-0 overflow-x-auto">
    <div class="min-w-[73.5rem]">
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]">
      <span role="columnheader">Agencia</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right">Plan</span><span role="columnheader" class="text-right">Usuarios</span><span role="columnheader">Prueba / vencimiento</span><span role="columnheader" class="text-right list-actions-head">Acciones</span>
@@ -178,7 +178,7 @@ const couponsView = () => `
   <button type="button" class="primary min-h-11 md:min-h-10">Crear cupón</button>
  </form>
  <div class="min-w-0 platform-admin-table-wrap">
-  <div role="table" aria-label="Cupones" class="silent-scroll min-w-0 overflow-x-auto">
+  <div role="table" aria-label="Cupones" class="silent-scroll relative min-w-0 overflow-x-auto">
    <div class="min-w-[44rem]">
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]"><span role="columnheader">Cupón</span><span role="columnheader" class="text-right">Descuento</span><span role="columnheader" class="text-right">Usos máximos</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
     <div role="rowgroup">${COUPONS.map((coupon) => `
@@ -207,7 +207,7 @@ const accessView = () => `
  ${panelHead('platform-access-title', 'Accesos entre agencias', '1.284', 'El acceso global no cambia los permisos de cada agencia')}
  ${toolbar('3 de 1.284')}
  <div class="min-w-0 platform-admin-table-wrap">
-  <div role="table" aria-label="Accesos entre agencias" class="silent-scroll min-w-0 overflow-x-auto">
+  <div role="table" aria-label="Accesos entre agencias" class="silent-scroll relative min-w-0 overflow-x-auto">
    <div class="min-w-[45rem]">
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(11rem,1fr)_7rem_25rem]"><span role="columnheader">Usuario</span><span role="columnheader">Acceso</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
     <div role="rowgroup">${USERS.map((person) => `
@@ -345,7 +345,7 @@ const agenciesView2 = () => `
  ${panelHead('platform-agencies-title', 'Agencias y suscripciones', '134', 'Gestioná el acceso manual junto a cada registro')}
  ${toolbar('4 de 134')}
  <div class="min-w-0 platform-admin-table-wrap">
-  <div role="table" aria-label="Agencias y suscripciones" class="silent-scroll min-w-0 overflow-x-auto">
+  <div role="table" aria-label="Agencias y suscripciones" class="silent-scroll relative min-w-0 overflow-x-auto">
    <div class="min-w-[73.5rem]">
     <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]"><span role="columnheader">Agencia</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right">Plan</span><span role="columnheader" class="text-right">Usuarios</span><span role="columnheader">Prueba / vencimiento</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
     <div role="rowgroup">${agencyRows2}</div>

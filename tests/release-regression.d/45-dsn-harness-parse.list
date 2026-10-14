@@ -1,0 +1,2 @@
+# Fixtures del harness: todos cargan (sin sintaxis rota ni helpers duplicados por merge)
+node tests/harness-fixtures-parse.test.mjs

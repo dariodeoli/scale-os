@@ -1,4 +1,4 @@
-.company-settings{display:grid;gap:var(--ui-space-2,8px);margin-block:var(--ui-space-4)}
+.company-settings{display:grid;min-width:0;grid-template-columns:minmax(0,1fr);gap:var(--ui-space-2,8px);margin-block:var(--ui-space-4)}
 .company-settings-intro{max-inline-size:68ch;margin-block-end:var(--ui-space-1,4px)}
 .company-settings-name{display:flex;align-items:center;gap:var(--ui-space-2,8px);min-inline-size:0}
 .company-settings-name strong{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:600}

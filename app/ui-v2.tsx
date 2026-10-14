@@ -535,7 +535,7 @@ export function FilterToolbar({children, summary, className}: {children: ReactNo
  * densas de la ronda 14). Se usa junto con la `ListActions` de cada fila.
  */
 export function ListGrid({label, template, columns, children, minWidthClass = 'min-w-[48rem]', pinnedActions = false, className}: {label: string; template: string; columns: Column[]; children: ReactNode; minWidthClass?: string; pinnedActions?: boolean; className?: string}) {
-  return <div role="table" aria-label={label} className={`silent-scroll min-w-0 overflow-x-auto ${className ?? ''}`}>
+  return <div role="table" aria-label={label} className={`silent-scroll relative min-w-0 overflow-x-auto ${className ?? ''}`}>
     <div className={minWidthClass}>
       <div role="row" className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`}>
         {columns.map((column, index) => (
