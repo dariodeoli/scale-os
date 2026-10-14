@@ -129,3 +129,33 @@ export function FormActions({children}:{children:ReactNode}){
  })}</div>;
  return <><span hidden ref={anchor}/>{footer?createPortal(actions,footer):actions}</>;
 }
+
+/**
+ * Confirmación única (issue #183): toda acción destructiva o irreversible pasa por
+ * este primitivo, montado sobre `Dialog` (foco atrapado, Escape, `aria-labelledby`,
+ * bloqueo mientras `busy`). `requireText` exige tipear la palabra exacta antes de
+ * habilitar el botón y solo corresponde a operaciones irreversibles.
+ */
+export type ConfirmDialogProps={
+ open?:boolean;title:string;description?:ReactNode;children?:ReactNode;
+ confirmLabel?:string;cancelLabel?:string;variant?:'danger'|'primary';busy?:boolean;error?:string;
+ requireText?:string;requireLabel?:string;onCancel:()=>void;onConfirm:()=>void;
+};
+export function ConfirmDialog({open=true,title,description,children,confirmLabel='Confirmar',cancelLabel='Cancelar',variant='primary',busy=false,error,requireText,requireLabel,onCancel,onConfirm}:ConfirmDialogProps){
+ const [typed,setTyped]=useState(''),inputId=useId();
+ useEffect(()=>{if(!open)setTyped('');},[open]);
+ if(!open)return null;
+ const blocked=requireText!==undefined&&typed!==requireText;
+ return <Dialog title={title} close={onCancel} busy={busy} size="compact">
+  <form className="confirm-dialog" data-variant={variant} noValidate onSubmit={event=>{event.preventDefault();if(!busy&&!blocked)onConfirm();}}>
+   {description?<div className="confirm-dialog-body">{description}</div>:null}
+   {children}
+   {requireText!==undefined?<label htmlFor={inputId}><span>{requireLabel||`Escribí ${requireText} para confirmar`}</span><input id={inputId} name="confirmation" value={typed} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={busy} onChange={event=>setTyped(event.target.value)}/></label>:null}
+   {error?<p className="error form-error-summary" role="alert">{error}</p>:null}
+   <FormActions>
+    <button type="button" className="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</button>
+    <button type="submit" className={variant==='danger'?'secondary danger':'primary'} disabled={busy||blocked}>{busy?'Procesando…':confirmLabel}</button>
+   </FormActions>
+  </form>
+ </Dialog>;
+}

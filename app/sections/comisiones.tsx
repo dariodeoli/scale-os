@@ -23,7 +23,8 @@ import {
   type Payout,
   type ReferralDiscount,
 } from '../commission-data';
-import {Aviso,ConfirmDialog,Subtabs} from 'owncoding-ui';
+import {Aviso,Subtabs} from 'owncoding-ui';
+import {ConfirmDialog} from '../dialog';
 import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {User} from '../workspace-types';
 
