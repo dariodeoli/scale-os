@@ -19,7 +19,7 @@ import {ProductFooter, EmptyState, Icon} from 'owncoding-ui';
 const VERSION = '1.0.144';
 const icon = (name, className) => renderToStaticMarkup(React.createElement(Icon, {name, className, 'aria-hidden': 'true'}));
 
-const brand = `<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>`;
+const brand = `<span class="workspace-brand" role="img" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>`;
 
 /** El pie real, tal como lo monta `app/workspace-footer.tsx`. */
 const footer = () => renderToStaticMarkup(React.createElement(ProductFooter, {nombre: 'Scale OS', version: `v${VERSION}`, className: 'workspace-footer'}));

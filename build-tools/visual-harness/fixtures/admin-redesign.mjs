@@ -25,7 +25,7 @@ const chip = (text, tone = 'mute', title = '') => {
   const tones = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
   return `<span class="badge badge-${tones[tone] || 'slate'} whitespace-nowrap"${title ? ` title="${title}"` : ''}>${text}</span>`;
 };
-const brand = '<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>';
+const brand = '<span class="workspace-brand" role="img" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>';
 
 /* ── Datos de estrés ─────────────────────────────────────────────────────── */
 const AGENCIES = [
