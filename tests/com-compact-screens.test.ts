@@ -13,17 +13,18 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 
 test('pipeline: la toolbar va en una fila, los KPIs no se estiran y los totales son una franja',()=>{
  const pipeline=read('app/sections/pipeline.tsx');
- // La instrucción del tablero y las acciones comparten fila, arriba de los KPIs.
+ // PageHeader v2 (#182): el título y las acciones (Etapas, Nueva oportunidad) van en el encabezado; los filtros en su toolbar.
  assert.match(
   pipeline,
-  /<div className="flex flex-wrap items-center gap-x-3 gap-y-2">[\s\S]{0,700}?Arrastrá una tarjeta[\s\S]{0,900}?Nueva oportunidad<\/Button>/,
-  'la ayuda y las acciones del tablero comparten una fila',
+  /<PageHeader\s+title="Pipeline"\s+actions=\{canEdit\?<>[\s\S]{0,700}?Nueva oportunidad<\/Button>/,
+  'las acciones del pipeline viven en el PageHeader',
  );
+ assert.match(pipeline, /<FilterToolbar summary=/, 'los filtros comparten la toolbar canónica');
  assert.doesNotMatch(pipeline, /flex flex-wrap items-center justify-end gap-2">\s*<Button type="button" variant="ghost" onClick=\{\(\)=>setStagePanel\(true\)\}/, 'las acciones no vuelven a su fila propia');
  // La ayuda de arrastre es una etiqueta corta con la explicación en tooltip.
  assert.match(pipeline, /title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%\."><Move size=\{13\}/, 'la explicación del arrastre vive en el tooltip (#100)');
  assert.match(pipeline, /<span className="truncate">Mover: arrastrá una tarjeta a otra etapa<\/span>/, 'la etiqueta visible es corta');
- assert.match(pipeline, /flex flex-wrap items-center gap-2 max-md:ml-auto/, 'las acciones conservan su lugar en mobile');
+ assert.match(pipeline, /className="max-md:min-h-11" onClick=\{\(\)=>openCreate\(''\)\}/, 'el alta conserva su target de 44 px en mobile');
  // Valor abierto: la moneda base en el valor y el resto en la explicación.
  assert.match(pipeline, /const openAmounts=Object\.entries\(overview\.amounts\)/, 'las monedas abiertas se leen una sola vez');
  assert.match(pipeline, /valor=\{openAmounts\.length\?<MoneyText valor=\{openAmounts\[0\]\[1\]\}/, 'el valor del KPI usa la moneda base');
@@ -84,10 +85,11 @@ test('selección masiva contextual: la barra sólo existe con algo seleccionado 
   assert.match(source, /\{canManage[A-Za-z]* && selected[A-Za-z]*\.length \? <div className="bulk-bar"/, `${nombre}: la barra depende de la selección`);
   assert.doesNotMatch(source, /bulk-hint">Seleccioná varios para operar en lote/, `${nombre}: sin selección no hay fila de lote`);
  }
- // Pipeline y Planes no tienen lote: su `bulk-bar` es la ventana (#105), no
- // selección masiva.
+ // Planes no tiene lote: su `bulk-bar` es la ventana (#105), no selección
+ // masiva. El Pipeline (#182) lo tiene solo en la lista, con la BulkBar
+ // canónica, que únicamente existe con algo seleccionado.
  const pipeline=read('app/sections/pipeline.tsx');
- assert.doesNotMatch(pipeline, /toggleSelected|Seleccionar visibles/, 'el Pipeline no inventa selección masiva');
+ assert.match(pipeline, /view==='list'&&canEdit&&selected\.length\?<BulkBar count=\{selected\.length\}/, 'el lote del Pipeline depende de la vista lista, la capacidad y la selección');
  assert.match(pipeline, /windowLabel\(windowState\.loaded, windowState\.total, 'oportunidad', 'oportunidades'\)/, 'la barra del Pipeline es la ventana con contador honesto');
  const planes=read('app/sections/planes.tsx');
  assert.doesNotMatch(planes, /toggleSelected|Seleccionar visibles/, 'Planes no inventa selección masiva');

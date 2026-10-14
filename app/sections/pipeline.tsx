@@ -2,22 +2,27 @@
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
-import {ArrowUpRight,GripVertical,Move,Plus,Settings2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
-import {Aviso,AvisoPrivacidad,Button,IconAction,Input,Label,Select} from 'owncoding-ui';
+import {ArrowUpRight,GripVertical,Move,Phone,Plus,Settings2,Trash2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
+import {Aviso,AvisoPrivacidad,Button,Input,Label,SearchField,Select} from 'owncoding-ui';
 import {api,Dialog,Editor,type Field} from '../operations';
-import {roleCan} from '../capabilities';
+import {ARCHIVE_KIND_CAPABILITIES,BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
+import {notify} from '../feedback';
+import {clientWhatsappUrl} from '../client-links';
+import {WhatsAppIcon} from '../whatsapp-button';
+import {listDateFull,listDateShort} from '../list-format';
+import {filterLeads,leadCurrencies,leadFiltersActive,NO_LEAD_FILTERS,type LeadFilters} from '../pipeline-filters';
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '../pipeline-summary';
 import {boardColumnWindow,type BoardColumnWindow} from '../pipeline-board-window';
-import {ActionMenu,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip,type RecordMenuItem} from '../ui-v2';
+import {ActionMenu,BulkBar,CompactCard,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,SectionLoading,StateChip,ViewSwitch,type CollectionView,type Column,type RecordMenuItem} from '../ui-v2';
 import {SelectCustom} from '../profile-controls';
 import {SaveActions} from '../save-actions';
 import {PHONE_HELP} from '../field-rules';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_LEAD_FINALITY,PRIVACY_LEAD_DETAIL} from '../privacy-links';
 import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
 import {EMPTY_WINDOW,LIST_WINDOW,appendPage,readPage,windowLabel,windowSlice,windowStateOf,type ListWindowState} from '../list-window';
-import {useDialogPending} from '../dialog';
+import {ConfirmDialog,useDialogPending} from '../dialog';
 import type {User} from '../workspace-types';
 
 const LiveVisitors=dynamic(()=>import('../live-visitors').then(m=>m.LiveVisitors),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
@@ -55,38 +60,88 @@ const stageKindChoices=[{value:'open',label:'Abierta (oportunidad en curso)'},{v
 const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(args);return within.length?within:rectIntersection(args);};
 
 type LeadActions={moveTo:(row:Row)=>void;convert:(row:Row)=>void};
-function LeadCard({row,edit,role,canMove,refresh,won=false,actions}:{row:Row;edit:()=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;won?:boolean;actions?:LeadActions}){
-  const drag=useDraggable({id:String(row.id),disabled:!canMove});
-  // Dato ausente = vacío explícito: no se inventa un monto 0 ni una probabilidad 0.
+// Dato ausente = vacío explícito: no se inventa un monto 0 ni una probabilidad 0.
+// Una sola lectura del dato para la tarjeta y la fila de la lista.
+function leadFacts(row:Row){
   const amount=str(row,'amount').trim(),probabilityRaw=str(row,'probability').trim();
   const probability=Number(probabilityRaw);
-  const hasProbability=probabilityRaw!==''&&Number.isFinite(probability);
+  const phone=str(row,'phone').trim();
+  // Oposición al contacto (#114): sin WhatsApp ni llamada si el titular la pidió.
+  const reachable=Boolean(phone)&&row.do_not_contact!==true;
+  const updatedAt=str(row,'updated_at');
+  return{
+    name:str(row,'name'),
+    amount:amount===''?null:amount,
+    currency:str(row,'currency')||'PYG',
+    probability,
+    hasProbability:probabilityRaw!==''&&Number.isFinite(probability),
+    noContact:row.do_not_contact===true,
+    linked:Boolean(row.client_id),
+    updated:listDateShort(updatedAt),
+    updatedFull:listDateFull(updatedAt),
+    whatsapp:reachable?clientWhatsappUrl(phone):'',
+    tel:reachable?`tel:${phone.replace(/[^\d+]/g,'')}`:'',
+  };
+}
+// Misma capacidad que la papelera del API (`ARCHIVE_KIND_CAPABILITIES`): fuente única con el NAV.
+const canRemoveLead=(role:string)=>roleCan(role,ARCHIVE_KIND_CAPABILITIES.leads);
+const probabilityTone=(probability:number)=>probability>=75?'ok':probability>=40?'warn':'mute';
+
+/** Menú ⋯ compartido por la tarjeta y la fila: mover/convertir/editar/papelera con las mismas capacidades. */
+function useLeadMenu({row,role,canMove,actions,edit,refresh}:{row:Row;role:string;canMove:boolean;actions?:LeadActions;edit:()=>void;refresh:()=>Promise<void>}){
+  const [removing,setRemoving]=useState(false);
+  const mayEdit=roleCan(role,'commercial.manage');
   // Mover y convertir comparten la capacidad del arrastre (`canMove`): el viewer
   // no ve ni el menu ni la accion rapida. Convertir solo si aun no es cliente.
   const convertible=canMove&&Boolean(actions)&&!row.client_id;
-  const menuItems:RecordMenuItem[]=[
+  const items:RecordMenuItem[]=[
     ...(canMove&&actions?[{id:'move',label:'Mover a etapa…',onClick:()=>actions.moveTo(row)}]:[]),
     ...(convertible?[{id:'convert',label:'Convertir a cliente',onClick:()=>actions!.convert(row)}]:[]),
+    ...(mayEdit?[{id:'edit',label:'Editar oportunidad',onClick:edit}]:[]),
+    ...(canRemoveLead(role)?[{id:'delete',label:'Mover a la papelera',peligro:true,onClick:()=>setRemoving(true)}]:[]),
   ];
-  return <article ref={drag.setNodeRef} style={{opacity:drag.isDragging?.4:1}} className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
-    <header className="flex items-start justify-between gap-2">
-      <b className="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title={str(row,'name')}>{str(row,'name')}</b>
-      <span className="flex shrink-0 items-center gap-1">
-      {menuItems.length?<ActionMenu label={`Acciones de la oportunidad: ${str(row,'name')}`} items={menuItems}/>:null}
-      {canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
-      </span>
-    </header>
-    <MoneyText valor={amount===''?null:amount} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
-    <div className="flex flex-wrap items-center gap-2 text-[11px]">
-      {row.do_not_contact===true?<StateChip tone="warn" title="El titular pidió no ser contactado: el equipo conserva el registro y no inicia contacto.">No contactar</StateChip>:null}
-      {hasProbability?<StateChip tone={probability>=75?'ok':probability>=40?'warn':'mute'} title={`Probabilidad ${probability}%`}>{probability}%</StateChip>:<span className="text-mute">Sin probabilidad cargada</span>}
-    </div>
-    <footer className="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2">
-      {won&&convertible?<CompactQuickAction label={`Convertir a cliente: ${str(row,'name')}`} icon={<UserCheck size={16} aria-hidden="true"/>} onClick={()=>actions!.convert(row)}/>:null}
-      <IconAction icon="eye" label={`Ver oportunidad: ${str(row,'name')}`} onClick={edit}/>
-      <RemoveRecord kind="leads" id={String(row.id)} name={str(row,'name')} role={role} done={refresh}/>
-    </footer>
-  </article>;
+  const removal=<RemoveRecord hideTrigger kind="leads" id={String(row.id)} name={str(row,'name')} role={role} done={refresh} open={removing} onClose={()=>setRemoving(false)}/>;
+  return{items,removal,convertible,mayEdit};
+}
+
+/** Acciones rápidas de contacto y conversión (tarjeta y lista): solo con dato real y capacidad. */
+function LeadQuickActions({row,contact,convert}:{row:Row;contact:boolean;convert?:()=>void}){
+  const facts=leadFacts(row);
+  return <>
+    {contact&&facts.whatsapp?<CompactQuickAction label={`WhatsApp: ${facts.name}`} icon={<WhatsAppIcon size={16}/>} onClick={()=>{window.open(facts.whatsapp,'_blank','noopener,noreferrer');}}/>:null}
+    {contact&&facts.tel?<CompactQuickAction label={`Llamar: ${facts.name}`} icon={<Phone size={16} aria-hidden="true"/>} onClick={()=>{window.location.href=facts.tel;}}/>:null}
+    {convert?<CompactQuickAction label={`Convertir a cliente: ${facts.name}`} icon={<UserCheck size={16} aria-hidden="true"/>} onClick={convert}/>:null}
+  </>;
+}
+
+function LeadCard({row,edit,role,canMove,refresh,won=false,actions}:{row:Row;edit:()=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;won?:boolean;actions?:LeadActions}){
+  const drag=useDraggable({id:String(row.id),disabled:!canMove});
+  const facts=leadFacts(row);
+  const menu=useLeadMenu({row,role,canMove,actions,edit,refresh});
+  const convert=won&&menu.convertible?()=>actions!.convert(row):undefined;
+  const hasQuick=menu.mayEdit&&Boolean(facts.whatsapp||facts.tel||convert);
+  return <div ref={drag.setNodeRef} style={{opacity:drag.isDragging?.4:1}}>
+    <CompactCard
+      title={facts.name}
+      onOpen={menu.mayEdit?edit:undefined}
+      openLabel={`Ver oportunidad: ${facts.name}`}
+      menuLabel={`Acciones de la oportunidad: ${facts.name}`}
+      actions={menu.items}
+      quickAction={canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:undefined}
+      context={<>
+        <MoneyText valor={facts.amount} currency={facts.currency} className="text-sm text-fore"/>
+        {facts.updated?<span className="whitespace-nowrap tabular-nums" title={`Última actualización ${facts.updatedFull||facts.updated}`}>· Actualizado {facts.updated}</span>:null}
+      </>}
+      chips={<>
+        {facts.noContact?<StateChip tone="warn" title="El titular pidió no ser contactado: el equipo conserva el registro y no inicia contacto.">No contactar</StateChip>:null}
+        {facts.hasProbability?<StateChip tone={probabilityTone(facts.probability)} title={`Probabilidad ${facts.probability}%`}>{facts.probability}%</StateChip>:<span className="text-[11px] text-mute">Sin probabilidad cargada</span>}
+        {facts.linked?<StateChip tone="info" title="Ya está vinculada a un cliente">Cliente vinculado</StateChip>:null}
+      </>}
+    >
+      {hasQuick?<div className="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2"><LeadQuickActions row={row} contact={menu.mayEdit} convert={convert}/></div>:null}
+      {menu.removal}
+    </CompactCard>
+  </div>;
 }
 
 function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals,actions,create}:{stage:{value:string;label:string;kind?:Stage['kind']};rows:Row[];edit:(row:Row)=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;readOnly?:boolean;totals?:{weighted:Record<string,number>;open:Record<string,number>};actions?:LeadActions;create?:(stage:string)=>void}){
@@ -119,6 +174,37 @@ function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals,
   </section>;
 }
 
+// Lista (#182): MISMA información que la tarjeta, en filas finas. Encabezado y
+// filas comparten una sola plantilla; sin acciones no hay columna de acciones
+// ni de selección (viewer). El monto va a la derecha, las fechas por list-format.
+const LEAD_LIST_EDIT_TEMPLATE='grid-cols-[2.75rem_minmax(11rem,1.6fr)_7rem_8rem_4.5rem_6.5rem_5.5rem_11rem]';
+const LEAD_LIST_VIEW_TEMPLATE='grid-cols-[minmax(11rem,1.6fr)_7rem_8rem_4.5rem_6.5rem_5.5rem]';
+const LEAD_LIST_COLUMNS:Column[]=[{key:'name',label:'Oportunidad'},{key:'stage',label:'Etapa'},{key:'amount',label:'Valor',align:'end'},{key:'probability',label:'Prob.'},{key:'client',label:'Cliente'},{key:'updated',label:'Actualizado'}];
+const leadListColumns=(editable:boolean):Column[]=>editable?[{key:'select',label:''},...LEAD_LIST_COLUMNS,{key:'actions',label:'Acciones'}]:LEAD_LIST_COLUMNS;
+
+function LeadListRow({row,stageLabel,editable,selected,onSelect,edit,role,canMove,refresh,won=false,actions}:{row:Row;stageLabel:string;editable:boolean;selected:boolean;onSelect:()=>void;edit:()=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;won?:boolean;actions?:LeadActions}){
+  const facts=leadFacts(row);
+  const menu=useLeadMenu({row,role,canMove,actions,edit,refresh});
+  const convert=won&&menu.convertible?()=>actions!.convert(row):undefined;
+  return <ListRow template={editable?LEAD_LIST_EDIT_TEMPLATE:LEAD_LIST_VIEW_TEMPLATE} data-lead-row={String(row.id)}>
+    {editable?<span role="cell" className="flex justify-center"><label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar oportunidad"><input type="checkbox" aria-label={`Seleccionar ${facts.name}`} checked={selected} onChange={onSelect}/></label></span>:null}
+    <span role="cell" className="flex min-w-0 items-center gap-2">
+      {menu.mayEdit?<button type="button" className="min-h-11 min-w-0 truncate text-left text-[13.5px] font-semibold text-fore outline-none transition-colors hover:text-fono-light focus-visible:ring-2 focus-visible:ring-fono md:min-h-0" title={facts.name} aria-label={`Ver oportunidad: ${facts.name}`} onClick={edit}>{facts.name}</button>:<span className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={facts.name}>{facts.name}</span>}
+      {facts.noContact?<StateChip tone="warn" title="El titular pidió no ser contactado: el equipo conserva el registro y no inicia contacto.">No contactar</StateChip>:null}
+    </span>
+    <span role="cell" className="min-w-0"><StateChip tone="info" title={stageLabel}>{stageLabel}</StateChip></span>
+    <span role="cell" className="text-right"><MoneyText valor={facts.amount} currency={facts.currency} className="text-[13.5px] text-fore"/></span>
+    <span role="cell" className="min-w-0">{facts.hasProbability?<StateChip tone={probabilityTone(facts.probability)} title={`Probabilidad ${facts.probability}%`}>{facts.probability}%</StateChip>:<span className="text-[11px] text-mute" title="Sin probabilidad cargada">—</span>}</span>
+    <span role="cell" className="min-w-0 text-[12px] text-mute">{facts.linked?<StateChip tone="info" title="Ya está vinculada a un cliente">Vinculado</StateChip>:'—'}</span>
+    <span role="cell" className="list-date whitespace-nowrap text-[11px] tabular-nums text-mute" title={facts.updatedFull?`Última actualización ${facts.updatedFull}`:'Sin fecha de actualización'}>{facts.updated||'—'}</span>
+    {editable?<ListActions className="silent-scroll">
+      <LeadQuickActions row={row} contact={menu.mayEdit} convert={convert}/>
+      {menu.items.length?<ActionMenu label={`Acciones de la oportunidad: ${facts.name}`} items={menu.items}/>:null}
+      {menu.removal}
+    </ListActions>:null}
+  </ListRow>;
+}
+
 export function PipelineSection({user, metricsState='ready', onRetryMetrics, navigate}: PipelineSectionProps){
   const [rows,setRows]=useState<Row[]>([]);
   const [stages,setStages]=useState<Stage[]>(fallbackStages);
@@ -143,6 +229,17 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   // horizontal, pero dice cuántas etapas quedan fuera y da acceso con flechas.
   const boardRef=useRef<HTMLDivElement|null>(null);
   const [boardWindow,setBoardWindow]=useState<BoardColumnWindow>({from:0,to:0,total:0,hiddenBefore:0,hiddenAfter:0,hiddenTotal:0});
+  // Filtros y vista (#182): los filtros valen para el tablero y la lista; la
+  // vista se recuerda por navegador como la de Clientes (`scale:client-view`).
+  const [filters,setFilters]=useState<LeadFilters>(NO_LEAD_FILTERS);
+  const [view,setView]=useState<CollectionView>('grid');
+  useEffect(()=>{try{setView(localStorage.getItem('scale:pipeline-view')==='list'?'list':'grid');}catch{/* Preferencia opcional de interfaz. */}},[]);
+  // Lote (#182): selección solo en la lista, mismo patrón que Presupuestos.
+  const [selected,setSelected]=useState<string[]>([]);
+  const [bulkBusy,setBulkBusy]=useState(false);
+  const [bulkMove,setBulkMove]=useState(false);
+  const [bulkDelete,setBulkDelete]=useState(false);
+  const [bulkError,setBulkError]=useState('');
   const stagesLoaded=useRef(false);
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
   const role=user?.role||'viewer';
@@ -210,7 +307,9 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     node.scrollBy({left:direction*step,behavior:'smooth'});
   };
 
-  const overview=pipelineSummary(rows);
+  const filtered=filterLeads(rows,filters);
+  const filtering=leadFiltersActive(filters);
+  const overview=pipelineSummary(filtered);
   // Monedas abiertas ordenadas: la base va en el valor del KPI y el resto en la
   // línea de explicación (una sola lectura del dato, #93).
   const openAmounts=Object.entries(overview.amounts).sort((a,b)=>b[1]-a[1]);
@@ -229,7 +328,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     },
   };
   const looseSlugs=[...new Set(rows.map(row=>str(row,'stage')).filter(value=>Boolean(value)&&!activeStages.some(stage=>stage.value===value)))];
-  const totals=stageTotals(rows,activeStages.map(stage=>({slug:stage.value,label:stage.label,position:stage.position,active:stage.active,kind:stage.kind})));
+  const totals=stageTotals(filtered,activeStages.map(stage=>({slug:stage.value,label:stage.label,position:stage.position,active:stage.active,kind:stage.kind})));
   const totalsByStage=new Map(totals.map(entry=>[entry.stage,{weighted:entry.weighted,open:entry.open}]));
   const row=edit&&edit!=='new'?edit:null;
   const currentStage=row?str(row,'stage'):'';
@@ -291,19 +390,106 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   const leadActions:LeadActions={moveTo:setMoveTarget,convert:setConvertOffer};
   const openCreate=(stage:string)=>{setNewStage(stage);setEdit('new');};
 
+  // Filtros, vista y lote (#182). La etapa elegida deja solo su columna en el
+  // tablero; la lista sigue el orden de las etapas. La selección nunca conserva
+  // una oportunidad que ya no se ve (borrada o fuera del filtro).
+  const changeView=(next:CollectionView)=>{setView(next);setSelected([]);try{localStorage.setItem('scale:pipeline-view',next);}catch{/* Preferencia opcional de interfaz. */}};
+  const setFilter=(patch:Partial<LeadFilters>)=>setFilters(current=>({...current,...patch}));
+  const stageFilterChoices=[...activeStages.map(stage=>({value:stage.value,label:stage.label})),...looseSlugs.map(value=>({value,label:`${stageLabel(value)} · desactivada`}))];
+  const currencies=leadCurrencies(rows);
+  const stageOrder=(value:string)=>{const index=activeStages.findIndex(stage=>stage.value===value);return index<0?activeStages.length:index;};
+  const listRows=[...filtered].sort((a,b)=>stageOrder(str(a,'stage'))-stageOrder(str(b,'stage')));
+  const stageKind=(value:string)=>activeStages.find(stage=>stage.value===value)?.kind;
+  const visibleIds=listRows.map(item=>String(item.id));
+  const visibleKey=visibleIds.join(',');
+  useEffect(()=>{setSelected(current=>{const live=new Set(visibleKey?visibleKey.split(','):[]);const next=current.filter(id=>live.has(id));return next.length===current.length?current:next;});},[visibleKey]);
+  const canBulkDelete=canEdit&&canRemoveLead(role);
+  const toggleSelected=(id:string)=>{
+    if(selected.includes(id)){setSelected(selected.filter(value=>value!==id));return;}
+    if(selected.length>=BATCH_LIMITS.leads){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.leads} oportunidades. Quitá alguna para sumar otra.`});return;}
+    setSelected([...selected,id]);
+  };
+  const selectVisible=()=>{
+    const {selection,capped}=limitSelection(visibleIds,BATCH_LIMITS.leads);
+    setSelected(selection);
+    if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.leads} oportunidades: se seleccionaron las primeras ${BATCH_LIMITS.leads}.`});
+  };
+  const selectedNames=selected.map(id=>rows.find(item=>String(item.id)===id)).filter((item):item is Row=>Boolean(item)).map(item=>str(item,'name'));
+  // No hay endpoint de lote para oportunidades: una llamada por oportunidad,
+  // con el mismo PATCH/DELETE que la acción individual. Lo que falla vuelve a
+  // su etapa y queda seleccionado para reintentar.
+  async function moveMany(value:string){
+    const stage=activeStages.find(candidate=>candidate.value===value);
+    if(!canEdit||bulkBusy||!stage||!selected.length)return;
+    const ids=[...selected];
+    const previous=rows;
+    const probability=stage.kind==='won'?100:stage.kind==='lost'?0:null;
+    setRows(current=>current.map(item=>ids.includes(String(item.id))?{...item,stage:value,...(probability===null?{}:{probability})}:item));
+    setBulkBusy(true);setBulkError('');setBulkMove(false);
+    const results=await Promise.allSettled(ids.map(id=>api(`/api/agency/leads/${id}`,probability===null?{stage:value}:{stage:value,probability},'PATCH')));
+    const failed=ids.filter((_,index)=>results[index].status==='rejected');
+    if(failed.length)setRows(current=>current.map(item=>failed.includes(String(item.id))?previous.find(candidate=>String(candidate.id)===String(item.id))||item:item));
+    setSelected(failed);
+    const moved=ids.length-failed.length;
+    notify(!failed.length?{tone:'success',message:`${moved} oportunidad${moved===1?'':'es'} ${moved===1?'movida':'movidas'} a ${stage.label}.`}:moved?{tone:'warning',message:`${moved} de ${ids.length} oportunidades movidas a ${stage.label}. Reintentá con las ${failed.length} restantes.`}:{tone:'error',message:'No se pudo mover ninguna de las oportunidades seleccionadas.'});
+    await load();
+    setBulkBusy(false);
+  }
+  async function deleteMany(){
+    if(!canBulkDelete||bulkBusy||!selected.length)return;
+    const ids=[...selected];
+    setBulkBusy(true);setBulkError('');
+    const results=await Promise.allSettled(ids.map(id=>api(`/api/agency/leads/${id}`,{},'DELETE')));
+    const failed=ids.filter((_,index)=>results[index].status==='rejected');
+    const done=ids.filter(id=>!failed.includes(id));
+    if(done.length)setRows(current=>current.filter(item=>!done.includes(String(item.id))));
+    setSelected(failed);
+    if(failed.length){
+      const first=results.find(result=>result.status==='rejected') as PromiseRejectedResult|undefined;
+      setBulkError(`${done.length} de ${ids.length} oportunidades a la papelera. ${err(first?.reason)}`);
+    }else{
+      setBulkDelete(false);
+      notify({tone:'success',message:`${done.length} oportunidad${done.length===1?'':'es'} movida${done.length===1?'':'s'} a la papelera.`});
+    }
+    await load();
+    setBulkBusy(false);
+  }
+
   return (
-    <section className="grid gap-4" aria-label="Pipeline">
-      {/* Toolbar en una fila (#93): la ayuda del tablero es secundaria (recorta
-          con title) y las acciones viven arriba, no entre los totales y el tablero. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        {/* El texto va en una línea con recorte (min-content = palabra más larga, no
-            la frase entera): la fila no empuja el ancho de la sección en mobile. */}
-        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[11px] text-mute" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Move size={13} aria-hidden="true" className="shrink-0"/><span className="truncate">Mover: arrastrá una tarjeta a otra etapa</span></span>
-        {canEdit?<div className="flex flex-wrap items-center gap-2 max-md:ml-auto">
+    <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4" aria-label="Pipeline">
+      <PageHeader
+        title="Pipeline"
+        actions={canEdit?<>
           <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
           <Button type="button" className="max-md:min-h-11" onClick={()=>openCreate('')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
+        </>:undefined}
+      />
+      {/* Filtros (#182): buscador + etapa + moneda, válidos para el tablero y la
+          lista. No hay «responsable» en las oportunidades del API: no se ofrece. */}
+      <FilterToolbar summary={state==='ready'||rows.length?(filtering?`${filtered.length} de ${rows.length} oportunidades · indicadores y totales del filtro`:`${rows.length} oportunidad${rows.length===1?'':'es'}`):undefined}>
+        <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" type="search" ariaLabel="Buscar oportunidades" value={filters.query} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setFilter({query:event.target.value})} placeholder="Buscar por nombre, contacto o notas…"/>
+        <div className="min-w-0">
+          <Label htmlFor="pipeline-etapa" className="sr-only">Etapa</Label>
+          <Select id="pipeline-etapa" aria-label="Etapa" value={filters.stage} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setFilter({stage:event.target.value})} className="min-w-[10rem]">
+            <option value="">Todas las etapas</option>
+            {stageFilterChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
+          </Select>
+        </div>
+        {currencies.length>1||filters.currency?<div className="min-w-0">
+          <Label htmlFor="pipeline-moneda" className="sr-only">Moneda</Label>
+          <Select id="pipeline-moneda" aria-label="Moneda" value={filters.currency} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setFilter({currency:event.target.value})} className="min-w-[8rem]">
+            <option value="">Todas las monedas</option>
+            {[...new Set([...currencies,...(filters.currency?[filters.currency]:[])])].map(currency=><option key={currency} value={currency}>{currency}</option>)}
+          </Select>
         </div>:null}
-      </div>
+        <div role="group" aria-label="Vista del pipeline"><ViewSwitch value={view} onChange={changeView}/></div>
+        {filtering?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</button>:null}
+        {view==='list'&&canEdit&&listRows.length?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>:null}
+      </FilterToolbar>
+      {view==='list'&&canEdit&&selected.length?<BulkBar count={selected.length} busy={bulkBusy} onClear={()=>setSelected([])}>
+        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkMove(true)}><Move size={14} aria-hidden="true"/>Mover a etapa</button>
+        {canBulkDelete?<button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setBulkDelete(true);}}><Trash2 size={14} aria-hidden="true"/>Eliminar</button>:null}
+      </BulkBar>:null}
       {/* KPIs compactos (#145, coordinación #138): en móvil los tres conteos
           van en una fila y el valor abierto ocupa el ancho completo para que
           el monto nunca se corte. Se reemplaza por el patrón de #138 cuando
@@ -340,7 +526,11 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         </div>
       </div>:null}
 
-      {rows.length||(state==='ready'&&activeStages.length)?<div className="grid gap-2">
+      {rows.length||(state==='ready'&&activeStages.length)?(view==='list'?<div className="grid min-w-0 gap-2">
+        {listRows.length?<ListGrid label="Oportunidades" template={canEdit?LEAD_LIST_EDIT_TEMPLATE:LEAD_LIST_VIEW_TEMPLATE} columns={leadListColumns(canEdit)} minWidthClass={canEdit?'min-w-[64rem]':'min-w-[44rem]'} pinnedActions={canEdit}>
+          {listRows.map(item=><LeadListRow key={item.id} row={item} stageLabel={stageLabel(str(item,'stage'))} editable={canEdit} selected={selected.includes(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} edit={()=>setEdit(item)} role={role} canMove={canMove&&stageKind(str(item,'stage'))!==undefined} refresh={load} won={stageKind(str(item,'stage'))==='won'} actions={stageKind(str(item,'stage'))===undefined?undefined:leadActions}/>)}
+        </ListGrid>:<EmptyBlock compact icon="target" title={filtering?'Ninguna oportunidad coincide con el filtro.':'Sin oportunidades.'} description={filtering?'Probá con otra búsqueda, etapa o moneda.':undefined} action={filtering?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</button>:undefined}/>}
+      </div>:<div className="grid min-w-0 gap-2">
         {/* Indicador fuerte de columnas ocultas (#140): conteo + posición y
             flechas para recorrer el tablero sin adivinar que hay más etapas. */}
         {boardWindow.hiddenTotal>0?<div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-mute" role="status" aria-live="polite">
@@ -351,13 +541,14 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
             <button type="button" className="icon-button" disabled={boardWindow.hiddenAfter===0} title="Ver etapa siguiente" aria-label="Ver etapa siguiente" onClick={()=>scrollBoard(1)}><ChevronRight size={16} aria-hidden="true"/></button>
           </div>
         </div>:null}
+        {canMove?<span className="flex min-w-0 items-center gap-1.5 text-[11px] text-mute" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Move size={13} aria-hidden="true" className="shrink-0"/><span className="truncate">Mover: arrastrá una tarjeta a otra etapa</span></span>:null}
         <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>
           <div ref={boardRef} className="flex gap-3 overflow-x-auto pb-2">
-            {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label,kind:stage.kind}} actions={leadActions} create={openCreate} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(stage.value)}/>)}
-            {looseSlugs.map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} actions={leadActions} rows={rows.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(value)} readOnly/>)}
+            {activeStages.filter(stage=>!filters.stage||stage.value===filters.stage).map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label,kind:stage.kind}} actions={leadActions} create={openCreate} rows={filtered.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(stage.value)}/>)}
+            {looseSlugs.filter(value=>!filters.stage||value===filters.stage).map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} actions={leadActions} rows={filtered.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(value)} readOnly/>)}
           </div>
         </DndContext>
-      </div>:null}
+      </div>):null}
 
       {/* Captación: el tablero completo vive en Métricas; acá un chip con enlace
           (no se embebe la pantalla, #100) y el aviso honesto si falló. */}
@@ -382,6 +573,16 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         </div>
         {row&&!row.client_id?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={()=>void convertLead(row)}>Ganado: convertir a cliente</Button></div>:null}
       </Dialog>:null}
+
+      {bulkMove&&canEdit?<Dialog title={`Mover ${selected.length} oportunidad${selected.length===1?'':'es'} a etapa`} busy={bulkBusy} close={()=>{if(!bulkBusy)setBulkMove(false);}}>
+        <MoveStageForm current="" choices={activeStages.map(stage=>({value:stage.value,label:stage.label}))} busy={bulkBusy} onMove={value=>{void moveMany(value);}}/>
+      </Dialog>:null}
+
+      {bulkDelete&&canBulkDelete?<ConfirmDialog title="Mover a la papelera" variant="danger" confirmLabel="Confirmar: mover a papelera" busy={bulkBusy} error={bulkError||undefined} onCancel={()=>{if(!bulkBusy){setBulkDelete(false);setBulkError('');}}} onConfirm={()=>void deleteMany()}>
+        <p><strong>{selected.length===1?selectedNames[0]:`${selected.length} oportunidades`}</strong></p>
+        {selected.length>1?<p>{selectedNames.slice(0,3).join(' · ')}{selected.length>3?` y ${selected.length-3} más`:''}</p>:null}
+        <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés restaurarlas después.</p>
+      </ConfirmDialog>:null}
 
       {moveTarget&&canEdit?<Dialog title={`Mover a etapa: ${str(moveTarget,'name')}`} busy={busy} close={()=>{if(!busy)setMoveTarget(null);}}>
         <MoveStageForm current={str(moveTarget,'stage')} choices={activeStages.map(stage=>({value:stage.value,label:stage.label}))} busy={busy} onMove={value=>{const id=String(moveTarget.id);setMoveTarget(null);void moveLead(id,value);}}/>

@@ -86,7 +86,7 @@ async function run(){
  assert.equal(requests.length,before,'read-only stage columns reject drops');
  act(()=>renderer.root.findAllByType('button').find(node=>text(node).includes('Etapas'))!.props.onClick());
  const createForm=renderer.root.findAll(node=>node.findAllByType('button').some(button=>text(button).includes('Crear etapa')))[0];
- act(()=>createForm.findAllByType('input')[0].props.onChange({target:{value:'Visita técnica'}}));
+ act(()=>createForm.findByProps({id:'stage-name'}).props.onChange({target:{value:'Visita técnica'}}));
  act(()=>{createForm.findAllByType('form')[0].props.onSubmit({preventDefault(){}});});
  assert.equal(requests[0].url,'/core-api/api/agency/pipeline-stages');assert.equal(requests[0].init.method,'POST');
  assert.deepEqual(JSON.parse(String(requests[0].init.body)),{label:'Visita técnica',kind:'open'});
