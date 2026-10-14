@@ -42,7 +42,7 @@ assert.match(pre,/title=\{data\.definition\.planned_expenses\}/,'la definición 
 assert.doesNotMatch(pre,/md:hidden/,'las listas de la previsión ya no duplican ramas por breakpoint');
 
 // ── Informes: exportaciones en el header, ayudas en acordeón y tabla ajustada.
-assert.match(informes,/<PageHeader[\s\S]{0,2200}downloadReportsCsv\(data!,selectedCurrency\)[\s\S]{0,1200}printReportsPdf\(/,'las exportaciones viven en el header');
+assert.match(informes,/<ListPage [\s\S]{0,2200}primaryAction=\{<>[\s\S]{0,2200}downloadReportsCsv\(data!,selectedCurrency\)[\s\S]{0,1200}printReportsPdf\(/,'las exportaciones viven en el header');
 assert.equal((informes.match(/<details/g)||[]).length,1,'las ayudas largas se agrupan en un acordeón');
 assert.match(informes,/Cómo leer el informe/,'el acordeón se rotula');
 assert.match(informes,/title=\{`Datos al \$\{listDateFull\(data\.asOf\)/,'la cobertura completa queda en el tooltip del corte');

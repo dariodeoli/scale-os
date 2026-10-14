@@ -122,8 +122,9 @@ test('finance panels use column headers and the shared money formatter',()=>{
   assert.doesNotMatch(operations,/finance-row-head|ReferralDiscounts/,'los pagos y descuentos a colaboradores viven en Finanzas, no en Equipo');
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const EXPENSE_COLS='grid-cols-\[minmax\(0,1fr\)_8\.5rem_5rem\]'/,'real expenses declare one shared template');
-  assert.match(forecast,/LIST_HEAD,EXPENSE_COLS\)[^>]*><span role="columnheader">Gasto<\/span><span role="columnheader" className="text-right">Monto<\/span>/,'real expenses show their header');
-  assert.match(forecast,/cn\(LIST_ROW,EXPENSE_COLS\)/,'real expense rows share the header template');
+  assert.match(forecast,/const EXPENSE_COLUMNS:Column\[\]=\[\{key:'expense',label:'Gasto'\},\{key:'amount',label:'Monto',align:'end'\}/,'real expenses show their header');
+  assert.match(forecast,/<ListGrid label="Gastos reales del mes" template=\{EXPENSE_COLS\} columns=\{EXPENSE_COLUMNS\}/,'real expenses render through ListGrid');
+  assert.match(forecast,/<ListRow template=\{EXPENSE_COLS\}/,'real expense rows share the header template');
 });
 
 test('the team list can suspend and reactivate access in bulk',()=>{
@@ -148,7 +149,7 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   assert.doesNotMatch(forecast,/forecast-person-override is-empty/,'el ajuste faltante ya no reserva columna: viaja inline en el cierre (#101)');
   assert.match(forecast,/Ajuste del mes: \$\{formatSignedMoney\(member.override_amount/,'el ajuste del mes se muestra inline con su tooltip');
   assert.match(forecast,/const PERSON_COLS='grid-cols-\[minmax\(8\.5rem,1fr\)_6\.5rem_minmax\(9rem,1\.2fr\)_6\.5rem\]'/,'the payroll list declares one shared compact template con lugar para el ajuste inline');
-  assert.match(forecast,/cn\(LIST_ROW,PERSON_COLS,'forecast-person-row'\)/,'payroll rows share the header template');
+  assert.match(forecast,/<ListRow template=\{PERSON_COLS\} className="forecast-person-row"/,'payroll rows share the header template');
 });
 
 test('lists are thin rows and grids are big distributed cards',()=>{
@@ -176,8 +177,8 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(11rem,1fr\)_7rem_7rem_6rem\]'/,'contracted clients declare one shared compact template');
-  assert.match(forecast,/role="row" className=\{cn\(LIST_HEAD,CONTRACT_COLS\)\}[^>]*><span role="columnheader">Cliente<\/span><span role="columnheader" className="text-right">Contratado<\/span><span role="columnheader" className="text-right">Facturado<\/span>/,'contracted clients show their header');
-  assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-0\.5 transition-colors last:border-0 hover:bg-ink-700\/40 md:py-2'/,'list rows keep the thin row contract with the system hover');
+  assert.match(forecast,/const CONTRACT_COLUMNS:Column\[\]=\[\{key:'client',label:'Cliente'\},\{key:'contracted',label:'Contratado',align:'end'\},\{key:'invoiced',label:'Facturado',align:'end'\}/,'contracted clients show their header');
+  assert.match(forecast,/<ListRow template=\{CONTRACT_COLS\}/,'list rows keep the thin row contract with the system hover (ListRow de ui-v2)');
   // QA ola 2 (#70): targets táctiles y foco del modal de cuenta en la vertical FIN.
   const mora=sectionSource('mora.tsx'),finanzas=sectionSource('finanzas.tsx'),forms=read('app/workspace-forms.tsx');
   assert.match(mora,/\[&>button\]:min-h-11 md:\[&>button\]:min-h-8/,'el filtro de mora tiene target de 44 px en mobile');
