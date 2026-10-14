@@ -58,7 +58,7 @@ test('audit switches by measured container width, preserving full cards, filters
   } finally {if (renderer) act(() => renderer.unmount()); observer.restore();}
 });
 
-test('tabs and Overview shortcuts share scroll reset; same view and refresh preserve scroll', async () => {
+test('sidebar items and Overview shortcuts share scroll reset; same view and refresh preserve scroll', async () => {
   const observer = observeWidth(326);
   const previousSelf = Object.getOwnPropertyDescriptor(globalThis, 'self');
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -93,7 +93,7 @@ test('tabs and Overview shortcuts share scroll reset; same view and refresh pres
     assert.equal(scrolls, 2);
     act(() => renderer.root.findAllByType('button').find(node => text(node.children).startsWith('Ver auditoría'))!.props.onClick());
     assert.equal(scrolls, 3, 'Overview uses the same handler');
-    assert.equal(tabs()[5].props['aria-pressed'], true);
+    assert.equal(tabs()[5].props['aria-current'], 'page', 'el riel marca la sección activa');
   } finally {
     if (renderer) act(() => renderer.unmount());
     globalThis.fetch = previousFetch;

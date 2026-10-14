@@ -227,11 +227,12 @@ export function newExtendKey(){
 
 export type ConfirmRequest = { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null;
 
-/** Vistas del panel (#102): una consola con secciones, no un scroll largo. */
-export type PlatformView = "resumen" | "consultas" | "agencias" | "cupones" | "accesos" | "auditoria" | "uso";
+/** Id de una sección del panel (lista única en `sections.tsx`). */
+export type PlatformView = string;
 /** Aviso de acceso separado (antes, una fila propia del panel): vive en el tooltip del permiso. */
+/** Respuesta única del guard del API a quien no es admin global (backend/platform-admin.js). */
+export const PLATFORM_GATE_MESSAGE = "No encontrado.";
 export const PLATFORM_ACCESS_NOTE = "Acceso separado por plataforma: ser dueño de una agencia no habilita este panel ni sus datos.";
-export const PLATFORM_VIEWS: PlatformView[] = ["resumen", "consultas", "agencias", "cupones", "accesos", "auditoria", "uso"];
 
 /** Contrato de `GET /api/platform/inquiries`: consultas de la landing («¿Tenés alguna duda?»). */
 export type InquiryStatus = "new" | "contacted" | "closed";
@@ -258,8 +259,10 @@ export type InquiryPage = {inquiries: Inquiry[]; total: number; hasMore: boolean
 export type UsagePerson = { name: string; avatar_url: string | null; email: string };
 export type UsagePayload = {
   range: { from: string; to: string; days: number; previous_from: string; previous_to: string; timezone: string };
-  totals: { unique_users: number; recurring_users: number; sessions: number; previous_unique_users: number; active_now: number };
-  daily: { day: string; users: number; sessions: number; previous_day: string | null; previous_users: number }[];
+  totals: { unique_users: number; recurring_users: number; sessions: number; previous_unique_users: number; previous_sessions?: number; previous_recurring_users?: number; active_now: number };
+  daily: { day: string; users: number; sessions: number; recurring?: number; previous_day: string | null; previous_users: number; previous_sessions?: number }[];
+  /** La fuente tiene filas reales (si no, «Sin datos todavía» en vez de ceros). */
+  has_data?: { sessions: boolean; users: boolean };
   signups: { day: string; users: number; agencies: number }[];
   hourly: { hour: number; users: number }[];
   monthly: { month: string; signups: number; active_users: number }[];
@@ -297,3 +300,11 @@ export type CouponDraft = { code: string; discount_value: string; discount_type:
 export const PLATFORM_GOOGLE_STORAGE_KEY = "scale.platform.recent-auth-google";
 /** Palabra corta que confirma una eliminación global (la re-autenticación es el control real). */
 export const PLATFORM_DELETE_WORD = "ELIMINAR";
+
+/** Contrato de `GET /api/platform/metrics`: indicadores del Resumen, sin demos. */
+export type PlatformMetric = { value: number; previous: number; series: number[]; has_data: boolean };
+export type PlatformMetricsPayload = {
+  range: UsagePayload["range"];
+  days: string[];
+  kpis: Record<"agencies" | "users" | "active_users" | "sessions" | "inquiries" | "redemptions", PlatformMetric>;
+};
