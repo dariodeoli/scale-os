@@ -1,6 +1,10 @@
 'use client';
+import {useEffect} from 'react';
 import {WorkspaceFooter} from './workspace-footer';
-export default function ErrorBoundary({reset}:{error:Error&{digest?:string};reset:()=>void}){
+import {reportClientError} from './client-error-reporter';
+export default function ErrorBoundary({error,reset}:{error:Error&{digest?:string};reset:()=>void}){
+ // Panel global «Errores»: el boundary reporta el error (sin PII, con tope por página).
+ useEffect(()=>{reportClientError(error,'boundary');},[error]);
  return <main className="error-boundary">
   <section className="panel error-boundary-card" role="alert">
    <p className="eyebrow">ERROR INESPERADO</p>

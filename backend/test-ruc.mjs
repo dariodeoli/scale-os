@@ -7,7 +7,8 @@ assert.equal(normalizeRuc('80.168.807 - 8'),'80168807-8');assert.equal(normalize
 const providerRecord={name:'Empresa de prueba',ruc:'80168807',dv:'8',fullRuc:'80168807-8',state:'ACTIVO'};
 assert.equal(rucRecord(providerRecord,'80168807').tax_id,'80168807-8');assert.throws(()=>rucRecord(providerRecord,'1234567'));
 const pg=new PGlite();await pg.exec(await fs.readFile('schema.sql','utf8'));for(const file of ['20260910_ruc_lookup.sql','20260913_ruc_collaboration.sql'])await pg.exec(await fs.readFile('migrations/'+file,'utf8'));
-const query=(s,v)=>pg.query(s,v),db={connect:async()=>({query,release(){}})};
+await pg.exec('create table if not exists auth_throttles (key text primary key,count integer not null default 1,expires_at timestamptz not null)');
+const query=(s,v)=>pg.query(s,v),db={query,connect:async()=>({query,release(){}})};
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 await query("update scale_ruc_usage set used=0 where month=date_trunc('month',current_date)::date");
 let calls=0,result;const user={id:1,organization_id:org,role:'owner'};
@@ -34,5 +35,6 @@ let refresh=await call(`clients/${client.id}/ruc-refresh`,{});assert.equal(refre
 refresh=await call(`clients/${client.id}/ruc-refresh`,{apply:true});assert.equal(refresh.updated,true);assert.equal(refresh.client.legal_name,'Razón escrita por una persona');assert.equal(refresh.client.ruc_legal_name,'Empresa de prueba');assert.equal(calls,5,'explicit refresh bypasses cache');
 await assert.rejects(()=>assertUniqueClientRuc({query},org,'80.168.807-8'),error=>error.status===409);
 await assert.doesNotReject(()=>assertUniqueClientRuc({query},org,'80168807-8',client.id));
-assert.equal(await createRucProvider({baseUrl:'https://provider.example/ruc',fetcher:async()=>new Response('',{status:404})}).lookup('123'),null);
+assert.equal(await createRucProvider({baseUrl:'https://provider.example/ruc',allowedHosts:['provider.example'],fetcher:async()=>new Response('',{status:404})}).lookup('123'),null);
+await assert.rejects(()=>createRucProvider({baseUrl:'https://169.254.169.254/latest',fetcher:async()=>{throw Error('no debería llamarse');}}).lookup('123'),error=>error.status===503,'anti-SSRF: destino fuera de la lista cerrada');
 await pg.close();console.log('PASS: configured provider abstraction, normalization, cache/no-result safety, quota, and explicit non-destructive client refresh');

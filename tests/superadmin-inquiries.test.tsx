@@ -126,7 +126,7 @@ test('panel: Consultas item with the new-inquiries badge, compact header without
   try {
     await act(async () => { renderer = create(<AppRouterContext.Provider value={{replace() {}} as never}><PlatformAdmin/></AppRouterContext.Provider>, {createNodeMock: wide}); });
     const tabs = renderer.root.findByProps({'aria-label': 'Secciones del panel global'}).findAllByType('button');
-    assert.equal(tabs.length, 10);
+    assert.equal(tabs.length, 12);
     assert.equal(tabs[1].props['aria-label'], 'Consultas (4)', 'la pestaña cuenta las consultas nuevas');
     assert.ok(urls.includes('/core-api/api/platform/inquiries?limit=1'), 'el contador sale del mismo endpoint');
     const html = rendered(renderer);

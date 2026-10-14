@@ -7,6 +7,7 @@ import {clearDiscoveryCache, fetchDiscovery, jitProvision, newVerificationToken,
 // SSO Fase 2A (#159): dominios verificados por DNS TXT, proveedor OIDC por
 // organización, start con PKCE/nonce y callback mockeado con JIT provisioning.
 // Sin red ni IdP reales: fetch y resolver DNS se inyectan en cada caso.
+process.env.OUTBOUND_ALLOWED_HOSTS='idp.contoso.com';// IdP de prueba en la lista cerrada anti-SSRF (outbound-allowlist.js).
 const failDns=async()=>{throw Object.assign(new Error('queryTxt ENOTFOUND'),{code:'ENOTFOUND'});};
 
 // ── Dominios: normalización, públicos, IP y token de verificación ────────────
@@ -121,7 +122,14 @@ const discovery=await fetchDiscovery({issuer:'https://idp.contoso.com',discovery
 assert.equal(discovery.authorizationEndpoint,'https://idp.contoso.com/authorize');
 await fetchDiscovery({issuer:'https://idp.contoso.com',discovery_url:null},{fetchImpl:discoveryFetch});
 assert.equal(discoveryCalls,1,'el discovery se cachea por proceso');
-await assert.rejects(()=>fetchDiscovery({issuer:'https://idp.otro.com',discovery_url:null},{fetchImpl:discoveryFetch,force:true}),/no coincide/i);
+await assert.rejects(()=>fetchDiscovery({issuer:'https://idp.otro.com',discovery_url:null},{fetchImpl:discoveryFetch,force:true,allowedHosts:['idp.otro.com','idp.contoso.com']}),/no coincide/i);
+// Anti-SSRF (guía §6): un emisor fuera de la lista cerrada no se llama nunca, ni un endpoint descubierto interno.
+let ssrfCalls=0;
+await assert.rejects(()=>fetchDiscovery({issuer:'https://metadata.internal',discovery_url:null},{fetchImpl:async()=>{ssrfCalls++;return {ok:true,json:async()=>({})};},force:true}),error=>error.code==='OUTBOUND_BLOCKED');
+await assert.rejects(()=>fetchDiscovery({issuer:'https://idp.evil.example',discovery_url:null},{fetchImpl:async()=>{ssrfCalls++;return {ok:true,json:async()=>({})};},force:true}),error=>error.code==='OUTBOUND_BLOCKED');
+assert.equal(ssrfCalls,0,'el destino bloqueado no recibe el pedido');
+await assert.rejects(()=>fetchDiscovery({issuer:'https://idp.contoso.com',discovery_url:null},{fetchImpl:async()=>({ok:true,json:async()=>({...discoveryData,token_endpoint:'https://10.0.0.5/token'})}),force:true}),error=>error.code==='OUTBOUND_BLOCKED','endpoint descubierto hacia una IP interna');
+assert.throws(()=>providerInput({issuer:'https://idp.evil.example',client_id:'a',client_secret:'b'}),error=>error.code==='IDP_NO_PERMITIDO','el emisor se valida al guardar');
 
 // ── Start OIDC: PKCE + nonce + state en DB y redirect al authorize ───────────
 clearDiscoveryCache();

@@ -2,17 +2,14 @@
 // lado del cliente y asignación de plan de servicio. Funciones puras salvo la
 // descarga y las llamadas al API, que se inyectan para poder probarlas.
 import type {Client,ClientPaymentStatus} from './workspace-types';
+import {csvCell} from './csv-safety';
 
 export type ClientActivity={projects:number;pieces:number;nextDue:string|null};
 export type CsvOptions={canSeeContact:boolean;canSeeBilling:boolean;payments:ClientPaymentStatus[];activity:Map<string,ClientActivity>;stateLabel:(client:Client)=>string};
 
-// Evita la inyección de fórmulas al abrir el CSV en una planilla (=, +, -, @);
-// los números y el teléfono normalizado (+595 981 123456) pasan tal cual.
-const cell=(value:unknown)=>{
-  let text=String(value??'');
-  if(/^[=+\-@\t\r]/.test(text)&&!/^(-?\d+(\.\d+)?|\+\d+( \d+)*)$/.test(text))text=`'${text}`;
-  return /[",\n\r;]/.test(text)?`"${text.replace(/"/g,'""')}"`:text;
-};
+// Evita la inyección de fórmulas al abrir el CSV en una planilla (=, +, -, @):
+// helper compartido (app/csv-safety.ts); números y teléfono normalizado pasan tal cual.
+const cell=(value:unknown)=>csvCell(value);
 
 /** Columnas visibles según el rol: sin permiso de contacto no viajan correo, teléfono ni RUC; sin cobros, tampoco la mora. */
 export function clientCsvColumns({canSeeContact,canSeeBilling}:Pick<CsvOptions,'canSeeContact'|'canSeeBilling'>){

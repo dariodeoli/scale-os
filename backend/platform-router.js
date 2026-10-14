@@ -5,6 +5,8 @@ import {platformMetrics} from './platform-metrics.js';
 import {platformAnnouncements} from './platform-announcements.js';
 import {platformMaintenance} from './platform-maintenance.js';
 import {platformTraffic} from './platform-traffic.js';
+import {platformErrors} from './platform-errors.js';
+import {platformReports} from './platform-reports.js';
 
 // Única entrada de /api/platform/* (guía §1). server.js no despacha ninguna ruta
 // global por su cuenta: llama a `platformRouter`, que corre el guard (`actor`) ANTES
@@ -13,7 +15,7 @@ import {platformTraffic} from './platform-traffic.js';
 // Reportes…) se registra agregando su handler a esta lista; `test-platform-guard.mjs`
 // enumera las rutas de cada módulo registrado y verifica que ninguna se salte el guard.
 // El orden importa: `platformAdmin` responde 404 a lo que no reconoce, va al final.
-export const PLATFORM_HANDLERS=[platformUsage,platformInquiries,platformMetrics,platformAnnouncements,platformMaintenance,platformTraffic,platformAdmin];
+export const PLATFORM_HANDLERS=[platformUsage,platformInquiries,platformMetrics,platformAnnouncements,platformMaintenance,platformTraffic,platformErrors,platformReports,platformAdmin];
 
 export async function platformRouter(context){
  const {req,res,url,db,session,send}=context;

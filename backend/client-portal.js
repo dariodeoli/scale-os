@@ -3,6 +3,7 @@ import {roleCan} from './permissions.js';
 import {emailShell} from './email-brand.js';
 import bcrypt from 'bcryptjs';
 import {throttle,validatePassword} from './password-access.js';
+import {throttleClient,requireClientBudget} from './request-guard.js';
 import {externalLink} from './media-policy.js';
 import {owned} from './suite-validation.js';
 import {visibleRecord} from './record-lifecycle.js';
@@ -200,10 +201,10 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
     values($1,$2,true,$3,$4,$5,$6,$7,now()) on conflict(organization_id,work_order_id) do update set visible=true,title=excluded.title,summary=excluded.summary,asset_name=excluded.asset_name,asset_url=excluded.asset_url,version=client_portal_deliveries.version+1,published_by_user_id=excluded.published_by_user_id,published_at=now(),updated_at=now() returning *`,[employee.organization_id,order.id,title,summary,assetName,assetUrl,employee.id])).rows[0];
    await c.query('commit');transaction=false;send(res,200,{delivery});return true;
   }
-  if(invitePreview){if(req.method!=='GET')fail('Método no permitido',405);const invite=await validInvite(db,url.searchParams.get('token')||'');send(res,200,{organizationName:invite.organization_name,clientName:invite.client_name,expiresAt:invite.expires_at});return true;}
+  if(invitePreview){if(req.method!=='GET')fail('Método no permitido',405);await requireClientBudget(db,req,'client-portal-invite-preview',60);const invite=await validInvite(db,url.searchParams.get('token')||'');send(res,200,{organizationName:invite.organization_name,clientName:invite.client_name,expiresAt:invite.expires_at});return true;}
   sameOrigin(req);
   if(inviteAccept){
-   if(req.method!=='POST')fail('Método no permitido',405);const b=await body(req),raw=token(b.token);if(!await throttle(db,'client-portal-accept:'+hash(raw),5))fail('Demasiados intentos',429);
+   if(req.method!=='POST')fail('Método no permitido',405);const b=await body(req),raw=token(b.token);if(!await throttleClient(db,req,'client-portal-accept',20)||!await throttle(db,'client-portal-accept:'+hash(raw),5))fail('Demasiados intentos',429);
    if(typeof b.password!=='string'||b.password.length<8||b.password.length>128)fail('Usá una contraseña de 8 a 128 caracteres');
    c=await db.connect();await c.query('begin');transaction=true;const invite=await validInvite(c,raw,{lock:true});
    let user=(await c.query('select * from client_portal_users where email_normalized=$1 for update',[invite.email_normalized])).rows[0];
@@ -218,7 +219,7 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
    await c.query('commit');transaction=false;send(res,201,{ok:true},{'Set-Cookie':portalCookie(rawSession,604800)});return true;
   }
   if(login){
-   if(req.method!=='POST')fail('Método no permitido',405);const b=await body(req),address=email(b.email);if(!await throttle(db,'client-portal-login:'+address,10))fail('Demasiados intentos. Esperá 15 minutos.',429);
+   if(req.method!=='POST')fail('Método no permitido',405);const b=await body(req),address=email(b.email);if(!await throttleClient(db,req,'client-portal-login',60)||!await throttle(db,'client-portal-login:'+address,10))fail('Demasiados intentos. Esperá 15 minutos.',429);
    const user=(await db.query('select u.* from client_portal_users u where u.email_normalized=$1 and u.disabled_at is null and exists(select 1 from client_portal_grants g join organizations o on o.id=g.organization_id join agency_clients c on c.id=g.client_id and c.organization_id=g.organization_id where g.portal_user_id=u.id and g.active and o.active and c.active)',[address])).rows[0];
    if(!user||!user.password_hash||typeof b.password!=='string'||!await bcrypt.compare(b.password,user.password_hash))fail('Credenciales inválidas',401);const raw=crypto.randomBytes(32).toString('hex');await db.query("insert into client_portal_sessions(token_hash,portal_user_id,expires_at) values($1,$2,now()+interval '7 days')",[hash(raw),user.id]);send(res,200,{ok:true},{'Set-Cookie':portalCookie(raw,604800)});return true;
   }
@@ -226,7 +227,7 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
    if(req.method!=='POST')fail('Método no permitido',405);
    if(!emailAvailable||typeof sendPasswordReset!=='function')fail('La recuperación por correo todavía no está disponible. Usá Google o contactá a quien te invitó.',503);
    const b=await body(req),address=email(b.email);
-   if(await throttle(db,'client-portal-reset:'+address,3)){
+   if(await throttleClient(db,req,'client-portal-reset',10)&&await throttle(db,'client-portal-reset:'+address,3)){
     const portalUser=(await db.query(`select u.id from client_portal_users u where u.email_normalized=$1 and u.disabled_at is null and exists(select 1 from client_portal_grants g join organizations o on o.id=g.organization_id join agency_clients c on c.id=g.client_id and c.organization_id=g.organization_id where g.portal_user_id=u.id and g.active and o.active and c.active)`,[address])).rows[0];
     if(portalUser){
      const raw=crypto.randomBytes(32).toString('hex');
@@ -243,7 +244,11 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
    c=await db.connect();await c.query('begin');transaction=true;
    const saved=(await c.query('delete from client_portal_password_resets where token_hash=$1 and expires_at>now() returning portal_user_id',[hash(raw)])).rows[0];
    if(!saved)fail('El enlace venció o ya fue utilizado. Solicitá otro.',400);
-   await c.query('update client_portal_users set password_hash=$1,updated_at=now() where id=$2',[await bcrypt.hash(b.password,12),saved.portal_user_id]);
+   // Compare-and-set: dos restablecimientos simultáneos no se pisan; el segundo recibe 409.
+   const previous=(await c.query('select password_hash from client_portal_users where id=$1',[saved.portal_user_id])).rows[0];
+   const nextHash=await bcrypt.hash(b.password,12);
+   const changed=previous&&(await c.query('update client_portal_users set password_hash=$1,updated_at=now() where id=$2 and password_hash is not distinct from $3 returning id',[nextHash,saved.portal_user_id,previous.password_hash])).rows[0];
+   if(!changed)fail('La contraseña se cambió en otro pedido al mismo tiempo. Solicitá un enlace nuevo.',409);
    await c.query('delete from client_portal_sessions where portal_user_id=$1',[saved.portal_user_id]);
    await c.query('delete from client_portal_password_resets where portal_user_id=$1',[saved.portal_user_id]);
    await c.query('commit');transaction=false;send(res,200,{ok:true});return true;

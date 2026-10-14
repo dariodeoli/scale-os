@@ -12,7 +12,7 @@
 //    de período compartidos; `aliases` agrega ids de deep link; `href` hace de la
 //    entrada un enlace a otra ruta (sin componente).
 import type {ComponentType, FormEvent} from "react";
-import {BarChart3, Building2, LayoutDashboard, Mail, Megaphone, Radar, ScrollText, ShieldCheck, Tag, Wrench, type LucideIcon} from "lucide-react";
+import {BarChart3, Bug, Building2, LayoutDashboard, Mail, Megaphone, MessageSquareWarning, Radar, ScrollText, ShieldCheck, Tag, Wrench, type LucideIcon} from "lucide-react";
 import type {Agency, BootstrapStatus, CollectionPage, ConfirmRequest, Coupon, CouponDraft, InquiryCounts, Person, PlatformView, State} from "./model";
 import type {PlatformPeriodId} from "./period";
 import {PlatformOverview} from "./overview";
@@ -25,6 +25,8 @@ import {PlatformUsage} from "./usage";
 import {PlatformAnnouncements} from "./announcements";
 import {PlatformMaintenance} from "./maintenance";
 import {PlatformTraffic} from "./traffic";
+import {PlatformErrors} from "./errors";
+import {PlatformReports} from "./reports";
 
 /** Acciones del panel que viven en page.tsx (agencias, cupones, accesos). */
 export type PlatformAdminActions = {
@@ -96,6 +98,11 @@ export const PLATFORM_SECTIONS: PlatformSection[] = [
   // «Actividad» es un alias: Uso ya cubre actividad diaria, por hora y por agencia.
   {id: "uso", label: "Uso", icon: BarChart3, aliases: ["actividad"], usesPeriod: true, title: "Uso y actividad",
     component: (p) => <PlatformUsage period={p.period} onError={p.onError}/>},
+  // Errores del API y la web agrupados por huella (sin PII) y «Reportar un problema».
+  {id: "errores", label: "Errores", icon: Bug, title: "Errores de la plataforma",
+    component: (p) => <PlatformErrors writable={p.writable} onError={p.onError}/>},
+  {id: "reportes", label: "Reportes", icon: MessageSquareWarning, title: "Reportes de usuarios",
+    component: (p) => <PlatformReports writable={p.writable} onError={p.onError}/>},
   // Tráfico y demos (rama superadmin-analitica): la actividad demo vive SOLO ahí,
   // nunca en los KPIs, tablas ni gráficos de las demás secciones.
   {id: "trafico", label: "Tráfico y demos", icon: Radar, title: "Tráfico de la landing y uso de demos",

@@ -22,6 +22,7 @@ import {throttle} from './password-access.js';
 import {logPersonalDataAccess} from './personal-data.js';
 import {phone} from './suite-validation.js';
 import {zoneToday} from './business-time.js';
+import {outboundAllowlist,safeFetch} from './outbound-allowlist.js';
 
 /** Largo máximo del texto pegado, en caracteres. */
 export const IA_TEXTO_MAX=20000;
@@ -115,14 +116,14 @@ export function tiposPermitidos(user){
 
 // ── Proveedor ───────────────────────────────────────────────────────────────
 
-export function iaProviderDeConfig(config,{fetcher=fetch}={}){
+export function iaProviderDeConfig(config,{fetcher=fetch,allowedHosts=outboundAllowlist()}={}){
  return {
   id:'chat-completions',
   label:config.modelo,
   async analizar(mensajes,{maxTokens}){
    let respuesta;
    try{
-    respuesta=await fetcher(`${config.baseUrl}/chat/completions`,{
+    respuesta=await safeFetch(`${config.baseUrl}/chat/completions`,{
      method:'POST',
      headers:{'Content-Type':'application/json',Authorization:`Bearer ${config.apiKey}`},
      body:JSON.stringify({
@@ -135,7 +136,7 @@ export function iaProviderDeConfig(config,{fetcher=fetch}={}){
      }),
      signal:AbortSignal.timeout(IA_TIMEOUT_MS),
      cache:'no-store',
-    });
+    },{fetchImpl:fetcher,allowedHosts,label:'El proveedor de IA'});
    }catch(error){
     const timeout=error&&(error.name==='TimeoutError'||error.name==='AbortError');
     throw new IaError(

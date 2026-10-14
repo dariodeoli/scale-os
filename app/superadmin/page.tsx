@@ -271,7 +271,8 @@ export default function PlatformAdmin() {
     try {
       await platformApi(`/api/platform/users/${person.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ platform_access }),
+        // Compare-and-set: el acceso que muestra la fila; el API responde 409 si cambió.
+        body: JSON.stringify({ platform_access, expected_access: person.platform_admin ? person.platform_role ?? undefined : "none" }),
       });
       notify({ tone: "success", message: `${person.email}: acceso global actualizado.` });
       await load();

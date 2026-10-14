@@ -10,6 +10,7 @@ import { agencyMedia } from './agency-media.js';
 import { agencyCore } from './agency-core.js';
 import { suite } from './agency-suite.js';
 import { passwordAccess, throttle } from './password-access.js';
+import {throttleClient} from './request-guard.js';
 import {emailPasswordAuth} from './email-password-auth.js';
 import {loginOrganization} from './default-organization.js';
 import { financeControls } from './finance-controls.js';
@@ -40,6 +41,8 @@ import {demoOrganization} from './demo-session.js';
 import {inviteLinks,resolveInvite,claimInvite,accessRequestState} from './invite-links.js';
 import {publicExperience} from './public-experience.js';
 import {notifyInquiry,platformContactEmail} from './platform-inquiries.js';
+import {captureServerError,clientErrors} from './error-tracking.js';
+import {userReports} from './user-reports.js';
 import {notifications} from './notifications.js';
 import {automationApi,startAutomation} from './automation.js';
 import {subscriptionBilling,subscriptionState} from './subscription-billing.js';
@@ -93,6 +96,13 @@ allowedOrigins.add('https://cliente.scaleparaguay.com');
 let databaseReady = false;
 
 const send = (res, status, body, headers = {}) => {
+  // Errores (panel global): toda respuesta 5xx queda agrupada por huella, aunque
+  // el módulo haya atrapado su propia excepción. El handler central marca la
+  // respuesta para no registrarla dos veces (ya la registró con su stack).
+  if (status >= 500 && res && !res.errorCaptured && databaseReady) {
+    res.errorCaptured = true;
+    void captureServerError(db, {req: res.req, status, message: `HTTP ${status} · ${typeof body?.error === 'string' ? body.error : 'Error interno'}`});
+  }
   const merged = { 'Content-Type': 'application/json; charset=utf-8', ...headers };
   const text = JSON.stringify(body);
   // Compresión (#57): brotli si el cliente lo acepta, gzip como respaldo; nunca
@@ -256,7 +266,8 @@ async function init() {
      "20261014_inventory_default_categories.sql",
      "20261015_platform_inquiries.sql",
      "20261016_platform_announcements_maintenance.sql",
-     "20261016_public_analytics.sql"
+     "20261016_public_analytics.sql",
+     "20261016_platform_errors_reports.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
@@ -355,6 +366,9 @@ const server = http.createServer(async (req,res) => {
     if(url.pathname==='/api/public/maintenance'&&await platformMaintenance({req,res,url,db,session,body,send}))return;
     if(await subscriptionBilling({req,res,url,db,session,body,send,sendPaymentFailed}))return;
     if(await publicAnalytics({req,res,url,db,session,send}))return;
+    // Errores del navegador (público, con límites) y «Reportar un problema» (con sesión).
+    if(await clientErrors({req,res,url,db,send}))return;
+    if(await userReports({req,res,url,db,session,body,send}))return;
     // Todo /api/platform/* pasa por un solo guard (platform-router.js).
     if(await platformRouter({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
     // Billing is separate from membership: suspended owners retain billing,
@@ -420,7 +434,7 @@ const server = http.createServer(async (req,res) => {
       const input=(await body(req))||{};
       const e=(typeof input.email==='string'?input.email:'').trim().toLowerCase(),password=typeof input.password==='string'?input.password:'';
       if(!e||!password)return send(res,400,{error:'Ingresá tu correo y contraseña'});
-      if(!await throttle(db,'login:'+e,30))return send(res,429,{error:'Demasiados intentos. Esperá 15 minutos.'});
+      if(!await throttleClient(db,req,'login',60)||!await throttle(db,'login:'+e,30))return send(res,429,{error:'Demasiados intentos. Esperá 15 minutos.'});
       const r=await db.query('select id,password_hash,email_verified_at,is_demo_guest from users where email=$1',[e]);
       if (!r.rows[0]||!r.rows[0].email_verified_at||r.rows[0].is_demo_guest||!(await bcrypt.compare(password,r.rows[0].password_hash))) return send(res,401,{error:'Credenciales inválidas'});
       if((await db.query('select 1 from account_closure_requests where user_id=$1 and cancelled_at is null and recoverable_until>now()',[r.rows[0].id])).rows.length)return send(res,403,{code:'ACCOUNT_CLOSURE_PENDING',error:'Esta cuenta tiene un cierre solicitado. Podés recuperarla desde Recuperar cuenta.'});
@@ -624,7 +638,12 @@ const server = http.createServer(async (req,res) => {
     if(await agencyCore({req,res,url,db,session,body,send,cookie,parseCookies,id,requestSubscription,sendInvitation,sendTrialEmail,auditContext,auditedQuery}))return;
     if (url.pathname === '/' || url.pathname === '/index.html') { res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}); return res.end(await fs.readFile(path.join(root,'public/index.html'))); }
     send(res,404,{error:'No encontrado'});
-  } catch (e) { console.error(JSON.stringify({event:'request_error',requestId,status:e.status||500,code:e.code,method:req.method,path:req.url?.split('?')[0],duration_ms:Date.now()-startedAt})); send(res,e.status||500,{error:e.status?e.message:'Error interno'}); }
+  } catch (e) {
+    console.error(JSON.stringify({event:'request_error',requestId,status:e.status||500,code:e.code,method:req.method,path:req.url?.split('?')[0],duration_ms:Date.now()-startedAt}));
+    // Handler central: el error 5xx se agrupa con su stack (sin PII) antes de responder.
+    if((e.status||500)>=500&&databaseReady){res.errorCaptured=true;void captureServerError(db,{error:e,req,status:e.status||500});}
+    send(res,e.status||500,{error:e.status?e.message:'Error interno'});
+  }
 });
 if (process.env.SCALE_CORE_API_DISABLE_LISTEN !== '1') {
   server.listen(port, () => {

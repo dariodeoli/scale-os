@@ -126,7 +126,8 @@ function AccessTab({role,currentEmail,person,member,ambiguous,load}:{role:string
     if(!draft||!member||busy)return;
     setBusy('save');setError('');
     try{
-      await api(`/api/agency/members/${member.id}`,{role:draft.role,active:draft.active==='true'},'PATCH');
+      // Compare-and-set: el API rechaza (409) si otra persona cambió el rol o el acceso mientras tanto.
+      await api(`/api/agency/members/${member.id}`,{role:draft.role,active:draft.active==='true',expected_role:member.role,expected_active:member.active!==false},'PATCH');
       await completeSave(()=>{},load);
     }catch(cause){setError(errorText(cause));}
     finally{setBusy('');}
