@@ -54,7 +54,7 @@ test('resumen y métricas: títulos sin márgenes por defecto y gráfico al alto
 test('resumen comercial: la expectativa contratada usa la derivación compartida y el chip chico',()=>{
  const control=read('app/control-center.tsx');
  assert.match(control, /const billingEstado=allowed\?billingExpectationState\(commercial,commercialError\?'error':'loading'\):null;/, 'el estado sale de la derivación de control-center-data');
- assert.match(control, /billingEstado==='sin-contratos'\?<><strong className="no-movements">—<\/strong><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos<\/StateChip><\/>/, 'sin contratos es `—` + chip secundario');
+ assert.match(control, /billingEstado==='sin-contratos'\?<span className="flex flex-wrap items-center gap-2"><span className=\{KPI_NOTE\}>—<\/span><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos<\/StateChip><\/span>/, 'sin contratos es `—` + chip secundario');
  assert.doesNotMatch(control, /Sin contratos activos<\/strong>/, 'no vuelve el titular largo');
  const css=read('app/control-center.css');
  assert.match(css, /\.finance-compare\{display:grid;gap:10px;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,340px\),1fr\)\);margin:10px 2px 0\}/, 'la comparativa financiera usa grilla auto-fit: dos monedas caben al lado');

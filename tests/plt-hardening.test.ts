@@ -104,8 +104,9 @@ assert.match(read('app/status/page.tsx'), /api\/auth\/email-status/, 'el correo 
 assert.match(read('app/archive-controls.tsx'), /selected\.length\?<div className="bulk-bar"/, 'la papelera muestra el lote solo con selección');
 assert.doesNotMatch(read('app/archive-controls.tsx'), /Seleccioná varios para restaurar en lote/, 'sin la fila permanente de instrucciones de lote');
 const workHistory = read('app/work-history.tsx');
-assert.match(workHistory, /px-3 py-2/, 'las filas del historial usan padding compacto');
-assert.match(workHistory, /truncate text-\[13px\] text-fore" title=/, 'el texto del historial se recorta en una línea con tooltip');
+assert.match(workHistory, /<ListGrid label=\{source\?'Historial importado':'Historial de trabajo'\}[^>]*template=\{HISTORY_TEMPLATE\}/, 'el historial es una lista con encabezado de columnas');
+assert.match(workHistory, /<ListRow key=\{r\.id\} template=\{HISTORY_TEMPLATE\}/, 'las filas del historial son filas finitas con la misma plantilla que el encabezado');
+assert.match(workHistory, /truncate text-\[13px\] font-semibold text-fore" title=/, 'el texto del historial se recorta en una línea con tooltip');
 
 // #96 (compactación del resto de Plataforma): la identidad vive en el shell
 // (título + apartados) y las pantallas no repiten el título con PageHeader; los

@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-require.extensions['.css']=()=>{};
-const {groupDueAlerts,normalizeSearch,shortDate}=require('../app/control-center-data') as typeof import('../app/control-center-data');
-import type {DueAlert} from '../app/control-center-data';
+import {groupDueAlerts,normalizeSearch,shortDate,DueAlert} from '../app/control-center-data';
 import {sections,legacyRoutes,legacyDestination,parentSection,childSections,sectionPath,sectionLabel,navGroups,moduleNavGroup} from '../app/navigation';
 import {visibleModule} from '../app/workspace-access';
 import {workspaceSource} from './workspace-source';
