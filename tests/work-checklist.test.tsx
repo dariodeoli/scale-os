@@ -5,6 +5,9 @@ import type {WorkChecklistProps,WorkChecklistSnapshot} from '../app/work-checkli
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
+// ConfirmDialog (Dialog con portal y DOM real) se dobla: el contrato probado es título, textos y callbacks (#183).
+const dialogPath=require.resolve('../app/dialog');
+require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{ConfirmDialog:({open=true,title,description,confirmLabel='Confirmar',cancelLabel='Cancelar',busy=false,onCancel,onConfirm}:{open?:boolean;title:string;description?:React.ReactNode;confirmLabel?:string;cancelLabel?:string;busy?:boolean;onCancel:()=>void;onConfirm:()=>void})=>open?<section role="dialog" aria-label={title}><p>{description}</p><button type="button" disabled={busy} onClick={onCancel}>{cancelLabel}</button><button type="button" disabled={busy} onClick={onConfirm}>{confirmLabel}</button></section>:null}} as NodeModule;
 const {WorkChecklist}=require('../app/work-checklist') as typeof import('../app/work-checklist');
 const empty=():WorkChecklistSnapshot=>({version:'0',items:[],total:0,completed:0,max_items:100});
 let saved=empty(),nextId=1,failStatus=0,failNetwork=false;
@@ -63,7 +66,7 @@ await click('Guardar ítem');assert.equal(saved.items[0].text,'Validar guion');a
 // Opening or cancelling the inline confirmation never deletes anything.
 const beforeConfirmation=writeCount();
 await act(async()=>renderer.root.findByProps({'aria-label':'Quitar ítem: Validar guion'}).props.onClick());
-assert.equal(writeCount(),beforeConfirmation);assert.ok(renderer.root.findByProps({'aria-label':'Confirmar eliminación del ítem'}));
+assert.equal(writeCount(),beforeConfirmation);assert.ok(renderer.root.findByProps({'aria-label':'Quitar ítem',role:'dialog'}));
 await click('Conservar ítem');assert.equal(writeCount(),beforeConfirmation);
 await act(async()=>renderer.root.findByProps({'aria-label':'Quitar ítem: Validar guion'}).props.onClick());
 await click('Sí, quitar ítem');assert.equal(saved.total,0);assert.equal(writeCount(),beforeConfirmation+1);

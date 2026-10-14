@@ -51,16 +51,11 @@ const CloseContext=React.createContext<(()=>void)|undefined>(undefined);
 const pendingStates:boolean[]=[];
 function MockDialog({children,close,busy=false}:{children:React.ReactNode;close:()=>void;busy?:boolean}){return <CloseContext.Provider value={close}><section role="dialog" aria-busy={busy}>{children}</section></CloseContext.Provider>;}
 require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{api:mockApi,money:(n:string,c:string)=>`${c} ${n}`,Dialog:MockDialog,Editor:MockEditor}} as NodeModule;
+// Doble del ConfirmDialog único (mismo contrato de props: busy bloquea y rotula «Procesando…»).
+function MockOverlay({open=true,title,description,confirmLabel,cancelLabel='Cancelar',busy=false,error,onCancel,onConfirm}:{open?:boolean;title:string;description?:React.ReactNode;confirmLabel?:string;cancelLabel?:string;busy?:boolean;error?:string;onCancel:()=>void;onConfirm:()=>void}){return open?<section role="dialog" aria-busy={busy}><h2>{title}</h2>{description}{error?<p role="alert">{error}</p>:null}<button type="button" disabled={busy} onClick={onCancel}>{cancelLabel}</button><button type="button" disabled={busy} onClick={onConfirm}>{busy?'Procesando…':confirmLabel||'Confirmar'}</button></section>:null;}
 const dialogPath=require.resolve('../app/dialog');
-require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:(value:boolean)=>{pendingStates.push(value);}}} as NodeModule;
-// Overlays de owncoding-ui (Modal/Drawer/SaveActions): el entorno de test no
-// tiene DOM real, así que se reemplazan por un doble con el mismo contrato de
-// contexto (cierre, pendiente y botón Cancelar).
-const uiPath=require.resolve('owncoding-ui');
-const realUi=require('owncoding-ui');
-function MockOverlay({open,onClose,title,children,busy=false}:{open:boolean;onClose:()=>void;title:string;children:React.ReactNode;busy?:boolean}){return open?<CloseContext.Provider value={onClose}><section role="dialog" aria-busy={busy}><h2>{title}</h2>{children}</section></CloseContext.Provider>:null;}
-function MockLibSaveActions({pendiente=false,children,cancelLabel='Cancelar'}:{pendiente?:boolean;children:React.ReactNode;cancelLabel?:string|false}){const close=React.useContext(CloseContext);pendingStates.push(pendiente);return <div>{close&&cancelLabel?<button type="button" className="secondary" disabled={pendiente} onClick={()=>{if(!pendiente)close();}}>{cancelLabel}</button>:null}{children}</div>;}
-require.cache[uiPath]={id:uiPath,filename:uiPath,loaded:true,exports:{...realUi,Modal:MockOverlay,Drawer:MockOverlay,SaveActions:MockLibSaveActions,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:(value:boolean)=>{pendingStates.push(value);}}} as NodeModule;
+require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogClose:()=>React.useContext(CloseContext),useDialogPending:(value:boolean)=>{pendingStates.push(value);},ConfirmDialog:MockOverlay}} as NodeModule;
+// Los diálogos de inventario ya son los locales (Dialog/SaveActions/ConfirmDialog, #183): solo se dobla el DOM.
 const {InventoryWorkspace,InventoryItemForm,InventoryReservationForm,InventoryTransitionForm,InventoryCalendar,InventoryDetail}=require('../app/inventory-workspace') as typeof import('../app/inventory-workspace');
 let renderer:ReactTestRenderer,done=0;
 function text(node:ReactTestInstance|string):string{return typeof node==='string'?node:node.children.map(text).join('');}
@@ -284,8 +279,8 @@ async function run(){
  act(()=>renderer.root.findAllByType('button').find(node=>text(node)==='Archivar equipo')!.props.onClick());
  let archiving!:Promise<void>;delayWrites=true;
  act(()=>{archiving=button('Archivar equipo').props.onClick();});
- assert.equal(renderer.root.findByType(MockOverlay).props.busy,true);assert.equal(button('Archivando…').props.disabled,true);
- assert.equal(button('Cancelar').props.disabled,true);act(()=>renderer.root.findByType(MockOverlay).props.onClose());
+ assert.equal(renderer.root.findByType(MockOverlay).props.busy,true);assert.equal(button('Procesando…').props.disabled,true);
+ assert.equal(button('Cancelar').props.disabled,true);act(()=>renderer.root.findByType(MockOverlay).props.onCancel());
  assert.equal(renderer.root.findAllByType(MockOverlay).length,1,'archive cannot close while pending');
  fail=true;await act(async()=>{pendingWrites.splice(0).forEach(resolve=>resolve());await archiving;});delayWrites=false;fail=false;
  assert.equal(renderer.root.findByType(MockOverlay).props.busy,false);
