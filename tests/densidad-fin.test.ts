@@ -35,8 +35,8 @@ assert.match(comisiones,/title=\{commissionBasisText\(commission/,'la base de c�
 assert.match(comisiones,/label: 'Importe fijo'/,'el diálogo de comisión usa etiquetas cortas');
 
 // ── Previsión: pares en 2 columnas ≥1440, definition en tooltips y render único.
-assert.match(pre,/min-\[1440px\]:grid-cols-2/,'los pares de tarjetas usan 2 columnas desde 1440');
-assert.equal((pre.match(/min-\[1440px\]:grid-cols-2/g)||[]).length,2,'dos pares: ingresos/resumen y contratos/salarios');
+assert.match(pre,/min-\[1440px\]:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/,'los pares de tarjetas usan 2 columnas desde 1440');
+assert.equal((pre.match(/min-\[1440px\]:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/g)||[]).length,2,'dos pares: ingresos/resumen y contratos/salarios');
 assert.match(pre,/title=\{\`\$\{data\.definition\.issued\} \$\{data\.definition\.accepted_uninvoiced\}\`\}/,'la definición de ingresos viaja en el tooltip');
 assert.match(pre,/title=\{data\.definition\.planned_expenses\}/,'la definición de gastos planificados viaja en el tooltip');
 assert.doesNotMatch(pre,/md:hidden/,'las listas de la previsión ya no duplican ramas por breakpoint');

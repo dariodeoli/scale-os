@@ -55,7 +55,7 @@ import {CurrencyField,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,State
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
 // Compactas a propósito (#101): entran en media pantalla a 1440 para las
 // secciones pareadas; el ajuste del mes viaja inline en el cierre.
-const PERSON_COLS='grid-cols-[minmax(7rem,1fr)_7.5rem_8.5rem_6rem]';
+const PERSON_COLS='grid-cols-[minmax(7rem,1fr)_7.5rem_minmax(8.5rem,1.2fr)_6rem]';
 const CONTRACT_COLS='grid-cols-[minmax(7.5rem,1.2fr)_minmax(6rem,1fr)_6.5rem_6.5rem_5.5rem]';
 const EXPENSE_COLS='grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
