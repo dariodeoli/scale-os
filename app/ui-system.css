@@ -131,7 +131,7 @@ html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;c
 .control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(3){grid-area:sub;margin:0;min-width:0;overflow:hidden;font-size:11.5px;line-height:16px}
 .control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(2) *{font-size:inherit;line-height:inherit}
 @media(max-width:767px){
- .control-shell .ui-kpi-strip-dense .ui-kpi{grid-template-columns:minmax(0,1fr);grid-template-areas:"label" "value" "sub";padding:8px 10px}
+ .control-shell .ui-kpi-strip-dense .ui-kpi{grid-template-columns:minmax(0,1fr);grid-template-areas:"label" "value" "sub";row-gap:0;padding:6px 10px}
  .control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(2){font-size:17px;white-space:normal}
  .control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(3){flex-wrap:wrap;font-size:11px}
 }
