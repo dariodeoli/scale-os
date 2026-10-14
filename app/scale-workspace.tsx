@@ -35,7 +35,7 @@ const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 import {setDataScope, clearDataCache, dataFetch} from './data-cache';
 import {request} from './workspace-request';
-import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,stageCountsFrom,projectedList,BUDGET_LIST_FIELDS,type ShellResource,type ShellScope} from './shell-data';
+import {mutationStalesShellIdentity,sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,stageCountsFrom,projectedList,BUDGET_LIST_FIELDS,type ShellResource,type ShellScope} from './shell-data';
 import {LIST_WINDOW,appendPage,readPage,windowStateOf,type ListWindowState} from './list-window';
 import {budgetKpisOf} from './budget-status';
 import {prefetchSectionData} from './data-prefetch';
@@ -307,7 +307,7 @@ export default function Home() {
   useEffect(()=>{
     // Editar un cliente o proyecto invalida la identidad en memoria: la próxima
     // activación de sección la relee antes de decorar (issue #81).
-    const onMutated=(event:Event)=>{const url=String((event as CustomEvent<{url?:string}>).detail?.url||'');if(!/\/clients(?:\/|$)|\/projects(?:\/|$)|\/work-orders(?:\/|$)/.test(url))return;const next={...dataFreshness.current};for(const key of Object.keys(next))if(/^(clients|projects):/.test(key))delete next[key];dataFreshness.current=next;};
+    const onMutated=(event:Event)=>{const url=String((event as CustomEvent<{url?:string}>).detail?.url||'');if(!mutationStalesShellIdentity(url))return;const next={...dataFreshness.current};for(const key of Object.keys(next))if(/^(clients|projects):/.test(key))delete next[key];dataFreshness.current=next;};
     window.addEventListener('scale:data-mutated',onMutated);
     return()=>window.removeEventListener('scale:data-mutated',onMutated);
   },[]);
@@ -1107,7 +1107,7 @@ export default function Home() {
         {active==='Historial de trabajo'&&<HistorialSection user={user} navigate={setActive}/>}
         {active==='Invitaciones'&&<InvitacionesSection user={user}/>}
         {active==='Comisiones'&&<ComisionesSection user={user}/>}
-        {active==='Pipeline'&&<PipelineSection user={user} metricsState={metricsState} onRetryMetrics={()=>void loadMetrics()} navigate={setActive}/>}
+        {active==='Pipeline'&&<PipelineSection user={user} metricsState={metricsState} onRetryMetrics={()=>void loadMetrics()} navigate={setActive} openClient={id=>setDetail({kind:'client',id})}/>}
         {active==='Métricas'&&<MetricasSection user={user} metrics={metrics} state={metricsState} error={metricsError} onRetry={()=>void loadMetrics()}/>}
         {active==='Planes'&&<PlanesSection user={user}/>}
         {active==='Inventario'&&<InventarioSection user={user}/>}

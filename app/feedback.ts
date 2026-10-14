@@ -13,6 +13,7 @@ export function mutationFeedback(path:string,method:string,body:unknown,data:unk
  if(path.endsWith('/restore'))return{tone:'success',message:'Registro restaurado. Si su cliente o proyecto sigue en Papelera, restauralo también para verlo.'};
  if(method.toUpperCase()==='DELETE')return{tone:'success',message:path.includes('/members/')?'Acceso retirado de esta empresa.':'Registro movido a Papelera. Podés recuperarlo allí.'};
  if(path.includes('/members'))return{tone:'success',message:result.emailSent===true?'Invitación enviada al proveedor de correo. Revisá también spam.':'Permisos guardados correctamente.'};
+ if(/^\/api\/agency\/leads\/\d+\/convert$/.test(path))return{tone:'success',message:'Cliente creado y vinculado a la oportunidad.'};
  if(path.endsWith('/comments'))return{tone:'success',message:'Comentario publicado.'};
  if(path.includes('/work-orders/')&&Object.hasOwn(input,'status')||path.includes('/leads/')&&Object.hasOwn(input,'stage'))return{tone:'success',message:'Tarjeta movida y guardada.'};
  if(path.endsWith('/reverse'))return{tone:'success',message:'Cobro revertido. Saldos y factura actualizados.'};

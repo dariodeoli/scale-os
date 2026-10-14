@@ -11,4 +11,5 @@ assert.ok(mutationFeedback('/api/agency/clients/1','DELETE',{}, {})?.message.inc
 assert.ok(mutationFeedback('/api/agency/payments','POST',{}, {alreadyRecorded:true})?.message.includes('No se duplicó'));
 assert.equal(mutationFeedback('/api/agency/work-orders/3','PATCH',{status:'editing'}, {})?.message,'Tarjeta movida y guardada.');
 assert.equal(mutationFeedback('/api/agency/payouts','POST',{}, {})?.message,'Pago registrado y descontado de la cuenta.');
-console.log('PASS: 11 notification cases: saved photo/removal, invitations, archive, finance, drag movement; reads/auth are quiet');
+assert.equal(mutationFeedback('/api/agency/leads/7/convert','POST',{}, {clientId:'9'})?.message,'Cliente creado y vinculado a la oportunidad.','convertir una oportunidad dice qué pasó, no un «cambios guardados» genérico');
+console.log('PASS: 12 notification cases: saved photo/removal, invitations, archive, finance, drag movement, lead conversion; reads/auth are quiet');
