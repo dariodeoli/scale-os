@@ -506,3 +506,5 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
    (REGLAS §15.4, mismo contrato que `.toque-44`). No se toca el objeto. */
 [data-testid="campana-avisos"]{position:relative}
 [data-testid="campana-avisos"]::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%)}
+/* KPI v2 en grilla de 2 columnas (tablet): el importe baja de tamaño en lugar de salirse de la tarjeta. */
+@media(min-width:640px) and (max-width:1023px){.control-shell .ui-kpi>div:nth-child(2){font-size:clamp(18px,3vw,28px)}}
