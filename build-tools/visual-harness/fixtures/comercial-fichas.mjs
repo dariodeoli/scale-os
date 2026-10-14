@@ -154,7 +154,7 @@ const composerSheet = `
    <div><button type="button" class="${buttonOutline}">${iconPlus}Agregar ítem</button></div>
   </section>
   <section class="flex flex-wrap gap-3">
-   <div class="w-40">${field('Válido hasta', `<input class="${input}" type="date" value="2026-10-31">`)}</div>
+   <div class="w-full max-w-44 min-w-0">${field('Válido hasta', `<input class="${input}" type="date" value="2026-10-31">`)}</div>
    <div class="min-w-0 flex-1 basis-64">${field('Condiciones (opcional)', `<textarea class="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" rows="3">Facturación el día 5 de cada mes. Incluye dos rondas de ajustes por pieza.</textarea>`)}</div>
   </section>
   <section class="grid gap-3" aria-label="Secciones del documento">

@@ -23,7 +23,7 @@ assert.equal((inventory.match(/>Foto</g)||[]).length,1,'«Foto» solo sobrevive 
 // ── Grilla de la lista: plantilla única, columnas reales y acciones en una línea.
 assert.match(inventory,/const EQUIPMENT_COLS='\[--eq-cols:/,'la lista declara su plantilla');
 assert.equal((inventory.match(/\$\{EQUIPMENT_GRID\}/g)||[]).length,2,'encabezado y filas comparten la plantilla');
-assert.match(inventory,/flex shrink-0 flex-nowrap items-center justify-end gap-1/,'las acciones no envuelven');
+assert.match(inventory,/flex flex-nowrap items-center justify-end gap-1 \$\{dense\?`shrink-0 .*silent-scroll min-w-0 max-w-full overflow-x-auto/,'las acciones no envuelven');
 assert.match(inventory,/min-h-\[44px\]/,'la fila densa mantiene su alto acotado');
 assert.match(inventory,/<b className="truncate text-\[13px\] font-semibold text-fore" title=\{item\.name\}>/,'el artículo puede truncar con título');
 assert.match(inventory,/<code className="shrink-0 whitespace-nowrap font-mono text-\[11px\] text-mute">\{code\}<\/code>/,'el código nunca se corta');
@@ -39,7 +39,7 @@ assert.doesNotMatch(inventory,/etiqueta="Valor" etiquetaComo="dt"/,'la tarjeta n
 assert.match(inventory,/size="card"/,'la tarjeta usa la foto grande');
 assert.match(equipmentPhoto,/size==='card'\?'h-14 w-14'/,'la foto de la tarjeta mide 56 px');
 assert.match(inventory,/<h3 className="truncate text-sm font-semibold text-fore" title=\{item\.name\}>/,'el nombre es flexible y truncable');
-assert.match(inventory,/<StateChip tone=\{statusTone\(item\.status\)\}>\{equipmentStatusLabel\(item\.status\)\}<\/StateChip>\s*<\/div>/,'el estado cierra la cabecera');
+assert.match(inventory,/<StateChip tone=\{statusTone\(item\.status\)\}[^>]*>\{equipmentStatusLabel\(item\.status\)\}<\/StateChip>\s*<\/div>/,'el estado cierra la cabecera');
 
 // ── KPIs acotados: «Sin valor» + contador secundario + enlace chico.
 assert.match(inventory,/:<span className="text-base font-semibold text-mute">Sin valor<\/span>/,'sin datos el KPI dice «Sin valor»');

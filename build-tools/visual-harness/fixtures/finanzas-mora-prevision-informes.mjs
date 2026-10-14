@@ -154,26 +154,26 @@ const finanzasCuentas = {
     <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Banco Regional — Operativa">Banco Regional — Operativa</b>${chipMute('Bancaria · PYG')}</header>
     <strong class="text-xl font-semibold tabular-nums text-fore">Gs. 1.100.000.000</strong>
     <dl class="grid gap-1 text-[11.5px]">
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd class="min-w-0 text-right text-fore" title="Banco Regional S.A.">Banco Regional S.A.</dd></div>
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="0012-3456789-00">0012-3456789-00</dd></div>
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd class="min-w-0 text-right text-fore">Estudio Scale S.A.</dd></div>
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 text-right text-fore">finanzas@estudio.com.py</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd class="min-w-0 truncate text-right text-fore" title="Banco Regional S.A.">Banco Regional S.A.</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="0012-3456789-00">0012-3456789-00</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd class="min-w-0 truncate text-right text-fore" title="Estudio Scale S.A.">Estudio Scale S.A.</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 truncate text-right text-fore" title="finanzas@estudio.com.py">finanzas@estudio.com.py</dd></div>
     </dl>
     <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Banco Regional — Operativa">${trashIcon(16)}</button></footer>
    </article>
    <article class="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4">
-    <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Caja Chica Estudio">Caja Chica Estudio</b>${chipMute('Efectivo · PYG')}</header>
+    <header class="flex items-start justify-between gap-2"><b class="min-w-0 truncate text-[13.5px] font-semibold text-fore" title="Caja Chica Estudio">Caja Chica Estudio</b>${chipMute('Efectivo · PYG')}</header>
     <strong class="text-xl font-semibold tabular-nums text-fore">Gs. 134.567.890</strong>
     <dl class="grid gap-1 text-[11.5px]">
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 text-right text-fore">caja@estudio.com.py</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 truncate text-right text-fore" title="caja@estudio.com.py">caja@estudio.com.py</dd></div>
     </dl>
     <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Caja Chica Estudio">${trashIcon(16)}</button></footer>
    </article>
    <article class="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4">
-    <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Tarjeta corporativa USD">Tarjeta corporativa USD</b>${chipMute('Digital · USD')}</header>
+    <header class="flex items-start justify-between gap-2"><b class="min-w-0 truncate text-[13.5px] font-semibold text-fore" title="Tarjeta corporativa USD">Tarjeta corporativa USD</b>${chipMute('Digital · USD')}</header>
     <strong class="text-xl font-semibold tabular-nums text-fore">USD 45.678</strong>
     <dl class="grid gap-1 text-[11.5px]">
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="**** 4821">**** 4821</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="**** 4821">**** 4821</dd></div>
     </dl>
     <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Tarjeta corporativa USD">${trashIcon(16)}</button></footer>
    </article>
