@@ -10,7 +10,8 @@
  * y comparte la plantilla `--project-cols` con el encabezado de la sección.
  */
 import {useEffect,useRef,useState} from 'react';
-import {Drawer, IconAction} from 'owncoding-ui';
+import {IconAction} from 'owncoding-ui';
+import {Dialog} from './dialog';
 import {fechaLista,fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning} from './list-format';
 import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip,type ChipTone} from './ui-v2';
@@ -72,7 +73,7 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
   const piecesCount=pieces?pieces.length:knownTotal;
   const piecesTotal=Math.max(piecesCount,knownTotal);
   const {links,legacy,count}=projectLinks(record);
-  return <Drawer open onClose={onClose} title={record.name}>
+  return <Dialog size="drawer" close={onClose} title={record.name}>
     {error?<ErrorBlock title="No se pudo cargar el proyecto." description={error} onRetry={()=>setReload(value=>value+1)}/>:null}
     <div className="grid min-w-0 gap-4">
       <section className="grid min-w-0 gap-2">
@@ -107,7 +108,7 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
         {pieces&&piecesTotal>Math.min(pieces.length,PROJECT_PIECES_LIMIT)?<p className="text-[12px] text-mute" role="status">{remainingPiecesLabel(piecesTotal,Math.min(pieces.length,PROJECT_PIECES_LIMIT))}</p>:null}
       </section>
     </div>
-  </Drawer>;
+  </Dialog>;
 }
 
 export function ProjectCard({project,client,children,selectable=false,selected=false,onSelect}:{project:ProjectView;client?:{logo_url?:string|null;color_key?:string};children:React.ReactNode;selectable?:boolean;selected?:boolean;onSelect?:()=>void}){
