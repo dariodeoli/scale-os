@@ -58,15 +58,17 @@ const COUPONS = [
 
 /* ── Encabezado y secciones (consola nueva) ──────────────────────────────── */
 const header = (writable = true, updated = '18:12') => `
-<header class="platform-admin-header">
+<div class="platform-admin-top">
  <a class="platform-admin-brand" href="#" aria-label="Scale OS">${brand}</a>
- <div class="platform-admin-identity">
-  <p class="eyebrow">Administración global</p>
-  <h1>Control de Scale OS</h1>
- </div>
- <div class="platform-admin-meta">${chip(writable ? 'Admin global' : 'Solo lectura', writable ? 'ok' : 'info', 'Rol de tu usuario en la plataforma')}${updated ? `<span class="platform-admin-updated" title="Última actualización ${updated} (hora de Asunción)">Actualizado ${updated}</span>` : ''}</div>
- <div class="platform-admin-actions"><button type="button" class="secondary">${I.refresh}Actualizar</button><a class="secondary" href="#">${I.back}Panel</a></div>
-</header>`;
+ <header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 min-w-0 flex-1 !mb-0">
+  <div class="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
+   <p class="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">Administración global</p>
+   <h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">Control de Scale OS</h1>
+   <p class="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1"><span class="platform-admin-meta">${chip(writable ? 'Admin global' : 'Solo lectura', writable ? 'ok' : 'info', 'Rol de tu usuario en la plataforma')}${updated ? `<span class="platform-admin-updated" title="Última actualización ${updated} (hora de Asunción)">Actualizado ${updated}</span>` : ''}</span></p>
+  </div>
+  <div class="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap"><div class="platform-admin-actions"><button type="button" class="secondary">${I.refresh}Actualizar</button><a class="secondary" href="#">${I.back}Panel</a></div></div>
+ </header>
+</div>`;
 
 const tabs = (active, counts = {agencias: 4, cupones: 3, accesos: 3, auditoria: 50}) => `
 <div class="platform-admin-tabs silent-scroll">
@@ -377,12 +379,13 @@ const menuOpen2 = `
 </div>`;
 
 const skeleton2 = `
-<header class="platform-admin-header" aria-hidden="true">
+<div class="platform-admin-top" aria-hidden="true">
  <span class="block h-9 w-9 animate-pulse rounded-xl bg-fore/5"></span>
- <div class="platform-admin-identity"><span class="block h-3 w-28 animate-pulse rounded-lg bg-fore/5"></span><span class="mt-1 block h-5 w-44 animate-pulse rounded-lg bg-fore/5"></span></div>
- <div class="platform-admin-meta"><span class="block h-6 w-24 animate-pulse rounded-full bg-fore/5"></span><span class="block h-3 w-24 animate-pulse rounded-lg bg-fore/5"></span></div>
- <div class="platform-admin-actions"><span class="block h-11 w-28 animate-pulse rounded-lg bg-fore/5 md:h-9"></span><span class="block h-11 w-24 animate-pulse rounded-lg bg-fore/5 md:h-9"></span></div>
-</header>
+ <div class="ui-page-header flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-3">
+  <div class="grid min-w-0 gap-1"><span class="block h-3 w-28 animate-pulse rounded-lg bg-fore/5"></span><span class="block h-5 w-44 animate-pulse rounded-lg bg-fore/5"></span><span class="platform-admin-meta"><span class="block h-6 w-24 animate-pulse rounded-full bg-fore/5"></span><span class="block h-3 w-24 animate-pulse rounded-lg bg-fore/5"></span></span></div>
+  <div class="platform-admin-actions"><span class="block h-11 w-28 animate-pulse rounded-lg bg-fore/5 md:h-9"></span><span class="block h-11 w-24 animate-pulse rounded-lg bg-fore/5 md:h-9"></span></div>
+ </div>
+</div>
 <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
  <div class="silent-scroll flex w-max min-w-0 max-w-full gap-1 overflow-x-auto rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
   ${['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size) => `<span class="block h-11 shrink-0 ${size} animate-pulse rounded-lg bg-fore/5 md:h-8"></span>`).join('')}

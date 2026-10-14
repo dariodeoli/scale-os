@@ -79,7 +79,7 @@ test('tabs and Overview shortcuts share scroll reset; same view and refresh pres
   globalThis.fetch = async input => new Response(JSON.stringify(data[String(input).replace('/core-api', '').split('?')[0]]), {status: 200});
   let renderer!: ReactTestRenderer;
   try {
-    await act(async () => {renderer = create(<AppRouterContext.Provider value={{replace() {}} as any}><PlatformAdmin/></AppRouterContext.Provider>, {createNodeMock: element => element.type === 'header' ? {scrollIntoView(options: ScrollIntoViewOptions) {assert.equal(options.block, 'start'); scrolls++;}} : observer.node});});
+    await act(async () => {renderer = create(<AppRouterContext.Provider value={{replace() {}} as any}><PlatformAdmin/></AppRouterContext.Provider>, {createNodeMock: element => element.type === 'div' && element.props.className === 'platform-admin-top' ? {scrollIntoView(options: ScrollIntoViewOptions) {assert.equal(options.block, 'start'); scrolls++;}} : observer.node});});
     assert.equal(scrolls, 0, 'initial load does not scroll');
     const tabs = () => renderer.root.findByProps({'aria-label': 'Secciones del panel global'}).findAllByType('button');
     assert.equal(tabs().length, 5);
