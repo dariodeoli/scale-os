@@ -255,6 +255,46 @@ export type Inquiry = {
 export type InquiryCounts = Record<InquiryStatus, number>;
 export type InquiryPage = {inquiries: Inquiry[]; total: number; hasMore: boolean; limit: number; offset: number; counts: InquiryCounts};
 
+/** Contrato de `GET /api/platform/errors`: errores del API y de la web agrupados por huella (sin PII). */
+export type ErrorStatus = "new" | "resolved" | "ignored";
+export type ErrorSource = "api" | "web";
+export type ErrorGroup = {
+  id: number | string;
+  source: ErrorSource;
+  message: string;
+  route: string | null;
+  occurrences: number;
+  first_seen_at: string;
+  last_seen_at: string;
+  status: ErrorStatus;
+  resolved_at: string | null;
+  resolved_by_email: string | null;
+  sample_stack?: string | null;
+  sample_meta?: Record<string, string | number>;
+};
+export type ErrorCounts = Record<ErrorStatus, number>;
+export type ErrorPage = {errors: ErrorGroup[]; total: number; hasMore: boolean; limit: number; offset: number; counts: ErrorCounts; last24h: {groups: number; new_groups: number}};
+
+/** Contrato de `GET /api/platform/reports`: «Reportar un problema» de los usuarios. */
+export type ReportStatus = "new" | "in_progress" | "resolved";
+export type UserReport = {
+  id: number | string;
+  category: "error" | "datos" | "lentitud" | "sugerencia" | "otro";
+  message: string;
+  route: string | null;
+  app_version: string | null;
+  status: ReportStatus;
+  note: string | null;
+  handled_at: string | null;
+  handled_by_email: string | null;
+  created_at: string;
+  organization_name: string | null;
+  user_email: string | null;
+  user_name: string | null;
+};
+export type ReportCounts = Record<ReportStatus, number>;
+export type ReportPage = {reports: UserReport[]; total: number; hasMore: boolean; limit: number; offset: number; counts: ReportCounts};
+
 /** Contrato de `GET /api/platform/usage` (#191): solo presencia y altas, sin datos financieros. */
 export type UsagePerson = { name: string; avatar_url: string | null; email: string };
 export type UsagePayload = {

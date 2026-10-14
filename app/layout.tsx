@@ -6,6 +6,7 @@ import './ui-system.css';
 import './contrast.css';
 import './tailwind.css';
 import {NotificationCenter} from './notification-center';
+import {ClientErrorReporter} from './client-error-reporter';
 import {scaleMetadata,viewport} from './brand-metadata';
 
 export const metadata=scaleMetadata;
@@ -17,4 +18,4 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       `font-display: optional` en fonts.css, no hay swap tardío. */}
   <link rel="preload" href="/fonts/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2" as="font" type="font/woff2" crossOrigin="anonymous"/>
   <link rel="preload" href="/fonts/s/dmmono/v16/aFTU7PB1QTsUX8KYthqQBK6PYK0.woff2" as="font" type="font/woff2" crossOrigin="anonymous"/>
- </head><body>{children}<NotificationCenter/></body></html>; }
+ </head><body>{children}<NotificationCenter/><ClientErrorReporter/></body></html>; }

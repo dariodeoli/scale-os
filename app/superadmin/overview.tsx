@@ -9,6 +9,7 @@ import {dueTone, listDateShort} from "../list-format";
 import {EmptyBlock, Kpi, KpiStrip, StateChip} from "../ui-v2";
 import {MetricNote} from "./metric-kpi";
 import {PlatformMetrics} from "./metrics";
+import {ErrorsKpi} from "./errors";
 import type {PlatformPeriodId} from "./period";
 import {
   expiringAgencies,
@@ -78,6 +79,7 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null, period
         <Kpi label="Usuarios registrados" valor={formatPlatformMetric(state.overview.users?.total)} hint={snapshotHint("Cuentas de todas las agencias", "Cuentas de usuario", "totales hoy, sin demos")}/>
         <Kpi label="Cupones activos" valor={formatPlatformMetric(state.overview.coupons?.active)} hint={snapshotHint(`de ${formatPlatformMetric(state.overview.coupons?.total)} códigos`, "Cupones", "vigentes hoy")}/>
         <Kpi label="Suscripciones" valor={subscriptionsEmpty ? <span className="platform-kpi-empty">Sin datos todavía</span> : formatPlatformMetric(activeSubscriptions ?? 0)} hint={snapshotHint(subscriptionsEmpty ? "Todavía no hay suscripciones" : subscriptionSummary(subscriptions), "Suscripciones", "activas hoy, por estado efectivo")}/>
+        <ErrorsKpi onError={onError} onGoTo={onGoTo}/>
       </KpiStrip>
 
       <div className="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3">
