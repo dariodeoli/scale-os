@@ -267,7 +267,7 @@ Reglas que deja el pase (todas en primitivas compartidas):
   Actividad · Datos · Acciones).
 - **Acciones de ícono en filas finas = 32 px** en escritorio (`.list-row
   .list-actions :where(button.icon-button)`) y el disparador ⋯ de
-  `MenuDesplegable` mide 32 px en escritorio con puntero fino, en todo el shell y
+  `MenuDesplegable` mide 32 px en escritorio (44 con puntero táctil), en todo el shell y
   los diálogos (la librería le pone `min-h-11`, que estiraba filas y tarjetas a
   54–56 px). En mobile/táctil se conservan los 44 px.
 - **Sin márgenes del navegador en el contenido**: `:where(.workspace-content)`

@@ -147,10 +147,13 @@ html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;c
 
 /* ── Disparador del menú ⋯ (`MenuDesplegable`) ─────────────────────────────
    La librería le pone `toque-44 min-h-11` en todos los anchos: en filas finas y
-   tarjetas estiraba la línea a 44–56 px. Con puntero fino en escritorio mide
-   32 px (botón de acción de lista); en mobile/táctil conserva el target de 44. */
-@media(min-width:768px) and (hover:hover) and (pointer:fine){
+   tarjetas estiraba la línea a 44–56 px. En escritorio mide 32 px (botón de
+   acción de lista); en mobile y con puntero táctil conserva el target de 44. */
+@media(min-width:768px){
  :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]{min-width:32px;min-height:32px;justify-content:center}
+}
+@media(min-width:768px) and (pointer:coarse){
+ :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]{min-width:44px;min-height:44px}
 }
 
 /* ── Tabs de sección (#89) ──────────────────────────────────────────────────

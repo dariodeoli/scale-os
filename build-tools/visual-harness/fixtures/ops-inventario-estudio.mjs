@@ -330,7 +330,9 @@ export default [
     section: 'Inventario',
     surface: 'Equipos en cuadrícula',
     kind: 'workspace',
-    grids: [{container: '[data-grid="equipment"]', card: '[data-grid-card="equipment"]', label: 'Inventario · cuadrícula', minHeight: 200}],
+    grids: [{container: '[data-grid="equipment"]', card: '[data-grid-card="equipment"]', label: 'Inventario · cuadrícula', minHeight: 120}],
+    // #99 + reinicio de márgenes del shell: la altura la define el contenido;
+    // el piso es --ui-card-min-height (120 px), no los 200 que daban los márgenes del navegador.,
     body: `
 <div class="grid min-w-0 gap-4">
  <div class="grid min-w-0 gap-3">${inventoryToolbar}</div>
@@ -437,7 +439,9 @@ export default [
     section: 'Estudio',
     surface: 'Espacios del estudio',
     kind: 'workspace',
-    grids: [{container: '[data-grid="studio-spaces"]', card: '[data-grid-card="studio-spaces"]', label: 'Estudio · espacios', minHeight: 200}],
+    grids: [{container: '[data-grid="studio-spaces"]', card: '[data-grid-card="studio-spaces"]', label: 'Estudio · espacios', minHeight: 120}],
+    // #99 + reinicio de márgenes del shell: la altura la define el contenido;
+    // el piso es --ui-card-min-height (120 px), no los 200 que daban los márgenes del navegador.,
     body: `
 <div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
  <div class="flex flex-wrap items-center justify-between gap-2"><p class="text-xs text-mute">Los espacios disponibles se reservan por franja horaria; cada reserva bloquea solo su espacio.</p><div class="flex flex-wrap items-center gap-2">${button('Agregar espacio', 'outline')}${button('Nueva reserva')}</div></div>
