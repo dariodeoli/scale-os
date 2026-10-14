@@ -176,6 +176,9 @@ const personFacts = ({email, accessRole, accessState, startedOn}, member = false
  <div><dt>Acceso</dt><dd title="${accessRole} · ${accessState}">${accessRole} · ${accessState}</dd></div>
  ${member ? '' : `<div><dt>Ingreso</dt><dd class="list-date">${startedOn || 'Sin fecha'}</dd></div>`}
 </dl>`;
+/* Lista: markup real de Equipo (correo y datos como celdas propias de la plantilla). */
+const personListFacts = ({email, accessRole, startedOn}, member = false) => `<p class="person-hub-mail" title="${email}">${email}</p>
+ <div class="person-hub-meta"><span class="hub-chip" title="Rol en el panel: ${accessRole}">${accessRole}</span>${member || !startedOn ? '' : `<span class="hub-chip"><span class="person-hub-meta-label">Ingreso </span>${startedOn}</span>`}</div>`;
 /* ChipEstado de owncoding-ui v0.39: mismo markup y tonos que el objeto. */
 const CHIP_TONES = {ok:'border-ok/30 bg-ok/10 text-ok-text',warn:'border-warn/30 bg-warn/10 text-warn-text',bad:'border-bad/30 bg-bad/10 text-bad-text',mute:'border-ink-600 bg-ink-800/40 text-mute'};
 const chipEstado = ({estado = 'pendiente', etiqueta, tono = 'mute', icono = 'circleX'}) => `<span data-estado="${estado}" title="${etiqueta}" class="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[11px] font-semibold ${CHIP_TONES[tono]}">${svg(ICON[icono] || ICON.circleX, 12)}${etiqueta}</span>`;
@@ -272,7 +275,7 @@ const personCard = (person, list = false) => {
   ${avatar}
   <span class="person-hub-state" data-state="${stateAttr}">${stateLabel}</span>
  </header>
- ${personFacts(person.facts, isMember)}
+ ${list ? personListFacts(person.facts, isMember) : personFacts(person.facts, isMember)}
  ${chips}
  ${note}
  ${tail}
@@ -342,7 +345,7 @@ export default [
       label: 'Equipo · lista',
       template: '--person-cols',
       rowHeight: [44, 52],
-      exemptBelow: 860,
+      exemptBelow: 767,
     }],
     body: `
 <section class="panel">
@@ -350,7 +353,7 @@ export default [
  ${teamToolbar()}
  <div class="ops-grid ops-grid-list">
   <div class="bulk-bar" role="status" aria-live="polite"><span class="bulk-count"><b>2</b> seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button">Seleccionar visibles</button><button type="button" class="secondary">Suspender acceso</button><button type="button" class="secondary">Reactivar acceso</button><button type="button" class="text-button">Limpiar</button></div></div>
-  <div class="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>
+  <div class="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Correo</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>
   ${people.map((person) => personCard(person, true)).join('')}
  </div>
 </section>`,
