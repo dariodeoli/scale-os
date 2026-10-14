@@ -147,10 +147,10 @@ test("rediseño #102: consola con secciones, carga de la app y título único", 
   // Consola: encabezado compacto + barra de secciones con contadores + vistas.
   assert.match(page, /<div className="platform-admin-tabs silent-scroll">/, "la barra de secciones es un contenedor sin la regla legacy `nav button`");
   assert.match(page, /ariaLabel="Secciones del panel global"/);
-  for (const view of ["resumen", "agencias", "cupones", "accesos", "auditoria"]) {
+  for (const view of ["resumen", "agencias", "cupones", "accesos", "auditoria", "uso"]) {
     assert.match(page, new RegExp(`\\{id: "${view}", label:`), `la vista ${view} existe`);
   }
-  assert.equal((page.match(/\{view === "/g) ?? []).length, 5, "cada sección renderiza su vista");
+  assert.equal((page.match(/\{view === "/g) ?? []).length, 6, "cada sección renderiza su vista");
   assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{changeView\} bootstrap=\{bootstrap\}\/>/);
   // Carga inicial con el skeleton propio del panel (#155 C).
   assert.match(page, /import \{PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting\} from "\.\/states"/);

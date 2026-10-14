@@ -6,7 +6,7 @@ import {text as validText,optId,date as validDate} from './suite-validation.js';
 import {redeemCoupon} from './coupon-redemption.js';
 
 const currencies=['USD','PYG'];
-const realUser=alias=>`not ${alias}.is_demo_guest and ${alias}.deleted_at is null and ${alias}.email not ilike '%@demo.example.invalid' and ${alias}.email not ilike '%@scale-demo.example.invalid'`;
+export const realUser=alias=>`not ${alias}.is_demo_guest and ${alias}.deleted_at is null and ${alias}.email not ilike '%@demo.example.invalid' and ${alias}.email not ilike '%@scale-demo.example.invalid'`;
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 // `Number.isInteger(1e21)` es true pero Postgres no acepta ese bigint: se exige safe integer.
 const integer=(value,fallback=0)=>{if(value===null||value===undefined||value==='')return fallback;const parsed=Number(value);return Number.isSafeInteger(parsed)&&parsed>=0?parsed:fallback;};
@@ -37,7 +37,7 @@ const COUPON_COLUMNS='c.id,c.code,c.discount_type,c.discount_value,c.currency,c.
 const COUPON_DETAIL=`${COUPON_COLUMNS},o.name as organization_name,(select count(*)::int from platform_coupon_redemptions r where r.coupon_id=c.id) as redemptions,(c.expires_at is not null and c.expires_at<=now()) as expired`;
 const object=value=>{if(!value||typeof value!=='object'||Array.isArray(value))fail('Solicitud inválida.');return value;};
 const only=(value,keys)=>{if(Object.keys(value).some(key=>!keys.includes(key)))fail('La solicitud contiene campos no permitidos.');return value;};
-async function actor(db,session,req){
+export async function actor(db,session,req){
  const user=await session(req);if(!user)fail('No autenticado',401);
  if(user.demo_owner_user_id||user.demo_source_id)fail('El Demo no accede a la administración global.',403);
  const membership=(await db.query('select role from platform_administrators where user_id=$1 and active=true',[user.id])).rows[0];

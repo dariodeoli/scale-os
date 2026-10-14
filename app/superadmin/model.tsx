@@ -226,7 +226,20 @@ export function newExtendKey(){
 export type ConfirmRequest = { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null;
 
 /** Vistas del panel (#102): una consola con secciones, no un scroll largo. */
-export type PlatformView = "resumen" | "agencias" | "cupones" | "accesos" | "auditoria";
+export type PlatformView = "resumen" | "agencias" | "cupones" | "accesos" | "auditoria" | "uso";
+
+/** Contrato de `GET /api/platform/usage` (#191): solo presencia y altas, sin datos financieros. */
+export type UsagePerson = { name: string; avatar_url: string | null; email: string };
+export type UsagePayload = {
+  range: { from: string; to: string; days: number; previous_from: string; previous_to: string; timezone: string };
+  totals: { unique_users: number; recurring_users: number; sessions: number; previous_unique_users: number; active_now: number };
+  daily: { day: string; users: number; sessions: number; previous_day: string | null; previous_users: number }[];
+  signups: { day: string; users: number; agencies: number }[];
+  hourly: { hour: number; users: number }[];
+  monthly: { month: string; signups: number; active_users: number }[];
+  agencies: { id: number | string; name: string; active7: number; active30: number; sessions: number; last_seen_at: string | null; owner: UsagePerson | null }[];
+  users: { id: number | string; name: string; avatar_url: string | null; email: string; agency: string; last_seen_at: string | null; sessions: number }[];
+};
 
 /** Hora de Asunción en 24 h para el chip «Actualizado» del encabezado. */
 export function platformTime(value: string | null) {
