@@ -1064,12 +1064,12 @@ export default function Home() {
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
         <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 py-2 shadow-[0_1px_0_rgb(37_28_41_/_4%)] backdrop-blur motion-reduce:[&_*]:transition-none max-md:z-30 max-md:flex-wrap max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
-          <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3 max-md:min-w-[12.5rem]">
+          <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3 max-md:min-w-[12.5rem] md:min-w-[9rem]">
             <div className="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2">
               <MobileNavigation>{sidebarContent('light')}</MobileNavigation>
             </div>
             <div className="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
-              <div className="topbar-company min-w-0 max-md:min-w-[9rem] [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden max-md:[&_.workspace]:min-h-11">
+              <div className="topbar-company min-w-0 max-md:min-w-[9rem] md:min-w-[9rem] [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden max-md:[&_.workspace]:min-h-11">
                 <CompanySelector name={companyLabel}/>
               </div>
               <div className="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio">
@@ -1083,7 +1083,7 @@ export default function Home() {
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
               <VersionNotice/>
             </div>
-            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
+            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11 max-xl:[&_button.toque-44>span]:hidden max-xl:[&_button.toque-44>kbd]:hidden">
               <ThemeToggle/>
               <WorkspaceGuide {...guideProps} active={active} helpOpen={helpOpen} onHelpOpen={()=>setHelpOpen(true)} onHelpClose={()=>setHelpOpen(false)} variant="help"/>
               {canIaCarga?<IaCargaButton onOpen={()=>setIaCarga(true)}/>:null}

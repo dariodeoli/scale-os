@@ -19,6 +19,6 @@ export function IaCargaButton({onOpen}:{onOpen:()=>void}){
   title="Carga con IA · pegá un texto y revisá antes de crear"
  >
   <Sparkles size={16} aria-hidden="true"/>
-  <span className="hidden md:inline">Carga con IA</span>
+  <span className="hidden xl:inline">Carga con IA</span>
  </button>;
 }
