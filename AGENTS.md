@@ -184,3 +184,7 @@
 - **Teléfono** `+<código> <dígitos>`; **serial** mayúsculas sin separadores; **RUC** con patrón y sin dígito verificador inventado; **porcentajes** enteros 0–100 en el Editor (`integer:true`).
 - Lo guardado es dato normalizado; el formato (símbolo, separadores, @) lo dibuja el campo.
 - **Excepción de contrato (decisión 17-09)**: los montos de transporte entero (Previsión) usan `formatWholeMoney`/`formatSignedMoney` de `amount-format.ts` (0 decimales forzados para toda moneda, con guarda de dato inválido); los Informes formatean sus decimales con `reportMoney` (bigint-safe) para no perder centavos. `formatPygRate` y `numberLabel` formatean números, no montos.
+
+## Memoria persistente (Engram)
+- La memoria del proyecto vive en `.engram/` (chunks versionados; proyecto `scale-os`). Al empezar una sesión: `go install github.com/Gentleman-Programming/engram/cmd/engram@latest` (si falta), `engram setup claude-code` y `engram sync --import`. Antes de terminar: guardar decisiones/descubrimientos con `engram save "<título>" "<detalle>" --type decision|pattern|discovery --project scale-os`, luego `engram sync --project scale-os` y commitear `.engram/`.
+- Nunca guardar secretos, tokens ni datos personales de clientes en la memoria.
