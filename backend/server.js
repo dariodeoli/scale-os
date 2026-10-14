@@ -243,7 +243,8 @@ async function init() {
      "20260930_lead_contact_opposition.sql",
      "20260930_personal_data.sql",
      "20261003_social_identities.sql",
-     "20261005_organization_sso.sql"
+     "20261005_organization_sso.sql",
+     "20261014_coupon_grace.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
