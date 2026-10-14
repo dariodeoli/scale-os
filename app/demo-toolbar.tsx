@@ -49,5 +49,5 @@ export function DemoToolbar({role}:{role:string}){
 }
 
 export function DemoWelcome({close}:{close:()=>void}){
- return <Dialog title="Tu Demo está lista" close={close} size="compact"><div className="grid gap-3.5 [&_.primary]:justify-self-start [&_p]:m-0 [&_p]:leading-relaxed [&_p]:text-mute [&_strong]:text-fore"><p><strong>20 clientes ficticios, 5 colaboradores y 80 piezas</strong> para explorar proyectos, producción, presupuestos y finanzas.</p><p>Tu Demo es privado, dura hasta 24 horas y no envía correos ni usa dinero real. Cada inicio crea una experiencia nueva.</p><button type="button" className="primary" onClick={close}>Explorar el Demo</button></div></Dialog>;
+ return <Dialog title="Tu Demo está lista" close={close} size="corto"><div className="grid gap-3.5 [&_.primary]:justify-self-start [&_p]:m-0 [&_p]:leading-relaxed [&_p]:text-mute [&_strong]:text-fore"><p><strong>20 clientes ficticios, 5 colaboradores y 80 piezas</strong> para explorar proyectos, producción, presupuestos y finanzas.</p><p>Tu Demo es privado, dura hasta 24 horas y no envía correos ni usa dinero real. Cada inicio crea una experiencia nueva.</p><button type="button" className="primary" onClick={close}>Explorar el Demo</button></div></Dialog>;
 }

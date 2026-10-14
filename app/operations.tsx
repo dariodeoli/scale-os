@@ -496,7 +496,7 @@ function PeopleWorkspace({
         <Dialog
           title={person ? "Editar persona" : "Nueva persona"}
           close={() => setEdit(null)}
-          size="wide"
+          size="amplio"
         >
           <p className="form-note">
             {person ? 'El estado laboral no modifica el acceso al panel.' : ['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso; los permisos existentes se conservan.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}
