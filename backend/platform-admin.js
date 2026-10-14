@@ -1,12 +1,13 @@
 import crypto from 'node:crypto';
-import {inspectInternalSubscription,updateInternalSubscription,realOrganization} from './platform-subscription-service.js';
+import {inspectInternalSubscription,updateInternalSubscription} from './platform-subscription-service.js';
+import {realUser,realOrganization} from './platform-demo-filter.js';
 import {optionalUpdate,createPlatformPreview,consumePlatformDeletionProof} from './account-security.js';
 import {redactPiiText} from './pii-safety.js';
 import {text as validText,optId,date as validDate} from './suite-validation.js';
 import {redeemCoupon} from './coupon-redemption.js';
 
 const currencies=['USD','PYG'];
-export const realUser=alias=>`not ${alias}.is_demo_guest and ${alias}.deleted_at is null and ${alias}.email not ilike '%@demo.example.invalid' and ${alias}.email not ilike '%@scale-demo.example.invalid'`;
+export {realUser};
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 // Foto visible de una persona en el panel global (una sola expresión para agencias,
 // accesos y uso). Misma precedencia que la app: la identidad personal; si no hay,
@@ -15,7 +16,7 @@ const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status
 export const platformPersonPhoto=alias=>`(select case when ppi.photo_removed_at is not null then nullif(ppi.photo_url,'')
   else coalesce(nullif(ppi.photo_url,''),
    (select pp.photo_url from agency_user_profiles pp join organizations po on po.id=pp.organization_id
-     where pp.user_id=${alias}.id and nullif(pp.photo_url,'') is not null and po.demo_owner_user_id is null and po.demo_source_id is null and po.slug<>'scale-demo-controles-20260908'
+     where pp.user_id=${alias}.id and nullif(pp.photo_url,'') is not null and ${realOrganization('po')}
      order by pp.updated_at desc,pp.organization_id limit 1),
    nullif(${alias}.google_photo_url,'')) end
   from (select 1) ppone left join user_personal_identities ppi on ppi.user_id=${alias}.id)`;
@@ -51,19 +52,45 @@ const COUPON_COLUMNS='c.id,c.code,c.discount_type,c.discount_value,c.currency,c.
 const COUPON_DETAIL=`${COUPON_COLUMNS},o.name as organization_name,(select count(*)::int from platform_coupon_redemptions r where r.coupon_id=c.id) as redemptions,(c.expires_at is not null and c.expires_at<=now()) as expired`;
 const object=value=>{if(!value||typeof value!=='object'||Array.isArray(value))fail('Solicitud inválida.');return value;};
 const only=(value,keys)=>{if(Object.keys(value).some(key=>!keys.includes(key)))fail('La solicitud contiene campos no permitidos.');return value;};
+// Guard único del panel global (guía §1). Lo usan TODAS las rutas /api/platform/*
+// (platform-router.js lo corre antes de despachar y cada handler lo vuelve a pedir:
+// el resultado se memoiza por request, así que la base se lee una vez por pedido).
+// No confía en lo que traiga la sesión: relee el usuario en la base y exige
+//  1. sesión vigente (resuelta por server.js contra `sessions`),
+//  2. usuario real y activo (no eliminado, no invitado ni dominio de demo) y fuera de un Demo,
+//  3. rol global activo en `platform_administrators` (el correo del dueño configurado
+//     se garantiza ahí al arrancar con ensurePlatformOwnerAdmin; ser dueño de agencia no alcanza),
+//  4. correo verificado o cuenta vinculada a Google (Google solo nos deja nombre/foto
+//     si su userinfo trae email_verified=true; ver google-profile-photo.js).
+// Cualquier falla —incluido un error de base— responde lo mismo: 404 genérico, sin
+// confirmar que el panel existe ni decir por qué se negó.
+export const PLATFORM_GATE_STATUS=404;
+export const PLATFORM_GATE_MESSAGE='No encontrado.';
+export const platformGateError=()=>Object.assign(new Error(PLATFORM_GATE_MESSAGE),{status:PLATFORM_GATE_STATUS,platformGate:true});
+export const verifiedIdentity=alias=>`(${alias}.email_verified_at is not null or nullif(${alias}.google_full_name,'') is not null or nullif(${alias}.google_photo_url,'') is not null)`;
+const gateCache=new WeakMap();
+async function resolveActor(db,session,req){
+ try{
+  const user=await session(req);
+  if(!user||!user.id||user.demo_owner_user_id||user.demo_source_id)return null;
+  const row=(await db.query(`/*platform-gate*/ select u.id,pa.role from users u join platform_administrators pa on pa.user_id=u.id and pa.active=true
+    where u.id=$1 and ${realUser('u')} and ${verifiedIdentity('u')}`,[user.id])).rows[0];
+  return row&&['admin','viewer'].includes(row.role)?{user,role:row.role}:null;
+ }catch{return null;}
+}
 export async function actor(db,session,req){
- const user=await session(req);if(!user)fail('No autenticado',401);
- if(user.demo_owner_user_id||user.demo_source_id)fail('El Demo no accede a la administración global.',403);
- const membership=(await db.query('select role from platform_administrators where user_id=$1 and active=true',[user.id])).rows[0];
- if(!membership)fail('No tenés acceso a la administración global.',403);
- return {user,role:membership.role};
+ let pending=req&&typeof req==='object'?gateCache.get(req):undefined;
+ if(!pending){pending=resolveActor(db,session,req);if(req&&typeof req==='object')gateCache.set(req,pending);}
+ const resolved=await pending;
+ if(!resolved)throw platformGateError();
+ return resolved;
 }
 const requireWrite=role=>{if(role!=='admin')fail('Solo un administrador global puede hacer cambios.',403);};
 async function audit(db,user,action,targetType,targetId,metadata={}){
  await db.query('insert into platform_audit_log(actor_user_id,action,target_type,target_id,metadata) values($1,$2,$3,$4,$5::jsonb)',[user.id,action,targetType,String(targetId),JSON.stringify(metadata)]);
 }
 async function couponDetail(db,id){
- return (await db.query(`select ${COUPON_DETAIL} from platform_coupons c left join organizations o on o.id=c.organization_id where c.id=$1`,[id])).rows[0];
+ return (await db.query(`select ${COUPON_DETAIL} from platform_coupons c left join organizations o on o.id=c.organization_id /*demo-ok: nombre de la empresa destino del cupón*/ where c.id=$1`,[id])).rows[0];
 }
 // La empresa destino debe existir y no ser una cuenta protegida/demo; solo se revalida si el campo cambió.
 async function assertCouponOrganization(db,input){
@@ -103,8 +130,8 @@ function couponConfiguration(input,current=null){
 export async function platformAdmin({req,res,url,db,session,body,send,bootstrapValue=''}){
  if(!url.pathname.startsWith('/api/platform/'))return false;
  try{
-  if(url.pathname==='/api/platform/bootstrap-status'&&req.method==='GET'){send(res,200,await platformBootstrapStatus(db,bootstrapValue));return true;}
   const {user,role}=await actor(db,session,req);
+  if(url.pathname==='/api/platform/bootstrap-status'&&req.method==='GET'){send(res,200,await platformBootstrapStatus(db,bootstrapValue));return true;}
   if(url.pathname==='/api/platform/overview'&&req.method==='GET'){
    const [agencies,users,subscriptions,coupons]=(await Promise.all([
     db.query(`select count(*)::int as total,count(*) filter(where active)::int as active from organizations where ${realOrganization('organizations')}`),
@@ -261,7 +288,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    const values=q?[limit,offset,'%'+q+'%']:[limit,offset];
    const total=Number((await db.query(`select count(*)::int as n from platform_coupons c ${clause(1)}`,q?['%'+q+'%']:[])).rows[0].n);
    const result=await db.query(`select ${COUPON_DETAIL},u.email as created_by
-     from platform_coupons c join users u on u.id=c.created_by_user_id left join organizations o on o.id=c.organization_id ${clause(3)} order by c.created_at desc limit $1 offset $2`,values);
+     from platform_coupons c join users u on u.id=c.created_by_user_id /*demo-ok: autor del cupón*/ left join organizations o on o.id=c.organization_id /*demo-ok: nombre de la empresa destino del cupón*/ ${clause(3)} order by c.created_at desc limit $1 offset $2`,values);
    send(res,200,{coupons:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   if(url.pathname==='/api/platform/coupons'&&req.method==='POST'){
@@ -355,21 +382,21 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    const countWhere=q?'where action ilike $1 or target_type ilike $1 or target_id ilike $1 or actor_email ilike $1':'';
    const total=Number((await db.query(`select count(*)::int as n from (
      select a.action,a.target_type,a.target_id::text,u.email as actor_email
-     from platform_audit_log a join users u on u.id=a.actor_user_id
+     from platform_audit_log a join users u on u.id=a.actor_user_id /*demo-ok: actor del registro de auditoría*/
      union all
      select b.action,'platform_administrator'::text,b.target_user_id::text,null::text
      from platform_bootstrap_audit_log b
     ) actions ${countWhere}`,q?['%'+q+'%']:[])).rows[0].n);
    const result=await db.query(`select * from (
      select a.id,a.action,a.target_type,a.target_id,a.metadata,a.created_at,u.email as actor_email
-     from platform_audit_log a join users u on u.id=a.actor_user_id
+     from platform_audit_log a join users u on u.id=a.actor_user_id /*demo-ok: actor del registro de auditoría*/
      union all
      select b.id,b.action,'platform_administrator'::text,b.target_user_id::text,'{}'::jsonb,b.created_at,null::text
      from platform_bootstrap_audit_log b
     ) actions ${where} order by created_at desc,id desc limit $1 offset $2`,values);
    send(res,200,{actions:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
-  fail('Ruta de administración global no encontrada.',404);
+  fail(PLATFORM_GATE_MESSAGE,404);
   }catch(error){if(process.env.PLATFORM_ADMIN_DEBUG&&!error.status)console.error('PLATFORM 500:',redactPiiText(error.message),error.detail||'',error.constraint||'');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación global.'});return true;}
 }
 export function platformBootstrapEmail(value){
@@ -384,7 +411,7 @@ export async function platformBootstrapStatus(db,value){
 export async function bootstrapInitialPlatformAdmin(db,value){
  const email=platformBootstrapEmail(value),status=await platformBootstrapStatus(db,value);
  if(status.initialized||!email)return {...status,activated:false};
- const target=(await db.query(`select u.id from users u where u.email=$1 and u.email_verified_at is not null and u.is_demo_guest=false
+ const target=(await db.query(`select u.id from users u where u.email=$1 and u.email_verified_at is not null and ${realUser('u')}
    and exists(select 1 from organization_members m where m.user_id=u.id and m.active=true and m.removed_at is null) limit 1`,[email])).rows[0];
  if(!target)return {...status,activated:false,state:'awaiting_eligible_user'};
  const created=await db.query(`insert into platform_administrators(user_id,created_by_user_id) select $1,null where not exists(select 1 from platform_administrators)
@@ -399,7 +426,7 @@ export async function bootstrapInitialPlatformAdmin(db,value){
 export async function ensurePlatformOwnerAdmin(db,value){
  const email=platformBootstrapEmail(value);
  if(!email)return false;
- const target=(await db.query(`select u.id from users u where u.email=$1 and u.email_verified_at is not null and u.is_demo_guest=false
+ const target=(await db.query(`select u.id from users u where u.email=$1 and u.email_verified_at is not null and ${realUser('u')}
    and exists(select 1 from organization_members m where m.user_id=u.id and m.active=true and m.removed_at is null) limit 1`,[email])).rows[0];
  if(!target)return false;
  const granted=await db.query(`insert into platform_administrators(user_id,role,active,created_by_user_id) values($1,'admin',true,null)

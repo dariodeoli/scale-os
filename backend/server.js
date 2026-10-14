@@ -39,13 +39,13 @@ import {presence} from './presence.js';
 import {demoOrganization} from './demo-session.js';
 import {inviteLinks,resolveInvite,claimInvite,accessRequestState} from './invite-links.js';
 import {publicExperience} from './public-experience.js';
-import {platformInquiries,notifyInquiry,platformContactEmail} from './platform-inquiries.js';
+import {notifyInquiry,platformContactEmail} from './platform-inquiries.js';
 import {notifications} from './notifications.js';
 import {automationApi,startAutomation} from './automation.js';
 import {subscriptionBilling,subscriptionState} from './subscription-billing.js';
 import {trialDetails,trialDetailsFromInput,registerTrial} from './trial-registration.js';
-import {platformUsage} from './platform-usage.js';
-import {platformAdmin,bootstrapInitialPlatformAdmin,ensurePlatformOwnerAdmin} from './platform-admin.js';
+import {bootstrapInitialPlatformAdmin,ensurePlatformOwnerAdmin} from './platform-admin.js';
+import {platformRouter} from './platform-router.js';
 import {applyPendingMigrations} from './migrations-runner.mjs';
 import {rolePermissions,roleCan} from './permissions.js';
 import {redactPiiText} from './pii-safety.js';
@@ -343,9 +343,8 @@ const server = http.createServer(async (req,res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
     if(await subscriptionBilling({req,res,url,db,session,body,send,sendPaymentFailed}))return;
-    if(await platformUsage({req,res,url,db,session,body,send}))return;
-    if(await platformInquiries({req,res,url,db,session,body,send}))return;
-    if(await platformAdmin({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
+    // Todo /api/platform/* pasa por un solo guard (platform-router.js).
+    if(await platformRouter({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
     // Billing is separate from membership: suspended owners retain billing,
     // logout and company switching, but no private operational reads/writes.
     if(url.pathname.startsWith('/api/agency/')||url.pathname==='/api/metrics'||url.pathname==='/api/hub/overview'||url.pathname==='/api/ia/carga'||(url.pathname==='/api/auth/organizations'&&req.method==='POST')){

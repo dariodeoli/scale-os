@@ -1,7 +1,8 @@
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
-// Filtro canónico de agencia administrable (fuente única para el panel global):
-// excluye demos, agencias marcadas como de prueba y agencias ya eliminadas.
-export const realOrganization=alias=>`${alias}.demo_owner_user_id is null and ${alias}.demo_source_id is null and ${alias}.deleted_at is null and lower(${alias}.slug) not in ('scale-demo-controles-20260908','agenciaprueba','agencia-prueba') and lower(${alias}.name)<>'agenciaprueba'`;
+// Filtro canónico de agencia administrable: vive en platform-demo-filter.js
+// (fuente única del panel global); se reexporta para los importadores existentes.
+import {realOrganization} from './platform-demo-filter.js';
+export {realOrganization};
 const organizationId=value=>{
  if(!/^[1-9]\d{0,18}$/.test(String(value))||BigInt(value)>9223372036854775807n)fail('Agencia inválida.');
  return String(value);
@@ -40,7 +41,7 @@ export async function inspectInternalSubscription(db,organization){
    u.email as internal_updated_by
    from organizations o left join organization_subscriptions s on s.organization_id=o.id
    left join platform_subscription_states ps on ps.organization_id=s.organization_id
-   left join users u on u.id=ps.updated_by_user_id
+   left join users u on u.id=ps.updated_by_user_id /*demo-ok: quién cambió el estado manual*/
    where o.id=$1 and ${realOrganization('o')}`,[id]);
  const row=result.rows[0];if(!row)fail('Agencia no encontrada.',404);
  return {agency:{id:row.organization_id,name:row.organization_name,slug:row.slug,active:row.organization_active},subscription:row.currency?{

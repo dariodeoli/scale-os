@@ -115,7 +115,7 @@ export async function platformInquiries({req,res,url,db,session,body,send}){
    const where=status?'where i.status=$3':'';
    const values=status?[limit,offset,status]:[limit,offset];
    const total=Number((await db.query(`select count(*)::int as n from platform_inquiries i ${status?'where i.status=$1':''}`,status?[status]:[])).rows[0].n);
-   const rows=(await db.query(`select ${COLUMNS} from platform_inquiries i left join users u on u.id=i.handled_by ${where} order by i.created_at desc,i.id desc limit $1 offset $2`,values)).rows;
+   const rows=(await db.query(`select ${COLUMNS} from platform_inquiries i left join users u on u.id=i.handled_by /*demo-ok: quién atendió la consulta*/ ${where} order by i.created_at desc,i.id desc limit $1 offset $2`,values)).rows;
    send(res,200,{inquiries:rows,limit,offset,total,hasMore:offset+rows.length<total,counts:await counts(db)});return true;
   }
   const match=url.pathname.match(/^\/api\/platform\/inquiries\/([1-9]\d{0,17})$/);
@@ -135,7 +135,7 @@ export async function platformInquiries({req,res,url,db,session,body,send}){
   const handled=status!==current.status;
   await db.query(`update platform_inquiries set status=$2,note=$3,updated_at=now()${handled?',handled_by=$4,handled_at=now()':''} where id=$1`,handled?[current.id,status,note,user.id]:[current.id,status,note]);
   await db.query('insert into platform_audit_log(actor_user_id,action,target_type,target_id,metadata) values($1,$2,$3,$4,$5::jsonb)',[user.id,'inquiry.update','platform_inquiry',String(current.id),JSON.stringify({status,...(input.note!==undefined?{note_changed:true}:{})})]);
-  const row=(await db.query(`select ${COLUMNS} from platform_inquiries i left join users u on u.id=i.handled_by where i.id=$1`,[current.id])).rows[0];
+  const row=(await db.query(`select ${COLUMNS} from platform_inquiries i left join users u on u.id=i.handled_by /*demo-ok: quién atendió la consulta*/ where i.id=$1`,[current.id])).rows[0];
   send(res,200,{inquiry:row,counts:await counts(db)});return true;
  }catch(error){
   send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la solicitud'});return true;
