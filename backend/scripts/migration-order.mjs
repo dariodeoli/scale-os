@@ -102,4 +102,7 @@ export const migrationOrder = [
   '20261014_organization_logo.sql',
   '20261014_inventory_default_categories.sql',
   '20261015_platform_inquiries.sql',
+  '20261016_platform_announcements_maintenance.sql',
+  '20261016_public_analytics.sql',
+  '20261016_platform_errors_reports.sql',
 ];

@@ -5,6 +5,7 @@ import {accessRoles} from './invite-links.js';
 import {phone as normalizePhone} from './suite-validation.js';
 import {ensureConsent} from './personal-data.js';
 import {recordInquiry} from './platform-inquiries.js';
+import {recordDemoEvent} from './public-analytics.js';
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
 // `onInquiry` (opcional) recibe la consulta guardada después de responder: el aviso
 // por correo nunca demora ni rompe el envío público.
@@ -26,6 +27,8 @@ export async function publicExperience({req,res,url,db,session,body,send,cookie,
    const user=await session(req);if(!user?.demo_owner_user_id)fail('Solo disponible en un Demo privado',403);
    if(!accessRoles.includes(b.role))fail('Permiso inválido');
    await db.query('update sessions set demo_role=$1 where id=$2 and user_id=$3 and organization_id=$4',[b.role,parseCookies(req).scale_session,user.id,user.organization_id]);
+   // Analítica de demo (panel global): qué permiso se prueba. Nunca bloquea la demo.
+   await recordDemoEvent(db,{organizationId:user.organization_id,event:'demo_role',label:b.role});
    send(res,200,{ok:true});return true;
   }
   // Installation-wide cap remains effective even when a proxy masks/spoofs the visitor IP.
@@ -62,6 +65,8 @@ export async function publicExperience({req,res,url,db,session,body,send,cookie,
   await seedPrivateDemo(c,org.id,user.id);
   await c.query("insert into agency_user_profiles(organization_id,user_id,full_name) values($1,$2,'Visitante Demo') on conflict do nothing",[org.id,user.id]);
   await c.query("insert into sessions(id,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '1 day')",[token,user.id,org.id]);
-  await c.query('commit');send(res,201,{ok:true},{'Set-Cookie':cookie('scale_session',token,86400)});return true;
+  await c.query('commit');c.release();c=null;
+  await recordDemoEvent(db,{organizationId:org.id,event:'demo_start',label:'publica'});
+  send(res,201,{ok:true},{'Set-Cookie':cookie('scale_session',token,86400)});return true;
  }catch(e){if(c)await c.query('rollback');send(res,e.status||500,{error:e.status?e.message:'No se pudo completar la solicitud'});return true;}finally{c?.release();}
 }

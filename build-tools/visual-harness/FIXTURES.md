@@ -127,3 +127,14 @@ datos reales del inventario de la campaña (`REDISENO-INVENTARIO.md`).
 - Estado actual: **0 hallazgos** a 360/768/1440 (fila 44–52 px, encabezado y
   filas con la misma plantilla, sin superposiciones ni overflow). Capturas en
   `work/visual-harness/referencias/captures` (`capture.mjs`, claro/oscuro).
+
+## Shell con riel lateral y métricas honestas (guía superadmin §2/§3/§7)
+
+`gen-admin-shell.tsx` renderiza con los componentes reales el riel lateral
+(`app/superadmin/sidebar.tsx` desde la lista única `sections.tsx`), la barra
+superior compacta y los chips de período, y escribe `fixtures/_admin-shell.mjs`
+(`adminShell(view, body)`, que ahora enmarca `admin-*`, `admin2-*`, `admin3-*` y
+`admin-uso`) y `fixtures/admin-shell.mjs` (`admin-shell-resumen` con los
+indicadores del período —variación, sparkline y «fuente · cálculo»— y
+`admin-shell-uso`). Regenerar: `npx tsx build-tools/visual-harness/gen-admin-shell.tsx`.
+`admin155-denegado` se retiró: sin acceso el panel vuelve al inicio sin pantalla propia.

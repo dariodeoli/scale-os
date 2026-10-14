@@ -90,9 +90,10 @@ assert.match(serverSource,/const initialPlatformAdminEmail = process\.env\.SCALE
 assert.match(serverSource,/await bootstrapInitialPlatformAdmin\(db,initialPlatformAdminEmail\)/,'el arranque ejecuta el bootstrap del admin inicial');
 assert.match(serverSource,/await ensurePlatformOwnerAdmin\(db,initialPlatformAdminEmail\)/,'el arranque reafirma al dueño configurado como admin activo');
 assert.equal((await call('/api/agency/clients')).handled,false);
-assert.deepEqual((await call('/api/platform/bootstrap-status',{actor:null,bootstrapValue:'invalid'})).data,{configured:true,valid:false,initialized:true,state:'initialized'},'the public diagnostic never exposes the configured address');
-assert.equal((await call('/api/platform/overview',{actor:{id:1,email:'owner@agency.example'}})).status,403,'agency owner must not inherit platform access');
-assert.equal((await call('/api/platform/overview',{actor:{id:2,email:'platform@scale.example',demo_owner_user_id:2}})).status,403,'a Demo context cannot access platform administration');
+assert.equal((await call('/api/platform/bootstrap-status',{actor:null,bootstrapValue:'invalid'})).status,404,'the bootstrap diagnostic is behind the same gate (generic 404 without a session)');
+assert.deepEqual((await call('/api/platform/bootstrap-status',{bootstrapValue:'invalid'})).data,{configured:true,valid:false,initialized:true,state:'initialized'},'the diagnostic never exposes the configured address');
+assert.equal((await call('/api/platform/overview',{actor:{id:1,email:'owner@agency.example'}})).status,404,'agency owner must not inherit platform access (generic 404)');
+assert.equal((await call('/api/platform/overview',{actor:{id:2,email:'platform@scale.example',demo_owner_user_id:2}})).status,404,'a Demo context cannot access platform administration');
 const overview=await call('/api/platform/overview');assert.equal(overview.status,200);assert.equal(overview.data.agencies.total,2,'metadata and canonical demo organizations are excluded');assert.equal(overview.data.users.total,3,'both demo email domains and demo guests are excluded');assert.deepEqual(overview.data.subscriptions.map(row=>row.status),['active','trialing'],'demo organization subscriptions are excluded from aggregates');
 // Smoke e2e local: sin Stripe (`stripe_status` nulo) una prueba vigente se cuenta
 // como «trialing» (no «Sin estado»), y una prueba vencida sin pago, como «grace»/«suspended».
@@ -133,7 +134,7 @@ const logoRows=(await call('/api/platform/agencies?limit=100')).data.agencies;
 assert.equal(logoRows.find(row=>row.id===10).logo_url,'https://cdn.example/logo-one.webp');
 assert.equal(logoRows.find(row=>row.id===20).logo_url,null,'un logo de 300 KB o más no viaja en el listado');
 await pg.query("update organizations set logo_url=null where id in (10,20)");
-assert.equal((await call('/api/platform/agencies/10/subscription',{actor:{id:1,email:'owner@agency.example'}})).status,403,'agency ownership cannot inspect platform subscription controls');
+assert.equal((await call('/api/platform/agencies/10/subscription',{actor:{id:1,email:'owner@agency.example'}})).status,404,'agency ownership cannot inspect platform subscription controls');
 const inspected=await call('/api/platform/agencies/10/subscription');assert.equal(inspected.status,200);assert.equal(inspected.data.subscription.currency,'USD');assert.equal(inspected.data.subscription.internal_state,null);
 const updated=await call('/api/platform/agencies/10/subscription',{method:'PATCH',payload:{state:'suspended',reason:'Security review',expires_at:null}});assert.equal(updated.status,200);assert.equal(updated.data.subscription.internal_state,'suspended');assert.equal(updated.data.subscription.internal_reason,'Security review');
 assert.equal((await call('/api/platform/agencies/10/subscription',{method:'PATCH',payload:{state:'active',reason:'x'}})).status,400,'a short reason cannot grant access');
@@ -157,7 +158,7 @@ assert.equal(extended.status,200);assert.equal(extended.data.subscription.intern
 assert(extended.data.subscription.internal_expires_at,'manual payments set an internal expiry');
 assert(extended.data.subscription.paid_through_at,'manual payments extend the paid runway');
 assert.equal((await call('/api/platform/agencies/20/subscription/extend',{method:'POST',payload:{days:0,reason:'Nada'}})).status,400,'days must be a positive integer');
-assert.equal((await call('/api/platform/agencies/20/subscription/extend',{method:'POST',actor:{id:3,email:'member@agency.example'},payload:{days:7,reason:'Intento'}})).status,403,'only global admins register manual payments');
+assert.equal((await call('/api/platform/agencies/20/subscription/extend',{method:'POST',actor:{id:3,email:'member@agency.example'},payload:{days:7,reason:'Intento'}})).status,404,'only global admins register manual payments');
 assert.equal((await call('/api/platform/audit')).data.actions[0].action,'subscription.manual_extend','manual payments are audited');
 // Un reintento con la misma Idempotency-Key no vuelve a sumar días (issue #23).
 const retryKey='extend-retry-fixture-0001';
@@ -193,7 +194,7 @@ assert.equal(opened.status,200);
  assert.deepEqual((await call('/api/platform/coupons?organization=20')).data.coupons.map(c=>c.code).sort(),['DAYS30','GRACE7']);
  assert.equal((await call('/api/platform/coupons?organization=66')).data.coupons.some(c=>c.code==='GRACE7'),false,'un cupón dirigido no es aplicable a otra empresa');
  const apply=(org,payload,opts={})=>call(`/api/platform/agencies/${org}/coupons/apply`,{method:'POST',payload,...opts});
- assert.equal((await apply(20,{coupon_id:id},{actor:{id:3,email:'member@agency.example'}})).status,403,'solo un admin global aplica cupones');
+ assert.equal((await apply(20,{coupon_id:id},{actor:{id:3,email:'member@agency.example'}})).status,404,'solo un admin global aplica cupones');
  assert.equal((await apply(66,{coupon_id:id,reason:'Prueba'})).status,409,'un cupón dirigido a otra empresa se rechaza');
  const before=await dueOf(20);
  const key='coupon-apply-fixture-01';
@@ -230,7 +231,7 @@ await pg.query("insert into sessions(id,user_id,organization_id,expires_at) valu
 assert.equal((await call('/api/platform/agencies/10',{method:'DELETE'})).status,401,'an agency delete without a proof is rejected');
 assert.equal((await call('/api/platform/agencies/10',{method:'DELETE',payload:{previewId:'x'.repeat(43),confirmation:'Agency One',recentAuthProof:'x'.repeat(43)}})).status,409,'an unknown preview is rejected');
 assert.equal((await destructivePreview(platformActor,'platform.agency.delete',30)).status,404,'demo agencies are protected before the preview');
-assert.equal((await destructivePreview({id:3,email:'member@agency.example'},'platform.agency.delete',10)).status,403,'a viewer cannot even preview a deletion');
+assert.equal((await destructivePreview({id:3,email:'member@agency.example'},'platform.agency.delete',10)).status,404,'a viewer cannot even preview a deletion');
 const agencyPreview=await destructivePreview(platformActor,'platform.agency.delete',10);
 assert.equal(agencyPreview.status,200);assert.equal(agencyPreview.data.preview.confirmation,'Agency One','the confirmation is the agency name on record');
 assert.equal((await call('/api/platform/agencies/10',{method:'DELETE',payload:{previewId:agencyPreview.data.preview.id,confirmation:'Otra agencia',recentAuthProof:'x'.repeat(43)}})).status,400,'the typed confirmation must match');
@@ -284,7 +285,10 @@ assert.equal((await call('/api/platform/agencies/20',{method:'DELETE',actor:{id:
 assert.equal((await call('/api/platform/users/2',{method:'PATCH',payload:{platform_access:'viewer'}})).status,400,'an admin cannot change its own global access');
 assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'bogus'}})).status,400);
 assert.equal((await call('/api/platform/users/999',{method:'PATCH',payload:{platform_access:'admin'}})).status,404);
-assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'admin'}})).status,200);
+// Compare-and-set (guía §6): `expected_access` distinto del vigente → 409 sin escribir.
+assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'admin',expected_access:'viewer'}})).status,409,'acceso global cambiado por otra persona: 409');
+assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'admin',expected_access:'none'}})).status,200);
+assert.equal((await call('/api/platform/users/1',{method:'PATCH',payload:{platform_access:'viewer',expected_access:'none'}})).status,409,'el segundo pedido con el valor viejo no pisa al primero');
 // #69: `/api/auth/me` refleja el rol global vigente (admin / viewer / null).
 let sessionMe=await me({id:2,email:'platform@scale.example'});
 assert.equal(sessionMe.status,200);

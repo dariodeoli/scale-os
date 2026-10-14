@@ -12,6 +12,13 @@ export function middleware(request:NextRequest){
   if(isAnalyticsHost(request.headers.get('host')?.toLowerCase()||''))return NextResponse.next();
   return new NextResponse(null,{status:404,headers:{'X-Robots-Tag':'noindex, nofollow'}});
  }
+ // Panel global sin sesión (guía §1): al inicio de la app sin servir el panel ni
+ // confirmar que existe. Con sesión, el API decide (404 genérico → la página también
+ // vuelve al inicio). Solo en los hosts de producción, donde vive la cookie de sesión.
+ const superadmin=path==='/superadmin'||path.startsWith('/superadmin/')||(host==='admin.scaleparaguay.com'&&path==='/');
+ if(superadmin&&host.endsWith('.scaleparaguay.com')&&!request.cookies.get('scale_session')?.value){
+  const response=NextResponse.redirect(new URL('https://app.scaleparaguay.com/'),307);response.headers.set('X-Robots-Tag','noindex, nofollow');return response;
+ }
  if(host==='admin.scaleparaguay.com'&&path==='/'){
   const url=request.nextUrl.clone();url.pathname='/superadmin';
   const response=NextResponse.rewrite(url);response.headers.set('X-Robots-Tag','noindex, nofollow');return response;

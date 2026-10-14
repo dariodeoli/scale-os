@@ -1,7 +1,7 @@
 /* Panel global (superadmin) — consola del sistema (#102).
  *
  * Rediseño de cero: la pantalla es una consola con encabezado compacto, barra
- * de secciones y vistas. Usa el sistema compartido (`control-shell` +
+ * de secciones y vistas. Shell actual: riel lateral + barra superior (guía §2/§7). Usa el sistema compartido (`control-shell` +
  * `ui-v2` + tokens de densidad de #97); acá vive solo el contrato de pantalla:
  * lienzo, encabezado (PageHeader), fila de secciones y los ajustes de las listas
  * densas a la superficie del panel.
@@ -47,23 +47,84 @@
 .platform-admin-page .panel { padding: var(--ui-panel-padding, 20px) }
 @media (max-width: 760px) { .platform-admin-page .panel { padding: var(--ui-card-padding, 16px) } }
 
-/* ── Secciones (tabs): barra compacta con scroll silencioso en móvil ─────── */
-.platform-admin-tabs-wrap { position: relative; min-width: 0 }
-.platform-admin-tabs { display: flex; min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none }
-.platform-admin-tabs::-webkit-scrollbar { display: none }
-/* El contador de cada pestaña (SegmentedField lo atenúa con opacity-75) queda
-   bajo 4.5:1 sobre el fondo claro; se muestra con el color pleno de la pestaña. */
-.platform-admin-tabs .opacity-75 { opacity: 1 }
-.platform-admin-tabs > div { flex: none }
-.platform-admin-tabs [aria-pressed] { flex: 0 0 auto; width: auto }
-/* Indicador activo (#155 B): barra inferior de marca además del fondo tenue,
-   visible también en alto contraste. */
-.platform-admin-tabs [aria-pressed="true"] { box-shadow: inset 0 -2px 0 0 rgb(var(--c-fono)) }
-/* Pestañas más apretadas y contadores como insignias chicas. */
-@media(min-width:761px){ .platform-admin-tabs [aria-pressed] { padding-inline: 10px } }
-.platform-admin-tabs [aria-pressed] .opacity-75 { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: rgb(var(--c-fore) / .08); font-size: 11px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums }
-/* Consultas nuevas: la insignia toma el color de atención para verse sin abrir la pestaña. */
-.platform-admin-tabs [aria-label^="Consultas ("] .opacity-75 { background: rgb(var(--c-fono)); color: rgb(var(--c-onbrand)) }
+/* ── Shell (guía §2/§7): riel lateral + barra superior compacta ─────────────
+ * Tres hijos directos en grilla: riel (`.platform-sidebar`), barra superior
+ * (`.platform-admin-top`) y contenido (`.platform-main`). ≥1200 px: riel con
+ * íconos y textos (14 rem); 761–1199 px: riel de íconos; ≤760 px: el riel pasa a
+ * una tira horizontal con scroll silencioso debajo de la barra superior. */
+.platform-admin-page.platform-shell { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "side" "main" "foot"; align-content: start; column-gap: var(--ui-space-5, 20px) }
+.platform-shell > .platform-sidebar { grid-area: side; min-width: 0 }
+.platform-shell > .platform-admin-top { grid-area: top }
+.platform-shell > .platform-main { grid-area: main; display: grid; align-content: start; gap: var(--ui-space-3, 12px); min-width: 0 }
+.platform-shell > .platform-footer { grid-area: foot; min-width: 0 }
+.platform-sidebar { display: flex; gap: 4px; min-width: 0; padding: 6px; border: 1px solid var(--line); border-radius: var(--ui-radius-card, 14px); background: var(--surface) }
+.platform-sidebar-brand { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 8px 10px; color: inherit; text-decoration: none }
+.platform-sidebar-brand .workspace-wordmark { font-size: 19px }
+.platform-sidebar-scope { display: block; margin-top: 2px; color: var(--text-muted); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap }
+.platform-sidebar-brand .workspace-brand + .platform-sidebar-scope { display: none }
+.platform-shell nav.platform-sidebar-nav { display: flex; flex-direction: column; gap: 2px; min-width: 0 }
+.platform-shell .platform-nav-item { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 38px; padding: 0 10px; border: 0; border-radius: var(--ui-radius-control, 10px); background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 550; line-height: 1.2; text-align: left; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background var(--ease, .15s), color var(--ease, .15s) }
+.platform-shell .platform-nav-item:hover { background: var(--surface-subtle); color: var(--text) }
+/* Activo: fondo y texto de marca + barra lateral (visible también en alto contraste). */
+.platform-shell .platform-nav-item[aria-current="page"] { background: var(--violet-soft); color: var(--brand-700); font-weight: 650; box-shadow: inset 3px 0 0 var(--brand-600) }
+.platform-nav-icon { width: 18px; height: 18px; flex: none }
+.platform-nav-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis }
+.platform-nav-badge { display: inline-grid; place-items: center; min-width: 20px; height: 18px; padding: 0 6px; border-radius: 999px; background: rgb(var(--c-fore) / .08); color: var(--text); font-size: 11px; font-weight: 650; line-height: 1; font-variant-numeric: tabular-nums }
+/* Consultas nuevas: la insignia toma el color de atención para verse sin abrir la sección. */
+.platform-nav-badge[data-attention] { background: var(--brand-700); color: rgb(var(--c-onbrand)) }
+@media (min-width: 761px) {
+  .platform-admin-page.platform-shell { grid-template-columns: 4.25rem minmax(0, 1fr); grid-template-areas: "side top" "side main" "side foot"; grid-template-rows: auto 1fr auto }
+  .platform-shell > .platform-sidebar { grid-row: 1 / -1; position: sticky; top: var(--ui-space-2, 8px); align-self: start; flex-direction: column; max-height: calc(100dvh - 16px); overflow-y: auto; scrollbar-width: none }
+  /* La marca vive en el riel; la barra superior no la repite. */
+  .platform-shell > .platform-admin-top > .platform-admin-brand { display: none }
+}
+/* Riel de íconos (761–1199 px): el texto queda en el tooltip y en el nombre accesible. */
+@media (min-width: 761px) and (max-width: 1199px) {
+  .platform-sidebar { align-items: center }
+  .platform-sidebar-brand { padding: 4px 0 8px }
+  .platform-sidebar-brand .workspace-wordmark, .platform-sidebar-scope { display: none }
+  .platform-shell .platform-nav-item { justify-content: center; width: 44px; min-height: 44px; padding: 0 }
+  .platform-nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+  .platform-nav-badge { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px }
+}
+@media (min-width: 1200px) {
+  .platform-admin-page.platform-shell { grid-template-columns: 14rem minmax(0, 1fr) }
+  .platform-sidebar { padding: 8px }
+  .platform-sidebar-brand { flex-direction: column; align-items: flex-start; gap: 4px }
+  .platform-sidebar-brand .workspace-brand + .platform-sidebar-scope { display: block; padding-left: 43px; margin-top: -6px }
+}
+/* Mobile: tira horizontal fija bajo la barra, con scroll silencioso (las secciones no se apilan). */
+@media (max-width: 760px) {
+  .platform-shell > .platform-sidebar { position: sticky; top: 0; z-index: 5; padding: 4px; box-shadow: var(--shadow-sm) }
+  .platform-sidebar-brand { display: none }
+  .platform-shell nav.platform-sidebar-nav { flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: none }
+  .platform-shell nav.platform-sidebar-nav::-webkit-scrollbar { display: none }
+  .platform-shell .platform-nav-item { flex: none; width: auto; min-height: 44px; padding: 0 12px }
+  .platform-shell .platform-nav-item[aria-current="page"] { box-shadow: inset 0 -3px 0 var(--brand-600) }
+}
+
+/* ── Chips de período compartidos (Resumen y Uso) ─────────────────────────── */
+.platform-period { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--ui-control-gap-lg, 12px); min-width: 0 }
+.platform-period-chips { min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none }
+.platform-period-chips::-webkit-scrollbar { display: none }
+.platform-period-range { color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap }
+
+/* ── Indicadores con variación, sparkline y nota «fuente · cálculo» ─────────── */
+.platform-admin-page .ui-kpi > div:last-child > span:has(> .platform-kpi-hint) { flex: 1 1 auto; min-width: 0 }
+.platform-kpi-hint { display: grid; gap: 4px; min-width: 0; width: 100% }
+.platform-kpi-trend { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0 }
+.platform-kpi-delta { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums }
+.platform-kpi-delta[data-tone="up"] { color: var(--success, #157f3b) }
+.platform-kpi-delta[data-tone="down"] { color: var(--danger) }
+.ui-kpi.bg-gradient-to-br .platform-kpi-delta[data-tone] { color: inherit }
+.platform-kpi-empty { font-size: 15px; font-weight: 600; color: var(--text-muted) }
+.platform-sparkline { flex: none; overflow: visible }
+.platform-sparkline rect { fill: currentColor; opacity: .8 }
+.platform-sparkline rect[data-zero] { opacity: .25 }
+.platform-metric-note { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: 11px; line-height: 1.35 }
+.platform-metric-note > span { font-weight: 600 }
+.ui-kpi.bg-gradient-to-br .platform-metric-note { color: inherit; opacity: .85 }
+@media (min-width: 1280px) { .platform-admin-page .platform-metrics-strip { grid-template-columns: repeat(3, minmax(0, 1fr)) } }
 
 /* La toolbar de filtros del panel no deja campos pegados al borde. */
 .platform-admin-page [data-toolbar="filtros"] { gap: var(--ui-control-gap-lg, 12px); margin-bottom: var(--ui-space-3, 12px) }
@@ -117,9 +178,6 @@
   .platform-admin-actions .secondary { flex: none; min-height: 44px; min-width: 44px; padding: 0; justify-content: center }
   .platform-admin-action-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
   .platform-admin-table-wrap { display: none; }
-  /* Pestañas: tira horizontal con scroll silencioso (las secciones no se apilan). */
-  .platform-admin-tabs > div { flex-wrap: nowrap; gap: 4px }
-  .platform-admin-tabs [aria-pressed] { min-height: 44px; min-width: 44px }
 }
 
 /* El micro-rótulo del panel pasa AA también en oscuro (el violeta de marca

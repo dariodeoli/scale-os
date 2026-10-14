@@ -3,34 +3,20 @@
 // detalle vive en el texto muted o en el tooltip—, borde tokenizado para alto
 // contraste, acción de recuperación en el error y skeleton con la forma real
 // del panel mientras carga.
-import Link from "next/link";
-import {ArrowLeft, CircleAlert, KeyRound, RefreshCw, ShieldAlert, TriangleAlert} from "lucide-react";
+import {CircleAlert, RefreshCw, TriangleAlert} from "lucide-react";
 import {Aviso, Skeleton} from 'owncoding-ui';
-import {appHome, formatPlatformMetric, type BootstrapStatus, type CollectionPage, type State} from "./model";
+import {formatPlatformMetric, type BootstrapStatus, type CollectionPage, type State} from "./model";
 
 const ROW = "grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3";
 const ICON = "grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute";
 
+/**
+ * Sin acceso (sin sesión, sin rol global, demo o cuenta no verificada): el panel
+ * redirige al inicio de la app y mientras tanto no dibuja NADA propio — ni título,
+ * ni motivo, ni «no autorizado» — para no confirmar que existe (guía §1).
+ */
 export function PlatformRedirecting() {
-  return <section className={ROW} role="status">
-    <span className={ICON} aria-hidden="true"><KeyRound size={17}/></span>
-    <div className="min-w-0">
-      <b className="block text-[13.5px] font-semibold text-fore">Redirigiendo al inicio de sesión</b>
-      <p className="mt-0.5 text-xs text-mute">Verificá tu acceso para continuar con la administración global.</p>
-    </div>
-  </section>;
-}
-
-export function PlatformAccessDenied({message}: {message?: string}) {
-  return <section className={`${ROW} border-bad-text/40`} role="alert">
-    <span className={`${ICON} text-bad`} aria-hidden="true"><ShieldAlert size={17}/></span>
-    <div className="min-w-0">
-      <b className="block text-[13.5px] font-semibold text-fore">No tenés acceso global</b>
-      {/* El motivo del API conserva el contexto (demo, membresía ausente) #147. */}
-      <p className="mt-0.5 text-xs text-mute">{message || "Tu sesión está activa, pero no tiene el permiso necesario para administrar la plataforma."}</p>
-      <Link className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" href={appHome()}><ArrowLeft size={14} aria-hidden="true"/>Volver al panel</Link>
-    </div>
-  </section>;
+  return <main className="min-h-dvh" aria-busy="true"/>;
 }
 
 export function PlatformNotices({state, error, bootstrap, onRetry}: {state: State | null; error: string; bootstrap: BootstrapStatus | null; onRetry?: () => void}) {
@@ -55,56 +41,45 @@ export function PlatformNotices({state, error, bootstrap, onRetry}: {state: Stat
   </div>;
 }
 
-/** Skeleton con la forma del panel (#155): encabezado, tabs, KPIs y paneles. */
+/**
+ * Carga inicial: la forma neutra del shell (riel + barra + bloques) sin textos del
+ * panel. La primera respuesta del API decide: admin → panel; cualquier otro → inicio.
+ */
 export function PlatformAdminSkeleton() {
-  return <main className="platform-admin-page control-shell" aria-busy="true">
-    <p className="sr-only" role="status">Cargando el control global…</p>
+  return <main className="platform-admin-page control-shell platform-shell" aria-busy="true">
+    <p className="sr-only" role="status">Cargando…</p>
+    <aside className="platform-sidebar" aria-hidden="true">
+      <Skeleton className="mb-3 h-9 w-9 rounded-xl max-[760px]:hidden"/>
+      <div className="platform-sidebar-nav flex min-w-0 flex-1 gap-1 overflow-hidden min-[761px]:flex-col">
+        {[0, 1, 2, 3, 4, 5, 6].map((index) => <Skeleton key={index} className={`h-9 w-full shrink-0 rounded-lg max-[760px]:w-24 ${index > 2 ? "max-[760px]:hidden" : ""}`}/>)}
+      </div>
+    </aside>
     <div className="platform-admin-top" aria-hidden="true">
-      <Skeleton className="h-9 w-9 rounded-xl"/>
-      <div className="ui-page-header flex min-w-0 flex-[1_1_20rem] flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div className="grid min-w-0 gap-1">
-          <Skeleton className="h-5 w-44"/>
-          <span className="platform-admin-meta">
-            <Skeleton className="h-6 w-24 rounded-full"/>
-            <Skeleton className="h-3 w-24"/>
-          </span>
-        </div>
-        <div className="platform-admin-actions">
-          <Skeleton className="h-11 w-11 rounded-lg md:h-9 md:w-28"/>
-          <Skeleton className="h-11 w-11 rounded-lg md:h-9 md:w-24"/>
-        </div>
+      <div className="grid min-w-0 flex-1 gap-1">
+        <Skeleton className="h-5 w-44"/>
+        <Skeleton className="h-3 w-24"/>
+      </div>
+      <div className="platform-admin-actions">
+        <Skeleton className="h-11 w-11 rounded-lg md:h-9 md:w-28"/>
+        <Skeleton className="h-11 w-11 rounded-lg md:h-9 md:w-24"/>
       </div>
     </div>
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
-      <div className="silent-scroll flex w-max min-w-0 max-w-full gap-1 overflow-x-auto rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
-        {['w-24', 'w-28', 'w-24', 'w-24', 'w-20', 'w-28', 'w-16'].map((size, index) => <Skeleton key={index} className={`h-11 shrink-0 rounded-lg md:h-8 ${size}`}/>)}
+    <div className="platform-main grid min-w-0 content-start gap-4" aria-hidden="true">
+      <div className="ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((index) => <div key={index} className="rounded-xl border border-ink-600 bg-ink-800 p-4">
+          <Skeleton className="h-3 w-24"/>
+          <Skeleton className="mt-2 h-7 w-20"/>
+          <Skeleton className="mt-2 h-3 w-28"/>
+        </div>)}
       </div>
-      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="grid min-w-0 gap-4">
-          <div className="ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
-            {[0, 1, 2, 3].map((index) => <div key={index} className="rounded-xl border border-ink-600 bg-ink-800 p-4">
-              <Skeleton className="h-3 w-24"/>
-              <Skeleton className="mt-2 h-7 w-20"/>
-              <Skeleton className="mt-2 h-3 w-28"/>
-            </div>)}
-          </div>
-          <div className="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
-            {[0, 1, 2].map((index) => <div key={index} className="panel grid gap-2">
-              <Skeleton className="h-4 w-36"/>
-              {[0, 1, 2].map((row) => <div key={row} className="flex items-center justify-between gap-3 py-1.5">
-                <Skeleton className="h-3 w-40"/>
-                <Skeleton className="h-5 w-16 rounded-full"/>
-              </div>)}
-            </div>)}
-          </div>
-        </div>
-        <div className="grid content-start gap-4" aria-hidden="true">
-          {[0, 1].map((index) => <div key={index} className="panel grid gap-2">
-            <Skeleton className="h-4 w-32"/>
-            <Skeleton className="h-10 w-full rounded-lg"/>
-            <Skeleton className="h-10 w-full rounded-lg"/>
+      <div className="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        {[0, 1, 2].map((index) => <div key={index} className="panel grid gap-2">
+          <Skeleton className="h-4 w-36"/>
+          {[0, 1, 2].map((row) => <div key={row} className="flex items-center justify-between gap-3 py-1.5">
+            <Skeleton className="h-3 w-40"/>
+            <Skeleton className="h-5 w-16 rounded-full"/>
           </div>)}
-        </div>
+        </div>)}
       </div>
     </div>
   </main>;

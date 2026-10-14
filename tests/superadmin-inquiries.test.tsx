@@ -112,7 +112,7 @@ test('the API error is shown with retry and a 403 is delegated to the panel gate
   } finally { if (renderer) act(() => renderer.unmount()); restore(); }
 });
 
-test('panel: Consultas tab with the new-inquiries badge, compact header without the access notice', async () => {
+test('panel: Consultas item with the new-inquiries badge, compact header without the access notice', async () => {
   const restore = browser();
   const urls: string[] = [];
   const data: Record<string, unknown> = {
@@ -126,7 +126,7 @@ test('panel: Consultas tab with the new-inquiries badge, compact header without 
   try {
     await act(async () => { renderer = create(<AppRouterContext.Provider value={{replace() {}} as never}><PlatformAdmin/></AppRouterContext.Provider>, {createNodeMock: wide}); });
     const tabs = renderer.root.findByProps({'aria-label': 'Secciones del panel global'}).findAllByType('button');
-    assert.equal(tabs.length, 7);
+    assert.equal(tabs.length, 12);
     assert.equal(tabs[1].props['aria-label'], 'Consultas (4)', 'la pestaña cuenta las consultas nuevas');
     assert.ok(urls.includes('/core-api/api/platform/inquiries?limit=1'), 'el contador sale del mismo endpoint');
     const html = rendered(renderer);
@@ -141,12 +141,12 @@ test('panel: Consultas tab with the new-inquiries badge, compact header without 
   } finally { if (renderer) act(() => renderer.unmount()); restore(); }
 });
 
-test('header and tabs CSS contract: one compact row, icon-only mobile actions, scrollable tab strip', () => {
+test('header and sidebar CSS contract: one compact row, icon-only mobile actions, scrollable section strip', () => {
   const styles = readFileSync(new URL('../app/superadmin/platform-admin.css', import.meta.url), 'utf8');
   assert.match(styles, /\.platform-admin-actions :is\(\.secondary\) \{ display: inline-flex; align-items: center; gap: 6px; min-height: 36px;/);
   assert.match(styles, /\.platform-admin-top \{ flex-wrap: nowrap; gap: 8px \}/);
   assert.match(styles, /\.platform-admin-action-label \{ position: absolute; width: 1px; height: 1px;/);
-  assert.match(styles, /\.platform-admin-tabs > div \{ flex-wrap: nowrap; gap: 4px \}/);
-  assert.match(styles, /\[aria-label\^="Consultas \("\] \.opacity-75/);
+  assert.match(styles, /\.platform-shell nav\.platform-sidebar-nav \{ flex-direction: row; gap: 4px; overflow-x: auto;/);
+  assert.match(styles, /\.platform-nav-badge\[data-attention\] \{ background: var\(--brand-700\)/);
   assert.doesNotMatch(readFileSync(new URL('../app/superadmin/states.tsx', import.meta.url), 'utf8'), /Acceso separado por plataforma/);
 });

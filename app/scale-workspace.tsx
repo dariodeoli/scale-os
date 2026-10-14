@@ -19,6 +19,7 @@ import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 import {IaCargaButton} from './ia-carga-button';
 import {VersionNotice} from './version-notice';
+import {AnnouncementBanner} from './announcement-banner';
 import {ProviderSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
 import {LoadingScreen} from './loading-screen';
@@ -44,6 +45,7 @@ import './control-center.css';
 import {Dialog} from './dialog';
 import {completeSave} from './save-completion';
 import {ProjectComments, CompanySelector, money} from './operations';
+import {ReportProblemButton} from './report-problem';
 import './operations.css';
 import './suite.css';
 import {RecordEditor} from './suite';
@@ -1012,6 +1014,8 @@ export default function Home() {
         <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t pt-3 ${tone==='rail'?'border-white/[0.12]':'border-ink-600'}`}>
           {/* Issue #69: acceso a la administración de la plataforma, sólo si el
               SERVIDOR marca platform_role=admin en /auth/me (nunca por email). */}
+          {/* Reportar un problema (panel global → Reportes): disponible para toda sesión real; el Demo no reporta. */}
+          {user&&!user.demo_owner_user_id&&<ReportProblemButton className={navItemClass(false,tone)} iconClassName={navIconClass(false,tone)}/>}
           {user?.platform_role==='admin'&&<a className={`nav-admin ${navItemClass(false,tone)}`} href="https://admin.scaleparaguay.com" target="_blank" rel="noopener noreferrer" title="Administración de Scale" aria-label="Administración de Scale"><span className={navIconClass(false,tone)}><ShieldCheck size={16}/></span><span className="nav-label">Administración de Scale</span></a>}
           <div className="profile-footer min-w-0"><button className={`user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition ${tone==='rail'?'hover:bg-white/10':'hover:bg-ink-700'}`} aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
@@ -1073,6 +1077,7 @@ export default function Home() {
         <PageTitleContext.Provider value={pageTitle}>
         <PageChromeContext.Provider value={ownsHeader?sectionTabs:null}>
         <div className="workspace-content flex min-w-0 flex-1 flex-col">
+        {user&&<AnnouncementBanner key={`${user.id}:${user.organization_id}`}/>}
         {!ownsHeader&&<header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1">
           {active==='Clientes' ? <ClientDirectoryToolbar
             loading={shellDataState==='loading'}

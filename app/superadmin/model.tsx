@@ -227,11 +227,12 @@ export function newExtendKey(){
 
 export type ConfirmRequest = { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null;
 
-/** Vistas del panel (#102): una consola con secciones, no un scroll largo. */
-export type PlatformView = "resumen" | "consultas" | "agencias" | "cupones" | "accesos" | "auditoria" | "uso";
+/** Id de una sección del panel (lista única en `sections.tsx`). */
+export type PlatformView = string;
 /** Aviso de acceso separado (antes, una fila propia del panel): vive en el tooltip del permiso. */
+/** Respuesta única del guard del API a quien no es admin global (backend/platform-admin.js). */
+export const PLATFORM_GATE_MESSAGE = "No encontrado.";
 export const PLATFORM_ACCESS_NOTE = "Acceso separado por plataforma: ser dueño de una agencia no habilita este panel ni sus datos.";
-export const PLATFORM_VIEWS: PlatformView[] = ["resumen", "consultas", "agencias", "cupones", "accesos", "auditoria", "uso"];
 
 /** Contrato de `GET /api/platform/inquiries`: consultas de la landing («¿Tenés alguna duda?»). */
 export type InquiryStatus = "new" | "contacted" | "closed";
@@ -254,12 +255,54 @@ export type Inquiry = {
 export type InquiryCounts = Record<InquiryStatus, number>;
 export type InquiryPage = {inquiries: Inquiry[]; total: number; hasMore: boolean; limit: number; offset: number; counts: InquiryCounts};
 
+/** Contrato de `GET /api/platform/errors`: errores del API y de la web agrupados por huella (sin PII). */
+export type ErrorStatus = "new" | "resolved" | "ignored";
+export type ErrorSource = "api" | "web";
+export type ErrorGroup = {
+  id: number | string;
+  source: ErrorSource;
+  message: string;
+  route: string | null;
+  occurrences: number;
+  first_seen_at: string;
+  last_seen_at: string;
+  status: ErrorStatus;
+  resolved_at: string | null;
+  resolved_by_email: string | null;
+  sample_stack?: string | null;
+  sample_meta?: Record<string, string | number>;
+};
+export type ErrorCounts = Record<ErrorStatus, number>;
+export type ErrorPage = {errors: ErrorGroup[]; total: number; hasMore: boolean; limit: number; offset: number; counts: ErrorCounts; last24h: {groups: number; new_groups: number}};
+
+/** Contrato de `GET /api/platform/reports`: «Reportar un problema» de los usuarios. */
+export type ReportStatus = "new" | "in_progress" | "resolved";
+export type UserReport = {
+  id: number | string;
+  category: "error" | "datos" | "lentitud" | "sugerencia" | "otro";
+  message: string;
+  route: string | null;
+  app_version: string | null;
+  status: ReportStatus;
+  note: string | null;
+  handled_at: string | null;
+  handled_by_email: string | null;
+  created_at: string;
+  organization_name: string | null;
+  user_email: string | null;
+  user_name: string | null;
+};
+export type ReportCounts = Record<ReportStatus, number>;
+export type ReportPage = {reports: UserReport[]; total: number; hasMore: boolean; limit: number; offset: number; counts: ReportCounts};
+
 /** Contrato de `GET /api/platform/usage` (#191): solo presencia y altas, sin datos financieros. */
 export type UsagePerson = { name: string; avatar_url: string | null; email: string };
 export type UsagePayload = {
   range: { from: string; to: string; days: number; previous_from: string; previous_to: string; timezone: string };
-  totals: { unique_users: number; recurring_users: number; sessions: number; previous_unique_users: number; active_now: number };
-  daily: { day: string; users: number; sessions: number; previous_day: string | null; previous_users: number }[];
+  totals: { unique_users: number; recurring_users: number; sessions: number; previous_unique_users: number; previous_sessions?: number; previous_recurring_users?: number; active_now: number };
+  daily: { day: string; users: number; sessions: number; recurring?: number; previous_day: string | null; previous_users: number; previous_sessions?: number }[];
+  /** La fuente tiene filas reales (si no, «Sin datos todavía» en vez de ceros). */
+  has_data?: { sessions: boolean; users: boolean };
   signups: { day: string; users: number; agencies: number }[];
   hourly: { hour: number; users: number }[];
   monthly: { month: string; signups: number; active_users: number }[];
@@ -297,3 +340,11 @@ export type CouponDraft = { code: string; discount_value: string; discount_type:
 export const PLATFORM_GOOGLE_STORAGE_KEY = "scale.platform.recent-auth-google";
 /** Palabra corta que confirma una eliminación global (la re-autenticación es el control real). */
 export const PLATFORM_DELETE_WORD = "ELIMINAR";
+
+/** Contrato de `GET /api/platform/metrics`: indicadores del Resumen, sin demos. */
+export type PlatformMetric = { value: number; previous: number; series: number[]; has_data: boolean };
+export type PlatformMetricsPayload = {
+  range: UsagePayload["range"];
+  days: string[];
+  kpis: Record<"agencies" | "users" | "active_users" | "sessions" | "inquiries" | "redemptions", PlatformMetric>;
+};

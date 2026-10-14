@@ -466,7 +466,7 @@ footer a:hover{color:var(--accent)}
 <form id="contact-form" class="contact-form"><label>Tu nombre<input name="name" required minlength="2" maxlength="100" autocomplete="name"></label><label>Empresa o agencia<input name="company" required minlength="2" maxlength="140" autocomplete="organization"></label><label>Correo<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label>WhatsApp (opcional)<input name="phone" type="tel" maxlength="50" autocomplete="tel"></label><label class="wide">¿Qué necesitás? (opcional)<textarea name="message" rows="4" maxlength="1500"></textarea></label><label class="trap" aria-hidden="true">No completar<input name="website" tabindex="-1" autocomplete="off"></label><label class="wide consent"><input type="checkbox" name="consent" required>Autorizo a Scale Strategy Group a contactarme sobre esta consulta. Puedo solicitar que eliminen mis datos.</label><button class="button wide" type="submit">Enviar consulta</button><p class="wide" role="status" id="contact-status" aria-live="polite"></p><noscript>Activá JavaScript para enviar el formulario o contactanos por WhatsApp.</noscript></form>
 </section>
 </main>
-<footer data-testid="product-footer" data-modelo="compacto" class="border-t border-fore/10 bg-transparent px-4 py-4 text-xs leading-5 text-mute text-center workspace-footer workspace-footer-landing"><div class="flex min-w-0 flex-wrap items-center justify-center gap-x-2"><span>© 2026 Scale OS. Todos los derechos reservados. · v1.0.186</span><span><a href="#precio">Ver el plan</a> · <a href="https://sistema.scaleparaguay.com/privacidad">Privacidad</a> · <a href="https://scaleparaguay.com/">Un producto de Scale Strategy Group ↗</a></span></div><nav aria-label="Información institucional" class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1"><a href="https://owncoding.dev/" target="_blank" rel="noreferrer" class="toque-44 inline-flex min-h-11 items-center rounded-lg px-1 font-medium text-fono-dark underline-offset-4 hover:underline dark:text-fono-light">Desarrollado por Owncoding<span class="sr-only"> (se abre en otra pestaña)</span></a></nav></footer>
+<footer data-testid="product-footer" data-modelo="compacto" class="border-t border-fore/10 bg-transparent px-4 py-4 text-xs leading-5 text-mute text-center workspace-footer workspace-footer-landing"><div class="flex min-w-0 flex-wrap items-center justify-center gap-x-2"><span>© 2026 Scale OS. Todos los derechos reservados. · v1.0.187</span><span><a href="#precio">Ver el plan</a> · <a href="https://sistema.scaleparaguay.com/privacidad">Privacidad</a> · <a href="https://scaleparaguay.com/">Un producto de Scale Strategy Group ↗</a></span></div><nav aria-label="Información institucional" class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1"><a href="https://owncoding.dev/" target="_blank" rel="noreferrer" class="toque-44 inline-flex min-h-11 items-center rounded-lg px-1 font-medium text-fono-dark underline-offset-4 hover:underline dark:text-fono-light">Desarrollado por Owncoding<span class="sr-only"> (se abre en otra pestaña)</span></a></nav></footer>
 <script>
 // Aggregate counters only: no persistent visitor identifier or advertising pixel.
 function recordLanding(name){fetch('https://sistema.scaleparaguay.com/core-api/api/public/telemetry',{method:'POST',credentials:'omit',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({name})}).catch(()=>{});}
@@ -517,4 +517,35 @@ recordLanding('page_view');if(matchMedia('(max-width:760px)').matches)recordLand
 // END LIVE VISITORS
 const contactForm=document.getElementById('contact-form');
 if(contactForm)contactForm.addEventListener('submit',async function(event){event.preventDefault();const button=this.querySelector('button[type="submit"],button'),status=document.getElementById('contact-status');if(!button||button.disabled)return;const label=button.textContent;button.disabled=true;button.textContent='Enviando…';status.textContent='Enviando consulta…';try{const values=Object.fromEntries(new FormData(this));values.consent=this.elements.consent.checked;const response=await fetch('https://sistema.scaleparaguay.com/core-api/api/public/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(values)});const data=await response.json().catch(()=>null);if(!response.ok)throw new Error((data&&data.error)||'No se pudo enviar. Intentá nuevamente.');status.textContent='Consulta recibida. El equipo de Scale se pondrá en contacto con vos.';this.reset();}catch(error){status.textContent=(error&&error.message)||'No se pudo conectar. Intentá nuevamente.';}finally{button.disabled=false;button.textContent=label;}});
+</script>
+<script>
+// FIRST-PARTY ANALYTICS (panel global «Tráfico y demos»): vistas, tiempo visible, scroll máximo y clics en CTA.
+// Sin cookies, IP, correo ni URL completa: visitante aleatorio que se renueva cada día, ruta sin query y solo el dominio del referer. Respeta DNT y GPC.
+(function(){
+ var n=navigator,d=document,l=location,w=window,endpoint='/core-api/api/public/analytics/collect';
+ function off(v){return v==='1'||String(v).toLowerCase()==='yes';}
+ if(l.origin!=='https://sistema.scaleparaguay.com'||off(n.doNotTrack)||off(n.msDoNotTrack)||off(w.doNotTrack)||n.globalPrivacyControl===true||w.__scaleFirstParty||!w.crypto||!crypto.getRandomValues)return;
+ w.__scaleFirstParty=true;
+ function rand(size){var bytes=new Uint8Array(size);crypto.getRandomValues(bytes);return Array.from(bytes,function(b){return (b%36).toString(36);}).join('');}
+ var day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion'}).format(new Date()),visitor;
+ try{var saved=JSON.parse(localStorage.getItem('scale.visit.v1')||'null');if(saved&&saved.day===day&&/^[a-z0-9]{20}$/.test(saved.id))visitor=saved.id;else{visitor=rand(20);localStorage.setItem('scale.visit.v1',JSON.stringify({day:day,id:visitor}));}}catch(e){visitor=rand(20);}
+ var view=rand(16),path=l.pathname,referrer;
+ try{if(d.referrer){var host=new URL(d.referrer).hostname;if(host&&host!==l.hostname)referrer=host;}}catch(e){}
+ function send(body,beacon){body.surface='landing';body.path=path;body.visitor=visitor;var text=JSON.stringify(body);
+  try{if(beacon&&n.sendBeacon&&n.sendBeacon(endpoint,new Blob([text],{type:'application/json'})))return;}catch(e){}
+  fetch(endpoint,{method:'POST',credentials:'omit',keepalive:true,headers:{'Content-Type':'application/json'},body:text}).catch(function(){});}
+ send({event:'page_view',view:view,referrer:referrer,mobile:matchMedia('(max-width:760px)').matches});
+ var visible=0,since=d.visibilityState==='visible'?Date.now():0,maxScroll=0,last='',queued=false;
+ function measure(){var root=d.documentElement,height=Math.max(root.scrollHeight,d.body?d.body.scrollHeight:0),bottom=(w.scrollY||root.scrollTop||0)+w.innerHeight;
+  var pct=height<=w.innerHeight||height-bottom<=2?100:Math.round(Math.max(0,Math.min(1,bottom/height))*100);if(pct>maxScroll)maxScroll=pct;}
+ function flush(){if(since){visible+=Date.now()-since;since=0;}measure();var seconds=Math.round(visible/1000),key=seconds+':'+maxScroll;if(key===last)return;last=key;send({event:'engagement',view:view,seconds:seconds,scroll:maxScroll},true);}
+ w.addEventListener('scroll',function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;measure();});},{passive:true});
+ d.addEventListener('visibilitychange',function(){if(d.visibilityState==='hidden')flush();else if(!since)since=Date.now();});
+ w.addEventListener('pagehide',flush);
+ w.addEventListener('pageshow',function(event){if(event.persisted&&!since)since=Date.now();});
+ measure();
+ d.addEventListener('click',function(event){var a=event.target&&event.target.closest?event.target.closest('a[data-cta],a[href^="https://wa.me/"]'):null;if(!a)return;
+  var kind=a.getAttribute('data-cta'),cta=kind==='trial'||kind==='demo'?kind:String(a.getAttribute('href')).indexOf('https://wa.me/')===0?'whatsapp':'';if(cta)send({event:'cta_click',cta:cta},true);},true);
+ var form=d.getElementById('contact-form');if(form)form.addEventListener('submit',function(){send({event:'cta_click',cta:'contact'},true);});
+})();
 </script>

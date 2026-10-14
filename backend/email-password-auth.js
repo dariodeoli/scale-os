@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import {claimInvite,resolveInvite} from './invite-links.js';
 import {trialDetailsFromInput,registerTrial} from './trial-registration.js';
 import {throttle,validatePassword} from './password-access.js';
+import {throttleClient} from './request-guard.js';
 
 const tokenHash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const emailOf=value=>{
@@ -61,7 +62,8 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
    const email=emailOf(input.email),password=String(input.password||'');
    validatePassword(password,email);
    const trial=trialDetailsFromInput(input);
-   if(!await throttle(db,'password-signup:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
+   // El alta revela si el correo ya tiene cuenta (409): tope por cliente antes de mirar la base.
+   if(!await throttleClient(db,req,'password-signup',10)||!await throttle(db,'password-signup:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
    client=await db.connect();await client.query('begin');
    const user=await createUnverifiedUser(client,{email,password});
    const token=await issueVerification(client,{userId:user.id,purpose:'trial',payload:{company:trial.name,currency:trial.currency,full_name:nameOf(input.full_name)}});
@@ -77,8 +79,9 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
    validatePassword(password,email);
    // Validate before any user write. The verification endpoint validates again
    // under the link lock, covering expiry/revocation while email is pending.
+   // El tope va antes de resolver el enlace: resolveInvite revela si el token existe.
+   if(!await throttleClient(db,req,'password-invite',10)||!await throttle(db,'password-invite:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
    const invite=await resolveInvite(db,token);
-   if(!await throttle(db,'password-invite:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
    client=await db.connect();await client.query('begin');
    // A valid replacement invite can restart an unfinished enrollment. The
    // user row and invite verification are locked/replaced in this transaction.
@@ -93,7 +96,7 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
   if(path==='/api/auth/password/verification/request'){
    if(!emailAvailable)fail('La verificación por correo todavía no está disponible. Usá Google o contactá al administrador.',503);
    const email=emailOf(input.email);
-   const allowed=await throttle(db,'verification-resend:'+email,3);
+   const allowed=await throttleClient(db,req,'verification-resend',10)&&await throttle(db,'verification-resend:'+email,3);
    if(allowed){
     client=await db.connect();await client.query('begin');
     const pending=(await client.query(`select u.id,u.email,v.purpose,v.invite_link_id,v.payload

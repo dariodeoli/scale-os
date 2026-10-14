@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   RefreshCw,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { WorkspaceBrand } from "../workspace-brand";
 import { WorkspaceFooter } from "../workspace-footer";
 import "./platform-admin.css";
@@ -15,7 +16,6 @@ import {
   appHome,
   errorCode,
   errorStatus,
-  loginReturnPath,
   newExtendKey,
   PLATFORM_GOOGLE_STORAGE_KEY,
   type Agency,
@@ -28,25 +28,21 @@ import {
   type Person,
   type CollectionPage,
   type PlatformView,
-  PLATFORM_VIEWS,
   PLATFORM_ACCESS_NOTE,
+  PLATFORM_GATE_MESSAGE,
   type InquiryCounts,
   type InquiryPage,
   type State,
   type Subscription,
 } from "./model";
-import {SegmentedField} from "owncoding-ui";
 import {PageHeader, StateChip} from "../ui-v2";
-import {PlatformOverview} from "./overview";
 import {notify} from "../feedback";
-import {PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting} from "./states";
-import {PlatformAgencies} from "./agencies";
-import {PlatformAccess} from "./access";
-import {PlatformCatalog} from "./catalog";
+import {PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting} from "./states";
 import {SubscriptionDialog} from "./subscription-dialog";
-import {PlatformAudit} from "./audit";
-import {PlatformUsage} from "./usage";
-import {PlatformInquiries} from "./inquiries";
+import {PLATFORM_SECTIONS, resolveSection, type PlatformSectionProps} from "./sections";
+import {PlatformSidebar} from "./sidebar";
+import {PlatformPeriodChips} from "./period-chips";
+import {DEFAULT_PLATFORM_PERIOD, isPlatformPeriod, type PlatformPeriodId} from "./period";
 import {PlatformConfirmDialog, type PlatformAuthMethod} from "./confirm";
 import {ApplyCouponDialog} from "./apply-coupon-dialog";
 import {preflightGoogleStart} from "../deletion-danger-zone";
@@ -56,26 +52,46 @@ export default function PlatformAdmin() {
   const router = useRouter();
   const [state, setState] = useState<State | null>(null);
   const [view, setView] = useState<PlatformView>("resumen");
+  // Período compartido por Resumen y Uso (guía §3): un solo estado, chips en la barra.
+  const [period, setPeriod] = useState<PlatformPeriodId>(DEFAULT_PLATFORM_PERIOD);
   const headerRef = useRef<HTMLDivElement | null>(null);
-  // Contadores de Consultas: la pestaña muestra las nuevas sin abrirla.
+  // Contadores de Consultas: el ítem del menú muestra las nuevas sin abrirlo.
   const [inquiryCounts, setInquiryCounts] = useState<InquiryCounts | null>(null);
-  // Enlace directo a una sección (`?vista=consultas`, el CTA del correo de aviso).
+  // Enlace directo a una sección (`?vista=consultas`, el CTA del correo de aviso;
+  // alias como `?vista=actividad` → Uso) y al período (`?periodo=7d`).
   useEffect(() => {
     if (typeof window === "undefined" || !window.location) return;
-    const requested = new URLSearchParams(window.location.search).get("vista") as PlatformView | null;
-    if (requested && PLATFORM_VIEWS.includes(requested)) setView(requested);
+    const query = new URLSearchParams(window.location.search);
+    const requested = query.get("vista");
+    if (requested) setView(resolveSection(requested).id);
+    const requestedPeriod = query.get("periodo");
+    if (isPlatformPeriod(requestedPeriod)) setPeriod(requestedPeriod);
   }, []);
+
+  // La URL refleja la sección y el período: recargar o compartir abre lo mismo.
+  function syncUrl(next: {vista?: string; periodo?: string}) {
+    if (typeof window === "undefined" || !window.location || !window.history?.replaceState) return;
+    const query = new URLSearchParams(window.location.search);
+    for (const [key, value] of Object.entries(next)) if (value) query.set(key, value);
+    window.history.replaceState(null, "", `${window.location.pathname}?${query.toString()}${window.location.hash}`);
+  }
 
   function changeView(nextView: PlatformView) {
     if (nextView === view) return;
-    setView(nextView);
+    const section = resolveSection(nextView);
+    setView(section.id);
+    syncUrl({vista: section.id});
     headerRef.current?.scrollIntoView({block: "start", behavior: "instant"});
+  }
+
+  function changePeriod(next: PlatformPeriodId) {
+    setPeriod(next);
+    syncUrl({periodo: next});
   }
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
-  const [accessDenied, setAccessDenied] = useState(false);
   const [coupon, setCoupon] = useState({
     code: "",
     discount_value: "10",
@@ -115,30 +131,36 @@ export default function PlatformAdmin() {
   const [emailCode, setEmailCode] = useState("");
   const [emailSending, setEmailSending] = useState(false);
   const [actionError, setActionError] = useState("");
-  const [accessMessage, setAccessMessage] = useState("");
+
+  // Sin acceso al panel (guía §1): el API responde el mismo 404 genérico a quien
+  // no es admin global (sin sesión, demo, sin rol, cuenta no verificada). El panel
+  // no explica nada: borra lo cargado y vuelve al inicio de la app.
+  const leaving = useRef(false);
+  function redirectHome() {
+    if (leaving.current) return;
+    leaving.current = true;
+    setState(null);
+    setError("");
+    setRedirecting(true);
+    const target = appHome();
+    if (target.startsWith("https://")) window.location.replace(target);
+    else router.replace(target);
+  }
 
   function handlePlatformError(cause: unknown, fromLoad = false) {
     const status = errorStatus(cause);
-    if (status === 401) {
-      setState(null);
-      setError("");
-      setAccessDenied(false);
-      setRedirecting(true);
-      const target = loginReturnPath();
-      if (target.startsWith("https://")) window.location.assign(target);
-      else router.replace(target);
+    // 401 o el 404 genérico del guard: la sesión o el rol global ya no están (en la
+    // carga o a mitad de uso). Un 404 propio de una acción («Cupón no encontrado») no.
+    const gate = status === 404 && (fromLoad || (cause instanceof Error && cause.message === PLATFORM_GATE_MESSAGE));
+    if (status === 401 || gate) {
+      redirectHome();
       return true;
     }
     if (status === 403) {
       // Solo la carga inicial decide el acceso. Un 403 de una acción se muestra
       // inline y el panel sigue montado (viewer nunca ve acciones, issue #22).
       if (!fromLoad) return false;
-      setState(null);
-      setError("");
-      // El motivo real del 403 (demo sin acceso global, por ejemplo) conserva
-      // el contexto al volver al panel (#147) en vez de un texto genérico.
-      setAccessMessage(cause instanceof Error ? cause.message : "");
-      setAccessDenied(true);
+      redirectHome();
       return true;
     }
     return false;
@@ -147,8 +169,6 @@ export default function PlatformAdmin() {
   async function load() {
     setBusy(true);
     setError("");
-    setAccessDenied(false);
-    setAccessMessage("");
     try {
       // The overview is the auth/authorization gate. It prevents parallel responses from rendering a generic error before a 401 or 403 is classified.
       // prettier-ignore
@@ -251,7 +271,8 @@ export default function PlatformAdmin() {
     try {
       await platformApi(`/api/platform/users/${person.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ platform_access }),
+        // Compare-and-set: el acceso que muestra la fila; el API responde 409 si cambió.
+        body: JSON.stringify({ platform_access, expected_access: person.platform_admin ? person.platform_role ?? undefined : "none" }),
       });
       notify({ tone: "success", message: `${person.email}: acceso global actualizado.` });
       await load();
@@ -675,97 +696,66 @@ export default function PlatformAdmin() {
     }
   }
 
-  // Vistas del panel (#102): una consola con secciones y contadores en vez de
-  // un scroll largo; todas las capacidades siguen disponibles por vista.
-  // Orden aprobado (#155 B): personas (Accesos) antes que catálogo (Cupones).
-  const views: {id: PlatformView; label: string; icon: string; count?: number}[] = [
-    {id: "resumen", label: "Resumen", icon: "overview"},
-    {id: "consultas", label: "Consultas", icon: "mail", count: inquiryCounts?.new ? inquiryCounts.new : undefined},
-    {id: "agencias", label: "Agencias", icon: "building", count: state?.agencies.length},
-    {id: "accesos", label: "Accesos", icon: "shield", count: state?.users.length},
-    {id: "cupones", label: "Cupones", icon: "tag", count: state?.coupons.length},
-    {id: "auditoria", label: "Auditoría", icon: "audit", count: state?.audit.length},
-    {id: "uso", label: "Uso", icon: "chart"},
-  ];
-  const pageContent = redirecting ? (
-    <PlatformRedirecting/>
-  ) : accessDenied ? (
-    <PlatformAccessDenied message={accessMessage}/>
-  ) : (
-    <>
-      <PlatformNotices state={state} error={error} bootstrap={bootstrap} onRetry={() => void load()}/>
-      {state ? (
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
-          {/* Keep the shared segmented control outside legacy nav button rules. */}
-          <div className="platform-admin-tabs-wrap">
-            <div className="platform-admin-tabs silent-scroll">
-              <SegmentedField className="w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" value={view} onChange={(value:string)=>changeView(value as PlatformView)} ariaLabel="Secciones del panel global" options={views.map((item)=>[item.id, item.label, item.icon, item.count] as [string,string,string,number|undefined])}/>
-            </div>
-          </div>
-
-          {view === "resumen" ? <PlatformOverview state={state} audit={state.audit} onGoTo={changeView} bootstrap={bootstrap}/> : null}
-
-          {view === "consultas" ? <PlatformInquiries writable={writable} onError={(cause) => handlePlatformError(cause)} onCounts={setInquiryCounts}/> : null}
-
-          {view === "agencias" ? <PlatformAgencies busy={busy} state={state} page={state.pages.agencies} onMore={()=>void loadMore('agencies')} writable={writable} setConfirming={setConfirming} manageSubscription={manageSubscription} applyCoupon={setApplyAgency}/> : null}
-
-          {view === "cupones" ? <PlatformCatalog busy={busy} state={state} page={state.pages.coupons} onMore={()=>void loadMore('coupons')} writable={writable} coupon={coupon} setCoupon={setCoupon} toggleCoupon={toggleCoupon} createCoupon={createCoupon}/> : null}
-
-          {view === "accesos" ? <PlatformAccess busy={busy} state={state} page={state.pages.users} onMore={()=>void loadMore('users')} writable={writable} setConfirming={setConfirming} selfRow={selfRow} setPlatformAccess={setPlatformAccess}/> : null}
-
-          {view === "auditoria" ? <PlatformAudit audit={state.audit} page={state.pages.audit} busy={busy} onMore={()=>void loadMore('audit')}/> : null}
-
-          {view === "uso" ? <PlatformUsage onError={handlePlatformError}/> : null}
-
-          {writable && subscriptionAgency ? (
-            <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension} grantGrace={grantGrace} applyCoupon={setApplyAgency}/>
-          ) : null}
-          {writable && applyAgency ? (
-            <ApplyCouponDialog agency={applyAgency} onClose={() => setApplyAgency(null)} onApplied={() => load()} onFailure={(cause) => handlePlatformError(cause)}/>
-          ) : null}
-        </div>
-      ) : null}
-    </>
-  );
+  const sectionProps: PlatformSectionProps | null = state ? {
+    state, busy, writable, period, bootstrap, inquiryCounts, setInquiryCounts,
+    onGoTo: changeView,
+    onError: (cause) => handlePlatformError(cause),
+    actions: {
+      loadMore: (kind) => void loadMore(kind),
+      setConfirming, manageSubscription, applyCoupon: setApplyAgency,
+      coupon, setCoupon, toggleCoupon, createCoupon, selfRow, setPlatformAccess,
+    },
+  } : null;
+  const current = resolveSection(view);
+  const Section = current.component;
 
   const updated = platformTime(updatedAt);
-  // Carga inicial (#155 C): skeleton con la forma del panel (encabezado, tabs,
-  // KPIs y paneles) mientras llega el overview, que además es la puerta de permisos.
-  if (busy && !state && !error && !redirecting && !accessDenied) return <PlatformAdminSkeleton/>;
+  if (redirecting) return <PlatformRedirecting/>;
+  // Carga inicial: forma neutra del shell hasta que el API (la puerta de permisos) responda.
+  if (!state && !error) return <PlatformAdminSkeleton/>;
+  const content: ReactNode = <>
+    <PlatformNotices state={state} error={error} bootstrap={bootstrap} onRetry={() => void load()}/>
+    {sectionProps && Section ? <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+      <Section {...sectionProps}/>
+      {writable && subscriptionAgency ? (
+        <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension} grantGrace={grantGrace} applyCoupon={setApplyAgency}/>
+      ) : null}
+      {writable && applyAgency ? (
+        <ApplyCouponDialog agency={applyAgency} onClose={() => setApplyAgency(null)} onApplied={() => load()} onFailure={(cause) => handlePlatformError(cause)}/>
+      ) : null}
+    </div> : null}
+  </>;
+
+  // Shell (guía §2/§7): riel lateral con la lista única de secciones + barra superior
+  // compacta (título de la sección, «Actualizado HH:MM», Actualizar, Panel). En mobile
+  // el riel pasa a una tira horizontal con scroll silencioso debajo de la barra.
   return (
-    <main className="platform-admin-page control-shell">
+    <main className="platform-admin-page control-shell platform-shell">
+      <PlatformSidebar sections={PLATFORM_SECTIONS} current={current.id} props={sectionProps} onSelect={changeView}/>
       <div ref={headerRef} className="platform-admin-top">
         <Link className="platform-admin-brand" href={appHome()} aria-label="Scale OS">
           <WorkspaceBrand />
         </Link>
-        {/* Encabezado único de la app (`PageHeader`) en una sola fila compacta:
-            marca, título, permiso real + «actualizado» como meta y acciones
-            ícono+texto a la derecha (solo ícono en mobile). El aviso de acceso
-            separado vive en el tooltip del chip de permiso. */}
         <PageHeader
           className="min-w-0 flex-[1_1_20rem] !mb-0"
-          title="Control de Scale OS"
+          title={current.title || current.label}
           subtitle={<span className="platform-admin-meta">
-            {/* El estado del encabezado refleja el permiso real (#147): con el
-                acceso denegado no se anuncia «Solo lectura» (esa es la capacidad
-                de un viewer con overview cargado). Sin rol resuelto, sin chip. */}
-            {accessDenied ? <StateChip tone="bad">Acceso denegado</StateChip>
-             : myRole ? <StateChip tone={writable ? "ok" : "info"} title={`${writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}. ${PLATFORM_ACCESS_NOTE}`}>{writable ? "Admin global" : "Solo lectura"}</StateChip>
-             : null}
+            {/* El estado refleja el permiso real del API (#147); sin rol resuelto, sin chip. */}
+            {myRole ? <StateChip tone={writable ? "ok" : "info"} title={`${writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}. ${PLATFORM_ACCESS_NOTE}`}>{writable ? "Admin global" : "Solo lectura"}</StateChip> : null}
             {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
           </span>}
           actions={<div className="platform-admin-actions">
-            {!accessDenied && <button
+            <button
               type="button"
               className="secondary"
               onClick={() => void load()}
-              disabled={busy || redirecting}
+              disabled={busy}
               aria-label="Actualizar"
               title="Actualizar los datos del panel"
             >
               <RefreshCw aria-hidden="true" />
               <span className="platform-admin-action-label">Actualizar</span>
-            </button>}
+            </button>
             <Link className="secondary" href={appHome()} aria-label="Volver al panel" title="Volver al panel de la agencia">
               <ArrowLeft aria-hidden="true" />
               <span className="platform-admin-action-label">Panel</span>
@@ -773,7 +763,10 @@ export default function PlatformAdmin() {
           </div>}
         />
       </div>
-      {pageContent}
+      <div className="platform-main">
+        {current.usesPeriod ? <PlatformPeriodChips value={period} onChange={changePeriod}/> : null}
+        {content}
+      </div>
       {confirming && writable && (
         <PlatformConfirmDialog
           request={confirming}
@@ -802,7 +795,7 @@ export default function PlatformAdmin() {
           onRemove={() => void removeConfirmed()}
         />
       )}
-      <WorkspaceFooter />
+      <div className="platform-footer"><WorkspaceFooter /></div>
     </main>
   );
 }

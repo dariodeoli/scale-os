@@ -1,0 +1,2 @@
+# Comunicados y modo mantenimiento del panel global (banner del espacio y pantalla de mantenimiento)
+tsx tests/superadmin-comunicados.test.tsx

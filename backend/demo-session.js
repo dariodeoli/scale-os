@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import {seedDemoReports} from './demo-reports.js';
 import {demoClients,demoStaff,demoPhone,demoPortrait} from './demo-identities.js';
 import {ensurePipelineStages} from './pipeline-stages.js';
+import {recordDemoEvent} from './public-analytics.js';
 const templateSlug='scale-demo-controles-20260908';
 // A real agency owner can open a personal fixture without membership in the shared template.
 export async function privateDemoEntry(c,userId){
@@ -25,6 +26,8 @@ export async function demoOrganization(c,{userId,sourceId,demoKey}){
  await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip','demo-fixture',true)",[String(userId)]);
  await seedPrivateDemo(c,org,userId);
  await c.query('insert into agency_demo_sessions(demo_key,user_id,organization_id) values($1,$2,$3)',[demoKey,userId,org]);
+ // Demo privada de un dueño real: cuenta como demo iniciada (savepoint, nunca aborta el cambio).
+ await recordDemoEvent(c,{organizationId:org,event:'demo_start',label:'privada'},{transaction:true});
  return org;
 }
 export async function seedPrivateDemo(c,org,userId){

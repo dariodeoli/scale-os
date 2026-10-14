@@ -478,6 +478,8 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const {email='',password='',role='viewer'} = await body(req);
       let normalizedEmail='';try{normalizedEmail=validEmail(email)||'';}catch{return send(res,400,{error:'Datos de invitación inválidos'});}
       if (!normalizedEmail || (password && (typeof password !== 'string' || password.length < 8)) || !memberRoles.includes(role) || (role === 'owner' && user.role !== 'owner')) return send(res,400,{error:'Datos de invitación inválidos'});
+      // Tope por empresa antes de buscar el correo: la respuesta distingue cuentas existentes y demo.
+      if (!await throttle(db,'member-invite:'+user.organization_id,30)) return send(res,429,{error:'Enviaste muchas invitaciones seguidas. Esperá unos minutos.'});
       const client = await db.connect();
       try {
         await client.query('begin');

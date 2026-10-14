@@ -9,6 +9,8 @@
  *
  * Datos de estrés: nombres y correos largos, montos y fechas reales.
  */
+import {adminShell, SKELETON} from './_admin-shell.mjs';
+
 const icon = (paths, size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 const I = {
   refresh: icon('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>'),
@@ -313,7 +315,8 @@ const inquiriesView = () => `
  </div>
 </section>`;
 
-const shell = (view, body) => `<main class="platform-admin-page control-shell"><style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${header()}${tabs(view)}${body}</main>`;
+// Marco real del shell (riel lateral + barra superior, guía §2/§7): generado desde los componentes.
+const shell = (view, body) => adminShell(view, `<style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${body}`, {period: view === 'resumen'});
 
 
 /* Carga inicial: app/loading-screen.tsx sin sesión (variante neutra). */
@@ -351,7 +354,7 @@ const overview2 = () => `
    ${kpi({label: 'Cupones activos', valor: '6', hint: 'de 9 códigos'})}
    ${kpi({label: 'Suscripciones', valor: '121', hint: '121 active · 13 trialing'})}
   </div>
-  <div class="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+  <div class="grid min-w-0 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
    <section class="panel" aria-labelledby="platform-expiring-title">
     <div class="mb-2 flex min-w-0 items-center justify-between gap-3"><h2 id="platform-expiring-title" class="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Agencias por vencer</h2><button type="button" class="text-button min-h-11 md:min-h-8">Ver agencias${I.arrow}</button></div>
     <div>${AGENCIES.slice(0, 3).map((agency) => row(
@@ -441,33 +444,6 @@ const menuOpen2 = `
  </div>
 </div>`;
 
-const skeleton2 = `
-<div class="platform-admin-top" aria-hidden="true">
- <span class="block h-9 w-9 animate-pulse rounded-xl bg-fore/5"></span>
- <div class="ui-page-header flex min-w-0 flex-[1_1_20rem] flex-wrap items-center justify-between gap-x-4 gap-y-3">
-  <div class="grid min-w-0 gap-1"><span class="block h-3 w-28 animate-pulse rounded-lg bg-fore/5"></span><span class="block h-5 w-44 animate-pulse rounded-lg bg-fore/5"></span><span class="platform-admin-meta"><span class="block h-6 w-24 animate-pulse rounded-full bg-fore/5"></span><span class="block h-3 w-24 animate-pulse rounded-lg bg-fore/5"></span></span></div>
-  <div class="platform-admin-actions"><span class="block h-11 w-28 animate-pulse rounded-lg bg-fore/5 md:h-9"></span><span class="block h-11 w-24 animate-pulse rounded-lg bg-fore/5 md:h-9"></span></div>
- </div>
-</div>
-<div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
- <div class="silent-scroll flex w-max min-w-0 max-w-full gap-1 overflow-x-auto rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
-  ${['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size) => `<span class="block h-11 shrink-0 ${size} animate-pulse rounded-lg bg-fore/5 md:h-8"></span>`).join('')}
- </div>
- <div class="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-  <div class="grid min-w-0 gap-4">
-   <div class="ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-    ${[0, 1, 2, 3].map(() => '<div class="rounded-xl border border-ink-600 bg-ink-800 p-4"><span class="block h-3 w-24 animate-pulse rounded-lg bg-fore/5"></span><span class="mt-2 block h-7 w-20 animate-pulse rounded-lg bg-fore/5"></span><span class="mt-2 block h-3 w-28 animate-pulse rounded-lg bg-fore/5"></span></div>').join('')}
-   </div>
-   <div class="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-    ${[0, 1, 2].map(() => '<div class="panel grid gap-2"><span class="block h-4 w-36 animate-pulse rounded-lg bg-fore/5"></span><span class="block h-10 w-full animate-pulse rounded-lg bg-fore/5"></span><span class="block h-10 w-full animate-pulse rounded-lg bg-fore/5"></span></div>').join('')}
-   </div>
-  </div>
-  <div class="grid content-start gap-4">
-   ${[0, 1].map(() => '<div class="panel grid gap-2"><span class="block h-4 w-32 animate-pulse rounded-lg bg-fore/5"></span><span class="block h-10 w-full animate-pulse rounded-lg bg-fore/5"></span><span class="block h-10 w-full animate-pulse rounded-lg bg-fore/5"></span></div>').join('')}
-  </div>
- </div>
-</div>`;
-
 const notices2 = `
 <div class="grid gap-3">
  <section class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3 border-warn-text/45" role="status">
@@ -544,7 +520,7 @@ export default [
     section: 'Superadmin',
     surface: 'Resumen con riel de atención/atajos y suscripciones (#155)',
     kind: 'plain',
-    body: `<main class="platform-admin-page control-shell"><style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${header()}${tabs2('resumen')}${overview2()}</main>`,
+    body: adminShell('resumen', `<style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${overview2()}`, {period: true}),
   },
   {
     id: 'admin2-agencias',
@@ -554,7 +530,7 @@ export default [
     lists: [
       {container: '.platform-admin-table-wrap [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · agencias (#155)', exemptBelow: 760},
     ],
-    body: `<main class="platform-admin-page control-shell"><style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${header()}${tabs2('agencias')}${agenciesView2()}</main>`,
+    body: adminShell('agencias', `<style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${agenciesView2()}`, {period: false}),
   },
   {
     id: 'admin2-menu',
@@ -571,7 +547,7 @@ export default [
     lists: [
       {container: '[role="table"][aria-label="Cupones"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · cupones (#155)', exemptBelow: 430},
     ],
-    body: `<main class="platform-admin-page control-shell">${header()}${tabs2('cupones')}${couponsView()}</main>`,
+    body: adminShell('cupones', `${couponsView()}`, {period: false}),
   },
   {
     id: 'admin2-accesos',
@@ -581,7 +557,7 @@ export default [
     lists: [
       {container: '[role="table"][aria-label="Accesos entre agencias"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · accesos (#155)', exemptBelow: 430},
     ],
-    body: `<main class="platform-admin-page control-shell">${header()}${tabs2('accesos')}${accessView()}</main>`,
+    body: adminShell('accesos', `${accessView()}`, {period: false}),
   },
   {
     id: 'admin2-auditoria',
@@ -591,7 +567,7 @@ export default [
     lists: [
       {container: '[role="table"][aria-label="Actividad de administración global"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría (#155)', rowHeight: [44, 52], exemptBelow: 856},
     ],
-    body: `<main class="platform-admin-page control-shell">${header()}${tabs2('auditoria')}${auditView()}</main>`,
+    body: adminShell('auditoria', `${auditView()}`, {period: false}),
   },
   {
     id: 'admin3-consultas',
@@ -601,20 +577,20 @@ export default [
     lists: [
       {container: '[role="table"][aria-label="Consultas de la landing"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · consultas', rowHeight: [44, 52], exemptBelow: 1181},
     ],
-    body: `<main class="platform-admin-page control-shell">${header()}${tabs2('consultas')}${inquiriesView()}</main>`,
+    body: adminShell('consultas', `${inquiriesView()}`, {period: false}),
   },
   {
     id: 'admin2-skeleton',
     section: 'Superadmin',
     surface: 'Skeleton propio del panel durante la carga (#155 C)',
     kind: 'plain',
-    body: `<main class="platform-admin-page control-shell" aria-busy="true">${skeleton2}</main>`,
+    body: SKELETON,
   },
   {
     id: 'admin2-avisos',
     section: 'Superadmin',
     surface: 'Avisos con borde de contraste y Reintentar (#155 C)',
     kind: 'plain',
-    body: `<main class="platform-admin-page control-shell">${header()}${notices2}</main>`,
+    body: adminShell('resumen', notices2),
   },
 ];
