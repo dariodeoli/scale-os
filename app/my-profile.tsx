@@ -56,7 +56,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
    </section>:null;
  const profileTab=current?<>
    {identity}
-   {current.identity_scope==='personal_readonly'?<div className={CARD} data-profile-section="readonly" role="status">
+   {current.identity_scope==='personal_readonly'?<div className={CARD} data-profile-section="readonly">
     <strong className="text-[13.5px] text-fore">Edición disponible en tu empresa real</strong>
     <p className="text-xs text-mute">Este perfil está unificado con tus empresas. Seleccioná tu empresa real para cambiar el nombre o la foto; la demo no modifica tus datos personales.</p>
    </div>:<section className={`${CARD} gap-3`} data-profile-section="edit" aria-labelledby="my-profile-edit-title">
@@ -71,14 +71,14 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
      <p className="text-[11.5px] text-mute">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
     </div>
    </section>}
-   {warning?<p className="text-xs text-warn" role="status">{warning}</p>:null}
+   {warning?<p className="text-xs text-warn">{warning}</p>:null}
   </>:null;
  const accessTab=current&&current.identity_scope!=='demo'?<section className={`${CARD} gap-1`} data-profile-section="account" aria-labelledby="my-profile-account-title">
     <p id="my-profile-account-title" className={KICKER}>Acceso y seguridad</p>
     <div className="grid gap-2 border-b border-ink-600 px-2 py-3">
      <div className="flex flex-wrap items-center justify-between gap-2">
       <strong className="text-[13.5px] text-fore">Google</strong>
-      {current.google_connected?<p role="status"><StateChip tone="ok">Conectado</StateChip></p>:<a className={`secondary ${ACTION}`} href="/core-api/api/auth/google/start?connect=1">Conectar Google</a>}
+      {current.google_connected?<StateChip tone="ok">Conectado</StateChip>:<a className={`secondary ${ACTION}`} href="/core-api/api/auth/google/start?connect=1">Conectar Google</a>}
      </div>
      <p className="max-w-prose text-xs text-mute">Usá Google para ingresar a esta cuenta con el mismo correo. Google puede actualizar tu nombre y foto.</p>
     </div>

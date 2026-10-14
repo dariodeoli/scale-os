@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {esToken,extractTokenFromUrl} from 'owncoding-ui';
 import {AccessLayout} from '../access-layout';
 import {api} from '../operations';
+import {EmailField} from '../email-field';
 
 type State='checking'|'done'|'error'|'missing';
 export default function VerifyEmailPage(){
@@ -43,7 +44,7 @@ export default function VerifyEmailPage(){
    <h1 className="text-2xl font-bold tracking-tight text-fore">{state==='done'?'Correo verificado':'Verificación de correo'}</h1>
    <p role="status" className={state==='error'||state==='missing'?'text-sm text-bad':'text-sm text-ok'} aria-live="polite">{message}</p>
    {state==='error'||state==='missing'?<form className="grid gap-3" onSubmit={resendVerification}>
-    <label htmlFor="verify-email" className="grid gap-1.5 text-xs text-mute">Correo de la cuenta<input id="verify-email" type="email" value={email} autoComplete="email" maxLength={200} disabled={resending} onChange={event=>setEmail(event.target.value)} className="rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm h-11"/></label>
+    <label htmlFor="verify-email" className="grid gap-1.5 text-xs text-mute">Correo de la cuenta<EmailField id="verify-email" value={email} onChange={setEmail} disabled={resending}/></label>
     <button className="primary" type="submit" disabled={!email||resending}>{resending?'Enviando…':'Reenviar correo de verificación'}</button>
     {resendMessage?<p role="status" className="text-xs text-mute">{resendMessage}</p>:null}
     <p className="flex flex-wrap gap-3 text-[11.5px] text-mute"><Link className="inline-flex min-h-11 items-center" href="/registro">Volver al registro</Link><Link className="inline-flex min-h-11 items-center" href="/">Ir al inicio de sesión</Link></p>

@@ -1,10 +1,10 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {Check,ChevronDown,ShieldCheck,X} from 'lucide-react';
-import {Aviso} from 'owncoding-ui';
 import {api,Dialog} from './operations';
+import {notify} from './feedback';
 import {teamRoleLabels} from './team-directory';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,LoadingBlock,StateChip} from './ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListPage,LoadingBlock,StateChip} from './ui-v2';
 
 type MatrixRow={id:string;label:string;description:string;defaults:string[];overrides:Record<string,boolean|undefined>};
 type MatrixData={roles:string[];capabilities:MatrixRow[]};
@@ -78,6 +78,8 @@ function RoleExplorer({data}:{data:MatrixData}){
  * capacidad muestra el estado por cargo en pastillas editables. El Dueño es el
  * único que alterna (`aria-pressed` + `disabled`) y el API revalida cada PATCH.
  */
+/** Plantilla única de la matriz: el encabezado de columnas y cada capacidad comparten esta grilla. */
+const CAPABILITY_ROW_TEMPLATE='lg:grid-cols-[minmax(14rem,1fr)_minmax(0,1.5fr)]';
 const ROLE_PILL='inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border px-2.5 text-[11.5px] font-semibold leading-none transition md:min-h-8';
 function ModulePermissions({data,owner,busy,toggle}:{data:MatrixData;owner:boolean;busy:boolean;toggle:(rowId:string,roleId:string,allowed:boolean)=>Promise<void>}){
  return <div className="grid gap-3">
@@ -90,7 +92,8 @@ function ModulePermissions({data,owner,busy,toggle}:{data:MatrixData;owner:boole
      <ChevronDown className="ml-auto shrink-0 text-mute transition-transform group-open:rotate-180" size={16} aria-hidden="true"/>
     </summary>
     <div className="grid gap-4 border-t border-ink-600 p-4">
-     {group.rows.map(row=><article className="grid gap-2 lg:grid-cols-[minmax(14rem,1fr)_minmax(0,1.5fr)] lg:items-center lg:gap-4" key={row.id}>
+     <div aria-hidden="true" className={`hidden gap-x-4 border-b border-ink-600 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute lg:grid ${CAPABILITY_ROW_TEMPLATE}`}><span>Capacidad</span><span>Cargos</span></div>
+     {group.rows.map(row=><article className={`grid gap-2 lg:items-center lg:gap-4 ${CAPABILITY_ROW_TEMPLATE}`} key={row.id}>
       <div className="min-w-0">
        <b className="block text-[13.5px] font-semibold leading-[1.25] text-fore">{row.label}</b>
        <small className="mt-0.5 block text-[11.5px] leading-[1.4] text-mute" title={`${row.description}${overrideCount(row)?` · ${overrideCount(row)} ajuste${overrideCount(row)===1?'':'s'} manual${overrideCount(row)===1?'':'es'}`:''}`}>{row.description}</small>
@@ -108,25 +111,24 @@ function ModulePermissions({data,owner,busy,toggle}:{data:MatrixData;owner:boole
 }
 
 function MatrixView({role,explorer}:{role:string;explorer:boolean}){
- const [data,setData]=useState<MatrixData|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
+ const [data,setData]=useState<MatrixData|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [loading,setLoading]=useState(true);
  const owner=role==='owner';
  async function load(){setLoading(true);setError('');try{setData(await api<MatrixData>('/api/agency/permissions'));}catch(cause){setError(errorText(cause));}finally{setLoading(false);}}
  useEffect(()=>{void load();},[]);
- async function toggle(rowId:string,roleId:string,allowed:boolean){if(!owner)return;setBusy(true);setError('');setNotice('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:rowId,role:roleId,allowed},'PATCH');setData(updated);setNotice('Permiso guardado. Los cambios se aplican desde la próxima acción de esa persona.');}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
- async function resetAll(){if(!owner)return;setBusy(true);setError('');setNotice('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:null,role:null,allowed:null},'PATCH');setData(updated);setNotice('Todos los permisos volvieron a los valores por defecto.');}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
+ async function toggle(rowId:string,roleId:string,allowed:boolean){if(!owner)return;setBusy(true);setError('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:rowId,role:roleId,allowed},'PATCH');setData(updated);notify({tone:'success',message:'Permiso guardado. Los cambios se aplican desde la próxima acción de esa persona.'});}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
+ async function resetAll(){if(!owner)return;setBusy(true);setError('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:null,role:null,allowed:null},'PATCH');setData(updated);notify({tone:'success',message:'Todos los permisos volvieron a los valores por defecto.'});}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
  const manual=data?data.capabilities.reduce((total,row)=>total+overrideCount(row),0):0;
- return <div className="grid gap-4" aria-busy={loading||busy}>
+ const kpis=explorer&&data?<KpiStrip compact>
+   <Kpi label="Capacidades" valor={data.capabilities.length} hint="Acciones que controla el panel"/>
+   <Kpi label="Cargos" valor={data.roles.length} hint="Roles configurables de la empresa"/>
+   <Kpi label="Ajustes manuales" valor={manual} hint="Permisos fuera del valor por defecto"/>
+  </KpiStrip>:undefined;
+ const body=<>
   <p className="flex items-start gap-2 text-xs text-mute"><ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0"/> Definí qué puede hacer cada cargo. El Dueño siempre conserva todos los permisos. Los cambios se guardan por empresa y se auditan.</p>
   {error?<ErrorBlock title="No pudimos guardar el permiso" description={error} onRetry={()=>void load()}/>:null}
-  {notice?<Aviso tono="ok" compact>{notice}</Aviso>:null}
   {loading?<LoadingBlock label="Cargando permisos…" lines={4}/>:!data?<EmptyBlock title="Sin datos de permisos" description="El API no devolvió la matriz de capacidades." action={<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>}/>:<>
    {explorer&&<>
-    <KpiStrip compact>
-     <Kpi label="Capacidades" valor={data.capabilities.length} hint="Acciones que controla el panel"/>
-     <Kpi label="Cargos" valor={data.roles.length} hint="Roles configurables de la empresa"/>
-     <Kpi label="Ajustes manuales" valor={manual} hint="Permisos fuera del valor por defecto"/>
-    </KpiStrip>
     <details className="group rounded-xl border border-ink-600 bg-ink-800">
      <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 p-4">
       <h3 className="text-[15px] font-semibold tracking-tight text-fore">Permisos por cargo</h3>
@@ -142,7 +144,8 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
    </div>
    {owner?<div className="flex justify-end"><button type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</button></div>:<p className="text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
   </>}
- </div>;
+ </>;
+ return explorer?<ListPage aria-label="Roles y permisos" aria-busy={loading||busy} kpis={kpis}>{body}</ListPage>:<div className="grid gap-4" aria-busy={loading||busy}>{body}</div>;
 }
 
 export function PermissionsMatrix({role,close}:{role:string;close:()=>void}){
@@ -150,7 +153,5 @@ export function PermissionsMatrix({role,close}:{role:string;close:()=>void}){
 }
 
 export function PermissionsMatrixPanel({role}:{role:string}){
- return <section className="grid gap-4" aria-label="Roles y permisos">
-  <MatrixView role={role} explorer/>
- </section>;
+ return <MatrixView role={role} explorer/>;
 }

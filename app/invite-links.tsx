@@ -4,8 +4,10 @@ import {api,Editor} from './operations';
 import {teamRoleLabels} from './team-directory';
 import {dueTone,listDateShort} from './list-format';
 import {Copy,Link2,Trash2,UserCheck,X} from 'lucide-react';
+import {SearchField} from 'owncoding-ui';
+import {notify} from './feedback';
 import {ActorIdentity} from './actor-identity';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
+import {EmptyBlock,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListGrid,ListPage,ListRow,LoadingBlock,StateChip} from './ui-v2';
 
 type ActorFields={actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 type LinkRow=ActorFields&{id:string;role:string;mode:string;expires_at:string;revoked_at:string|null;used_at:string|null;click_count:number;account_count:number;url:string|null;created_by_email:string;joined_users:Array<ActorFields&{email:string;full_name:string;joined_at:string}>};
@@ -26,7 +28,7 @@ function linkState(link:LinkRow){if(link.revoked_at)return{tone:'bad' as const,l
 
 export function InviteLinks({role}:{role:string}){
  const [links,setLinks]=useState<LinkRow[]>([]),[requests,setRequests]=useState<RequestRow[]>([]),[created,setCreated]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[copied,setCopied]=useState('');
- const [loading,setLoading]=useState(true);
+ const [loading,setLoading]=useState(true),[query,setQuery]=useState('');
  // La tarjeta de creación vive arriba de la lista: el vacío de enlaces lleva
  // hasta ella y enfoca el primer control (CTA contextual, #62).
  const createCard=useRef<HTMLDivElement|null>(null);
@@ -34,25 +36,31 @@ export function InviteLinks({role}:{role:string}){
  async function load(){try{const [a,b]=await Promise.all([api<{links:LinkRow[]}>('/api/agency/invite-links'),api<{requests:RequestRow[]}>('/api/agency/access-requests')]);setLinks(a.links);setRequests(b.requests);setError('');}catch(e){setError(e instanceof Error?e.message:'No se pudo cargar la información de invitaciones.');}finally{setLoading(false);}}
  useEffect(()=>{void load();},[]);
  async function act(path:string,data:unknown,method='POST'){setBusy(true);try{await api(path,data,method);await load();}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar');}finally{setBusy(false);}}
+ const needle=query.trim().toLowerCase();
+ const shownRequests=useMemo(()=>needle?requests.filter(request=>`${request.actor_name||request.full_name} ${request.email} ${teamRoleLabels[request.role]||request.role}`.toLowerCase().includes(needle)):requests,[requests,needle]);
+ const shownLinks=useMemo(()=>needle?links.filter(link=>`${teamRoleLabels[link.role]||link.role} ${link.mode==='single'?'un solo uso':'con aprobación'} ${link.actor_name||link.created_by_email}`.toLowerCase().includes(needle)):links,[links,needle]);
  const activeLinks=useMemo(()=>links.filter(link=>!link.revoked_at&&!link.used_at).length,[links]);
  const joined=useMemo(()=>links.reduce((total,link)=>total+(link.joined_users?.length||0),0),[links]);
  const pending=requests.filter(request=>request.status==='pending').length;
- return <section className="grid gap-4" aria-label="Invitaciones y solicitudes">
-  {error?<ErrorBlock title="No pudimos completar la operación" description={error} onRetry={()=>void load()}/>:null}
-  <KpiStrip>
+ return <ListPage aria-label="Invitaciones y solicitudes"
+  toolbar={!loading&&(requests.length||links.length)?<FilterToolbar className="mb-0" summary={`${shownRequests.length} solicitud${shownRequests.length===1?'':'es'} · ${shownLinks.length} enlace${shownLinks.length===1?'':'s'}`}>
+   <SearchField className="w-full sm:w-72" ariaLabel="Buscar solicitudes y enlaces" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Persona, correo, permiso o autor…"/>
+  </FilterToolbar>:undefined}
+  kpis={<KpiStrip>
    <Kpi label="Solicitudes pendientes" valor={pending} hint="Esperan aprobación o rechazo" destacado/>
    <Kpi label="Enlaces activos" valor={activeLinks} hint="Sin revocar ni usar"/>
    <Kpi label="Personas unidas" valor={joined} hint="Ingresaron con un enlace"/>
-  </KpiStrip>
+  </KpiStrip>}>
+  {error?<ErrorBlock title="No pudimos completar la operación" description={error} onRetry={()=>void load()}/>:null}
   {loading?<LoadingBlock label="Cargando invitaciones…" lines={3}/>:<>
    <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="invite-requests-heading">
     <div className="flex flex-wrap items-center justify-between gap-2">
      <div className="min-w-0"><h3 id="invite-requests-heading" className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><UserCheck size={18} aria-hidden="true"/> Solicitudes</h3><p className="mt-1 text-xs text-mute">Aprobá solo los accesos disponibles; el estado actual lo confirma el API.</p></div>
      <span className="whitespace-nowrap text-xs tabular-nums text-mute">{pending} de {requests.length} pendientes</span>
     </div>
-    {!requests.length?<EmptyBlock compact title="No hay solicitudes pendientes" description="Cuando alguien pida acceso con un enlace de aprobación, aparece acá."/>:
+    {!shownRequests.length?<EmptyBlock compact title={requests.length?'Ninguna solicitud coincide':'No hay solicitudes pendientes'} description={requests.length?'Probá con otra búsqueda.':'Cuando alguien pida acceso con un enlace de aprobación, aparece acá.'}/>:
      <ListGrid label="Solicitudes de acceso" template={REQUESTS_TEMPLATE} columns={REQUESTS_COLUMNS} minWidthClass="min-w-[60rem]">
-      {requests.map(request=>{
+      {shownRequests.map(request=>{
        const unavailable=request.status!=='pending';
        const reason=unavailable?(unavailableLabels[request.unavailableReason||'']||'Actualizá la lista para comprobar la invitación.'):'';
        return <ListRow key={request.id} template={REQUESTS_TEMPLATE} className={ROW_DENSITY}>
@@ -73,17 +81,17 @@ export function InviteLinks({role}:{role:string}){
    </div>
    <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" ref={createCard}>
     <div className="min-w-0"><h3 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><Link2 size={18} aria-hidden="true"/> Crear enlace</h3><p className="mt-1 text-xs text-mute">Elegí el permiso y el tipo. El enlace vence a los 7 días o al primer uso, según el modo.</p></div>
-    <Editor columns fields={[{key:'role',label:'Permiso del enlace',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))},{key:'mode',label:'Tipo de invitación',choices:[{value:'single',label:'Una persona · un solo uso'},{value:'approval',label:'Varias personas · requiere aprobación'}]}]} defaults={{role:'viewer',mode:'single'}} label="Generar enlace" save={async values=>{const result=await api<{url:string}>('/api/agency/invite-links',values);setCreated(result.url);setCopied('');await load();}}/>
-    {created?<div role="status" className="grid gap-2 rounded-lg border border-ink-600 px-3 py-2"><label className="grid gap-1.5 text-xs text-mute">Enlace generado<input readOnly className="rounded-md border border-ink-600 bg-ink-900 px-3 py-2 font-mono text-xs text-fore" value={created} onFocus={e=>e.target.select()}/></label><button className="secondary" onClick={async()=>{try{await navigator.clipboard.writeText(created);setCopied(created);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={16} aria-hidden="true"/>{copied===created?'Copiado':'Copiar enlace'}</button></div>:null}
+    <Editor columns fields={[{key:'role',label:'Permiso del enlace',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))},{key:'mode',label:'Tipo de invitación',choices:[{value:'single',label:'Una persona · un solo uso'},{value:'approval',label:'Varias personas · requiere aprobación'}]}]} defaults={{role:'viewer',mode:'single'}} label="Generar enlace" save={async values=>{const result=await api<{url:string}>('/api/agency/invite-links',values);setCreated(result.url);setCopied('');notify({tone:'success',message:'Enlace generado. Copialo desde el recuadro.'});await load();}}/>
+    {created?<div className="grid gap-2 rounded-lg border border-ink-600 px-3 py-2"><label className="grid gap-1.5 text-xs text-mute">Enlace generado<input readOnly className="rounded-md border border-ink-600 bg-ink-900 px-3 py-2 font-mono text-xs text-fore" value={created} onFocus={e=>e.target.select()}/></label><button className="secondary" onClick={async()=>{try{await navigator.clipboard.writeText(created);setCopied(created);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={16} aria-hidden="true"/>{copied===created?'Copiado':'Copiar enlace'}</button></div>:null}
    </div>
    <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
     <div className="flex flex-wrap items-center justify-between gap-2">
      <div className="min-w-0"><h3 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><Link2 size={18} aria-hidden="true"/> Enlaces recientes</h3><p className="mt-1 text-xs text-mute">Los enlaces agotados o revocados se pueden eliminar; los que tuvieron ingresos conservan su historial.</p></div>
      <span className="whitespace-nowrap text-xs tabular-nums text-mute">{links.length} enlace{links.length===1?'':'s'}</span>
     </div>
-    {!links.length?<EmptyBlock compact title="Todavía no creaste enlaces" description="Generá uno cuando necesites sumar a alguien." action={<button type="button" className="secondary" onClick={focusCreate}>Generar enlace</button>}/>:
+    {!shownLinks.length?(links.length?<EmptyBlock compact title="Ningún enlace coincide" description="Probá con otra búsqueda."/>:<EmptyBlock compact title="Todavía no creaste enlaces" description="Generá uno cuando necesites sumar a alguien." action={<button type="button" className="secondary" onClick={focusCreate}>Generar enlace</button>}/>):
      <ListGrid label="Enlaces de invitación" template={LINKS_TEMPLATE} columns={LINKS_COLUMNS} minWidthClass="min-w-[58rem]">
-      {links.map(link=>{const state=linkState(link);const joinedUsers=link.joined_users||[];const activity=`${link.click_count} clics · ${link.account_count} cuentas creadas · ${joinedUsers.length?`${joinedUsers.length} unidos`:'Nadie se unió todavía'}`;return <ListRow key={link.id} template={LINKS_TEMPLATE} className={ROW_DENSITY}>
+      {shownLinks.map(link=>{const state=linkState(link);const joinedUsers=link.joined_users||[];const activity=`${link.click_count} clics · ${link.account_count} cuentas creadas · ${joinedUsers.length?`${joinedUsers.length} unidos`:'Nadie se unió todavía'}`;return <ListRow key={link.id} template={LINKS_TEMPLATE} className={ROW_DENSITY}>
        <strong className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={`${teamRoleLabels[link.role]||link.role} · ${link.mode==='single'?'Un solo uso':'Con aprobación'}`}>{teamRoleLabels[link.role]||link.role} · {link.mode==='single'?'Un solo uso':'Con aprobación'}</strong>
        <StateChip tone={state.tone}>{state.label}</StateChip>
        <span className="min-w-0 truncate text-[11.5px] tabular-nums text-mute" title={joinedUsers.length?`${activity} · Se unieron ${joinedText(joinedUsers)}`:activity}>{activity}</span>
@@ -96,5 +104,5 @@ export function InviteLinks({role}:{role:string}){
      </ListGrid>}
    </div>
   </>}
- </section>;
+ </ListPage>;
 }
