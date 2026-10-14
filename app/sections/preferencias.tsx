@@ -1,10 +1,11 @@
 "use client";
-import {Aviso,Select} from 'owncoding-ui';
+import {Aviso} from 'owncoding-ui';
 import {Settings,SlidersHorizontal} from 'lucide-react';
 import {startupChoices} from '../workspace-preferences';
 import type {StartupPreference,WorkspacePreferences} from '../workspace-preferences';
 import type {User} from '../workspace-types';
-import {Kpi,KpiStrip,LoadingBlock,StateChip} from '../ui-v2';
+import {Kpi,KpiStrip,ListPage,LoadingBlock,StateChip} from '../ui-v2';
+import {SelectCustom} from '../profile-controls';
 
 // Preferencias del espacio (locales por usuario y empresa).
 // Rediseño v2 (issue #46): mismos datos y callbacks que el módulo extraído en #47.
@@ -25,12 +26,11 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
  const startupLabel=choices.find(choice=>choice.value===startup)?.label||'Resumen';
  const filters=preferences.production;
  const filterCount=[filters.clientId?1:0,filters.mine?1:0,filters.week?1:0].reduce((total,value)=>total+value,0);
- return <section className="grid gap-4" aria-label="Preferencias del espacio">
-  <KpiStrip compact>
+ return <ListPage aria-label="Preferencias del espacio" kpis={<KpiStrip compact>
    <Kpi label="Inicio configurado" valor={startupLabel} hint="Solo se aplica al entrar a la raíz"/>
    <Kpi label="Filtros del tablero" valor={filterCount} hint="Se editan desde Producción"/>
    <Kpi label="Alcance" valor="Este navegador" hint="No se sincroniza entre dispositivos"/>
-  </KpiStrip>
+  </KpiStrip>}>
   {preferenceWarning?<Aviso tono="warn">{preferenceWarning}</Aviso>:null}
   <div className={`${CARD} grid gap-4`}>
    <div className="flex items-start gap-3">
@@ -42,9 +42,7 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
    </div>
    {preferencesReady?
     <div className="w-full max-w-md">
-     <Select aria-label="Al entrar a Scale OS" value={startup} onChange={(event:{target:{value:string}})=>updatePreferences({startup:event.target.value as StartupPreference})}>
-      {choices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
-     </Select>
+     <SelectCustom label="Al entrar a Scale OS" value={startup} choices={choices.map(choice=>({value:choice.value,label:choice.label}))} onChange={value=>updatePreferences({startup:value as StartupPreference})}/>
     </div>
    :<LoadingBlock label="Cargando preferencias…" lines={1}/>}
    <p className="text-[11.5px] text-mute">La preferencia se guarda por usuario y empresa en el almacenamiento local del navegador. Si el almacenamiento falla, el cambio es temporal y el panel sigue funcionando.</p>
@@ -64,5 +62,5 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
    </div>
    {filters.clientId?<p className="text-[11.5px] text-mute">Hay un cliente guardado en los filtros. Si ya no existe, el tablero te lo indica para que lo restablezcas.</p>:null}
   </div>
- </section>;
+ </ListPage>;
 }
