@@ -19,6 +19,7 @@ import {NotificationBell} from './notifications-ui';
 import {WorkspaceFooter} from './workspace-footer';
 import {IaCargaButton} from './ia-carga-button';
 import {VersionNotice} from './version-notice';
+import {AnnouncementBanner} from './announcement-banner';
 import {ProviderSignIn} from './google-sign-in';
 import {PersonContainer} from './person-container';
 import {LoadingScreen} from './loading-screen';
@@ -1073,6 +1074,7 @@ export default function Home() {
         <PageTitleContext.Provider value={pageTitle}>
         <PageChromeContext.Provider value={ownsHeader?sectionTabs:null}>
         <div className="workspace-content flex min-w-0 flex-1 flex-col">
+        {user&&<AnnouncementBanner key={`${user.id}:${user.organization_id}`}/>}
         {!ownsHeader&&<header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1">
           {active==='Clientes' ? <ClientDirectoryToolbar
             loading={shellDataState==='loading'}
