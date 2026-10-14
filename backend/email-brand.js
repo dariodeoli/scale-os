@@ -2,8 +2,8 @@
 // los correos (tablas + estilos en línea, 600px, preheader oculto, CTA con botón
 // a prueba de clientes y enlace de respaldo). Todo dato dinámico se escapa acá.
 export const EMAIL_TEMPLATE_VERSION='v2.0.0';
-// Mismo activo de marca que ya publica el sitio (public/brand/icon-512.png).
-export const EMAIL_LOGO_URL='https://scaleparaguay.com/brand/icon-512.png';
+// Mismo activo de marca que sirve la app (public/brand/icon-512.png en APP_URL).
+export const EMAIL_LOGO_URL=`${(process.env.APP_URL||'https://app.scaleparaguay.com').replace(/\/$/,'')}/brand/icon-512.png`;
 export const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const line=value=>String(value??'').replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ').trim();
 
