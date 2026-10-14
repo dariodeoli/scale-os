@@ -301,7 +301,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       // `overflow-x-visible` (Refs #140): la tabla sólo se monta cuando entra
       // completa, y el menú ⋯ necesita salir del contenedor; se retira cuando
       // #138 publique el patrón con portal/popover (hoy el ⋯ vive adentro).
-      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[64.5rem]" pinnedActions>
+      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[67.5rem]" pinnedActions>
         {filasVisibles.inicio > 0 ? <div role="row" aria-hidden="true" style={{height: filasVisibles.inicio * filasVisibles.altoFila}}/> : null}
         {renderClients(mountedLive.slice(filasVisibles.inicio, filasVisibles.fin), false)}
         {filasVisibles.fin < mountedLive.length ? <div role="row" aria-hidden="true" style={{height: (mountedLive.length - filasVisibles.fin) * filasVisibles.altoFila}}/> : null}
@@ -331,7 +331,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
         <summary>Archivados ({archivedClients.length})</summary>
         {dense
-          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(windowSlice(archivedClients, visible), false)}</ListGrid>
+          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[67.5rem]" pinnedActions>{renderClients(windowSlice(archivedClients, visible), false)}</ListGrid>
           : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(windowSlice(archivedClients, visible), true)}</div>}
       </details>
     ) : null}
