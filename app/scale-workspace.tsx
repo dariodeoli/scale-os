@@ -47,7 +47,7 @@ import './suite.css';
 import {RecordEditor} from './suite';
 import {AssignedPeople} from './assigned-people';
 import {listDateShort,dueTone} from './list-format';
-import {PageChromeContext,PageTitleContext,StateChip,ViewSwitch,useBulkSelection} from './ui-v2';
+import {PageChromeContext,PageTitleContext,StateChip,useBulkSelection} from './ui-v2';
 import {TabScroller} from './tab-scroller';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
@@ -204,14 +204,11 @@ export default function Home() {
   const [detail,setDetail]=useState<{kind:'client'|'order';id:string;anchor?:string;edit?:boolean}|null>(null);
   const [projectClient,setProjectClient]=useState('');
   const [clientView,setClientView]=useState('list'),[clientStatusFilter,setClientStatusFilter]=useState(''),[clientSearch,setClientSearch]=useState('');
-  const [projectView,setProjectView]=useState('grid');
   const [archiveBusy,setArchiveBusy]=useState('');
   const [selectedClients,setSelectedClients]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false);
   const projectBulk=useBulkSelection({limit:BATCH_LIMITS.projects,noun:'proyectos'});
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
-  useEffect(()=>{try{setProjectView(localStorage.getItem('scale:project-view')==='list'?'list':'grid');}catch{/* Optional UI preference. */}},[]);
   function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
-  function changeProjectView(value:string){setProjectView(value);try{localStorage.setItem('scale:project-view',value);}catch{/* Optional UI preference. */}}
   const [user, setUser] = useState<User | null>(null);
   const userRef=useRef<User|null>(null);
   const lastIdentityRefresh=useRef(0);
@@ -933,7 +930,7 @@ export default function Home() {
     );
   // Secciones con `ListPage` (#185 F1): ellas dibujan su encabezado (con la acción
   // primaria) y los apartados, así que el shell no repite ninguno de los dos.
-  const ownsHeader = ['Presupuestos','Planes','Producción','Inventario'].includes(active);
+  const ownsHeader = ['Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas'].includes(active);
   const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
   const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
@@ -1094,20 +1091,11 @@ export default function Home() {
           /> : <>
             <div className="page-heading flex min-w-0 items-center gap-2">
               <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">{pageTitle}</h1>
-              {active==='Proyectos'&&shellDataState!=='loading'&&<span className="page-count rounded-full bg-ink-700 px-2 py-0.5 text-[11px] tabular-nums text-mute">{projects.length} proyectos</span>}
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
-              {active==='Proyectos'&&<div className="workspace-view-controls"><ViewSwitch value={projectView as 'list'|'grid'} onChange={changeProjectView}/></div>}
-              {(['Proyectos','Resumen'].includes(active)&&canCreateRecord(active)) && (
-                <button
-                  className="primary"
-                  onClick={() =>
-                    setModal(
-                      active === "Proyectos" ? "project" : "order",
-                    )
-                  }
-                >
-                  <Plus size={18} /> {active==='Proyectos'?'Nuevo proyecto':'Nueva orden'}
+              {(active==='Resumen'&&canCreateRecord(active)) && (
+                <button className="primary" onClick={() => setModal("order")}>
+                  <Plus size={18} /> Nueva orden
                 </button>
               )}
             </div>
@@ -1133,7 +1121,7 @@ export default function Home() {
         {active==='Producción'&&<ProduccionSection identityLoading={identityLoading} productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} createOrder={canCreateRecord('Producción')?()=>setModal('order'):undefined} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraState={moraState} onRetry={()=>setMoraReload(value=>value+1)} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso} onCreateInvoice={openInvoice}/>}
         {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail} onCreate={()=>setModal('client')}/>}
-        {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectRow={projectRowEntry} projectView={projectView} bulk={projectBulk} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}
+        {active==='Proyectos'&&<ProyectosSection bulkBusy={bulkBusy} projectRow={projectRowEntry} bulk={projectBulk} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} windowState={budgetsWindow} onLoadMore={loadMoreBudgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={()=>loadBudgets()} setBudgets={setBudgets} onCreate={()=>setModal('budget')}/>}
         {active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>}
         {active==='Finanzas'&&<FinanzasSection user={user} navigate={setActive} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} paymentHasMore={paymentHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} loadAllPayments={loadAllPayments} setModal={setModal} openPayment={openPayment}/>}

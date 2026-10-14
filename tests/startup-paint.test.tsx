@@ -41,7 +41,7 @@ test('arranque #109: los bloques muestran esqueletos honestos, no ceros',async()
  assert(toolbar.includes('loading?: boolean'),'la toolbar acepta el estado de carga');
  assert(toolbar.includes("loading ? 'Cargando el directorio…' : summary"),'y lo dice en vez del resumen');
  assert(shell.includes("loading={shellDataState==='loading'}"),'el shell le pasa el estado real');
- assert(shell.includes("active==='Proyectos'&&shellDataState!=='loading'"),'el contador de Proyectos no afirma cero');
+ assert(file('app/sections/proyectos.tsx').includes("summary={projectsState==='loading'&&!projects.length?undefined:"),'el contador de Proyectos no afirma cero');
  // El esqueleto: misma grilla que la tira real, sin números.
  let renderer:any;
  await act(async()=>{renderer=create(<KpiStripSkeleton count={3} label="Cargando el directorio…"/>);});

@@ -1,8 +1,10 @@
 "use client";
-import type {Dispatch, ReactNode, SetStateAction} from 'react';
-import {X} from 'lucide-react';
-import {Button,Select} from 'owncoding-ui';
-import {BulkBar, EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, KpiStripSkeleton, ListGrid, ListRow, LoadingBlock, type BulkSelection, type Column} from '../ui-v2';
+import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
+import {Plus, X} from 'lucide-react';
+import {Button} from 'owncoding-ui';
+import {BulkBar, EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, KpiStripSkeleton, ListGrid, ListPage, ListRow, LoadingBlock, ViewSwitch, type BulkSelection, type CollectionView, type Column} from '../ui-v2';
+import {SelectCustom} from '../profile-controls';
+import {notify} from '../feedback';
 import {BATCH_LIMITS} from '../capabilities';
 import type {Client, Project} from '../workspace-types';
 
@@ -19,9 +21,9 @@ const PROJECT_COLUMNS: Column[] = [
   {key: 'actions', label: 'Acciones'},
 ];
 const PROJECT_COLS = '[--project-cols:minmax(14rem,1.6fr)_7rem_minmax(13rem,1.1fr)_minmax(10rem,1fr)_10rem]';
+/** Vista elegida (lista/tarjetas): persiste en el navegador, como Clientes y Presupuestos. */
+export const PROJECT_VIEW_KEY='scale:project-view';
 type ProyectosSectionProps = {
-  setToast: Dispatch<SetStateAction<string>>;
-  projectView: string;
   bulk: BulkSelection;
   projectsState: 'loading'|'ready'|'error';
   canManageProjects: boolean;
@@ -42,32 +44,34 @@ type ProyectosSectionProps = {
   /** CTA del vacío: el modal vive en el shell. */
   createProject?: () => void;
 };
-export function ProyectosSection({setToast, bulkBusy, bulk, projectRow, projectView, projectsState, canManageProjects, clients, projects, projectClientFilter, setProjectClientFilter, projectKpis, visibleProjects, liveProjects, archivedProjects, load, batchProjects, projectEntry, createProject}: ProyectosSectionProps){
-  const retry=()=>void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los proyectos.'));
+export function ProyectosSection({bulkBusy, bulk, projectRow, projectsState, canManageProjects, clients, projects, projectClientFilter, setProjectClientFilter, projectKpis, visibleProjects, liveProjects, archivedProjects, load, batchProjects, projectEntry, createProject}: ProyectosSectionProps){
+  const retry=()=>void load().catch(cause=>notify({tone:'error',message:cause instanceof Error?cause.message:'No se pudieron cargar los proyectos.'}));
+  // Por defecto tarjetas; la preferencia guardada se lee tras montar (SSR igual).
+  const [projectView,setProjectView]=useState<CollectionView>('grid');
+  useEffect(()=>{try{setProjectView(localStorage.getItem(PROJECT_VIEW_KEY)==='list'?'list':'grid');}catch{/* Preferencia opcional de la interfaz. */}},[]);
+  const changeView=(next:CollectionView)=>{setProjectView(next);try{localStorage.setItem(PROJECT_VIEW_KEY,next);}catch{/* Preferencia opcional de la interfaz. */}};
+  const clientChoices=[{value:'',label:'Todos los clientes'},...clients.map(client=>({value:String(client.id),label:client.name}))];
   const collection=(list: Project[], label: string)=>projectView==='grid'
     ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{list.map(project => projectEntry(project))}</div>
     : <ListGrid label={label} template="grid-cols-[var(--project-cols)]" columns={PROJECT_COLUMNS} className={`project-list ${PROJECT_COLS}`} minWidthClass="min-w-[64rem]">{list.map(project => <ListRow key={project.id} template="grid-cols-[var(--project-cols)]">{projectRow(project)}</ListRow>)}</ListGrid>;
   const empty = !visibleProjects.length;
   return (
-    <section className="grid min-w-0 gap-4" aria-label="Proyectos">
-      {projectsState === 'loading' && !projects.length ? <KpiStripSkeleton label="Cargando proyectos…"/> : <KpiStrip className="kpi-strip">
+    <ListPage
+      aria-label="Proyectos"
+      primaryAction={<>{createProject?<button type="button" className="primary" onClick={createProject}><Plus size={18} aria-hidden="true"/> Nuevo proyecto</button>:null}<ViewSwitch value={projectView} onChange={changeView}/></>}
+      toolbar={<FilterToolbar className="mb-0" summary={projectsState==='loading'&&!projects.length?undefined:`${liveProjects.length} proyecto${liveProjects.length===1?'':'s'}`}>
+        <div className="w-full sm:w-56"><SelectCustom label="Cliente" choices={clientChoices} value={projectClientFilter} onChange={setProjectClientFilter}/></div>
+        {projectClientFilter?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setProjectClientFilter('')}><X size={14}/>Limpiar filtro</button>:null}
+        {canManageProjects&&liveProjects.length?<button type="button" className="text-button min-h-11 lg:ml-2 md:min-h-8" title={`Selecciona hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={()=>bulk.selectVisible(liveProjects.map(project=>String(project.id)))}>Seleccionar visibles</button>:null}
+      </FilterToolbar>}
+      kpis={projectsState === 'loading' && !projects.length ? <KpiStripSkeleton label="Cargando proyectos…"/> : <KpiStrip className="kpi-strip" aria-label="Métricas de proyectos">
         <Kpi label="Activos" valor={projectKpis.active} hint="Con trabajo en curso" destacado/>
         <Kpi label="Pausados" valor={projectKpis.paused} hint="Sin producción activa"/>
         <Kpi label="Completados" valor={projectKpis.completed} hint="Cerrados en el historial"/>
         <Kpi label="Piezas totales" valor={projectKpis.pieces} hint="Órdenes de los proyectos visibles"/>
       </KpiStrip>}
-      <FilterToolbar className="mb-0" summary={`${liveProjects.length} proyecto${liveProjects.length===1?'':'s'}`}>
-        <label className="flex items-center gap-2">
-          <span className="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span>
-          <Select className="w-full sm:w-56" value={projectClientFilter} onChange={(event:React.ChangeEvent<HTMLSelectElement>)=>setProjectClientFilter(event.target.value)}>
-            <option value="">Todos los clientes</option>
-            {clients.map(client=><option key={client.id} value={String(client.id)}>{client.name}</option>)}
-          </Select>
-        </label>
-        {projectClientFilter?<button type="button" className="text-button" onClick={()=>setProjectClientFilter('')}><X size={14}/>Limpiar filtro</button>:null}
-        {canManageProjects&&liveProjects.length?<button type="button" className="text-button lg:ml-2" title={`Selecciona hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={()=>bulk.selectVisible(liveProjects.map(project=>String(project.id)))}>Seleccionar visibles</button>:null}
-      </FilterToolbar>
-      {canManageProjects?<BulkBar count={bulk.count} total={BATCH_LIMITS.projects} onClear={bulk.clear}><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button></BulkBar>:null}
+      bulk={canManageProjects?<BulkBar count={bulk.count} total={BATCH_LIMITS.projects} onClear={bulk.clear}><button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button></BulkBar>:undefined}
+    >
       {projectsState === 'error' && projects.length ? <p className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-sm text-bad" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={retry}>Reintentar</button></p> : null}
       {projectsState === 'loading' && !projects.length ? <LoadingBlock label="Cargando proyectos…" lines={4}/> : null}
       {projectsState === 'error' && !projects.length ? <ErrorBlock title="No se pudieron cargar los proyectos." onRetry={retry}/> : null}
@@ -80,6 +84,6 @@ export function ProyectosSection({setToast, bulkBusy, bulk, projectRow, projectV
           {collection(archivedProjects, 'Proyectos archivados')}
         </details>
       ) : null}
-    </section>
+    </ListPage>
   );
 }

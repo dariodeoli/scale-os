@@ -25,6 +25,7 @@ const kpi = (text, value, hint, destacado = false) => `<div class="relative over
  <div class="mt-1.5 flex items-center gap-2 text-xs"><span class="${destacado ? 'text-onbrand/75' : 'text-mute'}">${hint}</span></div>
 </div>`;
 const kpiStrip = (children) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Métricas">${children}</div>`;
+const kpiStrip3 = (children) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Métricas de crecimiento">${children}</div>`;
 const stateChip = (tone, text) => {
   const colors = {ok: 'bg-ok/15 text-ok border-ok/40', warn: 'bg-warn/15 text-warn border-warn/40', bad: 'bg-bad/15 text-bad border-bad/40', info: 'bg-info/15 text-info border-info/40', mute: 'bg-ink-600 text-mute border-ink-500'};
   return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${colors[tone]}">${text}</span>`;
@@ -218,12 +219,19 @@ const shortDay = (iso) => new Intl.DateTimeFormat('es-PY', {timeZone: 'America/A
 const counts = [1024, 987, 0, 1540, 2331, 1204, 876, 990, 1105, 1502, 998, 744, 1310, 1622, 1805, 1201, 933, 1010, 1475, 1320, 1188, 902, 1210, 1660, 1902, 1433, 1108, 995, 1215, 1889];
 const max = Math.max(...counts);
 const growthStat = (text, value, change, sub) => `<div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">${text}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight text-fore md:text-3xl">${value}</div><div class="mt-1.5 flex items-center gap-2 text-xs"><span class="font-medium text-ok">${change}</span><span class="text-mute">${sub}</span></div></div>`;
-const metricasSection = `<div class="grid gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">
- <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div class="min-w-0"><p class="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Captación digital</p><h2 class="mt-1 text-[17px] font-bold tracking-tight text-fore">Visitas y crecimiento</h2></div><label class="flex shrink-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Período<select class="h-11 w-44 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore md:h-9 md:text-sm" aria-label="Período"><option>Últimos 7 días</option><option selected>Últimos 30 días</option><option>Últimos 90 días</option></select></label></header>
- <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">${growthStat('Páginas vistas', '37.479', '128,4%', 'vs. período anterior')}${growthStat('Vistas desde móvil', '18.240', '—', 'Sin base anterior')}${growthStat('Clics en WhatsApp', '1.284', '12,5%', 'vs. período anterior')}</div>
+const metricasSection = `<section class="grid min-w-0 gap-4" aria-label="Métricas y crecimiento">
+ <header class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3"><div class="min-w-0 flex-1"><p class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">Captación digital</p></div></header>
+ <div data-toolbar="filtros" class="mb-0 flex flex-wrap items-end gap-3 xl:flex-nowrap"><div class="w-full sm:w-52"><button type="button" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-left text-sm text-fore md:h-9" aria-label="Período">Últimos 30 días</button></div><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">Últimos 30 días</p></div>
+ ${kpiStrip3([
+   kpi('Páginas vistas', '37.479', '+128,4 % vs. período anterior', true),
+   kpi('Vistas desde móvil', '18.240', 'Sin base anterior'),
+   kpi('Clics en WhatsApp', '1.284', '+12,5 % vs. período anterior'),
+ ].join(''))}
+ <div class="grid gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">
  <section aria-labelledby="growth-evolution"><h3 id="growth-evolution" class="text-sm font-bold text-fore">Evolución diaria · páginas vistas</h3><div role="img" aria-label="Páginas vistas durante 30 días. 37.479 en total." class="mt-2 flex h-40 items-end gap-[3px] rounded-t-lg border border-b-ink-500 border-ink-600 bg-ink-900 px-2 pt-2">${counts.map((count, index) => `<div class="min-w-0 flex-1 rounded-t bg-fono" style="height:${Math.max(1, (count / max) * 100)}%" title="${days[index]}: ${count} vistas"></div>`).join('')}</div><div class="mt-1 flex justify-between gap-2 text-[11px] tabular-nums text-mute"><span>${shortDay(days[0])}</span><span>${shortDay(days[days.length - 1])}</span></div></section>
  <p class="rounded-lg border border-info/25 bg-info/10 p-2 text-xs text-mute">Son eventos registrados, no personas únicas ni usuarios conectados. Las vistas móviles no se suman al total de páginas. Las comprobaciones de despliegue quedan excluidas.</p>
-</div>`;
+</div>
+</section>`;
 
 export default [
   {id: 'seccion-presupuestos', section: 'Presupuestos', surface: 'Sección v2 con lista y KPIs', kind: 'workspace', lists: [{container: '[role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Presupuestos · lista v2', rowHeight: [44, 52]}], body: presupuestosSection},

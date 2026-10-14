@@ -166,7 +166,7 @@ test('copias locales reemplazadas por la librería (§15.5) y resultado con el t
  const clientFormat=read('app/client-format.ts');
  assert.match(clientFormat,/import \{diasHasta\} from 'owncoding-ui\/utils'/);
  assert.doesNotMatch(clientFormat,/asuncionDay/,'sin copia local del día de Asunción');
- const dashboard=read('app/growth-dashboard.tsx');
+ const dashboard=read('app/sections/metricas.tsx');
  assert.match(dashboard,/formatoNumero\(current\)/,'los conteos usan el formato único');
  assert.doesNotMatch(dashboard,/toLocaleString/,'sin formato a mano por pantalla');
  const suite=read('app/suite.tsx');
