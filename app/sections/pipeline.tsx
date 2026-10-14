@@ -157,10 +157,10 @@ function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals,
   const weighted=totals?.weighted||weightedAmounts(rows);
   const open=totals?.open||{};
   const currencies=[...new Set([...Object.keys(weighted),...Object.keys(open)])];
-  return <section ref={drop.setNodeRef} aria-label={`${stage.label} · ${rows.length} oportunidades`} className={`grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border p-3 ${drop.isOver?'border-fono/60 bg-fono/10':'border-ink-600 bg-ink-800'}`}>
-    <header className="flex items-baseline justify-between gap-2">
-      <h3 className="m-0 text-sm font-bold text-fore">{stage.label}{readOnly?' · desactivada':''}</h3>
-      <span className="text-xs tabular-nums text-mute">{rows.length}</span>
+  return <section ref={drop.setNodeRef} aria-label={`${stage.label} · ${rows.length} oportunidades`} className={`grid min-w-[15rem] flex-1 content-start gap-2 rounded-xl border p-3 transition-colors ${drop.isOver?'border-fono/60 bg-fono/10':'border-ink-600 bg-ink-700/40'}`}>
+    <header className="flex items-center justify-between gap-2">
+      <h3 className="m-0 flex min-w-0 items-center gap-2 text-sm font-bold text-fore"><span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${stage.kind==='won'?'bg-ok':stage.kind==='lost'?'bg-bad':'bg-fono'}`}/><span className="min-w-0 truncate" title={stage.label}>{stage.label}{readOnly?' · desactivada':''}</span></h3>
+      <span className="min-w-6 shrink-0 rounded-full bg-ink-600 px-2 py-0.5 text-center text-xs font-semibold tabular-nums text-fore">{rows.length}</span>
     </header>
     {/* Totales sin recorte (#182): cada monto va nowrap + tabular-nums y es la
         etiqueta la que baja de linea cuando el ancho no alcanza. */}

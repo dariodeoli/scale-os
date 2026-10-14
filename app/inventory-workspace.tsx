@@ -155,7 +155,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
  const facts=depreciationFacts(item);
- return <article data-grid-card="equipment" className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4">
+ return <article data-grid-card="equipment" className={`flex min-w-0 flex-col gap-2 rounded-xl border p-4 transition-colors ${selected?'border-fono/50 bg-fono/10':'border-ink-600 bg-ink-800 hover:border-ink-500'}`}>
   <div className="flex min-w-0 items-start gap-2.5">
    {selectable?<label className="flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
    <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="card"/>
@@ -167,7 +167,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
   </div>
   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] leading-4 text-mute">
    <span className="whitespace-nowrap" title={item.serial_number?`Serie / IMEI: ${item.serial_number}`:'Sin serie registrada'}>{item.serial_number?<><span className="sr-only">Serie </span><SerialTexto serial={item.serial_number} className="serial-text" enmascarar/></>:'Sin serie'}</span>
-   <span className="whitespace-nowrap" title={Number(item.value)>0?'Valor del equipo':'Sin valor registrado'}>{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency}/>:'Sin valor'}</span>
+   <span className="whitespace-nowrap font-semibold text-fore" title={Number(item.value)>0?'Valor del equipo':'Sin valor registrado'}>{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency}/>:'Sin valor'}</span>
    {facts.hasDepreciation?<span className="whitespace-nowrap" title={`Valor actual con depreciación: ${facts.monthsElapsed} de ${facts.usefulLifeMonths} meses`}>Actual <CeldaMoneda valor={facts.currentValue??0} currency={item.currency}/></span>:null}
    {item.return_user_name?<span className="min-w-0 truncate" title={`Devuelve ${item.return_user_name}${item.expected_return_at?` · previsto ${dateTime(item.expected_return_at)}`:''}`}>Devuelve {item.return_user_name}{item.expected_return_at?<> · <span className="whitespace-nowrap" data-tone={(diasHasta(item.expected_return_at,{timeZone:OPS_TIME_ZONE})??99)<=7?'warn':undefined}>{dateTime(item.expected_return_at)}</span></>:null}</span>:null}
   </div>
@@ -188,13 +188,13 @@ function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onD
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
  const code=itemCode(item),location=inventoryLocation(item);
- return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[44px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} data-status={item.status}>
+ return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[44px] rounded-xl border px-3 py-1 transition-colors ${selected?'border-fono/50 bg-fono/10':'border-ink-600/60 bg-ink-800/40 hover:bg-ink-700/40'}`} data-status={item.status}>
   <span className="flex h-11 items-center md:h-auto">{selectable?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}</span>
   <span className="flex items-center"><EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="row"/></span>
   <span className="flex min-w-0 items-baseline gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b><code className="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">{code}</code></span>
   <span className={CELL}><InventoryItemMeta item={item} layout="row"/></span>
-  <span className="flex justify-end whitespace-nowrap">{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency} className="text-[13px]"/>:<span className="text-[12px] text-mute">Sin valor</span>}</span>
-  <span className="flex justify-start"><StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip></span>
+  <span className="flex justify-end whitespace-nowrap">{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency} className="text-[13px] font-semibold text-fore"/>:<span className="text-[12px] text-mute">Sin valor</span>}</span>
+  <span className="flex justify-start pl-1"><StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip></span>
   <span className={`${CELL} truncate text-mute`} title={location}>{location}</span>
   <span className="min-w-0"><VerificationStamp item={item} empty={<span className="text-[11px] text-mute">Sin verificación</span>}/></span>
   <InventoryItemActions item={item} canManage={canManage} verifying={verifying} dense onDetail={onDetail} onVerify={onVerify} onVerifyDetail={onVerifyDetail} onEdit={onEdit} onArchive={onArchive}/>
@@ -274,7 +274,7 @@ function PipelineColumn({column,canManage,canReorder=false,position=-1,total=0,o
    {column.readOnly?<span className="text-mute" role="img" title="Solo lectura: la ubicación se cambia al devolver" aria-label="Solo lectura: la ubicación se cambia al devolver">🔒</span>:<span className="h-2 w-2 shrink-0 rounded-full bg-fono" aria-hidden="true"/>}
    <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-fore" title={column.title}>{column.title}</h3>
    {column.responsibleName?<span className="shrink-0" title={`Responsable: ${column.responsibleName}`}><ActorAvatar name={column.responsibleName} photo={safePhoto(column.responsiblePhoto)}/></span>:null}
-   <span className="ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums text-mute" title={`${column.rows.length} equipo(s) en esta ubicación`}>{column.rows.length}</span>
+   <span className="ml-auto min-w-6 shrink-0 whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-center text-xs font-semibold tabular-nums text-fore" title={`${column.rows.length} equipo(s) en esta ubicación`}>{column.rows.length}</span>
    {locationActions.length?<MenuDesplegable ariaLabel={`Acciones de la ubicación: ${column.title}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones de la ubicación: ${column.title}`} title={`Acciones de la ubicación: ${column.title}`}>⋮</span>} items={locationActions}/>:null}
   </header>
   <div className="grid gap-2">
@@ -291,7 +291,7 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
  const verifying=verifyingId===String(item.id);
  const movedAt=item.location_type==='checked_out'?'En préstamo: devolvelo para cambiar su ubicación':item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación';
  const {quick,menu}=inventoryItemActions({item,canManage,verifying,onDetail,onVerify:onQuickVerify,onVerifyDetail:onDetail,onEdit:onDetail,onArchive:onDetail});
- return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-1.5 rounded-xl border border-ink-600 bg-ink-800 p-3 ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab'}`}>
+ return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-1.5 rounded-xl border border-ink-600 bg-ink-800 p-3 transition-colors ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab hover:border-fono/40'}`}>
   <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 text-left md:min-h-0" title={`Abrir detalle: ${item.name}`} onClick={()=>onDetail(item)}>
    <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="pipeline"/>
    <span className="min-w-0 flex-1">
@@ -447,10 +447,10 @@ function InventoryPanel(){
     {reservations.length?<div data-list-head="reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
      <span>Producción</span><span>Proyecto</span><span>Fechas</span><span>Equipos</span><span>Responsables</span><span>Devuelve</span><span className="text-right">Acciones</span>
     </div>:null}
-    {reservations.map(row=><div key={row.id} data-list-row="reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} min-h-[48px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1`} data-status={row.status}>
+    {reservations.map(row=><div key={row.id} data-list-row="reservations" className={`${RESERVATION_GRID} ${RESERVATION_COLS} min-h-[48px] rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1 transition-colors hover:bg-ink-700/40`} data-status={row.status}>
      <span className="flex min-w-0 items-center gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={row.title}>{row.title}</b><StateChip tone={reservationTone(row.status)}>{statusLabels[row.status]}</StateChip></span>
      <span className={`${CELL} truncate text-mute`} title={row.project_name||'Sin proyecto'}>{row.project_name||'Sin proyecto'}</span>
-     <span className={`${CELL} whitespace-nowrap tabular-nums text-mute`}>{dateTime(row.starts_at)} → {dateTime(row.ends_at)}</span>
+     <span className={`${CELL} whitespace-nowrap tabular-nums text-fore`}>{dateTime(row.starts_at)} → {dateTime(row.ends_at)}</span>
      <span className={`${CELL} truncate text-mute`} title={row.items.map(i=>i.name).join(' · ')}>{row.items.map(i=>i.name).join(' · ')||'Sin equipos'}</span>
      <span className={`${CELL} truncate text-mute`} title={row.responsible_members.map(p=>p.name).join(', ')}>{row.responsible_members.map(p=>p.name).join(', ')||'Sin responsables'}</span>
      <span className={`${CELL} truncate text-mute`} title={row.return_user_name||undefined}>{row.return_user_name||'—'}{row.status==='checked_out'?` · ${row.custodian_name||'Sin custodio'}`:''}</span>

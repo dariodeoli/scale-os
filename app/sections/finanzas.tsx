@@ -85,7 +85,7 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
       {projection.length ? <div className="grid gap-2">{projection.map(row => <article className="grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-3" key={row.currency}>
         <span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{row.currency}</span>
         <FilaDato etiqueta="Caja proyectada" valor={<MoneyText valor={row.projected_cash} currency={row.currency} className="text-base"/>}/>
-        <FilaDato etiqueta="Resultado estimado" valor={<MoneyText valor={row.projected_result} currency={row.currency} className="text-base"/>}/>
+        <FilaDato etiqueta="Resultado estimado" valor={<MoneyText valor={row.projected_result} currency={row.currency} tono={Number(row.projected_result) < 0 ? 'bad' : Number(row.projected_result) > 0 ? 'ok' : ''} className="text-base"/>}/>
       </article>)}</div> : null}
       {rows.length ? <div className="grid gap-2">
         <p className="font-mono text-[10px] uppercase tracking-[.14em] text-mute">Personal esperado al cierre</p>
@@ -177,12 +177,12 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
         </div>
         {availability.size ? <p className="min-w-0 truncate text-xs text-mute" title="Saldo actual de cuentas activas por moneda.">Disponible: <span className="font-semibold text-fore">{multiCurrency(availability)}</span></p> : null}
         {accounts.length ? <div className="grid gap-2">
-          {accounts.map(account => <article key={account.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4" data-archived={account.active === false || undefined}>
+          {accounts.map(account => <article key={account.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4 transition-colors hover:border-ink-500 data-[archived]:opacity-70" data-archived={account.active === false || undefined}>
             <header className="flex items-start justify-between gap-2">
               <b className="min-w-0 truncate text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
               <StateChip tone="mute" title={`${ACCOUNT_TYPES[account.account_type] || account.account_type} · ${account.currency}`}>{ACCOUNT_TYPES[account.account_type] || account.account_type} · {account.currency}</StateChip>
             </header>
-            <MoneyText valor={account.balance} currency={account.currency} className="text-lg"/>
+            <MoneyText valor={account.balance} currency={account.currency} tono={Number(account.balance) < 0 ? 'bad' : ''} className="text-xl leading-tight"/>
             <dl className="grid gap-0.5 text-[11px]">
               {account.institution ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.institution}>{account.institution}</dd></div> : null}
               {account.account_number ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd className="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title={account.account_number}>{account.account_number}</dd></div> : null}
@@ -208,7 +208,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               {urgent.slice(0, 5).map(invoice => <div className="grid gap-1 rounded-lg border border-ink-600 bg-ink-900 px-3 py-2" key={invoice.id}>
                 <div className="flex min-w-0 items-baseline justify-between gap-2">
                   <b className="min-w-0 truncate text-[13px] font-semibold leading-snug text-fore" title={`${invoice.number} · ${invoice.client_name}`}>{invoice.client_name}</b>
-                  <MoneyText valor={pendingOf(invoice)} currency={invoice.currency}/>
+                  <MoneyText valor={pendingOf(invoice)} currency={invoice.currency} tono={invoice.status === 'overdue' ? 'bad' : ''}/>
                 </div>
                 <div className="flex min-w-0 items-center justify-between gap-2 text-[11px] text-mute">
                   <span className="min-w-0 truncate" title={`${invoice.number} · ${listDateFull(invoice.due_on) || 'sin fecha de vencimiento'}`}>{invoice.number} · vence <span className={dueTone(invoice.due_on) ? 'font-semibold text-warn' : 'text-fore'}>{listDateShort(invoice.due_on) || 'sin fecha'}</span></span>
@@ -247,8 +247,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
             <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${invoice.number} · ${invoice.client_name}`}>{invoice.number} · {invoice.client_name}</b></div>
             <div className="min-w-0"><StateChip tone={INVOICE_TONE[invoice.status] || 'mute'} title={INVOICE_STATES[invoice.status] || invoice.status}>{INVOICE_STATES[invoice.status] || invoice.status}</StateChip></div>
             <div className="min-w-0">{invoice.due_on ? <span className={`whitespace-nowrap tabular-nums ${dueTone(invoice.due_on) ? 'font-semibold text-warn' : 'text-fore'}`} title={listDateFull(invoice.due_on) || undefined}>{listDateShort(invoice.due_on)}</span> : <span className="text-[11px] text-mute">Sin fecha</span>}</div>
-            <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? <MoneyText valor={pendingOf(invoice)} currency={invoice.currency}/> : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
-            <div className="min-w-0 text-right"><MoneyText valor={invoice.total} currency={invoice.currency}/></div>
+            <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? <MoneyText valor={pendingOf(invoice)} currency={invoice.currency} tono={invoice.status === 'overdue' ? 'bad' : ''} className="text-[13.5px]"/> : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
+            <div className="min-w-0 text-right"><MoneyText valor={invoice.total} currency={invoice.currency} tono="mute" className="!font-normal"/></div>
             <div className="flex min-w-0 items-center justify-end gap-1">
               {pendingOf(invoice) > 0 ? <button className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)}><Plus size={14} aria-hidden="true"/>Registrar cobro</button> : null}
             </div>

@@ -69,7 +69,7 @@ function ClientLine({client}: {client: ClientPaymentStatus}) {
     </div>
     <div className="min-w-0 text-right">
       {client.currency && Number(client.outstanding_amount) > 0
-        ? <MoneyText valor={client.outstanding_amount} currency={client.currency}/>
+        ? <MoneyText valor={client.outstanding_amount} currency={client.currency} tono={ageKey ? (ageKey === 'critical' ? 'bad' : 'warn') : ''} className="text-[13.5px]"/>
         : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo pendiente</span>}
     </div>
   </ListRow>;

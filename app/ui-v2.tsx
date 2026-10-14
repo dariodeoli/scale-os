@@ -310,7 +310,7 @@ export function CompactCard({
 } & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
   const titleText = typeof title === 'string' ? title : '';
   const menu = menuLabel || `Acciones${titleText ? `: ${titleText}` : ''}`;
-  return <article {...props} data-compact-card className={`flex min-w-0 flex-col gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3 shadow-sm ${className ?? ''}`}>
+  return <article {...props} data-compact-card className={`flex min-w-0 flex-col gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3 shadow-sm transition-colors hover:border-ink-500 ${className ?? ''}`}>
     <header className="flex min-w-0 items-start justify-between gap-2">
       {onOpen
         ? <button type="button" className="min-h-11 min-w-0 flex-1 text-left text-[13.5px] font-semibold leading-5 text-fore outline-none transition-colors hover:text-fono-light focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0" aria-label={openLabel || `Abrir ${titleText}`} onClick={onOpen}>{title}</button>
