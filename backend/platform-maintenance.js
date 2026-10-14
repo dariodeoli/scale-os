@@ -78,7 +78,7 @@ function untilInput(value){
 }
 
 async function readSetting(db){
- const row=(await db.query(`select s.value,s.updated_at,u.email as updated_by_email from platform_settings s left join users u on u.id=s.updated_by where s.key='maintenance'`)).rows[0];
+ const row=(await db.query(`select s.value,s.updated_at,u.email as updated_by_email from platform_settings s left join users u /*demo-ok: solo el correo de quien cambió el estado*/ on u.id=s.updated_by where s.key='maintenance'`)).rows[0];
  return {...normalize(row?.value),updated_at:row?.updated_at||null,updated_by_email:row?.updated_by_email||null};
 }
 

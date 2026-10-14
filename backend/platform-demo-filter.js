@@ -23,3 +23,7 @@ export const demoUser=alias=>`${isDemoUser(alias)} and ${alias}.deleted_at is nu
 export const filtroSinDemo=Object.freeze({usuario:realUser,empresa:realOrganization,usuarioDemo:demoUser,empresaDemo:demoOrganization});
 /** Nombres que la prueba estática reconoce como uso del filtro. */
 export const DEMO_FILTER_HELPERS=['realUser','realOrganization','demoUser','demoOrganization'];
+/** Analítica pública (Tráfico y demos): la landing y la web nunca mezclan la superficie demo. */
+export const analiticaSinDemo=alias=>`${alias}.surface<>'demo'`;
+/** Solo la superficie demo: se usa únicamente en el bloque aparte de demos. */
+export const analiticaSoloDemo=alias=>`${alias}.surface='demo'`;

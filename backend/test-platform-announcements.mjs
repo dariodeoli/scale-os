@@ -11,7 +11,7 @@ for(const f of migrationOrder)await pg.exec(await read('./migrations/'+f));
 await pg.exec(await read('./migrations/20261016_platform_announcements_maintenance.sql'));
 
 const query=(s,v)=>pg.query(s,v),db={query,connect:async()=>({query,release(){}})};
-const user=async email=>(await query("insert into users(email,password_hash) values($1,'!') returning id",[email])).rows[0].id;
+const user=async email=>(await query("insert into users(email,password_hash,email_verified_at) values($1,'!',now()) returning id",[email])).rows[0].id;
 const org=async(slug,extra='')=>(await query(`insert into organizations(slug,name${extra?',demo_owner_user_id':''}) values($1,$2${extra?',$3':''}) returning id`,extra?[slug,slug.toUpperCase(),extra]:[slug,slug.toUpperCase()])).rows[0].id;
 const scale=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const other=await org('agencia-norte');
@@ -44,9 +44,9 @@ assert.throws(()=>announcementInput({title:'T',message:'M',html:'<x>'}),/no perm
 
 // --- Autorización -------------------------------------------------------------------
 assert.equal((await panel('/api/platform/agencies')).handled,false,'otras rutas no se tocan');
-assert.equal((await panel('/api/platform/announcements',{as:null})).status,401);
-assert.equal((await panel('/api/platform/announcements',{as:{id:ana}})).status,403,'dueño de agencia sin acceso global');
-assert.equal((await panel('/api/platform/announcements',{as:{id:admin,demo_owner_user_id:admin}})).status,403,'Demo: 403');
+assert.equal((await panel('/api/platform/announcements',{as:null})).status,404,'sin sesión: el 404 genérico del panel');
+assert.equal((await panel('/api/platform/announcements',{as:{id:ana}})).status,404,'dueño de agencia sin acceso global');
+assert.equal((await panel('/api/platform/announcements',{as:{id:admin,demo_owner_user_id:admin}})).status,404,'Demo: 404 genérico');
 assert.equal((await panel('/api/platform/announcements',{as:{id:viewer}})).status,200,'el visor global lee');
 assert.equal((await panel('/api/platform/announcements',{method:'POST',as:{id:viewer},payload:{title:'T',message:'M'}})).status,403,'el visor no crea');
 

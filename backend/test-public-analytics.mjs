@@ -8,7 +8,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {ANALYTICS_LIMITS,ANALYTICS_MAX_SECONDS,analyticsPath,analyticsRange,clampScroll,clampSeconds,dailyHash,demoVisitor,parseAnalyticsEvent,referrerDomain} from './public-analytics-core.js';
 import {publicAnalytics,recordDemoEvent} from './public-analytics.js';
 import {platformTraffic} from './platform-traffic.js';
-import {analiticaSinDemo,analiticaSoloDemo,filtroSinDemo} from './demo-filter.js';
+import {analiticaSinDemo,analiticaSoloDemo,realOrganization} from './platform-demo-filter.js';
 
 const throws=(fn,status=400)=>assert.throws(fn,error=>error.status===status);
 
@@ -47,7 +47,7 @@ throws(()=>analyticsRange({from:'2026-10-15',to:'2026-10-14'}));throws(()=>analy
 assert.notEqual(dailyHash('1.2.3.4','2026-10-14'),dailyHash('1.2.3.4','2026-10-15'),'el hash de IP rota cada día');
 assert(!dailyHash('1.2.3.4').includes('1.2.3.4'));
 assert.match(demoVisitor(42),/^d[0-9a-f]{31}$/);assert.notEqual(demoVisitor(42),demoVisitor(43));
-assert.equal(filtroSinDemo('o').includes('demo_owner_user_id is null'),true);
+assert.equal(realOrganization('o').includes('demo_owner_user_id is not null'),true);
 assert.equal(analiticaSinDemo('v'),"v.surface<>'demo'");assert.equal(analiticaSoloDemo('v'),"v.surface='demo'");
 
 // ── Base (PGlite) ────────────────────────────────────────────────────────────
@@ -134,7 +134,8 @@ await pg.exec("delete from public_page_views;delete from public_analytics_events
 const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion'}).format(new Date());
 const dayAt=offset=>{const d=new Date(today+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);};
 await pg.exec(`
- insert into users(id,email,password_hash,created_at) values(1,'platform@scale.example','x','${dayAt(-60)}T15:00:00Z'),(2,'nadie@a.example','x','${dayAt(-1)}T15:00:00Z'),(3,'visitante-x@demo.example.invalid','x','${dayAt(-1)}T15:00:00Z');
+ alter table users add column if not exists email_verified_at timestamptz, add column if not exists google_full_name text, add column if not exists google_photo_url text, add column if not exists deleted_at timestamptz; -- la verificación vive en 20260912_email_password_auth.sql
+ insert into users(id,email,password_hash,email_verified_at,created_at) values(1,'platform@scale.example','x',now(),'${dayAt(-60)}T15:00:00Z'),(2,'nadie@a.example','x',null,'${dayAt(-1)}T15:00:00Z'),(3,'visitante-x@demo.example.invalid','x',null,'${dayAt(-1)}T15:00:00Z');
  update users set is_demo_guest=true where id=3;
  insert into platform_administrators(user_id) values(1);
 `);
@@ -144,9 +145,9 @@ async function traffic(path,actor={id:1,email:'platform@scale.example'}){
  return {handled,...answer};
 }
 assert.equal((await traffic('/api/platform/usage')).handled,false);
-assert.equal((await traffic('/api/platform/traffic',null)).status,401,'sin sesión');
-assert.equal((await traffic('/api/platform/traffic',{id:2,email:'nadie@a.example'})).status,403,'no es admin global');
-assert.equal((await traffic('/api/platform/traffic',{id:1,demo_owner_user_id:1})).status,403,'la demo no entra al panel');
+assert.equal((await traffic('/api/platform/traffic',null)).status,404,'sin sesión: el 404 genérico del panel');
+assert.equal((await traffic('/api/platform/traffic',{id:2,email:'nadie@a.example'})).status,404,'no es admin global');
+assert.equal((await traffic('/api/platform/traffic',{id:1,demo_owner_user_id:1})).status,404,'la demo no entra al panel');
 assert.equal((await traffic({url:'/api/platform/traffic',method:'POST'})).status,405);
 assert.equal((await traffic(`/api/platform/traffic?from=${dayAt(-200)}&to=${today}`)).status,400,'máximo 180 días');
 // Sin datos: ceros y promedios nulos, nunca números inventados.

@@ -4,7 +4,7 @@
 // consultas agregadas y parametrizadas; días agrupados en America/Asuncion. La
 // landing excluye la superficie demo y la demo se devuelve como bloque aparte.
 import {actor} from './platform-admin.js';
-import {analiticaSinDemo,analiticaSoloDemo,usuarioSinDemo} from './demo-filter.js';
+import {analiticaSinDemo,analiticaSoloDemo,realUser} from './platform-demo-filter.js';
 import {ANALYTICS_CTAS,ANALYTICS_ZONE,analyticsRange,asuncionDay} from './public-analytics-core.js';
 
 export const TRAFFIC_PATH='/api/platform/traffic';
@@ -55,7 +55,7 @@ export async function platformTrafficData(db,range){
   db.query(`with e as (${events(analiticaSinDemo)}) select g.d::date::text as day,count(e.id)::int as clicks
     from ${series} left join e on e.current and e.event='cta_click' and ${localDay('e.created_at')}=g.d::date group by g.d order by g.d`,base),
   db.query(`select (u.created_at>=${CUR_START}) as current,count(*)::int as total from users u
-    where ${usuarioSinDemo('u')} and ${between('u.created_at',PREV_START,CUR_END)} group by 1`,base),
+    where ${realUser('u')} and ${between('u.created_at',PREV_START,CUR_END)} group by 1`,base),
   db.query(`with e as (${events(analiticaSoloDemo)}) select current,label,count(*)::int as total from e where event='demo_start' group by current,label`,base),
   db.query(`with e as (${events(analiticaSoloDemo)}) select g.d::date::text as day,count(e.id)::int as started
     from ${series} left join e on e.current and e.event='demo_start' and ${localDay('e.created_at')}=g.d::date group by g.d order by g.d`,base),

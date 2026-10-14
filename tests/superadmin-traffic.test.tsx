@@ -147,7 +147,7 @@ test('el componente cliente no importa módulos que toquen la base', () => {
     const source = readFileSync(file, 'utf8');
     assert.doesNotMatch(source, /from ['"](?:\.\.\/)+backend|pg['"]|@prisma|pglite|server-only|node:/, file);
   }
-  const page = readFileSync('app/superadmin/page.tsx', 'utf8');
+  const page = readFileSync('app/superadmin/sections.tsx', 'utf8');
   assert.match(page, /\{id: "trafico", label: "Tráfico y demos"/, 'la sección está en la navegación del panel');
 });
 

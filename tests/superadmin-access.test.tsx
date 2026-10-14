@@ -62,7 +62,7 @@ test('deep links ?vista=<id> (con alias «actividad») abren la sección y la UR
   assert.equal(resolveSection('actividad').id, 'uso');
   assert.equal(resolveSection('CONSULTAS').id, 'consultas');
   assert.equal(resolveSection('no-existe').id, 'resumen');
-  assert.equal(resolveSection('trafico').id, 'resumen', 'una entrada de enlace no se monta como vista');
+  assert.equal(resolveSection('trafico').id, 'trafico', 'Tráfico y demos se monta como sección del panel');
   assert.ok(PLATFORM_SECTIONS.every(section => section.id && section.label && typeof section.icon !== 'undefined' && (section.component || section.href)), 'cada entrada declara {id, label, icon, component|href}');
   assert.equal(new Set(PLATFORM_SECTIONS.map(section => section.id)).size, PLATFORM_SECTIONS.length, 'ids únicos');
   const env = browser('?vista=actividad&periodo=7d');

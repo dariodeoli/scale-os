@@ -189,7 +189,7 @@ test('Mantenimiento en el panel: estado, confirmación al encender y PATCH con m
 });
 
 test('registro: una entrada por sección, banner en el shell y gate solo en el espacio de trabajo', () => {
-  const page = readFileSync(new URL('../app/superadmin/page.tsx', import.meta.url), 'utf8');
+  const page = readFileSync(new URL('../app/superadmin/sections.tsx', import.meta.url), 'utf8');
   assert.equal(page.match(/id: "comunicados"/g)?.length, 1);
   assert.equal(page.match(/id: "mantenimiento"/g)?.length, 1);
   const shell = readFileSync(new URL('../app/scale-workspace.tsx', import.meta.url), 'utf8');

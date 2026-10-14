@@ -9,7 +9,7 @@ const pg=new PGlite();await pg.exec(await read('./schema.sql'));
 for(const f of migrationOrder)await pg.exec(await read('./migrations/'+f));
 await pg.exec(await read('./migrations/20261016_platform_announcements_maintenance.sql'));
 const query=(s,v)=>pg.query(s,v),db={query};
-const user=async email=>(await query("insert into users(email,password_hash) values($1,'!') returning id",[email])).rows[0].id;
+const user=async email=>(await query("insert into users(email,password_hash,email_verified_at) values($1,'!',now()) returning id",[email])).rows[0].id;
 const admin=await user('platform@example.invalid'),viewer=await user('viewer@example.invalid'),owner=await user('owner@example.invalid');
 await query("insert into platform_administrators(user_id,role) values($1,'admin'),($2,'viewer')",[admin,viewer]);
 
@@ -31,8 +31,8 @@ let pub=await call(platformMaintenance,'/api/public/maintenance',{as:null});
 assert.deepEqual(pub.data,{maintenance:false,message:'',until:null,bypass:false});
 
 // Permisos del interruptor.
-assert.equal((await panel({as:null})).status,401);
-assert.equal((await panel({as:{id:owner}})).status,403);
+assert.equal((await panel({as:null})).status,404,'sin sesión: el 404 genérico del panel');
+assert.equal((await panel({as:{id:owner}})).status,404,'sin acceso global: 404 genérico');
 assert.equal((await panel({as:{id:viewer}})).status,200,'el visor global lee');
 assert.equal((await panel({method:'PATCH',payload:{enabled:true},as:{id:viewer}})).status,403,'el visor no cambia');
 assert.equal((await panel({method:'PATCH',payload:{enabled:'si'}})).status,400);
