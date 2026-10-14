@@ -24,7 +24,7 @@ assert.equal((inventory.match(/>Foto</g)||[]).length,1,'«Foto» solo sobrevive 
 assert.match(inventory,/const EQUIPMENT_COLS='\[--eq-cols:/,'la lista declara su plantilla');
 assert.equal((inventory.match(/\$\{EQUIPMENT_GRID\}/g)||[]).length,2,'encabezado y filas comparten la plantilla');
 assert.match(inventory,/flex shrink-0 flex-nowrap items-center justify-end gap-1/,'las acciones no envuelven');
-assert.match(inventory,/min-h-\[56px\]/,'la fila densa mantiene su alto acotado');
+assert.match(inventory,/min-h-\[44px\]/,'la fila densa mantiene su alto acotado');
 assert.match(inventory,/<b className="truncate text-\[13px\] font-semibold text-fore" title=\{item\.name\}>/,'el artículo puede truncar con título');
 assert.match(inventory,/<code className="shrink-0 whitespace-nowrap font-mono text-\[11px\] text-mute">\{code\}<\/code>/,'el código nunca se corta');
 assert.match(inventory,/StateChip tone=\{statusTone\(item\.status\)\}/,'el estado nunca se corta');
