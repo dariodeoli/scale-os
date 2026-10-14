@@ -326,3 +326,13 @@ test('convención única de campos: «· Opcional» en el opcional y sin marca e
   const {optionalLabel}=await import('../app/field-label');
   assert.equal(optionalLabel('Empresa'),'Empresa · Opcional');assert.equal(optionalLabel('Nombre',false),'Nombre');
 });
+
+test('Resumen: las tarjetas destacadas leen en AA (ambos temas) y las ayudas envuelven en vez de cortarse',()=>{
+  const center=read('app/control-center.tsx'),css=read('app/control-center.css');
+  assert.doesNotMatch(center,/destacado[^>]*className=\{KPI_NOTE\}|<span className=\{KPI_NOTE\}>Sin movimientos/,'el gris muted no se usa sobre el violeta');
+  assert.match(center,/<span className=\{kpiNote\(key==='cash'\)\}>Sin movimientos<\/span>/);
+  assert.equal((center.match(/className=\{KPI_HIGHLIGHT\}|className=\{key==='cash'\?KPI_HIGHLIGHT:undefined\}/g)||[]).length,3,'las tres tarjetas destacadas usan el contraste AA');
+  assert.match(center,/whitespace-normal break-words/,'la ayuda envuelve');assert.doesNotMatch(center,/<Kpi[^>]*hint="/,'ninguna ayuda pasa como texto (el Kpi la truncaría)');
+  assert.match(css,/\.kpi-highlight-aa>div,\.kpi-highlight-aa>div>span\{color:rgb\(var\(--c-onbrand\)\)\}/,'tinta de marca plena, no al 75 %');
+  assert.match(css,/html\[data-theme="dark"\] \.kpi-highlight-aa\{background-image:linear-gradient\(to bottom right,rgb\(var\(--c-fono\)\),rgb\(var\(--c-fono\)\)\)\}/,'en oscuro el fondo no arranca en fono-dark');
+});
