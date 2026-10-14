@@ -22,6 +22,7 @@ assert.match(strip(1),/sm:grid-cols-1 xl:grid-cols-1/);
 assert.match(strip(2),/sm:grid-cols-2 xl:grid-cols-2/);
 assert.match(strip(3),/sm:grid-cols-2 xl:grid-cols-3/);
 assert.match(strip(6),/sm:grid-cols-2 xl:grid-cols-4/,'5 o más envuelven en filas de 4');
+assert.match((create(<KpiStrip columns={4}><span>a</span><span>b</span><span className="xl:col-span-2">c</span></KpiStrip>).toJSON() as unknown as {props:{className:string}}).props.className,/xl:grid-cols-4/,'columns explícito manda cuando un hijo ocupa varias pistas');
 const skeleton=JSON.stringify(create(<KpiStripSkeleton dense count={2}/>).toJSON());
 assert.match(skeleton,/h-\[60px\]/,'el esqueleto denso tiene el alto de la tira densa');
 

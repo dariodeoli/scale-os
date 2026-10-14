@@ -204,8 +204,8 @@ export function kpiStripColumns(count: number) {
   return 'sm:grid-cols-2 xl:grid-cols-4';
 }
 
-export function KpiStrip({compact = false, dense = false, className, children, ...props}: {compact?: boolean; dense?: boolean; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  const count = Children.toArray(children).filter(isValidElement).length;
+export function KpiStrip({compact = false, dense = false, columns, className, children, ...props}: {compact?: boolean; dense?: boolean; /** Pistas de escritorio explícitas cuando un hijo ocupa varias (`col-span`). */ columns?: number; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
+  const count = columns ?? Children.toArray(children).filter(isValidElement).length;
   return <div {...props} className={`ui-kpi-strip grid ${dense ? 'ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'} ${kpiStripColumns(count)} ${compact ? 'ui-kpi-strip-compact' : ''} ${className ?? ''}`}>{children}</div>;
 }
 
