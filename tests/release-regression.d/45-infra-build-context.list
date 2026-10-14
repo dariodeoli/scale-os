@@ -1,0 +1,2 @@
+# Contexto de build de Docker/Coolify: .dockerignore, Tailwind acotado, clientes sin base de datos y límites 400 MB / 5 MB
+node tests/build-context.test.mjs

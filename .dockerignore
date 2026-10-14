@@ -16,3 +16,33 @@ backend/.env.*
 
 # Local incremental TypeScript build artifacts
 *.tsbuildinfo
+
+# ---------------------------------------------------------------------------
+# Lo que el build de producción no usa (guarda: scripts/verificar-contexto-build.mjs
+# y tests/build-context.test.mjs). En Agendese, evidencias de QA commiteadas
+# inflaron el contexto de 300 MB a 2 GB y el build de Coolify se cortaba.
+# Ojo: en .dockerignore `*.x` solo aplica en la raíz; para todo el árbol va `**/`.
+# ---------------------------------------------------------------------------
+docs
+design
+tests
+e2e
+coverage
+playwright-report
+test-results
+work
+.claude
+.atl
+.github
+.githooks
+**/*.har
+**/*.har.gz
+**/*.zip
+**/*.log
+# Capturas y evidencias de QA fuera de public/ (las imágenes de la app viven en public/).
+**/qa
+**/captures
+**/screenshots
+**/evidencias
+build-tools/visual-harness/**/*.png
+build-tools/visual-harness/**/*.jpg
