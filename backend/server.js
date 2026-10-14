@@ -45,6 +45,8 @@ import {automationApi,startAutomation} from './automation.js';
 import {subscriptionBilling,subscriptionState} from './subscription-billing.js';
 import {trialDetails,trialDetailsFromInput,registerTrial} from './trial-registration.js';
 import {platformUsage} from './platform-usage.js';
+import {platformTraffic} from './platform-traffic.js';
+import {publicAnalytics} from './public-analytics.js';
 import {platformAdmin,bootstrapInitialPlatformAdmin,ensurePlatformOwnerAdmin} from './platform-admin.js';
 import {applyPendingMigrations} from './migrations-runner.mjs';
 import {rolePermissions,roleCan} from './permissions.js';
@@ -250,7 +252,8 @@ async function init() {
      "20261014_usage_indexes.sql",
      "20261014_organization_logo.sql",
      "20261014_inventory_default_categories.sql",
-     "20261015_platform_inquiries.sql"
+     "20261015_platform_inquiries.sql",
+     "20261016_public_analytics.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
@@ -344,6 +347,8 @@ const server = http.createServer(async (req,res) => {
     if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
     if(await subscriptionBilling({req,res,url,db,session,body,send,sendPaymentFailed}))return;
     if(await platformUsage({req,res,url,db,session,body,send}))return;
+    if(await platformTraffic({req,res,url,db,session,send}))return;
+    if(await publicAnalytics({req,res,url,db,session,send}))return;
     if(await platformInquiries({req,res,url,db,session,body,send}))return;
     if(await platformAdmin({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
     // Billing is separate from membership: suspended owners retain billing,
