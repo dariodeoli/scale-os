@@ -228,10 +228,10 @@ export function newExtendKey(){
 export type ConfirmRequest = { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null;
 
 /** Vistas del panel (#102): una consola con secciones, no un scroll largo. */
-export type PlatformView = "resumen" | "consultas" | "agencias" | "cupones" | "accesos" | "auditoria" | "uso";
+export type PlatformView = "resumen" | "consultas" | "agencias" | "cupones" | "accesos" | "auditoria" | "uso" | "trafico";
 /** Aviso de acceso separado (antes, una fila propia del panel): vive en el tooltip del permiso. */
 export const PLATFORM_ACCESS_NOTE = "Acceso separado por plataforma: ser dueño de una agencia no habilita este panel ni sus datos.";
-export const PLATFORM_VIEWS: PlatformView[] = ["resumen", "consultas", "agencias", "cupones", "accesos", "auditoria", "uso"];
+export const PLATFORM_VIEWS: PlatformView[] = ["resumen", "consultas", "agencias", "cupones", "accesos", "auditoria", "uso", "trafico"];
 
 /** Contrato de `GET /api/platform/inquiries`: consultas de la landing («¿Tenés alguna duda?»). */
 export type InquiryStatus = "new" | "contacted" | "closed";

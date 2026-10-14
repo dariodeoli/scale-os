@@ -1,0 +1,24 @@
+/* Tráfico y demos: hereda los tokens de gráfico de `usage.css` (.usage-viz) y los de la app (claro y oscuro). */
+.traffic-viz .traffic-today{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--viz-series-1) 6%,transparent);font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+.traffic-viz .traffic-today strong{font-weight:600}
+.traffic-viz .traffic-today span{color:var(--text-muted)}
+.traffic-viz .traffic-hint{display:flex;min-width:0;flex:1;align-items:center;justify-content:space-between;gap:6px}
+.traffic-viz .traffic-delta{white-space:nowrap;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-muted)}
+.traffic-viz .traffic-delta[data-tone="up"]{color:var(--success,#1f8a4c)}
+.traffic-viz .traffic-delta[data-tone="down"]{color:var(--danger,#c2412d)}
+.traffic-viz .traffic-delta[data-tone="none"]{font-weight:400}
+.traffic-viz .traffic-spark{display:block;width:72px;height:20px;flex:none;overflow:visible}
+.traffic-viz .traffic-spark path{fill:none;stroke:var(--viz-series-1);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.traffic-viz .traffic-source{margin:0;font-size:11px;line-height:1.4;color:var(--text-muted)}
+.traffic-viz .traffic-empty{margin:0;font-size:12.5px;line-height:1.45;color:var(--text-muted)}
+.traffic-viz .traffic-title{margin:0 0 6px;font-size:12.5px;font-weight:600;color:var(--text)}
+.traffic-viz .traffic-grid{display:grid;gap:16px 20px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1024px){.traffic-viz .traffic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.traffic-viz .traffic-grid>.traffic-wide{grid-column:1 / -1}}
+.traffic-viz .traffic-grid>div{display:grid;align-content:start;gap:6px}
+.traffic-viz .traffic-bars{display:grid;gap:6px;margin:0;padding:0;list-style:none;font-size:12px;font-variant-numeric:tabular-nums}
+.traffic-viz .traffic-bars li{display:grid;grid-template-columns:3rem minmax(0,1fr) 3rem;align-items:center;gap:8px}
+.traffic-viz .traffic-bars li>span:first-child{color:var(--text-muted)}
+.traffic-viz .traffic-bars b{text-align:right;font-weight:600;color:var(--text)}
+.traffic-viz .traffic-bar{display:block;height:10px;border-radius:999px;background:var(--viz-grid);overflow:hidden}
+.traffic-viz .traffic-bar i{display:block;height:100%;border-radius:999px;background:var(--viz-series-1)}
+.traffic-viz .traffic-demo{padding-top:16px;border-top:1px solid var(--line)}
