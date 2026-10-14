@@ -1,7 +1,7 @@
 "use client";
-import {useEffect,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import {Plus,Pencil} from 'lucide-react';
-import {Button} from 'owncoding-ui';
+import {Button,SearchField} from 'owncoding-ui';
 import {api,Dialog} from '../operations';
 import {roleCan} from '../capabilities';
 import {QuoteComposer} from '../quote-composer';
@@ -9,7 +9,7 @@ import {PlanComparison} from '../plan-comparison';
 import {comparePlans} from '../plan-comparison-data';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
-import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText} from '../ui-v2';
+import {EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListPage,LoadingBlock,MoneyText} from '../ui-v2';
 import {EMPTY_WINDOW,LIST_WINDOW,appendPage,readPage,windowLabel,windowStateOf,type ListWindowState} from '../list-window';
 import type {ComparablePlan} from '../plan-comparison-data';
 import type {User} from '../workspace-types';
@@ -51,6 +51,8 @@ export function PlanesSection({user}: PlanesSectionProps){
     try{await load(plans.length,true);}finally{setMoreBusy(false);}
   };
 
+  const [query,setQuery]=useState('');
+  const shown=useMemo(()=>{const q=query.trim().toLowerCase();return q?plans.filter(plan=>`${plan.name||''} ${plan.currency||''}`.toLowerCase().includes(q)):plans;},[plans,query]);
   const active=plans.filter(plan=>plan.active!==false);
   const archived=plans.filter(plan=>plan.active===false);
   // Mismo cálculo que la tabla (precio de línea redondeado en el comparador).
@@ -59,16 +61,18 @@ export function PlanesSection({user}: PlanesSectionProps){
   const valueEntries=[...totals.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
 
   return (
-    <section className="directory grid gap-4" aria-label="Planes reutilizables">
-      {/* Franja sin KPIs redundantes (#100): la moneda por plan vive en el
-          comparador; acá queda el valor de ítems como dato propio. */}
-      <KpiStrip aria-label="Métricas de planes">
+    <ListPage
+      className="directory"
+      aria-label="Planes reutilizables"
+      primaryAction={state==='ready'&&canEdit?<Button type="button" className="max-md:min-h-11" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nuevo plan</Button>:undefined}
+      toolbar={plans.length?<FilterToolbar className="mb-0" summary={`${shown.length} de ${windowState.total ?? plans.length}`}>
+        <SearchField className="w-full sm:w-72" ariaLabel="Buscar plan" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Nombre o moneda…"/>
+      </FilterToolbar>:undefined}
+      kpis={<KpiStrip aria-label="Métricas de planes">
         <Kpi label="Planes" valor={windowState.total ?? plans.length} destacado hint={active.length?`${active.length} activo${active.length===1?'':'s'} · ${archived.length} archivado${archived.length===1?'':'s'}`:'Sin planes guardados'}/>
         <Kpi label="Valor de ítems" valor={valueEntries.length?<MoneyText valor={valueEntries[0][1]} currency={valueEntries[0][0]}/>:'—'} hint={valueEntries.length>1?<>{valueEntries.slice(1).map(([currency,value])=><span key={currency}><MoneyText valor={value} currency={currency}/> · </span>)}Sin IVA</>:'Sin IVA · totales guardados'}/>
-        <Kpi label="Activos" valor={active.length} hint="Disponibles para presupuestos"/>
-        <Kpi label="Archivados" valor={archived.length} hint="Fuera de circulación"/>
-      </KpiStrip>
-
+      </KpiStrip>}
+    >
       {/* Ventana (#105): contador honesto + «Ver más» con el aviso de alcance. */}
       {windowState.hasMore ? <div className="bulk-bar" role="status" aria-live="polite">
         <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'plan', 'planes')} · los indicadores cuentan lo cargado</span>
@@ -81,10 +85,11 @@ export function PlanesSection({user}: PlanesSectionProps){
         <ErrorBlock title="No se pudieron actualizar los planes." description="Se muestra la última lista cargada; reintentá para refrescar." onRetry={()=>void load()}/>
       ) : null}
 
-      {plans.length ? (
+      {plans.length&&!shown.length ? (
+        <EmptyBlock compact icon="filter" title="Ningún plan coincide con la búsqueda." action={<button type="button" className="secondary" onClick={()=>setQuery('')}>Limpiar búsqueda</button>}/>
+      ) : plans.length ? (
         <PlanComparison
-          plans={plans}
-          acciones={state==='ready'&&canEdit?<Button type="button" className="max-md:min-h-11" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nuevo plan</Button>:undefined}
+          plans={shown}
           actions={(plan)=><>
             {canEdit?<Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" onClick={()=>setEdit(plan)}><Pencil aria-hidden="true" size={14}/> Editar</Button>:null}
             <RemoveRecord kind="plans" id={plan.id} name={String(plan.name||'')} role={user?.role||'viewer'} done={load}/>
@@ -108,6 +113,6 @@ export function PlanesSection({user}: PlanesSectionProps){
           <QuoteComposer mode="plan" record={row} canReorder={canEdit} done={async()=>{await completeSave(()=>setEdit(null),load);}}/>
         </Dialog>
       ) : null}
-    </section>
+    </ListPage>
   );
 }

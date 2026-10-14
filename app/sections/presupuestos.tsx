@@ -1,19 +1,20 @@
 "use client";
-import {useEffect,useState} from 'react';
-import {Aviso} from 'owncoding-ui';
+import {useEffect,useMemo,useState} from 'react';
+import {Aviso,SearchField,SegmentedField} from 'owncoding-ui';
 import {fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning} from '../list-format';
 import {Plus,Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';
-import {BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
+import {BATCH_LIMITS,roleCan} from '../capabilities';
 import {ConfirmDialog} from '../dialog';
 import {notify} from '../feedback';
 import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
 import {request} from '../workspace-request';
 import {projectedList,BUDGET_LIST_FIELDS} from '../shell-data';
-import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,StateChip,denseTableMinWidth,useDenseTableFit,type Column} from '../ui-v2';
-import {budgetState} from '../budget-status';
+import {BulkBar,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListPage,ListRow,LoadingBlock,MoneyText,StateChip,ViewSwitch,denseTableMinWidth,useBulkSelection,useDenseTableFit,type CollectionView,type Column} from '../ui-v2';
+import {SelectCustom} from '../profile-controls';
+import {budgetState,filterBudgets,type BudgetFilters} from '../budget-status';
 import {EMPTY_WINDOW,useFilasVisibles,windowLabel,type ListWindowState} from '../list-window';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
 
@@ -54,6 +55,9 @@ const BUDGET_COLUMNS: Column[] = [
 // en 1280 (58rem de pistas + 7 espacios de 8 px + 8 px de padding = 992 px).
 const BUDGET_TEMPLATE = 'grid-cols-[minmax(14rem,2fr)_minmax(8rem,1.1fr)_6rem_3.5rem_6rem_8rem_8rem_4.5rem]';
 const BUDGET_TABLE_MIN_WIDTH = denseTableMinWidth(58, 8);
+/** Vista elegida por la persona (lista/tarjetas), como Clientes: persiste en el navegador y no depende del ancho. */
+export const BUDGET_VIEW_KEY='scale:budget-view';
+export function readBudgetView():CollectionView{try{return localStorage.getItem(BUDGET_VIEW_KEY)==='grid'?'grid':'list';}catch{return 'list';}}
 const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudo completar la operación';
 
 // Vista tarjeta (anchos medios, #62): mismo contrato que la fila densa
@@ -95,26 +99,31 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
     try{await onLoadMore();}finally{setMoreBusy(false);}
   };
   const canManage = roleCan(user?.role,'budgets.manage');
-  // Tabla densa sólo si entra completa; si no, tarjetas (#62).
-  const {ref: tableRef, fits: tableFits} = useDenseTableFit(BUDGET_TABLE_MIN_WIDTH);
+  const {ref: tableRef} = useDenseTableFit(BUDGET_TABLE_MIN_WIDTH);
+  // Vista elegida por la persona (D1): la lista siempre es la tabla (con scroll
+  // horizontal silencioso si no entra) y las tarjetas muestran la misma info.
+  const [view,setView]=useState<CollectionView>('list');
+  useEffect(()=>{setView(readBudgetView());},[]);
+  const changeView=(next:CollectionView)=>{setView(next);try{localStorage.setItem(BUDGET_VIEW_KEY,next);}catch{/* Preferencia opcional de la interfaz. */}};
+  // Filtros (F2/F3): estado, cliente y búsqueda; los KPI filtran con el mismo estado.
+  const [filters,setFilters]=useState<BudgetFilters>({status:'',client:'',query:''});
+  const shown=useMemo(()=>filterBudgets(budgets,filters),[budgets,filters]);
+  const clientChoices=useMemo(()=>[{value:'',label:'Todos'},...[...new Set(budgets.map(budget=>budget.client_name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')).map(name=>({value:name,label:name}))],[budgets]);
+  const filtersActive=Boolean(filters.status||filters.client||filters.query.trim());
+  const kpiFilter=(status:BudgetFilters['status'],text:string,hint:string)=><button type="button" className="text-button min-h-11 !px-0 text-left md:min-h-0" aria-pressed={filters.status===status} title={filters.status===status?'Quitar el filtro':`Filtrar: ${hint}`} onClick={()=>setFilters(current=>({...current,status:current.status===status?'':status}))}>{text}{filters.status===status?' · filtrando':''}</button>;
   // Ventana de montaje (#135 P4): la tabla densa monta sólo el tramo visible;
   // las tarjetas (altura variable) conservan el montaje completo.
-  const filasVisibles = useFilasVisibles(tableRef, budgets.length);
+  const filasVisibles = useFilasVisibles(tableRef, shown.length);
   const totals = Array.from(budgetKpis.totals);
-  const [selected,setSelected]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false),[confirmOpen,setConfirmOpen]=useState(false),[bulkError,setBulkError]=useState('');
+  const bulk=useBulkSelection({limit:BATCH_LIMITS.budgets,noun:'presupuestos'});
+  const selected=bulk.ids;
+  const [bulkBusy,setBulkBusy]=useState(false),[confirmOpen,setConfirmOpen]=useState(false),[bulkError,setBulkError]=useState('');
   const reload = async () => { setBudgets((await projectedList('budgets','/api/agency/budgets',BUDGET_LIST_FIELDS,path=>request<{budgets:Budget[]}>(path))).budgets); };
   // La selección no sobrevive a un presupuesto que ya no está en la lista.
-  useEffect(()=>{setSelected(current=>{const live=new Set(budgets.map(budget=>String(budget.id)));const next=current.filter(id=>live.has(id));return next.length===current.length?current:next;});},[budgets]);
-  function toggleSelected(id:string){
-    if(selected.includes(id)){setSelected(selected.filter(value=>value!==id));return;}
-    if(selected.length>=BATCH_LIMITS.budgets){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.budgets} presupuestos. Quitá alguno para sumar otro.`});return;}
-    setSelected([...selected,id]);
-  }
-  function selectVisible(){
-    const {selection,capped}=limitSelection(budgets.map(budget=>String(budget.id)),BATCH_LIMITS.budgets);
-    setSelected(selection);
-    if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.budgets} presupuestos: se seleccionaron los primeros ${BATCH_LIMITS.budgets}.`});
-  }
+  const {prune}=bulk;
+  useEffect(()=>{prune(budgets.map(budget=>String(budget.id)));},[budgets,prune]);
+  const toggleSelected=bulk.toggle;
+  const selectVisible=()=>bulk.selectVisible(shown.map(budget=>String(budget.id)));
   async function moveToTrash(){
     if(bulkBusy||!selected.length)return;
     const total=selected.length;
@@ -122,7 +131,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
     try{
       const response=await request<{updated:number}>('/api/agency/budgets/batch',{method:'POST',body:JSON.stringify({ids:selected})});
       const moved=Number(response?.updated)||total;
-      setSelected([]);setConfirmOpen(false);
+      bulk.clear();setConfirmOpen(false);
       let refreshed=true;
       try{await reload();}catch{refreshed=false;}
       const label=`presupuesto${total===1?'':'s'} movido${total===1?'':'s'} a la papelera`;
@@ -137,7 +146,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
     const tone = hasDueWarning(budget.valid_until);
     return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
       <div role="cell" className="flex min-w-0 items-center gap-2">
-        {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected.includes(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
+        {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={bulk.has(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
         <span className="flex min-w-0 items-baseline gap-2">
           <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
           <span className="min-w-0 truncate text-[13.5px] font-semibold leading-tight text-fore" title={budget.title}>{budget.title}</span>
@@ -156,26 +165,29 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
     </ListRow>;
   };
 
+  const createButton=canManage&&onCreate?<button type="button" className="primary" onClick={()=>onCreate()}><Plus size={18} aria-hidden="true"/> Nuevo presupuesto</button>:undefined;
   return (
-    <section ref={tableRef} className="directory grid gap-4" aria-label="Presupuestos">
-      <KpiStrip aria-label="Métricas de presupuestos">
+    <ListPage
+      rootRef={tableRef}
+      className="directory"
+      aria-label="Presupuestos"
+      primaryAction={<>{createButton}<ViewSwitch value={view} onChange={changeView}/></>}
+      toolbar={<FilterToolbar className="mb-0" summary={`${shown.length} de ${windowState.total ?? budgets.length}`}>
+        <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar por estado" value={filters.status} onChange={(value:string)=>setFilters(current=>({...current,status:value as BudgetFilters['status']}))} options={[['','Todos'],['draft','Borradores'],['sent','Enviados'],['accepted','Aceptados'],['rejected','Rechazados'],['expired','Vencidos']]}/>
+        <div className="w-full sm:w-52"><SelectCustom label="Cliente" choices={clientChoices} value={filters.client} onChange={client=>setFilters(current=>({...current,client}))}/></div>
+        <SearchField className="w-full sm:w-72" ariaLabel="Buscar presupuesto" value={filters.query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setFilters(current=>({...current,query:event.target.value}))} placeholder="Número, título o cliente…"/>
+        {filtersActive?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters({status:'',client:'',query:''})}>Limpiar filtros</button>:null}
+      </FilterToolbar>}
+      kpis={<KpiStrip aria-label="Métricas de presupuestos">
         <Kpi label="Presupuestos" valor={windowState.total ?? budgets.length} destacado hint={totals.length ? `Total sin IVA: ${totals.map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}` : 'Sin propuestas cargadas'}/>
-        <Kpi label="Borradores" valor={budgetKpis.drafts} hint="Sin enviar al cliente"/>
-        <Kpi label="Aceptadas" valor={budgetKpis.accepted} hint="Con aprobación del cliente"/>
-        <Kpi label="Vencen esta semana" valor={budgetKpis.expiring} hint="Vigencia en los próximos 7 días"/>
-      </KpiStrip>
-
-      {/* Selección contextual (#100): la barra existe sólo cuando hay algo
-          seleccionado; sin selección no ocupa ninguna fila. */}
-      {canManage && selected.length ? <div className="bulk-bar" role="status" aria-live="polite">
-        <span className="bulk-count"><b>{selected.length}</b> de {BATCH_LIMITS.budgets} seleccionado{selected.length===1?'':'s'}</span>
-        <div className="inline-actions bulk-actions">
-          <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>
-          <button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setConfirmOpen(true);}}><Trash2 size={14} aria-hidden="true"/>Mover a la papelera</button>
-          <button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setSelected([])}>Limpiar</button>
-        </div>
-      </div> : null}
-
+        <Kpi label="Borradores" valor={budgetKpis.drafts} hint={kpiFilter('draft','Sin enviar al cliente','borradores')}/>
+        <Kpi label="Aceptadas" valor={budgetKpis.accepted} hint={kpiFilter('accepted','Con aprobación del cliente','aceptados')}/>
+        <Kpi label="Vencen esta semana" valor={budgetKpis.expiring} hint={kpiFilter('expiring','Vigencia en los próximos 7 días','vencen esta semana')}/>
+      </KpiStrip>}
+      bulk={canManage ? <BulkBar count={bulk.count} total={BATCH_LIMITS.budgets} role={user?.role} onSelectVisible={selectVisible} onClear={bulk.clear}>
+        <button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setConfirmOpen(true);}}><Trash2 size={14} aria-hidden="true"/>Mover a la papelera</button>
+      </BulkBar> : undefined}
+    >
       {/* Ventana (#105): contador honesto y «Ver más»; cuando queda lista por
           traer, el aviso aclara que los indicadores cuentan lo cargado. */}
       {windowState.hasMore ? <div className="bulk-bar" role="status" aria-live="polite">
@@ -192,16 +204,18 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
       ) : null}
 
 
-      {budgets.length ? (
-        tableFits ? (
+      {budgets.length && !shown.length ? (
+        <EmptyBlock compact icon="filter" title="Ningún presupuesto coincide con los filtros." description="Probá con otro estado, cliente o búsqueda." action={<button type="button" className="secondary" onClick={()=>setFilters({status:'',client:'',query:''})}>Limpiar filtros</button>}/>
+      ) : budgets.length ? (
+        view==='list' ? (
           <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[62rem]" pinnedActions>
             {filasVisibles.inicio > 0 ? <div role="row" aria-hidden="true" style={{height: filasVisibles.inicio * filasVisibles.altoFila}}/> : null}
-            {budgets.slice(filasVisibles.inicio, filasVisibles.fin).map(row)}
-            {filasVisibles.fin < budgets.length ? <div role="row" aria-hidden="true" style={{height: (budgets.length - filasVisibles.fin) * filasVisibles.altoFila}}/> : null}
+            {shown.slice(filasVisibles.inicio, filasVisibles.fin).map(row)}
+            {filasVisibles.fin < shown.length ? <div role="row" aria-hidden="true" style={{height: (shown.length - filasVisibles.fin) * filasVisibles.altoFila}}/> : null}
           </ListGrid>
         ) : (
           <div className="budget-hub-grid">
-            {budgets.map(budget=><BudgetTile key={budget.id} budget={budget} user={user} canManage={canManage} selected={selected.includes(String(budget.id))} onToggle={()=>toggleSelected(String(budget.id))} refresh={reload}/>)}
+            {shown.map(budget=><BudgetTile key={budget.id} budget={budget} user={user} canManage={canManage} selected={bulk.has(String(budget.id))} onToggle={()=>toggleSelected(String(budget.id))} refresh={reload}/>)}
           </div>
         )
       ) : budgetsState==='loading' || loading ? (
@@ -223,6 +237,6 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
         <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés restaurarlos después.</p>
         <p className="form-note">El enlace público dejará de funcionar. Restaurar el presupuesto no volverá a publicarlo automáticamente.</p>
       </>}/>}
-    </section>
+    </ListPage>
   );
 }

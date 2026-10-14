@@ -38,11 +38,11 @@ assert.match(assignedCss,/\.assigned-people\{display:flex/,'los responsables no 
 assert.doesNotMatch(assignedCss,/\.assigned-people\{[^}]*border:1px solid/,'sin borde de caja');
 
 // ── Selección masiva contextual (solo con selección).
-assert.match(planner,/\{selected\.length\?<><button className="secondary" onClick=\{\(\)=>setBatch\(true\)\}>Cambiar \{selected\.length\} piezas<\/button>/,'el lote del planificador aparece con la selección');
+assert.match(planner,/<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.planner\}[\s\S]*?<button type="button" className="secondary" onClick=\{\(\)=>setBatch\(true\)\}>Cambiar \{selected\.length\} piezas<\/button>/,'el lote del planificador aparece con la selección');
 assert.match(planner,/\{managers\.includes\(role\)\?<button className="text-button" onClick=\{\(\)=>setTemplatesOpen\(true\)\}/,'las plantillas siguen accesibles sin selección');
-assert.match(inventory,/\{view!=='reservations'&&selectedItems\.length\?<div className="flex flex-wrap items-center justify-between/,'el lote del inventario es contextual');
-assert.match(projects,/\{canManageProjects&&selectedProjects\.length\?<div className="bulk-bar"/,'el lote de proyectos es contextual');
-assert.match(studio,/\{selectedReservations\.length\?<div className="bulk-bar"/,'el lote del estudio es contextual');
+assert.match(inventory,/\{view!=='reservations'&&selectionEnabled\?<BulkBar count=\{bulk\.count\}/,'el lote del inventario es contextual (BulkBar)');
+assert.match(projects,/\{canManageProjects\?<BulkBar count=\{bulk\.count\}/,'el lote de proyectos es contextual (BulkBar)');
+assert.match(studio,/<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.studioReservations\}/,'el lote del estudio es contextual (BulkBar)');
 
 // ── Metadatos y notas con salida (tooltip), sin recortes mudos.
 assert.match(studio,/line-clamp-2 text-xs leading-5 text-mute" title=\{space\.notes\}/,'las notas del espacio tienen tooltip');

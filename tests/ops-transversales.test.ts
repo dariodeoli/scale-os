@@ -38,7 +38,7 @@ assert.match(studio,/let cancelled=0;let failed:string\[\]=\[\];/);
 assert.match(studio,/catch\{failed\.push\(id\);\}/,'la fila fallida se cuenta, no se saltea');
 assert.match(studio,/if\(!confirmedByBatch\)\{cancelled=0;failed=\[\];for\(const id of selection\)await cancelOne\(id\);\}/,'sin detalle en la respuesta se cae a los cancels unitarios');
 assert.match(studio,/No se pudieron cancelar \$\{failed\.length\} de \$\{selection\.length\} reservas/,'el aviso dice cuántas quedaron sin cancelar');
-assert.match(studio,/setSelectedReservations\(failed\);/,'las fallidas quedan seleccionadas para reintentar');
+assert.match(studio,/bulk\.replace\(failed\);/,'las fallidas quedan seleccionadas para reintentar');
 assert.doesNotMatch(studio,/la fila se saltea/,'no quedan filas salteadas en silencio');
 
 // Los responsables del proyecto no se declaran "sin responsables" cuando la lectura falla.

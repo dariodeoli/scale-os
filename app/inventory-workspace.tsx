@@ -13,11 +13,10 @@
  * el encabezado comparte la misma grilla que las filas.
  */
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {Aviso,BarraProgreso,Button,Card,CeldaMoneda,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,MenuDesplegable,MoneyInput,Nota,SearchField,SegmentedField,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
+import {Aviso,BarraProgreso,Button,Card,CeldaMoneda,EmptyState,ErrorState,FilaDato,IconAction,Input,Label,MenuDesplegable,MoneyInput,Nota,SearchField,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
 import {ConfirmDialog} from './dialog';
 import {SaveActions} from './save-actions';
-import {Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip} from './ui-v2';
-import {TabScroller} from './tab-scroller';
+import {BulkBar,ViewTabs,Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip,useBulkSelection} from './ui-v2';
 import {fechaLista,fechaListaCorta} from 'owncoding-ui';
 import {api,Dialog,Editor,money} from './operations';
 import {ActorAvatar,ActorIdentity,safePhoto} from './actor-identity';
@@ -26,7 +25,7 @@ import {useCompanyCurrency} from './currency-provider';
 import {SelectCustom} from './profile-controls';
 import {preparePhoto,PHOTO_ACCEPT,PHOTO_FORMATS} from './profile-photo';
 import {normalizeSerial} from './field-rules';
-import {roleCan,BATCH_LIMITS,limitSelection} from './capabilities';
+import {roleCan,BATCH_LIMITS} from './capabilities';
 import {notify} from './feedback';
 import {InventoryBarcode,printInventoryLabel} from './inventory-label';
 import {CATEGORY_ICONS,CategoryIcon,EquipmentPhoto} from './equipment-photo';
@@ -330,14 +329,17 @@ export function InventoryWorkspace({role}:{role:string}){
  return roleCan(role,'inventory.view')?<InventoryPanel key={role}/>:null;
 }
 function InventoryPanel(){
- const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[selectedItems,setSelectedItems]=useState<string[]>([]),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
+ const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
+ const bulk=useBulkSelection({limit:BATCH_LIMITS.inventory,noun:'equipos'});
+ const selectedItems=bulk.ids;
  const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0),[attentionHelp,setAttentionHelp]=useState(false);
  const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate,moveItemLocally,reorderLocations}=useInventoryCatalog(month,refresh);
  // El error del catálogo sólo existe cuando nunca hubo datos y bloquea la vista; el de una
  // acción se avisa aparte y NUNCA esconde el catálogo que ya está en pantalla.
  const error=loadError;
  // Keep the selection bounded to the records the API still returns.
- useEffect(()=>{const ids=new Set(items.map(record=>String(record.id)));setSelectedItems(current=>current.filter(id=>ids.has(id)));},[items]);
+ const {prune}=bulk;
+ useEffect(()=>{prune(items.map(record=>String(record.id)));},[items,prune]);
  const [editItem,setEditItem]=useState<InventoryItem|'new'|null>(null),[editReservation,setEditReservation]=useState<InventoryReservation|'new'|null>(null),[editCategory,setEditCategory]=useState<Category|'new'|null>(null),[editStorageTemplate,setEditStorageTemplate]=useState<StorageTemplate|'new'|null>(null),[verification,setVerification]=useState<InventoryItem|null>(null),[detail,setDetail]=useState<InventoryItem|null>(null);
  const [action,setAction]=useState<{kind:'checkout'|'return'|'cancel';row:InventoryReservation}|null>(null);
  const [archive,setArchive]=useState<InventoryItem|null>(null),[busy,setBusy]=useState(false),[archiveError,setArchiveError]=useState('');
@@ -350,23 +352,13 @@ function InventoryPanel(){
  }
  const [batchBusy,setBatchBusy]=useState(false),[batchLocation,setBatchLocation]=useState<string[]|null>(null);
  const selectionEnabled=Boolean(context?.can_manage||context?.can_reserve);
- function toggleSelected(id:string){
-  if(selectedItems.includes(id)){setSelectedItems(current=>current.filter(value=>value!==id));return;}
-  if(selectedItems.length>=BATCH_LIMITS.inventory){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.inventory} equipos. Quitá alguno para sumar otro.`});return;}
-  setSelectedItems(current=>[...current,id]);
- }
- function selectVisible(){
-  const ids=visible.filter(item=>item.status!=='retired').map(item=>String(item.id));
-  if(ids.length>0&&ids.every(id=>selectedItems.includes(id))){setSelectedItems(current=>current.filter(id=>!ids.includes(id)));return;}
-  const {selection,capped}=limitSelection([...selectedItems,...ids],BATCH_LIMITS.inventory);
-  setSelectedItems(selection);
-  if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.inventory} equipos: se seleccionaron los primeros ${BATCH_LIMITS.inventory}.`});
- }
+ const toggleSelected=bulk.toggle;
+ function selectVisible(){bulk.selectVisible(visible.filter(item=>item.status!=='retired').map(item=>String(item.id)));}
  const reservableSelected=selectedItems.filter(id=>{const item=items.find(value=>String(value.id)===id);return item&&!['maintenance','retired'].includes(item.status);});
  async function batchVerify(){
   if(batchBusy||!selectedItems.length)return;
   setBatchBusy(true);setError('');
-  try{const data=await api<{verified:number}>('/api/agency/inventory/batch',{ids:selectedItems,change:{verify:true}},'POST');setSelectedItems([]);refreshed(`${data.verified??selectedItems.length} equipos verificados.`);}
+  try{const data=await api<{verified:number}>('/api/agency/inventory/batch',{ids:selectedItems,change:{verify:true}},'POST');bulk.clear();refreshed(`${data.verified??selectedItems.length} equipos verificados.`);}
   catch(reason){setError(errorMessage(reason));}
   finally{setBatchBusy(false);}
  }
@@ -375,9 +367,9 @@ function InventoryPanel(){
   if(!ids.length)return;
   const location=locationId?{location_id:locationId,storage_row:storageRow}:{storage_shelf:storageShelf,storage_row:storageRow};
   const data=await api<{moved:number}>('/api/agency/inventory/batch',{ids,change:{location}},'POST');
-  setBatchLocation(null);setSelectedItems([]);refreshed(`Ubicación actualizada en ${data.moved??ids.length} equipo${(data.moved??ids.length)===1?'':'s'}.`);
+  setBatchLocation(null);bulk.clear();refreshed(`Ubicación actualizada en ${data.moved??ids.length} equipo${(data.moved??ids.length)===1?'':'s'}.`);
  }
- function saved(message='Cambios guardados.'){setEditItem(null);setEditReservation(null);setEditCategory(null);setEditStorageTemplate(null);setVerification(null);setAction(null);setArchive(null);setSelectedItems([]);setReserveIds([]);setNotice(message);setRefresh(n=>n+1);}
+ function saved(message='Cambios guardados.'){setEditItem(null);setEditReservation(null);setEditCategory(null);setEditStorageTemplate(null);setVerification(null);setAction(null);setArchive(null);bulk.clear();setReserveIds([]);setNotice(message);setRefresh(n=>n+1);}
  // Editors own their successful close so their footer form association is
  // released before the same dialog can be opened again. This only refreshes
  // the workspace after a persisted inventory/category mutation.
@@ -402,7 +394,7 @@ function InventoryPanel(){
       compactos debajo y la explicación solo a tooltip/expandible. */}
   <div className="grid min-w-0 gap-3" data-inventory-toolbar>
    <div className="flex min-w-0 flex-wrap items-end gap-3 xl:flex-nowrap">
-    <TabScroller className="max-lg:min-w-0 max-lg:max-w-full lg:shrink-0" label="vistas"><SegmentedField className="max-lg:flex-nowrap [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/></TabScroller>
+    <ViewTabs ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/>
     {view!=='reservations'?<>
      <SearchField className="min-w-[8rem] flex-1 lg:max-w-72" ariaLabel="Buscar equipo o ubicación" value={search} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setSearch(event.target.value)} placeholder="Memoria, DJI Mic, estante…"/>
      <div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/></div>
@@ -420,20 +412,16 @@ function InventoryPanel(){
     {attentionFilter?<Button type="button" variant="ghost" className="min-h-11 md:min-h-8" onClick={()=>setAttentionFilter('')}>Limpiar atención</Button>:null}
     <button type="button" className="text-button" aria-expanded={attentionHelp} title="Qué cuenta cada chip de atención" onClick={()=>setAttentionHelp(value=>!value)}>¿Qué es?</button>
     <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">
-     <TabScroller className="max-lg:min-w-0 max-lg:max-w-full lg:shrink-0" label="vistas"><SegmentedField className="max-lg:flex-nowrap [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/></TabScroller>
+     <ViewTabs ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
      {selectionEnabled&&visible.length?<button type="button" className="text-button" onClick={selectVisible}>Seleccionar visibles</button>:null}
     </div>
     {attentionHelp?<Nota tono="info" compact className="basis-full">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</Nota>:null}
    </div>:null}
-   {view!=='reservations'&&selectedItems.length?<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-800/60 px-3 py-2" role="status" aria-live="polite">
-    <span className="text-xs text-mute"><b className="text-fore">{selectedItems.length}</b> de {BATCH_LIMITS.inventory} seleccionado{selectedItems.length===1?'':'s'}</span>
-    <div className="flex flex-wrap items-center gap-2">
+   {view!=='reservations'&&selectionEnabled?<BulkBar count={bulk.count} total={BATCH_LIMITS.inventory} onClear={bulk.clear}>
      {context?.can_reserve?<Button type="button" variant="outline" disabled={!reservableSelected.length} onClick={()=>{setReserveIds(reservableSelected);setEditReservation('new');}}>Reservar</Button>:null}
      {context?.can_manage?<Button type="button" variant="outline" disabled={batchBusy} onClick={()=>void batchVerify()}>{batchBusy?'Verificando…':'Verificar'}</Button>:null}
      {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setBatchLocation(selectedItems)}>Mover ubicación</Button>:null}
-     <Button type="button" variant="ghost" onClick={()=>setSelectedItems([])}>Limpiar</Button>
-    </div>
-   </div>:null}
+   </BulkBar>:null}
   </div>
 
   {/* Estados de la pantalla, compartidos por equipos y calendario: un fallo de
@@ -494,10 +482,10 @@ function InventoryPanel(){
      <div data-list-head="equipment" className={`${EQUIPMENT_GRID} border border-transparent px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
       <span/><span>Foto</span><span>Artículo</span><span>Detalles</span><span className="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span className="text-right">Acciones</span>
      </div>
-     {visible.map(item=><EquipmentRow key={item.id} item={item} selectable={selectionEnabled&&item.status!=='retired'} selected={selectedItems.includes(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} canManage={Boolean(context?.can_manage)} verifying={verifyingId===String(item.id)} onDetail={setDetail} onVerify={quickVerify} onVerifyDetail={setVerification} onEdit={setEditItem} onArchive={setArchive}/>)}
+     {visible.map(item=><EquipmentRow key={item.id} item={item} selectable={selectionEnabled&&item.status!=='retired'} selected={bulk.has(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} canManage={Boolean(context?.can_manage)} verifying={verifyingId===String(item.id)} onDetail={setDetail} onVerify={quickVerify} onVerifyDetail={setVerification} onEdit={setEditItem} onArchive={setArchive}/>)}
      </div>
     </div>:<div data-grid="equipment" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-     {visible.map(item=><EquipmentCard key={item.id} item={item} selectable={selectionEnabled&&item.status!=='retired'} selected={selectedItems.includes(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} canManage={Boolean(context?.can_manage)} verifying={verifyingId===String(item.id)} onDetail={setDetail} onVerify={quickVerify} onVerifyDetail={setVerification} onEdit={setEditItem} onArchive={setArchive}/>)}
+     {visible.map(item=><EquipmentCard key={item.id} item={item} selectable={selectionEnabled&&item.status!=='retired'} selected={bulk.has(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} canManage={Boolean(context?.can_manage)} verifying={verifyingId===String(item.id)} onDetail={setDetail} onVerify={quickVerify} onVerifyDetail={setVerification} onEdit={setEditItem} onArchive={setArchive}/>)}
     </div>}
     {!visible.length?<EmptyState icon="box" title={items.length?'No hay equipos que coincidan con la búsqueda.':'Todavía no hay equipos en el inventario.'} description={items.length?'Probá otra búsqueda o categoría.':'Registrá el primer equipo para reservarlo, verificarlo y etiquetarlo.'} action={items.length?<Button type="button" variant="ghost" onClick={()=>{setSearch('');setCategoryFilter('');}}>Limpiar búsqueda</Button>:context?.can_manage?<Button type="button" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:undefined}/>:null}
    </>:null}

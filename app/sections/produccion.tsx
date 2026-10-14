@@ -3,9 +3,8 @@ import dynamic from 'next/dynamic';
 import {useCallback,useEffect,useMemo,useRef,useState,type Dispatch,type SetStateAction} from 'react';
 import {ArrowUpRight, ChevronLeft, ChevronRight, Plus, RotateCcw, SlidersHorizontal} from 'lucide-react';
 import {DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
-import {Button, SegmentedField, Select} from 'owncoding-ui';
-import {EmptyBlock,ErrorBlock,LoadingBlock,SectionLoading} from '../ui-v2';
-import {TabScroller} from '../tab-scroller';
+import {Button, Select} from 'owncoding-ui';
+import {EmptyBlock,ErrorBlock,ListPage,LoadingBlock,SectionLoading,ViewTabs} from '../ui-v2';
 import {BoardPresence} from '../presence';
 import {KanbanColumn, statuses, type Status, type WorkOrderCard} from '../production-board';
 import {defaultWorkspacePreferences, type WorkspacePreferences} from '../workspace-preferences';
@@ -117,10 +116,9 @@ export function ProduccionSection({productionView, preferences, changeProduction
     return statuses.some(status=>status.id===candidate)?candidate as Status:null;
   };
   const onDrop=(event:DragEndEvent)=>{const id=String(event.active.id);setDraggedOrderId(null);const target=dropStatus(String(event.over?.id||''));if(target)boardData.move(id,target);};
-  return (
-    <>
-    <div className="production-command-toolbar mb-4 flex min-w-0 flex-col gap-3 lg:mb-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3">
-        <TabScroller className="production-view-tabs max-lg:min-w-0 max-lg:max-w-full lg:shrink-0" label="vistas"><SegmentedField className="max-lg:flex-nowrap [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/></TabScroller>
+  const toolbar=(
+    <div className="production-command-toolbar flex min-w-0 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3">
+        <ViewTabs className="production-view-tabs" ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/>
         {productionView!=="Tablero"&&<div className="production-command-toolbar-actions flex flex-wrap items-center gap-2 lg:ml-auto"><button type="button" className="text-button" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button></div>}
         {productionView==="Tablero"&&<div className="production-command-toolbar-actions flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:ml-auto lg:gap-2">
           <label className="production-client-filter flex items-center gap-2">
@@ -137,6 +135,9 @@ export function ProduccionSection({productionView, preferences, changeProduction
           </div>
         </div>}
       </div>
+  );
+  return (
+    <ListPage aria-label="Producción" primaryAction={createOrder?<button type="button" className="primary" onClick={createOrder}><Plus size={18}/> Nueva orden</button>:undefined} toolbar={toolbar}>
       {productionView==='Tablero'&&hasProductionFilters&&<p className="mb-3 text-xs text-mute" role="status">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
       {productionView==='Tablero'&&preferenceWarning?<p className="mb-3 text-xs text-mute" role="status">{preferenceWarning}</p>:null}
       {/* El planificador comparte la carga con el tablero: con error no se pinta un
@@ -180,6 +181,6 @@ export function ProduccionSection({productionView, preferences, changeProduction
           <DragOverlay>{dragged?<article className="rounded-xl border border-fono/40 bg-ink-800 p-3 shadow-2xl"><strong className="text-sm text-fore">{dragged.title}</strong><p className="text-xs text-mute">{dragged.client_name}</p></article>:null}</DragOverlay>
         </DndContext></BoardPresence>}
       </section>}
-    </>
+    </ListPage>
   );
 }

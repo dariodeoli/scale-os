@@ -6,12 +6,14 @@
 // estado (`StateChip` sobre `Badge`) y un solo bloque de carga (`LoadingBlock`
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
-import {Badge, BarraProgreso, EmptyState, ErrorState, Label, ListGridToggle, MenuDesplegable, Select, Skeleton, Stat} from 'owncoding-ui';
+import {Badge, BarraProgreso, EmptyState, ErrorState, Label, ListGridToggle, MenuDesplegable, SegmentedField, Select, Skeleton, Stat} from 'owncoding-ui';
+import {TabScroller} from './tab-scroller';
 import {ConfirmDialog} from './dialog';
 import {X} from 'lucide-react';
 import {currencyChoices} from './currencies';
+export {useBulkSelection,type BulkSelection,type BulkSelectionOptions} from './bulk-selection';
 import {money} from './operations';
-import {createContext,useContext,useEffect,useRef,useState,type ChangeEvent,type HTMLAttributes,type KeyboardEvent,type ReactNode} from 'react';
+import {createContext,useContext,useEffect,useRef,useState,type ChangeEvent,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -446,23 +448,66 @@ export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyeb
 }
 
 /**
- * Barra de lote contextual (#97): aparece **solo** cuando hay selección, en una
- * sola línea compacta (sin ocupar una fila fija cuando no hay nada elegido).
- * El rótulo, las acciones del lote y «Limpiar» los aporta la pantalla; el
- * contador y el estado accesible (`role="status"` + `aria-live`) los dibuja el
- * sistema. «Seleccionar visibles» deja de vivir acá: va en la toolbar de la
- * pantalla como acción secundaria (o en el encabezado de la tabla).
+ * Barra de lote contextual (#97, #185): aparece **solo** cuando hay selección,
+ * en una sola línea compacta y pegajosa (`sticky`) para que el contador y las
+ * acciones queden a la vista al recorrer una lista larga. El contador
+ * («N seleccionados», con «de <tope>» si se pasa `total`), «Seleccionar
+ * visibles» y «Limpiar» los dibuja el sistema; las acciones del lote son el
+ * slot `children`. `role="viewer"` nunca la ve (las acciones se ocultan, no se
+ * deshabilitan). Se usa con `useBulkSelection` (`app/bulk-selection.tsx`).
  */
-export function BulkBar({count, total, label = 'seleccionado', children, onSelectVisible, selectVisibleLabel = 'Seleccionar visibles', onClear, busy = false, className}: {count: number; total?: number; label?: string; children?: ReactNode; onSelectVisible?: () => void; selectVisibleLabel?: string; onClear?: () => void; busy?: boolean; className?: string}) {
-  if (!count) return null;
-  return <div role="status" aria-live="polite" className={`bulk-bar ${className ?? ''}`}>
+export function BulkBar({count, total, label = 'seleccionado', children, onSelectVisible, selectVisibleLabel = 'Seleccionar visibles', onClear, busy = false, role, sticky = true, className}: {count: number; total?: number; label?: string; children?: ReactNode; onSelectVisible?: () => void; selectVisibleLabel?: string; onClear?: () => void; busy?: boolean; role?: string; sticky?: boolean; className?: string}) {
+  if (!count || role === 'viewer') return null;
+  return <div role="status" aria-live="polite" data-bulk-bar className={`bulk-bar ${sticky ? 'bulk-bar-sticky' : ''} ${className ?? ''}`}>
     <span className="bulk-count"><b>{count}</b>{total !== undefined ? <> de {total}</> : null} {label}{count === 1 ? '' : 's'}</span>
     <div className="inline-actions bulk-actions">
+      {onSelectVisible && <button type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onSelectVisible}>{selectVisibleLabel}</button>}
       {children}
-      {onSelectVisible && <button type="button" className="text-button" disabled={busy} onClick={onSelectVisible}>{selectVisibleLabel}</button>}
-      {onClear && <button type="button" className="text-button" disabled={busy} onClick={onClear}>Limpiar</button>}
+      {onClear && <button type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onClear}>Limpiar</button>}
     </div>
   </div>;
+}
+
+/**
+ * Pestañas de vista únicas (#185 F4): carril desplazable de una fila
+ * (`TabScroller`) con el selector segmentado de la librería y targets de 44 px
+ * en móvil. Reemplaza las variantes sueltas de Producción e Inventario.
+ * `options` conserva la forma `[valor, rótulo, icono?]`.
+ */
+export function ViewTabs({ariaLabel, value, onChange, options, label = 'vistas', className}: {ariaLabel: string; value: string; onChange: (value: string) => void; options: ReadonlyArray<readonly [string, string] | readonly [string, string, string]>; label?: string; className?: string}) {
+  return <TabScroller className={`view-tabs max-lg:min-w-0 max-lg:max-w-full lg:shrink-0 ${className ?? ''}`} label={label}>
+    <SegmentedField className="max-lg:flex-nowrap [&>button]:min-h-11 [&>button]:max-lg:shrink-0 [&>button]:whitespace-nowrap md:[&>button]:min-h-8" ariaLabel={ariaLabel} value={value} onChange={(next: string) => onChange(next)} options={options as unknown as [string, string, string][]}/>
+  </TabScroller>;
+}
+
+/**
+ * Chrome de sección que el shell le cede a `ListPage`: los apartados
+ * (`section-tabs`) viajan por contexto para que la plantilla los dibuje justo
+ * debajo del encabezado, en el mismo orden que antes.
+ */
+export const PageChromeContext = createContext<ReactNode>(null);
+
+/**
+ * Plantilla de página de lista (#185 F1): encabezado (`PageHeader`, con el
+ * título del shell por defecto) + acción primaria siempre visible a la derecha
+ * + apartados + `toolbar` (filtros) + `kpis` + `bulk` (barra de lote) +
+ * contenido. Cada slot es opcional; los textos y datos los aporta la pantalla.
+ */
+export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis, bulk, children, className, rootRef, ...props}: {rootRef?: Ref<HTMLElement>; title?: string; eyebrow?: string; subtitle?: ReactNode; primaryAction?: ReactNode; toolbar?: ReactNode; kpis?: ReactNode; bulk?: ReactNode; children?: ReactNode; className?: string} & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
+  const pageTitle = useContext(PageTitleContext);
+  const tabs = useContext(PageChromeContext);
+  return <section ref={rootRef} data-list-page className={`grid min-w-0 gap-4 ${className ?? ''}`} {...props}>
+    <div className="grid gap-3">
+      <PageTitleContext.Provider value="">
+        <PageHeader eyebrow={eyebrow} title={title ?? pageTitle} subtitle={subtitle} actions={primaryAction} className="!mb-0"/>
+      </PageTitleContext.Provider>
+      {tabs}
+    </div>
+    {toolbar}
+    {kpis}
+    {bulk}
+    {children}
+  </section>;
 }
 
 /**

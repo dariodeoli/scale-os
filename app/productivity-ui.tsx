@@ -1,6 +1,6 @@
 "use client";
 import {urgencyField,UrgencyBadge} from './urgency';
-import {roleCan,canSeeClientContact} from './capabilities';
+import {roleCan,canSeeClientContact,BATCH_LIMITS} from './capabilities';
 import {useEffect,useState} from 'react';
 import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-react';
 import {api,Editor,money,type Field} from './operations';
@@ -11,7 +11,7 @@ import {budgetState} from './budget-status';
 import {hasDueWarning,PiiTexto} from './list-format';
 import {hoursSummary,hoursText} from './hours-format';
 import {todayAsuncion} from './client-format';
-import {EmptyBlock, EmptyCompact, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
+import {BulkBar, useBulkSelection, EmptyBlock, EmptyCompact, Kpi, KpiStrip, LoadingBlock, StateChip, ListGrid, ListRow, type Column} from './ui-v2';
 import {TabScroller} from './tab-scroller';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
@@ -164,7 +164,9 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
 
 
 export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navigate,initialView}:{initialView?:string;orders:WorkItem[];userId:string;role:string;projects:{id:string;name:string;client_name:string}[];openOrder:(id:string)=>void;refresh:()=>Promise<void>;navigate:(label:string)=>void}){
- const [view,setView]=useState(initialView||'Mi día'),[selected,setSelected]=useState<string[]>([]),[month,setMonth]=useState(localDay().slice(0,7)),[templatesOpen,setTemplatesOpen]=useState(false),[batch,setBatch]=useState(false);
+ const [view,setView]=useState(initialView||'Mi día'),[month,setMonth]=useState(localDay().slice(0,7)),[templatesOpen,setTemplatesOpen]=useState(false),[batch,setBatch]=useState(false);
+ const bulk=useBulkSelection({limit:BATCH_LIMITS.planner,noun:'piezas'});
+ const selected=bulk.ids;
  const today=localDay(),mine=orders.filter(o=>(String(o.assigned_user_id)===String(userId)||o.assigned_user_ids?.some(id=>String(id)===String(userId)))&&!['approved','published'].includes(o.status));
  const visible=(view==='Mi día'?mine:view==='Calendario'?orders.filter(o=>o.due_date?.slice(0,7)===month):orders).slice().sort((a,b)=>(a.due_date||'9999').localeCompare(b.due_date||'9999'));
  const dueToday=mine.filter(o=>o.due_date&&o.due_date.slice(0,10)<=today).length;
@@ -188,11 +190,12 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
    <div className="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div>
    <div className="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">{Array.from({length:calendarDays.offset},(_,index)=><div className="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key={`blank-${index}`}/>)}{Array.from({length:calendarDays.days},(_,index)=>{const day=index+1,rows=monthPieces(day),date=`${month}-${String(day).padStart(2,'0')}`;return <div className="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1" key={date} aria-label={date}><time className="text-[11px] tabular-nums text-mute" dateTime={date}>{day}</time>{rows.map(order=><button key={order.id} type="button" className="grid min-h-11 gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-left text-[11px] text-fono-light min-[769px]:min-h-0" onClick={openPiece(String(order.id))}><b className="break-words">{order.title}</b><span className="text-mute">{order.client_name||''}{order.due_time?` · ${order.due_time.slice(0,5)}`:''}</span></button>)}</div>;})}</div>
   </div>:null}
-  {view==='Lista y lotes'&&makers.includes(role)?<div className="flex flex-wrap items-center gap-2">{selected.length?<><button className="secondary" onClick={()=>setBatch(true)}>Cambiar {selected.length} piezas</button><button className="text-button" onClick={()=>setSelected([])}><X size={14}/>Quitar selección</button></>:null}{managers.includes(role)?<button className="text-button" onClick={()=>setTemplatesOpen(true)}><CalendarRange size={14}/>Plantillas mensuales</button>:null}</div>:null}
+  {view==='Lista y lotes'&&makers.includes(role)?<div className="flex flex-wrap items-center gap-2">{!selected.length?<button type="button" className="text-button" title={`Selecciona hasta ${BATCH_LIMITS.planner} piezas visibles para operar en lote`} onClick={()=>bulk.selectVisible(visible.filter(o=>!['approved','published'].includes(o.status)).map(o=>String(o.id)))}>Seleccionar visibles</button>:null}{managers.includes(role)?<button className="text-button" onClick={()=>setTemplatesOpen(true)}><CalendarRange size={14}/>Plantillas mensuales</button>:null}</div>:null}
+  {view==='Lista y lotes'&&makers.includes(role)?<BulkBar count={bulk.count} total={BATCH_LIMITS.planner} label="seleccionada" onSelectVisible={()=>bulk.selectVisible(visible.filter(o=>!['approved','published'].includes(o.status)).map(o=>String(o.id)))} onClear={bulk.clear}><button type="button" className="secondary" onClick={()=>setBatch(true)}>Cambiar {selected.length} piezas</button></BulkBar>:null}
   <ListGrid label={view==='Lista y lotes'?'Piezas en lista y lotes':'Piezas'} template={PLANNER_TEMPLATE} columns={PLANNER_COLUMNS} minWidthClass="min-w-[72rem]">
    {visible.slice(0,100).map(o=><ListRow key={o.id} template={PLANNER_TEMPLATE} data-status={o.status} className="md:!py-1.5">
     <span className="flex min-w-0 items-center gap-2">
-     {view==='Lista y lotes'&&makers.includes(role)?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${o.title}`} checked={selected.includes(String(o.id))} disabled={['approved','published'].includes(o.status)} onChange={e=>setSelected(ids=>e.target.checked?[...ids,String(o.id)]:ids.filter(id=>id!==String(o.id)))}/></label>:null}
+     {view==='Lista y lotes'&&makers.includes(role)?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${o.title}`} checked={bulk.has(String(o.id))} disabled={['approved','published'].includes(o.status)} onChange={()=>bulk.toggle(String(o.id))}/></label>:null}
      <button type="button" className="flex min-h-11 min-w-0 flex-col justify-center text-left md:min-h-0" onClick={openPiece(String(o.id))}><b className="block truncate text-[13px] font-semibold text-fore" title={o.title}>{o.title}</b><small className="block truncate text-[11px] text-mute" title={`${o.client_name||''} · ${o.project_name||''}`}>{o.client_name} · {o.project_name}</small></button>
     </span>
     <span className="min-w-0 whitespace-nowrap text-[11.5px] tabular-nums text-mute" data-tone={hasDueWarning(o.due_date)&&!['approved','published'].includes(o.status)?'warn':undefined} title={o.due_date?`Entrega ${fechaListaCorta(o.due_date,'')}${o.due_time?` · ${o.due_time.slice(0,5)} h`:''}`:undefined}>{o.due_date?<><span className="list-date">{fechaListaCorta(o.due_date,'')}</span>{o.due_time?` · ${o.due_time.slice(0,5)}`:''}</>:'Sin fecha'}</span>
@@ -205,7 +208,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
   </ListGrid>
   {!visible.length?<EmptyCompact message={view==='Mi día'?'No tenés piezas pendientes asignadas.':'No hay piezas para esta vista. Probá con otro mes.'} action={<button type="button" className="secondary min-h-9" onClick={()=>navigate('Producción')}>Abrir Producción</button>}/>:null}
   {visible.length>100?<p className="text-xs text-mute" role="status">Mostrando 100 de {visible.length}. Filtrá por mes para acotar la lista.</p>:null}
-  {batch?<BatchEditor orders={orders.filter(o=>selected.includes(String(o.id)))} close={()=>setBatch(false)} done={async()=>{await refresh();setSelected([]);setBatch(false);}}/>:null}
+  {batch?<BatchEditor orders={orders.filter(o=>selected.includes(String(o.id)))} close={()=>setBatch(false)} done={async()=>{await refresh();bulk.clear();setBatch(false);}}/>:null}
   {templatesOpen?<MonthlyTemplates projects={projects} close={()=>setTemplatesOpen(false)} refresh={refresh}/>:null}
  </section>;
 }

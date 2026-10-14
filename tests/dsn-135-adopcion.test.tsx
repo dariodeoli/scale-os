@@ -80,6 +80,6 @@ test('#135 P4: ventanaDeLista acota el montaje y las listas largas la adoptan',(
   assert.match(source,/useFilasVisibles\(tableRef/,`${path} mide su tabla densa`);
   assert.match(source,/filasVisibles\.inicio > 0 \? <div role="row" aria-hidden="true"/,`${path} rellena el extremo superior`);
   assert.match(source,/\.slice\(filasVisibles\.inicio, filasVisibles\.fin\)/,`${path} monta sólo el tramo visible`);
-  assert.match(source,/filasVisibles\.fin < (mountedLive|budgets)\.length \? <div role="row" aria-hidden="true"/,`${path} rellena el extremo inferior`);
+  assert.match(source,/filasVisibles\.fin < (mountedLive|shown)\.length \? <div role="row" aria-hidden="true"/,`${path} rellena el extremo inferior`);
  }
 });

@@ -1,0 +1,3 @@
+# Listas #185: useBulkSelection/BulkBar, ListPage, ViewTabs y Presupuestos (vista, filtros, KPI)
+tsx tests/bulk-selection-185.test.tsx
+tsx tests/presupuestos-listas-185.test.tsx
