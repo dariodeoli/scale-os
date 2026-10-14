@@ -2,7 +2,7 @@
 import type {Dispatch, ReactNode, SetStateAction} from 'react';
 import {X} from 'lucide-react';
 import {Button,Select} from 'owncoding-ui';
-import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, KpiStripSkeleton, ListGrid, ListRow, LoadingBlock, type Column} from '../ui-v2';
+import {BulkBar, EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, KpiStripSkeleton, ListGrid, ListRow, LoadingBlock, type BulkSelection, type Column} from '../ui-v2';
 import {BATCH_LIMITS} from '../capabilities';
 import type {Client, Project} from '../workspace-types';
 
@@ -22,8 +22,7 @@ const PROJECT_COLS = '[--project-cols:minmax(14rem,1.6fr)_7rem_minmax(13rem,1.1f
 type ProyectosSectionProps = {
   setToast: Dispatch<SetStateAction<string>>;
   projectView: string;
-  selectedProjects: string[];
-  setSelectedProjects: Dispatch<SetStateAction<string[]>>;
+  bulk: BulkSelection;
   projectsState: 'loading'|'ready'|'error';
   canManageProjects: boolean;
   bulkBusy: boolean;
@@ -36,7 +35,6 @@ type ProyectosSectionProps = {
   liveProjects: Project[];
   archivedProjects: Project[];
   load: () => Promise<void>;
-  selectVisibleProjects: () => void;
   batchProjects: (archived: boolean) => Promise<void>;
   projectEntry: (project: Project) => ReactNode;
   /** Fila de la vista lista (una línea por celda, acciones de ícono). */
@@ -44,7 +42,7 @@ type ProyectosSectionProps = {
   /** CTA del vacío: el modal vive en el shell. */
   createProject?: () => void;
 };
-export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, selectedProjects, setSelectedProjects, projectsState, canManageProjects, clients, projects, projectClientFilter, setProjectClientFilter, projectKpis, visibleProjects, liveProjects, archivedProjects, load, selectVisibleProjects, batchProjects, projectEntry, createProject}: ProyectosSectionProps){
+export function ProyectosSection({setToast, bulkBusy, bulk, projectRow, projectView, projectsState, canManageProjects, clients, projects, projectClientFilter, setProjectClientFilter, projectKpis, visibleProjects, liveProjects, archivedProjects, load, batchProjects, projectEntry, createProject}: ProyectosSectionProps){
   const retry=()=>void load().catch(cause=>setToast(cause instanceof Error?cause.message:'No se pudieron cargar los proyectos.'));
   const collection=(list: Project[], label: string)=>projectView==='grid'
     ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{list.map(project => projectEntry(project))}</div>
@@ -67,9 +65,9 @@ export function ProyectosSection({setToast, bulkBusy, projectRow, projectView, s
           </Select>
         </label>
         {projectClientFilter?<button type="button" className="text-button" onClick={()=>setProjectClientFilter('')}><X size={14}/>Limpiar filtro</button>:null}
-        {canManageProjects&&liveProjects.length?<button type="button" className="text-button lg:ml-2" title={`Selecciona hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={selectVisibleProjects}>Seleccionar visibles</button>:null}
+        {canManageProjects&&liveProjects.length?<button type="button" className="text-button lg:ml-2" title={`Selecciona hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={()=>bulk.selectVisible(liveProjects.map(project=>String(project.id)))}>Seleccionar visibles</button>:null}
       </FilterToolbar>
-      {canManageProjects&&selectedProjects.length?<div className="bulk-bar" role="status" aria-live="polite"><span className="bulk-count"><b>{selectedProjects.length}</b> de {BATCH_LIMITS.projects} seleccionado{selectedProjects.length===1?'':'s'}</span><div className="inline-actions bulk-actions"><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button><button type="button" className="text-button" onClick={()=>setSelectedProjects([])}>Limpiar</button></div></div>:null}
+      {canManageProjects?<BulkBar count={bulk.count} total={BATCH_LIMITS.projects} onClear={bulk.clear}><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</button><button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</button></BulkBar>:null}
       {projectsState === 'error' && projects.length ? <p className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-sm text-bad" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={retry}>Reintentar</button></p> : null}
       {projectsState === 'loading' && !projects.length ? <LoadingBlock label="Cargando proyectos…" lines={4}/> : null}
       {projectsState === 'error' && !projects.length ? <ErrorBlock title="No se pudieron cargar los proyectos." onRetry={retry}/> : null}

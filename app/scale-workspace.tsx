@@ -47,7 +47,7 @@ import './suite.css';
 import {RecordEditor} from './suite';
 import {AssignedPeople} from './assigned-people';
 import {listDateShort,dueTone} from './list-format';
-import {PageChromeContext,PageTitleContext,StateChip,ViewSwitch} from './ui-v2';
+import {PageChromeContext,PageTitleContext,StateChip,ViewSwitch,useBulkSelection} from './ui-v2';
 import {TabScroller} from './tab-scroller';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
@@ -209,7 +209,7 @@ export default function Home() {
   const [projectView,setProjectView]=useState('grid');
   const [archiveBusy,setArchiveBusy]=useState('');
   const [selectedClients,setSelectedClients]=useState<string[]>([]),[bulkBusy,setBulkBusy]=useState(false);
-  const [selectedProjects,setSelectedProjects]=useState<string[]>([]);
+  const projectBulk=useBulkSelection({limit:BATCH_LIMITS.projects,noun:'proyectos'});
   useEffect(()=>{try{setClientView(localStorage.getItem('scale:client-view')==='grid'?'grid':'list');}catch{/* Optional UI preference. */}},[]);
   useEffect(()=>{try{setProjectView(localStorage.getItem('scale:project-view')==='list'?'list':'grid');}catch{/* Optional UI preference. */}},[]);
   function changeClientView(value:string){setClientView(value);try{localStorage.setItem('scale:client-view',value);}catch{/* Optional UI preference. */}}
@@ -678,24 +678,12 @@ export default function Home() {
     if(selectedClients.length>=BATCH_LIMITS.clients){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.clients} clientes. Quitá alguno para sumar otro.`});return;}
     setSelectedClients(current=>[...current,id]);
   }
-  function toggleProjectSelected(id:string){
-    if(selectedProjects.includes(id)){setSelectedProjects(current=>current.filter(value=>value!==id));return;}
-    if(selectedProjects.length>=BATCH_LIMITS.projects){notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.projects} proyectos. Quitá alguno para sumar otro.`});return;}
-    setSelectedProjects(current=>[...current,id]);
-  }
   function selectVisibleClients(){
     const ids=liveClients.map(client=>String(client.id));
     if(ids.length>0&&ids.every(id=>selectedClients.includes(id))){setSelectedClients(current=>current.filter(id=>!ids.includes(id)));return;}
     const {selection,capped}=limitSelection([...selectedClients,...ids],BATCH_LIMITS.clients);
     setSelectedClients(selection);
     if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.clients} clientes: se seleccionaron los primeros ${BATCH_LIMITS.clients}.`});
-  }
-  function selectVisibleProjects(){
-    const ids=liveProjects.map(project=>String(project.id));
-    if(ids.length>0&&ids.every(id=>selectedProjects.includes(id))){setSelectedProjects(current=>current.filter(id=>!ids.includes(id)));return;}
-    const {selection,capped}=limitSelection([...selectedProjects,...ids],BATCH_LIMITS.projects);
-    setSelectedProjects(selection);
-    if(capped)notify({tone:'warning',message:`El lote admite hasta ${BATCH_LIMITS.projects} proyectos: se seleccionaron los primeros ${BATCH_LIMITS.projects}.`});
   }
   // El lote de clientes informa el resultado real: cuántos entraron y si la
   // lista se pudo refrescar. Un fallo del API se propaga para que el diálogo de
@@ -718,18 +706,18 @@ export default function Home() {
     finally{setBulkBusy(false);}
   }
   async function batchProjects(archived:boolean){
-    if(bulkBusy||!selectedProjects.length)return;
+    if(bulkBusy||!projectBulk.count)return;
     setBulkBusy(true);
     try{
-      const data=await request<{updated:number}>('/api/agency/projects/batch',{method:'POST',body:JSON.stringify({ids:selectedProjects,archived})});
-      const total=data.updated??selectedProjects.length;
-      setSelectedProjects([]);await load();
+      const data=await request<{updated:number}>('/api/agency/projects/batch',{method:'POST',body:JSON.stringify({ids:projectBulk.ids,archived})});
+      const total=data.updated??projectBulk.count;
+      projectBulk.clear();await load();
       notify({tone:'success',message:archived?`${total} proyecto${total===1?'':'s'} archivado${total===1?'':'s'}.`:`${total} proyecto${total===1?'':'s'} reactivado${total===1?'':'s'}.`});
     }catch(cause){setToast(cause instanceof Error?cause.message:'No se pudo actualizar el lote de proyectos.');}
     finally{setBulkBusy(false);}
   }
   function projectEntry(project:Project){
-    return <ProjectCard key={project.id} project={project} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={selectedProjects.includes(String(project.id))} onSelect={()=>toggleProjectSelected(String(project.id))}>
+    return <ProjectCard key={project.id} project={project} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={projectBulk.has(String(project.id))} onSelect={()=>projectBulk.toggle(String(project.id))}>
       <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
       {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
@@ -750,7 +738,7 @@ export default function Home() {
     const pieces=Number(project.work_order_count||0);
     return <>
       <span className="flex min-w-0 items-center gap-2">
-        {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={selectedProjects.includes(String(project.id))} onChange={()=>toggleProjectSelected(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
+        {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
         <span className="flex min-w-0 items-baseline gap-1.5">
           <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={project.name}>{project.name}</b>
           <small className="min-w-0 truncate text-[11px] text-mute" title={client?.name||'Sin cliente'}>· {client?.name||'Sin cliente'}</small>
@@ -1147,7 +1135,7 @@ export default function Home() {
         {active==='Producción'&&<ProduccionSection identityLoading={identityLoading} productionView={productionView} changeProductionView={changeProductionView} preferences={preferences} clients={clients} selectedProductionClient={selectedProductionClient} setProductionClientId={setProductionClientId} preferencesReady={preferencesReady} setProductionFiltersDialogScope={setProductionFiltersDialogScope} preferenceScope={preferenceScope} hasProductionFilters={hasProductionFilters} productionClientId={productionClientId} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences} createOrder={canCreateRecord('Producción')?()=>setModal('order'):undefined} productionOrders={productionOrders} orders={orders} projects={projects} user={user} setActive={setActive} setDetail={setDetail} draggedOrderId={draggedOrderId} setDraggedOrderId={setDraggedOrderId} onDragEnd={onDragEnd} load={load}/>}
         {active==='Mora'&&<MoraSection user={user} paymentStatuses={paymentStatuses} moraState={moraState} onRetry={()=>setMoraReload(value=>value+1)} moraFilter={moraFilter} setMoraFilter={setMoraFilter} moraSearch={moraSearch} setMoraSearch={setMoraSearch} moraUpdated={moraUpdated} moraReportsError={moraReportsError} moraDso={moraDso} onCreateInvoice={openInvoice}/>}
         {active==='Clientes'&&<ClientesSection dataState={shellDataState} user={user} clientView={clientView} clientStatusFilter={clientStatusFilter} setClientStatusFilter={setClientStatusFilter} clientSearch={clientSearch} setClientSearch={setClientSearch} archiveBusy={archiveBusy} bulkBusy={bulkBusy} selectedClients={selectedClients} setSelectedClients={setSelectedClients} canSeeBilling={canSeeBilling} canManageClients={canManageClients} clients={clients} displayedClients={displayedClients} liveClients={liveClients} archivedClients={archivedClients} paymentStatuses={paymentStatuses} clientHubStats={clientHubStats} commercialSummary={commercialSummary} commercialState={commercialState} directoryKpis={directoryKpis} cobrosKpis={cobrosKpis} load={load} setClientArchive={setClientArchive} toggleClientSelected={toggleClientSelected} selectVisibleClients={selectVisibleClients} batchClients={batchClients} setDetail={setDetail} onCreate={()=>setModal('client')}/>}
-        {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectRow={projectRowEntry} projectView={projectView} selectedProjects={selectedProjects} setSelectedProjects={setSelectedProjects} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} selectVisibleProjects={selectVisibleProjects} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}
+        {active==='Proyectos'&&<ProyectosSection setToast={setToast} bulkBusy={bulkBusy} projectRow={projectRowEntry} projectView={projectView} bulk={projectBulk} projectsState={projectsState} canManageProjects={canManageProjects} clients={clients} projects={projects} projectClientFilter={projectClientFilter} setProjectClientFilter={setProjectClientFilter} projectKpis={projectKpis} visibleProjects={visibleProjects} liveProjects={liveProjects} archivedProjects={archivedProjects} load={load} batchProjects={batchProjects} projectEntry={projectEntry} createProject={canCreateRecord('Proyectos')?()=>setModal('project'):undefined}/>}
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} windowState={budgetsWindow} onLoadMore={loadMoreBudgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={()=>loadBudgets()} setBudgets={setBudgets} onCreate={()=>setModal('budget')}/>}
         {active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>}
         {active==='Finanzas'&&<FinanzasSection user={user} navigate={setActive} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} paymentHasMore={paymentHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} loadAllPayments={loadAllPayments} setModal={setModal} openPayment={openPayment} setToast={setToast}/>}
