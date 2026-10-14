@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mutationFeedback} from '../app/feedback';
+import {mutationFeedback,stackFeedback} from '../app/feedback';
 assert.equal(mutationFeedback('/api/agency/clients','GET',null,{}),null);
 assert.equal(mutationFeedback('/api/auth/login','POST',{},{}),null);
 assert.equal(mutationFeedback('/api/agency/collaborators/1','PATCH',{photo_url:'data:image/webp;base64,x'},{} )?.message,'Foto guardada correctamente.');
@@ -12,4 +12,14 @@ assert.ok(mutationFeedback('/api/agency/payments','POST',{}, {alreadyRecorded:tr
 assert.equal(mutationFeedback('/api/agency/work-orders/3','PATCH',{status:'editing'}, {})?.message,'Tarjeta movida y guardada.');
 assert.equal(mutationFeedback('/api/agency/payouts','POST',{}, {})?.message,'Pago registrado y descontado de la cuenta.');
 assert.equal(mutationFeedback('/api/agency/leads/7/convert','POST',{}, {clientId:'9'})?.message,'Cliente creado y vinculado a la oportunidad.','convertir una oportunidad dice qué pasó, no un «cambios guardados» genérico');
+type Item={message:string;tone:'success'|'error'|'warning';source?:'mutation';id:number};
+let stack:Item[]=[];
+stack=stackFeedback(stack,{message:'Cambios guardados correctamente.',tone:'success',source:'mutation',id:1});
+stack=stackFeedback(stack,{message:'Espacio guardado.',tone:'success',id:2});
+assert.deepEqual(stack.map(item=>item.message),['Espacio guardado.'],'el aviso propio de la pantalla reemplaza al genérico del mismo guardado');
+stack=stackFeedback(stack,{message:'No se pudo guardar.',tone:'error',source:'mutation',id:3});
+stack=stackFeedback(stack,{message:'Otro aviso.',tone:'success',id:4});
+assert.deepEqual(stack.map(item=>item.message),['Espacio guardado.','No se pudo guardar.','Otro aviso.'],'los errores no se descartan');
+stack=stackFeedback(stack,{message:'Otro aviso.',tone:'success',id:5});
+assert.equal(stack.filter(item=>item.message==='Otro aviso.').length,1,'un mismo texto no se apila dos veces');
 console.log('PASS: 12 notification cases: saved photo/removal, invitations, archive, finance, drag movement, lead conversion; reads/auth are quiet');
