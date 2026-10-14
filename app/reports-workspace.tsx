@@ -73,7 +73,7 @@ function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
  if(!currency||!series.length)return null;
  const biggest=biggestDecimal(series);
  const heightOf=(value:Decimal|null)=>chartBarPercent(value,biggest);
- return <div className="reports-chart overflow-x-auto rounded-lg border border-ink-600 bg-ink-900/40 px-3 py-3" role="img" aria-label={`Facturado y cobrado mensual en ${currency}`}>
+ return <div className="reports-chart overflow-x-auto rounded-lg border border-ink-600 bg-ink-900/40 px-3 py-3" tabIndex={0} role="img" aria-label={`Facturado y cobrado mensual en ${currency}`}>
   <div className="flex min-w-[320px] items-end gap-2 pb-1 sm:min-w-full">
    {series.map(row=><figure className="flex min-w-9 flex-1 flex-col items-center gap-1.5" key={row.month}>
     <div className="flex h-[120px] items-end justify-center gap-[3px]">

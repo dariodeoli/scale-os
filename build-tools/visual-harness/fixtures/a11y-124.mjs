@@ -34,7 +34,7 @@ const FILA = (contenido) => `<div class="flex flex-wrap items-center gap-2">${co
 const riel = `
 <div class="overflow-hidden rounded-xl border border-ink-600">
  <aside class="desktop-sidebar !flex !h-auto !w-full flex-col !p-3" style="background:linear-gradient(180deg,rgb(46 0 56) 0%,rgb(37 0 47) 100%)">
-  <span class="workspace-brand" aria-label="Scale OS" style="display:inline-flex;align-items:center;gap:9px"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>
+  <span class="workspace-brand" role="img" aria-label="Scale OS" style="display:inline-flex;align-items:center;gap:9px"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>
   <nav class="mt-3 grid gap-1" aria-label="Menú principal">
    <button type="button" class="active flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none" style="background:rgb(255 255 255 / .14);color:#fff">Centro de control</button>
    <button type="button" class="flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold leading-none" style="color:rgb(255 255 255 / .78)">Clientes</button>

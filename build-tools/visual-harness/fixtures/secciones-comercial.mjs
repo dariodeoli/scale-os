@@ -27,7 +27,8 @@ const kpi = (text, value, hint, destacado = false) => `<div class="relative over
 const kpiStrip = (children) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Métricas">${children}</div>`;
 const kpiStrip3 = (children) => `<div class="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Métricas de crecimiento">${children}</div>`;
 const stateChip = (tone, text) => {
-  const colors = {ok: 'bg-ok/15 text-ok border-ok/40', warn: 'bg-warn/15 text-warn border-warn/40', bad: 'bg-bad/15 text-bad border-bad/40', info: 'bg-info/15 text-info border-info/40', mute: 'bg-ink-600 text-mute border-ink-500'};
+  // Badge de owncoding-ui (StateChip → CHIP_COLOR): texto *-text sobre el tinte (AA).
+  const colors = {ok: 'bg-ok/15 text-ok-text border-ok/25', warn: 'bg-warn/15 text-warn-text border-warn/25', bad: 'bg-bad/15 text-bad-text border-bad/25', info: 'bg-fono/15 text-fono-text border-fono/25', mute: 'bg-ink-600 text-mute border-ink-500'};
   return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${colors[tone]}">${text}</span>`;
 };
 const button = (text, variant = 'primary') => `<button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition md:h-9 ${variant === 'primary' ? 'bg-fono text-onbrand hover:bg-fono-light' : 'border border-ink-500 text-fore hover:border-fono hover:bg-fono/10'}">${text}</button>`;

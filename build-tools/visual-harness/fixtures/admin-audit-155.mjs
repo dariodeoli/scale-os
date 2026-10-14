@@ -15,7 +15,7 @@ const I = {
   back: icon('<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>', 14),
   refresh: icon('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>'),
 };
-const brand = '<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>';
+const brand = '<span class="workspace-brand" role="img" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>';
 const chip = (text, tone = 'mute', title = '') => {
   const tones = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
   return `<span class="badge badge-${tones[tone] || 'slate'} whitespace-nowrap"${title ? ` title="${title}"` : ''}>${text}</span>`;

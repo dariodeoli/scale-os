@@ -188,9 +188,11 @@ const clientCard = (client) => h(Card, {key: client.name, className: 'flex min-h
 const clientsGrid = h('div', {className: 'grid gap-3 md:grid-cols-2 xl:grid-cols-3', 'data-grid': 'clientes-v2'}, clients.map(clientCard));
 
 /* ── Configuración (arquetipo ajustes) ────────────────────────────────────── */
+// FormField de la app: Label htmlFor + id en el control.
+const fieldId = (label) => `v2-config-${label.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-')}`;
 const settingsField = (label, value, control) => h('div', {key: label, className: 'grid gap-1.5'},
-  h(Label, null, label),
-  control || h(Input, {defaultValue: value, readOnly: true}));
+  h(Label, {htmlFor: fieldId(label)}, label),
+  control ? React.cloneElement(control, {id: fieldId(label)}) : h(Input, {id: fieldId(label), defaultValue: value, readOnly: true}));
 
 const settingsPage = h('div', {className: 'grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]'},
   h('div', {className: 'grid min-w-0 content-start gap-4'},
@@ -198,7 +200,7 @@ const settingsPage = h('div', {className: 'grid gap-6 lg:grid-cols-[minmax(0,1.6
       h('div', null, h('h2', {className: 'text-[17px] font-semibold tracking-tight text-fore'}, 'Empresa'), h('p', {className: 'mt-1 text-xs text-mute'}, 'Datos que identifican a esta empresa y valores predeterminados para nuevos formularios.')),
       h('div', {className: 'grid gap-4 sm:grid-cols-2'},
         settingsField('Nombre de la empresa', 'Estudio de Comunicación y'),
-        h('div', {key: 'currency', className: 'grid gap-1.5'}, h(Label, null, 'Moneda predeterminada'), h(Select, {defaultValue: 'PYG'}, h('option', {value: 'PYG'}, 'Guaraníes (PYG)'), h('option', {value: 'USD'}, 'Dólares (USD)'))),
+        h('div', {key: 'currency', className: 'grid gap-1.5'}, h(Label, {htmlFor: 'v2-config-moneda'}, 'Moneda predeterminada'), h(Select, {id: 'v2-config-moneda', defaultValue: 'PYG'}, h('option', {value: 'PYG'}, 'Guaraníes (PYG)'), h('option', {value: 'USD'}, 'Dólares (USD)'))),
         settingsField('Razón social', 'Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.'),
         settingsField('RUC', '80012345-6'),
         settingsField('Teléfono', '+595 981 123 456'),

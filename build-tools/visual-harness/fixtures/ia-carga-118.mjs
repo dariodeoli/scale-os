@@ -37,7 +37,7 @@ const selectCategoria = (label, seleccionada, opciones) => `
 <div class="ops-select"><span class="ops-label">${label}</span><button type="button" class="ops-select-trigger" aria-haspopup="listbox" aria-expanded="false"><span>${seleccionada}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
 <p class="text-[11px] text-mute">${opciones}</p>`;
 
-const CARD = (contenido, off = false) => `<article class="grid gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3.5 transition${off ? ' opacity-70' : ''}" data-off="${off}">${contenido}</article>`;
+const CARD = (contenido, off = false) => `<article class="grid gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-3.5 transition${off ? ' border-dashed bg-ink-900/50' : ''}" data-off="${off}">${contenido}</article>`;
 const cardHead = (titulo, estado, checked) => `<header class="flex min-w-0 items-start justify-between gap-3"><div class="grid min-w-0 gap-1"><h4 class="min-w-0 truncate text-[13.5px] font-semibold text-fore" title="${titulo}">${titulo}</h4><p class="flex flex-wrap items-center gap-2 text-[11px] text-mute"><span class="inline-flex items-center whitespace-nowrap rounded-full bg-ink-700 px-2 py-0.5 text-[10px] font-semibold text-mute">Nuevo</span><span>${estado}</span></p></div>${checkbox(checked)}</header>`;
 const gridCampos = (campos) => `<div class="grid gap-2 sm:grid-cols-2">${campos.join('')}</div>`;
 
@@ -76,7 +76,7 @@ const cuerpoRevision = `
      campo('Nombre', 'María Fernanda González', {maxLength: 120}),
      campo('Empresa / razón social', 'Constructora Sur S.A.', {maxLength: 160}),
      campo('RUC / C.I.', '80012345-6', {maxLength: 60}),
-     `<div><span class="ops-label">Teléfono</span><span class="phone-input grid grid-cols-[minmax(94px,.42fr)_minmax(0,1fr)] gap-2"><select class="px-2" aria-label="Código de país"><option>+595</option></select>${inputPlano('981 123 456')}</span></div>`,
+     `<div><label class="ops-label" for="ia-maria-telefono">Teléfono</label><span class="phone-input grid grid-cols-[minmax(94px,.42fr)_minmax(0,1fr)] gap-2"><select class="px-2" aria-label="Código de país"><option>+595</option></select>${inputPlano('981 123 456', 'id="ia-maria-telefono"')}</span></div>`,
      campo('Correo', 'maria@constructorasur.com.py', {maxLength: 200}),
    ])}`)}
   ${CARD(`${cardHead('Juan Pérez', 'Descartado', false)}

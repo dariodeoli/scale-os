@@ -22,7 +22,14 @@ const sized = (base, extra) => `${base.replace('w-full ', '')} ${extra}`;
 const button = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold transition h-11 md:h-9 text-sm bg-fono text-onbrand hover:bg-fono-light';
 const buttonOutline = 'inline-flex items-center justify-center gap-2 rounded-lg px-4 font-semibold transition h-11 md:h-9 text-sm border border-ink-500 bg-transparent text-fore hover:border-fono hover:bg-fono/10';
 
-const field = (text, control) => `<div class="grid gap-1"><label class="${label}">${text}</label>${control}</div>`;
+// FormField de la app: `label htmlFor` + `id` en el control (los ids se numeran
+// porque el mismo formulario se repite en varios fixtures del documento).
+let fieldSeq = 0;
+const field = (text, control) => {
+  const id = `ficha-campo-${++fieldSeq}`;
+  const linked = control.replace(/<(input|select|textarea)\b(?![^>]*\sid=)/, `<$1 id="${id}"`);
+  return `<div class="grid gap-1"><label class="${label}" for="${id}">${text}</label>${linked}</div>`;
+};
 
 /* app/ui-v2.tsx MoneyText: misma celda de dinero v2 que el JSX real. */
 const moneyText = (text, extra = '') => `<span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums${extra ? ` ${extra}` : ''}">${text}</span>`;
@@ -145,7 +152,7 @@ const composerSheet = `
       ${field('Descripción', `<input class="${input}" value="Producción audiovisual integral: dirección creativa, rodaje en locación de tres jornadas, edición, color y mezcla final">`)}
       <div class="flex flex-wrap gap-3">
        ${field('Cantidad', `<input class="${sized(input, 'w-24 tabular-nums')}" inputmode="decimal" value="12">`)}
-       <div class="grid gap-1"><label class="${label}">Precio sin IVA</label><div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">Gs.</span><input class="${sized(input, 'w-44 pl-12 tabular-nums')}" inputmode="numeric" value="102.880.658"></div></div>
+       ${field('Precio sin IVA', `<div class="relative"><span class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-mute">Gs.</span><input class="${sized(input, 'w-44 pl-12 tabular-nums')}" inputmode="numeric" value="102.880.658"></div>`)}
       </div>
       <div class="flex flex-wrap gap-2"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute transition hover:bg-ink-700 hover:text-fore md:h-9">Subir</button><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute transition hover:bg-ink-700 hover:text-fore md:h-9">Bajar</button><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-bad transition hover:bg-bad/10 md:h-9">Quitar</button></div>
      </div>
