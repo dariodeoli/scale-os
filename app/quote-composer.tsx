@@ -129,7 +129,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    <div className="grid gap-4">
     <div className="flex flex-wrap items-end gap-3">
      <div className="w-24"><FormField label="IVA" htmlFor="quote-tax"><Select id="quote-tax" value={String(Number(v.tax_rate))} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>form.setValue('tax_rate',event.target.value,{shouldDirty:true})}>{TAX_RATE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
-     {mode!=='plan'&&<div className="w-40"><FormField label="Válido hasta" htmlFor="quote-valid-until"><Input id="quote-valid-until" type="date" {...form.register('valid_until')}/></FormField></div>}
+     {mode!=='plan'&&<div className="w-full max-w-44 min-w-0"><FormField label="Válido hasta" htmlFor="quote-valid-until"><Input id="quote-valid-until" type="date" {...form.register('valid_until')}/></FormField></div>}
     </div>
     {mode!=='plan'&&<section className="grid gap-3" aria-label="Secciones del documento">
      <div><h3 className="text-sm font-bold text-fore">Secciones del documento</h3><p className="mt-1 text-xs leading-5 text-mute">Arrastrá o usá Subir/Bajar. Detalle y totales son obligatorios; podés ocultar las otras secciones.</p></div>
