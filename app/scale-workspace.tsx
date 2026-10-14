@@ -47,7 +47,7 @@ import './suite.css';
 import {RecordEditor} from './suite';
 import {AssignedPeople} from './assigned-people';
 import {listDateShort,dueTone} from './list-format';
-import {PageTitleContext,StateChip,ViewSwitch} from './ui-v2';
+import {PageChromeContext,PageTitleContext,StateChip,ViewSwitch} from './ui-v2';
 import {TabScroller} from './tab-scroller';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
@@ -945,7 +945,11 @@ export default function Home() {
         </div>
       </div>
     );
+  // Secciones con `ListPage` (#185 F1): ellas dibujan su encabezado (con la acción
+  // primaria) y los apartados, así que el shell no repite ninguno de los dos.
+  const ownsHeader = ['Presupuestos','Planes','Producción','Inventario'].includes(active);
   const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
+  const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
   if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
@@ -1084,8 +1088,9 @@ export default function Home() {
           </div>
         </div>
         <PageTitleContext.Provider value={pageTitle}>
+        <PageChromeContext.Provider value={ownsHeader?sectionTabs:null}>
         <div className="workspace-content flex min-w-0 flex-1 flex-col">
-        <header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1">
+        {!ownsHeader&&<header className="workspace-page-header mb-4 flex flex-wrap items-start justify-between gap-4 max-md:grid max-md:grid-cols-1">
           {active==='Clientes' ? <ClientDirectoryToolbar
             loading={shellDataState==='loading'}
             canCreate={['owner','admin','management','sales','finance','collaborator'].includes(user?.role||'')}
@@ -1107,26 +1112,22 @@ export default function Home() {
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
               {active==='Proyectos'&&<div className="workspace-view-controls"><ViewSwitch value={projectView as 'list'|'grid'} onChange={changeProjectView}/></div>}
-              {(['Proyectos','Resumen','Producción','Presupuestos'].includes(active)&&canCreateRecord(active)) && (
+              {(['Proyectos','Resumen'].includes(active)&&canCreateRecord(active)) && (
                 <button
                   className="primary"
                   onClick={() =>
                     setModal(
-                      active === "Proyectos"
-                        ? "project"
-                          : active === "Presupuestos"
-                            ? "budget"
-                            : "order",
+                      active === "Proyectos" ? "project" : "order",
                     )
                   }
                 >
-                  <Plus size={18} /> {active==='Proyectos'?'Nuevo proyecto':active==='Presupuestos'?'Nuevo presupuesto':'Nueva orden'}
+                  <Plus size={18} /> {active==='Proyectos'?'Nuevo proyecto':'Nueva orden'}
                 </button>
               )}
             </div>
           </>}
-        </header>
-        {active!=='Sin acceso'&&childSections(active).length>1&&<TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller>}
+        </header>}
+        {!ownsHeader&&sectionTabs}
         {active==='Sin acceso'&&<SinAccesoSection/>}
         {active==='Equipo'&&<EquipoSection user={user}/>}
         {active==='Roles y permisos'&&<PermisosSection user={user}/>}
@@ -1153,6 +1154,7 @@ export default function Home() {
         {active==='Previsión'&&<PrevisionSection user={user} navigate={setActive} onCreateInvoice={openInvoice}/>}
         <div className="mt-auto pt-6"><WorkspaceFooter/></div>
         </div>
+        </PageChromeContext.Provider>
         </PageTitleContext.Provider>
       </section>
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}

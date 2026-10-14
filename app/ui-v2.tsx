@@ -13,7 +13,7 @@ import {X} from 'lucide-react';
 import {currencyChoices} from './currencies';
 export {useBulkSelection,type BulkSelection,type BulkSelectionOptions} from './bulk-selection';
 import {money} from './operations';
-import {createContext,useContext,useEffect,useRef,useState,type ChangeEvent,type HTMLAttributes,type KeyboardEvent,type ReactNode} from 'react';
+import {createContext,useContext,useEffect,useRef,useState,type ChangeEvent,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -493,10 +493,10 @@ export const PageChromeContext = createContext<ReactNode>(null);
  * + apartados + `toolbar` (filtros) + `kpis` + `bulk` (barra de lote) +
  * contenido. Cada slot es opcional; los textos y datos los aporta la pantalla.
  */
-export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis, bulk, children, className, ...props}: {title?: string; eyebrow?: string; subtitle?: ReactNode; primaryAction?: ReactNode; toolbar?: ReactNode; kpis?: ReactNode; bulk?: ReactNode; children?: ReactNode; className?: string} & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
+export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis, bulk, children, className, rootRef, ...props}: {rootRef?: Ref<HTMLElement>; title?: string; eyebrow?: string; subtitle?: ReactNode; primaryAction?: ReactNode; toolbar?: ReactNode; kpis?: ReactNode; bulk?: ReactNode; children?: ReactNode; className?: string} & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
   const pageTitle = useContext(PageTitleContext);
   const tabs = useContext(PageChromeContext);
-  return <section data-list-page className={`grid min-w-0 gap-4 ${className ?? ''}`} {...props}>
+  return <section ref={rootRef} data-list-page className={`grid min-w-0 gap-4 ${className ?? ''}`} {...props}>
     <div className="grid gap-3">
       <PageTitleContext.Provider value="">
         <PageHeader eyebrow={eyebrow} title={title ?? pageTitle} subtitle={subtitle} actions={primaryAction} className="!mb-0"/>
